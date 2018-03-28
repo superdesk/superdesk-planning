@@ -30,7 +30,8 @@ export class CoverageFormHeader extends React.Component {
             desks,
             coverageProviders,
             priorities,
-            currentWorkspace
+            currentWorkspace,
+            readOnly
         } = this.props;
 
         const userAssigned = getCreator(value, 'assigned_to.user', users);
@@ -59,7 +60,7 @@ export class CoverageFormHeader extends React.Component {
                                 </span>
                             </span>
                         </ListRow>
-                        {!cancelled && (<ListRow>
+                        {!cancelled && !readOnly && (<ListRow>
                             <Button
                                 text={gettext('Assign')}
                                 tabIndex={0}
@@ -131,7 +132,7 @@ export class CoverageFormHeader extends React.Component {
                         </ListRow>
                     }
                 </Column>
-                {planningUtils.isCoverageDraft(value) && (
+                {planningUtils.isCoverageDraft(value) && !readOnly && (
                     <Column>
                         <Button
                             text={gettext('Reassign')}
@@ -170,5 +171,6 @@ CoverageFormHeader.propTypes = {
     desks: PropTypes.array,
     coverageProviders: PropTypes.array,
     priorities: PropTypes.array,
-    currentWorkspace: PropTypes.string
+    currentWorkspace: PropTypes.string,
+    readOnly: PropTypes.bool,
 };
