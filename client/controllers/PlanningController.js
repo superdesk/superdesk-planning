@@ -29,7 +29,13 @@ export function PlanningController(
     pageTitle,
     gettext
 ) {
+    const prevFlags = {
+        workqueue: superdeskFlags.flags.workqueue,
+        authoring: superdeskFlags.flags.authoring
+    };
+
     pageTitle.setUrl(gettext('Planning'));
+
     sdPlanningStore.getStore()
         .then((store) => {
             store.dispatch(actions.initStore(WORKSPACE.PLANNING));
@@ -49,12 +55,17 @@ export function PlanningController(
                         // Unmount the React application
                         ReactDOM.unmountComponentAtNode($element.get(0));
                         store.dispatch(actions.resetStore());
+                        superdeskFlags.flags.workqueue = prevFlags.workqueue;
+                        superdeskFlags.flags.authoring = prevFlags.authoring;
                     });
 
                     $scope.$watch(
                         () => $route.current,
                         (route) => {
-                            superdeskFlags.flags.workqueue = !route.href.startsWith('/planning');
+                            if (route.href.startsWith('/planning')) {
+                                superdeskFlags.flags.workqueue = false;
+                                superdeskFlags.flags.authoring = false;
+                            }
                         }
                     );
 
