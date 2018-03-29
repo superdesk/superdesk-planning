@@ -26,6 +26,8 @@ const getActionDispatches = (dispatch) => {
             actions.events.ui.convertToRecurringEvent,
         [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]:
             actions.events.ui.openRepetitionsModal,
+        [EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName]:
+            actions.main.lockAndEdit,
 
         // Planning Item Actions
         [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
@@ -40,6 +42,8 @@ const getActionDispatches = (dispatch) => {
             actions.planning.ui.openCancelAllCoverageModal,
         [PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName]:
             actions.events.ui.createEventFromPlanning,
+        [PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName]:
+            actions.main.lockAndEdit,
     };
     const props = {};
     const addAction = (action) => {

@@ -184,6 +184,8 @@ export const getPlanningItemActions = (plan, event = null, session, privileges, 
             canCancelAllCoverage(plan, event, session, privileges, locks),
         [PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.label]: () =>
             canAddAsEvent(plan, event, session, privileges, locks),
+        [PLANNING.ITEM_ACTIONS.EDIT_PLANNING.label]: () =>
+            canEditPlanning(plan, event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: () =>
             !isPlanAdHoc(plan) && eventUtils.canCancelEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: () =>
@@ -282,6 +284,13 @@ const getPlanningActions = (item, event, session, privileges, lockedItems, callB
         case PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName:
             actions.push({
                 ...PLANNING.ITEM_ACTIONS.ADD_AS_EVENT,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName:
+            actions.push({
+                ...PLANNING.ITEM_ACTIONS.EDIT_PLANNING,
                 callback: callBacks[callBackName].bind(null, item)
             });
             break;

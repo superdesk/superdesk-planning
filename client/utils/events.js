@@ -299,7 +299,9 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
         [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: () =>
             canConvertToRecurringEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.label]: () =>
-            canUpdateEventRepetitions(event, session, privileges, locks)
+            canUpdateEventRepetitions(event, session, privileges, locks),
+        [EVENTS.ITEM_ACTIONS.EDIT_EVENT.label]: () =>
+            canEditEvent(event, session, privileges, locks)
     };
 
     actions.forEach((action) => {
@@ -432,6 +434,14 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks, with
             callBacks[callBackName] &&
                 actions.push({
                     ...EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS,
+                    callback: callBacks[callBackName].bind(null, item)
+                });
+            break;
+
+        case EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName:
+            callBacks[callBackName] &&
+                actions.push({
+                    ...EVENTS.ITEM_ACTIONS.EDIT_EVENT,
                     callback: callBacks[callBackName].bind(null, item)
                 });
             break;
