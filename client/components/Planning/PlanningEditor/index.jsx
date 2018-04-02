@@ -158,10 +158,14 @@ export class PlanningEditorComponent extends React.Component {
         }
 
         if (field.match(/coverages\[/)) {
+            const {newsCoverageStatus} = this.props;
+
             // If there is an assignment and coverage status not planned,
             // change it to 'planned'
-            if (get(value, 'news_coverage_status.qcode') !== this.props.newsCoverageStatus[0].qcode &&
-                !!get(value, 'assigned_to.desk')) {
+            if (newsCoverageStatus.length > 0
+                && get(value, 'news_coverage_status.qcode') !== newsCoverageStatus[0].qcode
+                && !!get(value, 'assigned_to.desk')
+            ) {
                 valueToUpdate = {
                     ...value,
                     news_coverage_status: this.props.newsCoverageStatus[0]

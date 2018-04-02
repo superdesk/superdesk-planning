@@ -18,6 +18,7 @@ from apps.archive.common import get_user
 from superdesk.errors import SuperdeskApiError
 from superdesk.celery_app import celery
 from planning.common import WORKFLOW_STATE
+from superdesk.emails import send_email
 
 try:
     from slackclient import SlackClient
@@ -34,7 +35,7 @@ class PlanningNotifications():
     """
 
     def notify_assignment(self, coverage_status=None, target_user=None,
-                          target_desk=None, target_desk2=None, message='', **data):
+                          target_desk=None, target_desk2=None, message='', meta_message='', **data):
         """
         Send notification to the client regarding the changes in assigment detals
 
@@ -43,6 +44,7 @@ class PlanningNotifications():
         :param target_desk: Target the users of this desk
         :param target_desk2: Target the union of the users of this desk and the target_desk
         :param message: The message text template
+        :param meta_message: The template message with additional information
         :param data: The parameters for the message template
         :return:
         """
@@ -74,6 +76,10 @@ class PlanningNotifications():
             args = {'token': app.config.get('SLACK_BOT_TOKEN'), 'target_user': target_user, 'target_desk': target_desk,
                     'target_desk2': target_desk2, 'message': _get_slack_message_string(message, data)}
             self._notify_slack.apply_async(kwargs=args)
+
+        # send email notification to user
+        args = {'target_user': target_user, 'message': _get_email_message_string(message, meta_message, data)}
+        self._notify_email.apply_async(kwargs=args)
 
     def user_update(self, updates, original):
         """
@@ -115,6 +121,10 @@ class PlanningNotifications():
         if target_desk2 is not None:
             _send_to_slack_desk_channel(sc, target_desk2, message)
 
+    @celery.task(bind=True)
+    def _notify_email(self, target_user, message):
+        _send_user_email(target_user, message)
+
 
 def _get_slack_client(token):
     return SlackClient(token=token)
@@ -153,6 +163,53 @@ def _get_slack_message_string(message, data):
     if data.get('omit_user', False):
         return template.render(data)
     return template.render(data) + ' by ' + user.get('display_name', 'Unknown')
+
+
+def _get_email_message_string(message, meta_message, data):
+    """
+    Render the message to a string, the user that instigated the message is appended to the message
+
+    :param message:
+    :param meta_message:
+    :param data:
+    :return: The message with the data applied
+    """
+    template_string = Template(message).render(data)
+    template_meta_string = Template(meta_message).render(data)
+
+    return template_string + '<br><br>' + template_meta_string
+
+
+def _send_user_email(user_id, message):
+    """
+    Send a notification to the user email
+
+    :param user_id:
+    :param message:
+    :return:
+    """
+    user = superdesk.get_resource_service('users').find_one(req=None, _id=user_id)
+    if not user:
+        return
+
+    # Check if the user has email notifications enabled
+    preferences = superdesk.get_resource_service('preferences').get_user_preference(user.get('_id'))
+    email_notification = preferences.get('email:notification', {}) if isinstance(preferences, dict) else {}
+
+    if not email_notification.get('enabled', False):
+        return
+
+    user_email = user.get('email')
+    if not user_email:
+        return
+
+    admins = app.config['ADMINS']
+
+    send_email(subject='Superdesk assignment',
+               sender=admins[0],
+               recipients=[user_email],
+               text_body=message,
+               html_body=message)
 
 
 def _send_to_slack_user(sc, user_id, message):
