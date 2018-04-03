@@ -2,7 +2,7 @@ import React from 'react';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import {defer} from 'lodash';
+import {defer, get} from 'lodash';
 import {gettext} from '../../../utils';
 
 import {Menu, Label, Divider, Dropdown as DropMenu} from '../Dropdown';
@@ -55,21 +55,19 @@ export class Dropdown extends React.Component {
             }
         );
 
-        const title = isCreate ? 'Create new item' : this.props.label;
-
         return (
             <DropMenu isOpen={this.state.open} alignRight={this.props.alignRight}>
                 <OverlayTrigger placement="left"
                     overlay={
                         <Tooltip id="create_new_btn">
-                            {gettext(title)}
+                            {gettext(get(this.props, 'tooltip', this.props.label))}
                         </Tooltip>
                     }
                 >
                     <button
                         ref={(btn) => this.btn = btn}
                         className={buttonClassName}
-                        onClick={this.toggle}>
+                        onClick={this.props.disableSelection ? this.props.defaultAction : this.toggle}>
                         {this.props.icon && (
                             <i className={this.props.icon} />
                         )}
@@ -120,6 +118,8 @@ Dropdown.propTypes = {
         className: PropTypes.string
     })),
     alignRight: PropTypes.bool,
+    disableSelection: PropTypes.bool,
+    defaultAction: PropTypes.func,
 };
 
 Dropdown.defaultProps = {

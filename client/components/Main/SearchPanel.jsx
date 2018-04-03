@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {set, cloneDeep, isEqual} from 'lodash';
-import {gettext} from '../../utils';
+import {gettext, getWorkFlowStateAsOptions} from '../../utils';
 import {Button} from '../UI';
 import {Content, Footer, Header, SidePanel, Tools} from '../UI/SidePanel';
 import {AdvancedSearch} from '../AdvancedSearch';
@@ -65,7 +65,8 @@ export class SearchPanelComponent extends React.Component {
             currentSearch,
             toggleFilterPanel,
             search,
-            isViewFiltered
+            isViewFiltered,
+            workflowStateOptions,
         } = this.props;
 
         const {
@@ -91,7 +92,8 @@ export class SearchPanelComponent extends React.Component {
             timeFormat: timeFormat,
             diff: diff,
             currentSearch: currentSearch,
-            onChange: this.onChangeHandler
+            onChange: this.onChangeHandler,
+            workflowStateOptions: workflowStateOptions || getWorkFlowStateAsOptions(activeFilter)
         };
 
         return (
@@ -137,7 +139,8 @@ SearchPanelComponent.propTypes = {
     timeFormat: PropTypes.string.isRequired,
     search: PropTypes.func,
     clearSearch: PropTypes.func,
-    isViewFiltered: PropTypes.bool
+    isViewFiltered: PropTypes.bool,
+    workflowStateOptions: PropTypes.array,
 };
 
 

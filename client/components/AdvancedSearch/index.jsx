@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {gettext, getWorkFlowStateAsOptions} from '../../utils';
+import {gettext} from '../../utils';
 import {ContentBlock} from '../UI/SidePanel';
 import {MAIN, SPIKED_STATE} from '../../constants';
 import {
@@ -102,7 +102,8 @@ export class AdvancedSearch extends React.Component {
             dateFormat,
             timeFormat,
             diff,
-            onChange
+            onChange,
+            workflowStateOptions
         } = this.props;
 
         // Change spikeState options based on workflow-state selection in the from
@@ -157,7 +158,7 @@ export class AdvancedSearch extends React.Component {
                         field: 'advancedSearch.state',
                         label: gettext('Workflow State'),
                         value: get(diff, 'advancedSearch.state', []),
-                        options: getWorkFlowStateAsOptions(activeFilter)
+                        options: workflowStateOptions,
                     },
                     component: SelectMetaTermsInput
                 },
@@ -364,4 +365,5 @@ AdvancedSearch.propTypes = {
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
+    workflowStateOptions: PropTypes.array,
 };

@@ -59,13 +59,14 @@ export class ListGroupItem extends React.Component {
             session,
             privileges,
             activeFilter,
-            currentWorkspace,
             onMultiSelectClick,
             selectedEventIds,
             selectedPlanningIds,
             itemActions,
             users,
             desks,
+            showAddCoverage,
+            hideItemActions,
         } = this.props;
         const itemType = getItemType(item);
 
@@ -118,9 +119,10 @@ export class ListGroupItem extends React.Component {
             desks: desks,
             agendas: agendas,
             date: date,
-            currentWorkspace: currentWorkspace,
             onAddCoverageClick: onAddCoverageClick,
             multiSelected: indexOf(selectedPlanningIds, item._id) !== -1,
+            showAddCoverage: showAddCoverage,
+            hideItemActions: hideItemActions,
             [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
                 itemActions[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
             [PLANNING.ITEM_ACTIONS.SPIKE.actionName]:
@@ -195,10 +197,11 @@ ListGroupItem.propTypes = {
     activeFilter: PropTypes.string,
     showRelatedPlannings: PropTypes.func,
     relatedPlanningsInList: PropTypes.object,
-    currentWorkspace: PropTypes.string,
     onAddCoverageClick: PropTypes.func,
     onMultiSelectClick: PropTypes.func,
     selectedEventIds: PropTypes.array,
     selectedPlanningIds: PropTypes.array,
     itemActions: PropTypes.object,
+    showAddCoverage: PropTypes.bool,
+    hideItemActions: PropTypes.bool,
 };

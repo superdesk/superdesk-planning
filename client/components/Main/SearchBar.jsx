@@ -12,15 +12,11 @@ export const SearchBar = ({
     value,
     search,
     activeFilter,
-    createPlanningOnly,
-    disableAgendaManagement
+    createPlanningOnly
 }) => (
     <SubNav>
         <SearchBox label="Search planning" value={value} search={search} activeFilter={activeFilter}/>
-        <ActionsSubnavDropdown
-            openAgendas={openAgendas}
-            disableAgendaManagement={disableAgendaManagement}
-        />
+        <ActionsSubnavDropdown openAgendas={openAgendas} />
         <CreateNewSubnavDropdown
             addEvent={addEvent}
             addPlanning={addPlanning}
@@ -37,5 +33,4 @@ SearchBar.propTypes = {
     search: PropTypes.func.isRequired,
     activeFilter: PropTypes.string.isRequired,
     createPlanningOnly: PropTypes.bool,
-    disableAgendaManagement: PropTypes.bool,
 };

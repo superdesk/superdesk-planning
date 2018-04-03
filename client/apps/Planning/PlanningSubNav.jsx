@@ -8,6 +8,7 @@ import * as selectors from '../../selectors';
 import {ITEM_TYPE, TEMP_ID_PREFIX} from '../../constants';
 
 import {SubNavBar, FiltersBar} from '../../components/Main';
+import {ArchiveItem} from '../../components/Archive';
 
 export const PlanningSubNavComponent = ({
     filtersOpen,
@@ -24,9 +25,14 @@ export const PlanningSubNavComponent = ({
     selectAgenda,
     currentAgendaId,
     isViewFiltered,
-    clearSearch
+    clearSearch,
+    withArchiveItem,
+    archiveItem,
+    showFilters,
+    createPlanningOnly,
 }) => (
     <div>
+        {withArchiveItem && <ArchiveItem item={archiveItem} />}
         <SubNavBar
             addEvent={addEvent}
             addPlanning={addPlanning}
@@ -34,9 +40,7 @@ export const PlanningSubNavComponent = ({
             value={fullText}
             search={search}
             activeFilter={activeFilter}
-            createPlanningOnly={false}
-            disableAgendaManagement={false}
-        />
+            createPlanningOnly={createPlanningOnly} />
         <FiltersBar
             filterPanelOpen={filtersOpen}
             toggleFilterPanel={toggleFilterPanel}
@@ -46,7 +50,7 @@ export const PlanningSubNavComponent = ({
             disabledAgendas={disabledAgendas}
             selectAgenda={selectAgenda}
             currentAgendaId={currentAgendaId}
-            showFilters={true}
+            showFilters={showFilters}
             isViewFiltered={isViewFiltered}
             clearSearch={clearSearch}
         />
@@ -69,7 +73,13 @@ PlanningSubNavComponent.propTypes = {
     currentAgendaId: PropTypes.string.isRequired,
     isViewFiltered: PropTypes.bool,
     clearSearch: PropTypes.func,
+    withArchiveItem: PropTypes.bool,
+    showFilters: PropTypes.bool,
+    createPlanningOnly: PropTypes.bool,
+    archiveItem: PropTypes.object,
 };
+
+PlanningSubNavComponent.defaultProps = {showFilters: true};
 
 const mapStateToProps = (state) => ({
     fullText: selectors.main.fullText(state),

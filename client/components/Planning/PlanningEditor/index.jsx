@@ -39,8 +39,6 @@ export class PlanningEditorComponent extends React.Component {
         this.onCancelCoverage = this.onCancelCoverage.bind(this);
         this.onPlanningDateChange = this.onPlanningDateChange.bind(this);
         this.onAddCoverageToWorkflow = this.onAddCoverageToWorkflow.bind(this);
-
-        this.dom = {popupContainer: null};
     }
 
     componentWillMount() {
@@ -256,7 +254,6 @@ export class PlanningEditorComponent extends React.Component {
             priorities,
             keywords,
             addNewsItemToPlanning,
-            currentWorkspace,
             submitFailed,
             dirty,
             errors,
@@ -452,7 +449,6 @@ export class PlanningEditorComponent extends React.Component {
                     onDuplicateCoverage={this.onDuplicateCoverage}
                     onCancelCoverage={this.onCancelCoverage}
                     onAddCoverageToWorkflow={this.onAddCoverageToWorkflow}
-                    currentWorkspace={currentWorkspace}
                     readOnly={readOnly}
                     maxCoverageCount={maxCoverageCount}
                     addOnly={!!addNewsItemToPlanning}
@@ -462,10 +458,7 @@ export class PlanningEditorComponent extends React.Component {
                     defaultGenre={this.props.defaultGenre}
                     {...fieldProps}
                     formProfile={coverageProfile}
-                    popupContainer={() => this.dom.popupContainer}
                 />
-
-                {!!addNewsItemToPlanning && <div ref={(node) => this.dom.popupContainer = node} />}
             </div>
         );
     }
@@ -495,7 +488,6 @@ PlanningEditorComponent.propTypes = {
     addNewsItemToPlanning: PropTypes.object,
     desk: PropTypes.string,
     user: PropTypes.string,
-    currentWorkspace: PropTypes.string,
     errors: PropTypes.object,
     submitFailed: PropTypes.bool,
     dirty: PropTypes.bool,
@@ -526,7 +518,6 @@ const mapStateToProps = (state) => ({
     event: selectors.events.planningEditAssociatedEvent(state),
     desk: selectors.getCurrentDeskId(state),
     user: selectors.getCurrentUserId(state),
-    currentWorkspace: selectors.getCurrentWorkspace(state),
     planningProfile: selectors.forms.planningProfile(state),
     coverageProfile: selectors.forms.coverageProfile(state),
     defaultGenre: selectors.config.getDefaultGenre(state),

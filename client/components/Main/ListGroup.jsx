@@ -18,7 +18,6 @@ export const ListGroup = ({
     relatedPlanningsInList,
     onItemClick,
     onDoubleClick,
-    currentWorkspace,
     onAddCoverageClick,
     onMultiSelectClick,
     selectedEventIds,
@@ -26,6 +25,8 @@ export const ListGroup = ({
     itemActions,
     users,
     desks,
+    showAddCoverage,
+    hideItemActions,
 }) => (
     <div className="ListGroup">
         <Header title={moment(name).format('dddd LL')} />
@@ -47,13 +48,14 @@ export const ListGroup = ({
                     activeFilter={activeFilter}
                     showRelatedPlannings={showRelatedPlannings}
                     relatedPlanningsInList={relatedPlanningsInList}
-                    currentWorkspace={currentWorkspace}
                     onMultiSelectClick={onMultiSelectClick}
                     selectedEventIds={selectedEventIds}
                     selectedPlanningIds={selectedPlanningIds}
                     itemActions={itemActions}
                     users={users}
                     desks={desks}
+                    showAddCoverage={showAddCoverage}
+                    hideItemActions={hideItemActions}
                 />
             ))}
         </Group>
@@ -78,10 +80,11 @@ ListGroup.propTypes = {
     activeFilter: PropTypes.string,
     showRelatedPlannings: PropTypes.func,
     relatedPlanningsInList: PropTypes.object,
-    currentWorkspace: PropTypes.string,
     onAddCoverageClick: PropTypes.func,
     onMultiSelectClick: PropTypes.func,
     selectedEventIds: PropTypes.array,
     selectedPlanningIds: PropTypes.array,
     itemActions: PropTypes.object,
+    showAddCoverage: PropTypes.bool,
+    hideItemActions: PropTypes.bool,
 };

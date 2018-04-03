@@ -370,6 +370,7 @@ describe('actions.main', () => {
                         advancedSearch: {},
                         spikeState: 'draft',
                         fulltext: '',
+                        excludeRescheduledAndCancelled: false,
                         page: 1}]);
                     done();
                 });

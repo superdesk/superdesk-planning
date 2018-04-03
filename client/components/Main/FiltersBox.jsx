@@ -48,7 +48,7 @@ export const FiltersBox = ({
                 />
             ))}
 
-            {activeFilter === MAIN.FILTERS.PLANNING && (
+            {showFilters && activeFilter === MAIN.FILTERS.PLANNING && (
                 <Spacer />
             )}
             {(activeFilter === MAIN.FILTERS.PLANNING) && (

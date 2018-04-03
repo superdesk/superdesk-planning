@@ -12,7 +12,7 @@ import {
     PLANNING,
     PUBLISHED_STATE,
     SPIKED_STATE,
-    MODALS, MAIN,
+    MODALS, MAIN, WORKFLOW_STATE,
 } from '../../constants';
 import main from '../main';
 
@@ -82,6 +82,7 @@ const getCriteria = ({
     advancedSearch = {},
     fulltext,
     adHocPlanning = false,
+    excludeRescheduledAndCancelled = false,
 }) => {
     let query = {};
     let mustNot = [];
@@ -120,6 +121,14 @@ const getCriteria = ({
             do: () => {
                 mustNot.push({
                     constant_score: {filter: {exists: {field: 'event_item'}}}
+                });
+            }
+        },
+        {
+            condition: () => (excludeRescheduledAndCancelled),
+            do: () => {
+                mustNot.push({
+                    terms: {state: [WORKFLOW_STATE.RESCHEDULED, WORKFLOW_STATE.CANCELLED]}
                 });
             }
         },
@@ -294,7 +303,8 @@ const query = (
         advancedSearch = {},
         fulltext,
         maxResults = MAIN.PAGE_SIZE,
-        adHocPlanning = false
+        adHocPlanning = false,
+        excludeRescheduledAndCancelled = false,
     },
     storeTotal = true
 ) => (
@@ -305,7 +315,8 @@ const query = (
             noAgendaAssigned,
             advancedSearch,
             fulltext,
-            adHocPlanning
+            adHocPlanning,
+            excludeRescheduledAndCancelled
         });
 
 

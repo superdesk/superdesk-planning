@@ -104,7 +104,6 @@ describe('Main.ItemEditor.Editor', () => {
                     lockedItems={selectors.locks.getLockedItems(state)}
                     addNewsItemToPlanning={null}
                     itemActions={{}}
-                    currentWorkspace={selectors.getCurrentWorkspace(state)}
                 />
             </Provider>
         );

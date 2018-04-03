@@ -4,8 +4,7 @@ import {connect} from 'react-redux';
 
 import {Modal} from '../index';
 import {Button} from '../UI';
-import {PlanningApp} from '../../apps';
-import {ArchiveItem} from '../Archive';
+import {AddToPlanningApp} from '../../apps';
 
 import * as selectors from '../../selectors';
 import {gettext} from '../../utils';
@@ -18,9 +17,6 @@ export function AddToPlanningComponent({
     modalProps,
     currentWorkspace,
     actionInProgress,
-    priorities,
-    urgencies,
-    urgencyLabel,
 }) {
     const {newsItem, $scope} = modalProps;
 
@@ -43,7 +39,7 @@ export function AddToPlanningComponent({
                 {!actionInProgress && <a className="close" onClick={handleCancel}>
                     <i className="icon-close-small" />
                 </a>}
-                <h3>{gettext('Add to Planning')}</h3>
+                <h3>{gettext('Select an existing Planning Item or create a new one')}</h3>
             </Modal.Header>
 
             <Modal.Body
@@ -51,19 +47,7 @@ export function AddToPlanningComponent({
                 fullHeight={true}
             >
                 <div className="AddToPlanning">
-                    <ArchiveItem
-                        item={newsItem}
-                        priorities={priorities}
-                        urgencies={urgencies}
-                        urgencyLabel={urgencyLabel}
-                    />
-
-                    <PlanningApp
-                        showModals={false}
-                        showWorkqueue={false}
-                        marginBottom={false}
-                        addNewsItemToPlanning={newsItem}
-                    />
+                    <AddToPlanningApp addNewsItemToPlanning={newsItem} />
                 </div>
             </Modal.Body>
 
@@ -86,17 +70,11 @@ AddToPlanningComponent.propTypes = {
     }),
     currentWorkspace: PropTypes.string,
     actionInProgress: PropTypes.bool,
-    priorities: PropTypes.array,
-    urgencies: PropTypes.array,
-    urgencyLabel: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({
     currentWorkspace: selectors.getCurrentWorkspace(state),
     actionInProgress: selectors.getModalActionInProgress(state),
-    priorities: selectors.getArchivePriorities(state),
-    urgencies: selectors.getUrgencies(state),
-    urgencyLabel: selectors.vocabs.urgencyLabel(state),
 });
 
 export const AddToPlanningModal = connect(

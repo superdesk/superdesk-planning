@@ -69,6 +69,7 @@ export const getPlanningFilterParams = createSelector(
             advancedSearch: get(currentSearch, 'advancedSearch', {}),
             spikeState: get(currentSearch, 'spikeState', SPIKED_STATE.NOT_SPIKED),
             fulltext: fullText,
+            excludeRescheduledAndCancelled: get(currentSearch, 'excludeRescheduledAndCancelled', false),
             page: 1
         };
 

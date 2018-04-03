@@ -2,13 +2,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {get} from 'lodash';
+import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
 import {Label, InternalNoteLabel} from '../';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
 import {EventDateTime} from '../Events';
 import {PlanningDateTime} from './';
 import {ItemActionsMenu} from '../index';
-import {PLANNING, EVENTS, WORKSPACE, MAIN} from '../../constants';
+import {PLANNING, EVENTS, MAIN} from '../../constants';
 
 import {planningUtils, getItemWorkflowStateLabel, onEventCapture} from '../../utils';
 import {AgendaNameList} from '../Agendas';
@@ -30,12 +31,13 @@ export class PlanningItem extends React.PureComponent {
             date,
             session,
             privileges,
-            currentWorkspace,
             onMultiSelectClick,
             multiSelected,
             activeFilter,
             users,
             desks,
+            showAddCoverage,
+            hideItemActions,
         } = this.props;
 
         if (!item) {
@@ -80,7 +82,8 @@ export class PlanningItem extends React.PureComponent {
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
         };
-        const itemActions = currentWorkspace === WORKSPACE.PLANNING ?
+
+        const itemActions = hideItemActions ? [] :
             planningUtils.getPlanningActions({
                 item: item,
                 event: event,
@@ -88,9 +91,7 @@ export class PlanningItem extends React.PureComponent {
                 privileges: privileges,
                 lockedItems: lockedItems,
                 agendas: agendas,
-                callBacks: itemActionsCallBack}) : [];
-
-        const showAddCoverage = currentWorkspace === WORKSPACE.AUTHORING && !isItemLocked;
+                callBacks: itemActionsCallBack});
 
         return (
             <Item shadow={1} activated={multiSelected} onClick={() => onItemClick(item)}>
@@ -146,12 +147,15 @@ export class PlanningItem extends React.PureComponent {
                         />
                     </Row>
                 </Column>
-                <ActionMenu>
-                    {get(itemActions, 'length', 0) > 0 && <ItemActionsMenu
-                        className="side-panel__top-tools-right"
-                        actions={itemActions} />}
-                    {showAddCoverage &&
-                        <a data-sd-tooltip="Add as coverage" data-flow="left">
+                {showAddCoverage &&
+                    <Column border={false}>
+                        <OverlayTrigger placement="left"
+                            overlay={
+                                <Tooltip id={get(item, '_id')}>
+                                    {gettext('Add as coverage')}
+                                </Tooltip>
+                            }
+                        >
                             <button
                                 className="navbtn dropdown sd-create-btn"
                                 onClick={this.onAddCoverageButtonClick.bind(this)}
@@ -159,8 +163,13 @@ export class PlanningItem extends React.PureComponent {
                                 <i className="icon-plus-large" />
                                 <span className="circle" />
                             </button>
-                        </a>
-                    }
+                        </OverlayTrigger>
+                    </Column>
+                }
+                <ActionMenu>
+                    {get(itemActions, 'length', 0) > 0 && <ItemActionsMenu
+                        className="side-panel__top-tools-right"
+                        actions={itemActions} />}
                 </ActionMenu>
             </Item>
         );
@@ -178,12 +187,14 @@ PlanningItem.propTypes = {
     session: PropTypes.object,
     privileges: PropTypes.object,
     onAddCoverageClick: PropTypes.func,
-    currentWorkspace: PropTypes.string,
     onMultiSelectClick: PropTypes.func,
     multiSelected: PropTypes.bool,
     activeFilter: PropTypes.string,
     users: PropTypes.array,
     desks: PropTypes.array,
+    showUnlock: PropTypes.bool,
+    hideItemActions: PropTypes.bool,
+    showAddCoverage: PropTypes.bool,
     [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,

@@ -63,7 +63,7 @@ export class SelectUserInput extends React.Component {
     }
 
     render() {
-        const {value, users, popupContainer, label} = this.props;
+        const {value, users, popupContainer, label, readOnly} = this.props;
         const userList = this.state.searchText ? this.state.filteredUserList : users;
 
         return (
@@ -76,14 +76,14 @@ export class SelectUserInput extends React.Component {
                             <div className="user-search__popup-user">
                                 <UserAvatar user={value} />
                                 <div className="user-search__popup-item-label">{value.display_name}</div>
-                                <button type="button" onClick={this.onUserChange.bind(null, null)}>
+                                {!readOnly && <button type="button" onClick={this.onUserChange.bind(null, null)}>
                                     <i className="icon-close-small"/>
-                                </button>
+                                </button>}
                             </div>
                         )}
                     </LineInput>
                 </Row>
-                <Row>
+                {!readOnly && <Row>
                     <LineInput isSelect={true} noLabel={!!value}
                         onClick={this.openPopup}>
                         <Input
@@ -112,7 +112,7 @@ export class SelectUserInput extends React.Component {
                             />
                         )}
                     </LineInput>
-                </Row>
+                </Row>}
             </div>
         );
     }
@@ -125,4 +125,5 @@ SelectUserInput.propTypes = {
     onChange: PropTypes.func,
     users: PropTypes.array,
     popupContainer: PropTypes.func,
+    readOnly: PropTypes.bool,
 };
