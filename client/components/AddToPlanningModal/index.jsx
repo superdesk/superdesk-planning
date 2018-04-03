@@ -43,7 +43,7 @@ export function AddToPlanningComponent({
                 {!actionInProgress && <a className="close" onClick={handleCancel}>
                     <i className="icon-close-small" />
                 </a>}
-                <h3>{gettext('Add to Planning')}</h3>
+                <h3>{gettext('Select an existing Planning Item or create a new one')}</h3>
             </Modal.Header>
 
             <Modal.Body

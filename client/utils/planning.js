@@ -649,6 +649,14 @@ const getCoverageWorkflowIcon = (coverage) => {
     }
 };
 
+const filterPlanningListForAddToPlanning = (currentWorkspace, plans = []) => {
+    if (currentWorkspace !== WORKSPACE.AUTHORING) {
+        return plans;
+    }
+
+    return plans.filter((p) => !isItemCancelled(p) && !isItemRescheduled(p));
+};
+
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -683,6 +691,7 @@ const self = {
     getCoverageIcon,
     getCoverageIconColor,
     getCoverageWorkflowIcon,
+    filterPlanningListForAddToPlanning,
 };
 
 export default self;

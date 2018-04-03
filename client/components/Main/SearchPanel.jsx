@@ -8,6 +8,7 @@ import {Content, Footer, Header, SidePanel, Tools} from '../UI/SidePanel';
 import {AdvancedSearch} from '../AdvancedSearch';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
+import {WORKSPACE} from '../../constants';
 
 
 export class SearchPanelComponent extends React.Component {
@@ -65,7 +66,8 @@ export class SearchPanelComponent extends React.Component {
             currentSearch,
             toggleFilterPanel,
             search,
-            isViewFiltered
+            isViewFiltered,
+            inPlanning
         } = this.props;
 
         const {
@@ -91,7 +93,8 @@ export class SearchPanelComponent extends React.Component {
             timeFormat: timeFormat,
             diff: diff,
             currentSearch: currentSearch,
-            onChange: this.onChangeHandler
+            onChange: this.onChangeHandler,
+            inPlanning: inPlanning,
         };
 
         return (
@@ -137,7 +140,8 @@ SearchPanelComponent.propTypes = {
     timeFormat: PropTypes.string.isRequired,
     search: PropTypes.func,
     clearSearch: PropTypes.func,
-    isViewFiltered: PropTypes.bool
+    isViewFiltered: PropTypes.bool,
+    inPlanning: PropTypes.bool,
 };
 
 
@@ -152,7 +156,8 @@ const mapStateToProps = (state) => ({
     ingestProviders: state.ingest.providers,
     dateFormat: selectors.config.getDateFormat(state),
     timeFormat: selectors.config.getTimeFormat(state),
-    isViewFiltered: selectors.main.isViewFiltered(state)
+    isViewFiltered: selectors.main.isViewFiltered(state),
+    inPlanning: selectors.general.currentWorkspace(state) === WORKSPACE.PLANNING
 });
 
 const mapDispatchToProps = (dispatch) => ({

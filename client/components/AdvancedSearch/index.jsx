@@ -102,7 +102,8 @@ export class AdvancedSearch extends React.Component {
             dateFormat,
             timeFormat,
             diff,
-            onChange
+            onChange,
+            inPlanning
         } = this.props;
 
         // Change spikeState options based on workflow-state selection in the from
@@ -157,7 +158,7 @@ export class AdvancedSearch extends React.Component {
                         field: 'advancedSearch.state',
                         label: gettext('Workflow State'),
                         value: get(diff, 'advancedSearch.state', []),
-                        options: getWorkFlowStateAsOptions(activeFilter)
+                        options: getWorkFlowStateAsOptions(inPlanning, activeFilter)
                     },
                     component: SelectMetaTermsInput
                 },
@@ -364,4 +365,5 @@ AdvancedSearch.propTypes = {
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
+    inPlanning: PropTypes.bool,
 };

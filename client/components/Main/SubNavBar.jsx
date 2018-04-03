@@ -14,14 +14,12 @@ export const SubNavBar = ({
     search,
     activeFilter,
     createPlanningOnly,
-    disableAgendaManagement,
 }) => (
     <SubNav>
         <MultiSelectActions />
         <SearchBox label="Search planning" value={value} search={search} activeFilter={activeFilter}/>
         <ActionsSubnavDropdown
             openAgendas={openAgendas}
-            disableAgendaManagement={disableAgendaManagement}
         />
         <CreateNewSubnavDropdown
             addEvent={addEvent}
@@ -39,5 +37,4 @@ SubNavBar.propTypes = {
     search: PropTypes.func.isRequired,
     activeFilter: PropTypes.string.isRequired,
     createPlanningOnly: PropTypes.bool,
-    disableAgendaManagement: PropTypes.bool,
 };
