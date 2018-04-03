@@ -30,6 +30,7 @@ export class ContactFieldComponent extends React.Component {
         this.getValue = this.getValue.bind(this);
         this.getContactLabel = this.getContactLabel.bind(this);
         this.viewDetails = this.viewDetails.bind(this);
+        this.editDetails = this.editDetails.bind(this);
     }
 
     componentDidMount() {
@@ -50,6 +51,13 @@ export class ContactFieldComponent extends React.Component {
                 onCancel={onCancel}
                 currentContact={currentContact} />
         );
+    }
+
+    editDetails(onCancel, currentContact) {
+        return (<ContactEditor
+            onCancel={onCancel}
+            currentContact={currentContact}
+            onSave={(savedContact) => this.addOption(savedContact, onCancel)} />);
     }
 
     addContact(onCancel) {
@@ -129,6 +137,7 @@ export class ContactFieldComponent extends React.Component {
             label: (<span>{contactLabel}</span>),
             value: currentContact._id,
             onViewDetails: ((onCancel) => this.viewDetails(onCancel, currentContact)),
+            onEditDetails: ((onCancel) => this.editDetails(onCancel, currentContact)),
         };
     }
 
@@ -155,7 +164,7 @@ export class ContactFieldComponent extends React.Component {
     }
 
     render() {
-        const {label, field, ...props} = this.props;
+        const {label, field, privileges, ...props} = this.props;
 
         return (
             <SelectSearchTermsField
@@ -167,8 +176,8 @@ export class ContactFieldComponent extends React.Component {
                 onQuerySearch={((text) => this.getSearchResult(text))}
                 options={this.state.filteredOptions}
                 value={this.state.filteredValues}
-                onAdd={(onCancel) => this.addContact(onCancel)}
-                onAddText={gettext('Add Contact')} />
+                onAdd={privileges.contacts ? (onCancel) => this.addContact(onCancel) : null}
+                onAddText={privileges.contacts ? gettext('Add Contact') : null} />
         );
     }
 }
@@ -186,10 +195,12 @@ ContactFieldComponent.propTypes = {
     searchContacts: PropTypes.func,
     fetchContacts: PropTypes.func,
     eventContacts: PropTypes.array,
+    privileges: PropTypes.object,
 };
 
 const mapStateToProps = (state, ownProps) => ({
     eventContacts: selectors.events.getEventContacts(state),
+    privileges: selectors.getPrivileges(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
