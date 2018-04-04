@@ -53,7 +53,8 @@ export const CoverageItem = ({
             </Column>}
             <Column grow={true} border={false}>
                 <Row>
-                    <CoverageIcon coverage={coverage} withoutTime={true} />
+                    <CoverageIcon coverage={coverage} dateFormat={dateFormat} timeFormat={timeFormat}
+                        users={users} desks={desks}/>
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         {stringUtils.capitalize(get(coverage, 'planning.g2_content_type', ''))}
                     </span>

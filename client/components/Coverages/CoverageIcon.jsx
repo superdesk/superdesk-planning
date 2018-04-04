@@ -23,7 +23,7 @@ export const CoverageIcon = ({
     const user = getItemInArrayById(users, get(coverage, 'assigned_to.user'));
     const desk = getItemInArrayById(desks, get(coverage, 'assigned_to.desk'));
     const assignmentStr = desk ? gettext('Desk: ') + desk.name : gettext('Status: Unassigned');
-    const scheduledStr = get(coverage, 'planning.scheduled') ?
+    const scheduledStr = get(coverage, 'planning.scheduled') && dateFormat && timeFormat ?
         moment(coverage.planning.scheduled).format(dateFormat + ' ' + timeFormat) : null;
     const state = getItemWorkflowStateLabel(get(coverage, 'assigned_to'));
 
