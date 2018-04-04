@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {ItemActionsMenu} from '../../index';
 import {Button} from '../../UI/Nav';
-import {ITEM_TYPE, EVENTS, PLANNING, WORKSPACE} from '../../../constants';
+import {ITEM_TYPE, EVENTS, PLANNING} from '../../../constants';
 import {getItemType, eventUtils, planningUtils} from '../../../utils';
 
 export const EditorItemActions = ({
@@ -11,7 +11,6 @@ export const EditorItemActions = ({
     session,
     privileges,
     lockedItems,
-    currentWorkspace,
     itemActions
 }) => {
     const itemType = getItemType(item);
@@ -53,14 +52,13 @@ export const EditorItemActions = ({
                 itemActions[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
         };
 
-        actions = currentWorkspace === WORKSPACE.PLANNING ?
-            planningUtils.getPlanningActions({
-                item: item,
-                event: event,
-                session: session,
-                privileges: privileges,
-                lockedItems: lockedItems,
-                callBacks: itemActionsCallBack}) : [];
+        actions = planningUtils.getPlanningActions({
+            item: item,
+            event: event,
+            session: session,
+            privileges: privileges,
+            lockedItems: lockedItems,
+            callBacks: itemActionsCallBack});
     }
 
     if (actions.length === 0) {
@@ -81,5 +79,4 @@ EditorItemActions.propTypes = {
     privileges: PropTypes.object,
     lockedItems: PropTypes.object,
     itemActions: PropTypes.object,
-    currentWorkspace: PropTypes.string,
 };

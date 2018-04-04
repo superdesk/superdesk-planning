@@ -9,7 +9,7 @@ import {CoverageForm} from './CoverageForm';
 import {CoverageFormHeader} from './CoverageFormHeader';
 
 import {planningUtils, gettext} from '../../../utils';
-import {WORKSPACE, COVERAGES} from '../../../constants';
+import {COVERAGES} from '../../../constants';
 
 export const CoverageEditor = ({
     field,
@@ -18,7 +18,6 @@ export const CoverageEditor = ({
     desks,
     dateFormat,
     timeFormat,
-    currentWorkspace,
     remove,
     contentTypes,
     genres,
@@ -35,12 +34,13 @@ export const CoverageEditor = ({
     invalid,
     openComponent,
     defaultGenre,
+    addNewsItemToPlanning,
     ...props,
 }) => {
     // Coverage item actions
     let itemActions = [];
 
-    if (!readOnly && currentWorkspace === WORKSPACE.PLANNING) {
+    if (!readOnly && !addNewsItemToPlanning) {
         const duplicateActions = contentTypes
             .filter((contentType) => (
                 contentType.qcode !== get(value, 'planning.g2_content_type')
@@ -118,7 +118,8 @@ export const CoverageEditor = ({
             coverageProviders={coverageProviders}
             priorities={priorities}
             readOnly={readOnly}
-            currentWorkspace={currentWorkspace}
+            addNewsItemToPlanning={addNewsItemToPlanning}
+            {...props}
         />
     );
 
@@ -136,9 +137,9 @@ export const CoverageEditor = ({
             readOnly={readOnly}
             message={message}
             invalid={invalid}
-            currentWorkspace={currentWorkspace}
             hasAssignment={planningUtils.isCoverageAssigned(value)}
             defaultGenre={defaultGenre}
+            addNewsItemToPlanning={addNewsItemToPlanning}
             {...props}
         />
     );
@@ -177,8 +178,6 @@ CoverageEditor.propTypes = {
     onDuplicateCoverage: PropTypes.func,
     onCancelCoverage: PropTypes.func,
     onAddCoverageToWorkflow: PropTypes.func,
-    currentWorkspace: PropTypes.string,
-
     message: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.object,
@@ -191,6 +190,7 @@ CoverageEditor.propTypes = {
     invalid: PropTypes.bool,
     openComponent: PropTypes.bool,
     defaultGenre: PropTypes.object,
+    addNewsItemToPlanning: PropTypes.object,
 };
 
 CoverageEditor.defaultProps = {

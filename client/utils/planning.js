@@ -8,7 +8,6 @@ import {
     ASSIGNMENTS,
     PUBLISHED_STATE,
     COVERAGES,
-    WORKSPACE,
     ITEM_TYPE,
 } from '../constants/index';
 import {get, isNil, uniq, sortBy, isEmpty, cloneDeep} from 'lodash';
@@ -486,10 +485,9 @@ const getCoverageReadOnlyFields = (
     coverage,
     readOnly,
     newsCoverageStatus,
-    currentWorkspace,
     addNewsItemToPlanning
 ) => {
-    if (currentWorkspace === WORKSPACE.AUTHORING) {
+    if (addNewsItemToPlanning) {
         // if newsItem is published, schedule is readOnly
         return {
             slugline: true,

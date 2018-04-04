@@ -26,6 +26,9 @@ export const CreateNewSubnavDropdown = ({addEvent, addPlanning, createPlanningOn
             label={gettext('Create new')}
             items={items}
             alignRight={true}
+            disableSelection={createPlanningOnly}
+            defaultAction={addPlanning}
+            tooltip={createPlanningOnly ? gettext('Create new planning item') : gettext('Create new item')}
         />
     );
 };

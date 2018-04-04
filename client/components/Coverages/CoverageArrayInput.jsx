@@ -29,7 +29,7 @@ export const CoverageArrayInput = ({
     onDuplicateCoverage,
     onCancelCoverage,
     onAddCoverageToWorkflow,
-    currentWorkspace,
+    addNewsItemToPlanning,
     readOnly,
     message,
     ...props,
@@ -50,7 +50,7 @@ export const CoverageArrayInput = ({
                 desks={desks}
                 timeFormat={timeFormat}
                 dateFormat={dateFormat}
-                currentWorkspace={currentWorkspace}
+                addNewsItemToPlanning={addNewsItemToPlanning}
                 newsCoverageStatus={newsCoverageStatus}
                 contentTypes={contentTypes}
                 genres={genres}
@@ -96,7 +96,6 @@ CoverageArrayInput.propTypes = {
     onDuplicateCoverage: PropTypes.func,
     onCancelCoverage: PropTypes.func,
     onAddCoverageToWorkflow: PropTypes.func,
-    currentWorkspace: PropTypes.string,
     message: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.object,
@@ -107,6 +106,7 @@ CoverageArrayInput.propTypes = {
     formProfile: PropTypes.object,
     errors: PropTypes.object,
     showErrors: PropTypes.bool,
+    addNewsItemToPlanning: PropTypes.object,
 };
 
 CoverageArrayInput.defaultProps = {

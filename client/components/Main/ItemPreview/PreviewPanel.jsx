@@ -11,7 +11,7 @@ import {HistoryTab} from '../index';
 import {PreviewContentTab, PreviewHeader} from './index';
 import {Tabs} from '../../UI/Nav';
 import {SidePanel, Header, Tools, Content} from '../../UI/SidePanel';
-import {WORKSPACE, TOOLTIPS} from '../../../constants';
+import {TOOLTIPS} from '../../../constants';
 
 export class PreviewPanelComponent extends React.Component {
     constructor(props) {
@@ -63,7 +63,7 @@ export class PreviewPanelComponent extends React.Component {
             }, 0);
         }
 
-        if (this.props.inPlanning && get(nextProps, 'item')) {
+        if (!this.props.hideEditIcon && get(nextProps, 'item')) {
             if (get(nextProps.item, 'state') !== 'spiked') {
                 if (this.tools[0].icon !== 'icon-pencil') {
                     this.tools.unshift({
@@ -103,7 +103,10 @@ export class PreviewPanelComponent extends React.Component {
                 {!this.props.previewLoading && this.props.item && (
                     <Content>
                         {currentTab.label !== 'History' &&
-                        <PreviewHeader item={this.props.item}/>
+                        <PreviewHeader
+                            item={this.props.item}
+                            hideItemActions={this.props.hideItemActions}
+                            showUnlock={this.props.showUnlock} />
                         }
                         <RenderTab item={this.props.item}/>
                     </Content>
@@ -123,6 +126,9 @@ PreviewPanelComponent.propTypes = {
     edit: PropTypes.func.isRequired,
     closePreview: PropTypes.func,
     initialLoad: PropTypes.bool,
+    showUnlock: PropTypes.bool,
+    hideItemActions: PropTypes.bool,
+    hideEditIcon: PropTypes.bool,
 };
 
 PreviewPanelComponent.defaultProps = {initialLoad: false};
@@ -132,7 +138,6 @@ const mapStateToProps = (state) => ({
     itemId: selectors.main.previewId(state),
     itemType: selectors.main.previewType(state),
     previewLoading: selectors.main.previewLoading(state),
-    inPlanning: selectors.getCurrentWorkspace(state) === WORKSPACE.PLANNING,
 });
 
 const mapDispatchToProps = (dispatch) => ({

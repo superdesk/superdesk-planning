@@ -56,6 +56,8 @@ export class PlanningListComponent extends React.Component {
             openPreview,
             edit,
             itemActions,
+            hideItemActions,
+            showAddCoverage
         } = this.props;
 
         return (
@@ -83,6 +85,8 @@ export class PlanningListComponent extends React.Component {
                 desks={desks}
                 users={users}
                 itemActions={itemActions}
+                hideItemActions={hideItemActions}
+                showAddCoverage={showAddCoverage}
             />
         );
     }
@@ -114,6 +118,8 @@ PlanningListComponent.propTypes = {
     desks: PropTypes.array,
     users: PropTypes.array,
     itemActions: PropTypes.object,
+    hideItemActions: PropTypes.bool,
+    showAddCoverage: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({

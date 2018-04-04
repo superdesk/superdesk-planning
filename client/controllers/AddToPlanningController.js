@@ -1,10 +1,11 @@
 import * as actions from '../actions';
-import {currentItem} from '../selectors/forms';
+import {currentItem, currentItemType} from '../selectors/forms';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {Provider} from 'react-redux';
 import {ModalsContainer} from '../components';
 import {locks} from '../actions';
+import {planning} from '../actions';
 import {get} from 'lodash';
 import {registerNotifications, getErrorMessage} from '../utils';
 import {WORKSPACE, MODALS, MAIN} from '../constants';
@@ -116,6 +117,9 @@ export function AddToPlanningController(
             sdPlanningStore.getStore()
                 .then((store) => {
                     store.dispatch(actions.initStore(WORKSPACE.AUTHORING));
+                    store.dispatch(planning.ui.requestPlannings({
+                        excludeRescheduledAndCancelled: true
+                    }));
                     registerNotifications($scope, store);
 
                     $q.all({
@@ -142,6 +146,10 @@ export function AddToPlanningController(
                             }));
 
                             $scope.$on('$destroy', () => {
+                                store.dispatch(planning.ui.requestPlannings({
+                                    excludeRescheduledAndCancelled: false
+                                }));
+
                                 const planningEdited = currentItem(store.getState());
 
                                 if (get(planningEdited, '_id')) {
@@ -152,6 +160,9 @@ export function AddToPlanningController(
                                                 store.dispatch(actions.resetStore());
                                             }, 1000);
                                         });
+                                } else if (currentItemType(store.getState())) {
+                                    // If we were creating a new planning item and editor is open
+                                    store.dispatch(actions.main.closeEditor());
                                 }
 
 

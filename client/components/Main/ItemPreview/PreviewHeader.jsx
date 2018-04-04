@@ -5,14 +5,16 @@ import {EventPreviewHeader} from '../../Events';
 import {PlanningPreviewHeader} from '../../Planning';
 import {getItemType} from '../../../utils';
 
-export const PreviewHeader = ({item}) => {
+export const PreviewHeader = ({item, hideItemActions, showUnlock}) => {
     const itemType = getItemType(item);
 
     switch (itemType) {
     case ITEM_TYPE.EVENT:
         return (<EventPreviewHeader />);
     case ITEM_TYPE.PLANNING:
-        return (<PlanningPreviewHeader />);
+        return (<PlanningPreviewHeader
+            hideItemActions={hideItemActions}
+            showUnlock={showUnlock} />);
     default:
         return null;
     }

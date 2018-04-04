@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import {getCreator, getItemInArrayById, gettext, planningUtils} from '../../../utils';
-import {WORKSPACE} from '../../../constants';
 import {Item, Border, Column, Row as ListRow} from '../../UI/List';
 import {Button} from '../../UI';
 import {UserAvatar} from '../../';
@@ -30,7 +29,7 @@ export class CoverageFormHeader extends React.Component {
             desks,
             coverageProviders,
             priorities,
-            currentWorkspace,
+            addNewsItemToPlanning,
             readOnly
         } = this.props;
 
@@ -39,6 +38,8 @@ export class CoverageFormHeader extends React.Component {
         const coverageProvider = get(value, 'assigned_to.coverage_provider');
         const assignmentState = get(value, 'assigned_to.state');
         const cancelled = get(value, 'workflow_status') === 'cancelled';
+        const canReassign = planningUtils.isCoverageDraft(value) ||
+            (!!addNewsItemToPlanning && !get(value, 'coverage_id'));
 
         if (!deskAssigned && (!userAssigned || !coverageProvider)) {
             return (
@@ -132,7 +133,7 @@ export class CoverageFormHeader extends React.Component {
                         </ListRow>
                     }
                 </Column>
-                {planningUtils.isCoverageDraft(value) && !readOnly && (
+                {canReassign && !readOnly && (
                     <Column>
                         <Button
                             text={gettext('Reassign')}
@@ -155,7 +156,8 @@ export class CoverageFormHeader extends React.Component {
                         onClose={this.togglePopup}
                         target="btn--hollow"
                         priorityPrefix="assigned_to."
-                        disableDeskSelection={currentWorkspace === WORKSPACE.AUTHORING}
+                        disableDeskSelection={!!addNewsItemToPlanning}
+                        disableUserSelection={!!addNewsItemToPlanning}
                     />
                 )}
             </Item>
@@ -171,6 +173,6 @@ CoverageFormHeader.propTypes = {
     desks: PropTypes.array,
     coverageProviders: PropTypes.array,
     priorities: PropTypes.array,
-    currentWorkspace: PropTypes.string,
     readOnly: PropTypes.bool,
+    addNewsItemToPlanning: PropTypes.object,
 };

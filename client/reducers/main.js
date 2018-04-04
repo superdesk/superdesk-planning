@@ -88,13 +88,21 @@ export default createReducer(initialState, {
         loadingIndicator: payload
     }),
 
-    [MAIN.ACTIONS.CLEAR_SEARCH]: (state, payload) => ({
-        ...state,
-        search: {
-            ...state.search,
-            [payload]: cloneDeep(search)
+    [MAIN.ACTIONS.CLEAR_SEARCH]: (state, payload) => {
+        let newState = {
+            ...state,
+            search: {
+                ...state.search,
+                [payload]: cloneDeep(search)
+            }
+        };
+
+        if (get(state.search[payload], 'currentSearch.excludeRescheduledAndCancelled')) {
+            newState.search[payload].currentSearch = {excludeRescheduledAndCancelled: true};
         }
-    }),
+
+        return newState;
+    },
 
     [MAIN.ACTIONS.SET_PREVIEW_ITEM]: (state, payload) => ({
         ...state,

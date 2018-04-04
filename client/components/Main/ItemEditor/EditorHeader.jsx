@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {isEqual} from 'lodash';
-import {ITEM_TYPE, PRIVILEGES, KEYCODES, WORKSPACE} from '../../../constants';
+import {ITEM_TYPE, PRIVILEGES, KEYCODES} from '../../../constants';
 import {gettext, eventUtils, planningUtils, isItemPublic, lockUtils, onEventCapture} from '../../../utils';
 
 import {Button} from '../../UI';
@@ -79,17 +79,19 @@ export class EditorHeader extends React.Component {
             users,
             onUnlock,
             onLock,
-            currentWorkspace,
+            addNewsItemToPlanning,
             itemType,
+            showUnlock,
+            createAndPublish,
+            hideItemActions,
+            hideMinimize,
         } = this.props;
 
         // Do not show the tabs if we're creating a new item
         const existingItem = !!item;
         const isPublic = isItemPublic(item);
         const itemLock = lockUtils.getLock(item, lockedItems);
-        const inPlanning = currentWorkspace === WORKSPACE.PLANNING;
-
-        const isLockedInContext = !inPlanning ? planningUtils.isLockedForAddToPlanning(item) : !!itemLock;
+        const isLockedInContext = addNewsItemToPlanning ? planningUtils.isLockedForAddToPlanning(item) : !!itemLock;
 
         let canPublish = false;
         let canUnpublish = false;
@@ -126,7 +128,7 @@ export class EditorHeader extends React.Component {
                         <LockContainer
                             lockedUser={lockedUser}
                             users={users}
-                            showUnlock={unlockPrivilege && inPlanning}
+                            showUnlock={unlockPrivilege && showUnlock}
                             withLoggedInfo={true}
                             onUnlock={onUnlock.bind(null, item)}
                         />
@@ -205,7 +207,7 @@ export class EditorHeader extends React.Component {
                         />
                     )}
 
-                    {!existingItem && !inPlanning &&
+                    {!existingItem && createAndPublish &&
                         itemType === ITEM_TYPE.PLANNING && (
                         <Button
                             color="primary"
@@ -225,17 +227,16 @@ export class EditorHeader extends React.Component {
                     )}
                 </StretchBar>
 
-                {isBeingEdited && inPlanning && (
+                {isBeingEdited && !hideMinimize && (
                     <NavButton onClick={minimize} icon="big-icon--minimize" />
                 )}
 
-                {!isLockRestricted && (
+                {!isLockRestricted && !hideItemActions && (
                     <EditorItemActions item={item}
                         itemActions={itemActions}
                         session={session}
                         privileges={privileges}
-                        lockedItems={lockedItems}
-                        currentWorkspace={currentWorkspace} />
+                        lockedItems={lockedItems} />
                 )}
             </Header>
         );
@@ -262,6 +263,10 @@ EditorHeader.propTypes = {
     onUnlock: PropTypes.func,
     onLock: PropTypes.func,
     itemActions: PropTypes.object,
-    currentWorkspace: PropTypes.string,
-    itemType: PropTypes.string
+    itemType: PropTypes.string,
+    addNewsItemToPlanning: PropTypes.object,
+    showUnlock: PropTypes.bool,
+    hideItemActions: PropTypes.bool,
+    hideMinimize: PropTypes.bool,
+    createAndPublish: PropTypes.bool,
 };

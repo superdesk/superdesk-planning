@@ -150,6 +150,7 @@ export class AssignmentEditorComponent extends React.Component {
             priorities,
             popupContainer,
             disableDeskSelection,
+            disableUserSelection,
             showDesk,
             showPriority,
             className,
@@ -196,6 +197,7 @@ export class AssignmentEditorComponent extends React.Component {
                     onChange={this.onUserChange}
                     users={this.state.filteredUsers}
                     popupContainer={popupContainer}
+                    readOnly={disableUserSelection}
                 />
 
                 {showPriority && (
@@ -228,6 +230,7 @@ AssignmentEditorComponent.propTypes = {
     priorityPrefix: PropTypes.string,
     fromCoverage: PropTypes.bool,
     disableDeskSelection: PropTypes.bool,
+    disableUserSelection: PropTypes.bool,
     popupContainer: PropTypes.func,
     showDesk: PropTypes.bool,
     showPriority: PropTypes.bool,

@@ -351,7 +351,8 @@ describe('agenda', () => {
                                 page: 1,
                                 advancedSearch: {},
                                 spikeState: 'draft',
-                                fulltext: 'hello world'
+                                fulltext: 'hello world',
+                                excludeRescheduledAndCancelled: false,
                             },
                         ]);
 
@@ -524,7 +525,8 @@ describe('agenda', () => {
                             page: 1,
                             advancedSearch: {},
                             spikeState: 'draft',
-                            fulltext: 'hello world'
+                            fulltext: 'hello world',
+                            excludeRescheduledAndCancelled: false,
                         }]);
                         done();
                     });
@@ -542,7 +544,8 @@ describe('agenda', () => {
                             page: 1,
                             advancedSearch: {},
                             spikeState: 'draft',
-                            fulltext: ''
+                            fulltext: '',
+                            excludeRescheduledAndCancelled: false,
                         }]);
                         done();
                     });

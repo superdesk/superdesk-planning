@@ -78,7 +78,6 @@ export class CoverageForm extends React.Component {
             formProfile,
             errors,
             showErrors,
-            currentWorkspace,
             hasAssignment,
             defaultGenre,
             addNewsItemToPlanning,
@@ -106,7 +105,6 @@ export class CoverageForm extends React.Component {
             value,
             readOnly,
             newsCoverageStatus,
-            currentWorkspace,
             addNewsItemToPlanning
         );
 
@@ -233,7 +231,6 @@ CoverageForm.propTypes = {
     formProfile: PropTypes.object,
     errors: PropTypes.object,
     showErrors: PropTypes.bool,
-    currentWorkspace: PropTypes.string,
     hasAssignment: PropTypes.bool,
     defaultGenre: PropTypes.object,
     addNewsItemToPlanning: PropTypes.object,

@@ -113,7 +113,6 @@ CoverageItem.propTypes = {
     timeFormat: PropTypes.string,
     onDuplicateCoverage: PropTypes.func,
     onCancelCoverage: PropTypes.func,
-    currentWorkspace: PropTypes.string,
     itemActionComponent: PropTypes.node,
     contentTypes: PropTypes.array,
     isPreview: PropTypes.bool

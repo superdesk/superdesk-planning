@@ -6,7 +6,7 @@ import {get, isEqual, cloneDeep, omit} from 'lodash';
 import {gettext, lockUtils, eventUtils, planningUtils, updateFormValues} from '../../../utils';
 import actionUtils from '../../../utils/actions';
 
-import {ITEM_TYPE, EVENTS, PLANNING, WORKSPACE, PUBLISHED_STATE, WORKFLOW_STATE} from '../../../constants';
+import {ITEM_TYPE, EVENTS, PLANNING, PUBLISHED_STATE, WORKFLOW_STATE} from '../../../constants';
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
 
@@ -34,7 +34,7 @@ export class EditorComponent extends React.Component {
             showSubmitFailed: false,
         };
 
-        this.inPlanning = false;
+        this.tearDownRequired = false;
         this.editorHeaderComponent = null;
         this.onChangeHandler = this.onChangeHandler.bind(this);
         this.setActiveTab = this.setActiveTab.bind(this);
@@ -53,8 +53,8 @@ export class EditorComponent extends React.Component {
             {label: gettext('History'), render: HistoryTab, enabled: true},
         ];
 
-        if (this.props.currentWorkspace === WORKSPACE.PLANNING) {
-            this.inPlanning = true;
+        if (this.props.addNewsItemToPlanning) {
+            this.tearDownRequired = true;
         }
     }
 
@@ -67,7 +67,7 @@ export class EditorComponent extends React.Component {
     }
 
     componentWillUnmount() {
-        if (!this.inPlanning) {
+        if (!this.tearDownRequired) {
             // problem of modal within modal, so setting this before unmount
             this.tearDownEditorState();
         }
@@ -255,7 +255,7 @@ export class EditorComponent extends React.Component {
     }
 
     onCancel() {
-        if (this.inPlanning) {
+        if (this.tearDownRequired) {
             this.tearDownEditorState();
         }
 
@@ -340,9 +340,13 @@ export class EditorComponent extends React.Component {
                     onUnlock={this.props.onUnlock}
                     onLock={this.props.onLock}
                     itemActions={this.props.itemActions}
-                    currentWorkspace={this.props.currentWorkspace}
                     ref={(ref) => this.editorHeaderComponent = ref}
                     itemType={this.props.itemType}
+                    addNewsItemToPlanning={this.props.addNewsItemToPlanning}
+                    showUnlock={this.props.showUnlock}
+                    createAndPublish={this.props.createAndPublish}
+                    hideItemActions={this.props.hideItemActions}
+                    hideMinimize={this.props.hideMinimize}
                 />
                 <Content flex={true}>
                     {this.state.showSubmitFailed && (
@@ -413,11 +417,14 @@ EditorComponent.propTypes = {
     formProfiles: PropTypes.object,
     occurStatuses: PropTypes.array,
     itemActions: PropTypes.object,
-    currentWorkspace: PropTypes.string,
     loadItem: PropTypes.func,
     removeNewAutosaveItems: PropTypes.func,
     isLoadingItem: PropTypes.bool,
     initialValues: PropTypes.object,
+    showUnlock: PropTypes.bool,
+    hideItemActions: PropTypes.bool,
+    hideMinimize: PropTypes.bool,
+    createAndPublish: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -432,7 +439,6 @@ const mapStateToProps = (state) => ({
     session: selectors.getSessionDetails(state),
     privileges: selectors.getPrivileges(state),
     lockedItems: selectors.locks.getLockedItems(state),
-    currentWorkspace: selectors.getCurrentWorkspace(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
