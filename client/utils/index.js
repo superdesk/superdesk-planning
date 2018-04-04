@@ -694,3 +694,5 @@ export const appendStatesQueryForAdvancedSearch = (advancedSearch, spikeState, m
         mustTerms.push({terms: {state: states}});
     }
 };
+
+export const getUserPreferences = (user, preferenceKey) => get(user, `user_preferences.${preferenceKey}`, null);

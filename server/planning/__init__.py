@@ -82,5 +82,12 @@ def init_app(app):
         'category': 'notifications'
     })
 
+    superdesk.register_default_user_preference('planning:calendar', {
+        'type': 'dict',
+        'label': 'Default Calendar',
+        'category': 'planning',
+        'calendar': {}
+    })
+
     app.client_config['max_recurrent_events'] = get_max_recurrent_events(app)
     app.client_config['street_map_url'] = get_street_map_url(app)
