@@ -27,6 +27,7 @@ PlanningStoreService.$inject = [
     '$interpolate',
     'search',
     'contacts',
+    'preferencesService'
 ];
 export function PlanningStoreService(
     $rootScope,
@@ -52,7 +53,8 @@ export function PlanningStoreService(
     $q,
     $interpolate,
     search,
-    contacts
+    contacts,
+    preferencesService
 ) {
     let self = this;
 
@@ -96,6 +98,7 @@ export function PlanningStoreService(
                 default_operator: 'AND',
                 q: 'public:(1) is_active:(1)',
             }).then((items) => items),
+            preferences: preferencesService.get(null, true)
         }).then((data) => {
             const initialState = {
                 config: config,
@@ -125,6 +128,7 @@ export function PlanningStoreService(
                 session: {
                     sessionId: session.sessionId,
                     identity: session.identity,
+                    userPreferences: data.preferences || {}
                 },
                 urgency: {
                     urgency: metadata.values.urgency,

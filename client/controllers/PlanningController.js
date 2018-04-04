@@ -16,7 +16,8 @@ PlanningController.$inject = [
     'superdeskFlags',
     '$route',
     'pageTitle',
-    'gettext'
+    'gettext',
+    'preferencesService'
 ];
 export function PlanningController(
     $element,
@@ -27,7 +28,8 @@ export function PlanningController(
     superdeskFlags,
     $route,
     pageTitle,
-    gettext
+    gettext,
+    preferencesService
 ) {
     pageTitle.setUrl(gettext('Planning'));
     sdPlanningStore.getStore()
@@ -39,11 +41,13 @@ export function PlanningController(
                 data: store.dispatch(actions.main.filter()),
                 locks: store.dispatch(locks.loadAllLocks()),
                 agendas: store.dispatch(actions.fetchAgendas()),
+                userPreferences: preferencesService.get()
             })
-                .then(() => {
+                .then((result) => {
                     // Load the current items that are currently open for Preview/Editing
                     store.dispatch(actions.main.openFromURLOrRedux('edit'));
                     store.dispatch(actions.main.openFromURLOrRedux('preview'));
+                    store.dispatch(actions.users.setUserPreferences(result.userPreferences || {}));
 
                     $scope.$on('$destroy', () => {
                         // Unmount the React application

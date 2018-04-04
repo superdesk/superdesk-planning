@@ -12,6 +12,7 @@ import locations from './locations';
 import eventsPlanning from './eventsPlanning/index';
 import multiSelect from './multiSelect';
 import {agendaNotifications} from './agenda';
+import users from './users';
 
 import {RESET_STORE, INIT_STORE} from '../constants';
 
@@ -46,4 +47,5 @@ export {
     locations,
     eventsPlanning,
     multiSelect,
+    users
 };

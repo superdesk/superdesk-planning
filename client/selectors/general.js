@@ -13,6 +13,7 @@ export const enabledAgendas = createSelector(
 
 export const session = (state) => get(state, 'session');
 export const sessionId = (state) => get(state, 'session.sessionId');
+export const userPreferences = (state) => get(state, 'session.userPreferences');
 
 export const currentUserId = createSelector(
     [session],

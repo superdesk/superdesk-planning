@@ -76,10 +76,15 @@ export class EventEditorComponent extends React.Component {
             errors,
             plannings,
             onChangeHandler,
+            userPreferences,
         } = this.props;
 
         const existingEvent = !!get(diff, '_id');
         const detailsErrored = some(toggleDetails, (field) => !!get(errors, field));
+        const defaultCalenderCode = get(userPreferences, 'planning:calendar.calendar.qcode');
+        let defaultCalender = calendars.find((c) => c.qcode === defaultCalenderCode);
+
+        defaultCalender = defaultCalender ? [defaultCalender] : [];
 
         const fieldProps = {
             item: item,
@@ -173,7 +178,7 @@ export class EventEditorComponent extends React.Component {
                             field="calendars"
                             label={gettext('Calendars')}
                             options={calendars}
-                            defaultValue={[]}
+                            defaultValue={defaultCalender}
                             {...fieldProps}
                         />
 
@@ -300,6 +305,7 @@ EventEditorComponent.propTypes = {
     dirty: PropTypes.bool,
     errors: PropTypes.object,
     plannings: PropTypes.array,
+    userPreferences: PropTypes.object
 };
 
 EventEditorComponent.defaultProps = {
@@ -320,6 +326,7 @@ const mapStateToProps = (state) => ({
     timeFormat: selectors.config.getTimeFormat(state),
     dateFormat: selectors.config.getDateFormat(state),
     plannings: selectors.events.getRelatedPlannings(state),
+    userPreferences: selectors.general.userPreferences(state)
 });
 
 export const EventEditor = connect(mapStateToProps)(EventEditorComponent);
