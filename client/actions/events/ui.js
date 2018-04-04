@@ -468,7 +468,7 @@ const updateEventTime = (event) => (
     (dispatch, getState, {notify}) => (
         dispatch(eventsApi.updateEventTime(event))
             .then(() => {
-                notify.success(gettext('Event time has been update'));
+                notify.success(gettext('Event time has been updated'));
                 return Promise.resolve();
             }, (error) => {
                 notify.error(
