@@ -53,7 +53,6 @@ export const getEventReadOnlyState = (state) => get(state, 'events.readOnly');
 export const getSessionDetails = (state) => get(state, 'session');
 export const getCurrentUserId = (state) => get(state, 'session.identity._id');
 
-export const getEventCalendars = (state) => get(state, 'vocabularies.event_calendars', []);
 export const getKeywords = (state) => get(state, 'vocabularies.keywords', []);
 export const getPlanningSearch = (state) => get(state, 'planning.search.currentSearch');
 export const getNewsCoverageStatus = (state) => get(state, 'vocabularies.newscoveragestatus', []);

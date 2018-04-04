@@ -95,11 +95,11 @@ describe('actions.main', () => {
                         payload: 'EVENTS'
                     }]);
 
-                    expect(store.dispatch.callCount).toBe(7);
-                    expect(services.$timeout.callCount).toBe(1);
-                    expect(services.$location.search.callCount).toBe(3);
+                    expect(store.dispatch.callCount).toBe(9);
+                    expect(services.$timeout.callCount).toBe(2);
+                    expect(services.$location.search.callCount).toBe(5);
                     expect(services.$location.search.args).toEqual(
-                        [[], [], ['filter', 'EVENTS']]
+                        [[], [], ['filter', 'EVENTS'], [], ['calendar', 'ALL_CALENDARS']]
                     );
 
                     expect(planningUi.clearList.callCount).toBe(1);

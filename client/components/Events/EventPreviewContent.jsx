@@ -97,7 +97,7 @@ export class EventPreviewContentComponent extends React.Component {
         const versionCreator = get(updatedBy, 'display_name') ? updatedBy :
             users.find((user) => user._id === updatedBy);
 
-        const calendarsText = get(item, 'calendars.length', 0) === 0 ? '' :
+        const calendarsText = get(item, 'calendars.length', 0) === 0 ? gettext('No calendars assigned.') :
             item.calendars.map((c) => c.name).join(', ');
         const placeText = get(item, 'place.length', 0) === 0 ? '' :
             item.place.map((c) => c.name).join(', ');
@@ -152,6 +152,13 @@ export class EventPreviewContentComponent extends React.Component {
                     value={get(item, 'occur_status.name', '')}
                 />
                 <EventScheduleSummary schedule={item.dates} timeFormat={timeFormat} dateFormat={dateFormat}/>
+
+                <Row
+                    enabled={get(formProfile, 'editor.calendars.enabled')}
+                    label={gettext('Calendars')}
+                    value={calendarsText}
+                />
+
                 <Row
                     enabled={get(formProfile, 'editor.location.enabled')}
                     label={gettext('Location')}
@@ -198,12 +205,6 @@ export class EventPreviewContentComponent extends React.Component {
                 </Row>
 
                 <ToggleBox title={gettext('Details')} isOpen={false}>
-                    <Row
-                        enabled={get(formProfile, 'editor.calendars.enabled')}
-                        label={gettext('Calendars')}
-                        value={calendarsText}
-                    />
-
                     <Row
                         enabled={get(formProfile, 'editor.place.enabled')}
                         label={gettext('Place')}

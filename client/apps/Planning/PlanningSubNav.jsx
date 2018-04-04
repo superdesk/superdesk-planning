@@ -30,6 +30,10 @@ export const PlanningSubNavComponent = ({
     archiveItem,
     showFilters,
     createPlanningOnly,
+    enabledCalendars,
+    disabledCalendars,
+    selectCalendar,
+    currentCalendarId,
 }) => (
     <div>
         {withArchiveItem && <ArchiveItem item={archiveItem} />}
@@ -53,6 +57,10 @@ export const PlanningSubNavComponent = ({
             selectAgenda={selectAgenda}
             currentAgendaId={currentAgendaId}
             showFilters={showFilters}
+            enabledCalendars={enabledCalendars}
+            disabledCalendars={disabledCalendars}
+            selectCalendar={selectCalendar}
+            currentCalendarId={currentCalendarId}
         />
     </div>
 );
@@ -77,6 +85,10 @@ PlanningSubNavComponent.propTypes = {
     showFilters: PropTypes.bool,
     createPlanningOnly: PropTypes.bool,
     archiveItem: PropTypes.object,
+    enabledCalendars: PropTypes.array,
+    disabledCalendars: PropTypes.array,
+    selectCalendar: PropTypes.func,
+    currentCalendarId: PropTypes.string,
 };
 
 PlanningSubNavComponent.defaultProps = {showFilters: true};
@@ -88,6 +100,9 @@ const mapStateToProps = (state) => ({
     disabledAgendas: selectors.getDisabledAgendas(state),
     currentAgendaId: selectors.getCurrentAgendaId(state),
     isViewFiltered: selectors.main.isViewFiltered(state),
+    enabledCalendars: selectors.events.enabledCalendars(state),
+    disabledCalendars: selectors.events.disabledCalendars(state),
+    currentCalendarId: selectors.events.currentCalendarId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -103,7 +118,8 @@ const mapDispatchToProps = (dispatch) => ({
     addPlanning: () => dispatch(actions.main.lockAndEdit({
         _tempId: TEMP_ID_PREFIX + moment().valueOf(),
         type: ITEM_TYPE.PLANNING
-    }))
+    })),
+    selectCalendar: (calendarId) => dispatch(actions.events.ui.selectCalendar(calendarId))
 });
 
 export const PlanningSubNav = connect(mapStateToProps, mapDispatchToProps)(PlanningSubNavComponent);

@@ -142,7 +142,7 @@ export class EditorComponent extends React.Component {
         this.tabs[1].enabled = !!nextProps.itemId;
     }
 
-    onChangeHandler(field, value) {
+    onChangeHandler(field, value, updateDirtyFlag = true) {
         // If field (name) is passed, it will replace that field
         // Else, entire object will be replaced
         const diff = field ? Object.assign({}, this.state.diff) : cloneDeep(value);
@@ -159,11 +159,13 @@ export class EditorComponent extends React.Component {
             errors
         );
 
-        this.setState({
-            diff: diff,
-            dirty: !isEqual(this.props.item, diff),
-            errors: errors
-        });
+        const newState = {diff, errors};
+
+        if (updateDirtyFlag) {
+            newState.dirty = !isEqual(this.props.item, diff);
+        }
+
+        this.setState(newState);
     }
 
     _save({publish, unpublish}) {
