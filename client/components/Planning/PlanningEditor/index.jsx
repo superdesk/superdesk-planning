@@ -262,6 +262,7 @@ export class PlanningEditorComponent extends React.Component {
             errors,
             planningProfile,
             coverageProfile,
+            lockedItems
         } = this.props;
 
         const agendaValues = cloneDeep(get(diff, 'agendas', [])
@@ -430,6 +431,7 @@ export class PlanningEditorComponent extends React.Component {
                             event={event}
                             dateFormat={dateFormat}
                             timeFormat={timeFormat}
+                            lockedItems={lockedItems}
                             tabEnabled
                         />
                     </ContentBlock>
@@ -502,7 +504,8 @@ PlanningEditorComponent.propTypes = {
     planningProfile: PropTypes.object,
     coverageProfile: PropTypes.object,
     defaultGenre: PropTypes.object,
-    currentAgenda: PropTypes.object
+    currentAgenda: PropTypes.object,
+    lockedItems: PropTypes.object,
 };
 
 PlanningEditorComponent.defaultProps = {readOnly: false};
@@ -530,7 +533,8 @@ const mapStateToProps = (state) => ({
     planningProfile: selectors.forms.planningProfile(state),
     coverageProfile: selectors.forms.coverageProfile(state),
     defaultGenre: selectors.config.getDefaultGenre(state),
-    currentAgenda: selectors.getCurrentAgenda(state)
+    currentAgenda: selectors.getCurrentAgenda(state),
+    lockedItems: selectors.locks.getLockedItems(state),
 });
 
 export const PlanningEditor = connect(mapStateToProps)(PlanningEditorComponent);

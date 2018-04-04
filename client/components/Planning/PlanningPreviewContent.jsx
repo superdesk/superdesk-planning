@@ -29,7 +29,9 @@ export class PlanningPreviewContentComponent extends React.Component {
             desks,
             newsCoverageStatus,
             urgencies,
-            streetMapUrl
+            streetMapUrl,
+            onEditEvent,
+            lockedItems,
         } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
@@ -136,6 +138,8 @@ export class PlanningPreviewContentComponent extends React.Component {
                     timeFormat={timeFormat}
                     dateOnly={true}
                     streetMapUrl={streetMapUrl}
+                    onEditEvent={onEditEvent.bind(null, event)}
+                    lockedItems={lockedItems}
                 />}
                 {hasCoverage &&
                     (<h3 className="side-panel__heading--big">{gettext('Coverages')}</h3>)}
@@ -168,7 +172,8 @@ PlanningPreviewContentComponent.propTypes = {
     timeFormat: PropTypes.string,
     newsCoverageStatus: PropTypes.array,
     urgencies: PropTypes.array,
-    streetMapUrl: PropTypes.string
+    streetMapUrl: PropTypes.string,
+    onEditEvent: PropTypes.func,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -188,9 +193,6 @@ const mapStateToProps = (state, ownProps) => ({
     streetMapUrl: selectors.config.getStreetMapUrl(state)
 });
 
-const mapDispatchToProps = (dispatch) => ({
-    onDuplicate: (planning) => (dispatch(actions.planning.ui.duplicate(planning))),
-    onUnlock: (planning) => (dispatch(actions.planning.ui.unlockAndOpenEditor(planning))),
-});
+const mapDispatchToProps = (dispatch) => ({onEditEvent: (event) => (dispatch(actions.main.lockAndEdit(event)))});
 
 export const PlanningPreviewContent = connect(mapStateToProps, mapDispatchToProps)(PlanningPreviewContentComponent);
