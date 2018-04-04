@@ -67,6 +67,8 @@ export class PlanningItem extends React.PureComponent {
                 this.props[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
             [PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName]:
                 this.props[PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName],
+            [PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName]:
+                this.props[PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName],
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
@@ -79,8 +81,14 @@ export class PlanningItem extends React.PureComponent {
                 this.props[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
         };
         const itemActions = currentWorkspace === WORKSPACE.PLANNING ?
-            planningUtils.getPlanningActions(item, event, session, privileges, lockedItems, itemActionsCallBack) :
-            [];
+            planningUtils.getPlanningActions({
+                item: item,
+                event: event,
+                session: session,
+                privileges: privileges,
+                lockedItems: lockedItems,
+                agendas: agendas,
+                callBacks: itemActionsCallBack}) : [];
 
         const showAddCoverage = currentWorkspace === WORKSPACE.AUTHORING && !isItemLocked;
 

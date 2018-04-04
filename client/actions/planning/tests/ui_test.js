@@ -541,6 +541,31 @@ describe('actions.planning.ui', () => {
         });
     });
 
+
+    describe('saveAndUnlockPlanning', () => {
+        beforeEach(() => {
+            sinon.stub(planningUi, 'save').callsFake((item) => (Promise.resolve(item)));
+            sinon.stub(locks, 'unlock').callsFake((item) => (Promise.resolve(item)));
+        });
+
+        it('saves and unlocks planning item', (done) =>
+            store.test(done, planningUi.saveAndUnlockPlanning(data.plannings[0]))
+                .then(() => {
+                    expect(planningUi.save.callCount).toBe(1);
+                    expect(planningUi.save.args[0]).toEqual([data.plannings[0]]);
+
+                    expect(locks.unlock.callCount).toBe(1);
+                    expect(locks.unlock.args[0]).toEqual([data.plannings[0]]);
+
+                    done();
+                }));
+
+        afterEach(() => {
+            restoreSinonStub(planningUi.save);
+            restoreSinonStub(locks.unlock);
+        });
+    });
+
     describe('saveFromAuthoring', () => {
         let modalProps;
 
@@ -683,6 +708,41 @@ describe('actions.planning.ui', () => {
                     expect(services.notify.success.callCount).toBe(0);
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
+
+                    done();
+                });
+        });
+    });
+
+    describe('assignToAgenda', () => {
+        beforeEach(() => {
+            sinon.stub(planningUi, 'save').callsFake((item) => Promise.resolve(item));
+            sinon.stub(locks, 'unlock').callsFake((item) => (Promise.resolve(item)));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(planningUi.save);
+            restoreSinonStub(locks.unlock);
+        });
+
+        it('assignToAgenda adds and agenda to planning item and calls save and unlocks item', (done) => {
+            const planningWithAgenda = {
+                ...data.plannings[0],
+                agendas: ['a1'],
+            };
+
+            return store.test(done, planningUi.assignToAgenda(data.plannings[0], data.agendas[0]))
+                .then(() => {
+                    expect(planningUi.save.callCount).toBe(1);
+                    expect(planningUi.save.args[0]).toEqual([planningWithAgenda]);
+
+                    expect(services.notify.error.callCount).toBe(0);
+                    expect(services.notify.success.callCount).toBe(1);
+                    expect(services.notify.success.args[0]).toEqual(
+                        ['Agenda assigned to the planning item.']);
+
+                    expect(locks.unlock.callCount).toBe(1);
+                    expect(locks.unlock.args[0]).toEqual([planningWithAgenda]);
 
                     done();
                 });

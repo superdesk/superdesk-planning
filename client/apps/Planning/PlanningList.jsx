@@ -152,7 +152,7 @@ const mapDispatchToProps = (dispatch) => ({
     loadMore: (filterType) => dispatch(actions.main.loadMore(filterType)),
     filter: (filterType) => dispatch(actions.main.filter(filterType)),
 
-    itemActions: actionUtils.getActionDispatches(dispatch),
+    itemActions: actionUtils.getActionDispatches({dispatch: dispatch}),
 });
 
 export const PlanningList = connect(

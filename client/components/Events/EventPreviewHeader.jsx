@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {Tools} from '../UI/SidePanel';
 import {ItemActionsMenu, LockContainer, ItemIcon} from '../index';
-import {eventUtils, lockUtils} from '../../utils';
+import {eventUtils, lockUtils, actionUtils} from '../../utils';
 import {PRIVILEGES, EVENTS} from '../../constants';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
@@ -18,21 +18,25 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
             lockedItems,
             session,
             onUnlock,
+            itemActionDispatches,
         } = this.props;
 
         const itemActionsCallBack = {
-            [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
+            [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: itemActionDispatches[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
-            [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
-            [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
-            [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
-            [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: this.props[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
-            [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: this.props[EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName],
+                itemActionDispatches[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
+            [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: itemActionDispatches[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
+            [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: itemActionDispatches[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
+            [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
+                itemActionDispatches[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
+            [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
+                itemActionDispatches[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
+            [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]:
+                itemActionDispatches[EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName],
             [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName],
+                itemActionDispatches[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
+                itemActionDispatches[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
         };
         const itemActions = eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack,
             true);
@@ -68,15 +72,7 @@ EventPreviewHeaderComponent.propTypes = {
     lockedItems: PropTypes.object,
     duplicateEvent: PropTypes.func,
     onUnlock: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]: PropTypes.func,
+    itemActionDispatches: PropTypes.object,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -89,18 +85,7 @@ const mapStateToProps = (state, ownProps) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     onUnlock: (event) => dispatch(actions.events.ui.unlockAndOpenEventDetails(event)),
-    [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: (event) => dispatch(actions.events.ui.duplicate(event)),
-    [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: (event, planningDate) =>
-        dispatch(actions.addEventToCurrentAgenda(event, planningDate)),
-    [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: (event) => dispatch(actions.events.ui.openUnspikeModal(event)),
-    [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: (event) => dispatch(actions.events.ui.openSpikeModal(event)),
-    [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: (event) => dispatch(actions.events.ui.openCancelModal(event)),
-    [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: (event) => dispatch(actions.events.ui.openPostponeModal(event)),
-    [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: (event) => dispatch(actions.events.ui.updateTime(event)),
-    [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]:
-        (event) => dispatch(actions.events.ui.openRescheduleModal(event)),
-    [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
-        (event) => dispatch(actions.events.ui.convertToRecurringEvent(event)),
+    itemActionDispatches: actionUtils.getActionDispatches({dispatch: dispatch, eventOnly: true}),
 });
 
 export const EventPreviewHeader = connect(mapStateToProps, mapDispatchToProps)(EventPreviewHeaderComponent);

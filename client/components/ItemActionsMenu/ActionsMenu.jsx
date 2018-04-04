@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import classNames from 'classnames';
 import {GENERIC_ITEM_ACTIONS} from '../../constants';
 import {onEventCapture} from '../../utils';
 import {get} from 'lodash';
@@ -71,7 +72,9 @@ export class ActionsMenu extends React.Component {
 
         return (
             <li key={key}>
-                <button className="ItemActionsMenu__action" onClick={trigger}>
+                <button className={classNames(
+                    {disabled: get(action, 'inactive', false)},
+                    'ItemActionsMenu__action')} onClick={trigger}>
                     {action.icon && (<i className={action.icon}/>)}
                     {action.label}
                 </button>

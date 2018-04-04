@@ -447,7 +447,7 @@ const mapDispatchToProps = (dispatch) => ({
     openCancelModal: (props) => dispatch(actions.main.openConfirmationModal(props)),
     onValidate: (type, item, profile, errors) => dispatch(validateItem(type, item, profile, errors)),
     loadItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'edit')),
-    itemActions: actionUtils.getActionDispatches(dispatch),
+    itemActions: actionUtils.getActionDispatches({dispatch: dispatch}),
     removeNewAutosaveItems: () => dispatch(actions.autosave.removeNewItems()),
 });
 

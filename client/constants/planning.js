@@ -82,6 +82,11 @@ export const PLANNING = {
             icon: 'icon-pencil',
             actionName: 'onEditPlanning',
             lock_action: 'edit'
+        },
+        ASSIGN_TO_AGENDA: {
+            label: gettext('Assign to agenda'),
+            icon: 'icon-list-plus',
+            actionName: 'onAssignToAgenda',
         }
     },
     NEWS_COVERAGE_CANCELLED_STATUS: {

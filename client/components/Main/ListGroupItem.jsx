@@ -135,6 +135,8 @@ export class ListGroupItem extends React.Component {
                 itemActions[PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName],
             [PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName]:
                 itemActions[PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName],
+            [PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName]:
+                itemActions[PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName],
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
