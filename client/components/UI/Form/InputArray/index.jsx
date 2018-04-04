@@ -1,14 +1,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import classNames from 'classnames';
 import {cloneDeep, get} from 'lodash';
 
-import {Row, LineInput} from './';
-import {Button} from '../';
+import {Button} from '../../';
+import {Row, LineInput} from '../';
+import './style.scss';
 
 export const InputArray = ({
     field,
     value,
     onChange,
+    addButtonComponent,
     addButtonText,
     maxCount,
     addOnly,
@@ -19,10 +22,15 @@ export const InputArray = ({
     message,
     invalid,
     row,
+    buttonWithLabel,
+    label,
+    labelClassName,
     ...props
 }) => {
-    const add = () => {
-        value.push(cloneDeep(defaultElement));
+    const add = (...args) => {
+        const newElement = typeof defaultElement === 'function' ? defaultElement(...args) : defaultElement;
+
+        value.push(cloneDeep(newElement));
         onChange(field, [...value]);
     };
 
@@ -33,11 +41,21 @@ export const InputArray = ({
 
     const Component = element;
 
-    const showAddButton = maxCount ? value.length < maxCount : true;
+    const showAddButton = (maxCount ? value.length < maxCount : true) && !readOnly;
     const isIndexReadOnly = (index) => (addOnly && index === originalCount) ? false : readOnly;
+    const customButton = addButtonComponent ? React.createElement(addButtonComponent, {onAdd: add}) : false;
+    let addButton = row ? (customButton || <Button onClick={add} text={addButtonText} />) :
+        (customButton || <Button onClick={add} text={addButtonText} tabIndex={0} enterKeyIsClick/>);
+
+    const labelComponent = label ?
+        <div>
+            <div className={classNames('InputArray__label', labelClassName)}>{label}</div>
+            {buttonWithLabel && showAddButton && addButton}
+        </div> : null;
 
     return row ? (
         <Row noPadding={!!message}>
+            {labelComponent}
             {get(message, field) && (
                 <LineInput
                     invalid={true}
@@ -64,15 +82,11 @@ export const InputArray = ({
             }
             )}
 
-            {!readOnly && showAddButton && (
-                <Button
-                    onClick={add}
-                    text={addButtonText}
-                />
-            )}
+            {!buttonWithLabel && showAddButton && addButton}
         </Row>
     ) : (
         <div>
+            {labelComponent}
             {get(message, field) && (
                 <LineInput
                     invalid={true}
@@ -99,14 +113,7 @@ export const InputArray = ({
             }
             )}
 
-            {!readOnly && showAddButton && (
-                <Button
-                    onClick={add}
-                    text={addButtonText}
-                    tabIndex={0}
-                    enterKeyIsClick
-                />
-            )}
+            {!buttonWithLabel && showAddButton && addButton}
         </div>
     );
 };
@@ -133,6 +140,7 @@ InputArray.propTypes = {
     readOnly: PropTypes.bool,
     boxed: PropTypes.bool,
     noMargin: PropTypes.bool,
+    buttonWithLabel: PropTypes.bool,
 
     item: PropTypes.object,
     diff: PropTypes.object,
@@ -140,6 +148,11 @@ InputArray.propTypes = {
     errors: PropTypes.object,
     showErrors: PropTypes.bool,
     row: PropTypes.bool,
+    addButtonComponent: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.object,
+    ]),
+    labelClassName: PropTypes.string,
 };
 
 InputArray.defaultProps = {
