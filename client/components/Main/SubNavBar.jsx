@@ -2,9 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {MultiSelectActions} from '../index';
-import {SearchBox} from '../UI';
+import {SearchBox, Button} from '../UI';
 import {ActionsSubnavDropdown, CreateNewSubnavDropdown} from './index';
 import {SubNav} from '../UI/SubNav';
+
+import {gettext} from '../../utils';
 
 export const SubNavBar = ({
     addEvent,
@@ -14,10 +16,20 @@ export const SubNavBar = ({
     search,
     activeFilter,
     createPlanningOnly,
+    isViewFiltered,
+    clearSearch,
 }) => (
     <SubNav>
         <MultiSelectActions />
         <SearchBox label="Search planning" value={value} search={search} activeFilter={activeFilter}/>
+        {isViewFiltered &&
+        <Button
+            text={gettext('Clear Filters')}
+            className="btn__clear-filters"
+            hollow={true}
+            color="alert"
+            onClick={clearSearch}
+        />}
         <ActionsSubnavDropdown openAgendas={openAgendas} />
         <CreateNewSubnavDropdown
             addEvent={addEvent}
@@ -35,4 +47,6 @@ SubNavBar.propTypes = {
     search: PropTypes.func.isRequired,
     activeFilter: PropTypes.string.isRequired,
     createPlanningOnly: PropTypes.bool,
+    isViewFiltered: PropTypes.bool,
+    clearSearch: PropTypes.func
 };
