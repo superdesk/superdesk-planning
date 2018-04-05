@@ -40,6 +40,8 @@ export const PlanningSubNavComponent = ({
             value={fullText}
             search={search}
             activeFilter={activeFilter}
+            isViewFiltered={isViewFiltered}
+            clearSearch={clearSearch}
             createPlanningOnly={createPlanningOnly} />
         <FiltersBar
             filterPanelOpen={filtersOpen}
@@ -51,8 +53,6 @@ export const PlanningSubNavComponent = ({
             selectAgenda={selectAgenda}
             currentAgendaId={currentAgendaId}
             showFilters={showFilters}
-            isViewFiltered={isViewFiltered}
-            clearSearch={clearSearch}
         />
     </div>
 );
