@@ -104,12 +104,12 @@ export function PlanningStoreService(
                 config: config,
                 deployConfig: deployConfig.config,
                 vocabularies: zipObject(
-                    data.voc._items.map((cv) => cv._id),
-                    data.voc._items.map((cv) => cv.items)
+                    get(data, 'voc', []).map((cv) => cv._id),
+                    get(data, 'voc', []).map((cv) => cv.items)
                 ),
                 ingest: {
-                    providers: data.ingest._items.filter((p) =>
-                        p.content_types.indexOf(ITEM_TYPE.EVENT) !== -1)
+                    providers: get(data, 'ingest._items', []).filter((p) =>
+                        get(p, 'content_types', []).indexOf(ITEM_TYPE.EVENT) !== -1)
                         .map((provider) => ({
                             name: provider.name,
                             id: provider._id,
