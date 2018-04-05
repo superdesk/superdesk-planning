@@ -4,9 +4,10 @@ import {connect} from 'react-redux';
 
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
-import {ASSIGNMENTS, WORKSPACE} from '../../constants';
+import {ASSIGNMENTS} from '../../constants';
 
 import {SubNavBar, FiltersBar} from '../../components/Assignments';
+import {ArchiveItem} from '../../components/Archive';
 
 export class AssignmentsSubNavComponent extends React.Component {
     constructor(props) {
@@ -87,20 +88,23 @@ export class AssignmentsSubNavComponent extends React.Component {
             orderByField,
             orderDirection,
             searchQuery,
-            inAuthoring,
+            onlyTodoAssignments,
             assignmentListSingleGroupView,
             changeAssignmentListSingleGroupView,
+            withArchiveItem,
+            archiveItem
         } = this.props;
 
         return (
             <div>
+                {withArchiveItem && <ArchiveItem item={archiveItem} />}
                 <SubNavBar
                     searchQuery={searchQuery}
                     changeSearchQuery={this.changeSearchQuery}
-                    assignmentListSingleGroupView={inAuthoring ? 'TODO' : assignmentListSingleGroupView}
+                    assignmentListSingleGroupView={onlyTodoAssignments ? 'TODO' : assignmentListSingleGroupView}
                     changeAssignmentListSingleGroupView={changeAssignmentListSingleGroupView.bind(null, null)}
                     totalCountInListView={this.getTotalCountForListGroup(assignmentListSingleGroupView)}
-                    inAuthoring={inAuthoring}
+                    onlyTodoAssignments={onlyTodoAssignments}
                 />
 
                 <FiltersBar
@@ -122,7 +126,7 @@ AssignmentsSubNavComponent.propTypes = {
     orderDirection: PropTypes.string,
     fetchMyAssignmentsCount: PropTypes.func,
     searchQuery: PropTypes.string,
-    inAuthoring: PropTypes.bool,
+    onlyTodoAssignments: PropTypes.bool,
     assignmentListSingleGroupView: PropTypes.string,
     changeAssignmentListSingleGroupView: PropTypes.func,
     loadAssignments: PropTypes.func.isRequired,
@@ -131,6 +135,8 @@ AssignmentsSubNavComponent.propTypes = {
     assignmentsInTodoCount: PropTypes.number,
     assignmentsInInProressCount: PropTypes.number,
     assignmentsInCompletedCount: PropTypes.number,
+    archiveItem: PropTypes.object,
+    withArchiveItem: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -140,7 +146,6 @@ const mapStateToProps = (state) => ({
     orderDirection: selectors.getOrderDirection(state),
 
     searchQuery: selectors.getSearchQuery(state),
-    inAuthoring: selectors.getCurrentWorkspace(state) === WORKSPACE.AUTHORING,
     assignmentListSingleGroupView: selectors.getAssignmentListSingleGroupView(state),
 
     filterByType: selectors.getAssignmentFilterByType(state),

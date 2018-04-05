@@ -5,8 +5,7 @@ import {connect} from 'react-redux';
 import {Button} from '../UI';
 
 import {Modal} from '../index';
-import {AssignmentsApp} from '../../apps';
-import {ArchiveItem} from '../Archive';
+import {FulfilAssignmentApp} from '../../apps';
 
 import * as selectors from '../../selectors';
 import {WORKSPACE} from '../../constants';
@@ -19,9 +18,6 @@ export function FulFilAssignmentComponent({
     modalProps,
     currentWorkspace,
     actionInProgress,
-    priorities,
-    urgencies,
-    urgencyLabel,
 }) {
     const {newsItem, $scope} = modalProps;
 
@@ -52,17 +48,7 @@ export function FulFilAssignmentComponent({
                 fullHeight={true}
             >
                 <div className="FulfilAssignment">
-                    <ArchiveItem
-                        item={newsItem}
-                        priorities={priorities}
-                        urgencies={urgencies}
-                        urgencyLabel={urgencyLabel}
-                    />
-                    <AssignmentsApp
-                        showModals={false}
-                        showWorkqueue={false}
-                        marginBottom={false}
-                    />
+                    <FulfilAssignmentApp newsItem={newsItem}/>
                 </div>
             </Modal.Body>
 
@@ -93,9 +79,6 @@ FulFilAssignmentComponent.propTypes = {
 const mapStateToProps = (state) => ({
     currentWorkspace: selectors.getCurrentWorkspace(state),
     actionInProgress: selectors.getModalActionInProgress(state),
-    priorities: selectors.getArchivePriorities(state),
-    urgencies: selectors.getUrgencies(state),
-    urgencyLabel: selectors.vocabs.urgencyLabel(state),
 });
 
 export const FulFilAssignmentModal = connect(

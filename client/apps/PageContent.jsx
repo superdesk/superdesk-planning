@@ -26,11 +26,13 @@ export class PageContent extends React.Component {
             PreviewPanel,
             EditorPanel,
             editorOpen,
+            fullPreviewOpen,
             previewOpen,
             showModals,
             showWorkqueue,
             widePreviewPanel,
             splitView,
+            fullPreview,
         } = this.props;
 
         const sectionClassName = classNames(
@@ -39,7 +41,7 @@ export class PageContent extends React.Component {
                 'sd-page-content--slide-in': !splitView,
                 'sd-page-content--split': splitView,
                 'sd-content--margin-b30': marginBottom,
-                'sd-page-content--slide-in--open': editorOpen,
+                'sd-page-content--slide-in--open': editorOpen || fullPreviewOpen,
             }
         );
 
@@ -57,7 +59,7 @@ export class PageContent extends React.Component {
             {'sd-preview-panel--width-560px': widePreviewPanel}
         );
 
-        const editorClassName = classNames(
+        const slideInClassName = classNames(
             'sd-edit-panel',
             'sd-page-content__content-block',
             'sd-page-content__content-block--right',
@@ -92,18 +94,23 @@ export class PageContent extends React.Component {
                             </div>
                         )}
 
-                        {PreviewPanel && (
+                        {!fullPreview && PreviewPanel && (
                             <div className={previewClassName}>
                                 <PreviewPanel />
                             </div>
                         )}
                     </div>
                 </div>
-                {EditorPanel && (
-                    <div className={editorClassName}>
+                {!fullPreview && EditorPanel && (
+                    <div className={slideInClassName}>
                         <EditorPanel
                             toggleFilterPanel={this.toggleFilterPanel}
                         />
+                    </div>
+                )}
+                {fullPreview && PreviewPanel && (
+                    <div className={slideInClassName}>
+                        <PreviewPanel />
                     </div>
                 )}
                 {showModals && <ModalsContainer />}
@@ -126,6 +133,8 @@ PageContent.propTypes = {
     showModals: PropTypes.bool,
     showWorkqueue: PropTypes.bool,
     splitView: PropTypes.bool,
+    fullPreview: PropTypes.bool,
+    fullPreviewOpen: PropTypes.bool,
 };
 
 PageContent.defaultProps = {
@@ -136,4 +145,6 @@ PageContent.defaultProps = {
     showWorkqueue: true,
     widePreviewPanel: false,
     splitView: false,
+    fullPreview: false,
+    fullPreviewOpen: false,
 };

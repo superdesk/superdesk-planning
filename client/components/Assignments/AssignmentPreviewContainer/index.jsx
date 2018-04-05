@@ -6,7 +6,7 @@ import {get} from 'lodash';
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
 import {assignmentUtils, gettext} from '../../../utils';
-import {ASSIGNMENTS, WORKSPACE} from '../../../constants';
+import {ASSIGNMENTS} from '../../../constants';
 
 import {AssignmentPreviewHeader} from './AssignmentPreviewHeader';
 import {AssignmentPreview} from './AssignmentPreview';
@@ -22,7 +22,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
             editAssignmentPriority,
             completeAssignment,
             assignment,
-            inAssignments,
+            hideItemActions,
             session,
             privileges,
             startWorking,
@@ -32,7 +32,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
             revertAssignment,
         } = this.props;
 
-        if (!inAssignments) {
+        if (hideItemActions) {
             return [];
         }
 
@@ -57,7 +57,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
     render() {
         const {
             assignment,
-            inAssignments,
+            showFulfilAssignment,
             onFulFilAssignment,
             users,
             desks,
@@ -91,7 +91,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
                     desks={desks}
                 />
 
-                {!inAssignments && state === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
+                {showFulfilAssignment && state === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
                     <ContentBlock className="AssignmentPreview__fulfil" padSmall={true} flex={true}>
                         <ContentBlockInner grow={true}>
                             <Button
@@ -154,7 +154,6 @@ class AssignmentPreviewContainerComponent extends React.Component {
 AssignmentPreviewContainerComponent.propTypes = {
     assignment: PropTypes.object.isRequired,
     onFulFilAssignment: PropTypes.func,
-    inAssignments: PropTypes.bool,
     startWorking: PropTypes.func.isRequired,
     reassign: PropTypes.func,
     completeAssignment: PropTypes.func,
@@ -178,11 +177,12 @@ AssignmentPreviewContainerComponent.propTypes = {
     agendas: PropTypes.array,
     openArchivePreview: PropTypes.func,
     revertAssignment: PropTypes.func,
+    hideItemActions: PropTypes.bool,
+    showFulfilAssignment: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
     assignment: selectors.getCurrentAssignment(state),
-    inAssignments: selectors.getCurrentWorkspace(state) === WORKSPACE.ASSIGNMENTS,
     session: selectors.getSessionDetails(state),
     users: selectors.getUsers(state),
     desks: selectors.getDesks(state),
