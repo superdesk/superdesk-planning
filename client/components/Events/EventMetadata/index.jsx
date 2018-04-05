@@ -4,10 +4,10 @@ import {get} from 'lodash';
 import {StateLabel} from '../..';
 import {EventScheduleSummary} from '../';
 import {ItemIcon} from '../../index';
-import {Item, Column, Row} from '../../UI/List';
+import {Item, Column, Row, ActionMenu, Border} from '../../UI/List';
 import {Row as PreviewRow} from '../../UI/Preview';
 import {CollapseBox} from '../../UI/CollapseBox';
-import {eventUtils, gettext} from '../../../utils';
+import {eventUtils, gettext, onEventCapture} from '../../../utils';
 import {Location} from '../../Location';
 
 export const EventMetadata = (
@@ -18,13 +18,26 @@ export const EventMetadata = (
         dateOnly,
         scrollInView,
         tabEnabled,
-        streetMapUrl
+        streetMapUrl,
+        lockedItems,
+        onEditEvent
     }
 ) => {
     const dateStr = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat, dateOnly);
+    const isItemLocked = eventUtils.isEventLocked(event, lockedItems);
+    const editEventComponent = onEditEvent ?
+        (<button data-sd-tooltip="Edit Event"
+            data-flow="left"
+            onClick={(event) => {
+                onEventCapture(event);
+                onEditEvent();
+            }}>
+            <icon className="icon-pencil" />
+        </button>) : null;
 
     const eventListView = (
         <Item noBg={true}>
+            {isItemLocked && <Border state="locked" />}
             <div className="sd-list-item__border" />
             <Column><ItemIcon item={event} /></Column>
             <Column grow={true} border={false}>
@@ -36,6 +49,7 @@ export const EventMetadata = (
                     <time>{dateStr}</time>
                 </Row>
             </Column>
+            {editEventComponent && <ActionMenu>{editEventComponent}</ActionMenu>}
         </Item>
     );
 
@@ -106,6 +120,7 @@ export const EventMetadata = (
         openItem={eventInDetail}
         scrollInView={scrollInView}
         tabEnabled={tabEnabled}
+        tools={editEventComponent}
     />);
 };
 
@@ -116,7 +131,9 @@ EventMetadata.propTypes = {
     timeFormat: PropTypes.string,
     scrollInView: PropTypes.bool,
     tabEnabled: PropTypes.bool,
-    streetMapUrl: PropTypes.string
+    streetMapUrl: PropTypes.string,
+    onEditEvent: PropTypes.func,
+    lockedItems: PropTypes.object,
 };
 
 

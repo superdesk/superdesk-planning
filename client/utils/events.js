@@ -48,7 +48,7 @@ const isEventSameDay = (startingDate, endingDate) => (
 const eventHasPlanning = (event) => get(event, 'planning_ids', []).length > 0;
 
 const isEventLocked = (event, locks) =>
-    !isNil(event) && (
+    !isNil(event) && locks && (
         event._id in locks.event ||
         get(event, 'recurrence_id') in locks.recurring
     );
