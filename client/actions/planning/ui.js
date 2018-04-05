@@ -12,9 +12,9 @@ import {
 } from '../../utils';
 
 import * as selectors from '../../selectors';
-import {PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, MODALS, MAIN} from '../../constants';
+import {PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, MODALS, MAIN, COVERAGES, ASSIGNMENTS} from '../../constants';
 import * as actions from '../index';
-import {get, orderBy} from 'lodash';
+import {get, set, orderBy, cloneDeep} from 'lodash';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -714,6 +714,27 @@ const saveFromAuthoring = (plan) => (
     }
 );
 
+/**
+ * Action to update the values of a single Coverage so the Assignment is placed in the workflow
+ * @param {object} original - Original Planning item
+ * @param {object} updatedCoverage - Coverage to update (along with any coverage fields to update as well)
+ */
+const addCoverageToWorkflow = (original, updatedCoverage) => (
+    (dispatch) => {
+        const updates = {coverages: cloneDeep(original.coverages)};
+        const coverage = cloneDeep(updatedCoverage);
+        const index = updates.coverages.findIndex(
+            (c) => c.coverage_id === coverage.coverage_id
+        );
+
+        set(coverage, 'workflow_status', COVERAGES.WORKFLOW_STATE.ACTIVE);
+        set(coverage, 'assigned_to.state', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED);
+        updates.coverages[index] = coverage;
+
+        return dispatch(planningApi.save(updates, original));
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     spike,
@@ -756,7 +777,8 @@ const self = {
     saveFromAuthoring,
     scheduleRefetch,
     assignToAgenda,
-    saveAndUnlockPlanning
+    saveAndUnlockPlanning,
+    addCoverageToWorkflow
 };
 
 export default self;

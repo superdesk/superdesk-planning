@@ -1,8 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import moment from 'moment';
 import {get, cloneDeep, remove as _remove, some, isEqual} from 'lodash';
+
 import * as selectors from '../../../selectors';
+import * as actions from '../../../actions';
 
 import {gettext, getItemInArrayById, planningUtils, isSameItemId} from '../../../utils';
 
@@ -21,7 +24,7 @@ import {ToggleBox} from '../../UI';
 import {PlanningEditorHeader} from './PlanningEditorHeader';
 import {CoverageArrayInput} from '../../Coverages';
 import {EventMetadata} from '../../Events';
-import {PLANNING, WORKFLOW_STATE, ASSIGNMENTS, COVERAGES} from '../../../constants';
+import {PLANNING, WORKFLOW_STATE} from '../../../constants';
 
 const toggleDetails = [
     'ednote',
@@ -121,7 +124,7 @@ export class PlanningEditorComponent extends React.Component {
             // Cancel only
             let coverageToUpdate = coverages.find((c) => c.coverage_id === coverage.coverage_id);
 
-            coverageToUpdate.news_coverage_status = PLANNING.NEWS_COVERAGE_CANCELLED_STATUS,
+            coverageToUpdate.news_coverage_status = PLANNING.NEWS_COVERAGE_CANCELLED_STATUS;
             coverageToUpdate.planning = {
                 ...coverageToUpdate.planning,
                 internal_note: `------------------------------------------------------------
@@ -138,10 +141,25 @@ export class PlanningEditorComponent extends React.Component {
     }
 
     onAddCoverageToWorkflow(coverage) {
-        const index = this.props.item.coverages.findIndex((c) => c.coverage_id === coverage.coverage_id);
+        const updates = cloneDeep(get(this.props, 'item'));
+        const index = updates.coverages.findIndex((c) => c.coverage_id === coverage.coverage_id);
 
-        this.onChange('coverages[' + index + '].workflow_status', COVERAGES.WORKFLOW_STATE.ACTIVE);
-        this.onChange('coverages[' + index + '].assigned_to.state', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED);
+        updates.coverages[index] = coverage;
+
+        // Let the ItemEditor component know we're about to perform a partial save
+        // This is way the 'save' buttons are disabled while we perform our partial save
+        if (!this.props.startPartialSave(updates)) {
+            return;
+        }
+
+        this.props.onAddCoverageToWorkflow(this.props.item, coverage)
+            .then((updates) => {
+                // Make sure the coverage in our AutoSave is updated with the new workflow states
+                // Otherwise this will cause the form to stay dirty when the initialValues change
+                planningUtils.convertGenreToObject(updates.coverages[index]);
+                updates.coverages[index].planning.scheduled = moment(updates.coverages[index].planning.scheduled);
+                this.onChange(`coverages[${index}]`, updates.coverages[index]);
+            });
     }
 
     onChange(field, value) {
@@ -498,6 +516,8 @@ PlanningEditorComponent.propTypes = {
     defaultGenre: PropTypes.object,
     currentAgenda: PropTypes.object,
     lockedItems: PropTypes.object,
+    onAddCoverageToWorkflow: PropTypes.func,
+    startPartialSave: PropTypes.func,
 };
 
 PlanningEditorComponent.defaultProps = {readOnly: false};
@@ -528,4 +548,12 @@ const mapStateToProps = (state) => ({
     lockedItems: selectors.locks.getLockedItems(state),
 });
 
-export const PlanningEditor = connect(mapStateToProps)(PlanningEditorComponent);
+const mapDispatchToProps = (dispatch) => ({
+    onAddCoverageToWorkflow: (planning, coverage) =>
+        dispatch(actions.planning.ui.addCoverageToWorkflow(planning, coverage))
+});
+
+export const PlanningEditor = connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(PlanningEditorComponent);

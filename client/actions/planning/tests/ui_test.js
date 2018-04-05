@@ -748,4 +748,47 @@ describe('actions.planning.ui', () => {
                 });
         });
     });
+
+    it('addCoverageToWorkflow', (done) => {
+        const coverage = data.plannings[0].coverages[0];
+
+        store.test(done, planningUi.addCoverageToWorkflow(
+            data.plannings[0],
+            {
+                ...coverage,
+                planning: {
+                    ...coverage.planning,
+                    internal_note: 'Please cover this',
+                    g2_content_type: 'photo',
+                }
+            }
+        ))
+            .then(() => {
+                expect(planningApi.save.callCount).toBe(1);
+                expect(planningApi.save.args[0]).toEqual([
+                    {
+                        coverages: [
+                            {
+                                ...coverage,
+                                planning: {
+                                    ...coverage.planning,
+                                    internal_note: 'Please cover this',
+                                    g2_content_type: 'photo',
+                                },
+                                workflow_status: 'active',
+                                assigned_to: {
+                                    ...coverage.assigned_to,
+                                    state: 'assigned'
+                                }
+                            },
+                            data.plannings[0].coverages[1],
+                            data.plannings[0].coverages[2],
+                        ]
+                    },
+                    data.plannings[0]
+                ]);
+
+                done();
+            });
+    });
 });
