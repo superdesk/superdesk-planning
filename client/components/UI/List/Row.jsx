@@ -2,11 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
-export const Row = ({children, classes, margin, marginTop}) => (
+export const Row = ({children, classes, margin, marginTop, paddingBottom}) => (
     <div className={classNames(
         'sd-list-item__row',
         classes,
         {
+            'sd-list-item__row--padding-b5': paddingBottom,
             'sd-list-item__row--no-margin': !margin,
             'sd-list-item__row--margin-top': marginTop,
         }
@@ -20,6 +21,7 @@ Row.propTypes = {
     classes: PropTypes.string,
     margin: PropTypes.bool,
     marginTop: PropTypes.bool,
+    paddingBottom: PropTypes.bool,
 };
 
 Row.defaultProps = {
