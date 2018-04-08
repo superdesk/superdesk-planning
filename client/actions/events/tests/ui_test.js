@@ -726,4 +726,54 @@ describe('actions.events.ui', () => {
                 });
         });
     });
+
+    describe('selectCalendar', () => {
+        beforeEach(() => {
+            sinon.stub(eventsUi, 'fetchEvents').callsFake(() => (Promise.resolve()));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(eventsUi.fetchEvents);
+        });
+
+        it('selects default Calendar', (done) => (
+            store.test(done, eventsUi.selectCalendar())
+                .then(() => {
+                    expect(store.dispatch.callCount).toBe(2);
+                    expect(store.dispatch.args[0]).toEqual([{
+                        type: 'SELECT_EVENT_CALENDAR',
+                        payload: 'ALL_CALENDARS'
+                    }]);
+
+                    expect(services.$timeout.callCount).toBe(1);
+                    expect(services.$location.search.callCount).toBe(1);
+                    expect(services.$location.search.args[0]).toEqual(['calendar', 'ALL_CALENDARS']);
+
+                    expect(eventsUi.fetchEvents.callCount).toBe(1);
+                    expect(eventsUi.fetchEvents.args[0]).toEqual([{}]);
+
+                    done();
+                })
+        ));
+
+        it('selects specific calendar and passes params to fetchEvents', (done) => (
+            store.test(done, eventsUi.selectCalendar('cal1', {fulltext: 'search text'}))
+                .then(() => {
+                    expect(store.dispatch.callCount).toBe(2);
+                    expect(store.dispatch.args[0]).toEqual([{
+                        type: 'SELECT_EVENT_CALENDAR',
+                        payload: 'cal1'
+                    }]);
+
+                    expect(services.$timeout.callCount).toBe(1);
+                    expect(services.$location.search.callCount).toBe(1);
+                    expect(services.$location.search.args[0]).toEqual(['calendar', 'cal1']);
+
+                    expect(eventsUi.fetchEvents.callCount).toBe(1);
+                    expect(eventsUi.fetchEvents.args[0]).toEqual([{fulltext: 'search text'}]);
+
+                    done();
+                })
+        ));
+    });
 });

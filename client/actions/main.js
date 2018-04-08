@@ -353,8 +353,7 @@ const _filter = (filterType, params = {}) => (
         if (filterType === MAIN.FILTERS.EVENTS) {
             dispatch(eventsPlanningUi.clearList());
             dispatch(planningUi.clearList());
-
-            promise = dispatch(eventsUi.fetchEvents(params));
+            promise = dispatch(eventsUi.selectCalendar($location.search().calendar, params));
         } else if (filterType === MAIN.FILTERS.PLANNING) {
             dispatch(eventsPlanningUi.clearList());
             dispatch(eventsUi.clearList());

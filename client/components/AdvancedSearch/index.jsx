@@ -95,7 +95,6 @@ export class AdvancedSearch extends React.Component {
             activeFilter,
             subjects,
             categories,
-            calendars,
             ingestProviders,
             contentTypes,
             urgencies,
@@ -168,15 +167,6 @@ export class AdvancedSearch extends React.Component {
                         label: gettext('Category'),
                         value: get(diff, 'advancedSearch.anpa_category', []),
                         options: categories
-                    },
-                    component: SelectMetaTermsInput
-                },
-                calendars: {
-                    props: {
-                        field: 'advancedSearch.calendars',
-                        label: gettext('Calendar'),
-                        value: get(diff, 'advancedSearch.calendars', []),
-                        options: calendars
                     },
                     component: SelectMetaTermsInput
                 },
@@ -310,7 +300,7 @@ export class AdvancedSearch extends React.Component {
                 ],
                 [MAIN.FILTERS.EVENTS]: [
                     fields.name, fields.slugline, fields.source, fields.location, fields.state,
-                    fields.anpa_category, fields.subject, fields.calendars,
+                    fields.anpa_category, fields.subject,
                     fields.pubstatus, fields.spikeState,
                     fields.startDateTime, fields.endDateTime,
                     fields.dateFilters
@@ -356,7 +346,6 @@ AdvancedSearch.propTypes = {
     activeFilter: PropTypes.string.isRequired,
     currentSearch: PropTypes.object.isRequired,
     diff: PropTypes.object.isRequired,
-    calendars: PropTypes.array,
     categories: PropTypes.array,
     subjects: PropTypes.array,
     urgencies: PropTypes.array,

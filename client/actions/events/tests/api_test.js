@@ -442,17 +442,7 @@ describe('actions.events.api', () => {
 
         describe('advancedSearch', () => {
             it('by calendars', (done) => (
-                store.test(done, eventsApi.query({
-                    advancedSearch: {
-                        calendars: [{
-                            qcode: 'sport',
-                            name: 'Sport',
-                        }, {
-                            qcode: 'finance',
-                            name: 'Finance',
-                        }],
-                    }
-                }))
+                store.test(done, eventsApi.query({calendars: ['sport', 'finance']}))
                     .then(() => {
                         expect(services.api('events').query.callCount).toBe(1);
                         expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
@@ -465,6 +455,34 @@ describe('actions.events.api', () => {
                                     bool: {
                                         must: [
                                             {terms: {'calendars.qcode': ['sport', 'finance']}}
+                                        ],
+                                        must_not: [
+                                            {term: {state: WORKFLOW_STATE.SPIKED}},
+                                        ],
+                                    },
+                                },
+                                filter: {range: {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}}},
+                            }),
+                        })]);
+
+                        done();
+                    })
+            ));
+
+            it('by single calendar', (done) => (
+                store.test(done, eventsApi.query({calendars: ['sport']}))
+                    .then(() => {
+                        expect(services.api('events').query.callCount).toBe(1);
+                        expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
+                            page: 1,
+                            max_results: 25,
+                            sort: '[("dates.start",1)]',
+                            embedded: {files: 1},
+                            source: JSON.stringify({
+                                query: {
+                                    bool: {
+                                        must: [
+                                            {term: {'calendars.qcode': 'sport'}},
                                         ],
                                         must_not: [
                                             {term: {state: WORKFLOW_STATE.SPIKED}},
@@ -1149,5 +1167,63 @@ describe('actions.events.api', () => {
                     done();
                 })
         ));
+    });
+
+    describe('events.api.fetchCalendars', () => {
+        it('fetchCalendars sends RECEIVE_CALENDARS dispatch', (done) => (
+            store.test(done, eventsApi.fetchCalendars())
+                .then((calendars) => {
+                    expect(calendars).toEqual([
+                        {
+                            name: 'Sport',
+                            qcode: 'sport',
+                            is_active: true,
+                        },
+                        {
+                            name: 'Finance',
+                            qcode: 'finance',
+                            is_active: false,
+                        },
+                        {
+                            name: 'Entertainment',
+                            qcode: 'entertainment',
+                            is_active: true,
+                        }
+                    ]);
+
+                    expect(store.dispatch.callCount).toBe(1);
+                    expect(store.dispatch.args[0]).toEqual([{
+                        type: 'RECEIVE_CALENDARS',
+                        payload: [
+                            {
+                                name: 'Sport',
+                                qcode: 'sport',
+                                is_active: true,
+                            },
+                            {
+                                name: 'Finance',
+                                qcode: 'finance',
+                                is_active: false,
+                            },
+                            {
+                                name: 'Entertainment',
+                                qcode: 'entertainment',
+                                is_active: true,
+                            }
+                        ]
+                    }]);
+
+                    done();
+                })
+        ));
+
+        it('fetchCalendars returns Promise.reject if an error occurs', (done) => {
+            services.vocabularies.getVocabularies = sinon.spy(() => Promise.reject(errorMessage));
+            store.test(done, eventsApi.fetchCalendars())
+                .then(null, (error) => {
+                    expect(error).toBe(errorMessage);
+                    done();
+                });
+        });
     });
 });

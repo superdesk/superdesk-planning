@@ -26,6 +26,8 @@ export const EVENTS = {
         UNLOCK_EVENT: 'UNLOCK_EVENT',
         MARK_EVENT_PUBLISHED: 'MARK_EVENT_PUBLISHED',
         MARK_EVENT_UNPUBLISHED: 'MARK_EVENT_UNPUBLISHED',
+        SELECT_CALENDAR: 'SELECT_EVENT_CALENDAR',
+        RECEIVE_CALENDARS: 'RECEIVE_CALENDARS',
     },
     // Number of ids to look for by single request
     // because url length must stay short
@@ -100,5 +102,10 @@ export const EVENTS = {
         type: 'event',
         occur_status: occurStatuses[5], // eocstat:eos5: Planned, occurs certainly
         dates: {}
-    })
+    }),
+    FILTER: {
+        NO_CALENDAR_ASSIGNED: 'NO_CALENDAR_ASSIGNED',
+        ALL_CALENDARS: 'ALL_CALENDARS',
+        DEFAULT: 'ALL_CALENDARS',
+    },
 };

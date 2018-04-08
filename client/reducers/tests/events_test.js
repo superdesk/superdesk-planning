@@ -45,6 +45,8 @@ describe('events', () => {
                 selectedEvents: [],
                 readOnly: true,
                 eventHistoryItems: [],
+                calendars: [],
+                currentCalendarId: undefined,
             });
         });
 
@@ -333,6 +335,30 @@ describe('events', () => {
             });
 
             expect(result).toEqual(initialState);
+        });
+
+        it('RECEIVE_CALENDARS', () => {
+            const result = events(initialState, {
+                type: 'RECEIVE_CALENDARS',
+                payload: [{qcode: 'cal1', name: 'Calendar 1'}]
+            });
+
+            expect(result).toEqual({
+                ...initialState,
+                calendars: [{qcode: 'cal1', name: 'Calendar 1'}]
+            });
+        });
+
+        it('SELECT_EVENT_CALENDAR', () => {
+            const result = events(initialState, {
+                type: 'SELECT_EVENT_CALENDAR',
+                payload: 'cal1'
+            });
+
+            expect(result).toEqual({
+                ...initialState,
+                currentCalendarId: 'cal1'
+            });
         });
     });
 });

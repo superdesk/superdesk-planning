@@ -98,7 +98,6 @@ export function PlanningStoreService(
                 default_operator: 'AND',
                 q: 'public:(1) is_active:(1)',
             }).then((items) => items),
-            preferences: preferencesService.get(null, true)
         }).then((data) => {
             const initialState = {
                 config: config,
@@ -128,7 +127,7 @@ export function PlanningStoreService(
                 session: {
                     sessionId: session.sessionId,
                     identity: session.identity,
-                    userPreferences: data.preferences || {}
+                    userPreferences: {}
                 },
                 urgency: {
                     urgency: metadata.values.urgency,
@@ -168,6 +167,7 @@ export function PlanningStoreService(
                     search: search,
                     config: config,
                     contacts: contacts,
+                    preferencesService: preferencesService,
                 },
             });
             return self.store;

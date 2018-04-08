@@ -208,6 +208,29 @@ export const workspace = {
     currentWorkspace: 'PLANNING',
 };
 
+export const allVocabularies = [
+    {
+        _id: 'event_calendars',
+        items: [
+            {
+                name: 'Sport',
+                qcode: 'sport',
+                is_active: true,
+            },
+            {
+                name: 'Finance',
+                qcode: 'finance',
+                is_active: false,
+            },
+            {
+                name: 'Entertainment',
+                qcode: 'entertainment',
+                is_active: true,
+            }
+        ]
+    }
+];
+
 export const vocabularies = {
     categories: [
         {

@@ -5,6 +5,7 @@ import {gettext} from '../../utils';
 import {Spacer} from '../UI/SubNav';
 import {Checkbox} from '../UI/Form';
 import {AgendaSubnavDropdown} from './';
+import {CalendarSubnavDropdown} from '../Events';
 import {StretchBar} from '../UI/SubNav';
 
 import {MAIN} from '../../constants';
@@ -17,6 +18,10 @@ export const FiltersBox = ({
     selectAgenda,
     currentAgendaId,
     showFilters,
+    enabledCalendars,
+    disabledCalendars,
+    selectCalendar,
+    currentCalendarId,
 }) => {
     const filters = !showFilters ? [] :
         [
@@ -48,7 +53,7 @@ export const FiltersBox = ({
                 />
             ))}
 
-            {showFilters && activeFilter === MAIN.FILTERS.PLANNING && (
+            {showFilters && (activeFilter === MAIN.FILTERS.PLANNING || activeFilter === MAIN.FILTERS.EVENTS) && (
                 <Spacer />
             )}
             {(activeFilter === MAIN.FILTERS.PLANNING) && (
@@ -57,6 +62,14 @@ export const FiltersBox = ({
                     disabledAgendas={disabledAgendas}
                     selectAgenda={selectAgenda}
                     currentAgendaId={currentAgendaId}
+                />
+            )}
+            {(activeFilter === MAIN.FILTERS.EVENTS) && (
+                <CalendarSubnavDropdown
+                    enabledCalendars={enabledCalendars}
+                    disabledCalendars={disabledCalendars}
+                    selectCalendar={selectCalendar}
+                    currentCalendarId={currentCalendarId}
                 />
             )}
         </StretchBar>
@@ -71,6 +84,10 @@ FiltersBox.propTypes = {
     selectAgenda: PropTypes.func.isRequired,
     currentAgendaId: PropTypes.string.isRequired,
     showFilters: PropTypes.bool,
+    enabledCalendars: PropTypes.array,
+    disabledCalendars: PropTypes.array,
+    selectCalendar: PropTypes.func,
+    currentCalendarId: PropTypes.string,
 };
 
 FiltersBox.defaultProps = {showFilters: true};

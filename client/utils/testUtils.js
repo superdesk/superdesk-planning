@@ -205,7 +205,11 @@ export const getTestActionStore = () => {
                 start: sinon.spy((file) => Promise.resolve({
                     data: {_id: file.data.media[0][0]}
                 }))
-            }
+            },
+
+            vocabularies: {
+                getVocabularies: () => Promise.resolve(testData.allVocabularies)
+            },
         },
 
         test: (done, action) => {

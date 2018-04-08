@@ -28,9 +28,13 @@ const fetchEvents = (params = {
     page: 1,
 }) => (
     (dispatch, getState, {$timeout, $location}) => {
-        dispatch(self.requestEvents(params));
+        const filters = {
+            ...selectors.events.getEventFilterParams(getState()),
+            ...params,
+        };
 
-        return dispatch(eventsApi.query(params, true))
+        dispatch(self.requestEvents(filters));
+        return dispatch(eventsApi.query(filters, true))
             .then((items) => {
                 dispatch(eventsApi.receiveEvents(items));
                 dispatch(self.setEventsList(items.map((e) => e._id)));
@@ -717,6 +721,29 @@ const createEventFromPlanning = (plan) => (
     }
 );
 
+/**
+ * Action to select a specific Calendar and fetch the Events that satisfy the filter params as well.
+ * @param {string} calendarId - The Calendar ID to select, defaults to 'All Calendars'
+ * @param {object} params - The filter parameters
+ */
+const selectCalendar = (calendarId = '', params = {}) => (
+    (dispatch, getState, {$timeout, $location}) => {
+        const defaultCalendar = selectors.events.defaultCalendarFilter(getState());
+        const calendar = calendarId || get(defaultCalendar, 'qcode') || EVENTS.FILTER.DEFAULT;
+
+        dispatch({
+            type: EVENTS.ACTIONS.SELECT_CALENDAR,
+            payload: calendar,
+        });
+
+        // Update the url
+        $timeout(() => $location.search('calendar', calendar));
+
+        // Reload the Event list
+        return dispatch(self.fetchEvents(params));
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     fetchEvents,
@@ -760,6 +787,7 @@ const self = {
     openRepetitionsModal,
     publishWithConfirmation,
     createEventFromPlanning,
+    selectCalendar,
 };
 
 export default self;

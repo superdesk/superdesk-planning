@@ -10,6 +10,8 @@ const initialState = {
     selectedEvents: [],
     readOnly: true,
     eventHistoryItems: [],
+    calendars: [],
+    currentCalendarId: undefined,
 };
 
 const modifyEventsBeingAdded = (state, payload) => {
@@ -294,6 +296,16 @@ Event Postponed
     [EVENTS.ACTIONS.MARK_EVENT_UNPUBLISHED]: (state, payload) => (
         onEventPublishChanged(state, payload)
     ),
+
+    [EVENTS.ACTIONS.RECEIVE_CALENDARS]: (state, payload) => ({
+        ...state,
+        calendars: payload
+    }),
+
+    [EVENTS.ACTIONS.SELECT_CALENDAR]: (state, payload) => ({
+        ...state,
+        currentCalendarId: payload,
+    }),
 });
 
 const onEventPublishChanged = (state, payload) => {

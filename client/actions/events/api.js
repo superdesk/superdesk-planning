@@ -5,7 +5,7 @@ import {
     MAIN
 } from '../../constants';
 import {EventUpdateMethods} from '../../components/Events';
-import {get, isEqual, cloneDeep, pickBy, isNil, has} from 'lodash';
+import {get, isEqual, cloneDeep, pickBy, isNil, has, find} from 'lodash';
 import * as selectors from '../../selectors';
 import {
     eventUtils,
@@ -107,6 +107,8 @@ const unspike = (events) => (
 
 const getCriteria = (
     {
+        calendars,
+        noCalendarAssigned = false,
         advancedSearch = {},
         fulltext,
         recurrenceId,
@@ -164,12 +166,22 @@ const getCriteria = (
             },
         },
         {
-            condition: () => (advancedSearch.calendars),
+            condition: () => true,
             do: () => {
-                const codes = advancedSearch.calendars.map((cat) => cat.qcode);
+                if (calendars) {
+                    const numCalendars = get(calendars, 'length', 0);
 
-                must.push({terms: {'calendars.qcode': codes}});
-            },
+                    if (numCalendars > 1) {
+                        must.push({terms: {'calendars.qcode': calendars}});
+                    } else if (numCalendars === 1) {
+                        must.push({term: {'calendars.qcode': calendars[0]}});
+                    }
+                } else if (noCalendarAssigned) {
+                    mustNot.push({
+                        constant_score: {filter: {exists: {field: 'calendars'}}}
+                    });
+                }
+            }
         },
         {
             condition: () => (advancedSearch.anpa_category),
@@ -510,6 +522,8 @@ const getCriteria = (
  */
 const query = (
     {
+        calendars,
+        noCalendarAssigned = false,
         advancedSearch = {},
         fulltext,
         ids,
@@ -550,6 +564,8 @@ const query = (
 
         const criteria = self.getCriteria(
             {
+                calendars,
+                noCalendarAssigned,
                 advancedSearch,
                 fulltext,
                 recurrenceId,
@@ -1229,6 +1245,25 @@ const fetchEventContactsByIds = (ids = []) => (
         })
 );
 
+const fetchCalendars = () => (
+    (dispatch, getState, {vocabularies}) => (
+        vocabularies.getVocabularies()
+            .then((vocabularies) => {
+                const vocab = find(vocabularies, {_id: 'event_calendars'});
+                const calendars = get(vocab, 'items') || [];
+
+                dispatch(self.receiveCalendars(calendars));
+
+                return Promise.resolve(calendars);
+            }, (error) => Promise.reject(error))
+    )
+);
+
+const receiveCalendars = (calendars) => ({
+    type: EVENTS.ACTIONS.RECEIVE_CALENDARS,
+    payload: calendars,
+});
+
 // eslint-disable-next-line consistent-this
 const self = {
     loadEventsByRecurrenceId,
@@ -1265,6 +1300,8 @@ const self = {
     updateRepetitions,
     getEventContacts,
     fetchEventContactsByIds,
+    fetchCalendars,
+    receiveCalendars,
 };
 
 export default self;

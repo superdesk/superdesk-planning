@@ -17,7 +17,6 @@ PlanningController.$inject = [
     '$route',
     'pageTitle',
     'gettext',
-    'preferencesService'
 ];
 export function PlanningController(
     $element,
@@ -28,8 +27,7 @@ export function PlanningController(
     superdeskFlags,
     $route,
     pageTitle,
-    gettext,
-    preferencesService
+    gettext
 ) {
     const prevFlags = {
         workqueue: superdeskFlags.flags.workqueue,
@@ -44,16 +42,16 @@ export function PlanningController(
             registerNotifications($scope, store);
 
             $q.all({
-                data: store.dispatch(actions.main.filter()),
                 locks: store.dispatch(locks.loadAllLocks()),
                 agendas: store.dispatch(actions.fetchAgendas()),
-                userPreferences: preferencesService.get()
+                userPreferences: store.dispatch(actions.users.fetchUserPreferences()),
+                calendars: store.dispatch(actions.events.api.fetchCalendars()),
             })
-                .then((result) => {
+                .then(() => {
                     // Load the current items that are currently open for Preview/Editing
+                    store.dispatch(actions.main.filter());
                     store.dispatch(actions.main.openFromURLOrRedux('edit'));
                     store.dispatch(actions.main.openFromURLOrRedux('preview'));
-                    store.dispatch(actions.users.setUserPreferences(result.userPreferences || {}));
 
                     $scope.$on('$destroy', () => {
                         // Unmount the React application
