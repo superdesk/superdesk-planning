@@ -293,21 +293,21 @@ export class AdvancedSearch extends React.Component {
             // form definition
             const searchForm = {
                 [MAIN.FILTERS.COMBINED]: [
-                    fields.slugline, fields.state, fields.anpa_category, fields.subject,
+                    fields.slugline, fields.anpa_category, fields.subject, fields.state,
                     fields.pubstatus, fields.spikeState,
                     fields.startDateTime, fields.endDateTime,
                     fields.dateFilters,
                 ],
                 [MAIN.FILTERS.EVENTS]: [
-                    fields.name, fields.slugline, fields.source, fields.location, fields.state,
-                    fields.anpa_category, fields.subject,
+                    fields.name, fields.slugline,
+                    fields.anpa_category, fields.subject, fields.source, fields.location, fields.state,
                     fields.pubstatus, fields.spikeState,
                     fields.startDateTime, fields.endDateTime,
                     fields.dateFilters
                 ],
                 [MAIN.FILTERS.PLANNING]: [
-                    fields.slugline, fields.state, fields.anpa_category, fields.subject,
-                    fields.contentType, fields.urgency, fields.noCoverage,
+                    fields.slugline, fields.contentType, fields.noCoverage, fields.anpa_category, fields.urgency,
+                    fields.subject, fields.state,
                     fields.pubstatus, fields.spikeState,
                     fields.startDateTime, fields.endDateTime, fields.dateFilters
                 ],
