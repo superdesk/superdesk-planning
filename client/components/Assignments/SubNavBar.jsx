@@ -13,10 +13,10 @@ export const SubNavBar = ({
     assignmentListSingleGroupView,
     changeAssignmentListSingleGroupView,
     totalCountInListView,
-    inAuthoring,
+    onlyTodoAssignments,
 }) => (
     <SubNav>
-        {!inAuthoring && assignmentListSingleGroupView &&
+        {!onlyTodoAssignments && assignmentListSingleGroupView &&
             <div className="Assignments-list-container__header__backButton">
                 <div className="navbtn" title="Back to group list view">
                     <button
@@ -51,5 +51,5 @@ SubNavBar.propTypes = {
     assignmentListSingleGroupView: PropTypes.string,
     changeAssignmentListSingleGroupView: PropTypes.func,
     totalCountInListView: PropTypes.number,
-    inAuthoring: PropTypes.bool,
+    onlyTodoAssignments: PropTypes.bool,
 };

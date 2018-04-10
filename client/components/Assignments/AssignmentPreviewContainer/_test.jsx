@@ -27,7 +27,6 @@ describe('<AssignmentPreviewContainer />', () => {
         services = astore.services;
         data = astore.data;
         assignment = data.assignments[0];
-        astore.initialState.workspace.currentWorkspace = 'ASSIGNMENTS';
     });
 
     const initStore = () => {
@@ -40,9 +39,9 @@ describe('<AssignmentPreviewContainer />', () => {
         return store;
     };
 
-    const getWrapper = () => mount(
+    const getWrapper = (props) => mount(
         <Provider store={initStore()}>
-            <AssignmentPreviewContainer />
+            <AssignmentPreviewContainer {...props}/>
         </Provider>
     );
 
@@ -59,9 +58,12 @@ describe('<AssignmentPreviewContainer />', () => {
         expect(wrapper.childAt(1).hasClass('AssignmentPreview__coverage')).toBe(true);
         expect(wrapper.childAt(2).hasClass('AssignmentPreview__planning')).toBe(true);
         expect(wrapper.childAt(3).hasClass('AssignmentPreview__event')).toBe(true);
+        expect(wrapper.find('.ItemActionsMenu').length).toBe(1);
 
-        astore.initialState.workspace.currentWorkspace = 'AUTHORING';
-        wrapper = getWrapper().find('.AssignmentPreview');
+        wrapper = getWrapper({
+            showFulfilAssignment: true,
+            hideItemActions: true
+        }).find('.AssignmentPreview');
         expect(wrapper.children().length).toBe(5);
 
         expect(wrapper.hasClass('AssignmentPreview')).toBe(true);
@@ -70,6 +72,7 @@ describe('<AssignmentPreviewContainer />', () => {
         expect(wrapper.childAt(2).hasClass('AssignmentPreview__coverage')).toBe(true);
         expect(wrapper.childAt(3).hasClass('AssignmentPreview__planning')).toBe(true);
         expect(wrapper.childAt(4).hasClass('AssignmentPreview__event')).toBe(true);
+        expect(wrapper.find('.ItemActionsMenu').length).toBe(0);
     });
 
     describe('top toolbar', () => {
@@ -179,8 +182,7 @@ describe('<AssignmentPreviewContainer />', () => {
 
         it('`Fulfil Assignment` executes `assignments.ui.onAssignmentFormSave`', () => {
             assignment.assigned_to.state = 'assigned';
-            astore.initialState.workspace.currentWorkspace = 'AUTHORING';
-            const wrapper = getWrapper();
+            const wrapper = getWrapper({showFulfilAssignment: true});
 
             wrapper.find('.AssignmentPreview__fulfil').find('.btn--primary')
                 .simulate('click');

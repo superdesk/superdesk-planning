@@ -70,11 +70,11 @@ export class AssignmentItem extends React.Component {
             reassign,
             completeAssignment,
             editAssignmentPriority,
-            inAssignments,
             startWorking,
             priorities,
             removeAssignment,
-            revertAssignment
+            revertAssignment,
+            hideItemActions
         } = this.props;
 
         const isItemLocked = get(lockedItems, 'assignment') && assignment._id in lockedItems.assignment;
@@ -89,7 +89,7 @@ export class AssignmentItem extends React.Component {
             [ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.label]: revertAssignment.bind(null, assignment),
         };
 
-        const itemActions = inAssignments ?
+        const itemActions = !hideItemActions ?
             assignmentUtils.getAssignmentActions(assignment,
                 session,
                 privileges,
@@ -189,11 +189,11 @@ AssignmentItem.propTypes = {
     reassign: PropTypes.func,
     completeAssignment: PropTypes.func,
     editAssignmentPriority: PropTypes.func,
-    inAssignments: PropTypes.bool,
     session: PropTypes.object,
     privileges: PropTypes.object,
     startWorking: PropTypes.func,
     priorities: PropTypes.array,
     removeAssignment: PropTypes.func,
     revertAssignment: PropTypes.func,
+    hideItemActions: PropTypes.bool
 };

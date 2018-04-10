@@ -5,14 +5,15 @@ import {isNil} from 'lodash';
 
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
-import {ASSIGNMENTS, WORKSPACE} from '../../constants';
+import {ASSIGNMENTS} from '../../constants';
 
 import {AssignmentGroupList} from '../../components/Assignments';
 
 export const AssignmentListContainer = ({
     assignmentListSingleGroupView,
     changeAssignmentListSingleGroupView,
-    inAuthoring,
+    setMaxHeight,
+    hideItemActions,
     loadAssignments,
     loadMoreAssignments,
     filterBy,
@@ -33,6 +34,13 @@ export const AssignmentListContainer = ({
             filterByPriority
         );
 
+    const listProps = {
+        loadAssignmentsForGroup,
+        loadMoreAssignments,
+        setMaxHeight,
+        hideItemActions,
+    };
+
     return (
         <div className="sd-column-box__main-column__items">
             {isNil(assignmentListSingleGroupView) ? (
@@ -40,23 +48,19 @@ export const AssignmentListContainer = ({
                     <AssignmentGroupList
                         key={groupKey}
                         groupKey={groupKey}
-                        loadAssignmentsForGroup={loadAssignmentsForGroup}
-                        loadMoreAssignments={loadMoreAssignments}
-                        inAuthoring={inAuthoring}
                         changeAssignmentListSingleGroupView={
                             changeAssignmentListSingleGroupView.bind(null, groupKey)
                         }
+                        {...listProps}
                     />
                 ))
             ) : (
                 <AssignmentGroupList
                     groupKey={assignmentListSingleGroupView}
-                    loadAssignmentsForGroup={loadAssignmentsForGroup}
-                    loadMoreAssignments={loadMoreAssignments}
-                    inAuthoring={inAuthoring}
                     changeAssignmentListSingleGroupView={
                         changeAssignmentListSingleGroupView.bind(this, assignmentListSingleGroupView)
                     }
+                    {...listProps}
                 />
             )}
         </div>
@@ -66,7 +70,7 @@ export const AssignmentListContainer = ({
 AssignmentListContainer.propTypes = {
     assignmentListSingleGroupView: PropTypes.string,
     changeAssignmentListSingleGroupView: PropTypes.func,
-    inAuthoring: PropTypes.bool,
+    setMaxHeight: PropTypes.bool,
     loadAssignments: PropTypes.func.isRequired,
     loadMoreAssignments: PropTypes.func.isRequired,
     filterBy: PropTypes.string,
@@ -75,11 +79,13 @@ AssignmentListContainer.propTypes = {
     searchQuery: PropTypes.string,
     orderByField: PropTypes.string,
     orderDirection: PropTypes.string,
+    hideItemActions: PropTypes.bool,
 };
+
+AssignmentListContainer.defaultProps = {setMaxHeight: true};
 
 const mapStateToProps = (state) => ({
     assignmentListSingleGroupView: selectors.getAssignmentListSingleGroupView(state),
-    inAuthoring: selectors.getCurrentWorkspace(state) === WORKSPACE.AUTHORING,
     filterBy: selectors.getFilterBy(state),
     filterByType: selectors.getAssignmentFilterByType(state),
     filterByPriority: selectors.getAssignmentFilterByPriority(state),

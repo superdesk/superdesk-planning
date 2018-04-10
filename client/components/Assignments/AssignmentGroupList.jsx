@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
-import {ASSIGNMENTS, UI, WORKSPACE} from '../../constants';
+import {ASSIGNMENTS, UI} from '../../constants';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {assignmentUtils, gettext} from '../../utils';
@@ -56,7 +56,7 @@ class AssignmentGroupListComponent extends React.Component {
     }
 
     changeAssignmentListSingleGroupView() {
-        this.props.changeAssignmentListSingleGroupView(this.prop.groupKey);
+        this.props.changeAssignmentListSingleGroupView(this.props.groupKey);
     }
 
     getListMaxHeight() {
@@ -97,7 +97,7 @@ class AssignmentGroupListComponent extends React.Component {
                 reassign={this.props.reassign}
                 completeAssignment={this.props.completeAssignment}
                 editAssignmentPriority={this.props.editAssignmentPriority}
-                inAssignments={this.props.inAssignments}
+                hideItemActions={this.props.hideItemActions}
                 startWorking={this.props.startWorking}
                 priorities={this.props.priorities}
                 removeAssignment={this.props.removeAssignment}
@@ -112,11 +112,9 @@ class AssignmentGroupListComponent extends React.Component {
             groupKey,
             totalCount,
             assignmentListSingleGroupView,
-            inAuthoring,
+            setMaxHeight,
         } = this.props;
-        const listStyle = inAuthoring ?
-            {} :
-            {maxHeight: this.getListMaxHeight() + 'px'};
+        const listStyle = setMaxHeight ? {maxHeight: this.getListMaxHeight() + 'px'} : {};
 
         return (
             <div>
@@ -172,7 +170,7 @@ AssignmentGroupListComponent.propTypes = {
     reassign: PropTypes.func,
     completeAssignment: PropTypes.func,
     editAssignmentPriority: PropTypes.func,
-    inAssignments: PropTypes.bool,
+    hideItemActions: PropTypes.bool,
     privileges: PropTypes.object,
     startWorking: PropTypes.func,
     totalCount: PropTypes.number,
@@ -184,10 +182,10 @@ AssignmentGroupListComponent.propTypes = {
     removeAssignment: PropTypes.func,
     openArchivePreview: PropTypes.func,
     revertAssignment: PropTypes.func,
-    inAuthoring: PropTypes.bool,
+    setMaxHeight: PropTypes.bool,
 };
 
-AssignmentGroupListComponent.defaultProps = {inAuthoring: false};
+AssignmentGroupListComponent.defaultProps = {setMaxHeight: true};
 
 const getAssignmentsSelectorsForListGroup = (groupKey) => {
     const groupLabel = ASSIGNMENTS.LIST_GROUPS[groupKey].label;
@@ -228,7 +226,6 @@ const mapStateToProps = (state, ownProps) => {
         users: selectors.getUsers(state),
         lockedItems: selectors.locks.getLockedItems(state),
         currentAssignmentId: selectors.getCurrentAssignmentId(state),
-        inAssignments: selectors.getCurrentWorkspace(state) === WORKSPACE.ASSIGNMENTS,
         privileges: selectors.getPrivileges(state),
         assignmentListSingleGroupView: selectors.getAssignmentListSingleGroupView(state),
         priorities: selectors.getAssignmentPriorities(state),

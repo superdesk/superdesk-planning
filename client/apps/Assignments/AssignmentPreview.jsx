@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
-import {WORKSPACE, TOOLTIPS} from '../../constants';
+import {TOOLTIPS} from '../../constants';
 import {gettext, assignmentUtils, lockUtils} from '../../utils';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
@@ -39,6 +39,10 @@ export class AssignmentPreviewComponent extends React.Component {
             label: gettext('Assignment'),
             render: AssignmentPreviewContainer,
             enabled: true,
+            tabProps: {
+                hideItemActions: this.props.hideItemActions,
+                showFulfilAssignment: this.props.showFulfilAssignment
+            }
         }, {
             label: gettext('Content'),
             render: ArchivePreview,
@@ -125,7 +129,7 @@ export class AssignmentPreviewComponent extends React.Component {
                 </Header>
                 {assignment && (
                     <Content>
-                        <RenderTab/>
+                        <RenderTab {...currentTab.tabProps}/>
                     </Content>
                 )}
             </SidePanel>
@@ -142,17 +146,15 @@ AssignmentPreviewComponent.propTypes = {
         PropTypes.object,
     ]),
     unlockAssignment: PropTypes.func,
-    inAuthoring: PropTypes.bool,
     lockedItems: PropTypes.object,
+    hideItemActions: PropTypes.bool,
+    showFulfilAssignment: PropTypes.bool,
 };
-
-AssignmentPreviewComponent.defaultProps = {inAuthoring: false};
 
 const mapStateToProps = (state) => ({
     assignment: selectors.getCurrentAssignment(state),
     users: selectors.getUsers(state),
     previewOpened: selectors.getPreviewAssignmentOpened(state),
-    inAuthoring: selectors.getCurrentWorkspace(state) === WORKSPACE.AUTHORING,
     lockedItems: selectors.locks.getLockedItems(state),
 });
 
