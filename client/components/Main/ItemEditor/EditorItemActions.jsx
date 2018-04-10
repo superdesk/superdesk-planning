@@ -7,6 +7,7 @@ import {getItemType, eventUtils, planningUtils} from '../../../utils';
 
 export const EditorItemActions = ({
     item,
+    onAddCoverage,
     event,
     session,
     privileges,
@@ -33,6 +34,7 @@ export const EditorItemActions = ({
 
     if (itemType === ITEM_TYPE.PLANNING) {
         itemActionsCallBack = {
+            [PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName]: onAddCoverage,
             [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: itemActions[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
             [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: itemActions[PLANNING.ITEM_ACTIONS.UNSPIKE.actionName],
             [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: itemActions[PLANNING.ITEM_ACTIONS.SPIKE.actionName],
@@ -79,4 +81,5 @@ EditorItemActions.propTypes = {
     privileges: PropTypes.object,
     lockedItems: PropTypes.object,
     itemActions: PropTypes.object,
+    onAddCoverage: PropTypes.func,
 };

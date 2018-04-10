@@ -6,7 +6,7 @@ import {get, isEqual, cloneDeep, omit} from 'lodash';
 import {gettext, lockUtils, eventUtils, planningUtils, updateFormValues} from '../../../utils';
 import actionUtils from '../../../utils/actions';
 
-import {ITEM_TYPE, EVENTS, PLANNING, PUBLISHED_STATE, WORKFLOW_STATE} from '../../../constants';
+import {ITEM_TYPE, EVENTS, PLANNING, PUBLISHED_STATE, WORKFLOW_STATE, COVERAGES} from '../../../constants';
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
 
@@ -47,6 +47,7 @@ export class EditorComponent extends React.Component {
         this.hideSubmitFailed = this.hideSubmitFailed.bind(this);
         this.resetForm = this.resetForm.bind(this);
         this.createNew = this.createNew.bind(this);
+        this.onAddCoverage = this.onAddCoverage.bind(this);
 
         this.tabs = [
             {label: gettext('Content'), render: EditorContentTab, enabled: true},
@@ -248,6 +249,13 @@ export class EditorComponent extends React.Component {
         return this._save({publish: false, unpublish: true});
     }
 
+    onAddCoverage(g2ContentType) {
+        const {newsCoverageStatus, item} = this.props;
+        const newCoverage = COVERAGES.DEFAULT_VALUE(newsCoverageStatus, item, g2ContentType);
+
+        this.onChangeHandler('coverages', [...get(this.state, 'diff.coverages', []), newCoverage]);
+    }
+
     tearDownEditorState() {
         this.setState({
             errors: {},
@@ -329,6 +337,7 @@ export class EditorComponent extends React.Component {
                     onSaveAndPublish={this.onSaveAndPublish}
                     onUnpublish={this.onUnpublish}
                     onSaveUnpublish={this.onSaveUnpublish}
+                    onAddCoverage={this.onAddCoverage}
                     cancel={this.onCancel}
                     minimize={this.props.minimize}
                     submitting={this.state.submitting}
@@ -427,6 +436,7 @@ EditorComponent.propTypes = {
     hideItemActions: PropTypes.bool,
     hideMinimize: PropTypes.bool,
     createAndPublish: PropTypes.bool,
+    newsCoverageStatus: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({
@@ -441,6 +451,7 @@ const mapStateToProps = (state) => ({
     session: selectors.getSessionDetails(state),
     privileges: selectors.getPrivileges(state),
     lockedItems: selectors.locks.getLockedItems(state),
+    newsCoverageStatus: selectors.getNewsCoverageStatus(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

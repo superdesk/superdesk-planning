@@ -152,7 +152,8 @@ export const CoverageEditor = ({
             openItem={coverageForm}
             scrollInView={true}
             isOpen={openComponent || !props.item._id ||
-                isEqual(value, COVERAGES.DEFAULT_VALUE(newsCoverageStatus, props.item))}
+                isEqual(value, COVERAGES.DEFAULT_VALUE(newsCoverageStatus, props.item,
+                    get(value, 'planning.g2_content_type')))}
             invalid={invalid}
             tabEnabled
         />

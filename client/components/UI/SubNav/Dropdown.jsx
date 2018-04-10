@@ -3,7 +3,7 @@ import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {defer, get} from 'lodash';
-import {gettext} from '../../../utils';
+import {gettext, stringUtils} from '../../../utils';
 
 import {Menu, Label, Divider, Dropdown as DropMenu} from '../Dropdown';
 
@@ -47,16 +47,19 @@ export class Dropdown extends React.Component {
         const buttonClassName = classNames(
             'dropdown-toggle',
             'dropdown__toggle',
-            'navbtn',
             this.props.buttonLabelClassName,
             {
+                navbtn: this.props.navbtn,
                 'sd-create-btn': isCreate,
                 'navbtn--text-only': this.props.buttonLabel,
             }
         );
 
         return (
-            <DropMenu isOpen={this.state.open} alignRight={this.props.alignRight}>
+            <DropMenu isOpen={this.state.open}
+                alignRight={this.props.alignRight}
+                dropUp={this.props.dropUp}
+                className={this.props.className} >
                 <OverlayTrigger placement="left"
                     overlay={
                         <Tooltip id="create_new_btn">
@@ -93,7 +96,8 @@ export class Dropdown extends React.Component {
                                         {item.icon && (
                                             <i className={item.icon} />
                                         )}
-                                        <span className={item.className}>{item.label}</span>
+                                        <span className={item.className}>{
+                                            stringUtils.firstCharUpperCase(item.label)}</span>
                                     </button>
                                 </li>
                             );
@@ -120,8 +124,12 @@ Dropdown.propTypes = {
     alignRight: PropTypes.bool,
     disableSelection: PropTypes.bool,
     defaultAction: PropTypes.func,
+    dropUp: PropTypes.bool,
+    navbtn: PropTypes.bool,
+    className: PropTypes.string,
 };
 
 Dropdown.defaultProps = {
     alignRight: false,
+    navbtn: true,
 };

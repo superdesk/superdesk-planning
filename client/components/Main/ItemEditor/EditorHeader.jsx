@@ -64,6 +64,7 @@ export class EditorHeader extends React.Component {
     render() {
         const {
             item,
+            onAddCoverage,
             onSave,
             onPublish,
             onSaveAndPublish,
@@ -233,6 +234,7 @@ export class EditorHeader extends React.Component {
 
                 {!isLockRestricted && !hideItemActions && (
                     <EditorItemActions item={item}
+                        onAddCoverage={onAddCoverage}
                         itemActions={itemActions}
                         session={session}
                         privileges={privileges}
@@ -269,4 +271,5 @@ EditorHeader.propTypes = {
     hideItemActions: PropTypes.bool,
     hideMinimize: PropTypes.bool,
     createAndPublish: PropTypes.bool,
+    onAddCoverage: PropTypes.func,
 };

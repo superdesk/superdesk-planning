@@ -87,6 +87,11 @@ export const PLANNING = {
             label: gettext('Assign to agenda'),
             icon: 'icon-list-plus',
             actionName: 'onAssignToAgenda',
+        },
+        ADD_COVERAGE: {
+            label: gettext('Add coverage'),
+            icon: 'icon-plus-small',
+            actionName: 'onAddCoverage',
         }
     },
     NEWS_COVERAGE_CANCELLED_STATUS: {
@@ -95,11 +100,11 @@ export const PLANNING = {
         label: 'Not planned',
     },
     G2_CONTENT_TYPE: {
-        TEXT: 'text',
-        VIDEO: 'video',
-        LIVE_VIDEO: 'live_video',
-        AUDIO: 'audio',
-        PICTURE: 'picture',
+        TEXT: gettext('text'),
+        VIDEO: gettext('video'),
+        LIVE_VIDEO: gettext('live_video'),
+        AUDIO: gettext('audio'),
+        PICTURE: gettext('picture'),
     },
     DEFAULT_VALUE: {
         type: 'planning',
