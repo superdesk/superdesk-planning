@@ -7,7 +7,14 @@ import {get, cloneDeep, remove as _remove, some, isEqual} from 'lodash';
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
 
-import {gettext, getItemInArrayById, planningUtils, isSameItemId} from '../../../utils';
+import {
+    gettext,
+    getItemInArrayById,
+    planningUtils,
+    isSameItemId,
+    editorMenuUtils,
+    onEventCapture
+} from '../../../utils';
 
 import {ContentBlock} from '../../UI/SidePanel';
 import {
@@ -36,12 +43,17 @@ export class PlanningEditorComponent extends React.Component {
     constructor(props) {
         super(props);
 
-        this.dom = {slugline: null};
+        this.dom = {
+            slugline: null,
+            top: null,
+            details: null,
+        };
         this.onChange = this.onChange.bind(this);
         this.onDuplicateCoverage = this.onDuplicateCoverage.bind(this);
         this.onCancelCoverage = this.onCancelCoverage.bind(this);
         this.onPlanningDateChange = this.onPlanningDateChange.bind(this);
         this.onAddCoverageToWorkflow = this.onAddCoverageToWorkflow.bind(this);
+        this.onFieldFocus = this.onFieldFocus.bind(this);
     }
 
     componentWillMount() {
@@ -244,10 +256,28 @@ export class PlanningEditorComponent extends React.Component {
             (!get(prevProps, 'diff.lock_user') && get(this.props, 'diff.lock_user'))) {
             this.dom.slugline.focus();
         }
+
+        if (get(prevProps, 'navigation.scrollToViewItem') !== get(this.props, 'navigation.scrollToViewItem')) {
+            // scroll to new position
+            if (editorMenuUtils.forceScroll(this.props.navigation, 'planning')) {
+                this.dom.top.scrollIntoView();
+            } else if (editorMenuUtils.forceScroll(this.props.navigation, 'details')) {
+                this.dom.details.scrollIntoView();
+            }
+        }
     }
 
     onPlanningDateChange(field, value) {
         this.onChange('planning_date', value);
+    }
+
+    onFieldFocus(name, event) {
+        if (!name || !get(this.props, 'navigation.onItemFocus')) {
+            return;
+        }
+
+        onEventCapture(event);
+        this.props.navigation.onItemFocus(name);
     }
 
     render() {
@@ -277,7 +307,8 @@ export class PlanningEditorComponent extends React.Component {
             errors,
             planningProfile,
             coverageProfile,
-            lockedItems
+            lockedItems,
+            navigation,
         } = this.props;
 
         const agendaValues = cloneDeep(get(diff, 'agendas', [])
@@ -315,13 +346,17 @@ export class PlanningEditorComponent extends React.Component {
             onChange: this.onChange,
             formProfile: planningProfile,
             errors: errors,
-            showErrors: submitFailed
+            showErrors: submitFailed,
         };
 
         const detailsErrored = some(toggleDetails, (field) => !!get(errors, field));
+        const onFocusPlanning = get(this.props, 'navigation.onItemFocus') ?
+            this.onFieldFocus.bind(null, 'planning') : undefined;
+        const onFocusDetails = get(this.props, 'navigation.onItemFocus') ?
+            this.onFieldFocus.bind(null, 'details') : undefined;
 
         return (
-            <div className="planning-editor">
+            <div className="planning-editor" ref={(node) => this.dom.top = node}>
                 <PlanningEditorHeader
                     item={diff}
                     users={users}
@@ -334,6 +369,7 @@ export class PlanningEditorComponent extends React.Component {
                         label={gettext('Slugline')}
                         refNode={(node) => this.dom.slugline = node}
                         {...fieldProps}
+                        onFocus={onFocusPlanning}
                     />
 
                     <Field
@@ -346,6 +382,7 @@ export class PlanningEditorComponent extends React.Component {
                         row={false}
                         {...fieldProps}
                         onChange={this.onPlanningDateChange}
+                        onFocus={onFocusPlanning}
                     />
 
                     <Field
@@ -353,6 +390,7 @@ export class PlanningEditorComponent extends React.Component {
                         field="description_text"
                         label={gettext('Description')}
                         {...fieldProps}
+                        onFocus={onFocusPlanning}
                     />
 
                     <Field
@@ -360,6 +398,7 @@ export class PlanningEditorComponent extends React.Component {
                         field="internal_note"
                         label={gettext('Internal Note')}
                         {...fieldProps}
+                        onFocus={onFocusPlanning}
                     />
 
                     <Field
@@ -370,19 +409,24 @@ export class PlanningEditorComponent extends React.Component {
                         valueKey="_id"
                         value={agendaValues}
                         {...fieldProps}
+                        onFocus={onFocusPlanning}
                     />
 
                     <ToggleBox
                         title={gettext('Details')}
-                        isOpen={false}
+                        isOpen={editorMenuUtils.isOpen(navigation, 'details')}
+                        onClose={editorMenuUtils.onItemClose(navigation, 'details')}
+                        onOpen={editorMenuUtils.onItemOpen(navigation, 'details')}
                         scrollInView={true}
                         invalid={detailsErrored && (dirty || submitFailed)}
+                        refNode={(node) => this.dom.details = node}
                     >
                         <Field
                             component={TextAreaInput}
                             field="ednote"
                             label={gettext('Ed Note')}
                             {...fieldProps}
+                            onFocus={onFocusDetails}
                         />
 
                         <Field
@@ -392,6 +436,7 @@ export class PlanningEditorComponent extends React.Component {
                             options={locators}
                             defaultValue={[]}
                             {...fieldProps}
+                            onFocus={onFocusDetails}
                         />
 
                         <Field
@@ -401,6 +446,7 @@ export class PlanningEditorComponent extends React.Component {
                             options={categories}
                             defaultValue={[]}
                             {...fieldProps}
+                            onFocus={onFocusDetails}
                         />
 
                         <Field
@@ -410,6 +456,7 @@ export class PlanningEditorComponent extends React.Component {
                             options={subjects}
                             defaultValue={[]}
                             {...fieldProps}
+                            onFocus={onFocusDetails}
                         />
 
                         <Field
@@ -421,6 +468,7 @@ export class PlanningEditorComponent extends React.Component {
                             iconName="urgency-label"
                             defaultValue={null}
                             {...fieldProps}
+                            onFocus={onFocusDetails}
                         />
 
                         {!get(item, 'pubstatus') && <Field
@@ -430,6 +478,7 @@ export class PlanningEditorComponent extends React.Component {
                             labelLeft={true}
                             defaultValue={false}
                             {...fieldProps}
+                            onFocus={onFocusDetails}
                         />}
                     </ToggleBox>
                 </ContentBlock>
@@ -447,6 +496,7 @@ export class PlanningEditorComponent extends React.Component {
                             dateFormat={dateFormat}
                             timeFormat={timeFormat}
                             lockedItems={lockedItems}
+                            navigation={navigation}
                             tabEnabled
                         />
                     </ContentBlock>
@@ -478,6 +528,7 @@ export class PlanningEditorComponent extends React.Component {
                     defaultGenre={this.props.defaultGenre}
                     {...fieldProps}
                     formProfile={coverageProfile}
+                    navigation={navigation}
                 />
             </div>
         );
@@ -518,9 +569,13 @@ PlanningEditorComponent.propTypes = {
     lockedItems: PropTypes.object,
     onAddCoverageToWorkflow: PropTypes.func,
     startPartialSave: PropTypes.func,
+    navigation: PropTypes.object,
 };
 
-PlanningEditorComponent.defaultProps = {readOnly: false};
+PlanningEditorComponent.defaultProps = {
+    readOnly: false,
+    navigation: {}
+};
 
 const mapStateToProps = (state) => ({
     locators: selectors.vocabs.locators(state),

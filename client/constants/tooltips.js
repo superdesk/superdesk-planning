@@ -17,4 +17,5 @@ export const TOOLTIPS = {
         3: 'Low',
     },
     notForPublication: 'Not For Publication',
+    editModal: 'Edit in full screen',
 };

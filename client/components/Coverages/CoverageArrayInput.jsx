@@ -33,6 +33,7 @@ export const CoverageArrayInput = ({
     addNewsItemToPlanning,
     readOnly,
     message,
+    navigation,
     ...props,
 }) => (
     <div>
@@ -43,6 +44,7 @@ export const CoverageArrayInput = ({
                 field={field}
                 value={value}
                 onChange={onChange}
+                navigation={navigation}
                 addButtonText={addButtonText}
                 addButtonComponent={CoverageAddButton}
                 element={CoverageEditor}
@@ -108,6 +110,7 @@ CoverageArrayInput.propTypes = {
     errors: PropTypes.object,
     showErrors: PropTypes.bool,
     addNewsItemToPlanning: PropTypes.object,
+    navigation: PropTypes.object,
 };
 
 CoverageArrayInput.defaultProps = {

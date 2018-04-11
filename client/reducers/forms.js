@@ -9,7 +9,16 @@ const initialState = {
     itemType: null,
     initialValues: null,
     loadingEditItem: false,
+    modalView: false,
 };
+
+const newStateOnEditorOpen = (state, payload, modal = false) => ({
+    ...state,
+    itemId: get(payload, '_id') || null,
+    itemType: get(payload, 'type') || null,
+    initialValues: payload,
+    modalView: modal,
+});
 
 const formsReducer = createReducer(initialState, {
     [AUTOSAVE.ACTIONS.SAVE]: (state, payload) => (
@@ -35,21 +44,18 @@ const formsReducer = createReducer(initialState, {
             [FORM_NAMES.EventForm]: pickBy(state.autosaves.event, (event, key) => !key.startsWith(TEMP_ID_PREFIX)),
             [FORM_NAMES.PlanningForm]: pickBy(state.autosaves.planning, (plan, key) => !key.startsWith(TEMP_ID_PREFIX)),
         }
-    }
-    ),
-
-    [MAIN.ACTIONS.OPEN_EDITOR]: (state, payload) => ({
-        ...state,
-        itemId: get(payload, '_id') || null,
-        itemType: get(payload, 'type') || null,
-        initialValues: payload,
     }),
+
+    [MAIN.ACTIONS.OPEN_EDITOR]: (state, payload) => (newStateOnEditorOpen(state, payload)),
+
+    [MAIN.ACTIONS.OPEN_EDITOR_MODAL]: (state, payload) => (newStateOnEditorOpen(state, payload, true)),
 
     [MAIN.ACTIONS.CLOSE_EDITOR]: (state) => ({
         ...state,
         itemId: null,
         itemType: null,
         initialValues: null,
+        modalView: false,
     }),
 
     [EVENTS.ACTIONS.UNLOCK_EVENT]: (state, payload) => (

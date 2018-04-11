@@ -10,7 +10,18 @@ import {PLANNING} from '../../constants';
 
 import {CoverageItem} from './';
 
-export const CoveragePreview = ({coverage, users, desks, newsCoverageStatus, dateFormat, timeFormat, formProfile}) => {
+export const CoveragePreview = ({
+    coverage,
+    users,
+    desks,
+    newsCoverageStatus,
+    dateFormat,
+    timeFormat,
+    formProfile,
+    noOpen,
+    onClick,
+    active
+}) => {
     const userAssigned = getCreator(coverage, 'assigned_to.user', users);
     const deskAssigned = desks.find((d) =>
         d._id === get(coverage, 'assigned_to.desk'));
@@ -22,7 +33,7 @@ export const CoveragePreview = ({coverage, users, desks, newsCoverageStatus, dat
         assignor_desk,
         assigned_date_user,
         assigned_date_desk,
-    } = coverage.assigned_to;
+    } = get(coverage, 'assigned_to', {});
 
     const deskAssignor = getItemInArrayById(users, assignor_desk);
     const userAssignor = getItemInArrayById(users, assignor_user);
@@ -46,6 +57,7 @@ export const CoveragePreview = ({coverage, users, desks, newsCoverageStatus, dat
             timeFormat={timeFormat}
             readOnly={true}
             isPreview={true}
+            active={active}
         />
     );
 
@@ -110,6 +122,8 @@ export const CoveragePreview = ({coverage, users, desks, newsCoverageStatus, dat
             collapsedItem={coverageListItem}
             openItemTopBar={coverageTopBar}
             openItem={coverageInDetail}
+            onClick={onClick}
+            noOpen={noOpen}
         />);
 };
 
@@ -121,6 +135,9 @@ CoveragePreview.propTypes = {
     dateFormat: PropTypes.string,
     timeFormat: PropTypes.string,
     formProfile: PropTypes.object,
+    noOpen: PropTypes.bool,
+    active: PropTypes.bool,
+    onClick: PropTypes.func,
 };
 
 

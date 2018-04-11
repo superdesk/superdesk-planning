@@ -1,3 +1,4 @@
+/* eslint-disable react/no-multi-comp */
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
@@ -53,68 +54,50 @@ export const InputArray = ({
             {buttonWithLabel && showAddButton && addButton}
         </div> : null;
 
-    return row ? (
+    const getComponent = (val, index, row) => {
+        const indexReadOnly = isIndexReadOnly(index);
+
+        return row ?
+            (<Component
+                key={index}
+                field={`${field}[${index}]`}
+                onChange={onChange}
+                value={val}
+                remove={remove.bind(null, index)}
+                readOnly={indexReadOnly}
+                message={get(message, `[${index}]`)}
+                invalid={!!get(message, `[${index}]`)}
+                openComponent={addOnly && !indexReadOnly}
+                {...props}
+            />) :
+            (<Component
+                key={index}
+                field={`${field}[${index}]`}
+                onChange={onChange}
+                value={val}
+                remove={remove.bind(null, index)}
+                readOnly={indexReadOnly}
+                message={get(message, `[${index}]`)}
+                invalid={!!get(message, `[${index}]`)}
+                openComponent={addOnly && !indexReadOnly}
+                {...props}
+            />);
+    };
+
+    return (
         <Row noPadding={!!message}>
             {labelComponent}
             {get(message, field) && (
                 <LineInput
                     invalid={true}
                     message={get(message, field)}
-                    readOnly={true}
-                    noLabel={true}
+                    readOnly
+                    noLabel
                 />
             )}
-            {value && value.map((val, index) => {
-                const indexReadOnly = isIndexReadOnly(index);
-
-                return <Component
-                    key={index}
-                    field={`${field}[${index}]`}
-                    onChange={onChange}
-                    value={val}
-                    remove={remove.bind(null, index)}
-                    readOnly={indexReadOnly}
-                    message={get(message, `[${index}]`)}
-                    invalid={!!get(message, `[${index}]`)}
-                    openComponent={addOnly && !indexReadOnly}
-                    {...props}
-                />;
-            }
-            )}
-
+            {value && value.map((val, index) => (getComponent(val, index, row)))}
             {!buttonWithLabel && showAddButton && addButton}
         </Row>
-    ) : (
-        <div>
-            {labelComponent}
-            {get(message, field) && (
-                <LineInput
-                    invalid={true}
-                    message={get(message, field)}
-                    readOnly={true}
-                    noLabel={true}
-                />
-            )}
-            {value && value.map((val, index) => {
-                const indexReadOnly = isIndexReadOnly(index);
-
-                return <Component
-                    key={index}
-                    field={`${field}[${index}]`}
-                    onChange={onChange}
-                    value={val}
-                    remove={remove.bind(null, index)}
-                    readOnly={indexReadOnly}
-                    message={get(message, `[${index}]`)}
-                    invalid={!!get(message, `[${index}]`)}
-                    openComponent={addOnly && !indexReadOnly}
-                    {...props}
-                />;
-            }
-            )}
-
-            {!buttonWithLabel && showAddButton && addButton}
-        </div>
     );
 };
 

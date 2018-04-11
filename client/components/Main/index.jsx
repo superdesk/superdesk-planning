@@ -9,6 +9,7 @@ export {SearchPanel} from './SearchPanel';
 export {HistoryTab} from './HistoryTab';
 export {PreviewPanel} from './ItemPreview/';
 export {Editor} from './ItemEditor/';
+export {EditorModal} from './ItemEditorModal/';
 export {ListGroupItem} from './ListGroupItem';
 export {ListGroup} from './ListGroup';
 export {ListPanel} from './ListPanel';

@@ -28,6 +28,18 @@ export class ToggleBox extends React.Component {
 
     toggle() {
         this.setState({isOpen: !this.state.isOpen});
+
+        if (this.state.isOpen && this.props.onClose) {
+            this.props.onClose();
+        } else if (this.props.onOpen) {
+            this.props.onOpen();
+        }
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (this.props.isOpen !== nextProps.isOpen) {
+            this.setState({isOpen: nextProps.isOpen});
+        }
     }
 
     scrollInView() {
@@ -54,6 +66,7 @@ export class ToggleBox extends React.Component {
             hideUsingCSS,
             invalid,
             noMargin,
+            refNode
         } = this.props;
 
         return (
@@ -67,7 +80,7 @@ export class ToggleBox extends React.Component {
                         'toggle-box--no-margin': noMargin,
                     }
                 )}
-                ref={(node) => this.dom.node = node}
+                ref={refNode}
             >
                 <div className="toggle-box__header"
                     onClick={this.toggle}
@@ -102,6 +115,9 @@ export class ToggleBox extends React.Component {
 ToggleBox.propTypes = {
     style: PropTypes.string,
     isOpen: PropTypes.bool,
+    onOpen: PropTypes.func,
+    onClose: PropTypes.func,
+    refNode: PropTypes.func,
     title: PropTypes.string.isRequired,
     children: PropTypes.node,
     scrollInView: PropTypes.bool,

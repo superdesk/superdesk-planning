@@ -12,6 +12,7 @@ import {
     FulFilAssignmentModal,
     SelectItemModal,
 } from './index';
+import {EditorModal} from './Main';
 import {MODALS, ITEM_TYPE} from '../constants';
 
 import SortItemsModal from './SortItemsModal';
@@ -26,6 +27,7 @@ const modals = {
     [MODALS.FULFIL_ASSIGNMENT]: FulFilAssignmentModal,
     [MODALS.SELECT_ITEM_MODAL]: SelectItemModal,
     [MODALS.MANAGE_AGENDAS]: ManageAgendasModal,
+    [MODALS.EDIT_ITEM]: EditorModal,
 };
 
 export function Modals({modalType, modalProps, handleHide}) {

@@ -7,10 +7,12 @@ import {SearchPanel, Editor, PreviewPanel} from '../../components/Main';
 import {PlanningList} from './PlanningList';
 
 export const PlanningUi = ({
+    editorInModal,
     editorOpen,
     previewOpen,
 }) => (
     <PageContent
+        editorInModal={editorInModal}
         editorOpen={editorOpen}
         previewOpen={previewOpen}
         SubNavPanel={PlanningSubNav}
@@ -22,6 +24,7 @@ export const PlanningUi = ({
 );
 
 PlanningUi.propTypes = {
+    editorInModal: PropTypes.editorInModal,
     editorOpen: PropTypes.bool,
     previewOpen: PropTypes.bool,
 };

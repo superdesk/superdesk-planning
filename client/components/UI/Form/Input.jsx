@@ -10,6 +10,7 @@ export const Input = ({
     placeholder,
     onBlur,
     onClick,
+    onFocus,
     readOnly,
     refNode,
     className,
@@ -35,6 +36,7 @@ export const Input = ({
             onChange={onInputChanged}
             onBlur={onBlur}
             onClick={onClick}
+            onFocus={onFocus}
             disabled={readOnly}
             ref={refNode}
             {...props}
@@ -55,6 +57,7 @@ Input.propTypes = {
     placeholder: PropTypes.string,
     readOnly: PropTypes.bool,
     refNode: PropTypes.func,
+    onFocus: PropTypes.func,
     className: PropTypes.string,
 };
 

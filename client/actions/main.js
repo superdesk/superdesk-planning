@@ -24,7 +24,7 @@ import {lockUtils} from '../utils';
 
 import * as selectors from '../selectors';
 
-const lockAndEdit = (item) => (
+const lockAndEdit = (item, modal = false) => (
     (dispatch, getState, {notify}) => {
         const currentItemId = selectors.forms.currentItemId(getState());
         const currentSession = selectors.general.session(getState());
@@ -40,7 +40,16 @@ const lockAndEdit = (item) => (
         }
 
         dispatch({type: MAIN.ACTIONS.EDIT_LOADING_START});
-        dispatch(self.openEditor(item));
+        if (!modal) {
+            dispatch(self.openEditor(item));
+        } else {
+            // Open the modal to show the editor
+            dispatch(showModal({
+                modalType: MODALS.EDIT_ITEM,
+                modalProps: {item},
+            }));
+        }
+
 
         // If the item being edited is currently opened in the Preview panel
         // then close the preview panel
@@ -520,6 +529,15 @@ const openEditor = (item) => (
 );
 
 /**
+ * Action to open the editor for modalView
+ * @param {object} item - The item to open. Must have _id and type attributes
+ */
+const openEditorModal = (item) => ({
+    type: MAIN.ACTIONS.OPEN_EDITOR_MODAL,
+    payload: item,
+});
+
+/**
  * Action to close the editor and update the URL
  */
 const closeEditor = () => (
@@ -724,6 +742,7 @@ const self = {
     publish,
     openCancelModal,
     openEditor,
+    openEditorModal,
     closeEditor,
     filter,
     _filter,
@@ -740,7 +759,7 @@ const self = {
     loadItem,
     openPreview,
     setJumpInterval,
-    jumpTo,
+    jumpTo
 };
 
 export default self;

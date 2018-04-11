@@ -15,6 +15,7 @@ export const SelectInput = ({
     clearable,
     autoFocus,
     refNode,
+    onFocus,
     ...props
 }) => {
     const key = clearable ?
@@ -46,6 +47,7 @@ export const SelectInput = ({
                 clearable={clearable}
                 autoFocus={autoFocus}
                 refNode={refNode}
+                onFocus={onFocus}
             />
         </LineInput>
     );
@@ -77,6 +79,7 @@ SelectInput.propTypes = {
     clearable: PropTypes.bool,
     autoFocus: PropTypes.bool,
     refNode: PropTypes.func,
+    onFocus: PropTypes.func,
 };
 
 SelectInput.defaultProps = {

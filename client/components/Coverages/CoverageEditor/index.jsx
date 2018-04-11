@@ -8,7 +8,7 @@ import {CoverageItem} from '../CoverageItem';
 import {CoverageForm} from './CoverageForm';
 import {CoverageFormHeader} from './CoverageFormHeader';
 
-import {planningUtils, gettext} from '../../../utils';
+import {planningUtils, gettext, editorMenuUtils} from '../../../utils';
 import {COVERAGES} from '../../../constants';
 
 export const CoverageEditor = ({
@@ -35,6 +35,7 @@ export const CoverageEditor = ({
     openComponent,
     defaultGenre,
     addNewsItemToPlanning,
+    navigation,
     ...props,
 }) => {
     // Coverage item actions
@@ -88,11 +89,19 @@ export const CoverageEditor = ({
         }
     }
 
+    const onClose = editorMenuUtils.onItemClose(navigation, field);
+    const onOpen = editorMenuUtils.onItemOpen(navigation, field);
+    const forceScroll = editorMenuUtils.forceScroll(navigation, field);
+    const isOpen = editorMenuUtils.isOpen(navigation, field) || (openComponent || !props.item._id ||
+        isEqual(value, COVERAGES.DEFAULT_VALUE(newsCoverageStatus, props.item,
+            get(value, 'planning.g2_content_type'))));
+    const onFocus = editorMenuUtils.onItemFocus(navigation, field);
+
     const itemActionComponent = get(itemActions, 'length', 0) > 0 ?
         (
             <ItemActionsMenu
-                className="side-panel__top-tools-right"
-                actions={itemActions} />
+                className="side-panel__top-tools-right" actions={itemActions}
+                onOpen={onFocus} />
         ) : null;
 
     const coverageItem = (
@@ -140,6 +149,7 @@ export const CoverageEditor = ({
             hasAssignment={planningUtils.isCoverageAssigned(value)}
             defaultGenre={defaultGenre}
             addNewsItemToPlanning={addNewsItemToPlanning}
+            onFieldFocus={onFocus}
             {...props}
         />
     );
@@ -151,10 +161,11 @@ export const CoverageEditor = ({
             openItemTopBar={coverageTopBar}
             openItem={coverageForm}
             scrollInView={true}
-            isOpen={openComponent || !props.item._id ||
-                isEqual(value, COVERAGES.DEFAULT_VALUE(newsCoverageStatus, props.item,
-                    get(value, 'planning.g2_content_type')))}
+            isOpen={isOpen}
             invalid={invalid}
+            forceScroll={forceScroll}
+            onClose={onClose}
+            onOpen={onOpen}
             tabEnabled
         />
     );
@@ -192,6 +203,7 @@ CoverageEditor.propTypes = {
     openComponent: PropTypes.bool,
     defaultGenre: PropTypes.object,
     addNewsItemToPlanning: PropTypes.object,
+    navigation: PropTypes.object,
 };
 
 CoverageEditor.defaultProps = {

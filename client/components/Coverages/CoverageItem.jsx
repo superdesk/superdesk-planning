@@ -24,7 +24,8 @@ export const CoverageItem = ({
     timeFormat,
     contentTypes,
     itemActionComponent,
-    isPreview
+    isPreview,
+    active
 }) => {
     const userAssigned = getCreator(coverage, 'assigned_to.user', users);
     const deskAssigned = getItemInArrayById(desks, get(coverage, 'assigned_to.desk'));
@@ -34,7 +35,7 @@ export const CoverageItem = ({
     const coverageInWorkflow = planningUtils.isCoverageInWorkflow(coverage);
 
     return (
-        <Item noBg={true}>
+        <Item noBg={!active} activated={active}>
             <Border/>
             {!isPreview && <Column border={false}>
                 {userAssigned ? (
@@ -118,7 +119,8 @@ CoverageItem.propTypes = {
     onCancelCoverage: PropTypes.func,
     itemActionComponent: PropTypes.node,
     contentTypes: PropTypes.array,
-    isPreview: PropTypes.bool
+    isPreview: PropTypes.bool,
+    active: PropTypes.bool,
 };
 
 CoverageItem.defaultProps = {

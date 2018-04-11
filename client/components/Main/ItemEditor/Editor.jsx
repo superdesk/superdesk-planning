@@ -50,6 +50,7 @@ export class EditorComponent extends React.Component {
         this.createNew = this.createNew.bind(this);
         this.onAddCoverage = this.onAddCoverage.bind(this);
         this.startPartialSave = this.startPartialSave.bind(this);
+        this.onMinimized = this.onMinimized.bind(this);
 
         this.tabs = [
             {label: gettext('Content'), render: EditorContentTab, enabled: true},
@@ -180,6 +181,10 @@ export class EditorComponent extends React.Component {
         }
 
         this.setState(newState);
+
+        if (this.props.onChange) {
+            this.props.onChange(diff);
+        }
     }
 
     _save({publish, unpublish}) {
@@ -335,6 +340,10 @@ export class EditorComponent extends React.Component {
         }
 
         this.props.cancel(this.props.item || this.props.initialValues);
+
+        if (this.props.onCancel) {
+            this.props.onCancel();
+        }
     }
 
     setActiveTab(tab) {
@@ -343,6 +352,14 @@ export class EditorComponent extends React.Component {
 
     hideSubmitFailed() {
         this.setState({showSubmitFailed: false});
+    }
+
+    onMinimized() {
+        this.props.minimize();
+
+        if (this.props.onCancel) {
+            this.props.onCancel();
+        }
     }
 
     render() {
@@ -381,7 +398,7 @@ export class EditorComponent extends React.Component {
         }
 
         return (
-            <SidePanel shadowRight={true}>
+            <SidePanel shadowRight={true} className={this.props.className}>
                 {(!this.props.isLoadingItem && this.props.itemType) && (
                     <Autosave
                         formName={this.props.itemType}
@@ -400,7 +417,7 @@ export class EditorComponent extends React.Component {
                     onSaveUnpublish={this.onSaveUnpublish}
                     onAddCoverage={this.onAddCoverage}
                     cancel={this.onCancel}
-                    minimize={this.props.minimize}
+                    minimize={this.onMinimized}
                     submitting={this.state.submitting}
                     dirty={this.state.dirty}
                     errors={this.state.errors}
@@ -420,7 +437,7 @@ export class EditorComponent extends React.Component {
                     hideItemActions={this.props.hideItemActions}
                     hideMinimize={this.props.hideMinimize}
                 />
-                <Content flex={true}>
+                <Content flex={true} className={this.props.contentClassName}>
                     {this.state.showSubmitFailed && (
                         <div>
                             <SlideInToolbar invalid={true}>
@@ -459,6 +476,7 @@ export class EditorComponent extends React.Component {
                                 errors={this.state.errors}
                                 dirty={this.state.dirty}
                                 startPartialSave={this.startPartialSave}
+                                navigation={this.props.navigation}
                             />
                         )}
                     </div>
@@ -499,6 +517,11 @@ EditorComponent.propTypes = {
     hideMinimize: PropTypes.bool,
     createAndPublish: PropTypes.bool,
     newsCoverageStatus: PropTypes.array,
+    onChange: PropTypes.func,
+    onCancel: PropTypes.func,
+    className: PropTypes.string,
+    contentClassName: PropTypes.string,
+    navigation: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({

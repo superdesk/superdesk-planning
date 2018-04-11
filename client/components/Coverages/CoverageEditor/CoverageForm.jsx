@@ -82,6 +82,7 @@ export class CoverageForm extends React.Component {
             defaultGenre,
             addNewsItemToPlanning,
             popupContainer,
+            onFieldFocus,
         } = this.props;
 
         const contentTypeQcode = get(value, 'planning.g2_content_type') || null;
@@ -99,6 +100,7 @@ export class CoverageForm extends React.Component {
             formProfile: formProfile,
             errors: errors,
             showErrors: showErrors,
+            onFocus: onFieldFocus,
         };
 
         const roFields = planningUtils.getCoverageReadOnlyFields(
@@ -235,6 +237,7 @@ CoverageForm.propTypes = {
     defaultGenre: PropTypes.object,
     addNewsItemToPlanning: PropTypes.object,
     popupContainer: PropTypes.func,
+    onFieldFocus: PropTypes.func,
 };
 
 CoverageForm.defaultProps = {

@@ -30,6 +30,7 @@ export {default as uiUtils} from './ui';
 export {default as assignmentUtils} from './assignments';
 export {default as stringUtils} from './strings';
 export {default as actionUtils} from './actions';
+export {default as editorMenuUtils} from './editorMenu';
 export {gettext, gettextCatalog};
 export {lockUtils};
 export {planningUtils};
