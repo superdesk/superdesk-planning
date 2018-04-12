@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get, isEqual, cloneDeep, omit} from 'lodash';
+import {get, isEqual, cloneDeep, omit, pickBy} from 'lodash';
 
 import {gettext, lockUtils, eventUtils, planningUtils, updateFormValues} from '../../../utils';
 import actionUtils from '../../../utils/actions';
@@ -32,6 +32,7 @@ export class EditorComponent extends React.Component {
             submitting: false,
             submitFailed: false,
             showSubmitFailed: false,
+            partialSave: false,
         };
 
         this.tearDownRequired = false;
@@ -48,6 +49,7 @@ export class EditorComponent extends React.Component {
         this.resetForm = this.resetForm.bind(this);
         this.createNew = this.createNew.bind(this);
         this.onAddCoverage = this.onAddCoverage.bind(this);
+        this.startPartialSave = this.startPartialSave.bind(this);
 
         this.tabs = [
             {label: gettext('Content'), render: EditorContentTab, enabled: true},
@@ -130,9 +132,13 @@ export class EditorComponent extends React.Component {
         } else if (isEqual(this.state.diff, {}) && get(nextProps, 'initialValues._tempId')) {
             // This happens when creating a new item (when the editor is not currently open)
             this.createNew(nextProps);
-        } else if (!isEqual(get(nextProps, 'item'), get(this.props, 'item'))) {
+        } else if (!this.itemsEqual(get(nextProps, 'item'), get(this.props, 'item'))) {
             // This happens when the item attributes have changed
-            this.resetForm(get(nextProps, 'item') || {});
+            if (this.state.partialSave) {
+                this.finalisePartialSave(nextProps);
+            } else {
+                this.resetForm(get(nextProps, 'item') || {});
+            }
         } else if (get(this.props, 'initialValues._tempId') && get(nextProps, 'initialValues._tempId') &&
             get(this.props, 'initialValues._tempId') !== get(nextProps, 'initialValues._tempId')) {
             // This happens when creating a new item when the editor currently open with a new item
@@ -141,6 +147,13 @@ export class EditorComponent extends React.Component {
         }
 
         this.tabs[1].enabled = !!nextProps.itemId;
+    }
+
+    itemsEqual(nextItem, currentItem) {
+        return isEqual(
+            pickBy(nextItem, (value, key) => !key.startsWith('_')),
+            pickBy(currentItem, (value, key) => !key.startsWith('_'))
+        );
     }
 
     onChangeHandler(field, value, updateDirtyFlag = true) {
@@ -201,6 +214,54 @@ export class EditorComponent extends React.Component {
                     }),
                     () => this.setState({submitting: false}));
         }
+    }
+
+    /**
+     * Initiate a partial save sequence
+     * This will perform validation on the data provided, then set the submit flags
+     * @param {object} updates - The updated item, with partial updates applied to the initialValues
+     * @return {boolean} Returns true if there are no validation errors, false otherwise
+     */
+    startPartialSave(updates) {
+        const errors = {};
+
+        this.props.onValidate(
+            this.props.itemType,
+            updates,
+            this.props.formProfiles,
+            errors
+        );
+
+        if (isEqual(errors, {})) {
+            this.setState({
+                partialSave: true,
+                submitting: true,
+                submitFailed: false,
+                showSubmitFailed: false,
+            });
+
+            return true;
+        }
+
+        this.setState({
+            submitFailed: true,
+            showSubmitFailed: true,
+        });
+
+        return false;
+    }
+
+    /**
+     * Restore the states after a partial save is completed (once the original item has been updated)
+     * The dirty flag will be recalculated if there are other fields there are still not saved
+     * @param {object} nextProps - The nextProps as passed in to componentWillReceiveProps
+     */
+    finalisePartialSave(nextProps) {
+        this.setState({
+            partialSave: false,
+            submitting: false,
+            dirty: !this.itemsEqual(nextProps.item, this.state.diff),
+        });
     }
 
     onSave() {
@@ -397,6 +458,7 @@ export class EditorComponent extends React.Component {
                                 submitFailed={this.state.submitFailed}
                                 errors={this.state.errors}
                                 dirty={this.state.dirty}
+                                startPartialSave={this.startPartialSave}
                             />
                         )}
                     </div>

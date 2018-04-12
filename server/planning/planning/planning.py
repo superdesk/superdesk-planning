@@ -281,7 +281,7 @@ class PlanningService(superdesk.Service):
                 if not original_coverage:
                     continue
 
-                if coverage != original_coverage:
+                if self.coverage_changed(coverage, original_coverage):
                     user = get_user()
                     coverage['version_creator'] = str(user.get(config.ID_FIELD)) if user else None
                     coverage['versioncreated'] = utcnow()
@@ -322,6 +322,14 @@ class PlanningService(superdesk.Service):
                             slugline=coverage.get('planning', {}).get('slugline', ''))
 
             self._create_update_assignment(original.get(config.ID_FIELD), coverage, original_coverage)
+
+    @staticmethod
+    def coverage_changed(updates, original):
+        for field in ['news_coverage_status', 'planning', 'workflow_status']:
+            if updates.get(field) != original.get(field):
+                return True
+
+        return False
 
     def set_planning_schedule(self, updates, original=None):
         """This set the list of schedule based on the coverage and planning.
