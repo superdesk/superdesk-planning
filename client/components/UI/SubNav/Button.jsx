@@ -1,19 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
 
-export const Button = ({children, className, right, buttonClassName, onClick}) => (
-    <div
-        className={classNames(
-            'subnav__button-stack',
-            {'subnav__button-stack--right': right},
-            className
-        )}
+import {ButtonStack} from './ButtonStack';
+
+export const Button = ({children, className, right, buttonClassName, onClick, padded}) => (
+    <ButtonStack
+        right={right}
+        padded={padded}
+        className={className}
     >
         <button className={buttonClassName} onClick={onClick}>
             {children}
         </button>
-    </div>
+    </ButtonStack>
 );
 
 Button.propTypes = {
@@ -22,8 +21,10 @@ Button.propTypes = {
     right: PropTypes.bool,
     buttonClassName: PropTypes.string,
     onClick: PropTypes.func,
+    padded: PropTypes.bool,
 };
 
 Button.defaultProps = {
-    right: false
+    right: false,
+    padded: false,
 };

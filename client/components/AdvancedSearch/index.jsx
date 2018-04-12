@@ -271,16 +271,20 @@ export class AdvancedSearch extends React.Component {
                         options: [
                             {
                                 label: gettext('Today'),
-                                value: 'today',
+                                value: MAIN.DATE_RANGE.TODAY,
                             },
                             {
-                                label: gettext('Last 24 hrs'),
-                                value: 'last24',
+                                label: gettext('Tomorrow'),
+                                value: MAIN.DATE_RANGE.TOMORROW,
                             },
                             {
-                                label: gettext('Week'),
-                                value: 'week'
+                                label: gettext('This Week'),
+                                value: MAIN.DATE_RANGE.THIS_WEEK
 
+                            },
+                            {
+                                label: gettext('Next Week'),
+                                value: MAIN.DATE_RANGE.NEXT_WEEK
                             }
                         ]
                     },

@@ -1,5 +1,6 @@
 import {createSelector} from 'reselect';
 import {get, sortBy, uniq, keyBy} from 'lodash';
+import {getStartOfWeek} from './config';
 import {storedEvents} from './events';
 import {storedPlannings} from './planning';
 import {eventUtils, getSearchDateRange, planningUtils} from '../utils';
@@ -14,11 +15,11 @@ export const currentSearch = (state) => get(state, 'main.search.COMBINED.current
  * @type {Reselect.Selector<any, any>}
  */
 export const orderedEventsPlanning = createSelector(
-    [storedEvents, storedPlannings, getEventsPlanningList, currentSearch],
-    (events, plannings, eventPlanningList, search) => {
+    [storedEvents, storedPlannings, getEventsPlanningList, currentSearch, getStartOfWeek],
+    (events, plannings, eventPlanningList, search, startOfWeek) => {
         const eventsList = [];
         const planningList = [];
-        const dateRange = getSearchDateRange(search);
+        const dateRange = getSearchDateRange(search, startOfWeek);
 
         eventPlanningList.forEach((_id) => {
             if (_id in events) {

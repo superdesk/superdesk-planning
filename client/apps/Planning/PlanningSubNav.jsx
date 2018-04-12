@@ -34,6 +34,8 @@ export const PlanningSubNavComponent = ({
     disabledCalendars,
     selectCalendar,
     currentCalendarId,
+    currentStartFilter,
+    dateFormat,
 }) => (
     <div>
         {withArchiveItem && <ArchiveItem item={archiveItem} />}
@@ -46,7 +48,10 @@ export const PlanningSubNavComponent = ({
             activeFilter={activeFilter}
             isViewFiltered={isViewFiltered}
             clearSearch={clearSearch}
-            createPlanningOnly={createPlanningOnly} />
+            createPlanningOnly={createPlanningOnly}
+            currentStartFilter={currentStartFilter}
+            dateFormat={dateFormat}
+        />
         <FiltersBar
             filterPanelOpen={filtersOpen}
             toggleFilterPanel={toggleFilterPanel}
@@ -89,6 +94,8 @@ PlanningSubNavComponent.propTypes = {
     disabledCalendars: PropTypes.array,
     selectCalendar: PropTypes.func,
     currentCalendarId: PropTypes.string,
+    currentStartFilter: PropTypes.object,
+    dateFormat: PropTypes.string,
 };
 
 PlanningSubNavComponent.defaultProps = {showFilters: true};
@@ -103,6 +110,8 @@ const mapStateToProps = (state) => ({
     enabledCalendars: selectors.events.enabledCalendars(state),
     disabledCalendars: selectors.events.disabledCalendars(state),
     currentCalendarId: selectors.events.currentCalendarId(state),
+    currentStartFilter: selectors.main.currentStartFilter(state),
+    dateFormat: selectors.config.getDateFormat(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

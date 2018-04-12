@@ -6,13 +6,16 @@ import {
     sanitizeTextForQuery,
     lockUtils,
     appendStatesQueryForAdvancedSearch,
+    timeUtils,
 } from '../../utils';
 import planningUtils from '../../utils/planning';
 import {
     PLANNING,
     PUBLISHED_STATE,
     SPIKED_STATE,
-    MODALS, MAIN, WORKFLOW_STATE,
+    MODALS,
+    MAIN,
+    WORKFLOW_STATE,
 } from '../../constants';
 import main from '../main';
 
@@ -83,6 +86,7 @@ const getCriteria = ({
     fulltext,
     adHocPlanning = false,
     excludeRescheduledAndCancelled = false,
+    startOfWeek = 0,
 }) => {
     let query = {};
     let mustNot = [];
@@ -157,15 +161,25 @@ const getCriteria = ({
                 range[fieldName] = {time_zone: getTimeZoneOffset()};
                 let rangeType = get(advancedSearch, 'dates.range');
 
-                if (rangeType === 'today') {
+                if (rangeType === MAIN.DATE_RANGE.TODAY) {
                     range[fieldName].gte = 'now/d';
                     range[fieldName].lt = 'now+24h/d';
-                } else if (rangeType === 'last24') {
+                } else if (rangeType === MAIN.DATE_RANGE.TOMORROW) {
+                    range[fieldName].gte = 'now+24h/d';
+                    range[fieldName].lt = 'now+48h/d';
+                } else if (rangeType === MAIN.DATE_RANGE.LAST_24) {
                     range[fieldName].gte = 'now-24h';
                     range[fieldName].lt = 'now';
-                } else if (rangeType === 'week') {
-                    range[fieldName].gte = 'now/d';
-                    range[fieldName].lt = 'now+7d/d';
+                } else if (rangeType === MAIN.DATE_RANGE.THIS_WEEK) {
+                    const startOfNextWeek = timeUtils.getStartOfNextWeek(null, startOfWeek);
+
+                    range[fieldName].lt = startOfNextWeek.format('YYYY-MM-DD') + '||/d';
+                    range[fieldName].gte = startOfNextWeek.subtract(7, 'days').format('YYYY-MM-DD') + '||/d';
+                } else if (rangeType === MAIN.DATE_RANGE.NEXT_WEEK) {
+                    const startOfNextWeek = timeUtils.getStartOfNextWeek(null, startOfWeek).add(7, 'days');
+
+                    range[fieldName].lt = startOfNextWeek.format('YYYY-MM-DD') + '||/d';
+                    range[fieldName].gte = startOfNextWeek.subtract(7, 'days').format('YYYY-MM-DD') + '||/d';
                 } else {
                     if (get(advancedSearch, 'dates.start')) {
                         range[fieldName].gte = get(advancedSearch, 'dates.start');
@@ -309,6 +323,7 @@ const query = (
     storeTotal = true
 ) => (
     (dispatch, getState, {api}) => {
+        const startOfWeek = selectors.config.getStartOfWeek(getState());
         let criteria = self.getCriteria({
             spikeState,
             agendas,
@@ -316,9 +331,9 @@ const query = (
             advancedSearch,
             fulltext,
             adHocPlanning,
-            excludeRescheduledAndCancelled
+            excludeRescheduledAndCancelled,
+            startOfWeek
         });
-
 
         const sortField = '_planning_schedule.scheduled';
         const sortParams = {

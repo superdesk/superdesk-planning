@@ -19,6 +19,7 @@ import * as testData from './testData';
 import {gettext, gettextCatalog} from './gettext';
 import {default as lockUtils} from './locks';
 import {default as planningUtils} from './planning';
+import {default as timeUtils} from './time';
 
 
 export {default as checkPermission} from './checkPermission';
@@ -32,6 +33,7 @@ export {default as actionUtils} from './actions';
 export {gettext, gettextCatalog};
 export {lockUtils};
 export {planningUtils};
+export {timeUtils};
 
 // Polyfill Promise.finally function as this was introduced in Chrome 63+
 import promiseFinally from 'promise.prototype.finally';
@@ -606,7 +608,7 @@ export const isDateInRange = (inputDate, startDate, endDate) => {
     return true;
 };
 
-export const getSearchDateRange = (currentSearch) => {
+export const getSearchDateRange = (currentSearch, startOfWeek) => {
     const dates = get(currentSearch, 'advancedSearch.dates', {});
     const dateRange = {startDate: null, endDate: null};
 
@@ -616,19 +618,23 @@ export const getSearchDateRange = (currentSearch) => {
     } else if (get(dates, 'range')) {
         let range = get(dates, 'range');
 
-        if (range === 'today') {
+        if (range === MAIN.DATE_RANGE.TODAY) {
             dateRange.startDate = moment(moment().format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
             dateRange.endDate = dateRange.startDate.clone().add('86399', 'seconds');
-        }
+        } else if (range === MAIN.DATE_RANGE.TOMORROW) {
+            const tomorrow = moment().add(1, 'day');
 
-        if (range === 'last24') {
+            dateRange.startDate = moment(tomorrow.format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
+            dateRange.endDate = tomorrow.clone().add('86399', 'seconds');
+        } else if (range === MAIN.DATE_RANGE.LAST_24) {
             dateRange.endDate = moment();
             dateRange.startDate = dateRange.endDate.clone().subtract('86400', 'seconds');
-        }
-
-        if (range === 'week') {
-            dateRange.startDate = moment(moment().format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
-            dateRange.endDate = dateRange.startDate.clone().add('7', 'days');
+        } else if (range === MAIN.DATE_RANGE.THIS_WEEK) {
+            dateRange.endDate = timeUtils.getStartOfNextWeek(null, startOfWeek);
+            dateRange.startDate = dateRange.endDate.clone().subtract(7, 'days');
+        } else if (range === MAIN.DATE_RANGE.NEXT_WEEK) {
+            dateRange.endDate = timeUtils.getStartOfNextWeek(null, startOfWeek).add(7, 'days');
+            dateRange.startDate = dateRange.endDate.clone().subtract(7, 'days');
         }
     } else {
         if (get(dates, 'start')) {

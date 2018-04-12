@@ -14,6 +14,7 @@ import {
     sanitizeTextForQuery,
     getErrorMessage,
     appendStatesQueryForAdvancedSearch,
+    timeUtils,
 } from '../../utils';
 import moment from 'moment';
 
@@ -114,7 +115,8 @@ const getCriteria = (
         recurrenceId,
         spikeState = SPIKED_STATE.NOT_SPIKED,
         onlyFuture = true,
-        must = []
+        must = [],
+        startOfWeek = 0,
     }
 ) => {
     let query = {};
@@ -206,7 +208,7 @@ const getCriteria = (
                     let rangeType = get(advancedSearch, 'dates.range');
                     let dateFilters;
 
-                    if (rangeType === 'today') {
+                    if (rangeType === MAIN.DATE_RANGE.TODAY) {
                         dateFilters = {
                             filters: [
                                 // start date falls today
@@ -254,7 +256,55 @@ const getCriteria = (
                                 }
                             ]
                         };
-                    } else if (rangeType === 'last24') {
+                    } else if (rangeType === MAIN.DATE_RANGE.TOMORROW) {
+                        dateFilters = {
+                            filters: [
+                                // start date falls tomorrow
+                                {
+                                    range: {
+                                        'dates.start': {
+                                            gte: 'now+24h/d',
+                                            lt: 'now+48h/d',
+                                            time_zone: getTimeZoneOffset()
+                                        }
+                                    }
+                                },
+                                // end date falls today
+                                {
+                                    range: {
+                                        'dates.end': {
+                                            gte: 'now+24h/d',
+                                            lt: 'now+48h/d',
+                                            time_zone: getTimeZoneOffset()
+                                        }
+                                    }
+                                },
+                                // today is between dates.start and dates.end
+                                {
+                                    and: {
+                                        filters: [
+                                            {
+                                                range: {
+                                                    'dates.start': {
+                                                        lt: 'now+24h/d',
+                                                        time_zone: getTimeZoneOffset()
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                range: {
+                                                    'dates.end': {
+                                                        gt: 'now+48h/d',
+                                                        time_zone: getTimeZoneOffset()
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        };
+                    } else if (rangeType === MAIN.DATE_RANGE.LAST_24) {
                         dateFilters = {
                             filters: [
                                 // start date in last 24 hours
@@ -302,25 +352,31 @@ const getCriteria = (
                                 }
                             ]
                         };
-                    } else if (rangeType === 'week') {
+                    } else if (rangeType === MAIN.DATE_RANGE.THIS_WEEK) {
+                        let startOfNextWeek = timeUtils.getStartOfNextWeek(null, startOfWeek);
+                        let startOfWeek = startOfNextWeek.clone().subtract(7, 'days');
+
+                        startOfWeek = startOfWeek.format('YYYY-MM-DD') + '||/d';
+                        startOfNextWeek = startOfNextWeek.format('YYYY-MM-DD') + '||/d';
+
                         dateFilters = {
                             filters: [
-                                // start date in next 7 days
+                                // start date in this week
                                 {
                                     range: {
                                         'dates.start': {
-                                            gte: 'now/d',
-                                            lt: 'now+7d/d',
+                                            gte: startOfWeek,
+                                            lt: startOfNextWeek,
                                             time_zone: getTimeZoneOffset()
                                         }
                                     }
                                 },
-                                // end date in next 7 days
+                                // end date in this week
                                 {
                                     range: {
                                         'dates.end': {
-                                            gte: 'now/d',
-                                            lt: 'now+7d/d',
+                                            gte: startOfWeek,
+                                            lt: startOfNextWeek,
                                             time_zone: getTimeZoneOffset()
                                         }
                                     }
@@ -332,7 +388,7 @@ const getCriteria = (
                                             {
                                                 range: {
                                                     'dates.start': {
-                                                        lt: 'now/d',
+                                                        lt: startOfWeek,
                                                         time_zone: getTimeZoneOffset()
                                                     }
                                                 }
@@ -340,7 +396,61 @@ const getCriteria = (
                                             {
                                                 range: {
                                                     'dates.end': {
-                                                        gt: 'now+7d/d',
+                                                        gte: startOfNextWeek,
+                                                        time_zone: getTimeZoneOffset()
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        };
+                    } else if (rangeType === MAIN.DATE_RANGE.NEXT_WEEK) {
+                        let startOfNextWeek = timeUtils.getStartOfNextWeek(null, startOfWeek).add(7, 'days');
+                        let startOfWeek = startOfNextWeek.clone().subtract(7, 'days');
+
+                        startOfWeek = startOfWeek.format('YYYY-MM-DD') + '||/d';
+                        startOfNextWeek = startOfNextWeek.format('YYYY-MM-DD') + '||/d';
+
+                        dateFilters = {
+                            filters: [
+                                // start date in next week
+                                {
+                                    range: {
+                                        'dates.start': {
+                                            gte: startOfWeek,
+                                            lt: startOfNextWeek,
+                                            time_zone: getTimeZoneOffset()
+                                        }
+                                    }
+                                },
+                                // end date in next week
+                                {
+                                    range: {
+                                        'dates.end': {
+                                            gte: startOfWeek,
+                                            lt: startOfNextWeek,
+                                            time_zone: getTimeZoneOffset()
+                                        }
+                                    }
+                                },
+                                // next week is between dates.start and dates.end
+                                {
+                                    and: {
+                                        filters: [
+                                            {
+                                                range: {
+                                                    'dates.start': {
+                                                        lt: startOfWeek,
+                                                        time_zone: getTimeZoneOffset()
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                range: {
+                                                    'dates.end': {
+                                                        gt: startOfNextWeek,
                                                         time_zone: getTimeZoneOffset()
                                                     }
                                                 }
@@ -509,6 +619,8 @@ const getCriteria = (
 /**
  * Action Dispatcher for query the api for events
  * You can provide one of the following parameters to fetch from the server
+ * @param {Array} calendars - List of Calendars to filter
+ * @param {boolean} noCalendarAssigned - Search for Events that have no Calendar assigned
  * @param {object} advancedSearch - Query parameters to send to the server
  * @param {object} fulltext - Full text search parameters
  * @param {Array} ids - An array of Event IDs to fetch
@@ -562,6 +674,7 @@ const query = (
             }
         }
 
+        const startOfWeek = selectors.config.getStartOfWeek(getState());
         const criteria = self.getCriteria(
             {
                 calendars,
@@ -571,7 +684,8 @@ const query = (
                 recurrenceId,
                 spikeState,
                 onlyFuture,
-                must
+                must,
+                startOfWeek,
             });
 
         // Query the API and sort by date

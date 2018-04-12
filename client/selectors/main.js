@@ -5,6 +5,9 @@ import {orderedEvents, storedEvents} from './events';
 import {orderedPlanningList, storedPlannings} from './planning';
 import {orderedEventsPlanning} from './eventsplanning';
 import {ITEM_TYPE} from '../constants';
+import moment from 'moment';
+import {getStartOfWeek} from './config';
+import {getSearchDateRange} from '../utils';
 
 
 export const activeFilter = (state) => get(state, 'main.filter', MAIN.FILTERS.COMBINED);
@@ -55,6 +58,22 @@ export const searchParams = (state) => get(state, 'main.search', {});
 export const currentSearch = createSelector(
     [activeFilter, searchParams],
     (filter, params) => get(params, `${filter}.currentSearch`, {})
+);
+
+export const currentJumpInterval = createSelector(
+    [activeFilter, searchParams],
+    (filter, params) => get(params, `${filter}.jumpInterval`) || MAIN.JUMP.WEEK
+);
+
+export const currentAdvancedSearch = createSelector(
+    [activeFilter, searchParams],
+    (filter, params) => get(params, `${filter}.currentSearch.advancedSearch`) || {}
+);
+
+export const currentStartFilter = createSelector(
+    [currentSearch, getStartOfWeek],
+    (search, startOfWeek) =>
+        get(getSearchDateRange(search, startOfWeek), 'startDate') || moment()
 );
 
 export const eventsTotalItems = (state) => get(state, 'main.search.EVENTS.totalItems', 0);
