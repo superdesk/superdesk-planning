@@ -1,0 +1,1794 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Project-Id-Version: \n"
+
+#: client/components/Assignments/AssignmentItem/index.jsx:146
+#: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreviewHeader.jsx:114
+msgid "'not scheduled yet'"
+msgstr ""
+
+#: client/actions/planning/api.js:910
+msgid "1 item was not included in the export."
+msgstr ""
+
+#: client/components/Main/ActionsSubnavDropdown.jsx:15
+msgid "Actions"
+msgstr ""
+
+#: client/constants/planning.js:76
+msgid "Add As Event"
+msgstr ""
+
+#: client/components/ContactEditor/index.jsx:81
+#: client/components/fields/ContactField.jsx:180
+msgid "Add Contact"
+msgstr ""
+
+#: client/components/Agendas/ManageAgendasModal.jsx:63
+msgid "Add New Agenda"
+msgstr ""
+
+#: client/components/Events/EventEditor/index.jsx:252
+msgid "Add a file"
+msgstr ""
+
+#: client/components/Events/EventEditor/index.jsx:271
+msgid "Add a link"
+msgstr ""
+
+#: client/components/Planning/PlanningItem.jsx:155
+msgid "Add as coverage"
+msgstr ""
+
+#: client/constants/planning.js:92
+msgid "Add coverage"
+msgstr ""
+
+#: index.js:28
+msgid "Add to Planning"
+msgstr ""
+
+#: client/components/Coverages/CoverageEditor/index.jsx:75
+msgid "Add to workflow"
+msgstr ""
+
+#: client/components/Main/SearchPanel.jsx:101
+msgid "Advanced filters"
+msgstr ""
+
+#: client/components/Events/RecurringRulesInput/EndsInput.jsx:66
+msgid "After"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/PlanningPreview.jsx:19
+#: client/components/Planning/PlanningEditor/index.jsx:368
+#: client/components/Planning/PlanningPreviewContent.jsx:93
+msgid "Agenda"
+msgstr ""
+
+#: client/actions/planning/ui.js:399
+msgid "Agenda assigned to the planning item."
+msgstr ""
+
+#: client/components/Main/AgendaSubnavDropdown.jsx:72
+msgid "Agenda:"
+msgstr ""
+
+#: client/components/Agendas/AgendaList.jsx:28
+#: client/components/Main/AgendaSubnavDropdown.jsx:73
+msgid "Agendas"
+msgstr ""
+
+#: client/components/Assignments/FiltersBar.jsx:20
+msgid "All"
+msgstr ""
+
+#: client/components/Events/CalendarSubnavDropdown.jsx:51
+#: client/components/Events/CalendarSubnavDropdown.jsx:61
+msgid "All Calendars"
+msgstr ""
+
+#: client/actions/planning/ui.js:449
+msgid "All Coverage has been cancelled"
+msgstr ""
+
+#: client/components/Events/EventScheduleInput/index.jsx:265
+msgid "All Day"
+msgstr ""
+
+#: client/components/Main/AgendaSubnavDropdown.jsx:60
+msgid "All Planning"
+msgstr ""
+
+#: client/components/Main/AgendaSubnavDropdown.jsx:50
+msgid "All Planning Items"
+msgstr ""
+
+#: client/actions/planning/api.js:941
+msgid "Article was created."
+msgstr ""
+
+#: client/components/Coverages/CoverageEditor/CoverageFormHeader.jsx:66
+msgid "Assign"
+msgstr ""
+
+#: client/constants/planning.js:87
+msgid "Assign to agenda"
+msgstr ""
+
+#: client/utils/index.js:430
+msgid "Assigned"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreviewHeader.jsx:102
+#: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreviewHeader.jsx:84
+msgid "Assigned by {{name}}"
+msgstr ""
+
+#: client/components/Assignments/FiltersBar.jsx:30
+msgid "Assigned to me"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreviewHeader.jsx:92
+msgid "Assigned:"
+msgstr ""
+
+#: client/components/Assignments/AssignmentItem/index.jsx:161
+msgid "Assigned: {{ displayName }}"
+msgstr ""
+
+#: client/components/Coverages/CoveragePreview.jsx:65
+msgid "Assignee"
+msgstr ""
+
+#: client/components/Coverages/CoverageEditor/CoverageFormHeader.jsx:113
+#: client/components/Coverages/CoverageItem.jsx:96
+msgid "Assignee:"
+msgstr ""
+
+#: client/apps/Assignments/AssignmentPreview.jsx:39
+#: client/utils/index.js:556
+msgid "Assignment"
+msgstr ""
+
+#: client/components/Assignments/AssignmentEditor.jsx:207
+msgid "Assignment Priority"
+msgstr ""
+
+#: client/apps/Assignments/AssignmentPreview.jsx:115
+msgid "Assignment locked"
+msgstr ""
+
+#: client/actions/assignments/ui.js:414
+msgid "Assignment priority has been updated."
+msgstr ""
+
+#: client/components/Assignments/SubNavBar.jsx:36
+#: client/controllers/AssignmentController.js:30
+#: index.js:21
+msgid "Assignments"
+msgstr ""
+
+#: client/components/Planning/PlanningEditor/index.jsx:439
+#: client/components/Planning/PlanningPreviewContent.jsx:135
+msgid "Associated Event"
+msgstr ""
+
+#: client/components/Events/EventEditor/index.jsx:242
+#: client/components/Events/EventPreviewContent.jsx:240
+msgid "Attached Files"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/EventPreview.jsx:84
+msgid "Attachments"
+msgstr ""
+
+#: client/utils/index.js:568
+msgid "Audio"
+msgstr ""
+
+#: client/components/Assignments/AssignmentHistory.jsx:65
+msgid "Availability reverted by"
+msgstr ""
+
+#: client/components/Events/CalendarSubnavDropdown.jsx:82
+msgid "Calendar:"
+msgstr ""
+
+#: client/components/Events/CalendarSubnavDropdown.jsx:84
+#: client/components/Events/EventEditor/index.jsx:165
+#: client/components/Events/EventPreviewContent.jsx:158
+msgid "Calendars"
+msgstr ""
+
+#: client/components/AddToPlanningModal/index.jsx:56
+#: client/components/Assignments/AssignmentPopup/index.jsx:75
+#: client/components/FulFilAssignmentModal/index.jsx:57
+#: client/components/ItemActionConfirmation/modal.jsx:140
+#: client/components/Main/ItemEditor/EditorHeader.jsx:158
+#: client/components/SortItemsModal/index.jsx:62
+#: client/components/UI/Form/DateInput/DateInputPopup.jsx:216
+#: client/components/UI/SubNav/SlidingToolBar.jsx:13
+#: client/constants/events.js:58
+msgid "Cancel"
+msgstr ""
+
+#: client/constants/planning.js:69
+msgid "Cancel all coverage"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/cancelEventForm.jsx:111
+msgid "Cancel all recurring events or just this one?"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/modal.jsx:71
+msgid "Cancel an event"
+msgstr ""
+
+#: client/components/Coverages/CoverageEditor/index.jsx:67
+msgid "Cancel coverage"
+msgstr ""
+
+#: client/constants/planning.js:63
+msgid "Cancel planning"
+msgstr ""
+
+#: client/utils/index.js:419
+#: client/utils/index.js:465
+msgid "Cancelled"
+msgstr ""
+
+#: client/components/Assignments/AssignmentHistory.jsx:61
+#: client/components/Events/EventHistory.jsx:62
+#: client/components/Planning/PlanningHistory.jsx:63
+msgid "Cancelled by"
+msgstr ""
+
+#: client/actions/main.js:391
+msgid "Cannot load more data as filter type is not selected."
+msgstr ""
+
+#: client/actions/main.js:412
+msgid "Cannot load more data. Failed to run the query."
+msgstr ""
+
+#: client/actions/main.js:433
+msgid "Cannot search as filter type is not selected."
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:167
+#: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreview.jsx:50
+#: client/components/Events/EventEditor/index.jsx:203
+#: client/components/Events/EventPreviewContent.jsx:215
+#: client/components/Planning/PlanningEditor/index.jsx:400
+#: client/components/Planning/PlanningPreviewContent.jsx:109
+msgid "Category"
+msgstr ""
+
+#: client/components/Main/SearchPanel.jsx:110
+msgid "Clear"
+msgstr ""
+
+#: client/components/Main/SubNavBar.jsx:27
+msgid "Clear Filters"
+msgstr ""
+
+#: client/components/UI/Form/DateTimeInput/index.jsx:70
+msgid "Clear date and time"
+msgstr ""
+
+#: client/components/Main/ItemEditor/EditorHeader.jsx:158
+#: client/components/ModalWithForm/index.jsx:102
+msgid "Close"
+msgstr ""
+
+#: client/constants/assignments.js:45
+msgid "Complete Assignment"
+msgstr ""
+
+#: client/utils/index.js:447
+msgid "Completed"
+msgstr ""
+
+#: client/components/Assignments/AssignmentHistory.jsx:59
+msgid "Completed by"
+msgstr ""
+
+#: client/utils/index.js:566
+msgid "Composite"
+msgstr ""
+
+#: client/constants/assignments.js:65
+msgid "Confirm Availability"
+msgstr ""
+
+#: client/components/Events/EventEditor/index.jsx:181
+#: client/components/Events/EventPreviewContent.jsx:178
+msgid "Contact"
+msgstr ""
+
+#: client/components/ContactInfoContainer/index.jsx:51
+msgid "Contact Details"
+msgstr ""
+
+#: client/apps/Assignments/AssignmentPreview.jsx:47
+#: client/components/Main/ItemEditor/Editor.jsx:55
+#: client/components/Main/ItemPreview/PreviewPanel.jsx:34
+msgid "Content"
+msgstr ""
+
+#: client/components/Assignments/AssignmentHistory.jsx:63
+msgid "Content Unlinked and Spiked by"
+msgstr ""
+
+#: client/components/Assignments/AssignmentHistory.jsx:57
+msgid "Content linked by"
+msgstr ""
+
+#: client/apps/Assignments/AssignmentPreview.jsx:114
+msgid "Content locked"
+msgstr ""
+
+#: client/components/Assignments/AssignmentHistory.jsx:56
+msgid "Content unlinked by"
+msgstr ""
+
+#: client/constants/events.js:82
+msgid "Convert to recurring event"
+msgstr ""
+
+#: client/actions/planning/ui.js:404
+msgid "Could not obtain lock on the planning item."
+msgstr ""
+
+#: client/actions/planning/ui.js:532
+msgid "Could not save the planning item."
+msgstr ""
+
+#: client/actions/planning/ui.js:529
+msgid "Could not unlock the planning item."
+msgstr ""
+
+#: client/components/Assignments/AssignmentEditor.jsx:183
+msgid "Coverage Provider"
+msgstr ""
+
+#: client/components/Coverages/CoverageEditor/CoverageFormHeader.jsx:122
+#: client/components/Coverages/CoveragePreview.jsx:71
+msgid "Coverage Provider:"
+msgstr ""
+
+#: client/components/Coverages/CoverageEditor/CoverageForm.jsx:187
+#: client/components/Coverages/CoveragePreview.jsx:102
+msgid "Coverage Status"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:214
+#: client/components/Coverages/CoverageEditor/CoverageForm.jsx:117
+msgid "Coverage Type"
+msgstr ""
+
+#: client/components/Planning/PlanningHistory.jsx:56
+msgid "Coverage created by"
+msgstr ""
+
+#: client/components/Planning/PlanningHistory.jsx:60
+msgid "Coverage deleted by"
+msgstr ""
+
+#: client/components/Coverages/CoverageAddButton.jsx:40
+msgid "Coverage type"
+msgstr ""
+
+#: client/components/Planning/PlanningHistory.jsx:58
+msgid "Coverage updated by"
+msgstr ""
+
+#: client/components/Coverages/CoverageArrayInput.jsx:41
+#: client/components/Planning/PlanningPreviewContent.jsx:145
+msgid "Coverages"
+msgstr ""
+
+#: client/components/Main/ItemEditor/EditorHeader.jsx:206
+msgid "Create"
+msgstr ""
+
+#: client/constants/events.js:53
+msgid "Create Planning Item"
+msgstr ""
+
+#: client/components/Main/ItemEditor/EditorHeader.jsx:217
+msgid "Create and publish"
+msgstr ""
+
+#: client/components/Main/CreateNewSubnavDropdown.jsx:26
+msgid "Create new"
+msgstr ""
+
+#: client/components/Coverages/CoverageAddButton.jsx:46
+msgid "Create new coverage"
+msgstr ""
+
+#: client/components/Main/CreateNewSubnavDropdown.jsx:31
+msgid "Create new item"
+msgstr ""
+
+#: client/components/Main/CreateNewSubnavDropdown.jsx:31
+msgid "Create new planning item"
+msgstr ""
+
+#: client/components/MultiSelectActions.jsx:143
+msgid "Create planning"
+msgstr ""
+
+#: client/components/Assignments/AssignmentHistory.jsx:54
+#: client/components/Events/EventHistory.jsx:52
+#: client/components/Planning/PlanningHistory.jsx:51
+msgid "Created by"
+msgstr ""
+
+#: client/components/Events/EventScheduleSummary/index.jsx:27
+msgid "Current Date"
+msgstr ""
+
+#: client/components/Events/RepeatEventSummary/index.jsx:103
+msgid "Current Repeat Summary"
+msgstr ""
+
+#: client/components/Events/EventScheduleSummary/index.jsx:27
+#: client/components/Events/RecurringRulesInput/EndsInput.jsx:120
+msgid "Date"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:269
+msgid "Date Filters"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/EventPreview.jsx:33
+#: client/components/Assignments/AssignmentPreviewContainer/PlanningPreview.jsx:37
+#: client/components/Events/EventEditor/index.jsx:139
+#: client/components/Events/EventMetadata/index.jsx:112
+#: client/components/Events/EventPreviewContent.jsx:146
+#: client/components/Planning/PlanningEditor/index.jsx:354
+#: client/components/Planning/PlanningPreviewContent.jsx:83
+msgid "Description"
+msgstr ""
+
+#: client/components/MultiSelectActions.jsx:196
+msgid "Deselect All"
+msgstr ""
+
+#: client/components/Assignments/AssignmentEditor.jsx:165
+#: client/components/Coverages/CoveragePreview.jsx:59
+msgid "Desk"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreviewHeader.jsx:74
+#: client/components/Coverages/CoverageEditor/CoverageFormHeader.jsx:105
+#: client/components/Coverages/CoverageIcon.jsx:25
+#: client/components/Coverages/CoverageItem.jsx:78
+#: client/components/ItemActionConfirmation/forms/editPriorityForm.jsx:82
+#: client/components/ItemActionConfirmation/forms/updateAssignmentForm.jsx:122
+msgid "Desk:"
+msgstr ""
+
+#: client/components/Events/EventEditor/index.jsx:186
+#: client/components/Events/EventPreviewContent.jsx:207
+#: client/components/Planning/PlanningEditor/index.jsx:376
+#: client/components/Planning/PlanningPreviewContent.jsx:96
+msgid "Details"
+msgstr ""
+
+#: client/utils/planning.js:653
+msgid "Disabled"
+msgstr ""
+
+#: client/actions/agenda.js:141
+msgid "Do you want to add these  events to the planning list ?"
+msgstr ""
+
+#: client/actions/agenda.js:140
+msgid "Do you want to add this event to the planning list ?"
+msgstr ""
+
+#: client/actions/multiSelect.js:79
+msgid "Do you want to spike  item(s) ?"
+msgstr ""
+
+#: client/actions/multiSelect.js:97
+msgid "Do you want to unspike  item(s) ?"
+msgstr ""
+
+#: client/components/SortItemsModal/index.jsx:64
+msgid "Done"
+msgstr ""
+
+#: client/utils/index.js:386
+msgid "Draft"
+msgstr ""
+
+#: client/components/Coverages/CoverageEditor/CoverageForm.jsx:198
+#: client/components/Coverages/CoveragePreview.jsx:104
+msgid "Due"
+msgstr ""
+
+#: client/components/Assignments/AssignmentItem/index.jsx:139
+msgid "Due Date"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreviewHeader.jsx:110
+#: client/components/Coverages/CoverageIcon.jsx:37
+#: client/components/ItemActionConfirmation/forms/editPriorityForm.jsx:107
+#: client/components/ItemActionConfirmation/forms/updateAssignmentForm.jsx:98
+msgid "Due:"
+msgstr ""
+
+#: client/components/Coverages/CoverageEditor/index.jsx:54
+#: client/constants/events.js:48
+#: client/constants/planning.js:58
+msgid "Duplicate"
+msgstr ""
+
+#: client/components/Coverages/CoverageEditor/index.jsx:59
+msgid "Duplicate As"
+msgstr ""
+
+#: client/components/Events/EventHistory.jsx:58
+#: client/components/Planning/PlanningHistory.jsx:61
+msgid "Duplicate created by"
+msgstr ""
+
+#: client/components/Events/EventHistory.jsx:59
+#: client/components/Planning/PlanningHistory.jsx:62
+msgid "Duplicated by"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreview.jsx:70
+#: client/components/Assignments/AssignmentPreviewContainer/EventPreview.jsx:73
+#: client/components/Assignments/AssignmentPreviewContainer/PlanningPreview.jsx:43
+#: client/components/Coverages/CoverageEditor/CoverageForm.jsx:158
+#: client/components/Coverages/CoveragePreview.jsx:89
+#: client/components/Events/EventEditor/index.jsx:235
+#: client/components/Events/EventPreviewContent.jsx:235
+#: client/components/Planning/PlanningEditor/index.jsx:384
+#: client/components/Planning/PlanningPreviewContent.jsx:99
+msgid "Ed Note"
+msgstr ""
+
+#: client/components/Main/ItemEditor/EditorHeader.jsx:226
+#: client/constants/events.js:95
+#: client/constants/planning.js:81
+msgid "Edit"
+msgstr ""
+
+#: client/constants/assignments.js:49
+msgid "Edit Priority"
+msgstr ""
+
+#: client/views/eventEmailConfig.html:37
+msgid "Email Filter"
+msgstr ""
+
+#: client/views/eventEmailConfig.html:21
+msgid "Email Password"
+msgstr ""
+
+#: client/views/eventEmailConfig.html:2
+#: client/views/eventEmailConfig.html:3
+msgid "Email Server"
+msgstr ""
+
+#: client/views/eventEmailConfig.html:8
+#: client/views/eventEmailConfig.html:9
+msgid "Email Server Port"
+msgstr ""
+
+#: client/views/eventEmailConfig.html:15
+msgid "Email User"
+msgstr ""
+
+#: client/views/eventEmailConfig.html:27
+msgid "Email mailbox"
+msgstr ""
+
+#: client/validators/events.js:30
+msgid "End date should be after start date"
+msgstr ""
+
+#: client/validators/events.js:28
+msgid "End time should be after start time"
+msgstr ""
+
+#: client/components/Events/RecurringRulesInput/index.jsx:72
+#: client/components/ItemActionConfirmation/forms/updateEventRepetitions.jsx:125
+msgid "Ends"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/index.jsx:137
+#: client/components/Main/CreateNewSubnavDropdown.jsx:17
+#: client/components/Main/ItemEditor/EditorHeader.jsx:140
+#: client/utils/index.js:552
+msgid "Event"
+msgstr ""
+
+#: client/views/eventFileConfig.html:2
+msgid "Event File Server Folder"
+msgstr ""
+
+#: client/actions/events/ui.js:459
+msgid "Event duplicated"
+msgstr ""
+
+#: client/actions/events/ui.js:273
+msgid "Event has been cancelled"
+msgstr ""
+
+#: client/actions/events/ui.js:288
+msgid "Event has been postponed"
+msgstr ""
+
+#: client/actions/events/ui.js:426
+msgid "Event has been rescheduled"
+msgstr ""
+
+#: client/actions/events/ui.js:490
+msgid "Event repetitions updated"
+msgstr ""
+
+#: client/actions/events/ui.js:475
+msgid "Event time has been updated"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/rescheduleEventForm.jsx:142
+msgid "Event will be changed to a multi-day event!"
+msgstr ""
+
+#: client/components/Main/FiltersBox.jsx:29
+msgid "Events & Planning"
+msgstr ""
+
+#: client/components/Main/FiltersBox.jsx:33
+msgid "Events only"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:111
+msgid "Exclude spike"
+msgstr ""
+
+#: client/components/MultiSelectActions.jsx:90
+msgid "Export as article"
+msgstr ""
+
+#: client/components/Events/EventEditor/index.jsx:260
+#: client/components/Events/EventPreviewContent.jsx:256
+msgid "External Links"
+msgstr ""
+
+#: client/actions/planning/ui.js:453
+msgid "Failed to cancel all coverage!"
+msgstr ""
+
+#: client/actions/events/ui.js:277
+msgid "Failed to cancel the Event!"
+msgstr ""
+
+#: client/actions/planning/ui.js:435
+msgid "Failed to cancel the Planning Item!"
+msgstr ""
+
+#: client/components/Main/ItemEditor/Editor.jsx:429
+msgid "Failed to create!"
+msgstr ""
+
+#: client/controllers/AssignmentPreviewController.js:54
+#: client/controllers/AssignmentPreviewController.js:78
+#: client/controllers/AssignmentPreviewController.js:82
+msgid "Failed to fetch assignment information."
+msgstr ""
+
+#: client/actions/events/ui.js:436
+msgid "Failed to load duplicated Event."
+msgstr ""
+
+#: client/actions/main.js:62
+msgid "Failed to lock the item"
+msgstr ""
+
+#: client/actions/events/ui.js:292
+msgid "Failed to postpone the Event!"
+msgstr ""
+
+#: client/actions/main.js:241
+msgid "Failed to publish the {{ itemType }}"
+msgstr ""
+
+#: client/actions/main.js:222
+msgid "Failed to publish, could not find the item type!"
+msgstr ""
+
+#: client/actions/events/ui.js:447
+msgid "Failed to reschedule the Event!"
+msgstr ""
+
+#: client/actions/assignments/ui.js:499
+msgid "Failed to revert the assignment."
+msgstr ""
+
+#: client/actions/main.js:378
+msgid "Failed to run the query."
+msgstr ""
+
+#: client/actions/main.js:463
+msgid "Failed to run the query.."
+msgstr ""
+
+#: client/actions/assignments/ui.js:419
+msgid "Failed to save the assignment."
+msgstr ""
+
+#: client/actions/main.js:151
+msgid "Failed to save the {{ itemType }}"
+msgstr ""
+
+#: client/components/Main/ItemEditor/Editor.jsx:428
+msgid "Failed to save!"
+msgstr ""
+
+#: client/actions/main.js:124
+msgid "Failed to save, could not find the item {{itemType}}!"
+msgstr ""
+
+#: client/actions/events/ui.js:206
+#: client/actions/events/ui.js:223
+msgid "Failed to spike the event(s)"
+msgstr ""
+
+#: client/actions/assignments/ui.js:691
+msgid "Failed to unlock the Assignment"
+msgstr ""
+
+#: client/actions/main.js:195
+msgid "Failed to unpublish the {{ itemType }}"
+msgstr ""
+
+#: client/actions/main.js:178
+msgid "Failed to unpublish, could not find the item type!"
+msgstr ""
+
+#: client/actions/events/ui.js:494
+msgid "Failed to update Event repetitions"
+msgstr ""
+
+#: client/actions/events/ui.js:479
+msgid "Failed to update the Event time!"
+msgstr ""
+
+#: client/views/eventHttpConfig.html:2
+msgid "Feed URL"
+msgstr ""
+
+#: client/views/eventEmailConfig.html:36
+msgid "Filter"
+msgstr ""
+
+#: client/views/eventEmailConfig.html:32
+msgid "Formatted Email Parser"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:234
+#: client/components/Assignments/AssignmentPreviewContainer/EventPreview.jsx:40
+#: client/components/Events/EventScheduleInput/index.jsx:221
+#: client/components/ItemActionConfirmation/forms/updateTimeForm.jsx:159
+msgid "From"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/index.jsx:99
+#: index.js:54
+msgid "Fulfil Assignment"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreview.jsx:60
+#: client/components/Coverages/CoverageEditor/CoverageForm.jsx:135
+#: client/components/Coverages/CoveragePreview.jsx:101
+msgid "Genre"
+msgstr ""
+
+#: client/utils/index.js:564
+msgid "Graphic"
+msgstr ""
+
+#: client/components/Events/EventItemWithPlanning.jsx:28
+msgid "Hide"
+msgstr ""
+
+#: client/components/Main/ItemEditor/Editor.jsx:56
+#: client/components/Main/ItemPreview/PreviewPanel.jsx:39
+msgid "History"
+msgstr ""
+
+#: client/components/UI/Form/DateInput/DateInputPopup.jsx:168
+msgid "In 2 days"
+msgstr ""
+
+#: client/utils/index.js:435
+msgid "In Progress"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:115
+msgid "Include spike"
+msgstr ""
+
+#: client/components/Events/EventHistory.jsx:66
+#: client/utils/index.js:396
+msgid "Ingested"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreview.jsx:75
+#: client/components/Assignments/AssignmentPreviewContainer/PlanningPreview.jsx:49
+#: client/components/Coverages/CoverageEditor/CoverageForm.jsx:178
+#: client/components/Coverages/CoveragePreview.jsx:93
+#: client/components/Events/EventEditor/index.jsx:228
+#: client/components/Events/EventPreviewContent.jsx:230
+#: client/components/Planning/PlanningEditor/index.jsx:361
+#: client/components/Planning/PlanningPreviewContent.jsx:88
+msgid "Internal Note"
+msgstr ""
+
+#: client/components/InternalNoteLabel/index.jsx:33
+msgid "Internal Note:"
+msgstr ""
+
+#: client/utils/index.js:570
+msgid "Item"
+msgstr ""
+
+#: client/apps/Assignments/AssignmentPreview.jsx:51
+msgid "Item History"
+msgstr ""
+
+#: client/controllers/AddToPlanningController.js:198
+#: client/controllers/FulfilAssignmentController.js:153
+msgid "Item Unlocked"
+msgstr ""
+
+#: client/controllers/FulfilAssignmentController.js:48
+msgid "Item already linked to a Planning item"
+msgstr ""
+
+#: client/controllers/AddToPlanningController.js:87
+#: client/controllers/FulfilAssignmentController.js:54
+#: client/controllers/UnlinkAssignmentController.js:39
+msgid "Item already locked."
+msgstr ""
+
+#: client/controllers/UnlinkAssignmentController.js:28
+msgid "Item not linked to a Planning item."
+msgstr ""
+
+#: client/components/Coverages/CoveragePreview.jsx:91
+msgid "Keyword"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreview.jsx:65
+#: client/components/Coverages/CoverageEditor/CoverageForm.jsx:167
+msgid "Keywords"
+msgstr ""
+
+#: client/utils/index.js:408
+msgid "Killed"
+msgstr ""
+
+#: client/components/Planning/PlanningHistory.jsx:73
+msgid "Killed by"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:277
+msgid "Last 24 hrs"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/EventPreview.jsx:105
+msgid "Links"
+msgstr ""
+
+#: client/components/Main/ListPanel.jsx:87
+msgid "Loading"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:149
+#: client/components/Assignments/AssignmentPreviewContainer/EventPreview.jsx:53
+#: client/components/Events/EventEditor/index.jsx:174
+#: client/components/Events/EventMetadata/index.jsx:101
+#: client/components/Events/EventPreviewContent.jsx:164
+msgid "Location"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/EventPreview.jsx:67
+#: client/components/Events/EventEditor/index.jsx:221
+#: client/components/Events/EventPreviewContent.jsx:225
+msgid "Long Description"
+msgstr ""
+
+#: client/views/eventEmailConfig.html:26
+msgid "Mailbox"
+msgstr ""
+
+#: client/components/Agendas/ManageAgendasModal.jsx:53
+msgid "Manage Agendas"
+msgstr ""
+
+#: client/components/Main/ActionsSubnavDropdown.jsx:8
+msgid "Manage agendas"
+msgstr ""
+
+#: client/constants/events.js:76
+msgid "Mark as Postponed"
+msgstr ""
+
+#: client/validators/events.js:67
+msgid "Must be greater than 1"
+msgstr ""
+
+#: client/validators/events.js:47
+msgid "Must be greater than starting date"
+msgstr ""
+
+#: client/validators/events.js:65
+msgid "Must be less than"
+msgstr ""
+
+#: client/components/Agendas/EditAgenda.jsx:81
+msgid "Must contain at least one character"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:133
+#: client/components/Assignments/AssignmentPreviewContainer/EventPreview.jsx:27
+#: client/components/Events/EventEditor/index.jsx:132
+#: client/components/Events/EventMetadata/index.jsx:97
+#: client/components/Events/EventPreviewContent.jsx:140
+#: client/components/ItemActionConfirmation/forms/cancelEventForm.jsx:81
+#: client/components/ItemActionConfirmation/forms/convertToRecurringEventForm.jsx:102
+#: client/components/ItemActionConfirmation/forms/postponeEventForm.jsx:54
+#: client/components/ItemActionConfirmation/forms/publishEventsForm.jsx:76
+#: client/components/ItemActionConfirmation/forms/rescheduleEventForm.jsx:107
+#: client/components/ItemActionConfirmation/forms/spikeEventForm.jsx:73
+#: client/components/ItemActionConfirmation/forms/unspikeEventForm.jsx:72
+#: client/components/ItemActionConfirmation/forms/updateEventRepetitions.jsx:92
+#: client/components/ItemActionConfirmation/forms/updateRecurringEventsForm.jsx:72
+#: client/components/ItemActionConfirmation/forms/updateTimeForm.jsx:132
+msgid "Name"
+msgstr ""
+
+#: client/components/Main/AgendaSubnavDropdown.jsx:46
+#: client/components/Main/AgendaSubnavDropdown.jsx:58
+msgid "No Agenda Assigned"
+msgstr ""
+
+#: client/components/Agendas/AgendaNameList.jsx:8
+msgid "No Agenda Assigned."
+msgstr ""
+
+#: client/components/Events/CalendarSubnavDropdown.jsx:46
+#: client/components/Events/CalendarSubnavDropdown.jsx:59
+msgid "No Calendar Assigned"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/EventPreview.jsx:99
+#: client/components/Events/EventPreviewContent.jsx:252
+msgid "No attached files added."
+msgstr ""
+
+#: client/components/Events/EventPreviewContent.jsx:100
+msgid "No calendars assigned."
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/EventPreview.jsx:119
+#: client/components/Events/EventPreviewContent.jsx:265
+msgid "No external links added."
+msgstr ""
+
+#: client/components/Events/EventEditor/index.jsx:285
+#: client/components/Events/EventPreviewContent.jsx:272
+msgid "No related planning items."
+msgstr ""
+
+#: client/components/UI/Form/SelectUserInput/SelectUserPopup.jsx:101
+msgid "No users found"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/cancelEventForm.jsx:95
+#: client/components/ItemActionConfirmation/forms/publishEventsForm.jsx:90
+#: client/components/ItemActionConfirmation/forms/spikeEventForm.jsx:87
+#: client/components/ItemActionConfirmation/forms/unspikeEventForm.jsx:86
+#: client/components/ItemActionConfirmation/forms/updateRecurringEventsForm.jsx:86
+#: client/components/ItemActionConfirmation/forms/updateTimeForm.jsx:148
+msgid "No. of Events"
+msgstr ""
+
+#: client/components/UI/Form/ColouredValueInput/ColouredValuePopup.jsx:91
+#: client/components/UI/Form/ColouredValueInput/index.jsx:68
+#: client/components/UI/Form/ColouredValueInput/index.jsx:80
+msgid "None"
+msgstr ""
+
+#: client/components/Planning/PlanningEditor/index.jsx:429
+#: client/components/Planning/PlanningPreviewContent.jsx:132
+msgid "Not for Publication"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPopup/index.jsx:69
+#: client/components/ItemActionConfirmation/modal.jsx:72
+#: client/components/Main/ItemEditor/Editor.jsx:432
+msgid "OK"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/EventPreview.jsx:78
+#: client/components/Events/EventEditor/index.jsx:146
+#: client/components/Events/EventMetadata/index.jsx:110
+#: client/components/Events/EventPreviewContent.jsx:151
+msgid "Occurrence Status"
+msgstr ""
+
+#: client/components/Agendas/ManageAgendasModal.jsx:90
+msgid "Ok"
+msgstr ""
+
+#: client/components/Events/RecurringRulesInput/EndsInput.jsx:99
+msgid "On"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:225
+msgid "Only Published"
+msgstr ""
+
+#: client/actions/planning/api.js:943
+msgid "Open"
+msgstr ""
+
+#: client/constants/assignments.js:61
+msgid "Open Coverage"
+msgstr ""
+
+#: client/views/eventEmailConfig.html:20
+msgid "Password"
+msgstr ""
+
+#: client/utils/events.js:492
+msgid "Past Events"
+msgstr ""
+
+#: client/utils/index.js:560
+msgid "Picture"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreview.jsx:45
+#: client/components/Events/EventEditor/index.jsx:194
+#: client/components/Events/EventPreviewContent.jsx:210
+#: client/components/Planning/PlanningEditor/index.jsx:391
+#: client/components/Planning/PlanningPreviewContent.jsx:104
+msgid "Place"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/index.jsx:118
+#: client/components/Main/ItemEditor/EditorHeader.jsx:148
+#: client/controllers/PlanningController.js:37
+#: index.js:13
+#: index.js:14
+msgid "Planning"
+msgstr ""
+
+#: client/components/Planning/PlanningEditor/index.jsx:342
+#: client/components/Planning/PlanningPreviewContent.jsx:78
+msgid "Planning Date"
+msgstr ""
+
+#: client/components/Main/CreateNewSubnavDropdown.jsx:9
+#: client/utils/index.js:554
+msgid "Planning Item"
+msgstr ""
+
+#: client/actions/planning/ui.js:431
+msgid "Planning Item has been cancelled"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/cancelEventForm.jsx:102
+#: client/components/ItemActionConfirmation/forms/postponeEventForm.jsx:69
+#: client/components/ItemActionConfirmation/forms/rescheduleEventForm.jsx:123
+msgid "Planning Items"
+msgstr ""
+
+#: client/actions/planning/ui.js:415
+msgid "Planning duplicated"
+msgstr ""
+
+#: client/components/Events/EventHistory.jsx:57
+msgid "Planning item created by"
+msgstr ""
+
+#: client/components/Main/FiltersBox.jsx:37
+msgid "Planning only"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/modal.jsx:86
+msgid "Postpone"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/modal.jsx:85
+msgid "Postpone an event"
+msgstr ""
+
+#: client/utils/index.js:424
+msgid "Postponed"
+msgstr ""
+
+#: client/components/Events/EventHistory.jsx:65
+#: client/components/Planning/PlanningHistory.jsx:65
+msgid "Postponed by"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/editPriorityForm.jsx:117
+#: client/components/ItemActionConfirmation/forms/updateAssignmentForm.jsx:108
+msgid "Priority"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/editPriorityForm.jsx:98
+msgid "Provider:"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/modal.jsx:100
+#: client/components/Main/ItemEditor/EditorHeader.jsx:168
+#: client/constants/events.js:93
+msgid "Publish"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/modal.jsx:55
+#: client/components/ItemActionConfirmation/modal.jsx:99
+msgid "Publish Event"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/publishEventsForm.jsx:58
+msgid "Publish all recurring events or just this one?"
+msgstr ""
+
+#: client/utils/index.js:458
+msgid "Published"
+msgstr ""
+
+#: client/components/Events/EventHistory.jsx:60
+#: client/components/Planning/PlanningHistory.jsx:69
+msgid "Published by"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/cancelEventForm.jsx:118
+msgid "Reason for Event cancellation:"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/postponeEventForm.jsx:40
+msgid "Reason for Event postponement:"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/cancelPlanningCoveragesForm.jsx:41
+msgid "Reason for cancelling all coverage:"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/cancelPlanningCoveragesForm.jsx:42
+msgid "Reason for cancelling the planning item:"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/rescheduleEventForm.jsx:93
+msgid "Reason for rescheduling this event:"
+msgstr ""
+
+#: client/components/Coverages/CoverageEditor/CoverageFormHeader.jsx:139
+#: client/constants/assignments.js:41
+msgid "Reassign"
+msgstr ""
+
+#: client/components/ItemIcon.jsx:84
+msgid "Recurring"
+msgstr ""
+
+#: client/components/Events/EventPreviewContent.jsx:268
+msgid "Related Planning Items"
+msgstr ""
+
+#: client/constants/assignments.js:57
+msgid "Remove Assignment"
+msgstr ""
+
+#: client/components/Coverages/CoverageEditor/index.jsx:84
+msgid "Remove coverage"
+msgstr ""
+
+#: client/components/SortItemsModal/index.jsx:52
+msgid "Reorder Items"
+msgstr ""
+
+#: client/components/Events/EventScheduleInput/index.jsx:257
+msgid "Repeat"
+msgstr ""
+
+#: client/components/Events/RecurringRulesInput/index.jsx:49
+msgid "Repeat Every"
+msgstr ""
+
+#: client/components/Events/RecurringRulesInput/index.jsx:60
+msgid "Repeat On"
+msgstr ""
+
+#: client/components/Events/RepeatEventSummary/index.jsx:104
+msgid "Repeat Summary"
+msgstr ""
+
+#: client/components/Events/RecurringRulesInput/index.jsx:40
+msgid "Repeats"
+msgstr ""
+
+#: client/components/Events/EventHistory.jsx:68
+msgid "Repetitions Updated"
+msgstr ""
+
+#: client/validators/events.js:105
+#: client/validators/events.js:51
+#: client/validators/events.js:55
+#: client/validators/events.js:60
+#: client/validators/index.js:90
+msgid "Required"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/modal.jsx:81
+#: client/constants/events.js:70
+msgid "Reschedule"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/modal.jsx:80
+msgid "Reschedule an event"
+msgstr ""
+
+#: client/utils/index.js:414
+msgid "Rescheduled"
+msgstr ""
+
+#: client/utils/index.js:375
+msgid "Rescheduled From"
+msgstr ""
+
+#: client/components/Events/EventHistory.jsx:63
+#: client/components/Events/EventHistory.jsx:64
+#: client/components/Planning/PlanningHistory.jsx:64
+msgid "Rescheduled by"
+msgstr ""
+
+#: client/constants/assignments.js:69
+msgid "Revert Availability"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/modal.jsx:45
+#: client/components/Main/ItemEditor/EditorHeader.jsx:196
+#: client/components/ModalWithForm/index.jsx:108
+msgid "Save"
+msgstr ""
+
+#: client/components/Main/ItemEditor/EditorHeader.jsx:168
+msgid "Save & Publish"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/modal.jsx:53
+msgid "Save & Publish Event"
+msgstr ""
+
+#: client/components/Main/ItemEditor/EditorHeader.jsx:177
+msgid "Save & Unpublish"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/modal.jsx:56
+msgid "Save Event"
+msgstr ""
+
+#: client/utils/index.js:401
+msgid "Scheduled"
+msgstr ""
+
+#: client/components/Main/SearchPanel.jsx:115
+msgid "Search"
+msgstr ""
+
+#: client/components/Main/AgendaSubnavDropdown.jsx:65
+msgid "Select Agenda"
+msgstr ""
+
+#: client/components/Events/CalendarSubnavDropdown.jsx:77
+msgid "Select Calendar"
+msgstr ""
+
+#: client/components/MultiSelectActions.jsx:199
+msgid "Select all /"
+msgstr ""
+
+#: client/components/FulFilAssignmentModal/index.jsx:43
+msgid "Select an Assignment"
+msgstr ""
+
+#: client/components/AddToPlanningModal/index.jsx:42
+msgid "Select an existing Planning Item or create a new one"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/updateEventRepetitions.jsx:99
+msgid "Series Start Date"
+msgstr ""
+
+#: client/components/Events/EventItemWithPlanning.jsx:28
+msgid "Show"
+msgstr ""
+
+#: client/components/Location/index.jsx:32
+msgid "Show on map"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:141
+#: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreview.jsx:39
+#: client/components/Assignments/AssignmentPreviewContainer/PlanningPreview.jsx:30
+#: client/components/Coverages/CoverageEditor/CoverageForm.jsx:148
+#: client/components/Coverages/CoveragePreview.jsx:87
+#: client/components/Events/EventEditor/index.jsx:124
+#: client/components/Events/EventPreviewContent.jsx:134
+#: client/components/ItemActionConfirmation/forms/cancelEventForm.jsx:74
+#: client/components/ItemActionConfirmation/forms/convertToRecurringEventForm.jsx:95
+#: client/components/ItemActionConfirmation/forms/postponeEventForm.jsx:47
+#: client/components/ItemActionConfirmation/forms/publishEventsForm.jsx:69
+#: client/components/ItemActionConfirmation/forms/rescheduleEventForm.jsx:100
+#: client/components/ItemActionConfirmation/forms/spikeEventForm.jsx:66
+#: client/components/ItemActionConfirmation/forms/unspikeEventForm.jsx:65
+#: client/components/ItemActionConfirmation/forms/updateEventRepetitions.jsx:85
+#: client/components/ItemActionConfirmation/forms/updateRecurringEventsForm.jsx:65
+#: client/components/ItemActionConfirmation/forms/updateTimeForm.jsx:125
+#: client/components/Planning/PlanningEditor/index.jsx:334
+#: client/components/Planning/PlanningPreviewContent.jsx:72
+msgid "Slugline"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/editPriorityForm.jsx:73
+#: client/components/ItemActionConfirmation/forms/updateAssignmentForm.jsx:88
+msgid "Slugline:"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:185
+msgid "Source"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/modal.jsx:62
+#: client/components/MultiSelectActions.jsx:151
+#: client/components/MultiSelectActions.jsx:97
+#: client/constants/events.js:38
+#: client/constants/planning.js:48
+msgid "Spike"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:259
+msgid "Spike State"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/spikeEventForm.jsx:96
+msgid "Spike all recurring events or just this one?"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/modal.jsx:61
+msgid "Spike an event"
+msgstr ""
+
+#: client/utils/index.js:391
+msgid "Spiked"
+msgstr ""
+
+#: client/components/Events/EventHistory.jsx:54
+#: client/components/Planning/PlanningHistory.jsx:53
+msgid "Spiked by"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:122
+msgid "Spiked only"
+msgstr ""
+
+#: client/constants/assignments.js:53
+msgid "Start Working"
+msgstr ""
+
+#: client/components/Coverages/CoverageIcon.jsx:34
+msgid "Status:"
+msgstr ""
+
+#: client/components/Coverages/CoverageIcon.jsx:25
+msgid "Status: Unassigned"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:176
+#: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreview.jsx:55
+#: client/components/Events/EventEditor/index.jsx:212
+#: client/components/Events/EventPreviewContent.jsx:220
+#: client/components/Planning/PlanningEditor/index.jsx:409
+#: client/components/Planning/PlanningPreviewContent.jsx:114
+msgid "Subject"
+msgstr ""
+
+#: client/utils/index.js:441
+msgid "Submitted"
+msgstr ""
+
+#: client/components/Assignments/AssignmentHistory.jsx:60
+msgid "Submitted by"
+msgstr ""
+
+#: client/utils/index.js:558
+msgid "Text"
+msgstr ""
+
+#: client/actions/assignments/notifications.js:253
+msgid "The Assignment you were viewing was removed."
+msgstr ""
+
+#: client/actions/events/notifications.js:119
+msgid "The Event was spiked"
+msgstr ""
+
+#: client/actions/events/notifications.js:146
+msgid "The Event was unspiked"
+msgstr ""
+
+#: client/actions/planning/ui.js:28
+msgid "The Planning Item(s) has been spiked."
+msgstr ""
+
+#: client/actions/planning/ui.js:50
+msgid "The Planning Item(s) has been unspiked."
+msgstr ""
+
+#: client/actions/planning/notifications.js:177
+msgid "The Planning item was spiked"
+msgstr ""
+
+#: client/actions/planning/notifications.js:204
+msgid "The Planning item was unspiked"
+msgstr ""
+
+#: client/actions/assignments/ui.js:496
+msgid "The assignment has been reverted."
+msgstr ""
+
+#: client/actions/assignments/ui.js:413
+msgid "The assignment was reassigned."
+msgstr ""
+
+#: client/actions/events/ui.js:201
+msgid "The event(s) have been spiked"
+msgstr ""
+
+#: client/actions/events/ui.js:218
+msgid "The event(s) have been unspiked"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/spikeEventForm.jsx:103
+msgid "The following Events are in use and will not be spiked:"
+msgstr ""
+
+#: client/controllers/AddToPlanningController.js:199
+#: client/controllers/FulfilAssignmentController.js:154
+msgid "The item was unlocked by \"\""
+msgstr ""
+
+#: client/actions/main.js:231
+msgid "The {{ itemType }} has been published"
+msgstr ""
+
+#: client/actions/main.js:142
+msgid "The {{ itemType }} has been saved"
+msgstr ""
+
+#: client/actions/main.js:186
+msgid "The {{ itemType }} has been unpublished"
+msgstr ""
+
+#: client/components/Agendas/AgendaList.jsx:24
+msgid "There are no"
+msgstr ""
+
+#: client/components/Assignments/AssignmentGroupList.jsx:145
+msgid "There are no assignments {{ groupName }}"
+msgstr ""
+
+#: client/actions/planning/ui.js:33
+msgid "There was a problem, Planning item not spiked!"
+msgstr ""
+
+#: client/actions/planning/ui.js:54
+msgid "There was a problem, Planning item not unspiked!"
+msgstr ""
+
+#: client/actions/planning/api.js:951
+msgid "There was an error when exporting."
+msgstr ""
+
+#: client/components/ItemActionConfirmation/UpdateMethodSelection.jsx:24
+msgid "This event is a recurring event!"
+msgstr ""
+
+#: client/validators/events.js:10
+#: client/validators/events.js:14
+#: client/validators/events.js:15
+#: client/validators/events.js:9
+#: client/validators/profile.js:25
+msgid "This field is required"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/postponeEventForm.jsx:77
+msgid "This will also postpone the following planning items"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/UpdateMethodSelection.jsx:48
+msgid "This will also {{action}} the following events"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/UpdateMethodSelection.jsx:37
+msgid "This will also {{action}} the following planning items"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/rescheduleEventForm.jsx:131
+msgid "This will mark as rescheduled the following planning items"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:246
+#: client/components/Assignments/AssignmentPreviewContainer/EventPreview.jsx:46
+#: client/components/Events/EventScheduleInput/index.jsx:233
+#: client/components/ItemActionConfirmation/forms/updateTimeForm.jsx:173
+msgid "To"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:273
+#: client/components/UI/Form/DateInput/DateInputPopup.jsx:160
+msgid "Today"
+msgstr ""
+
+#: client/components/UI/Form/DateInput/DateInputPopup.jsx:164
+msgid "Tomorrow"
+msgstr ""
+
+#: client/validators/profile.js:22
+msgid "Too long"
+msgstr ""
+
+#: client/validators/profile.js:20
+msgid "Too many"
+msgstr ""
+
+#: client/validators/profile.js:27
+msgid "Too short"
+msgstr ""
+
+#: client/components/Coverages/CoveragePreview.jsx:95
+msgid "Type"
+msgstr ""
+
+#: client/components/Assignments/AssignmentPreviewContainer/AssignmentPreviewHeader.jsx:120
+msgid "Type: {{type}}"
+msgstr ""
+
+#: client/components/Events/EventHistory.jsx:61
+msgid "Un-published by"
+msgstr ""
+
+#: client/components/Coverages/CoverageEditor/CoverageFormHeader.jsx:60
+#: client/components/Coverages/CoverageItem.jsx:71
+msgid "Unassigned"
+msgstr ""
+
+#: index.js:80
+msgid "Unlink as Coverage"
+msgstr ""
+
+#: client/components/LockContainer/LockContainerPopup.jsx:41
+msgid "Unlock"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/modal.jsx:100
+#: client/components/Main/ItemEditor/EditorHeader.jsx:177
+msgid "Unpublish"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/publishEventsForm.jsx:59
+msgid "Unpublish all recurring events or just this one?"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/modal.jsx:67
+#: client/components/MultiSelectActions.jsx:107
+#: client/components/MultiSelectActions.jsx:160
+#: client/constants/events.js:43
+#: client/constants/planning.js:53
+msgid "Unspike"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/unspikeEventForm.jsx:95
+msgid "Unspike all recurring events or just this one?"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/modal.jsx:66
+msgid "Unspike an event"
+msgstr ""
+
+#: client/components/Events/EventHistory.jsx:55
+#: client/components/Planning/PlanningHistory.jsx:54
+msgid "Unspiked by"
+msgstr ""
+
+#: client/components/Main/ItemEditor/EditorHeader.jsx:186
+msgid "Update"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/modal.jsx:94
+msgid "Update Event Repetitions"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/modal.jsx:95
+#: client/constants/events.js:88
+msgid "Update Repetitions"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/updateRecurringEventsForm.jsx:95
+#: client/components/ItemActionConfirmation/forms/updateTimeForm.jsx:198
+msgid "Update all recurring events or just this one?"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/modal.jsx:76
+#: client/constants/events.js:64
+msgid "Update time"
+msgstr ""
+
+#: client/components/Events/EventHistory.jsx:76
+msgid "Updated Fields:"
+msgstr ""
+
+#: client/components/Assignments/AssignmentHistory.jsx:55
+#: client/components/Events/EventHistory.jsx:53
+#: client/components/Planning/PlanningHistory.jsx:52
+msgid "Updated by"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:195
+#: client/components/Assignments/AssignmentPreviewContainer/PlanningPreview.jsx:55
+#: client/components/Planning/PlanningEditor/index.jsx:418
+#: client/services/PlanningStoreService.js:134
+msgid "Urgency"
+msgstr ""
+
+#: client/components/Assignments/AssignmentEditor.jsx:195
+#: client/views/eventEmailConfig.html:14
+msgid "User"
+msgstr ""
+
+#: client/components/Coverages/CoverageIcon.jsx:36
+#: client/components/ItemActionConfirmation/forms/editPriorityForm.jsx:90
+msgid "User:"
+msgstr ""
+
+#: client/utils/index.js:562
+msgid "Video"
+msgstr ""
+
+#: client/components/Planning/PlanningHistory.jsx:95
+msgid "View duplicate planning item"
+msgstr ""
+
+#: client/components/Planning/PlanningHistory.jsx:105
+msgid "View original planning item"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:281
+msgid "Week"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:205
+msgid "Without Coverage"
+msgstr ""
+
+#: client/components/Assignments/AssignmentHistory.jsx:58
+msgid "Work started by"
+msgstr ""
+
+#: client/components/AdvancedSearch/index.jsx:158
+msgid "Workflow State"
+msgstr ""
+
+#: client/controllers/FulfilAssignmentController.js:39
+msgid "[SLUGLINE] is a required field"
+msgstr ""
+
+#: client/components/Agendas/ManageAgendasModal.jsx:72
+msgid "active"
+msgstr ""
+
+#: client/components/Agendas/AgendaList.jsx:24
+msgid "agendas"
+msgstr ""
+
+#: client/constants/planning.js:106
+msgid "audio"
+msgstr ""
+
+#: client/actions/agenda.js:203
+msgid "created  planning item."
+msgstr ""
+
+#: client/actions/agenda.js:194
+msgid "created / planning item(s)"
+msgstr ""
+
+#: client/components/RelatedPlannings/index.jsx:50
+msgid "created by"
+msgstr ""
+
+#: client/components/Agendas/ManageAgendasModal.jsx:77
+msgid "disabled"
+msgstr ""
+
+#: client/views/eventHttpConfig.html:3
+msgid "feed url"
+msgstr ""
+
+#: client/utils/tests/index_test.js:200
+msgid "foo"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/rescheduleEventForm.jsx:146
+msgid "from {{from}} to {{to}}"
+msgstr ""
+
+#: client/components/RelatedPlannings/index.jsx:32
+msgid "in agenda"
+msgstr ""
+
+#: client/components/Events/EventItemWithPlanning.jsx:27
+msgid "item"
+msgstr ""
+
+#: client/components/Events/EventItemWithPlanning.jsx:27
+msgid "items"
+msgstr ""
+
+#: client/constants/planning.js:105
+msgid "live_video"
+msgstr ""
+
+#: client/views/eventFileConfig.html:3
+msgid "path to folder"
+msgstr ""
+
+#: client/constants/planning.js:107
+msgid "picture"
+msgstr ""
+
+#: client/components/Events/EventItemWithPlanning.jsx:29
+msgid "planning"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/publishEventsForm.jsx:102
+msgid "publish"
+msgstr ""
+
+#: client/constants/planning.js:103
+msgid "text"
+msgstr ""
+
+#: client/components/ItemActionConfirmation/forms/publishEventsForm.jsx:102
+msgid "unpublish"
+msgstr ""
+
+#: client/constants/planning.js:104
+msgid "video"
+msgstr ""
+
+#: client/actions/planning/api.js:912
+msgid "{{ count }} items were not included in the export."
+msgstr ""
+
+#: client/actions/main.js:135
+msgid "{{ itemType }} created"
+msgstr ""
