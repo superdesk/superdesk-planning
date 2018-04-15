@@ -1128,7 +1128,9 @@ const _save = (eventUpdates) => (
 
             // remove links if it contains only null values
             if (updates.links && updates.links.length > 0) {
-                updates.links = updates.links.filter((l) => (l));
+                updates.links = updates.links.filter(
+                    (l) => l && get(l, 'length', 0) > 0
+                );
                 if (!updates.links.length) {
                     delete updates.links;
                 }

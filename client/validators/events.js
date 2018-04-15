@@ -94,7 +94,7 @@ const validateDates = (dispatch, getState, field, value, profile, errors) => {
     }
 };
 
-const validateFilesAndLinks = (dispatch, getState, field, value, profile, errors) => {
+const validateFiles = (dispatch, getState, field, value, profile, errors) => {
     const error = {};
 
     formProfile(dispatch, field, value, profile, error);
@@ -114,13 +114,48 @@ const validateFilesAndLinks = (dispatch, getState, field, value, profile, errors
     }
 };
 
+const validateLinks = (dispatch, getState, field, value, profile, errors) => {
+    const error = {};
+
+    formProfile(dispatch, field, value, profile, error);
+
+    const protocolTest = new RegExp('^(?:https?://|ftp://|www\\.)');
+
+    if (Array.isArray(value)) {
+        value.forEach((url, index) => {
+            // Ignore empty URLs (we will delete these on save)
+            if (get(url, 'length', 0) < 1) {
+                return;
+            }
+
+            // Start validation once the url has a '.' in it
+            if (url.indexOf('.') < 0) {
+                return;
+            }
+
+            if (!url.match(protocolTest)) {
+                set(error, `[${index}]`, gettext('Must start with "http://", "https://" or "www."'));
+            } else if (url.endsWith('.')) {
+                set(error, `[${index}]`, gettext('Cannot end with "."'));
+            }
+        });
+    }
+
+    if (!isEqual(error, {})) {
+        errors[field] = error;
+    } else if (errors[field]) {
+        delete errors[field];
+    }
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     validateRequiredDates,
     validateDateRange,
     validateRecurringRules,
     validateDates,
-    validateFilesAndLinks,
+    validateFiles,
+    validateLinks,
 };
 
 export default self;

@@ -6,6 +6,7 @@ export {Input} from './Input';
 export {Select} from './Select';
 
 export {TextInput} from './TextInput';
+export {TextArea} from './TextArea';
 export {TextAreaInput} from './TextAreaInput';
 export {SelectInput} from './SelectInput';
 export {FileInput} from './FileInput';

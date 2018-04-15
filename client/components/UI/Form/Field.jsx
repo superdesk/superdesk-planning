@@ -76,6 +76,7 @@ export class Field extends React.Component {
             showErrors={showErrors}
             dirty={this.state.dirty}
             formProfile={formProfile}
+            row={row}
             {...props}
         />;
 

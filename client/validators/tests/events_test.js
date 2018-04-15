@@ -117,15 +117,47 @@ describe('eventValidators', () => {
         });
     });
 
-    it('validateFilesAndLinks', () => {
-        testValidate(eventValidators.validateFilesAndLinks, 'files', {});
+    it('validateFiles', () => {
+        testValidate(eventValidators.validateFiles, 'files', {});
 
         event.files = [];
-        testValidate(eventValidators.validateFilesAndLinks, 'files', {});
+        testValidate(eventValidators.validateFiles, 'files', {});
 
         event.files = [{}];
-        testValidate(eventValidators.validateFilesAndLinks, 'files', {
+        testValidate(eventValidators.validateFiles, 'files', {
             files: {0: 'Required'}
         });
+    });
+
+    it('validateLinks', () => {
+        testValidate(eventValidators.validateLinks, 'links', {});
+
+        event.links = [];
+        testValidate(eventValidators.validateLinks, 'links', {});
+
+        event.links = [''];
+        testValidate(eventValidators.validateLinks, 'links', {});
+
+        event.links = ['foobar'];
+        testValidate(eventValidators.validateLinks, 'links', {});
+
+        event.links = ['foobar.com'];
+        testValidate(eventValidators.validateLinks, 'links', {
+            links: {0: 'Must start with "http://", "https://" or "www."'}
+        });
+
+        event.links = ['www.foobar.com.'];
+        testValidate(eventValidators.validateLinks, 'links', {
+            links: {0: 'Cannot end with "."'}
+        });
+
+        event.links = ['www.foobar.com'];
+        testValidate(eventValidators.validateLinks, 'links', {});
+
+        event.links = ['http://www.foobar.com'];
+        testValidate(eventValidators.validateLinks, 'links', {});
+
+        event.links = ['https://www.foobar.com'];
+        testValidate(eventValidators.validateLinks, 'links', {});
     });
 });
