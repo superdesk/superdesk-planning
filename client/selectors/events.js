@@ -3,6 +3,7 @@ import {get} from 'lodash';
 import {storedPlannings, currentPlanning} from './planning';
 import {agendas, userPreferences} from './general';
 import {currentItem} from './forms';
+import {getStartOfWeek} from './config';
 import {eventUtils, getSearchDateRange} from '../utils';
 import {EVENTS, MAIN, SPIKED_STATE} from '../constants';
 
@@ -26,9 +27,9 @@ export const eventsInList = createSelector(
 * the associated events.
 */
 export const orderedEvents = createSelector(
-    [eventsInList, currentSearch],
-    (events, search) => {
-        const dateRange = getSearchDateRange(search);
+    [eventsInList, currentSearch, getStartOfWeek],
+    (events, search, startOfWeek) => {
+        const dateRange = getSearchDateRange(search, startOfWeek);
 
         return eventUtils.getEventsByDate(events, dateRange.startDate, dateRange.endDate);
     }

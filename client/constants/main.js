@@ -18,6 +18,9 @@ export const MAIN = {
         SET_EDIT_ITEM: 'MAIN_SET_EDIT_ITEM',
         EDIT_LOADING_START: 'MAIN_EDIT_LOADING_START',
         EDIT_LOADING_COMPLETE: 'MAIN_EDIT_LOADING_COMPLETE',
+
+        SET_JUMP_INTERVAL: 'MAIN_SET_JUMP_INTERVAL',
+        JUMP_TO: 'MAIN_JUMP_TO',
     },
     FILTERS: {
         COMBINED: 'COMBINED',
@@ -26,5 +29,20 @@ export const MAIN = {
     },
     PAGE_SIZE: 25,
     PREVIEW: 'preview',
-    EDIT: 'edit'
+    EDIT: 'edit',
+    JUMP: {
+        FORWARD: 'FORWARD',
+        BACK: 'BACK',
+        TODAY: 'TODAY',
+        DAY: 'DAY',
+        WEEK: 'WEEK',
+        MONTH: 'MONTH',
+    },
+    DATE_RANGE: {
+        TODAY: 'today',
+        TOMORROW: 'tomorrow',
+        THIS_WEEK: 'this_week',
+        NEXT_WEEK: 'next_week',
+        LAST_24: 'last24'
+    }
 };

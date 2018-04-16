@@ -1,12 +1,13 @@
 import {MAIN, RESET_STORE} from '../constants';
-import {cloneDeep, get, omit} from 'lodash';
+import {cloneDeep, get, omit, set} from 'lodash';
 import {createReducer} from '../utils';
 
 const search = {
     lastRequestParams: {page: 1},
     fulltext: undefined,
     currentSearch: undefined,
-    totalItems: 0
+    totalItems: 0,
+    jumpInterval: MAIN.JUMP.WEEK,
 };
 
 const initialState = {
@@ -119,4 +120,36 @@ export default createReducer(initialState, {
         ...state,
         loadingPreview: false,
     }),
+
+    [MAIN.ACTIONS.SET_JUMP_INTERVAL]: (state, payload) => ({
+        ...state,
+        search: {
+            ...state.search,
+            [state.filter]: {
+                ...state.search[state.filter],
+                jumpInterval: payload
+            }
+        }
+    }),
+
+    [MAIN.ACTIONS.JUMP_TO]: (state, payload) => {
+        const search = cloneDeep(get(state, `search.${state.filter}`));
+
+        // Remove the time values from the jump
+        if (payload) {
+            payload.set({hour: 0, minute: 0, second: 0, millisecond: 0});
+        }
+
+
+        set(search, 'currentSearch.advancedSearch.dates.start', payload);
+        set(search, 'currentSearch.advancedSearch.dates.range', '');
+
+        return {
+            ...state,
+            search: {
+                ...state.search,
+                [state.filter]: search
+            }
+        };
+    },
 });

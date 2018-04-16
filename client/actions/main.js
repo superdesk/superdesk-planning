@@ -15,6 +15,7 @@ import {
     shouldLockItemForEdit,
     shouldUnLockItem,
     getItemTypeString,
+    timeUtils,
 } from '../utils';
 import {MODALS, WORKSPACE} from '../constants';
 import eventsPlanningUi from './eventsPlanning/ui';
@@ -670,6 +671,50 @@ const openFromURLOrRedux = (action) => (
     }
 );
 
+const setJumpInterval = (value) => ({
+    type: MAIN.ACTIONS.SET_JUMP_INTERVAL,
+    payload: value
+});
+
+const jumpTo = (direction) => (
+    (dispatch, getState) => {
+        let newStart;
+
+        if (direction === MAIN.JUMP.TODAY) {
+            newStart = null;
+        } else {
+            const jumpInterval = selectors.main.currentJumpInterval(getState());
+            const currentStartFilter = selectors.main.currentStartFilter(getState());
+
+            if (jumpInterval === MAIN.JUMP.DAY) {
+                newStart = direction === MAIN.JUMP.BACK ?
+                    currentStartFilter.clone().subtract(1, 'd') :
+                    currentStartFilter.clone().add(1, '1');
+            } else if (jumpInterval === MAIN.JUMP.WEEK) {
+                const startOfWeek = selectors.config.getStartOfWeek(getState());
+
+                newStart = direction === MAIN.JUMP.FORWARD ?
+                    timeUtils.getStartOfNextWeek(currentStartFilter, startOfWeek) :
+                    timeUtils.getStartOfPreviousWeek(currentStartFilter, startOfWeek);
+            } else if (jumpInterval === MAIN.JUMP.MONTH) {
+                newStart = direction === MAIN.JUMP.FORWARD ?
+                    timeUtils.getStartOfNextMonth(currentStartFilter) :
+                    timeUtils.getStartOfPreviousMonth(currentStartFilter);
+            }
+        }
+
+        dispatch({
+            type: MAIN.ACTIONS.JUMP_TO,
+            payload: newStart
+        });
+
+        dispatch(self.search(
+            selectors.main.fullText(getState()),
+            {advancedSearch: selectors.main.currentAdvancedSearch(getState())}
+        ));
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     lockAndEdit,
@@ -694,6 +739,8 @@ const self = {
     openFromURLOrRedux,
     loadItem,
     openPreview,
+    setJumpInterval,
+    jumpTo,
 };
 
 export default self;

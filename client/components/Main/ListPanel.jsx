@@ -13,6 +13,9 @@ export class ListPanel extends React.Component {
             isNextPageLoading: false,
             scrollTop: 0
         };
+
+        this.dom = {list: null};
+
         this.handleScroll = this.handleScroll.bind(this);
         this.unsetNextPageLoading = this.unsetNextPageLoading.bind(this);
     }
@@ -23,6 +26,16 @@ export class ListPanel extends React.Component {
                 isNextPageLoading: false,
                 scrollTop: 0
             });
+        }
+
+        // If the list has finished loading, and is not for the next page,
+        // Then scroll the list to the top (Used to Advanced Filters and Calendar Navigation)
+        if (!get(nextProps, 'loadingIndicator') &&
+            !!get(this.props, 'loadingIndicator') &&
+            this.dom.list &&
+            !this.state.isNextPageLoading
+        ) {
+            this.dom.list.scrollTop = 0;
         }
     }
 
@@ -92,7 +105,9 @@ export class ListPanel extends React.Component {
                 />}
                 {groups.length > 0 &&
                 <div className="sd-column-box__main-column__items"
-                    onScroll={this.handleScroll}>
+                    onScroll={this.handleScroll}
+                    ref={(node) => this.dom.list = node}
+                >
                     {groups.map((group) => {
                         const listGroupProps = {
                             name: group.date,

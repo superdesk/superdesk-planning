@@ -18,6 +18,8 @@ export const SubNavBar = ({
     createPlanningOnly,
     isViewFiltered,
     clearSearch,
+    currentStartFilter,
+    dateFormat,
 }) => (
     <SubNav>
         <MultiSelectActions />
@@ -30,6 +32,9 @@ export const SubNavBar = ({
             color="alert"
             onClick={clearSearch}
         />}
+        <span className="subnav__page-title subnav__page-title--no-grow">
+            {currentStartFilter.format(dateFormat)}
+        </span>
         <ActionsSubnavDropdown openAgendas={openAgendas} />
         <CreateNewSubnavDropdown
             addEvent={addEvent}
@@ -48,5 +53,7 @@ SubNavBar.propTypes = {
     activeFilter: PropTypes.string.isRequired,
     createPlanningOnly: PropTypes.bool,
     isViewFiltered: PropTypes.bool,
-    clearSearch: PropTypes.func
+    clearSearch: PropTypes.func,
+    currentStartFilter: PropTypes.object,
+    dateFormat: PropTypes.string,
 };

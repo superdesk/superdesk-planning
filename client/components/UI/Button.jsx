@@ -23,6 +23,7 @@ const Button = ({
     autoFocus,
     refNode,
     onKeyDown,
+    iconOnlyCircle,
 }) => {
     const handeKeyDown = (event) => {
         if (event.keyCode === KEYCODES.ENTER) {
@@ -47,7 +48,8 @@ const Button = ({
                     'btn--text-only': textOnly,
                     'btn--hollow': hollow,
                     'btn--expanded': expanded,
-                    'btn--icon-only': iconOnly
+                    'btn--icon-only': iconOnly,
+                    'btn--icon-only-circle': iconOnlyCircle
                 },
                 className
             )}
@@ -82,6 +84,7 @@ Button.propTypes = {
     autoFocus: PropTypes.bool,
     onKeyDown: PropTypes.func,
     refNode: PropTypes.func,
+    iconOnlyCircle: PropTypes.bool,
 };
 
 Button.defaultProps = {
@@ -92,6 +95,7 @@ Button.defaultProps = {
     expanded: false,
     enterKeyIsClick: false,
     autoFocus: false,
+    iconOnlyCircle: false,
 };
 
 export default Button;

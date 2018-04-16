@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {SubNav} from '../UI/SubNav';
-import {ToggleFiltersButton, FiltersBox} from '.';
+import {ToggleFiltersButton, FiltersBox, CalendarNavigation} from '.';
 
 export const FiltersBar = (props) => (
     <SubNav>
@@ -22,6 +22,7 @@ export const FiltersBar = (props) => (
             selectCalendar={props.selectCalendar}
             currentCalendarId={props.currentCalendarId}
         />
+        <CalendarNavigation />
     </SubNav>
 );
 

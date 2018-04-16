@@ -18,3 +18,6 @@ export const getServerUrl = (state) => get(state, 'config.server.url');
 
 export const getStreetMapUrl = (state) =>
     get(state, 'deployConfig.street_map_url', 'https://www.google.com.au/maps/?q=');
+
+export const getStartOfWeek = (state) =>
+    parseInt(get(state, 'config.startingDay', 0), 10);
