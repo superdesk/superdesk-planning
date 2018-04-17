@@ -53,7 +53,7 @@ class JsonEventFormatter(Formatter):
         """
         remove_contact_fields = {'_etag', '_type'}
         expanded = []
-        for contact in item.get('event_contact_info'):
+        for contact in item.get('event_contact_info', []):
             contact_details = get_resource_service('contacts').find_one(req=None, _id=contact)
             if contact_details:
                 for f in remove_contact_fields:

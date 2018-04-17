@@ -64,7 +64,7 @@ class JsonPlanningFormatter(Formatter):
         """
         remove_agenda_fields = {'_etag', '_type', 'original_creator'}
         expanded = []
-        for agenda in item.get('agendas'):
+        for agenda in item.get('agendas', []):
             agenda_details = get_resource_service('agenda').find_one(req=None, _id=agenda)
             if agenda_details and agenda_details.get('is_enabled'):
                 for f in remove_agenda_fields:
