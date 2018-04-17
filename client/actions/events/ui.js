@@ -6,6 +6,7 @@ import * as selectors from '../../selectors';
 import {get} from 'lodash';
 import moment from 'moment-timezone';
 import {
+    eventUtils,
     checkPermission,
     getErrorMessage,
     lockUtils,
@@ -453,19 +454,17 @@ const rescheduleEvent = (event) => (
 );
 
 const duplicate = (event) => (
-    (dispatch, getState, {notify}) => (
-        dispatch(eventsApi.duplicate(event))
-            .then((newEvent) => {
-                notify.success(gettext('Event duplicated'));
-                return dispatch(main.lockAndEdit(newEvent));
-            }, (error) => {
-                notify.error(
-                    getErrorMessage(error, 'Failed to duplicate the Event.')
-                );
+    (dispatch, getState) => {
+        const occurStatuses = selectors.vocabs.eventOccurStatuses(getState());
+        const plannedStatus = getItemInArrayById(occurStatuses, 'eocstat:eos5', 'qcode') || {
+            label: 'Planned, occurs certainly',
+            qcode: 'eocstat:eos5',
+            name: 'Planned, occurs certainly'
+        };
+        const newEvent = eventUtils.duplicateEvent(event, plannedStatus);
 
-                return Promise.reject(error);
-            })
-    )
+        return dispatch(main.lockAndEdit(newEvent));
+    }
 );
 
 const updateEventTime = (event) => (

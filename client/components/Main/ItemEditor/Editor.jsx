@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, isEqual, cloneDeep, omit, pickBy} from 'lodash';
 
-import {gettext, lockUtils, eventUtils, planningUtils, updateFormValues} from '../../../utils';
+import {gettext, lockUtils, eventUtils, planningUtils, updateFormValues, isExistingItem} from '../../../utils';
 import actionUtils from '../../../utils/actions';
 
 import {ITEM_TYPE, EVENTS, PLANNING, PUBLISHED_STATE, WORKFLOW_STATE, COVERAGES} from '../../../constants';
@@ -128,8 +128,8 @@ export class EditorComponent extends React.Component {
                 this.resetForm(nextProps.item);
             }
         } else if (nextProps.item !== null && this.props.item === null) {
-            // This happens when the Editor has finished loading an existing item
-            this.resetForm(nextProps.item);
+            // This happens when the Editor has finished loading an existing item or creating a duplicate
+            this.resetForm(nextProps.item, !isExistingItem(nextProps.item) && nextProps.item.duplicate_from);
         } else if (isEqual(this.state.diff, {}) && get(nextProps, 'initialValues._tempId')) {
             // This happens when creating a new item (when the editor is not currently open)
             this.createNew(nextProps);
@@ -367,10 +367,11 @@ export class EditorComponent extends React.Component {
             return null;
         }
 
-        const RenderTab = this.tabs[this.state.tab].render;
+        const RenderTab = this.tabs[this.state.tab].enabled ? this.tabs[this.state.tab].render :
+            this.tabs[0].render;
 
         // Do not show the tabs if we're creating a new item
-        const existingItem = !!this.props.item;
+        const existingItem = isExistingItem(this.props.item);
         const isLockRestricted = lockUtils.isLockRestricted(
             this.props.item,
             this.props.session,

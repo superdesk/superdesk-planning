@@ -367,9 +367,19 @@ Feature: Events
         """
         {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
         """
-        When we post to "/events/#events._id#/duplicate"
+        When we post to "/events"
         """
-        [{}]
+        [{
+            "name": "event 123",
+            "state": "draft",
+            "type": "event",
+            "occur_status": {"qcode": "eocstat:eos5"},
+            "dates": {
+                "start": "2016-01-02",
+                "end": "2016-01-03"
+            },
+            "duplicate_from": "123"
+        }]
         """
         Then we get OK response
         When we get "/events/123"
@@ -380,14 +390,14 @@ Feature: Events
             "name": "event 123",
             "type": "event",
             "state": "scheduled",
-            "duplicate_to": ["#duplicate._id#"]
+            "duplicate_to": ["#events._id#"]
         }
         """
-        When we get "/events/#duplicate._id#"
+        When we get "/events/#events._id#"
         Then we get existing resource
         """
         {
-            "_id": "#duplicate._id#",
+            "_id": "#events._id#",
             "name": "event 123",
             "state": "draft",
             "type": "event",
@@ -409,11 +419,11 @@ Feature: Events
             },
             {
                 "operation": "create",
-                "event_id": "#duplicate._id#"
+                "event_id": "#events._id#"
             },
             {
                 "operation": "duplicate",
-                "update": { "duplicate_id" : "#duplicate._id#"}
+                "update": { "duplicate_id" : "#events._id#"}
             },
             {
                 "operation": "duplicate_from",
@@ -421,112 +431,7 @@ Feature: Events
             },
             {
                 "operation": "update",
-                "update": { "duplicate_to": ["#duplicate._id#"] }
-            }
-        ]}
-        """
-
-    @auth
-    Scenario: Duplicate a recurrent event
-        Given "vocabularies"
-        """
-        [{
-            "_id": "eventoccurstatus",
-                    "display_name": "Event Occurence Status",
-                    "type": "manageable",
-                    "unique_field": "qcode",
-                    "items": [
-                        {"is_active": true, "qcode": "eocstat:eos5", "name": "Planned, occurs certainly"}
-                    ]
-        }]
-        """
-        Given "contacts"
-        """
-        [{"first_name": "Albert", "last_name": "Foo"}]
-        """
-        Given empty "users"
-        When we post to "users"
-        """
-        {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
-        """
-        When we post to "/events"
-        """
-        [
-            {
-                "guid": "123",
-                "name": "event 123",
-                "slugline": "event-123",
-                "definition_short": "short value",
-                "definition_long": "long value",
-                "recurrence_id": "432",
-                "previous_recurrence_id": "765",
-                "relationships":{
-                    "broader": "broader value",
-                    "narrower": "narrower value",
-                    "related": "related value"
-                },
-                "dates": {
-                    "start": "2016-01-02",
-                    "end": "2016-01-03",
-                    "recurring_rule" : {
-                        "frequency" : "WEEKLY",
-                        "until" : null,
-                        "count" : 1,
-                        "endRepeatMode" : "count",
-                        "interval" : 1,
-                        "byday" : "MO"
-                    }
-                },
-                "subject": [{"qcode": "test qcaode", "name": "test name"}],
-                "event_contact_info": ["#contacts._id#"]
-            }
-        ]
-        """
-        Then we get OK response
-        Then we store "eventId" with value "#events._id#" to context
-        When we post to "/events/#eventId#/duplicate"
-        """
-        [{}]
-        """
-        Then we get OK response
-        When we get "/events"
-        Then we get list with 2 items
-        """
-        {"_items": [
-            {
-                "_id": "#eventId#",
-                "name": "event 123"
-            },
-            {
-                "_id": "#duplicate._id#",
-                "name": "event 123",
-                "occur_status": {"qcode": "eocstat:eos5"}
-            }
-        ]}
-        """
-        When we get "/events_history"
-        Then we get list with 5 items
-        """
-        {"_items": [
-            {
-                "operation": "create",
-                "event_id": "#eventId#"
-            },
-            {
-                "operation": "create",
-                "event_id": "#duplicate._id#"
-            },
-            {
-                "operation": "duplicate",
-                "update": { "duplicate_id" : "#duplicate._id#"}
-            },
-            {
-                "operation": "duplicate_from",
-                "update": { "duplicate_id" : "#eventId#"}
-            },
-            {
-                "operation": "update",
-                "update": { "duplicate_to": ["#duplicate._id#"] }
+                "update": { "duplicate_to": ["#events._id#"] }
             }
         ]}
         """
@@ -637,9 +542,18 @@ Feature: Events
         """
         {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
         """
-        When we post to "/events/#events._id#/duplicate"
+        When we post to "/events"
         """
-        [{}]
+        [{
+            "name": "event 123",
+            "state": "draft",
+            "occur_status": {"qcode": "eocstat:eos5"},
+            "dates": {
+                "start": "2016-01-02",
+                "end": "2016-01-03"
+            },
+            "duplicate_from": "123"
+        }]
         """
         Then we get OK response
         When we get "/events/123"
@@ -649,14 +563,14 @@ Feature: Events
             "_id": "123",
             "name": "event 123",
             "state": "scheduled",
-            "duplicate_to": ["#duplicate._id#"]
+            "duplicate_to": ["#events._id#"]
         }
         """
-        When we get "/events/#duplicate._id#"
+        When we get "/events/#events._id#"
         Then we get existing resource
         """
         {
-            "_id": "#duplicate._id#",
+            "_id": "#events._id#",
             "name": "event 123",
             "state": "draft",
             "occur_status": {"qcode": "eocstat:eos5"},
@@ -677,11 +591,11 @@ Feature: Events
             },
             {
                 "operation": "create",
-                "event_id": "#duplicate._id#"
+                "event_id": "#events._id#"
             },
             {
                 "operation": "duplicate",
-                "update": { "duplicate_id" : "#duplicate._id#"}
+                "update": { "duplicate_id" : "#events._id#"}
             },
             {
                 "operation": "duplicate_from",
@@ -689,7 +603,7 @@ Feature: Events
             },
             {
                 "operation": "update",
-                "update": { "duplicate_to": ["#duplicate._id#"] }
+                "update": { "duplicate_to": ["#events._id#"] }
             }
         ]}
         """

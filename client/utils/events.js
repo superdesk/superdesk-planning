@@ -21,7 +21,7 @@ import {
 } from './index';
 import moment from 'moment';
 import RRule from 'rrule';
-import {get, map, isNil, sortBy, cloneDeep} from 'lodash';
+import {get, map, isNil, sortBy, cloneDeep, omitBy} from 'lodash';
 import {EventUpdateMethods} from '../components/Events';
 
 
@@ -604,6 +604,31 @@ const convertToMoment = (item) => {
     return newItem;
 };
 
+const duplicateEvent = (event, occurStatus) => {
+    let duplicatedEvent = cloneDeep(omitBy(event, (v, k) => (
+        k.startsWith('_')) ||
+        ['guid', 'unique_name', 'unique_id', 'lock_user', 'lock_time', 'lock_session', 'lock_action',
+            'pubstatus', 'recurrence_id', 'previous_recurrence_id', 'reschedule_from', 'reschedule_to',
+            'planning_ids'].indexOf(k) > -1));
+
+    // Delete recurring rule
+    if (duplicatedEvent.dates.recurring_rule) {
+        delete duplicatedEvent.dates.recurring_rule;
+    }
+
+    const daysBetween = moment().diff(duplicatedEvent.dates.start, 'days');
+
+    if (daysBetween > 0) {
+        // Add the delta to both start and end (to handle multi-day events)
+        duplicatedEvent.dates.start = duplicatedEvent.dates.start.add(daysBetween, 'days');
+        duplicatedEvent.dates.end = duplicatedEvent.dates.end.add(daysBetween, 'days');
+    }
+
+    duplicatedEvent.duplicate_from = event._id;
+    duplicatedEvent.occur_status = occurStatus;
+    return duplicatedEvent;
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     isEventAllDay,
@@ -632,7 +657,8 @@ const self = {
     getDateStringForEvent,
     getEventActions,
     getEventsByDate,
-    convertToMoment
+    convertToMoment,
+    duplicateEvent
 };
 
 export default self;

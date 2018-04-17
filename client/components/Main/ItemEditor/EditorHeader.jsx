@@ -2,7 +2,15 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {isEqual} from 'lodash';
 import {ITEM_TYPE, PRIVILEGES, KEYCODES} from '../../../constants';
-import {gettext, eventUtils, planningUtils, isItemPublic, lockUtils, onEventCapture} from '../../../utils';
+import {
+    gettext,
+    eventUtils,
+    planningUtils,
+    isItemPublic,
+    lockUtils,
+    onEventCapture,
+    isExistingItem
+} from '../../../utils';
 
 import {Button} from '../../UI';
 import {Button as NavButton} from '../../UI/Nav';
@@ -89,7 +97,7 @@ export class EditorHeader extends React.Component {
         } = this.props;
 
         // Do not show the tabs if we're creating a new item
-        const existingItem = !!item;
+        const existingItem = isExistingItem(item);
         const isPublic = isItemPublic(item);
         const itemLock = lockUtils.getLock(item, lockedItems);
         const isLockedInContext = addNewsItemToPlanning ? planningUtils.isLockedForAddToPlanning(item) : !!itemLock;
