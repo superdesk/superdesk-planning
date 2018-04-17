@@ -18,7 +18,7 @@ import {
     Field,
 } from '../../UI/Form';
 import {ContactField} from '../../fields';
-import {ToggleBox} from '../../UI';
+import {ToggleBox, IconButton} from '../../UI';
 import {RelatedPlannings} from '../../RelatedPlannings';
 import {EventScheduleInput, EventScheduleSummary} from '../';
 
@@ -100,6 +100,18 @@ export class EventEditorComponent extends React.Component {
             errors: errors,
             showErrors: submitFailed,
         };
+
+        const AddLinkButton = ({onAdd}) => (
+            <IconButton
+                onClick={onAdd}
+                icon="icon-plus-sign"
+                label={gettext('Add link')}
+                useDefaultClass={false}
+                className="text-link cursor-pointer"
+                tabIndex={0}
+                enterKeyIsClick={true}
+            />
+        );
 
         return (
             <div className="event-editor">
@@ -270,6 +282,8 @@ export class EventEditorComponent extends React.Component {
                             defaultElement=""
                             addButtonText={gettext('Add a link')}
                             element={LinkInput}
+                            addButtonComponent={AddLinkButton}
+                            row={false}
                             {...fieldProps}
                         />
                     </ToggleBox>

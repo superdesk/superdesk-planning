@@ -1,14 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import 'whatwg-fetch';
-import {Row, Input, LineInput, Label} from './';
+import {get} from 'lodash';
+
+import {gettext} from '../../../utils';
+
+import {Row, LineInput, Label, TextArea} from './';
+import {IconButton} from '../';
+
 import './style.scss';
 
 export class LinkInput extends React.Component {
     constructor(props) {
         super(props);
         this.state = {title: props.value};
-        this.errorTitle = 'Could not load title';
+        this.errorTitle = gettext('Could not load title');
     }
 
     componentWillMount() {
@@ -41,10 +47,16 @@ export class LinkInput extends React.Component {
     }
 
     getAbsoulteURL(link) {
-        const hostname = this.extractHostname(link);
+        let hostname = this.extractHostname(link);
         const protocol = link.indexOf('://') > -1 ? link.split('/')[0] : 'http:';
+        const resource = link.substr(link.indexOf(hostname) + hostname.length);
 
-        return protocol + '//www.' + hostname;
+        // Only add 'www.' back in if the original link has 'www.' in it
+        if (link.indexOf('://www.') > -1) {
+            hostname = 'www.' + hostname;
+        }
+
+        return `${protocol}//${hostname}${resource}`;
     }
 
     setTitle(link) {
@@ -72,14 +84,18 @@ export class LinkInput extends React.Component {
                 this.setState({title: json.meta.title});
             })
             .catch(() => {
-            // This is in cases of network failuree issues
+            // This is in cases of network failure issues
             // refer: https://www.npmjs.com/package/whatwg-fetch
                 this.setState({title: this.errorTitle});
             });
     }
 
     render() {
-        const {value, field, remove, onChange, label, readOnly, ...props} = this.props;
+        const {value, field, remove, onChange, label, readOnly, iframelyKey, ...props} = this.props;
+
+        const showLink = this.state.title &&
+            !props.message &&
+            get(value, 'length', 0) > 0;
 
         return readOnly ? (
             <Row>
@@ -92,21 +108,39 @@ export class LinkInput extends React.Component {
             <Row className="link-input">
                 <LineInput {...props} readOnly={readOnly}>
                     <Label text={label} />
-                    <a className="icn-btn sd-line-input__icon-right" onClick={remove}>
-                        <i className="icon-trash" />
-                    </a>
-                    <Input
+
+                    <TextArea
                         field={field}
                         value={value}
                         onChange={onChange}
-                        type="text"
                         placeholder="Paste link"
                         readOnly={readOnly}
+                        paddingRight60={true}
                         autoFocus
+                        tabIndex={0}
+                        multiLine={false}
                     />
-                    {this.state.title && (
+
+                    {showLink && iframelyKey && (
                         <a href={this.getAbsoulteURL(value)} target="_blank">{this.state.title}</a>
                     )}
+
+                    <span className="sd-line-input__icon-bottom-right">
+                        {showLink && (
+                            <IconButton
+                                href={this.getAbsoulteURL(value)}
+                                target="_blank"
+                                icon="icon-link"
+                            />
+                        )}
+
+                        <IconButton
+                            onClick={remove}
+                            tabIndex={0}
+                            icon="icon-trash"
+                            enterKeyIsClick={true}
+                        />
+                    </span>
                 </LineInput>
             </Row>
         );
@@ -121,6 +155,7 @@ LinkInput.propTypes = {
     onChange: PropTypes.func,
     iframelyKey: PropTypes.string,
     readOnly: PropTypes.bool,
+    message: PropTypes.string,
 };
 
 LinkInput.defaultProps = {
