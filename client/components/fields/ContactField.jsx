@@ -73,9 +73,9 @@ export class ContactFieldComponent extends React.Component {
         const {field, ...props} = this.props;
         const opt = this.getOption(savedContact);
 
-        onCancel();
-
         props.onChange(field, [...props.value, opt.value]);
+
+        onCancel();
     }
 
     getSearchResult(text) {
@@ -87,13 +87,11 @@ export class ContactFieldComponent extends React.Component {
     }
 
     fetchEventContacts(values) {
-        setTimeout(() => {
-            this.props.fetchContacts(values)
-                .then(this.getResponseResult)
-                .then((results) => {
-                    this.getOptions(results || []);
-                });
-        }, 800);
+        this.props.fetchContacts(values)
+            .then(this.getResponseResult)
+            .then((results) => {
+                this.getOptions(results || []);
+            });
     }
 
     getResponseResult(data = null) {

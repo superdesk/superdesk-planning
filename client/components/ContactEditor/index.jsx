@@ -47,7 +47,8 @@ export class ContactEditor extends React.Component {
     }
 
     exitEditor(result) {
-        this.props.onSave(result);
+        // wait before exiting contact editor, allowing save changes to be completed on contact form.
+        setTimeout(() => this.props.onSave(result), 800);
     }
 
     onSave(result) {
