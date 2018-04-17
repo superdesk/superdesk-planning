@@ -9,7 +9,8 @@ Feature: Duplicate Planning
             "headline": "test headline",
             "slugline": "test slugline",
             "state": "scheduled",
-            "pubstatus": "usable"
+            "pubstatus": "usable",
+            "planning_date": "2029-11-21T14:00:00.000Z"
         }]
         """
         When we patch "/planning/#planning._id#"
@@ -21,7 +22,7 @@ Feature: Duplicate Planning
                         "ednote": "test coverage, 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline",
-                        "scheduled": "2029-11-21T14:00:00.000Z",
+                        "scheduled": "2029-11-21T14:00:00.0000",
                         "g2_content_type": "text"
                     },
                     "assigned_to": {
@@ -82,7 +83,7 @@ Feature: Duplicate Planning
                         "ednote": "test coverage, 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline",
-                        "scheduled": "__no_value__",
+                        "scheduled": "2029-11-21T14:00:00+0000",
                         "g2_content_type": "text"
                     },
                     "assigned_to": {}
@@ -160,7 +161,8 @@ Feature: Duplicate Planning
             "headline": "test headline",
             "slugline": "test slugline",
             "state": "scheduled",
-            "pubstatus": "usable"
+            "pubstatus": "usable",
+            "planning_date": "2029-11-21T14:00:00.000Z"
         }]
         """
         When we patch "/users/#CONTEXT_USER_ID#"
@@ -194,7 +196,8 @@ Feature: Duplicate Planning
             "headline": "test headline",
             "slugline": "test slugline",
             "state": "scheduled",
-            "pubstatus": "usable"
+            "pubstatus": "usable",
+            "planning_date": "2029-11-21T14:00:00.000Z"
         }]
         """
         When we patch "/planning/#planning._id#"
@@ -206,7 +209,7 @@ Feature: Duplicate Planning
                         "ednote": "test coverage, 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline",
-                        "scheduled": "2029-11-21T14:00:00.000Z",
+                        "scheduled": "2029-11-21T14:00:00.0000",
                         "g2_content_type": "text"
                     },
                     "assigned_to": {
@@ -269,7 +272,7 @@ Feature: Duplicate Planning
                         "ednote": "test coverage, 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline",
-                        "scheduled": "__no_value__",
+                        "scheduled": "2029-11-21T14:00:00+0000",
                         "g2_content_type": "text"
                     },
                     "assigned_to": {},
@@ -286,7 +289,8 @@ Feature: Duplicate Planning
         [{
             "guid": "123",
             "headline": "test headline",
-            "slugline": "test slugline"
+            "slugline": "test slugline",
+            "planning_date": "2029-11-21T14:00:00.000Z"
         }]
         """
         Then we get OK response
@@ -331,3 +335,43 @@ Feature: Duplicate Planning
             }
         ]}
         """
+
+    @auth
+    Scenario: Duplicate a past planning item will have current date
+        Given "planning"
+        """
+        [{
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "TestPlan",
+            "state": "draft",
+            "planning_date": "2012-11-21T14:00:00.000Z",
+            "coverages": [{
+                "coverage_id": "cov1",
+                "slugline": "TestCoverage 1",
+                "planning": {
+                    "internal_note": "Cover something please!",
+                    "scheduled": "2012-11-21T14:00:00.000Z"
+                },
+                "planning_item": "plan1",
+                "news_coverage_status": {
+                    "qcode": "ncostat:int",
+                    "name": "Coverage intended"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa"
+                }
+            }]
+
+        }]
+        """
+        When we post to "/planning/plan1/duplicate"
+        """
+        [{}]
+        """
+        Then we get OK response
+        When we get "/planning/#duplicate._id#"
+        Then planning item has current date
+        Then coverage 0 has current date

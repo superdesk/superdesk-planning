@@ -16,6 +16,7 @@ from superdesk.tests.steps import (then, when, step_impl_then_get_existing, get_
 from flask import json
 from planning.common import get_local_end_of_day
 from wooper.assertions import assert_equal
+from datetime import datetime
 
 
 @then('we get a list with {total_count} items')
@@ -209,3 +210,21 @@ def then_we_get_array_of_by(context, field, fid):
             True,
             msg=str(row) + '\n != \n' + str(context_data[row[fid]])
         )
+
+
+@then('planning item has current date')
+def then_item_has_current_date(context):
+    response = get_json_data(context.response)
+    assert "planning_date" in response, 'planning_date field not defined'
+    response_date_time = datetime.strptime(response["planning_date"], DATETIME_FORMAT)
+    assert response_date_time.date() == get_local_end_of_day().date(), 'Planning Item has not got current date'
+
+
+@then('coverage {index} has current date')
+def then_coverage_has_current_date(context, index):
+    index = int(index)
+    response = get_json_data(context.response)
+    assert len(response.get('coverages')), 'Coverages are not defined'
+    coverage = response.get('coverages')[index]
+    response_date_time = datetime.strptime(coverage['planning']['scheduled'], DATETIME_FORMAT)
+    assert response_date_time.date() == get_local_end_of_day().date(), 'Coverage is not schedule for current date'
