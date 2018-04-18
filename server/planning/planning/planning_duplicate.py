@@ -15,7 +15,7 @@ from superdesk.services import BaseService
 from superdesk.metadata.utils import item_url, generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from flask import request
-from planning.common import ITEM_STATE, WORKFLOW_STATE
+from planning.common import ITEM_STATE, WORKFLOW_STATE, get_local_end_of_day
 from copy import deepcopy
 
 
@@ -62,9 +62,17 @@ class PlanningDuplicateService(BaseService):
         new_plan[ITEM_STATE] = WORKFLOW_STATE.DRAFT
         new_plan['guid'] = generate_guid(type=GUID_NEWSML)
 
+        planning_datetime = new_plan.get('planning_date')
+        current_date = get_local_end_of_day().date()
+        if planning_datetime.date() < current_date:
+            new_plan['planning_date'] = planning_datetime.replace(
+                day=current_date.day,
+                month=current_date.month,
+                year=current_date.year)
+
         for cov in new_plan.get('coverages') or []:
             cov.pop('assigned_to', None)
-            cov.get('planning', {}).pop('scheduled', None)
+            cov.get('planning', {})['scheduled'] = new_plan.get('planning_date')
             cov['coverage_id'] = generate_guid(type=GUID_NEWSML)
             cov['workflow_status'] = WORKFLOW_STATE.DRAFT
             cov['news_coverage_status'] = {'qcode': 'ncostat:int'}
