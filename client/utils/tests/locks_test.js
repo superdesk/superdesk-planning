@@ -99,12 +99,12 @@ describe('utils.locks', () => {
 
         let item = {
             lock_user: 'ident1',
-            lock_session: 'session1'
+            lock_session: 'session1',
         };
 
         let session = {
             identity: {_id: 'ident1'},
-            sessionId: 'session1'
+            sessionId: 'session1',
         };
 
         // Test item locked in this session
@@ -142,7 +142,7 @@ describe('utils.locks', () => {
             expect(eventUtils.isEventLockRestricted.args[0]).toEqual([
                 {type: 'event'},
                 testData.sessions[0],
-                testData.locks
+                testData.locks,
             ]);
 
             expect(lockUtils.isLockRestricted({type: 'planning'}, testData.sessions[0], testData.locks)).toBe(true);
@@ -150,7 +150,7 @@ describe('utils.locks', () => {
             expect(planningUtils.isPlanningLockRestricted.args[0]).toEqual([
                 {type: 'planning'},
                 testData.sessions[0],
-                testData.locks
+                testData.locks,
             ]);
 
             expect(lockUtils.isLockRestricted({}, testData.sessions[0], testData.locks)).toBe(false);

@@ -85,7 +85,7 @@ export class TextArea extends React.Component {
                     'sd-line-input__input',
                     {
                         'sd-line-input__input--auto-height': autoHeight,
-                        'sd-line-input__input--padding-right-60': paddingRight60
+                        'sd-line-input__input--padding-right-60': paddingRight60,
                     }
                 )}
                 value={value}

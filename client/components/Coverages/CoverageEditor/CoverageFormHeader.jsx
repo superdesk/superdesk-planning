@@ -35,7 +35,7 @@ export class CoverageFormHeader extends React.Component {
             coverageProviders,
             priorities,
             addNewsItemToPlanning,
-            readOnly
+            readOnly,
         } = this.props;
 
         const userAssigned = getCreator(value, 'assigned_to.user', users);

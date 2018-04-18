@@ -170,7 +170,7 @@ export const getEventsWithMoreInfo = createSelector(
     [getEvents, getStoredPlannings, getEventsIdsToShowInList],
     (events, storedPlannings, eventsIdsToBeShown) => (
         eventsIdsToBeShown.map((eventId) => ({
-            ...events[eventId]
+            ...events[eventId],
         }))
     )
 );

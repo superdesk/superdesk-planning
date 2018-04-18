@@ -301,7 +301,7 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
         [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.label]: () =>
             canUpdateEventRepetitions(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.EDIT_EVENT.label]: () =>
-            canEditEvent(event, session, privileges, locks)
+            canEditEvent(event, session, privileges, locks),
     };
 
     actions.forEach((action) => {
@@ -370,7 +370,7 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks, with
             callBacks[callBackName] &&
                 actions.push({
                     ...EVENTS.ITEM_ACTIONS.DUPLICATE,
-                    callback: callBacks[callBackName].bind(null, item)
+                    callback: callBacks[callBackName].bind(null, item),
                 });
             break;
 
@@ -378,7 +378,7 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks, with
             callBacks[callBackName] &&
                 actions.push({
                     ...EVENTS.ITEM_ACTIONS.SPIKE,
-                    callback: callBacks[callBackName].bind(null, item)
+                    callback: callBacks[callBackName].bind(null, item),
                 });
             break;
 
@@ -386,7 +386,7 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks, with
             callBacks[callBackName] &&
                 actions.push({
                     ...EVENTS.ITEM_ACTIONS.UNSPIKE,
-                    callback: callBacks[callBackName].bind(null, item)
+                    callback: callBacks[callBackName].bind(null, item),
                 });
             break;
 
@@ -394,7 +394,7 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks, with
             callBacks[callBackName] &&
                 actions.push({
                     ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
-                    callback: callBacks[callBackName].bind(null, item)
+                    callback: callBacks[callBackName].bind(null, item),
                 });
             break;
 
@@ -402,7 +402,7 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks, with
             callBacks[callBackName] &&
                 actions.push({
                     ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
-                    callback: callBacks[callBackName].bind(null, item)
+                    callback: callBacks[callBackName].bind(null, item),
                 });
             break;
 
@@ -410,7 +410,7 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks, with
             callBacks[callBackName] &&
                 actions.push({
                     ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
-                    callback: callBacks[callBackName].bind(null, item)
+                    callback: callBacks[callBackName].bind(null, item),
                 });
             break;
 
@@ -418,7 +418,7 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks, with
             callBacks[callBackName] &&
                 actions.push({
                     ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
-                    callback: callBacks[callBackName].bind(null, item)
+                    callback: callBacks[callBackName].bind(null, item),
                 });
             break;
 
@@ -426,7 +426,7 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks, with
             callBacks[callBackName] &&
                 actions.push({
                     ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
-                    callback: callBacks[callBackName].bind(null, item)
+                    callback: callBacks[callBackName].bind(null, item),
                 });
             break;
 
@@ -434,7 +434,7 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks, with
             callBacks[callBackName] &&
                 actions.push({
                     ...EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS,
-                    callback: callBacks[callBackName].bind(null, item)
+                    callback: callBacks[callBackName].bind(null, item),
                 });
             break;
 
@@ -442,7 +442,7 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks, with
             callBacks[callBackName] &&
                 actions.push({
                     ...EVENTS.ITEM_ACTIONS.EDIT_EVENT,
-                    callback: callBacks[callBackName].bind(null, item)
+                    callback: callBacks[callBackName].bind(null, item),
                 });
             break;
         }
@@ -489,7 +489,7 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks, with
                 GENERIC_ITEM_ACTIONS.DIVIDER,
                 {
                     ...GENERIC_ITEM_ACTIONS.LABEL,
-                    text: gettext('Past Events')
+                    text: gettext('Past Events'),
                 },
                 ...pastEventCallBacks];
         }
@@ -593,7 +593,7 @@ const convertToMoment = (item) => {
         dates: {
             ...item.dates,
             start: get(item.dates, 'start') ? moment(item.dates.start) : null,
-            end: get(item.dates, 'end') ? moment(item.dates.end) : null
+            end: get(item.dates, 'end') ? moment(item.dates.end) : null,
         },
     };
 
@@ -658,7 +658,7 @@ const self = {
     getEventActions,
     getEventsByDate,
     convertToMoment,
-    duplicateEvent
+    duplicateEvent,
 };
 
 export default self;

@@ -26,5 +26,5 @@ SidePanel.defaultProps = {
     shadowRight: false,
     shadowLeft: false,
     transparent: false,
-    className: ''
+    className: '',
 };

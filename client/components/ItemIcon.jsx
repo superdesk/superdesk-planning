@@ -13,7 +13,7 @@ export const ItemIcon = ({item, big, white, blue, showRepeating}) => {
                 'icon-calendar-list',
                 {
                     'icon--white': white,
-                    'icon--blue': blue
+                    'icon--blue': blue,
                 })}
             />
         );
@@ -24,7 +24,7 @@ export const ItemIcon = ({item, big, white, blue, showRepeating}) => {
                 {
                     'double-size-icn': big,
                     'icon--white': white,
-                    'icon--blue': blue
+                    'icon--blue': blue,
                 })}
             />
         );
@@ -35,7 +35,7 @@ export const ItemIcon = ({item, big, white, blue, showRepeating}) => {
                 'icon-calendar',
                 {
                     'icon--white': white,
-                    'icon--blue': blue
+                    'icon--blue': blue,
                 }
             )}/>
         );
@@ -46,7 +46,7 @@ export const ItemIcon = ({item, big, white, blue, showRepeating}) => {
                 planningUtils.getCoverageIcon(item.type),
                 {
                     'icon--white': white,
-                    'icon--blue': blue
+                    'icon--blue': blue,
                 }
             )}/>
         );

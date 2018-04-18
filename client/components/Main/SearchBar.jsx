@@ -12,7 +12,7 @@ export const SearchBar = ({
     value,
     search,
     activeFilter,
-    createPlanningOnly
+    createPlanningOnly,
 }) => (
     <SubNav>
         <SearchBox label="Search planning" value={value} search={search} activeFilter={activeFilter}/>

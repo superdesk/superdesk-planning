@@ -28,7 +28,7 @@ export class SelectFieldPopup extends React.Component {
         this.dom = {
             root: null,
             list: null,
-            search: null
+            search: null,
         };
     }
 

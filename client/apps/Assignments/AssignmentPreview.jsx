@@ -32,7 +32,7 @@ export class AssignmentPreviewComponent extends React.Component {
         this.tools = [{
             icon: 'icon-close-small',
             onClick: props.closePanel,
-            title: gettext(TOOLTIPS.close)
+            title: gettext(TOOLTIPS.close),
         }];
 
         this.tabs = [{
@@ -41,8 +41,8 @@ export class AssignmentPreviewComponent extends React.Component {
             enabled: true,
             tabProps: {
                 hideItemActions: this.props.hideItemActions,
-                showFulfilAssignment: this.props.showFulfilAssignment
-            }
+                showFulfilAssignment: this.props.showFulfilAssignment,
+            },
         }, {
             label: gettext('Content'),
             render: ArchivePreview,

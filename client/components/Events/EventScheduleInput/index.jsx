@@ -147,7 +147,7 @@ export class EventScheduleInput extends React.Component {
 
         this.props.onChange({
             'dates.start': newStart,
-            'dates.end': newEnd
+            'dates.end': newEnd,
         }, null);
     }
 
@@ -198,10 +198,10 @@ export class EventScheduleInput extends React.Component {
                 schema: {
                     'dates.start': {required: true},
                     'dates.end': {required: true},
-                }
+                },
             },
             errors: errors,
-            showErrors: showErrors
+            showErrors: showErrors,
         };
 
         const toggleProps = {
@@ -210,7 +210,7 @@ export class EventScheduleInput extends React.Component {
             readOnly: readOnly,
             className: 'sd-line-input__input',
             labelLeftAuto: true,
-            defaultValue: false
+            defaultValue: false,
         };
 
         return (
@@ -305,5 +305,5 @@ EventScheduleInput.defaultProps = {
     readOnly: false,
     showRepeat: true,
     showRepeatSummary: true,
-    showRepeatToggle: true
+    showRepeatToggle: true,
 };

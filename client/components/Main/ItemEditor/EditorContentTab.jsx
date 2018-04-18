@@ -14,7 +14,7 @@ export const EditorContentTab = ({
     errors,
     addNewsItemToPlanning,
     startPartialSave,
-    navigation
+    navigation,
 }) => {
     switch (itemType) {
     case ITEM_TYPE.EVENT:

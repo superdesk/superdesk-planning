@@ -13,7 +13,7 @@ export class DaysOfWeekInput extends React.Component {
             TH: false,
             FR: false,
             SA: false,
-            SU: false
+            SU: false,
         };
     }
 
@@ -35,7 +35,7 @@ export class DaysOfWeekInput extends React.Component {
             TH: false,
             FR: false,
             SA: false,
-            SU: false
+            SU: false,
         };
 
         const value = props.value || '';
@@ -54,7 +54,7 @@ export class DaysOfWeekInput extends React.Component {
 
         const days = {
             ...this.state,
-            [day]: value
+            [day]: value,
         };
 
         let daysInString = Object.keys(days)

@@ -3,7 +3,7 @@ import {USER_ACTIONS} from '../constants';
 const initialState = {
     sessionId: null,
     identity: null,
-    userPreferences: {}
+    userPreferences: {},
 };
 
 const session = (state = initialState, action) => {
@@ -13,7 +13,7 @@ const session = (state = initialState, action) => {
     case USER_ACTIONS.RECEIVE_USER_PREFERENCES:
         return {
             ...state,
-            userPreferences: action.payload
+            userPreferences: action.payload,
         };
     default:
         return state;

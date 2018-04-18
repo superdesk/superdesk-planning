@@ -70,7 +70,7 @@ export const CalendarNavigationComponent = ({
             onChange={onIntervalChange}
             value={interval}
         />
-    </ButtonStack>
+    </ButtonStack>,
 ]);
 
 CalendarNavigationComponent.propTypes = {
@@ -91,7 +91,7 @@ const mapDispatchToProps = (dispatch) => ({
     onTodayClick: () => dispatch(actions.main.jumpTo(MAIN.JUMP.TODAY)),
     onBackClick: () => dispatch(actions.main.jumpTo(MAIN.JUMP.BACK)),
     onForwardClick: () => dispatch(actions.main.jumpTo(MAIN.JUMP.FORWARD)),
-    onIntervalChange: (field) => dispatch(actions.main.setJumpInterval(field))
+    onIntervalChange: (field) => dispatch(actions.main.setJumpInterval(field)),
 });
 
 export const CalendarNavigation = connect(

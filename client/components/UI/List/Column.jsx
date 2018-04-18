@@ -33,5 +33,5 @@ Column.defaultProps = {
     border: true,
     justifyTop: false,
     noPadding: false,
-    hasCheck: false
+    hasCheck: false,
 };

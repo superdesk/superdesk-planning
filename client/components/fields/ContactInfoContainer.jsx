@@ -52,14 +52,14 @@ export class ContactInfoContainer extends React.Component {
         const services = {
             gettextCatalog: ng.get('gettextCatalog'),
             $filter: ng.get('$filter'),
-            datetime: ng.get('datetime')
+            datetime: ng.get('datetime'),
         };
 
         let contents = [
             'div',
             {
-                className: 'media-box contacts'
-            }
+                className: 'media-box contacts',
+            },
         ];
 
         contents.push(
@@ -80,5 +80,5 @@ export class ContactInfoContainer extends React.Component {
 
 ContactInfoContainer.propTypes = {
     onCancel: PropTypes.func,
-    currentContact: PropTypes.object
+    currentContact: PropTypes.object,
 };

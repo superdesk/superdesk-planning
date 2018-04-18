@@ -26,11 +26,11 @@ Item.propTypes = {
     activated: PropTypes.bool,
     className: PropTypes.string,
     onClick: PropTypes.func,
-    margin: PropTypes.bool
+    margin: PropTypes.bool,
 };
 
 Item.defaultProps = {
     noBg: false,
     noHover: false,
-    margin: false
+    margin: false,
 };

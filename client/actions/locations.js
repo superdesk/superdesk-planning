@@ -117,7 +117,7 @@ const self = {
     saveNominatim,
     saveFreeTextLocation,
     saveLocation,
-    getLocation
+    getLocation,
 };
 
 export default self;

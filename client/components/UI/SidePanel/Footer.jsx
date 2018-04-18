@@ -17,5 +17,5 @@ Footer.propTypes = {
 };
 
 Footer.defaultProps = {
-    className: ''
+    className: '',
 };

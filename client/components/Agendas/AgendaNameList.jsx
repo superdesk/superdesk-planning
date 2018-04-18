@@ -21,5 +21,5 @@ export const AgendaNameList = ({agendas}) => (
 );
 
 AgendaNameList.propTypes = {
-    agendas: PropTypes.array
+    agendas: PropTypes.array,
 };

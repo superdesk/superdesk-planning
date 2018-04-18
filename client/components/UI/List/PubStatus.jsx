@@ -20,7 +20,7 @@ export const PubStatus = ({item}) => {
             style={{
                 width: '22px',
                 height: '22px',
-                fontSize: '22px'
+                fontSize: '22px',
             }}
         />;
     } else {
@@ -42,5 +42,5 @@ export const PubStatus = ({item}) => {
 };
 
 PubStatus.propTypes = {
-    item: PropTypes.object.isRequired
+    item: PropTypes.object.isRequired,
 };

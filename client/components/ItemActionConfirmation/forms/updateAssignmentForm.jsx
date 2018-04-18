@@ -78,7 +78,7 @@ export class UpdateAssignmentComponent extends React.Component {
         const infoProps = {
             labelLeft: true,
             borderBottom: false,
-            readOnly: true
+            readOnly: true,
         };
 
         return (
@@ -168,14 +168,14 @@ const mapDispatchToProps = (dispatch) => ({
     onSubmit: (assignment) => dispatch(actions.assignments.ui.save(assignment))
         .then(() => dispatch({
             type: ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT,
-            payload: {assignment}
+            payload: {assignment},
         })),
 
     onHide: (assignment) => {
         if (assignment.lock_action === 'reassign') {
             dispatch(actions.assignments.api.unlock(assignment));
         }
-    }
+    },
 });
 
 export const UpdateAssignmentForm = connect(

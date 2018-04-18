@@ -164,7 +164,7 @@ const mapDispatchToProps = (dispatch) => ({
             _id: eventId,
             type: 'event',
         }));
-    }
+    },
 });
 
 export const EventHistory = connect(mapStateToProps, mapDispatchToProps)(EventHistoryComponent);

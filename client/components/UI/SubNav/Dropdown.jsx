@@ -119,7 +119,7 @@ Dropdown.propTypes = {
         divider: PropTypes.bool,
         icon: PropTypes.string,
         action: PropTypes.func,
-        className: PropTypes.string
+        className: PropTypes.string,
     })),
     alignRight: PropTypes.bool,
     disableSelection: PropTypes.bool,

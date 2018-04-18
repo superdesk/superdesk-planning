@@ -24,7 +24,7 @@ export function ConfirmationModal({handleHide, modalProps}) {
     let buttons = [{
         type: 'button',
         onClick: handleCancel,
-        text: modalProps.cancelText || 'Cancel'
+        text: modalProps.cancelText || 'Cancel',
     }];
 
     if (action) {
@@ -40,7 +40,7 @@ export function ConfirmationModal({handleHide, modalProps}) {
         buttons.unshift({
             type: 'reset',
             onClick: handleIgnore,
-            text: modalProps.ignoreText || 'Ignore'
+            text: modalProps.ignoreText || 'Ignore',
         });
     }
 

@@ -127,12 +127,12 @@ EventPreviewComponent.propTypes = {
     item: PropTypes.object,
     formProfile: PropTypes.object,
     createLink: PropTypes.func,
-    streetMapUrl: PropTypes.string
+    streetMapUrl: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({
     createLink: (f) => (selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw'),
-    streetMapUrl: selectors.config.getStreetMapUrl(state)
+    streetMapUrl: selectors.config.getStreetMapUrl(state),
 });
 
 

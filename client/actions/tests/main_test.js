@@ -26,13 +26,13 @@ describe('actions.main', () => {
         expect(store.dispatch.callCount).toBe(1);
         expect(store.dispatch.args[0]).toEqual([{
             type: 'MAIN_OPEN_EDITOR',
-            payload: data.events[0]
+            payload: data.events[0],
         }]);
 
         expect(services.$location.search.callCount).toBe(1);
         expect(services.$location.search.args[0]).toEqual([
             'edit',
-            JSON.stringify({id: 'e1', type: 'event'})
+            JSON.stringify({id: 'e1', type: 'event'}),
         ]);
     });
 
@@ -45,7 +45,7 @@ describe('actions.main', () => {
         expect(services.$location.search.callCount).toBe(1);
         expect(services.$location.search.args[0]).toEqual([
             'edit',
-            null
+            null,
         ]);
     });
 
@@ -71,7 +71,7 @@ describe('actions.main', () => {
                 .then(() => {
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'MAIN_FILTER',
-                        payload: 'COMBINED'
+                        payload: 'COMBINED',
                     }]);
                     expect(store.dispatch.callCount).toBe(7);
                     expect(services.$timeout.callCount).toBe(1);
@@ -92,7 +92,7 @@ describe('actions.main', () => {
                 .then(() => {
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'MAIN_FILTER',
-                        payload: 'EVENTS'
+                        payload: 'EVENTS',
                     }]);
 
                     expect(store.dispatch.callCount).toBe(9);
@@ -115,7 +115,7 @@ describe('actions.main', () => {
                 .then(() => {
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'MAIN_FILTER',
-                        payload: 'PLANNING'
+                        payload: 'PLANNING',
                     }]);
 
                     expect(store.dispatch.callCount).toBe(15);
@@ -167,7 +167,7 @@ describe('actions.main', () => {
                 .then(null, () => {
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual([
-                        'Failed to unpublish, could not find the item type!'
+                        'Failed to unpublish, could not find the item type!',
                     ]);
 
                     done();

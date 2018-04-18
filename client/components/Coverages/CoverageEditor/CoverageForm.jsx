@@ -21,7 +21,7 @@ export class CoverageForm extends React.Component {
         this.onScheduleChanged = this.onScheduleChanged.bind(this);
         this.dom = {
             contentType: null,
-            popupContainer: null
+            popupContainer: null,
         };
     }
 

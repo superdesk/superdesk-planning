@@ -31,7 +31,7 @@ export function PlanningController(
 ) {
     const prevFlags = {
         workqueue: superdeskFlags.flags.workqueue,
-        authoring: superdeskFlags.flags.authoring
+        authoring: superdeskFlags.flags.authoring,
     };
 
     pageTitle.setUrl(gettext('Planning'));

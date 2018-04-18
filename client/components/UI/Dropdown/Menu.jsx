@@ -20,10 +20,10 @@ Menu.propTypes = {
     children: PropTypes.node,
     className: PropTypes.string,
     isOpen: PropTypes.bool,
-    alignRight: PropTypes.bool
+    alignRight: PropTypes.bool,
 };
 
 Menu.defaultProps = {
     isOpen: false,
-    alignRight: false
+    alignRight: false,
 };

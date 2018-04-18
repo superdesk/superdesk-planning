@@ -23,12 +23,12 @@ export class EndsInput extends React.Component {
         if (value === 'count') {
             onChange({
                 [`${fieldPrefix}endRepeatMode`]: 'count',
-                [`${fieldPrefix}until`]: null
+                [`${fieldPrefix}until`]: null,
             });
         } else if (value === 'until') {
             onChange({
                 [`${fieldPrefix}endRepeatMode`]: 'until',
-                [`${fieldPrefix}count`]: null
+                [`${fieldPrefix}count`]: null,
             });
         }
     }

@@ -3,6 +3,6 @@ export const CONTACTS = {
         'first_name',
         'last_name',
         'job_title',
-        'organisation'
-    ]
+        'organisation',
+    ],
 };

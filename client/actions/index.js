@@ -31,7 +31,7 @@ const notifications = {
     ...agendaNotifications,
     ...planning.notifications.events,
     ...events.notifications.events,
-    ...assignments.notifications.events
+    ...assignments.notifications.events,
 };
 
 export {
@@ -47,5 +47,5 @@ export {
     locations,
     eventsPlanning,
     multiSelect,
-    users
+    users,
 };

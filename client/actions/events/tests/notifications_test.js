@@ -285,7 +285,7 @@ describe('actions.events.notifications', () => {
                             item: data.events[0]._id,
                             items: [{
                                 id: data.events[0]._id,
-                                etag: data.events[0]._etag
+                                etag: data.events[0]._etag,
                             }],
                             state: 'scheduled',
                             pubstatus: 'usable',
@@ -302,13 +302,13 @@ describe('actions.events.notifications', () => {
                     item: data.events[0]._id,
                     items: [{
                         id: data.events[0]._id,
-                        etag: data.events[0]._etag
+                        etag: data.events[0]._etag,
                     }, {
                         id: data.events[1]._id,
-                        etag: data.events[1]._etag
+                        etag: data.events[1]._etag,
                     }, {
                         id: data.events[2]._id,
-                        etag: data.events[2]._etag
+                        etag: data.events[2]._etag,
                     }],
                     state: 'scheduled',
                     pubstatus: 'usable',
@@ -323,13 +323,13 @@ describe('actions.events.notifications', () => {
                             item: data.events[0]._id,
                             items: [{
                                 id: data.events[0]._id,
-                                etag: data.events[0]._etag
+                                etag: data.events[0]._etag,
                             }, {
                                 id: data.events[1]._id,
-                                etag: data.events[1]._etag
+                                etag: data.events[1]._etag,
                             }, {
                                 id: data.events[2]._id,
-                                etag: data.events[2]._etag
+                                etag: data.events[2]._etag,
                             }],
                             state: 'scheduled',
                             pubstatus: 'usable',
@@ -357,7 +357,7 @@ describe('actions.events.notifications', () => {
                             item: data.events[0]._id,
                             items: [{
                                 id: data.events[0]._id,
-                                etag: data.events[0]._etag
+                                etag: data.events[0]._etag,
                             }],
                             state: 'killed',
                             pubstatus: 'cancelled',
@@ -374,13 +374,13 @@ describe('actions.events.notifications', () => {
                     item: data.events[0]._id,
                     items: [{
                         id: data.events[0]._id,
-                        etag: data.events[0]._etag
+                        etag: data.events[0]._etag,
                     }, {
                         id: data.events[1]._id,
-                        etag: data.events[1]._etag
+                        etag: data.events[1]._etag,
                     }, {
                         id: data.events[2]._id,
-                        etag: data.events[2]._etag
+                        etag: data.events[2]._etag,
                     }],
                     state: 'killed',
                     pubstatus: 'cancelled',
@@ -395,13 +395,13 @@ describe('actions.events.notifications', () => {
                             item: data.events[0]._id,
                             items: [{
                                 id: data.events[0]._id,
-                                etag: data.events[0]._etag
+                                etag: data.events[0]._etag,
                             }, {
                                 id: data.events[1]._id,
-                                etag: data.events[1]._etag
+                                etag: data.events[1]._etag,
                             }, {
                                 id: data.events[2]._id,
-                                etag: data.events[2]._etag
+                                etag: data.events[2]._etag,
                             }],
                             state: 'killed',
                             pubstatus: 'cancelled',
@@ -556,8 +556,8 @@ describe('actions.events.notifications', () => {
                 spiked_items: [{
                     id: data.events[0]._id,
                     etag: 'e123',
-                    revert_state: 'draft'
-                }]
+                    revert_state: 'draft',
+                }],
             }))
                 .then(() => {
                     expect(store.dispatch.callCount).toBe(6);
@@ -568,7 +568,7 @@ describe('actions.events.notifications', () => {
                             items: [{
                                 id: data.events[0]._id,
                                 etag: 'e123',
-                                revert_state: 'draft'
+                                revert_state: 'draft',
                             }],
                         },
                     }]);
@@ -578,16 +578,16 @@ describe('actions.events.notifications', () => {
                         [{
                             id: data.events[0]._id,
                             etag: 'e123',
-                            revert_state: 'draft'
+                            revert_state: 'draft',
                         }],
                         'The Event was spiked',
-                        'id'
+                        'id',
                     ]);
 
                     expect(main.setUnsetLoadingIndicator.callCount).toBe(2);
                     expect(main.setUnsetLoadingIndicator.args).toEqual([
                         [true],
-                        [false]
+                        [false],
                     ]);
 
                     expect(eventsUi.scheduleRefetch.callCount).toBe(1);
@@ -603,8 +603,8 @@ describe('actions.events.notifications', () => {
                 unspiked_items: [{
                     id: data.events[0]._id,
                     etag: 'e123',
-                    revert_state: 'draft'
-                }]
+                    revert_state: 'draft',
+                }],
             }))
                 .then(() => {
                     expect(store.dispatch.callCount).toBe(6);
@@ -615,7 +615,7 @@ describe('actions.events.notifications', () => {
                             items: [{
                                 id: data.events[0]._id,
                                 etag: 'e123',
-                                revert_state: 'draft'
+                                revert_state: 'draft',
                             }],
                         },
                     }]);
@@ -625,16 +625,16 @@ describe('actions.events.notifications', () => {
                         [{
                             id: data.events[0]._id,
                             etag: 'e123',
-                            revert_state: 'draft'
+                            revert_state: 'draft',
                         }],
                         'The Event was unspiked',
-                        'id'
+                        'id',
                     ]);
 
                     expect(main.setUnsetLoadingIndicator.callCount).toBe(2);
                     expect(main.setUnsetLoadingIndicator.args).toEqual([
                         [true],
-                        [false]
+                        [false],
                     ]);
 
                     expect(eventsUi.scheduleRefetch.callCount).toBe(1);

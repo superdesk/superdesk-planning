@@ -6,7 +6,7 @@ import {EVENTS, PLANNING} from '../constants';
 const getActionDispatches = ({
     dispatch,
     eventOnly,
-    planningOnly
+    planningOnly,
 }) => {
     const dispatches = {
         // Event Actions

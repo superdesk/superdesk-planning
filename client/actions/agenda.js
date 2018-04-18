@@ -101,7 +101,7 @@ const fetchAgendas = (query = {}) => (
         })
             .then((data) => {
                 dispatch(receiveAgendas(sortBy(data._items, [(a) =>
-                    a.name.toLowerCase()
+                    a.name.toLowerCase(),
                 ])));
             }, (error) => {
                 notify.error(getErrorMessage(
@@ -235,7 +235,7 @@ const _createPlanningFromEvent = (event, planningDate) => (
             slugline: event.slugline,
             planning_date: planningDate || event._sortDate || event.dates.start,
             internal_note: event.internal_note,
-            headline: event.name,
+            name: event.name,
             place: event.place,
             subject: event.subject,
             anpa_category: event.anpa_category,
@@ -262,7 +262,7 @@ const fetchSelectedAgendaPlannings = (params = {}) => (
 
         const filters = {
             ...selectors.planning.getPlanningFilterParams(getState()),
-            ...params
+            ...params,
         };
 
         return dispatch(planning.ui.fetchToList(filters))

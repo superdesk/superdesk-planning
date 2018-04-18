@@ -340,7 +340,7 @@ describe('agenda', () => {
                         expect(services.$location.search.callCount).toBe(2);
                         expect(services.$location.search.args).toEqual([
                             ['agenda', 'a1'],
-                            ['searchParams', '{}']
+                            ['searchParams', '{}'],
                         ]);
 
                         expect(planningUi.fetchToList.callCount).toBe(1);
@@ -370,7 +370,7 @@ describe('agenda', () => {
                     name: 'ACT',
                     qcode: 'ACT',
                     state: 'Australian Capital Territory',
-                    world_region: 'Oceania'
+                    world_region: 'Oceania',
                 }];
                 events[0].ednote = 'Editorial note about this Event';
                 const action = actions.addEventToCurrentAgenda(events[0]);
@@ -387,7 +387,7 @@ describe('agenda', () => {
                                 event_item: events[0]._id,
                                 planning_date: events[0].dates.start,
                                 slugline: events[0].slugline,
-                                headline: events[0].name,
+                                name: events[0].name,
                                 subject: events[0].subject,
                                 anpa_category: events[0].anpa_category,
                                 description_text: 'Some event',
@@ -398,10 +398,10 @@ describe('agenda', () => {
                                     name: 'ACT',
                                     qcode: 'ACT',
                                     state: 'Australian Capital Territory',
-                                    world_region: 'Oceania'
+                                    world_region: 'Oceania',
                                 }],
                                 internal_note: 'internal note',
-                                ednote: 'Editorial note about this Event'
+                                ednote: 'Editorial note about this Event',
                             },
                         ]);
 

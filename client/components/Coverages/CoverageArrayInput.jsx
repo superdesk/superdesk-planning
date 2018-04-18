@@ -34,7 +34,7 @@ export const CoverageArrayInput = ({
     readOnly,
     message,
     navigation,
-    ...props,
+    ...props
 }) => (
     <div>
         <ContentBlock>

@@ -101,7 +101,7 @@ const getCriteria = ({
                     must.push({terms: {agendas: agendas}});
                 } else if (noAgendaAssigned) {
                     mustNot.push({
-                        constant_score: {filter: {exists: {field: 'agendas'}}}
+                        constant_score: {filter: {exists: {field: 'agendas'}}},
                     });
                 }
             },
@@ -124,17 +124,17 @@ const getCriteria = ({
             condition: () => (adHocPlanning),
             do: () => {
                 mustNot.push({
-                    constant_score: {filter: {exists: {field: 'event_item'}}}
+                    constant_score: {filter: {exists: {field: 'event_item'}}},
                 });
-            }
+            },
         },
         {
             condition: () => (excludeRescheduledAndCancelled),
             do: () => {
                 mustNot.push({
-                    terms: {state: [WORKFLOW_STATE.RESCHEDULED, WORKFLOW_STATE.CANCELLED]}
+                    terms: {state: [WORKFLOW_STATE.RESCHEDULED, WORKFLOW_STATE.CANCELLED]},
                 });
-            }
+            },
         },
         {
             condition: () => (!get(advancedSearch, 'dates')),
@@ -282,7 +282,7 @@ const getCriteria = ({
             do: () => {
                 must.push({term: {pubstatus: PUBLISHED_STATE.USABLE}});
             },
-        }
+        },
     ].forEach((action) => {
         if (action.condition()) {
             action.do();
@@ -332,7 +332,7 @@ const query = (
             fulltext,
             adHocPlanning,
             excludeRescheduledAndCancelled,
-            startOfWeek
+            startOfWeek,
         });
 
         const sortField = '_planning_schedule.scheduled';

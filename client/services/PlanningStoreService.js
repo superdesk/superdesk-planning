@@ -27,7 +27,7 @@ PlanningStoreService.$inject = [
     '$interpolate',
     'search',
     'contacts',
-    'preferencesService'
+    'preferencesService',
 ];
 export function PlanningStoreService(
     $rootScope,
@@ -127,7 +127,7 @@ export function PlanningStoreService(
                 session: {
                     sessionId: session.sessionId,
                     identity: session.identity,
-                    userPreferences: {}
+                    userPreferences: {},
                 },
                 urgency: {
                     urgency: metadata.values.urgency,

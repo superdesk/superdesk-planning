@@ -671,7 +671,7 @@ export const getWorkFlowStateAsOptions = (activeFilter = null) => {
 
         workflowStateOptions.push({
             qcode: WORKFLOW_STATE[key],
-            name: WORKFLOW_STATE[key]
+            name: WORKFLOW_STATE[key],
         });
     });
 

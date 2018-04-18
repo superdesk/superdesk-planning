@@ -20,7 +20,7 @@ export default function Toggle({value, onChange, readOnly, onFocus, className}) 
             checked: value,
             disabled: readOnly,
             'sd-toggle--checked': value,
-            'sd-toggle--disabled': readOnly
+            'sd-toggle--disabled': readOnly,
         },
         className
     );

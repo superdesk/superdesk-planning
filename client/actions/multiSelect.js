@@ -13,7 +13,7 @@ const selectEvents = (eventId, all = false) => (
         if (all) {
             return dispatch({
                 type: MULTISELECT.ACTIONS.SELECT_ALL_EVENTS,
-                payload: selectors.events.eventIdsInList(getState())
+                payload: selectors.events.eventIdsInList(getState()),
             });
         } else {
             return dispatch({
@@ -42,7 +42,7 @@ const selectPlannings = (planningId, all = false) => (
         if (all) {
             return dispatch({
                 type: MULTISELECT.ACTIONS.SELECT_ALL_PLANNINGS,
-                payload: selectors.planning.planIdsInList(getState())
+                payload: selectors.planning.planIdsInList(getState()),
             });
         } else {
             return dispatch({

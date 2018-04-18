@@ -9,7 +9,7 @@ export const CreateNewSubnavDropdown = ({addEvent, addPlanning, createPlanningOn
             label: gettext('Planning Item'),
             icon: 'icon-plus-sign icon--blue',
             action: addPlanning,
-        }
+        },
     ];
 
     if (!createPlanningOnly) {

@@ -12,9 +12,9 @@ describe('main selectors', () => {
                     search: {
                         [MAIN.FILTERS.EVENTS]: {currentSearch: {spikeState: SPIKED_STATE.NOT_SPIKED}, fulltext: ''},
                         [MAIN.FILTERS.COMBINED]: {currentSearch: {spikeState: SPIKED_STATE.NOT_SPIKED}, fulltext: ''},
-                        [MAIN.FILTERS.PLANNING]: {currentSearch: {spikeState: SPIKED_STATE.NOT_SPIKED}, fulltext: ''}
-                    }
-                }
+                        [MAIN.FILTERS.PLANNING]: {currentSearch: {spikeState: SPIKED_STATE.NOT_SPIKED}, fulltext: ''},
+                    },
+                },
             };
         });
 

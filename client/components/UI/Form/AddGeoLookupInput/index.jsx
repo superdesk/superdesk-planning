@@ -240,7 +240,7 @@ GeoLookupInputComponent.propTypes = {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-    searchLocalLocations: (text) => dispatch(actions.locations.getLocation(text))
+    searchLocalLocations: (text) => dispatch(actions.locations.getLocation(text)),
 });
 
 export const AddGeoLookupInput = connect(

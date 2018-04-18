@@ -19,5 +19,5 @@ export const PlanningDetails = ({item, onClick, active}) => (
 PlanningDetails.propTypes = {
     item: PropTypes.object,
     onClick: PropTypes.func,
-    active: PropTypes.bool
+    active: PropTypes.bool,
 };

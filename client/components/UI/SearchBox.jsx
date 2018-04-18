@@ -58,7 +58,7 @@ SearchBox.propTypes = {
     label: PropTypes.string.isRequired,
     value: PropTypes.string.isRequired,
     search: PropTypes.func.isRequired,
-    activeFilter: PropTypes.string.isRequired
+    activeFilter: PropTypes.string.isRequired,
 };
 
 export default SearchBox;

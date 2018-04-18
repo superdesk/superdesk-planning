@@ -12,7 +12,7 @@ export const EditorItemActions = ({
     session,
     privileges,
     lockedItems,
-    itemActions
+    itemActions,
 }) => {
     const itemType = getItemType(item);
 

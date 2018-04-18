@@ -47,5 +47,5 @@ export const FulfilAssignmentUi = ({previewOpen, newsItem}) => {
 
 FulfilAssignmentUi.propTypes = {
     previewOpen: PropTypes.bool,
-    newsItem: PropTypes.object
+    newsItem: PropTypes.object,
 };

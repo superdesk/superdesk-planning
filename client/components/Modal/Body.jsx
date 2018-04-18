@@ -11,7 +11,7 @@ export default function Body({children, noPadding, fullHeight, noScroll}) {
                 {
                     'modal__body--no-padding': noPadding,
                     'modal__body--full-height': fullHeight,
-                    'modal__body--no-scroll': noScroll
+                    'modal__body--no-scroll': noScroll,
                 }
             )}>
             {children}

@@ -47,12 +47,12 @@ describe('selectors', () => {
                         advancedSearch: {
                             dates: {
                                 start: startDate ? moment(startDate, dateFormat) : null,
-                                end: endate ? moment(endate, dateFormat) : null
-                            }
-                        }
-                    }
-                }
-            }
+                                end: endate ? moment(endate, dateFormat) : null,
+                            },
+                        },
+                    },
+                },
+            },
         };
     };
 
@@ -67,7 +67,7 @@ describe('selectors', () => {
                 '2017-01-14',
                 '2017-01-15',
                 '2017-01-16',
-                '2017-01-17'
+                '2017-01-17',
             ]);
 
             expect(events['2017-01-14'].events.length).toBe(1);
@@ -104,7 +104,7 @@ describe('selectors', () => {
 
             expect(Object.keys(events)).toEqual([
                 '2017-01-15',
-                '2017-01-16'
+                '2017-01-16',
             ]);
 
             expect(events['2017-01-15'].events.length).toBe(2);
@@ -122,7 +122,7 @@ describe('selectors', () => {
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
             expect(Object.keys(events)).toEqual([
-                '2017-01-16'
+                '2017-01-16',
             ]);
 
             expect(events['2017-01-16'].events.length).toBe(1);
@@ -136,7 +136,7 @@ describe('selectors', () => {
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
             expect(Object.keys(events)).toEqual([
-                '2017-01-16'
+                '2017-01-16',
             ]);
 
             expect(events['2017-01-16'].events.length).toBe(2);
@@ -152,7 +152,7 @@ describe('selectors', () => {
 
             expect(Object.keys(events)).toEqual([
                 '2017-01-16',
-                '2017-01-17'
+                '2017-01-17',
             ]);
 
             expect(events['2017-01-16'].events.length).toBe(2);
@@ -169,7 +169,7 @@ describe('selectors', () => {
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
             expect(Object.keys(events)).toEqual([
-                '2017-01-17'
+                '2017-01-17',
             ]);
 
             expect(events['2017-01-17'].events.length).toBe(1);

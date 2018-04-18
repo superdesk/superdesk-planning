@@ -16,7 +16,7 @@ const self = {
     onItemClose,
     onItemOpen,
     onItemFocus,
-    forceScroll
+    forceScroll,
 };
 
 export default self;

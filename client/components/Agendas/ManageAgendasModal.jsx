@@ -18,7 +18,7 @@ export class ManageAgendasComponent extends React.Component {
         super(props);
         this.state = {
             editorOpen: false,
-            selectedAgenda: null
+            selectedAgenda: null,
         };
     }
 

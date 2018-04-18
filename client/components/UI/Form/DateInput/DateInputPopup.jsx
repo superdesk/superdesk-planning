@@ -33,7 +33,7 @@ export class DateInputPopup extends React.Component {
             this.setState({
                 mode: 'day',
                 modeTitle: this.getModeTitle(value, 'day'),
-                selectedDate: value.clone()
+                selectedDate: value.clone(),
             });
         }
     }

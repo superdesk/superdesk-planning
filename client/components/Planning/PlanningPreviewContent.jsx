@@ -8,7 +8,7 @@ import {get} from 'lodash';
 import {Row} from '../UI/Preview';
 import {
     AuditInformation,
-    StateLabel
+    StateLabel,
 } from '../index';
 import {ToggleBox} from '../UI';
 import {ColouredValueInput} from '../UI/Form';
@@ -72,6 +72,11 @@ export class PlanningPreviewContentComponent extends React.Component {
                     label={gettext('Slugline')}
                     value={item.slugline || ''}
                     className="slugline"
+                />
+                <Row
+                    enabled={get(formProfile, 'planning.editor.name.enabled')}
+                    label={gettext('Name')}
+                    value={item.name || ''}
                 />
                 <Row
                     enabled={get(formProfile, 'planning.editor.planning_date.enabled')}
@@ -190,7 +195,7 @@ const mapStateToProps = (state, ownProps) => ({
     formProfile: selectors.forms.profiles(state),
     newsCoverageStatus: selectors.getNewsCoverageStatus(state),
     urgencies: selectors.getUrgencies(state),
-    streetMapUrl: selectors.config.getStreetMapUrl(state)
+    streetMapUrl: selectors.config.getStreetMapUrl(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({onEditEvent: (event) => (dispatch(actions.main.lockAndEdit(event)))});

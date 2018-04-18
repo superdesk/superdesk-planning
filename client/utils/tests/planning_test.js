@@ -243,7 +243,7 @@ describe('PlanningUtils', () => {
             name: 'Text',
             qcode: 'text',
             'content item type': 'text',
-        }
+        },
         ];
 
         it('creates photo coverage from unpublished news item', () => {
@@ -321,7 +321,7 @@ describe('PlanningUtils', () => {
             name: 'Text',
             qcode: 'text',
             'content item type': 'text',
-        }
+        },
         ];
 
         it('creates photo coverage from unpublished news item', () => {
@@ -389,7 +389,7 @@ describe('PlanningUtils', () => {
                     user: 'ident1',
                     priority: ASSIGNMENTS.DEFAULT_PRIORITY,
                 },
-                flags: {marked_for_not_publication: true}
+                flags: {marked_for_not_publication: true},
             };
 
             const plan = planUtils.createNewPlanningFromNewsItem(

@@ -68,7 +68,7 @@ xdescribe('<Autosave />', () => {
         formName = 'testForm';
         formData = {
             initial: {},
-            current: {}
+            current: {},
         };
         autosaveData = {};
 
@@ -95,14 +95,14 @@ xdescribe('<Autosave />', () => {
             extraArguments: {
                 api: services.api,
                 notify: services.notify,
-            }
+            },
         });
     };
 
     const setWrapper = (values) => {
         formData = {
             initial: cloneDeep(values),
-            current: cloneDeep(values)
+            current: cloneDeep(values),
         };
 
         wrapper = mount(

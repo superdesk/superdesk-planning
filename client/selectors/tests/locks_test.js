@@ -22,47 +22,47 @@ describe('selectors.locks', () => {
                 lock_user: users[0]._id,
                 lock_action: 'edit',
                 lock_session: sessions[0].sessionId,
-                lock_time: '2029-01-16T02:40:00+0000'
+                lock_time: '2029-01-16T02:40:00+0000',
             },
             e2: {
                 _id: 'e2',
                 lock_user: users[0]._id,
                 lock_action: 'edit',
                 lock_session: sessions[1].sessionId,
-                lock_time: '2029-01-16T02:52:00+0000'
+                lock_time: '2029-01-16T02:52:00+0000',
             },
             e3: {
                 _id: 'e3',
                 lock_user: users[0]._id,
                 lock_action: 'cancel',
-                lock_session: sessions[0].sessionId
+                lock_session: sessions[0].sessionId,
             },
             e4: {
                 _id: 'e4',
                 lock_user: users[1]._id,
                 lock_action: 'edit',
-                lock_session: sessions[0].sessionId
+                lock_session: sessions[0].sessionId,
             },
             e5: {
                 _id: 'e5',
                 lock_user: users[1]._id,
                 lock_action: 'cancel',
-                lock_session: sessions[0].sessionId
+                lock_session: sessions[0].sessionId,
             },
             e6: {
                 _id: 'e6',
                 lock_user: users[0]._id,
-                lock_action: 'edit'
+                lock_action: 'edit',
             },
             e7: {
                 _id: 'e7',
                 lock_action: 'edit',
-                lock_session: sessions[0].sessionId
+                lock_session: sessions[0].sessionId,
             },
             e8: {
                 _id: 'e8',
                 lock_user: users[0]._id,
-                lock_session: sessions[0].sessionId
+                lock_session: sessions[0].sessionId,
             },
             e9: {_id: 'e9'},
         };
@@ -73,47 +73,47 @@ describe('selectors.locks', () => {
                 lock_user: users[0]._id,
                 lock_action: 'edit',
                 lock_session: sessions[0].sessionId,
-                lock_time: '2029-01-16T02:41:00+0000'
+                lock_time: '2029-01-16T02:41:00+0000',
             },
             p2: {
                 _id: 'p2',
                 lock_user: users[0]._id,
                 lock_action: 'edit',
                 lock_session: sessions[1].sessionId,
-                lock_time: '2029-01-16T02:40:44+0000'
+                lock_time: '2029-01-16T02:40:44+0000',
             },
             p3: {
                 _id: 'p3',
                 lock_user: users[0]._id,
                 lock_action: 'cancel',
-                lock_session: sessions[0].sessionId
+                lock_session: sessions[0].sessionId,
             },
             p4: {
                 _id: 'p4',
                 lock_user: users[1]._id,
                 lock_action: 'edit',
-                lock_session: sessions[0].sessionId
+                lock_session: sessions[0].sessionId,
             },
             p5: {
                 _id: 'p5',
                 lock_user: users[1]._id,
                 lock_action: 'cancel',
-                lock_session: sessions[0].sessionId
+                lock_session: sessions[0].sessionId,
             },
             p6: {
                 _id: 'p6',
                 lock_user: users[0]._id,
-                lock_action: 'edit'
+                lock_action: 'edit',
             },
             p7: {
                 _id: 'p7',
                 lock_action: 'edit',
-                lock_session: sessions[0].sessionId
+                lock_session: sessions[0].sessionId,
             },
             p8: {
                 _id: 'p8',
                 lock_user: users[0]._id,
-                lock_session: sessions[0].sessionId
+                lock_session: sessions[0].sessionId,
             },
             p9: {_id: 'p9'},
         };

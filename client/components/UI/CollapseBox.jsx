@@ -97,7 +97,7 @@ export class CollapseBox extends React.Component {
                     'sd-shadow--z2',
                     {
                         'sd-collapse-box--open': this.state.isOpen,
-                        'sd-collapse-box--invalid': this.props.invalid
+                        'sd-collapse-box--invalid': this.props.invalid,
                     }
                 )}
                 ref={(node) => this.dom.node = node}

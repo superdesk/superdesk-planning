@@ -1,5 +1,5 @@
 import {showModal, locks, main} from '../index';
-import {PRIVILEGES, EVENTS, MODALS, SPIKED_STATE, MAIN, ITEM_TYPE} from '../../constants';
+import {PRIVILEGES, EVENTS, MODALS, SPIKED_STATE, MAIN, ITEM_TYPE, TEMP_ID_PREFIX} from '../../constants';
 import eventsApi from './api';
 import planningApi from '../planning/api';
 import * as selectors from '../../selectors';
@@ -257,7 +257,7 @@ const refetch = () => (
  * Schedule the refetch to run after one second and avoid any other refetch
  */
 let nextRefetch = {
-    called: 0
+    called: 0,
 };
 const scheduleRefetch = () => (
     (dispatch) => (
@@ -459,7 +459,7 @@ const duplicate = (event) => (
         const plannedStatus = getItemInArrayById(occurStatuses, 'eocstat:eos5', 'qcode') || {
             label: 'Planned, occurs certainly',
             qcode: 'eocstat:eos5',
-            name: 'Planned, occurs certainly'
+            name: 'Planned, occurs certainly',
         };
         const newEvent = eventUtils.duplicateEvent(event, plannedStatus);
 
@@ -516,7 +516,7 @@ const saveWithConfirmation = (event) => (
         return dispatch(eventsApi.query({
             recurrenceId: originalEvent.recurrence_id,
             maxResults: maxRecurringEvents,
-            onlyFuture: false
+            onlyFuture: false,
         }))
             .then((relatedEvents) => (
                 dispatch(showModal({
@@ -552,7 +552,7 @@ const publishWithConfirmation = (event, publish) => (
         return dispatch(eventsApi.query({
             recurrenceId: originalEvent.recurrence_id,
             maxResults: maxRecurringEvents,
-            onlyFuture: false
+            onlyFuture: false,
         }))
             .then((relatedEvents) => (
                 dispatch(showModal({
@@ -566,7 +566,7 @@ const publishWithConfirmation = (event, publish) => (
                             _publish: publish,
                         },
                         actionType: EVENTS.ITEM_ACTIONS.PUBLISH_EVENT.label,
-                    }
+                    },
                 }))
             ));
     }
@@ -691,7 +691,7 @@ const createEventFromPlanning = (plan) => (
         const unplannedStatus = getItemInArrayById(occurStatuses, 'eocstat:eos0', 'qcode') || {
             label: 'Unplanned event',
             qcode: 'eocstat:eos0',
-            name: 'Unplanned event'
+            name: 'Unplanned event',
         };
 
         return dispatch(planningApi.lock(plan, 'add_as_event'))
@@ -703,10 +703,10 @@ const createEventFromPlanning = (plan) => (
                         end: moment(plan.planning_date)
                             .clone()
                             .add(defaultDurationOnChange, 'h'),
-                        tz: moment.tz.guess()
+                        tz: moment.tz.guess(),
                     },
                     slugline: plan.slugline,
-                    name: plan.slugline,
+                    name: plan.name || plan.slugline,
                     subject: plan.subject,
                     anpa_category: plan.anpa_category,
                     definition_short: plan.description_text,
@@ -714,7 +714,9 @@ const createEventFromPlanning = (plan) => (
                     internal_note: plan.internal_note,
                     place: plan.place,
                     occur_status: unplannedStatus,
-                    _planning_item: plan._id
+                    _planning_item: plan._id,
+                    _tempId: TEMP_ID_PREFIX + moment().valueOf(),
+
                 }))
             );
     }

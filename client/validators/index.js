@@ -148,5 +148,5 @@ export const validators = {
     },
     assignment: {
         _all: [validateAssignment],
-    }
+    },
 };

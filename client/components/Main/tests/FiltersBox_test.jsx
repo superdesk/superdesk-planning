@@ -119,16 +119,16 @@ describe('components.Main.FiltersBox', () => {
         expect(filters.agendaDropdown.items()).toEqual([
             jasmine.objectContaining({
                 label: 'TestAgenda',
-                id: 'a1'
+                id: 'a1',
             }),
             jasmine.objectContaining({
                 label: 'TestAgenda2',
-                id: 'a2'
+                id: 'a2',
             }),
             jasmine.objectContaining({divider: true}),
             jasmine.objectContaining({
                 label: 'TestAgenda3',
-                id: 'a3'
+                id: 'a3',
             }),
             jasmine.objectContaining({divider: true}),
             jasmine.objectContaining({label: 'No Agenda Assigned'}),

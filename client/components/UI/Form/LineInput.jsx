@@ -18,7 +18,7 @@ export const LineInput = ({
     message,
     className,
     borderBottom,
-    onClick
+    onClick,
 }) => (
     <div className={classNames(
         'sd-line-input',
@@ -33,7 +33,7 @@ export const LineInput = ({
             'sd-line-input--with-button': withButton,
             'sd-line-input--label-left': labelLeft,
             'sd-line-input--label-left-auto': labelLeftAuto,
-            'sd-line-input--no-border-bottom': !borderBottom
+            'sd-line-input--no-border-bottom': !borderBottom,
         },
         className
     )}

@@ -22,7 +22,7 @@ const onAssignmentCreated = (_e, data) => (
             assignments.ui.queryAndGetMyAssignments(
                 [
                     ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
-                    ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED
+                    ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED,
                 ]
             )
         );
@@ -63,7 +63,7 @@ const onAssignmentUpdated = (_e, data) => (
             assignments.ui.queryAndGetMyAssignments(
                 [
                     ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
-                    ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED
+                    ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED,
                 ]
             )
         );
@@ -263,7 +263,7 @@ const onAssignmentRemoved = (_e, data) => (
                 assignments.ui.queryAndGetMyAssignments(
                     [
                         ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
-                        ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED
+                        ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED,
                     ]
                 )
             );

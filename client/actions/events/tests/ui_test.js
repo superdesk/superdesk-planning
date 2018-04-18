@@ -109,7 +109,7 @@ describe('actions.events.ui', () => {
                     'cancel',
                     true,
                     false,
-                    true
+                    true,
                 ]);
 
                 done();
@@ -127,7 +127,7 @@ describe('actions.events.ui', () => {
                     true,
                     false,
                     false,
-                    false
+                    false,
                 ]);
 
                 done();
@@ -143,7 +143,7 @@ describe('actions.events.ui', () => {
                     'Update time',
                     'update_time',
                     false,
-                    false
+                    false,
                 ]);
 
                 done();
@@ -161,7 +161,7 @@ describe('actions.events.ui', () => {
                     true,
                     false,
                     true,
-                    false
+                    false,
                 ]);
 
                 done();
@@ -203,7 +203,7 @@ describe('actions.events.ui', () => {
                     data.events[1],
                     true,
                     false,
-                    true
+                    true,
                 ]);
 
                 expect(store.dispatch.callCount).toBe(3);
@@ -526,7 +526,7 @@ describe('actions.events.ui', () => {
                         occur_status: {
                             name: 'Planned, occurs certainly',
                             label: 'Confirmed',
-                            qcode: 'eocstat:eos5'
+                            qcode: 'eocstat:eos5',
                         }}]);
 
                     done();
@@ -605,7 +605,7 @@ describe('actions.events.ui', () => {
             sinon.stub(eventsApi, 'rescheduleEvent').callsFake((item) => Promise.resolve({
                 ...item,
                 reschedule_to: 'e2',
-                state: 'rescheduled'
+                state: 'rescheduled',
             }));
             store.test(done, eventsUi.rescheduleEvent(data.events[0]))
                 .then((item) => {
@@ -647,7 +647,7 @@ describe('actions.events.ui', () => {
             sinon.stub(eventsApi, 'rescheduleEvent').callsFake((item) => Promise.resolve({
                 ...item,
                 reschedule_to: 'e2',
-                state: 'rescheduled'
+                state: 'rescheduled',
             }));
             sinon.stub(eventsApi, 'fetchById').callsFake((item) => Promise.reject(errorMessage));
 
@@ -741,9 +741,9 @@ describe('actions.events.ui', () => {
                         occur_status: {
                             label: 'Unplanned',
                             qcode: 'eocstat:eos0',
-                            name: 'Unplanned event'
+                            name: 'Unplanned event',
                         },
-                        _planning_item: plan._id
+                        _planning_item: plan._id,
                     }));
 
                     expect(moment(args.dates.start).isSame(moment('2016-10-15T13:01:11+0000'))).toBeTruthy();
@@ -770,7 +770,7 @@ describe('actions.events.ui', () => {
                     expect(store.dispatch.callCount).toBe(2);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'SELECT_EVENT_CALENDAR',
-                        payload: 'ALL_CALENDARS'
+                        payload: 'ALL_CALENDARS',
                     }]);
 
                     expect(services.$timeout.callCount).toBe(1);
@@ -790,7 +790,7 @@ describe('actions.events.ui', () => {
                     expect(store.dispatch.callCount).toBe(2);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'SELECT_EVENT_CALENDAR',
-                        payload: 'cal1'
+                        payload: 'cal1',
                     }]);
 
                     expect(services.$timeout.callCount).toBe(1);

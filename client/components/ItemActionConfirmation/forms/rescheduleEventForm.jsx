@@ -145,7 +145,7 @@ export class RescheduleEventComponent extends React.Component {
                         <br />
                         {gettext('from {{from}} to {{to}}', {
                             from: getDateTimeString(this.state.diff.dates.start, dateFormat, timeFormat),
-                            to: getDateTimeString(this.state.diff.dates.end, dateFormat, timeFormat)
+                            to: getDateTimeString(this.state.diff.dates.end, dateFormat, timeFormat),
                         })}
                     </div>
                 )}
@@ -209,7 +209,7 @@ const mapDispatchToProps = (dispatch) => ({
     onSubmit: (event) => dispatch(actions.events.ui.rescheduleEvent(event)),
     onHide: (event) => dispatch(actions.events.api.unlock(event)),
 
-    onValidate: (item, profile, errors) => dispatch(validateItem('event', item, profile, errors, ['dates']))
+    onValidate: (item, profile, errors) => dispatch(validateItem('event', item, profile, errors, ['dates'])),
 });
 
 export const RescheduleEventForm = connect(

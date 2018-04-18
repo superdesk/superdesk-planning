@@ -13,7 +13,7 @@ describe('eventsplanning', () => {
         it('initialState', () => {
             expect(initialState).toEqual({
                 eventsAndPlanningInList: [],
-                relatedPlannings: {}
+                relatedPlannings: {},
             });
         });
 
@@ -22,7 +22,7 @@ describe('eventsplanning', () => {
                 initialState,
                 {
                     type: EVENTS_PLANNING.ACTIONS.SET_EVENTS_PLANNING_LIST,
-                    payload: [{_id: 'e1'}, {_id: 'p1'}]
+                    payload: [{_id: 'e1'}, {_id: 'p1'}],
                 }
             );
 
@@ -37,7 +37,7 @@ describe('eventsplanning', () => {
                 },
                 {
                     type: EVENTS_PLANNING.ACTIONS.ADD_EVENTS_PLANNING_LIST,
-                    payload: [{_id: 'e2'}, {_id: 'p1'}]
+                    payload: [{_id: 'e2'}, {_id: 'p1'}],
                 }
             );
 
@@ -51,7 +51,7 @@ describe('eventsplanning', () => {
                     eventsAndPlanningInList: ['e1', 'p1'],
                 },
                 {
-                    type: EVENTS_PLANNING.ACTIONS.CLEAR_EVENTS_PLANNING_LIST
+                    type: EVENTS_PLANNING.ACTIONS.CLEAR_EVENTS_PLANNING_LIST,
                 }
             );
 
@@ -65,8 +65,8 @@ describe('eventsplanning', () => {
                     type: EVENTS_PLANNING.ACTIONS.SHOW_RELATED_PLANNINGS,
                     payload: {
                         _id: 'e1',
-                        planning_ids: ['p1', 'p2']
-                    }
+                        planning_ids: ['p1', 'p2'],
+                    },
                 }
             );
 

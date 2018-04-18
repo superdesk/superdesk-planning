@@ -28,7 +28,7 @@ const TestForm = ({formData}) => {
         diff: formData.diff,
         onChange: formData.onChange,
         errors: formData.errors,
-        showErrors: formData.showErrors
+        showErrors: formData.showErrors,
     };
 
     return (
@@ -83,8 +83,8 @@ describe('validators', () => {
             showErrors: true,
             item: {
                 slugline: 'slugline 1',
-                name: 'name 2'
-            }
+                name: 'name 2',
+            },
         };
 
         validateRequired = sinon.spy((dispatch, getState, field, value, profile, e) => {
@@ -92,7 +92,7 @@ describe('validators', () => {
                 if (field === 'datetime') {
                     e.datetime = {
                         date: 'This field is required',
-                        time: 'This field is required'
+                        time: 'This field is required',
                     };
                 } else {
                     e[field] = 'This field is required';

@@ -14,7 +14,7 @@ const IconButton = ({
     useDefaultClass,
     className,
     label,
-    ...props,
+    ...props
 }) => {
     const handleKeyDown = (event) => {
         if (event.keyCode === KEYCODES.ENTER) {

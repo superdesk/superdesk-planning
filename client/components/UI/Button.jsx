@@ -49,7 +49,7 @@ const Button = ({
                     'btn--hollow': hollow,
                     'btn--expanded': expanded,
                     'btn--icon-only': iconOnly,
-                    'btn--icon-only-circle': iconOnlyCircle
+                    'btn--icon-only-circle': iconOnlyCircle,
                 },
                 className
             )}

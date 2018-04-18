@@ -24,7 +24,7 @@ export const EventMetadata = (
         noOpen,
         onClick,
         navigation,
-        active
+        active,
     }
 ) => {
     const dateStr = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat, dateOnly);

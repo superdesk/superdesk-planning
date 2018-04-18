@@ -405,7 +405,7 @@ describe('actions.planning.ui', () => {
         store.initialState.main.search.PLANNING.lastRequestParams = {
             agendas: ['a1'],
             noAgendaAssigned: false,
-            page: 1
+            page: 1,
         };
 
         restoreSinonStub(planningUi.loadMore);
@@ -417,7 +417,7 @@ describe('actions.planning.ui', () => {
         const expectedParams = {
             agendas: ['a1'],
             noAgendaAssigned: false,
-            page: 2
+            page: 2,
         };
 
         store.test(done, planningUi.loadMore())
@@ -440,7 +440,7 @@ describe('actions.planning.ui', () => {
         store.initialState.main.search.PLANNING.lastRequestParams = {
             agendas: ['a1'],
             noAgendaAssigned: false,
-            page: 1
+            page: 1,
         };
 
         restoreSinonStub(planningUi.loadMore);
@@ -452,7 +452,7 @@ describe('actions.planning.ui', () => {
         const expectedParams = {
             agendas: ['a1'],
             noAgendaAssigned: false,
-            page: 2
+            page: 2,
         };
 
         store.test(done, planningUi.loadMore())
@@ -760,7 +760,7 @@ describe('actions.planning.ui', () => {
                     ...coverage.planning,
                     internal_note: 'Please cover this',
                     g2_content_type: 'photo',
-                }
+                },
             }
         ))
             .then(() => {
@@ -778,14 +778,14 @@ describe('actions.planning.ui', () => {
                                 workflow_status: 'active',
                                 assigned_to: {
                                     ...coverage.assigned_to,
-                                    state: 'assigned'
-                                }
+                                    state: 'assigned',
+                                },
                             },
                             data.plannings[0].coverages[1],
                             data.plannings[0].coverages[2],
-                        ]
+                        ],
                     },
-                    data.plannings[0]
+                    data.plannings[0],
                 ]);
 
                 done();

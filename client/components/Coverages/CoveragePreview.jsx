@@ -20,7 +20,7 @@ export const CoveragePreview = ({
     formProfile,
     noOpen,
     onClick,
-    active
+    active,
 }) => {
     const userAssigned = getCreator(coverage, 'assigned_to.user', users);
     const deskAssigned = desks.find((d) =>

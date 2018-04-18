@@ -18,9 +18,9 @@ const initialState = {
     search: {
         [MAIN.FILTERS.EVENTS]: cloneDeep(search),
         [MAIN.FILTERS.PLANNING]: cloneDeep(search),
-        [MAIN.FILTERS.COMBINED]: cloneDeep(search)
+        [MAIN.FILTERS.COMBINED]: cloneDeep(search),
     },
-    loadingIndicator: false
+    loadingIndicator: false,
 };
 
 const modifyParams = (state, payload) => {
@@ -32,14 +32,14 @@ const modifyParams = (state, payload) => {
         params[key] = {
             ...params[key],
             currentSearch: {
-                ...omit(payloadParam, ['fulltext', 'page'])
+                ...omit(payloadParam, ['fulltext', 'page']),
             },
-            fulltext: payloadParam.fulltext
+            fulltext: payloadParam.fulltext,
         };
 
         params[key].lastRequestParams = {
             ...search.lastRequestParams,
-            ...payloadParam
+            ...payloadParam,
         };
     });
 
@@ -53,24 +53,24 @@ export default createReducer(initialState, {
     }),
     [MAIN.ACTIONS.PREVIEW]: (state, payload) => ({
         ...state,
-        previewItem: payload || null
+        previewItem: payload || null,
     }),
 
     [MAIN.ACTIONS.FILTER]: (state, payload) => ({
         ...state,
-        filter: payload || MAIN.FILTERS.COMBINED
+        filter: payload || MAIN.FILTERS.COMBINED,
     }),
 
     [MAIN.ACTIONS.CLOSE_PREVIEW]: (state) => ({
         ...state,
         previewItem: null,
         previewId: null,
-        previewType: null
+        previewType: null,
     }),
 
     [MAIN.ACTIONS.REQUEST]: (state, payload) => ({
         ...state,
-        search: modifyParams(state, payload)
+        search: modifyParams(state, payload),
     }),
 
     [MAIN.ACTIONS.SET_TOTAL]: (state, payload) => ({
@@ -79,14 +79,14 @@ export default createReducer(initialState, {
             ...state.search,
             [payload.filter]: {
                 ...state.search[payload.filter],
-                totalItems: payload.total || 0
-            }
-        }
+                totalItems: payload.total || 0,
+            },
+        },
     }),
 
     [MAIN.ACTIONS.SET_UNSET_LOADING_INDICATOR]: (state, payload) => ({
         ...state,
-        loadingIndicator: payload
+        loadingIndicator: payload,
     }),
 
     [MAIN.ACTIONS.CLEAR_SEARCH]: (state, payload) => {
@@ -94,8 +94,8 @@ export default createReducer(initialState, {
             ...state,
             search: {
                 ...state.search,
-                [payload]: cloneDeep(search)
-            }
+                [payload]: cloneDeep(search),
+            },
         };
 
         if (get(state.search[payload], 'currentSearch.excludeRescheduledAndCancelled')) {
@@ -108,7 +108,7 @@ export default createReducer(initialState, {
     [MAIN.ACTIONS.SET_PREVIEW_ITEM]: (state, payload) => ({
         ...state,
         previewId: payload.itemId,
-        previewType: payload.itemType
+        previewType: payload.itemType,
     }),
 
     [MAIN.ACTIONS.PREVIEW_LOADING_START]: (state) => ({
@@ -127,9 +127,9 @@ export default createReducer(initialState, {
             ...state.search,
             [state.filter]: {
                 ...state.search[state.filter],
-                jumpInterval: payload
-            }
-        }
+                jumpInterval: payload,
+            },
+        },
     }),
 
     [MAIN.ACTIONS.JUMP_TO]: (state, payload) => {
@@ -148,8 +148,8 @@ export default createReducer(initialState, {
             ...state,
             search: {
                 ...state.search,
-                [state.filter]: search
-            }
+                [state.filter]: search,
+            },
         };
     },
 });

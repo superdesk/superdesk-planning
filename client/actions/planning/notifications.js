@@ -169,7 +169,7 @@ const onPlanningSpiked = (_e, data) => (
                     state: data.state,
                     revert_state: data.revert_state,
                     etag: data.etag,
-                }
+                },
             });
 
             dispatch(main.closePreviewAndEditorForItems(
@@ -196,7 +196,7 @@ const onPlanningUnspiked = (_e, data) => (
                     id: data.item,
                     state: data.state,
                     etag: data.etag,
-                }
+                },
             });
 
             dispatch(main.closePreviewAndEditorForItems(

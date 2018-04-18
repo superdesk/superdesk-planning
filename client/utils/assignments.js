@@ -71,7 +71,7 @@ const getAssignmentActions = (assignment, session, privileges, lockedItems, call
             callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.START_WORKING,
-                        callback: callBacks[callBackName].bind(null, assignment)
+                        callback: callBacks[callBackName].bind(null, assignment),
                     });
             break;
 
@@ -79,7 +79,7 @@ const getAssignmentActions = (assignment, session, privileges, lockedItems, call
             callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY,
-                        callback: callBacks[callBackName].bind(null, assignment)
+                        callback: callBacks[callBackName].bind(null, assignment),
                     });
             break;
 
@@ -87,7 +87,7 @@ const getAssignmentActions = (assignment, session, privileges, lockedItems, call
             callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
-                        callback: callBacks[callBackName].bind(null, assignment)
+                        callback: callBacks[callBackName].bind(null, assignment),
                     });
             break;
 
@@ -95,7 +95,7 @@ const getAssignmentActions = (assignment, session, privileges, lockedItems, call
             callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.REASSIGN,
-                        callback: callBacks[callBackName].bind(null, assignment)
+                        callback: callBacks[callBackName].bind(null, assignment),
                     });
             break;
 
@@ -103,7 +103,7 @@ const getAssignmentActions = (assignment, session, privileges, lockedItems, call
             callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.REMOVE,
-                        callback: callBacks[callBackName].bind(null, assignment)
+                        callback: callBacks[callBackName].bind(null, assignment),
                     });
             break;
 
@@ -111,7 +111,7 @@ const getAssignmentActions = (assignment, session, privileges, lockedItems, call
             callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
-                        callback: callBacks[callBackName].bind(null, assignment)
+                        callback: callBacks[callBackName].bind(null, assignment),
                     });
             break;
 
@@ -119,7 +119,7 @@ const getAssignmentActions = (assignment, session, privileges, lockedItems, call
             callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY,
-                        callback: callBacks[callBackName].bind(null, assignment)
+                        callback: callBacks[callBackName].bind(null, assignment),
                     });
             break;
 
@@ -128,7 +128,7 @@ const getAssignmentActions = (assignment, session, privileges, lockedItems, call
             callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY,
-                        callback: callBacks[callBackName].bind(null, assignment)
+                        callback: callBacks[callBackName].bind(null, assignment),
                     });
             break;
         }
@@ -272,7 +272,7 @@ const getAssignmentInfo = (assignment, users, desks) => {
         assignedDateDesk,
         assignedDateUser,
         assignedUserName,
-        assignedDeskName
+        assignedDeskName,
     };
 };
 

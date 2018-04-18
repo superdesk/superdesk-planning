@@ -42,7 +42,7 @@ export const EVENTS = {
         UNSPIKE: {
             label: gettext('Unspike'),
             icon: 'icon-unspike',
-            actionName: 'onUnspikeEvent'
+            actionName: 'onUnspikeEvent',
         },
         DUPLICATE: {
             label: gettext('Duplicate'),
@@ -88,20 +88,20 @@ export const EVENTS = {
             label: gettext('Update Repetitions'),
             icon: 'icon-repeat',
             actionName: 'onUpdateEventRepetitions',
-            lock_action: 'update_repetitions'
+            lock_action: 'update_repetitions',
         },
         PUBLISH_EVENT: {label: gettext('Publish')},
         EDIT_EVENT: {
             label: gettext('Edit'),
             icon: 'icon-pencil',
             actionName: 'onEditEvent',
-            lock_action: 'edit'
-        }
+            lock_action: 'edit',
+        },
     },
     DEFAULT_VALUE: (occurStatuses) => ({
         type: 'event',
         occur_status: occurStatuses[5], // eocstat:eos5: Planned, occurs certainly
-        dates: {}
+        dates: {},
     }),
     FILTER: {
         NO_CALENDAR_ASSIGNED: 'NO_CALENDAR_ASSIGNED',

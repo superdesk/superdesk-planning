@@ -19,8 +19,8 @@ describe('eventValidators', () => {
                     endRepeatMode: 'count',
                     count: 6,
                     interval: 1,
-                }
-            }
+                },
+            },
         };
         errors = {};
         state = {deployConfig: cloneDeep(deployConfig)};
@@ -43,8 +43,8 @@ describe('eventValidators', () => {
                     start: {
                         date: 'This field is required',
                         time: 'This field is required',
-                    }
-                }
+                    },
+                },
             });
         });
 
@@ -55,8 +55,8 @@ describe('eventValidators', () => {
                     end: {
                         date: 'This field is required',
                         time: 'This field is required',
-                    }
-                }
+                    },
+                },
             });
         });
     });
@@ -65,14 +65,14 @@ describe('eventValidators', () => {
         it('fail if end time should is after start time', () => {
             event.dates.end = moment('2014-10-15T11:01:11');
             testValidate(eventValidators.validateDates, 'dates', {
-                dates: {end: {time: 'End time should be after start time'}}
+                dates: {end: {time: 'End time should be after start time'}},
             });
         });
 
         it('fail if end date should is after start date', () => {
             event.dates.end = moment('2014-10-13T14:01:11');
             testValidate(eventValidators.validateDates, 'dates', {
-                dates: {end: {date: 'End date should be after start date'}}
+                dates: {end: {date: 'End date should be after start date'}},
             });
         });
     });
@@ -81,7 +81,7 @@ describe('eventValidators', () => {
         it('fail if byday is empty for WEEKLY frequency', () => {
             event.dates.recurring_rule.frequency = 'WEEKLY';
             testValidate(eventValidators.validateDates, 'dates', {
-                dates: {recurring_rule: {byday: 'Required'}}
+                dates: {recurring_rule: {byday: 'Required'}},
             });
         });
 
@@ -89,7 +89,7 @@ describe('eventValidators', () => {
             event.dates.recurring_rule.endRepeatMode = 'until';
             event.dates.recurring_rule.count = null;
             testValidate(eventValidators.validateDates, 'dates', {
-                dates: {recurring_rule: {until: 'Required'}}
+                dates: {recurring_rule: {until: 'Required'}},
             });
         });
 
@@ -98,21 +98,21 @@ describe('eventValidators', () => {
             event.dates.recurring_rule.count = null;
             event.dates.recurring_rule.until = moment('2013-10-15T14:01:11');
             testValidate(eventValidators.validateDates, 'dates', {
-                dates: {recurring_rule: {until: 'Must be greater than starting date'}}
+                dates: {recurring_rule: {until: 'Must be greater than starting date'}},
             });
         });
 
         it('fail if count is greater than', () => {
             event.dates.recurring_rule.count = 250;
             testValidate(eventValidators.validateDates, 'dates', {
-                dates: {recurring_rule: {count: 'Must be less than 201'}}
+                dates: {recurring_rule: {count: 'Must be less than 201'}},
             });
         });
 
         it('fail if count is not greater than 1', () => {
             event.dates.recurring_rule.count = 1;
             testValidate(eventValidators.validateDates, 'dates', {
-                dates: {recurring_rule: {count: 'Must be greater than 1'}}
+                dates: {recurring_rule: {count: 'Must be greater than 1'}},
             });
         });
     });
@@ -125,7 +125,7 @@ describe('eventValidators', () => {
 
         event.files = [{}];
         testValidate(eventValidators.validateFiles, 'files', {
-            files: {0: 'Required'}
+            files: {0: 'Required'},
         });
     });
 
@@ -143,12 +143,12 @@ describe('eventValidators', () => {
 
         event.links = ['foobar.com'];
         testValidate(eventValidators.validateLinks, 'links', {
-            links: {0: 'Must start with "http://", "https://" or "www."'}
+            links: {0: 'Must start with "http://", "https://" or "www."'},
         });
 
         event.links = ['www.foobar.com.'];
         testValidate(eventValidators.validateLinks, 'links', {
-            links: {0: 'Cannot end with "."'}
+            links: {0: 'Cannot end with "."'},
         });
 
         event.links = ['www.foobar.com'];

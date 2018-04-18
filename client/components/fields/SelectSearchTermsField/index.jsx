@@ -17,7 +17,7 @@ export class SelectSearchTermsField extends React.Component {
             openSelectPopup: true,
             viewDetails: false,
             editDetails: false,
-            viewIndex: null
+            viewIndex: null,
         };
         this.removeValue = this.removeValue.bind(this);
         this.toggleOpenSelectPopup = this.toggleOpenSelectPopup.bind(this);
@@ -46,14 +46,14 @@ export class SelectSearchTermsField extends React.Component {
     viewDetails(index) {
         this.setState({
             viewDetails: true,
-            viewIndex: index
+            viewIndex: index,
         });
     }
 
     editDetails(index) {
         this.setState({
             editDetails: true,
-            viewIndex: index
+            viewIndex: index,
         });
     }
 
