@@ -3,6 +3,7 @@ import eventsUi from '../ui';
 import planningApi from '../../planning/api';
 import {main} from '../../';
 import {PRIVILEGES, MAIN} from '../../../constants';
+import {omit} from 'lodash';
 import sinon from 'sinon';
 import moment from 'moment';
 import {getTestActionStore, restoreSinonStub, expectAccessDenied} from '../../../utils/testUtils';
@@ -505,7 +506,34 @@ describe('actions.events.ui', () => {
             restoreSinonStub(eventsApi.duplicate);
         });
 
-        it('duplicate calls events.api.duplicate and notifies the user of success', (done) => {
+        it('duplicate updates past event date to current date', (done) => {
+            data.events[0].dates.start = moment(data.events[0].dates.start);
+            data.events[0].dates.end = moment(data.events[0].dates.end);
+            store.test(done, eventsUi.duplicate(data.events[0]))
+                .then(() => {
+                    const daysBetween = moment().diff(data.events[0].dates.start, 'days');
+                    const newStartDate = data.events[0].dates.start.add(daysBetween, 'days');
+                    const newEndDate = data.events[0].dates.end.add(daysBetween, 'days');
+
+                    expect(main.lockAndEdit.callCount).toBe(1);
+                    expect(main.lockAndEdit.args[0]).toEqual([{
+                        ...omit(data.events[0], ['_id', '_etag', 'planning_ids']),
+                        dates: {
+                            start: newStartDate,
+                            end: newEndDate,
+                        },
+                        duplicate_from: 'e1',
+                        occur_status: {
+                            name: 'Planned, occurs certainly',
+                            label: 'Confirmed',
+                            qcode: 'eocstat:eos5'
+                        }}]);
+
+                    done();
+                });
+        });
+
+        xit('duplicate calls events.api.duplicate and notifies the user of success', (done) => {
             sinon.stub(eventsApi, 'duplicate').callsFake((item) => Promise.resolve(item));
             store.test(done, eventsUi.duplicate(data.events[0]))
                 .then((item) => {
@@ -525,7 +553,7 @@ describe('actions.events.ui', () => {
                 });
         });
 
-        it('on duplicate error notify the user of the failure', (done) => {
+        xit('on duplicate error notify the user of the failure', (done) => {
             sinon.stub(eventsApi, 'duplicate').callsFake(() => Promise.reject(errorMessage));
             store.test(done, eventsUi.duplicate(data.events[0]))
                 .then(null, (error) => {

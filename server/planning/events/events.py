@@ -163,10 +163,25 @@ class EventsService(superdesk.Service):
         Then send this list off to the clients so they can fetch these events
         """
         notifications_sent = []
+        history_service = get_resource_service('events_history')
 
         for doc in docs:
-            event_type = 'events:created'
             event_id = str(doc.get(config.ID_FIELD))
+            # If we duplicated this event, update the history
+            if doc.get('duplicate_from'):
+
+                parent_id = doc['duplicate_from']
+                parent_event = self.find_one(req=None, _id=parent_id)
+
+                history_service.on_item_updated({'duplicate_id': event_id}, parent_event, 'duplicate')
+                history_service.on_item_updated({'duplicate_id': parent_id}, doc, 'duplicate_from')
+
+                duplicate_ids = parent_event.get('duplicate_to', [])
+                duplicate_ids.append(event_id)
+                self.patch(parent_id, {'duplicate_to': duplicate_ids})
+                app.on_updated_events({'duplicate_to': duplicate_ids}, {'_id': parent_id})
+
+            event_type = 'events:created'
             user_id = str(doc.get('original_creator', ''))
 
             if doc.get('recurrence_id'):

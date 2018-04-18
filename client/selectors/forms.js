@@ -30,9 +30,11 @@ const storedEvents = (state) => get(state, 'events.events', {});
 const storedPlannings = (state) => get(state, 'planning.plannings', {});
 
 export const currentItem = createSelector(
-    [currentItemId, currentItemType, storedEvents, storedPlannings, isLoadingItem],
-    (itemId, itemType, events, plannings, isLoading) => {
-        if (itemId === null || isLoading) {
+    [currentItemId, currentItemType, storedEvents, storedPlannings, isLoadingItem, initialValues],
+    (itemId, itemType, events, plannings, isLoading, values) => {
+        if (get(values, 'duplicate_from') && itemId === null) {
+            return values;
+        } else if (itemId === null || isLoading) {
             return null;
         } else if (itemType === ITEM_TYPE.EVENT) {
             return get(events, itemId) || null;
