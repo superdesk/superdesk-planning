@@ -310,8 +310,8 @@ export class AdvancedSearch extends React.Component {
                     fields.dateFilters
                 ],
                 [MAIN.FILTERS.PLANNING]: [
-                    fields.slugline, fields.contentType, fields.noCoverage, fields.anpa_category, fields.urgency,
-                    fields.subject, fields.state,
+                    fields.slugline, fields.contentType, fields.noCoverage, fields.anpa_category, fields.subject,
+                    fields.urgency, fields.state,
                     fields.pubstatus, fields.spikeState,
                     fields.startDateTime, fields.endDateTime, fields.dateFilters
                 ],
