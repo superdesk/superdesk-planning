@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-export const Select = ({field, value, onChange, options, readOnly, clearable, autoFocus, refNode}) => (
+export const Select = ({field, value, onChange, options, readOnly, clearable, autoFocus, onFocus, refNode}) => (
     <select
         className="sd-line-input__select"
         value={value}
@@ -10,6 +10,7 @@ export const Select = ({field, value, onChange, options, readOnly, clearable, au
         disabled={readOnly ? 'disabled' : ''}
         autoFocus={autoFocus}
         ref={refNode}
+        onFocus={onFocus}
     >
         {clearable && (
             <option value="" />
@@ -43,6 +44,7 @@ Select.propTypes = {
     clearable: PropTypes.bool,
     autoFocus: PropTypes.bool,
     refNode: PropTypes.func,
+    onFocus: PropTypes.func,
 };
 
 Select.defaultProps = {

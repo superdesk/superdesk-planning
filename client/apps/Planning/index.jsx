@@ -5,6 +5,7 @@ import {PlanningUi} from './PlanningUi';
 import {AddToPlanningUi} from './AddToPlanningUi';
 
 const mapStateToProps = (state) => ({
+    editorInModal: !!selectors.forms.editorModalView(state),
     editorOpen: !!selectors.forms.currentItemType(state),
     previewOpen: !!selectors.main.previewType(state),
 });

@@ -12,6 +12,7 @@ export default function Modal({
     show,
     handleHide,
     children,
+    xLarge,
     large,
     fill,
     fullscreen,
@@ -24,6 +25,7 @@ export default function Modal({
         'modal--fill': fill,
         'modal--fullscreen': fullscreen,
         'modal--white': white,
+        'modal--x-large': xLarge,
     });
 
     return (
@@ -45,6 +47,7 @@ Modal.propTypes = {
     fill: PropTypes.bool,
     fullscreen: PropTypes.bool,
     white: PropTypes.bool,
+    xLarge: PropTypes.bool,
     className: PropTypes.string,
 };
 

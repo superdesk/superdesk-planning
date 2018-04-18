@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {getCreator, getItemInArrayById, gettext, planningUtils} from '../../../utils';
+import {getCreator, getItemInArrayById, gettext, planningUtils, onEventCapture} from '../../../utils';
 import {Item, Border, Column, Row as ListRow} from '../../UI/List';
 import {Button} from '../../UI';
 import {UserAvatar} from '../../';
@@ -16,8 +16,13 @@ export class CoverageFormHeader extends React.Component {
         this.togglePopup = this.togglePopup.bind(this);
     }
 
-    togglePopup() {
+    togglePopup(event) {
+        onEventCapture(event);
         this.setState({popupOpen: !this.state.popupOpen});
+
+        if (this.props.onFocus) {
+            this.props.onFocus(this.props.field);
+        }
     }
 
     render() {
@@ -175,4 +180,5 @@ CoverageFormHeader.propTypes = {
     priorities: PropTypes.array,
     readOnly: PropTypes.bool,
     addNewsItemToPlanning: PropTypes.object,
+    onFocus: PropTypes.func,
 };

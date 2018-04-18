@@ -24,6 +24,7 @@ export const currentItemId = (state) => get(state, 'forms.itemId', null);
 export const currentItemType = (state) => get(state, 'forms.itemType', null);
 export const isLoadingItem = (state) => get(state, 'forms.loadingEditItem', false);
 export const initialValues = (state) => get(state, 'forms.initialValues', null);
+export const editorModalView = (state) => get(state, 'forms.modalView', false);
 
 const storedEvents = (state) => get(state, 'events.events', {});
 const storedPlannings = (state) => get(state, 'planning.plannings', {});

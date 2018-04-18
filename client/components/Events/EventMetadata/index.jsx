@@ -7,7 +7,7 @@ import {ItemIcon} from '../../index';
 import {Item, Column, Row, ActionMenu, Border} from '../../UI/List';
 import {Row as PreviewRow} from '../../UI/Preview';
 import {CollapseBox} from '../../UI/CollapseBox';
-import {eventUtils, gettext, onEventCapture} from '../../../utils';
+import {eventUtils, gettext, onEventCapture, editorMenuUtils} from '../../../utils';
 import {Location} from '../../Location';
 
 export const EventMetadata = (
@@ -20,7 +20,11 @@ export const EventMetadata = (
         tabEnabled,
         streetMapUrl,
         lockedItems,
-        onEditEvent
+        onEditEvent,
+        noOpen,
+        onClick,
+        navigation,
+        active
     }
 ) => {
     const dateStr = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat, dateOnly);
@@ -36,7 +40,7 @@ export const EventMetadata = (
         </button>) : null;
 
     const eventListView = (
-        <Item noBg={true}>
+        <Item noBg={!active} activated={active}>
             {isItemLocked && <Border state="locked" />}
             <div className="sd-list-item__border" />
             <Column><ItemIcon item={event} /></Column>
@@ -114,6 +118,11 @@ export const EventMetadata = (
         </div>
     );
 
+    const isOpen = editorMenuUtils.isOpen(navigation, 'event');
+    const onClose = editorMenuUtils.onItemClose(navigation, 'event');
+    const onOpen = editorMenuUtils.onItemOpen(navigation, 'event');
+    const forceScroll = editorMenuUtils.forceScroll(navigation, 'event');
+
     return (<CollapseBox
         collapsedItem={eventListView}
         openItemTopBar={eventInDetailTopBar}
@@ -121,6 +130,12 @@ export const EventMetadata = (
         scrollInView={scrollInView}
         tabEnabled={tabEnabled}
         tools={editEventComponent}
+        noOpen={noOpen}
+        isOpen={isOpen}
+        onClose={onClose}
+        onOpen={onOpen}
+        onClick={onClick}
+        forceScroll={forceScroll}
     />);
 };
 
@@ -133,6 +148,11 @@ EventMetadata.propTypes = {
     tabEnabled: PropTypes.bool,
     streetMapUrl: PropTypes.string,
     onEditEvent: PropTypes.func,
+    onOpen: PropTypes.func,
+    onClick: PropTypes.func,
+    noOpen: PropTypes.bool,
+    navigation: PropTypes.object,
+    active: PropTypes.bool,
     lockedItems: PropTypes.object,
 };
 

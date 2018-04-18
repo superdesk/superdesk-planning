@@ -47,6 +47,7 @@ export class Field extends React.Component {
             enabled,
             showErrors,
             value,
+            onFocus,
             ...props
         } = this.props;
 
@@ -77,6 +78,7 @@ export class Field extends React.Component {
             dirty={this.state.dirty}
             formProfile={formProfile}
             row={row}
+            onFocus={onFocus}
             {...props}
         />;
 
@@ -100,6 +102,7 @@ Field.propTypes = {
     enabled: PropTypes.bool,
     showErrors: PropTypes.bool,
     value: PropTypes.any,
+    onFocus: PropTypes.func,
 };
 
 Field.defaultProps = {

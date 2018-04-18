@@ -66,11 +66,17 @@ export class PreviewPanelComponent extends React.Component {
         if (!this.props.hideEditIcon && get(nextProps, 'item')) {
             if (get(nextProps.item, 'state') !== 'spiked') {
                 if (this.tools[0].icon !== 'icon-pencil') {
-                    this.tools.unshift({
-                        icon: 'icon-pencil',
-                        onClick: this.openEditPanel,
-                        title: gettext(TOOLTIPS.edit),
-                    });
+                    this.tools.unshift(
+                        {
+                            icon: 'icon-pencil',
+                            onClick: this.openEditPanel.bind(this, false),
+                            title: gettext(TOOLTIPS.edit),
+                        },
+                        {
+                            icon: 'icon-external',
+                            onClick: this.openEditPanel.bind(this, true),
+                            title: gettext(TOOLTIPS.editModal),
+                        });
                 }
             } else if (this.tools[0].icon === 'icon-pencil') {
                 this.tools.shift();
@@ -78,8 +84,8 @@ export class PreviewPanelComponent extends React.Component {
         }
     }
 
-    openEditPanel() {
-        this.props.edit(this.props.item);
+    openEditPanel(modal = false) {
+        this.props.edit(this.props.item, modal);
     }
 
     setActiveTab(tab) {
@@ -142,7 +148,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     loadPreviewItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'preview')),
-    edit: (item) => dispatch(actions.main.lockAndEdit(item)),
+    edit: (item, modal = false) => dispatch(actions.main.lockAndEdit(item, modal)),
     closePreview: () => dispatch(actions.main.closePreview()),
 });
 

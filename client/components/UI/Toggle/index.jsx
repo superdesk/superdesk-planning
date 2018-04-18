@@ -5,7 +5,7 @@ import {KEYCODES} from '../../../constants';
 import {onEventCapture} from '../../../utils';
 import './style.scss';
 
-export default function Toggle({value, onChange, readOnly, className}) {
+export default function Toggle({value, onChange, readOnly, onFocus, className}) {
     const handleKeyDown = (event) => {
         if (event.keyCode === KEYCODES.ENTER) {
             onEventCapture(event);
@@ -31,6 +31,7 @@ export default function Toggle({value, onChange, readOnly, className}) {
             tabIndex={0}
             className={classes}
             onClick={!readOnly && onChange ? onClick : null}
+            onFocus={onFocus}
             onKeyDown= {!readOnly ? handleKeyDown : null}>
             <span className="inner"/>
         </span>
@@ -40,6 +41,7 @@ export default function Toggle({value, onChange, readOnly, className}) {
 Toggle.propTypes = {
     value: PropTypes.bool,
     onChange: PropTypes.func,
+    onFocus: PropTypes.func,
     readOnly: PropTypes.bool,
     className: PropTypes.string,
 };

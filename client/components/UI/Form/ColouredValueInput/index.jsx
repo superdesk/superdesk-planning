@@ -49,6 +49,7 @@ export class ColouredValueInput extends React.Component {
             popupContainer,
             row,
             noValueString,
+            onFocus,
             ...props
         } = this.props;
 
@@ -75,6 +76,7 @@ export class ColouredValueInput extends React.Component {
                     <button type="button"
                         className="dropdown__toggle select-coloured-value__input line-input"
                         onClick={this.togglePopup}
+                        onFocus={onFocus}
                     >
                         <span className={this.getIconClasses(value)}>
                             {get(value, valueKey, get(value, labelKey, noValueString || gettext('None')))}
@@ -124,6 +126,7 @@ ColouredValueInput.propTypes = {
     popupContainer: PropTypes.func,
     row: PropTypes.bool,
     noValueString: PropTypes.string,
+    onFocus: PropTypes.func,
 };
 
 ColouredValueInput.defaultProps = {

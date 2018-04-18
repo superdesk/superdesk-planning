@@ -64,7 +64,7 @@ export class SelectMetaTermsInput extends React.Component {
     }
 
     render() {
-        const {value, label, labelKey, searchKey, valueKey, popupContainer, readOnly, ...props} = this.props;
+        const {value, label, labelKey, searchKey, valueKey, popupContainer, readOnly, onFocus, ...props} = this.props;
         const options = this.removeValuesFromOptions();
 
         return (
@@ -86,6 +86,7 @@ export class SelectMetaTermsInput extends React.Component {
                             {'sd-line-input__plus-btn--disabled': options.length === 0}
                         )}
                         onClick={options.length > 0 ? this.toggleOpenSelectPopup : null}
+                        onFocus={onFocus}
                         ref={(ref) => {
                             this.addBtn = ref;
                         }}
@@ -146,6 +147,7 @@ SelectMetaTermsInput.propTypes = {
     required: PropTypes.bool,
     field: PropTypes.string,
     popupContainer: PropTypes.func,
+    onFocus: PropTypes.func,
 };
 
 SelectMetaTermsInput.defaultProps = {

@@ -110,7 +110,7 @@ export class SelectTagInput extends React.Component {
     }
 
     render() {
-        const {label, value, labelKey, allowCustom, readOnly, invalid, required, ...props} = this.props;
+        const {label, value, labelKey, allowCustom, readOnly, invalid, required, onFocus, ...props} = this.props;
 
         return (
             <div>
@@ -146,6 +146,7 @@ export class SelectTagInput extends React.Component {
                                     this.openPopUp();
                                 }
                             }}
+                            onFocus={onFocus}
                         />
 
                         {this.state.popupOpened && (
@@ -179,6 +180,7 @@ SelectTagInput.propTypes = {
     readOnly: PropTypes.bool,
     invalid: PropTypes.bool,
     required: PropTypes.bool,
+    onFocus: PropTypes.func,
 };
 
 SelectTagInput.defaultProps = {

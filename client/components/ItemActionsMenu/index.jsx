@@ -81,9 +81,13 @@ export class ItemActionsMenu extends React.Component {
 
         let icon = this.dom.menu.getElementsByClassName('icon-dots-vertical')[0];
 
-        renderToBody(elem, icon);
+        renderToBody(elem, icon, 1051);
 
         this.setState({isOpen: true});
+
+        if (this.props.onOpen) {
+            this.props.onOpen();
+        }
     }
 }
 
@@ -91,6 +95,7 @@ ItemActionsMenu.propTypes = {
     actions: PropTypes.array.isRequired,
     className: PropTypes.string,
     buttonClass: PropTypes.string,
+    onOpen: PropTypes.func,
 };
 
 ItemActionsMenu.defaultProps = {actions: []};

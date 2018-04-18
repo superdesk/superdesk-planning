@@ -17,6 +17,7 @@ export const TextAreaInput = ({
     placeholder,
     readOnly,
     maxLength,
+    onFocus,
     ...props
 }) => (
     <LineInput {...props} readOnly={readOnly}>
@@ -30,6 +31,7 @@ export const TextAreaInput = ({
             nativeOnChange={nativeOnChange}
             placeholder={placeholder}
             readOnly={readOnly}
+            onFocus={onFocus}
         />
 
         {maxLength > 0 &&
@@ -57,6 +59,7 @@ TextAreaInput.propTypes = {
     autoHeightTimeout: PropTypes.number,
     nativeOnChange: PropTypes.bool,
     placeholder: PropTypes.string,
+    onFocus: PropTypes.func,
 };
 
 TextAreaInput.defaultProps = {

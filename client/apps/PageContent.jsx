@@ -25,6 +25,7 @@ export class PageContent extends React.Component {
             ListPanel,
             PreviewPanel,
             EditorPanel,
+            editorInModal,
             editorOpen,
             fullPreviewOpen,
             previewOpen,
@@ -35,13 +36,14 @@ export class PageContent extends React.Component {
             fullPreview,
         } = this.props;
 
+        const mountEditorInMainPage = EditorPanel && !editorInModal && !fullPreviewOpen;
         const sectionClassName = classNames(
             'sd-content',
             {
                 'sd-page-content--slide-in': !splitView,
                 'sd-page-content--split': splitView,
                 'sd-content--margin-b30': marginBottom,
-                'sd-page-content--slide-in--open': editorOpen || fullPreviewOpen,
+                'sd-page-content--slide-in--open': mountEditorInMainPage && editorOpen,
             }
         );
 
@@ -101,7 +103,7 @@ export class PageContent extends React.Component {
                         )}
                     </div>
                 </div>
-                {!fullPreview && EditorPanel && (
+                { mountEditorInMainPage && (
                     <div className={slideInClassName}>
                         <EditorPanel
                             toggleFilterPanel={this.toggleFilterPanel}
@@ -135,6 +137,7 @@ PageContent.propTypes = {
     splitView: PropTypes.bool,
     fullPreview: PropTypes.bool,
     fullPreviewOpen: PropTypes.bool,
+    editorInModal: PropTypes.bool,
 };
 
 PageContent.defaultProps = {

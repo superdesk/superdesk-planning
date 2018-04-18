@@ -103,6 +103,7 @@ export class DateInput extends React.Component {
             value,
             readOnly,
             popupContainer,
+            onFocus,
             ...props
         } = this.props;
 
@@ -110,6 +111,7 @@ export class DateInput extends React.Component {
             <LineInput {...props} readOnly={readOnly}>
                 <Label text={label} />
                 <a className="icn-btn sd-line-input__icon-right"
+                    onFocus={onFocus}
                     onClick={readOnly ? undefined : this.toggleOpenDatePicker}>
                     <i className="icon-calendar" />
                 </a>
@@ -118,6 +120,7 @@ export class DateInput extends React.Component {
                     value={this.state.viewValue}
                     placeholder={placeholder}
                     onChange={this.validateDateText}
+                    onFocus={onFocus}
                     onBlur={this.handleInputBlur}
                     type="text"
                     readOnly={readOnly}
@@ -164,6 +167,7 @@ DateInput.propTypes = {
     boxed: PropTypes.bool,
     noMargin: PropTypes.bool,
     popupContainer: PropTypes.func,
+    onFocus: PropTypes.func,
 };
 
 DateInput.defaultProps = {

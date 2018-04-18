@@ -226,8 +226,13 @@ describe('actions.assignments.notification', () => {
     });
 
     describe('`assignment:completed`', () => {
+        beforeEach(() => {
+            sinon.stub(assignmentsUi, 'queryAndGetMyAssignments').callsFake(() => (Promise.resolve()));
+        });
+
         afterEach(() => {
             restoreSinonStub(assignmentsUi.reloadAssignments);
+            restoreSinonStub(assignmentsUi.queryAndGetMyAssignments);
         });
 
         it('update planning on assignment complete', (done) => {
@@ -284,9 +289,9 @@ describe('actions.assignments.notification', () => {
                 .then(() => {
                     expect(coverage1.assigned_to.desk).toBe('desk2');
                     expect(coverage1.assigned_to.state).toBe('completed');
-                    expect(store.dispatch.callCount).toBe(7);
+                    expect(store.dispatch.callCount).toBe(4);
                     expect(assignmentsApi.fetchAssignmentById.callCount).toBe(1);
-                    expect(store.dispatch.args[4]).toEqual([{
+                    expect(store.dispatch.args[3]).toEqual([{
                         type: 'UNLOCK_ASSIGNMENT',
                         payload: {
                             assignment: {
@@ -304,13 +309,21 @@ describe('actions.assignments.notification', () => {
     });
 
     describe('assignments:removed', () => {
+        beforeEach(() => {
+            sinon.stub(assignmentsUi, 'queryAndGetMyAssignments').callsFake(() => (Promise.resolve()));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(assignmentsUi.queryAndGetMyAssignments);
+        });
+
         it('calls `REMOVE_ASSIGNMENT` action', (done) => (
             store.test(done, assignmentNotifications.onAssignmentRemoved(
                 {},
                 {assignment: 'as1'}
             ))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(5);
+                    expect(store.dispatch.callCount).toBe(2);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'REMOVE_ASSIGNMENT',
                         payload: {assignment: 'as1'},
