@@ -93,7 +93,7 @@ class EventHTTPFeedingService(HTTPFeedingService):
             cal = Calendar.from_ical(response.content)
             items = parser.parse(cal, provider)
         else:
-            items = parser.parser(response.content)
+            items = parser.parse(response.content)
 
         if isinstance(items, list):
             yield items
