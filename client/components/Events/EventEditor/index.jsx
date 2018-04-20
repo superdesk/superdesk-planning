@@ -23,7 +23,7 @@ import {RelatedPlannings} from '../../RelatedPlannings';
 import {EventScheduleInput, EventScheduleSummary} from '../';
 
 import {EventEditorHeader} from './EventEditorHeader';
-import {gettext} from '../../../utils';
+import {gettext, editorMenuUtils} from '../../../utils';
 
 import '../style.scss';
 
@@ -39,7 +39,10 @@ export class EventEditorComponent extends React.Component {
     constructor(props) {
         super(props);
 
-        this.dom = {slugline: null};
+        this.dom = {
+            slugline: null,
+            top: null,
+        };
     }
 
     componentWillMount() {
@@ -63,6 +66,29 @@ export class EventEditorComponent extends React.Component {
         ) {
             this.props.onChangeHandler('calendars', this.props.defaultCalendar, false);
         }
+
+        if (get(prevProps, 'navigation.scrollToViewItem') !== get(this.props, 'navigation.scrollToViewItem')) {
+            // scroll to new position
+            if (editorMenuUtils.forceScroll(this.props.navigation, 'event')) {
+                this.dom.top.scrollIntoView();
+            }
+        }
+
+        if (this.dom.top) {
+            this.dom.top.scrollTop = 150;
+        }
+    }
+
+    getRelatedPlanningsForEvent() {
+        const {plannings, planningsModalEvent, item} = this.props;
+
+        if (plannings.filter((p) => p.event_item === get(item, '_id')).length > 0) {
+            return plannings;
+        }
+
+        if (planningsModalEvent.filter((p) => p.event_item === get(item, '_id')).length > 0) {
+            return planningsModalEvent;
+        }
     }
 
     render() {
@@ -84,12 +110,19 @@ export class EventEditorComponent extends React.Component {
             submitFailed,
             dirty,
             errors,
-            plannings,
             onChangeHandler,
+            navigation,
         } = this.props;
 
         const existingEvent = !!get(diff, '_id');
         const detailsErrored = some(toggleDetails, (field) => !!get(errors, field));
+        const relatedPlannings = this.getRelatedPlanningsForEvent();
+
+        const onFocusEvent = editorMenuUtils.onItemFocus(this.props.navigation, 'event');
+        const onFocusDetails = editorMenuUtils.onItemFocus(this.props.navigation, 'details');
+        const onFocusFiles = editorMenuUtils.onItemFocus(this.props.navigation, 'files');
+        const onFocusLinks = editorMenuUtils.onItemFocus(this.props.navigation, 'links');
+        const onFocusPlannings = editorMenuUtils.onItemFocus(this.props.navigation, 'planning');
 
         const fieldProps = {
             item: item,
@@ -114,7 +147,7 @@ export class EventEditorComponent extends React.Component {
         );
 
         return (
-            <div className="event-editor">
+            <div className="event-editor" ref={(node) => this.dom.top = node} >
                 <EventEditorHeader
                     item={diff}
                     users={users}
@@ -136,6 +169,7 @@ export class EventEditorComponent extends React.Component {
                         label={gettext('Slugline')}
                         refNode={(node) => this.dom.slugline = node}
                         {...fieldProps}
+                        onFocus={onFocusEvent}
                     />
 
                     <Field
@@ -143,6 +177,7 @@ export class EventEditorComponent extends React.Component {
                         field="name"
                         label={gettext('Name')}
                         {...fieldProps}
+                        onFocus={onFocusEvent}
                     />
 
                     <Field
@@ -150,6 +185,7 @@ export class EventEditorComponent extends React.Component {
                         field="definition_short"
                         label={gettext('Description')}
                         {...fieldProps}
+                        onFocus={onFocusEvent}
                     />
 
                     <Field
@@ -159,6 +195,7 @@ export class EventEditorComponent extends React.Component {
                         defaultValue={EVENTS.DEFAULT_VALUE(occurStatuses).occur_status}
                         options={occurStatuses}
                         {...fieldProps}
+                        onFocus={onFocusEvent}
                     />
 
                     <Field
@@ -169,6 +206,7 @@ export class EventEditorComponent extends React.Component {
                         dateFormat={dateFormat}
                         row={false}
                         {...fieldProps}
+                        onFocus={onFocusEvent}
                     />
 
                     <Field
@@ -178,6 +216,7 @@ export class EventEditorComponent extends React.Component {
                         options={enabledCalendars}
                         defaultValue={[]}
                         {...fieldProps}
+                        onFocus={onFocusEvent}
                     />
 
                     <Field
@@ -185,6 +224,7 @@ export class EventEditorComponent extends React.Component {
                         field="location"
                         label={gettext('Location')}
                         {...fieldProps}
+                        onFocus={onFocusEvent}
                     />
 
                     <Field
@@ -192,14 +232,17 @@ export class EventEditorComponent extends React.Component {
                         field="event_contact_info"
                         label={gettext('Contact')}
                         {...fieldProps}
+                        onFocus={onFocusEvent}
                     />
 
                     <ToggleBox
                         title={gettext('Details')}
-                        isOpen={false}
+                        isOpen={editorMenuUtils.isOpen(navigation, 'details')}
+                        onClose={editorMenuUtils.onItemClose(navigation, 'details')}
+                        onOpen={editorMenuUtils.onItemOpen(navigation, 'details')}
                         scrollInView={true}
                         invalid={detailsErrored && (dirty || submitFailed)}
-                    >
+                        forceScroll={editorMenuUtils.forceScroll(navigation, 'details')} >
                         <Field
                             component={SelectMetaTermsInput}
                             field="place"
@@ -207,6 +250,7 @@ export class EventEditorComponent extends React.Component {
                             options={locators}
                             defaultValue={[]}
                             {...fieldProps}
+                            onFocus={onFocusDetails}
                         />
 
                         <Field
@@ -216,6 +260,7 @@ export class EventEditorComponent extends React.Component {
                             options={categories}
                             defaultValue={[]}
                             {...fieldProps}
+                            onFocus={onFocusDetails}
                         />
 
                         <Field
@@ -225,6 +270,7 @@ export class EventEditorComponent extends React.Component {
                             options={subjects}
                             defaultValue={[]}
                             {...fieldProps}
+                            onFocus={onFocusDetails}
                         />
 
                         <Field
@@ -232,6 +278,7 @@ export class EventEditorComponent extends React.Component {
                             field="definition_long"
                             label={gettext('Long Description')}
                             {...fieldProps}
+                            onFocus={onFocusDetails}
                         />
 
                         <Field
@@ -239,6 +286,7 @@ export class EventEditorComponent extends React.Component {
                             field="internal_note"
                             label={gettext('Internal Note')}
                             {...fieldProps}
+                            onFocus={onFocusDetails}
                         />
 
                         <Field
@@ -247,16 +295,19 @@ export class EventEditorComponent extends React.Component {
                             label={gettext('Ed Note')}
                             noMargin={true}
                             {...fieldProps}
+                            onFocus={onFocusDetails}
                         />
                     </ToggleBox>
 
                     <ToggleBox
                         title={gettext('Attached Files')}
-                        isOpen={false}
+                        isOpen={editorMenuUtils.isOpen(navigation, 'files')}
+                        onClose={editorMenuUtils.onItemClose(navigation, 'files')}
+                        onOpen={editorMenuUtils.onItemOpen(navigation, 'files')}
                         scrollInView={true}
                         hideUsingCSS={true} // hideUsingCSS so the file data is kept on hide/show
                         invalid={!!errors.files && (dirty || submitFailed)}
-                    >
+                        forceScroll={editorMenuUtils.forceScroll(navigation, 'files')} >
                         <Field
                             component={InputArray}
                             field="files"
@@ -265,15 +316,18 @@ export class EventEditorComponent extends React.Component {
                             element={FileInput}
                             defaultValue={[]}
                             {...fieldProps}
+                            onFocus={onFocusFiles}
                         />
                     </ToggleBox>
 
                     <ToggleBox
                         title={gettext('External Links')}
-                        isOpen={false}
+                        isOpen={editorMenuUtils.isOpen(navigation, 'links')}
+                        onClose={editorMenuUtils.onItemClose(navigation, 'links')}
+                        onOpen={editorMenuUtils.onItemOpen(navigation, 'links')}
                         scrollInView={true}
                         invalid={!!errors.links && (dirty || submitFailed)}
-                    >
+                        forceScroll={editorMenuUtils.forceScroll(navigation, 'links')} >
                         <Field
                             component={InputArray}
                             field="links"
@@ -285,14 +339,22 @@ export class EventEditorComponent extends React.Component {
                             addButtonComponent={AddLinkButton}
                             row={false}
                             {...fieldProps}
+                            onFocus={onFocusLinks}
                         />
                     </ToggleBox>
 
-                    <ToggleBox title="Related Planning Items" isOpen={false} scrollInView={true}>
-                        {get(plannings, 'length', 0) > 0 && (
+                    <ToggleBox
+                        title="Related Planning Items"
+                        isOpen={editorMenuUtils.isOpen(navigation, 'plannings')}
+                        onClose={editorMenuUtils.onItemClose(navigation, 'plannings')}
+                        onOpen={editorMenuUtils.onItemOpen(navigation, 'plannings')}
+                        scrollInView={true}
+                        forceScroll={editorMenuUtils.forceScroll(navigation, 'plannings')} >
+                        {get(relatedPlannings, 'length', 0) > 0 && (
                             <RelatedPlannings
-                                plannings={plannings}
+                                plannings={relatedPlannings}
                                 openPlanningItem={true}
+                                onFocus={onFocusPlannings}
                             />
                         ) ||
                         (
@@ -326,11 +388,14 @@ EventEditorComponent.propTypes = {
     dirty: PropTypes.bool,
     errors: PropTypes.object,
     plannings: PropTypes.array,
+    planningsModalEvent: PropTypes.array,
+    navigation: PropTypes.object,
 };
 
 EventEditorComponent.defaultProps = {
     readOnly: false,
     submitFailed: false,
+    navigation: {},
 };
 
 const mapStateToProps = (state) => ({
@@ -347,6 +412,7 @@ const mapStateToProps = (state) => ({
     timeFormat: selectors.config.getTimeFormat(state),
     dateFormat: selectors.config.getDateFormat(state),
     plannings: selectors.events.getRelatedPlannings(state),
+    planningsModalEvent: selectors.events.getRelatedPlanningsForModalEvent(state),
 });
 
 export const EventEditor = connect(mapStateToProps)(EventEditorComponent);

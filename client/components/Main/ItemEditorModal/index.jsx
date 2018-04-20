@@ -5,19 +5,19 @@ import {get, union} from 'lodash';
 import classNames from 'classnames';
 
 import {main} from '../../../actions';
+import {ITEM_TYPE} from '../../../constants';
 
 import {ItemMenuPanel} from './ItemMenuPanel';
 import {Modal} from '../../index';
-import {Editor} from '../index';
+import {EditorModal} from '../index';
 
-import {gettext} from '../../../utils';
+import {gettext, onEventCapture, getItemType} from '../../../utils';
 import './style.scss';
 
 export class EditorModalComponent extends React.Component {
     constructor(props) {
         super(props);
 
-        this.dom = {popupContainer: null};
         this.state = {
             openItems: [],
             scrollToViewItem: '',
@@ -60,7 +60,8 @@ export class EditorModalComponent extends React.Component {
         });
     }
 
-    onItemFocusFromEditor(menuItemName) {
+    onItemFocusFromEditor(menuItemName, event) {
+        onEventCapture(event);
         // Change only if it is a different item to focus
         if (menuItemName !== this.state.activeItem) {
             this.setState({activeItem: menuItemName});
@@ -73,6 +74,7 @@ export class EditorModalComponent extends React.Component {
 
     render() {
         const navigation = {
+            padContentForNavigation: getItemType(get(this.props, 'modalProps.item')) === ITEM_TYPE.EVENT,
             openItems: this.state.openItems,
             scrollToViewItem: this.state.scrollToViewItem,
             onItemOpen: this.onItemOpenFromEditor,
@@ -101,13 +103,15 @@ export class EditorModalComponent extends React.Component {
                         <div className={classNames(
                             'editorModal__editor',
                             'sd-page-content__content-block',
-                            'sd-page-content__content-block--right')}>
-                            <Editor
+                            'sd-page-content__content-block--right')} >
+                            <EditorModal
                                 className="editorModal__editor--no-full-height"
                                 contentClassName="editorModal__editor--content"
                                 navigation={navigation}
                                 onChange={this.onEditorItemChange}
-                                onCancel={this.props.handleHide} />
+                                onCancel={this.props.handleHide}
+                                hideMinimize
+                                hideExternalEdit />
                         </div>
                     </div>
                 </Modal.Body>
@@ -125,4 +129,4 @@ EditorModalComponent.propTypes = {
 
 const mapDispatchToProps = (dispatch) => ({openEditorModal: (item) => (dispatch(main.openEditorModal(item)))});
 
-export const EditorModal = connect(null, mapDispatchToProps)(EditorModalComponent);
+export const EditorModalPanel = connect(null, mapDispatchToProps)(EditorModalComponent);

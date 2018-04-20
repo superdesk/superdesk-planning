@@ -4,7 +4,7 @@ import {Row, LineInput, Label, Input} from './';
 import {get} from 'lodash';
 import './style.scss';
 
-export const FileInput = ({field, label, value, onChange, createLink, remove, readOnly, ...props}) =>
+export const FileInput = ({field, label, value, onChange, createLink, remove, readOnly, onFocus, ...props}) =>
     readOnly ? (
         <Row>
             <LineInput noMargin={true}>
@@ -21,7 +21,7 @@ export const FileInput = ({field, label, value, onChange, createLink, remove, re
                     <a className="icn-btn sd-line-input__icon-right" onClick={remove}>
                         <i className="icon-trash" />
                     </a>
-                    <a href={createLink(value)} target="_blank">
+                    <a href={createLink(value)} target="_blank" onFocus={onFocus}>
                         {value.media.name}&nbsp;
                         ({Math.round(value.media.length / 1024)}kB)
                     </a>
@@ -33,7 +33,7 @@ export const FileInput = ({field, label, value, onChange, createLink, remove, re
                     <a className="icn-btn sd-line-input__icon-right" onClick={remove}>
                         <i className="icon-trash" />
                     </a>
-                    <Input field={field} onChange={onChange} type="file" autoFocus/>
+                    <Input field={field} onChange={onChange} type="file" onFocus={onFocus} autoFocus/>
                 </LineInput>
             )}
         </Row>
@@ -48,6 +48,7 @@ FileInput.propTypes = {
     ]),
     onChange: PropTypes.func,
     createLink: PropTypes.func,
+    onFocus: PropTypes.func,
     remove: PropTypes.func,
 
     readOnly: PropTypes.bool,

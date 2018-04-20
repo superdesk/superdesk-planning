@@ -91,6 +91,8 @@ export class ListGroupItem extends React.Component {
             multiSelected: indexOf(selectedEventIds, item._id) !== -1,
             [EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName],
+            [EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName]:
+                itemActions[EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName],
             [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
@@ -137,6 +139,8 @@ export class ListGroupItem extends React.Component {
                 itemActions[PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName],
             [PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName]:
                 itemActions[PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName],
+            [PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.actionName]:
+                itemActions[PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.actionName],
             [PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName]:
                 itemActions[PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName],
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:

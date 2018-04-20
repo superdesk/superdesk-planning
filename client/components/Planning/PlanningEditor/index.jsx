@@ -13,7 +13,6 @@ import {
     planningUtils,
     isSameItemId,
     editorMenuUtils,
-    onEventCapture,
 } from '../../../utils';
 
 import {ContentBlock} from '../../UI/SidePanel';
@@ -53,7 +52,6 @@ export class PlanningEditorComponent extends React.Component {
         this.onCancelCoverage = this.onCancelCoverage.bind(this);
         this.onPlanningDateChange = this.onPlanningDateChange.bind(this);
         this.onAddCoverageToWorkflow = this.onAddCoverageToWorkflow.bind(this);
-        this.onFieldFocus = this.onFieldFocus.bind(this);
     }
 
     componentWillMount() {
@@ -261,23 +259,12 @@ export class PlanningEditorComponent extends React.Component {
             // scroll to new position
             if (editorMenuUtils.forceScroll(this.props.navigation, 'planning')) {
                 this.dom.top.scrollIntoView();
-            } else if (editorMenuUtils.forceScroll(this.props.navigation, 'details')) {
-                this.dom.details.scrollIntoView();
             }
         }
     }
 
     onPlanningDateChange(field, value) {
         this.onChange('planning_date', value);
-    }
-
-    onFieldFocus(name, event) {
-        if (!name || !get(this.props, 'navigation.onItemFocus')) {
-            return;
-        }
-
-        onEventCapture(event);
-        this.props.navigation.onItemFocus(name);
     }
 
     render() {
@@ -350,10 +337,8 @@ export class PlanningEditorComponent extends React.Component {
         };
 
         const detailsErrored = some(toggleDetails, (field) => !!get(errors, field));
-        const onFocusPlanning = get(this.props, 'navigation.onItemFocus') ?
-            this.onFieldFocus.bind(null, 'planning') : undefined;
-        const onFocusDetails = get(this.props, 'navigation.onItemFocus') ?
-            this.onFieldFocus.bind(null, 'details') : undefined;
+        const onFocusPlanning = editorMenuUtils.onItemFocus(this.props.navigation, 'planning');
+        const onFocusDetails = editorMenuUtils.onItemFocus(this.props.navigation, 'details');
 
         return (
             <div className="planning-editor" ref={(node) => this.dom.top = node}>
@@ -424,9 +409,9 @@ export class PlanningEditorComponent extends React.Component {
                         isOpen={editorMenuUtils.isOpen(navigation, 'details')}
                         onClose={editorMenuUtils.onItemClose(navigation, 'details')}
                         onOpen={editorMenuUtils.onItemOpen(navigation, 'details')}
+                        forceScroll={editorMenuUtils.forceScroll(navigation, 'details')}
                         scrollInView={true}
                         invalid={detailsErrored && (dirty || submitFailed)}
-                        refNode={(node) => this.dom.details = node}
                     >
                         <Field
                             component={TextAreaInput}

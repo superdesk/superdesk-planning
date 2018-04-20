@@ -31,23 +31,21 @@ const lockAndEdit = (item, modal = false) => (
         const lockedItems = selectors.locks.getLockedItems(getState());
         const shouldLockItem = shouldLockItemForEdit(item, lockedItems);
 
-        // If this item is already opened and we either have a lock or the item should not get locked
+        // If the editor is in main page and this item is already opened and
+        // we either have a lock or the item should not get locked.
         // Then simply return the item
-        if (currentItemId === item._id &&
+        if (currentItemId === item._id && !modal &&
             (!shouldLockItem || lockUtils.isItemLockedInThisSession(item, currentSession))
         ) {
             return Promise.resolve(item);
         }
 
-        dispatch({type: MAIN.ACTIONS.EDIT_LOADING_START});
+        dispatch(setLoadingEditItem(modal));
         if (!modal) {
             dispatch(self.openEditor(item));
         } else {
             // Open the modal to show the editor
-            dispatch(showModal({
-                modalType: MODALS.EDIT_ITEM,
-                modalProps: {item},
-            }));
+            dispatch(closeEditorAndOpenModal(item));
         }
 
 
@@ -64,7 +62,7 @@ const lockAndEdit = (item, modal = false) => (
             Promise.resolve(item);
 
         return promise.then((lockedItem) => {
-            dispatch({type: MAIN.ACTIONS.EDIT_LOADING_COMPLETE});
+            dispatch(unsetLoadingEditItem(modal));
 
             return Promise.resolve(lockedItem);
         }, (error) => {
@@ -72,14 +70,14 @@ const lockAndEdit = (item, modal = false) => (
                 getErrorMessage(error, gettext('Failed to lock the item'))
             );
 
-            dispatch({type: MAIN.ACTIONS.EDIT_LOADING_COMPLETE});
+            dispatch(unsetLoadingEditItem(modal));
 
             return Promise.reject(error);
         });
     }
 );
 
-const unlockAndCancel = (item) => (
+const unlockAndCancel = (item, modal = false) => (
     (dispatch, getState) => {
         const state = getState();
 
@@ -93,7 +91,12 @@ const unlockAndCancel = (item) => (
             dispatch(planningApi.unlock({_id: item._planning_item}));
         }
 
-        dispatch(self.closeEditor());
+        if (!modal) {
+            dispatch(self.closeEditor());
+        } else {
+            dispatch(self.closeEditorModal());
+        }
+
         return Promise.resolve();
     }
 );
@@ -528,6 +531,22 @@ const openEditor = (item) => (
     }
 );
 
+const closeEditorAndOpenModal = (item) => (
+    (dispatch, getState, {$timeout, $location}) => {
+        const currentItemId = selectors.forms.currentItemId(getState());
+
+        if (currentItemId === item._id) {
+            dispatch(self.closeEditor());
+        }
+
+        // Open the modal to show the editor
+        dispatch(showModal({
+            modalType: MODALS.EDIT_ITEM,
+            modalProps: {item},
+        }));
+    }
+);
+
 /**
  * Action to open the editor for modalView
  * @param {object} item - The item to open. Must have _id and type attributes
@@ -546,6 +565,15 @@ const closeEditor = () => (
 
         // Update the URL
         $timeout(() => $location.search('edit', null));
+    }
+);
+
+/**
+ * Action to close the editor modal
+ */
+const closeEditorModal = () => (
+    (dispatch) => {
+        dispatch({type: MAIN.ACTIONS.CLOSE_EDITOR_MODAL});
     }
 );
 
@@ -592,6 +620,7 @@ const closePreview = () => (
  * Will dispatch the *_LOADING_START/*_LOADING_COMPLETE actions on start/finish of the action.
  * These actions will indicate to the preview panel/editor that the item is currently loading.
  * This action is executed from the PreviewPanel/Editor React components.
+ * This action won't be hit on Editor Modal.
  * @param {string} itemId - The ID of the item to load
  * @param {string} itemType - The type of item to load (ITEM_TYPE.EVENT/ITEM_TYPE.PLANNING)
  * @param {string} action - The action the item is for (MAIN.PREVIEW/MAIN.EDIT)
@@ -694,6 +723,22 @@ const setJumpInterval = (value) => ({
     payload: value,
 });
 
+const setLoadingEditItem = (modal = false) => {
+    if (!modal) {
+        return {type: MAIN.ACTIONS.EDIT_LOADING_START};
+    } else {
+        return {type: MAIN.ACTIONS.EDIT_LOADING_START_MODAL};
+    }
+};
+
+const unsetLoadingEditItem = (modal = false) => {
+    if (!modal) {
+        return {type: MAIN.ACTIONS.EDIT_LOADING_COMPLETE};
+    } else {
+        return {type: MAIN.ACTIONS.EDIT_LOADING_COMPLETE_MODAL};
+    }
+};
+
 const jumpTo = (direction) => (
     (dispatch, getState) => {
         let newStart;
@@ -744,6 +789,8 @@ const self = {
     openEditor,
     openEditorModal,
     closeEditor,
+    closeEditorModal,
+    closeEditorAndOpenModal,
     filter,
     _filter,
     openConfirmationModal,

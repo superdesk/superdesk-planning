@@ -5,7 +5,7 @@ import {getDateTimeString} from '../../../utils';
 import {Item, Column, Row, Border} from '../../UI/List';
 import {StateLabel, InternalNoteLabel} from '../../../components';
 
-export const PlanningMetaData = ({item, onClick, timeFormat, dateFormat, active}) => (
+export const EventInfo = ({item, onClick, timeFormat, dateFormat, active}) => (
     <Item noBg={!active} onClick={onClick} activated={active} className="sd-collapse-box sd-shadow--z2">
         <Border/>
         <Column grow={true} border={false}>
@@ -18,7 +18,7 @@ export const PlanningMetaData = ({item, onClick, timeFormat, dateFormat, active}
                 <time>
                     <InternalNoteLabel item={item} marginRight={true} />
                     <i className="icon-time"/>
-                    {getDateTimeString(item.planning_date, dateFormat, timeFormat)}
+                    {getDateTimeString(item.dates.start, dateFormat, timeFormat)}
                 </time>
             </Row>
             <Row>
@@ -32,7 +32,7 @@ export const PlanningMetaData = ({item, onClick, timeFormat, dateFormat, active}
     </Item>
 );
 
-PlanningMetaData.propTypes = {
+EventInfo.propTypes = {
     item: PropTypes.object,
     onClick: PropTypes.func,
     active: PropTypes.bool,

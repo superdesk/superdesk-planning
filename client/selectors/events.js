@@ -69,25 +69,33 @@ export const getEventPreviewRelatedDetails = createSelector(
     }
 );
 
+const getRelatedPlanningsForEvent = (itemId, events, plannings, agendas) => {
+    const event = get(events, itemId) || null;
+
+    if (event === null) {
+        return [];
+    }
+
+    if (event) {
+        return get(event, 'planning_ids', []).map((id) => ({
+            ...plannings[id],
+            _agendas: !get(plannings[id], 'agendas') ? [] :
+                plannings[id].agendas.map((id) =>
+                    agendas.find(((agenda) => agenda._id === id))),
+        }));
+    }
+};
+
 export const editId = (state) => get(state, 'forms.itemId', null);
 export const getRelatedPlannings = createSelector(
     [editId, storedEvents, storedPlannings, agendas],
-    (itemId, events, plannings, agendas) => {
-        const event = get(events, itemId) || null;
+    (itemId, events, plannings, agendas) => getRelatedPlanningsForEvent(itemId, events, plannings, agendas)
+);
 
-        if (event === null) {
-            return [];
-        }
-
-        if (event) {
-            return get(event, 'planning_ids', []).map((id) => ({
-                ...plannings[id],
-                _agendas: !get(plannings[id], 'agendas') ? [] :
-                    plannings[id].agendas.map((id) =>
-                        agendas.find(((agenda) => agenda._id === id))),
-            }));
-        }
-    }
+export const editIdModal = (state) => get(state, 'forms.itemIdModal', null);
+export const getRelatedPlanningsForModalEvent = createSelector(
+    [editIdModal, storedEvents, storedPlannings, agendas],
+    (itemId, events, plannings, agendas) => getRelatedPlanningsForEvent(itemId, events, plannings, agendas)
 );
 
 export const planningWithEventDetails = createSelector(

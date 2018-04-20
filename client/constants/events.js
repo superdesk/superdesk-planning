@@ -97,6 +97,12 @@ export const EVENTS = {
             actionName: 'onEditEvent',
             lock_action: 'edit',
         },
+        EDIT_EVENT_MODAL: {
+            label: gettext('Edit in popup'),
+            icon: 'icon-external',
+            actionName: 'onEditEventModal',
+            lock_action: 'edit',
+        },
     },
     DEFAULT_VALUE: (occurStatuses) => ({
         type: 'event',

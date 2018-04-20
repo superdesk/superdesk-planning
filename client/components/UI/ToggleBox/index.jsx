@@ -49,10 +49,8 @@ export class ToggleBox extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        // Scroll into view only upon first opening
-        if (prevState.isOpen !== this.state.isOpen &&
-            this.state.isOpen &&
-            this.props.scrollInView
+        if ((prevState.isOpen !== this.state.isOpen && this.props.scrollInView) ||
+            this.props.forceScroll && this.props.forceScroll !== prevProps.forceScroll
         ) {
             this.scrollInView();
         }
@@ -66,7 +64,6 @@ export class ToggleBox extends React.Component {
             hideUsingCSS,
             invalid,
             noMargin,
-            refNode,
         } = this.props;
 
         return (
@@ -80,7 +77,7 @@ export class ToggleBox extends React.Component {
                         'toggle-box--no-margin': noMargin,
                     }
                 )}
-                ref={refNode}
+                ref={(node) => this.dom.node = node}
             >
                 <div className="toggle-box__header"
                     onClick={this.toggle}
@@ -124,6 +121,7 @@ ToggleBox.propTypes = {
     hideUsingCSS: PropTypes.bool,
     invalid: PropTypes.bool,
     noMargin: PropTypes.bool,
+    forceScroll: PropTypes.bool,
 };
 
 ToggleBox.defaultProps = {

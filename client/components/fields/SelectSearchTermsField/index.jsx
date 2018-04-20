@@ -91,7 +91,7 @@ export class SelectSearchTermsField extends React.Component {
     }
 
     render() {
-        const {label, value, valueKey, querySearch, onQuerySearch, onAdd, onAddText, ...props} = this.props;
+        const {label, value, valueKey, querySearch, onQuerySearch, onAdd, onAddText, onFocus, ...props} = this.props;
         const options = this.removeValuesFromOptions();
 
         return (
@@ -111,7 +111,8 @@ export class SelectSearchTermsField extends React.Component {
                     querySearch={querySearch}
                     onQuerySearch={onQuerySearch}
                     onAdd={onAdd}
-                    onAddText={onAddText} />
+                    onAddText={onAddText}
+                    onFocus={onFocus} />
 
                 <div>
                     { value && value.length > 0 && (
@@ -214,6 +215,7 @@ SelectSearchTermsField.propTypes = {
     querySearch: PropTypes.bool,
     onQuerySearch: PropTypes.func,
     onAdd: PropTypes.func,
+    onFocus: PropTypes.func,
     onAddText: PropTypes.string,
 };
 

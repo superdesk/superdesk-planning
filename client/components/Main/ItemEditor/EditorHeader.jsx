@@ -19,7 +19,6 @@ import {StretchBar} from '../../UI/SubNav';
 
 import {LockContainer} from '../../index';
 import {EditorItemActions} from './index';
-import {Label} from '../../';
 
 export class EditorHeader extends React.Component {
     constructor(props) {
@@ -94,6 +93,8 @@ export class EditorHeader extends React.Component {
             createAndPublish,
             hideItemActions,
             hideMinimize,
+            hideExternalEdit,
+            closeEditorAndOpenModal,
         } = this.props;
 
         // Do not show the tabs if we're creating a new item
@@ -142,22 +143,6 @@ export class EditorHeader extends React.Component {
                             onUnlock={onUnlock.bind(null, item)}
                         />
                     </StretchBar>
-                )}
-                {itemType === ITEM_TYPE.EVENT && (<StretchBar right={false}>
-                    <Label
-                        text={gettext('Event')}
-                        isHollow={false}
-                        iconType={'large'}
-                    />
-                </StretchBar>
-                )}
-                {itemType === ITEM_TYPE.PLANNING && (<StretchBar right={false}>
-                    <Label
-                        text={gettext('Planning')}
-                        isHollow={false}
-                        iconType={'large'}
-                    />
-                </StretchBar>
                 )}
                 <StretchBar right={true}>
                     <Button
@@ -240,6 +225,10 @@ export class EditorHeader extends React.Component {
                     <NavButton onClick={minimize} icon="big-icon--minimize" />
                 )}
 
+                {isBeingEdited && !hideExternalEdit && (
+                    <NavButton onClick={closeEditorAndOpenModal.bind(null, item)} icon="icon-external" />
+                )}
+
                 {!isLockRestricted && !hideItemActions && (
                     <EditorItemActions item={item}
                         onAddCoverage={onAddCoverage}
@@ -279,5 +268,7 @@ EditorHeader.propTypes = {
     hideItemActions: PropTypes.bool,
     hideMinimize: PropTypes.bool,
     createAndPublish: PropTypes.bool,
+    closeEditorAndOpenModal: PropTypes.bool,
+    hideExternalEdit: PropTypes.bool,
     onAddCoverage: PropTypes.func,
 };

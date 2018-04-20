@@ -252,7 +252,8 @@ export class SelectListPopup extends React.Component {
                 minLength={1}
                 onSearchClick={this.openSearchList.bind(this)}
                 onSearch={(val) => this.filterSearchResults(val)}
-                ref="searchField" />
+                ref="searchField"
+                onFocus={this.props.onFocus} />
             {this.state.addOption && (
                 this.props.onAdd(this.closeAddOption.bind(this))
             )}
@@ -377,6 +378,7 @@ SelectListPopup.propTypes = {
     target: PropTypes.string,
     querySearch: PropTypes.bool,
     onQuerySearch: PropTypes.func,
+    onFocus: PropTypes.func,
     onAdd: PropTypes.func,
     onAddText: PropTypes.string,
 };

@@ -60,6 +60,8 @@ export class PlanningItem extends React.PureComponent {
         const itemActionsCallBack = {
             [PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName]:
                 this.props[PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName],
+            [PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.actionName]:
+                this.props[PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.actionName],
             [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: this.props[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
             [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: this.props[PLANNING.ITEM_ACTIONS.UNSPIKE.actionName],
             [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: this.props[PLANNING.ITEM_ACTIONS.SPIKE.actionName],

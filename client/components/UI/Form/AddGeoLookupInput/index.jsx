@@ -196,6 +196,7 @@ export class GeoLookupInputComponent extends React.Component {
                     nativeOnChange={true}
                     noLabel={true}
                     noMargin={true}
+                    onFocus={this.props.onFocus}
                 />
 
                 {this.state.openSuggestsPopUp && (
@@ -236,6 +237,7 @@ GeoLookupInputComponent.propTypes = {
     onChange: PropTypes.func,
     readOnly: PropTypes.bool,
     searchLocalLocations: PropTypes.func,
+    onFocus: PropTypes.func,
     disableSearch: PropTypes.bool,
 };
 

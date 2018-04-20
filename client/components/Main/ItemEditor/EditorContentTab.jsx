@@ -27,6 +27,7 @@ export const EditorContentTab = ({
                 submitFailed={submitFailed}
                 errors={errors}
                 startPartialSave={startPartialSave}
+                navigation={navigation}
             />
         );
     case ITEM_TYPE.PLANNING:

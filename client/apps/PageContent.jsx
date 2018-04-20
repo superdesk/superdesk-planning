@@ -25,7 +25,6 @@ export class PageContent extends React.Component {
             ListPanel,
             PreviewPanel,
             EditorPanel,
-            editorInModal,
             editorOpen,
             fullPreviewOpen,
             previewOpen,
@@ -36,7 +35,7 @@ export class PageContent extends React.Component {
             fullPreview,
         } = this.props;
 
-        const mountEditorInMainPage = EditorPanel && !editorInModal && !fullPreviewOpen;
+        const mountEditorInMainPage = EditorPanel && !fullPreviewOpen;
         const sectionClassName = classNames(
             'sd-content',
             {
@@ -137,7 +136,6 @@ PageContent.propTypes = {
     splitView: PropTypes.bool,
     fullPreview: PropTypes.bool,
     fullPreviewOpen: PropTypes.bool,
-    editorInModal: PropTypes.bool,
 };
 
 PageContent.defaultProps = {
