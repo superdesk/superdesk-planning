@@ -111,7 +111,7 @@ const onEventSpiked = (_e, data) => (
                 payload: {
                     item: data.item,
                     items: data.spiked_items,
-                }
+                },
             });
 
             dispatch(main.closePreviewAndEditorForItems(
@@ -138,7 +138,7 @@ const onEventUnspiked = (_e, data) => (
                 payload: {
                     item: data.item,
                     items: data.unspiked_items,
-                }
+                },
             });
 
             dispatch(main.closePreviewAndEditorForItems(
@@ -207,7 +207,7 @@ const onEventPublishChanged = (e, data) => (
                     item: data.item,
                     items: get(data, 'items', [{
                         id: data.item,
-                        etag: data.etag
+                        etag: data.etag,
                     }]),
                     state: data.state,
                     pubstatus: data.pubstatus,
@@ -234,7 +234,7 @@ const onRecurringEventCreated = (_e, data) => (
             return dispatch(dispatchUtils.retryDispatch(
                 eventsApi.query({
                     recurrenceId: data.item,
-                    onlyFuture: false
+                    onlyFuture: false,
                 }),
                 (events) => get(events, 'length', 0) > 0,
                 5,

@@ -43,7 +43,7 @@ Location.propTypes = {
     address: PropTypes.string,
     mapUrl: PropTypes.string,
     classes: PropTypes.string,
-    multiLine: PropTypes.bool
+    multiLine: PropTypes.bool,
 };
 
 Location.defaultProps = {
@@ -51,5 +51,5 @@ Location.defaultProps = {
     address: '',
     mapUrl: '',
     classes: '',
-    multiLine: false
+    multiLine: false,
 };

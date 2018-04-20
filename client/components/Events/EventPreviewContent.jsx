@@ -8,7 +8,7 @@ import {Row} from '../UI/Preview';
 import {
     AuditInformation,
     RelatedPlannings,
-    StateLabel
+    StateLabel,
 } from '../index';
 import {EventScheduleSummary} from './';
 import {ToggleBox} from '../UI';
@@ -51,7 +51,7 @@ export class EventPreviewContentComponent extends React.Component {
                 .then(this.getResponseResult)
                 .then((results) => {
                     this.setState({
-                        filteredContacts: results
+                        filteredContacts: results,
                     });
                 });
         }, 500);
@@ -76,7 +76,7 @@ export class EventPreviewContentComponent extends React.Component {
 
     closeDetails() {
         this.setState({
-            showContactInfo: false
+            showContactInfo: false,
         });
     }
 
@@ -88,7 +88,7 @@ export class EventPreviewContentComponent extends React.Component {
             timeFormat,
             dateFormat,
             createUploadLink,
-            streetMapUrl
+            streetMapUrl,
         } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
@@ -299,7 +299,7 @@ const mapStateToProps = (state, ownProps) => ({
     dateFormat: selectors.config.getDateFormat(state),
     formProfile: selectors.forms.eventProfile(state),
     createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
-    streetMapUrl: selectors.config.getStreetMapUrl(state)
+    streetMapUrl: selectors.config.getStreetMapUrl(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

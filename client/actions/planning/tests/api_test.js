@@ -120,7 +120,7 @@ describe('actions.planning.api', () => {
                                         },
                                     },
                                 },
-                            }
+                            },
                         }
                     );
                     expect(source.query.bool.must_not).toEqual([]);
@@ -134,10 +134,10 @@ describe('actions.planning.api', () => {
                                         range: {
                                             '_planning_schedule.scheduled': {
                                                 gte: 'now/d',
-                                                time_zone: getTimeZoneOffset()
-                                            }
-                                        }
-                                    }
+                                                time_zone: getTimeZoneOffset(),
+                                            },
+                                        },
+                                    },
                                 },
                             },
                         ]
@@ -148,7 +148,7 @@ describe('actions.planning.api', () => {
 
         it('by list of planning not in any agendas', (done) => (
             store.test(done, planningApi.query({
-                noAgendaAssigned: true
+                noAgendaAssigned: true,
             }))
                 .then(() => {
                     let noAgenda = {constant_score: {filter: {exists: {field: 'agendas'}}}};
@@ -168,7 +168,7 @@ describe('actions.planning.api', () => {
                                         },
                                     },
                                 },
-                            }
+                            },
                         }
                     );
 
@@ -199,7 +199,7 @@ describe('actions.planning.api', () => {
                                         },
                                     },
                                 },
-                            }
+                            },
                         }
                     );
 
@@ -234,7 +234,7 @@ describe('actions.planning.api', () => {
                                         },
                                     },
                                 },
-                            }
+                            },
                         }
                     );
 
@@ -255,11 +255,11 @@ describe('actions.planning.api', () => {
                 advancedSearch: {
                     state: [{
                         qcode: 'draft',
-                        name: 'draft'
+                        name: 'draft',
                     }, {
                         qcode: 'postponed',
-                        name: 'postponed'
-                    }]}
+                        name: 'postponed',
+                    }]},
             }))
                 .then(() => {
                     expect(services.api('planning').query.callCount).toBe(1);
@@ -277,7 +277,7 @@ describe('actions.planning.api', () => {
                                         },
                                     },
                                 },
-                            }
+                            },
                         }
                     );
 
@@ -299,11 +299,11 @@ describe('actions.planning.api', () => {
                 advancedSearch: {
                     state: [{
                         qcode: 'draft',
-                        name: 'draft'
+                        name: 'draft',
                     }, {
                         qcode: 'postponed',
-                        name: 'postponed'
-                    }]}
+                        name: 'postponed',
+                    }]},
             }))
                 .then(() => {
                     expect(services.api('planning').query.callCount).toBe(1);
@@ -321,7 +321,7 @@ describe('actions.planning.api', () => {
                                         },
                                     },
                                 },
-                            }
+                            },
                         }
                     );
 

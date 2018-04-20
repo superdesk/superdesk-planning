@@ -15,7 +15,7 @@ AssignmentController.$inject = [
     'sdPlanningStore',
     '$q',
     'pageTitle',
-    'gettext'
+    'gettext',
 ];
 export function AssignmentController(
     $element,

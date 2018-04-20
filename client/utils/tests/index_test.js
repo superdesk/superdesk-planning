@@ -162,7 +162,7 @@ describe('Utils', () => {
 
         it('if not scheduled dispatch is called', (done) => {
             let nextDispatch = {
-                called: false
+                called: false,
             };
 
             return dispatch(utils.dispatchUtils.scheduleDispatch(mockActionDispatcher(), nextDispatch))
@@ -179,7 +179,7 @@ describe('Utils', () => {
 
         it('if scheduled dispatch is not called', (done) => {
             let nextDispatch = {
-                called: true
+                called: true,
             };
 
             return dispatch(utils.dispatchUtils.scheduleDispatch(mockActionDispatcher(), nextDispatch))

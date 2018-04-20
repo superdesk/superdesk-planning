@@ -390,7 +390,7 @@ const planningReducer = createReducer(initialState, {
         } else {
             return state;
         }
-    }
+    },
 });
 
 const markPlaning = (plan, payload, action) => {

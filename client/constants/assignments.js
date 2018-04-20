@@ -68,7 +68,7 @@ export const ASSIGNMENTS = {
         REVERT_AVAILABILITY: {
             label: gettext('Revert Availability'),
             icon: 'icon-revert',
-        }
+        },
     },
     DEFAULT_PRIORITY: 2,
     LIST_GROUPS: {

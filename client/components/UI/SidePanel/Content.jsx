@@ -17,9 +17,9 @@ export const Content = ({children, className, flex}) => (
 Content.propTypes = {
     children: PropTypes.node,
     className: PropTypes.string,
-    flex: PropTypes.bool
+    flex: PropTypes.bool,
 };
 
 Content.defaultProps = {
-    flex: false
+    flex: false,
 };

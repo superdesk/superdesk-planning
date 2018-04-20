@@ -66,7 +66,7 @@ export class ToggleBox extends React.Component {
             hideUsingCSS,
             invalid,
             noMargin,
-            refNode
+            refNode,
         } = this.props;
 
         return (

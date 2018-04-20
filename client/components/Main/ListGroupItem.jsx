@@ -110,7 +110,7 @@ export class ListGroupItem extends React.Component {
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
             [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]:
-                itemActions[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]
+                itemActions[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName],
         };
 
         let planningProps = {

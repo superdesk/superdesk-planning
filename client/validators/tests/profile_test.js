@@ -12,7 +12,7 @@ describe('profileValidators', () => {
                 name: {enabled: true},
                 definition_short: {enabled: true},
                 definition_long: {enabled: false},
-                files: {enabled: true}
+                files: {enabled: true},
             },
             schema: {
                 slugline: {
@@ -28,9 +28,9 @@ describe('profileValidators', () => {
                     required: false,
                     minlength: 2,
                     maxlength: 5,
-                    type: 'list'
-                }
-            }
+                    type: 'list',
+                },
+            },
         };
 
         event = {

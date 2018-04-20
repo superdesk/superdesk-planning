@@ -21,7 +21,7 @@ describe('planning', () => {
                     planning_item: 'p1',
                 }],
                 state: 'draft',
-                _etag: 'old_etag'
+                _etag: 'old_etag',
             },
         };
 
@@ -387,7 +387,7 @@ describe('planning', () => {
                         etag: 'new_etag',
                         state: 'spiked',
                         revert_state: 'draft',
-                    }
+                    },
                 }
             );
 
@@ -395,7 +395,7 @@ describe('planning', () => {
                 ...plannings.p1,
                 _etag: 'new_etag',
                 revert_state: 'draft',
-                state: 'spiked'
+                state: 'spiked',
             });
 
             expect(result.planningsInList).toEqual([]);
@@ -408,7 +408,7 @@ describe('planning', () => {
                     ...plannings.p1,
                     state: 'spiked',
                     revert_state: 'draft',
-                }
+                },
             };
 
             const result = planning(
@@ -418,15 +418,15 @@ describe('planning', () => {
                     payload: {
                         id: 'p1',
                         etag: 'new_etag',
-                        state: 'draft'
-                    }
+                        state: 'draft',
+                    },
                 }
             );
 
             expect(result.plannings.p1).toEqual({
                 ...plannings.p1,
                 _etag: 'new_etag',
-                state: 'draft'
+                state: 'draft',
             });
         });
     });

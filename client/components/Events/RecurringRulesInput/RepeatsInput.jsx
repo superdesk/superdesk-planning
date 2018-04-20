@@ -7,7 +7,7 @@ export const repeatChoices = [
     {label: 'Yearly', key: 'YEARLY'},
     {label: 'Monthly', key: 'MONTHLY'},
     {label: 'Weekly', key: 'WEEKLY'},
-    {label: 'Daily', key: 'DAILY'}
+    {label: 'Daily', key: 'DAILY'},
 ];
 
 export const RepeatsInput = ({label, field, onChange, value, readOnly, ...props}) => (

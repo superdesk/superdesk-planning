@@ -36,7 +36,7 @@ export const CoverageEditor = ({
     defaultGenre,
     addNewsItemToPlanning,
     navigation,
-    ...props,
+    ...props
 }) => {
     // Coverage item actions
     let itemActions = [];
@@ -48,13 +48,13 @@ export const CoverageEditor = ({
             ))
             .map((contentType) => ({
                 label: contentType.name,
-                callback: onDuplicateCoverage.bind(null, value, contentType.qcode)
+                callback: onDuplicateCoverage.bind(null, value, contentType.qcode),
             }));
 
         itemActions = [{
             label: gettext('Duplicate'),
             icon: 'icon-copy',
-            callback: onDuplicateCoverage.bind(null, value)
+            callback: onDuplicateCoverage.bind(null, value),
         },
         {
             label: gettext('Duplicate As'),

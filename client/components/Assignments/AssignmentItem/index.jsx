@@ -74,7 +74,7 @@ export class AssignmentItem extends React.Component {
             priorities,
             removeAssignment,
             revertAssignment,
-            hideItemActions
+            hideItemActions,
         } = this.props;
 
         const isItemLocked = get(lockedItems, 'assignment') && assignment._id in lockedItems.assignment;
@@ -195,5 +195,5 @@ AssignmentItem.propTypes = {
     priorities: PropTypes.array,
     removeAssignment: PropTypes.func,
     revertAssignment: PropTypes.func,
-    hideItemActions: PropTypes.bool
+    hideItemActions: PropTypes.bool,
 };

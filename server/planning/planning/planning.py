@@ -839,6 +839,11 @@ planning_schema = {
     },
 
     'place': metadata_schema['place'],
+
+    # Name used to identify the planning item
+    'name': {
+        'type': 'string'
+    },
 }  # end planning_schema
 
 

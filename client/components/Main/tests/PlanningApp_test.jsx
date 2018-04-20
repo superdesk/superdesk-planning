@@ -25,17 +25,17 @@ describe('PlanningApp', () => {
                 dates: {
                     start: '2010-10-15T15:01:11+0000',
                     end: '2020-10-15T15:01:11+0000',
-                }
-            }
+                },
+            },
         },
         lastRequestParams: {
             advancedSearch: {
                 dates: {
                     start: '2010-10-15T15:01:11+0000',
                     end: '2020-10-15T15:01:11+0000',
-                }
-            }
-        }
+                },
+            },
+        },
     };
 
     beforeEach(() => {

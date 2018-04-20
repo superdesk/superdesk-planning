@@ -9,7 +9,7 @@ export const RadioButtonInput = ({
     onChange,
     label,
     options,
-    readOnly
+    readOnly,
 }) => (
     <LineInput>
         <Label text={label} />
@@ -37,11 +37,11 @@ RadioButtonInput.propTypes = {
     label: PropTypes.string,
     onChange: PropTypes.func.isRequired,
     options: PropTypes.array.isRequired,
-    readOnly: PropTypes.bool
+    readOnly: PropTypes.bool,
 };
 
 RadioButtonInput.defaultProps = {
     value: '',
     options: [],
-    readOnly: false
+    readOnly: false,
 };

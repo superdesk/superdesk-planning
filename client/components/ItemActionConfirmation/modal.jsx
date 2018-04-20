@@ -122,7 +122,7 @@ export class ItemActionConfirmationModal extends React.Component {
                 title: ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label,
                 form: EditPriorityForm,
                 propToForm: {...modalProps.assignment},
-            }
+            },
         };
 
         title = get(modalFormsMapper[modalProps.actionType], 'title', getSaveAndPublishTitle());

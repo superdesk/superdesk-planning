@@ -10,7 +10,7 @@ import {
     getItemWorkflowStateLabel,
     getItemInArrayById,
     gettext,
-    planningUtils
+    planningUtils,
 } from '../../utils';
 
 export const CoverageIcon = ({

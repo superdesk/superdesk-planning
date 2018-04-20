@@ -48,7 +48,7 @@ export const orderedEventsPlanning = createSelector(
 
             sortable.push({
                 date: day,
-                events: events
+                events: events,
             });
         });
 

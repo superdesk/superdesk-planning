@@ -165,7 +165,7 @@ export const getTestActionStore = () => {
                     }
 
                     return store.urlParams;
-                })
+                }),
             },
             desks: {
                 getCurrentDeskId: sinon.spy(() => 'desk1'),
@@ -192,7 +192,7 @@ export const getTestActionStore = () => {
             },
 
             archiveService: {
-                isPersonal: (item) => (get(item, 'task.user') && !get(item, 'task.desk'))
+                isPersonal: (item) => (get(item, 'task.user') && !get(item, 'task.desk')),
             },
             authoring: {itemActions: () => ({edit: true})},
 
@@ -203,12 +203,12 @@ export const getTestActionStore = () => {
 
             upload: {
                 start: sinon.spy((file) => Promise.resolve({
-                    data: {_id: file.data.media[0][0]}
-                }))
+                    data: {_id: file.data.media[0][0]},
+                })),
             },
 
             vocabularies: {
-                getVocabularies: () => Promise.resolve(testData.allVocabularies)
+                getVocabularies: () => Promise.resolve(testData.allVocabularies),
             },
         },
 

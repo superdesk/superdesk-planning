@@ -17,9 +17,9 @@ export const StretchBar = ({children, className, right}) => (
 StretchBar.propTypes = {
     children: PropTypes.node,
     className: PropTypes.string,
-    right: PropTypes.bool
+    right: PropTypes.bool,
 };
 
 StretchBar.defaultProps = {
-    right: false
+    right: false,
 };

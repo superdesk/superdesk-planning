@@ -14,7 +14,7 @@ export const Input = ({
     readOnly,
     refNode,
     className,
-    ...props,
+    ...props
 }) => {
     const onInputChanged = (e) => {
         let data = e.target.value;

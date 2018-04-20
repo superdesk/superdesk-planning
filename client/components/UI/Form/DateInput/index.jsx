@@ -30,7 +30,7 @@ export class DateInput extends React.Component {
 
         this.setState({
             viewValue: val,
-            previousValidValue: value
+            previousValidValue: value,
         });
     }
 

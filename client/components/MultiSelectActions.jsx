@@ -249,7 +249,7 @@ const mapDispatchToProps = (dispatch) => ({
     addEventToCurrentAgenda: (events) => dispatch(actions.askForAddEventToCurrentAgenda(events)),
     spikeItems: (items) => dispatch(actions.multiSelect.itemBulkSpikeModal(items)),
     unspikeItems: (items) => dispatch(actions.multiSelect.itemBulkUnSpikeModal(items)),
-    exportAsArticle: () => dispatch(actions.planning.api.exportAsArticle())
+    exportAsArticle: () => dispatch(actions.planning.api.exportAsArticle()),
 });
 
 

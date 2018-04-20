@@ -50,7 +50,7 @@ describe('Main.ItemEditor.Editor', () => {
 
             store.dispatch({
                 type: EVENTS.ACTIONS.ADD_EVENTS,
-                payload: [item]
+                payload: [item],
             });
 
             resolve(item);
@@ -73,18 +73,18 @@ describe('Main.ItemEditor.Editor', () => {
         astore.init();
         store = createTestStore({
             initialState: astore.initialState,
-            extraArguments: {api: services.api}
+            extraArguments: {api: services.api},
         });
 
         if (item.lock_user) {
             item.type === ITEM_TYPE.EVENT ?
                 store.dispatch({
                     type: EVENTS.ACTIONS.LOCK_EVENT,
-                    payload: {event: item}
+                    payload: {event: item},
                 }) :
                 store.dispatch({
                     type: PLANNING.ACTIONS.LOCK_PLANNING,
-                    planning: {plan: item}
+                    planning: {plan: item},
                 });
         }
 

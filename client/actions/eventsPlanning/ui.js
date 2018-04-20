@@ -77,7 +77,7 @@ const refetch = () => (
  * Schedule the refetch to run after one second and avoid any other refetch
  */
 let nextRefetch = {
-    called: 0
+    called: 0,
 };
 const scheduleRefetch = () => (
     (dispatch) => (
@@ -110,16 +110,16 @@ const receiveEventsPlanning = (items = []) => (
 
 const setInList = (items = []) => ({
     type: EVENTS_PLANNING.ACTIONS.SET_EVENTS_PLANNING_LIST,
-    payload: items
+    payload: items,
 });
 
 const addToList = (items = []) => ({
     type: EVENTS_PLANNING.ACTIONS.ADD_EVENTS_PLANNING_LIST,
-    payload: items
+    payload: items,
 });
 
 const clearList = () => ({
-    type: EVENTS_PLANNING.ACTIONS.CLEAR_EVENTS_PLANNING_LIST
+    type: EVENTS_PLANNING.ACTIONS.CLEAR_EVENTS_PLANNING_LIST,
 });
 
 /**
@@ -137,12 +137,12 @@ const showRelatedPlannings = (event) => (
 
 const requestEventsPlanning = (payload = {}) => ({
     type: MAIN.ACTIONS.REQUEST,
-    payload: {[MAIN.FILTERS.COMBINED]: payload}
+    payload: {[MAIN.FILTERS.COMBINED]: payload},
 });
 
 const _showRelatedPlannings = (event) => ({
     type: EVENTS_PLANNING.ACTIONS.SHOW_RELATED_PLANNINGS,
-    payload: event
+    payload: event,
 });
 
 
@@ -158,7 +158,7 @@ const self = {
     requestEventsPlanning,
     refetch,
     receiveEventsPlanning,
-    scheduleRefetch
+    scheduleRefetch,
 };
 
 export default self;

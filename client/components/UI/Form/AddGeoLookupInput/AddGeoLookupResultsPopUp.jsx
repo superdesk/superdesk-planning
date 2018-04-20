@@ -128,7 +128,7 @@ export class AddGeoLookupResultsPopUp extends React.Component {
                                 'addgeolookup__item',
                                 {
                                     'addgeolookup__item--active':
-                                        this.state.activeOptionIndex === get(localSuggests, 'length')
+                                        this.state.activeOptionIndex === get(localSuggests, 'length'),
                                 }
                             )} >
                                 <button
@@ -159,7 +159,7 @@ export class AddGeoLookupResultsPopUp extends React.Component {
                                         {
                                             'addgeolookup__item--active':
                                                 (index + get(this.props.localSuggests, 'length', 0) + 1) ===
-                                                this.state.activeOptionIndex
+                                                this.state.activeOptionIndex,
                                         }
                                     )}
                                     onClick={this.props.onChange.bind(null, suggest)}

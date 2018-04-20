@@ -70,7 +70,7 @@ export class SelectTagPopup extends React.Component {
             target,
             popupContainer,
             options,
-            labelKey
+            labelKey,
         } = this.props;
 
         return (

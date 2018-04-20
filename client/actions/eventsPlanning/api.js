@@ -16,7 +16,7 @@ const query = (
         fulltext,
         spikeState = SPIKED_STATE.NOT_SPIKED,
         page = 1,
-        maxResults = MAIN.PAGE_SIZE
+        maxResults = MAIN.PAGE_SIZE,
     },
     storeTotal = false
 ) => (
@@ -28,7 +28,7 @@ const query = (
             spikeState: spikeState,
             adHocPlanning: true, // only adhoc planning items,
             advancedSearch: pick(advancedSearch,
-                ['anpa_category', 'subject', 'slugline', 'published', 'spikeState', 'state', 'dates'])
+                ['anpa_category', 'subject', 'slugline', 'published', 'spikeState', 'state', 'dates']),
         };
 
         const planningCriteria = planningApi.getCriteria(search);
@@ -40,26 +40,26 @@ const query = (
                     and: {
                         filters: [
                             {type: {value: 'events'}},
-                            eventsCriteria.filter
-                        ]
-                    }
+                            eventsCriteria.filter,
+                        ],
+                    },
                 },
                 {
                     and: {
                         filters: [
                             {type: {value: 'planning'}},
-                            planningCriteria.filter
-                        ]
-                    }
-                }
-            ]
+                            planningCriteria.filter,
+                        ],
+                    },
+                },
+            ],
         };
 
         const sortField = '_planning_schedule.scheduled';
         const sortParams = {
             [sortField]: {
                 order: 'asc',
-                nested_path: '_planning_schedule'
+                nested_path: '_planning_schedule',
             },
         };
 
@@ -70,7 +70,7 @@ const query = (
                 filter: filter,
                 sort: [sortParams],
                 size: maxResults,
-                from: (page - 1) * maxResults
+                from: (page - 1) * maxResults,
             }),
             timestamp: new Date(),
         })
@@ -107,7 +107,7 @@ const refetch = (page = 1, items = []) => (
         let currentPage = page;
         let params = {
             ...prevParams,
-            currentPage
+            currentPage,
         };
 
         return dispatch(self.query(params, true))
@@ -126,7 +126,7 @@ const refetch = (page = 1, items = []) => (
 // eslint-disable-next-line consistent-this
 const self = {
     query,
-    refetch
+    refetch,
 };
 
 export default self;

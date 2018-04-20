@@ -13,7 +13,7 @@ import {
     planningUtils,
     isSameItemId,
     editorMenuUtils,
-    onEventCapture
+    onEventCapture,
 } from '../../../utils';
 
 import {ContentBlock} from '../../UI/SidePanel';
@@ -196,7 +196,7 @@ export class PlanningEditorComponent extends React.Component {
             ) {
                 valueToUpdate = {
                     ...value,
-                    news_coverage_status: this.props.newsCoverageStatus[0]
+                    news_coverage_status: this.props.newsCoverageStatus[0],
                 };
             }
         }
@@ -370,6 +370,13 @@ export class PlanningEditorComponent extends React.Component {
                         refNode={(node) => this.dom.slugline = node}
                         {...fieldProps}
                         onFocus={onFocusPlanning}
+                    />
+
+                    <Field
+                        component={TextInput}
+                        field="name"
+                        label={gettext('Name')}
+                        {...fieldProps}
                     />
 
                     <Field
@@ -574,7 +581,7 @@ PlanningEditorComponent.propTypes = {
 
 PlanningEditorComponent.defaultProps = {
     readOnly: false,
-    navigation: {}
+    navigation: {},
 };
 
 const mapStateToProps = (state) => ({
@@ -605,7 +612,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     onAddCoverageToWorkflow: (planning, coverage) =>
-        dispatch(actions.planning.ui.addCoverageToWorkflow(planning, coverage))
+        dispatch(actions.planning.ui.addCoverageToWorkflow(planning, coverage)),
 });
 
 export const PlanningEditor = connect(

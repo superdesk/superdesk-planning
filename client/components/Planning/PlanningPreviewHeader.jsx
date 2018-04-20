@@ -23,7 +23,7 @@ export class PlanningPreviewHeaderComponent extends React.Component {
             hideItemActions,
             event,
             agendas,
-            itemActionDispatches
+            itemActionDispatches,
         } = this.props;
         const lockedUser = lockUtils.getLockedUser(item, lockedItems, users);
         const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK];

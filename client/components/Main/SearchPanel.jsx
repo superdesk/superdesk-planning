@@ -24,7 +24,7 @@ export class SearchPanelComponent extends React.Component {
         }
 
         this.setState({
-            diff: {}
+            diff: {},
         });
         this.props.clearSearch();
     }
@@ -34,7 +34,7 @@ export class SearchPanelComponent extends React.Component {
             (nextProps.activeFilter === this.props.activeFilter &&
             !isEqual(nextProps.currentSearch, this.props.currentSearch))) {
             this.setState({
-                diff: cloneDeep(nextProps.currentSearch) || {}
+                diff: cloneDeep(nextProps.currentSearch) || {},
             });
         }
     }
@@ -69,7 +69,7 @@ export class SearchPanelComponent extends React.Component {
         } = this.props;
 
         const {
-            diff
+            diff,
         } = this.state;
 
         const tools = [
@@ -91,7 +91,7 @@ export class SearchPanelComponent extends React.Component {
             diff: diff,
             currentSearch: currentSearch,
             onChange: this.onChangeHandler,
-            workflowStateOptions: workflowStateOptions || getWorkFlowStateAsOptions(activeFilter)
+            workflowStateOptions: workflowStateOptions || getWorkFlowStateAsOptions(activeFilter),
         };
 
         return (
@@ -151,12 +151,12 @@ const mapStateToProps = (state) => ({
     ingestProviders: state.ingest.providers,
     dateFormat: selectors.config.getDateFormat(state),
     timeFormat: selectors.config.getTimeFormat(state),
-    isViewFiltered: selectors.main.isViewFiltered(state)
+    isViewFiltered: selectors.main.isViewFiltered(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
     clearSearch: () => dispatch(actions.main.clearSearch()),
-    search: (params) => dispatch(actions.main.search(null, params))
+    search: (params) => dispatch(actions.main.search(null, params)),
 });
 
 export const SearchPanel = connect(mapStateToProps, mapDispatchToProps)(SearchPanelComponent);

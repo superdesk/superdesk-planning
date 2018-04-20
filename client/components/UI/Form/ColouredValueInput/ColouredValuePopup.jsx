@@ -97,7 +97,7 @@ export class ColouredValuePopup extends React.PureComponent {
                         <li key={index}>
                             <button type="button" onClick={onChange.bind(null, opt)}
                                 className={classNames({
-                                    'select-coloured-value__popup--activeElement': this.state.activeIndex === index
+                                    'select-coloured-value__popup--activeElement': this.state.activeIndex === index,
                                 })} >
                                 <span className={getClassNamesForOption(opt)}>{get(opt, valueKey, '')}</span>
                                     &nbsp;&nbsp;{get(opt, labelKey, '')}

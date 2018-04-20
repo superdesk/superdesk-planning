@@ -74,7 +74,7 @@ const scheduleDispatch = (action, next, interval = 1000) => (
 // eslint-disable-next-line consistent-this
 const self = {
     retryDispatch,
-    scheduleDispatch
+    scheduleDispatch,
 };
 
 export default self;

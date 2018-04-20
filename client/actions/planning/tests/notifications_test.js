@@ -169,7 +169,7 @@ describe('actions.planning.notifications', () => {
             store.initialState.main.filter = MAIN.FILTERS.PLANNING;
             return store.test(done, planningNotifications.onPlanningCreated({}, {
                 item: data.plannings[1]._id,
-                event_item: data.plannings[1].event_item
+                event_item: data.plannings[1].event_item,
             }))
                 .then(() => {
                     expect(eventsApi.markEventHasPlannings.callCount).toBe(1);
@@ -181,7 +181,7 @@ describe('actions.planning.notifications', () => {
                     expect(main.setUnsetLoadingIndicator.callCount).toBe(2);
                     expect(main.setUnsetLoadingIndicator.args).toEqual([
                         [true],
-                        [false]
+                        [false],
                     ]);
 
                     expect(planningUi.scheduleRefetch.callCount).toBe(1);
@@ -371,7 +371,7 @@ describe('actions.planning.notifications', () => {
                     expect(main.setUnsetLoadingIndicator.callCount).toBe(2);
                     expect(main.setUnsetLoadingIndicator.args).toEqual([
                         [true],
-                        [false]
+                        [false],
                     ]);
 
                     expect(planningUi.scheduleRefetch.callCount).toBe(1);
@@ -407,7 +407,7 @@ describe('actions.planning.notifications', () => {
                     expect(main.setUnsetLoadingIndicator.callCount).toBe(2);
                     expect(main.setUnsetLoadingIndicator.args).toEqual([
                         [true],
-                        [false]
+                        [false],
                     ]);
 
                     expect(planningUi.scheduleRefetch.callCount).toBe(1);

@@ -25,7 +25,7 @@ export const CoverageItem = ({
     contentTypes,
     itemActionComponent,
     isPreview,
-    active
+    active,
 }) => {
     const userAssigned = getCreator(coverage, 'assigned_to.user', users);
     const deskAssigned = getItemInArrayById(desks, get(coverage, 'assigned_to.desk'));
@@ -127,5 +127,5 @@ CoverageItem.defaultProps = {
     dateFormat: 'DD/MM/YYYY',
     timeFormat: 'HH:mm',
     contentTypes: [],
-    isPreview: false
+    isPreview: false,
 };

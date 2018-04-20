@@ -35,7 +35,7 @@ export class TimeInputPopup extends React.Component {
 
         this.setState({
             selectedHourIndex: hourIndex,
-            selectedMinuteIndex: minuteIndex
+            selectedMinuteIndex: minuteIndex,
         });
     }
 

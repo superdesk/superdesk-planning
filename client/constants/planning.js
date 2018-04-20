@@ -47,12 +47,12 @@ export const PLANNING = {
         SPIKE: {
             label: gettext('Spike'),
             icon: 'icon-trash',
-            actionName: 'onSpikePlanning'
+            actionName: 'onSpikePlanning',
         },
         UNSPIKE: {
             label: gettext('Unspike'),
             icon: 'icon-unspike',
-            actionName: 'onUnspikePlanning'
+            actionName: 'onUnspikePlanning',
         },
         DUPLICATE: {
             label: gettext('Duplicate'),
@@ -81,7 +81,7 @@ export const PLANNING = {
             label: gettext('Edit'),
             icon: 'icon-pencil',
             actionName: 'onEditPlanning',
-            lock_action: 'edit'
+            lock_action: 'edit',
         },
         ASSIGN_TO_AGENDA: {
             label: gettext('Assign to agenda'),
@@ -92,7 +92,7 @@ export const PLANNING = {
             label: gettext('Add coverage'),
             icon: 'icon-plus-small',
             actionName: 'onAddCoverage',
-        }
+        },
     },
     NEWS_COVERAGE_CANCELLED_STATUS: {
         qcode: 'ncostat:notint',
@@ -109,5 +109,5 @@ export const PLANNING = {
     DEFAULT_VALUE: {
         type: 'planning',
         planning_date: moment(),
-    }
+    },
 };

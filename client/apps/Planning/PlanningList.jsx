@@ -56,7 +56,7 @@ export class PlanningListComponent extends React.Component {
             edit,
             itemActions,
             hideItemActions,
-            showAddCoverage
+            showAddCoverage,
         } = this.props;
 
         return (

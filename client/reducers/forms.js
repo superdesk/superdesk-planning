@@ -33,7 +33,7 @@ const formsReducer = createReducer(initialState, {
                         ...get(state.autosaves, payload.formName, {}),
                         [payload.diff._id]: payload.diff,
                     },
-                }
+                },
             }
     ),
 
@@ -43,7 +43,7 @@ const formsReducer = createReducer(initialState, {
             ...state.autosaves,
             [FORM_NAMES.EventForm]: pickBy(state.autosaves.event, (event, key) => !key.startsWith(TEMP_ID_PREFIX)),
             [FORM_NAMES.PlanningForm]: pickBy(state.autosaves.planning, (plan, key) => !key.startsWith(TEMP_ID_PREFIX)),
-        }
+        },
     }),
 
     [MAIN.ACTIONS.OPEN_EDITOR]: (state, payload) => (newStateOnEditorOpen(state, payload)),
@@ -66,7 +66,7 @@ const formsReducer = createReducer(initialState, {
                     ...state.autosaves,
                     [FORM_NAMES.EventForm]: pickBy(state.autosaves.event, (event, key) =>
                         !key.startsWith(TEMP_ID_PREFIX) && key !== payload.event._id),
-                }
+                },
             }
     ),
 
@@ -78,14 +78,14 @@ const formsReducer = createReducer(initialState, {
                     ...state.autosaves,
                     [FORM_NAMES.PlanningForm]: pickBy(state.autosaves.planning, (plan, key) =>
                         !key.startsWith(TEMP_ID_PREFIX) && key !== payload.plan._id),
-                }
+                },
             }
     ),
 
     [MAIN.ACTIONS.SET_EDIT_ITEM]: (state, payload) => ({
         ...state,
         itemId: payload.itemId,
-        itemType: payload.itemType
+        itemType: payload.itemType,
     }),
 
     [MAIN.ACTIONS.EDIT_LOADING_START]: (state) => ({

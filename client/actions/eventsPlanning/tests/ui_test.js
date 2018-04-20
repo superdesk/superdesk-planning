@@ -47,7 +47,7 @@ describe('actions.eventsplanning.ui', () => {
                     jasmine.objectContaining(
                         {
                             type: EVENTS.ACTIONS.ADD_EVENTS,
-                            payload: []
+                            payload: [],
                         }
                     )
                 );
@@ -56,7 +56,7 @@ describe('actions.eventsplanning.ui', () => {
                     jasmine.objectContaining(
                         {
                             type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
-                            payload: []
+                            payload: [],
                         }
                     )
                 );
@@ -65,7 +65,7 @@ describe('actions.eventsplanning.ui', () => {
                     jasmine.objectContaining(
                         {
                             type: EVENTS_PLANNING.ACTIONS.SET_EVENTS_PLANNING_LIST,
-                            payload: [...Array(MAIN.PAGE_SIZE).keys()]
+                            payload: [...Array(MAIN.PAGE_SIZE).keys()],
                         }
                     )
                 );
@@ -98,7 +98,7 @@ describe('actions.eventsplanning.ui', () => {
                     jasmine.objectContaining(
                         {
                             type: EVENTS.ACTIONS.ADD_EVENTS,
-                            payload: []
+                            payload: [],
                         }
                     )
                 );
@@ -107,7 +107,7 @@ describe('actions.eventsplanning.ui', () => {
                     jasmine.objectContaining(
                         {
                             type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
-                            payload: []
+                            payload: [],
                         }
                     )
                 );
@@ -116,7 +116,7 @@ describe('actions.eventsplanning.ui', () => {
                     jasmine.objectContaining(
                         {
                             type: EVENTS_PLANNING.ACTIONS.ADD_EVENTS_PLANNING_LIST,
-                            payload: [...Array(MAIN.PAGE_SIZE).keys()]
+                            payload: [...Array(MAIN.PAGE_SIZE).keys()],
                         }
                     )
                 );
@@ -151,7 +151,7 @@ describe('actions.eventsplanning.ui', () => {
                         jasmine.objectContaining(
                             {
                                 type: EVENTS.ACTIONS.ADD_EVENTS,
-                                payload: data.events
+                                payload: data.events,
                             }
                         )
                     );
@@ -160,7 +160,7 @@ describe('actions.eventsplanning.ui', () => {
                         jasmine.objectContaining(
                             {
                                 type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
-                                payload: data.plannings
+                                payload: data.plannings,
                             }
                         )
                     );
@@ -169,7 +169,7 @@ describe('actions.eventsplanning.ui', () => {
                         jasmine.objectContaining(
                             {
                                 type: EVENTS_PLANNING.ACTIONS.ADD_EVENTS_PLANNING_LIST,
-                                payload: data.planning_search
+                                payload: data.planning_search,
                             }
                         )
                     );
@@ -192,7 +192,7 @@ describe('actions.eventsplanning.ui', () => {
                     jasmine.objectContaining(
                         {
                             type: EVENTS.ACTIONS.ADD_EVENTS,
-                            payload: data.events
+                            payload: data.events,
                         }
                     )
                 );
@@ -201,7 +201,7 @@ describe('actions.eventsplanning.ui', () => {
                     jasmine.objectContaining(
                         {
                             type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
-                            payload: data.plannings
+                            payload: data.plannings,
                         }
                     )
                 );
@@ -210,7 +210,7 @@ describe('actions.eventsplanning.ui', () => {
                     jasmine.objectContaining(
                         {
                             type: EVENTS_PLANNING.ACTIONS.SET_EVENTS_PLANNING_LIST,
-                            payload: data.planning_search
+                            payload: data.planning_search,
                         }
                     )
                 );
@@ -231,7 +231,7 @@ describe('actions.eventsplanning.ui', () => {
                     jasmine.objectContaining(
                         {
                             type: EVENTS_PLANNING.ACTIONS.SHOW_RELATED_PLANNINGS,
-                            payload: event
+                            payload: event,
                         }
                     )
                 );

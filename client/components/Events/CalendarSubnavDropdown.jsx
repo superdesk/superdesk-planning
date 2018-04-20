@@ -9,7 +9,7 @@ export const CalendarSubnavDropdown = ({
     enabledCalendars,
     disabledCalendars,
     selectCalendar,
-    currentCalendarId
+    currentCalendarId,
 }) => {
     if (get(enabledCalendars, 'length', 0) <= 0 && get(disabledCalendars, 'length', 0) <= 0) {
         return null;
@@ -22,7 +22,7 @@ export const CalendarSubnavDropdown = ({
             items.push({
                 label: calendar.name,
                 id: calendar.qcode,
-                action: () => selectCalendar(calendar.qcode)
+                action: () => selectCalendar(calendar.qcode),
             });
         });
 
@@ -35,7 +35,7 @@ export const CalendarSubnavDropdown = ({
                 label: calendar.name,
                 id: calendar.qcode,
                 action: () => selectCalendar(calendar.qcode),
-                className: 'dropdown__menu-item--disabled'
+                className: 'dropdown__menu-item--disabled',
             });
         });
 
@@ -44,12 +44,12 @@ export const CalendarSubnavDropdown = ({
 
     items.push({
         label: gettext('No Calendar Assigned'),
-        action: () => selectCalendar(EVENTS.FILTER.NO_CALENDAR_ASSIGNED)
+        action: () => selectCalendar(EVENTS.FILTER.NO_CALENDAR_ASSIGNED),
     });
 
     items.push({
         label: gettext('All Calendars'),
-        action: () => selectCalendar(EVENTS.FILTER.ALL_CALENDARS)
+        action: () => selectCalendar(EVENTS.FILTER.ALL_CALENDARS),
     });
 
     let buttonLabel;

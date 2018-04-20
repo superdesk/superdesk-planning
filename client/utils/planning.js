@@ -273,62 +273,62 @@ const getPlanningActions = ({
                 addCoverageCallBacks.push({
                     label: stringUtils.firstCharUpperCase(PLANNING.G2_CONTENT_TYPE[type].replace('_', ' ')),
                     icon: self.getCoverageIcon(PLANNING.G2_CONTENT_TYPE[type]),
-                    callback: callBacks[callBackName].bind(null, PLANNING.G2_CONTENT_TYPE[type])
+                    callback: callBacks[callBackName].bind(null, PLANNING.G2_CONTENT_TYPE[type]),
                 });
             });
 
             addCoverageCallBacks.length > 0 && actions.push({
                 ...PLANNING.ITEM_ACTIONS.ADD_COVERAGE,
-                callback: addCoverageCallBacks
+                callback: addCoverageCallBacks,
             });
             break;
 
         case PLANNING.ITEM_ACTIONS.DUPLICATE.actionName:
             actions.push({
                 ...PLANNING.ITEM_ACTIONS.DUPLICATE,
-                callback: callBacks[callBackName].bind(null, item)
+                callback: callBacks[callBackName].bind(null, item),
             });
             break;
 
         case PLANNING.ITEM_ACTIONS.SPIKE.actionName:
             actions.push({
                 ...PLANNING.ITEM_ACTIONS.SPIKE,
-                callback: callBacks[callBackName].bind(null, item)
+                callback: callBacks[callBackName].bind(null, item),
             });
             break;
 
         case PLANNING.ITEM_ACTIONS.UNSPIKE.actionName:
             actions.push({
                 ...PLANNING.ITEM_ACTIONS.UNSPIKE,
-                callback: callBacks[callBackName].bind(null, item)
+                callback: callBacks[callBackName].bind(null, item),
             });
             break;
 
         case PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName:
             actions.push({
                 ...PLANNING.ITEM_ACTIONS.CANCEL_PLANNING,
-                callback: callBacks[callBackName].bind(null, item)
+                callback: callBacks[callBackName].bind(null, item),
             });
             break;
 
         case PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName:
             actions.push({
                 ...PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE,
-                callback: callBacks[callBackName].bind(null, item)
+                callback: callBacks[callBackName].bind(null, item),
             });
             break;
 
         case PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName:
             actions.push({
                 ...PLANNING.ITEM_ACTIONS.ADD_AS_EVENT,
-                callback: callBacks[callBackName].bind(null, item)
+                callback: callBacks[callBackName].bind(null, item),
             });
             break;
 
         case PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName:
             actions.push({
                 ...PLANNING.ITEM_ACTIONS.EDIT_PLANNING,
-                callback: callBacks[callBackName].bind(null, item)
+                callback: callBacks[callBackName].bind(null, item),
             });
             break;
 
@@ -338,48 +338,48 @@ const getPlanningActions = ({
                 agendaCallBacks.push({
                     label: agenda.name,
                     inactive: get(item, 'agendas', []).includes(agenda._id),
-                    callback: callBacks[callBackName].bind(null, item, agenda)
+                    callback: callBacks[callBackName].bind(null, item, agenda),
                 });
             });
 
             agendaCallBacks.length > 0 && actions.push({
                 ...PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA,
-                callback: agendaCallBacks
+                callback: agendaCallBacks,
             });
             break;
 
         case EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName:
             eventActions.push({
                 ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
-                callback: callBacks[callBackName].bind(null, event)
+                callback: callBacks[callBackName].bind(null, event),
             });
             break;
 
         case EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName:
             eventActions.push({
                 ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
-                callback: callBacks[callBackName].bind(null, event)
+                callback: callBacks[callBackName].bind(null, event),
             });
             break;
 
         case EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName:
             eventActions.push({
                 ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
-                callback: callBacks[callBackName].bind(null, event)
+                callback: callBacks[callBackName].bind(null, event),
             });
             break;
 
         case EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName:
             eventActions.push({
                 ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
-                callback: callBacks[callBackName].bind(null, event)
+                callback: callBacks[callBackName].bind(null, event),
             });
             break;
 
         case EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName:
             eventActions.push({
                 ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
-                callback: callBacks[callBackName].bind(null, event)
+                callback: callBacks[callBackName].bind(null, event),
             });
             break;
         }
@@ -514,7 +514,7 @@ const getCoverageReadOnlyFields = (
             g2_content_type: true,
             genre: true,
             newsCoverageStatus: true,
-            scheduled: get(addNewsItemToPlanning, 'state') === 'published'
+            scheduled: get(addNewsItemToPlanning, 'state') === 'published',
         };
     }
 

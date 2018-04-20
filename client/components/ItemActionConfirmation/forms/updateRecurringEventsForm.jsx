@@ -116,7 +116,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event) => dispatch(actions.main.save(event, false))
+    onSubmit: (event) => dispatch(actions.main.save(event, false)),
 });
 
 export const UpdateRecurringEventsForm = connect(

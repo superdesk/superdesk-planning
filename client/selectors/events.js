@@ -143,7 +143,7 @@ export const getEventFilterParams = createSelector(
             advancedSearch: get(currentSearch, 'advancedSearch', {}),
             spikeState: get(currentSearch, 'spikeState', SPIKED_STATE.NOT_SPIKED),
             fulltext: fullText,
-            page: 1
+            page: 1,
         };
     }
 );

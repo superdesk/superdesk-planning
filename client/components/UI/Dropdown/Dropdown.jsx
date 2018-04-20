@@ -8,7 +8,7 @@ export const Dropdown = ({children, className, isOpen, alignRight, dropUp}) => (
             'dropdown',
             {
                 'dropdown--align-right': alignRight,
-                open: isOpen
+                open: isOpen,
             },
             {'dropdown--dropup': dropUp},
             className

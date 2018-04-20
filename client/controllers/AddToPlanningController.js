@@ -118,7 +118,7 @@ export function AddToPlanningController(
                 .then((store) => {
                     store.dispatch(actions.initStore(WORKSPACE.AUTHORING));
                     store.dispatch(planning.ui.requestPlannings({
-                        excludeRescheduledAndCancelled: true
+                        excludeRescheduledAndCancelled: true,
                     }));
                     registerNotifications($scope, store);
 
@@ -147,7 +147,7 @@ export function AddToPlanningController(
 
                             $scope.$on('$destroy', () => {
                                 store.dispatch(planning.ui.requestPlannings({
-                                    excludeRescheduledAndCancelled: false
+                                    excludeRescheduledAndCancelled: false,
                                 }));
 
                                 const planningEdited = currentItem(store.getState());

@@ -9,7 +9,7 @@ export const AgendaSubnavDropdown = ({
     enabledAgendas,
     disabledAgendas,
     selectAgenda,
-    currentAgendaId
+    currentAgendaId,
 }) => {
     if (get(enabledAgendas, 'length', 0) <= 0 && get(disabledAgendas, 'length', 0) <= 0) {
         return null;
@@ -22,7 +22,7 @@ export const AgendaSubnavDropdown = ({
             items.push({
                 label: agenda.name,
                 id: agenda._id,
-                action: () => selectAgenda(agenda._id)
+                action: () => selectAgenda(agenda._id),
             });
         });
 
@@ -35,7 +35,7 @@ export const AgendaSubnavDropdown = ({
                 label: agenda.name,
                 id: agenda._id,
                 action: () => selectAgenda(agenda._id),
-                className: 'dropdown__menu-item--disabled'
+                className: 'dropdown__menu-item--disabled',
             });
         });
 
@@ -44,11 +44,11 @@ export const AgendaSubnavDropdown = ({
 
     items.push({
         label: gettext('No Agenda Assigned'),
-        action: () => selectAgenda(AGENDA.FILTER.NO_AGENDA_ASSIGNED)
+        action: () => selectAgenda(AGENDA.FILTER.NO_AGENDA_ASSIGNED),
     });
     items.push({
         label: gettext('All Planning Items'),
-        action: () => selectAgenda(AGENDA.FILTER.ALL_PLANNING)
+        action: () => selectAgenda(AGENDA.FILTER.ALL_PLANNING),
     });
 
     let buttonLabel;

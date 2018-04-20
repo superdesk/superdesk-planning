@@ -103,7 +103,7 @@ xdescribe('components.UI.Form', () => {
             choice: new helpers.Input(wrapper, 'choice', 'select'),
             bio: new helpers.Input(wrapper, 'bio', 'textarea'),
             url: new helpers.Input(wrapper, 'url'),
-            links: new helpers.InputArray(wrapper, 'links')
+            links: new helpers.InputArray(wrapper, 'links'),
         };
     };
 
@@ -117,7 +117,7 @@ xdescribe('components.UI.Form', () => {
         expect(onChange.args[callCount - 1]).toEqual(['name', 'Bob']);
         expect(inputs.name.value()).toBe('Bob');
         expect(values).toEqual({
-            name: 'Bob'
+            name: 'Bob',
         });
 
         inputs.age.change(31);
@@ -127,7 +127,7 @@ xdescribe('components.UI.Form', () => {
         expect(inputs.age.value()).toBe(31);
         expect(values).toEqual({
             name: 'Bob',
-            age: 31
+            age: 31,
         });
 
         inputs.choice.change('two');
@@ -138,7 +138,7 @@ xdescribe('components.UI.Form', () => {
         expect(values).toEqual({
             name: 'Bob',
             age: 31,
-            choice: {label: 'Two', qcode: 'two'}
+            choice: {label: 'Two', qcode: 'two'},
         });
 
         inputs.bio.change('my\nname\nis\nBob');
@@ -150,7 +150,7 @@ xdescribe('components.UI.Form', () => {
             name: 'Bob',
             age: 31,
             choice: {label: 'Two', qcode: 'two'},
-            bio: 'my\nname\nis\nBob'
+            bio: 'my\nname\nis\nBob',
         });
 
         inputs.links.add();
@@ -164,7 +164,7 @@ xdescribe('components.UI.Form', () => {
             age: 31,
             choice: {label: 'Two', qcode: 'two'},
             bio: 'my\nname\nis\nBob',
-            links: ['']
+            links: [''],
         });
 
         inputs.links.update(0, 'https://github.com/superdesk');
@@ -178,7 +178,7 @@ xdescribe('components.UI.Form', () => {
             age: 31,
             choice: {label: 'Two', qcode: 'two'},
             bio: 'my\nname\nis\nBob',
-            links: ['https://github.com/superdesk']
+            links: ['https://github.com/superdesk'],
         });
 
         inputs.links.add();
@@ -195,8 +195,8 @@ xdescribe('components.UI.Form', () => {
             bio: 'my\nname\nis\nBob',
             links: [
                 'https://github.com/superdesk',
-                ''
-            ]
+                '',
+            ],
         });
 
         inputs.links.remove(0);
@@ -210,7 +210,7 @@ xdescribe('components.UI.Form', () => {
             age: 31,
             choice: {label: 'Two', qcode: 'two'},
             bio: 'my\nname\nis\nBob',
-            links: ['']
+            links: [''],
         });
     });
 

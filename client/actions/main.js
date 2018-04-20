@@ -279,7 +279,7 @@ const openConfirmationModal = ({title, body, okText, showIgnore, action, ignore}
                 showIgnore,
                 action,
                 ignore,
-            }
+            },
         }))
     )
 );
@@ -452,7 +452,7 @@ const search = (fulltext, currentSearch = undefined) => (
             ...previousParams,
             page: 1,
             fulltext: !isNil(fulltext) ? fulltext : previousParams.fulltext,
-            ...advancedSearch
+            ...advancedSearch,
         };
 
         let promise = Promise.resolve();
@@ -490,7 +490,7 @@ const clearSearch = () => (
 
         dispatch({
             type: MAIN.ACTIONS.CLEAR_SEARCH,
-            payload: filterType
+            payload: filterType,
         });
 
         return dispatch(self._filter(filterType));
@@ -501,14 +501,14 @@ const setTotal = (filter, total) => ({
     type: MAIN.ACTIONS.SET_TOTAL,
     payload: {
         filter,
-        total
-    }
+        total,
+    },
 });
 
 
 const setUnsetLoadingIndicator = (value = false) => ({
     type: MAIN.ACTIONS.SET_UNSET_LOADING_INDICATOR,
-    payload: value
+    payload: value,
 });
 
 
@@ -520,7 +520,7 @@ const openEditor = (item) => (
     (dispatch, getState, {$timeout, $location}) => {
         dispatch({
             type: MAIN.ACTIONS.OPEN_EDITOR,
-            payload: item
+            payload: item,
         });
 
         // Update the URL
@@ -566,8 +566,8 @@ const openPreview = (item) => (
             type: MAIN.ACTIONS.SET_PREVIEW_ITEM,
             payload: {
                 itemId: item._id,
-                itemType: item.type
-            }
+                itemType: item.type,
+            },
         });
 
         // Update the URL
@@ -661,12 +661,12 @@ const openFromURLOrRedux = (action) => (
         } else if (action === MAIN.PREVIEW) {
             item = {
                 id: selectors.main.previewId(getState()),
-                type: selectors.main.previewType(getState())
+                type: selectors.main.previewType(getState()),
             };
         } else if (action === MAIN.EDIT) {
             item = {
                 id: selectors.forms.currentItemId(getState()),
-                type: selectors.forms.currentItemType(getState())
+                type: selectors.forms.currentItemType(getState()),
             };
         }
 
@@ -674,12 +674,12 @@ const openFromURLOrRedux = (action) => (
             if (action === MAIN.PREVIEW) {
                 dispatch(self.openPreview({
                     _id: item.id,
-                    type: item.type
+                    type: item.type,
                 }));
             } else if (action === MAIN.EDIT) {
                 dispatch(self.openEditor({
                     _id: item.id,
-                    type: item.type
+                    type: item.type,
                 }));
             }
         } else {
@@ -691,7 +691,7 @@ const openFromURLOrRedux = (action) => (
 
 const setJumpInterval = (value) => ({
     type: MAIN.ACTIONS.SET_JUMP_INTERVAL,
-    payload: value
+    payload: value,
 });
 
 const jumpTo = (direction) => (
@@ -723,7 +723,7 @@ const jumpTo = (direction) => (
 
         dispatch({
             type: MAIN.ACTIONS.JUMP_TO,
-            payload: newStart
+            payload: newStart,
         });
 
         dispatch(self.search(
@@ -759,7 +759,7 @@ const self = {
     loadItem,
     openPreview,
     setJumpInterval,
-    jumpTo
+    jumpTo,
 };
 
 export default self;

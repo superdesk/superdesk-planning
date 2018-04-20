@@ -24,25 +24,25 @@ export class ContactEditor extends React.Component {
 
     handleCancel() {
         this.setState({
-            showModal: false
+            showModal: false,
         }, this.props.onCancel());
     }
 
     onDirty() {
         this.setState({
-            dirty: true
+            dirty: true,
         });
     }
 
     onValidation(validity) {
         this.setState({
-            valid: validity
+            valid: validity,
         });
     }
 
     triggerSave() {
         this.setState({
-            triggerSave: true
+            triggerSave: true,
         });
     }
 

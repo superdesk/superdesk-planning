@@ -32,7 +32,7 @@ const toggleDetails = [
     'subject',
     'definition_long',
     'internal_note',
-    'ednote'
+    'ednote',
 ];
 
 export class EventEditorComponent extends React.Component {

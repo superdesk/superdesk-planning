@@ -9,7 +9,7 @@ import {
     isItemPublic,
     lockUtils,
     onEventCapture,
-    isExistingItem
+    isExistingItem,
 } from '../../../utils';
 
 import {Button} from '../../UI';

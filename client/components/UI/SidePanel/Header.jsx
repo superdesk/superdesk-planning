@@ -17,5 +17,5 @@ Header.propTypes = {
 };
 
 Header.defaultProps = {
-    className: ''
+    className: '',
 };

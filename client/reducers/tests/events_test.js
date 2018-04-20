@@ -98,7 +98,7 @@ describe('events', () => {
                     item: 'e1',
                     items: [{
                         id: 'e1',
-                        etag: 'e123'
+                        etag: 'e123',
                     }],
                     state: 'scheduled',
                     pubstatus: 'usable',
@@ -159,7 +159,7 @@ describe('events', () => {
                     item: 'e1',
                     items: [{
                         id: 'e1',
-                        etag: 'e123'
+                        etag: 'e123',
                     }],
                     state: 'killed',
                     pubstatus: 'cancelled',
@@ -220,7 +220,7 @@ describe('events', () => {
                 {
                     id: 'e1',
                     etag: 'e456',
-                    revert_state: 'draft'
+                    revert_state: 'draft',
                 }
             );
 
@@ -241,10 +241,10 @@ describe('events', () => {
                     items: [{
                         id: 'e6',
                         etag: 'e456',
-                        revert_state: 'draft'
+                        revert_state: 'draft',
                     }],
-                    filteredSpikeState: 'draft'
-                }
+                    filteredSpikeState: 'draft',
+                },
             });
 
             expect(result).toEqual(initialState);
@@ -253,7 +253,7 @@ describe('events', () => {
         it('SPIKE_EVENT spikes multiple items', () => {
             const state = {
                 ...initialState,
-                events: cloneDeep(items)
+                events: cloneDeep(items),
             };
 
             const result = events(state, {
@@ -264,18 +264,18 @@ describe('events', () => {
                     items: [{
                         id: 'e1',
                         etag: 'p123',
-                        revert_state: 'draft'
+                        revert_state: 'draft',
                     }, {
                         id: 'e2',
                         etag: 'p456',
-                        revert_state: 'rescheduled'
+                        revert_state: 'rescheduled',
                     }, {
                         id: 'e3',
                         etag: 'p789',
-                        revert_state: 'postponed'
+                        revert_state: 'postponed',
                     }],
-                    filteredSpikeState: 'draft'
-                }
+                    filteredSpikeState: 'draft',
+                },
             });
 
             expect(result.events).toEqual({
@@ -283,20 +283,20 @@ describe('events', () => {
                     ...items.e1,
                     state: 'spiked',
                     _etag: 'p123',
-                    revert_state: 'draft'
+                    revert_state: 'draft',
                 },
                 e2: {
                     ...items.e2,
                     state: 'spiked',
                     _etag: 'p456',
-                    revert_state: 'rescheduled'
+                    revert_state: 'rescheduled',
                 },
                 e3: {
                     ...items.e3,
                     state: 'spiked',
                     _etag: 'p789',
-                    revert_state: 'postponed'
-                }
+                    revert_state: 'postponed',
+                },
             });
         });
 
@@ -317,7 +317,7 @@ describe('events', () => {
                 {
                     id: 'e1',
                     state: 'draft',
-                    etag: 'e456'
+                    etag: 'e456',
                 }
             );
 
@@ -340,24 +340,24 @@ describe('events', () => {
         it('RECEIVE_CALENDARS', () => {
             const result = events(initialState, {
                 type: 'RECEIVE_CALENDARS',
-                payload: [{qcode: 'cal1', name: 'Calendar 1'}]
+                payload: [{qcode: 'cal1', name: 'Calendar 1'}],
             });
 
             expect(result).toEqual({
                 ...initialState,
-                calendars: [{qcode: 'cal1', name: 'Calendar 1'}]
+                calendars: [{qcode: 'cal1', name: 'Calendar 1'}],
             });
         });
 
         it('SELECT_EVENT_CALENDAR', () => {
             const result = events(initialState, {
                 type: 'SELECT_EVENT_CALENDAR',
-                payload: 'cal1'
+                payload: 'cal1',
             });
 
             expect(result).toEqual({
                 ...initialState,
-                currentCalendarId: 'cal1'
+                currentCalendarId: 'cal1',
             });
         });
     });

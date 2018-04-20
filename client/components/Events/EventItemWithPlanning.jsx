@@ -32,7 +32,7 @@ export class EventItemWithPlanning extends React.Component {
             get(this.props.relatedPlanningsInList, item._id, []).map((plan, index) => {
                 const planningProps = {
                     ...this.props.planningProps,
-                    item: plan
+                    item: plan,
                 };
 
                 return (<PlanningItem key={index} {...planningProps} />);
@@ -42,7 +42,7 @@ export class EventItemWithPlanning extends React.Component {
         const eventProps = {
             ...this.props.eventProps,
             toggleRelatedPlanning: this.toggleRelatedPlanning,
-            relatedPlanningText: relatedPlanningText
+            relatedPlanningText: relatedPlanningText,
         };
 
         const eventItem = <EventItem {...eventProps} />;

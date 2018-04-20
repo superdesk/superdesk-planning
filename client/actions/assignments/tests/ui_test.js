@@ -565,7 +565,7 @@ describe('actions.assignments.ui', () => {
         it('Fetches assignment if not in store', (done) => {
             store.services['$location'] = {
                 ...store.services['$location'],
-                search: sinon.stub().callsFake(() => ({assignment: 'as3'}))
+                search: sinon.stub().callsFake(() => ({assignment: 'as3'})),
             };
 
             sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => (Promise.resolve(newAssignment)));

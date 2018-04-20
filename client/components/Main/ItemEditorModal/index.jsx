@@ -41,7 +41,7 @@ export class EditorModalComponent extends React.Component {
         this.setState({
             openItems: union(this.state.openItems, [menuItemName]),
             scrollToViewItem: menuItemName,
-            activeItem: menuItemName
+            activeItem: menuItemName,
         });
     }
 
@@ -56,7 +56,7 @@ export class EditorModalComponent extends React.Component {
         this.setState({
             openItems: union(this.state.openItems, [menuItemName]),
             scrollToViewItem: '',
-            activeItem: menuItemName
+            activeItem: menuItemName,
         });
     }
 

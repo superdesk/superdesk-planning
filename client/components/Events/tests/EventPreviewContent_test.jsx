@@ -23,15 +23,15 @@ describe('<EventPreviewContent />', () => {
             name: 'ACT',
             qcode: 'ACT',
             state: 'Australian Capital Territory',
-            world_region: 'Oceania'
+            world_region: 'Oceania',
         }],
         anpa_category: [{
             name: 'cat1',
-            qcode: 'cat1'
+            qcode: 'cat1',
         }],
         occur_status: {
             name: 'Planned, occurs certainly',
-            qcode: 'qcode1'
+            qcode: 'qcode1',
         },
         location: {
             name: 'location',
@@ -39,19 +39,19 @@ describe('<EventPreviewContent />', () => {
         },
         calendars: [{
             name: 'calender1',
-            qcode: 'calender1'
+            qcode: 'calender1',
         }],
         subject: [{
             name: 'sub1',
-            qcode: 'sub1'
+            qcode: 'sub1',
         }],
         files: [{
             filemeta: {media_id: 'file'},
             media: {
                 name: 'file1.jpg',
                 length: 1024,
-                content_type: 'video/ogg'
-            }
+                content_type: 'video/ogg',
+            },
         }],
         links: ['https://www.google.com'],
     };

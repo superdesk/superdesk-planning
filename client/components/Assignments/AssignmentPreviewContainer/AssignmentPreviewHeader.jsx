@@ -14,7 +14,7 @@ import {
     StateLabel,
     Datetime,
     AuditInformation,
-    ItemActionsMenu
+    ItemActionsMenu,
 } from '../../';
 
 export const AssignmentPreviewHeader = ({
@@ -39,7 +39,7 @@ export const AssignmentPreviewHeader = ({
         assignedDateDesk,
         assignedDateUser,
         assignedUserName,
-        assignedDeskName
+        assignedDeskName,
     } = assignmentUtils.getAssignmentInfo(assignment, users, desks);
 
     return (

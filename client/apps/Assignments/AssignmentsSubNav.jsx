@@ -92,7 +92,7 @@ export class AssignmentsSubNavComponent extends React.Component {
             assignmentListSingleGroupView,
             changeAssignmentListSingleGroupView,
             withArchiveItem,
-            archiveItem
+            archiveItem,
         } = this.props;
 
         return (

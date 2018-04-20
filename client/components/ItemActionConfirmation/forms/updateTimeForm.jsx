@@ -115,7 +115,7 @@ export class UpdateTimeComponent extends React.Component {
             onChange: this.onChange,
             showErrors: true,
             errors: this.state.errors,
-            readOnly: submitting
+            readOnly: submitting,
         };
 
         return (
@@ -232,7 +232,7 @@ const mapDispatchToProps = (dispatch) => ({
             dispatch(actions.events.api.unlock(event));
         }
     },
-    onValidate: (item, profile, errors) => dispatch(validateItem('event', item, profile, errors, ['dates']))
+    onValidate: (item, profile, errors) => dispatch(validateItem('event', item, profile, errors, ['dates'])),
 });
 
 export const UpdateTimeForm = connect(

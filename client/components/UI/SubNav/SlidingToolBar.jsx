@@ -23,7 +23,7 @@ SlidingToolBar.propTypes = {
     onCancel: PropTypes.func,
     innerInfo: PropTypes.string,
     innerTools: PropTypes.node,
-    tools: PropTypes.node
+    tools: PropTypes.node,
 };
 
 SlidingToolBar.defaultProp = {hide: true};

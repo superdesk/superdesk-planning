@@ -39,7 +39,7 @@ export const WORKFLOW_STATE = {
     CANCELLED: 'cancelled',
     RESCHEDULED: 'rescheduled',
     POSTPONED: 'postponed',
-    SPIKED: 'spiked'
+    SPIKED: 'spiked',
 };
 
 export const PUBLISHED_STATE = {
@@ -84,7 +84,7 @@ export const ITEM_TYPE = {
     AUDIO: 'audio',
     GRAPHIC: 'graphic',
     COMPOSITE: 'composite',
-    UNKNOWN: 'unknown'
+    UNKNOWN: 'unknown',
 };
 
 export const TEMP_ID_PREFIX = 'tempId-';
@@ -93,5 +93,5 @@ export const TEMP_ID_PREFIX = 'tempId-';
 export const CLICK_DELAY = 250;
 
 export const USER_ACTIONS = {
-    RECEIVE_USER_PREFERENCES: 'RECEIVE_USER_PREFERENCES'
+    RECEIVE_USER_PREFERENCES: 'RECEIVE_USER_PREFERENCES',
 };

@@ -14,6 +14,6 @@ export const selectedPlannings = createSelector(
     [storedPlannings, storedEvents, selectedPlanningIds],
     (plannings, events, planningIds) => planningIds.map((planningId) => ({
         ...plannings[planningId],
-        event: get(events, get(plannings[planningId], 'event_item'))
+        event: get(events, get(plannings[planningId], 'event_item')),
     }))
 );

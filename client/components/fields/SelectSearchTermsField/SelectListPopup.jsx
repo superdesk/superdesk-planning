@@ -116,7 +116,7 @@ export class SelectListPopup extends React.Component {
     closeAddOption() {
         this.refs.searchField.resetSearch();
         this.setState({
-            addOption: false
+            addOption: false,
         }, () => this.props.onCancel());
     }
 

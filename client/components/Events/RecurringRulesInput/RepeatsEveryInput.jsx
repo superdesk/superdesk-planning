@@ -9,7 +9,7 @@ const repeatEveryChoices = {
     YEARLY: 'year',
     MONTHLY: 'month',
     WEEKLY: 'week',
-    DAILY: 'day'
+    DAILY: 'day',
 };
 
 export class RepeatsEveryInput extends React.Component {
@@ -17,7 +17,7 @@ export class RepeatsEveryInput extends React.Component {
         super(props);
         this.state = {
             options: [],
-            value: repeatEveryChoices[0]
+            value: repeatEveryChoices[0],
         };
 
         this.getOptions = this.getOptions.bind(this);

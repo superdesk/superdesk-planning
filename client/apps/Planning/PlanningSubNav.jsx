@@ -122,13 +122,13 @@ const mapDispatchToProps = (dispatch) => ({
     clearSearch: () => dispatch(actions.main.clearSearch()),
     addEvent: () => dispatch(actions.main.lockAndEdit({
         _tempId: TEMP_ID_PREFIX + moment().valueOf(),
-        type: ITEM_TYPE.EVENT
+        type: ITEM_TYPE.EVENT,
     })),
     addPlanning: () => dispatch(actions.main.lockAndEdit({
         _tempId: TEMP_ID_PREFIX + moment().valueOf(),
-        type: ITEM_TYPE.PLANNING
+        type: ITEM_TYPE.PLANNING,
     })),
-    selectCalendar: (calendarId) => dispatch(actions.events.ui.selectCalendar(calendarId))
+    selectCalendar: (calendarId) => dispatch(actions.events.ui.selectCalendar(calendarId)),
 });
 
 export const PlanningSubNav = connect(mapStateToProps, mapDispatchToProps)(PlanningSubNavComponent);

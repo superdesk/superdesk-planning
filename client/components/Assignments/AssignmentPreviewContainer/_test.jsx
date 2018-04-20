@@ -62,7 +62,7 @@ describe('<AssignmentPreviewContainer />', () => {
 
         wrapper = getWrapper({
             showFulfilAssignment: true,
-            hideItemActions: true
+            hideItemActions: true,
         }).find('.AssignmentPreview');
         expect(wrapper.children().length).toBe(5);
 

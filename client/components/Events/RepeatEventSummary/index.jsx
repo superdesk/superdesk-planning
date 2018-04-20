@@ -126,5 +126,5 @@ RepeatEventSummary.propTypes = {
 };
 
 RepeatEventSummary.defaultProps = {
-    noMargin: false
+    noMargin: false,
 };

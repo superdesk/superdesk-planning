@@ -226,9 +226,9 @@ export const allVocabularies = [
                 name: 'Entertainment',
                 qcode: 'entertainment',
                 is_active: true,
-            }
-        ]
-    }
+            },
+        ],
+    },
 ];
 
 export const vocabularies = {
@@ -383,8 +383,8 @@ export const vocabularies = {
         {qcode: 'Health', name: 'Health'},
         {qcode: 'Motoring', name: 'Motoring'},
         {qcode: 'Soccer', name: 'Soccer'},
-        {qcode: 'Property', name: 'Property'}
-    ]
+        {qcode: 'Property', name: 'Property'},
+    ],
 };
 
 export const subjects = [
@@ -520,7 +520,7 @@ export const planningInitialState = {
 
 export const eventsPlanningInitialState = {
     eventsAndPlanningInList: [],
-    relatedPlannings: {}
+    relatedPlannings: {},
 };
 
 export const templates = {templates: []};
@@ -787,8 +787,8 @@ export const archive = [
         _id: 'item1',
         slugline: 'test slugline',
         headline: 'test headline',
-        urgency: 2
-    }
+        urgency: 2,
+    },
 ];
 
 export const main = {
@@ -800,19 +800,19 @@ export const main = {
         EVENTS: {
             lastRequestParams: {page: 1},
             fulltext: undefined,
-            currentSearch: undefined
+            currentSearch: undefined,
         },
         PLANNING: {
             lastRequestParams: {page: 1},
             fulltext: undefined,
-            currentSearch: undefined
+            currentSearch: undefined,
         },
         COMBINED: {
             lastRequestParams: {page: 1},
             fulltext: undefined,
-            currentSearch: undefined
-        }
-    }
+            currentSearch: undefined,
+        },
+    },
 };
 
 export const multiSelect = {

@@ -16,7 +16,7 @@ export const AddToPlanningUi = ({
     showModals,
     showWorkqueue,
     editorOpen,
-    previewOpen
+    previewOpen,
 }) => {
     const editorComponent = (props) => (
         <Editor

@@ -130,7 +130,7 @@ export class EditorComponent extends React.Component {
         } else if (nextProps.item !== null && this.props.item === null) {
             // This happens when the Editor has finished loading an existing item or creating a duplicate
             this.resetForm(nextProps.item, !isExistingItem(nextProps.item) && nextProps.item.duplicate_from);
-        } else if (isEqual(this.state.diff, {}) && get(nextProps, 'initialValues._tempId')) {
+        } else if (isEqual(omit(this.state.diff, 'calendars'), {}) && get(nextProps, 'initialValues._tempId')) {
             // This happens when creating a new item (when the editor is not currently open)
             this.createNew(nextProps);
         } else if (!this.itemsEqual(get(nextProps, 'item'), get(this.props, 'item'))) {

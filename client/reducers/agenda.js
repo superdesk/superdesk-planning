@@ -16,7 +16,7 @@ const replaceOrAddInAgendas = (agendas, agenda) => {
     }
 
     return sortBy(agendas, [(a) =>
-        a.name.toLowerCase()
+        a.name.toLowerCase(),
     ]);
 };
 

@@ -44,6 +44,6 @@ export const MAIN = {
         TOMORROW: 'tomorrow',
         THIS_WEEK: 'this_week',
         NEXT_WEEK: 'next_week',
-        LAST_24: 'last24'
-    }
+        LAST_24: 'last24',
+    },
 };

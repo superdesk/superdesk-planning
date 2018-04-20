@@ -13,7 +13,7 @@ import {
     GeoLookupInput,
     ToggleInput,
     DateTimeInput,
-    RadioButtonInput
+    RadioButtonInput,
 } from '../UI/Form';
 
 
@@ -68,7 +68,7 @@ export class AdvancedSearch extends React.Component {
         const updates = {
             start: startDate,
             end: endDate,
-            range: ''
+            range: '',
         };
 
         this.props.onChange('advancedSearch.dates', updates);
@@ -84,7 +84,7 @@ export class AdvancedSearch extends React.Component {
         const updates = {
             start: null,
             end: null,
-            range: value
+            range: value,
         };
 
         this.props.onChange('advancedSearch.dates', updates);
@@ -102,7 +102,7 @@ export class AdvancedSearch extends React.Component {
             timeFormat,
             diff,
             onChange,
-            workflowStateOptions
+            workflowStateOptions,
         } = this.props;
 
         // Change spikeState options based on workflow-state selection in the from
@@ -114,7 +114,7 @@ export class AdvancedSearch extends React.Component {
             {
                 label: gettext('Include spike'),
                 value: SPIKED_STATE.BOTH,
-            }
+            },
         ];
 
         if (get(diff, 'advancedSearch.state.length', 0) === 0) {
@@ -131,26 +131,26 @@ export class AdvancedSearch extends React.Component {
                     props: {
                         field: 'advancedSearch.name',
                         label: gettext('Name'),
-                        value: get(diff, 'advancedSearch.name', '')
+                        value: get(diff, 'advancedSearch.name', ''),
                     },
-                    component: TextInput
+                    component: TextInput,
                 },
                 slugline: {
                     props: {
                         field: 'advancedSearch.slugline',
                         label: gettext('Slugline'),
-                        value: get(diff, 'advancedSearch.slugline', '')
+                        value: get(diff, 'advancedSearch.slugline', ''),
                     },
-                    component: TextInput
+                    component: TextInput,
                 },
                 location: {
                     props: {
                         field: 'advancedSearch.location',
                         label: gettext('Location'),
                         value: get(diff, 'advancedSearch.location', null),
-                        disableSearch: true
+                        disableSearch: true,
                     },
-                    component: GeoLookupInput
+                    component: GeoLookupInput,
                 },
                 state: {
                     props: {
@@ -159,25 +159,25 @@ export class AdvancedSearch extends React.Component {
                         value: get(diff, 'advancedSearch.state', []),
                         options: workflowStateOptions,
                     },
-                    component: SelectMetaTermsInput
+                    component: SelectMetaTermsInput,
                 },
                 anpa_category: {
                     props: {
                         field: 'advancedSearch.anpa_category',
                         label: gettext('Category'),
                         value: get(diff, 'advancedSearch.anpa_category', []),
-                        options: categories
+                        options: categories,
                     },
-                    component: SelectMetaTermsInput
+                    component: SelectMetaTermsInput,
                 },
                 subject: {
                     props: {
                         field: 'advancedSearch.subject',
                         label: gettext('Subject'),
                         value: get(diff, 'advancedSearch.subject', []),
-                        options: subjects
+                        options: subjects,
                     },
-                    component: SelectMetaTermsInput
+                    component: SelectMetaTermsInput,
                 },
                 source: {
                     props: {
@@ -187,7 +187,7 @@ export class AdvancedSearch extends React.Component {
                         options: ingestProviders,
                         valueKey: 'id',
                     },
-                    component: SelectMetaTermsInput
+                    component: SelectMetaTermsInput,
                 },
                 urgency: {
                     props: {
@@ -195,18 +195,18 @@ export class AdvancedSearch extends React.Component {
                         label: gettext('Urgency'),
                         value: get(diff, 'advancedSearch.urgency', null),
                         options: urgencies,
-                        iconName: 'urgency-label'
+                        iconName: 'urgency-label',
                     },
-                    component: ColouredValueInput
+                    component: ColouredValueInput,
                 },
                 noCoverage: {
                     props: {
                         field: 'advancedSearch.noCoverage',
                         label: gettext('Without Coverage'),
                         value: get(diff, 'advancedSearch.noCoverage', false),
-                        labelLeft: true
+                        labelLeft: true,
                     },
-                    component: ToggleInput
+                    component: ToggleInput,
                 },
                 contentType: {
                     props: {
@@ -215,18 +215,18 @@ export class AdvancedSearch extends React.Component {
                         value: get(diff, 'advancedSearch.g2_content_type', {}),
                         options: contentTypes,
                         labelField: 'name',
-                        clearable: true
+                        clearable: true,
                     },
-                    component: SelectInput
+                    component: SelectInput,
                 },
                 pubstatus: {
                     props: {
                         field: 'advancedSearch.published',
                         label: gettext('Only Published'),
                         value: get(diff, 'advancedSearch.published', false),
-                        labelLeft: true
+                        labelLeft: true,
                     },
-                    component: ToggleInput
+                    component: ToggleInput,
                 },
                 startDateTime: {
                     props: {
@@ -235,10 +235,10 @@ export class AdvancedSearch extends React.Component {
                         value: get(diff, 'advancedSearch.dates.start', null),
                         dateFormat: dateFormat,
                         timeFormat: timeFormat,
-                        canClear: true
+                        canClear: true,
                     },
                     component: DateTimeInput,
-                    onChange: this.onDateChange
+                    onChange: this.onDateChange,
                 },
                 endDateTime: {
                     props: {
@@ -251,7 +251,7 @@ export class AdvancedSearch extends React.Component {
 
                     },
                     component: DateTimeInput,
-                    onChange: this.onDateChange
+                    onChange: this.onDateChange,
                 },
                 spikeState: {
                     props: {
@@ -279,18 +279,18 @@ export class AdvancedSearch extends React.Component {
                             },
                             {
                                 label: gettext('This Week'),
-                                value: MAIN.DATE_RANGE.THIS_WEEK
+                                value: MAIN.DATE_RANGE.THIS_WEEK,
 
                             },
                             {
                                 label: gettext('Next Week'),
-                                value: MAIN.DATE_RANGE.NEXT_WEEK
-                            }
-                        ]
+                                value: MAIN.DATE_RANGE.NEXT_WEEK,
+                            },
+                        ],
                     },
                     component: RadioButtonInput,
-                    onChange: this.onDateChange
-                }
+                    onChange: this.onDateChange,
+                },
             };
 
 
@@ -307,13 +307,13 @@ export class AdvancedSearch extends React.Component {
                     fields.anpa_category, fields.subject, fields.source, fields.location, fields.state,
                     fields.pubstatus, fields.spikeState,
                     fields.startDateTime, fields.endDateTime,
-                    fields.dateFilters
+                    fields.dateFilters,
                 ],
                 [MAIN.FILTERS.PLANNING]: [
                     fields.slugline, fields.contentType, fields.noCoverage, fields.anpa_category, fields.subject,
                     fields.urgency, fields.state,
                     fields.pubstatus, fields.spikeState,
-                    fields.startDateTime, fields.endDateTime, fields.dateFilters
+                    fields.startDateTime, fields.endDateTime, fields.dateFilters,
                 ],
             };
 
@@ -322,7 +322,7 @@ export class AdvancedSearch extends React.Component {
                     .map((field, index) => {
                         const props = {
                             ...field.props,
-                            onChange: field.onChange || onChange
+                            onChange: field.onChange || onChange,
                         };
                         const RenderComponent = field.component;
 

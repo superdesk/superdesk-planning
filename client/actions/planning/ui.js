@@ -374,7 +374,7 @@ const refetch = () => (
  * Schedule the refetch to run after one second and avoid any other refetch
  */
 let nextRefetch = {
-    called: 0
+    called: 0,
 };
 const scheduleRefetch = () => (
     (dispatch) => (
@@ -778,7 +778,7 @@ const self = {
     scheduleRefetch,
     assignToAgenda,
     saveAndUnlockPlanning,
-    addCoverageToWorkflow
+    addCoverageToWorkflow,
 };
 
 export default self;

@@ -53,7 +53,7 @@ export class EventItem extends React.PureComponent {
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
             [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]
+                this.props[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName],
         };
         const itemActions = eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack);
 
@@ -152,5 +152,5 @@ EventItem.propTypes = {
 };
 
 EventItem.defaultProps = {
-    togglePlanningItem: () => { /* no-op */ }
+    togglePlanningItem: () => { /* no-op */ },
 };

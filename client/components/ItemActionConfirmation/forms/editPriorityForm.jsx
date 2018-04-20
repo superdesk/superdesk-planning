@@ -40,7 +40,7 @@ export class EditPriorityComponent extends React.Component {
     submit() {
         return this.props.onSubmit({
             ...this.props.initialValues,
-            priority: get(this.state.priority, 'qcode') || null
+            priority: get(this.state.priority, 'qcode') || null,
         });
     }
 
@@ -63,7 +63,7 @@ export class EditPriorityComponent extends React.Component {
         const infoProps = {
             labelLeft: true,
             borderBottom: false,
-            readOnly: true
+            readOnly: true,
         };
 
         return (
@@ -150,14 +150,14 @@ const mapDispatchToProps = (dispatch) => ({
     onSubmit: (assignment) => dispatch(actions.assignments.ui.save(assignment))
         .then(() => dispatch({
             type: ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT,
-            payload: {assignment}
+            payload: {assignment},
         })),
 
     onHide: (assignment) => {
         if (assignment.lock_action === 'edit_priority') {
             dispatch(actions.assignments.api.unlock(assignment));
         }
-    }
+    },
 });
 
 export const EditPriorityForm = connect(

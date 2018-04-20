@@ -11,7 +11,7 @@ export class ListPanel extends React.Component {
         super(props);
         this.state = {
             isNextPageLoading: false,
-            scrollTop: 0
+            scrollTop: 0,
         };
 
         this.dom = {list: null};
@@ -24,7 +24,7 @@ export class ListPanel extends React.Component {
         if (get(nextProps, 'activeFilter') !== get(this.props, 'activeFilter')) {
             this.setState({
                 isNextPageLoading: false,
-                scrollTop: 0
+                scrollTop: 0,
             });
         }
 

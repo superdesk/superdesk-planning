@@ -113,7 +113,7 @@ const eventsReducer = createReducer(initialState, {
     [EVENTS.ACTIONS.CLEAR_LIST]: (state) => (
         {
             ...state,
-            eventsInList: []
+            eventsInList: [],
         }
     ),
 
@@ -299,7 +299,7 @@ Event Postponed
 
     [EVENTS.ACTIONS.RECEIVE_CALENDARS]: (state, payload) => ({
         ...state,
-        calendars: payload
+        calendars: payload,
     }),
 
     [EVENTS.ACTIONS.SELECT_CALENDAR]: (state, payload) => ({

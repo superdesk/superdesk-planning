@@ -20,7 +20,7 @@ NestedItem.propTypes = {
     collapsed: PropTypes.bool,
     expanded: PropTypes.bool,
     parentItem: PropTypes.element.isRequired,
-    nestedChildren: PropTypes.arrayOf(PropTypes.node)
+    nestedChildren: PropTypes.arrayOf(PropTypes.node),
 };
 
 NestedItem.defaultProps = {

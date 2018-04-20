@@ -55,7 +55,7 @@ export function UnlinkAssignmentController(
                                 (lockedItem) => Promise.resolve({
                                     newsItem: lockedItem,
                                     assignment: assignment,
-                                    isLocked: true
+                                    isLocked: true,
                                 }),
                                 (error) => {
                                     notify.error(
@@ -70,7 +70,7 @@ export function UnlinkAssignmentController(
                     return Promise.resolve({
                         newsItem: newsItem,
                         assignment: assignment,
-                        isLocked: false
+                        isLocked: false,
                     });
                 }, (error) => {
                     notify.error(

@@ -25,9 +25,9 @@ describe('actions.eventsplanning.api', () => {
                             query_string: {
                                 query: '(search*)',
                                 lenient: false,
-                                default_operator: 'AND'
-                            }
-                        }
+                                default_operator: 'AND',
+                            },
+                        },
                     ]);
 
                     expect(source.filter.or.filters).toEqual([
@@ -39,12 +39,12 @@ describe('actions.eventsplanning.api', () => {
                                         range: {
                                             'dates.end': {
                                                 gte: 'now/d',
-                                                time_zone: getTimeZoneOffset()
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
+                                                time_zone: getTimeZoneOffset(),
+                                            },
+                                        },
+                                    },
+                                ],
+                            },
                         },
                         {
                             and: {
@@ -57,15 +57,15 @@ describe('actions.eventsplanning.api', () => {
                                                 range: {
                                                     '_planning_schedule.scheduled': {
                                                         gte: 'now/d',
-                                                        time_zone: getTimeZoneOffset()
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
+                                                        time_zone: getTimeZoneOffset(),
+                                                    },
+                                                },
+                                            },
+                                        },
+                                    },
+                                ],
+                            },
+                        },
                     ]);
 
                     expect(source.sort).toEqual(
@@ -73,7 +73,7 @@ describe('actions.eventsplanning.api', () => {
                             {
                                 '_planning_schedule.scheduled': {
                                     order: 'asc',
-                                    nested_path: '_planning_schedule'
+                                    nested_path: '_planning_schedule',
                                 },
                             },
                         ]
