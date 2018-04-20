@@ -448,13 +448,14 @@ const onFulFilAssignment = (assignment) => (
         const newsItem = get(selectors.general.modalProps(getState()), 'newsItem', null);
         const $scope = get(selectors.general.modalProps(getState()), '$scope', null);
         const currentWorkSpace = selectors.getCurrentWorkspace(getState());
+        const reassign = true;
 
         if (currentWorkSpace !== WORKSPACE.AUTHORING || !$scope || !newsItem) {
             return Promise.resolve();
         }
 
         dispatch(actions.actionInProgress(true));
-        return dispatch(assignments.api.link(assignment, newsItem))
+        return dispatch(assignments.api.link(assignment, newsItem, reassign))
             .then((item) => {
                 notify.success('Assignment is fulfilled.');
                 $scope.resolve();

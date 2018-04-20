@@ -596,7 +596,8 @@ class AssignmentsService(superdesk.Service):
             new_assignment_id = new_coverage['assigned_to'].get('assignment_id')
             assignment_link_service.post([{
                 'assignment_id': str(new_assignment_id),
-                'item_id': str(item[config.ID_FIELD])
+                'item_id': str(item[config.ID_FIELD]),
+                'reassign': True
             }])
 
     def unlink_assignment_on_delete_archive_rewrite(self):

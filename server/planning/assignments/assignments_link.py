@@ -31,6 +31,7 @@ class AssignmentsLinkService(Service):
         for doc in docs:
             assignment = assignments_service.find_one(req=None, _id=doc.pop('assignment_id'))
             item = production.find_one(req=None, _id=doc.pop('item_id'))
+            reassign = doc.pop('reassign')
 
             # set the state to in progress if item in published state
             updates = {'assigned_to': deepcopy(assignment.get('assigned_to'))}
@@ -38,10 +39,11 @@ class AssignmentsLinkService(Service):
                 item.get(ITEM_STATE) in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED] else \
                 ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
 
-            # on fulfiling the assignment the user is assigned the assignment.
-            user = get_user()
-            if user and str(user.get(config.ID_FIELD)) != (assignment.get('assigned_to') or {}).get('user'):
-                updates['assigned_to']['user'] = str(user.get(config.ID_FIELD))
+            # on fulfiling the assignment the user is assigned the assignment, for add to planning it is not
+            if reassign:
+                user = get_user()
+                if user and str(user.get(config.ID_FIELD)) != (assignment.get('assigned_to') or {}).get('user'):
+                    updates['assigned_to']['user'] = str(user.get(config.ID_FIELD))
 
             if item.get(ITEM_STATE) in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED]:
                 assignments_complete.update(assignment[config.ID_FIELD], updates, assignment)
@@ -135,6 +137,10 @@ class AssignmentsLinkResource(Resource):
         },
         'item_id': {
             'type': 'string',
+            'required': True
+        },
+        'reassign': {
+            'type': 'boolean',
             'required': True
         }
     }

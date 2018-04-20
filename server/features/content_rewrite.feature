@@ -80,7 +80,8 @@ Feature: Rewrite content
         """
         [{
             "assignment_id": "#firstassignment#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
 

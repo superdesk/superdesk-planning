@@ -123,7 +123,7 @@ Feature: Assignments Delete
         """
         When we post to "assignments/link"
         """
-        [{"assignment_id": "#assignmentId#", "item_id": "#archive._id#"}]
+        [{"assignment_id": "#assignmentId#", "item_id": "#archive._id#", "reassign": true}]
         """
         Then we get OK response
         When we get "/archive/#archive._id#"

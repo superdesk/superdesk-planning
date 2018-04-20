@@ -33,7 +33,8 @@ class AssignmentUnlinkTestCase(TestCase):
 
             get_resource_service('assignments_link').post([{
                 'assignment_id': 'as1',
-                'item_id': 'item1'
+                'item_id': 'item1',
+                'reassign': True
             }])
 
             delivery_service = get_resource_service('delivery')

@@ -192,12 +192,13 @@ const save = (item, original = undefined) => (
  * @param {Object} newsItem - news item
  * @return Promise
  */
-const link = (assignment, newsItem) => (
+const link = (assignment, newsItem, reassign) => (
     (dispatch, getState, {api}) => (
 
         api('assignments_link').save({}, {
             assignment_id: assignment._id || assignment.assignment_id,
             item_id: newsItem._id,
+            reassign: reassign,
         })
             .then((item) => {
                 newsItem.assignment_id = item.assignment_id;

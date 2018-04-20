@@ -313,8 +313,7 @@ describe('actions.assignments.api', () => {
             data.plannings[0].coverages.pop();
             store.test(done, assignmentsApi.link(
                 data.plannings[0].coverages[0].assigned_to,
-                {_id: 'item1'}
-            ))
+                {_id: 'item1'}, true))
                 .then(() => {
                     expect(services.api('assignments_link').save.callCount).toBe(1);
                     expect(services.api('assignments_link').save.args[0]).toEqual([
@@ -322,7 +321,8 @@ describe('actions.assignments.api', () => {
                         {
                             assignment_id: 'as1',
                             item_id: 'item1',
-                        },
+                            reassign: true,
+                        }
                     ]);
                     done();
                 });

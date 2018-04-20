@@ -77,7 +77,7 @@ export class PlanningEditorComponent extends React.Component {
                     this.props.addNewsItemToPlanning,
                     this.props.newsCoverageStatus,
                     this.props.desk,
-                    this.props.user,
+                    get(this.props, 'addNewsItemToPlanning.version_creator'),
                     this.props.contentTypes);
 
                 this.fillCurrentAgenda(newPlanning);

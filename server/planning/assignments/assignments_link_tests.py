@@ -29,7 +29,8 @@ class AssignmentLinkTestCase(TestCase):
 
             get_resource_service('assignments_link').post([{
                 'assignment_id': 'as1',
-                'item_id': 'item1'
+                'item_id': 'item1',
+                'reassign': True
             }])
 
             delivery_item = get_resource_service('delivery').find_one(req=None, item_id='item1')
