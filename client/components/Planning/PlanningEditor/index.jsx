@@ -30,7 +30,7 @@ import {ToggleBox} from '../../UI';
 import {PlanningEditorHeader} from './PlanningEditorHeader';
 import {CoverageArrayInput} from '../../Coverages';
 import {EventMetadata} from '../../Events';
-import {PLANNING, WORKFLOW_STATE} from '../../../constants';
+import {PLANNING, WORKFLOW_STATE, COVERAGES} from '../../../constants';
 
 const toggleDetails = [
     'ednote',
@@ -52,6 +52,7 @@ export class PlanningEditorComponent extends React.Component {
         this.onCancelCoverage = this.onCancelCoverage.bind(this);
         this.onPlanningDateChange = this.onPlanningDateChange.bind(this);
         this.onAddCoverageToWorkflow = this.onAddCoverageToWorkflow.bind(this);
+        this.onRemoveAssignment = this.onRemoveAssignment.bind(this);
     }
 
     componentWillMount() {
@@ -150,9 +151,8 @@ export class PlanningEditorComponent extends React.Component {
         this.onChange('coverages', coverages);
     }
 
-    onAddCoverageToWorkflow(coverage) {
+    onPartialSave(coverage, index, action) {
         const updates = cloneDeep(get(this.props, 'item'));
-        const index = updates.coverages.findIndex((c) => c.coverage_id === coverage.coverage_id);
 
         updates.coverages[index] = coverage;
 
@@ -162,14 +162,36 @@ export class PlanningEditorComponent extends React.Component {
             return;
         }
 
-        this.props.onAddCoverageToWorkflow(this.props.item, coverage)
+        let partialSaveAction;
+
+        if (action === COVERAGES.PARTIAL_SAVE.ADD_TO_WORKFLOW) {
+            partialSaveAction = this.props.onAddCoverageToWorkflow;
+        } else if (action === COVERAGES.PARTIAL_SAVE.REMOVE_ASSIGNMENT) {
+            partialSaveAction = this.props.removeAssignment;
+        }
+
+        partialSaveAction(this.props.item, coverage, index)
             .then((updates) => {
-                // Make sure the coverage in our AutoSave is updated with the new workflow states
-                // Otherwise this will cause the form to stay dirty when the initialValues change
+            // Make sure the coverage in our AutoSave is updated with the new workflow states
+            // Otherwise this will cause the form to stay dirty when the initialValues change
                 planningUtils.convertGenreToObject(updates.coverages[index]);
                 updates.coverages[index].planning.scheduled = moment(updates.coverages[index].planning.scheduled);
                 this.onChange(`coverages[${index}]`, updates.coverages[index]);
             });
+    }
+
+    onAddCoverageToWorkflow(coverage, index) {
+        this.onPartialSave(coverage, index, COVERAGES.PARTIAL_SAVE.ADD_TO_WORKFLOW);
+    }
+
+    onRemoveAssignment(coverage, index) {
+        if (!get(coverage, 'assigned_to.assignment_id')) {
+            // Non existing assignment, just remove from autosave
+            this.onChange('coverages[' + index + '].assigned_to', {});
+        } else {
+            delete coverage.assigned_to;
+            this.onPartialSave(coverage, index, COVERAGES.PARTIAL_SAVE.REMOVE_ASSIGNMENT);
+        }
     }
 
     onChange(field, value) {
@@ -511,6 +533,7 @@ export class PlanningEditorComponent extends React.Component {
                     onDuplicateCoverage={this.onDuplicateCoverage}
                     onCancelCoverage={this.onCancelCoverage}
                     onAddCoverageToWorkflow={this.onAddCoverageToWorkflow}
+                    onRemoveAssignment={this.onRemoveAssignment}
                     readOnly={readOnly}
                     maxCoverageCount={maxCoverageCount}
                     addOnly={!!addNewsItemToPlanning}
@@ -561,6 +584,7 @@ PlanningEditorComponent.propTypes = {
     lockedItems: PropTypes.object,
     onAddCoverageToWorkflow: PropTypes.func,
     startPartialSave: PropTypes.func,
+    removeAssignment: PropTypes.func,
     navigation: PropTypes.object,
 };
 
@@ -596,8 +620,10 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onAddCoverageToWorkflow: (planning, coverage) =>
-        dispatch(actions.planning.ui.addCoverageToWorkflow(planning, coverage)),
+    onAddCoverageToWorkflow: (planning, coverage, index) =>
+        dispatch(actions.planning.ui.addCoverageToWorkflow(planning, coverage, index)),
+    removeAssignment: (planning, coverage, index) =>
+        dispatch(actions.planning.ui.removeAssignment(planning, coverage, index)),
 });
 
 export const PlanningEditor = connect(

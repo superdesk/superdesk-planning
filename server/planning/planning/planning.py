@@ -417,8 +417,14 @@ class PlanningService(superdesk.Service):
             updates['assigned_to']['assignment_id'] = str(assignment_id[0])
             updates['assigned_to']['state'] = assign_state
         elif assigned_to.get('assignment_id'):
-            # update the assignment using the coverage details
+            if not updates.get('assigned_to'):
+                if not is_coverage_draft:
+                    raise SuperdeskApiError.badRequestError('Coverage not in draft state to remove assignment.')
+                # Removing assignment
+                assignment_service.delete(lookup={'_id': assigned_to.get('assignment_id')})
+                return
 
+            # update the assignment using the coverage details
             original_assignment = assignment_service.find_one(req=None,
                                                               _id=assigned_to.get('assignment_id'))
 

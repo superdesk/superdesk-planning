@@ -762,7 +762,8 @@ describe('actions.planning.ui', () => {
                     internal_note: 'Please cover this',
                     g2_content_type: 'photo',
                 },
-            }
+            },
+            0
         ))
             .then(() => {
                 expect(planningApi.save.callCount).toBe(1);

@@ -30,6 +30,7 @@ export const CoverageArrayInput = ({
     onDuplicateCoverage,
     onCancelCoverage,
     onAddCoverageToWorkflow,
+    onRemoveAssignment,
     addNewsItemToPlanning,
     readOnly,
     message,
@@ -60,6 +61,7 @@ export const CoverageArrayInput = ({
                 coverageProviders={coverageProviders}
                 priorities={priorities}
                 keywords={keywords}
+                onRemoveAssignment={onRemoveAssignment}
                 onDuplicateCoverage={onDuplicateCoverage}
                 onCancelCoverage={onCancelCoverage}
                 onAddCoverageToWorkflow={onAddCoverageToWorkflow}
@@ -99,6 +101,7 @@ CoverageArrayInput.propTypes = {
     onDuplicateCoverage: PropTypes.func,
     onCancelCoverage: PropTypes.func,
     onAddCoverageToWorkflow: PropTypes.func,
+    onRemoveAssignment: PropTypes.func,
     message: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.object,

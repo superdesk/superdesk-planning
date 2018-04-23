@@ -35,6 +35,7 @@ export class CoverageFormHeader extends React.Component {
             coverageProviders,
             priorities,
             addNewsItemToPlanning,
+            onRemoveAssignment,
             readOnly,
         } = this.props;
 
@@ -43,7 +44,7 @@ export class CoverageFormHeader extends React.Component {
         const coverageProvider = get(value, 'assigned_to.coverage_provider');
         const assignmentState = get(value, 'assigned_to.state');
         const cancelled = get(value, 'workflow_status') === 'cancelled';
-        const canReassign = planningUtils.isCoverageDraft(value) ||
+        const canEditAssignment = planningUtils.isCoverageDraft(value) ||
             (!!addNewsItemToPlanning && !get(value, 'coverage_id'));
 
         if (!deskAssigned && (!userAssigned || !coverageProvider)) {
@@ -138,16 +139,28 @@ export class CoverageFormHeader extends React.Component {
                         </ListRow>
                     }
                 </Column>
-                {canReassign && !readOnly && (
+                {canEditAssignment && !readOnly && (
                     <Column>
-                        <Button
-                            text={gettext('Reassign')}
-                            className="btn btn--hollow btn--small"
-                            onClick={this.togglePopup}
-                            tabIndex={0}
-                            enterKeyIsClick
-                            disabled={!!addNewsItemToPlanning}
-                            autoFocus />
+                        <ListRow>
+                            <Button
+                                text={gettext('Reassign')}
+                                className="btn btn--hollow btn--small"
+                                onClick={this.togglePopup}
+                                tabIndex={0}
+                                enterKeyIsClick
+                                disabled={!!addNewsItemToPlanning}
+                                autoFocus />
+                        </ListRow>
+                        <ListRow>
+                            <Button
+                                text={gettext('Remove')}
+                                className="btn btn--hollow btn--small"
+                                onClick={onRemoveAssignment}
+                                tabIndex={0}
+                                enterKeyIsClick
+                                disabled={!!addNewsItemToPlanning}
+                                autoFocus />
+                        </ListRow>
                     </Column>
                 )}
                 {this.state.popupOpen && (
@@ -182,4 +195,5 @@ CoverageFormHeader.propTypes = {
     readOnly: PropTypes.bool,
     addNewsItemToPlanning: PropTypes.object,
     onFocus: PropTypes.func,
+    onRemoveAssignment: PropTypes.func,
 };

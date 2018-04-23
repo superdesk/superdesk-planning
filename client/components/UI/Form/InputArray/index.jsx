@@ -60,6 +60,7 @@ export const InputArray = ({
         return row ?
             (<Component
                 key={index}
+                index={index}
                 field={`${field}[${index}]`}
                 onChange={onChange}
                 value={val}
@@ -72,6 +73,7 @@ export const InputArray = ({
             />) :
             (<Component
                 key={index}
+                index={index}
                 field={`${field}[${index}]`}
                 onChange={onChange}
                 value={val}
