@@ -64,12 +64,14 @@
 .element-with-badge {
     + .element-with-badge, + .sd-check__wrapper {
         margin-left: 1.2rem;
+        margin-top: 0.5rem;
         vertical-align: top;
     }
 }
 
 .sd-check__wrapper + .element-with-badge {
     margin-left: 1.2rem;
+    margin-top: 0.5rem;
     vertical-align: top;
 }
 
