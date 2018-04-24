@@ -476,6 +476,10 @@ const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, d
         self.convertGenreToObject(newCoverage);
     }
 
+    if (get(addNewsItemToPlanning, 'keywords.length', 0) > 0) {
+        newCoverage.planning.keyword = addNewsItemToPlanning.keywords;
+    }
+
     // Add assignment to coverage
     if ([WORKFLOW_STATE.SCHEDULED, 'published'].includes(addNewsItemToPlanning.state)) {
         newCoverage.planning.scheduled = addNewsItemToPlanning.state === 'published' ?
