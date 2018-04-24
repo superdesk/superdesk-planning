@@ -20,8 +20,8 @@ export const getAssignmentsInCompletedList = (state) => get(state,
     'assignment.assignmentsInCompletedList', []);
 export const getFilterBy = (state) => get(state, 'assignment.filterBy', 'ALL');
 export const getSearchQuery = (state) => get(state, 'assignment.searchQuery', null);
-export const getOrderByField = (state) => get(state, 'assignment.orderByField', 'Created');
-export const getOrderDirection = (state) => get(state, 'assignment.orderDirection', 'Asc');
+export const getOrderByField = (state) => get(state, 'assignment.orderByField', 'Updated');
+export const getOrderDirection = (state) => get(state, 'assignment.orderDirection', 'Desc');
 export const getAssignmentFilterByState = (state) => get(state, 'assignment.filterByState', null);
 export const getAssignmentFilterByType = (state) => get(state, 'assignment.filterByType', null);
 export const getAssignmentFilterByPriority = (state) =>
@@ -97,8 +97,8 @@ export const getAssignmentSearch = createSelector(
             ) ? currentDeskId : null,
             userId: (get(listSettings, 'filterBy') === 'User') ? currentUserId : null,
             searchQuery: get(listSettings, 'searchQuery', ''),
-            orderByField: get(listSettings, 'orderByField', 'Created'),
-            orderDirection: get(listSettings, 'orderDirection', 'Asc'),
+            orderByField: get(listSettings, 'orderByField', 'Updated'),
+            orderDirection: get(listSettings, 'orderDirection', 'Desc'),
             page: 1,
             states: null,
             type: filterByType,

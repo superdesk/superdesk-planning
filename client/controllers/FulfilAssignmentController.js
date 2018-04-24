@@ -94,7 +94,7 @@ export function FulFilAssignmentController(
                     registerNotifications($scope, store);
 
                     store.dispatch(actions.assignments.ui.loadAssignments('All', null,
-                        'Created', 'Asc', [ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED], item.type))
+                        'Created', 'Desc', [ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED], item.type))
                         .then(() => {
                             store.dispatch(actions.assignments.ui.changeAssignmentListSingleGroupView('TODO'));
 
