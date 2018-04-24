@@ -707,7 +707,7 @@ const jumpTo = (direction) => (
             if (jumpInterval === MAIN.JUMP.DAY) {
                 newStart = direction === MAIN.JUMP.BACK ?
                     currentStartFilter.clone().subtract(1, 'd') :
-                    currentStartFilter.clone().add(1, '1');
+                    currentStartFilter.clone().add(1, 'd');
             } else if (jumpInterval === MAIN.JUMP.WEEK) {
                 const startOfWeek = selectors.config.getStartOfWeek(getState());
 
