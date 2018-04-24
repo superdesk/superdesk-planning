@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import {isEqual} from 'lodash';
 import {Modal} from '../index';
 import {gettext} from '../../utils';
 import {MODALS} from '../../constants';
@@ -20,6 +21,16 @@ export class ManageAgendasComponent extends React.Component {
             editorOpen: false,
             selectedAgenda: null,
         };
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (this.state.selectedAgenda) {
+            const nextPropsAgenda = nextProps.enabledAgendas.find((a) => a._id === this.state.selectedAgenda._id);
+
+            if (!isEqual(this.state.selectedAgenda, nextPropsAgenda)) {
+                this.setState({selectedAgenda: nextPropsAgenda});
+            }
+        }
     }
 
     toggleEditorOpen() {
@@ -81,7 +92,8 @@ export class ManageAgendasComponent extends React.Component {
                                 <EditAgenda
                                     agenda={this.state.selectedAgenda}
                                     onClose={this.toggleEditorOpen.bind(this)}
-                                    onSave={this.props.createOrUpdateAgenda}/>
+                                    onSave={this.props.createOrUpdateAgenda}
+                                    openOnSaveModal={this.props.openOnSaveModal} />
                             </ColumnBox.SlideInColumn>
                         }
                     </ColumnBox.Box>
@@ -101,6 +113,7 @@ ManageAgendasComponent.propTypes = {
     privileges: PropTypes.object.isRequired,
     deleteAgenda: PropTypes.func,
     createOrUpdateAgenda: PropTypes.func,
+    openOnSaveModal: PropTypes.func,
 };
 
 const mapStateToProps = (state) => (
@@ -120,6 +133,7 @@ const mapDispatchToProps = (dispatch) => ({
         },
     })),
     createOrUpdateAgenda: (agenda) => dispatch(actions.createOrUpdateAgenda(agenda)),
+    openOnSaveModal: (props) => dispatch(actions.main.openConfirmationModal(props)),
 });
 
 export const ManageAgendasModal = connect(

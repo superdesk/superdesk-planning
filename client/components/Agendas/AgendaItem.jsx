@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
+import {get} from 'lodash';
 import {TOOLTIPS} from '../../constants';
 import {List} from '../UI';
 
@@ -19,10 +20,11 @@ export const AgendaItem = ({agenda, deleteAgenda, editAgenda, privileges, active
                     data-sd-tooltip={TOOLTIPS.editAgenda} data-flow="down">
                     <i className="icon-pencil"/>
                 </button>}
+                {get(agenda, 'plannings.length', 0) === 0 &&
                 <button onClick={deleteAgenda.bind(null, agenda)} className="dropdown__toggle"
                     data-sd-tooltip={TOOLTIPS.deleteAgenda} data-flow="down">
                     <i className="icon-trash"/>
-                </button>
+                </button>}
             </List.ActionMenu>
         }
     </List.Item>

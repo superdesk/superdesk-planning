@@ -2,7 +2,7 @@ import {get} from 'lodash';
 import planning from './index';
 import {lockUtils, gettext} from '../../utils';
 import * as selectors from '../../selectors';
-import {showModal, hideModal, events} from '../index';
+import {showModal, hideModal, events, fetchAgendas} from '../index';
 import main from '../main';
 import {PLANNING, MODALS} from '../../constants';
 import eventsPlanning from '../eventsPlanning';
@@ -55,6 +55,9 @@ const onPlanningUpdated = (_e, data) => (
                     }
 
                     dispatch(eventsPlanning.ui.scheduleRefetch());
+                    if (get(data, 'added_agendas.length', 0) > 0 || get(data, 'removed_agendas.length', 0) > 0) {
+                        dispatch(fetchAgendas());
+                    }
                 });
         }
 

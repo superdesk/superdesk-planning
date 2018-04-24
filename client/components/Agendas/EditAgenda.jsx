@@ -18,6 +18,7 @@ export class EditAgenda extends React.Component {
 
         this.onChange = this.onChange.bind(this);
         this.onEnableChange = this.onEnableChange.bind(this);
+        this.saveAgenda = this.saveAgenda.bind(this);
     }
 
     componentWillMount() {
@@ -59,6 +60,21 @@ export class EditAgenda extends React.Component {
     }
 
     onSave() {
+        if (get(this.props, 'agenda.is_enabled') === true &&
+            get(this.state, 'agendaEnabled') === false && get(this.props, 'agenda.plannings.length', 0) > 0) {
+            this.props.openOnSaveModal({
+                title: gettext('Disable confirmation'),
+                body: gettext('Agenda \'{{ name }}\' has planning items associated with it. Continue ?',
+                    {name: this.state.agendaName}),
+                okText: 'Save',
+                action: () => this.saveAgenda(),
+            });
+        } else {
+            this.saveAgenda();
+        }
+    }
+
+    saveAgenda() {
         if (this.state.agendaName) {
             const agenda = {
                 name: this.state.agendaName,
@@ -125,4 +141,5 @@ EditAgenda.propTypes = {
     agenda: PropTypes.object,
     onClose: PropTypes.func.isRequired,
     onSave: PropTypes.func.isRequired,
+    openOnSaveModal: PropTypes.func.isRequired,
 };
