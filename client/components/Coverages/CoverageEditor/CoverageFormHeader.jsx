@@ -146,6 +146,7 @@ export class CoverageFormHeader extends React.Component {
                             onClick={this.togglePopup}
                             tabIndex={0}
                             enterKeyIsClick
+                            disabled={!!addNewsItemToPlanning}
                             autoFocus />
                     </Column>
                 )}
