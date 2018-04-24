@@ -9,16 +9,29 @@ const initialState = {
     itemType: null,
     initialValues: null,
     loadingEditItem: false,
-    modalView: false,
+    itemIdModal: null,
+    itemTypeModal: null,
+    initialValuesModal: null,
+    loadingEditItemModal: false,
 };
 
-const newStateOnEditorOpen = (state, payload, modal = false) => ({
-    ...state,
-    itemId: get(payload, '_id') || null,
-    itemType: get(payload, 'type') || null,
-    initialValues: payload,
-    modalView: modal,
-});
+const newStateOnEditorOpen = (state, payload, modal = false) => {
+    if (modal) {
+        return {
+            ...state,
+            itemIdModal: get(payload, '_id') || null,
+            itemTypeModal: get(payload, 'type') || null,
+            initialValuesModal: payload,
+        };
+    } else {
+        return {
+            ...state,
+            itemId: get(payload, '_id') || null,
+            itemType: get(payload, 'type') || null,
+            initialValues: payload,
+        };
+    }
+};
 
 const formsReducer = createReducer(initialState, {
     [AUTOSAVE.ACTIONS.SAVE]: (state, payload) => (
@@ -55,7 +68,13 @@ const formsReducer = createReducer(initialState, {
         itemId: null,
         itemType: null,
         initialValues: null,
-        modalView: false,
+    }),
+
+    [MAIN.ACTIONS.CLOSE_EDITOR_MODAL]: (state) => ({
+        ...state,
+        itemIdModal: null,
+        itemTypeModal: null,
+        initialValuesModal: null,
     }),
 
     [EVENTS.ACTIONS.UNLOCK_EVENT]: (state, payload) => (
@@ -96,6 +115,16 @@ const formsReducer = createReducer(initialState, {
     [MAIN.ACTIONS.EDIT_LOADING_COMPLETE]: (state) => ({
         ...state,
         loadingEditItem: false,
+    }),
+
+    [MAIN.ACTIONS.EDIT_LOADING_START_MODAL]: (state) => ({
+        ...state,
+        loadingEditItemModal: true,
+    }),
+
+    [MAIN.ACTIONS.EDIT_LOADING_COMPLETE_MODAL]: (state) => ({
+        ...state,
+        loadingEditItemModal: false,
     }),
 });
 

@@ -21,5 +21,9 @@
         &--content {
             height: 682px;
         }
+
+        &--padding-bottom {
+            padding-bottom: 520px; // Extra padding to allow elements to scroll to top of editor
+        }
     }
 }

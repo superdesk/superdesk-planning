@@ -302,6 +302,8 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
             canUpdateEventRepetitions(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.EDIT_EVENT.label]: () =>
             canEditEvent(event, session, privileges, locks),
+        [EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.label]: () =>
+            canEditEvent(event, session, privileges, locks),
     };
 
     actions.forEach((action) => {
@@ -443,6 +445,14 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks, with
                 actions.push({
                     ...EVENTS.ITEM_ACTIONS.EDIT_EVENT,
                     callback: callBacks[callBackName].bind(null, item),
+                });
+            break;
+
+        case EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName:
+            callBacks[callBackName] &&
+                actions.push({
+                    ...EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL,
+                    callback: callBacks[callBackName].bind(null, item, true),
                 });
             break;
         }

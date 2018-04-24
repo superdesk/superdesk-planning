@@ -7,8 +7,8 @@ import {get} from 'lodash';
 import {CoveragePreview} from '../../Coverages';
 import {ContentBlock} from '../../UI/SidePanel';
 import {EventMetadata} from '../../Events';
-import {PlanningMetaData} from './PlanningMetaData';
-import {PlanningDetails} from './PlanningDetails';
+import {PlanningInfo} from './PlanningInfo';
+import {MenuItem} from '../../Main/ItemEditorModal/MenuItem';
 
 export class PlanningMenuPanelComponent extends React.Component {
     render() {
@@ -28,13 +28,13 @@ export class PlanningMenuPanelComponent extends React.Component {
 
         return (
             <ContentBlock>
-                <PlanningMetaData
+                <PlanningInfo
                     item={item}
                     onClick={onMenuItemClick.bind(null, 'planning')}
                     dateFormat={dateFormat}
                     timeFormat={timeFormat}
                     active={activeItem === 'planning'} />
-                <PlanningDetails item={item}
+                <MenuItem label={gettext('Details')}
                     onClick={onMenuItemClick.bind(null, 'details')}
                     active={activeItem === 'details'}/>
                 {event && (

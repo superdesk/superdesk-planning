@@ -83,6 +83,12 @@ export const PLANNING = {
             actionName: 'onEditPlanning',
             lock_action: 'edit',
         },
+        EDIT_PLANNING_MODAL: {
+            label: gettext('Edit in popup'),
+            icon: 'icon-external',
+            actionName: 'onEditPlanningModal',
+            lock_action: 'edit',
+        },
         ASSIGN_TO_AGENDA: {
             label: gettext('Assign to agenda'),
             icon: 'icon-list-plus',

@@ -91,7 +91,7 @@ export class LinkInput extends React.Component {
     }
 
     render() {
-        const {value, field, remove, onChange, label, readOnly, iframelyKey, ...props} = this.props;
+        const {value, field, remove, onChange, label, readOnly, iframelyKey, onFocus, ...props} = this.props;
 
         const showLink = this.state.title &&
             !props.message &&
@@ -119,6 +119,7 @@ export class LinkInput extends React.Component {
                         autoFocus
                         tabIndex={0}
                         multiLine={false}
+                        onFocus={onFocus}
                     />
 
                     {showLink && iframelyKey && (
@@ -156,6 +157,7 @@ LinkInput.propTypes = {
     iframelyKey: PropTypes.string,
     readOnly: PropTypes.bool,
     message: PropTypes.string,
+    onFocus: PropTypes.func,
 };
 
 LinkInput.defaultProps = {

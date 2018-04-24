@@ -196,6 +196,8 @@ export const getPlanningItemActions = (plan, event = null, session, privileges, 
             canAddAsEvent(plan, event, session, privileges, locks),
         [PLANNING.ITEM_ACTIONS.EDIT_PLANNING.label]: () =>
             canEditPlanning(plan, event, session, privileges, locks),
+        [PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.label]: () =>
+            canEditPlanning(plan, event, session, privileges, locks),
         [PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.label]: () =>
             canAssignAgenda(plan, event, privileges, locks),
         [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: () =>
@@ -329,6 +331,13 @@ const getPlanningActions = ({
             actions.push({
                 ...PLANNING.ITEM_ACTIONS.EDIT_PLANNING,
                 callback: callBacks[callBackName].bind(null, item),
+            });
+            break;
+
+        case PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.actionName:
+            actions.push({
+                ...PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL,
+                callback: callBacks[callBackName].bind(null, item, true),
             });
             break;
 

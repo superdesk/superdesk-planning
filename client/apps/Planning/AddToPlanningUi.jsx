@@ -26,6 +26,7 @@ export const AddToPlanningUi = ({
             createAndPublish
             hideMinimize
             hideItemActions
+            hideExternalEdit
         />
     );
 

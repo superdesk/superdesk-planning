@@ -37,6 +37,8 @@ export class EventItem extends React.PureComponent {
         const itemActionsCallBack = {
             [EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName],
+            [EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName]:
+                this.props[EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName],
             [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],

@@ -1,14 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
+import classNames from 'classnames';
+
 import {get, isEqual, cloneDeep, omit, pickBy} from 'lodash';
 
 import {gettext, lockUtils, eventUtils, planningUtils, updateFormValues, isExistingItem} from '../../../utils';
-import actionUtils from '../../../utils/actions';
 
 import {ITEM_TYPE, EVENTS, PLANNING, PUBLISHED_STATE, WORKFLOW_STATE, COVERAGES} from '../../../constants';
-import * as selectors from '../../../selectors';
-import * as actions from '../../../actions';
 
 import {Button} from '../../UI';
 import {Toolbar as SlideInToolbar} from '../../UI/SlideInPanel';
@@ -18,8 +16,6 @@ import {SidePanel, Content} from '../../UI/SidePanel';
 import {EditorHeader, EditorContentTab} from './index';
 import {HistoryTab} from '../index';
 import {Autosave} from '../../index';
-
-import {validateItem} from '../../../validators';
 
 export class EditorComponent extends React.Component {
     constructor(props) {
@@ -63,10 +59,15 @@ export class EditorComponent extends React.Component {
     }
 
     componentDidMount() {
-        // If the item is located in the URL, on first mount copy the diff from the item.
+        // If the editor is in main page and the item is located in the URL, on first mount copy the diff from the item.
         // Otherwise all item changes will occur during the componentWillReceiveProps
-        if (this.props.itemId && this.props.itemType) {
+        if (!this.props.inModalView && this.props.itemId && this.props.itemType) {
             this.props.loadItem(this.props.itemId, this.props.itemType);
+        }
+
+        if (this.props.inModalView && this.props.item) {
+            // Moved from editor on main document to modal mode
+            this.resetForm(this.props.item);
         }
     }
 
@@ -426,6 +427,7 @@ export class EditorComponent extends React.Component {
                     privileges={this.props.privileges}
                     lockedItems={this.props.lockedItems}
                     openCancelModal={this.props.openCancelModal}
+                    closeEditorAndOpenModal={this.props.closeEditorAndOpenModal}
                     users={this.props.users}
                     onUnlock={this.props.onUnlock}
                     onLock={this.props.onLock}
@@ -437,6 +439,7 @@ export class EditorComponent extends React.Component {
                     createAndPublish={this.props.createAndPublish}
                     hideItemActions={this.props.hideItemActions}
                     hideMinimize={this.props.hideMinimize}
+                    hideExternalEdit={this.props.hideExternalEdit}
                 />
                 <Content flex={true} className={this.props.contentClassName}>
                     {this.state.showSubmitFailed && (
@@ -464,7 +467,10 @@ export class EditorComponent extends React.Component {
                         />
                     )}
 
-                    <div className="side-panel__content-tab-content">
+                    <div className={
+                        classNames('side-panel__content-tab-content',
+                            {'editorModal__editor--padding-bottom':
+                                !!get(this.props, 'navigation.padContentForNavigation')})} >
                         {(!this.props.isLoadingItem && this.props.itemType) && (
                             <RenderTab
                                 item={this.props.item}
@@ -502,6 +508,7 @@ EditorComponent.propTypes = {
     lockedItems: PropTypes.object,
     openCancelModal: PropTypes.func.isRequired,
     users: PropTypes.array,
+    closeEditorAndOpenModal: PropTypes.func,
     onUnlock: PropTypes.func,
     onLock: PropTypes.func,
     addNewsItemToPlanning: PropTypes.object,
@@ -523,38 +530,6 @@ EditorComponent.propTypes = {
     className: PropTypes.string,
     contentClassName: PropTypes.string,
     navigation: PropTypes.object,
+    inModalView: PropTypes.bool,
+    hideExternalEdit: PropTypes.bool,
 };
-
-const mapStateToProps = (state) => ({
-    item: selectors.forms.currentItem(state),
-    itemId: selectors.forms.currentItemId(state),
-    itemType: selectors.forms.currentItemType(state),
-    initialValues: selectors.forms.initialValues(state),
-    users: selectors.getUsers(state),
-    formProfiles: selectors.forms.profiles(state),
-    occurStatuses: selectors.vocabs.eventOccurStatuses(state),
-    isLoadingItem: selectors.forms.isLoadingItem(state),
-    session: selectors.getSessionDetails(state),
-    privileges: selectors.getPrivileges(state),
-    lockedItems: selectors.locks.getLockedItems(state),
-    newsCoverageStatus: selectors.getNewsCoverageStatus(state),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-    onUnlock: (item) => dispatch(actions.locks.unlockThenLock(item)),
-    onLock: (item) => dispatch(actions.locks.lock(item)),
-    minimize: () => dispatch(actions.main.closeEditor()),
-    cancel: (item) => dispatch(actions.main.unlockAndCancel(item)),
-    onSave: (item) => dispatch(actions.main.save(item)),
-    onUnpublish: (item) => dispatch(actions.main.unpublish(item)),
-    onPublish: (item) => dispatch(actions.main.publish(item)),
-    onSaveUnpublish: (item) => dispatch(actions.main.onSaveUnpublish(item)),
-    openCancelModal: (props) => dispatch(actions.main.openConfirmationModal(props)),
-    onValidate: (type, item, profile, errors) => dispatch(validateItem(type, item, profile, errors)),
-    loadItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'edit')),
-    itemActions: actionUtils.getActionDispatches({dispatch: dispatch}),
-    removeNewAutosaveItems: () => dispatch(actions.autosave.removeNewItems()),
-});
-
-export const Editor = connect(mapStateToProps, mapDispatchToProps)(EditorComponent);
-

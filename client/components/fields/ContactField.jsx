@@ -162,7 +162,7 @@ export class ContactFieldComponent extends React.Component {
     }
 
     render() {
-        const {label, field, privileges, ...props} = this.props;
+        const {label, field, privileges, onFocus, ...props} = this.props;
 
         return (
             <SelectSearchTermsField
@@ -175,7 +175,8 @@ export class ContactFieldComponent extends React.Component {
                 options={this.state.filteredOptions}
                 value={this.state.filteredValues}
                 onAdd={privileges.contacts ? (onCancel) => this.addContact(onCancel) : null}
-                onAddText={privileges.contacts ? gettext('Add Contact') : null} />
+                onAddText={privileges.contacts ? gettext('Add Contact') : null}
+                onFocus={onFocus} />
         );
     }
 }
@@ -185,6 +186,7 @@ ContactFieldComponent.propTypes = {
     label: PropTypes.string,
     querySearch: PropTypes.bool,
     onQuerySearch: PropTypes.func,
+    onFocus: PropTypes.func,
     valueKey: PropTypes.string,
     value: PropTypes.oneOfType([
         PropTypes.string,
