@@ -77,6 +77,10 @@ def get_item_from_assignment(assignment, template=None):
     if genre:
         item['genre'] = deepcopy(genre)
 
+    keyword = planning_data.get('keyword', [])
+    if len(keyword) > 0:
+        item['keywords'] = keyword
+
     item['task'] = {
         'desk': desk['_id'],
         'user': get_user_id(),
