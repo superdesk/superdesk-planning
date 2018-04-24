@@ -667,8 +667,9 @@ const saveFromAuthoring = (plan) => (
                 const newsItem = get(selectors.general.modalProps(getState()), 'newsItem', null);
                 const coverages = orderBy(newPlan.coverages, ['firstcreated'], ['desc']);
                 const coverage = coverages[0];
+                const reassign = false;
 
-                return dispatch(actions.assignments.api.link(coverage.assigned_to, newsItem))
+                return dispatch(actions.assignments.api.link(coverage.assigned_to, newsItem, reassign))
                     .then(() => {
                         notify.success('Content linked to the planning item.');
                         dispatch(actions.actionInProgress(false));

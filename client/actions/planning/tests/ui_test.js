@@ -654,6 +654,7 @@ describe('actions.planning.ui', () => {
                             type: 'picture',
                             state: 'draft',
                         },
+                        false,
                     ]);
 
                     expect(services.notify.success.callCount).toBe(1);

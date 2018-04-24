@@ -81,7 +81,8 @@ Feature: Assignment Unlink
         """
         [{
             "assignment_id": "#assignmentId#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
         Then we get notifications
@@ -490,7 +491,8 @@ Feature: Assignment Unlink
         """
         [{
             "assignment_id": "#assignmentId#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
         When we post to "/assignments/#assignmentId#/lock" with success
@@ -556,7 +558,8 @@ Feature: Assignment Unlink
         """
         [{
             "assignment_id": "#assignmentId#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
         When we switch user
@@ -622,7 +625,8 @@ Feature: Assignment Unlink
         """
         [{
             "assignment_id": "#assignmentId#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
         When we setup test user

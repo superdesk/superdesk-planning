@@ -115,7 +115,8 @@ Feature: Assignments Locking
         """
         [{
             "assignment_id": "#firstassignment#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
         Then we get OK response
@@ -243,7 +244,8 @@ Feature: Assignments Locking
         """
         [{
             "assignment_id": "#firstassignment#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
         Then we get OK response
@@ -320,7 +322,8 @@ Feature: Assignments Locking
         """
         [{
             "assignment_id": "#firstassignment#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
         Then we get OK response
@@ -394,7 +397,8 @@ Feature: Assignments Locking
         """
         [{
             "assignment_id": "#firstassignment#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
         Then we get OK response
@@ -479,7 +483,8 @@ Feature: Assignments Locking
         """
         [{
             "assignment_id": "#firstassignment#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
         Then we get OK response
@@ -553,7 +558,8 @@ Feature: Assignments Locking
         """
         [{
             "assignment_id": "#firstassignment#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
         Then we get OK response

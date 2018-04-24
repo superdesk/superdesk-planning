@@ -77,7 +77,8 @@ Feature: Assignment Unlink
         """
         [{
             "assignment_id": "#assignmentId#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
         Then we get notifications

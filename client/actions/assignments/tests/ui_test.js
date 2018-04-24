@@ -54,7 +54,7 @@ describe('actions.assignments.ui', () => {
             store.test(done, assignmentsUi.onFulFilAssignment({_id: 'as1'}))
                 .then(() => {
                     expect(assignmentsApi.link.callCount).toBe(1);
-                    expect(assignmentsApi.link.args[0]).toEqual([{_id: 'as1'}, {_id: 'item1'}]);
+                    expect(assignmentsApi.link.args[0]).toEqual([{_id: 'as1'}, {_id: 'item1'}, true]);
                     expect(services.notify.success.callCount).toBe(1);
                     done();
                 });
@@ -66,7 +66,7 @@ describe('actions.assignments.ui', () => {
             store.test(done, assignmentsUi.onFulFilAssignment({_id: 'as1'}))
                 .then(() => { /* no-op */ }, (error) => {
                     expect(assignmentsApi.link.callCount).toBe(1);
-                    expect(assignmentsApi.link.args[0]).toEqual([{_id: 'as1'}, {_id: 'item1'}]);
+                    expect(assignmentsApi.link.args[0]).toEqual([{_id: 'as1'}, {_id: 'item1'}, true]);
                     expect(error).toEqual(errorMessage);
                     expect(services.notify.success.callCount).toBe(0);
                     expect(services.notify.error.callCount).toBe(1);

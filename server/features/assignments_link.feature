@@ -68,7 +68,8 @@ Feature: Assignment link
         """
         [{
             "assignment_id": "#firstassignment#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
         Then we get OK response
@@ -119,7 +120,8 @@ Feature: Assignment link
         """
         [{
             "assignment_id": "noidea",
-            "item_id": "noidea"
+            "item_id": "noidea",
+            "reassign": true
         }]
         """
         Then we get error 400
@@ -161,7 +163,8 @@ Feature: Assignment link
         """
         [{
             "assignment_id": "#firstassignment#",
-            "item_id": "noidea"
+            "item_id": "noidea",
+            "reassign": true
         }]
         """
         Then we get error 400
@@ -216,7 +219,8 @@ Feature: Assignment link
         """
         [{
             "assignment_id": "#firstassignment#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
         Then we get OK response
@@ -224,7 +228,8 @@ Feature: Assignment link
         """
         [{
             "assignment_id": "#firstassignment#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
         Then we get error 400
@@ -268,7 +273,8 @@ Feature: Assignment link
         """
         [{
             "assignment_id": "#secondassignment#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
         Then we get error 400
@@ -346,7 +352,8 @@ Feature: Assignment link
         """
         [{
             "assignment_id": "#firstassignment#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
         Then we get OK response
@@ -470,7 +477,8 @@ Feature: Assignment link
         """
         [{
             "assignment_id": "#firstassignment#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
         Then we get OK response
@@ -581,7 +589,8 @@ Feature: Assignment link
         """
         [{
             "assignment_id": "#firstassignment#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
         Then we get OK response
@@ -745,10 +754,89 @@ Feature: Assignment link
         """
         [{
             "assignment_id": "#firstassignment#",
-            "item_id": "#archive._id#"
+            "item_id": "#archive._id#",
+            "reassign": true
         }]
         """
         Then we get error 400
         """
         {"_message": "Content not in workflow. Cannot link assignment and content.", "_status": "ERR"}
+        """
+
+    @auth @notification
+    Scenario: Link with reassign false does not change the assigned user
+
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        Then we get OK response
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "slugline": "test slugline"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "54fe3b8c10245412eac572bd"
+                }
+            }]
+        }
+        """
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we reset notifications
+        When we post to "assignments/link"
+        """
+        [{
+            "assignment_id": "#firstassignment#",
+            "item_id": "#archive._id#",
+            "reassign": false
+        }]
+        """
+        Then we get OK response
+        Then we get notifications
+        """
+        [{"event": "content:update"}, {"event": "content:link"}]
+        """
+        When we get "/archive/#archive._id#"
+        Then we get existing resource
+        """
+        {
+            "assignment_id": "#firstassignment#"
+        }
+        """
+        When we get "assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        {
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "54fe3b8c10245412eac572bd",
+                "state": "in_progress"
+            }
+        }
         """
