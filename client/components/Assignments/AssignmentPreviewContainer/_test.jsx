@@ -14,6 +14,7 @@ import {AssignmentPreview} from './AssignmentPreview';
 import {AssignmentPreviewHeader} from './AssignmentPreviewHeader';
 import {EventPreview} from './EventPreview';
 import {PlanningPreview} from './PlanningPreview';
+import {ItemActionsMenu} from '../../ItemActionsMenu';
 
 describe('<AssignmentPreviewContainer />', () => {
     let store;
@@ -58,7 +59,7 @@ describe('<AssignmentPreviewContainer />', () => {
         expect(wrapper.childAt(1).hasClass('AssignmentPreview__coverage')).toBe(true);
         expect(wrapper.childAt(2).hasClass('AssignmentPreview__planning')).toBe(true);
         expect(wrapper.childAt(3).hasClass('AssignmentPreview__event')).toBe(true);
-        expect(wrapper.find('.ItemActionsMenu').length).toBe(1);
+        expect(wrapper.find(ItemActionsMenu).length).toBe(1);
 
         wrapper = getWrapper({
             showFulfilAssignment: true,
@@ -72,7 +73,7 @@ describe('<AssignmentPreviewContainer />', () => {
         expect(wrapper.childAt(2).hasClass('AssignmentPreview__coverage')).toBe(true);
         expect(wrapper.childAt(3).hasClass('AssignmentPreview__planning')).toBe(true);
         expect(wrapper.childAt(4).hasClass('AssignmentPreview__event')).toBe(true);
-        expect(wrapper.find('.ItemActionsMenu').length).toBe(0);
+        expect(wrapper.find(ItemActionsMenu).length).toBe(0);
     });
 
     describe('top toolbar', () => {

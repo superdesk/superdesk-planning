@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {isEqual} from 'lodash';
-import {ITEM_TYPE, PRIVILEGES, KEYCODES} from '../../../constants';
+import {ITEM_TYPE, PRIVILEGES, KEYCODES, ICON_COLORS} from '../../../constants';
 import {
     gettext,
     eventUtils,
@@ -17,7 +17,7 @@ import {Button as NavButton} from '../../UI/Nav';
 import {Header} from '../../UI/SidePanel';
 import {StretchBar} from '../../UI/SubNav';
 
-import {LockContainer} from '../../index';
+import {LockContainer, ItemIcon} from '../../index';
 import {EditorItemActions} from './index';
 
 export class EditorHeader extends React.Component {
@@ -56,9 +56,9 @@ export class EditorHeader extends React.Component {
 
         if (dirty) {
             openCancelModal({
-                title: 'Save changes?',
-                body: 'There are some unsaved changes, do you want to save it now?',
-                okText: 'Save',
+                title: gettext('Save changes?'),
+                body: gettext('There are some unsaved changes, do you want to save it now?'),
+                okText: gettext('Save'),
                 showIgnore: true,
                 action: !isEqual(errors, {}) ? null : () => onSave().finally(cancel),
                 ignore: cancel,
@@ -102,6 +102,7 @@ export class EditorHeader extends React.Component {
         const isPublic = isItemPublic(item);
         const itemLock = lockUtils.getLock(item, lockedItems);
         const isLockedInContext = addNewsItemToPlanning ? planningUtils.isLockedForAddToPlanning(item) : !!itemLock;
+        const isEvent = itemType === ITEM_TYPE.EVENT;
 
         let canPublish = false;
         let canUnpublish = false;
@@ -109,12 +110,12 @@ export class EditorHeader extends React.Component {
         let canEdit = false;
 
         if (isLockedInContext) {
-            if (itemType === ITEM_TYPE.EVENT) {
+            if (isEvent) {
                 canPublish = eventUtils.canPublishEvent(item, session, privileges, lockedItems);
                 canUnpublish = eventUtils.canUnpublishEvent(item, session, privileges, lockedItems);
                 canUpdate = eventUtils.canUpdateEvent(item, session, privileges, lockedItems);
                 canEdit = eventUtils.canEditEvent(item, session, privileges, lockedItems);
-            } else if (itemType === ITEM_TYPE.PLANNING) {
+            } else if (!isEvent) {
                 canPublish = planningUtils.canPublishPlanning(item, null, session, privileges, lockedItems);
                 canUnpublish = planningUtils.canUnpublishPlanning(item, null, session, privileges, lockedItems);
                 canUpdate = planningUtils.canUpdatePlanning(item, null, session, privileges, lockedItems);
@@ -132,20 +133,30 @@ export class EditorHeader extends React.Component {
         const isBeingEdited = showUpdate || showSave;
 
         return (
-            <Header className="subnav">
-                {isLockRestricted && (
-                    <StretchBar>
+            <Header className="subnav" darkBlue={isEvent} darker={!isEvent}>
+                <StretchBar>
+                    <ItemIcon
+                        item={item || {type: itemType}}
+                        doubleSize={true}
+                        color={isEvent ? ICON_COLORS.WHITE : ICON_COLORS.LIGHT_BLUE}
+                    />
+
+                    {isLockRestricted && (
                         <LockContainer
                             lockedUser={lockedUser}
                             users={users}
                             showUnlock={unlockPrivilege && showUnlock}
                             withLoggedInfo={true}
                             onUnlock={onUnlock.bind(null, item)}
+                            small={false}
+                            noMargin={true}
                         />
-                    </StretchBar>
-                )}
+                    )}
+                </StretchBar>
+
                 <StretchBar right={true}>
                     <Button
+                        color={isEvent ? 'ui-dark' : null}
                         disabled={submitting}
                         onClick={this.handleCancel}
                         text={dirty ? gettext('Cancel') : gettext('Close')}

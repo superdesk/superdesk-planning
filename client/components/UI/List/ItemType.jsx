@@ -1,11 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {values} from 'lodash';
+
+import {ICON_COLORS} from '../../../constants';
 
 import {Column} from './Column';
 import {ItemIcon} from '../../';
 import {Checkbox} from '../Form';
 
-export const ItemType = ({hasCheck, checked, onCheckToggle, item}) => (
+export const ItemType = ({hasCheck, checked, onCheckToggle, item, color}) => (
     <Column hasCheck={hasCheck} checked={checked} >
         {hasCheck && (
             <div className="sd-list-item__checkbox-container">
@@ -14,7 +17,7 @@ export const ItemType = ({hasCheck, checked, onCheckToggle, item}) => (
                 }}/>
             </div>
         )}
-        <ItemIcon item={item} />
+        <ItemIcon item={item} color={color}/>
     </Column>
 );
 
@@ -23,4 +26,5 @@ ItemType.propTypes = {
     item: PropTypes.object.isRequired,
     checked: PropTypes.bool,
     hasCheck: PropTypes.bool,
+    color: PropTypes.oneOf(values(ICON_COLORS)),
 };

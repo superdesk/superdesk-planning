@@ -9,7 +9,7 @@ import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/
 import {EventDateTime} from '../Events';
 import {PlanningDateTime} from './';
 import {ItemActionsMenu} from '../index';
-import {PLANNING, EVENTS, MAIN} from '../../constants';
+import {PLANNING, EVENTS, MAIN, ICON_COLORS} from '../../constants';
 
 import {planningUtils, getItemWorkflowStateLabel, onEventCapture} from '../../utils';
 import {AgendaNameList} from '../Agendas';
@@ -98,12 +98,13 @@ export class PlanningItem extends React.PureComponent {
         return (
             <Item shadow={1} activated={multiSelected} onClick={() => onItemClick(item)}>
                 <Border state={borderState} />
-                <ItemType item={item}
+                <ItemType
+                    item={item}
                     hasCheck={activeFilter !== MAIN.FILTERS.COMBINED}
                     checked={multiSelected}
-                    onCheckToggle={(value) => {
-                        onMultiSelectClick(item);
-                    }} />
+                    onCheckToggle={onMultiSelectClick.bind(null, item)}
+                    color={ICON_COLORS.LIGHT_BLUE}
+                />
                 <PubStatus item={item} />
                 <Column
                     grow={true}
@@ -169,9 +170,9 @@ export class PlanningItem extends React.PureComponent {
                     </Column>
                 }
                 <ActionMenu>
-                    {get(itemActions, 'length', 0) > 0 && <ItemActionsMenu
-                        className="side-panel__top-tools-right"
-                        actions={itemActions} />}
+                    {get(itemActions, 'length', 0) > 0 &&
+                        <ItemActionsMenu actions={itemActions} />
+                    }
                 </ActionMenu>
             </Item>
         );

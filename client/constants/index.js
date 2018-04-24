@@ -95,3 +95,14 @@ export const CLICK_DELAY = 250;
 export const USER_ACTIONS = {
     RECEIVE_USER_PREFERENCES: 'RECEIVE_USER_PREFERENCES',
 };
+
+export const ICON_COLORS = {
+    BLUE: 'icon--blue',
+    DARK_BLUE_GREY: 'icon--dark-blue-grey',
+    GRAY: 'icon--gray',
+    GREEN: 'icon--green',
+    LIGHT_BLUE: 'icon--light-blue',
+    RED: 'icon--red',
+    WHITE: 'icon--white',
+    YELLOW: 'icon--yellow',
+};

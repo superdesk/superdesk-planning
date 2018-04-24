@@ -2,9 +2,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
-export const Header = ({children, className}) => (
+export const Header = ({children, className, darkBlue, darker}) => (
     <div className={classNames(
         'side-panel__header',
+        {
+            'subnav--dark-blue-grey': darkBlue,
+            'subnav--darker': darker,
+        },
         className
     )}>
         {children}
@@ -14,8 +18,11 @@ export const Header = ({children, className}) => (
 Header.propTypes = {
     children: PropTypes.node,
     className: PropTypes.string,
+    darkBlue: PropTypes.bool,
+    darker: PropTypes.bool,
 };
 
 Header.defaultProps = {
-    className: '',
+    darkBlue: false,
+    darker: false,
 };

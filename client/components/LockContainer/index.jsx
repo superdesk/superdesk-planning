@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
+import classNames from 'classnames';
 
 import {UserAvatar} from '../';
 import {LockContainerPopup} from './LockContainerPopup';
@@ -26,6 +27,8 @@ export class LockContainer extends React.Component {
             showUnlock,
             withLoggedInfo,
             onUnlock,
+            small,
+            noMargin,
         } = this.props;
 
         const user = get(lockedUser, 'display_name') ?
@@ -38,15 +41,18 @@ export class LockContainer extends React.Component {
 
         return (
             <div className="lock-container">
-                <div className="lock-container__avatar lock-avatar">
-                    <button
-                        type="button"
-                        onClick={this.toggleOpenUnlockPopup}
-                    >
+                <div className={classNames(
+                    'lock-container__avatar',
+                    'lock-avatar',
+                    {'lock-container__avatar--no-margin': noMargin}
+                )}>
+                    <a onClick={this.toggleOpenUnlockPopup}>
                         <UserAvatar
                             user={user}
-                            withLoggedInfo={withLoggedInfo} />
-                    </button>
+                            withLoggedInfo={withLoggedInfo}
+                            small={small}
+                        />
+                    </a>
                 </div>
                 {this.state.openUnlockPopup &&
                     <LockContainerPopup
@@ -73,9 +79,12 @@ LockContainer.propTypes = {
     showUnlock: PropTypes.bool,
     withLoggedInfo: PropTypes.bool,
     onUnlock: PropTypes.func,
+    small: PropTypes.bool,
+    noMargin: PropTypes.bool,
 };
 
 LockContainer.defaultProps = {
     showUnlock: true,
     withLoggedInfo: true,
+    small: true,
 };

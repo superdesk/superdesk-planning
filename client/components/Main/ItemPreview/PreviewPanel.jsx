@@ -11,7 +11,7 @@ import {HistoryTab} from '../index';
 import {PreviewContentTab, PreviewHeader} from './index';
 import {Tabs} from '../../UI/Nav';
 import {SidePanel, Header, Tools, Content} from '../../UI/SidePanel';
-import {TOOLTIPS} from '../../../constants';
+import {ITEM_TYPE, TOOLTIPS} from '../../../constants';
 
 export class PreviewPanelComponent extends React.Component {
     constructor(props) {
@@ -63,6 +63,10 @@ export class PreviewPanelComponent extends React.Component {
             }, 0);
         }
 
+        this.tabs[0].label = nextProps.itemType === ITEM_TYPE.EVENT ?
+            gettext('Event Details') :
+            gettext('Planning Details');
+
         if (!this.props.hideEditIcon && get(nextProps, 'item')) {
             if (get(nextProps.item, 'state') !== 'spiked') {
                 if (this.tools[0].icon !== 'icon-pencil') {
@@ -95,15 +99,17 @@ export class PreviewPanelComponent extends React.Component {
     render() {
         const currentTab = this.tabs[this.state.tab];
         const RenderTab = currentTab.render;
+        const isEvent = this.props.itemType === ITEM_TYPE.EVENT;
 
         return (
             <SidePanel shadowRight={true}>
-                <Header>
+                <Header darkBlue={isEvent} darker={!isEvent}>
                     <Tools tools={this.tools}/>
                     <Tabs
                         tabs={this.tabs}
                         active={this.state.tab}
                         setActive={this.setActiveTab}
+                        darkUi={isEvent}
                     />
                 </Header>
                 {!this.props.previewLoading && this.props.item && (
