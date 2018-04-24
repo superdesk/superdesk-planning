@@ -35,6 +35,17 @@ class AgendasResource(Resource):
 
 
 class AgendasService(Service):
+    def _generate_planning_info(self, docs):
+        planning_service = get_resource_service('planning')
+        for doc in docs:
+            doc['plannings'] = planning_service.get_planning_by_agenda_id(doc.get(config.ID_FIELD)).docs
+
+    def on_fetched(self, docs):
+        self._generate_planning_info(docs.get(config.ITEMS))
+
+    def on_fetched_item(self, doc):
+        self._generate_planning_info([doc])
+
     def on_create(self, docs):
         for doc in docs:
             set_original_creator(doc)
@@ -53,6 +64,7 @@ class AgendasService(Service):
             updates['version_creator'] = get_user_id()
 
     def on_updated(self, updates, original):
+        self._generate_planning_info([updates])
         push_notification(
             'agenda:updated',
             item=str(original[config.ID_FIELD]),
