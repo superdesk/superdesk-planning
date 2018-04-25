@@ -719,17 +719,32 @@ const saveFromAuthoring = (plan) => (
  * Action to update the values of a single Coverage so the Assignment is placed in the workflow
  * @param {object} original - Original Planning item
  * @param {object} updatedCoverage - Coverage to update (along with any coverage fields to update as well)
+ * @param {number} index - index of the Coverage in the coverages[] array
  */
-const addCoverageToWorkflow = (original, updatedCoverage) => (
+const addCoverageToWorkflow = (original, updatedCoverage, index) => (
     (dispatch) => {
         const updates = {coverages: cloneDeep(original.coverages)};
         const coverage = cloneDeep(updatedCoverage);
-        const index = updates.coverages.findIndex(
-            (c) => c.coverage_id === coverage.coverage_id
-        );
 
         set(coverage, 'workflow_status', COVERAGES.WORKFLOW_STATE.ACTIVE);
         set(coverage, 'assigned_to.state', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED);
+        updates.coverages[index] = coverage;
+
+        return dispatch(planningApi.save(updates, original));
+    }
+);
+
+/**
+ * Action to update the values of a single Coverage so the Assignment is placed in the workflow
+ * @param {object} original - Original Planning item
+ * @param {object} updatedCoverage - Coverage to update (along with any coverage fields to update as well)
+ * @param {number} index - index of the Coverage in the coverages[] array
+ */
+const removeAssignment = (original, updatedCoverage, index) => (
+    (dispatch) => {
+        const updates = {coverages: cloneDeep(original.coverages)};
+        const coverage = cloneDeep(updatedCoverage);
+
         updates.coverages[index] = coverage;
 
         return dispatch(planningApi.save(updates, original));
@@ -780,6 +795,7 @@ const self = {
     assignToAgenda,
     saveAndUnlockPlanning,
     addCoverageToWorkflow,
+    removeAssignment,
 };
 
 export default self;

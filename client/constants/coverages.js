@@ -15,4 +15,8 @@ export const COVERAGES = {
         workflow_status: WORKFLOW_STATE.DRAFT,
     }),
     WORKFLOW_STATE: {ACTIVE: 'active'},
+    PARTIAL_SAVE: {
+        ADD_TO_WORKFLOW: 'ADD_TO_WORKFLOW',
+        REMOVE_ASSIGNMENT: 'REMOVE_ASSIGNMENT',
+    },
 };

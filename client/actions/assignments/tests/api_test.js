@@ -322,7 +322,7 @@ describe('actions.assignments.api', () => {
                             assignment_id: 'as1',
                             item_id: 'item1',
                             reassign: true,
-                        }
+                        },
                     ]);
                     done();
                 });

@@ -12,6 +12,7 @@ import {planningUtils, gettext, editorMenuUtils} from '../../../utils';
 import {COVERAGES} from '../../../constants';
 
 export const CoverageEditor = ({
+    index,
     field,
     value,
     users,
@@ -29,6 +30,7 @@ export const CoverageEditor = ({
     onDuplicateCoverage,
     onCancelCoverage,
     onAddCoverageToWorkflow,
+    onRemoveAssignment,
     readOnly,
     message,
     invalid,
@@ -75,7 +77,7 @@ export const CoverageEditor = ({
                 itemActions.push({
                     label: gettext('Add to workflow'),
                     icon: 'icon-assign',
-                    callback: onAddCoverageToWorkflow.bind(null, value),
+                    callback: onAddCoverageToWorkflow.bind(null, value, index),
                 });
             }
         }
@@ -128,6 +130,7 @@ export const CoverageEditor = ({
             priorities={priorities}
             readOnly={readOnly}
             addNewsItemToPlanning={addNewsItemToPlanning}
+            onRemoveAssignment={onRemoveAssignment.bind(null, value, index)}
             {...props}
         />
     );
@@ -204,6 +207,8 @@ CoverageEditor.propTypes = {
     defaultGenre: PropTypes.object,
     addNewsItemToPlanning: PropTypes.object,
     navigation: PropTypes.object,
+    onRemoveAssignment: PropTypes.func,
+    index: PropTypes.number,
 };
 
 CoverageEditor.defaultProps = {
