@@ -65,6 +65,7 @@ class PlanningService(superdesk.Service):
                 coverage['assigned_to'] = {}
             if coverage_assignment.get(coverage_id):
                 assignment = coverage_assignment.get(coverage_id)
+                coverage['assigned_to']['assignment_id'] = assignment.get(config.ID_FIELD)
                 coverage['assigned_to']['desk'] = assignment.get('assigned_to', {}).get('desk')
                 coverage['assigned_to']['user'] = assignment.get('assigned_to', {}).get('user')
                 coverage['assigned_to']['state'] = assignment.get('assigned_to', {}).get('state')
@@ -437,7 +438,8 @@ class PlanningService(superdesk.Service):
             if updates.get('news_coverage_status') and \
                     updates.get('news_coverage_status').get('qcode') == coverage_cancel_state.get('qcode') and \
                     original.get('news_coverage_status').get('qcode') != coverage_cancel_state.get('qcode'):
-                self.cancel_coverage(updates, coverage_cancel_state, original_assignment)
+                self.cancel_coverage(updates, coverage_cancel_state, original.get('workflow_status'),
+                                     original_assignment)
                 return
 
             assignment = {}
@@ -462,7 +464,7 @@ class PlanningService(superdesk.Service):
         (updates.get('assigned_to') or {}).pop('coverage_provider', None)
         (updates.get('assigned_to') or {}).pop('state', None)
 
-    def cancel_coverage(self, coverage, coverage_cancel_state, assignment=None, note=None,
+    def cancel_coverage(self, coverage, coverage_cancel_state, original_workflow_status, assignment=None, note=None,
                         reason=None, event_cancellation=False):
         if reason:
             note += 'Reason: {}\n'.format(reason)
@@ -473,6 +475,7 @@ class PlanningService(superdesk.Service):
             coverage['planning']['internal_note'] = (coverage['planning'].get('internal_note') or '') + '\n\n' + note
 
         coverage['news_coverage_status'] = coverage_cancel_state
+        coverage['previous_status'] = original_workflow_status
         coverage['workflow_status'] = WORKFLOW_STATE.CANCELLED
 
         # Cancel assignment if the coverage has an assignment
@@ -679,6 +682,7 @@ coverage_schema = {
         }
     },
     'workflow_status': {'type': 'string'},
+    'previous_status': {'type': 'string'},
     'assigned_to': {
         'type': 'dict',
         'mapping': {

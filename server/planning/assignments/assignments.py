@@ -398,13 +398,13 @@ class AssignmentsService(superdesk.Service):
                                                           assignment_id=assignment_id,
                                                           desk=desk_name)
 
-    def send_assignment_cancellation_notification(self, assignment, event_cancellation=False):
+    def send_assignment_cancellation_notification(self, assignment, original_state, event_cancellation=False):
         """Set the assignment information and send notification
 
         :param dict doc: Updates related to assignments
         """
         # No notifications for 'draft' assignments
-        if not assignment or self.is_assignment_draft(assignment, {}):
+        if not assignment or original_state == ASSIGNMENT_WORKFLOW_STATE.DRAFT:
             return
 
         user = get_user()
@@ -438,7 +438,7 @@ class AssignmentsService(superdesk.Service):
         coverage_to_copy = deepcopy(coverage)
         if original_assignment:
             updated_assignment = {'assigned_to': {}}
-            updated_assignment.get('assigned_to').update(original_assignment.get('assigned_to'))
+            updated_assignment['assigned_to'].update(original_assignment.get('assigned_to'))
             updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.cancelled
             updated_assignment['planning'] = coverage_to_copy.get('planning')
             updated_assignment['planning']['news_coverage_status'] = coverage_to_copy.get('news_coverage_status')
@@ -460,7 +460,9 @@ class AssignmentsService(superdesk.Service):
             get_resource_service('assignments_history').on_item_updated(updated_assignment,
                                                                         original_assignment,
                                                                         'cancelled')
-            self.send_assignment_cancellation_notification(updated_assignment, event_cancellation)
+            self.send_assignment_cancellation_notification(updated_assignment,
+                                                           original_assignment.get('assigned_to')['state'],
+                                                           event_cancellation)
 
     def _get_empty_updates_for_assignment(self, assignment):
         updated_assignment = {'assigned_to': {}}
@@ -733,7 +735,7 @@ class AssignmentsService(superdesk.Service):
 
     def is_assignment_being_activated(self, updates, original):
         return original.get('assigned_to').get('state') == ASSIGNMENT_WORKFLOW_STATE.DRAFT and\
-            updates.get('assigned_to').get('state') != ASSIGNMENT_WORKFLOW_STATE.DRAFT
+            updates.get('assigned_to').get('state') == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
 
 
 assignments_schema = {

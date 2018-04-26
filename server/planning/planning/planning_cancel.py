@@ -85,10 +85,12 @@ Coverage cancelled
             if coverage_cancel_state and coverage.get('news_coverage_status')['qcode'] !=\
                     coverage_cancel_state['qcode']:
                 ids.append(coverage.get('coverage_id'))
-                planning_service.cancel_coverage(coverage, coverage_cancel_state, None, note,
-                                                 reason, event_cancellation)
+                planning_service.cancel_coverage(coverage, coverage_cancel_state,
+                                                 coverage.get('workflow_status'), None,
+                                                 note, reason, event_cancellation)
 
         if cancel_all_coverage:
+            item = self.backend.update(self.datasource, id, updates, original)
             push_notification(
                 'coverage:cancelled',
                 planning_item=str(original[config.ID_FIELD]),
@@ -96,10 +98,9 @@ Coverage cancelled
                 session=str(session),
                 reason=reason,
                 coverage_state=coverage_cancel_state,
+                etag=item.get('_etag'),
                 ids=ids
             )
-
-            item = self.backend.update(self.datasource, id, updates, original)
             return item
 
         self._cancel_plan(updates, original, note, reason)
