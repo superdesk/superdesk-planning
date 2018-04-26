@@ -234,14 +234,14 @@ describe('validators', () => {
 
         expect(validate1.callCount).toBe(2);
         expect(validate1.args[0]).toEqual(
-            [dispatch, getState, 'slugline', 'slugline 1', undefined, formData.errors]
+            [dispatch, getState, 'slugline', 'slugline 1', undefined, formData.errors, []]
         );
         expect(validate1.args[1]).toEqual(
-            [dispatch, getState, 'name', 'name 2', undefined, formData.errors]
+            [dispatch, getState, 'name', 'name 2', undefined, formData.errors, []]
         );
 
         expect(validate2.callCount).toBe(1);
-        expect(validate2.args[0]).toEqual([dispatch, getState, 'name', 'name 2', undefined, formData.errors]);
+        expect(validate2.args[0]).toEqual([dispatch, getState, 'name', 'name 2', undefined, formData.errors, []]);
 
         expect(formData.errors).toEqual({
             slugline: 'Validate 1 failed',

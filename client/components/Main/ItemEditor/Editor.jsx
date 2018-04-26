@@ -8,8 +8,6 @@ import {gettext, lockUtils, eventUtils, planningUtils, updateFormValues, isExist
 
 import {ITEM_TYPE, EVENTS, PLANNING, PUBLISHED_STATE, WORKFLOW_STATE, COVERAGES} from '../../../constants';
 
-import {Button} from '../../UI';
-import {Toolbar as SlideInToolbar} from '../../UI/SlideInPanel';
 import {Tabs as NavTabs} from '../../UI/Nav';
 import {SidePanel, Content} from '../../UI/SidePanel';
 
@@ -24,10 +22,10 @@ export class EditorComponent extends React.Component {
             tab: 0,
             diff: {},
             errors: {},
+            errorMessages: [],
             dirty: false,
             submitting: false,
             submitFailed: false,
-            showSubmitFailed: false,
             partialSave: false,
         };
 
@@ -41,7 +39,6 @@ export class EditorComponent extends React.Component {
         this.onUnpublish = this.onUnpublish.bind(this);
         this.onSaveUnpublish = this.onSaveUnpublish.bind(this);
         this.onCancel = this.onCancel.bind(this);
-        this.hideSubmitFailed = this.hideSubmitFailed.bind(this);
         this.resetForm = this.resetForm.bind(this);
         this.createNew = this.createNew.bind(this);
         this.onAddCoverage = this.onAddCoverage.bind(this);
@@ -84,6 +81,7 @@ export class EditorComponent extends React.Component {
             dirty: dirty,
             submitting: false,
             errors: {},
+            errorMessages: [],
         });
     }
 
@@ -163,6 +161,7 @@ export class EditorComponent extends React.Component {
         // Else, entire object will be replaced
         const diff = field ? Object.assign({}, this.state.diff) : cloneDeep(value);
         const errors = cloneDeep(this.state.errors);
+        const errorMessages = [];
 
         if (field) {
             updateFormValues(diff, field, value);
@@ -172,10 +171,11 @@ export class EditorComponent extends React.Component {
             this.props.itemType,
             diff,
             this.props.formProfiles,
-            errors
+            errors,
+            errorMessages
         );
 
-        const newState = {diff, errors};
+        const newState = {diff, errors, errorMessages};
 
         if (updateDirtyFlag) {
             newState.dirty = !isEqual(this.props.item, diff);
@@ -192,13 +192,12 @@ export class EditorComponent extends React.Component {
         if (!isEqual(this.state.errors, {})) {
             this.setState({
                 submitFailed: true,
-                showSubmitFailed: true,
             });
+            this.props.notifyValidationErrors(this.state.errorMessages);
         } else {
             this.setState({
                 submitting: true,
                 submitFailed: false,
-                showSubmitFailed: false,
             });
 
             // If we are publishing or unpublishing, we are setting 'pubstatus' to 'usable' from client side
@@ -230,12 +229,14 @@ export class EditorComponent extends React.Component {
      */
     startPartialSave(updates) {
         const errors = {};
+        const errorMessages = [];
 
         this.props.onValidate(
             this.props.itemType,
             updates,
             this.props.formProfiles,
-            errors
+            errors,
+            errorMessages
         );
 
         if (isEqual(errors, {})) {
@@ -243,16 +244,13 @@ export class EditorComponent extends React.Component {
                 partialSave: true,
                 submitting: true,
                 submitFailed: false,
-                showSubmitFailed: false,
             });
 
             return true;
         }
 
-        this.setState({
-            submitFailed: true,
-            showSubmitFailed: true,
-        });
+        this.setState({submitFailed: true});
+        this.props.notifyValidationErrors(errorMessages);
 
         return false;
     }
@@ -278,7 +276,6 @@ export class EditorComponent extends React.Component {
         this.setState({
             submitting: true,
             submitFailed: false,
-            showSubmitFailed: false,
         });
 
         return this.props.onPublish(this.state.diff)
@@ -299,7 +296,6 @@ export class EditorComponent extends React.Component {
         this.setState({
             submitting: true,
             submitFailed: false,
-            showSubmitFailed: false,
         });
 
         return this.props.onUnpublish(this.state.diff)
@@ -326,8 +322,8 @@ export class EditorComponent extends React.Component {
     tearDownEditorState() {
         this.setState({
             errors: {},
+            errorMessages: [],
             submitFailed: false,
-            showSubmitFailed: false,
         });
     }
 
@@ -349,10 +345,6 @@ export class EditorComponent extends React.Component {
 
     setActiveTab(tab) {
         this.setState({tab});
-    }
-
-    hideSubmitFailed() {
-        this.setState({showSubmitFailed: false});
     }
 
     onMinimized() {
@@ -442,23 +434,7 @@ export class EditorComponent extends React.Component {
                     hideExternalEdit={this.props.hideExternalEdit}
                 />
                 <Content flex={true} className={this.props.contentClassName}>
-                    {this.state.showSubmitFailed && (
-                        <div>
-                            <SlideInToolbar invalid={true}>
-                                <h3>{existingItem ?
-                                    gettext('Failed to save!') :
-                                    gettext('Failed to create!')}
-                                </h3>
-                                <Button
-                                    text={gettext('OK')}
-                                    hollow={true}
-                                    color="alert"
-                                    onClick={this.hideSubmitFailed}
-                                />
-                            </SlideInToolbar>
-                        </div>
-                    )}
-                    {!this.state.showSubmitFailed && existingItem && (
+                    {existingItem && (
                         <NavTabs
                             tabs={this.tabs}
                             active={this.state.tab}
@@ -532,4 +508,5 @@ EditorComponent.propTypes = {
     navigation: PropTypes.object,
     inModalView: PropTypes.bool,
     hideExternalEdit: PropTypes.bool,
+    notifyValidationErrors: PropTypes.func,
 };
