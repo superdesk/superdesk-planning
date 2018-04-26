@@ -84,10 +84,8 @@ export class EditAgenda extends React.Component {
             this.props.onSave({
                 ...this.props.agenda,
                 ...agenda,
-            });
-
-            // Close editor after save
-            this.props.onClose();
+            })
+                .then(() => this.props.onClose());
         }
     }
 
