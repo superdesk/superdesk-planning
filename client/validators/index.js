@@ -10,18 +10,19 @@ export {eventValidators, formProfile, validateAssignment};
 import {get, set, isEqual} from 'lodash';
 import {WORKSPACE, WORKFLOW_STATE} from '../constants';
 import * as selectors from '../selectors';
+import {gettext} from '../utils';
 
-export const validateField = (dispatch, getState, profileName, field, value, profile, errors) => {
+export const validateField = (dispatch, getState, profileName, field, value, profile, errors, messages) => {
     if (get(profile, `schema.${field}.validate_on_publish`)) {
         return;
     }
 
     const funcs = get(validators[profileName], field, []) || [formProfile];
 
-    funcs.forEach((func) => func(dispatch, getState, field, value, profile, errors));
+    funcs.forEach((func) => func(dispatch, getState, field, value, profile, errors, messages));
 };
 
-export const validateItem = (profileName, item, formProfiles, errors, fields = null) => (
+export const validateItem = (profileName, item, formProfiles, errors, messages = [], fields = null) => (
     (dispatch, getState) => (
         (fields || Object.keys(validators[profileName])).forEach((key) => (
             validateField(
@@ -31,13 +32,14 @@ export const validateItem = (profileName, item, formProfiles, errors, fields = n
                 key,
                 key === '_all' ? item : get(item, key),
                 key !== 'coverages' ? formProfiles[profileName] : formProfiles.coverage,
-                errors
+                errors,
+                messages
             )
         ))
     )
 );
 
-export const validateCoverages = (dispatch, getState, field, value, profile, errors) => {
+export const validateCoverages = (dispatch, getState, field, value, profile, errors, messages) => {
     const error = {};
 
     if (Array.isArray(value)) {
@@ -63,7 +65,8 @@ export const validateCoverages = (dispatch, getState, field, value, profile, err
                     key,
                     get(coverage, keyName),
                     profile,
-                    coverageErrors
+                    coverageErrors,
+                    messages
                 );
 
                 if (get(coverageErrors, key)) {
@@ -85,9 +88,10 @@ export const validateCoverages = (dispatch, getState, field, value, profile, err
     }
 };
 
-const validateCoverageScheduleDate = (dispatch, getState, field, value, profile, errors) => {
+const validateCoverageScheduleDate = (dispatch, getState, field, value, profile, errors, messages) => {
     if (get(profile, 'schema.scheduled.required') && !value) {
         errors[field] = gettext('Required');
+        messages.push(gettext('COVERAGE SCHEDULED DATE/TIME are required fields'));
         return;
     }
 
@@ -103,6 +107,7 @@ const validateCoverageScheduleDate = (dispatch, getState, field, value, profile,
 
     if (validateSchedule && moment.isMoment(value) && value.isBefore(moment(), 'day')) {
         errors[field] = 'Date cannot be in past';
+        messages.push(gettext('COVERAGE SCHEDULED DATE cannot be in the past'));
     }
 };
 

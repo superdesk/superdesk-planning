@@ -1,4 +1,5 @@
-var path = require('path')
+var path = require('path');
+var webpack = require('webpack');
 
 module.exports = {
     entry: [path.join(__dirname, 'index')],
@@ -80,5 +81,8 @@ module.exports = {
         'react/addons': true,
         'react/lib/ExecutionEnvironment': true,
         'react/lib/ReactContext': true
-    }
+    },
+
+    // Define mock gettext ('required when running unit_tests for planning)
+    plugins: [new webpack.DefinePlugin({gettext: 'function gettext(msg) { return msg; }'})]
 }

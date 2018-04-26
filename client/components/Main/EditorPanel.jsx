@@ -48,11 +48,13 @@ const mapDispatchToProps = (dispatch) => ({
     onPublish: (item) => dispatch(actions.main.publish(item)),
     onSaveUnpublish: (item) => dispatch(actions.main.onSaveUnpublish(item)),
     openCancelModal: (props) => dispatch(actions.main.openConfirmationModal(props)),
-    onValidate: (type, item, profile, errors) => dispatch(validateItem(type, item, profile, errors)),
+    onValidate: (type, item, profile, errors, messages) =>
+        dispatch(validateItem(type, item, profile, errors, messages)),
     loadItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'edit')),
     itemActions: actionUtils.getActionDispatches({dispatch: dispatch}),
     removeNewAutosaveItems: () => dispatch(actions.autosave.removeNewItems()),
     closeEditorAndOpenModal: (item) => dispatch(actions.main.closeEditorAndOpenModal(item)),
+    notifyValidationErrors: (errors) => dispatch(actions.main.notifyValidationErrors(errors)),
 });
 
 const mapDispatchToPropsModal = (dispatch) => ({
@@ -65,10 +67,12 @@ const mapDispatchToPropsModal = (dispatch) => ({
     onPublish: (item) => dispatch(actions.main.publish(item)),
     onSaveUnpublish: (item) => dispatch(actions.main.onSaveUnpublish(item)),
     openCancelModal: (props) => dispatch(actions.main.openConfirmationModal(props)),
-    onValidate: (type, item, profile, errors) => dispatch(validateItem(type, item, profile, errors)),
+    onValidate: (type, item, profile, errors, messages) =>
+        dispatch(validateItem(type, item, profile, errors, messages)),
     loadItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'edit')),
     itemActions: actionUtils.getActionDispatches({dispatch: dispatch}),
     removeNewAutosaveItems: () => dispatch(actions.autosave.removeNewItems()),
+    notifyValidationErrors: (errors) => dispatch(actions.main.notifyValidationErrors(errors)),
 });
 
 export const Editor = connect(mapStateToProps, mapDispatchToProps)(EditorComponent);

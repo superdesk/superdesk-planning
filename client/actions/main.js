@@ -778,6 +778,12 @@ const jumpTo = (direction) => (
     }
 );
 
+const notifyValidationErrors = (messages) => (
+    (dispatch, getState, {notify}) => {
+        messages.forEach((message) => notify.error(message));
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     lockAndEdit,
@@ -807,6 +813,7 @@ const self = {
     openPreview,
     setJumpInterval,
     jumpTo,
+    notifyValidationErrors,
 };
 
 export default self;
