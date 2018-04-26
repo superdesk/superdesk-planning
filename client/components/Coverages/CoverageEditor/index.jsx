@@ -82,7 +82,7 @@ export const CoverageEditor = ({
             }
         }
 
-        if (!get(value, 'assigned_to.assignment_id')) {
+        if (planningUtils.canRemoveCoverage(value)) {
             itemActions.push({
                 label: gettext('Remove coverage'),
                 icon: 'icon-trash',

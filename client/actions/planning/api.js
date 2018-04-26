@@ -873,13 +873,14 @@ const markPlanningCancelled = (plan, reason, coverageState, eventCancellation) =
     },
 });
 
-const markCoverageCancelled = (plan, reason, coverageState, ids) => ({
+const markCoverageCancelled = (plan, reason, coverageState, ids, etag) => ({
     type: PLANNING.ACTIONS.MARK_COVERAGE_CANCELLED,
     payload: {
         planning_item: plan,
         reason: reason,
         coverage_state: coverageState,
         ids: ids,
+        etag: etag,
     },
 });
 

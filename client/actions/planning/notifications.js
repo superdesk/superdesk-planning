@@ -237,7 +237,8 @@ const onCoverageCancelled = (e, data) => (
                 data.planning_item,
                 get(data, 'reason'),
                 get(data, 'coverage_state'),
-                data.ids
+                data.ids,
+                get(data, 'etag')
             ));
         }
     }

@@ -223,6 +223,10 @@ const planningReducer = createReducer(initialState, {
         // If the planning item is not loaded, disregard this action
         if (plan === null) return state;
 
+        if ('etag' in payload) {
+            plan._etag = payload.etag;
+        }
+
         plan.coverages.forEach((coverage) => {
             if (payload.ids.indexOf(coverage.coverage_id) !== -1) {
                 markCoverage(coverage, payload, 'cancelled');
@@ -447,6 +451,7 @@ Coverage ${action}
     }
 
     if (action === WORKFLOW_STATE.CANCELLED) {
+        coverage.previous_status = coverage.workflow_status;
         coverage.workflow_status = WORKFLOW_STATE.CANCELLED;
     }
 

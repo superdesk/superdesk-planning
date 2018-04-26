@@ -124,6 +124,9 @@ const canCancelCoverage = (coverage) =>
     (!isCoverageCancelled(coverage) && (!get(coverage, 'assigned_to.state') ||
         get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED));
 
+const canRemoveCoverage = (coverage) => (get(coverage, 'workflow_status') === WORKFLOW_STATE.DRAFT ||
+    get(coverage, 'previous_status') === WORKFLOW_STATE.DRAFT);
+
 const canCancelAllCoverageForPlanning = (planning) => (
     get(planning, 'coverages.length') > 0 && get(planning, 'coverages')
         .filter((c) => canCancelCoverage(c)).length > 0
@@ -732,6 +735,7 @@ const self = {
     convertGenreToObject,
     isCoverageCancelled,
     canCancelCoverage,
+    canRemoveCoverage,
     canEditCoverage,
     getCoverageReadOnlyFields,
     isPlanMultiDay,
