@@ -1,93 +1,69 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
-import {ActionsMenu} from './ActionsMenu';
-import {GENERIC_ITEM_ACTIONS} from '../../constants';
+import {get} from 'lodash';
+
 import {onEventCapture} from '../../utils';
+import {GENERIC_ITEM_ACTIONS} from '../../constants';
+
+import {ActionsMenuPopup} from './ActionsMenuPopup';
+
 import './style.scss';
-import {renderToBody, closeActionsMenu} from 'superdesk-core/scripts/apps/search/helpers';
 
 export class ItemActionsMenu extends React.Component {
     constructor(props) {
         super(props);
         this.state = {isOpen: false};
-        this.handleClickOutside = this.handleClickOutside.bind(this);
-        this.renderMenu = this.renderMenu.bind(this);
-        this.dom = {menu: null};
-    }
-
-    componentDidMount() {
-        document.addEventListener('click', this.handleClickOutside, true);
-    }
-
-    componentWillUnmount() {
-        document.removeEventListener('click', this.handleClickOutside, true);
-    }
-
-    handleClickOutside(event) {
-        if ((!this.dom.menu || event.target.className !== 'ItemActionsMenu__action')) {
-            if (this.state.isOpen) {
-                this.closeMenu();
-            }
-        }
+        this.toggleMenu = this.toggleMenu.bind(this);
+        this.closeMenu = this.closeMenu.bind(this);
+        this.openMenu = this.openMenu.bind(this);
     }
 
     closeMenu(event) {
         onEventCapture(event);
-        closeActionsMenu();
         this.setState({isOpen: false});
     }
 
-
-    render() {
-        const classes = classNames(
-            this.props.className,
-            'dropdown',
-            'ItemActionsMenu',
-            'pull-right',
-            {open: this.state.isOpen}
-        );
-
-        const isEmptyActions = this.props.actions.length === 0;
-
-        const buttonClasses = classNames(
-            'dropdown__toggle',
-            {[this.props.buttonClass]: this.props.buttonClass},
-            {ItemActionsMenu__hidden: isEmptyActions || this.state.isOpen},
-            {ItemActionsMenu__visible: !isEmptyActions && !this.state.isOpen}
-        );
-
-        return (
-            <div className={classes} ref={(node) => this.dom.menu = node}>
-                <a className={buttonClasses} onClick={this.renderMenu}>
-                    <i className="icon-dots-vertical" />
-                </a>
-            </div>
-        );
-    }
-
-    renderMenu(event) {
+    openMenu(event) {
         onEventCapture(event);
-        let actions = this.props.actions;
-
-        if (actions[actions.length - 1].label === GENERIC_ITEM_ACTIONS.DIVIDER.label) {
-            actions.pop();
-        }
-
-        let elem = React.createElement(ActionsMenu, {
-            actions: actions,
-            closeMenu: this.closeMenu.bind(this),
-        });
-
-        let icon = this.dom.menu.getElementsByClassName('icon-dots-vertical')[0];
-
-        renderToBody(elem, icon, 1051);
-
         this.setState({isOpen: true});
 
         if (this.props.onOpen) {
             this.props.onOpen();
         }
+    }
+
+    render() {
+        const {actions, className} = this.props;
+
+        // If there are no actions, then we don't render anything
+        if (get(actions, 'length', 0) < 1) {
+            return null;
+        }
+
+        // If the last action is a DIVIDER, then remove it
+        if (get(actions, `[${actions.length - 1}].label`) === GENERIC_ITEM_ACTIONS.DIVIDER.label) {
+            actions.pop();
+        }
+
+        return (
+            <button className={className} onClick={this.toggleMenu}>
+                <i className="icon-dots-vertical" />
+
+                {this.state.isOpen && (
+                    <ActionsMenuPopup
+                        closeMenu={this.closeMenu}
+                        actions={actions}
+                        target="icon-dots-vertical"
+                    />
+                )}
+            </button>
+        );
+    }
+
+    toggleMenu(event) {
+        this.state.isOpen ?
+            this.closeMenu(event) :
+            this.openMenu(event);
     }
 }
 
@@ -98,4 +74,7 @@ ItemActionsMenu.propTypes = {
     onOpen: PropTypes.func,
 };
 
-ItemActionsMenu.defaultProps = {actions: []};
+ItemActionsMenu.defaultProps = {
+    actions: [],
+    className: 'icn-btn dropdown__toggle',
+};

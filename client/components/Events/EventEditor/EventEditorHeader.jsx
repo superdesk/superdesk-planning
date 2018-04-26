@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import {getCreator} from '../../../utils';
-import {ItemIcon} from '../../';
 import {ContentBlock, ContentBlockInner} from '../../UI/SidePanel';
 import {AuditInformation, StateLabel} from '../..';
 
@@ -10,15 +9,7 @@ import './style.scss';
 
 export const EventEditorHeader = ({item, users}) => {
     if (!get(item, '_id')) {
-        return (
-            <ContentBlock padSmall={true} flex={true}>
-                <ContentBlockInner>
-                    <span className="double-size-icn double-size-icn--light">
-                        <i className="icon-calendar-list" />
-                    </span>
-                </ContentBlockInner>
-            </ContentBlock>
-        );
+        return null;
     }
 
     const createdBy = getCreator(item, 'original_creator', users);
@@ -34,9 +25,6 @@ export const EventEditorHeader = ({item, users}) => {
             padSmall={true}
             flex={true}
         >
-            <ContentBlockInner>
-                <ItemIcon item={item} big={true} />
-            </ContentBlockInner>
             <ContentBlockInner grow={true}>
                 <AuditInformation
                     createdBy={createdBy}

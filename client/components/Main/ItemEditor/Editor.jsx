@@ -85,6 +85,10 @@ export class EditorComponent extends React.Component {
             submitting: false,
             errors: {},
         });
+
+        this.tabs[0].label = get(item, 'type') === ITEM_TYPE.EVENT ?
+            gettext('Event Details') :
+            gettext('Planning Details');
     }
 
     createNew(props) {

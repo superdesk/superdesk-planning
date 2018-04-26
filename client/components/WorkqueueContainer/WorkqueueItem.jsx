@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
+import {ICON_COLORS} from '../../constants';
 import {ItemIcon} from '../';
 
 export const WorkqueueItem = ({
@@ -17,8 +18,7 @@ export const WorkqueueItem = ({
             <a className="title" onClick={onOpen.bind(null, item)}>
                 <ItemIcon
                     item={item}
-                    white={isActive}
-                    blue={!isActive}
+                    color={isActive ? ICON_COLORS.WHITE : ICON_COLORS.BLUE}
                     showRepeating={false}
                 />
                 <span className="item-label">

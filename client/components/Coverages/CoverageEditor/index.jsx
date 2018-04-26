@@ -101,10 +101,14 @@ export const CoverageEditor = ({
 
     const itemActionComponent = get(itemActions, 'length', 0) > 0 ?
         (
-            <ItemActionsMenu
-                className="side-panel__top-tools-right" actions={itemActions}
-                onOpen={onFocus} />
-        ) : null;
+            <div className="side-panel__top-tools-right">
+                <ItemActionsMenu
+                    actions={itemActions}
+                    onOpen={onFocus}
+                />
+            </div>
+        ) :
+        null;
 
     const coverageItem = (
         <CoverageItem

@@ -1,123 +1,64 @@
 import React from 'react';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
-import {ITEM_TYPE} from '../constants';
+import {get, values} from 'lodash';
+
+import {ITEM_TYPE, ICON_COLORS} from '../constants';
 import {getItemType, eventUtils, planningUtils, gettext} from '../utils';
 
-export const ItemIcon = ({item, big, white, blue, showRepeating}) => {
-    const getItemIcon = () => {
-        const eventIcon = (
-            <i className={classNames(
-                'sd-list-item__item-type',
-                'icon-calendar-list',
-                {
-                    'icon--white': white,
-                    'icon--blue': blue,
-                })}
-            />
-        );
+import {IconMix} from './UI';
 
-        const repeatIcon = (
-            <i className={classNames(
-                'icon-repeat icn-mix__sub-icn',
-                {
-                    'double-size-icn': big,
-                    'icon--white': white,
-                    'icon--blue': blue,
-                })}
-            />
-        );
+export const ItemIcon = ({item, big, showRepeating, doubleSize, color}) => {
+    if (!item) {
+        return null;
+    }
 
-        const planningIcon = (
-            <i className={classNames(
-                'sd-list-item__item-type',
-                'icon-calendar',
-                {
-                    'icon--white': white,
-                    'icon--blue': blue,
-                }
-            )}/>
-        );
+    const itemType = getItemType(item);
+    let icon;
+    let subIcon = null;
+    let tooltip;
 
-        const archiveIcon = (
-            <i className={classNames(
-                'sd-list-item__item-type',
-                planningUtils.getCoverageIcon(item.type),
-                {
-                    'icon--white': white,
-                    'icon--blue': blue,
-                }
-            )}/>
-        );
-
-        const itemType = getItemType(item);
-
-        let icon = eventIcon;
-        let title = 'Event';
-        let multiValidator = eventUtils.isEventRecurring;
-
-        if (itemType === ITEM_TYPE.PLANNING) {
-            icon = planningIcon;
-            title = 'Planning';
-            multiValidator = planningUtils.isPlanMultiDay;
-        } else if (itemType !== ITEM_TYPE.EVENT) {
-            icon = archiveIcon;
-            multiValidator = () => false;
-        }
-
-        if (!icon) {
-            return null;
-        }
-
-        let iconElement = <span>{icon}</span>;
-
-
-        if (!showRepeating || !multiValidator(item)) {
-            title = gettext(title);
-
-            iconElement = big ?
-                (<span className="double-size-icn double-size-icn--light">
-                    {icon}
-                </span>) : iconElement;
+    if (itemType === ITEM_TYPE.EVENT) {
+        icon = 'icon-event';
+        if (!showRepeating || !eventUtils.isEventRecurring(item)) {
+            tooltip = gettext('Event');
         } else {
-            title = gettext(`Recurring ${title}`);
-
-            iconElement = big ?
-                (<span className="icn-mix sd-list-item__item-type">
-                    {repeatIcon}
-                    <span className="double-size-icn double-size-icn--light">
-                        {icon}
-                    </span>
-                </span>) :
-                (<span className="icn-mix sd-list-item__item-type">
-                    {repeatIcon}
-                    {icon}
-                </span>);
+            subIcon = 'icon-repeat';
+            tooltip = gettext('Recurring Event');
         }
+    } else if (itemType === ITEM_TYPE.PLANNING) {
+        icon = 'icon-calendar';
+        tooltip = gettext('Planning');
 
-        return (
-            <OverlayTrigger
-                overlay={<Tooltip id="icon_list_item">{title}</Tooltip>}
-            >
-                {iconElement}
-            </OverlayTrigger>
-        );
-    };
+        if (planningUtils.isPlanMultiDay(item)) {
+            subIcon = 'icon-repeat';
+        }
+    } else {
+        icon = planningUtils.getCoverageIcon(get(item, 'type'));
+        tooltip = gettext('Planning');
+    }
 
-    return getItemIcon();
+    return (
+        <IconMix
+            icon={icon}
+            subIcon={subIcon}
+            className="sd-list-item__item-type"
+            big={big}
+            doubleSize={doubleSize}
+            tooltip={tooltip}
+            color={color}
+        />
+    );
 };
 
 ItemIcon.propTypes = {
-    item: PropTypes.object.isRequired,
+    item: PropTypes.object,
     big: PropTypes.bool,
-    white: PropTypes.bool,
-    blue: PropTypes.bool,
     showRepeating: PropTypes.bool,
+    doubleSize: PropTypes.bool,
+    color: PropTypes.oneOf(values(ICON_COLORS)),
 };
 
 ItemIcon.defaultProps = {
-    white: false,
-    blue: false,
     showRepeating: true,
+    doubleSize: false,
 };

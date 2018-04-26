@@ -54,7 +54,7 @@ const Button = ({
                 className
             )}
             onClick={disabled ? null : onClick || null}
-            title={title || text}
+            title={title}
             tabIndex={tabIndex}
             onKeyDown={enterKeyIsClick ? handeKeyDown : onKeyDown}
             autoFocus={autoFocus}
@@ -77,7 +77,7 @@ Button.propTypes = {
     hollow: PropTypes.bool,
     iconOnly: PropTypes.bool,
     expanded: PropTypes.bool,
-    color: PropTypes.oneOf(['primary', 'success', 'warning', 'alert', 'highlight', 'sd-green']),
+    color: PropTypes.oneOf(['primary', 'success', 'warning', 'alert', 'highlight', 'sd-green', 'ui-dark']),
     size: PropTypes.oneOf(['small', 'large']),
     tabIndex: PropTypes.number,
     enterKeyIsClick: PropTypes.bool,

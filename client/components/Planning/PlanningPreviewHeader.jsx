@@ -4,7 +4,7 @@ import {connect} from 'react-redux';
 import {Tools} from '../UI/SidePanel';
 import {ItemActionsMenu, LockContainer, ItemIcon} from '../index';
 import {planningUtils, lockUtils, actionUtils} from '../../utils';
-import {PLANNING, PRIVILEGES, EVENTS} from '../../constants';
+import {PLANNING, PRIVILEGES, EVENTS, ICON_COLORS} from '../../constants';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {get} from 'lodash';
@@ -64,19 +64,31 @@ export class PlanningPreviewHeaderComponent extends React.Component {
 
         return (
             <Tools topTools={true}>
-                <ItemIcon item={item} />
-                {!lockedInThisSession && lockedUser &&
-                    <LockContainer
-                        lockedUser={lockedUser}
-                        users={users}
-                        showUnlock={unlockPrivilege && showUnlock}
-                        withLoggedInfo={true}
-                        onUnlock={onUnlock.bind(null, item)}
-                    />
-                }
-                {get(itemActions, 'length', 0) > 0 && <ItemActionsMenu
-                    className="side-panel__top-tools-right"
-                    actions={itemActions} />}
+                <ItemIcon
+                    item={item}
+                    color={ICON_COLORS.LIGHT_BLUE}
+                    doubleSize={true}
+                />
+
+                <div className="side-panel__top-tools-left">
+                    {!lockedInThisSession && lockedUser &&
+                        <LockContainer
+                            lockedUser={lockedUser}
+                            users={users}
+                            showUnlock={unlockPrivilege && showUnlock}
+                            withLoggedInfo={true}
+                            onUnlock={onUnlock.bind(null, item)}
+                            small={false}
+                            noMargin={true}
+                        />
+                    }
+                </div>
+
+                <div className="side-panel__top-tools-right">
+                    {get(itemActions, 'length', 0) > 0 &&
+                        <ItemActionsMenu actions={itemActions}/>
+                    }
+                </div>
             </Tools>
         );
     }

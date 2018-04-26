@@ -1,9 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {ItemActionsMenu} from '../../index';
-import {Button} from '../../UI/Nav';
+
 import {ITEM_TYPE, EVENTS, PLANNING} from '../../../constants';
 import {getItemType, eventUtils, planningUtils} from '../../../utils';
+
+import {ItemActionsMenu} from '../../index';
 
 export const EditorItemActions = ({
     item,
@@ -67,11 +68,7 @@ export const EditorItemActions = ({
         return null;
     }
 
-    return (<Button>
-        <ItemActionsMenu
-            className="side-panel__top-tools-right"
-            actions={actions} />
-    </Button>);
+    return <ItemActionsMenu className="navbtn" actions={actions}/>;
 };
 
 EditorItemActions.propTypes = {

@@ -1,17 +1,24 @@
-.ItemActionsMenu {
-    float: right;
+.item-actions-menu__popup {
+    width: 200px; // Force a width so Popup knows the width of the element
 
     .dropdown__menu {
-        left: auto;
-        right: 0;
+        // Override UI-Framework values so Popup can determine proper placement
+        position: relative;
+        top: 0;
+        display: inline-block;
+        margin: 0 !important;
+
+        // Manually set the submenu as hidden
+        &--submenu-left {
+            display: none;
+            position: absolute;
+        }
     }
 
-    &__hidden {
-    	visibility: hidden;
-    }
-
-    &__visible {
-    	visibility: visible;
-        padding-right: 5px;
+    // Display the submenu on hover
+    .dropdown--noarrow:hover {
+        .dropdown__menu--submenu-left {
+            display: inline-block;
+        }
     }
 }

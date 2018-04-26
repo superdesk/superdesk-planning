@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
 import {Label, InternalNoteLabel, Location} from '../';
-import {EVENTS, MAIN} from '../../constants';
+import {EVENTS, MAIN, ICON_COLORS} from '../../constants';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
 import {EventDateTime} from './';
 import {ItemActionsMenu} from '../index';
@@ -13,7 +13,7 @@ import {eventUtils, getItemWorkflowStateLabel, getItemActionedStateLabel, onEven
 export class EventItem extends React.PureComponent {
     render() {
         const {item, onItemClick, lockedItems, dateFormat, timeFormat,
-            session, privileges, activeFilter, toggleRelatedPlanning} = this.props;
+            session, privileges, activeFilter, toggleRelatedPlanning, onMultiSelectClick} = this.props;
 
         if (!item) {
             return null;
@@ -62,12 +62,13 @@ export class EventItem extends React.PureComponent {
         return (
             <Item shadow={1} activated={this.props.multiSelected} onClick={() => onItemClick(item)}>
                 <Border state={borderState} />
-                <ItemType item={item}
+                <ItemType
+                    item={item}
                     hasCheck={activeFilter !== MAIN.FILTERS.COMBINED}
                     checked={this.props.multiSelected}
-                    onCheckToggle={(value) => {
-                        this.props.onMultiSelectClick(item);
-                    }} />
+                    onCheckToggle={onMultiSelectClick.bind(null, item)}
+                    color={ICON_COLORS.DARK_BLUE_GREY}
+                />
                 <PubStatus item={item} />
                 <Column
                     grow={true}
@@ -119,9 +120,7 @@ export class EventItem extends React.PureComponent {
                     </Row>}
                 </Column>
                 {get(itemActions, 'length', 0) > 0 && <ActionMenu>
-                    <ItemActionsMenu
-                        className="side-panel__top-tools-right"
-                        actions={itemActions} />
+                    <ItemActionsMenu actions={itemActions} />
                 </ActionMenu>}
             </Item>
         );

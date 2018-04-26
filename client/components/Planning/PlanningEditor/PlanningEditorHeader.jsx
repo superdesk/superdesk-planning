@@ -5,19 +5,13 @@ import {get} from 'lodash';
 import {getCreator} from '../../../utils';
 
 import {ContentBlock, ContentBlockInner} from '../../UI/SidePanel';
-import {AuditInformation, StateLabel, ItemIcon} from '../..';
+import {AuditInformation, StateLabel} from '../..';
 
 import './style.scss';
 
 export const PlanningEditorHeader = ({item, users}) => {
     if (!get(item, '_id')) {
-        return (
-            <ContentBlock padSmall={true} flex={true}>
-                <ContentBlockInner>
-                    <ItemIcon item={item} big={true} />
-                </ContentBlockInner>
-            </ContentBlock>
-        );
+        return null;
     }
 
     const createdBy = getCreator(item, 'original_creator', users);
@@ -33,9 +27,6 @@ export const PlanningEditorHeader = ({item, users}) => {
             padSmall={true}
             flex={true}
         >
-            <ContentBlockInner>
-                <ItemIcon item={item} big={true} />
-            </ContentBlockInner>
             <ContentBlockInner grow={true}>
                 <AuditInformation
                     createdBy={createdBy}

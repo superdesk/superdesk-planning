@@ -4,7 +4,7 @@ import {connect} from 'react-redux';
 import {Tools} from '../UI/SidePanel';
 import {ItemActionsMenu, LockContainer, ItemIcon} from '../index';
 import {eventUtils, lockUtils, actionUtils} from '../../utils';
-import {PRIVILEGES, EVENTS} from '../../constants';
+import {PRIVILEGES, EVENTS, ICON_COLORS} from '../../constants';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {get} from 'lodash';
@@ -46,19 +46,31 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
 
         return (
             <Tools topTools={true}>
-                <ItemIcon item={item} />
+                <ItemIcon
+                    item={item}
+                    color={ICON_COLORS.DARK_BLUE_GREY}
+                    doubleSize={true}
+                />
+
                 {lockRestricted &&
-                    <LockContainer
-                        lockedUser={lockedUser}
-                        users={users}
-                        showUnlock={unlockPrivilege}
-                        withLoggedInfo={true}
-                        onUnlock={onUnlock.bind(null, item)}
-                    />
+                    <div className="side-panel__top-tools-left">
+                        <LockContainer
+                            lockedUser={lockedUser}
+                            users={users}
+                            showUnlock={unlockPrivilege}
+                            withLoggedInfo={true}
+                            onUnlock={onUnlock.bind(null, item)}
+                            small={false}
+                            noMargin={true}
+                        />
+                    </div>
                 }
-                {get(itemActions, 'length', 0) > 0 && <ItemActionsMenu
-                    className="side-panel__top-tools-right"
-                    actions={itemActions} />}
+
+                {get(itemActions, 'length', 0) > 0 &&
+                    <div className="side-panel__top-tools-right">
+                        <ItemActionsMenu actions={itemActions}/>
+                    </div>
+                }
             </Tools>
         );
     }

@@ -1,9 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
+import classNames from 'classnames';
 
-export const Tabs = ({tabs, active, setActive, className}) => (
-    <ul className={'nav-tabs ' + className}>
+export const Tabs = ({tabs, active, setActive, className, darkUi}) => (
+    <ul className={classNames(
+        'nav-tabs',
+        {'nav-tabs--ui-dark': darkUi},
+        className
+    )}>
         {tabs.map((tab, index) => (
             !get(tab, 'enabled', true) ?
                 null :
@@ -22,4 +27,7 @@ Tabs.propTypes = {
     active: PropTypes.number.isRequired,
     setActive: PropTypes.func.isRequired,
     className: PropTypes.string,
+    darkUi: PropTypes.bool,
 };
+
+Tabs.defaultProps = {darkUi: false};

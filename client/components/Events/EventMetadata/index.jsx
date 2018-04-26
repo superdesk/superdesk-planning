@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
+import {ICON_COLORS} from '../../../constants';
 import {StateLabel} from '../..';
 import {EventScheduleSummary} from '../';
 import {ItemIcon} from '../../index';
@@ -36,14 +37,19 @@ export const EventMetadata = (
                 onEventCapture(event);
                 onEditEvent();
             }}>
-            <icon className="icon-pencil" />
+            <i className="icon-pencil" />
         </button>) : null;
 
     const eventListView = (
         <Item noBg={!active} activated={active}>
             {isItemLocked && <Border state="locked" />}
             <div className="sd-list-item__border" />
-            <Column><ItemIcon item={event} /></Column>
+            <Column>
+                <ItemIcon
+                    item={event}
+                    color={ICON_COLORS.DARK_BLUE_GREY}
+                />
+            </Column>
             <Column grow={true} border={false}>
                 <Row>
                     <StateLabel item={event} verbose={true}/>
@@ -60,7 +66,11 @@ export const EventMetadata = (
     const eventInDetailTopBar = (
         <Item noBg={true} noHover={true}>
             <Column border={false}>
-                <ItemIcon item={event} big={true} />
+                <ItemIcon
+                    item={event}
+                    doubleSize={true}
+                    color={ICON_COLORS.DARK_BLUE_GREY}
+                />
             </Column>
             <Column border={false} grow={true}>
                 {get(event, 'location.name') ? (

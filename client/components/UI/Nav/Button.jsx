@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 export const Button = ({className, onClick, icon, title, children}) => (
-    <div
+    <button
         className={classNames(
             'navbtn',
             className
@@ -13,7 +13,7 @@ export const Button = ({className, onClick, icon, title, children}) => (
     >
         {icon && <i className={icon} />}
         {children}
-    </div>
+    </button>
 );
 
 Button.propTypes = {
