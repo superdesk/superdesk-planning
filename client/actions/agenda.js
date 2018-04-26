@@ -34,13 +34,11 @@ const _createOrUpdateAgenda = (newAgenda) => (
                 notify.success('The agenda has been created/updated.');
                 dispatch(addOrReplaceAgenda(agenda));
             }, (error) => {
-                let errorMessage = getErrorMessage(error);
-
-                if (!errorMessage && get(error, 'data._issues.name.unique') === 1) {
-                    errorMessage = 'An agenda with this name already exists';
-                }
+                let errorMessage = get(error, 'data._issues.name.unique') ?
+                    gettext('An agenda with this name already exists') : getErrorMessage(error);
 
                 notify.error(errorMessage);
+                return Promise.reject(error);
             });
     }
 );
