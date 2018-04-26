@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
-import {every, get} from 'lodash';
+import {every, get, some} from 'lodash';
 import {eventUtils, planningUtils, gettext} from '../utils';
 import {MAIN} from '../constants';
 import {SlidingToolBar} from './UI/SubNav';
@@ -83,11 +83,17 @@ export class MultiSelectActionsComponent extends React.PureComponent {
             (plan) => planningUtils.canUnspikePlanning(plan, plan.event, privileges)
         );
 
-        let tools = [<Button
-            key={1}
-            onClick={this.props.exportAsArticle}
-            color="primary"
-            text={gettext('Export as article')} />];
+        const showExport = !some(selectedPlannings, 'flags.marked_for_not_publication');
+
+        let tools = [];
+
+        if (showExport) {
+            tools.push(<Button
+                key={1}
+                onClick={this.props.exportAsArticle}
+                color="primary"
+                text={gettext('Export as article')} />);
+        }
 
         if (showSpike) {
             tools.push(<Button
