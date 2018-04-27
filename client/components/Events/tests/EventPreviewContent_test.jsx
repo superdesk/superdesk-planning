@@ -1,9 +1,11 @@
 import React from 'react';
+import sinon from 'sinon';
 import {mount} from 'enzyme';
 import {Provider} from 'react-redux';
 import {EventPreviewContent} from '../EventPreviewContent';
-import {getTestActionStore} from '../../../utils/testUtils';
+import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import {createTestStore, eventUtils} from '../../../utils';
+import eventsUi from '../../../actions/events/ui';
 
 import {FileInput, LinkInput} from '../../UI/Form';
 
@@ -80,6 +82,7 @@ describe('<EventPreviewContent />', () => {
         'DD/MM/YYYY', 'HH:mm');
 
     it('renders an event with all its details', () => {
+        sinon.stub(eventsUi, 'fetchEventWithFiles').returns({type: 'Test'});
         const wrapper = getWrapper();
 
         expect(wrapper.find('EventPreviewContentComponent').length).toBe(1);
@@ -138,5 +141,6 @@ describe('<EventPreviewContent />', () => {
         const relPlan = relatedPlannings.find('span').first();
 
         expect(relPlan.text()).toBe('Planning2 created by firstname lastname in agenda TestAgenda2');
+        restoreSinonStub(eventsUi.fetchEventWithFiles);
     });
 });

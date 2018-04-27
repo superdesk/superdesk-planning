@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, some} from 'lodash';
 import * as selectors from '../../../selectors';
+import eventsUi from '../../../actions/events/ui';
 import {EVENTS} from '../../../constants';
 
 import {ContentBlock} from '../../UI/SidePanel';
@@ -48,6 +49,9 @@ export class EventEditorComponent extends React.Component {
     componentWillMount() {
         if (!get(this.props, 'item._id')) {
             this.props.onChangeHandler('calendars', this.props.defaultCalendar, false);
+        } else {
+            // Get the event with files with it
+            this.props.fetchEventWithFiles(this.props.item._id);
         }
     }
 
@@ -309,12 +313,9 @@ export class EventEditorComponent extends React.Component {
                         invalid={!!errors.files && (dirty || submitFailed)}
                         forceScroll={editorMenuUtils.forceScroll(navigation, 'files')} >
                         <Field
-                            component={InputArray}
+                            component={FileInput}
                             field="files"
                             createLink={createUploadLink}
-                            addButtonText={gettext('Add a file')}
-                            element={FileInput}
-                            defaultValue={[]}
                             {...fieldProps}
                             onFocus={onFocusFiles}
                         />
@@ -390,6 +391,7 @@ EventEditorComponent.propTypes = {
     plannings: PropTypes.array,
     planningsModalEvent: PropTypes.array,
     navigation: PropTypes.object,
+    fetchEventWithFiles: PropTypes.func,
 };
 
 EventEditorComponent.defaultProps = {
@@ -415,4 +417,8 @@ const mapStateToProps = (state) => ({
     planningsModalEvent: selectors.events.getRelatedPlanningsForModalEvent(state),
 });
 
-export const EventEditor = connect(mapStateToProps)(EventEditorComponent);
+const mapDispatchToProps = (dispatch) => ({
+    fetchEventWithFiles: (event) => dispatch(eventsUi.fetchEventWithFiles(event)),
+});
+
+export const EventEditor = connect(mapStateToProps, mapDispatchToProps)(EventEditorComponent);

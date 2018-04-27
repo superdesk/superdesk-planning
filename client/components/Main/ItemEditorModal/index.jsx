@@ -30,11 +30,28 @@ export class EditorModalComponent extends React.Component {
         this.onItemCloseFromEditor = this.onItemCloseFromEditor.bind(this);
         this.onItemOpenFromEditor = this.onItemOpenFromEditor.bind(this);
         this.onItemFocusFromEditor = this.onItemFocusFromEditor.bind(this);
+        this.onDragEvents = this.onDragEvents.bind(this);
+    }
+
+    onDragEvents(e) {
+        e.preventDefault();
+        if (e.target.className.indexOf('basic-drag-block') < 0) {
+            e.dataTransfer.effectAllowed = 'none';
+            e.dataTransfer.dropEffect = 'none';
+        }
     }
 
     componentDidMount() {
         // Open the editor
         this.props.openEditorModal(get(this.props, 'modalProps.item'));
+
+        window.addEventListener('dragover', this.onDragEvents);
+        window.addEventListener('drop', this.onDragEvents);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('dragover', this.onDragEvents);
+        window.removeEventListener('drop', this.onDragEvents);
     }
 
     onMenuItemClick(menuItemName) {

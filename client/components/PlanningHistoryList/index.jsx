@@ -65,7 +65,7 @@ export class PlanningHistoryList extends React.Component {
                                             </div>
                                         }
                                         {historyItem.operation === 'duplicate' && (
-                                            <div className="history-list__duplicate">
+                                            <div className="link">
                                                 <a onClick={this.closeAndOpenDuplicate.bind(
                                                     this,
                                                     historyItem.update.duplicate_id
@@ -75,7 +75,7 @@ export class PlanningHistoryList extends React.Component {
                                             </div>
                                         )}
                                         {historyItem.operation === 'duplicate_from' && (
-                                            <div className="history-list__duplicate">
+                                            <div className="link">
                                                 <a onClick={this.closeAndOpenDuplicate.bind(
                                                     this,
                                                     historyItem.update.duplicate_id
