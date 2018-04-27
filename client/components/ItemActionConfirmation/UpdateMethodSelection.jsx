@@ -33,7 +33,7 @@ export const UpdateMethodSelection = ({
 
         { relatedPlannings.length > 0 && (
             <div>
-                <div className="sd-alert sd-alert--hollow sd-alert--alert">
+                <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">
                     <strong>{gettext('This will also {{action}} the following planning items', {action})}</strong>
                     <RelatedPlannings
                         plannings={relatedPlannings}
@@ -44,7 +44,7 @@ export const UpdateMethodSelection = ({
         )}
 
         { showMethodSelection && relatedEvents.length > 0 && (
-            <div className="sd-alert sd-alert--hollow sd-alert--alert">
+            <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">
                 <strong>{gettext('This will also {{action}} the following events', {action})}</strong>
                 <RelatedEvents
                     events={relatedEvents}

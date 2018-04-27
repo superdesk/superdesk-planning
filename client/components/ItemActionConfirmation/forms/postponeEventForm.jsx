@@ -72,14 +72,12 @@ export class PostponeEventComponent extends React.Component {
                 />
 
                 {numPlannings > 0 && (
-                    <div>
-                        <div className="sd-alert sd-alert--hollow sd-alert--alert">
-                            <strong>{gettext('This will also postpone the following planning items')}</strong>
-                            <RelatedPlannings
-                                plannings={initialValues._plannings}
-                                openPlanningItem={false}
-                                short={true} />
-                        </div>
+                    <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">
+                        <strong>{gettext('This will also postpone the following planning items')}</strong>
+                        <RelatedPlannings
+                            plannings={initialValues._plannings}
+                            openPlanningItem={false}
+                            short={true} />
                     </div>
                 )}
 
