@@ -10,6 +10,7 @@ import {getErrorMessage} from '../utils/index';
 
 FulFilAssignmentController.$inject = [
     '$scope',
+    '$element',
     'sdPlanningStore',
     'notify',
     'gettext',
@@ -23,6 +24,7 @@ FulFilAssignmentController.$inject = [
 
 export function FulFilAssignmentController(
     $scope,
+    $element,
     sdPlanningStore,
     notify,
     gettext,
@@ -50,7 +52,7 @@ export function FulFilAssignmentController(
                 return Promise.reject();
             }
 
-            if (lock.isLocked(item)) {
+            if (lock.isLocked(newsItem)) {
                 notify.error(gettext('Item already locked.'));
                 $scope.reject();
                 return Promise.reject();
@@ -94,7 +96,7 @@ export function FulFilAssignmentController(
                     registerNotifications($scope, store);
 
                     store.dispatch(actions.assignments.ui.loadAssignments('All', null,
-                        'Created', 'Desc', [ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED], item.type))
+                        'Created', 'Desc', [ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED], newsItem.type))
                         .then(() => {
                             store.dispatch(actions.assignments.ui.changeAssignmentListSingleGroupView('TODO'));
 
@@ -102,13 +104,13 @@ export function FulFilAssignmentController(
                                 <Provider store={store}>
                                     <ModalsContainer />
                                 </Provider>,
-                                document.getElementById('react-placeholder')
+                                $element.get(0)
                             );
 
                             store.dispatch(actions.showModal({
                                 modalType: MODALS.FULFIL_ASSIGNMENT,
                                 modalProps: {
-                                    newsItem: item, // scope item
+                                    newsItem: newsItem,
                                     fullscreen: true,
                                     $scope: $scope,
                                 },
@@ -127,8 +129,9 @@ export function FulFilAssignmentController(
                                 ) {
                                     lock.unlock(newsItem);
                                 }
-
-                                ReactDOM.unmountComponentAtNode(document.getElementById('react-placeholder'));
+                                // update the scope item.
+                                item.assignment_id = newsItem.assignment_id;
+                                ReactDOM.unmountComponentAtNode($element.get(0));
                             });
 
                             // handler of item unlock
