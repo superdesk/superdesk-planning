@@ -1,11 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {SelectListPopup} from './SelectListPopup';
 import {differenceBy} from 'lodash';
-import {LineInput, Label} from '../../UI/Form';
+
 import {KEYCODES} from '../../../constants';
-import {onEventCapture} from '../../../utils';
-import {List} from '../../UI';
+import {onEventCapture, gettext} from '../../../utils';
+
+import {SelectListPopup} from './SelectListPopup';
+import {LineInput, Label} from '../../UI/Form';
+import {List, IconButton} from '../../UI';
+
 import './style.scss';
 
 
@@ -134,38 +137,46 @@ export class SelectSearchTermsField extends React.Component {
                                         </List.Column>
 
                                         <List.ActionMenu>
-                                            {this.props.onAdd &&
-                                                (<span className="icn-btn" data-sd-tooltip="Edit"
-                                                    data-flow="up" onClick={this.editDetails.bind(this, index)}
+                                            {onAdd && (
+                                                <IconButton
+                                                    icon="icon-pencil"
+                                                    data-sd-tooltip={gettext('Edit')}
+                                                    data-flow="up"
+                                                    onClick={this.editDetails.bind(this, index)}
                                                     tabIndex={0}
                                                     onKeyDown={(event) => {
                                                         if (event.keyCode === KEYCODES.ENTER &&
-                                                            !this.state.editDetails) {
+                                                            !this.state.editDetails
+                                                        ) {
                                                             onEventCapture(event);
                                                             this.editDetails(index);
                                                         }
-                                                    }
-                                                    }>
-                                                    <i className="icon-pencil" />
-                                                </span>)
-                                            }
-                                            <span data-sd-tooltip="View Details"
-                                                data-flow="up" onClick={this.viewDetails.bind(this, index)}
+                                                    }}
+                                                />
+                                            )}
+                                            <IconButton
+                                                icon="icon-external"
+                                                data-sd-tooltip={gettext('View Details')}
+                                                data-flow="up"
+                                                onClick={this.viewDetails.bind(this, index)}
                                                 tabIndex={0}
                                                 onKeyDown={(event) => {
                                                     if (event.keyCode === KEYCODES.ENTER &&
-                                                        !this.state.viewDetails) {
+                                                        !this.state.viewDetails
+                                                    ) {
                                                         onEventCapture(event);
                                                         this.viewDetails(index);
                                                     }
-                                                }
-                                                }>
-                                                <i className="icon-external" />
-                                            </span>
-                                            <span className="icn-btn" data-sd-tooltip="Remove"
-                                                data-flow="up" onClick={this.removeValue.bind(this, index)}>
-                                                <i className="icon-trash" />
-                                            </span>
+                                                }}
+                                            />
+                                            <IconButton
+                                                icon="icon-trash"
+                                                data-sd-tooltip={gettext('Remove')}
+                                                data-flow="up"
+                                                onClick={this.removeValue.bind(this, index)}
+                                                tabIndex={0}
+                                                enterKeyIsClick={true}
+                                            />
                                         </List.ActionMenu>
                                     </List.Item>
                                 ))}

@@ -19,21 +19,39 @@ function Checkbox({value, checkedValue, onChange, label, labelPosition, readOnly
     let checkbox;
 
     if (labelPosition === 'inside') {
-        checkbox = <span className="sd-check__wrapper" disabled={readOnly}>
-            <span className={ className + ' sd-checkbox--button-style'}
-                onClick={!readOnly && onClick}>
-                <label className={classNameLabel}>{label}</label>
-            </span></span>;
+        checkbox = (
+            <span className="sd-check__wrapper">
+                <button
+                    className={className + ' sd-checkbox--button-style'}
+                    onClick={!readOnly && onClick}
+                    disabled={readOnly}
+                >
+                    <label className={classNameLabel}>{label}</label>
+                </button>
+            </span>
+        );
     } else if (labelPosition === 'left') {
-        checkbox = <span className="sd-check__wrapper" disabled={readOnly}>
-            <label className={classNameLabel}>{label}</label>
-            <span className={className} onClick={!readOnly && onClick} />
-        </span>;
+        checkbox = (
+            <span className="sd-check__wrapper">
+                <label className={classNameLabel}>{label}</label>
+                <button
+                    className={className}
+                    onClick={!readOnly && onClick}
+                    disabled={readOnly}
+                />
+            </span>
+        );
     } else {
-        checkbox = <span className="sd-check__wrapper" disabled={readOnly}>
-            <span className={className} onClick={!readOnly && onClick} />
-            <label className={classNameLabel}>{label}</label>
-        </span>;
+        checkbox = (
+            <span className="sd-check__wrapper">
+                <button
+                    className={className}
+                    onClick={!readOnly && onClick}
+                    disabled={readOnly}
+                />
+                <label className={classNameLabel}>{label}</label>
+            </span>
+        );
     }
 
     return checkbox;

@@ -2,7 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import {range} from 'lodash';
+
+import {gettext} from '../../../../utils';
+
 import {Popup, Content, Header, Footer} from '../../Popup';
+import {Button} from '../../';
+
 import './style.scss';
 
 export class TimeInputPopup extends React.Component {
@@ -72,18 +77,18 @@ export class TimeInputPopup extends React.Component {
             >
                 <Header noBorder={true} className="time-popup__header">
                     <div className="time-popup__header-row">
-                        <button
-                            className="btn"
-                            type="button"
-                            onClick={this.handleConfirm.bind(this, 30)}>in 30 min</button>
-                        <button
-                            className="btn"
-                            type="button"
-                            onClick={this.handleConfirm.bind(this, 60)}>in 1 h</button>
-                        <button
-                            className="btn"
-                            type="button"
-                            onClick={this.handleConfirm.bind(this, 120)}>in 2 h</button>
+                        <Button
+                            onClick={this.handleConfirm.bind(this, 30)}
+                            text={gettext('in 30 min')}
+                        />
+                        <Button
+                            onClick={this.handleConfirm.bind(this, 60)}
+                            text={gettext('in 1 hr')}
+                        />
+                        <Button
+                            onClick={this.handleConfirm.bind(this, 120)}
+                            text={gettext('in 2 hrs')}
+                        />
                     </div>
                 </Header>
 
@@ -117,14 +122,19 @@ export class TimeInputPopup extends React.Component {
                 </Content>
 
                 <Footer className="time-popup__footer">
-                    <button
-                        className="btn btn--primary btn--small pull-right"
-                        type="button"
-                        onClick={this.handleConfirm.bind(this, 0)}>Confirm</button>
-                    <button
-                        className="btn btn--small pull-right"
-                        type="button"
-                        onClick={this.props.close}>Cancel</button>
+                    <Button
+                        text={gettext('Confirm')}
+                        color="primary"
+                        size="small"
+                        pullRight={true}
+                        onClick={this.handleConfirm.bind(this, 0)}
+                    />
+                    <Button
+                        text={gettext('Cancel')}
+                        size="small"
+                        pullRight={true}
+                        onClick={this.props.close}
+                    />
                 </Footer>
             </Popup>
         );

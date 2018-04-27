@@ -6,6 +6,7 @@ import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
 import {Label, InternalNoteLabel} from '../';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
+import {Button as NavButton} from '../UI/Nav';
 import {EventDateTime} from '../Events';
 import {PlanningDateTime} from './';
 import {ItemActionsMenu} from '../index';
@@ -15,6 +16,12 @@ import {planningUtils, getItemWorkflowStateLabel, onEventCapture} from '../../ut
 import {AgendaNameList} from '../Agendas';
 
 export class PlanningItem extends React.PureComponent {
+    constructor(props) {
+        super(props);
+
+        this.onAddCoverageButtonClick = this.onAddCoverageButtonClick.bind(this);
+    }
+
     onAddCoverageButtonClick(event) {
         onEventCapture(event);
         this.props.onAddCoverageClick();
@@ -159,21 +166,21 @@ export class PlanningItem extends React.PureComponent {
                                 </Tooltip>
                             }
                         >
-                            <button
-                                className="navbtn dropdown sd-create-btn"
-                                onClick={this.onAddCoverageButtonClick.bind(this)}
+                            <NavButton
+                                className="dropdown sd-create-btn"
+                                onClick={this.onAddCoverageButtonClick}
+                                icon="icon-plus-large"
                             >
-                                <i className="icon-plus-large" />
                                 <span className="circle" />
-                            </button>
+                            </NavButton>
                         </OverlayTrigger>
                     </Column>
                 }
-                <ActionMenu>
-                    {get(itemActions, 'length', 0) > 0 &&
+                {get(itemActions, 'length', 0) > 0 &&
+                    <ActionMenu>
                         <ItemActionsMenu actions={itemActions} />
-                    }
-                </ActionMenu>
+                    </ActionMenu>
+                }
             </Item>
         );
     }

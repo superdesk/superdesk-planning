@@ -64,14 +64,12 @@
 .element-with-badge {
     + .element-with-badge, + .sd-check__wrapper {
         margin-left: 1.2rem;
-        margin-top: 0.5rem;
         vertical-align: top;
     }
 }
 
 .sd-check__wrapper + .element-with-badge {
     margin-left: 1.2rem;
-    margin-top: 0.5rem;
     vertical-align: top;
 }
 
@@ -121,3 +119,10 @@
 }
 
 .cursor-pointer { cursor: pointer; }
+
+// Remove the underline from text inside check boxes
+a:hover {
+   &.sd-check__wrapper {
+      text-decoration: none;
+   }
+}

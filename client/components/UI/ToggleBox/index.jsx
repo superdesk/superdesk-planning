@@ -79,15 +79,19 @@ export class ToggleBox extends React.Component {
                 )}
                 ref={(node) => this.dom.node = node}
             >
-                <div className="toggle-box__header"
+                <a
+                    className="toggle-box__header"
                     onClick={this.toggle}
                     role="button"
                     tabIndex={0}
-                    onKeyDown={this.handleKeyDown}>
-                    <div className="toggle-box__chevron"><i className="icon-chevron-right-thin"/></div>
+                    onKeyDown={this.handleKeyDown}
+                >
+                    <div className="toggle-box__chevron">
+                        <i className="icon-chevron-right-thin"/>
+                    </div>
                     <div className="toggle-box__label">{gettext(title)}</div>
                     <div className="toggle-box__line"/>
-                </div>
+                </a>
                 <div className="toggle-box__content-wraper">
                     {this.state.isOpen && !hideUsingCSS && (
                         <div className="toggle-box__content">

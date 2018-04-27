@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import {LineInput, Label, Input} from '../';
+import {IconButton} from '../../';
 import {DateInputPopup} from './DateInputPopup';
 import {KEYCODES} from '../../../../constants';
 import {onEventCapture} from '../../../../utils';
@@ -110,11 +111,12 @@ export class DateInput extends React.Component {
         return (
             <LineInput {...props} readOnly={readOnly}>
                 <Label text={label} />
-                <a className="icn-btn sd-line-input__icon-right"
+                <IconButton
+                    className="sd-line-input__icon-right"
+                    icon="icon-calendar"
                     onFocus={onFocus}
-                    onClick={readOnly ? undefined : this.toggleOpenDatePicker}>
-                    <i className="icon-calendar" />
-                </a>
+                    onClick={readOnly ? undefined : this.toggleOpenDatePicker}
+                />
                 <Input
                     field={field}
                     value={this.state.viewValue}

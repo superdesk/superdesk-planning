@@ -26,15 +26,15 @@ export default function Toggle({value, onChange, readOnly, onFocus, className}) 
     );
 
     return (
-        <span
-            role="button"
+        <button
+            type="button"
             tabIndex={0}
             className={classes}
             onClick={!readOnly && onChange ? onClick : null}
             onFocus={onFocus}
             onKeyDown= {!readOnly ? handleKeyDown : null}>
             <span className="inner"/>
-        </span>
+        </button>
     );
 }
 

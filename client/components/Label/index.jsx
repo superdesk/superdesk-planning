@@ -1,34 +1,35 @@
-/* eslint-disable react/no-multi-comp */
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import {gettext} from '../../utils';
 import './style.scss';
 
 export const Label = ({text, iconType, verbose, isHollow, tooltip, onClick}) => {
-    const labelClasses = classNames('label',
+    const labelClasses = classNames(
+        'label',
         `label--${iconType}`,
-        {'label--hollow': isHollow},
-        {'label--clickable': !!onClick});
+        {
+            'label--hollow': isHollow,
+            'label--clickable': !!onClick,
+        }
+    );
 
-    const label = (
+    const label = tooltip ? (
+        <span
+            className={labelClasses}
+            data-sd-tooltip={tooltip.text}
+            data-flow={tooltip.flow ? tooltip.flow : 'down'}
+        >
+            {verbose ? verbose : text}
+        </span>
+    ) : (
         <span className={labelClasses}>
-            {verbose ? gettext(verbose) : gettext(text)}
+            {verbose ? verbose : text}
         </span>
     );
 
-    return (
-        <span onClick={onClick ? onClick : null}>
-            {tooltip &&
-                <span
-                    data-sd-tooltip={gettext(tooltip.text)}
-                    data-flow={tooltip.flow ? tooltip.flow : 'down'}>
-                    {label}
-                </span>
-            }
-            {!tooltip && label}
-        </span>
-    );
+    return onClick ?
+        <a onClick={onClick}>{label}</a> :
+        label;
 };
 
 Label.propTypes = {

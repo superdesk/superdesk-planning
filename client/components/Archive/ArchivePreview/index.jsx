@@ -195,11 +195,14 @@ class ArchivePreviewComponent extends React.Component {
                         </div>
                     }
 
-                    <button className={classNames(
-                        'preview-header__toggle',
-                        {active: !this.state.headerOpen}
-                    )}>
-                        <i className="icon-chevron-up-thin" onClick={this.toggleHeader} />
+                    <button
+                        className={classNames(
+                            'preview-header__toggle',
+                            {active: !this.state.headerOpen}
+                        )}
+                        onClick={this.toggleHeader}
+                    >
+                        <i className="icon-chevron-up-thin" />
                     </button>
                 </div>
 

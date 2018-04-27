@@ -31,9 +31,11 @@ export const SelectItemModal = ({handleHide, modalProps}) => {
             <Modal.Body>
                 <div className="sd-list-item-group sd-list-item-group--space-between-items">
                     { modalProps.items.map((item, index) =>
-                        <div className="sd-list-item sd-shadow--z1"
+                        <button
+                            className="sd-list-item sd-shadow--z1"
                             key={index}
-                            onClick={() => handleSelect(item.value)}>
+                            onClick={() => handleSelect(item.value)}
+                        >
                             <div className={classes}>
                                 <div className="sd-list-item__row">
                                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
@@ -41,7 +43,7 @@ export const SelectItemModal = ({handleHide, modalProps}) => {
                                     </span>
                                 </div>
                             </div>
-                        </div>
+                        </button>
                     )}
                 </div>
             </Modal.Body>

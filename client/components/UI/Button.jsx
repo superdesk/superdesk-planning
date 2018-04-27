@@ -24,6 +24,9 @@ const Button = ({
     refNode,
     onKeyDown,
     iconOnlyCircle,
+    children,
+    pullRight,
+    ...props
 }) => {
     const handeKeyDown = (event) => {
         if (event.keyCode === KEYCODES.ENTER) {
@@ -50,6 +53,7 @@ const Button = ({
                     'btn--expanded': expanded,
                     'btn--icon-only': iconOnly,
                     'btn--icon-only-circle': iconOnlyCircle,
+                    'pull-right': pullRight,
                 },
                 className
             )}
@@ -59,9 +63,11 @@ const Button = ({
             onKeyDown={enterKeyIsClick ? handeKeyDown : onKeyDown}
             autoFocus={autoFocus}
             ref={refNode}
+            {...props}
         >
             {icon && <i className={icon} />}
             {!iconOnly && text}
+            {children}
         </button>
     );
 };
@@ -77,7 +83,7 @@ Button.propTypes = {
     hollow: PropTypes.bool,
     iconOnly: PropTypes.bool,
     expanded: PropTypes.bool,
-    color: PropTypes.oneOf(['primary', 'success', 'warning', 'alert', 'highlight', 'sd-green', 'ui-dark']),
+    color: PropTypes.oneOf(['primary', 'success', 'warning', 'alert', 'highlight', 'sd-green', 'ui-dark', 'default']),
     size: PropTypes.oneOf(['small', 'large']),
     tabIndex: PropTypes.number,
     enterKeyIsClick: PropTypes.bool,
@@ -85,6 +91,8 @@ Button.propTypes = {
     onKeyDown: PropTypes.func,
     refNode: PropTypes.func,
     iconOnlyCircle: PropTypes.bool,
+    children: PropTypes.node,
+    pullRight: PropTypes.bool,
 };
 
 Button.defaultProps = {
@@ -96,6 +104,7 @@ Button.defaultProps = {
     enterKeyIsClick: false,
     autoFocus: false,
     iconOnlyCircle: false,
+    pullRight: false,
 };
 
 export default Button;

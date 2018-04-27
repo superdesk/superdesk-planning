@@ -72,8 +72,10 @@ export class CoverageFormHeader extends React.Component {
                                 text={gettext('Assign')}
                                 tabIndex={0}
                                 enterKeyIsClick
-                                className="btn btn--primary btn--small" onClick={this.togglePopup}
-                                autoFocus />
+                                className="btn btn--primary btn--small"
+                                onClick={this.togglePopup}
+                                autoFocus
+                            />
                         </ListRow>)}
                     </Column>
                     {this.state.popupOpen && (

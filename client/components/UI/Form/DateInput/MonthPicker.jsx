@@ -1,8 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
 import moment from 'moment';
 import {chunk} from 'lodash';
+
+import {Button} from '../../';
+
 import './style.scss';
 
 export const MonthPicker = ({selectedDate, onChange}) => {
@@ -17,19 +19,14 @@ export const MonthPicker = ({selectedDate, onChange}) => {
                     <tr key={rowIndex}>
                         {row.map((date, index) => (
                             <td key={index} className="text-center">
-                                <button
-                                    type="button"
-                                    className={classNames(
-                                        'btn',
-                                        'btn-default',
-                                        'btn-sm',
-                                        {active: (rowIndex * 3 + index) === selectedDate.month()}
-                                    )}
+                                <Button
+                                    className={(rowIndex * 3 + index) === selectedDate.month() ? 'active' : null}
                                     onClick={
                                         onChange.bind(this, (moment(selectedDate).month((rowIndex * 3 + index))))
-                                    }>
+                                    }
+                                >
                                     <span>{date}</span>
-                                </button>
+                                </Button>
                             </td>
                         ))}
                     </tr>

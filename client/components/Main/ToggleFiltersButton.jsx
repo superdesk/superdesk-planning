@@ -1,18 +1,22 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-export const ToggleFiltersButton = ({filterPanelOpen, toggleFilterPanel}) => {
-    const className = 'navbtn navbtn--left navbtn--darker' + (
-        filterPanelOpen ? ' navbtn--active' : ''
-    );
+import {gettext} from '../../utils';
 
-    return (
-        <button onClick={toggleFilterPanel} className={className}
-            data-sd-tooltip="Advanced filters" data-flow="right">
-            <i className="icon-filter-large" />
-        </button>
-    );
-};
+import {Button as NavButton} from '../UI/Nav';
+
+export const ToggleFiltersButton = ({filterPanelOpen, toggleFilterPanel}) => (
+    <NavButton
+        left={true}
+        darker={true}
+        active={filterPanelOpen}
+        onClick={toggleFilterPanel}
+        data-sd-tooltip={gettext('Advanced filters')}
+        data-flow="right"
+    >
+        <i className="icon-filter-large" />
+    </NavButton>
+);
 
 ToggleFiltersButton.propTypes = {
     filterPanelOpen: PropTypes.bool.isRequired,

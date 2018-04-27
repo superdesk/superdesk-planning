@@ -6,12 +6,14 @@ import {get} from 'lodash';
 import * as actions from '../../actions';
 
 export const ItemRenditionComponent = ({previewImage, item, rendition}) => (
-    <figure className="media preview-overlay-on" onClick={previewImage.bind(null, item)}>
-        <img src={get(item, `renditions.${rendition}.href`)} />
-        <div className="preview-overlay">
-            <i className="icon-fullscreen" />
-        </div>
-    </figure>
+    <a onClick={previewImage.bind(null, item)}>
+        <figure className="media preview-overlay-on">
+            <img src={get(item, `renditions.${rendition}.href`)} />
+            <div className="preview-overlay">
+                <i className="icon-fullscreen" />
+            </div>
+        </figure>
+    </a>
 );
 
 ItemRenditionComponent.propTypes = {

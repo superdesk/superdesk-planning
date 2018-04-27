@@ -120,12 +120,12 @@ class AssignmentGroupListComponent extends React.Component {
             <div>
                 {!assignmentListSingleGroupView && (
                     <Header>
-                        <span
+                        <a
                             className="sd-list-header__name sd-list-header__name--cursorPointer"
                             onClick={this.changeAssignmentListSingleGroupView}
                         >
                             <a>{ASSIGNMENTS.LIST_GROUPS[groupKey].label}</a>
-                        </span>
+                        </a>
                         <span className="sd-list-header__number badge">{totalCount}</span>
                     </Header>
 

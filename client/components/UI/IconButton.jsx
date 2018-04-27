@@ -5,10 +5,13 @@ import classNames from 'classnames';
 import {KEYCODES} from '../../constants';
 import {onEventCapture} from '../../utils';
 
+import {Icon} from './';
+
 const IconButton = ({
     onClick,
     tabIndex,
     onKeyDown,
+    onFocus,
     enterKeyIsClick,
     icon,
     useDefaultClass,
@@ -35,11 +38,12 @@ const IconButton = ({
                 className
             )}
             onClick={onClick}
+            onFocus={onFocus}
             tabIndex={tabIndex}
             onKeyDown={enterKeyIsClick ? handleKeyDown : onKeyDown}
             {...props}
         >
-            <i className={icon} />
+            <Icon icon={icon} />
             {label}
         </a>
     );
@@ -49,6 +53,7 @@ IconButton.propTypes = {
     onClick: PropTypes.func,
     tabIndex: PropTypes.number,
     onKeyDown: PropTypes.func,
+    onFocus: PropTypes.func,
     enterKeyIsClick: PropTypes.bool,
     icon: PropTypes.string,
     useDefaultClass: PropTypes.bool,

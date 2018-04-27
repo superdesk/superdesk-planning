@@ -2,8 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
-import {gettext} from '../../../utils';
-
 export const Checkbox = ({
     field,
     value,
@@ -36,31 +34,31 @@ export const Checkbox = ({
 
     if (labelPosition === 'inside') {
         checkbox = (
-            <span className="sd-check__wrapper" disabled={readOnly} onClick={onClick}>
+            <a className="sd-check__wrapper" onClick={onClick}>
                 <span className={className}>
                     <label className={readOnly ? 'sd-label--disabled' : ''}>
-                        {gettext(label)}
+                        {label}
                     </label>
                 </span>
-            </span>
+            </a>
         );
     } else if (labelPosition === 'left') {
         checkbox = (
-            <span className="sd-check__wrapper" disabled={readOnly} onClick={onClick}>
+            <a className="sd-check__wrapper" onClick={onClick}>
                 <label className={readOnly ? 'sd-label--disabled' : ''}>
-                    {gettext(label)}
+                    {label}
                 </label>
                 <span className={className}/>
-            </span>
+            </a>
         );
     } else {
         checkbox = (
-            <span className="sd-check__wrapper" disabled={readOnly} onClick={onClick}>
+            <a className="sd-check__wrapper" onClick={onClick}>
                 <span className={className}/>
                 <label className={readOnly ? 'sd-label--disabled' : ''}>
-                    {gettext(label)}
+                    {label}
                 </label>
-            </span>
+            </a>
         );
     }
 

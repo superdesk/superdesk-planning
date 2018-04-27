@@ -4,8 +4,7 @@ import {GeoLookupInputComponent} from './index';
 import sinon from 'sinon';
 import * as helpers from '../../../tests/helpers';
 
-// TODO: to be revisited
-xdescribe('<AddGeoLookupInput />', () => {
+describe('<AddGeoLookupInput />', () => {
     let inputText;
     let initialValue;
     let handleSearch;
@@ -47,6 +46,7 @@ xdescribe('<AddGeoLookupInput />', () => {
     it('opens search external popup on text input', () => {
         setWrapper();
         wrapper.instance().handleInputChange(inputText);
+        wrapper.update();
 
         const popup = new helpers.ui.Popup(wrapper);
         const suggestsPopup = popup.find('.addgeolookup__suggests-wrapper').at(0);
@@ -60,6 +60,10 @@ xdescribe('<AddGeoLookupInput />', () => {
         const externalSearchSpy = sinon.stub(wrapper.instance(),
             'handleSearchClick').callsFake(() => { /* no-op */ });
 
+        // See https://github.com/airbnb/enzyme/issues/586
+        // Force the component and wrapper to update so that the stub is used
+        // ONLY works when both of these are present
+        wrapper.instance().forceUpdate();
         wrapper.update();
 
         const popup = new helpers.ui.Popup(wrapper);
@@ -75,6 +79,7 @@ xdescribe('<AddGeoLookupInput />', () => {
     it('external search button can be controlled by disableSearch prop', () => {
         setWrapper();
         wrapper.instance().handleInputChange(inputText);
+        wrapper.update();
 
         let popup = new helpers.ui.Popup(wrapper);
 
@@ -89,7 +94,10 @@ xdescribe('<AddGeoLookupInput />', () => {
             onChange={onChange}
             searchLocalLocations={handleSearch}
             disableSearch={true} />);
+
         wrapper.instance().handleInputChange(inputText);
+        wrapper.update();
+
         popup = new helpers.ui.Popup(wrapper);
 
         suggestsPopup = popup.find('.addgeolookup__suggests-wrapper').at(0);
