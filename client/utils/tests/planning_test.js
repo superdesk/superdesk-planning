@@ -425,6 +425,7 @@ describe('PlanningUtils', () => {
 
     describe('getPlanningItemActions', () => {
         const actions = [
+            PLANNING.ITEM_ACTIONS.ADD_COVERAGE,
             PLANNING.ITEM_ACTIONS.SPIKE,
             PLANNING.ITEM_ACTIONS.UNSPIKE,
             PLANNING.ITEM_ACTIONS.DUPLICATE,
@@ -471,6 +472,7 @@ describe('PlanningUtils', () => {
             );
 
             expectActions(itemActions, [
+                'Add coverage',
                 'Spike',
                 'Duplicate',
             ]);
@@ -485,6 +487,7 @@ describe('PlanningUtils', () => {
             );
 
             expectActions(itemActions, [
+                'Add coverage',
                 'Spike',
                 'Duplicate',
                 'Cancel Event',
@@ -502,6 +505,7 @@ describe('PlanningUtils', () => {
             );
 
             expectActions(itemActions, [
+                'Add coverage',
                 'Duplicate',
             ]);
 
@@ -515,9 +519,58 @@ describe('PlanningUtils', () => {
             );
 
             expectActions(itemActions, [
+                'Add coverage',
                 'Duplicate',
                 'Cancel Event',
                 'Reschedule Event',
+            ]);
+        });
+
+        it('canceled event and planning', () => {
+            planning.state = 'cancelled';
+            let itemActions = planUtils.getPlanningItemActions(
+                planning, event, session, privileges, actions, locks
+            );
+
+            expectActions(itemActions, [
+                'Duplicate',
+            ]);
+
+            planning.event_item = '1';
+            event = {
+                state: 'cancelled',
+                planning_ids: ['1'],
+            };
+            itemActions = planUtils.getPlanningItemActions(
+                planning, event, session, privileges, actions, locks
+            );
+
+            expectActions(itemActions, [
+                'Duplicate',
+            ]);
+        });
+
+        it('rescheduled event and planning', () => {
+            planning.state = 'rescheduled';
+            let itemActions = planUtils.getPlanningItemActions(
+                planning, event, session, privileges, actions, locks
+            );
+
+            expectActions(itemActions, [
+                'Duplicate',
+            ]);
+
+            planning.event_item = '1';
+            event = {
+                state: 'rescheduled',
+                planning_ids: ['1'],
+            };
+            itemActions = planUtils.getPlanningItemActions(
+                planning, event, session, privileges, actions, locks
+            );
+
+            expectActions(itemActions, [
+                'Duplicate',
             ]);
         });
     });

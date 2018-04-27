@@ -132,6 +132,10 @@ const canCancelAllCoverageForPlanning = (planning) => (
         .filter((c) => canCancelCoverage(c)).length > 0
 );
 
+const canAddCoverages = (planning) => (
+    !isItemCancelled(planning) && !isItemRescheduled(planning)
+);
+
 const isPlanningLocked = (plan, locks) =>
     !isNil(plan) && (
         plan._id in locks.planning ||
@@ -185,6 +189,8 @@ export const getPlanningItemActions = (plan, event = null, session, privileges, 
     let key = 1;
 
     const actionsValidator = {
+        [PLANNING.ITEM_ACTIONS.ADD_COVERAGE.label]: () =>
+            canAddCoverages(plan),
         [PLANNING.ITEM_ACTIONS.SPIKE.label]: () =>
             canSpikePlanning(plan, session, privileges, locks),
         [PLANNING.ITEM_ACTIONS.UNSPIKE.label]: () =>
