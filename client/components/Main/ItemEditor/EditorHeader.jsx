@@ -71,6 +71,7 @@ export class EditorHeader extends React.Component {
     render() {
         const {
             item,
+            diff,
             onAddCoverage,
             onSave,
             onPublish,
@@ -116,7 +117,7 @@ export class EditorHeader extends React.Component {
                 canUpdate = eventUtils.canUpdateEvent(item, session, privileges, lockedItems);
                 canEdit = eventUtils.canEditEvent(item, session, privileges, lockedItems);
             } else if (!isEvent) {
-                canPublish = planningUtils.canPublishPlanning(item, null, session, privileges, lockedItems);
+                canPublish = planningUtils.canPublishPlanning(diff, null, session, privileges, lockedItems);
                 canUnpublish = planningUtils.canUnpublishPlanning(item, null, session, privileges, lockedItems);
                 canUpdate = planningUtils.canUpdatePlanning(item, null, session, privileges, lockedItems);
                 canEdit = planningUtils.canEditPlanning(item, null, session, privileges, lockedItems);
@@ -255,6 +256,7 @@ export class EditorHeader extends React.Component {
 
 EditorHeader.propTypes = {
     item: PropTypes.object,
+    diff: PropTypes.object,
     onSave: PropTypes.func.isRequired,
     onPublish: PropTypes.func.isRequired,
     onSaveAndPublish: PropTypes.func.isRequired,

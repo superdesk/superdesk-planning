@@ -408,6 +408,7 @@ export class EditorComponent extends React.Component {
                 )}
                 <EditorHeader
                     item={this.props.item}
+                    diff={this.state.diff}
                     onSave={this.onSave}
                     onPublish={this.onPublish}
                     onSaveAndPublish={this.onSaveAndPublish}
