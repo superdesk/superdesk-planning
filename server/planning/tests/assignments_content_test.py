@@ -37,7 +37,6 @@ class AssignmentsContentServiceTest(TestCase):
                     'urgency': 1, 'priority': 3,
                     'dateline': {},
                     'anpa_take_key': 'test',
-                    'place': ['Prague'],
                     'genre': [{'name': 'template_genre', 'qcode': 'template_genre'}]
                 }
             }])
