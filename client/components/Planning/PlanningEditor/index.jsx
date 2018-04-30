@@ -334,7 +334,7 @@ export class PlanningEditorComponent extends React.Component {
         const existingPlanning = !!get(diff, '_id');
 
         // Read-only if
-        // 1 - it is supposed to be readOnly by parernt props
+        // 1 - it is supposed to be readOnly by parent props
         // 2 - for add-to-planning and existing planning item
         const updatedReadOnly = readOnly || (!!addNewsItemToPlanning && existingPlanning);
 
