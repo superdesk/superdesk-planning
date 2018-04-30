@@ -5,6 +5,7 @@ import {gettext} from '../../utils';
 
 import {UserAvatar} from '../';
 import {Popup, Header, Content, Footer} from '../UI/Popup';
+import {Button} from '../UI';
 
 import './style.scss';
 
@@ -33,13 +34,15 @@ export const LockContainerPopup = ({
             />
             <Content>
                 <UserAvatar user={user} large={true} />
-                <div className="lock-text">{user.display_name}</div>
+                <div>{user.display_name}</div>
             </Content>
             <Footer noBorder={true}>
                 {showUnlock && (
-                    <button className="btn btn--medium" onClick={unlockItem}>
-                        {gettext('Unlock')}
-                    </button>
+                    <Button
+                        text={gettext('Unlock')}
+                        onClick={unlockItem}
+                        expanded={true}
+                    />
                 )}
             </Footer>
         </Popup>

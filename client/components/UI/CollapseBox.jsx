@@ -5,6 +5,8 @@ import classNames from 'classnames';
 import {KEYCODES} from '../../constants';
 import {onEventCapture} from '../../utils';
 
+import {IconButton} from './';
+
 export class CollapseBox extends React.Component {
     constructor(props) {
         super(props);
@@ -108,12 +110,12 @@ export class CollapseBox extends React.Component {
                         <div className="sd-collapse-box__content">
                             <div className="sd-collapse-box__tools">
                                 {this.props.tools}
-                                <a tabIndex={this.props.tabEnabled ? 0 : null}
-                                    className="icn-btn"
+                                <IconButton
+                                    icon="icon-chevron-up-thin"
+                                    tabIndex={this.props.tabEnabled ? 0 : null}
                                     onClick={this.closeBox}
-                                    onKeyDown={this.props.tabEnabled ? this.handleKeyDown : null} >
-                                    <i className="icon-chevron-up-thin" />
-                                </a>
+                                    onKeyDown={this.props.tabEnabled ? this.handleKeyDown : null}
+                                />
                             </div>
                             {this.props.openItemTopBar &&
                             <div className="sd-collapse-box__content-block sd-collapse-box__content-block--top">

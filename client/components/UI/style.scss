@@ -58,3 +58,14 @@
 .sd-collapse-box__content-wraper {
     @extend .sd-collapse-box__content-wrapper--no-max-height;
 }
+
+// This is used so the action-menu is visible
+// when using tab to select an sd-list-item
+.sd-list-item:focus-within {
+    .sd-list-item__action-menu {
+        padding: 0 0.6rem;
+        width: auto;
+        overflow: visible;
+        opacity: 1;
+    }
+}

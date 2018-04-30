@@ -2,6 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import {range, chunk} from 'lodash';
+import classNames from 'classnames';
+
+import {Button} from '../../';
+
 import './style.scss';
 
 export class DayPicker extends React.Component {
@@ -99,15 +103,23 @@ export class DayPicker extends React.Component {
                         <tr key={rowIndex}>
                             {row.map((date, index) => (
                                 <td key={index} className="text-center">
-                                    <button type="button"
-                                        className={
-                                            ((rowIndex * 7 + index) === this.state.selectedDateIndex ? 'active' :
-                                                '') + ' btn btn-default btn-sm'}
-                                        onClick={this.onDateChange.bind(this, (rowIndex * 7 + index))}>
-                                        <span className={(rowIndex * 7 + index) < this.state.monthStartIndex ||
-                                        (rowIndex * 7 + index) > this.state.monthEndIndex ? 'text-muted' : ''}>
-                                            {date}</span>
-                                    </button>
+                                    <Button
+                                        className={(rowIndex * 7 + index) === this.state.selectedDateIndex ?
+                                            'active' :
+                                            null
+                                        }
+                                        onClick={this.onDateChange.bind(this, (rowIndex * 7 + index))}
+                                    >
+                                        <span
+                                            className={classNames({
+                                                'text-muted':
+                                                (rowIndex * 7 + index) < this.state.monthStartIndex ||
+                                                (rowIndex * 7 + index) > this.state.monthEndIndex,
+                                            })}
+                                        >
+                                            {date}
+                                        </span>
+                                    </Button>
                                 </td>
                             ))}
                         </tr>

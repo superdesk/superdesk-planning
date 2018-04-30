@@ -1,7 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import {gettext} from '../../utils';
+
+import {Button} from '../UI';
+
 export default class OrderBar extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.onChangeOrder = this.onChangeOrder.bind(this);
+        this.onChangeField = this.onChangeField.bind(this);
+    }
+
     onChangeOrder() {
         const {orderByField, orderDirection, onChange} = this.props;
 
@@ -21,14 +32,17 @@ export default class OrderBar extends React.Component {
             <div className="sortbar-container">
                 <div className="sortbar">
                     <div>
-                        <select onChange={this.onChangeField.bind(this)} value={orderByField}>
+                        <select onChange={this.onChangeField} value={orderByField}>
                             { fields.map((field) => (<option key={field} value={field}>{field}</option>)) }
                         </select>
                     </div>
-                    <button onClick={() => this.onChangeOrder()} className="btn direction" title={orderDirection}>
-                        { orderDirection === 'Asc' && (<i className="icon-ascending"/>) }
-                        { orderDirection === 'Desc' && (<i className="icon-descending"/>) }
-                    </button>
+                    <Button
+                        onClick={this.onChangeOrder}
+                        className="direction"
+                        title={orderDirection === 'Asc' ? gettext('Ascending') : gettext('Descending')}
+                        iconOnly={true}
+                        icon={orderDirection === 'Asc' ? 'icon-ascending' : 'icon-descending'}
+                    />
                 </div>
             </div>
         );

@@ -189,10 +189,13 @@ export class EventPreviewContentComponent extends React.Component {
                                     </List.Row>
                                 </List.Column>
                                 <List.ActionMenu>
-                                    <span data-sd-tooltip="View Details" data-flow="left"
-                                        onClick={this.viewContactDetails.bind(this, contact)}>
+                                    <button
+                                        data-sd-tooltip="View Details"
+                                        data-flow="left"
+                                        onClick={this.viewContactDetails.bind(this, contact)}
+                                    >
                                         <i className="icon-external" />
-                                    </span>
+                                    </button>
                                 </List.ActionMenu>
                             </List.Item>
                         ))

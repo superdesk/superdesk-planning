@@ -17,11 +17,11 @@ export default class Popup {
 
         if (store) {
             return new ReactWrapper(
-                <Provider store={store}>{this.element.node.props.children}</Provider>
+                <Provider store={store}>{this.element.props().children}</Provider>
             );
         }
 
-        return new ReactWrapper(this.element.node.props.children);
+        return new ReactWrapper(this.element.props().children);
     }
 
     find(element) {

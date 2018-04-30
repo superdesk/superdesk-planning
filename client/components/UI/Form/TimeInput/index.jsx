@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import {LineInput, Label, Input} from '../';
 import {TimeInputPopup} from './TimeInputPopup';
+import {IconButton} from '../../';
 import {KEYCODES} from '../../../../constants';
 import './style.scss';
 
@@ -99,13 +100,12 @@ export class TimeInput extends React.Component {
         return (
             <LineInput {...props} readOnly={readOnly}>
                 <Label text={label} />
-                <a
-                    className="icn-btn sd-line-input__icon-right"
+                <IconButton
+                    className="sd-line-input__icon-right"
+                    icon="icon-time"
                     onFocus={onFocus}
                     onClick={!readOnly ? this.toggleOpenTimePicker : null}
-                >
-                    <i className="icon-time" />
-                </a>
+                />
                 <Input
                     field={field}
                     value={this.state.viewValue}

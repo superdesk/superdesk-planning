@@ -1,8 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
 import moment from 'moment';
 import {range, chunk} from 'lodash';
+
+import {Button} from '../../';
+
 import './style.scss';
 
 export const YearPicker = ({selectedDate, onChange, startingYear, yearRange}) => {
@@ -17,20 +19,18 @@ export const YearPicker = ({selectedDate, onChange, startingYear, yearRange}) =>
                     <tr key={rowIndex}>
                         {row.map((year, index) => (
                             <td key={index} className="text-center">
-                                <button
-                                    type="button"
-                                    className={classNames(
-                                        'btn',
-                                        'btn-default',
-                                        'btn-sm',
-                                        {active: (startingYear + (rowIndex * 5 + index)) === selectedDate.year()}
+                                <Button
+                                    className={(startingYear + (rowIndex * 5 + index)) === selectedDate.year() ?
+                                        'active' :
+                                        null
+                                    }
+                                    onClick={onChange.bind(
+                                        this,
+                                        (moment(selectedDate).year((startingYear + (rowIndex * 5 + index))))
                                     )}
-                                    onClick={
-                                        onChange.bind(this,
-                                            (moment(selectedDate).year((startingYear + (rowIndex * 5 + index)))))
-                                    }>
+                                >
                                     <span>{year}</span>
-                                </button>
+                                </Button>
                             </td>
                         ))}
                     </tr>

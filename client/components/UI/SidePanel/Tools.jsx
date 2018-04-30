@@ -2,6 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+import {IconButton} from '../';
+
 export const Tools = ({className, tools, children, topTools}) => (
     <div
         className={classNames(
@@ -13,14 +15,13 @@ export const Tools = ({className, tools, children, topTools}) => (
         )}
     >
         {tools.map((tool) => (
-            <a
+            <IconButton
                 key={tool.icon}
-                className="icn-btn"
+                icon={tool.icon}
                 onClick={tool.onClick}
                 data-sd-tooltip={tool.title}
-                data-flow="left">
-                <i className={tool.icon} />
-            </a>
+                data-flow="left"
+            />
         ))}
         {children}
     </div>
