@@ -30,13 +30,14 @@ import {EventUpdateMethods} from '../components/Events';
  * occupy entire day(s)
  * @param {moment} startingDate - A moment instance for the starting date/time
  * @param {moment} endingDate - A moment instance for the starting date/time
+ * @param {boolean} checkMultiDay - If true include multi-day in the check, otherwise must be single day only
  * @return {boolean} If the date/times occupy entire day(s)
  */
-const isEventAllDay = (startingDate, endingDate) => {
+const isEventAllDay = (startingDate, endingDate, checkMultiDay = false) => {
     const start = moment(startingDate).clone();
     const end = moment(endingDate).clone();
 
-    return start.isSame(end, 'day') &&
+    return (checkMultiDay || start.isSame(end, 'day')) &&
         start.isSame(start.clone().startOf('day'), 'minute') &&
         end.isSame(end.clone().endOf('day'), 'minute');
 };
