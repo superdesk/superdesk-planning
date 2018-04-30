@@ -500,13 +500,13 @@ const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, d
 
         newCoverage.assigned_to = {
             desk: addNewsItemToPlanning.task.desk,
-            user: addNewsItemToPlanning.task.user,
+            user: get(addNewsItemToPlanning, 'version_creator'),
         };
     } else {
         newCoverage.planning.scheduled = moment().endOf('day');
         newCoverage.assigned_to = {
             desk: desk,
-            user: user,
+            user: get(addNewsItemToPlanning, 'version_creator'),
         };
     }
 
