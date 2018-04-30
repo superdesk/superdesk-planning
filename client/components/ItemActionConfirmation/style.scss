@@ -41,3 +41,9 @@
         padding-top: 2rem;
     }
 }
+
+.sd-alert {
+    &--flex-direction {
+        flex-direction: column;
+    }
+}
