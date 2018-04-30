@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import {MultiSelectActions} from '../index';
 import {SearchBox, Button} from '../UI';
-import {ActionsSubnavDropdown, CreateNewSubnavDropdown} from './index';
+import {ActionsSubnavDropdown, CreateNewSubnavDropdown, JumpToDropdown} from './index';
 import {SubNav} from '../UI/SubNav';
 
 import {gettext} from '../../utils';
@@ -19,7 +19,7 @@ export const SubNavBar = ({
     isViewFiltered,
     clearSearch,
     currentStartFilter,
-    dateFormat,
+    setStartFilter,
 }) => (
     <SubNav>
         <MultiSelectActions />
@@ -32,9 +32,10 @@ export const SubNavBar = ({
             color="alert"
             onClick={clearSearch}
         />}
-        <span className="subnav__page-title subnav__page-title--no-grow">
-            {currentStartFilter.format(dateFormat)}
-        </span>
+        <JumpToDropdown
+            currentStartFilter={currentStartFilter}
+            setStartFilter={setStartFilter}
+        />
         <ActionsSubnavDropdown openAgendas={openAgendas} />
         <CreateNewSubnavDropdown
             addEvent={addEvent}
@@ -55,5 +56,5 @@ SubNavBar.propTypes = {
     isViewFiltered: PropTypes.bool,
     clearSearch: PropTypes.func,
     currentStartFilter: PropTypes.object,
-    dateFormat: PropTypes.string,
+    setStartFilter: PropTypes.func,
 };
