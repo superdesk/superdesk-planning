@@ -17,7 +17,7 @@ export const FiltersBar = ({
     <SubNav>
         <StretchBar>
             <Checkbox
-                label={gettext('All')}
+                label={gettext('Desk Assignments')}
                 onChange={() => changeFilter('All', orderByField, orderDirection)}
                 value={'All'}
                 checkedValue={filterBy}
@@ -27,7 +27,7 @@ export const FiltersBar = ({
 
             <div className="element-with-badge">
                 <Checkbox
-                    label={gettext('Assigned to me')}
+                    label={gettext('My Assignments')}
                     onChange={() => changeFilter('User', orderByField, orderDirection)}
                     value={'User'}
                     checkedValue={filterBy}
