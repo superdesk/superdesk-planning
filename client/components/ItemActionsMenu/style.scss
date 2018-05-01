@@ -1,6 +1,15 @@
 .item-actions-menu__popup {
     width: 200px; // Force a width so Popup knows the width of the element
 
+    // This is used for Event ItemActions (as 'Create and Open Planning' takes up more space)
+    &--wide {
+        width: 250px;
+
+        ul {
+            width: 100%;
+        }
+    }
+
     .dropdown__menu {
         // Override UI-Framework values so Popup can determine proper placement
         position: relative;

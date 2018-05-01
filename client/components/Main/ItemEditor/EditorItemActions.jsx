@@ -68,7 +68,13 @@ export const EditorItemActions = ({
         return null;
     }
 
-    return <ItemActionsMenu className="navbtn" actions={actions}/>;
+    return (
+        <ItemActionsMenu
+            className="navbtn"
+            actions={actions}
+            wide={itemType === ITEM_TYPE.EVENT}
+        />
+    );
 };
 
 EditorItemActions.propTypes = {

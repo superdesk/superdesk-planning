@@ -25,6 +25,8 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
             [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: itemActionDispatches[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
                 itemActionDispatches[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
+            [EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName]:
+                itemActionDispatches[EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName],
             [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: itemActionDispatches[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
             [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: itemActionDispatches[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
@@ -68,7 +70,7 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
 
                 {get(itemActions, 'length', 0) > 0 &&
                     <div className="side-panel__top-tools-right">
-                        <ItemActionsMenu actions={itemActions}/>
+                        <ItemActionsMenu actions={itemActions} wide={true}/>
                     </div>
                 }
             </Tools>

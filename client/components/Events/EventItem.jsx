@@ -42,6 +42,8 @@ export class EventItem extends React.PureComponent {
             [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
+            [EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName]:
+                this.props[EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName],
             [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
             [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
@@ -120,7 +122,7 @@ export class EventItem extends React.PureComponent {
                     </Row>}
                 </Column>
                 {get(itemActions, 'length', 0) > 0 && <ActionMenu>
-                    <ItemActionsMenu actions={itemActions} />
+                    <ItemActionsMenu actions={itemActions} wide={true}/>
                 </ActionMenu>}
             </Item>
         );
@@ -142,6 +144,7 @@ EventItem.propTypes = {
     onMultiSelectClick: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: PropTypes.func,

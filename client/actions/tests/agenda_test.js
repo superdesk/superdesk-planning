@@ -1,6 +1,5 @@
 import sinon from 'sinon';
 import * as actions from '../agenda';
-import {PRIVILEGES} from '../../constants';
 import {createTestStore, registerNotifications} from '../../utils';
 import {cloneDeep} from 'lodash';
 import * as selectors from '../../selectors';
@@ -106,17 +105,15 @@ describe('agenda', () => {
             const item = {name: 'TestAgenda3'};
             const action = actions.createOrUpdateAgenda({name: item.name});
 
-            it('createOrUpdateAgenda saves and executes dispatches', (done) => {
-                initialState.privileges.planning_agenda_management = 1;
-                return action(dispatch, getState, {
+            it('createOrUpdateAgenda saves and executes dispatches', (done) => (
+                action(dispatch, getState, {
                     api,
                     notify,
-                    $timeout,
                 })
                     .then(() => {
                         expect(apiSpy.save.args[0]).toEqual([{}, item]);
                         expect(notify.success.args[0]).toEqual(['The agenda has been created/updated.']);
-                        expect(dispatch.args[1]).toEqual([{
+                        expect(dispatch.args[0]).toEqual([{
                             type: 'ADD_OR_REPLACE_AGENDA',
                             payload: {
                                 _id: 'a3',
@@ -130,34 +127,8 @@ describe('agenda', () => {
                         expect(error).toBe(null);
                         expect(error.stack).toBe(null);
                         done();
-                    });
-            });
-
-            it('createOrUpdateAgenda raises ACCESS_DENIED without permission', (done) => {
-                initialState.privileges.planning_agenda_management = 0;
-                return action(dispatch, getState, {
-                    api,
-                    notify,
-                    $timeout,
-                })
-                    .catch(() => {
-                        expect($timeout.callCount).toBe(1);
-                        expect(notify.error.args[0][0]).toBe(
-                            'Unauthorised to create or update an agenda!'
-                        );
-                        expect(dispatch.args[0]).toEqual([{
-                            type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
-                            payload: {
-                                action: '_createOrUpdateAgenda',
-                                permission: PRIVILEGES.AGENDA_MANAGEMENT,
-                                errorMessage: 'Unauthorised to create or update an agenda!',
-                                args: [item],
-                            },
-                        }]);
-
-                        done();
-                    });
-            });
+                    })
+            ));
         });
 
         it('fetchAgendas', (done) => {
@@ -189,11 +160,8 @@ describe('agenda', () => {
         });
 
         describe('deleteAgenda', () => {
-            it('can be deleted if user has permission', (done) => {
-                initialState.privileges.planning_agenda_management = 1;
-                const action = actions.deleteAgenda(agendas[0]);
-
-                return action(dispatch, getState, {
+            it('calls api and notifies end user', (done) => (
+                actions.deleteAgenda(agendas[0])(dispatch, getState, {
                     api,
                     notify,
                 })
@@ -206,38 +174,10 @@ describe('agenda', () => {
                         expect(error).toBe(null);
                         expect(error.stack).toBe(null);
                         done();
-                    });
-            });
-
-            it('raises ACCESS_DENIED without permission', (done) => {
-                initialState.privileges.planning_agenda_management = 0;
-                const action = actions.deleteAgenda(agendas[0]);
-
-                return action(dispatch, getState, {
-                    api,
-                    notify,
-                    $timeout,
-                })
-                    .catch(() => {
-                        expect(notify.error.args[0][0]).toBe(
-                            'Unauthorised to delete an agenda!'
-                        );
-                        expect(dispatch.args[0]).toEqual([{
-                            type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
-                            payload: {
-                                action: '_deleteAgenda',
-                                permission: PRIVILEGES.AGENDA_MANAGEMENT,
-                                errorMessage: 'Unauthorised to delete an agenda!',
-                                args: [agendas[0]],
-                            },
-                        }]);
-
-                        done();
-                    });
-            });
+                    })
+            ));
 
             it('remove agenda call fails', (done) => {
-                initialState.privileges.planning_agenda_management = 1;
                 apiSpy.remove = sinon.spy(() => (Promise.reject({ })));
                 const action = actions.deleteAgenda(agendas[0]);
 
@@ -410,35 +350,6 @@ describe('agenda', () => {
                     .catch((error) => {
                         expect(error).toBe(null);
                         expect(error.stack).toBe(null);
-                        done();
-                    });
-            });
-
-            it('addEventToCurrentAgenda raises ACCESS_DENIED without permission', (done) => {
-                initialState.privileges.planning_planning_management = 0;
-                const action = actions.addEventToCurrentAgenda(events[0]);
-
-                return action(dispatch, getState, {
-                    notify,
-                    $timeout,
-                })
-                    .catch(() => {
-                        expect($timeout.callCount).toBe(1);
-                        expect(notify.error.callCount).toBe(1);
-                        expect(notify.error.args[0]).toEqual([
-                            'Unauthorised to create a new planning item!',
-                        ]);
-                        expect(dispatch.callCount).toBe(1);
-                        expect(dispatch.args[0]).toEqual([{
-                            type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
-                            payload: {
-                                action: '_addEventToCurrentAgenda',
-                                permission: PRIVILEGES.PLANNING_MANAGEMENT,
-                                errorMessage: 'Unauthorised to create a new planning item!',
-                                args: [events[0]],
-                            },
-                        }]);
-
                         done();
                     });
             });

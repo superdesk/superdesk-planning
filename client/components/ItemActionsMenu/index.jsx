@@ -33,7 +33,7 @@ export class ItemActionsMenu extends React.Component {
     }
 
     render() {
-        const {actions, className} = this.props;
+        const {actions, className, wide} = this.props;
 
         // If there are no actions, then we don't render anything
         if (get(actions, 'length', 0) < 1) {
@@ -54,6 +54,7 @@ export class ItemActionsMenu extends React.Component {
                         closeMenu={this.closeMenu}
                         actions={actions}
                         target="icon-dots-vertical"
+                        wide={wide}
                     />
                 )}
             </button>
@@ -72,9 +73,11 @@ ItemActionsMenu.propTypes = {
     className: PropTypes.string,
     buttonClass: PropTypes.string,
     onOpen: PropTypes.func,
+    wide: PropTypes.bool,
 };
 
 ItemActionsMenu.defaultProps = {
     actions: [],
     className: 'icn-btn dropdown__toggle',
+    wide: false,
 };
