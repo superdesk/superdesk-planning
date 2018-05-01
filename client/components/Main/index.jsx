@@ -16,3 +16,4 @@ export {ListGroup} from './ListGroup';
 export {ListPanel} from './ListPanel';
 export {SubNavBar} from './SubNavBar';
 export {CalendarNavigation} from './CalendarNavigation';
+export {JumpToDropdown} from './JumpToDropdown';

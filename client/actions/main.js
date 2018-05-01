@@ -766,9 +766,15 @@ const jumpTo = (direction) => (
             }
         }
 
+        dispatch(self.setStartFilter(newStart));
+    }
+);
+
+const setStartFilter = (start) => (
+    (dispatch, getState) => {
         dispatch({
             type: MAIN.ACTIONS.JUMP_TO,
-            payload: newStart,
+            payload: start,
         });
 
         dispatch(self.search(
@@ -814,6 +820,7 @@ const self = {
     setJumpInterval,
     jumpTo,
     notifyValidationErrors,
+    setStartFilter,
 };
 
 export default self;
