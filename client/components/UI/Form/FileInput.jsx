@@ -83,7 +83,7 @@ export class FileInput extends React.Component {
                     </LineInput>
                 ) ||
                 (
-                    <LineInput readOnly={readOnly}>
+                    <LineInput readOnly={readOnly} noMargin>
                         <TextArea
                             field={field}
                             value={get(val, 'name')}

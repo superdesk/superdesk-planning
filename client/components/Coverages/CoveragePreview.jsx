@@ -21,6 +21,7 @@ export const CoveragePreview = ({
     noOpen,
     onClick,
     active,
+    scrollInView,
 }) => {
     const userAssigned = getCreator(coverage, 'assigned_to.user', users);
     const deskAssigned = desks.find((d) =>
@@ -124,6 +125,8 @@ export const CoveragePreview = ({
             openItem={coverageInDetail}
             onClick={onClick}
             noOpen={noOpen}
+            scrollInView={scrollInView}
+            forceScroll={active}
         />);
 };
 
@@ -137,6 +140,7 @@ CoveragePreview.propTypes = {
     formProfile: PropTypes.object,
     noOpen: PropTypes.bool,
     active: PropTypes.bool,
+    scrollInView: PropTypes.bool,
     onClick: PropTypes.func,
 };
 

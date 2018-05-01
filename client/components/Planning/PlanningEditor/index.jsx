@@ -294,6 +294,7 @@ export class PlanningEditorComponent extends React.Component {
             item,
             diff,
             event,
+            eventModal,
             locators,
             categories,
             subjects,
@@ -361,6 +362,7 @@ export class PlanningEditorComponent extends React.Component {
         const detailsErrored = some(toggleDetails, (field) => !!get(errors, field));
         const onFocusPlanning = editorMenuUtils.onItemFocus(this.props.navigation, 'planning');
         const onFocusDetails = editorMenuUtils.onItemFocus(this.props.navigation, 'details');
+        const associatedEvent = onFocusPlanning ? eventModal : event;
 
         return (
             <div className="planning-editor" ref={(node) => this.dom.top = node}>
@@ -384,6 +386,7 @@ export class PlanningEditorComponent extends React.Component {
                         field="name"
                         label={gettext('Name')}
                         {...fieldProps}
+                        onFocus={onFocusPlanning}
                     />
 
                     <Field
@@ -434,6 +437,7 @@ export class PlanningEditorComponent extends React.Component {
                         forceScroll={editorMenuUtils.forceScroll(navigation, 'details')}
                         scrollInView={true}
                         invalid={detailsErrored && (dirty || submitFailed)}
+                        paddingTop={!!onFocusDetails}
                     >
                         <Field
                             component={TextAreaInput}
@@ -497,16 +501,16 @@ export class PlanningEditorComponent extends React.Component {
                     </ToggleBox>
                 </ContentBlock>
 
-                {event && (
+                {associatedEvent && (
                     <h3 className="side-panel__heading side-panel__heading--big">
                         {gettext('Associated Event')}
                     </h3>
                 )}
 
-                {event && (
+                {associatedEvent && (
                     <ContentBlock>
                         <EventMetadata
-                            event={event}
+                            event={associatedEvent}
                             dateFormat={dateFormat}
                             timeFormat={timeFormat}
                             lockedItems={lockedItems}
@@ -586,6 +590,7 @@ PlanningEditorComponent.propTypes = {
     startPartialSave: PropTypes.func,
     removeAssignment: PropTypes.func,
     navigation: PropTypes.object,
+    eventModal: PropTypes.object,
 };
 
 PlanningEditorComponent.defaultProps = {
@@ -610,6 +615,7 @@ const mapStateToProps = (state) => ({
     priorities: selectors.getAssignmentPriorities(state),
     keywords: selectors.getKeywords(state),
     event: selectors.events.planningEditAssociatedEvent(state),
+    eventModal: selectors.events.planningEditAssociatedEventModal(state),
     desk: selectors.getCurrentDeskId(state),
     user: selectors.getCurrentUserId(state),
     planningProfile: selectors.forms.planningProfile(state),

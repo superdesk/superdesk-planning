@@ -25,6 +25,8 @@ export class EditorModalComponent extends React.Component {
             activeItem: '',
         };
 
+        this.dom = {menu: null};
+
         this.onMenuItemClick = this.onMenuItemClick.bind(this);
         this.onEditorItemChange = this.onEditorItemChange.bind(this);
         this.onItemCloseFromEditor = this.onItemCloseFromEditor.bind(this);
@@ -52,6 +54,13 @@ export class EditorModalComponent extends React.Component {
     componentWillUnmount() {
         window.removeEventListener('dragover', this.onDragEvents);
         window.removeEventListener('drop', this.onDragEvents);
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState.activeItem !== this.state.activeItem &&
+            this.state.activeItem === 'event' || this.state.activeItem === 'planning') {
+            this.dom.menu.scrollTop = 0;
+        }
     }
 
     onMenuItemClick(menuItemName) {
@@ -111,7 +120,8 @@ export class EditorModalComponent extends React.Component {
 
                 <Modal.Body noPadding fullHeight noScroll>
                     <div className="editorModal">
-                        <div className="editorModal__menu">
+                        <div className="editorModal__menu"
+                            ref={(node) => this.dom.menu = node}>
                             <ItemMenuPanel
                                 item={this.state.diff}
                                 onMenuItemClick={this.onMenuItemClick}

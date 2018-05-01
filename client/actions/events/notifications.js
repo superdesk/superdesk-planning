@@ -273,11 +273,11 @@ const onEventUpdated = (_e, data) => (
                     const loadedFromRefetch = selectedEvents.indexOf(data.item) !== -1 &&
                         !events.find((event) => event._id === data.item);
 
-                    if (!loadedFromRefetch && (currentPreviewId === data.item || currentEditId === data.item)) {
-                        dispatch(eventsApi.fetchById(data.item, {force: true}));
-                    }
-
-                    dispatch(eventsPlanning.ui.scheduleRefetch());
+                    dispatch(eventsPlanning.ui.scheduleRefetch()).then(() => {
+                        if (!loadedFromRefetch && (currentPreviewId === data.item || currentEditId === data.item)) {
+                            dispatch(eventsApi.fetchById(data.item, {force: true}));
+                        }
+                    });
                 });
         }
     }

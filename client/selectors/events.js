@@ -2,7 +2,7 @@ import {createSelector} from 'reselect';
 import {get} from 'lodash';
 import {storedPlannings, currentPlanning} from './planning';
 import {agendas, userPreferences} from './general';
-import {currentItem} from './forms';
+import {currentItem, currentItemModal} from './forms';
 import {getStartOfWeek} from './config';
 import {eventUtils, getSearchDateRange} from '../utils';
 import {EVENTS, MAIN, SPIKED_STATE} from '../constants';
@@ -105,6 +105,11 @@ export const planningWithEventDetails = createSelector(
 
 export const planningEditAssociatedEvent = createSelector(
     [currentItem, storedEvents],
+    (item, events) => item && events[item.event_item]
+);
+
+export const planningEditAssociatedEventModal = createSelector(
+    [currentItemModal, storedEvents],
     (item, events) => item && events[item.event_item]
 );
 

@@ -106,7 +106,7 @@ export class LinkInput extends React.Component {
             </Row>
         ) : (
             <Row className="link-input">
-                <LineInput {...props} readOnly={readOnly}>
+                <LineInput {...props} readOnly={readOnly} noMargin>
                     <Label text={label} />
 
                     <TextArea

@@ -51,7 +51,7 @@ export class EventEditorComponent extends React.Component {
             this.props.onChangeHandler('calendars', this.props.defaultCalendar, false);
         } else {
             // Get the event with files with it
-            this.props.fetchEventWithFiles(this.props.item._id);
+            this.props.fetchEventWithFiles(this.props.item);
         }
     }
 
@@ -76,6 +76,11 @@ export class EventEditorComponent extends React.Component {
             if (editorMenuUtils.forceScroll(this.props.navigation, 'event')) {
                 this.dom.top.scrollIntoView();
             }
+        }
+
+        if (get(this.props, 'item.files', []).filter((f) => typeof (f) === 'string'
+            || f instanceof String).length > 0) {
+            this.props.fetchEventWithFiles(this.props.item);
         }
 
         if (this.dom.top) {
@@ -246,7 +251,8 @@ export class EventEditorComponent extends React.Component {
                         onOpen={editorMenuUtils.onItemOpen(navigation, 'details')}
                         scrollInView={true}
                         invalid={detailsErrored && (dirty || submitFailed)}
-                        forceScroll={editorMenuUtils.forceScroll(navigation, 'details')} >
+                        forceScroll={editorMenuUtils.forceScroll(navigation, 'details')}
+                        paddingTop={!!onFocusDetails} >
                         <Field
                             component={SelectMetaTermsInput}
                             field="place"
@@ -311,7 +317,8 @@ export class EventEditorComponent extends React.Component {
                         scrollInView={true}
                         hideUsingCSS={true} // hideUsingCSS so the file data is kept on hide/show
                         invalid={!!errors.files && (dirty || submitFailed)}
-                        forceScroll={editorMenuUtils.forceScroll(navigation, 'files')} >
+                        forceScroll={editorMenuUtils.forceScroll(navigation, 'files')}
+                        paddingTop={!!onFocusFiles} >
                         <Field
                             component={FileInput}
                             field="files"
@@ -328,7 +335,8 @@ export class EventEditorComponent extends React.Component {
                         onOpen={editorMenuUtils.onItemOpen(navigation, 'links')}
                         scrollInView={true}
                         invalid={!!errors.links && (dirty || submitFailed)}
-                        forceScroll={editorMenuUtils.forceScroll(navigation, 'links')} >
+                        forceScroll={editorMenuUtils.forceScroll(navigation, 'links')}
+                        paddingTop={!!onFocusLinks} >
                         <Field
                             component={InputArray}
                             field="links"
@@ -350,7 +358,8 @@ export class EventEditorComponent extends React.Component {
                         onClose={editorMenuUtils.onItemClose(navigation, 'plannings')}
                         onOpen={editorMenuUtils.onItemOpen(navigation, 'plannings')}
                         scrollInView={true}
-                        forceScroll={editorMenuUtils.forceScroll(navigation, 'plannings')} >
+                        forceScroll={editorMenuUtils.forceScroll(navigation, 'plannings')}
+                        paddingTop={!!onFocusPlannings} >
                         {get(relatedPlannings, 'length', 0) > 0 && (
                             <RelatedPlannings
                                 plannings={relatedPlannings}

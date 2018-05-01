@@ -9,7 +9,7 @@ export const Row = ({label, value, className, children, noPadding, enabled, flex
                 {
                     form__row: !rowItem,
                     'form__row-item': rowItem,
-                    'form__row--no-padding': noPadding,
+                    'no-padding': noPadding,
                     'form__row--flex': flex,
                 }
             )}
