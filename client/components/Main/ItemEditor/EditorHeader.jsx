@@ -234,11 +234,12 @@ export class EditorHeader extends React.Component {
                 </StretchBar>
 
                 {isBeingEdited && !hideMinimize && (
-                    <NavButton onClick={minimize} icon="big-icon--minimize" />
+                    <NavButton onClick={minimize} icon="big-icon--minimize" title={gettext('Minimise')}/>
                 )}
 
                 {isBeingEdited && !hideExternalEdit && (
-                    <NavButton onClick={closeEditorAndOpenModal.bind(null, item)} icon="icon-external" />
+                    <NavButton onClick={closeEditorAndOpenModal.bind(null, item)} icon="icon-external"
+                        title={gettext('Edit in popup')}/>
                 )}
 
                 {!isLockRestricted && !hideItemActions && (
