@@ -252,6 +252,7 @@ describe('PlanningUtils', () => {
                 ednote: 'edit my note',
                 type: 'picture',
                 state: 'draft',
+                version_creator: 'ident2',
             };
 
             const coverage = planUtils.createCoverageFromNewsItem(
@@ -268,7 +269,7 @@ describe('PlanningUtils', () => {
                 workflow_status: 'active',
                 assigned_to: {
                     desk: 'desk1',
-                    user: 'ident1',
+                    user: 'ident2',
                     priority: ASSIGNMENTS.DEFAULT_PRIORITY,
                 },
             });
@@ -281,6 +282,7 @@ describe('PlanningUtils', () => {
                 type: 'text',
                 state: 'published',
                 versioncreated: '2017-10-15T14:01:11',
+                version_creator: 'ident2',
                 task: {
                     desk: 'desk2',
                     user: 'ident2',
@@ -336,6 +338,7 @@ describe('PlanningUtils', () => {
                 abstract: '<p>some abstractions</p>',
                 state: 'published',
                 versioncreated: '2019-10-15T10:01:11',
+                version_creator: 'ident1',
                 task: {
                     desk: 'desk1',
                     user: 'ident1',
@@ -383,6 +386,7 @@ describe('PlanningUtils', () => {
                 urgency: 3,
                 abstract: '<p>some abstractions</p>',
                 state: 'published',
+                version_creator: 'ident1',
                 versioncreated: '2019-10-15T10:01:11',
                 task: {
                     desk: 'desk1',
