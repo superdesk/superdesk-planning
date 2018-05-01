@@ -15,7 +15,17 @@ export const CalendarSubnavDropdown = ({
         return null;
     }
 
-    const items = [];
+    const items = [
+        {
+            label: gettext('All Events'),
+            action: () => selectCalendar(EVENTS.FILTER.ALL_CALENDARS),
+        },
+        {
+            label: gettext('No Calendar Assigned'),
+            action: () => selectCalendar(EVENTS.FILTER.NO_CALENDAR_ASSIGNED),
+        },
+        {divider: true},
+    ];
 
     if (get(enabledCalendars, 'length', 0) > 0) {
         enabledCalendars.forEach((calendar) => {
@@ -35,22 +45,11 @@ export const CalendarSubnavDropdown = ({
                 label: calendar.name,
                 id: calendar.qcode,
                 action: () => selectCalendar(calendar.qcode),
-                className: 'dropdown__menu-item--disabled',
+                disabled: true,
+                icon: 'icon-lock',
             });
         });
-
-        items.push({divider: true});
     }
-
-    items.push({
-        label: gettext('No Calendar Assigned'),
-        action: () => selectCalendar(EVENTS.FILTER.NO_CALENDAR_ASSIGNED),
-    });
-
-    items.push({
-        label: gettext('All Calendars'),
-        action: () => selectCalendar(EVENTS.FILTER.ALL_CALENDARS),
-    });
 
     let buttonLabel;
     let buttonLabelClassName;
@@ -58,7 +57,7 @@ export const CalendarSubnavDropdown = ({
     if (currentCalendarId === EVENTS.FILTER.NO_CALENDAR_ASSIGNED) {
         buttonLabel = gettext('No Calendar Assigned');
     } else if (currentCalendarId === EVENTS.FILTER.ALL_CALENDARS) {
-        buttonLabel = gettext('All Calendars');
+        buttonLabel = gettext('All Events');
     } else {
         let currentCalendar = enabledCalendars.find((calendar) => calendar.qcode === currentCalendarId);
 
@@ -79,10 +78,10 @@ export const CalendarSubnavDropdown = ({
 
     return (
         <Dropdown
-            buttonLabel={gettext(`Calendar: ${buttonLabel}`)}
+            buttonLabel={gettext('Calendar: {{ name }}', {name: buttonLabel})}
             buttonLabelClassName={buttonLabelClassName}
-            label={gettext('Calendars')}
             items={items}
+            scrollable={true}
         />
     );
 };

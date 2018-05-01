@@ -15,7 +15,17 @@ export const AgendaSubnavDropdown = ({
         return null;
     }
 
-    const items = [];
+    const items = [
+        {
+            label: gettext('All Planning Items'),
+            action: () => selectAgenda(AGENDA.FILTER.ALL_PLANNING),
+        },
+        {
+            label: gettext('No Agenda Assigned'),
+            action: () => selectAgenda(AGENDA.FILTER.NO_AGENDA_ASSIGNED),
+        },
+        {divider: true},
+    ];
 
     if (get(enabledAgendas, 'length', 0) > 0) {
         enabledAgendas.forEach((agenda) => {
@@ -35,21 +45,11 @@ export const AgendaSubnavDropdown = ({
                 label: agenda.name,
                 id: agenda._id,
                 action: () => selectAgenda(agenda._id),
-                className: 'dropdown__menu-item--disabled',
+                disabled: true,
+                icon: 'icon-lock',
             });
         });
-
-        items.push({divider: true});
     }
-
-    items.push({
-        label: gettext('No Agenda Assigned'),
-        action: () => selectAgenda(AGENDA.FILTER.NO_AGENDA_ASSIGNED),
-    });
-    items.push({
-        label: gettext('All Planning Items'),
-        action: () => selectAgenda(AGENDA.FILTER.ALL_PLANNING),
-    });
 
     let buttonLabel;
     let buttonLabelClassName;
@@ -57,7 +57,7 @@ export const AgendaSubnavDropdown = ({
     if (currentAgendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED) {
         buttonLabel = gettext('No Agenda Assigned');
     } else if (currentAgendaId === AGENDA.FILTER.ALL_PLANNING) {
-        buttonLabel = gettext('All Planning');
+        buttonLabel = gettext('All Planning Items');
     } else {
         const currentAgenda = enabledAgendas.find((agenda) => agenda._id === currentAgendaId) ||
         disabledAgendas.find((agenda) => agenda._id === currentAgendaId);
@@ -69,9 +69,9 @@ export const AgendaSubnavDropdown = ({
     return (
         <Dropdown
             buttonLabelClassName={buttonLabelClassName}
-            buttonLabel={gettext(`Agenda: ${buttonLabel}`)}
-            label={gettext('Agendas')}
+            buttonLabel={gettext('Agenda: {{ name }}', {name: buttonLabel})}
             items={items}
+            scrollable={true}
         />
     );
 };
