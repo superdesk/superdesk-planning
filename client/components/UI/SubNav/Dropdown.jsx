@@ -55,34 +55,40 @@ export class Dropdown extends React.Component {
             }
         );
 
+        const buttonDropMenu =
+            (<button
+                ref={(btn) => this.btn = btn}
+                className={buttonClassName}
+                onClick={this.props.disableSelection ? this.props.defaultAction : this.toggle}>
+                {this.props.icon && (
+                    <i className={this.props.icon} />
+                )}
+                {this.props.buttonLabel}
+                {this.props.buttonLabel && (
+                    <span className="dropdown__caret" />
+                )}
+                {isCreate && (
+                    <span className="circle" />
+                )}
+            </button>);
+
         return (
             <DropMenu isOpen={this.state.open}
                 alignRight={this.props.alignRight}
                 dropUp={this.props.dropUp}
                 className={this.props.className} >
-                <OverlayTrigger placement="left"
-                    overlay={
-                        <Tooltip id="create_new_btn">
-                            {gettext(get(this.props, 'tooltip', this.props.label))}
-                        </Tooltip>
-                    }
-                >
-                    <button
-                        ref={(btn) => this.btn = btn}
-                        className={buttonClassName}
-                        onClick={this.props.disableSelection ? this.props.defaultAction : this.toggle}>
-                        {this.props.icon && (
-                            <i className={this.props.icon} />
-                        )}
-                        {this.props.buttonLabel}
-                        {this.props.buttonLabel && (
-                            <span className="dropdown__caret" />
-                        )}
-                        {isCreate && (
-                            <span className="circle" />
-                        )}
-                    </button>
-                </OverlayTrigger>
+                {this.props.tooltip
+                    ? <OverlayTrigger placement="left"
+                        overlay={
+                            <Tooltip id="create_new_btn">
+                                {gettext(get(this.props, 'tooltip'))}
+                            </Tooltip>
+                        }
+                    >
+                        <span>{buttonDropMenu}</span>
+                    </OverlayTrigger>
+                    : <span>{buttonDropMenu}</span>
+                }
                 <Menu isOpen={this.state.open} alignRight={false}>
                     <Label>{this.props.label}</Label>
                     <Divider />
@@ -127,6 +133,7 @@ Dropdown.propTypes = {
     dropUp: PropTypes.bool,
     navbtn: PropTypes.bool,
     className: PropTypes.string,
+    tooltip: PropTypes.string,
 };
 
 Dropdown.defaultProps = {

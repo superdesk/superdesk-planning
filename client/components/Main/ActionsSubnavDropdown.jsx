@@ -15,6 +15,7 @@ export const ActionsSubnavDropdown = (props) => {
             label={gettext('Actions')}
             items={items}
             alignRight={true}
+            tooltip={gettext('Actions')}
         />
     );
 };
