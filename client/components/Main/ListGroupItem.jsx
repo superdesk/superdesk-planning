@@ -97,6 +97,8 @@ export class ListGroupItem extends React.Component {
                 itemActions[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
+            [EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName]:
+                itemActions[EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName],
             [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
             [EVENTS.ITEM_ACTIONS.SPIKE.actionName]:

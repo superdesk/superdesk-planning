@@ -15,7 +15,7 @@ export class ActionsMenuPopup extends React.PureComponent {
     }
 
     render() {
-        const {actions, closeMenu, target} = this.props;
+        const {actions, closeMenu, target, wide} = this.props;
 
         let items = actions.map(this.renderItem.bind(this));
 
@@ -24,7 +24,10 @@ export class ActionsMenuPopup extends React.PureComponent {
                 target={target}
                 close={closeMenu}
                 noPadding={true}
-                className="item-actions-menu__popup"
+                className={{
+                    'item-actions-menu__popup': true,
+                    'item-actions-menu__popup--wide': wide,
+                }}
             >
                 <Content noPadding={true}>
                     <ul className="dropdown dropdown__menu more-activity-menu open">
@@ -108,4 +111,7 @@ ActionsMenuPopup.propTypes = {
     closeMenu: PropTypes.func.isRequired,
     actions: PropTypes.array.isRequired,
     target: PropTypes.string.isRequired,
+    wide: PropTypes.bool,
 };
+
+ActionsMenuPopup.defaultProps = {wide: false};

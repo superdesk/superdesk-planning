@@ -54,6 +54,11 @@ export const EVENTS = {
             icon: 'icon-new-doc',
             actionName: 'onCreatePlanning',
         },
+        CREATE_AND_OPEN_PLANNING: {
+            label: gettext('Create and Open Planning Item'),
+            icon: 'icon-new-doc',
+            actionName: 'onCreateAndOpenPlanning',
+        },
         CANCEL_EVENT: {
             label: gettext('Cancel'),
             icon: 'icon-close-small',
