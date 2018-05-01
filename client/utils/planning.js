@@ -57,6 +57,7 @@ const canEditPlanning = (planning, event, session, privileges, locks) => (
         !isItemSpiked(planning) &&
         !isItemSpiked(event) &&
         !isItemCancelled(planning) &&
+        !(getPublishedState(planning) === PUBLISHED_STATE.USABLE && !privileges[PRIVILEGES.PUBLISH_PLANNING]) &&
         !isItemRescheduled(planning)
 );
 
@@ -102,14 +103,16 @@ const canCancelPlanning = (planning, event = null, session, privileges, locks) =
     !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !isPlanningLockRestricted(planning, session, locks) &&
         getItemWorkflowState(planning) === WORKFLOW_STATE.SCHEDULED &&
-        getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED
+        getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED &&
+        !(getPublishedState(planning) === PUBLISHED_STATE.USABLE && !privileges[PRIVILEGES.PUBLISH_PLANNING])
 );
 
 const canCancelAllCoverage = (planning, event = null, session, privileges, locks) => (
     !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !isItemSpiked(planning) && !isPlanningLockRestricted(planning, session, locks) &&
         getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED &&
-        canCancelAllCoverageForPlanning(planning)
+        canCancelAllCoverageForPlanning(planning) &&
+        !(getPublishedState(planning) === PUBLISHED_STATE.USABLE && !privileges[PRIVILEGES.PUBLISH_PLANNING])
 );
 
 const canAddAsEvent = (planning, event = null, session, privileges, locks) => (

@@ -207,6 +207,7 @@ const canCancelEvent = (event, session, privileges, locks) => (
         !isItemCancelled(event) &&
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
+        !(getPublishedState(event) === PUBLISHED_STATE.USABLE && !privileges[PRIVILEGES.PUBLISH_EVENT]) &&
         !isItemRescheduled(event)
 );
 
@@ -233,6 +234,7 @@ const canEditEvent = (event, session, privileges, locks) => (
         !isItemCancelled(event) &&
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
+        !(getPublishedState(event) === PUBLISHED_STATE.USABLE && !privileges[PRIVILEGES.PUBLISH_EVENT]) &&
         !isItemRescheduled(event)
 );
 
@@ -256,6 +258,7 @@ const canRescheduleEvent = (event, session, privileges, locks) => (
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemRescheduled(event) &&
+        !(getPublishedState(event) === PUBLISHED_STATE.USABLE && !privileges[PRIVILEGES.PUBLISH_EVENT]) &&
         !isEventLockedForMetadataEdit(event)
 );
 
@@ -267,6 +270,7 @@ const canPostponeEvent = (event, session, privileges, locks) => (
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemPostponed(event) &&
         !isItemRescheduled(event) &&
+        !(getPublishedState(event) === PUBLISHED_STATE.USABLE && !privileges[PRIVILEGES.PUBLISH_EVENT]) &&
         !isEventLockedForMetadataEdit(event)
 );
 

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 
 import {get} from 'lodash';
-import {gettext} from '../../../utils';
+import {gettext, eventUtils, planningUtils} from '../../../utils';
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
 
@@ -68,7 +68,18 @@ export class PreviewPanelComponent extends React.Component {
             gettext('Planning Details');
 
         if (!this.props.hideEditIcon && get(nextProps, 'item')) {
-            if (get(nextProps.item, 'state') !== 'spiked') {
+            if ((nextProps.itemType === ITEM_TYPE.EVENT && eventUtils.canEditEvent(
+                nextProps.item,
+                nextProps.session,
+                nextProps.privileges,
+                nextProps.lockedItems
+            )) || (nextProps.itemType === ITEM_TYPE.PLANNING) && planningUtils.canEditPlanning(
+                nextProps.item,
+                null,
+                nextProps.session,
+                nextProps.privileges,
+                nextProps.lockedItems
+            )) {
                 if (this.tools[0].icon !== 'icon-pencil') {
                     this.tools.unshift(
                         {
@@ -83,6 +94,7 @@ export class PreviewPanelComponent extends React.Component {
                         });
                 }
             } else if (this.tools[0].icon === 'icon-pencil') {
+                this.tools.shift();
                 this.tools.shift();
             }
         }
@@ -141,6 +153,10 @@ PreviewPanelComponent.propTypes = {
     showUnlock: PropTypes.bool,
     hideItemActions: PropTypes.bool,
     hideEditIcon: PropTypes.bool,
+    session: PropTypes.object,
+    privileges: PropTypes.object,
+    lockedItems: PropTypes.object,
+
 };
 
 PreviewPanelComponent.defaultProps = {initialLoad: false};
@@ -150,6 +166,9 @@ const mapStateToProps = (state) => ({
     itemId: selectors.main.previewId(state),
     itemType: selectors.main.previewType(state),
     previewLoading: selectors.main.previewLoading(state),
+    privileges: selectors.getPrivileges(state),
+    lockedItems: selectors.locks.getLockedItems(state),
+    session: selectors.getSessionDetails(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
