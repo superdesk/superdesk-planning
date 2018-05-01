@@ -281,7 +281,7 @@ EditorHeader.propTypes = {
     hideItemActions: PropTypes.bool,
     hideMinimize: PropTypes.bool,
     createAndPublish: PropTypes.bool,
-    closeEditorAndOpenModal: PropTypes.bool,
+    closeEditorAndOpenModal: PropTypes.func,
     hideExternalEdit: PropTypes.bool,
     onAddCoverage: PropTypes.func,
 };

@@ -432,7 +432,6 @@ describe('actions.planning.api', () => {
                         page: 1,
                         max_results: 25,
                         sort: '[("dates.start",1)]',
-                        embedded: {files: 1},
                         source: JSON.stringify({
                             query: {
                                 bool: {

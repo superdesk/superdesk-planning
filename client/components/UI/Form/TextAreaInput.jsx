@@ -44,7 +44,7 @@ TextAreaInput.propTypes = {
     field: PropTypes.string,
     label: PropTypes.string,
     value: PropTypes.string,
-    onChange: PropTypes.func.isRequired,
+    onChange: PropTypes.func,
     maxLength: PropTypes.number,
 
     hint: PropTypes.string,

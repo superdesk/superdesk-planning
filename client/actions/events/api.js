@@ -693,7 +693,6 @@ const query = (
             page: page,
             max_results: maxResults,
             sort: '[("dates.start",1)]',
-            embedded: {files: 1},
             source: JSON.stringify({
                 query: criteria.query,
                 filter: criteria.filter,

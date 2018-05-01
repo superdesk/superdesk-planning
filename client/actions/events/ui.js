@@ -15,6 +15,7 @@ import {
     dispatchUtils,
     gettext,
     getItemInArrayById,
+    isExistingItem,
 } from '../../utils';
 
 /**
@@ -745,6 +746,16 @@ const selectCalendar = (calendarId = '', params = {}) => (
     }
 );
 
+const fetchEventWithFiles = (event) => (
+    (dispatch) => {
+        if (!isExistingItem(event) || get(event, 'files.length', 0) === 0) {
+            return Promise.resolve(event);
+        }
+
+        return dispatch(eventsApi.fetchById(event._id, {force: true}));
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     fetchEvents,
@@ -789,6 +800,7 @@ const self = {
     publishWithConfirmation,
     createEventFromPlanning,
     selectCalendar,
+    fetchEventWithFiles,
 };
 
 export default self;

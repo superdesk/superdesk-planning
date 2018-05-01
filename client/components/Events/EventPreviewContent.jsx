@@ -18,6 +18,7 @@ import {LinkInput, FileInput} from '../UI/Form';
 import {ContactInfoContainer} from '../index';
 import {Location} from '../Location';
 import eventsApi from '../../actions/events/api';
+import eventsUi from '../../actions/events/ui';
 
 export class EventPreviewContentComponent extends React.Component {
     constructor(props) {
@@ -39,6 +40,10 @@ export class EventPreviewContentComponent extends React.Component {
         if (!isEqual(nextProps.item[field], this.props.item[field])) {
             this.fetchEventContacts(nextProps.item[field]);
         }
+    }
+
+    componentWillMount() {
+        this.props.fetchEventWithFiles(this.props.item);
     }
 
     componentDidMount() {
@@ -290,6 +295,7 @@ EventPreviewContentComponent.propTypes = {
     createUploadLink: PropTypes.func,
     fetchContacts: PropTypes.func,
     streetMapUrl: PropTypes.string,
+    fetchEventWithFiles: PropTypes.func,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -307,6 +313,7 @@ const mapStateToProps = (state, ownProps) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     fetchContacts: (ids) => dispatch(eventsApi.fetchEventContactsByIds(ids || [])),
+    fetchEventWithFiles: (event) => dispatch(eventsUi.fetchEventWithFiles(event)),
 });
 
 export const EventPreviewContent = connect(mapStateToProps, mapDispatchToProps)(EventPreviewContentComponent);

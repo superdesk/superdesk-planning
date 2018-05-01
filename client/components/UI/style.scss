@@ -1,6 +1,10 @@
 @import '~superdesk-core/styles/sass/variables.scss';
 @import '~superdesk-core/styles/sass/mixins.scss';
 
+.link {
+    cursor: pointer !important;
+}
+
 .form__row--no-padding {
 	padding: 0;
 }

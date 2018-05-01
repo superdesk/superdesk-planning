@@ -340,7 +340,6 @@ describe('actions.events.api', () => {
                     expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
                         page: 1,
                         sort: '[("dates.start",1)]',
-                        embedded: {files: 1},
                         source: JSON.stringify({
                             query: {
                                 bool: {
@@ -366,7 +365,6 @@ describe('actions.events.api', () => {
                         page: 1,
                         max_results: 25,
                         sort: '[("dates.start",1)]',
-                        embedded: {files: 1},
                         source: JSON.stringify({
                             query: {
                                 bool: {
@@ -393,7 +391,6 @@ describe('actions.events.api', () => {
                     expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
                         page: 1,
                         sort: '[("dates.start",1)]',
-                        embedded: {files: 1},
                         source: JSON.stringify({
                             query: {
                                 bool: {
@@ -420,7 +417,6 @@ describe('actions.events.api', () => {
                     expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
                         page: 1,
                         sort: '[("dates.start",1)]',
-                        embedded: {files: 1},
                         source: JSON.stringify({
                             query: {
                                 bool: {
@@ -449,7 +445,6 @@ describe('actions.events.api', () => {
                             page: 1,
                             max_results: 25,
                             sort: '[("dates.start",1)]',
-                            embedded: {files: 1},
                             source: JSON.stringify({
                                 query: {
                                     bool: {
@@ -477,7 +472,6 @@ describe('actions.events.api', () => {
                             page: 1,
                             max_results: 25,
                             sort: '[("dates.start",1)]',
-                            embedded: {files: 1},
                             source: JSON.stringify({
                                 query: {
                                     bool: {
@@ -512,7 +506,6 @@ describe('actions.events.api', () => {
                             page: 1,
                             max_results: 25,
                             sort: '[("dates.start",1)]',
-                            embedded: {files: 1},
                             source: JSON.stringify({
                                 query: {
                                     bool: {
@@ -550,7 +543,6 @@ describe('actions.events.api', () => {
                             page: 1,
                             max_results: 25,
                             sort: '[("dates.start",1)]',
-                            embedded: {files: 1},
                             source: JSON.stringify({
                                 query: {
                                     bool: {
@@ -589,7 +581,6 @@ describe('actions.events.api', () => {
                             page: 1,
                             max_results: 25,
                             sort: '[("dates.start",1)]',
-                            embedded: {files: 1},
                             source: JSON.stringify({
                                 query: {
                                     bool: {
