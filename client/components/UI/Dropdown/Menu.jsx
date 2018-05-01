@@ -2,13 +2,15 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
-export const Menu = ({children, className, isOpen, alignRight}) => (
+export const Menu = ({children, className, isOpen, alignRight, scrollable}) => (
     !isOpen ? null :
         <ul
             className={classNames(
                 'dropdown__menu',
-                'scrollable',
-                {'dropdown--align-right': alignRight},
+                {
+                    'dropdown--align-right': alignRight,
+                    'dropdown__menu--scrollable': scrollable,
+                },
                 className
             )}
         >
@@ -21,9 +23,11 @@ Menu.propTypes = {
     className: PropTypes.string,
     isOpen: PropTypes.bool,
     alignRight: PropTypes.bool,
+    scrollable: PropTypes.bool,
 };
 
 Menu.defaultProps = {
     isOpen: false,
     alignRight: false,
+    scrollable: false,
 };
