@@ -15,7 +15,7 @@ from .events_files import EventsFilesResource, EventsFilesService
 from .events_history import EventsHistoryResource, EventsHistoryService
 from .events_lock import EventsLockResource, EventsLockService, EventsUnlockResource, EventsUnlockService
 from .events_duplicate import EventsDuplicateResource, EventsDuplicateService
-from .events_publish import EventsPublishService, EventsPublishResource
+from .events_post import EventsPostService, EventsPostResource
 from .events_cancel import EventsCancelService, EventsCancelResource
 from .events_reschedule import EventsRescheduleService, EventsRescheduleResource
 from .events_postpone import EventsPostponeService, EventsPostponeResource
@@ -43,8 +43,8 @@ def init_app(app):
     events_unspike_service = EventsUnspikeService('events_unspike', backend=superdesk.get_backend())
     EventsUnspikeResource('events_unspike', app=app, service=events_unspike_service)
 
-    events_publish_service = EventsPublishService('events_publish', backend=superdesk.get_backend())
-    EventsPublishResource('events_publish', app=app, service=events_publish_service)
+    events_post_service = EventsPostService('events_post', backend=superdesk.get_backend())
+    EventsPostResource('events_post', app=app, service=events_post_service)
 
     files_service = EventsFilesService('events_files', backend=superdesk.get_backend())
     EventsFilesResource('events_files', app=app, service=files_service)
@@ -128,9 +128,9 @@ def init_app(app):
     )
 
     superdesk.privilege(
-        name='planning_event_publish',
-        label='Planning - Publish Event Items',
-        description='Ability to publish an Event'
+        name='planning_event_post',
+        label='Planning - Post Event Items',
+        description='Ability to post an Event'
     )
 
     superdesk.privilege(

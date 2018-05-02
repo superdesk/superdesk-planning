@@ -13,7 +13,7 @@ from .planning import PlanningResource, PlanningService, coverage_schema # noqa
 from .planning_spike import PlanningSpikeResource, PlanningSpikeService, PlanningUnspikeResource, PlanningUnspikeService
 from .planning_history import PlanningHistoryResource, PlanningHistoryService
 from .planning_lock import PlanningLockResource, PlanningLockService, PlanningUnlockResource, PlanningUnlockService
-from .planning_publish import PlanningPublishService, PlanningPublishResource
+from .planning_post import PlanningPostService, PlanningPostResource
 from .planning_duplicate import PlanningDuplicateService, PlanningDuplicateResource
 from .planning_cancel import PlanningCancelService, PlanningCancelResource
 from .planning_reschedule import PlanningRescheduleService, PlanningRescheduleResource
@@ -42,8 +42,8 @@ def init_app(app):
     planning_unspike_service = PlanningUnspikeService('planning_unspike', backend=superdesk.get_backend())
     PlanningUnspikeResource('planning_unspike', app=app, service=planning_unspike_service)
 
-    planning_publish_service = PlanningPublishService('planning_publish', backend=superdesk.get_backend())
-    PlanningPublishResource('planning_publish', app=app, service=planning_publish_service)
+    planning_post_service = PlanningPostService('planning_post', backend=superdesk.get_backend())
+    PlanningPostResource('planning_post', app=app, service=planning_post_service)
 
     planning_duplicate_service = PlanningDuplicateService('planning_duplicate', backend=superdesk.get_backend())
     PlanningDuplicateResource('planning_duplicate', app=app, service=planning_duplicate_service)
@@ -116,9 +116,9 @@ def init_app(app):
     )
 
     superdesk.privilege(
-        name='planning_planning_publish',
-        label='Planning - Publish Planning Items',
-        description='Ability to publish a Planning Item'
+        name='planning_planning_post',
+        label='Planning - Post Planning Items',
+        description='Ability to post a Planning Item'
     )
 
     superdesk.intrinsic_privilege(PlanningUnlockResource.endpoint_name, method=['POST'])

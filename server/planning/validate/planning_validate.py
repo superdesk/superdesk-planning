@@ -36,7 +36,7 @@ def get_validator_schema(schema):
 
 
 class SchemaValidator(Validator):
-    def _validate_validate_on_publish(self, validate, field, value):
+    def _validate_validate_on_post(self, validate, field, value):
         """Ignore this profile as it's to control logic of client side input of Event date range"""
         pass
 
@@ -44,7 +44,7 @@ class SchemaValidator(Validator):
 class PlanningValidateResource(Resource):
     endpoint_name = 'planning_validator'
     schema = {
-        'validate_on_publish': {'type': 'boolean', 'default': False},
+        'validate_on_post': {'type': 'boolean', 'default': False},
         'type': {'type': 'string', 'required': True},
         'validate': {'type': 'dict', 'required': True}
     }
@@ -65,13 +65,13 @@ class PlanningValidateService(Service):
         """Get validators."""
         return get_resource_service('planning_types').find_one(req=None, name=doc[ITEM_TYPE])
 
-    def _get_validator_schema(self, validator, validate_on_publish):
+    def _get_validator_schema(self, validator, validate_on_post):
         """Get schema for given validator.
 
         And make sure there is no `None` value which would raise an exception.
         """
         return {field: get_validator_schema(schema) for field, schema in validator['schema'].items()
-                if schema and schema.get('validate_on_publish', False) == validate_on_publish}
+                if schema and schema.get('validate_on_post', False) == validate_on_post}
 
     def _validate(self, doc):
         validator = self._get_validator(doc)
@@ -80,7 +80,7 @@ class PlanningValidateService(Service):
             logger.warn('Validator was not found for type:{}'.format(doc[ITEM_TYPE]))
             return []
 
-        validation_schema = self._get_validator_schema(validator, doc.get('validate_on_publish'))
+        validation_schema = self._get_validator_schema(validator, doc.get('validate_on_post'))
 
         v = SchemaValidator()
         v.allow_unknown = True

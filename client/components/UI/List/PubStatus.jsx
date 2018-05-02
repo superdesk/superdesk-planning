@@ -11,7 +11,7 @@ export const PubStatus = ({item}) => {
     let title = null;
 
     if (isItemPublic(item)) {
-        title = gettext(TOOLTIPS.publishedState);
+        title = gettext(TOOLTIPS.postedState);
         badge = <span className="badge badge--success">P</span>;
     } else if (planningUtils.isNotForPublication(item)) {
         title = gettext(TOOLTIPS.notForPublication);

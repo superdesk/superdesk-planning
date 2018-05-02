@@ -13,7 +13,7 @@ import * as selectors from '../selectors';
 import {gettext} from '../utils';
 
 export const validateField = (dispatch, getState, profileName, field, value, profile, errors, messages) => {
-    if (get(profile, `schema.${field}.validate_on_publish`)) {
+    if (get(profile, `schema.${field}.validate_on_post`)) {
         return;
     }
 

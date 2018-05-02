@@ -8,7 +8,7 @@ export const TOOLTIPS = {
     close: 'Close',
     deleteAgenda: 'Delete Agenda',
     repeatingEvent: 'Repeating Event',
-    publishedState: 'Published',
+    postedState: 'Posted',
     withheldState: 'The event has been killed',
     scheduledState: 'Scheduled',
     assignmentPriority: {

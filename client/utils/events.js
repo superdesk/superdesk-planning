@@ -1,7 +1,7 @@
 import {
     PRIVILEGES,
     WORKFLOW_STATE,
-    PUBLISHED_STATE,
+    POST_STATE,
     EVENTS,
     GENERIC_ITEM_ACTIONS,
 } from '../constants';
@@ -10,7 +10,7 @@ import {
     lockUtils,
     isItemSpiked,
     isItemPublic,
-    getPublishedState,
+    getPostedState,
     isItemCancelled,
     isItemRescheduled,
     isItemPostponed,
@@ -193,22 +193,22 @@ const canCreateAndOpenPlanningFromEvent = (event, session, privileges, locks) =>
         !isEventLocked(event, locks)
 );
 
-const canPublishEvent = (event, session, privileges, locks) => (
+const canPostEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
         !!get(event, '_id') &&
         !isItemSpiked(event) &&
-        getPublishedState(event) !== PUBLISHED_STATE.USABLE &&
-        !!privileges[PRIVILEGES.PUBLISH_EVENT] &&
+        getPostedState(event) !== POST_STATE.USABLE &&
+        !!privileges[PRIVILEGES.POST_EVENT] &&
         !isEventLockRestricted(event, session, locks) &&
         !isItemCancelled(event) &&
         !isItemRescheduled(event)
 );
 
-const canUnpublishEvent = (event, session, privileges, locks) => (
+const canUnpostEvent = (event, session, privileges, locks) => (
     !isNil(event) && !isItemSpiked(event) &&
         !isEventLockRestricted(event, session, locks) &&
-        getPublishedState(event) === PUBLISHED_STATE.USABLE &&
-        !!privileges[PRIVILEGES.PUBLISH_EVENT] &&
+        getPostedState(event) === POST_STATE.USABLE &&
+        !!privileges[PRIVILEGES.POST_EVENT] &&
         !isItemRescheduled(event)
 );
 
@@ -218,7 +218,7 @@ const canCancelEvent = (event, session, privileges, locks) => (
         !isItemCancelled(event) &&
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
-        !(getPublishedState(event) === PUBLISHED_STATE.USABLE && !privileges[PRIVILEGES.PUBLISH_EVENT]) &&
+        !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT]) &&
         !isItemRescheduled(event)
 );
 
@@ -245,14 +245,14 @@ const canEditEvent = (event, session, privileges, locks) => (
         !isItemCancelled(event) &&
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
-        !(getPublishedState(event) === PUBLISHED_STATE.USABLE && !privileges[PRIVILEGES.PUBLISH_EVENT]) &&
+        !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT]) &&
         !isItemRescheduled(event)
 );
 
 const canUpdateEvent = (event, session, privileges, locks) => (
     canEditEvent(event, session, privileges, locks) &&
         isItemPublic(event) &&
-        !!privileges[PRIVILEGES.PUBLISH_EVENT]
+        !!privileges[PRIVILEGES.POST_EVENT]
 );
 
 const canUpdateEventTime = (event, session, privileges, locks) => (
@@ -269,7 +269,7 @@ const canRescheduleEvent = (event, session, privileges, locks) => (
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemRescheduled(event) &&
-        !(getPublishedState(event) === PUBLISHED_STATE.USABLE && !privileges[PRIVILEGES.PUBLISH_EVENT]) &&
+        !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT]) &&
         !isEventLockedForMetadataEdit(event)
 );
 
@@ -281,7 +281,7 @@ const canPostponeEvent = (event, session, privileges, locks) => (
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemPostponed(event) &&
         !isItemRescheduled(event) &&
-        !(getPublishedState(event) === PUBLISHED_STATE.USABLE && !privileges[PRIVILEGES.PUBLISH_EVENT]) &&
+        !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT]) &&
         !isEventLockedForMetadataEdit(event)
 );
 
@@ -743,8 +743,8 @@ const self = {
     canUnspikeEvent,
     canCreatePlanningFromEvent,
     canCreateAndOpenPlanningFromEvent,
-    canPublishEvent,
-    canUnpublishEvent,
+    canPostEvent,
+    canUnpostEvent,
     canEditEvent,
     canUpdateEvent,
     getEventItemActions,

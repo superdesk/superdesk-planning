@@ -62,11 +62,11 @@ xdescribe('<UpdateRecurringEventsForm />', () => {
             extraArguments: {api: services.api},
         });
 
-        sinon.stub(actions.events.ui, 'saveAndPublish').returns({type: 'Test'});
+        sinon.stub(actions.events.ui, 'saveAndPost').returns({type: 'Test'});
     });
 
     afterEach(() => {
-        restoreSinonStub(actions.events.ui.saveAndPublish);
+        restoreSinonStub(actions.events.ui.saveAndPost);
     });
 
     // Excluding this as this will change during refactoring
@@ -143,7 +143,7 @@ xdescribe('<UpdateRecurringEventsForm />', () => {
     });
 
     // Excluding this as this will change during refactoring
-    xit('calls `events.ui.saveAndPublish` on submit', () => {
+    xit('calls `events.ui.saveAndPost` on submit', () => {
         const wrapper = mount(
             <Provider store={store}>
                 <UpdateRecurringEventsForm
@@ -153,7 +153,7 @@ xdescribe('<UpdateRecurringEventsForm />', () => {
                         _events: [],
                         _originalEvent: data.events[1],
                         _save: true,
-                        _publish: false,
+                        _post: false,
                     }}
                 />
             </Provider>
@@ -162,15 +162,15 @@ xdescribe('<UpdateRecurringEventsForm />', () => {
 
         form.find('form').simulate('submit');
 
-        expect(actions.events.ui.saveAndPublish.callCount).toBe(1);
-        expect(actions.events.ui.saveAndPublish.args[0]).toEqual([
+        expect(actions.events.ui.saveAndPost.callCount).toBe(1);
+        expect(actions.events.ui.saveAndPost.args[0]).toEqual([
             {
                 ...data.events[1],
                 _recurring: data.events,
                 _events: [],
                 _originalEvent: data.events[1],
                 _save: true,
-                _publish: false,
+                _post: false,
                 update_method: Object({
                     name: 'This event only',
                     value: 'single',

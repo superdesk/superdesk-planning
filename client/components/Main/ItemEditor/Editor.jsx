@@ -6,7 +6,7 @@ import {get, isEqual, cloneDeep, omit, pickBy} from 'lodash';
 
 import {gettext, lockUtils, eventUtils, planningUtils, updateFormValues, isExistingItem} from '../../../utils';
 
-import {ITEM_TYPE, EVENTS, PLANNING, PUBLISHED_STATE, WORKFLOW_STATE, COVERAGES} from '../../../constants';
+import {ITEM_TYPE, EVENTS, PLANNING, POST_STATE, WORKFLOW_STATE, COVERAGES} from '../../../constants';
 
 import {Tabs as NavTabs} from '../../UI/Nav';
 import {SidePanel, Content} from '../../UI/SidePanel';
@@ -34,10 +34,10 @@ export class EditorComponent extends React.Component {
         this.onChangeHandler = this.onChangeHandler.bind(this);
         this.setActiveTab = this.setActiveTab.bind(this);
         this.onSave = this.onSave.bind(this);
-        this.onPublish = this.onPublish.bind(this);
-        this.onSaveAndPublish = this.onSaveAndPublish.bind(this);
-        this.onUnpublish = this.onUnpublish.bind(this);
-        this.onSaveUnpublish = this.onSaveUnpublish.bind(this);
+        this.onPost = this.onPost.bind(this);
+        this.onSaveAndPost = this.onSaveAndPost.bind(this);
+        this.onUnpost = this.onUnpost.bind(this);
+        this.onSaveUnpost = this.onSaveUnpost.bind(this);
         this.onCancel = this.onCancel.bind(this);
         this.resetForm = this.resetForm.bind(this);
         this.createNew = this.createNew.bind(this);
@@ -192,7 +192,7 @@ export class EditorComponent extends React.Component {
         }
     }
 
-    _save({publish, unpublish}) {
+    _save({post, unpost}) {
         if (!isEqual(this.state.errors, {})) {
             this.setState({
                 submitFailed: true,
@@ -204,15 +204,15 @@ export class EditorComponent extends React.Component {
                 submitFailed: false,
             });
 
-            // If we are publishing or unpublishing, we are setting 'pubstatus' to 'usable' from client side
+            // If we are posting or unposting, we are setting 'pubstatus' to 'usable' from client side
             let itemToUpdate = cloneDeep(this.state.diff);
 
-            if (publish) {
+            if (post) {
                 itemToUpdate.state = WORKFLOW_STATE.SCHEDULED;
-                itemToUpdate.pubstatus = PUBLISHED_STATE.USABLE;
-            } else if (unpublish) {
+                itemToUpdate.pubstatus = POST_STATE.USABLE;
+            } else if (unpost) {
                 itemToUpdate.state = WORKFLOW_STATE.KILLED;
-                itemToUpdate.pubstatus = PUBLISHED_STATE.CANCELLED;
+                itemToUpdate.pubstatus = POST_STATE.CANCELLED;
             }
 
             return this.props.onSave(itemToUpdate)
@@ -273,16 +273,16 @@ export class EditorComponent extends React.Component {
     }
 
     onSave() {
-        return this._save({publish: false, unpublish: false});
+        return this._save({post: false, unpost: false});
     }
 
-    onPublish() {
+    onPost() {
         this.setState({
             submitting: true,
             submitFailed: false,
         });
 
-        return this.props.onPublish(this.state.diff)
+        return this.props.onPost(this.state.diff)
             .then(
                 () => this.setState({
                     submitting: false,
@@ -292,17 +292,17 @@ export class EditorComponent extends React.Component {
             );
     }
 
-    onSaveAndPublish() {
-        return this._save({publish: true, unpublish: false});
+    onSaveAndPost() {
+        return this._save({post: true, unpost: false});
     }
 
-    onUnpublish() {
+    onUnpost() {
         this.setState({
             submitting: true,
             submitFailed: false,
         });
 
-        return this.props.onUnpublish(this.state.diff)
+        return this.props.onUnpost(this.state.diff)
             .then(
                 () => this.setState({
                     submitting: false,
@@ -312,8 +312,8 @@ export class EditorComponent extends React.Component {
             );
     }
 
-    onSaveUnpublish() {
-        return this._save({publish: false, unpublish: true});
+    onSaveUnpost() {
+        return this._save({post: false, unpost: true});
     }
 
     onAddCoverage(g2ContentType) {
@@ -410,10 +410,10 @@ export class EditorComponent extends React.Component {
                     item={this.props.item}
                     diff={this.state.diff}
                     onSave={this.onSave}
-                    onPublish={this.onPublish}
-                    onSaveAndPublish={this.onSaveAndPublish}
-                    onUnpublish={this.onUnpublish}
-                    onSaveUnpublish={this.onSaveUnpublish}
+                    onPost={this.onPost}
+                    onSaveAndPost={this.onSaveAndPost}
+                    onUnpost={this.onUnpost}
+                    onSaveUnpost={this.onSaveUnpost}
                     onAddCoverage={this.onAddCoverage}
                     cancel={this.onCancel}
                     minimize={this.onMinimized}
@@ -433,7 +433,7 @@ export class EditorComponent extends React.Component {
                     itemType={this.props.itemType}
                     addNewsItemToPlanning={this.props.addNewsItemToPlanning}
                     showUnlock={this.props.showUnlock}
-                    createAndPublish={this.props.createAndPublish}
+                    createAndPost={this.props.createAndPost}
                     hideItemActions={this.props.hideItemActions}
                     hideMinimize={this.props.hideMinimize}
                     hideExternalEdit={this.props.hideExternalEdit}
@@ -481,9 +481,9 @@ EditorComponent.propTypes = {
     cancel: PropTypes.func.isRequired,
     minimize: PropTypes.func.isRequired,
     onSave: PropTypes.func.isRequired,
-    onPublish: PropTypes.func.isRequired,
-    onUnpublish: PropTypes.func.isRequired,
-    onSaveUnpublish: PropTypes.func.isRequired,
+    onPost: PropTypes.func.isRequired,
+    onUnpost: PropTypes.func.isRequired,
+    onSaveUnpost: PropTypes.func.isRequired,
     session: PropTypes.object,
     privileges: PropTypes.object,
     lockedItems: PropTypes.object,
@@ -504,7 +504,7 @@ EditorComponent.propTypes = {
     showUnlock: PropTypes.bool,
     hideItemActions: PropTypes.bool,
     hideMinimize: PropTypes.bool,
-    createAndPublish: PropTypes.bool,
+    createAndPost: PropTypes.bool,
     newsCoverageStatus: PropTypes.array,
     onChange: PropTypes.func,
     onCancel: PropTypes.func,

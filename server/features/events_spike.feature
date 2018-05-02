@@ -339,7 +339,7 @@ Feature: Events Spike
             "event_item": "#EVENT2._id#"
         }]
         """
-        When we post to "/events/publish"
+        When we post to "/events/post"
         """
         {"event": "#EVENT4._id#", "etag": "#EVENT4._etag#", "pubstatus": "usable"}
         """
@@ -471,7 +471,7 @@ Feature: Events Spike
         Then we store "EVENT5" with 5 item
         Then we store "EVENT6" with 6 item
         Then we store "EVENT7" with 7 item
-        When we post to "/events/publish" with success
+        When we post to "/events/post" with success
         """
         {
             "event": "#EVENT2._id#",

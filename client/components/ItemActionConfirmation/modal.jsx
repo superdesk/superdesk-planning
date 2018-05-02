@@ -14,7 +14,7 @@ import {
     UpdateAssignmentForm,
     EditPriorityForm,
     UpdateEventRepetitionsForm,
-    PublishEventsForm,
+    PostEventsForm,
 } from './index';
 import {get} from 'lodash';
 import {EVENTS, PLANNING, ASSIGNMENTS} from '../../constants';
@@ -45,14 +45,14 @@ export class ItemActionConfirmationModal extends React.Component {
         let saveText = gettext('Save');
         let propToForm = modalProps.eventDetail;
 
-        const getSaveAndPublishTitle = () => {
-            const publish = get(modalProps, 'eventDetail._publish', false);
+        const getSaveAndPostTitle = () => {
+            const post = get(modalProps, 'eventDetail._post', false);
             const save = get(modalProps, 'eventDetail._save', true);
 
-            if (save && publish)
-                return gettext('Save & Publish Event');
-            else if (publish)
-                return gettext('Publish Event');
+            if (save && post)
+                return gettext('Save & Post Event');
+            else if (post)
+                return gettext('Post Event');
             return gettext('Save Event');
         };
 
@@ -95,10 +95,10 @@ export class ItemActionConfirmationModal extends React.Component {
                 saveText: gettext('Update Repetitions'),
                 form: UpdateEventRepetitionsForm,
             },
-            [EVENTS.ITEM_ACTIONS.PUBLISH_EVENT.label]: {
-                title: gettext('Publish Event'),
-                saveText: get(propToForm, '_publish', true) ? gettext('Publish') : gettext('Unpublish'),
-                form: PublishEventsForm,
+            [EVENTS.ITEM_ACTIONS.POST_EVENT.label]: {
+                title: gettext('Post Event'),
+                saveText: get(propToForm, '_post', true) ? gettext('Post') : gettext('Unpost'),
+                form: PostEventsForm,
             },
             [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label]: {
                 title: get(PLANNING, 'ITEM_ACTIONS.CANCEL_PLANNING.label'),
@@ -125,7 +125,7 @@ export class ItemActionConfirmationModal extends React.Component {
             },
         };
 
-        title = get(modalFormsMapper[modalProps.actionType], 'title', getSaveAndPublishTitle());
+        title = get(modalFormsMapper[modalProps.actionType], 'title', getSaveAndPostTitle());
         form = get(modalFormsMapper[modalProps.actionType], 'form', UpdateRecurringEventsForm);
         propToForm = get(modalFormsMapper[modalProps.actionType], 'propToForm', propToForm);
         saveText = get(modalFormsMapper[modalProps.actionType], 'saveText', saveText);

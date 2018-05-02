@@ -903,7 +903,7 @@ Feature: Events Update Time
                 "user": "#CONTEXT_USER_ID#"
             }
         }, {
-            "event": "events:published",
+            "event": "events:posted",
             "extra": {
                 "item": "event1"
             }

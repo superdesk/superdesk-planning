@@ -1,8 +1,8 @@
-Feature: Events Publish
+Feature: Events Post
 
     @auth
     @notification
-    Scenario: Publish all events in a series of recurring events
+    Scenario: Post all events in a series of recurring events
         When we post to "events"
         """
         [{
@@ -26,7 +26,7 @@ Feature: Events Publish
         Then we store "EVENT2" with 2 item
         Then we store "EVENT3" with 3 item
         Then we store "EVENT4" with 4 item
-        When we post to "/events/publish"
+        When we post to "/events/post"
         """
         {
             "event": "#EVENT2._id#",
@@ -39,7 +39,7 @@ Feature: Events Publish
         And we get notifications
         """
         [{
-            "event": "events:published:recurring",
+            "event": "events:posted:recurring",
             "extra": {
                 "item": "#EVENT2._id#",
                 "state": "scheduled",
@@ -68,35 +68,35 @@ Feature: Events Publish
             "operation": "create"
         }, {
             "event_id": "#EVENT1._id#",
-            "operation": "publish",
+            "operation": "post",
             "update": {"state": "scheduled"}
         }, {
             "event_id": "#EVENT2._id#",
             "operation": "create"
         }, {
             "event_id": "#EVENT2._id#",
-            "operation": "publish",
+            "operation": "post",
             "update": {"state": "scheduled"}
         }, {
             "event_id": "#EVENT3._id#",
             "operation": "create"
         }, {
             "event_id": "#EVENT3._id#",
-            "operation": "publish",
+            "operation": "post",
             "update": {"state": "scheduled"}
         }, {
             "event_id": "#EVENT4._id#",
             "operation": "create"
         }, {
             "event_id": "#EVENT4._id#",
-            "operation": "publish",
+            "operation": "post",
             "update": {"state": "scheduled"}
         }]}
         """
 
     @auth
     @notification
-    Scenario: Publish all future events in a series of recurring events
+    Scenario: Post all future events in a series of recurring events
         When we post to "events"
         """
         [{
@@ -120,7 +120,7 @@ Feature: Events Publish
         Then we store "EVENT2" with 2 item
         Then we store "EVENT3" with 3 item
         Then we store "EVENT4" with 4 item
-        When we post to "/events/publish"
+        When we post to "/events/post"
         """
         {
             "event": "#EVENT2._id#",
@@ -133,7 +133,7 @@ Feature: Events Publish
         And we get notifications
         """
         [{
-            "event": "events:published:recurring",
+            "event": "events:posted:recurring",
             "extra": {
                 "item": "#EVENT2._id#",
                 "state": "scheduled",
@@ -162,28 +162,28 @@ Feature: Events Publish
             "operation": "create"
         }, {
             "event_id": "#EVENT2._id#",
-            "operation": "publish",
+            "operation": "post",
             "update": {"state": "scheduled"}
         }, {
             "event_id": "#EVENT3._id#",
             "operation": "create"
         }, {
             "event_id": "#EVENT3._id#",
-            "operation": "publish",
+            "operation": "post",
             "update": {"state": "scheduled"}
         }, {
             "event_id": "#EVENT4._id#",
             "operation": "create"
         }, {
             "event_id": "#EVENT4._id#",
-            "operation": "publish",
+            "operation": "post",
             "update": {"state": "scheduled"}
         }]}
         """
 
     @auth
     @notification
-    Scenario: Publish single event from a series of recurring events
+    Scenario: Post single event from a series of recurring events
         When we post to "events"
         """
         [{
@@ -207,7 +207,7 @@ Feature: Events Publish
         Then we store "EVENT2" with 2 item
         Then we store "EVENT3" with 3 item
         Then we store "EVENT4" with 4 item
-        When we post to "/events/publish"
+        When we post to "/events/post"
         """
         {
             "event": "#EVENT2._id#",
@@ -220,7 +220,7 @@ Feature: Events Publish
         And we get notifications
         """
         [{
-            "event": "events:published",
+            "event": "events:posted",
             "extra": {
                 "item": "#EVENT2._id#",
                 "state": "scheduled",
@@ -239,7 +239,7 @@ Feature: Events Publish
             "operation": "create"
         }, {
             "event_id": "#EVENT2._id#",
-            "operation": "publish",
+            "operation": "post",
             "update": {"state": "scheduled"}
         }, {
             "event_id": "#EVENT3._id#",

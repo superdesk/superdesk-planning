@@ -44,9 +44,8 @@ const mapDispatchToProps = (dispatch) => ({
     minimize: () => dispatch(actions.main.closeEditor()),
     cancel: (item) => dispatch(actions.main.unlockAndCancel(item)),
     onSave: (item) => dispatch(actions.main.save(item)),
-    onUnpublish: (item) => dispatch(actions.main.unpublish(item)),
-    onPublish: (item) => dispatch(actions.main.publish(item)),
-    onSaveUnpublish: (item) => dispatch(actions.main.onSaveUnpublish(item)),
+    onUnpost: (item) => dispatch(actions.main.unpost(item)),
+    onPost: (item) => dispatch(actions.main.post(item)),
     openCancelModal: (props) => dispatch(actions.main.openConfirmationModal(props)),
     onValidate: (type, item, profile, errors, messages) =>
         dispatch(validateItem(type, item, profile, errors, messages)),
@@ -63,9 +62,8 @@ const mapDispatchToPropsModal = (dispatch) => ({
     minimize: () => dispatch(actions.main.closeEditor()),
     cancel: (item) => dispatch(actions.main.unlockAndCancel(item, true)),
     onSave: (item) => dispatch(actions.main.save(item)),
-    onUnpublish: (item) => dispatch(actions.main.unpublish(item)),
-    onPublish: (item) => dispatch(actions.main.publish(item)),
-    onSaveUnpublish: (item) => dispatch(actions.main.onSaveUnpublish(item)),
+    onUnpost: (item) => dispatch(actions.main.unpost(item)),
+    onPost: (item) => dispatch(actions.main.post(item)),
     openCancelModal: (props) => dispatch(actions.main.openConfirmationModal(props)),
     onValidate: (type, item, profile, errors, messages) =>
         dispatch(validateItem(type, item, profile, errors, messages)),

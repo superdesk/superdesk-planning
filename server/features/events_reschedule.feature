@@ -93,7 +93,7 @@ Feature: Events Reschedule
             {"operation": "reschedule_from", "event_id": "#DUPLICATE.id#", "update": {
                 "reschedule_from": "event1"
             }},
-            {"operation": "publish", "event_id": "event1"}
+            {"operation": "post", "event_id": "event1"}
         ]}
         """
 
@@ -952,7 +952,7 @@ Feature: Events Reschedule
             }
         ]}
         """
-        When we post to "/events/publish"
+        When we post to "/events/post"
         """
         {
             "event": "#EVENT4._id#",
@@ -961,7 +961,7 @@ Feature: Events Reschedule
         }
         """
         Then we get OK response
-        When we post to "/planning/publish"
+        When we post to "/planning/post"
         """
         {
             "planning": "#PLAN2._id#",
@@ -1330,7 +1330,7 @@ Feature: Events Reschedule
                 "user": "#CONTEXT_USER_ID#"
             }
         }, {
-            "event": "events:published",
+            "event": "events:posted",
             "extra": {
                 "item": "event1"
             }

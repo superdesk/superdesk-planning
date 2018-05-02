@@ -42,7 +42,7 @@ export const WORKFLOW_STATE = {
     SPIKED: 'spiked',
 };
 
-export const PUBLISHED_STATE = {
+export const POST_STATE = {
     USABLE: 'usable',
     CANCELLED: 'cancelled',
 };

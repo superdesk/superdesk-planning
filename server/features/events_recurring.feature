@@ -188,7 +188,7 @@ Feature: Events Recurring
 
     @auth
     @notification
-    Scenario: Converting a published event to be a recurring event will reschedule and update it
+    Scenario: Converting a posted event to be a recurring event will reschedule and update it
         Given we have sessions "/sessions"
         Given "events"
         """
@@ -316,7 +316,7 @@ Feature: Events Recurring
         Then we get list with 7 items
         """
         {"_items": [
-            {"operation": "publish", "event_id": "#events._id#"},
+            {"operation": "post", "event_id": "#events._id#"},
             {"operation": "planning created", "event_id": "#events._id#"},
             {"operation": "reschedule_from", "event_id": "__any_value__"},
             {"operation": "reschedule", "event_id": "#events._id#"},

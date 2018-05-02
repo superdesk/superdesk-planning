@@ -8,8 +8,8 @@ export const PRIVILEGES = {
     EVENT_MANAGEMENT: 'planning_event_management',
     SPIKE_EVENT: 'planning_event_spike',
     UNSPIKE_EVENT: 'planning_event_unspike',
-    PUBLISH_EVENT: 'planning_event_publish',
-    PUBLISH_PLANNING: 'planning_planning_publish',
+    POST_EVENT: 'planning_event_post',
+    POST_PLANNING: 'planning_planning_post',
     ACTIONS: {
         ACCESS_DENIED: 'ACCESS_DENIED',
         RECEIVE_PRIVILEGES: 'RECEIVE_PRIVILEGES',

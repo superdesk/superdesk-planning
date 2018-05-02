@@ -10,7 +10,7 @@ import {eventUtils, gettext} from '../../../utils';
 import {Row} from '../../UI/Preview';
 import '../style.scss';
 
-export class PublishEventsComponent extends React.Component {
+export class PostEventsComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -53,10 +53,10 @@ export class PublishEventsComponent extends React.Component {
     render() {
         const {initialValues, dateFormat, timeFormat, submitting} = this.props;
         const isRecurring = !!initialValues.recurrence_id;
-        const publishing = get(initialValues, '_publish', true);
-        const updateMethodLabel = publishing ?
-            gettext('Publish all recurring events or just this one?') :
-            gettext('Unpublish all recurring events or just this one?');
+        const posting = get(initialValues, '_post', true);
+        const updateMethodLabel = posting ?
+            gettext('Post all recurring events or just this one?') :
+            gettext('Unpost all recurring events or just this one?');
         const eventsInUse = this.state.relatedEvents.filter((e) => (
             get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
         ));
@@ -99,13 +99,13 @@ export class PublishEventsComponent extends React.Component {
                     updateMethodLabel={updateMethodLabel}
                     showSpace={false}
                     readOnly={submitting}
-                    action={publishing ? gettext('publish') : gettext('unpublish')} />
+                    action={posting ? gettext('post') : gettext('unpost')} />
             </div>
         );
     }
 }
 
-PublishEventsComponent.propTypes = {
+PostEventsComponent.propTypes = {
     initialValues: PropTypes.object.isRequired,
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
@@ -120,15 +120,15 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event) => dispatch(event._publish ?
-        actions.main.publish(event, false) :
-        actions.main.unpublish(event, false)
+    onSubmit: (event) => dispatch(event._post ?
+        actions.main.post(event, false) :
+        actions.main.unpost(event, false)
     ),
 });
 
-export const PublishEventsForm = connect(
+export const PostEventsForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
     {withRef: true}
-)(PublishEventsComponent);
+)(PostEventsComponent);

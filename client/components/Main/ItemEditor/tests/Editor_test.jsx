@@ -6,7 +6,7 @@ import moment from 'moment';
 
 import {createTestStore} from '../../../../utils';
 import {getTestActionStore, restoreSinonStub, waitFor} from '../../../../utils/testUtils';
-import {EVENTS, PLANNING, ITEM_TYPE, WORKFLOW_STATE, PUBLISHED_STATE} from '../../../../constants';
+import {EVENTS, PLANNING, ITEM_TYPE, WORKFLOW_STATE, POST_STATE} from '../../../../constants';
 
 import * as selectors from '../../../../selectors';
 import * as helpers from '../../../tests/helpers';
@@ -23,7 +23,7 @@ describe('Main.ItemEditor.Editor', () => {
     let wrapper;
     let buttons;
     let onSave;
-    let onPublish;
+    let onPost;
     let delay;
 
     beforeEach(() => {
@@ -44,9 +44,9 @@ describe('Main.ItemEditor.Editor', () => {
         // button states etc during `submitting=true`
         delay = 50;
         onSave = (resolve) => resolve(item);
-        onPublish = (resolve) => {
+        onPost = (resolve) => {
             item.state = WORKFLOW_STATE.SCHEDULED;
-            item.pubstatus = PUBLISHED_STATE.USABLE;
+            item.pubstatus = POST_STATE.USABLE;
 
             store.dispatch({
                 type: EVENTS.ACTIONS.ADD_EVENTS,
@@ -59,14 +59,14 @@ describe('Main.ItemEditor.Editor', () => {
         sinon.stub(main, 'save').callsFake((item) => () => new Promise((resolve, reject) => setTimeout(
             () => onSave(resolve, reject)
         ), delay));
-        sinon.stub(main, 'publish').callsFake((item) => () => new Promise((resolve, reject) => setTimeout(
-            () => onPublish(resolve, reject)
+        sinon.stub(main, 'post').callsFake((item) => () => new Promise((resolve, reject) => setTimeout(
+            () => onPost(resolve, reject)
         ), delay));
     });
 
     afterEach(() => {
         restoreSinonStub(main.save);
-        restoreSinonStub(main.publish);
+        restoreSinonStub(main.post);
     });
 
     const initStore = () => {
@@ -119,10 +119,10 @@ describe('Main.ItemEditor.Editor', () => {
         buttons = {
             cancel: new helpers.ui.Button(header, 'Cancel', 0, wrapper),
             close: new helpers.ui.Button(header, 'Close', 0, wrapper),
-            savePublish: new helpers.ui.Button(header, 'Save & Publish', 0, wrapper),
-            publish: new helpers.ui.Button(header, 'Publish', 0, wrapper),
-            saveUnpublish: new helpers.ui.Button(header, 'Save & Unpublish', 0, wrapper),
-            unpublish: new helpers.ui.Button(header, 'Unpublish', 0, wrapper),
+            savePost: new helpers.ui.Button(header, 'Save & Post', 0, wrapper),
+            post: new helpers.ui.Button(header, 'Post', 0, wrapper),
+            saveUnpost: new helpers.ui.Button(header, 'Save & Unpost', 0, wrapper),
+            unpost: new helpers.ui.Button(header, 'Unpost', 0, wrapper),
             update: new helpers.ui.Button(header, 'Update', 0, wrapper),
             save: new helpers.ui.Button(header, 'Save', 0, wrapper),
             create: new helpers.ui.Button(header, 'Create', 0, wrapper),
@@ -130,66 +130,66 @@ describe('Main.ItemEditor.Editor', () => {
         };
     };
 
-    describe('Publish', () => {
+    describe('Post', () => {
         // TODO: To be revisited
-        xit('EditorHeader button states on publishing', (done) => {
+        xit('EditorHeader button states on posting', (done) => {
             setWrapper();
 
             // Check visible button states
             expect(buttons.close.isDisabled()).toBe(false);
-            expect(buttons.publish.isDisabled()).toBe(false);
+            expect(buttons.post.isDisabled()).toBe(false);
             expect(buttons.save.isDisabled()).toBe(true);
 
             // Check buttons not mounted
             expect(buttons.cancel.isMounted).toBe(false);
-            expect(buttons.savePublish.isMounted).toBe(false);
-            expect(buttons.saveUnpublish.isMounted).toBe(false);
-            expect(buttons.unpublish.isMounted).toBe(false);
+            expect(buttons.savePost.isMounted).toBe(false);
+            expect(buttons.saveUnpost.isMounted).toBe(false);
+            expect(buttons.unpost.isMounted).toBe(false);
             expect(buttons.update.isMounted).toBe(false);
             expect(buttons.create.isMounted).toBe(false);
             expect(buttons.edit.isMounted).toBe(false);
 
-            buttons.publish.click();
-            expect(main.publish.callCount).toBe(1);
-            expect(main.publish.args[0]).toEqual([item]);
+            buttons.post.click();
+            expect(main.post.callCount).toBe(1);
+            expect(main.post.args[0]).toEqual([item]);
 
             // Ensure the buttons are disabled when submitting the form
             expect(buttons.close.isDisabled()).toBe(true);
-            expect(buttons.publish.isDisabled()).toBe(true);
+            expect(buttons.post.isDisabled()).toBe(true);
             expect(buttons.save.isDisabled()).toBe(true);
 
             waitFor(() => wrapper.update() && buttons.close.isDisabled() === false)
                 .then(() => {
                     updateButtons();
 
-                    // Check that button types are changed once published
-                    expect(buttons.publish.isMounted).toBe(false);
-                    expect(buttons.unpublish.isMounted).toBe(true);
+                    // Check that button types are changed once posted
+                    expect(buttons.post.isMounted).toBe(false);
+                    expect(buttons.unpost.isMounted).toBe(true);
                     expect(buttons.save.isMounted).toBe(false);
                     expect(buttons.update.isMounted).toBe(true);
 
                     // Check the button states once again
                     expect(buttons.close.isDisabled()).toBe(false);
-                    expect(buttons.unpublish.isDisabled()).toBe(false);
+                    expect(buttons.unpost.isDisabled()).toBe(false);
                     expect(buttons.update.isDisabled()).toBe(true);
                     done();
                 });
         });
 
         // TODO: To be revisited
-        xit('EditorHeader button states on publishing error', (done) => {
+        xit('EditorHeader button states on posting error', (done) => {
             setWrapper();
 
-            // Mock publish error function
-            onPublish = (resolve, reject) => reject('Failed to publish');
+            // Mock post error function
+            onPost = (resolve, reject) => reject('Failed to post');
 
-            buttons.publish.click();
-            expect(main.publish.callCount).toBe(1);
-            expect(main.publish.args[0]).toEqual([item]);
+            buttons.post.click();
+            expect(main.post.callCount).toBe(1);
+            expect(main.post.args[0]).toEqual([item]);
 
             // Ensure the buttons are disabled when submitting the form
             expect(buttons.close.isDisabled()).toBe(true);
-            expect(buttons.publish.isDisabled()).toBe(true);
+            expect(buttons.post.isDisabled()).toBe(true);
             expect(buttons.save.isDisabled()).toBe(true);
 
             waitFor(() => wrapper.update() && buttons.close.isDisabled() === false)
@@ -197,14 +197,14 @@ describe('Main.ItemEditor.Editor', () => {
                     updateButtons();
 
                     // Check that button types are changed back on api error
-                    expect(buttons.publish.isMounted).toBe(true);
-                    expect(buttons.unpublish.isMounted).toBe(false);
+                    expect(buttons.post.isMounted).toBe(true);
+                    expect(buttons.unpost.isMounted).toBe(false);
                     expect(buttons.save.isMounted).toBe(true);
                     expect(buttons.update.isMounted).toBe(false);
 
                     // Check the button states once again
                     expect(buttons.close.isDisabled()).toBe(false);
-                    expect(buttons.publish.isDisabled()).toBe(false);
+                    expect(buttons.post.isDisabled()).toBe(false);
                     expect(buttons.save.isDisabled()).toBe(true);
                     done();
                 });

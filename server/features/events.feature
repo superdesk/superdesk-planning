@@ -208,7 +208,7 @@ Feature: Events
 
     @auth
     @notification
-    Scenario: Track publish history for event
+    Scenario: Track post history for event
         Given empty "users"
         Given "contacts"
         """
@@ -244,7 +244,7 @@ Feature: Events
         ]
         """
         Then we get OK response
-        When we post to "/events/publish"
+        When we post to "/events/post"
         """
         {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
         """
@@ -252,7 +252,7 @@ Feature: Events
         And we get notifications
         """
         [{
-            "event": "events:published",
+            "event": "events:posted",
             "extra": {
                 "item": "#events._id#",
                 "state": "scheduled",
@@ -269,12 +269,12 @@ Feature: Events
                 },
                 {
                 "event_id": "#events._id#",
-                "operation": "publish",
+                "operation": "post",
                 "update": {"state": "scheduled"}
                 }
             ]}
         """
-        When we post to "/events/publish"
+        When we post to "/events/post"
         """
         {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "cancelled"}
         """
@@ -282,7 +282,7 @@ Feature: Events
         And we get notifications
         """
         [{
-            "event": "events:unpublished",
+            "event": "events:unposted",
             "extra": {
                 "item": "#events._id#",
                 "state": "killed",
@@ -299,12 +299,12 @@ Feature: Events
                 },
                 {
                 "event_id": "#events._id#",
-                "operation": "publish",
+                "operation": "post",
                 "update": {"state": "scheduled"}
                 },
                 {
                 "event_id": "#events._id#",
-                "operation": "publish",
+                "operation": "post",
                 "update": {"pubstatus": "cancelled"}
                 }
             ]}
@@ -363,7 +363,7 @@ Feature: Events
         ]
         """
         Then we get OK response
-        When we post to "/events/publish"
+        When we post to "/events/post"
         """
         {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
         """
@@ -414,7 +414,7 @@ Feature: Events
                 "event_id": "123"
             },
             {
-                "operation": "publish",
+                "operation": "post",
                 "update": { "state" : "scheduled", "pubstatus": "usable" }
             },
             {
@@ -438,7 +438,7 @@ Feature: Events
 
     @auth
     @notification
-    Scenario: Published event modified will re-publish the event
+    Scenario: Posted event modified will re-post the event
         When we post to "events" with success
         """
         [{
@@ -452,7 +452,7 @@ Feature: Events
             }
         }]
         """
-        When we post to "/events/publish"
+        When we post to "/events/post"
         """
         {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
         """
@@ -471,7 +471,7 @@ Feature: Events
                 "event_id": "#events._id#"
             },
             {
-                "operation": "publish",
+                "operation": "post",
                 "event_id": "#events._id#"
             },
             {
@@ -479,14 +479,14 @@ Feature: Events
                 "update": { "name" : "New Event"}
             },
             {
-                "operation": "publish",
+                "operation": "post",
                 "event_id": "#events._id#"
             }
         ]}
         """
 
     @auth
-    Scenario: Duplicating published event will not republish it
+    Scenario: Duplicating posted event will not repost it
         Given "vocabularies"
         """
         [{
@@ -538,7 +538,7 @@ Feature: Events
         ]
         """
         Then we get OK response
-        When we post to "/events/publish"
+        When we post to "/events/post"
         """
         {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
         """
@@ -586,7 +586,7 @@ Feature: Events
                 "event_id": "123"
             },
             {
-                "operation": "publish",
+                "operation": "post",
                 "update": { "state" : "scheduled", "pubstatus": "usable" }
             },
             {
