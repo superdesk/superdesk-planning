@@ -26,6 +26,8 @@ export const EventMetadata = (
         onClick,
         navigation,
         active,
+        showIcon,
+        showBorder,
     }
 ) => {
     const dateStr = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat, dateOnly);
@@ -42,22 +44,29 @@ export const EventMetadata = (
 
     const eventListView = (
         <Item noBg={!active} activated={active}>
-            {isItemLocked && <Border state="locked" />}
+            {showBorder && isItemLocked && <Border state="locked" />}
             <div className="sd-list-item__border" />
-            <Column>
+            {showIcon && <Column>
                 <ItemIcon
                     item={event}
                     color={ICON_COLORS.DARK_BLUE_GREY}
                 />
-            </Column>
+            </Column>}
             <Column grow={true} border={false}>
                 <Row>
-                    <StateLabel item={event} verbose={true}/>
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         <span className="sd-list-item__text-strong">{event.name}</span>
                     </span>
-                    <time>{dateStr}</time>
                 </Row>
+                <Row>
+                    <time className="no-padding">
+                        <i className="icon-time"/>
+                        {dateStr}
+                    </time>
+                </Row>
+            </Column>
+            <Column>
+                <StateLabel item={event} verbose={true} className="pull-right"/>
             </Column>
             {editEventComponent && <ActionMenu>{editEventComponent}</ActionMenu>}
         </Item>
@@ -164,6 +173,8 @@ EventMetadata.propTypes = {
     navigation: PropTypes.object,
     active: PropTypes.bool,
     lockedItems: PropTypes.object,
+    showIcon: PropTypes.bool,
+    showBorder: PropTypes.bool,
 };
 
 
@@ -171,4 +182,6 @@ EventMetadata.defaultProps = {
     dateFormat: 'DD/MM/YYYY',
     timeFormat: 'HH:mm',
     scrollInView: true,
+    showIcon: true,
+    showBorder: true,
 };

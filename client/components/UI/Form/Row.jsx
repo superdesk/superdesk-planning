@@ -11,7 +11,7 @@ export const Row = ({children, flex, noPadding, halfWidth, className, enabled}) 
             'form__row',
             {
                 'form__row--flex': flex,
-                'form__row--no-padding': noPadding,
+                'no-padding': noPadding,
                 'form__row--half-width': halfWidth,
             },
             className

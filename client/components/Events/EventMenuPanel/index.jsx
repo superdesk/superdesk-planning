@@ -25,7 +25,7 @@ export class EventMenuPanelComponent extends React.Component {
                     dateFormat={dateFormat}
                     timeFormat={timeFormat}
                     active={activeItem === 'event'} />
-                <MenuItem label={gettext('Details')}
+                <MenuItem label={gettext('Details...')}
                     onClick={onMenuItemClick.bind(null, 'details')}
                     active={activeItem === 'details'}/>
                 <MenuItem label={gettext('Files')}

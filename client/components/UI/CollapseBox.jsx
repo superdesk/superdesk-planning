@@ -67,7 +67,9 @@ export class CollapseBox extends React.Component {
     }
 
     scrollInView() {
-        if (this.props.scrollInView && this.state.isOpen && this.dom.node) {
+        if (this.props.scrollInView &&
+            (this.state.isOpen || this.props.noOpen) &&
+            this.dom.node) {
             this.dom.node.scrollIntoView();
             // When just opened, lose focus to remove greyed background due to
             // initial collapsed view

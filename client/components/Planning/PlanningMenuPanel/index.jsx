@@ -9,6 +9,7 @@ import {ContentBlock} from '../../UI/SidePanel';
 import {EventMetadata} from '../../Events';
 import {PlanningInfo} from './PlanningInfo';
 import {MenuItem} from '../../Main/ItemEditorModal/MenuItem';
+import {Label} from '../../UI/Form';
 
 export class PlanningMenuPanelComponent extends React.Component {
     render() {
@@ -34,15 +35,10 @@ export class PlanningMenuPanelComponent extends React.Component {
                     dateFormat={dateFormat}
                     timeFormat={timeFormat}
                     active={activeItem === 'planning'} />
-                <MenuItem label={gettext('Details')}
+                <MenuItem label={gettext('Details...')}
                     onClick={onMenuItemClick.bind(null, 'details')}
                     active={activeItem === 'details'}/>
-                {event && (
-                    <h3 className="side-panel__heading side-panel__heading--big">
-                        {gettext('Associated Event')}
-                    </h3>
-                )}
-
+                {event && (<Label row text={gettext('Associated Event')} />)}
                 {event && (
                     <ContentBlock>
                         <EventMetadata
@@ -53,11 +49,12 @@ export class PlanningMenuPanelComponent extends React.Component {
                             onClick={onMenuItemClick.bind(null, 'event')}
                             active={activeItem === 'event'}
                             noOpen
+                            showIcon={false}
+                            showBorder={false}
                         />
                     </ContentBlock>
                 )}
-                {hasCoverage &&
-                    (<h3 className="side-panel__heading--big">{gettext('Coverages')}</h3>)}
+                {hasCoverage && <Label row text={gettext('Coverages')} />}
                 {hasCoverage && (
                     item.coverages.map((c, index) => <CoveragePreview
                         key={index}
@@ -70,7 +67,8 @@ export class PlanningMenuPanelComponent extends React.Component {
                         formProfile={formProfile.coverage}
                         onClick={onMenuItemClick.bind(null, 'coverages[' + index + ']')}
                         active={activeItem === 'coverages[' + index + ']'}
-                        noOpen />)
+                        noOpen
+                        scrollInView />)
                 )}
             </ContentBlock>
         );
@@ -99,7 +97,7 @@ const mapStateToProps = (state, ownProps) => ({
     timeFormat: selectors.config.getTimeFormat(state),
     formProfile: selectors.forms.profiles(state),
     newsCoverageStatus: selectors.getNewsCoverageStatus(state),
-    event: selectors.events.planningEditAssociatedEvent(state),
+    event: selectors.events.planningEditAssociatedEventModal(state),
 
 });
 
