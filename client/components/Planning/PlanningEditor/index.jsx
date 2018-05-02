@@ -13,6 +13,7 @@ import {
     planningUtils,
     isSameItemId,
     editorMenuUtils,
+    isExistingItem,
 } from '../../../utils';
 
 import {ContentBlock} from '../../UI/SidePanel';
@@ -66,34 +67,38 @@ export class PlanningEditorComponent extends React.Component {
             }
         } else {
             // In add-to-planning modal
-            if (get(this.props, 'item._id') && !planningUtils.isLockedForAddToPlanning(this.props.item)) {
-                return;
-            }
+            this.handleAddToPlanningLoading();
+        }
+    }
 
-            // If we are creating a new planning item for 'add-to-planning'
-            if (!get(this.props, 'item._id')) {
-                let newPlanning = planningUtils.createNewPlanningFromNewsItem(
-                    this.props.addNewsItemToPlanning,
-                    this.props.newsCoverageStatus,
-                    this.props.desk,
-                    get(this.props, 'addNewsItemToPlanning.version_creator'),
-                    this.props.contentTypes);
+    handleAddToPlanningLoading() {
+        if (get(this.props, 'item._id') && !planningUtils.isLockedForAddToPlanning(this.props.item)) {
+            return;
+        }
 
-                this.fillCurrentAgenda(newPlanning);
-                this.props.onChangeHandler(null, newPlanning);
-            } else {
-                let dupItem = cloneDeep(this.props.item);
+        // If we are creating a new planning item for 'add-to-planning'
+        if (!get(this.props, 'item._id')) {
+            let newPlanning = planningUtils.createNewPlanningFromNewsItem(
+                this.props.addNewsItemToPlanning,
+                this.props.newsCoverageStatus,
+                this.props.desk,
+                get(this.props, 'addNewsItemToPlanning.version_creator'),
+                this.props.contentTypes);
 
-                dupItem.coverages.push(planningUtils.createCoverageFromNewsItem(
-                    this.props.addNewsItemToPlanning,
-                    this.props.newsCoverageStatus,
-                    this.props.desk,
-                    this.props.user,
-                    this.props.contentTypes));
+            this.fillCurrentAgenda(newPlanning);
+            this.props.onChangeHandler(null, newPlanning);
+        } else {
+            let dupItem = cloneDeep(this.props.item);
 
-                // reset the object to trigger a save
-                this.props.onChangeHandler(null, dupItem);
-            }
+            dupItem.coverages.push(planningUtils.createCoverageFromNewsItem(
+                this.props.addNewsItemToPlanning,
+                this.props.newsCoverageStatus,
+                this.props.desk,
+                this.props.user,
+                this.props.contentTypes));
+
+            // reset the object to trigger a save
+            this.props.onChangeHandler(null, dupItem);
         }
     }
 
@@ -225,43 +230,32 @@ export class PlanningEditorComponent extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
+        if (this.props.addNewsItemToPlanning && !isExistingItem(this.props.item) &&
+            get(nextProps, 'diff.coverages.length', 0) === 0) {
+            this.handleAddToPlanningLoading();
+            return;
+        }
+
         if (isSameItemId(nextProps.item, this.props.item)) {
-            if (this.props.addNewsItemToPlanning) {
-                if (planningUtils.isLockedForAddToPlanning(nextProps.diff) &&
-                    get(nextProps, 'item.coverages.length', 0) === get(nextProps, 'diff.coverages.length', 0)) {
-                    let dupItem = cloneDeep(this.props.item);
+            // if the assignment associated with the planning item are modified
+            const storedCoverages = get(nextProps, 'item.coverages') || [];
+            const diffCoverages = get(this.props, 'diff.coverages') || [];
 
-                    dupItem.coverages.push(planningUtils.createCoverageFromNewsItem(
-                        this.props.addNewsItemToPlanning,
-                        this.props.newsCoverageStatus,
-                        this.props.desk,
-                        this.props.user,
-                        this.props.contentTypes));
+            if (get(storedCoverages, 'length', 0) > 0) {
+                storedCoverages.forEach((coverage) => {
+                    // Push notification updates from 'assignment' workflow changes
+                    if (!planningUtils.isCoverageDraft(coverage)) {
+                        const index = diffCoverages.findIndex((c) => c.coverage_id === coverage.coverage_id);
 
-                    // reset the object to trigger a save
-                    this.props.onChangeHandler(null, dupItem);
-                }
-            } else {
-                // if the assignment associated with the planning item are modified
-                const storedCoverages = get(nextProps, 'item.coverages') || [];
-                const diffCoverages = get(this.props, 'diff.coverages') || [];
+                        if (index >= 0) {
+                            const diffCoverage = diffCoverages[index];
 
-                if (get(storedCoverages, 'length', 0) > 0) {
-                    storedCoverages.forEach((coverage) => {
-                        // Push notification updates from 'assignment' workflow changes
-                        if (!planningUtils.isCoverageDraft(coverage)) {
-                            const index = diffCoverages.findIndex((c) => c.coverage_id === coverage.coverage_id);
-
-                            if (index >= 0) {
-                                const diffCoverage = diffCoverages[index];
-
-                                if (diffCoverage && !isEqual(diffCoverage.assigned_to, coverage.assigned_to)) {
-                                    this.onChange(`coverages[${index}].assigned_to`, coverage.assigned_to);
-                                }
+                            if (diffCoverage && !isEqual(diffCoverage.assigned_to, coverage.assigned_to)) {
+                                this.onChange(`coverages[${index}].assigned_to`, coverage.assigned_to);
                             }
                         }
-                    });
-                }
+                    }
+                });
             }
         }
     }
