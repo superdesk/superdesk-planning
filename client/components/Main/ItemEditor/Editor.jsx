@@ -328,11 +328,12 @@ export class EditorComponent extends React.Component {
             errors: {},
             errorMessages: [],
             submitFailed: false,
+            diff: {},
         });
     }
 
     onCancel() {
-        if (this.tearDownRequired) {
+        if (this.tearDownRequired || !isExistingItem(this.props.item)) {
             this.tearDownEditorState();
         }
 

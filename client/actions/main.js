@@ -4,6 +4,7 @@ import planningUi from './planning/ui';
 import planningApi from './planning/api';
 import eventsUi from './events/ui';
 import eventsApi from './events/api';
+import autosave from './autosave';
 import {locks, showModal} from './';
 import {selectAgenda, fetchSelectedAgendaPlannings} from './agenda';
 import {
@@ -16,6 +17,7 @@ import {
     shouldUnLockItem,
     getItemTypeString,
     timeUtils,
+    isExistingItem,
 } from '../utils';
 import {MODALS, WORKSPACE} from '../constants';
 import eventsPlanningUi from './eventsPlanning/ui';
@@ -89,6 +91,8 @@ const unlockAndCancel = (item, modal = false) => (
             dispatch(locks.unlock(item));
         } else if (get(item, '_planning_item')) {
             dispatch(planningApi.unlock({_id: item._planning_item}));
+        } else if (!isExistingItem(item)) {
+            dispatch(autosave.removeNewItems());
         }
 
         if (!modal) {
