@@ -115,8 +115,8 @@ export function PlanningStoreService(
                         })),
                 },
                 privileges: data.privileges,
-                subjects: metadata.values.subjectcodes,
-                genres: metadata.values.genre,
+                subjects: metadata.values.subject_custom || metadata.values.subjectcodes,
+                genres: metadata.values.genre_custom || metadata.values.genre,
                 users: data.users,
                 desks: desks.desks._items,
                 templates: data.all_templates._items,
@@ -136,6 +136,12 @@ export function PlanningStoreService(
                 forms: {profiles: {}},
                 contacts: data.contacts._items,
             };
+
+            // use custom cvs if any
+            angular.extend(initialState.vocabularies, {
+                categories: initialState.vocabularies.category || initialState.vocabularies.categories,
+                genre: initialState.vocabularies.genre_custom || initialState.vocabularies.genre,
+            });
 
             data.formsProfile._items.forEach((p) => {
                 initialState.forms.profiles[p.name] = p;
