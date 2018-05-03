@@ -11,7 +11,7 @@ import {
 import planningUtils from '../../utils/planning';
 import {
     PLANNING,
-    PUBLISHED_STATE,
+    POST_STATE,
     SPIKED_STATE,
     MODALS,
     MAIN,
@@ -278,9 +278,9 @@ const getCriteria = ({
             },
         },
         {
-            condition: () => (advancedSearch.published),
+            condition: () => (advancedSearch.posted),
             do: () => {
-                must.push({term: {pubstatus: PUBLISHED_STATE.USABLE}});
+                must.push({term: {pubstatus: POST_STATE.USABLE}});
             },
         },
     ].forEach((action) => {
@@ -696,8 +696,8 @@ const save = (item, original = undefined) => (
                 // item.coverages = []
                 let modifiedUpdates = cloneDeep(updates);
 
-                if (updates.pubstatus === PUBLISHED_STATE.USABLE) {
-                    // We are create&publishing from add-to-planning
+                if (updates.pubstatus === POST_STATE.USABLE) {
+                    // We are create&posting from add-to-planning
                     delete modifiedUpdates.pubstatus;
                     delete modifiedUpdates.state;
                 }
@@ -780,15 +780,15 @@ const duplicate = (plan) => (
 );
 
 /**
- * Set a Planning item as Published
+ * Set a Planning item as Posted
  * @param {string} plan - Planning item
  */
-const publish = (plan) => (
+const post = (plan) => (
     (dispatch, getState, {api}) => (
-        api.save('planning_publish', {
+        api.save('planning_post', {
             planning: plan._id,
             etag: plan._etag,
-            pubstatus: PUBLISHED_STATE.USABLE,
+            pubstatus: POST_STATE.USABLE,
         }).then(
             () => dispatch(self.fetchById(plan._id, {force: true})),
             (error) => Promise.reject(error)
@@ -797,15 +797,15 @@ const publish = (plan) => (
 );
 
 /**
- * Set a Planning item as not Published
+ * Set a Planning item as not Posted
  * @param {string} plan - Planning item ID
  */
-const unpublish = (plan) => (
+const unpost = (plan) => (
     (dispatch, getState, {api}) => (
-        api.save('planning_publish', {
+        api.save('planning_post', {
             planning: plan._id,
             etag: plan._etag,
-            pubstatus: PUBLISHED_STATE.CANCELLED,
+            pubstatus: POST_STATE.CANCELLED,
         })
     )
 );
@@ -987,8 +987,8 @@ const self = {
     fetchPlanningHistory,
     receivePlanningHistory,
     loadPlanningByEventId,
-    publish,
-    unpublish,
+    post,
+    unpost,
     refetch,
     duplicate,
     markPlanningCancelled,

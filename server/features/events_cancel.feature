@@ -705,7 +705,7 @@ Feature: Events Cancel
                 "reason": ""
             }
         }, {
-            "event": "events:published",
+            "event": "events:posted",
             "extra": {
                 "item": "event1"
             }

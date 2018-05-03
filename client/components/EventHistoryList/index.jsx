@@ -22,7 +22,7 @@ export class EventHistoryList extends React.Component {
                                 this.props.users &&
                                 includes(['create', 'update', 'spiked', 'unspiked',
                                     'planning created', 'duplicate', 'duplicate_from',
-                                    'publish', 'unpublish', 'cancel', 'reschedule',
+                                    'post', 'unpost', 'cancel', 'reschedule',
                                     'reschedule_from', 'postpone', 'ingested'], historyItem.operation)
                                 &&
                                 <div>
@@ -34,8 +34,8 @@ export class EventHistoryList extends React.Component {
                                         {historyItem.operation === 'planning created' && 'Planning item created by '}
                                         {historyItem.operation === 'duplicate_from' && 'Duplicate created by '}
                                         {historyItem.operation === 'duplicate' && 'Duplicated by '}
-                                        {historyItem.operation === 'publish' && 'Published by '}
-                                        {historyItem.operation === 'unpublish' && 'Un-published by '}
+                                        {historyItem.operation === 'post' && 'Posted by '}
+                                        {historyItem.operation === 'unpost' && 'Un-posted by '}
                                         {historyItem.operation === 'cancel' && 'Cancelled by '}
                                         {historyItem.operation === 'reschedule' && 'Rescheduled by '}
                                         {historyItem.operation === 'reschedule_from' && 'Rescheduled by '}

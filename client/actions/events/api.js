@@ -1,7 +1,7 @@
 import {
     EVENTS,
     SPIKED_STATE,
-    PUBLISHED_STATE,
+    POST_STATE,
     MAIN,
 } from '../../constants';
 import {EventUpdateMethods} from '../../components/Events';
@@ -588,9 +588,9 @@ const getCriteria = (
             },
         },
         {
-            condition: () => (advancedSearch.published),
+            condition: () => (advancedSearch.posted),
             do: () => {
-                must.push({term: {pubstatus: PUBLISHED_STATE.USABLE}});
+                must.push({term: {pubstatus: POST_STATE.USABLE}});
             },
         },
     // loop over actions and performs if conditions are met
@@ -797,7 +797,7 @@ const loadRecurringEventsAndPlanningItems = (event, loadPlannings = true, loadEv
     }
 );
 
-const loadEventDataForAction = (event, loadPlanning = true, publish = false, loadEvents = true) => (
+const loadEventDataForAction = (event, loadPlanning = true, post = false, loadEvents = true) => (
     (dispatch) => (
         dispatch(self.loadRecurringEventsAndPlanningItems(event, loadPlanning, loadEvents))
             .then((relatedEvents) => {
@@ -810,7 +810,7 @@ const loadEventDataForAction = (event, loadPlanning = true, publish = false, loa
                     },
                     type: 'event',
                     _recurring: relatedEvents.events,
-                    _publish: publish,
+                    _post: post,
                     _events: [],
                     _originalEvent: event,
                     _plannings: relatedEvents.plannings,
@@ -1066,12 +1066,12 @@ const postponeEvent = (event) => (
     )
 );
 
-const publish = (event) => (
+const post = (event) => (
     (dispatch, getState, {api}) => (
-        api.save('events_publish', {
+        api.save('events_post', {
             event: event._id,
             etag: event._etag,
-            pubstatus: PUBLISHED_STATE.USABLE,
+            pubstatus: POST_STATE.USABLE,
             update_method: get(event, 'update_method.value', EventUpdateMethods[0].value),
         })
     )
@@ -1139,16 +1139,16 @@ const fetchEventHistory = (eventId) => (
 );
 
 /**
- * Set event.pubstatus canceled and publish event.
+ * Set event.pubstatus canceled and post event.
  *
  * @param {Object} event
  */
-const unpublish = (event) => (
+const unpost = (event) => (
     (dispatch, getState, {api, notify}) => (
-        api.save('events_publish', {
+        api.save('events_post', {
             event: event._id,
             etag: event._etag,
-            pubstatus: PUBLISHED_STATE.CANCELLED,
+            pubstatus: POST_STATE.CANCELLED,
             update_method: get(event, 'update_method.value', EventUpdateMethods[0].value),
         })
     )
@@ -1402,9 +1402,9 @@ const self = {
     queryLockedEvents,
     getEvent,
     loadAssociatedPlannings,
-    publish,
+    post,
     fetchEventHistory,
-    unpublish,
+    unpost,
     _uploadFiles,
     _save,
     save,

@@ -18,28 +18,28 @@ from apps.publish.enqueue import get_enqueue_service
 
 from eve.utils import config
 from planning.planning import PlanningResource
-from planning.common import WORKFLOW_STATE, PUBLISHED_STATE, published_state, get_item_publish_state
+from planning.common import WORKFLOW_STATE, POST_STATE, post_state, get_item_post_state
 
 
-class PlanningPublishResource(PlanningResource):
+class PlanningPostResource(PlanningResource):
     schema = {
         'planning': Resource.rel('planning', type='string', required=True),
         'etag': {'type': 'string', 'required': True},
         'pubstatus': {
             'type': 'string',
             'required': True,
-            'allowed': published_state
+            'allowed': post_state
         },
     }
 
-    url = 'planning/publish'
-    resource_title = endpoint_name = 'planning_publish'
+    url = 'planning/post'
+    resource_title = endpoint_name = 'planning_post'
     resource_methods = ['POST']
-    privileges = {'POST': 'planning_planning_publish'}
+    privileges = {'POST': 'planning_planning_post'}
     item_methods = []
 
 
-class PlanningPublishService(BaseService):
+class PlanningPostService(BaseService):
     def create(self, docs, **kwargs):
         ids = []
         for doc in docs:
@@ -54,30 +54,30 @@ class PlanningPublishService(BaseService):
             if not plan:
                 abort(412)
 
-            self.validate_published_state(doc['pubstatus'])
-            self.publish_planning(plan, doc['pubstatus'])
+            self.validate_post_state(doc['pubstatus'])
+            self.post_planning(plan, doc['pubstatus'])
             ids.append(doc['planning'])
         return ids
 
     def on_created(self, docs):
         for doc in docs:
             push_notification(
-                'planning:published',
+                'planning:posted',
                 item=str(doc.get('planning')),
                 etag=doc.get('_etag'),
                 pubstatus=doc.get('pubstatus'),
             )
 
-    def validate_published_state(self, new_publish_state):
+    def validate_post_state(self, new_post_state):
         try:
-            assert new_publish_state in published_state
+            assert new_post_state in post_state
         except AssertionError:
             abort(409)
 
     @staticmethod
     def validate_item(doc):
         errors = get_resource_service('planning_validator').post([{
-            'validate_on_publish': True,
+            'validate_on_post': True,
             'type': 'planning',
             'validate': doc
         }])[0]
@@ -87,24 +87,24 @@ class PlanningPublishService(BaseService):
             # as eve handles error responses differently between POST and PATCH methods
             abort(400, description=errors)
 
-    def publish_planning(self, plan, new_publish_state):
-        """Publish a Planning item
+    def post_planning(self, plan, new_post_state):
+        """Post a Planning item
 
         """
         plan.setdefault(config.VERSION, 1)
         plan.setdefault('item_id', plan['_id'])
-        updates = {'state': get_item_publish_state(plan, new_publish_state), 'pubstatus': new_publish_state}
-        plan['pubstatus'] = new_publish_state
+        updates = {'state': get_item_post_state(plan, new_post_state), 'pubstatus': new_post_state}
+        plan['pubstatus'] = new_post_state
         get_resource_service('planning').update(plan['_id'], updates, plan)
-        get_resource_service('planning_history')._save_history(plan, updates, 'publish')
+        get_resource_service('planning_history')._save_history(plan, updates, 'post')
         get_enqueue_service('publish').enqueue_item(plan, 'planning')
 
-    def _get_publish_state(self, plan, new_publish_state):
-        if new_publish_state == PUBLISHED_STATE.CANCELLED:
+    def _get_post_state(self, plan, new_post_state):
+        if new_post_state == POST_STATE.CANCELLED:
             return WORKFLOW_STATE.KILLED
 
-        if plan.get('pubstatus') != PUBLISHED_STATE.USABLE:
-            # Publishing for first time, default to 'schedule' state
+        if plan.get('pubstatus') != POST_STATE.USABLE:
+            # posting for first time, default to 'schedule' state
             return WORKFLOW_STATE.SCHEDULED
 
         return plan.get('state')

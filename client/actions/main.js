@@ -173,7 +173,7 @@ const save = (item, withConfirmation = true) => (
     }
 );
 
-const unpublish = (item, withConfirmation = true) => (
+const unpost = (item, withConfirmation = true) => (
     (dispatch, getState, {notify}) => {
         const itemType = getItemType(item);
         let promise;
@@ -183,16 +183,16 @@ const unpublish = (item, withConfirmation = true) => (
         case ITEM_TYPE.EVENT:
             confirmation = withConfirmation && get(item, 'recurrence_id');
             promise = dispatch(confirmation ?
-                eventsUi.publishWithConfirmation(item, false) :
-                eventsApi.unpublish(item)
+                eventsUi.postWithConfirmation(item, false) :
+                eventsApi.unpost(item)
             );
             break;
         case ITEM_TYPE.PLANNING:
             confirmation = false;
-            promise = dispatch(planningApi.unpublish(item));
+            promise = dispatch(planningApi.unpost(item));
             break;
         default:
-            promise = Promise.reject(gettext('Failed to unpublish, could not find the item type!'));
+            promise = Promise.reject(gettext('Failed to unpost, could not find the item type!'));
         }
 
         return promise
@@ -200,7 +200,7 @@ const unpublish = (item, withConfirmation = true) => (
                 (rtn) => {
                     if (!confirmation) {
                         notify.success(
-                            gettext('The {{ itemType }} has been unpublished', {itemType: getItemTypeString(item)})
+                            gettext('The {{ itemType }} has been unposted', {itemType: getItemTypeString(item)})
                         );
                     }
                     return Promise.resolve(rtn);
@@ -209,7 +209,7 @@ const unpublish = (item, withConfirmation = true) => (
                     notifyError(
                         notify,
                         error,
-                        gettext('Failed to unpublish the {{ itemType }}', {itemType: getItemTypeString(item)})
+                        gettext('Failed to unpost the {{ itemType }}', {itemType: getItemTypeString(item)})
                     );
                     return Promise.reject(error);
                 }
@@ -217,7 +217,7 @@ const unpublish = (item, withConfirmation = true) => (
     }
 );
 
-const publish = (item, withConfirmation = true) => (
+const post = (item, withConfirmation = true) => (
     (dispatch, getState, {notify}) => {
         const itemType = getItemType(item);
         let promise;
@@ -227,16 +227,16 @@ const publish = (item, withConfirmation = true) => (
         case ITEM_TYPE.EVENT:
             confirmation = withConfirmation && get(item, 'recurrence_id');
             promise = dispatch(confirmation ?
-                eventsUi.publishWithConfirmation(item, true) :
-                eventsApi.publish(item)
+                eventsUi.postWithConfirmation(item, true) :
+                eventsApi.post(item)
             );
             break;
         case ITEM_TYPE.PLANNING:
             confirmation = false;
-            promise = dispatch(planningApi.publish(item));
+            promise = dispatch(planningApi.post(item));
             break;
         default:
-            promise = Promise.reject(gettext('Failed to publish, could not find the item type!'));
+            promise = Promise.reject(gettext('Failed to post, could not find the item type!'));
             break;
         }
 
@@ -245,7 +245,7 @@ const publish = (item, withConfirmation = true) => (
                 (rtn) => {
                     if (!confirmation) {
                         notify.success(
-                            gettext('The {{ itemType }} has been published', {itemType: getItemTypeString(item)})
+                            gettext('The {{ itemType }} has been posted', {itemType: getItemTypeString(item)})
                         );
                     }
 
@@ -255,7 +255,7 @@ const publish = (item, withConfirmation = true) => (
                     notifyError(
                         notify,
                         error,
-                        gettext('Failed to publish the {{ itemType }}', {itemType: getItemTypeString(item)})
+                        gettext('Failed to post the {{ itemType }}', {itemType: getItemTypeString(item)})
                     );
                     return Promise.reject(error);
                 }
@@ -263,13 +263,13 @@ const publish = (item, withConfirmation = true) => (
     }
 );
 
-const openCancelModal = (item, publish = false) => (
+const openCancelModal = (item, post = false) => (
     (dispatch) => {
         const itemType = getItemType(item);
 
         switch (itemType) {
         case ITEM_TYPE.EVENT:
-            dispatch(eventsUi.openCancelModal(item, publish));
+            dispatch(eventsUi.openCancelModal(item, post));
             break;
         }
     }
@@ -799,8 +799,8 @@ const self = {
     lockAndEdit,
     unlockAndCancel,
     save,
-    unpublish,
-    publish,
+    unpost,
+    post,
     openCancelModal,
     openEditor,
     openEditorModal,

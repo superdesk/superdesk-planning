@@ -74,10 +74,10 @@ export class EditorHeader extends React.Component {
             diff,
             onAddCoverage,
             onSave,
-            onPublish,
-            onSaveAndPublish,
-            onUnpublish,
-            onSaveUnpublish,
+            onPost,
+            onSaveAndPost,
+            onUnpost,
+            onSaveUnpost,
             minimize,
             submitting,
             dirty,
@@ -91,7 +91,7 @@ export class EditorHeader extends React.Component {
             addNewsItemToPlanning,
             itemType,
             showUnlock,
-            createAndPublish,
+            createAndPost,
             hideItemActions,
             hideMinimize,
             hideExternalEdit,
@@ -105,20 +105,20 @@ export class EditorHeader extends React.Component {
         const isLockedInContext = addNewsItemToPlanning ? planningUtils.isLockedForAddToPlanning(item) : !!itemLock;
         const isEvent = itemType === ITEM_TYPE.EVENT;
 
-        let canPublish = false;
-        let canUnpublish = false;
+        let canPost = false;
+        let canUnpost = false;
         let canUpdate = false;
         let canEdit = false;
 
         if (isLockedInContext) {
             if (isEvent) {
-                canPublish = eventUtils.canPublishEvent(item, session, privileges, lockedItems);
-                canUnpublish = eventUtils.canUnpublishEvent(item, session, privileges, lockedItems);
+                canPost = eventUtils.canPostEvent(item, session, privileges, lockedItems);
+                canUnpost = eventUtils.canUnpostEvent(item, session, privileges, lockedItems);
                 canUpdate = eventUtils.canUpdateEvent(item, session, privileges, lockedItems);
                 canEdit = eventUtils.canEditEvent(item, session, privileges, lockedItems);
             } else if (!isEvent) {
-                canPublish = planningUtils.canPublishPlanning(diff, null, session, privileges, lockedItems);
-                canUnpublish = planningUtils.canUnpublishPlanning(item, null, session, privileges, lockedItems);
+                canPost = planningUtils.canPostPlanning(diff, null, session, privileges, lockedItems);
+                canUnpost = planningUtils.canUnpostPlanning(item, null, session, privileges, lockedItems);
                 canUpdate = planningUtils.canUpdatePlanning(item, null, session, privileges, lockedItems);
                 canEdit = planningUtils.canEditPlanning(item, null, session, privileges, lockedItems);
             }
@@ -165,21 +165,21 @@ export class EditorHeader extends React.Component {
                         enterKeyIsClick
                     />
 
-                    {canPublish && (
+                    {canPost && (
                         <Button
                             color="success"
                             disabled={submitting}
-                            onClick={dirty ? onSaveAndPublish : onPublish}
-                            text={dirty ? gettext('Save & Publish') : gettext('Publish')}
+                            onClick={dirty ? onSaveAndPost : onPost}
+                            text={dirty ? gettext('Save & Post') : gettext('Post')}
                         />
                     )}
 
-                    {canUnpublish && (
+                    {canUnpost && (
                         <Button
                             hollow={true}
                             disabled={submitting}
-                            onClick={dirty ? onSaveUnpublish : onUnpublish}
-                            text={dirty ? gettext('Save & Unpublish') : gettext('Unpublish')}
+                            onClick={dirty ? onSaveUnpost : onUnpost}
+                            text={dirty ? gettext('Save & Unpost') : gettext('Unpost')}
                         />
                     )}
 
@@ -187,7 +187,7 @@ export class EditorHeader extends React.Component {
                         <Button
                             color="primary"
                             disabled={!dirty || submitting}
-                            onClick={onSaveAndPublish}
+                            onClick={onSaveAndPost}
                             text={gettext('Update')}
                             enterKeyIsClick
                         />
@@ -213,13 +213,13 @@ export class EditorHeader extends React.Component {
                         />
                     )}
 
-                    {!existingItem && createAndPublish &&
+                    {!existingItem && createAndPost &&
                         itemType === ITEM_TYPE.PLANNING && (
                         <Button
                             color="primary"
                             disabled={!dirty || submitting}
-                            onClick={onSaveAndPublish}
-                            text={gettext('Create and publish')}
+                            onClick={onSaveAndPost}
+                            text={gettext('Create and post')}
                             enterKeyIsClick
                         />
                     )}
@@ -259,10 +259,10 @@ EditorHeader.propTypes = {
     item: PropTypes.object,
     diff: PropTypes.object,
     onSave: PropTypes.func.isRequired,
-    onPublish: PropTypes.func.isRequired,
-    onSaveAndPublish: PropTypes.func.isRequired,
-    onUnpublish: PropTypes.func.isRequired,
-    onSaveUnpublish: PropTypes.func.isRequired,
+    onPost: PropTypes.func.isRequired,
+    onSaveAndPost: PropTypes.func.isRequired,
+    onUnpost: PropTypes.func.isRequired,
+    onSaveUnpost: PropTypes.func.isRequired,
     cancel: PropTypes.func.isRequired,
     minimize: PropTypes.func.isRequired,
     submitting: PropTypes.bool.isRequired,
@@ -281,7 +281,7 @@ EditorHeader.propTypes = {
     showUnlock: PropTypes.bool,
     hideItemActions: PropTypes.bool,
     hideMinimize: PropTypes.bool,
-    createAndPublish: PropTypes.bool,
+    createAndPost: PropTypes.bool,
     closeEditorAndOpenModal: PropTypes.func,
     hideExternalEdit: PropTypes.bool,
     onAddCoverage: PropTypes.func,

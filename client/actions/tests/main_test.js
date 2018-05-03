@@ -131,43 +131,43 @@ describe('actions.main', () => {
         ));
     });
 
-    describe('unpublish', () => {
+    describe('unpost', () => {
         beforeEach(() => {
-            sinon.stub(eventsApi, 'unpublish').returns(Promise.resolve(data.events[0]));
-            sinon.stub(planningApi, 'unpublish').returns(Promise.resolve(data.plannings[0]));
+            sinon.stub(eventsApi, 'unpost').returns(Promise.resolve(data.events[0]));
+            sinon.stub(planningApi, 'unpost').returns(Promise.resolve(data.plannings[0]));
         });
 
         afterEach(() => {
-            restoreSinonStub(eventsApi.unpublish);
-            restoreSinonStub(planningApi.unpublish);
+            restoreSinonStub(eventsApi.unpost);
+            restoreSinonStub(planningApi.unpost);
         });
 
-        it('calls events.ui.unpublish', (done) => (
-            store.test(done, main.unpublish(data.events[0], false))
+        it('calls events.ui.unpost', (done) => (
+            store.test(done, main.unpost(data.events[0], false))
                 .then(() => {
-                    expect(eventsApi.unpublish.callCount).toBe(1);
-                    expect(eventsApi.unpublish.args[0]).toEqual([data.events[0]]);
+                    expect(eventsApi.unpost.callCount).toBe(1);
+                    expect(eventsApi.unpost.args[0]).toEqual([data.events[0]]);
 
                     done();
                 })
         ));
 
-        it('calls planning.ui.unpublish', (done) => (
-            store.test(done, main.unpublish(data.plannings[0]))
+        it('calls planning.ui.unpost', (done) => (
+            store.test(done, main.unpost(data.plannings[0]))
                 .then(() => {
-                    expect(planningApi.unpublish.callCount).toBe(1);
-                    expect(planningApi.unpublish.args[0]).toEqual([data.plannings[0]]);
+                    expect(planningApi.unpost.callCount).toBe(1);
+                    expect(planningApi.unpost.args[0]).toEqual([data.plannings[0]]);
 
                     done();
                 })
         ));
 
         it('raises an error if the item type was not found', (done) => (
-            store.test(done, main.unpublish({}))
+            store.test(done, main.unpost({}))
                 .then(null, () => {
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual([
-                        'Failed to unpublish, could not find the item type!',
+                        'Failed to unpost, could not find the item type!',
                     ]);
 
                     done();

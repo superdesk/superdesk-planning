@@ -24,8 +24,8 @@ from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user, get_auth
 from copy import deepcopy
 from eve.utils import config, ParsedRequest
-from planning.common import WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA, get_coverage_cancellation_state,\
-    remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_published_item
+from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, get_coverage_cancellation_state,\
+    remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item
 from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
@@ -212,7 +212,7 @@ class PlanningService(superdesk.Service):
         self.__generate_related_assignments([doc])
         updates['coverages'] = doc.get('coverages') or []
 
-        update_published_item(updates, original)
+        update_post_item(updates, original)
 
     def can_edit(self, item, user_id):
         # Check privileges
@@ -829,7 +829,7 @@ planning_schema = {
     },
 
     # Public/Published status
-    'pubstatus': PUBLISHED_STATE_SCHEMA,
+    'pubstatus': POST_STATE_SCHEMA,
 
     # The previous state the item was in before for example being spiked,
     # when un-spiked it will revert to this state
@@ -842,7 +842,7 @@ planning_schema = {
         'default': 'planning',
     },
 
-    # Identifier used to synchronise the published planning item with an external system.
+    # Identifier used to synchronise the posted planning item with an external system.
     'unique_id': {
         'type': 'string',
         'mapping': not_analyzed

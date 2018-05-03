@@ -298,78 +298,78 @@ const postponeEvent = (event) => (
     )
 );
 
-const updateTime = (event, publish = false) => (
+const updateTime = (event, post = false) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         EVENTS.ITEM_ACTIONS.UPDATE_TIME.label,
         EVENTS.ITEM_ACTIONS.UPDATE_TIME.lock_action,
         false,
-        publish
+        post
     ))
 );
 
-const openSpikeModal = (event, publish = false) => (
+const openSpikeModal = (event, post = false) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         EVENTS.ITEM_ACTIONS.SPIKE.label,
         null,
         true,
-        publish
+        post
     ))
 );
 
-const openUnspikeModal = (event, publish = false) => (
+const openUnspikeModal = (event, post = false) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         EVENTS.ITEM_ACTIONS.UNSPIKE.label,
         null,
         true,
-        publish
+        post
     ))
 );
 
-const openCancelModal = (event, publish = false) => (
+const openCancelModal = (event, post = false) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label,
         EVENTS.ITEM_ACTIONS.CANCEL_EVENT.lock_action,
         true,
-        publish,
+        post,
         true
     ))
 );
 
-const openPostponeModal = (event, publish = false) => (
+const openPostponeModal = (event, post = false) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label,
         EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.lock_action,
         true,
-        publish,
+        post,
         false,
         false
     ))
 );
 
-const openRescheduleModal = (event, publish = false) => (
+const openRescheduleModal = (event, post = false) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label,
         EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.lock_action,
         true,
-        publish,
+        post,
         true,
         false
     ))
 );
 
-const convertToRecurringEvent = (event, publish) => (
+const convertToRecurringEvent = (event, post) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label,
         EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.lock_action,
         false,
-        publish,
+        post,
         true
     ))
 );
@@ -387,14 +387,14 @@ const _openActionModal = (
     action,
     lockAction = null,
     loadPlannings = false,
-    publish = false,
+    post = false,
     large = false,
     loadEvents = true
 ) => (
     (dispatch, getState, {notify}) => (
         dispatch(eventsApi.lock(event, lockAction))
             .then((lockedEvent) => (
-                dispatch(eventsApi.loadEventDataForAction(lockedEvent, loadPlannings, publish, loadEvents))
+                dispatch(eventsApi.loadEventDataForAction(lockedEvent, loadPlannings, post, loadEvents))
                     .then((eventDetail) => (
                         dispatch(showModal({
                             modalType: MODALS.ITEM_ACTIONS_MODAL,
@@ -509,7 +509,7 @@ const saveWithConfirmation = (event) => (
         const originalEvent = get(events, event._id, {});
         const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
 
-        // If this is not from a recurring series, then simply publish this event
+        // If this is not from a recurring series, then simply post this event
         if (!get(originalEvent, 'recurrence_id')) {
             return dispatch(eventsApi.save(event));
         }
@@ -536,17 +536,17 @@ const saveWithConfirmation = (event) => (
     }
 );
 
-const publishWithConfirmation = (event, publish) => (
+const postWithConfirmation = (event, post) => (
     (dispatch, getState) => {
         const events = selectors.getEvents(getState());
         const originalEvent = get(events, event._id, {});
         const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
 
-        // If this is not from a recurring series, then simply publish this event
+        // If this is not from a recurring series, then simply post this event
         if (!get(originalEvent, 'recurrence_id')) {
-            return dispatch(publish ?
-                eventsApi.publish(event) :
-                eventsApi.unpublish(event)
+            return dispatch(post ?
+                eventsApi.post(event) :
+                eventsApi.unpost(event)
             );
         }
 
@@ -564,9 +564,9 @@ const publishWithConfirmation = (event, publish) => (
                             _recurring: relatedEvents || [event],
                             _events: [],
                             _originalEvent: originalEvent,
-                            _publish: publish,
+                            _post: post,
                         },
-                        actionType: EVENTS.ITEM_ACTIONS.PUBLISH_EVENT.label,
+                        actionType: EVENTS.ITEM_ACTIONS.POST_EVENT.label,
                     },
                 }))
             ));
@@ -797,7 +797,7 @@ const self = {
     duplicate,
     updateRepetitions,
     openRepetitionsModal,
-    publishWithConfirmation,
+    postWithConfirmation,
     createEventFromPlanning,
     selectCalendar,
     fetchEventWithFiles,

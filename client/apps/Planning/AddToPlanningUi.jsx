@@ -23,7 +23,7 @@ export const AddToPlanningUi = ({
             {...props}
             addNewsItemToPlanning={addNewsItemToPlanning}
             showUnlock={false}
-            createAndPublish
+            createAndPost
             hideMinimize
             hideItemActions
             hideExternalEdit

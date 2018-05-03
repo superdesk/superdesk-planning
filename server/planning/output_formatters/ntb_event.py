@@ -1,6 +1,6 @@
 
 from lxml import etree
-from planning.common import PUBLISHED_STATE
+from planning.common import POST_STATE
 from superdesk.publish.formatters import Formatter
 from superdesk.utc import get_date, utc_to_local, utcnow
 
@@ -31,7 +31,7 @@ class NTBEventFormatter(Formatter):
         service = etree.SubElement(doc, 'service')
         service.text = self.SERVICE
 
-        if item.get('pubstatus') == PUBLISHED_STATE.CANCELLED:
+        if item.get('pubstatus') == POST_STATE.CANCELLED:
             doc.set('DeleteRequest', 'true')
             return
 

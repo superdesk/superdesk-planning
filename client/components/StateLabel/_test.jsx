@@ -15,6 +15,6 @@ describe('<StateLabel />', () => {
 
         expect(badges.length).toBe(2);
         expect(badges.first().text()).toBe('Scheduled');
-        expect(badges.last().text()).toBe('Published');
+        expect(badges.last().text()).toBe('Posted');
     });
 });

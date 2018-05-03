@@ -13,7 +13,7 @@ from superdesk.resource import not_analyzed
 from superdesk.metadata.item import metadata_schema, ITEM_TYPE
 from copy import deepcopy
 
-from planning.common import WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA, UPDATE_METHODS
+from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, UPDATE_METHODS
 
 event_type = deepcopy(Resource.rel('events', type='string'))
 event_type['mapping'] = not_analyzed
@@ -263,8 +263,8 @@ events_schema = {
         'type': 'datetime',
         'nullable': True
     },
-    # says if the event is for internal usage or published
-    'pubstatus': PUBLISHED_STATE_SCHEMA,
+    # says if the event is for internal usage or posted
+    'pubstatus': POST_STATE_SCHEMA,
 
     'lock_user': metadata_schema['lock_user'],
     'lock_time': metadata_schema['lock_time'],

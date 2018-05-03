@@ -458,34 +458,34 @@ const cancelAllCoverage = (plan) => (
     }
 );
 
-const openCancelPlanningModal = (plan, publish = false) => (
+const openCancelPlanningModal = (plan, post = false) => (
     (dispatch) => dispatch(self._openActionModal(
         plan,
         PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label,
         PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.lock_action,
-        publish
+        post
     ))
 );
 
-const openCancelAllCoverageModal = (plan, publish = false) => (
+const openCancelAllCoverageModal = (plan, post = false) => (
     (dispatch) => dispatch(self._openActionModal(
         plan,
         PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label,
         PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.lock_action,
-        publish
+        post
     ))
 );
 
 const _openActionModal = (plan,
     action,
     lockAction = null,
-    publish = false,
+    post = false,
     large = false
 ) => (
     (dispatch, getState, {notify}) => (
         dispatch(planningApi.lock(plan, lockAction))
             .then((lockedPlanning) => {
-                lockedPlanning._publish = publish;
+                lockedPlanning._post = post;
                 return dispatch(showModal({
                     modalType: MODALS.ITEM_ACTIONS_MODAL,
                     modalProps: {

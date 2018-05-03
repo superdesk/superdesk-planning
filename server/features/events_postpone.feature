@@ -598,7 +598,7 @@ Feature: Events Postpone
             "extra": {"item": "event1","user": "#CONTEXT_USER_ID#"}
         },
         {
-            "event": "events:published",
+            "event": "events:posted",
             "extra": {"item": "event1"}
         }]
         """

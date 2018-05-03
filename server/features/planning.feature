@@ -1134,7 +1134,7 @@ Feature: Planning
       Then we get OK response
       Then we store coverage id in "firstcoverage" from coverage 0
       Then we store coverage id in "secondcoverage" from coverage 1
-      When we post to "/planning/publish"
+      When we post to "/planning/post"
         """
         {
             "planning": "#planning._id#",
@@ -1198,7 +1198,7 @@ Feature: Planning
     @notification
     @vocabulary
     @newtest
-    Scenario: Published planning republishes after an update
+    Scenario: Published planning repost after an update
         When we post to "/planning"
         """
         [{
@@ -1207,7 +1207,7 @@ Feature: Planning
         }]
         """
         Then we get OK response
-        When we post to "/planning/publish"
+        When we post to "/planning/post"
         """
         {
             "planning": "#planning._id#",
@@ -1236,7 +1236,7 @@ Feature: Planning
             },
             {
                 "planning_id":  "#planning._id#",
-                "operation": "publish"
+                "operation": "post"
             },
             {
                 "planning_id":  "#planning._id#",
@@ -1245,7 +1245,7 @@ Feature: Planning
             },
             {
                 "planning_id":  "#planning._id#",
-                "operation": "publish"
+                "operation": "post"
             }
         ]}
     """

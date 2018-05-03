@@ -4,11 +4,11 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import classNames from 'classnames';
 import {Label} from '../../components';
-import {getItemWorkflowStateLabel, getItemPublishedStateLabel} from '../../utils';
+import {getItemWorkflowStateLabel, getItemPostedStateLabel} from '../../utils';
 
 export const StateLabel = ({item, verbose, withPubStatus, className, fieldName, inline}) => {
     const state = getItemWorkflowStateLabel(item, fieldName);
-    const pubState = withPubStatus ? getItemPublishedStateLabel(item) : null;
+    const pubState = withPubStatus ? getItemPostedStateLabel(item) : null;
 
     if (!state) {
         return null;

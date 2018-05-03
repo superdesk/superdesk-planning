@@ -876,12 +876,12 @@ describe('actions.events.api', () => {
         });
     });
 
-    it('publish calls `events_publish` endpoint', (done) => (
-        store.test(done, eventsApi.publish(data.events[0]))
+    it('post calls `events_post` endpoint', (done) => (
+        store.test(done, eventsApi.post(data.events[0]))
             .then(() => {
                 expect(services.api.save.callCount).toBe(1);
                 expect(services.api.save.args[0]).toEqual([
-                    'events_publish',
+                    'events_post',
                     {
                         event: data.events[0]._id,
                         etag: data.events[0]._etag,
@@ -893,12 +893,12 @@ describe('actions.events.api', () => {
             })
     ));
 
-    it('unpublish calls `events_publish` endpoint', (done) => (
-        store.test(done, eventsApi.unpublish(data.events[0]))
+    it('unpost calls `events_post` endpoint', (done) => (
+        store.test(done, eventsApi.unpost(data.events[0]))
             .then(() => {
                 expect(services.api.save.callCount).toBe(1);
                 expect(services.api.save.args[0]).toEqual([
-                    'events_publish',
+                    'events_post',
                     {
                         event: data.events[0]._id,
                         etag: data.events[0]._etag,

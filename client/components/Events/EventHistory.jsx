@@ -43,7 +43,7 @@ export class EventHistoryComponent extends React.Component {
                                 users &&
                                 includes(['create', 'update', 'spiked', 'unspiked',
                                     'planning created', 'duplicate', 'duplicate_from',
-                                    'publish', 'unpublish', 'cancel', 'reschedule',
+                                    'post', 'unpost', 'cancel', 'reschedule',
                                     'reschedule_from', 'postpone', 'ingested', 'update_repetitions'],
                                 historyItem.operation)
                                 &&
@@ -57,8 +57,8 @@ export class EventHistoryComponent extends React.Component {
                                             gettext('Planning item created by ')}
                                         {historyItem.operation === 'duplicate_from' && gettext('Duplicate created by ')}
                                         {historyItem.operation === 'duplicate' && gettext('Duplicated by ')}
-                                        {historyItem.operation === 'publish' && gettext('Published by ')}
-                                        {historyItem.operation === 'unpublish' && gettext('Un-published by ')}
+                                        {historyItem.operation === 'post' && gettext('Posted by ')}
+                                        {historyItem.operation === 'unpost' && gettext('Un-posted by ')}
                                         {historyItem.operation === 'cancel' && gettext('Cancelled by ')}
                                         {historyItem.operation === 'reschedule' && gettext('Rescheduled by ')}
                                         {historyItem.operation === 'reschedule_from' && gettext('Rescheduled by ')}

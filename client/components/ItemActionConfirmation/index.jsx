@@ -11,4 +11,4 @@ export {CancelPlanningCoveragesForm} from './forms/cancelPlanningCoveragesForm';
 export {UpdateAssignmentForm} from './forms/updateAssignmentForm';
 export {EditPriorityForm} from './forms/editPriorityForm';
 export {UpdateEventRepetitionsForm} from './forms/updateEventRepetitions';
-export {PublishEventsForm} from './forms/publishEventsForm';
+export {PostEventsForm} from './forms/postEventsForm';

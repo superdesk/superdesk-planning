@@ -37,15 +37,15 @@ WORKFLOW_STATE = namedtuple('WORKFLOW_STATE', ['DRAFT', 'ACTIVE', 'INGESTED', 'S
                                                'CANCELLED', 'RESCHEDULED', 'POSTPONED', 'SPIKED']
                             )(*workflow_state)
 
-published_state = ['usable', 'cancelled']
-PUBLISHED_STATE = namedtuple('PUBLISHED_STATE', ['USABLE', 'CANCELLED'])(*published_state)
+post_state = ['usable', 'cancelled']
+POST_STATE = namedtuple('POST_STATE', ['USABLE', 'CANCELLED'])(*post_state)
 
 PLANNING_ITEM_CUSTOM_HATEOAS = {'self': {'title': 'planning', 'href': '/planning/{_id}'}}
 EVENT_ITEM_CUSTOM_HATEOAS = {'self': {'title': 'events', 'href': '/events/{_id}'}}
 
-PUBLISHED_STATE_SCHEMA = {
+POST_STATE_SCHEMA = {
     'type': 'string',
-    'allowed': published_state,
+    'allowed': post_state,
     'nullable': True,
     'mapping': not_analyzed
 }
@@ -157,46 +157,46 @@ def get_street_map_url(current_app=None):
     return app.config.get('STREET_MAP_URL', 'https://www.google.com.au/maps/?q=')
 
 
-def get_item_publish_state(item, new_publish_state):
-    if new_publish_state == PUBLISHED_STATE.CANCELLED:
+def get_item_post_state(item, new_post_state):
+    if new_post_state == POST_STATE.CANCELLED:
         return WORKFLOW_STATE.KILLED
 
-    if item.get('pubstatus') != PUBLISHED_STATE.USABLE:
-        # Publishing for first time, default to 'schedule' state
+    if item.get('pubstatus') != POST_STATE.USABLE:
+        # posting for first time, default to 'schedule' state
         return WORKFLOW_STATE.SCHEDULED
 
     return item.get('state')
 
 
-def publish_required(updates, original):
+def post_required(updates, original):
     pub_status = None
-    # Save&Publish or Save&Unpublish
+    # Save&Post or Save&Unpost
     if updates.get('pubstatus'):
         pub_status = updates['pubstatus']
-    elif original.get('pubstatus') == PUBLISHED_STATE.USABLE:
+    elif original.get('pubstatus') == POST_STATE.USABLE:
         # From item actions
-        pub_status = PUBLISHED_STATE.USABLE
+        pub_status = POST_STATE.USABLE
 
     return pub_status is not None
 
 
-def update_published_item(updates, original):
-    """Method to update(re-publish) a published item after the item is updated"""
+def update_post_item(updates, original):
+    """Method to update(re-post) a posted item after the item is updated"""
     pub_status = None
-    # Save&Publish or Save&Unpublish
+    # Save&Post or Save&Unpost
     if updates.get('pubstatus'):
         pub_status = updates['pubstatus']
-    elif original.get('pubstatus') == PUBLISHED_STATE.USABLE:
+    elif original.get('pubstatus') == POST_STATE.USABLE:
         # From item actions
-        pub_status = PUBLISHED_STATE.USABLE
+        pub_status = POST_STATE.USABLE
 
     if pub_status is not None:
         if original.get(ITEM_TYPE):
-            resource_name = 'events_publish' if original.get(ITEM_TYPE) == 'event' else 'planning_publish'
-            item_publish_service = get_resource_service(resource_name)
+            resource_name = 'events_post' if original.get(ITEM_TYPE) == 'event' else 'planning_post'
+            item_post_service = get_resource_service(resource_name)
             doc = {
                 'etag': updates.get('_etag'),
                 original.get(ITEM_TYPE): original.get(config.ID_FIELD),
                 'pubstatus': pub_status
             }
-            item_publish_service.post([doc])
+            item_post_service.post([doc])

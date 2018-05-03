@@ -5,7 +5,7 @@ import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
 import {get, set, map, cloneDeep, forEach} from 'lodash';
 import {
-    PUBLISHED_STATE,
+    POST_STATE,
     WORKFLOW_STATE,
     TOOLTIPS,
     ASSIGNMENTS,
@@ -454,17 +454,17 @@ export const getItemWorkflowStateLabel = (item, field = 'state') => {
     }
 };
 
-export const getItemPublishedStateLabel = (item) => {
-    switch (getPublishedState(item)) {
-    case PUBLISHED_STATE.USABLE:
+export const getItemPostedStateLabel = (item) => {
+    switch (getPostedState(item)) {
+    case POST_STATE.USABLE:
         return {
             label: 'P',
-            labelVerbose: gettext('Published'),
+            labelVerbose: gettext('Posted'),
             iconType: 'success',
-            tooltip: TOOLTIPS.publishedState,
+            tooltip: TOOLTIPS.postedState,
         };
 
-    case PUBLISHED_STATE.CANCELLED:
+    case POST_STATE.CANCELLED:
         return {
             label: gettext('Cancelled'),
             iconType: 'yellow2',
@@ -474,8 +474,8 @@ export const getItemPublishedStateLabel = (item) => {
 
 export const isItemPublic = (item = {}) =>
     !!item && (typeof item === 'string' ?
-        item === PUBLISHED_STATE.USABLE || item === PUBLISHED_STATE.CANCELLED :
-        item.pubstatus === PUBLISHED_STATE.USABLE || item.pubstatus === PUBLISHED_STATE.CANCELLED);
+        item === POST_STATE.USABLE || item === POST_STATE.CANCELLED :
+        item.pubstatus === POST_STATE.USABLE || item.pubstatus === POST_STATE.CANCELLED);
 
 export const isItemSpiked = (item) => item ?
     getItemWorkflowState(item) === WORKFLOW_STATE.SPIKED : false;
@@ -494,7 +494,7 @@ export const shouldUnLockItem = (item, session, currentWorkspace) =>
  */
 export const getTimeZoneOffset = () => (moment().format('Z'));
 
-export const getPublishedState = (item) => get(item, 'pubstatus', null);
+export const getPostedState = (item) => get(item, 'pubstatus', null);
 
 export const sanitizeTextForQuery = (text) => (
     text.replace(/\//g, '\\/').replace(/[()]/g, '')

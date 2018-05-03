@@ -595,7 +595,7 @@ describe('actions.planning.ui', () => {
         });
 
         it('calls save', () => {
-            store.dispatch(planningUi.saveFromAuthoring(data.plannings[0], {publish: false, unpublish: false}));
+            store.dispatch(planningUi.saveFromAuthoring(data.plannings[0], {post: false, unpost: false}));
             expect(planningApi.save.callCount).toBe(1);
             expect(planningApi.save.args[0]).toEqual([data.plannings[0]]);
         });
@@ -622,7 +622,7 @@ describe('actions.planning.ui', () => {
                 () => (Promise.reject(errorMessage))
             );
 
-            store.test(done, planningUi.saveFromAuthoring(data.plannings[0], {publish: false, unpublish: false}))
+            store.test(done, planningUi.saveFromAuthoring(data.plannings[0], {post: false, unpost: false}))
                 .then(() => { /* no-op */ }, () => {
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
@@ -635,7 +635,7 @@ describe('actions.planning.ui', () => {
         });
 
         it('calls link and notifies user of success', (done) => (
-            store.test(done, planningUi.saveFromAuthoring(data.plannings[0], {publish: false, unpublish: false}))
+            store.test(done, planningUi.saveFromAuthoring(data.plannings[0], {post: false, unpost: false}))
                 .then(() => {
                     expect(planningApi.save.callCount).toBe(1);
                     expect(planningApi.save.args[0]).toEqual([data.plannings[0]]);

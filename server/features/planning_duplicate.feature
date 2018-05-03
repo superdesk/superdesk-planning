@@ -106,7 +106,7 @@ Feature: Duplicate Planning
                 }
             },
             {
-                "operation": "publish",
+                "operation": "post",
                 "planning_id": "123"
             },
             {
@@ -283,7 +283,7 @@ Feature: Duplicate Planning
         """
 
     @auth @notification @wip @newtest
-    Scenario: Duplicating a published Planning item won't republish it
+    Scenario: Duplicating a posted Planning item won't repost it
         When we post to "planning" with success
         """
         [{
@@ -294,7 +294,7 @@ Feature: Duplicate Planning
         }]
         """
         Then we get OK response
-        When we post to "/planning/publish"
+        When we post to "/planning/post"
         """
         {
             "planning": "#planning._id#",
@@ -321,7 +321,7 @@ Feature: Duplicate Planning
                 }
             },
             {
-                "operation": "publish",
+                "operation": "post",
                 "planning_id": "123"
             },
             {

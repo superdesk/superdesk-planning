@@ -17,7 +17,7 @@ from apps.auth import get_user_id
 from apps.archive.common import get_auth
 from flask import request
 
-from planning.common import UPDATE_SINGLE, WORKFLOW_STATE, get_max_recurrent_events, update_published_item
+from planning.common import UPDATE_SINGLE, WORKFLOW_STATE, get_max_recurrent_events, update_post_item
 from planning.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION
 
 from eve.utils import config
@@ -112,7 +112,7 @@ class EventsBaseService(BaseService):
                 original
             )
 
-        update_published_item(updates, original)
+        update_post_item(updates, original)
 
     def update_single_event(self, updates, original):
         pass

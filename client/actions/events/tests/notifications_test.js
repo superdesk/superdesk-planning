@@ -41,7 +41,7 @@ describe('actions.events.notifications', () => {
                 () => (Promise.resolve())
             );
 
-            sinon.stub(eventsNotifications, 'onEventPublishChanged').callsFake(
+            sinon.stub(eventsNotifications, 'onEventPostChanged').callsFake(
                 () => (Promise.resolve())
             );
 
@@ -68,7 +68,7 @@ describe('actions.events.notifications', () => {
             restoreSinonStub(eventsNotifications.onEventSpiked);
             restoreSinonStub(eventsNotifications.onEventUnspiked);
             restoreSinonStub(eventsNotifications.onEventScheduleChanged);
-            restoreSinonStub(eventsNotifications.onEventPublishChanged);
+            restoreSinonStub(eventsNotifications.onEventPostChanged);
             restoreSinonStub(eventsNotifications.onRecurringEventCreated);
             restoreSinonStub(eventsNotifications.onEventUpdated);
             restoreSinonStub(eventsNotifications.onEventCreated);
@@ -162,45 +162,45 @@ describe('actions.events.notifications', () => {
             }, delay);
         });
 
-        it('`events:published` calls onEventPublishChanged', (done) => {
-            $rootScope.$broadcast('events:published', {item: 'e1'});
+        it('`events:posted` calls onEventPostChanged', (done) => {
+            $rootScope.$broadcast('events:posted', {item: 'e1'});
 
             setTimeout(() => {
-                expect(eventsNotifications.onEventPublishChanged.callCount).toBe(1);
-                expect(eventsNotifications.onEventPublishChanged.args[0][1]).toEqual({item: 'e1'});
+                expect(eventsNotifications.onEventPostChanged.callCount).toBe(1);
+                expect(eventsNotifications.onEventPostChanged.args[0][1]).toEqual({item: 'e1'});
 
                 done();
             }, delay);
         });
 
-        it('`events:published:recurring` calls onEventPublishChanged', (done) => {
-            $rootScope.$broadcast('events:published:recurring', {item: 'e1'});
+        it('`events:posted:recurring` calls onEventPostChanged', (done) => {
+            $rootScope.$broadcast('events:posted:recurring', {item: 'e1'});
 
             setTimeout(() => {
-                expect(eventsNotifications.onEventPublishChanged.callCount).toBe(1);
-                expect(eventsNotifications.onEventPublishChanged.args[0][1]).toEqual({item: 'e1'});
+                expect(eventsNotifications.onEventPostChanged.callCount).toBe(1);
+                expect(eventsNotifications.onEventPostChanged.args[0][1]).toEqual({item: 'e1'});
 
                 done();
             }, delay);
         });
 
-        it('`events:unpublished` calls onEventPublishChanged', (done) => {
-            $rootScope.$broadcast('events:unpublished', {item: 'e1'});
+        it('`events:unposted` calls onEventPostChanged', (done) => {
+            $rootScope.$broadcast('events:unposted', {item: 'e1'});
 
             setTimeout(() => {
-                expect(eventsNotifications.onEventPublishChanged.callCount).toBe(1);
-                expect(eventsNotifications.onEventPublishChanged.args[0][1]).toEqual({item: 'e1'});
+                expect(eventsNotifications.onEventPostChanged.callCount).toBe(1);
+                expect(eventsNotifications.onEventPostChanged.args[0][1]).toEqual({item: 'e1'});
 
                 done();
             }, delay);
         });
 
-        it('`events:unpublished:recurring` calls onEventPublishChanged', (done) => {
-            $rootScope.$broadcast('events:unpublished:recurring', {item: 'e1'});
+        it('`events:unposted:recurring` calls onEventPostChanged', (done) => {
+            $rootScope.$broadcast('events:unposted:recurring', {item: 'e1'});
 
             setTimeout(() => {
-                expect(eventsNotifications.onEventPublishChanged.callCount).toBe(1);
-                expect(eventsNotifications.onEventPublishChanged.args[0][1]).toEqual({item: 'e1'});
+                expect(eventsNotifications.onEventPostChanged.callCount).toBe(1);
+                expect(eventsNotifications.onEventPostChanged.args[0][1]).toEqual({item: 'e1'});
 
                 done();
             }, delay);
@@ -262,13 +262,13 @@ describe('actions.events.notifications', () => {
         });
     });
 
-    describe('onEventPublishChanged', () => {
+    describe('onEventPostChanged', () => {
         beforeEach(() => {
-            restoreSinonStub(eventsNotifications.onEventPublishChanged);
+            restoreSinonStub(eventsNotifications.onEventPostChanged);
         });
 
-        it('dispatches `MARK_EVENT_PUBLISHED`', (done) => (
-            store.test(done, eventsNotifications.onEventPublishChanged(
+        it('dispatches `MARK_EVENT_POSTED`', (done) => (
+            store.test(done, eventsNotifications.onEventPostChanged(
                 {},
                 {
                     item: data.events[0]._id,
@@ -280,7 +280,7 @@ describe('actions.events.notifications', () => {
                 .then(() => {
                     expect(store.dispatch.callCount).toBe(1);
                     expect(store.dispatch.args[0]).toEqual([{
-                        type: 'MARK_EVENT_PUBLISHED',
+                        type: 'MARK_EVENT_POSTED',
                         payload: {
                             item: data.events[0]._id,
                             items: [{
@@ -295,8 +295,8 @@ describe('actions.events.notifications', () => {
                 })
         ));
 
-        it('dispatches `MARK_EVENT_PUBLISHED` for multiple events', (done) => (
-            store.test(done, eventsNotifications.onEventPublishChanged(
+        it('dispatches `MARK_EVENT_POSTED` for multiple events', (done) => (
+            store.test(done, eventsNotifications.onEventPostChanged(
                 {},
                 {
                     item: data.events[0]._id,
@@ -318,7 +318,7 @@ describe('actions.events.notifications', () => {
                 .then(() => {
                     expect(store.dispatch.callCount).toBe(1);
                     expect(store.dispatch.args[0]).toEqual([{
-                        type: 'MARK_EVENT_PUBLISHED',
+                        type: 'MARK_EVENT_POSTED',
                         payload: {
                             item: data.events[0]._id,
                             items: [{
@@ -339,8 +339,8 @@ describe('actions.events.notifications', () => {
                 })
         ));
 
-        it('dispatches `MARK_EVENT_UNPUBLISHED`', (done) => (
-            store.test(done, eventsNotifications.onEventPublishChanged(
+        it('dispatches `MARK_EVENT_UNPOSTED`', (done) => (
+            store.test(done, eventsNotifications.onEventPostChanged(
                 {},
                 {
                     item: data.events[0]._id,
@@ -352,7 +352,7 @@ describe('actions.events.notifications', () => {
                 .then(() => {
                     expect(store.dispatch.callCount).toBe(1);
                     expect(store.dispatch.args[0]).toEqual([{
-                        type: 'MARK_EVENT_UNPUBLISHED',
+                        type: 'MARK_EVENT_UNPOSTED',
                         payload: {
                             item: data.events[0]._id,
                             items: [{
@@ -367,8 +367,8 @@ describe('actions.events.notifications', () => {
                 })
         ));
 
-        it('dispatches `MARK_EVENT_UNPUBLISHED` for multiple events', (done) => (
-            store.test(done, eventsNotifications.onEventPublishChanged(
+        it('dispatches `MARK_EVENT_UNPOSTED` for multiple events', (done) => (
+            store.test(done, eventsNotifications.onEventPostChanged(
                 {},
                 {
                     item: data.events[0]._id,
@@ -390,7 +390,7 @@ describe('actions.events.notifications', () => {
                 .then(() => {
                     expect(store.dispatch.callCount).toBe(1);
                     expect(store.dispatch.args[0]).toEqual([{
-                        type: 'MARK_EVENT_UNPUBLISHED',
+                        type: 'MARK_EVENT_UNPOSTED',
                         payload: {
                             item: data.events[0]._id,
                             items: [{

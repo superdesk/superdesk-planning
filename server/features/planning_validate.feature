@@ -8,7 +8,7 @@ Feature: Planning Validate
                 "slugline": {
                     "type": "string",
                     "required": true,
-                    "validate_on_publish": true
+                    "validate_on_post": true
                 },
                 "name": {
                     "type": "string",
@@ -17,7 +17,7 @@ Feature: Planning Validate
                 "calendars": {
                     "type": "list",
                     "required": true,
-                    "validate_on_publish": true
+                    "validate_on_post": true
                 },
                 "definition_short": {
                     "type": "string",
@@ -38,7 +38,7 @@ Feature: Planning Validate
                 "place": {
                     "type": "list",
                     "required": true,
-                    "validate_on_publish": true
+                    "validate_on_post": true
                 },
                 "description_text": {
                     "type": "string",
@@ -53,7 +53,7 @@ Feature: Planning Validate
         """
 
     @auth
-    Scenario: Event publish validation failure
+    Scenario: Event post validation failure
         When we post to "events"
         """
         [{
@@ -68,7 +68,7 @@ Feature: Planning Validate
         }]
         """
         Then we get OK response
-        When we post to "/events/publish"
+        When we post to "/events/post"
         """
         {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
         """
@@ -93,14 +93,14 @@ Feature: Planning Validate
         }
         """
         Then we get OK response
-        When we post to "/events/publish"
+        When we post to "/events/post"
         """
         {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
         """
         Then we get OK response
 
     @auth
-    Scenario: Publish invalid series doesnt publish any event in the series
+    Scenario: Post invalid series doesnt post any event in the series
         When we post to "events"
         """
         [{
@@ -131,7 +131,7 @@ Feature: Planning Validate
         }
         """
         Then we get OK response
-        When we post to "/events/publish"
+        When we post to "/events/post"
         """
         {
             "event": "#EVENT1._id#",
@@ -183,7 +183,7 @@ Feature: Planning Validate
         }
         """
         Then we get OK response
-        When we post to "/events/publish"
+        When we post to "/events/post"
         """
         {
             "event": "#EVENT1._id#",
@@ -216,13 +216,13 @@ Feature: Planning Validate
         """
 
     @auth
-    Scenario: Planning publish validation failure
+    Scenario: Planning post validation failure
         When we post to "planning"
         """
-        {"internal_note": "Cant publish me...."}
+        {"internal_note": "Cant post me...."}
         """
         Then we get OK response
-        When we post to "/planning/publish"
+        When we post to "/planning/post"
         """
         {"planning": "#planning._id#", "etag": "#planning._etag#", "pubstatus": "usable"}
         """
@@ -241,7 +241,7 @@ Feature: Planning Validate
         {"place": [{"qcode": "NSW"}]}
         """
         Then we get OK response
-        When we post to "/planning/publish"
+        When we post to "/planning/post"
         """
         {"planning": "#planning._id#", "etag": "#planning._etag#", "pubstatus": "usable"}
         """

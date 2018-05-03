@@ -947,7 +947,7 @@ Feature: Events Update Repetitions
         Then we store "EVENT7" with 7 item
         Then we store "EVENT8" with 8 item
         When we get "/events"
-        When we post to "/events/publish"
+        When we post to "/events/post"
         """
         {"event": "#EVENT3._id#", "etag": "#EVENT3._etag#", "pubstatus": "usable"}
         """

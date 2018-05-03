@@ -27,8 +27,8 @@ export class AdvancedSearch extends React.Component {
     componentWillReceiveProps(nextProps) {
         let spikeStateExcludeSpike = false;
 
-        if (get(nextProps, 'diff.advancedSearch.published') &&
-            !get(this.props, 'diff.advancedSearch.published')) {
+        if (get(nextProps, 'diff.advancedSearch.posted') &&
+            !get(this.props, 'diff.advancedSearch.posted')) {
             this.props.onChange('spikeState', SPIKED_STATE.NOT_SPIKED);
             spikeStateExcludeSpike = true;
         }
@@ -221,9 +221,9 @@ export class AdvancedSearch extends React.Component {
                 },
                 pubstatus: {
                     props: {
-                        field: 'advancedSearch.published',
-                        label: gettext('Only Published'),
-                        value: get(diff, 'advancedSearch.published', false),
+                        field: 'advancedSearch.posted',
+                        label: gettext('Only Posted'),
+                        value: get(diff, 'advancedSearch.posted', false),
                         labelLeft: true,
                     },
                     component: ToggleInput,
@@ -258,7 +258,7 @@ export class AdvancedSearch extends React.Component {
                         field: 'spikeState',
                         label: gettext('Spike State'),
                         value: get(diff, 'spikeState', SPIKED_STATE.NOT_SPIKED),
-                        readOnly: get(diff, 'advancedSearch.published', false) === true,
+                        readOnly: get(diff, 'advancedSearch.posted', false) === true,
                         options: spikedStateOptions,
                     },
                     component: RadioButtonInput,

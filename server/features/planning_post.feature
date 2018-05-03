@@ -1,7 +1,7 @@
-Feature: Publish Planning
+Feature: Post Planning
 
     @auth
-    Scenario: Publish Planning
+    Scenario: Post Planning
         When we post to "/planning" with success
         """
         {
@@ -9,7 +9,7 @@ Feature: Publish Planning
             "slugline": "test slugline"
         }
         """
-        When we post to "/planning/publish"
+        When we post to "/planning/post"
         """
         {
             "planning": "#planning._id#",
@@ -25,7 +25,7 @@ Feature: Publish Planning
         """
 
     @auth
-    Scenario: Fail to publish a planning item with insufficient privileges
+    Scenario: Fail to post a planning item with insufficient privileges
     When we post to "/planning" with success
     """
     {
@@ -35,9 +35,9 @@ Feature: Publish Planning
     """
     When we patch "/users/#CONTEXT_USER_ID#"
     """
-    {"user_type": "user", "privileges": {"planning_event_publish": 0, "users": 1}}
+    {"user_type": "user", "privileges": {"planning_event_post": 0, "users": 1}}
     """
-    When we post to "/planning/publish"
+    When we post to "/planning/post"
     """
     {
         "planning": "#planning._id#",

@@ -196,13 +196,13 @@ const onEventPostponed = (e, data) => (
     }
 );
 
-const onEventPublishChanged = (e, data) => (
+const onEventPostChanged = (e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
             dispatch({
                 type: data.state === WORKFLOW_STATE.SCHEDULED ?
-                    EVENTS.ACTIONS.MARK_EVENT_PUBLISHED :
-                    EVENTS.ACTIONS.MARK_EVENT_UNPUBLISHED,
+                    EVENTS.ACTIONS.MARK_EVENT_POSTED :
+                    EVENTS.ACTIONS.MARK_EVENT_UNPOSTED,
                 payload: {
                     item: data.item,
                     items: get(data, 'items', [{
@@ -295,7 +295,7 @@ const self = {
     onEventCancelled,
     onEventScheduleChanged,
     onEventPostponed,
-    onEventPublishChanged,
+    onEventPostChanged,
 };
 
 // Map of notification name and Action Event to execute
@@ -312,10 +312,10 @@ self.events = {
     'events:reschedule': () => (self.onEventScheduleChanged),
     'events:reschedule:recurring': () => (self.onEventScheduleChanged),
     'events:postpone': () => (self.onEventPostponed),
-    'events:published': () => (self.onEventPublishChanged),
-    'events:published:recurring': () => (self.onEventPublishChanged),
-    'events:unpublished': () => (self.onEventPublishChanged),
-    'events:unpublished:recurring': () => (self.onEventPublishChanged),
+    'events:posted': () => (self.onEventPostChanged),
+    'events:posted:recurring': () => (self.onEventPostChanged),
+    'events:unposted': () => (self.onEventPostChanged),
+    'events:unposted:recurring': () => (self.onEventPostChanged),
     'events:update_time': () => (self.onEventScheduleChanged),
     'events:update_time:recurring': () => (self.onEventScheduleChanged),
     'events:update_repetitions:recurring': () => (self.onEventScheduleChanged),

@@ -46,7 +46,7 @@ Feature: Publish
         }
         """
 
-        When we post to "/events/publish"
+        When we post to "/events/post"
         """
         {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
         """
@@ -63,8 +63,8 @@ Feature: Publish
         Then file exists "/tmp/123-1-None.txt"
 
     @auth
-    Scenario: Publish non existing event
-        When we post to "/events/publish"
+    Scenario: Post non existing event
+        When we post to "/events/post"
         """
         {"event": "foo", "etag": "foo"}
         """
@@ -75,7 +75,7 @@ Feature: Publish
 
 
     @auth
-    Scenario: Fail to publish Event with insufficient privileges
+    Scenario: Fail to post Event with insufficient privileges
     When we post to "/products" with success
     """
     {
@@ -122,16 +122,16 @@ Feature: Publish
     """
     When we patch "/users/#CONTEXT_USER_ID#"
     """
-    {"user_type": "user", "privileges": {"planning_event_publish": 0, "users": 1}}
+    {"user_type": "user", "privileges": {"planning_event_post": 0, "users": 1}}
     """
-    When we post to "/events/publish"
+    When we post to "/events/post"
     """
     {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
     """
     Then we get error 403
 
     @auth
-    Scenario: Publish cancelled event
+    Scenario: Post cancelled event
         When we post to "/products" with success
         """
         {
@@ -177,7 +177,7 @@ Feature: Publish
         }
         """
 
-        When we post to "/events/publish"
+        When we post to "/events/post"
         """
         {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "cancelled"}
         """

@@ -289,12 +289,12 @@ Event Postponed
         };
     },
 
-    [EVENTS.ACTIONS.MARK_EVENT_PUBLISHED]: (state, payload) => (
-        onEventPublishChanged(state, payload)
+    [EVENTS.ACTIONS.MARK_EVENT_POSTED]: (state, payload) => (
+        onEventPostChanged(state, payload)
     ),
 
-    [EVENTS.ACTIONS.MARK_EVENT_UNPUBLISHED]: (state, payload) => (
-        onEventPublishChanged(state, payload)
+    [EVENTS.ACTIONS.MARK_EVENT_UNPOSTED]: (state, payload) => (
+        onEventPostChanged(state, payload)
     ),
 
     [EVENTS.ACTIONS.RECEIVE_CALENDARS]: (state, payload) => ({
@@ -308,7 +308,7 @@ Event Postponed
     }),
 });
 
-const onEventPublishChanged = (state, payload) => {
+const onEventPostChanged = (state, payload) => {
     // If there is only 1 event and that event is not loaded,
     // then disregard this action
     if (get(payload, 'items.length', 0) === 1 && !get(state.events, payload.item))

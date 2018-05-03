@@ -197,8 +197,8 @@ planning_types_schema = {
     'schema':
         {'type': 'dict'},
 
-    # publishSchema controls the validation of fields when publishing.
-    'publishSchema':
+    # postSchema controls the validation of fields when posting.
+    'postSchema':
         {'type': 'dict'}
 }
 

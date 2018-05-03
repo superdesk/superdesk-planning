@@ -6,7 +6,7 @@ import {
     EVENTS,
     PLANNING,
     ASSIGNMENTS,
-    PUBLISHED_STATE,
+    POST_STATE,
     COVERAGES,
     ITEM_TYPE,
 } from '../constants/index';
@@ -19,7 +19,7 @@ import {
     isItemRescheduled,
     eventUtils,
     isItemCancelled,
-    getPublishedState,
+    getPostedState,
     isEmptyActions,
     isDateInRange,
     gettext,
@@ -30,12 +30,12 @@ import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/help
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
-const canPublishPlanning = (planning, event, session, privileges, locks) => (
-    !!privileges[PRIVILEGES.PUBLISH_PLANNING] &&
+const canPostPlanning = (planning, event, session, privileges, locks) => (
+    !!privileges[PRIVILEGES.POST_PLANNING] &&
         !!get(planning, '_id') &&
         !isPlanningLockRestricted(planning, session, locks) &&
-        getPublishedState(planning) !== PUBLISHED_STATE.USABLE &&
-        (isNil(event) || getPublishedState(event) === PUBLISHED_STATE.USABLE) &&
+        getPostedState(planning) !== POST_STATE.USABLE &&
+        (isNil(event) || getPostedState(event) === POST_STATE.USABLE) &&
         !isItemSpiked(planning) &&
         !isItemSpiked(event) &&
         !isItemCancelled(planning) &&
@@ -45,10 +45,10 @@ const canPublishPlanning = (planning, event, session, privileges, locks) => (
         !isNotForPublication(planning)
 );
 
-const canUnpublishPlanning = (planning, event, session, privileges, locks) => (
-    !!privileges[PRIVILEGES.PUBLISH_PLANNING] && !isItemSpiked(planning) &&
+const canUnpostPlanning = (planning, event, session, privileges, locks) => (
+    !!privileges[PRIVILEGES.POST_PLANNING] && !isItemSpiked(planning) &&
         !isPlanningLockRestricted(planning, session, locks) &&
-        getPublishedState(planning) === PUBLISHED_STATE.USABLE
+        getPostedState(planning) === POST_STATE.USABLE
 );
 
 const canEditPlanning = (planning, event, session, privileges, locks) => (
@@ -57,7 +57,7 @@ const canEditPlanning = (planning, event, session, privileges, locks) => (
         !isItemSpiked(planning) &&
         !isItemSpiked(event) &&
         !isItemCancelled(planning) &&
-        !(getPublishedState(planning) === PUBLISHED_STATE.USABLE && !privileges[PRIVILEGES.PUBLISH_PLANNING]) &&
+        !(getPostedState(planning) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_PLANNING]) &&
         !isItemRescheduled(planning)
 );
 
@@ -72,7 +72,7 @@ const canAssignAgenda = (planning, event, privileges, locks) => (
 
 const canUpdatePlanning = (planning, event, session, privileges, locks) => (
     canEditPlanning(planning, event, session, privileges, locks) &&
-        isItemPublic(planning) && !!privileges[PRIVILEGES.PUBLISH_PLANNING] &&
+        isItemPublic(planning) && !!privileges[PRIVILEGES.POST_PLANNING] &&
         !isItemSpiked(planning)
 );
 
@@ -104,7 +104,7 @@ const canCancelPlanning = (planning, event = null, session, privileges, locks) =
         !isPlanningLockRestricted(planning, session, locks) &&
         getItemWorkflowState(planning) === WORKFLOW_STATE.SCHEDULED &&
         getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED &&
-        !(getPublishedState(planning) === PUBLISHED_STATE.USABLE && !privileges[PRIVILEGES.PUBLISH_PLANNING])
+        !(getPostedState(planning) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_PLANNING])
 );
 
 const canCancelAllCoverage = (planning, event = null, session, privileges, locks) => (
@@ -112,7 +112,7 @@ const canCancelAllCoverage = (planning, event = null, session, privileges, locks
         !isItemSpiked(planning) && !isPlanningLockRestricted(planning, session, locks) &&
         getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED &&
         canCancelAllCoverageForPlanning(planning) &&
-        !(getPublishedState(planning) === PUBLISHED_STATE.USABLE && !privileges[PRIVILEGES.PUBLISH_PLANNING])
+        !(getPostedState(planning) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_PLANNING])
 );
 
 const canAddAsEvent = (planning, event = null, session, privileges, locks) => (
@@ -731,8 +731,8 @@ const getCoverageWorkflowIcon = (coverage) => {
 const self = {
     canSpikePlanning,
     canUnspikePlanning,
-    canPublishPlanning,
-    canUnpublishPlanning,
+    canPostPlanning,
+    canUnpostPlanning,
     canEditPlanning,
     canUpdatePlanning,
     mapCoverageByDate,

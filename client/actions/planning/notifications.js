@@ -151,7 +151,7 @@ const onPlanningUnlocked = (_e, data) => (
     }
 );
 
-const onPlanningPublished = (_e, data) => (
+const onPlanningPosted = (_e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
             dispatch(planning.ui.scheduleRefetch());
@@ -268,7 +268,7 @@ const self = {
     onPlanningCreated,
     onPlanningUpdated,
     onPlanningUnlocked,
-    onPlanningPublished,
+    onPlanningPosted,
     onPlanningSpiked,
     onPlanningUnspiked,
     onPlanningCancelled,
@@ -286,7 +286,7 @@ self.events = {
     'planning:unspiked': () => (self.onPlanningUnspiked),
     'planning:lock': () => (self.onPlanningLocked),
     'planning:unlock': () => (self.onPlanningUnlocked),
-    'planning:published': () => (self.onPlanningPublished),
+    'planning:posted': () => (self.onPlanningPosted),
     'planning:duplicated': () => (self.onPlanningCreated),
     'planning:cancelled': () => (self.onPlanningCancelled),
     'coverage:cancelled': () => (self.onCoverageCancelled),

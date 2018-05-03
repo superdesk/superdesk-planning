@@ -85,7 +85,7 @@ Feature: Cancel all coverage
           }]
       }]
       """
-      When we post to "/planning/publish"
+      When we post to "/planning/post"
       """
       {
           "planning": "#planning._id#",
@@ -99,7 +99,7 @@ Feature: Cancel all coverage
       And we get notifications
       """
       [{
-          "event": "planning:published",
+          "event": "planning:posted",
           "extra": {"item": "123"}
       },
       {
@@ -111,7 +111,7 @@ Feature: Cancel all coverage
           "extra": {"item": "123","user": "#CONTEXT_USER_ID#"}
       },
       {
-          "event": "planning:published",
+          "event": "planning:posted",
           "extra": {"item": "123"}
       }]
       """
@@ -131,7 +131,7 @@ Feature: Cancel all coverage
     @auth
     @notification
     @vocabulary
-    Scenario: Published planning gets updated on cancel all coverage
+    Scenario: Posted planning gets updated on cancel all coverage
       Given "vocabularies"
       """
       [{
@@ -176,7 +176,7 @@ Feature: Cancel all coverage
           ]
       }]
       """
-      When we post to "/planning/publish"
+      When we post to "/planning/post"
       """
       {
           "planning": "#planning._id#",
@@ -190,7 +190,7 @@ Feature: Cancel all coverage
       And we get notifications
       """
       [{
-          "event": "planning:published",
+          "event": "planning:posted",
           "extra": {"item": "123"}
       },
       {
@@ -202,7 +202,7 @@ Feature: Cancel all coverage
           "extra": {"item": "123","user": "#CONTEXT_USER_ID#"}
       },
       {
-          "event": "planning:published",
+          "event": "planning:posted",
           "extra": {"item": "123"}
       }]
       """
@@ -482,7 +482,7 @@ Feature: Cancel all coverage
 
     @auth
     @notification
-    Scenario: Published planning gets updated on cancel planing
+    Scenario: Posted planning gets updated on cancel planing
       Given "vocabularies"
       """
       [{
@@ -538,7 +538,7 @@ Feature: Cancel all coverage
       Then we get OK response
       Then we store coverage id in "firstcoverage" from coverage 0
       Then we store coverage id in "secondcoverage" from coverage 1
-      When we post to "/planning/publish"
+      When we post to "/planning/post"
         """
         {
             "planning": "#planning._id#",
@@ -608,7 +608,7 @@ Feature: Cancel all coverage
         {
             "schema": {},
             "type": "text",
-            "act": "publish",
+            "act": "post",
             "_id": "publish_text"
         },
         {

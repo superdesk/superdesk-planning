@@ -90,10 +90,10 @@ describe('events', () => {
             expect(result.eventsInList).toEqual(['e1', 'e3', 'e2']);
         });
 
-        it('MARK_EVENT_PUBLISHED', () => {
+        it('MARK_EVENT_POSTED', () => {
             initialState.events = items;
             const result = events(initialState, {
-                type: 'MARK_EVENT_PUBLISHED',
+                type: 'MARK_EVENT_POSTED',
                 payload: {
                     item: 'e1',
                     items: [{
@@ -113,10 +113,10 @@ describe('events', () => {
             });
         });
 
-        it('MARK_EVENT_PUBLISHED on multiple events', () => {
+        it('MARK_EVENT_POSTED on multiple events', () => {
             initialState.events = items;
             const result = events(initialState, {
-                type: 'MARK_EVENT_PUBLISHED',
+                type: 'MARK_EVENT_POSTED',
                 payload: {
                     item: 'e1',
                     items: [
@@ -151,10 +151,10 @@ describe('events', () => {
             });
         });
 
-        it('MARK_EVENT_UNPUBLISHED', () => {
+        it('MARK_EVENT_UNPOSTED', () => {
             initialState.events = items;
             const result = events(initialState, {
-                type: 'MARK_EVENT_UNPUBLISHED',
+                type: 'MARK_EVENT_UNPOSTED',
                 payload: {
                     item: 'e1',
                     items: [{
@@ -174,10 +174,10 @@ describe('events', () => {
             });
         });
 
-        it('MARK_EVENT_UNPUBLISHED on multiple events', () => {
+        it('MARK_EVENT_UNPOSTED on multiple events', () => {
             initialState.events = items;
             const result = events(initialState, {
-                type: 'MARK_EVENT_UNPUBLISHED',
+                type: 'MARK_EVENT_UNPOSTED',
                 payload: {
                     item: 'e1',
                     items: [

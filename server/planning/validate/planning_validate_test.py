@@ -13,7 +13,7 @@ from superdesk import get_resource_service
 
 
 class PlanningValidateServiceTest(TestCase):
-    def test_validate_on_publish(self):
+    def test_validate_on_post(self):
         with self.app.app_context():
             self.app.data.insert('planning_types', [{
                 "_id": "event", "name": "event",
@@ -22,7 +22,7 @@ class PlanningValidateServiceTest(TestCase):
                         "type": "string", "required": True
                     },
                     "slugline": {
-                        "type": "string", "required": True, "validate_on_publish": True
+                        "type": "string", "required": True, "validate_on_post": True
                     },
                     "calendars": {
                         "type": "list", "required": True
@@ -34,7 +34,7 @@ class PlanningValidateServiceTest(TestCase):
             }])
 
             errors = get_resource_service('planning_validator').post([{
-                'validate_on_publish': True,
+                'validate_on_post': True,
                 'type': 'event',
                 'validate': {
                     'name': 'Test Event',
@@ -45,7 +45,7 @@ class PlanningValidateServiceTest(TestCase):
             self.assertEqual(errors, ['SLUGLINE is a required field'])
 
             errors = get_resource_service('planning_validator').post([{
-                'validate_on_publish': True,
+                'validate_on_post': True,
                 'type': 'event',
                 'validate': {
                     'name': 'Test Event',
@@ -57,7 +57,7 @@ class PlanningValidateServiceTest(TestCase):
             self.assertEqual(errors, [])
 
             errors = get_resource_service('planning_validator').post([{
-                'validate_on_publish': False,
+                'validate_on_post': False,
                 'type': 'event',
                 'validate': {
                     'slugline': 'Test Event',
@@ -71,7 +71,7 @@ class PlanningValidateServiceTest(TestCase):
             self.assertIn('DATES is a required field', errors)
 
             errors = get_resource_service('planning_validator').post([{
-                'validate_on_publish': False,
+                'validate_on_post': False,
                 'type': 'event',
                 'validate': {
                     'name': 'Test Event',
