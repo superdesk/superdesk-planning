@@ -99,6 +99,7 @@ export class ManageAgendasComponent extends React.Component {
                     </ColumnBox.Box>
                 </Modal.Body>
                 <Modal.Footer>
+                    <button className="btn" type="button" onClick={handleHide}>{gettext('Cancel')}</button>
                     <button className="btn btn--primary" type="submit" onClick={handleHide}>{gettext('Ok')}</button>
                 </Modal.Footer>
             </Modal>
