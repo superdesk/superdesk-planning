@@ -81,13 +81,8 @@ class AssignmentGroupListComponent extends React.Component {
             <AssignmentItem
                 key={assignment._id}
                 assignment={assignment}
-                isSelected={this.props.selectedAssignments.indexOf(assignment._id) > -1}
                 onClick={this.props.preview.bind(this, assignment)}
                 onDoubleClick={onDoubleClick}
-                onSelectChange={(value) => this.props.onAssignmentSelectChange({
-                    assignment: assignment._id,
-                    value: value,
-                })}
                 assignedUser={assignedUser}
                 isCurrentUser={isCurrentUser}
                 lockedItems={this.props.lockedItems}
@@ -162,7 +157,6 @@ AssignmentGroupListComponent.propTypes = {
     groupKey: PropTypes.string.isRequired,
     users: PropTypes.array,
     session: PropTypes.object,
-    selectedAssignments: PropTypes.array.isRequired,
     loadMoreAssignments: PropTypes.func.isRequired,
     loadAssignmentsForGroup: PropTypes.func.isRequired,
     lockedItems: PropTypes.object,
@@ -177,7 +171,6 @@ AssignmentGroupListComponent.propTypes = {
     changeAssignmentListSingleGroupView: PropTypes.func,
     assignmentListSingleGroupView: PropTypes.string,
     preview: PropTypes.func,
-    onAssignmentSelectChange: PropTypes.func.isRequired,
     priorities: PropTypes.array,
     removeAssignment: PropTypes.func,
     openArchivePreview: PropTypes.func,
@@ -220,13 +213,12 @@ const mapStateToProps = (state, ownProps) => {
         orderDirection: selectors.getOrderDirection(state),
         assignments: assignmentDataSelector.assignmentsSelector(state),
         totalCount: assignmentDataSelector.countSelector(state),
-        selectedAssignments: selectors.getSelectedAssignments(state),
         previewOpened: selectors.getPreviewAssignmentOpened(state),
-        session: selectors.getSessionDetails(state),
-        users: selectors.getUsers(state),
+        session: selectors.general.session(state),
+        users: selectors.general.users(state),
         lockedItems: selectors.locks.getLockedItems(state),
         currentAssignmentId: selectors.getCurrentAssignmentId(state),
-        privileges: selectors.getPrivileges(state),
+        privileges: selectors.general.privileges(state),
         assignmentListSingleGroupView: selectors.getAssignmentListSingleGroupView(state),
         priorities: selectors.getAssignmentPriorities(state),
     };
@@ -234,7 +226,6 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch) => ({
     preview: (assignment) => dispatch(actions.assignments.ui.preview(assignment)),
-    onAssignmentSelectChange: (value) => dispatch(actions.assignments.ui.toggleAssignmentSelection(value)),
     reassign: (assignment) => dispatch(actions.assignments.ui.reassign(assignment)),
     completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
     revertAssignment: (assignment) => dispatch(actions.assignments.ui.revert(assignment)),

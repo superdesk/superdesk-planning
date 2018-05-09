@@ -21,7 +21,7 @@ const openAgenda = () => (
 const createOrUpdateAgenda = (newAgenda) => (
     (dispatch, getState, {api, notify}) => {
         let originalAgenda = {};
-        const agendas = selectors.getAgendas(getState());
+        const agendas = selectors.general.agendas(getState());
         let diff = pick(newAgenda, ['name', 'is_enabled']);
 
         if (newAgenda._id) {
@@ -159,7 +159,7 @@ const askForAddEventToCurrentAgenda = (events) => (
  */
 const addEventToCurrentAgenda = (events, planningDate = null, openInEditor = false) => (
     (dispatch, getState, {notify}) => {
-        const currentAgendaId = selectors.getCurrentAgendaId(getState());
+        const currentAgendaId = selectors.planning.currentAgendaId(getState());
 
         if (!currentAgendaId) {
             let errorMsg = 'You have to select an agenda first';
@@ -219,7 +219,7 @@ const createPlanningFromEvent = (event, planningDate) => (
     (dispatch, getState, {notify}) => {
         // Check if no agenda is selected, or the current agenda is spiked
         // And notify the end user of the error
-        const currentAgendaId = selectors.getCurrentAgendaId(getState());
+        const currentAgendaId = selectors.planning.currentAgendaId(getState());
         let error;
 
         if (!currentAgendaId) {
@@ -257,7 +257,7 @@ const createPlanningFromEvent = (event, planningDate) => (
  */
 const fetchSelectedAgendaPlannings = (params = {}) => (
     (dispatch, getState, {$location, $timeout}) => {
-        const agendaId = selectors.getCurrentAgendaId(getState());
+        const agendaId = selectors.planning.currentAgendaId(getState());
 
         if (!agendaId) {
             dispatch(planning.ui.clearList());

@@ -10,8 +10,4 @@ export const PRIVILEGES = {
     UNSPIKE_EVENT: 'planning_event_unspike',
     POST_EVENT: 'planning_event_post',
     POST_PLANNING: 'planning_planning_post',
-    ACTIONS: {
-        ACCESS_DENIED: 'ACCESS_DENIED',
-        RECEIVE_PRIVILEGES: 'RECEIVE_PRIVILEGES',
-    },
 };

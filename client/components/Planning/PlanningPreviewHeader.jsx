@@ -114,15 +114,15 @@ const mapStateToProps = (state, ownProps) => ({
     item: selectors.planning.currentPlanning(state),
     event: selectors.events.planningWithEventDetails(state),
     lockedInThisSession: selectors.planning.isCurrentPlanningLockedInThisSession(state),
-    session: selectors.getSessionDetails(state),
-    privileges: selectors.getPrivileges(state),
-    users: selectors.getUsers(state),
+    session: selectors.general.session(state),
+    privileges: selectors.general.privileges(state),
+    users: selectors.general.users(state),
     lockedItems: selectors.locks.getLockedItems(state),
-    agendas: selectors.getAgendas(state),
+    agendas: selectors.general.agendas(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onUnlock: (planning) => (dispatch(actions.planning.ui.unlockAndOpenEditor(planning))),
+    onUnlock: (planning) => (dispatch(actions.locks.unlock(planning))),
     itemActionDispatches: actionUtils.getActionDispatches({dispatch: dispatch}),
 });
 

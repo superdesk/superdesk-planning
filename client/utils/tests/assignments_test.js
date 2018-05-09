@@ -41,9 +41,6 @@ describe('can edit assignment', () => {
     const isAssignmentInEditableState = () => utils.assignmentUtils.isAssignmentInEditableState(
         assignment
     );
-    const isAssignmentInUse = () => utils.assignmentUtils.isAssignmentInUse(
-        assignment
-    );
 
     const canRemoveAssignment = () => utils.assignmentUtils.canRemoveAssignment(
         assignment, session, privileges
@@ -59,7 +56,6 @@ describe('can edit assignment', () => {
         expect(canEditAssignment()).toBe(false);
         expect(canStartWorking()).toBe(false);
         expect(canCompleteAssignment()).toBe(false);
-        expect(isAssignmentInUse()).toBe(false);
     });
 
     describe('workflow state', () => {
@@ -69,7 +65,6 @@ describe('can edit assignment', () => {
             expect(canStartWorking()).toBe(true);
             expect(isAssignmentInEditableState()).toBe(true);
             expect(canCompleteAssignment()).toBe(false);
-            expect(isAssignmentInUse()).toBe(false);
             expect(canRemoveAssignment()).toBe(true);
         });
 
@@ -79,7 +74,6 @@ describe('can edit assignment', () => {
             expect(canStartWorking()).toBe(false);
             expect(isAssignmentInEditableState()).toBe(true);
             expect(canCompleteAssignment()).toBe(true);
-            expect(isAssignmentInUse()).toBe(true);
             expect(canRemoveAssignment()).toBe(true);
         });
 
@@ -89,7 +83,6 @@ describe('can edit assignment', () => {
             expect(canStartWorking()).toBe(false);
             expect(isAssignmentInEditableState()).toBe(false);
             expect(canCompleteAssignment()).toBe(false);
-            expect(isAssignmentInUse()).toBe(true);
             expect(canRemoveAssignment()).toBe(false);
         });
 
@@ -99,7 +92,6 @@ describe('can edit assignment', () => {
             expect(canStartWorking()).toBe(false);
             expect(isAssignmentInEditableState()).toBe(true);
             expect(canCompleteAssignment()).toBe(false);
-            expect(isAssignmentInUse()).toBe(true);
             expect(canRemoveAssignment()).toBe(true);
         });
 
@@ -109,7 +101,6 @@ describe('can edit assignment', () => {
             expect(canStartWorking()).toBe(false);
             expect(isAssignmentInEditableState()).toBe(false);
             expect(canCompleteAssignment()).toBe(false);
-            expect(isAssignmentInUse()).toBe(false);
             expect(canRemoveAssignment()).toBe(false);
         });
     });

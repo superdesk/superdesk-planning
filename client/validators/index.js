@@ -1,6 +1,3 @@
-export {ChainValidators} from './ChainValidators';
-export {RequiredFieldsValidatorFactory} from './RequiredFieldsValidatorFactory';
-
 import {default as eventValidators} from './events';
 import {formProfile} from './profile';
 import {validateAssignment} from './assignments';
@@ -98,7 +95,7 @@ const validateCoverageScheduleDate = (dispatch, getState, field, value, profile,
     let validateSchedule = true;
     const newsItem = get(selectors.general.modalProps(getState()), 'newsItem', null);
 
-    if (selectors.getCurrentWorkspace(getState()) === WORKSPACE.AUTHORING && newsItem) {
+    if (selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING && newsItem) {
         if ([WORKFLOW_STATE.SCHEDULED, 'published'].includes(newsItem.state)) {
             // We don't validate if newsitem is published/scheduled in add-to-planning modal
             validateSchedule = false;

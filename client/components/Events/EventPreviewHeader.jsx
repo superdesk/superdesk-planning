@@ -91,14 +91,14 @@ EventPreviewHeaderComponent.propTypes = {
 
 const mapStateToProps = (state, ownProps) => ({
     item: selectors.events.getEventPreviewRelatedDetails(state),
-    session: selectors.getSessionDetails(state),
-    privileges: selectors.getPrivileges(state),
-    users: selectors.getUsers(state),
+    session: selectors.general.session(state),
+    privileges: selectors.general.privileges(state),
+    users: selectors.general.users(state),
     lockedItems: selectors.locks.getLockedItems(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onUnlock: (event) => dispatch(actions.events.ui.unlockAndOpenEventDetails(event)),
+    onUnlock: (event) => dispatch(actions.locks.unlockThenLock(event)),
     itemActionDispatches: actionUtils.getActionDispatches({dispatch: dispatch, eventOnly: true}),
 });
 

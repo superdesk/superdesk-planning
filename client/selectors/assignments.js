@@ -1,13 +1,9 @@
 import {get} from 'lodash';
-import {
-    getCurrentUserId,
-    getCurrentDeskId,
-    getCurrentWorkspace,
-    getStoredPlannings,
-    getEvents,
-} from './planning_old';
+import {storedEvents} from './events';
+import {storedPlannings} from './planning';
+import {currentDeskId, currentUserId, currentWorkspace} from './general';
 import {createSelector} from 'reselect';
-import {getItemsById, getItemInArrayById} from '../utils';
+import {getItemsById} from '../utils';
 import {WORKSPACE} from '../constants';
 
 export const getStoredAssignments = (state) => get(state, 'assignment.assignments', {});
@@ -32,8 +28,6 @@ export const getAssignmentInProgressPage = (state) => get(state,
     'assignment.inProgressListLastLoadedPage', 1);
 export const getAssignmentCompletedPage = (state) => get(state,
     'assignment.completedListLastLoadedPage', 1);
-export const getSelectedAssignments = (state) => get(state,
-    'assignment.selectedAssignments', []);
 export const getAssignmentListSettings = (state) => ({
     filterBy: getFilterBy(state),
     searchQuery: getSearchQuery(state),
@@ -53,8 +47,6 @@ export const getAssignmentListSingleGroupView = (state) => get(state,
 
 export const getPreviewAssignmentOpened = (state) => !!get(state, 'assignment.previewOpened');
 export const getCurrentAssignmentId = (state) => get(state, 'assignment.currentAssignmentId');
-export const getReadOnlyAssignment = (state) => get(state, 'assignment.readOnly');
-export const getFulFilledItem = (state) => get(state, 'assignment.fulfilledItem', {});
 export const getAssignmentPriorities = (state) => get(state, 'vocabularies.assignment_priority', []);
 export const getArchivePriorities = (state) => get(state, 'vocabularies.priority', []);
 export const getUrgencies = (state) => get(state, 'vocabularies.urgency', []);
@@ -85,16 +77,16 @@ export const getCurrentAssignment = createSelector(
 );
 
 export const getAssignmentSearch = createSelector(
-    [getAssignmentListSettings, getCurrentDeskId, getCurrentUserId,
-        getCurrentWorkspace, getAssignmentFilterByType,
+    [getAssignmentListSettings, currentDeskId, currentUserId,
+        currentWorkspace, getAssignmentFilterByType,
         getAssignmentFilterByPriority],
-    (listSettings, currentDeskId,
-        currentUserId, currentWorkspace, filterByType, filterByPriority) => {
+    (listSettings, deskId,
+        currentUserId, workspace, filterByType, filterByPriority) => {
         const assignmentSearch = {
             deskId: (
                 get(listSettings, 'filterBy') === 'All' ||
-                currentWorkspace === WORKSPACE.AUTHORING
-            ) ? currentDeskId : null,
+                workspace === WORKSPACE.AUTHORING
+            ) ? deskId : null,
             userId: (get(listSettings, 'filterBy') === 'User') ? currentUserId : null,
             searchQuery: get(listSettings, 'searchQuery', ''),
             orderByField: get(listSettings, 'orderByField', 'Updated'),
@@ -110,19 +102,19 @@ export const getAssignmentSearch = createSelector(
 );
 
 export const getCurrentAssignmentPlanningItem = createSelector(
-    [getCurrentAssignment, getStoredPlannings],
-    (assignment, storedPlannings) => (
+    [getCurrentAssignment, storedPlannings],
+    (assignment, plannings) => (
         assignment ?
-            get(storedPlannings, assignment.planning_item) :
+            get(plannings, assignment.planning_item) :
             null
     )
 );
 
 export const getCurrentAssignmentEventItem = createSelector(
-    [getCurrentAssignmentPlanningItem, getEvents],
-    (planning, storedEvents) => (
+    [getCurrentAssignmentPlanningItem, storedEvents],
+    (planning, events) => (
         planning ?
-            get(storedEvents, planning.event_item) :
+            get(events, planning.event_item) :
             null
     )
 );
@@ -131,16 +123,5 @@ export const getCurrentAssignmentArchiveItem = createSelector(
     [getCurrentAssignmentId, getStoredArchiveItems],
     (assignmentId, storedItems) => (
         assignmentId ? get(storedItems, assignmentId, null) : null
-    )
-);
-
-export const getCurrentAssignmentCoverage = createSelector(
-    [getCurrentAssignment, getCurrentAssignmentPlanningItem],
-    (assignment, planning) => (
-        getItemInArrayById(
-            get(planning, 'coverages', []),
-            get(assignment, 'coverage_item', ''),
-            'coverage_id'
-        )
     )
 );

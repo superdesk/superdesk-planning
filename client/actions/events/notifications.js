@@ -30,18 +30,18 @@ const onEventCreated = (_e, data) => (
 const onEventUnlocked = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
-            const events = selectors.getEvents(getState());
+            const events = selectors.events.storedEvents(getState());
             const locks = selectors.locks.getLockedItems(getState());
             let eventInStore = get(events, data.item, {});
             const itemLock = lockUtils.getLock(eventInStore, locks);
-            const sessionId = selectors.getSessionDetails(getState()).sessionId;
+            const sessionId = selectors.general.session(getState()).sessionId;
 
             // If this is the event item currently being edited, show popup notification
             if (itemLock !== null &&
                 data.lock_session !== sessionId &&
                 itemLock.session === sessionId
             ) {
-                const user = selectors.getUsers(getState()).find((u) => u._id === data.user);
+                const user = selectors.general.users(getState()).find((u) => u._id === data.user);
 
                 dispatch(hideModal());
                 dispatch(showModal({
@@ -184,7 +184,7 @@ const onEventScheduleChanged = (e, data) => (
 const onEventPostponed = (e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
-            let events = selectors.getEvents(getState());
+            let events = selectors.events.storedEvents(getState());
 
             if (data.item in events) {
                 dispatch(eventsApi.markEventPostponed(
@@ -266,7 +266,7 @@ const onEventUpdated = (_e, data) => (
         if (data && data.item) {
             dispatch(eventsUi.scheduleRefetch())
                 .then((events) => {
-                    const selectedEvents = selectors.getSelectedEvents(getState());
+                    const selectedEvents = selectors.multiSelect.selectedEvents(getState());
                     const currentPreviewId = selectors.main.previewId(getState());
                     const currentEditId = selectors.forms.currentItemId(getState());
 

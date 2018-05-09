@@ -131,8 +131,8 @@ PlanningHistoryComponent.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-    planningHistoryItems: selectors.getPlanningHistory(state),
-    users: selectors.getUsers(state),
+    planningHistoryItems: selectors.planning.planningHistory(state),
+    users: selectors.general.users(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

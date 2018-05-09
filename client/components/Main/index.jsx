@@ -4,7 +4,6 @@ export {AgendaSubnavDropdown} from './AgendaSubnavDropdown';
 export {ToggleFiltersButton} from './ToggleFiltersButton';
 export {FiltersBar} from './FiltersBar';
 export {FiltersBox} from './FiltersBox';
-export {SearchBar} from './SearchBar';
 export {SearchPanel} from './SearchPanel';
 export {HistoryTab} from './HistoryTab';
 export {PreviewPanel} from './ItemPreview/';

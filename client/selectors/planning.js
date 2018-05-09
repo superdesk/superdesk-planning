@@ -5,9 +5,9 @@ import {getStartOfWeek} from './config';
 import {planningUtils, lockUtils, getSearchDateRange} from '../utils';
 import {AGENDA, SPIKED_STATE} from '../constants';
 
-
 const storedEvents = (state) => get(state, 'events.events', {});
 
+export const planningHistory = (state) => get(state, 'planning.planningHistoryItems');
 export const storedPlannings = (state) => get(state, 'planning.plannings', {});
 export const planIdsInList = (state) => get(state, 'planning.planningsInList', []);
 export const agendas = (state) => get(state, 'agenda.agendas', []);

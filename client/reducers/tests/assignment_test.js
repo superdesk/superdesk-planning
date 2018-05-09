@@ -612,30 +612,6 @@ describe('assignment', () => {
             });
         });
 
-        it('OPEN_ASSIGNMENT_EDITOR', () => {
-            const result = assignment(initialState, {
-                type: 'OPEN_ASSIGNMENT_EDITOR',
-                payload: 'as1',
-            });
-
-            expect(result).toEqual({
-                assignments: {as1: initialState.assignments.as1},
-                previewOpened: true,
-                currentAssignmentId: 'as1',
-                readOnly: false,
-                filterBy: 'All',
-                assignmentsInInProgressList: [],
-                inProgressListTotal: 0,
-                assignmentsInTodoList: [],
-                todoListTotal: 0,
-                assignmentsInCompletedList: [],
-                completedListTotal: 0,
-                assignmentListSingleGroupView: null,
-                archive: {},
-                myAssignmentsTotal: 0,
-            });
-        });
-
         describe('REMOVE_ASSIGNMENT', () => {
             beforeEach(() => {
                 initialState = assignment(undefined, {type: null});

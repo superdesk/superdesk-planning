@@ -166,9 +166,9 @@ const mapStateToProps = (state) => ({
     itemId: selectors.main.previewId(state),
     itemType: selectors.main.previewType(state),
     previewLoading: selectors.main.previewLoading(state),
-    privileges: selectors.getPrivileges(state),
+    privileges: selectors.general.privileges(state),
     lockedItems: selectors.locks.getLockedItems(state),
-    session: selectors.getSessionDetails(state),
+    session: selectors.general.session(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

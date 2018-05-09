@@ -86,7 +86,7 @@ const unlockAndCancel = (item, modal = false) => (
         // If the item exists and is locked in this session
         // then unlock the item
         if (shouldUnLockItem(item,
-            selectors.getSessionDetails(state),
+            selectors.general.session(state),
             selectors.general.currentWorkspace(state))) {
             dispatch(locks.unlock(item));
         } else if (get(item, '_planning_item')) {
@@ -102,19 +102,6 @@ const unlockAndCancel = (item, modal = false) => (
         }
 
         return Promise.resolve();
-    }
-);
-
-const unlockAndCloseEditor = (item) => (
-    (dispatch, getState) => {
-        const currentEditId = selectors.forms.currentItemId(getState());
-
-        if (item) {
-            dispatch(locks.unlock(item));
-            if (currentEditId === get(item, '_id')) {
-                dispatch(self.closeEditor());
-            }
-        }
     }
 );
 
@@ -147,7 +134,7 @@ const save = (item, withConfirmation = true) => (
             .then((savedItems) => {
                 const savedItem = Array.isArray(savedItems) ? savedItems[0] : savedItems;
 
-                if (!get(item, '_id') && selectors.getCurrentWorkspace(getState()) !== WORKSPACE.AUTHORING) {
+                if (!get(item, '_id') && selectors.general.currentWorkspace(getState()) !== WORKSPACE.AUTHORING) {
                     notify.success(
                         gettext('{{ itemType }} created', {itemType: getItemTypeString(item)})
                     );
@@ -260,18 +247,6 @@ const post = (item, withConfirmation = true) => (
                     return Promise.reject(error);
                 }
             );
-    }
-);
-
-const openCancelModal = (item, post = false) => (
-    (dispatch) => {
-        const itemType = getItemType(item);
-
-        switch (itemType) {
-        case ITEM_TYPE.EVENT:
-            dispatch(eventsUi.openCancelModal(item, post));
-            break;
-        }
     }
 );
 
@@ -801,7 +776,6 @@ const self = {
     save,
     unpost,
     post,
-    openCancelModal,
     openEditor,
     openEditorModal,
     closeEditor,
@@ -811,7 +785,6 @@ const self = {
     _filter,
     openConfirmationModal,
     closePreview,
-    unlockAndCloseEditor,
     loadMore,
     search,
     clearSearch,

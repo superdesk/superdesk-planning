@@ -3,7 +3,6 @@ import Adapter from 'enzyme-adapter-react-16';
 import sinon from 'sinon';
 import moment from 'moment';
 import {get, map, cloneDeep} from 'lodash';
-import {PRIVILEGES} from '../constants';
 import {ItemActionsMenu} from '../components/index';
 import * as testData from './testData';
 
@@ -283,23 +282,6 @@ export const convertEventDatesToMoment = (events) => {
         e.dates.end = moment(e.dates.end);
     });
     return events;
-};
-
-export const expectAccessDenied = ({store, permission, action, errorMessage, args, argPos = 0}) => {
-    expect(store.services.$timeout.callCount).toBe(1);
-
-    expect(store.services.notify.error.callCount).toBe(1);
-    expect(store.services.notify.error.args[0]).toEqual([errorMessage]);
-
-    expect(store.dispatch.args[argPos]).toEqual([{
-        type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
-        payload: {
-            action,
-            permission,
-            errorMessage,
-            args,
-        },
-    }]);
 };
 
 export const itemActionExists = (wrapper, label) => {

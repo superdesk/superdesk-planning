@@ -142,8 +142,8 @@ EditPriorityComponent.propTypes = {
 
 const mapStateToProps = (state) => ({
     priorities: selectors.getAssignmentPriorities(state),
-    desks: selectors.getDesks(state),
-    users: selectors.getUsers(state),
+    desks: selectors.general.desks(state),
+    users: selectors.general.users(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

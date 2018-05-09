@@ -99,8 +99,8 @@ describe('Main.ItemEditor.Editor', () => {
         wrapper = mount(
             <Provider store={store}>
                 <Editor
-                    session={selectors.getSessionDetails(state)}
-                    privileges={selectors.getPrivileges(state)}
+                    session={selectors.general.session(state)}
+                    privileges={selectors.general.privileges(state)}
                     lockedItems={selectors.locks.getLockedItems(state)}
                     addNewsItemToPlanning={null}
                     itemActions={{}}

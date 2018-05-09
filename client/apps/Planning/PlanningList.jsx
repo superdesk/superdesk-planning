@@ -121,19 +121,19 @@ PlanningListComponent.propTypes = {
 
 const mapStateToProps = (state) => ({
     groups: selectors.main.itemGroups(state),
-    agendas: selectors.getAgendas(state),
+    agendas: selectors.general.agendas(state),
     lockedItems: selectors.locks.getLockedItems(state),
     dateFormat: selectors.config.getDateFormat(state),
     timeFormat: selectors.config.getTimeFormat(state),
-    session: selectors.getSessionDetails(state),
-    privileges: selectors.getPrivileges(state),
+    session: selectors.general.session(state),
+    privileges: selectors.general.privileges(state),
     activeFilter: selectors.main.activeFilter(state),
     selectedEventIds: selectors.multiSelect.selectedEventIds(state),
     selectedPlanningIds: selectors.multiSelect.selectedPlanningIds(state),
     relatedPlanningsInList: selectors.eventsPlanning.getRelatedPlanningsInList(state),
     loadingIndicator: selectors.main.loadingIndicator(state),
-    users: selectors.getUsers(state),
-    desks: selectors.getDesks(state),
+    users: selectors.general.users(state),
+    desks: selectors.general.desks(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

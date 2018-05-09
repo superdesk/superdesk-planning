@@ -345,11 +345,6 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
     return itemActions;
 };
 
-const isEventAssociatedWithPlannings = (eventId, allPlannings) => (
-    Object.keys(allPlannings)
-        .filter((pid) => get(allPlannings[pid], 'event_item', null) === eventId).length > 0
-);
-
 const isEventRecurring = (item) => (
     get(item, 'recurrence_id', null) !== null
 );
@@ -748,7 +743,6 @@ const self = {
     canEditEvent,
     canUpdateEvent,
     getEventItemActions,
-    isEventAssociatedWithPlannings,
     canCancelEvent,
     eventHasPlanning,
     isEventInUse,

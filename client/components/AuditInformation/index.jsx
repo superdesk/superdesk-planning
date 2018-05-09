@@ -67,8 +67,8 @@ AuditInformationComponent.propTypes = {
 
 const mapStateToProps = (state) => (
     {
-        users: selectors.getUsers(state),
-        ingestProviders: selectors.getIngestProviders(state),
+        users: selectors.general.users(state),
+        ingestProviders: selectors.general.ingestProviders(state),
     }
 );
 

@@ -90,13 +90,13 @@ PlanningMenuPanelComponent.propTypes = {
 };
 
 const mapStateToProps = (state, ownProps) => ({
-    desks: selectors.getDesks(state),
-    users: selectors.getUsers(state),
+    desks: selectors.general.desks(state),
+    users: selectors.general.users(state),
     lockedItems: selectors.locks.getLockedItems(state),
     dateFormat: selectors.config.getDateFormat(state),
     timeFormat: selectors.config.getTimeFormat(state),
     formProfile: selectors.forms.profiles(state),
-    newsCoverageStatus: selectors.getNewsCoverageStatus(state),
+    newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     event: selectors.events.planningEditAssociatedEventModal(state),
 
 });

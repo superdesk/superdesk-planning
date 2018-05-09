@@ -183,9 +183,9 @@ AssignmentPreviewContainerComponent.propTypes = {
 
 const mapStateToProps = (state) => ({
     assignment: selectors.getCurrentAssignment(state),
-    session: selectors.getSessionDetails(state),
-    users: selectors.getUsers(state),
-    desks: selectors.getDesks(state),
+    session: selectors.general.session(state),
+    users: selectors.general.users(state),
+    desks: selectors.general.desks(state),
 
     planningItem: selectors.getCurrentAssignmentPlanningItem(state),
     eventItem: selectors.getCurrentAssignmentEventItem(state),
@@ -193,11 +193,11 @@ const mapStateToProps = (state) => ({
     priorities: get(state, 'vocabularies.assignment_priority'),
     urgencyLabel: selectors.vocabs.urgencyLabel(state),
     urgencies: selectors.getUrgencies(state),
-    privileges: selectors.getPrivileges(state),
+    privileges: selectors.general.privileges(state),
     keywords: get(state, 'vocabularies.keywords', []),
     formProfile: selectors.forms.profiles(state),
     lockedItems: selectors.locks.getLockedItems(state),
-    agendas: selectors.getAgendas(state),
+    agendas: selectors.general.agendas(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -206,7 +206,7 @@ const mapDispatchToProps = (dispatch) => ({
     completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
     revertAssignment: (assignment) => dispatch(actions.assignments.ui.revert(assignment)),
     editAssignmentPriority: (assignment) => dispatch(actions.assignments.ui.editPriority(assignment)),
-    onFulFilAssignment: (assignment) => dispatch(actions.assignments.ui.onAssignmentFormSave(assignment)),
+    onFulFilAssignment: (assignment) => dispatch(actions.assignments.ui.onFulFilAssignment(assignment)),
     removeAssignment: (assignment) => dispatch(actions.assignments.ui.showRemoveAssignmentModal(assignment)),
     openArchivePreview: (assignment) => dispatch(actions.assignments.ui.openArchivePreview(assignment)),
 });

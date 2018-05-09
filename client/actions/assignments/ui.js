@@ -37,7 +37,7 @@ const queryAndGetMyAssignments = (filterByState) => (
         querySearchSettings.states = filterByState;
 
         querySearchSettings.deskId = null;
-        querySearchSettings.userId = selectors.getCurrentUserId(getState());
+        querySearchSettings.userId = selectors.general.currentUserId(getState());
 
         return dispatch(assignments.api.query(querySearchSettings))
             .then((data) => {
@@ -86,7 +86,7 @@ const updatePreviewItemOnRouteUpdate = () => (
                     .then((item) => {
                         if (item) {
                             // Preview only if user is a member of that assignment's desk
-                            const currentUserId = selectors.getCurrentUserId(getState());
+                            const currentUserId = selectors.general.currentUserId(getState());
                             const user = desks.deskMembers[item.assigned_to.desk].find(
                                 (u) => u._id === currentUserId);
 
@@ -328,20 +328,6 @@ const closePreview = () => (
 );
 
 /**
- * Action that sets the list of visible assignments items
- * Toggle the current selection of on assignment
- * @param {object} assignemnt - The Assignment to toggle
- * @param {object} value - The toggle value
- */
-const toggleAssignmentSelection = ({assignment, value}) => (
-    {
-        type: value ? ASSIGNMENTS.ACTIONS.SELECT_ASSIGNMENTS
-            : ASSIGNMENTS.ACTIONS.DESELECT_ASSIGNMENT,
-        payload: value ? [assignment] : assignment,
-    }
-);
-
-/**
  * Action that sets the list of assignments items in to-do state
  * @param {Array} ids - An array of assignments item ids
  */
@@ -424,22 +410,6 @@ const save = (item) => (
 );
 
 /**
- * Action for saving the assignment
- * @param {Object} item - Assignment to Save
- */
-const onAssignmentFormSave = (item) => (
-    (dispatch, getState) => {
-        const currentWorkSpace = selectors.getCurrentWorkspace(getState());
-
-        if (currentWorkSpace === WORKSPACE.AUTHORING) {
-            return dispatch(self.onFulFilAssignment(item));
-        }
-
-        return dispatch(self.save(item));
-    }
-);
-
-/**
  * Action for fulfil the assignment
  * @param {Object} assignment - Assignment to link
  */
@@ -447,7 +417,7 @@ const onFulFilAssignment = (assignment) => (
     (dispatch, getState, {notify}) => {
         const newsItem = get(selectors.general.modalProps(getState()), 'newsItem', null);
         const $scope = get(selectors.general.modalProps(getState()), '$scope', null);
-        const currentWorkSpace = selectors.getCurrentWorkspace(getState());
+        const currentWorkSpace = selectors.general.currentWorkspace(getState());
         const reassign = true;
 
         if (currentWorkSpace !== WORKSPACE.AUTHORING || !$scope || !newsItem) {
@@ -565,7 +535,7 @@ const openSelectTemplateModal = (assignment) => (
         dispatch(self.lockAssignment(assignment, 'start_working'))
             .then((lockedAssignment) => {
                 let items = [];
-                const templates = selectors.getTemplates(getState());
+                const templates = selectors.general.templates(getState());
 
                 templates.forEach((t) => {
                     items.push({
@@ -795,7 +765,6 @@ const self = {
     loadMoreAssignments,
     preview,
     closePreview,
-    toggleAssignmentSelection,
     setAssignmentListGroup,
     setAssignmentsTodoList,
     setAssignmentsInProgressList,
@@ -812,7 +781,6 @@ const self = {
     canLinkItem,
     _openActionModal,
     openSelectTemplateModal,
-    onAssignmentFormSave,
     addToAssignmentListGroup,
     onArchivePreviewImageClick,
     showRemoveAssignmentModal,

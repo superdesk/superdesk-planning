@@ -255,7 +255,7 @@ const revert = (item) => (
  */
 const lock = (assignment, action = 'edit') => (
     (dispatch, getState, {api, notify}) => {
-        if (lockUtils.isItemLockedInThisSession(assignment, selectors.getSessionDetails(getState()))) {
+        if (lockUtils.isItemLockedInThisSession(assignment, selectors.general.session(getState()))) {
             return Promise.resolve(assignment);
         }
 

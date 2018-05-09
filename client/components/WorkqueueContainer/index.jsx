@@ -66,7 +66,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    unlockAndCloseEditor: (item) => dispatch(actions.main.unlockAndCloseEditor(item)),
+    unlockAndCloseEditor: (item) => dispatch(actions.main.unlockAndCancel(item)),
     openEditForm: (item) => dispatch(actions.main.openEditor(item)),
     openConfirmationModal: (actionCallBack, ignoreCallBack) => dispatch(actions.showModal({
         modalType: MODALS.CONFIRMATION,

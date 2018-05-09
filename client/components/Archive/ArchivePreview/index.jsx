@@ -286,7 +286,7 @@ ArchivePreviewComponent.propTypes = {
 const mapStateToProps = (state) => ({
     assignment: selectors.getCurrentAssignment(state),
     archive: selectors.getCurrentAssignmentArchiveItem(state),
-    users: selectors.getUsers(state),
+    users: selectors.general.users(state),
     priorities: selectors.getArchivePriorities(state),
     urgencies: selectors.getUrgencies(state),
     urgencyLabel: selectors.vocabs.urgencyLabel(state),

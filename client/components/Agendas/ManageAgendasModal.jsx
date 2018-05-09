@@ -119,9 +119,9 @@ ManageAgendasComponent.propTypes = {
 
 const mapStateToProps = (state) => (
     {
-        enabledAgendas: selectors.getEnabledAgendas(state),
-        disabledAgendas: selectors.getDisabledAgendas(state),
-        privileges: selectors.getPrivileges(state),
+        enabledAgendas: selectors.general.enabledAgendas(state),
+        disabledAgendas: selectors.general.disabledAgendas(state),
+        privileges: selectors.general.privileges(state),
     }
 );
 

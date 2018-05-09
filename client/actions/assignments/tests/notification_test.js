@@ -116,7 +116,7 @@ describe('actions.assignments.notification', () => {
                 original_assigned_desk: 'desk1',
                 assignment_state: 'assigned',
             };
-            const plans = selectors.getStoredPlannings(store.getState());
+            const plans = selectors.planning.storedPlannings(store.getState());
             const planning1 = plans[payload.planning];
             const coverage1 = planning1.coverages.find((cov) =>
                 cov.coverage_id === payload.coverage);
@@ -245,7 +245,7 @@ describe('actions.assignments.notification', () => {
                 planning: 'p1',
                 original_assigned_desk: 'desk1',
             };
-            const plans = selectors.getStoredPlannings(store.getState());
+            const plans = selectors.planning.storedPlannings(store.getState());
             const planning1 = plans[payload.planning];
             const coverage1 = planning1.coverages.find((cov) =>
                 cov.coverage_id === payload.coverage);
@@ -277,7 +277,7 @@ describe('actions.assignments.notification', () => {
                 coverage: 'c1',
                 planning: 'p1',
             };
-            const plans = selectors.getStoredPlannings(store.getState());
+            const plans = selectors.planning.storedPlannings(store.getState());
             const planning1 = plans[payload.planning];
             const coverage1 = planning1.coverages.find((cov) =>
                 cov.coverage_id === payload.coverage);

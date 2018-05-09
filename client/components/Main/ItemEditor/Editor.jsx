@@ -484,7 +484,6 @@ EditorComponent.propTypes = {
     onSave: PropTypes.func.isRequired,
     onPost: PropTypes.func.isRequired,
     onUnpost: PropTypes.func.isRequired,
-    onSaveUnpost: PropTypes.func.isRequired,
     session: PropTypes.object,
     privileges: PropTypes.object,
     lockedItems: PropTypes.object,

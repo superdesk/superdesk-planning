@@ -440,7 +440,7 @@ const refetch = (page = 1, plannings = []) => (
  */
 const fetchPlanningsEvents = (plannings) => (
     (dispatch, getState) => {
-        const loadedEvents = selectors.getEvents(getState());
+        const loadedEvents = selectors.events.storedEvents(getState());
         const linkedEvents = plannings
             .map((p) => p.event_item)
             .filter((eid) => (
@@ -472,7 +472,7 @@ const fetchById = (pid, {force = false, saveToStore = true, loadEvents = true} =
     (dispatch, getState, {api}) => {
         // Test if the Planning item is already loaded into the store
         // If so, return that instance instead
-        const storedPlannings = selectors.getStoredPlannings(getState());
+        const storedPlannings = selectors.planning.storedPlannings(getState());
         let promise;
 
         if (has(storedPlannings, pid) && !force) {
@@ -635,7 +635,7 @@ const queryLockedPlanning = () => (
  */
 const getPlanning = (planId, saveToStore = true) => (
     (dispatch, getState) => {
-        const plannings = selectors.getStoredPlannings(getState());
+        const plannings = selectors.planning.storedPlannings(getState());
 
         if (planId in plannings) {
             return Promise.resolve(plannings[planId]);
@@ -749,7 +749,7 @@ const saveAndReloadCurrentAgenda = (item) => (
         })
             .then((originalItem) => {
                 if (isEqual(originalItem, {})) {
-                    const currentAgendaId = selectors.getCurrentAgendaId(getState());
+                    const currentAgendaId = selectors.planning.currentAgendaId(getState());
                     const errorMessage = {data: {}};
 
                     if (!currentAgendaId) {
@@ -844,7 +844,7 @@ const unlock = (item) => (
 const lock = (planning, lockAction = 'edit') => (
     (dispatch, getState, {api}) => {
         if (lockAction === null ||
-            lockUtils.isItemLockedInThisSession(planning, selectors.getSessionDetails(getState()))
+            lockUtils.isItemLockedInThisSession(planning, selectors.general.session(getState()))
         ) {
             return Promise.resolve(planning);
         }
@@ -919,8 +919,8 @@ function exportAsArticle() {
             });
         });
 
-        if (sortableItems.length < state.planning.selectedItems.length) {
-            const count = state.planning.selectedItems.length - sortableItems.length;
+        if (sortableItems.length < state.multiSelect.selectedPlanningIds.length) {
+            const count = state.multiSelect.selectedPlanningIds.length - sortableItems.length;
 
             if (count === 1) {
                 notify.warning(gettext('1 item was not included in the export.'));

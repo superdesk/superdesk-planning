@@ -25,7 +25,7 @@ const getActionDispatches = ({
         [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
             actions.events.ui.openPostponeModal,
         [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]:
-            actions.events.ui.updateTime,
+            actions.events.ui.updateTimeModal,
         [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]:
             actions.events.ui.openRescheduleModal,
         [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:

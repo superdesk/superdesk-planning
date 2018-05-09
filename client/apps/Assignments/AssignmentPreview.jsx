@@ -153,7 +153,7 @@ AssignmentPreviewComponent.propTypes = {
 
 const mapStateToProps = (state) => ({
     assignment: selectors.getCurrentAssignment(state),
-    users: selectors.getUsers(state),
+    users: selectors.general.users(state),
     previewOpened: selectors.getPreviewAssignmentOpened(state),
     lockedItems: selectors.locks.getLockedItems(state),
 });

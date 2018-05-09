@@ -103,9 +103,9 @@ PlanningSubNavComponent.defaultProps = {showFilters: true};
 const mapStateToProps = (state) => ({
     fullText: selectors.main.fullText(state),
     activeFilter: selectors.main.activeFilter(state),
-    enabledAgendas: selectors.getEnabledAgendas(state),
-    disabledAgendas: selectors.getDisabledAgendas(state),
-    currentAgendaId: selectors.getCurrentAgendaId(state),
+    enabledAgendas: selectors.general.enabledAgendas(state),
+    disabledAgendas: selectors.general.disabledAgendas(state),
+    currentAgendaId: selectors.planning.currentAgendaId(state),
     isViewFiltered: selectors.main.isViewFiltered(state),
     enabledCalendars: selectors.events.enabledCalendars(state),
     disabledCalendars: selectors.events.disabledCalendars(state),
