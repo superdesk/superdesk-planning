@@ -831,3 +831,87 @@ Feature: Events Recurring
             }
         ]}
         """
+
+    @auth
+    Scenario: Create new Recurring Events from a Planning item
+        Given we have sessions "/sessions"
+        Given "planning"
+        """
+        [{
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "TestPlanning",
+            "state": "draft"
+        }]
+        """
+        When we post to "events"
+        """
+        {
+            "name": "TestEvent",
+            "slugline": "TestEvent",
+            "_planning_item": "plan1",
+            "dates": {
+                "start": "2029-11-21T02:00:00.000Z",
+                "end": "2029-11-21T04:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 3,
+                    "endRepeatMode": "count"
+                }
+            }
+        }
+        """
+        Then we get OK response
+        And we store "EVENT1" with first item
+        And we store "EVENT2" with 2 item
+        And we store "EVENT3" with 3 item
+        When we get "/planning/plan1"
+        Then we get existing resource
+        """
+        {
+            "slugline": "TestPlanning",
+            "event_item": "#EVENT1._id#",
+            "recurrence_id": "#EVENT1.recurrence_id#"
+        }
+        """
+        When we get "/events/#EVENT1._id#"
+        Then we get existing resource
+        """
+        {
+            "recurrence_id": "#EVENT1.recurrence_id#",
+            "name": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T02:00:00+0000",
+                "end": "2029-11-21T04:00:00+0000"
+            },
+            "planning_ids": ["plan1"]
+        }
+        """
+        When we get "/events/#EVENT2._id#"
+        Then we get existing resource
+        """
+        {
+            "recurrence_id": "#EVENT1.recurrence_id#",
+            "name": "TestEvent",
+            "dates": {
+                "start": "2029-11-22T02:00:00+0000",
+                "end": "2029-11-22T04:00:00+0000"
+            },
+            "planning_ids": "__no_value__"
+        }
+        """
+        When we get "/events/#EVENT3._id#"
+        Then we get existing resource
+        """
+        {
+            "recurrence_id": "#EVENT1.recurrence_id#",
+            "name": "TestEvent",
+            "dates": {
+                "start": "2029-11-23T02:00:00+0000",
+                "end": "2029-11-23T04:00:00+0000"
+            },
+            "planning_ids": "__no_value__"
+        }
+        """
