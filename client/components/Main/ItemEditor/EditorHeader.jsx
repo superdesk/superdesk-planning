@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {isEqual} from 'lodash';
+import {get} from 'lodash';
+
 import {ITEM_TYPE, PRIVILEGES, KEYCODES, ICON_COLORS} from '../../../constants';
 import {
     gettext,
@@ -24,7 +25,6 @@ export class EditorHeader extends React.Component {
     constructor(props) {
         super(props);
         this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.handleCancel = this.handleCancel.bind(this);
     }
 
     componentWillMount() {
@@ -46,209 +46,292 @@ export class EditorHeader extends React.Component {
                 this.props.onSave();
             } else if (event.keyCode === KEYCODES.E) {
                 onEventCapture(event);
-                this.handleCancel();
+                this.props.cancel();
             }
         }
     }
 
-    handleCancel() {
-        const {dirty, openCancelModal, onSave, cancel, errors} = this.props;
+    getEventStates(states) {
+        const {
+            item,
+            lockedItems,
+            session,
+            privileges,
+        } = this.props;
 
-        if (dirty) {
-            openCancelModal({
-                title: gettext('Save changes?'),
-                body: gettext('There are some unsaved changes, do you want to save it now?'),
-                okText: gettext('Save'),
-                showIgnore: true,
-                action: !isEqual(errors, {}) ? null : () => onSave().finally(cancel),
-                ignore: cancel,
-            });
-        } else {
-            this.props.cancel();
+        states.showEdit = states.existingItem &&
+            !states.isLockedInContext &&
+            eventUtils.canEditEvent(item, session, privileges, lockedItems);
+
+        if (states.isLockedInContext && get(states.itemLock, 'action') === 'edit') {
+            states.canPost = eventUtils.canPostEvent(item, session, privileges, lockedItems);
+            states.canUnpost = eventUtils.canUnpostEvent(item, session, privileges, lockedItems);
+            states.canUpdate = eventUtils.canUpdateEvent(item, session, privileges, lockedItems);
+            states.canEdit = eventUtils.canEditEvent(item, session, privileges, lockedItems);
         }
+    }
+
+    getPlanningStates(states) {
+        const {
+            item,
+            diff,
+            lockedItems,
+            session,
+            privileges,
+        } = this.props;
+
+        states.showEdit = states.existingItem &&
+            !states.isLockedInContext &&
+            planningUtils.canEditPlanning(item, null, session, privileges, lockedItems);
+
+        if (states.isLockedInContext && get(states.itemLock, 'action') === 'edit') {
+            states.canPost = planningUtils.canPostPlanning(diff, null, session, privileges, lockedItems);
+            states.canUnpost = planningUtils.canUnpostPlanning(item, null, session, privileges, lockedItems);
+            states.canUpdate = planningUtils.canUpdatePlanning(item, null, session, privileges, lockedItems);
+            states.canEdit = planningUtils.canEditPlanning(item, null, session, privileges, lockedItems);
+        }
+    }
+
+    getItemStates() {
+        const {
+            item,
+            itemType,
+            lockedItems,
+            addNewsItemToPlanning,
+            createAndPost,
+            users,
+            session,
+        } = this.props;
+
+        // Set the default states
+        const states = {
+            showCancel: true,
+            canPost: false,
+            canUnpost: false,
+            canUpdate: false,
+            canEdit: false,
+            showSave: false,
+            existingItem: false,
+            notExistingItem: false,
+            showCreateAndPost: false,
+            showEdit: false,
+            isLockedInContext: false,
+            itemLock: null,
+            lockedUser: null,
+            isLockRestricted: false,
+            isEvent: false,
+            isPublic: false,
+            showUpdate: false,
+            isBeingEdited: false,
+        };
+
+        states.itemLock = lockUtils.getLock(item, lockedItems);
+        states.isLockedInContext = addNewsItemToPlanning ?
+            planningUtils.isLockedForAddToPlanning(item) :
+            !!states.itemLock;
+
+        states.lockedUser = lockUtils.getLockedUser(item, lockedItems, users);
+        states.isLockRestricted = lockUtils.isLockRestricted(item, session, lockedItems) ||
+                (!!item && !states.isLockedInContext);
+
+        states.existingItem = isExistingItem(item);
+        states.notExistingItem = !isExistingItem(item);
+        states.isEvent = itemType === ITEM_TYPE.EVENT;
+        states.isPublic = isItemPublic(item);
+
+        states.isEvent ?
+            this.getEventStates(states) :
+            this.getPlanningStates(states);
+
+        states.showUpdate = states.isPublic && states.canUpdate;
+        states.showSave = !states.isPublic && states.canEdit;
+        states.isBeingEdited = states.showUpdate || states.showSave;
+        states.showCreateAndPost = states.existingItem && createAndPost;
+
+        return states;
+    }
+
+    renderIcon(states) {
+        const {item, itemType, users, showUnlock, onUnlock, privileges} = this.props;
+        const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK];
+
+        return (
+            <StretchBar>
+                <ItemIcon
+                    item={item || {type: itemType}}
+                    doubleSize={true}
+                    color={states.isEvent ? ICON_COLORS.WHITE : ICON_COLORS.LIGHT_BLUE}
+                />
+
+                {states.itemLock && (states.isLockRestricted || states.itemLock.action !== 'edit') && (
+                    <LockContainer
+                        lockedUser={states.lockedUser}
+                        users={users}
+                        showUnlock={unlockPrivilege && showUnlock}
+                        withLoggedInfo={true}
+                        onUnlock={onUnlock.bind(null, item)}
+                        small={false}
+                        noMargin={true}
+                    />
+                )}
+            </StretchBar>
+        );
+    }
+
+    renderButtons(states) {
+        const {
+            item,
+            submitting,
+            dirty,
+            onSave,
+            onSaveAndPost,
+            onPost,
+            onSaveUnpost,
+            onUnpost,
+            onLock,
+            cancel,
+        } = this.props;
+
+        const notDirtyOrSubmitting = !dirty || submitting;
+        const buttons = [{
+            state: 'showCancel',
+            props: {
+                color: states.isEvent ? 'ui-dark' : null,
+                disabled: submitting,
+                onClick: cancel,
+                text: dirty ? gettext('Cancel') : gettext('Close'),
+                tabIndex: 0,
+                enterKeyIsClick: true,
+            },
+        }, {
+            state: 'canPost',
+            props: {
+                color: 'success',
+                disabled: submitting,
+                onClick: dirty ? onSaveAndPost : onPost,
+                text: dirty ? gettext('Save & Post') : gettext('Post'),
+            },
+        }, {
+            state: 'canUnpost',
+            props: {
+                color: states.isEvent ? 'warning' : null,
+                hollow: !states.isEvent,
+                disabled: submitting,
+                onClick: dirty ? onSaveUnpost : onUnpost,
+                text: dirty ? gettext('Save & Unpost') : gettext('Unpost'),
+            },
+        }, {
+            state: 'showSave',
+            props: {
+                color: 'primary',
+                disabled: notDirtyOrSubmitting,
+                onClick: onSave,
+                text: gettext('Save'),
+                enterKeyIsClick: true,
+            },
+        }, {
+            state: 'showUpdate',
+            props: {
+                color: 'primary',
+                disabled: notDirtyOrSubmitting,
+                onClick: onSaveAndPost,
+                text: gettext('Update'),
+                enterKeyIsClick: true,
+            },
+        }, {
+            state: 'notExistingItem',
+            props: {
+                color: 'primary',
+                disabled: notDirtyOrSubmitting,
+                onClick: onSave,
+                text: gettext('Create'),
+                enterKeyIsClick: true,
+            },
+        }, {
+            state: 'showCreateAndPost',
+            props: {
+                color: 'primary',
+                disabled: notDirtyOrSubmitting,
+                onClick: onSaveAndPost,
+                text: gettext('Create & Post'),
+                enterKeyIsClick: true,
+            },
+        }, {
+            state: 'showEdit',
+            props: {
+                color: 'primary',
+                onClick: onLock.bind(null, item),
+                text: gettext('Edit'),
+                enterKeyIsClick: true,
+            },
+        }];
+
+        return (
+            <StretchBar right={true}>
+                {buttons.map((button) => (
+                    states[button.state] &&
+                        <Button
+                            key={button.state}
+                            {...button.props}
+                        />
+                ))}
+            </StretchBar>
+        );
     }
 
     render() {
         const {
             item,
-            diff,
             onAddCoverage,
-            onSave,
-            onPost,
-            onSaveAndPost,
-            onUnpost,
-            onSaveUnpost,
             minimize,
-            submitting,
-            dirty,
             session,
             privileges,
             lockedItems,
             itemActions,
-            users,
-            onUnlock,
-            onLock,
-            addNewsItemToPlanning,
-            itemType,
-            showUnlock,
-            createAndPost,
             hideItemActions,
             hideMinimize,
             hideExternalEdit,
             closeEditorAndOpenModal,
+            flushAutosave,
         } = this.props;
 
-        // Do not show the tabs if we're creating a new item
-        const existingItem = isExistingItem(item);
-        const isPublic = isItemPublic(item);
-        const itemLock = lockUtils.getLock(item, lockedItems);
-        const isLockedInContext = addNewsItemToPlanning ? planningUtils.isLockedForAddToPlanning(item) : !!itemLock;
-        const isEvent = itemType === ITEM_TYPE.EVENT;
-
-        let canPost = false;
-        let canUnpost = false;
-        let canUpdate = false;
-        let canEdit = false;
-
-        if (isLockedInContext) {
-            if (isEvent) {
-                canPost = eventUtils.canPostEvent(item, session, privileges, lockedItems);
-                canUnpost = eventUtils.canUnpostEvent(item, session, privileges, lockedItems);
-                canUpdate = eventUtils.canUpdateEvent(item, session, privileges, lockedItems);
-                canEdit = eventUtils.canEditEvent(item, session, privileges, lockedItems);
-            } else if (!isEvent) {
-                canPost = planningUtils.canPostPlanning(diff, null, session, privileges, lockedItems);
-                canUnpost = planningUtils.canUnpostPlanning(item, null, session, privileges, lockedItems);
-                canUpdate = planningUtils.canUpdatePlanning(item, null, session, privileges, lockedItems);
-                canEdit = planningUtils.canEditPlanning(item, null, session, privileges, lockedItems);
-            }
-        }
-
-        const lockedUser = lockUtils.getLockedUser(item, lockedItems, users);
-        const isLockRestricted = lockUtils.isLockRestricted(item, session, lockedItems) ||
-                (!!item && !isLockedInContext);
-        const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK];
-
-        const showUpdate = isPublic && canUpdate;
-        const showSave = !isPublic && canEdit;
-        const isBeingEdited = showUpdate || showSave;
+        const states = this.getItemStates();
 
         return (
-            <Header className="subnav" darkBlue={isEvent} darker={!isEvent}>
-                <StretchBar>
-                    <ItemIcon
-                        item={item || {type: itemType}}
-                        doubleSize={true}
-                        color={isEvent ? ICON_COLORS.WHITE : ICON_COLORS.LIGHT_BLUE}
+            <Header
+                className="subnav"
+                darkBlue={states.isEvent}
+                darker={!states.isEvent}
+            >
+                {this.renderIcon(states)}
+                {this.renderButtons(states)}
+
+                {states.isBeingEdited && !hideMinimize && (
+                    <NavButton
+                        onClick={minimize}
+                        icon="big-icon--minimize"
+                        title={gettext('Minimise')}
                     />
-
-                    {isLockRestricted && (
-                        <LockContainer
-                            lockedUser={lockedUser}
-                            users={users}
-                            showUnlock={unlockPrivilege && showUnlock}
-                            withLoggedInfo={true}
-                            onUnlock={onUnlock.bind(null, item)}
-                            small={false}
-                            noMargin={true}
-                        />
-                    )}
-                </StretchBar>
-
-                <StretchBar right={true}>
-                    <Button
-                        color={isEvent ? 'ui-dark' : null}
-                        disabled={submitting}
-                        onClick={this.handleCancel}
-                        text={dirty ? gettext('Cancel') : gettext('Close')}
-                        tabIndex={0}
-                        enterKeyIsClick
-                    />
-
-                    {canPost && (
-                        <Button
-                            color="success"
-                            disabled={submitting}
-                            onClick={dirty ? onSaveAndPost : onPost}
-                            text={dirty ? gettext('Save & Post') : gettext('Post')}
-                        />
-                    )}
-
-                    {canUnpost && (
-                        <Button
-                            hollow={true}
-                            disabled={submitting}
-                            onClick={dirty ? onSaveUnpost : onUnpost}
-                            text={dirty ? gettext('Save & Unpost') : gettext('Unpost')}
-                        />
-                    )}
-
-                    {showUpdate && (
-                        <Button
-                            color="primary"
-                            disabled={!dirty || submitting}
-                            onClick={onSaveAndPost}
-                            text={gettext('Update')}
-                            enterKeyIsClick
-                        />
-                    )}
-
-                    {showSave && (
-                        <Button
-                            color="primary"
-                            disabled={!dirty || submitting}
-                            onClick={onSave}
-                            text={gettext('Save')}
-                            enterKeyIsClick
-                        />
-                    )}
-
-                    {!existingItem && (
-                        <Button
-                            color="primary"
-                            disabled={!dirty || submitting}
-                            onClick={onSave}
-                            text={gettext('Create')}
-                            enterKeyIsClick
-                        />
-                    )}
-
-                    {!existingItem && createAndPost &&
-                        itemType === ITEM_TYPE.PLANNING && (
-                        <Button
-                            color="primary"
-                            disabled={!dirty || submitting}
-                            onClick={onSaveAndPost}
-                            text={gettext('Create and post')}
-                            enterKeyIsClick
-                        />
-                    )}
-
-                    {existingItem && !isLockedInContext && canEdit && (
-                        <Button
-                            color="primary"
-                            onClick={onLock.bind(null, item)}
-                            text={gettext('Edit')}
-                        />
-                    )}
-                </StretchBar>
-
-                {isBeingEdited && !hideMinimize && (
-                    <NavButton onClick={minimize} icon="big-icon--minimize" title={gettext('Minimise')}/>
                 )}
 
-                {isBeingEdited && !hideExternalEdit && (
-                    <NavButton onClick={closeEditorAndOpenModal.bind(null, item)} icon="icon-external"
-                        title={gettext('Edit in popup')}/>
+                {states.isBeingEdited && !hideExternalEdit && (
+                    <NavButton
+                        onClick={closeEditorAndOpenModal.bind(null, item)}
+                        icon="icon-external"
+                        title={gettext('Edit in popup')}
+                    />
                 )}
 
-                {!isLockRestricted && !hideItemActions && (
-                    <EditorItemActions item={item}
+                {!hideItemActions && (
+                    <EditorItemActions
+                        item={item}
                         onAddCoverage={onAddCoverage}
                         itemActions={itemActions}
                         session={session}
                         privileges={privileges}
-                        lockedItems={lockedItems} />
+                        lockedItems={lockedItems}
+                        flushAutosave={flushAutosave}
+                    />
                 )}
             </Header>
         );
@@ -285,4 +368,5 @@ EditorHeader.propTypes = {
     closeEditorAndOpenModal: PropTypes.func,
     hideExternalEdit: PropTypes.bool,
     onAddCoverage: PropTypes.func,
+    flushAutosave: PropTypes.func,
 };

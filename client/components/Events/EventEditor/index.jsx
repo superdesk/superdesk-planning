@@ -323,6 +323,7 @@ export class EventEditorComponent extends React.Component {
                             component={FileInput}
                             field="files"
                             createLink={createUploadLink}
+                            defaultValue={[]}
                             {...fieldProps}
                             onFocus={onFocusFiles}
                         />

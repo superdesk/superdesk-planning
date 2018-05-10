@@ -36,28 +36,31 @@ export class EventItem extends React.PureComponent {
 
         const itemActionsCallBack = {
             [EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName],
+                this.props[EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName],
-            [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
+                this.props[EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName].bind(null, item, true),
+            [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
+                this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
             [EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName],
-            [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
-            [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
+            [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]:
+                this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName].bind(null, item),
+            [EVENTS.ITEM_ACTIONS.SPIKE.actionName]:
+                this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
+                this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
+                this.props[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName],
+                this.props[EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName],
+                this.props[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
+                this.props[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName],
+                this.props[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName].bind(null, item),
         };
         const itemActions = eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack);
 

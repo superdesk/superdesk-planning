@@ -1,7 +1,7 @@
 import * as selectors from '../selectors';
 import {LOCKS, ITEM_TYPE, WORKSPACE, PLANNING} from '../constants';
 import {planning, events, assignments} from './index';
-import {lockUtils, getItemType} from '../utils';
+import {lockUtils, getItemType, gettext} from '../utils';
 
 /**
  * Action Dispatcher to load all Event and Planning locks
@@ -59,8 +59,10 @@ const unlock = (item) => (
         const currentLock = lockUtils.getLock(item, locks);
 
         if (currentLock === null) {
-            notify.error('Failed to unlock the item. Lock not found!');
-            return Promise.reject('Failed to unlock the item. Lock not found!');
+            const errorMessage = gettext('Failed to unlock the item. Lock not found!');
+
+            notify.error(errorMessage);
+            return Promise.reject(errorMessage);
         }
 
         switch (currentLock.item_type) {
@@ -72,22 +74,27 @@ const unlock = (item) => (
     }
 );
 
-const lock = (item) => (
-    (dispatch, getState) => {
+const lock = (item, lockAction = 'edit') => (
+    (dispatch, getState, {notify}) => {
         const itemType = getItemType(item);
         const currentWorkspace = selectors.general.currentWorkspace(getState());
-        let lockAction;
 
         switch (itemType) {
         case ITEM_TYPE.EVENT:
-            return dispatch(events.api.lock(item));
+            return dispatch(events.api.lock(item, lockAction));
         case ITEM_TYPE.PLANNING:
-            lockAction = currentWorkspace === WORKSPACE.AUTHORING ?
-                PLANNING.ITEM_ACTIONS.ADD_TO_PLANNING.lock_action : 'edit';
-            return dispatch(planning.api.lock(item, lockAction));
+            return dispatch(planning.api.lock(
+                item,
+                currentWorkspace === WORKSPACE.AUTHORING ?
+                    PLANNING.ITEM_ACTIONS.ADD_TO_PLANNING.lock_action :
+                    lockAction
+            ));
         }
 
-        return Promise.reject('Could not determine item type');
+        const errorMessage = gettext('Failed to lock the item, could not determine item type!');
+
+        notify.error(errorMessage);
+        return Promise.reject(errorMessage);
     }
 );
 

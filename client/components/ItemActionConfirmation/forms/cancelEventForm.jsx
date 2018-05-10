@@ -1,14 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import {get} from 'lodash';
+
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 import {eventUtils, gettext} from '../../../utils';
 import {EVENTS} from '../../../constants';
+
 import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {Row} from '../../UI/Preview';
 import {TextAreaInput} from '../../UI/Form';
+
 import '../style.scss';
 
 export class CancelEventComponent extends React.Component {
@@ -140,6 +144,7 @@ CancelEventComponent.propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     onHide: PropTypes.func,
     submitting: PropTypes.bool,
+    modalProps: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
@@ -149,10 +154,16 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (event) => dispatch(actions.events.ui.cancelEvent(event)),
-    onHide: (event) => {
-        if (event.lock_action === EVENTS.ITEM_ACTIONS.CANCEL_EVENT.lock_action) {
-            return dispatch(actions.events.api.unlock(event));
+    onHide: (event, modalProps) => {
+        const promise = event.lock_action === EVENTS.ITEM_ACTIONS.CANCEL_EVENT.lock_action ?
+            dispatch(actions.events.api.unlock(event)) :
+            Promise.resolve(event);
+
+        if (get(modalProps, 'onCloseModal')) {
+            promise.then((updatedEvent) => modalProps.onCloseModal(updatedEvent));
         }
+
+        return promise;
     },
 });
 

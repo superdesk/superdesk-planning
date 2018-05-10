@@ -1,11 +1,11 @@
-import {MAIN, ITEM_TYPE} from '../constants';
+import {MAIN, ITEM_TYPE, MODALS, WORKSPACE} from '../constants';
 import {activeFilter, lastRequestParams} from '../selectors/main';
 import planningUi from './planning/ui';
 import planningApi from './planning/api';
 import eventsUi from './events/ui';
 import eventsApi from './events/api';
 import autosave from './autosave';
-import {locks, showModal} from './';
+import {locks, showModal, hideModal} from './';
 import {selectAgenda, fetchSelectedAgendaPlannings} from './agenda';
 import {
     getErrorMessage,
@@ -18,11 +18,10 @@ import {
     getItemTypeString,
     timeUtils,
     isExistingItem,
+    lockUtils,
 } from '../utils';
-import {MODALS, WORKSPACE} from '../constants';
 import eventsPlanningUi from './eventsPlanning/ui';
-import {get, omit, isEmpty, isNil} from 'lodash';
-import {lockUtils} from '../utils';
+import {get, omit, isEmpty, isNil, isEqual} from 'lodash';
 
 import * as selectors from '../selectors';
 
@@ -83,17 +82,20 @@ const lockAndEdit = (item, modal = false) => (
 const unlockAndCancel = (item, modal = false) => (
     (dispatch, getState) => {
         const state = getState();
+        let promise = Promise.resolve();
 
         // If the item exists and is locked in this session
         // then unlock the item
-        if (shouldUnLockItem(item,
+        if (shouldUnLockItem(
+            item,
             selectors.general.session(state),
-            selectors.general.currentWorkspace(state))) {
-            dispatch(locks.unlock(item));
+            selectors.general.currentWorkspace(state))
+        ) {
+            promise = dispatch(locks.unlock(item));
         } else if (get(item, '_planning_item')) {
-            dispatch(planningApi.unlock({_id: item._planning_item}));
+            promise = dispatch(planningApi.unlock({_id: item._planning_item}));
         } else if (!isExistingItem(item)) {
-            dispatch(autosave.removeNewItems());
+            promise = dispatch(autosave.removeNewItems());
         }
 
         if (!modal) {
@@ -102,7 +104,7 @@ const unlockAndCancel = (item, modal = false) => (
             dispatch(self.closeEditorModal());
         }
 
-        return Promise.resolve();
+        return promise;
     }
 );
 
@@ -265,6 +267,168 @@ const openConfirmationModal = ({title, body, okText, showIgnore, action, ignore}
             },
         }))
     )
+);
+
+const saveAutosave = (item, withConfirmation = true, updateMethod) => (
+    (dispatch, getState) => {
+        const autosaves = selectors.forms.autosaves(getState());
+        const itemType = getItemType(item);
+        const autosaveData = get(autosaves, `${itemType}["${item._id}"]`);
+
+        if (!autosaveData) {
+            return Promise.resolve(item);
+        }
+
+        const updatedItem = {
+            ...item,
+            ...autosaveData,
+        };
+
+        if (itemType === ITEM_TYPE.EVENT) {
+            updatedItem.update_method = updateMethod;
+        }
+
+        return dispatch(self.save(updatedItem, withConfirmation));
+    }
+);
+
+const openActionModalFromEditor = (item, title, action) => (
+    (dispatch, getState) => {
+        const lockedItems = selectors.locks.getLockedItems(getState());
+        const itemLock = lockUtils.getLock(item, lockedItems);
+
+        const itemType = getItemType(item);
+        const autosaves = selectors.forms.autosaves(getState());
+        const autosaveData = get(autosaves, `${itemType}["${item._id}"]`);
+
+        const isOpenInEditor = selectors.forms.currentItemId(getState()) === item._id;
+        const isOpenInModal = selectors.forms.currentItemIdModal(getState()) === item._id;
+
+        let promise;
+
+        if (itemLock) {
+            // If we have Autosave Data, then open the IgnoreCancelSave modal
+            // Because the Autosave stores the _id and changed fields only
+            // If Autosave data only contains the '_id', then there are no Autosave changes
+            if (autosaveData && !isEqual(Object.keys(autosaveData), ['_id'])) {
+                // If the item is currently open in the ItemEditorModal
+                // then hide the modal for now (we will show the modal again later)
+                if (isOpenInModal) {
+                    dispatch(hideModal());
+                }
+
+                promise = dispatch(self.openIgnoreCancelSaveModal({
+                    itemId: item._id,
+                    itemType: itemType,
+                    onCancel: () =>
+                        dispatch(hideModal()),
+                    onIgnore: () =>
+                        dispatch(locks.unlock(item))
+                            .then((unlockedItem) => {
+                                dispatch(hideModal());
+                                return action(unlockedItem, itemLock, isOpenInEditor, isOpenInModal);
+                            }),
+                    onGoTo: (isOpenInEditor || isOpenInModal) ?
+                        null :
+                        () => {
+                            dispatch(hideModal());
+                            return dispatch(self.lockAndEdit(item));
+                        },
+                    onSave: (!isOpenInEditor && !isOpenInModal) ?
+                        null :
+                        (withConfirmation, updateMethod) =>
+                            dispatch(self.saveAutosave(item, withConfirmation, updateMethod))
+                                .then((updatedItem) => dispatch(locks.unlock(updatedItem)))
+                                .then((unlockedItem) => {
+                                    dispatch(hideModal());
+                                    return action(unlockedItem, itemLock, isOpenInEditor, isOpenInModal);
+                                }),
+                    autoClose: false,
+                    title: title,
+                }));
+            } else {
+                promise = dispatch(locks.unlock(item))
+                    .then((unlockedItem) => action(unlockedItem, itemLock, isOpenInEditor, isOpenInModal));
+            }
+        } else {
+            promise = action(item, itemLock, isOpenInEditor, isOpenInModal);
+        }
+
+        return promise;
+    }
+);
+
+const openIgnoreCancelSaveModal = ({
+    itemId,
+    itemType,
+    onCancel,
+    onIgnore,
+    onSave,
+    onGoTo,
+    title,
+    autoClose = true,
+}) => (
+    (dispatch, getState) => {
+        const autosaves = selectors.forms.autosaves(getState());
+        const autosaveData = itemId ?
+            get(autosaves, `${itemType}["${itemId}"]`) :
+            {};
+
+        if (itemId && !autosaveData) {
+            return onIgnore();
+        }
+
+        const storedItems = itemType === ITEM_TYPE.EVENT ?
+            selectors.events.storedEvents(getState()) :
+            selectors.planning.storedPlannings(getState());
+
+        const item = {
+            ...get(storedItems, itemId) || {},
+            ...autosaveData,
+        };
+
+        if (!isExistingItem(item)) {
+            delete item._id;
+        }
+
+        let promise = Promise.resolve(item);
+
+        if (itemType === ITEM_TYPE.EVENT && eventUtils.isEventRecurring(item)) {
+            const events = selectors.getEvents(getState());
+            const originalEvent = get(events, event._id, {});
+            const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
+
+            promise = dispatch(eventsApi.query({
+                recurrenceId: originalEvent.recurrence_id,
+                maxResults: maxRecurringEvents,
+                onlyFuture: false,
+            }))
+                .then((relatedEvents) => ({
+                    ...item,
+                    _recurring: relatedEvents || [item],
+                    _events: [],
+                    _originalEvent: originalEvent,
+                }));
+        }
+
+        return promise
+            .then((itemWithAssociatedData) => (
+                dispatch(showModal({
+                    modalType: MODALS.IGNORE_CANCEL_SAVE,
+                    modalProps: {
+                        item: itemWithAssociatedData,
+                        itemType: itemType,
+                        onCancel: onCancel,
+                        onIgnore: onIgnore,
+                        onSave: onSave,
+                        onGoTo: onGoTo,
+                        title: title,
+                        autosaveData: autosaveData,
+                        autoClose: autoClose,
+                    },
+                }))
+            ));
+    }
 );
 
 const closePreviewAndEditorForItems = (items, actionMessage = '', field = '_id') => (
@@ -799,6 +963,9 @@ const self = {
     jumpTo,
     notifyValidationErrors,
     setStartFilter,
+    openIgnoreCancelSaveModal,
+    saveAutosave,
+    openActionModalFromEditor,
 };
 
 export default self;

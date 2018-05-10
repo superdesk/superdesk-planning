@@ -36,6 +36,7 @@ export {ContactEditor} from './ContactEditor/index';
 export {AdvancedSearch} from './AdvancedSearch';
 export {InternalNoteLabel} from './InternalNoteLabel';
 export {Location} from './Location';
+export {IgnoreCancelSaveModal} from './IgnoreCancelSaveModal';
 
 // This must go last, as it imports Modals from above modules
 export {ModalsContainer} from './ModalsContainer';

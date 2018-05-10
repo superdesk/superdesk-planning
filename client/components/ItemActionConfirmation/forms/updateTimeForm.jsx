@@ -93,7 +93,7 @@ export class UpdateTimeComponent extends React.Component {
     }
 
     submit() {
-        return this.props.onSubmit(this.state.diff);
+        return this.props.onSubmit(this.state.diff, get(this.props, 'modalProps') || {});
     }
 
     getPopupContainer() {
@@ -217,6 +217,7 @@ UpdateTimeComponent.propTypes = {
     onValidate: PropTypes.func,
     formProfiles: PropTypes.object,
     submitting: PropTypes.bool,
+    modalProps: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
@@ -226,11 +227,25 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event) => dispatch(actions.events.ui.updateEventTime(event)),
-    onHide: (event) => {
-        if (event.lock_action === EVENTS.ITEM_ACTIONS.UPDATE_TIME.lock_action) {
-            dispatch(actions.events.api.unlock(event));
+    onSubmit: (event, modalProps) => {
+        const promise = dispatch(actions.events.ui.updateEventTime(event));
+
+        if (get(modalProps, 'onCloseModal')) {
+            promise.then((updatedEvent) => modalProps.onCloseModal(updatedEvent));
         }
+
+        return promise;
+    },
+    onHide: (event, modalProps) => {
+        const promise = event.lock_action === EVENTS.ITEM_ACTIONS.UPDATE_TIME.lock_action ?
+            dispatch(actions.events.api.unlock(event)) :
+            Promise.resolve(event);
+
+        if (get(modalProps, 'onCloseModal')) {
+            promise.then((updatedEvent) => modalProps.onCloseModal(updatedEvent));
+        }
+
+        return promise;
     },
     onValidate: (item, profile, errors) => dispatch(validateItem('event', item, profile, errors, [], ['dates'])),
 });

@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import {get, isEqual, cloneDeep, omit, pickBy} from 'lodash';
 
 import {gettext, lockUtils, eventUtils, planningUtils, updateFormValues, isExistingItem} from '../../../utils';
+import {EventUpdateMethods} from '../../Events';
 
 import {ITEM_TYPE, EVENTS, PLANNING, POST_STATE, WORKFLOW_STATE, COVERAGES} from '../../../constants';
 
@@ -44,6 +45,8 @@ export class EditorComponent extends React.Component {
         this.onAddCoverage = this.onAddCoverage.bind(this);
         this.startPartialSave = this.startPartialSave.bind(this);
         this.onMinimized = this.onMinimized.bind(this);
+        this.flushAutosave = this.flushAutosave.bind(this);
+        this.cancelFromHeader = this.cancelFromHeader.bind(this);
 
         this.tabs = [
             {label: gettext('Content'), render: EditorContentTab, enabled: true},
@@ -53,6 +56,8 @@ export class EditorComponent extends React.Component {
         if (this.props.addNewsItemToPlanning) {
             this.tearDownRequired = true;
         }
+
+        this.dom = {autosave: null};
     }
 
     componentDidMount() {
@@ -192,7 +197,7 @@ export class EditorComponent extends React.Component {
         }
     }
 
-    _save({post, unpost}) {
+    _save({post, unpost, withConfirmation, updateMethod}) {
         if (!isEqual(this.state.errors, {})) {
             this.setState({
                 submitFailed: true,
@@ -215,7 +220,11 @@ export class EditorComponent extends React.Component {
                 itemToUpdate.pubstatus = POST_STATE.CANCELLED;
             }
 
-            return this.props.onSave(itemToUpdate)
+            if (this.props.itemType === ITEM_TYPE.EVENT) {
+                itemToUpdate.update_method = updateMethod;
+            }
+
+            return this.props.onSave(itemToUpdate, withConfirmation)
                 .then(
                     () => this.setState({
                         submitting: false,
@@ -272,8 +281,8 @@ export class EditorComponent extends React.Component {
         });
     }
 
-    onSave() {
-        return this._save({post: false, unpost: false});
+    onSave(withConfirmation = true, updateMethod = EventUpdateMethods[0]) {
+        return this._save({post: false, unpost: false, withConfirmation: withConfirmation, updateMethod: updateMethod});
     }
 
     onPost() {
@@ -332,6 +341,32 @@ export class EditorComponent extends React.Component {
         });
     }
 
+    flushAutosave() {
+        if (get(this.dom, 'autosave.flush')) {
+            this.dom.autosave.flush();
+        }
+    }
+
+    cancelFromHeader() {
+        const {openCancelModal, item, initialValues, itemType} = this.props;
+        const {dirty, errors} = this.state;
+
+        if (dirty) {
+            this.flushAutosave();
+            openCancelModal({
+                itemId: get(item, '_id') || get(initialValues, '_tempId'),
+                itemType: itemType,
+                onIgnore: this.onCancel,
+                onSave: !isEqual(errors, {}) ?
+                    null :
+                    (withConfirmation, updateMethod) => this.onSave(withConfirmation, updateMethod)
+                        .finally(this.onCancel),
+            });
+        } else {
+            this.onCancel();
+        }
+    }
+
     onCancel() {
         if (this.tearDownRequired || !isExistingItem(this.props.item)) {
             this.tearDownEditorState();
@@ -375,7 +410,7 @@ export class EditorComponent extends React.Component {
             this.props.session,
             this.props.lockedItems
         );
-        const isLocked = lockUtils.getLock(this.props.item, this.props.lockedItems);
+        const itemLock = lockUtils.getLock(this.props.item, this.props.lockedItems);
 
         let canEdit = false;
 
@@ -396,15 +431,23 @@ export class EditorComponent extends React.Component {
             );
         }
 
+        const isReadOnly = existingItem &&
+            (!canEdit || !itemLock || isLockRestricted || get(itemLock, 'action') !== 'edit');
+
         return (
             <SidePanel shadowRight={true} className={this.props.className}>
                 {(!this.props.isLoadingItem && this.props.itemType) && (
                     <Autosave
                         formName={this.props.itemType}
-                        initialValues={this.props.item ? cloneDeep(this.props.item) :
-                            cloneDeep(this.props.initialValues)}
+                        initialValues={this.props.item ?
+                            cloneDeep(this.props.item) :
+                            cloneDeep(this.props.initialValues)
+                        }
                         currentValues={cloneDeep(this.state.diff)}
                         change={this.onChangeHandler}
+                        ref={(node) => this.dom.autosave = node}
+                        save={this.props.saveAutosave}
+                        load={this.props.loadAutosave}
                     />
                 )}
                 <EditorHeader
@@ -416,7 +459,7 @@ export class EditorComponent extends React.Component {
                     onUnpost={this.onUnpost}
                     onSaveUnpost={this.onSaveUnpost}
                     onAddCoverage={this.onAddCoverage}
-                    cancel={this.onCancel}
+                    cancel={this.cancelFromHeader}
                     minimize={this.onMinimized}
                     submitting={this.state.submitting}
                     dirty={this.state.dirty}
@@ -438,6 +481,7 @@ export class EditorComponent extends React.Component {
                     hideItemActions={this.props.hideItemActions}
                     hideMinimize={this.props.hideMinimize}
                     hideExternalEdit={this.props.hideExternalEdit}
+                    flushAutosave={this.flushAutosave}
                 />
                 <Content flex={true} className={this.props.contentClassName}>
                     {existingItem && (
@@ -459,7 +503,7 @@ export class EditorComponent extends React.Component {
                                 itemType={this.props.itemType}
                                 diff={this.state.diff}
                                 onChangeHandler={this.onChangeHandler}
-                                readOnly={existingItem && (!canEdit || !isLocked || isLockRestricted)}
+                                readOnly={isReadOnly}
                                 addNewsItemToPlanning={this.props.addNewsItemToPlanning}
                                 submitFailed={this.state.submitFailed}
                                 errors={this.state.errors}
@@ -514,4 +558,6 @@ EditorComponent.propTypes = {
     inModalView: PropTypes.bool,
     hideExternalEdit: PropTypes.bool,
     notifyValidationErrors: PropTypes.func,
+    saveAutosave: PropTypes.func,
+    loadAutosave: PropTypes.func,
 };

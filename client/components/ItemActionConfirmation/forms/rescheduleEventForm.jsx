@@ -1,17 +1,21 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import {get, isEqual, cloneDeep} from 'lodash';
+
 import * as actions from '../../../actions';
 import {validateItem} from '../../../validators';
 import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
-import '../style.scss';
 import {gettext, eventUtils, getDateTimeString, updateFormValues} from '../../../utils';
+import {EVENTS} from '../../../constants';
+
 import {EventScheduleSummary, EventScheduleInput} from '../../Events';
 import {RelatedPlannings} from '../../';
 import {Row} from '../../UI/Preview';
 import {TextAreaInput, Field} from '../../UI/Form';
-import {get, isEqual, cloneDeep} from 'lodash';
+
+import '../style.scss';
 
 export class RescheduleEventComponent extends React.Component {
     constructor(props) {
@@ -81,7 +85,7 @@ export class RescheduleEventComponent extends React.Component {
             ...this.props.initialValues,
             ...this.state.diff,
             reason: this.state.reason,
-        });
+        }, get(this.props, 'modalProps'));
     }
 
     getPopupContainer() {
@@ -196,6 +200,7 @@ RescheduleEventComponent.propTypes = {
     formProfiles: PropTypes.object,
 
     submitting: PropTypes.bool,
+    modalProps: PropTypes.object,
 };
 
 
@@ -206,8 +211,27 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event) => dispatch(actions.events.ui.rescheduleEvent(event)),
-    onHide: (event) => dispatch(actions.events.api.unlock(event)),
+    onSubmit: (event, modalProps) => {
+        const promise = dispatch(actions.events.ui.rescheduleEvent(event));
+
+        if (get(modalProps, 'onCloseModal')) {
+            promise.then((updatedEvent) => modalProps.onCloseModal(updatedEvent));
+        }
+
+        return promise;
+    },
+
+    onHide: (event, modalProps) => {
+        const promise = event.lock_action === EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.lock_action ?
+            dispatch(actions.events.api.unlock(event)) :
+            Promise.resolve(event);
+
+        if (get(modalProps, 'onCloseModal')) {
+            promise.then((updatedEvent) => modalProps.onCloseModal(updatedEvent));
+        }
+
+        return promise;
+    },
 
     onValidate: (item, profile, errors) => dispatch(validateItem('event', item, profile, errors, [], ['dates'])),
 });
