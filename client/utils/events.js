@@ -10,6 +10,7 @@ import {
     lockUtils,
     isItemSpiked,
     isItemPublic,
+    isItemKilled,
     getPostedState,
     isItemCancelled,
     isItemRescheduled,
@@ -199,16 +200,19 @@ const canPostEvent = (event, session, privileges, locks) => (
         !isItemSpiked(event) &&
         getPostedState(event) !== POST_STATE.USABLE &&
         !!privileges[PRIVILEGES.POST_EVENT] &&
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isEventLockRestricted(event, session, locks) &&
         !isItemCancelled(event) &&
         !isItemRescheduled(event)
 );
 
 const canUnpostEvent = (event, session, privileges, locks) => (
-    !isNil(event) && !isItemSpiked(event) &&
+    !isNil(event) &&
+        !isItemSpiked(event) &&
         !isEventLockRestricted(event, session, locks) &&
         getPostedState(event) === POST_STATE.USABLE &&
-        !!privileges[PRIVILEGES.POST_EVENT] &&
+        !!privileges[PRIVILEGES.UNPOST_EVENT] &&
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemRescheduled(event)
 );
 
@@ -252,6 +256,7 @@ const canEditEvent = (event, session, privileges, locks) => (
 const canUpdateEvent = (event, session, privileges, locks) => (
     canEditEvent(event, session, privileges, locks) &&
         isItemPublic(event) &&
+        !isItemKilled(event) &&
         !!privileges[PRIVILEGES.POST_EVENT]
 );
 
@@ -729,6 +734,11 @@ const duplicateEvent = (event, occurStatus) => {
     return duplicatedEvent;
 };
 
+export const shouldLockEventForEdit = (item, privileges) => (
+    !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
+        (!isItemPublic(item) || !!privileges[PRIVILEGES.POST_EVENT])
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     isEventAllDay,
@@ -759,6 +769,7 @@ const self = {
     getEventsByDate,
     convertToMoment,
     duplicateEvent,
+    shouldLockEventForEdit,
 };
 
 export default self;

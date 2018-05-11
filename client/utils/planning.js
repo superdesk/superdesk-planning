@@ -15,6 +15,7 @@ import {
     getItemWorkflowState,
     lockUtils,
     isItemPublic,
+    isItemKilled,
     isItemSpiked,
     isItemRescheduled,
     eventUtils,
@@ -32,6 +33,7 @@ const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
 const canPostPlanning = (planning, event, session, privileges, locks) => (
     !!privileges[PRIVILEGES.POST_PLANNING] &&
+        !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !!get(planning, '_id') &&
         !isPlanningLockRestricted(planning, session, locks) &&
         getPostedState(planning) !== POST_STATE.USABLE &&
@@ -46,7 +48,9 @@ const canPostPlanning = (planning, event, session, privileges, locks) => (
 );
 
 const canUnpostPlanning = (planning, event, session, privileges, locks) => (
-    !!privileges[PRIVILEGES.POST_PLANNING] && !isItemSpiked(planning) &&
+    !!privileges[PRIVILEGES.UNPOST_PLANNING] &&
+        !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        !isItemSpiked(planning) &&
         !isPlanningLockRestricted(planning, session, locks) &&
         getPostedState(planning) === POST_STATE.USABLE
 );
@@ -72,8 +76,9 @@ const canAssignAgenda = (planning, event, privileges, locks) => (
 
 const canUpdatePlanning = (planning, event, session, privileges, locks) => (
     canEditPlanning(planning, event, session, privileges, locks) &&
-        isItemPublic(planning) && !!privileges[PRIVILEGES.POST_PLANNING] &&
-        !isItemSpiked(planning)
+        isItemPublic(planning) &&
+        !isItemKilled(planning) &&
+        !!privileges[PRIVILEGES.POST_PLANNING]
 );
 
 const canSpikePlanning = (plan, session, privileges, locks) => (
@@ -721,6 +726,10 @@ const getCoverageWorkflowIcon = (coverage) => {
     }
 };
 
+export const shouldLockPlanningForEdit = (item, privileges) => (
+    !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        (!isItemPublic(item) || !!privileges[PRIVILEGES.POST_PLANNING])
+);
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -755,6 +764,7 @@ const self = {
     getCoverageIcon,
     getCoverageIconColor,
     getCoverageWorkflowIcon,
+    shouldLockPlanningForEdit,
 };
 
 export default self;

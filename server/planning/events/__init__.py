@@ -134,6 +134,12 @@ def init_app(app):
     )
 
     superdesk.privilege(
+        name='planning_event_unpost',
+        label='Planning - Unpost Event Items',
+        description='Ability to unpost an Event'
+    )
+
+    superdesk.privilege(
         name='planning_unlock',
         label='Planning - Unlock events and planning items',
         description='Ability to unlock Events and Planning Items'

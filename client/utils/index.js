@@ -19,12 +19,13 @@ import * as testData from './testData';
 import {gettext, gettextCatalog} from './gettext';
 import {default as lockUtils} from './locks';
 import {default as planningUtils} from './planning';
+import {default as eventUtils} from './events';
 import {default as timeUtils} from './time';
 
 
 export {default as dispatchUtils} from './dispatch';
 export {default as registerNotifications} from './notifications';
-export {default as eventUtils} from './events';
+export {eventUtils};
 export {default as uiUtils} from './ui';
 export {default as assignmentUtils} from './assignments';
 export {default as stringUtils} from './strings';
@@ -365,6 +366,7 @@ export const isSameItemId = (item1, item2) => get(item1, '_id') === get(item2, '
 export const getItemWorkflowState = (item, field = 'state') => (get(item, field, WORKFLOW_STATE.DRAFT));
 export const isItemCancelled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.CANCELLED;
 export const isItemRescheduled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.RESCHEDULED;
+export const isItemKilled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.KILLED;
 export const isItemPostponed = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.POSTPONED;
 export const isExistingItem = (item) => !!get(item, '_id');
 
@@ -478,8 +480,18 @@ export const isItemPublic = (item = {}) =>
 export const isItemSpiked = (item) => item ?
     getItemWorkflowState(item) === WORKFLOW_STATE.SPIKED : false;
 
-export const shouldLockItemForEdit = (item, lockedItems) =>
-    get(item, '_id') && !lockUtils.getLock(item, lockedItems) && !isItemSpiked(item);
+export const isEvent = (item) => getItemType(item) === ITEM_TYPE.EVENT;
+export const isPlanning = (item) => getItemType(item) === ITEM_TYPE.PLANNING;
+
+export const shouldLockItemForEdit = (item, lockedItems, privileges) =>
+    get(item, '_id') &&
+        !lockUtils.getLock(item, lockedItems) &&
+        !isItemSpiked(item) &&
+        (
+            (isEvent(item) && eventUtils.shouldLockEventForEdit(item, privileges)) ||
+            (isPlanning(item) && planningUtils.shouldLockPlanningForEdit(item, privileges))
+        )
+;
 
 export const shouldUnLockItem = (item, session, currentWorkspace) =>
     (currentWorkspace === WORKSPACE.AUTHORING && planningUtils.isLockedForAddToPlanning(item)) ||
