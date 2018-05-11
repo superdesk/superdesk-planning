@@ -121,4 +121,10 @@ def init_app(app):
         description='Ability to post a Planning Item'
     )
 
+    superdesk.privilege(
+        name='planning_planning_unpost',
+        label='Planning - Unpost Planning Items',
+        description='Ability to unpost a Planning Item'
+    )
+
     superdesk.intrinsic_privilege(PlanningUnlockResource.endpoint_name, method=['POST'])

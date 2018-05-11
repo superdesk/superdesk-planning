@@ -9,5 +9,7 @@ export const PRIVILEGES = {
     SPIKE_EVENT: 'planning_event_spike',
     UNSPIKE_EVENT: 'planning_event_unspike',
     POST_EVENT: 'planning_event_post',
+    UNPOST_EVENT: 'planning_event_unpost',
     POST_PLANNING: 'planning_planning_post',
+    UNPOST_PLANNING: 'planning_planning_unpost',
 };

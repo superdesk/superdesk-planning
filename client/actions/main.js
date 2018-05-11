@@ -31,7 +31,8 @@ const lockAndEdit = (item, modal = false) => (
         const currentItemId = selectors.forms.currentItemId(getState());
         const currentSession = selectors.general.session(getState());
         const lockedItems = selectors.locks.getLockedItems(getState());
-        const shouldLockItem = shouldLockItemForEdit(item, lockedItems);
+        const privileges = selectors.general.privileges(getState());
+        const shouldLockItem = shouldLockItemForEdit(item, lockedItems, privileges);
 
         // If the editor is in main page and this item is already opened and
         // we either have a lock or the item should not get locked.
