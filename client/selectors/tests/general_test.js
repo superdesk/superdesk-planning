@@ -26,7 +26,6 @@ describe('selectors', () => {
                 },
             },
             assignmentsInTodoList: [1, 2],
-            myAssignmentsTotal: 1,
             filterBy: 'All',
             searchQuery: 'test',
             orderByField: 'Updated',
@@ -106,110 +105,31 @@ describe('selectors', () => {
         session: {identity: {_id: 'user1'}},
     };
 
-    it('getFilterBy', () => {
-        const filterBy = selectors.getFilterBy(state);
+    it('disabledAgendas', () => {
+        const agendas = selectors.general.disabledAgendas(state);
 
-        expect(filterBy).toEqual('All');
+        expect(agendas.length).toBe(1);
+        expect(agendas).toEqual([{
+            _id: '3',
+            name: 'Agenda 3',
+            is_enabled: false,
+        }]);
     });
 
-    it('getSearchQuery', () => {
-        const searchQuery = selectors.getSearchQuery(state);
+    it('enabledAgendas', () => {
+        const agendas = selectors.general.enabledAgendas(state);
 
-        expect(searchQuery).toEqual('test');
-    });
-
-    it('getOrderByField', () => {
-        const orderByField = selectors.getOrderByField(state);
-
-        expect(orderByField).toEqual('Updated');
-    });
-
-    it('getOrderDirection', () => {
-        const orderDirection = selectors.getOrderDirection(state);
-
-        expect(orderDirection).toEqual('Desc');
-    });
-
-    it('getAssignmentListSettings', () => {
-        const assignmentListSettings = selectors.getAssignmentListSettings(state);
-
-        expect(assignmentListSettings).toEqual({
-            filterBy: 'All',
-            searchQuery: 'test',
-            orderByField: 'Updated',
-            orderDirection: 'Desc',
-            filterByState: null,
-            filterByType: null,
-            filterByPriority: null,
-        });
-    });
-
-    it('getMyAssignmentsCount', () => {
-        const myAssignmentsCount = selectors.getMyAssignmentsCount(state);
-
-        expect(myAssignmentsCount).toEqual(1);
-    });
-
-    it('getPreviewAssignmentOpened', () => {
-        const previewAssignmentOpened = selectors.getPreviewAssignmentOpened(state);
-
-        expect(previewAssignmentOpened).toBeTruthy();
-    });
-
-    it('getCurrentAssignment', () => {
-        const currentAssignment = selectors.getCurrentAssignment(state);
-
-        expect(currentAssignment).toEqual({
-            _id: 1,
-            _created: '2017-07-13T13:55:41+0000',
-            _updated: '2017-07-28T11:16:36+0000',
-            assigned_to: {
-                assigned_date: '2017-07-28T11:16:36+0000',
-                desk: 'desk1',
-                user: 'user1',
+        expect(agendas.length).toBe(2);
+        expect(agendas).toEqual([
+            {
+                _id: '1',
+                name: 'Agenda 1',
+                is_enabled: true,
+            }, {
+                _id: '2',
+                name: 'Agenda 2',
+                is_enabled: true,
             },
-        });
-    });
-
-    it('getAssignmentTodoListPage', () => {
-        const page = selectors.getAssignmentTodoListPage(state);
-
-        expect(page).toBe(1);
-    });
-
-    it('getAssignmentInProgressPage', () => {
-        const page = selectors.getAssignmentInProgressPage(state);
-
-        expect(page).toBe(1);
-    });
-
-    it('getAssignmentCompletedPage', () => {
-        const page = selectors.getAssignmentCompletedPage(state);
-
-        expect(page).toBe(1);
-    });
-
-    it('getAssignmentsToDoListCount', () => {
-        const count = selectors.getAssignmentsToDoListCount(state);
-
-        expect(count).toBe(0);
-    });
-
-    it('getAssignmentsInProgressListCount', () => {
-        const count = selectors.getAssignmentsInProgressListCount(state);
-
-        expect(count).toBe(0);
-    });
-
-    it('getAssignmentsCompletedListCount', () => {
-        const count = selectors.getAssignmentsCompletedListCount(state);
-
-        expect(count).toBe(0);
-    });
-
-    it('getAssignmentListSingleGroupView', () => {
-        const view = selectors.getAssignmentListSingleGroupView(state);
-
-        expect(view).toBe(null);
+        ]);
     });
 });

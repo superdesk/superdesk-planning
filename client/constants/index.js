@@ -15,10 +15,6 @@ export {COVERAGES} from './coverages';
 export {MULTISELECT} from './multiselect';
 export {CONTACTS} from './contacts';
 
-export const LIST_ITEM_1_LINE_HEIGHT = 38;
-export const LIST_ITEM_2_LINES_HEIGHT = 56;
-export const EVENT_LIST_DAY_HEADER_HEIGHT = 43;
-export const PLANNING_LIST_ITEM_MARGIN_HEIGHT = 20;
 export {EVENTS} from './events';
 
 export const WS_NOTIFICATION = 'WS_NOTIFICATION';
@@ -61,12 +57,6 @@ export const SPIKED_STATE = {
 export const RESET_STORE = 'RESET_STORE';
 export const INIT_STORE = 'INIT_STORE';
 export const FORM_NAMES = {
-    UpdateRecurringEventsForm: 'updateEventConfirmation',
-    RescheduleForm: 'rescheduleEvent',
-    ConvertEventToRecurringForm: 'convertEventToRecurring',
-    ReassignAssignmentForm: 'reassignAssignmentForm',
-    EditAssignmentPriorityForm: 'editAssignmentPriorityForm',
-    UpdateAssignmentForm: 'updateAssignmentForm',
     PlanningForm: 'planning',
     EventForm: 'event',
 };

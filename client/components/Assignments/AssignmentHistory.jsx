@@ -98,7 +98,7 @@ AssignmentHistoryComponent.propTypes = {
 AssignmentHistoryComponent.defaultProps = {assignmentHistoryItems: []};
 
 const mapStateToProps = (state) => ({
-    users: selectors.getUsers(state),
+    users: selectors.general.users(state),
     assignment: selectors.getCurrentAssignment(state),
     assignmentHistoryItems: selectors.getAssignmentHistory(state),
 });

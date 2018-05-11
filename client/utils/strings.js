@@ -1,7 +1,5 @@
 import React from 'react';
 
-const capitalize = (string) => !string ? '' : string.charAt(0).toUpperCase() + string.slice(1);
-
 const firstCharUpperCase = (string) => string && string.replace(/\b\w/g, (l) => l.toUpperCase());
 
 const convertNewlineToBreak = (string) => !string ? '' :
@@ -10,7 +8,6 @@ const convertNewlineToBreak = (string) => !string ? '' :
 
 // eslint-disable-next-line consistent-this
 const self = {
-    capitalize,
     convertNewlineToBreak,
     firstCharUpperCase,
 };

@@ -1,7 +1,6 @@
 import * as selectors from '../index';
 import {cloneDeep} from 'lodash';
 import moment from 'moment';
-import {AGENDA} from '../../constants';
 
 describe('selectors', () => {
     const state = {
@@ -107,88 +106,15 @@ describe('selectors', () => {
         session: {identity: {_id: 'user1'}},
     };
 
-    it('getCurrentAgenda', () => {
+    it('currentAgenda', () => {
         let result;
 
-        result = selectors.getCurrentAgenda(state);
+        result = selectors.planning.currentAgenda(state);
         expect(result).toEqual(state.agenda.agendas[0]);
         const newState = cloneDeep(state);
 
         delete newState.agenda.currentAgendaId;
-        result = selectors.getCurrentAgenda(newState);
+        result = selectors.planning.currentAgenda(newState);
         expect(result).toEqual(undefined);
-    });
-
-    describe('getFilteredPlanningList', () => {
-        let result;
-        let newState;
-
-        const _getPlanningItems = () => (selectors.getFilteredPlanningList(newState));
-
-        beforeEach(() => {
-            newState = cloneDeep(state);
-        });
-
-        it('without a selected agenda', () => {
-            delete newState.agenda.currentAgendaId;
-            newState.planning.planningsInList = [];
-            result = _getPlanningItems();
-            expect(result).toEqual([]);
-        });
-
-        it('Planning items with no agenda', () => {
-            newState.agenda.currentAgendaId = AGENDA.FILTER.NO_AGENDA_ASSIGNED;
-            newState.planning.planningsInList = ['c', 'e'];
-            result = _getPlanningItems();
-            expect(result).toEqual([newState.planning.plannings.c, newState.planning.plannings.e]);
-        });
-    });
-
-    it('getEventToBeDetailed', () => {
-        const event = selectors.getEventToBeDetailed(state);
-
-        expect(event._plannings.length).toBe(1);
-        expect(event._plannings[0]._agendas[0].name).toBe('Agenda 1');
-    });
-
-    it('getDisabledAgendas', () => {
-        const agendas = selectors.getDisabledAgendas(state);
-
-        expect(agendas.length).toBe(1);
-        expect(agendas).toEqual([{
-            _id: '3',
-            name: 'Agenda 3',
-            is_enabled: false,
-        }]);
-    });
-
-    it('getEnabledAgendas', () => {
-        const agendas = selectors.getEnabledAgendas(state);
-
-        expect(agendas.length).toBe(2);
-        expect(agendas).toEqual([
-            {
-                _id: '1',
-                name: 'Agenda 1',
-                is_enabled: true,
-            }, {
-                _id: '2',
-                name: 'Agenda 2',
-                is_enabled: true,
-            },
-        ]);
-    });
-
-    it('getEventsOrderedByDay', () => {
-        const events = selectors.getEventsOrderedByDay(state);
-
-        expect(events.map((d) => d.date)).toEqual([
-            '2099-10-15',
-            '2099-10-16',
-            '2099-10-17',
-        ]);
-        expect(events[0].event._id).toEqual('event1');
-        expect(events[1].event._id).toEqual('event1');
-        expect(events[2].event._id).toEqual('event2');
     });
 });

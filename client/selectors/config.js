@@ -21,3 +21,5 @@ export const getStreetMapUrl = (state) =>
 
 export const getStartOfWeek = (state) =>
     parseInt(get(state, 'config.startingDay', 0), 10);
+
+export const getIframelyKey = (state) => get(state, 'config.iframely.key', null);

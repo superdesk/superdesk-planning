@@ -9,8 +9,6 @@ import * as eventsPlanning from './eventsplanning';
 import * as multiSelect from './multiSelect';
 import * as vocabs from './vocabs';
 
-
-export * from './planning_old';
 export * from './assignments';
 
 export {

@@ -43,12 +43,6 @@ const canRevertAssignment = (assignment, session, privileges) => (
     (!get(assignment, 'lock_user') || lockUtils.isItemLockedInThisSession(assignment, session))
 );
 
-const isAssignmentInUse = (assignment) => (
-    (includes([ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED, ASSIGNMENTS.WORKFLOW_STATE.COMPLETED,
-        ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS],
-    get(assignment, 'assigned_to.state')))
-);
-
 const assignmentHasContent = (assignment) => (
     get(assignment, 'item_ids.length', 0) > 0
 );
@@ -177,26 +171,6 @@ const getAssignmentItemActions = (assignment, session, privileges, actions) => {
     return itemActions;
 };
 
-const getAssignmentsInListGroups = (assignments) => {
-    let listGroups = {
-        todo: [],
-        inProgress: [],
-        completed: [],
-    };
-
-    assignments.forEach((a) => {
-        if (includes(ASSIGNMENTS.LIST_GROUPS.TODO.states, a.assigned_to.state)) {
-            listGroups.todo.push(a._id);
-        } else if (includes(ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.states, a.assigned_to.state)) {
-            listGroups.inProgress.push(a._id);
-        } else {
-            listGroups.completed.push(a._id);
-        }
-    });
-
-    return listGroups;
-};
-
 const getAssignmentGroupByStates = (states = []) => {
     if (get(states, 'length') > 0) {
         const state = states[0];
@@ -282,9 +256,7 @@ const self = {
     canCompleteAssignment,
     isAssignmentInEditableState,
     getAssignmentActions,
-    isAssignmentInUse,
     canStartWorking,
-    getAssignmentsInListGroups,
     getAssignmentGroupByStates,
     canRemoveAssignment,
     canEditDesk,

@@ -7,7 +7,6 @@ import {WORKFLOW_STATE} from '../constants';
 const initialState = {
     events: {},
     eventsInList: [],
-    selectedEvents: [],
     readOnly: true,
     eventHistoryItems: [],
     calendars: [],
@@ -73,24 +72,6 @@ const eventsReducer = createReducer(initialState, {
 
     [INIT_STORE]: () => (initialState),
 
-    [EVENTS.ACTIONS.SELECT_EVENTS]: (state, payload) => (
-        {
-            ...state,
-            selectedEvents: uniq([...state.selectedEvents, ...payload]),
-        }
-    ),
-    [EVENTS.ACTIONS.DESELECT_EVENT]: (state, payload) => (
-        {
-            ...state,
-            selectedEvents: state.selectedEvents.filter((e) => e !== payload),
-        }
-    ),
-    [EVENTS.ACTIONS.DESELECT_ALL_EVENT]: (state) => (
-        {
-            ...state,
-            selectedEvents: [],
-        }
-    ),
     [EVENTS.ACTIONS.ADD_EVENTS]: (state, payload) => {
         const _events = modifyEventsBeingAdded(state, payload);
 
@@ -104,7 +85,7 @@ const eventsReducer = createReducer(initialState, {
         {
             ...state,
             eventsInList: orderBy(
-                uniq([...payload, ...state.selectedEvents]),
+                uniq([...payload]),
                 (e) => state.events[e].dates.start,
                 ['desc']
             ),

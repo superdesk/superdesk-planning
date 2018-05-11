@@ -42,7 +42,6 @@ describe('events', () => {
             expect(initialState).toEqual({
                 events: {},
                 eventsInList: [],
-                selectedEvents: [],
                 readOnly: true,
                 eventHistoryItems: [],
                 calendars: [],

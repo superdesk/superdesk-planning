@@ -11,14 +11,14 @@ const mapStateToProps = (state) => ({
     itemId: selectors.forms.currentItemId(state),
     itemType: selectors.forms.currentItemType(state),
     initialValues: selectors.forms.initialValues(state),
-    users: selectors.getUsers(state),
+    users: selectors.general.users(state),
     formProfiles: selectors.forms.profiles(state),
     occurStatuses: selectors.vocabs.eventOccurStatuses(state),
     isLoadingItem: selectors.forms.isLoadingItem(state),
-    session: selectors.getSessionDetails(state),
-    privileges: selectors.getPrivileges(state),
+    session: selectors.general.session(state),
+    privileges: selectors.general.privileges(state),
     lockedItems: selectors.locks.getLockedItems(state),
-    newsCoverageStatus: selectors.getNewsCoverageStatus(state),
+    newsCoverageStatus: selectors.general.newsCoverageStatus(state),
 });
 
 const mapStateToPropsModal = (state) => ({
@@ -26,14 +26,14 @@ const mapStateToPropsModal = (state) => ({
     itemId: selectors.forms.currentItemIdModal(state),
     itemType: selectors.forms.currentItemTypeModal(state),
     initialValues: selectors.forms.initialValuesModal(state),
-    users: selectors.getUsers(state),
+    users: selectors.general.users(state),
     formProfiles: selectors.forms.profiles(state),
     occurStatuses: selectors.vocabs.eventOccurStatuses(state),
     isLoadingItem: selectors.forms.isLoadingItemModal(state),
-    session: selectors.getSessionDetails(state),
-    privileges: selectors.getPrivileges(state),
+    session: selectors.general.session(state),
+    privileges: selectors.general.privileges(state),
     lockedItems: selectors.locks.getLockedItems(state),
-    newsCoverageStatus: selectors.getNewsCoverageStatus(state),
+    newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     inModalView: !!selectors.forms.currentItemIdModal(state),
 });
 

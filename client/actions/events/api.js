@@ -872,7 +872,7 @@ const queryLockedEvents = () => (
  */
 const getEvent = (eventId, saveToStore = true) => (
     (dispatch, getState) => {
-        const events = selectors.getEvents(getState());
+        const events = selectors.events.storedEvents(getState());
 
         if (eventId in events) {
             return Promise.resolve(events[eventId]);
@@ -904,7 +904,7 @@ const receiveEvents = (events) => ({
 const lock = (event, action = 'edit') => (
     (dispatch, getState, {api, notify}) => {
         if (action === null ||
-            lockUtils.isItemLockedInThisSession(event, selectors.getSessionDetails(getState()))
+            lockUtils.isItemLockedInThisSession(event, selectors.general.session(getState()))
         ) {
             return Promise.resolve(event);
         }
@@ -1296,16 +1296,6 @@ const save = (event) => (
     )
 );
 
-const duplicate = (event) => (
-    (dispatch, getState, {api}) => (
-        api('events_duplicate', event).save({})
-            .then((newEvent) => {
-                newEvent.files = event.files;
-                return Promise.resolve(newEvent);
-            }, (error) => Promise.reject(error))
-    )
-);
-
 const updateRepetitions = (event) => (
     (dispatch, getState, {api}) => (
         api.update(
@@ -1411,7 +1401,6 @@ const self = {
     _saveLocation,
     getCriteria,
     fetchById,
-    duplicate,
     updateRepetitions,
     getEventContacts,
     fetchEventContactsByIds,

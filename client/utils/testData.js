@@ -476,7 +476,6 @@ export const locks = {
 export const eventsInitialState = {
     events: {},
     eventsInList: [],
-    selectedEvents: [],
     readOnly: true,
     eventHistoryItems: [],
 };
@@ -510,7 +509,6 @@ export const modal = {
 export const planningInitialState = {
     plannings: {},
     planningsInList: [],
-    selectedItems: [],
     currentPlanningId: undefined,
     editorOpened: false,
     filterPlanningKeyword: null,

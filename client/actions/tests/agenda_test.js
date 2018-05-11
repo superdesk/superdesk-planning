@@ -506,7 +506,7 @@ describe('agenda', () => {
                     '2',
                 ]);
 
-                expect(selectors.getAgendas(store.getState())).toEqual([
+                expect(selectors.general.agendas(store.getState())).toEqual([
                     {
                         _id: '1',
                         name: 'agenda',
@@ -532,7 +532,7 @@ describe('agenda', () => {
                     '1',
                 ]);
 
-                expect(selectors.getAgendas(store.getState())).toEqual([
+                expect(selectors.general.agendas(store.getState())).toEqual([
                     {
                         _id: '1',
                         name: 'NewAgenda',

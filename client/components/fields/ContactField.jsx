@@ -200,7 +200,7 @@ ContactFieldComponent.propTypes = {
 
 const mapStateToProps = (state, ownProps) => ({
     eventContacts: selectors.events.getEventContacts(state),
-    privileges: selectors.getPrivileges(state),
+    privileges: selectors.general.privileges(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

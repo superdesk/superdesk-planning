@@ -13,7 +13,7 @@ import {hideModal, showModal} from '../index';
  */
 const onAssignmentCreated = (_e, data) => (
     (dispatch, getState) => {
-        const currentDesk = selectors.getCurrentDeskId(getState());
+        const currentDesk = selectors.general.currentDeskId(getState());
 
         let querySearchSettings = selectors.getAssignmentSearch(getState());
 
@@ -44,11 +44,11 @@ const onAssignmentCreated = (_e, data) => (
  */
 const onAssignmentUpdated = (_e, data) => (
     (dispatch, getState) => {
-        const currentDesk = selectors.getCurrentDeskId(getState());
+        const currentDesk = selectors.general.currentDeskId(getState());
         let querySearchSettings = selectors.getAssignmentSearch(getState());
 
         const planningItem = _getPlanningItemOnAssignmentUpdate(data,
-            selectors.getStoredPlannings(getState()));
+            selectors.planning.storedPlannings(getState()));
 
         if (planningItem) {
             dispatch(planning.api.receivePlannings([planningItem]));
@@ -93,7 +93,7 @@ const onAssignmentUpdated = (_e, data) => (
                  data.assignment_state === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS) {
                 // If we are in authoring workspace (fulfilment) and assignment is previewed,
                 // close it
-                if (selectors.getCurrentWorkspace(getState()) === WORKSPACE.AUTHORING &&
+                if (selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING &&
                         selectors.getCurrentAssignmentId(getState()) === data.item) {
                     dispatch(assignments.ui.closePreview());
                 }
@@ -197,7 +197,7 @@ const onAssignmentUnlocked = (_e, data) => (
                 .then((assignmentInStore) => {
                     const locks = selectors.locks.getLockedItems(getState());
                     const itemLock = lockUtils.getLock(assignmentInStore, locks);
-                    const sessionId = selectors.getSessionDetails(getState()).sessionId;
+                    const sessionId = selectors.general.session(getState()).sessionId;
 
                     let assignment = {
                         ...assignmentInStore,
@@ -219,7 +219,7 @@ const onAssignmentUnlocked = (_e, data) => (
                     data.lock_session !== sessionId &&
                     itemLock.session === sessionId
                     ) {
-                        const user = selectors.getUsers(getState()).find((u) => u._id === data.user);
+                        const user = selectors.general.users(getState()).find((u) => u._id === data.user);
 
                         dispatch(hideModal());
                         dispatch(showModal({

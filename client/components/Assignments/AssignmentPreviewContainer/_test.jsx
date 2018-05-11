@@ -82,7 +82,6 @@ describe('<AssignmentPreviewContainer />', () => {
             sinon.stub(actions.assignments.ui, 'reassign').returns({type: 'Test'});
             sinon.stub(actions.assignments.ui, 'complete').returns({type: 'Test'});
             sinon.stub(actions.assignments.ui, 'editPriority').returns({type: 'Test'});
-            sinon.stub(actions.assignments.ui, 'onAssignmentFormSave').returns({type: 'Test'});
             sinon.stub(actions.assignments.ui, 'openArchivePreview').returns({type: 'Test'});
         });
 
@@ -91,7 +90,6 @@ describe('<AssignmentPreviewContainer />', () => {
             restoreSinonStub(actions.assignments.ui.reassign);
             restoreSinonStub(actions.assignments.ui.complete);
             restoreSinonStub(actions.assignments.ui.editPriority);
-            restoreSinonStub(actions.assignments.ui.onAssignmentFormSave);
             restoreSinonStub(actions.assignments.ui.openArchivePreview);
         });
 
@@ -179,15 +177,6 @@ describe('<AssignmentPreviewContainer />', () => {
             expect(menu.actionLabels()).toContain('Complete Assignment');
             menu.invokeAction('Complete Assignment');
             expect(actions.assignments.ui.complete.callCount).toBe(1);
-        });
-
-        it('`Fulfil Assignment` executes `assignments.ui.onAssignmentFormSave`', () => {
-            assignment.assigned_to.state = 'assigned';
-            const wrapper = getWrapper({showFulfilAssignment: true});
-
-            wrapper.find('.AssignmentPreview__fulfil').find('.btn--primary')
-                .simulate('click');
-            expect(actions.assignments.ui.onAssignmentFormSave.callCount).toBe(1);
         });
 
         it('`Open Coverage` executes `assignments.ui.openArchivePreview`', () => {

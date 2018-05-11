@@ -73,8 +73,8 @@ AddToPlanningComponent.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-    currentWorkspace: selectors.getCurrentWorkspace(state),
-    actionInProgress: selectors.getModalActionInProgress(state),
+    currentWorkspace: selectors.general.currentWorkspace(state),
+    actionInProgress: selectors.general.modalActionInProgress(state),
 });
 
 export const AddToPlanningModal = connect(

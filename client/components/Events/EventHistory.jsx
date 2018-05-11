@@ -145,7 +145,7 @@ EventHistoryComponent.propTypes = {
 };
 
 const mapStateToProps = (state, ownProps) => ({
-    users: selectors.getUsers(state),
+    users: selectors.general.users(state),
     historyItems: selectors.events.eventHistory(state),
 });
 

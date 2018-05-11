@@ -446,11 +446,6 @@ export const convertGenreToObject = (coverage) => {
     return coverage;
 };
 
-const canEditCoverage = (coverage) => (
-    !isCoverageCancelled(coverage) &&
-    get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED
-);
-
 const createNewPlanningFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, desk, user, contentTypes) => {
     const newCoverage = self.createCoverageFromNewsItem(addNewsItemToPlanning, newsCoverageStatus,
         desk, user, contentTypes);
@@ -745,7 +740,6 @@ const self = {
     isCoverageCancelled,
     canCancelCoverage,
     canRemoveCoverage,
-    canEditCoverage,
     getCoverageReadOnlyFields,
     isPlanMultiDay,
     getPlanningActions,

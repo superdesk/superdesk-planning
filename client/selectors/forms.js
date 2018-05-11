@@ -31,15 +31,12 @@ export const defaultEventDuration = createSelector(
 
 /** Autosaves **/
 export const autosaves = (state) => get(state, 'forms.autosaves', {});
-export const eventAutosaves = createSelector([autosaves], (a) => get(a, 'event', {}));
-export const planningAutosaves = createSelector([autosaves], (a) => get(a, 'planning', {}));
 
 /** Forms */
 export const currentItemId = (state) => get(state, 'forms.itemId', null);
 export const currentItemType = (state) => get(state, 'forms.itemType', null);
 export const isLoadingItem = (state) => get(state, 'forms.loadingEditItem', false);
 export const initialValues = (state) => get(state, 'forms.initialValues', null);
-export const editorModalView = (state) => get(state, 'forms.modalView', false);
 
 const storedEvents = (state) => get(state, 'events.events', {});
 const storedPlannings = (state) => get(state, 'planning.plannings', {});

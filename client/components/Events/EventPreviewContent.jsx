@@ -300,9 +300,9 @@ EventPreviewContentComponent.propTypes = {
 
 const mapStateToProps = (state, ownProps) => ({
     item: selectors.events.getEventPreviewRelatedDetails(state),
-    session: selectors.getSessionDetails(state),
-    privileges: selectors.getPrivileges(state),
-    users: selectors.getUsers(state),
+    session: selectors.general.session(state),
+    privileges: selectors.general.privileges(state),
+    users: selectors.general.users(state),
     lockedItems: selectors.locks.getLockedItems(state),
     timeFormat: selectors.config.getTimeFormat(state),
     dateFormat: selectors.config.getDateFormat(state),

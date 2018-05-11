@@ -137,14 +137,6 @@ const assignmentReducer = createReducer(initialState, {
             readOnly: true,
         }
     ),
-    [ASSIGNMENTS.ACTIONS.OPEN_ASSIGNMENT_EDITOR]: (state, payload) => (
-        {
-            ...state,
-            previewOpened: true,
-            currentAssignmentId: get(payload, '_id') || payload,
-            readOnly: false,
-        }
-    ),
     [ASSIGNMENTS.ACTIONS.LOCK_ASSIGNMENT]: (state, payload) => {
         if (!(payload.assignment._id in state.assignments)) return state;
 

@@ -22,7 +22,6 @@ import {default as planningUtils} from './planning';
 import {default as timeUtils} from './time';
 
 
-export {default as checkPermission} from './checkPermission';
 export {default as dispatchUtils} from './dispatch';
 export {default as registerNotifications} from './notifications';
 export {default as eventUtils} from './events';
@@ -366,7 +365,6 @@ export const isSameItemId = (item1, item2) => get(item1, '_id') === get(item2, '
 export const getItemWorkflowState = (item, field = 'state') => (get(item, field, WORKFLOW_STATE.DRAFT));
 export const isItemCancelled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.CANCELLED;
 export const isItemRescheduled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.RESCHEDULED;
-export const isItemKilled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.KILLED;
 export const isItemPostponed = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.POSTPONED;
 export const isExistingItem = (item) => !!get(item, '_id');
 
@@ -704,6 +702,6 @@ export const appendStatesQueryForAdvancedSearch = (advancedSearch, spikeState, m
     }
 };
 
-export const getUserPreferences = (user, preferenceKey) => get(user, `user_preferences.${preferenceKey}`, null);
-
 export const getEnabledAgendas = (agendas) => (agendas || []).filter((agenda) => get(agenda, 'is_enabled', true));
+
+export const getDisabledAgendas = (agendas) => (agendas || []).filter((agenda) => get(agenda, 'is_enabled') === false);

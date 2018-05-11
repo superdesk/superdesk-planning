@@ -45,19 +45,22 @@ describe('<RelatedPlannings />', () => {
                         definition_short: 'definition_short 1',
                         location: [{name: 'location1'}],
                         name: 'name1',
+                        planning_ids: ['3'],
                     },
                 },
-                showEventDetails: 'event1',
+            },
+            forms: {
+                itemId: 'event1',
+                itemType: 'event',
             },
         };
 
 
         const store = createTestStore({initialState: initialState});
-        const eventDetail = selectors.getEventToBeDetailed(store.getState());
 
         const wrapper = mount(
             <Provider store={store}>
-                <RelatedPlannings plannings={eventDetail._plannings}
+                <RelatedPlannings plannings={selectors.events.getRelatedPlannings(store.getState())}
                     openPlanning={true} />
             </Provider>
         );

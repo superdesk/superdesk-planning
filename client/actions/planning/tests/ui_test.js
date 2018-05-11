@@ -3,8 +3,8 @@ import planningApi from '../api';
 import assignmentApi from '../../assignments/api';
 import {main, locks} from '../../';
 import sinon from 'sinon';
-import {PRIVILEGES, MAIN, WORKSPACE} from '../../../constants';
-import {getTestActionStore, restoreSinonStub, expectAccessDenied} from '../../../utils/testUtils';
+import {MAIN, WORKSPACE} from '../../../constants';
+import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 
 describe('actions.planning.ui', () => {
     let store;
@@ -26,10 +26,6 @@ describe('actions.planning.ui', () => {
         sinon.stub(planningApi, 'saveAndReloadCurrentAgenda').callsFake((item) => Promise.resolve(item));
         sinon.stub(planningApi, 'lock').callsFake((item) => (Promise.resolve(item)));
         sinon.stub(planningApi, 'unlock').callsFake(() => (Promise.resolve(data.plannings[0])));
-        sinon.stub(planningUi, 'openEditor').callsFake((item) => (Promise.resolve(item)));
-        sinon.stub(planningUi, '_openEditor').callsFake((item) => (Promise.resolve(item)));
-        sinon.stub(planningUi, 'closeEditor').callsFake(() => (Promise.resolve()));
-        sinon.stub(planningUi, 'preview').callsFake(() => (Promise.resolve()));
         sinon.stub(planningUi, 'requestPlannings').callsFake(() => (Promise.resolve()));
 
         sinon.stub(planningUi, 'clearList').callsFake(() => ({type: 'clearList'}));
@@ -56,10 +52,6 @@ describe('actions.planning.ui', () => {
         restoreSinonStub(planningApi.lock);
         restoreSinonStub(planningApi.unlock);
 
-        restoreSinonStub(planningUi.openEditor);
-        restoreSinonStub(planningUi._openEditor);
-        restoreSinonStub(planningUi.closeEditor);
-        restoreSinonStub(planningUi.preview);
         restoreSinonStub(planningUi.requestPlannings);
         restoreSinonStub(planningUi.clearList);
         restoreSinonStub(planningUi.setInList);
@@ -89,9 +81,6 @@ describe('actions.planning.ui', () => {
                     // Calls api.spike
                     expect(planningApi.spike.callCount).toBe(1);
                     expect(planningApi.spike.args[0]).toEqual([data.plannings[1]]);
-
-                    // Doesn't close editor, as spiked item is not open
-                    expect(planningUi.closeEditor.callCount).toBe(0);
 
                     // Notifies end user of success
                     expect(services.notify.success.callCount).toBe(1);
@@ -202,156 +191,6 @@ describe('actions.planning.ui', () => {
                     done();
                 });
         });
-    });
-
-    it('preview', () => {
-        store.initialState.planning.currentPlanningId = 'p1';
-        restoreSinonStub(planningUi.preview);
-        store.init();
-        store.dispatch(planningUi.preview(data.plannings[1]._id));
-
-        expect(store.dispatch.callCount).toBe(2);
-
-        expect(planningUi.closeEditor.callCount).toBe(0);
-
-        expect(store.dispatch.args[1]).toEqual([{
-            type: 'PREVIEW_PLANNING',
-            payload: 'p2',
-        }]);
-    });
-
-    it('closeEditor', (done) => {
-        store.initialState.planning.currentPlanningId = 'p1';
-        data.plannings[0].lock_user = store.initialState.session.identity._id;
-        data.plannings[0].lock_session = store.initialState.session.sessionId;
-
-        restoreSinonStub(planningUi.closeEditor);
-        store.init();
-        store.dispatch(planningUi.closeEditor(data.plannings[0])).then(() => {
-            expect(planningApi.unlock.callCount).toBe(1);
-            expect(planningApi.unlock.args[0]).toEqual([data.plannings[0]]);
-            expect(store.dispatch.args[1]).toEqual([{type: 'CLOSE_PLANNING_EDITOR'}]);
-
-            done();
-        });
-    });
-
-    it('unlockAndCloseEditor', (done) => {
-        store.initialState.planning.currentPlanningId = 'p1';
-        data.plannings[0].lock_user = store.initialState.session.identity._id;
-        data.plannings[0].lock_session = store.initialState.session.sessionId;
-
-        store.test(done, planningUi.unlockAndCloseEditor(data.plannings[0]))
-            .then(() => {
-                expect(planningApi.unlock.callCount).toBe(1);
-                expect(store.dispatch.callCount).toBe(2);
-                expect(store.dispatch.args[1]).toEqual([{type: 'CLOSE_PLANNING_EDITOR'}]);
-                expect(services.notify.error.callCount).toBe(0);
-                done();
-            });
-    });
-
-    it('unlockAndOpenEditor', (done) => {
-        store.init();
-        const lock = data.locked_plannings[0];
-
-        store.initialState.locks.planning = {
-            p1: {
-                action: lock.lock_action,
-                user: lock.lock_user,
-                session: lock.lock_session,
-                item_id: data.plannings[0]._id,
-                item_type: 'planning',
-            },
-        };
-        store.test(done, planningUi.unlockAndOpenEditor(data.plannings[0]))
-            .then(() => {
-                expect(planningApi.unlock.callCount).toBe(1);
-                expect(planningApi.unlock.args[0]).toEqual([{_id: data.plannings[0]._id}]);
-                expect(planningUi.openEditor.callCount).toBe(1);
-                expect(planningUi.openEditor.args[0]).toEqual([data.plannings[0]]);
-
-                done();
-            });
-    });
-
-    describe('openEditor', () => {
-        it('opens the editor', (done) => {
-            store.initialState.planning.currentPlanningId = 'p1';
-            restoreSinonStub(planningUi.openEditor);
-            restoreSinonStub(planningUi._openEditor);
-            store.test(done, planningUi.openEditor(data.plannings[1]))
-                .then((lockedItem) => {
-                    expect(lockedItem).toEqual(data.plannings[1]);
-
-                    expect(planningUi.closeEditor.callCount).toBe(0);
-
-                    expect(store.dispatch.args[2]).toEqual([{
-                        type: 'OPEN_PLANNING_EDITOR',
-                        payload: lockedItem,
-                    }]);
-
-                    done();
-                });
-        });
-
-        it('openEditor dispatches preview if insufficient privileges', (done) => {
-            store.initialState.privileges.planning_planning_management = 0;
-            store.initialState.planning.currentPlanningId = 'p1';
-            restoreSinonStub(planningUi.openEditor);
-            store.test(done, planningUi.openEditor(data.plannings[1]))
-                .catch(() => {
-                    expect(store.dispatch.args[1]).toEqual([{
-                        type: 'PREVIEW_PLANNING',
-                        payload: data.plannings[1],
-                    }]);
-
-                    expectAccessDenied({
-                        store: store,
-                        permission: PRIVILEGES.PLANNING_MANAGEMENT,
-                        action: '_lockAndOpenEditor',
-                        errorMessage: 'Unauthorised to edit a planning item!',
-                        args: [data.plannings[1]],
-                        argPos: 2,
-                    });
-
-                    done();
-                });
-        });
-
-        it('sends error notification if lock failed', (done) => {
-            store.initialState.planning.currentPlanningId = 'p1';
-            restoreSinonStub(planningUi.openEditor);
-            restoreSinonStub(planningApi.lock);
-            sinon.stub(planningApi, 'lock').callsFake(() => (Promise.reject(errorMessage)));
-            store.test(done, planningUi.openEditor(data.plannings[1]))
-                .then(() => { /* no-op */ }, (error) => {
-                    expect(error).toEqual(errorMessage);
-
-                    expect(services.notify.error.callCount).toBe(1);
-                    expect(services.notify.error.args[0]).toEqual(['Failed!']);
-
-                    done();
-                });
-        });
-    });
-
-    it('previewPlanningAndOpenAgenda', () => {
-        store.init();
-        store.dispatch(planningUi.previewPlanningAndOpenAgenda(data.plannings[0]._id,
-            data.agendas[1]));
-
-        expect(store.dispatch.args[2]).toEqual([{
-            type: 'SELECT_AGENDA',
-            payload: 'a2',
-        }]);
-
-        expect(services.$timeout.callCount).toBe(1);
-        expect(services.$location.search.callCount).toBe(1);
-        expect(services.$location.search.args[0]).toEqual(['agenda', 'a2']);
-
-        expect(planningUi.preview.callCount).toBe(1);
-        expect(planningUi.preview.args[0]).toEqual(['p1']);
     });
 
     it('clearList', () => {

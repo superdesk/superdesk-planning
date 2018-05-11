@@ -147,7 +147,7 @@ const mapStateToProps = (state) => ({
     categories: state.vocabularies.categories,
     subjects: state.subjects,
     urgencies: state.urgency.urgency,
-    contentTypes: selectors.getContentTypes(state),
+    contentTypes: selectors.general.contentTypes(state),
     ingestProviders: state.ingest.providers,
     dateFormat: selectors.config.getDateFormat(state),
     timeFormat: selectors.config.getTimeFormat(state),

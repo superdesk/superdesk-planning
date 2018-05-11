@@ -43,7 +43,7 @@ const onPlanningUpdated = (_e, data) => (
         if (get(data, 'item')) {
             dispatch(planning.ui.scheduleRefetch())
                 .then((items) => {
-                    const selectedItems = selectors.getSelectedPlanningItems(getState());
+                    const selectedItems = selectors.multiSelect.selectedPlannings(getState());
                     const currentPreviewId = selectors.main.previewId(getState());
                     const currentEditId = selectors.forms.currentItemId(getState());
 
@@ -103,19 +103,19 @@ const onPlanningLocked = (e, data) => (
 const onPlanningUnlocked = (_e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
-            let planningItem = selectors.getStoredPlannings(getState())[data.item];
+            let planningItem = selectors.planning.storedPlannings(getState())[data.item];
             const locks = selectors.locks.getLockedItems(getState());
             const itemLock = lockUtils.getLock(planningItem, locks);
-            const sessionId = selectors.getSessionDetails(getState()).sessionId;
+            const sessionId = selectors.general.session(getState()).sessionId;
 
             // If this is the planning item currently being edited, show popup notification
             if (itemLock !== null &&
                 data.lock_session !== sessionId &&
                 itemLock.session === sessionId
             ) {
-                const user = selectors.getUsers(getState()).find((u) => u._id === data.user);
+                const user = selectors.general.users(getState()).find((u) => u._id === data.user);
 
-                const modalType = selectors.getCurrentModalType(getState());
+                const modalType = selectors.general.modalType(getState());
 
                 if (modalType !== MODALS.ADD_TO_PLANNING) {
                     dispatch(hideModal());

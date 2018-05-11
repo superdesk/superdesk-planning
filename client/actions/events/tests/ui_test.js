@@ -2,11 +2,11 @@ import eventsApi from '../api';
 import eventsUi from '../ui';
 import planningApi from '../../planning/api';
 import {main} from '../../';
-import {PRIVILEGES, MAIN} from '../../../constants';
+import {MAIN} from '../../../constants';
 import {omit} from 'lodash';
 import sinon from 'sinon';
 import moment from 'moment';
-import {getTestActionStore, restoreSinonStub, expectAccessDenied} from '../../../utils/testUtils';
+import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 
 describe('actions.events.ui', () => {
     let errorMessage;
@@ -43,7 +43,6 @@ describe('actions.events.ui', () => {
         );
 
         sinon.stub(eventsUi, 'refetch').callsFake(() => (Promise.resolve()));
-        sinon.stub(eventsUi, 'closeEventDetails').callsFake(() => (Promise.resolve()));
 
         sinon.stub(planningApi, 'loadPlanningByEventId').callsFake(
             () => (Promise.resolve(data.plannings))
@@ -56,7 +55,6 @@ describe('actions.events.ui', () => {
             (event) => (Promise.resolve(event))
         );
 
-        sinon.stub(eventsUi, '_openEventDetails').callsFake(() => (Promise.resolve()));
         sinon.stub(eventsApi, 'lock').callsFake((item) => (Promise.resolve(item)));
         sinon.stub(eventsApi, 'unlock').callsFake((item) => (Promise.resolve(item)));
 
@@ -73,8 +71,6 @@ describe('actions.events.ui', () => {
         restoreSinonStub(eventsUi._openActionModal);
         restoreSinonStub(eventsUi.refetch);
         restoreSinonStub(eventsUi.setEventsList);
-        restoreSinonStub(eventsUi._openEventDetails);
-        restoreSinonStub(eventsUi.closeEventDetails);
         restoreSinonStub(eventsApi.loadEventDataForAction);
         restoreSinonStub(eventsApi.lock);
         restoreSinonStub(eventsApi.unlock);
@@ -134,8 +130,8 @@ describe('actions.events.ui', () => {
             })
     ));
 
-    it('updateTime calls `_openActionModal`', (done) => (
-        store.test(done, eventsUi.updateTime(data.events[1]))
+    it('updateTimeModal calls `_openActionModal`', (done) => (
+        store.test(done, eventsUi.updateTimeModal(data.events[1]))
             .then(() => {
                 expect(eventsUi._openActionModal.callCount).toBe(1);
                 expect(eventsUi._openActionModal.args[0]).toEqual([
@@ -392,84 +388,6 @@ describe('actions.events.ui', () => {
                     done();
                 });
         });
-    });
-
-    describe('openEventDetails', () => {
-        it('openEventDetails dispatches action', (done) => {
-            store.test(done, eventsUi.openEventDetails())
-                .then(() => {
-                    expect(store.dispatch.args[1]).toEqual([{
-                        type: 'OPEN_EVENT_DETAILS',
-                        payload: true,
-                    }]);
-                    done();
-                });
-        });
-
-        it('openEventDetails calls `lockEvent` api', (done) => {
-            store.test(done, eventsUi.openEventDetails(data.events[0]))
-                .then(() => {
-                    expect(eventsApi.lock.callCount).toBe(1);
-                    done();
-                });
-        });
-
-        it('openEventDetails dispatches previewEvent if insufficient privileges', (done) => {
-            store.initialState.privileges.planning_event_management = 0;
-            store.test(done, eventsUi.openEventDetails(data.events[0]))
-                .catch(() => {
-                    expect(store.dispatch.args[1]).toEqual([{
-                        type: 'PREVIEW_EVENT',
-                        payload: data.events[0]._id,
-                    }]);
-
-                    expectAccessDenied({
-                        store: store,
-                        permission: PRIVILEGES.EVENT_MANAGEMENT,
-                        action: '_openEventDetails',
-                        errorMessage: 'Unauthorised to edit an event!',
-                        args: [data.events[0]],
-                        argPos: 2,
-                    });
-
-                    done();
-                });
-        });
-    });
-
-    it('closeEventDetails', (done) => {
-        restoreSinonStub(eventsUi.closeEventDetails);
-        store.test(done, eventsUi.closeEventDetails())
-            .then(() => {
-                expect(store.dispatch.args[0]).toEqual([{type: 'CLOSE_EVENT_DETAILS'}]);
-                done();
-            });
-    });
-
-    it('_previewEvent', () => {
-        expect(eventsUi._previewEvent(data.events[0])).toEqual({
-            type: 'PREVIEW_EVENT',
-            payload: data.events[0]._id,
-        });
-    });
-
-    it('minimizeEventDetails', () => {
-        expect(eventsUi.minimizeEventDetails()).toEqual({type: 'CLOSE_EVENT_DETAILS'});
-    });
-
-    it('unlockAndCloseEditor', (done) => {
-        store.initialState.events.highlightedEvent = 'e1';
-        data.events[0].lock_user = store.initialState.session.identity._id;
-        data.events[0].lock_session = store.initialState.session.sessionId;
-
-        store.test(done, eventsUi.unlockAndCloseEditor(data.events[0]))
-            .then(() => {
-                expect(eventsApi.unlock.callCount).toBe(1);
-                expect(store.dispatch.callCount).toBe(2);
-                expect(store.dispatch.args[1]).toEqual([{type: 'CLOSE_EVENT_DETAILS'}]);
-                expect(services.notify.error.callCount).toBe(0);
-                done();
-            });
     });
 
     describe('fetchEvents', () => {

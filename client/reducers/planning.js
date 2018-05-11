@@ -1,4 +1,4 @@
-import {cloneDeep, get, uniq, without, find} from 'lodash';
+import {cloneDeep, get, uniq, find} from 'lodash';
 import {createReducer, getItemType} from '../utils';
 import moment from 'moment';
 import {
@@ -15,7 +15,6 @@ import {
 const initialState = {
     plannings: {},
     planningsInList: [],
-    selectedItems: [],
     currentPlanningId: undefined,
     editorOpened: false,
     readOnly: true,
@@ -24,7 +23,6 @@ const initialState = {
 
 let plannings;
 let plan;
-let index;
 
 const modifyPlanningsBeingAdded = (state, payload) => {
     // payload must be an array. If not, we transform
@@ -78,13 +76,6 @@ const planningReducer = createReducer(initialState, {
         }
     ),
 
-    [PLANNING.ACTIONS.PLANNING_FILTER_BY_KEYWORD]: (state, payload) => (
-        {
-            ...state,
-            filterPlanningKeyword: payload,
-        }
-    ),
-
     [PLANNING.ACTIONS.RECEIVE_PLANNINGS]: (state, payload) => {
         modifyPlanningsBeingAdded(state, payload);
         // return new state
@@ -94,110 +85,10 @@ const planningReducer = createReducer(initialState, {
         };
     },
 
-    [PLANNING.ACTIONS.PREVIEW_PLANNING]: (state, payload) => {
-        if (!state.currentPlanningId || state.currentPlanningId !== payload) {
-            return {
-                ...state,
-                editorOpened: true,
-                currentPlanningId: payload,
-                readOnly: true,
-            };
-        } else {
-            return state;
-        }
-    },
-
-    [PLANNING.ACTIONS.OPEN_PLANNING_EDITOR]: (state, payload) => {
-        if (payload._id) {
-            return {
-                ...state,
-                editorOpened: true,
-                currentPlanningId: payload._id,
-                readOnly: false,
-            };
-        } else {
-            return {
-                ...state,
-                editorOpened: true,
-                currentPlanningId: payload,
-                readOnly: false,
-            };
-        }
-    },
-
-    [PLANNING.ACTIONS.CLOSE_PLANNING_EDITOR]: (state) => (
-        {
-            ...state,
-            editorOpened: false,
-            currentPlanningId: undefined,
-        }
-    ),
-
-    [PLANNING.ACTIONS.RECEIVE_COVERAGE]: (state, payload) => {
-        plannings = cloneDeep(state.plannings);
-        plan = get(plannings, payload.planning_item, null);
-
-        // If the planning item is not loaded, disregard this action
-        if (plan === null) return state;
-
-        // Either add or update the coverage item
-        index = plan.coverages.findIndex((c) => c._id === payload._id);
-        if (index === -1) {
-            plan.coverages.push(payload);
-        } else {
-            plan.coverages.splice(index, 1, payload);
-        }
-
-        modifyCoveragesForPlanning(plan);
-
-        return {
-            ...state,
-            plannings,
-        };
-    },
-
-    [PLANNING.ACTIONS.COVERAGE_DELETED]: (state, payload) => {
-        plannings = cloneDeep(state.plannings);
-        plan = get(plannings, payload.planning_item, null);
-
-        // If the planning item is not loaded, disregard this action
-        if (plan === null) return state;
-
-        // Remove the coverage from the planning item
-        index = plan.coverages.findIndex((c) => c._id === payload._id);
-        if (index === -1) return state;
-
-        plan.coverages.splice(index, 1);
-        return {
-            ...state,
-            plannings,
-        };
-    },
-
     [PLANNING.ACTIONS.RECEIVE_PLANNING_HISTORY]: (state, payload) => ({
         ...state,
         planningHistoryItems: payload,
     }),
-
-    [PLANNING.ACTIONS.SET_ADVANCED_SEARCH]: (state, payload) => (
-        {
-            ...state,
-            search: {
-                ...state.search,
-                currentSearch: payload,
-            },
-        }
-    ),
-
-    [PLANNING.ACTIONS.CLEAR_ADVANCED_SEARCH]: (state) => (
-        {
-            ...state,
-            search: {
-                ...state.search,
-                currentSearch: undefined,
-            },
-        }
-    ),
 
     [PLANNING.ACTIONS.MARK_PLANNING_CANCELLED]: (state, payload) => {
         plannings = cloneDeep(state.plannings);
@@ -255,26 +146,6 @@ const planningReducer = createReducer(initialState, {
             plannings,
         };
     },
-
-    [PLANNING.ACTIONS.TOGGLE_SELECTED]: (state, payload) => {
-        const selected = state.selectedItems;
-        const index = selected.indexOf(payload);
-
-        return {
-            ...state,
-            selectedItems: index === -1 ? selected.concat([payload]) : without(selected, payload),
-        };
-    },
-
-    [PLANNING.ACTIONS.DESELECT_ALL]: (state) => ({
-        ...state,
-        selectedItems: [],
-    }),
-
-    [PLANNING.ACTIONS.SELECT_ALL]: (state) => ({
-        ...state,
-        selectedItems: state.planningsInList.concat([]),
-    }),
 
     [PLANNING.ACTIONS.LOCK_PLANNING]: (state, payload) => {
         if (!(payload.plan._id in state.plannings)) return state;
