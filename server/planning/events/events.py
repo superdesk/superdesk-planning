@@ -138,18 +138,28 @@ class EventsService(superdesk.Service):
                 del event['update_method']
 
             set_planning_schedule(event)
+            planning_item = event.get('_planning_item')
 
             # generates events based on recurring rules
             if event['dates'].get('recurring_rule', None):
-                generated_events.extend(generate_recurring_events(event))
+                recurring_events = generate_recurring_events(event)
+                generated_events.extend(recurring_events)
                 # remove the event that contains the recurring rule. We don't need it anymore
                 docs.remove(event)
+
+                # Set the current Event to the first Event in the new series
+                # This will make sure the ID of the Event can be used when
+                # using 'event' from here on, such as when linking to a Planning item
+                event = recurring_events[0]
+                # And set the Planning Item from the original
+                # (generate_recurring_events removes this field)
+                event['_planning_item'] = planning_item
 
             if event['state'] == 'ingested':
                 events_history = get_resource_service('events_history')
                 events_history.on_item_created([event])
 
-            if '_planning_item' in event:
+            if planning_item:
                 self._link_to_planning(event)
                 del event['_planning_item']
 
@@ -391,6 +401,9 @@ class EventsService(superdesk.Service):
         updates = {'event_item': event_id}
         if unlock_plan:
             remove_lock_information(updates)
+
+        if 'recurrence_id' in event:
+            updates['recurrence_id'] = event['recurrence_id']
 
         updated_plan = planning_service.patch(
             plan_id,
