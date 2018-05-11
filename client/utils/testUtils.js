@@ -110,6 +110,8 @@ export const getTestActionStore = () => {
                 planning_search: {
                     query: sinon.spy(() => (store.spies.api._query('planning_search'))),
                 },
+
+                contacts: {query: sinon.spy(() => Promise.resolve(store.data.contacts))},
             },
         },
 

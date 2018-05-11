@@ -3,7 +3,9 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
 import {ICON_COLORS} from '../../constants';
+
 import {ItemIcon} from '../';
+import {Icon} from '../UI';
 
 export const WorkqueueItem = ({
     item,
@@ -27,7 +29,7 @@ export const WorkqueueItem = ({
             </a>
 
             <button className="close" onClick={onClose.bind(null, item)}>
-                <i className="icon-close-small icon--white" />
+                <Icon icon="icon-close-small" color={ICON_COLORS.WHITE} />
             </button>
         </li>
     );

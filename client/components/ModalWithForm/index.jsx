@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {get} from 'lodash';
 
 import {gettext} from '../../utils';
 
@@ -45,7 +46,7 @@ export class ModalWithForm extends React.Component {
         // If the form Component has an 'onHide' property,
         // then call that now
         if ('onHide' in form.props) {
-            form.props.onHide(this.props.initialValues);
+            form.props.onHide(this.props.initialValues, get(this.props, 'modalProps' || {}));
         }
 
         this.props.onHide();
@@ -67,6 +68,7 @@ export class ModalWithForm extends React.Component {
             canSave,
             saveButtonText,
             form,
+            modalProps,
         } = this.props;
 
         const Form = form;
@@ -93,6 +95,7 @@ export class ModalWithForm extends React.Component {
                         disableSaveInModal={disableSaveInModal}
                         submitting={this.state.submitting}
                         ref={(node) => this.dom.form = node}
+                        modalProps={modalProps}
                     />
                 </Modal.Body>
                 <Modal.Footer>
@@ -128,6 +131,7 @@ ModalWithForm.propTypes = {
     fill: PropTypes.bool,
     fullscreen: PropTypes.bool,
     white: PropTypes.bool,
+    modalProps: PropTypes.object,
 };
 
 ModalWithForm.defaultProps = {

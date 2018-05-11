@@ -12,3 +12,4 @@ export {UpdateAssignmentForm} from './forms/updateAssignmentForm';
 export {EditPriorityForm} from './forms/editPriorityForm';
 export {UpdateEventRepetitionsForm} from './forms/updateEventRepetitions';
 export {PostEventsForm} from './forms/postEventsForm';
+export {UpdateMethodSelection} from './UpdateMethodSelection';

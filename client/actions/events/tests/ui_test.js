@@ -2,7 +2,7 @@ import eventsApi from '../api';
 import eventsUi from '../ui';
 import planningApi from '../../planning/api';
 import {main} from '../../';
-import {MAIN} from '../../../constants';
+import {MAIN, EVENTS} from '../../../constants';
 import {omit} from 'lodash';
 import sinon from 'sinon';
 import moment from 'moment';
@@ -59,6 +59,8 @@ describe('actions.events.ui', () => {
         sinon.stub(eventsApi, 'unlock').callsFake((item) => (Promise.resolve(item)));
 
         sinon.stub(eventsApi, 'rescheduleEvent').callsFake(() => (Promise.resolve()));
+
+        sinon.stub(eventsUi, '_openActionModalFromEditor');
     });
 
     afterEach(() => {
@@ -77,6 +79,7 @@ describe('actions.events.ui', () => {
         restoreSinonStub(eventsApi.rescheduleEvent);
         restoreSinonStub(planningApi.loadPlanningByEventId);
         restoreSinonStub(planningApi.fetch);
+        restoreSinonStub(eventsUi._openActionModalFromEditor);
     });
 
     it('openSpikeModal calls `_openActionModal`', (done) => (
@@ -95,74 +98,66 @@ describe('actions.events.ui', () => {
             })
     ));
 
-    it('openCancelModal calls `_openActionModal`', (done) => (
-        store.test(done, eventsUi.openCancelModal(data.events[1]))
-            .then(() => {
-                expect(eventsUi._openActionModal.callCount).toBe(1);
-                expect(eventsUi._openActionModal.args[0]).toEqual([
-                    data.events[1],
-                    'Cancel',
-                    'cancel',
-                    true,
-                    false,
-                    true,
-                ]);
+    it('openCancelModal calls `_openActionModalFromEditor`', () => {
+        eventsUi.openCancelModal(data.events[1]);
 
-                done();
-            })
-    ));
+        expect(eventsUi._openActionModalFromEditor.callCount).toBe(1);
+        expect(eventsUi._openActionModalFromEditor.args[0]).toEqual([{
+            event: data.events[1],
+            action: EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
+            title: 'Save changes before cancelling the Event?',
+            loadPlannings: true,
+            post: false,
+            large: true,
+            loadEvents: true,
+            refetchBeforeFinalLock: true,
+        }]);
+    });
 
-    it('openPostponeModal calls `_openActionModal`', (done) => (
-        store.test(done, eventsUi.openPostponeModal(data.events[1]))
-            .then(() => {
-                expect(eventsUi._openActionModal.callCount).toBe(1);
-                expect(eventsUi._openActionModal.args[0]).toEqual([
-                    data.events[1],
-                    'Mark as Postponed',
-                    'postpone',
-                    true,
-                    false,
-                    false,
-                    false,
-                ]);
+    it('openPostponeModal calls `_openActionModalFromEditor`', () => {
+        eventsUi.openPostponeModal(data.events[1]);
 
-                done();
-            })
-    ));
+        expect(eventsUi._openActionModalFromEditor.callCount).toBe(1);
+        expect(eventsUi._openActionModalFromEditor.args[0]).toEqual([{
+            event: data.events[1],
+            action: EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
+            title: 'Save changes before postponing the Event?',
+            loadPlannings: true,
+            post: false,
+            large: false,
+            loadEvents: false,
+        }]);
+    });
 
-    it('updateTimeModal calls `_openActionModal`', (done) => (
-        store.test(done, eventsUi.updateTimeModal(data.events[1]))
-            .then(() => {
-                expect(eventsUi._openActionModal.callCount).toBe(1);
-                expect(eventsUi._openActionModal.args[0]).toEqual([
-                    data.events[1],
-                    'Update time',
-                    'update_time',
-                    false,
-                    false,
-                ]);
+    it('openUpdateTimeModal calls `_openActionModalFromEditor`', () => {
+        eventsUi.openUpdateTimeModal(data.events[1]);
 
-                done();
-            })
-    ));
+        expect(eventsUi._openActionModalFromEditor.callCount).toBe(1);
+        expect(eventsUi._openActionModalFromEditor.args[0]).toEqual([{
+            event: data.events[1],
+            action: EVENTS.ITEM_ACTIONS.UPDATE_TIME,
+            title: 'Save changes before updating the Event\'s time?',
+            loadPlannings: false,
+            post: false,
+            large: false,
+            loadEvents: true,
+        }]);
+    });
 
-    it('openRescheduleModal calls `_openActionModal`', (done) => (
-        store.test(done, eventsUi.openRescheduleModal(data.events[1]))
-            .then(() => {
-                expect(eventsUi._openActionModal.callCount).toBe(1);
-                expect(eventsUi._openActionModal.args[0]).toEqual([
-                    data.events[1],
-                    'Reschedule',
-                    'reschedule',
-                    true,
-                    false,
-                    true,
-                    false,
-                ]);
+    it('openRescheduleModal calls `_openActionModalFromEditor`', () => {
+        eventsUi.openRescheduleModal(data.events[1]);
 
-                done();
-            })
-    ));
+        expect(eventsUi._openActionModalFromEditor.callCount).toBe(1);
+        expect(eventsUi._openActionModalFromEditor.args[0]).toEqual([{
+            event: data.events[1],
+            action: EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
+            title: 'Save changes before rescheduling the Event?',
+            loadPlannings: true,
+            post: false,
+            large: true,
+            loadEvents: false,
+        }]);
+    });
 
     it('openRepetitionsModal calls `_openActionModal`', (done) => (
         store.test(done, eventsUi.openRepetitionsModal(data.events[1]))

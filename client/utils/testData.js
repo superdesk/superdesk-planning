@@ -18,7 +18,9 @@ export const privileges = {
     planning_event_spike: 1,
     planning_event_unspike: 1,
     planning_event_post: 1,
+    planning_event_unpost: 1,
     planning_planning_post: 1,
+    planning_planning_unpost: 1,
     planning_unlock: 1,
 };
 

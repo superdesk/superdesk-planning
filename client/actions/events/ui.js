@@ -1,4 +1,4 @@
-import {showModal, main} from '../index';
+import {showModal, main, locks} from '../index';
 import {EVENTS, MODALS, SPIKED_STATE, MAIN, ITEM_TYPE, TEMP_ID_PREFIX} from '../../constants';
 import eventsApi from './api';
 import planningApi from '../planning/api';
@@ -138,9 +138,9 @@ const cancelEvent = (event) => (
 const postponeEvent = (event) => (
     (dispatch, getState, {notify}) => (
         dispatch(eventsApi.postponeEvent(event))
-            .then(() => {
+            .then((updatedEvent) => {
                 notify.success(gettext('Event has been postponed'));
-                return Promise.resolve();
+                return Promise.resolve(updatedEvent);
             }, (error) => {
                 notify.error(
                     getErrorMessage(error, gettext('Failed to postpone the Event!'))
@@ -148,16 +148,6 @@ const postponeEvent = (event) => (
                 return Promise.reject(error);
             })
     )
-);
-
-const updateTimeModal = (event, post = false) => (
-    (dispatch) => dispatch(self._openActionModal(
-        event,
-        EVENTS.ITEM_ACTIONS.UPDATE_TIME.label,
-        EVENTS.ITEM_ACTIONS.UPDATE_TIME.lock_action,
-        false,
-        post
-    ))
 );
 
 const openSpikeModal = (event, post = false) => (
@@ -180,39 +170,53 @@ const openUnspikeModal = (event, post = false) => (
     ))
 );
 
+const openUpdateTimeModal = (event, post = false) => (
+    self._openActionModalFromEditor({
+        event: event,
+        action: EVENTS.ITEM_ACTIONS.UPDATE_TIME,
+        title: gettext('Save changes before updating the Event\'s time?'),
+        loadPlannings: false,
+        post: post,
+        large: false,
+        loadEvents: true,
+    })
+);
+
 const openCancelModal = (event, post = false) => (
-    (dispatch) => dispatch(self._openActionModal(
-        event,
-        EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label,
-        EVENTS.ITEM_ACTIONS.CANCEL_EVENT.lock_action,
-        true,
-        post,
-        true
-    ))
+    self._openActionModalFromEditor({
+        event: event,
+        action: EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
+        title: gettext('Save changes before cancelling the Event?'),
+        loadPlannings: true,
+        post: post,
+        large: true,
+        loadEvents: true,
+        refetchBeforeFinalLock: true,
+    })
 );
 
 const openPostponeModal = (event, post = false) => (
-    (dispatch) => dispatch(self._openActionModal(
-        event,
-        EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label,
-        EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.lock_action,
-        true,
-        post,
-        false,
-        false
-    ))
+    self._openActionModalFromEditor({
+        event: event,
+        action: EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
+        title: gettext('Save changes before postponing the Event?'),
+        loadPlannings: true,
+        post: post,
+        large: false,
+        loadEvents: false,
+    })
 );
 
 const openRescheduleModal = (event, post = false) => (
-    (dispatch) => dispatch(self._openActionModal(
-        event,
-        EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label,
-        EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.lock_action,
-        true,
-        post,
-        true,
-        false
-    ))
+    self._openActionModalFromEditor({
+        event: event,
+        action: EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
+        title: gettext('Save changes before rescheduling the Event?'),
+        loadPlannings: true,
+        post: post,
+        large: true,
+        loadEvents: false,
+    })
 );
 
 const convertToRecurringEvent = (event, post) => (
@@ -232,45 +236,6 @@ const openRepetitionsModal = (event) => (
         EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.label,
         EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.lock_action
     ))
-);
-
-const _openActionModal = (
-    event,
-    action,
-    lockAction = null,
-    loadPlannings = false,
-    post = false,
-    large = false,
-    loadEvents = true
-) => (
-    (dispatch, getState, {notify}) => (
-        dispatch(eventsApi.lock(event, lockAction))
-            .then((lockedEvent) => (
-                dispatch(eventsApi.loadEventDataForAction(lockedEvent, loadPlannings, post, loadEvents))
-                    .then((eventDetail) => (
-                        dispatch(showModal({
-                            modalType: MODALS.ITEM_ACTIONS_MODAL,
-                            modalProps: {
-                                eventDetail: eventDetail,
-                                actionType: action,
-                                large: large,
-                            },
-                        }))
-                    ), (error) => {
-                        notify.error(
-                            getErrorMessage(error, 'Failed to load associated Events')
-                        );
-
-                        return Promise.reject(error);
-                    })
-            ), (error) => {
-                notify.error(
-                    getErrorMessage(error, 'Failed to obtain the Event lock')
-                );
-
-                return Promise.reject(error);
-            })
-    )
 );
 
 const rescheduleEvent = (event) => (
@@ -306,6 +271,95 @@ const rescheduleEvent = (event) => (
     )
 );
 
+const _openActionModalFromEditor = ({
+    event,
+    action,
+    title,
+    loadPlannings = false,
+    post = false,
+    large = false,
+    loadEvents = true,
+    refetchBeforeFinalLock = false,
+    modalProps = {},
+} = {}) => (
+    (dispatch) => (
+        dispatch(main.openActionModalFromEditor(
+            event,
+            title,
+            (updatedEvent, previousLock, openInEditor, openInModal) => (
+                dispatch(self._openActionModal(
+                    updatedEvent,
+                    action.label,
+                    action.lock_action,
+                    loadPlannings,
+                    post,
+                    large,
+                    loadEvents,
+                    {
+                        onCloseModal: (savedItem) => {
+                            let promise = refetchBeforeFinalLock ?
+                                dispatch(eventsApi.fetchById(savedItem._id, {force: true})) :
+                                Promise.resolve(savedItem);
+
+                            if (get(previousLock, 'action')) {
+                                promise.then((refetchedEvent) => (
+                                    (openInModal || openInModal) ?
+                                        dispatch(main.lockAndEdit(refetchedEvent, openInModal)) :
+                                        dispatch(locks.lock(refetchedEvent, previousLock.action))
+                                ));
+                            }
+
+                            return promise;
+                        },
+                        ...modalProps,
+                    }
+                ))
+            )
+        ))
+    )
+);
+
+const _openActionModal = (
+    event,
+    action,
+    lockAction = null,
+    loadPlannings = false,
+    post = false,
+    large = false,
+    loadEvents = true,
+    modalProps = {}
+) => (
+    (dispatch, getState, {notify}) => (
+        dispatch(eventsApi.lock(event, lockAction))
+            .then((lockedEvent) => (
+                dispatch(eventsApi.loadEventDataForAction(lockedEvent, loadPlannings, post, loadEvents))
+                    .then((eventDetail) => (
+                        dispatch(showModal({
+                            modalType: MODALS.ITEM_ACTIONS_MODAL,
+                            modalProps: {
+                                eventDetail: eventDetail,
+                                actionType: action,
+                                large: large,
+                                ...modalProps,
+                            },
+                        }))
+                    ), (error) => {
+                        notify.error(
+                            getErrorMessage(error, 'Failed to load associated Events')
+                        );
+
+                        return Promise.reject(error);
+                    })
+            ), (error) => {
+                notify.error(
+                    getErrorMessage(error, 'Failed to obtain the Event lock')
+                );
+
+                return Promise.reject(error);
+            })
+    )
+);
+
 const duplicate = (event) => (
     (dispatch, getState) => {
         const occurStatuses = selectors.vocabs.eventOccurStatuses(getState());
@@ -323,9 +377,9 @@ const duplicate = (event) => (
 const updateEventTime = (event) => (
     (dispatch, getState, {notify}) => (
         dispatch(eventsApi.updateEventTime(event))
-            .then(() => {
+            .then((updatedEvent) => {
                 notify.success(gettext('Event time has been updated'));
-                return Promise.resolve();
+                return Promise.resolve(updatedEvent);
             }, (error) => {
                 notify.error(
                     getErrorMessage(error, gettext('Failed to update the Event time!'))
@@ -577,7 +631,7 @@ const self = {
     openUnspikeModal,
     cancelEvent,
     openCancelModal,
-    updateTimeModal,
+    openUpdateTimeModal,
     openRescheduleModal,
     rescheduleEvent,
     postponeEvent,
@@ -597,6 +651,7 @@ const self = {
     createEventFromPlanning,
     selectCalendar,
     fetchEventWithFiles,
+    _openActionModalFromEditor,
 };
 
 export default self;

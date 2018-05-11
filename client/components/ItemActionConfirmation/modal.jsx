@@ -142,7 +142,9 @@ export class ItemActionConfirmationModal extends React.Component {
                 show={true}
                 canSave={this.state.canSave}
                 enableSaveInModal={this.enableSaveInModal}
-                disableSaveInModal={this.disableSaveInModal} />
+                disableSaveInModal={this.disableSaveInModal}
+                modalProps={modalProps}
+            />
         );
     }
 }

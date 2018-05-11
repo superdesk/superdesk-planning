@@ -12,7 +12,7 @@ import * as selectors from '../../../../selectors';
 import * as helpers from '../../../tests/helpers';
 import {main} from '../../../../actions';
 
-import {Editor} from '../';
+import {Editor} from '../../';
 
 describe('Main.ItemEditor.Editor', () => {
     let store;
@@ -131,8 +131,7 @@ describe('Main.ItemEditor.Editor', () => {
     };
 
     describe('Post', () => {
-        // TODO: To be revisited
-        xit('EditorHeader button states on posting', (done) => {
+        it('EditorHeader button states on posting', (done) => {
             setWrapper();
 
             // Check visible button states
@@ -154,11 +153,15 @@ describe('Main.ItemEditor.Editor', () => {
             expect(main.post.args[0]).toEqual([item]);
 
             // Ensure the buttons are disabled when submitting the form
+            updateButtons();
             expect(buttons.close.isDisabled()).toBe(true);
             expect(buttons.post.isDisabled()).toBe(true);
             expect(buttons.save.isDisabled()).toBe(true);
 
-            waitFor(() => wrapper.update() && buttons.close.isDisabled() === false)
+            waitFor(() => {
+                updateButtons();
+                return !buttons.close.isDisabled();
+            })
                 .then(() => {
                     updateButtons();
 
@@ -176,8 +179,7 @@ describe('Main.ItemEditor.Editor', () => {
                 });
         });
 
-        // TODO: To be revisited
-        xit('EditorHeader button states on posting error', (done) => {
+        it('EditorHeader button states on posting error', (done) => {
             setWrapper();
 
             // Mock post error function
@@ -188,11 +190,15 @@ describe('Main.ItemEditor.Editor', () => {
             expect(main.post.args[0]).toEqual([item]);
 
             // Ensure the buttons are disabled when submitting the form
+            updateButtons();
             expect(buttons.close.isDisabled()).toBe(true);
             expect(buttons.post.isDisabled()).toBe(true);
             expect(buttons.save.isDisabled()).toBe(true);
 
-            waitFor(() => wrapper.update() && buttons.close.isDisabled() === false)
+            waitFor(() => {
+                updateButtons();
+                return !buttons.close.isDisabled();
+            })
                 .then(() => {
                     updateButtons();
 

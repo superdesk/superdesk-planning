@@ -22,7 +22,7 @@ import {
 } from './index';
 import moment from 'moment';
 import RRule from 'rrule';
-import {get, map, isNil, sortBy, cloneDeep, omitBy} from 'lodash';
+import {get, map, isNil, sortBy, cloneDeep, omitBy, find} from 'lodash';
 import {EventUpdateMethods} from '../components/Events';
 
 
@@ -263,8 +263,7 @@ const canUpdateEvent = (event, session, privileges, locks) => (
 const canUpdateEventTime = (event, session, privileges, locks) => (
     !isNil(event) &&
         canEditEvent(event, session, privileges, locks) &&
-        !isItemPostponed(event) &&
-        !isEventLockedForMetadataEdit(event)
+        !isItemPostponed(event)
 );
 
 const canRescheduleEvent = (event, session, privileges, locks) => (
@@ -274,8 +273,7 @@ const canRescheduleEvent = (event, session, privileges, locks) => (
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemRescheduled(event) &&
-        !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT]) &&
-        !isEventLockedForMetadataEdit(event)
+        !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT])
 );
 
 const canPostponeEvent = (event, session, privileges, locks) => (
@@ -286,8 +284,7 @@ const canPostponeEvent = (event, session, privileges, locks) => (
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemPostponed(event) &&
         !isItemRescheduled(event) &&
-        !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT]) &&
-        !isEventLockedForMetadataEdit(event)
+        !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT])
 );
 
 const canUpdateEventRepetitions = (event, session, privileges, locks) => (
@@ -377,6 +374,141 @@ const getDateStringForEvent = (event, dateFormat, timeFormat, dateOnly = false) 
     }
 };
 
+const getSingleDayPlanningActions = (item, actions, createPlanning, createAndOpenPlanning) => {
+    if (createPlanning || createAndOpenPlanning) {
+        actions.push(GENERIC_ITEM_ACTIONS.DIVIDER);
+
+        if (createPlanning) {
+            actions.push({
+                ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
+                callback: createPlanning.bind(null, item, null, false),
+            });
+        }
+
+        if (createAndOpenPlanning) {
+            actions.push({
+                ...EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING,
+                callback: createAndOpenPlanning.bind(null, item, null, true),
+            });
+        }
+    }
+};
+
+const generateMultiDayPlanningActions = (item, subActions, createPlanning, createAndOpenPlanning) => {
+    let eventDate = moment(item.dates.start);
+    const currentDate = moment();
+
+    for (; isDateInRange(eventDate, item.dates.start, item.dates.end); eventDate.add(1, 'days')) {
+        const label = '@ ' + eventDate.format('DD/MM/YYYY ') + item.dates.start.format('HH:mm');
+        const eventCallBack = createPlanning.bind(null, item, moment(eventDate), false);
+        const openCallBack = createAndOpenPlanning &&
+            createAndOpenPlanning.bind(null, item, moment(eventDate), true);
+
+        if (eventDate.isSameOrAfter(currentDate, 'date')) {
+            subActions.create.current.push({
+                label: label,
+                callback: eventCallBack,
+            });
+
+            openCallBack && subActions.createAndOpen.current.push({
+                label: label,
+                callback: openCallBack,
+            });
+        } else {
+            subActions.create.past.push({
+                label: label,
+                callback: eventCallBack,
+            });
+
+            openCallBack && subActions.createAndOpen.past.push({
+                label: label,
+                callback: openCallBack,
+            });
+        }
+    }
+
+    // Combine past and other events with a divider and heading
+    if (subActions.create.past.length > 0) {
+        subActions.create.current = subActions.create.current.length === 0 ?
+            subActions.create.past :
+            [
+                ...subActions.create.current,
+                GENERIC_ITEM_ACTIONS,
+                {
+                    ...GENERIC_ITEM_ACTIONS.LABEL,
+                    text: gettext('Past Events'),
+                },
+                ...subActions.create.past,
+            ];
+    }
+
+    if (subActions.createAndOpen.past.length > 0) {
+        subActions.createAndOpen.current = subActions.createAndOpen.current.length === 0 ?
+            subActions.createAndOpen.past :
+            [
+                ...subActions.createAndOpen.current,
+                GENERIC_ITEM_ACTIONS,
+                {
+                    ...GENERIC_ITEM_ACTIONS.LABEL,
+                    text: gettext('Past Events'),
+                },
+                ...subActions.createAndOpen.past,
+            ];
+    }
+};
+
+const getMultiDayPlanningActions = (item, actions, createPlanning, createAndOpenPlanning) => {
+    // Multi-day event with a requirement of a submenu
+    let subActions = {
+        create: {
+            current: [],
+            past: [],
+        },
+        createAndOpen: {
+            current: [],
+            past: [],
+        },
+    };
+
+    self.generateMultiDayPlanningActions(item, subActions, createPlanning, createAndOpenPlanning);
+
+    if (createPlanning || createAndOpenPlanning) {
+        actions.push(GENERIC_ITEM_ACTIONS.DIVIDER);
+    }
+
+    if (createPlanning) {
+        if (subActions.create.current.length > 1) {
+            actions.push({
+                ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
+                callback: subActions.create.current,
+            });
+        } else if (subActions.create.current.length === 1) {
+            actions.push({
+                ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
+                callback: subActions.create.current[0].callback,
+            });
+        }
+    }
+
+    if (createAndOpenPlanning) {
+        if (subActions.createAndOpen.current.length > 1) {
+            actions.push(
+                {
+                    ...EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING,
+                    callback: subActions.createAndOpen.current,
+                }
+            );
+        } else if (subActions.createAndOpen.current.length === 1) {
+            actions.push(
+                {
+                    ...EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING,
+                    callback: subActions.createAndOpen.current[0].callback,
+                }
+            );
+        }
+    }
+};
+
 const getEventActions = (item, session, privileges, lockedItems, callBacks, withMultiPlanningDate = false) => {
     if (!get(item, '_id')) {
         return [];
@@ -384,229 +516,35 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks, with
 
     let actions = [];
 
-    Object.keys(callBacks).forEach((callBackName) => {
-        switch (callBackName) {
-        case EVENTS.ITEM_ACTIONS.DUPLICATE.actionName:
-            callBacks[callBackName] &&
-                actions.push({
-                    ...EVENTS.ITEM_ACTIONS.DUPLICATE,
-                    callback: callBacks[callBackName].bind(null, item),
-                });
-            break;
+    [
+        EVENTS.ITEM_ACTIONS.DUPLICATE.actionName,
+        EVENTS.ITEM_ACTIONS.SPIKE.actionName,
+        EVENTS.ITEM_ACTIONS.UNSPIKE.actionName,
+        EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName,
+        EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName,
+        EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName,
+        EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName,
+        EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName,
+        EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName,
+        EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName,
+        EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName,
+    ].forEach((callbackName) => {
+        const action = find(EVENTS.ITEM_ACTIONS, (action) => action.actionName === callbackName);
 
-        case EVENTS.ITEM_ACTIONS.SPIKE.actionName:
-            callBacks[callBackName] &&
-                actions.push({
-                    ...EVENTS.ITEM_ACTIONS.SPIKE,
-                    callback: callBacks[callBackName].bind(null, item),
-                });
-            break;
-
-        case EVENTS.ITEM_ACTIONS.UNSPIKE.actionName:
-            callBacks[callBackName] &&
-                actions.push({
-                    ...EVENTS.ITEM_ACTIONS.UNSPIKE,
-                    callback: callBacks[callBackName].bind(null, item),
-                });
-            break;
-
-        case EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName:
-            callBacks[callBackName] &&
-                actions.push({
-                    ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
-                    callback: callBacks[callBackName].bind(null, item),
-                });
-            break;
-
-        case EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName:
-            callBacks[callBackName] &&
-                actions.push({
-                    ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
-                    callback: callBacks[callBackName].bind(null, item),
-                });
-            break;
-
-        case EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName:
-            callBacks[callBackName] &&
-                actions.push({
-                    ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
-                    callback: callBacks[callBackName].bind(null, item),
-                });
-            break;
-
-        case EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName:
-            callBacks[callBackName] &&
-                actions.push({
-                    ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
-                    callback: callBacks[callBackName].bind(null, item),
-                });
-            break;
-
-        case EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName:
-            callBacks[callBackName] &&
-                actions.push({
-                    ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
-                    callback: callBacks[callBackName].bind(null, item),
-                });
-            break;
-
-        case EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName:
-            callBacks[callBackName] &&
-                actions.push({
-                    ...EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS,
-                    callback: callBacks[callBackName].bind(null, item),
-                });
-            break;
-
-        case EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName:
-            callBacks[callBackName] &&
-                actions.push({
-                    ...EVENTS.ITEM_ACTIONS.EDIT_EVENT,
-                    callback: callBacks[callBackName].bind(null, item),
-                });
-            break;
-
-        case EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName:
-            callBacks[callBackName] &&
-                actions.push({
-                    ...EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL,
-                    callback: callBacks[callBackName].bind(null, item, true),
-                });
-            break;
+        if (callBacks[action.actionName]) {
+            actions.push({
+                ...action,
+                callback: callBacks[action.actionName],
+            });
         }
     });
 
     const CREATE_PLANNING = callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName];
     const CREATE_AND_OPEN_PLANNING = callBacks[EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName];
 
-    if (!withMultiPlanningDate || self.isEventSameDay(item)) {
-        if (CREATE_PLANNING || CREATE_AND_OPEN_PLANNING) {
-            actions.push(GENERIC_ITEM_ACTIONS.DIVIDER);
-
-            if (CREATE_PLANNING) {
-                actions.push({
-                    ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
-                    callback: CREATE_PLANNING.bind(null, item, null, false),
-                });
-            }
-
-            if (CREATE_AND_OPEN_PLANNING) {
-                actions.push({
-                    ...EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING,
-                    callback: CREATE_AND_OPEN_PLANNING.bind(null, item, null, true),
-                });
-            }
-        }
-    } else {
-        // Multi-day event with a requirement of a submenu
-        let subActions = {
-            create: {
-                current: [],
-                past: [],
-            },
-            createAndOpen: {
-                current: [],
-                past: [],
-            },
-        };
-
-        let eventDate = moment(item.dates.start);
-        const currentDate = moment();
-
-        for (; isDateInRange(eventDate, item.dates.start, item.dates.end); eventDate.add(1, 'days')) {
-            const label = '@ ' + eventDate.format('DD/MM/YYYY ') + item.dates.start.format('HH:mm');
-            const eventCallBack = CREATE_PLANNING.bind(null, item, moment(eventDate), false);
-            const openCallBack = CREATE_AND_OPEN_PLANNING &&
-                CREATE_AND_OPEN_PLANNING.bind(null, item, moment(eventDate), true);
-
-            if (eventDate.isSameOrAfter(currentDate, 'date')) {
-                subActions.create.current.push({
-                    label: label,
-                    callback: eventCallBack,
-                });
-
-                openCallBack && subActions.createAndOpen.current.push({
-                    label: label,
-                    callback: openCallBack,
-                });
-            } else {
-                subActions.create.past.push({
-                    label: label,
-                    callback: eventCallBack,
-                });
-
-                openCallBack && subActions.createAndOpen.past.push({
-                    label: label,
-                    callback: openCallBack,
-                });
-            }
-        }
-
-        // Combine past and other events with a divider and heading
-        if (subActions.create.past.length > 0) {
-            subActions.create.current = subActions.create.current.length === 0 ?
-                subActions.create.past :
-                [
-                    ...subActions.create.current,
-                    GENERIC_ITEM_ACTIONS,
-                    {
-                        ...GENERIC_ITEM_ACTIONS.LABEL,
-                        text: gettext('Past Events'),
-                    },
-                    ...subActions.create.past,
-                ];
-        }
-
-        if (subActions.createAndOpen.past.length > 0) {
-            subActions.createAndOpen.current = subActions.createAndOpen.current.length === 0 ?
-                subActions.createAndOpen.past :
-                [
-                    ...subActions.createAndOpen.current,
-                    GENERIC_ITEM_ACTIONS,
-                    {
-                        ...GENERIC_ITEM_ACTIONS.LABEL,
-                        text: gettext('Past Events'),
-                    },
-                    ...subActions.createAndOpen.past,
-                ];
-        }
-
-        if (CREATE_PLANNING || CREATE_AND_OPEN_PLANNING) {
-            actions.push(GENERIC_ITEM_ACTIONS.DIVIDER);
-        }
-
-        if (CREATE_PLANNING) {
-            if (subActions.create.current.length > 1) {
-                actions.push({
-                    ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
-                    callback: subActions.create.current,
-                });
-            } else if (subActions.create.current.length === 1) {
-                actions.push({
-                    ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
-                    callback: subActions.create.current[0].callback,
-                });
-            }
-        }
-
-        if (CREATE_AND_OPEN_PLANNING) {
-            if (subActions.createAndOpen.current.length > 1) {
-                actions.push(
-                    {
-                        ...EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING,
-                        callback: subActions.createAndOpen.current,
-                    }
-                );
-            } else if (subActions.createAndOpen.current.length === 1) {
-                actions.push(
-                    {
-                        ...EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING,
-                        callback: subActions.createAndOpen.current[0].callback,
-                    }
-                );
-            }
-        }
-    }
+    (!withMultiPlanningDate || self.isEventSameDay(item)) ?
+        self.getSingleDayPlanningActions(item, actions, CREATE_PLANNING, CREATE_AND_OPEN_PLANNING) :
+        self.getMultiDayPlanningActions(item, actions, CREATE_PLANNING, CREATE_AND_OPEN_PLANNING);
 
     return getEventItemActions(
         item,
@@ -770,6 +708,9 @@ const self = {
     convertToMoment,
     duplicateEvent,
     shouldLockEventForEdit,
+    getSingleDayPlanningActions,
+    getMultiDayPlanningActions,
+    generateMultiDayPlanningActions,
 };
 
 export default self;

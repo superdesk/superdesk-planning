@@ -1,11 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
-import * as actions from '../../actions';
 import {AUTOSAVE} from '../../constants';
 import {forEach, isEqual, get, throttle, cloneDeep, omit} from 'lodash';
 
-export class AutosaveComponent extends React.Component {
+export class Autosave extends React.Component {
     constructor(props) {
         super(props);
 
@@ -31,9 +29,7 @@ export class AutosaveComponent extends React.Component {
         this.setState({diff: {}});
 
         // Make sure we execute the last save request
-        if (get(this, 'throttledSave.flush')) {
-            this.throttledSave.flush();
-        }
+        this.flush();
 
         // Then reset the save throttle
         this.throttledSave = throttle(
@@ -126,6 +122,10 @@ export class AutosaveComponent extends React.Component {
     }
 
     componentWillUnmount() {
+        this.flush();
+    }
+
+    flush() {
         if (get(this, 'throttledSave.flush')) {
             this.throttledSave.flush();
         }
@@ -136,7 +136,7 @@ export class AutosaveComponent extends React.Component {
     }
 }
 
-AutosaveComponent.propTypes = {
+Autosave.propTypes = {
     formName: PropTypes.string.isRequired,
     initialValues: PropTypes.object,
     currentValues: PropTypes.object,
@@ -151,15 +151,4 @@ AutosaveComponent.propTypes = {
     change: PropTypes.func.isRequired,
 };
 
-AutosaveComponent.defaultProps = {interval: AUTOSAVE.INTERVAL};
-
-const mapDispatchToProps = (dispatch, ownProps) => ({
-    save: (formName, diff) => dispatch(actions.autosave.save(formName, diff)),
-    load: (formName, itemId) => dispatch(actions.autosave.load(formName, itemId)),
-});
-
-export const Autosave = connect(
-    null,
-    mapDispatchToProps,
-    null
-)(AutosaveComponent);
+Autosave.defaultProps = {interval: AUTOSAVE.INTERVAL};

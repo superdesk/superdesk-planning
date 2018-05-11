@@ -11,6 +11,7 @@ import {
     AddToPlanningModal,
     FulFilAssignmentModal,
     SelectItemModal,
+    IgnoreCancelSaveModal,
 } from './index';
 import {EditorModalPanel} from './Main';
 import {MODALS, ITEM_TYPE} from '../constants';
@@ -28,6 +29,7 @@ const modals = {
     [MODALS.SELECT_ITEM_MODAL]: SelectItemModal,
     [MODALS.MANAGE_AGENDAS]: ManageAgendasModal,
     [MODALS.EDIT_ITEM]: EditorModalPanel,
+    [MODALS.IGNORE_CANCEL_SAVE]: IgnoreCancelSaveModal,
 };
 
 export function Modals({modalType, modalProps, handleHide}) {

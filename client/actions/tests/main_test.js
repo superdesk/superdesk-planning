@@ -540,4 +540,275 @@ describe('actions.main', () => {
             expect(main.openEditor.args[0]).toEqual([{_id: 'e1', type: 'event'}]);
         });
     });
+
+    describe('openActionModalFromEditor', () => {
+        let actionCallback;
+
+        beforeEach(() => {
+            actionCallback = sinon.stub().returns(Promise.resolve());
+            sinon.stub(locks, 'unlock').callsFake((item) => Promise.resolve(item));
+            sinon.stub(main, 'lockAndEdit').callsFake((item) => Promise.resolve(item));
+            sinon.stub(main, 'saveAutosave').callsFake((item) => Promise.resolve(item));
+            sinon.stub(main, 'openIgnoreCancelSaveModal').callsFake((item) => Promise.resolve(item));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(locks.unlock);
+            restoreSinonStub(main.lockAndEdit);
+            restoreSinonStub(main.saveAutosave);
+            restoreSinonStub(main.openIgnoreCancelSaveModal);
+        });
+
+        it('directly runs the action if the item is not locked', (done) => (
+            store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
+                .then(() => {
+                    expect(actionCallback.callCount).toBe(1);
+                    expect(actionCallback.args[0]).toEqual([data.events[0], null, false, false]);
+
+                    done();
+                })
+        ));
+
+        it('unlocks and runs action if there is no autosave data', (done) => {
+            store.init();
+            // Test running action with a lock
+            store.initialState.locks.event = {
+                [data.events[0]._id]: {
+                    item_id: data.events[0]._id,
+                    user: 'ident1',
+                    item_type: 'event',
+                    action: 'edit',
+                },
+            };
+
+            return store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
+                .then(() => {
+                    expect(locks.unlock.callCount).toBe(1);
+                    expect(locks.unlock.args[0]).toEqual([data.events[0]]);
+
+                    expect(actionCallback.callCount).toBe(1);
+                    expect(actionCallback.args[0]).toEqual([
+                        data.events[0],
+                        store.initialState.locks.event.e1,
+                        false,
+                        false,
+                    ]);
+
+                    // Test running action with a lock and an empty autosave data
+                    store.initialState.forms.autosaves.event = {e1: {_id: 'e1'}};
+                    return store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback));
+                })
+                .then(() => {
+                    expect(locks.unlock.callCount).toBe(2);
+                    expect(locks.unlock.args[1]).toEqual([data.events[0]]);
+
+                    expect(actionCallback.callCount).toBe(2);
+                    expect(actionCallback.args[1]).toEqual([
+                        data.events[0],
+                        store.initialState.locks.event.e1,
+                        false,
+                        false,
+                    ]);
+
+                    done();
+                });
+        });
+
+        it('runs openIgnoreCancelSaveModal when open in the Editor', (done) => {
+            store.init();
+            store.initialState.locks.event = {
+                [data.events[0]._id]: {
+                    item_id: data.events[0]._id,
+                    user: 'ident1',
+                    item_type: 'event',
+                    action: 'edit',
+                },
+            };
+
+            store.initialState.forms.autosaves.event = {
+                e1: {
+                    _id: 'e1',
+                    slugline: 'New Slugline',
+                },
+            };
+
+            store.initialState.forms.itemId = data.events[0]._id;
+
+            return store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
+                .then(() => {
+                    expect(main.openIgnoreCancelSaveModal.callCount).toBe(1);
+                    expect(main.openIgnoreCancelSaveModal.args[0]).toEqual([{
+                        itemId: data.events[0]._id,
+                        itemType: data.events[0].type,
+                        onCancel: jasmine.any(Function),
+                        onIgnore: jasmine.any(Function),
+                        onGoTo: null,
+                        onSave: jasmine.any(Function),
+                        autoClose: false,
+                        title: 'title',
+                    }]);
+
+                    done();
+                });
+        });
+
+        it('runs openIgnoreCancelSaveModal when open in the EditorModal', (done) => {
+            store.init();
+            store.initialState.locks.event = {
+                [data.events[0]._id]: {
+                    item_id: data.events[0]._id,
+                    user: 'ident1',
+                    item_type: 'event',
+                    action: 'edit',
+                },
+            };
+
+            store.initialState.forms.autosaves.event = {
+                e1: {
+                    _id: 'e1',
+                    slugline: 'New Slugline',
+                },
+            };
+
+            store.initialState.forms.itemId = null;
+            store.initialState.forms.itemIdModal = data.events[0]._id;
+
+            return store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
+                .then(() => {
+                    expect(store.dispatch.args[0]).toEqual([{type: 'HIDE_MODAL'}]);
+                    expect(main.openIgnoreCancelSaveModal.callCount).toBe(1);
+                    expect(main.openIgnoreCancelSaveModal.args[0]).toEqual([{
+                        itemId: data.events[0]._id,
+                        itemType: data.events[0].type,
+                        onCancel: jasmine.any(Function),
+                        onIgnore: jasmine.any(Function),
+                        onGoTo: null,
+                        onSave: jasmine.any(Function),
+                        autoClose: false,
+                        title: 'title',
+                    }]);
+
+                    done();
+                });
+        });
+
+        it('runs openIgnoreCancelSaveModal when item minimised', (done) => {
+            store.init();
+            store.initialState.locks.event = {
+                [data.events[0]._id]: {
+                    item_id: data.events[0]._id,
+                    user: 'ident1',
+                    item_type: 'event',
+                    action: 'edit',
+                },
+            };
+
+            store.initialState.forms.autosaves.event = {
+                e1: {
+                    _id: 'e1',
+                    slugline: 'New Slugline',
+                },
+            };
+
+            store.initialState.forms.itemId = null;
+            store.initialState.forms.itemIdModal = null;
+
+            return store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
+                .then(() => {
+                    expect(main.openIgnoreCancelSaveModal.callCount).toBe(1);
+                    expect(main.openIgnoreCancelSaveModal.args[0]).toEqual([{
+                        itemId: data.events[0]._id,
+                        itemType: data.events[0].type,
+                        onCancel: jasmine.any(Function),
+                        onIgnore: jasmine.any(Function),
+                        onGoTo: jasmine.any(Function),
+                        onSave: null,
+                        autoClose: false,
+                        title: 'title',
+                    }]);
+
+                    done();
+                });
+        });
+    });
+
+    describe('saveAutosave', () => {
+        beforeEach(() => {
+            sinon.stub(main, 'save').callsFake((item) => Promise.resolve(item));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(main.save);
+        });
+
+        it('Does not save if there are no unsaved changes', (done) => (
+            store.test(done, main.saveAutosave(data.events[0]))
+                .then((item) => {
+                    expect(item).toEqual(data.events[0]);
+                    expect(main.save.callCount).toBe(0);
+
+                    done();
+                })
+        ));
+
+        it('Autosaves a Planning item', (done) => {
+            store.init();
+            store.initialState.forms.autosaves.planning = {
+                p1: {
+                    _id: 'p1',
+                    slugline: 'New Slugline',
+                },
+            };
+
+            return store.test(done, main.saveAutosave(data.plannings[0]))
+                .then((item) => {
+                    expect(item).toEqual({
+                        ...data.plannings[0],
+                        slugline: 'New Slugline',
+                    });
+
+                    expect(main.save.callCount).toBe(1);
+                    expect(main.save.args[0]).toEqual([
+                        {
+                            ...data.plannings[0],
+                            slugline: 'New Slugline',
+                        },
+                        true,
+                    ]);
+
+                    done();
+                });
+        });
+
+        it('Autosaves an Event', (done) => {
+            store.init();
+            store.initialState.forms.autosaves.event = {
+                e1: {
+                    _id: 'e1',
+                    slugline: 'New Slugline',
+                },
+            };
+
+            return store.test(done, main.saveAutosave(data.events[0], false, 'all'))
+                .then((item) => {
+                    expect(item).toEqual({
+                        ...data.events[0],
+                        slugline: 'New Slugline',
+                        update_method: 'all',
+                    });
+
+                    expect(main.save.callCount).toBe(1);
+                    expect(main.save.args[0]).toEqual([
+                        {
+                            ...data.events[0],
+                            slugline: 'New Slugline',
+                            update_method: 'all',
+                        },
+                        false,
+                    ]);
+
+                    done();
+                });
+        });
+    });
 });

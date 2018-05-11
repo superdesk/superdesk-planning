@@ -6,8 +6,7 @@ import * as actions from '../../actions';
 import {createTestStore} from '../../utils';
 import sinon from 'sinon';
 
-// TODO: To be revisited
-xdescribe('<ModalsContainer />', () => {
+describe('<ModalsContainer />', () => {
     it('open a confirmation modal', () => {
         const store = createTestStore({ });
         const wrapper = mount(
@@ -25,6 +24,8 @@ xdescribe('<ModalsContainer />', () => {
                 action: action,
             },
         }));
+
+        wrapper.update();
 
         const confirmationModal = wrapper.find('ConfirmationModal');
         const dialog = wrapper.find('Portal');
