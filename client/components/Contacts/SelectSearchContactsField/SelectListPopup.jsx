@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import {differenceBy, get} from 'lodash';
+import {get} from 'lodash';
 
-import {uiUtils, onEventCapture, gettext} from '../../../utils';
+import {uiUtils, onEventCapture} from '../../../utils';
 import {KEYCODES} from '../../../constants';
 
 import {SearchField, Button} from '../../UI';
@@ -16,8 +16,6 @@ export class SelectListPopup extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            currentParent: null,
-            selectedAncestry: [],
             search: false,
             activeOptionIndex: -1,
             openFilterList: false,
@@ -48,35 +46,12 @@ export class SelectListPopup extends React.Component {
                 onEventCapture(event);
                 this.handleUpArrowKey(event);
                 break;
-            case KEYCODES.LEFT:
-                onEventCapture(event);
-                if (this.state.selectedAncestry.length > 0) {
-                    this.popParent(true);
-                }
-                break;
-            case KEYCODES.RIGHT:
-                onEventCapture(event);
-                if (this.state.activeOptionIndex !== -1) {
-                    this.onMutiLevelSelect(
-                        this.state.filteredList[this.state.activeOptionIndex],
-                        true
-                    );
-                }
-                break;
             }
         }
     }
 
     handleEnterKey() {
-        if (this.props.multiLevel) {
-            if (this.state.activeOptionIndex !== -1) {
-                this.onSelect(this.state.filteredList[this.state.activeOptionIndex]);
-            } else {
-                this.onSelect(this.state.currentParent);
-            }
-        } else if (this.state.activeOptionIndex !== -1) {
-            this.onSelect(this.state.filteredList[this.state.activeOptionIndex]);
-        }
+        this.onSelect(this.state.filteredList[this.state.activeOptionIndex]);
     }
 
     handleDownArrowKey(event) {
@@ -92,14 +67,8 @@ export class SelectListPopup extends React.Component {
     }
 
     handleUpArrowKey(event) {
-        if (this.state.activeOptionIndex === 0) {
-            if (this.state.selectedAncestry.length !== 0) {
-                this.setState({activeOptionIndex: -1});
-            }
-        } else {
-            this.setState({activeOptionIndex: this.state.activeOptionIndex - 1});
-            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.dom.listItems);
-        }
+        this.setState({activeOptionIndex: this.state.activeOptionIndex - 1});
+        uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.dom.listItems);
     }
 
     componentWillMount() {
@@ -137,61 +106,8 @@ export class SelectListPopup extends React.Component {
         }
     }
 
-    getFilteredOptionList(currentParent, searchList) {
-        if (this.props.multiLevel) {
-            let filteredList;
-
-            if (searchList) {
-                filteredList = searchList;
-            } else {
-                filteredList = currentParent ?
-                    this.props.options.filter((option) => (
-                        option.value.parent === currentParent.value.qcode
-                    ), this) :
-                    this.props.options.filter((option) => (!option.value.parent));
-            }
-            return filteredList;
-        } else {
-            return searchList ? searchList : this.props.options;
-        }
-    }
-
-    onMutiLevelSelect(opt, keyDown = false) {
-        if (opt && !this.state.searchList && this.isOptionAParent(opt)) {
-            if (!this.state.selectedAncestry.find((o) => (opt[this.props.valueKey] === o[this.props.valueKey]))) {
-                this.setState({
-                    currentParent: opt,
-                    selectedAncestry: [...this.state.selectedAncestry, opt],
-                    filteredList: this.getFilteredOptionList(opt, null),
-                    activeOptionIndex: 0,
-                });
-            }
-        } else if (!keyDown) {
-            this.onSelect(opt);
-        }
-    }
-
-    isOptionAParent(opt) {
-        return this.props.options.filter((option) => (
-            option.value.parent === opt.value.qcode
-        )).length > 0;
-    }
-
-    chooseEntireCategory() {
-        this.onSelect(this.state.currentParent);
-    }
-
-    popParent(keydown) {
-        const len = this.state.selectedAncestry.length;
-        const opt = len > 1 ? this.state.selectedAncestry[len - 2] : null;
-        const activeOption = keydown === true ? 0 : -1;
-
-        this.setState({
-            currentParent: opt,
-            selectedAncestry: this.state.selectedAncestry.splice(0, len - 1),
-            filteredList: this.getFilteredOptionList(opt, null),
-            activeOptionIndex: activeOption,
-        });
+    getFilteredOptionList(searchList) {
+        return searchList ? searchList : this.props.options;
     }
 
     filterSearchResults(val) {
@@ -200,7 +116,7 @@ export class SelectListPopup extends React.Component {
         if (!val) {
             this.setState({
                 search: false,
-                filteredList: this.getFilteredOptionList(null),
+                filteredList: this.getFilteredOptionList(),
                 openFilterList: false,
             });
             return;
@@ -223,13 +139,9 @@ export class SelectListPopup extends React.Component {
             ));
         }
 
-        if (this.props.multiLevel && this.props.value) {
-            searchResults = differenceBy(searchResults, this.props.value, 'value.qcode');
-        }
-
         this.setState({
             search: true,
-            filteredList: this.getFilteredOptionList(null, searchResults),
+            filteredList: this.getFilteredOptionList(searchResults),
         });
     }
 
@@ -255,7 +167,7 @@ export class SelectListPopup extends React.Component {
         }
     }
 
-    renderSingleLevelSelect() {
+    renderContactSelect() {
         return (<div>
             <SearchField
                 minLength={1}
@@ -316,83 +228,8 @@ export class SelectListPopup extends React.Component {
         </div>);
     }
 
-    renderMultiLevelSelect() {
-        return (
-            <Popup
-                close={this.closeSearchList}
-                target={this.props.target}
-                onKeyDown={this.onKeyDown}
-                inheritWidth={true}
-                noPadding={true}
-            >
-                <div className="form__row">
-                    {this.state.currentParent ? (
-                        <div>
-                            <i
-                                className="backlink"
-                                onClick={this.popParent.bind(this)}
-                            />
-                            <button
-                                type="button"
-                                className={classNames(
-                                    'Select__popup__category',
-                                    {'Select__popup__item--active': this.state.activeOptionIndex === -1}
-                                )}
-                                onClick={this.chooseEntireCategory.bind(this)}
-                            >
-                                <div id="parent" className="Select__popup__parent">
-                                    {this.state.currentParent.label}
-                                </div>
-                                <div id="choose" className="Select__popup__parent--choose">
-                                    {gettext('Choose entire category')}</div>
-                            </button>
-                        </div>
-                    ) : (
-                        <SearchField
-                            minLength={1}
-                            onSearchClick={this.openSearchList.bind(this)}
-                            onSearch={(val) => {
-                                this.filterSearchResults(val);
-                            }}
-                        />
-                    )}
-                </div>
-                {this.state.openFilterList && (
-                    <div className="Select__popup__wrapper">
-                        <ul
-                            className="dropdown-menu Select__popup__list"
-                            ref={(node) => this.dom.listItems = node}
-                        >
-                            {this.state.filteredList.map((opt, index) => (
-                                <li
-                                    key={index}
-                                    className={classNames(
-                                        'Select__popup__item',
-                                        {'Select__popup__item--active': index === this.state.activeOptionIndex}
-                                    )}
-                                >
-                                    <button
-                                        type="button"
-                                        onClick={
-                                            this.onMutiLevelSelect.bind(this, this.state.filteredList[index], false)
-                                        }
-                                    >
-                                        <span>{ opt.label }</span>
-                                        {!this.state.search && this.isOptionAParent(opt) &&
-                                            <i className="icon-chevron-right-thin" />
-                                        }
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-            </Popup>
-        );
-    }
-
     render() {
-        return this.props.multiLevel ? this.renderMultiLevelSelect() : this.renderSingleLevelSelect();
+        return this.renderContactSelect();
     }
 }
 
@@ -410,7 +247,6 @@ SelectListPopup.propTypes = {
     onCancel: PropTypes.func.isRequired,
     onChange: PropTypes.func.isRequired,
     valueKey: PropTypes.string,
-    multiLevel: PropTypes.bool,
     value: PropTypes.arrayOf(PropTypes.shape({
         label: PropTypes.oneOfType([
             PropTypes.object,

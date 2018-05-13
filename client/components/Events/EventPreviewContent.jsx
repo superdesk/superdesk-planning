@@ -12,13 +12,12 @@ import {
 } from '../index';
 import {EventScheduleSummary} from './';
 import {ToggleBox} from '../UI';
-import {List} from '../UI';
 import {ContentBlock} from '../UI/SidePanel';
 import {LinkInput, FileInput} from '../UI/Form';
-import {ContactInfoContainer} from '../index';
 import {Location} from '../Location';
 import eventsApi from '../../actions/events/api';
 import eventsUi from '../../actions/events/ui';
+import {ContactMetaData} from '../Contacts/index';
 
 export class EventPreviewContentComponent extends React.Component {
     constructor(props) {
@@ -27,9 +26,9 @@ export class EventPreviewContentComponent extends React.Component {
             filteredContacts: [],
             showContactInfo: false,
             currentContact: [],
+            editDetails: false,
+            viewIndex: null,
         };
-        this.viewContactDetails = this.viewContactDetails.bind(this);
-        this.closeDetails = this.closeDetails.bind(this);
         this.fetchEventContacts = this.fetchEventContacts.bind(this);
         this.getResponseResult = this.getResponseResult.bind(this);
     }
@@ -72,17 +71,28 @@ export class EventPreviewContentComponent extends React.Component {
         return results;
     }
 
-    viewContactDetails(contact) {
-        this.setState({
-            showContactInfo: true,
-            currentContact: contact,
-        });
+    getContactLabel(contact) {
+        const avatarClass = (contact) => contact.first_name ? 'avatar' : 'avatar organisation';
+
+        const displayContact = (contact) => (contact.first_name ?
+            `${contact.first_name} ${contact.last_name}` : contact.organisation);
+
+        const displayContactInfo = (contact) => (contact.first_name && contact.job_title && contact.organisation &&
+                <h5>{contact.job_title}, {contact.organisation}</h5>);
+
+        return (<span className="contact-info">
+            <figure className={avatarClass(contact)} />
+            <span>{displayContact(contact)} {displayContactInfo(contact)}</span>
+        </span>);
     }
 
-    closeDetails() {
-        this.setState({
-            showContactInfo: false,
-        });
+    getContactInfo(currentContact) {
+        let contactLabel = this.getContactLabel(currentContact);
+
+        return {
+            label: (<span>{contactLabel}</span>),
+            value: currentContact,
+        };
     }
 
     render() {
@@ -111,12 +121,6 @@ export class EventPreviewContentComponent extends React.Component {
         const subjectText = get(item, 'subject.length', 0) === 0 ? '' :
             item.subject.map((s) => s.name).join(', ');
 
-        /** Contact Field related */
-        const avatarClass = (contact) => contact.first_name ? 'avatar' : 'avatar organisation';
-        const displayContact = (contact) => (contact.first_name ?
-            `${contact.first_name} ${contact.last_name}` : contact.organisation);
-        const displayContactInfo = (contact) => (contact.first_name && contact.job_title && contact.organisation &&
-                    <h5>{contact.job_title}, {contact.organisation}</h5>);
 
         return (
             <ContentBlock>
@@ -184,31 +188,13 @@ export class EventPreviewContentComponent extends React.Component {
                 >
                     {get(this.state, 'filteredContacts.length') > 0 &&
                         get(this.state, 'filteredContacts', []).map((contact, index) => (
-                            <List.Item shadow={2} key={index} margin={true}>
-                                <List.Column grow={true} border={false}>
-                                    <List.Row>
-                                        <span className="contact-info">
-                                            <figure className={avatarClass(contact)} />
-                                            <span>{displayContact(contact)} {displayContactInfo(contact)}</span>
-                                        </span>
-                                    </List.Row>
-                                </List.Column>
-                                <List.ActionMenu>
-                                    <button
-                                        data-sd-tooltip="View Details"
-                                        data-flow="left"
-                                        onClick={this.viewContactDetails.bind(this, contact)}
-                                    >
-                                        <i className="icon-external" />
-                                    </button>
-                                </List.ActionMenu>
-                            </List.Item>
+                            <ContactMetaData
+                                key={index}
+                                contact={this.getContactInfo(contact)}
+                                scrollInView={true}
+                                scrollIntoViewOptions={{block: 'center'}}
+                                tabEnabled />
                         ))
-                    }
-                    {this.state.showContactInfo && (
-                        <ContactInfoContainer onCancel={this.closeDetails.bind(this)}
-                            target="icon-external" currentContact={this.state.currentContact} />
-                    )
                     }
                 </Row>
 

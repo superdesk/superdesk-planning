@@ -36,16 +36,6 @@
         margin-top: 15px;
     }
 
-    &__category {
-        &:hover .Select__popup__parent {
-        	display: none;
-        }
-
-        &:hover .Select__popup__parent--choose {
-			display: block;
-        }
-    }
-
     &__list {
     	li {margin: 5px 0;}
     	span, i { float: left; text-align: left; }
@@ -76,30 +66,6 @@
     	border-bottom: 1px solid $grayLighter;
     }
 
-    &__parent {
-	    display: block;
-	    vertical-align: top;
-        position: relative;
-        font-size: 12px;
-        color: #000;
-        background-color: rgba(0,0,0,0.05);
-        margin-right: 3px;
-        margin-bottom: 3px;
-        padding: 3px 10px;
-        cursor: pointer;
-        border-radius: 2px;
-        @include transition(color .2s);
-        max-width: 200px;
-
-        &--choose {
-        	background-color: rgba(0,0,0,0.05);
-        	margin-right: 3px;
-	        margin-bottom: 3px;
-	        padding: 3px 10px;
-			display: none;
-		}
-	}
-
 	// SearchBar related styling customisations
     .search-handler {
         padding: 0;
@@ -125,6 +91,12 @@
     margin: 5px !important;
 }
 
+.contact-field {
+    &--padding-top {
+        padding-top: 25px;
+    }   
+}
+
 .contact-info {
     margin: 5px;
     display: flex !important;
@@ -139,11 +111,17 @@
     }
 }
 
+.contact-metadata {
+    margin-top: 1rem; 
+}
+
 .contact-popup {
-    width: 425px;
-    height: 300px;
-    .popup__menu {
-        height: inherit;
+    overflow: hidden;
+    margin-top: -1rem;
+    margin-bottom: 2.4rem;
+
+    .media-box.contacts {
+        display: contents;
     }
 
     .mgrid-view {

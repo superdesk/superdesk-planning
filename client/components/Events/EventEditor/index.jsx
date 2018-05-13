@@ -18,7 +18,7 @@ import {
     LinkInput,
     Field,
 } from '../../UI/Form';
-import {ContactField} from '../../fields';
+import {ContactField} from '../../Contacts';
 import {ToggleBox, IconButton} from '../../UI';
 import {RelatedPlannings} from '../../RelatedPlannings';
 import {EventScheduleInput, EventScheduleSummary} from '../';
@@ -43,6 +43,7 @@ export class EventEditorComponent extends React.Component {
         this.dom = {
             slugline: null,
             top: null,
+            contacts: null,
         };
     }
 
@@ -75,6 +76,11 @@ export class EventEditorComponent extends React.Component {
             // scroll to new position
             if (editorMenuUtils.forceScroll(this.props.navigation, 'event')) {
                 this.dom.top.scrollIntoView();
+            }
+
+            // scroll to contacts
+            if (editorMenuUtils.forceScroll(this.props.navigation, 'contacts')) {
+                this.dom.contacts.scrollIntoView();
             }
         }
 
@@ -128,6 +134,7 @@ export class EventEditorComponent extends React.Component {
         const relatedPlannings = this.getRelatedPlanningsForEvent();
 
         const onFocusEvent = editorMenuUtils.onItemFocus(this.props.navigation, 'event');
+        const onFocusContacts = editorMenuUtils.onItemFocus(this.props.navigation, 'contacts');
         const onFocusDetails = editorMenuUtils.onItemFocus(this.props.navigation, 'details');
         const onFocusFiles = editorMenuUtils.onItemFocus(this.props.navigation, 'files');
         const onFocusLinks = editorMenuUtils.onItemFocus(this.props.navigation, 'links');
@@ -233,16 +240,16 @@ export class EventEditorComponent extends React.Component {
                         field="location"
                         label={gettext('Location')}
                         {...fieldProps}
-                        onFocus={onFocusEvent}
-                    />
+                        onFocus={onFocusEvent} />
 
                     <Field
                         component={ContactField}
                         field="event_contact_info"
-                        label={gettext('Contact')}
+                        label={gettext('Contacts')}
+                        refNode={(node) => this.dom.contacts = node}
                         {...fieldProps}
-                        onFocus={onFocusEvent}
-                    />
+                        onFocus={onFocusContacts}
+                        paddingTop={!!onFocusContacts} />
 
                     <ToggleBox
                         title={gettext('Details')}
