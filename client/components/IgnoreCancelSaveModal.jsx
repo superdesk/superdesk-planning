@@ -91,10 +91,15 @@ export class IgnoreCancelSaveModalComponent extends React.Component {
     }
 
     onSubmit() {
-        const {onGoTo, onSave} = this.props.modalProps || {};
+        const {onGoTo, onSave, onSaveAndPost} = this.props.modalProps || {};
 
         if (onGoTo) {
             return onGoTo();
+        } else if (onSaveAndPost) {
+            return onSaveAndPost(
+                false,
+                this.state.eventUpdateMethod
+            );
         }
 
         return onSave(
@@ -103,30 +108,41 @@ export class IgnoreCancelSaveModalComponent extends React.Component {
         );
     }
 
+    getOkText() {
+        const {item, onGoTo, onSaveAndPost} = this.props.modalProps || {};
+        let okText;
+
+        if (onGoTo) {
+            okText = gettext('Go-To');
+        } else if (get(item, '_id')) {
+            if (isItemPublic(item)) {
+                okText = onSaveAndPost ?
+                    gettext('Save & Post') :
+                    gettext('Update');
+            } else {
+                okText = gettext('Save');
+            }
+        } else {
+            okText = gettext('Create');
+        }
+
+        return okText;
+    }
+
     render() {
         const {handleHide, modalProps} = this.props;
         const {
-            item,
             itemType,
             title,
             onIgnore,
             onCancel,
             onSave,
             onGoTo,
+            onSaveAndPost,
             autoClose,
         } = modalProps || {};
 
-        let okText;
-
-        if (onGoTo) {
-            okText = gettext('GoTo');
-        } else if (get(item, '_id')) {
-            okText = isItemPublic(item) ?
-                gettext('Update') :
-                gettext('Save');
-        } else {
-            okText = gettext('Create');
-        }
+        const okText = this.getOkText();
 
         return (
             <ConfirmationModal
@@ -137,7 +153,7 @@ export class IgnoreCancelSaveModalComponent extends React.Component {
                     showIgnore: true,
                     ignore: onIgnore,
                     ignoreText: gettext('Ignore'),
-                    action: (onGoTo || onSave) ? this.onSubmit : null,
+                    action: (onGoTo || onSave || onSaveAndPost) ? this.onSubmit : null,
                     okText: okText,
                     title: title || gettext('Save Changes?'),
                     body: itemType === ITEM_TYPE.EVENT ?
@@ -159,6 +175,7 @@ IgnoreCancelSaveModalComponent.propTypes = {
         onIgnore: PropTypes.func,
         onSave: PropTypes.func,
         onGoTo: PropTypes.func,
+        onSaveAndPost: PropTypes.func,
         title: PropTypes.string,
         autoClose: PropTypes.bool,
     }),

@@ -4,7 +4,15 @@ import classNames from 'classnames';
 
 import {get, isEqual, cloneDeep, omit, pickBy} from 'lodash';
 
-import {gettext, lockUtils, eventUtils, planningUtils, updateFormValues, isExistingItem} from '../../../utils';
+import {
+    gettext,
+    lockUtils,
+    eventUtils,
+    planningUtils,
+    updateFormValues,
+    isExistingItem,
+    isItemKilled,
+} from '../../../utils';
 import {EventUpdateMethods} from '../../Events';
 
 import {ITEM_TYPE, EVENTS, PLANNING, POST_STATE, WORKFLOW_STATE, COVERAGES} from '../../../constants';
@@ -301,8 +309,13 @@ export class EditorComponent extends React.Component {
             );
     }
 
-    onSaveAndPost() {
-        return this._save({post: true, unpost: false});
+    onSaveAndPost(withConfirmation = true, updateMethod = EventUpdateMethods[0]) {
+        return this._save({
+            post: true,
+            unpost: false,
+            withConfirmation: withConfirmation,
+            updateMethod: updateMethod,
+        });
     }
 
     onUnpost() {
@@ -353,14 +366,21 @@ export class EditorComponent extends React.Component {
 
         if (dirty) {
             this.flushAutosave();
+            const hasErrors = !isEqual(errors, {});
+            const isKilled = isItemKilled(item);
+
             openCancelModal({
                 itemId: get(item, '_id') || get(initialValues, '_tempId'),
                 itemType: itemType,
                 onIgnore: this.onCancel,
-                onSave: !isEqual(errors, {}) ?
+                onSave: (isKilled || hasErrors) ?
                     null :
                     (withConfirmation, updateMethod) => this.onSave(withConfirmation, updateMethod)
                         .finally(this.onCancel),
+                onSaveAndPost: (isKilled && !hasErrors) ?
+                    (withConfirmation, updateMethod) => this.onSaveAndPost(withConfirmation, updateMethod)
+                        .finally(this.onCancel) :
+                    null,
             });
         } else {
             this.onCancel();

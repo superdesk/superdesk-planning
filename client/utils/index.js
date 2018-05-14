@@ -487,6 +487,8 @@ export const shouldLockItemForEdit = (item, lockedItems, privileges) =>
     get(item, '_id') &&
         !lockUtils.getLock(item, lockedItems) &&
         !isItemSpiked(item) &&
+        !isItemCancelled(item) &&
+        !isItemRescheduled(item) &&
         (
             (isEvent(item) && eventUtils.shouldLockEventForEdit(item, privileges)) ||
             (isPlanning(item) && planningUtils.shouldLockPlanningForEdit(item, privileges))

@@ -1,4 +1,4 @@
-import {MAIN, ITEM_TYPE, MODALS, WORKSPACE} from '../constants';
+import {MAIN, ITEM_TYPE, MODALS, WORKSPACE, WORKFLOW_STATE, POST_STATE} from '../constants';
 import {activeFilter, lastRequestParams} from '../selectors/main';
 import planningUi from './planning/ui';
 import planningApi from './planning/api';
@@ -19,11 +19,13 @@ import {
     timeUtils,
     isExistingItem,
     lockUtils,
+    isItemKilled,
 } from '../utils';
 import eventsPlanningUi from './eventsPlanning/ui';
 import {get, omit, isEmpty, isNil, isEqual} from 'lodash';
 
 import * as selectors from '../selectors';
+import {validateItem} from '../validators';
 
 const lockAndEdit = (item, modal = false) => (
     (dispatch, getState, {notify}) => {
@@ -292,6 +294,18 @@ const saveAutosave = (item, withConfirmation = true, updateMethod) => (
     }
 );
 
+const isItemValid = (item) => (
+    (dispatch, getState) => {
+        const itemType = getItemType(item);
+        const formProfiles = selectors.forms.profiles(getState());
+        const errors = {};
+        const messages = [];
+
+        dispatch(validateItem(itemType, item, formProfiles, errors, messages));
+        return isEqual(errors, {});
+    }
+);
+
 const openActionModalFromEditor = (item, title, action) => (
     (dispatch, getState) => {
         const lockedItems = selectors.locks.getLockedItems(getState());
@@ -317,32 +331,52 @@ const openActionModalFromEditor = (item, title, action) => (
                     dispatch(hideModal());
                 }
 
+                // Check if item has errors
+                const isOpenForEditing = isOpenInEditor || isOpenInModal;
+                const isKilled = isItemKilled(item);
+                const hasErrors = !dispatch(self.isItemValid({
+                    ...item,
+                    ...autosaveData,
+                }));
+
+                const unlockAndRunAction = (updatedItem) => (
+                    dispatch(locks.unlock(updatedItem))
+                        .then((unlockedItem) => {
+                            dispatch(hideModal());
+                            return action(unlockedItem, itemLock, isOpenInEditor, isOpenInModal);
+                        })
+                );
+
                 promise = dispatch(self.openIgnoreCancelSaveModal({
                     itemId: item._id,
                     itemType: itemType,
                     onCancel: () =>
                         dispatch(hideModal()),
-                    onIgnore: () =>
-                        dispatch(locks.unlock(item))
-                            .then((unlockedItem) => {
-                                dispatch(hideModal());
-                                return action(unlockedItem, itemLock, isOpenInEditor, isOpenInModal);
-                            }),
-                    onGoTo: (isOpenInEditor || isOpenInModal) ?
-                        null :
+                    onIgnore: unlockAndRunAction.bind(null, item),
+                    onGoTo: !isOpenForEditing ?
                         () => {
                             dispatch(hideModal());
                             return dispatch(self.lockAndEdit(item));
-                        },
-                    onSave: (!isOpenInEditor && !isOpenInModal) ?
-                        null :
+                        } :
+                        null,
+                    onSave: isOpenForEditing && (!isKilled && !hasErrors) ?
                         (withConfirmation, updateMethod) =>
                             dispatch(self.saveAutosave(item, withConfirmation, updateMethod))
-                                .then((updatedItem) => dispatch(locks.unlock(updatedItem)))
-                                .then((unlockedItem) => {
-                                    dispatch(hideModal());
-                                    return action(unlockedItem, itemLock, isOpenInEditor, isOpenInModal);
-                                }),
+                                .then(unlockAndRunAction) :
+                        null,
+                    onSaveAndPost: isOpenForEditing && (isKilled && !hasErrors) ?
+                        (withConfirmation, updateMethod) =>
+                            dispatch(self.saveAutosave(
+                                {
+                                    ...item,
+                                    state: WORKFLOW_STATE.SCHEDULED,
+                                    pubstatus: POST_STATE.USABLE,
+                                },
+                                withConfirmation,
+                                updateMethod
+                            ))
+                                .then(unlockAndRunAction) :
+                        null,
                     autoClose: false,
                     title: title,
                 }));
@@ -365,6 +399,7 @@ const openIgnoreCancelSaveModal = ({
     onIgnore,
     onSave,
     onGoTo,
+    onSaveAndPost,
     title,
     autoClose = true,
 }) => (
@@ -394,8 +429,7 @@ const openIgnoreCancelSaveModal = ({
         let promise = Promise.resolve(item);
 
         if (itemType === ITEM_TYPE.EVENT && eventUtils.isEventRecurring(item)) {
-            const events = selectors.getEvents(getState());
-            const originalEvent = get(events, event._id, {});
+            const originalEvent = get(storedItems, event._id, {});
             const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
 
             promise = dispatch(eventsApi.query({
@@ -422,6 +456,7 @@ const openIgnoreCancelSaveModal = ({
                         onIgnore: onIgnore,
                         onSave: onSave,
                         onGoTo: onGoTo,
+                        onSaveAndPost: onSaveAndPost,
                         title: title,
                         autosaveData: autosaveData,
                         autoClose: autoClose,
@@ -966,6 +1001,7 @@ const self = {
     openIgnoreCancelSaveModal,
     saveAutosave,
     openActionModalFromEditor,
+    isItemValid,
 };
 
 export default self;

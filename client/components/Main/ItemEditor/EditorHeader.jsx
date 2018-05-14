@@ -145,7 +145,7 @@ export class EditorHeader extends React.Component {
 
         states.showUpdate = states.isPublic && states.canUpdate;
         states.showSave = !states.isPublic && states.canEdit;
-        states.isBeingEdited = states.showUpdate || states.showSave;
+        states.isBeingEdited = states.showUpdate || states.showSave || states.canPost;
         states.showCreateAndPost = states.existingItem && createAndPost;
 
         return states;
