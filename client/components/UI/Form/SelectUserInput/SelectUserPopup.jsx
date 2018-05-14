@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {get} from 'lodash';
 
-import {KEYCODES} from '../../../../constants';
-import {gettext, uiUtils, onEventCapture} from '../../../../utils';
+import {KEYCODES} from '../../constants';
+import {gettext, scrollListItemIfNeeded, onEventCapture} from '../../utils';
 
 import {Popup, Content} from '../../Popup';
 import {UserAvatar} from '../../../';
@@ -46,14 +46,14 @@ export class SelectUserPopup extends React.Component {
     handleDownArrowKey(event) {
         if (get(this.props, 'users.length', 0) - 1 > this.state.activeIndex) {
             this.setState({activeIndex: this.state.activeIndex + 1});
-            uiUtils.scrollListItemIfNeeded(this.state.activeIndex, this.dom.itemList);
+            scrollListItemIfNeeded(this.state.activeIndex, this.dom.itemList);
         }
     }
 
     handleUpArrowKey(event) {
         if (this.state.activeIndex > 0) {
             this.setState({activeIndex: this.state.activeIndex - 1});
-            uiUtils.scrollListItemIfNeeded(this.state.activeIndex, this.dom.itemList);
+            scrollListItemIfNeeded(this.state.activeIndex, this.dom.itemList);
         }
     }
 

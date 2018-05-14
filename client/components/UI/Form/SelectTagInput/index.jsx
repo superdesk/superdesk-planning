@@ -7,8 +7,8 @@ import {Row, LineInput, Label, Input} from '../';
 import {TermsList} from '../../';
 
 import {SelectTagPopup} from './SelectTagPopup';
-import {KEYCODES} from '../../../../constants';
-import {onEventCapture} from '../../../../utils';
+import {KEYCODES} from '../../constants';
+import {onEventCapture} from '../../utils';
 
 import './style.scss';
 

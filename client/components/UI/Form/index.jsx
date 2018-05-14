@@ -22,8 +22,6 @@ export {TimeInput} from './TimeInput';
 export {DateInput} from './DateInput';
 export {DateTimeInput} from './DateTimeInput';
 
-export {GeoLookupInput} from './GeoLookupInput';
-
 export {InputArray} from './InputArray';
 export {RadioButtonInput} from './RadioButtonInput';
 

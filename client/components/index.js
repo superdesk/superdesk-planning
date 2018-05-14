@@ -1,3 +1,4 @@
+export {GeoLookupInput} from './GeoLookupInput/index';
 export {Autosave} from './Autosave/index';
 export {StateLabel} from './StateLabel/index';
 export {ModalWithForm} from './ModalWithForm/index';

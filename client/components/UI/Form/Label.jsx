@@ -8,7 +8,6 @@ export const Label = ({text, row, light, invalid}) => (
     !text ? null : (
         <label className={classNames({
             'sd-line-input__label': !row,
-            'sd-line-input__invalid': !row && invalid,
             'form-label': row,
             'form-label--light': row && light,
             'form-label--invalid': row && invalid,

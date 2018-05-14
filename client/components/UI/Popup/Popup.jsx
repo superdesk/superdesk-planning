@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Portal} from 'react-portal';
 import classNames from 'classnames';
-import {KEYCODES} from '../../../constants';
+import {KEYCODES} from '../constants';
 import Menu from './Menu';
 
 import './style.scss';

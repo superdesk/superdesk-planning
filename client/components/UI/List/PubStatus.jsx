@@ -3,17 +3,17 @@ import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import PropTypes from 'prop-types';
 
 import {Column} from './Column';
-import {isItemPublic, planningUtils, gettext} from '../../../utils';
-import {TOOLTIPS} from '../../../constants';
+import {isNotForPublication, gettext} from '../utils';
+import {TOOLTIPS} from '../constants';
 
-export const PubStatus = ({item}) => {
+export const PubStatus = ({item, isPublic}) => {
     let badge;
     let title = null;
 
-    if (isItemPublic(item)) {
+    if (isPublic) {
         title = gettext(TOOLTIPS.postedState);
         badge = <span className="badge badge--success">P</span>;
-    } else if (planningUtils.isNotForPublication(item)) {
+    } else if (isNotForPublication(item)) {
         title = gettext(TOOLTIPS.notForPublication);
         badge = <i
             className="icon-ban-circle icon--red"
@@ -43,4 +43,5 @@ export const PubStatus = ({item}) => {
 
 PubStatus.propTypes = {
     item: PropTypes.object.isRequired,
+    isPublic: PropTypes.bool,
 };

@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import {formatAddress, uiUtils, onEventCapture} from '../../../../utils';
-import {KEYCODES} from '../../../../constants';
+import {formatAddress, uiUtils, onEventCapture} from '../../utils';
+import {KEYCODES} from '../../constants';
 import {get} from 'lodash';
 import './style.scss';
 
-import {Popup, Content} from '../../Popup';
+import {Popup, Content} from '../UI/Popup';
 
 export class AddGeoLookupResultsPopUp extends React.Component {
     constructor(props) {
@@ -184,4 +184,3 @@ AddGeoLookupResultsPopUp.propTypes = {
     showExternalSearch: PropTypes.bool,
     target: PropTypes.string.isRequired,
 };
-

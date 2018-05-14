@@ -12,7 +12,7 @@ import {PlanningDateTime} from './';
 import {ItemActionsMenu} from '../index';
 import {PLANNING, EVENTS, MAIN, ICON_COLORS} from '../../constants';
 
-import {planningUtils, getItemWorkflowStateLabel, onEventCapture} from '../../utils';
+import {planningUtils, getItemWorkflowStateLabel, onEventCapture, isItemPublic} from '../../utils';
 import {AgendaNameList} from '../Agendas';
 
 export class PlanningItem extends React.PureComponent {
@@ -112,7 +112,7 @@ export class PlanningItem extends React.PureComponent {
                     onCheckToggle={onMultiSelectClick.bind(null, item)}
                     color={ICON_COLORS.LIGHT_BLUE}
                 />
-                <PubStatus item={item} />
+                <PubStatus item={item} isPublic={isItemPublic(item)}/>
                 <Column
                     grow={true}
                     border={false}

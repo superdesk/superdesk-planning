@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import {KEYCODES} from '../../../constants';
-import {onEventCapture} from '../../../utils';
+import {KEYCODES} from '../constants';
+import {onEventCapture} from '../utils';
 import './style.scss';
 
 export default function Toggle({value, onChange, readOnly, onFocus, className}) {

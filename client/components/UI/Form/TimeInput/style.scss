@@ -1,5 +1,5 @@
-@import '~superdesk-core/styles/sass/mixins.scss';
-@import '~superdesk-core/styles/sass/variables.scss';
+@import '~superdesk-ui-framework/app/styles/_mixins.scss';
+@import '~superdesk-ui-framework/app/styles/_variables.scss';
 
 .time-popup {
     width: 200px;
@@ -44,7 +44,6 @@
                 line-height: 28px;
                 text-align: center;
                 margin: 0 2px 2px 0;
-                @include user-select(none);
                 @include border-radius(2px);
                 &:hover {
                     background: $sd-hover;

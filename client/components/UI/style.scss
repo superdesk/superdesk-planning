@@ -1,5 +1,9 @@
-@import '~superdesk-core/styles/sass/variables.scss';
-@import '~superdesk-core/styles/sass/mixins.scss';
+@import '~superdesk-ui-framework/app/styles/_variables.scss';
+@import '~superdesk-ui-framework/app/styles/_mixins.scss';
+
+time.Datetime {
+    padding-left: 0;
+}
 
 .link {
     cursor: pointer !important;
@@ -27,6 +31,12 @@
     }
 }
 
+.sd-list-item-group {
+    &--vertical-scroll {
+        overflow-y: auto;
+    }
+}
+
 .terms-list {
     &--disabled {
         li {
@@ -37,6 +47,10 @@
             }
         }
     }
+}
+
+.sd-list-item__row--padding-b5 {
+    padding-bottom: 5px !important;
 }
 
 .sd-collapse-box--invalid {

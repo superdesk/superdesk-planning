@@ -4,8 +4,8 @@ import PropTypes from 'prop-types';
 import {Row, LineInput, Label, Input} from '../';
 import {UserAvatar} from '../../../';
 import {SelectUserPopup} from './SelectUserPopup';
-import {KEYCODES} from '../../../../constants';
-import {onEventCapture} from '../../../../utils';
+import {KEYCODES} from '../../constants';
+import {onEventCapture} from '../../utils';
 
 export class SelectUserInput extends React.Component {
     constructor(props) {

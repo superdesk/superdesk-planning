@@ -7,7 +7,7 @@ import {DayPicker} from './DayPicker';
 import {MonthPicker} from './MonthPicker';
 import {YearPicker} from './YearPicker';
 
-import {gettext} from '../../../../utils';
+import {gettext} from '../../utils';
 
 import './style.scss';
 

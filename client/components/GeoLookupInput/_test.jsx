@@ -1,8 +1,8 @@
 import React from 'react';
 import {mount} from 'enzyme';
-import {GeoLookupInputComponent} from './index';
+import {GeoLookupInputComponent} from './AddGeoLookupInput';
 import sinon from 'sinon';
-import * as helpers from '../../../tests/helpers';
+import * as helpers from '../tests/helpers';
 
 describe('<AddGeoLookupInput />', () => {
     let inputText;

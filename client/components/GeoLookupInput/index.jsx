@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import {AddGeoLookupInput} from './AddGeoLookupInput';
 import React from 'react';
-import {LineInput, Label} from './';
+import {LineInput, Label} from '../UI/Form';
 
 export const GeoLookupInput = ({
     label,

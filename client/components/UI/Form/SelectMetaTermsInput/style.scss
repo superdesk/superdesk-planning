@@ -1,5 +1,5 @@
-@import '~superdesk-core/styles/sass/mixins.scss';
-@import '~superdesk-core/styles/sass/variables.scss';
+@import '~superdesk-ui-framework/app/styles/_mixins.scss';
+@import '~superdesk-ui-framework/app/styles/_variables.scss';
 
 .Select {
 	&__dropdownToggle {
@@ -79,7 +79,7 @@
         padding: 3px 10px;
         cursor: pointer;
         border-radius: 2px;
-        @include transition(color .2s);
+        @include transition(color, .2s, ease);
         max-width: 200px;
 
         &--choose {
