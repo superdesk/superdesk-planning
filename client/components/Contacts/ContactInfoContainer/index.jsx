@@ -4,8 +4,6 @@ import PropTypes from 'prop-types';
 import * as ContactComponents from 'superdesk-core/scripts/apps/contacts/components/index';
 import {renderContents} from 'superdesk-core/scripts/apps/contacts/helpers';
 import ng from 'superdesk-core/scripts/core/services/ng';
-import {gettext} from '../../utils';
-import {Popup, Header, Content} from '../UI/Popup';
 
 
 export class ContactInfoContainer extends React.Component {
@@ -42,21 +40,9 @@ export class ContactInfoContainer extends React.Component {
         );
 
         return (
-            <Popup
-                close={this.handleCancel.bind(this)}
-                target={this.props.target}
-                noPadding={true}
-                className="contact-popup"
-            >
-                <Header text={gettext('Contact Details')} onClose={this.handleCancel} />
-                <Content noPadding={true}>
-                    {this.props.currentContact &&
-                        (<div className="mgrid-view">
-                            {renderContents(contents)}
-                        </div>)
-                    }
-                </Content>
-            </Popup>
+            <div className="contact-popup">
+                <span className="mgrid-view">{renderContents(contents)}</span>
+            </div>
         );
     }
 }

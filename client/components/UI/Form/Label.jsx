@@ -23,6 +23,7 @@ Label.propTypes = {
     row: PropTypes.bool,
     light: PropTypes.bool,
     invalid: PropTypes.bool,
+
 };
 
 Label.defaultProps = {

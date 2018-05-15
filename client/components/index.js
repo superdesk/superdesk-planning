@@ -31,8 +31,6 @@ export {MultiSelectActions} from './MultiSelectActions';
 
 import * as UI from './UI/index';
 export {UI};
-export {ContactInfoContainer} from './ContactInfoContainer/index';
-export {ContactEditor} from './ContactEditor/index';
 export {AdvancedSearch} from './AdvancedSearch';
 export {InternalNoteLabel} from './InternalNoteLabel';
 export {Location} from './Location';

@@ -1,10 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {SelectSearchTermsField} from './SelectSearchTermsField/';
 import {connect} from 'react-redux';
 import * as selectors from '../../selectors';
 import {get, isEqual} from 'lodash';
-import {ContactInfoContainer, ContactEditor} from '../index';
+import {ContactEditor, SelectSearchContactsField} from './index';
 import eventsApi from '../../actions/events/api';
 import {CONTACTS} from '../../constants';
 import {gettext} from '../../utils/index';
@@ -29,7 +28,6 @@ export class ContactFieldComponent extends React.Component {
         this.getOptions = this.getOptions.bind(this);
         this.getValue = this.getValue.bind(this);
         this.getContactLabel = this.getContactLabel.bind(this);
-        this.viewDetails = this.viewDetails.bind(this);
         this.editDetails = this.editDetails.bind(this);
     }
 
@@ -41,16 +39,6 @@ export class ContactFieldComponent extends React.Component {
         if (!isEqual(nextProps.value, this.props.value)) {
             this.fetchEventContacts(nextProps.value);
         }
-    }
-
-    // Renders Contact information card
-    viewDetails(onCancel, currentContact) {
-        return (
-            <ContactInfoContainer
-                target="icon-external"
-                onCancel={onCancel}
-                currentContact={currentContact} />
-        );
     }
 
     editDetails(onCancel, currentContact) {
@@ -133,8 +121,7 @@ export class ContactFieldComponent extends React.Component {
 
         return {
             label: (<span>{contactLabel}</span>),
-            value: currentContact._id,
-            onViewDetails: ((onCancel) => this.viewDetails(onCancel, currentContact)),
+            value: currentContact,
             onEditDetails: ((onCancel) => this.editDetails(onCancel, currentContact)),
         };
     }
@@ -162,21 +149,23 @@ export class ContactFieldComponent extends React.Component {
     }
 
     render() {
-        const {label, field, privileges, onFocus, ...props} = this.props;
+        const {label, field, privileges, onFocus, refNode, paddingTop, ...props} = this.props;
 
         return (
-            <SelectSearchTermsField
-                field={field}
-                label={label}
-                onChange={props.onChange}
-                querySearch={true}
-                valueKey="value"
-                onQuerySearch={((text) => this.getSearchResult(text))}
-                options={this.state.filteredOptions}
-                value={this.state.filteredValues}
-                onAdd={privileges.contacts ? (onCancel) => this.addContact(onCancel) : null}
-                onAddText={privileges.contacts ? gettext('Add Contact') : null}
-                onFocus={onFocus} />
+            <div ref={refNode} className={paddingTop ? 'contact-field--padding-top' : null}>
+                <SelectSearchContactsField
+                    field={field}
+                    label={label}
+                    onChange={props.onChange}
+                    querySearch={true}
+                    valueKey="value"
+                    onQuerySearch={((text) => this.getSearchResult(text))}
+                    options={this.state.filteredOptions}
+                    value={this.state.filteredValues}
+                    onAdd={privileges.contacts ? (onCancel) => this.addContact(onCancel) : null}
+                    onAddText={privileges.contacts ? gettext('Add Contact') : null}
+                    onFocus={onFocus} />
+            </div>
         );
     }
 }
@@ -196,6 +185,8 @@ ContactFieldComponent.propTypes = {
     fetchContacts: PropTypes.func,
     eventContacts: PropTypes.array,
     privileges: PropTypes.object,
+    refNode: PropTypes.func,
+    paddingTop: PropTypes.bool,
 };
 
 const mapStateToProps = (state, ownProps) => ({

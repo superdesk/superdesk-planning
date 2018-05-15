@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Modal} from '../index';
+import {Modal} from '../../index';
 
 import * as ContactFormComponents from 'superdesk-core/scripts/apps/contacts/components/Form';
 import ng from 'superdesk-core/scripts/core/services/ng';
