@@ -130,7 +130,7 @@ const queryAndSetAssignmentListGroups = (filterByState, page = 1) => (
                         get(data, '_meta.total'), listGroupForStates));
                 } else {
                     dispatch(self.addToAssignmentListGroup(data._items.map((a) => a._id),
-                        listGroupForStates));
+                        get(data, '_meta.total'), listGroupForStates));
                 }
 
                 return Promise.resolve(data._items);
@@ -273,7 +273,7 @@ const setMyAssignmentsTotal = (total) => (
 /**
  * Action dispatcher to load first page of the list of assignments for current list settings.
  */
-const addToAssignmentListGroup = (assignments, group) => (
+const addToAssignmentListGroup = (assignments, totalNoOfItems, group) => (
     (dispatch) => {
         let actionType;
 
@@ -293,7 +293,10 @@ const addToAssignmentListGroup = (assignments, group) => (
 
         return dispatch({
             type: actionType,
-            payload: assignments,
+            payload: {
+                ids: [...assignments],
+                total: totalNoOfItems,
+            },
         });
     }
 );
@@ -339,6 +342,7 @@ const setAssignmentsTodoList = (ids, totalNoOfItems) => ({
     },
 });
 
+
 /**
  * Action that sets the list of assignments items in in-progress state
  * @param {Array} ids - An array of assignments item ids
@@ -351,6 +355,7 @@ const setAssignmentsInProgressList = (ids, totalNoOfItems) => ({
     },
 });
 
+
 /**
  * Action that sets the list of assignments items in complete state
  * @param {Array} ids - An array of assignments item ids
@@ -362,6 +367,7 @@ const setAssignmentsInCompletedList = (ids, totalNoOfItems) => ({
         total: totalNoOfItems,
     },
 });
+
 
 /**
  * Action for opening modal to reassign
