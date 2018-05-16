@@ -85,24 +85,24 @@ const assignmentReducer = createReducer(initialState, {
     [ASSIGNMENTS.ACTIONS.ADD_TO_TODO_LIST]: (state, payload) => (
         {
             ...state,
-            assignmentsInTodoList: uniq([...state.assignmentsInTodoList, ...payload]),
-            todoListTotal: state.todoListTotal + 1,
+            assignmentsInTodoList: uniq([...state.assignmentsInTodoList, ...payload.ids]),
+            todoListTotal: payload.total,
         }
     ),
 
     [ASSIGNMENTS.ACTIONS.ADD_TO_IN_PROGRESS_LIST]: (state, payload) => (
         {
             ...state,
-            assignmentsInInProgressList: uniq([...state.assignmentsInInProgressList, ...payload]),
-            inProgressListTotal: state.inProgressListTotal + 1,
+            assignmentsInInProgressList: uniq([...state.assignmentsInInProgressList, ...payload.ids]),
+            inProgressListTotal: payload.total,
         }
     ),
 
     [ASSIGNMENTS.ACTIONS.ADD_TO_COMPLETED_LIST]: (state, payload) => (
         {
             ...state,
-            assignmentsInCompletedList: uniq([...state.assignmentsInCompletedList, ...payload]),
-            completedListTotal: state.completedListTotal + 1,
+            assignmentsInCompletedList: uniq([...state.assignmentsInCompletedList, ...payload.ids]),
+            completedListTotal: payload.total,
         }
     ),
 

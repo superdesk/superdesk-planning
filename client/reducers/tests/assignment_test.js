@@ -389,25 +389,13 @@ describe('assignment', () => {
         });
 
         it('ADD_TO_TODO_LIST', () => {
-            initialState.assignments = {
-                ...initialState.assignments,
-                as3: {
-                    _id: 'as3',
-                    _created: '2017-07-13T15:55:41+0000',
-                    _updated: '2017-07-28T14:16:36+0000',
-                    planning: {scheduled: moment('2017-07-28T14:16:36+0000')},
-                    assigned_to: {
-                        assigned_date: '2017-07-28T14:16:36+0000',
-                        desk: 'desk3',
-                    },
-                },
-            };
             initialState.assignmentsInTodoList = ['1', '2'];
-            initialState.todoListTotal = 2;
-
             const result = assignment(initialState, {
                 type: 'ADD_TO_TODO_LIST',
-                payload: ['3'],
+                payload: {
+                    ids: ['3'],
+                    total: 3,
+                },
             });
 
             expect(result).toEqual({
@@ -428,25 +416,14 @@ describe('assignment', () => {
         });
 
         it('ADD_TO_IN_PROGRESS_LIST', () => {
-            initialState.assignments = {
-                ...initialState.assignments,
-                as3: {
-                    _id: 'as3',
-                    _created: '2017-07-13T15:55:41+0000',
-                    _updated: '2017-07-28T14:16:36+0000',
-                    planning: {scheduled: moment('2017-07-28T14:16:36+0000')},
-                    assigned_to: {
-                        assigned_date: '2017-07-28T14:16:36+0000',
-                        desk: 'desk3',
-                    },
-                },
-            };
             initialState.assignmentsInInProgressList = ['1', '2'];
-            initialState.inProgressListTotal = 2;
 
             const result = assignment(initialState, {
                 type: 'ADD_TO_IN_PROGRESS_LIST',
-                payload: ['3'],
+                payload: {
+                    ids: ['3'],
+                    total: 3,
+                },
             });
 
             expect(result).toEqual({
@@ -467,25 +444,14 @@ describe('assignment', () => {
         });
 
         it('ADD_TO_COMPLETED_LIST', () => {
-            initialState.assignments = {
-                ...initialState.assignments,
-                as3: {
-                    _id: 'as3',
-                    _created: '2017-07-13T15:55:41+0000',
-                    _updated: '2017-07-28T14:16:36+0000',
-                    planning: {scheduled: moment('2017-07-28T14:16:36+0000')},
-                    assigned_to: {
-                        assigned_date: '2017-07-28T14:16:36+0000',
-                        desk: 'desk3',
-                    },
-                },
-            };
             initialState.assignmentsInCompletedList = ['1', '2'];
-            initialState.completedListTotal = 2;
 
             const result = assignment(initialState, {
                 type: 'ADD_TO_COMPLETED_LIST',
-                payload: ['3'],
+                payload: {
+                    ids: ['3'],
+                    total: 3,
+                },
             });
 
             expect(result).toEqual({
