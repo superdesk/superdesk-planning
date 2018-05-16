@@ -17,12 +17,12 @@ export const AgendaItem = ({agenda, deleteAgenda, editAgenda, privileges, active
         {privileges.planning_agenda_management === 1 &&
             <List.ActionMenu>
                 {editAgenda && <button onClick={editAgenda.bind(null, agenda)} className="dropdown__toggle"
-                    data-sd-tooltip={TOOLTIPS.editAgenda} data-flow="down">
+                    data-sd-tooltip={TOOLTIPS.editAgenda} data-flow="left">
                     <i className="icon-pencil"/>
                 </button>}
                 {get(agenda, 'plannings.length', 0) === 0 &&
                 <button onClick={deleteAgenda.bind(null, agenda)} className="dropdown__toggle"
-                    data-sd-tooltip={TOOLTIPS.deleteAgenda} data-flow="down">
+                    data-sd-tooltip={TOOLTIPS.deleteAgenda} data-flow="left">
                     <i className="icon-trash"/>
                 </button>}
             </List.ActionMenu>
