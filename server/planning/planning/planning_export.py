@@ -10,7 +10,7 @@ from apps.archive.common import insert_into_versions
 
 TEMPLATE = '''
 {% for item in items %}
-<p><b>{{ item.headline or item.slugline }}</b></p>
+<p><b>{{ item.name or item.headline or item.slugline }}</b></p>
 <p>{{ item.description_text }}</p>
 <p></p>
 {% if item.get('event', {}).get('location') %}

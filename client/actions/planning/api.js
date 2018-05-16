@@ -953,7 +953,6 @@ function exportAsArticle() {
                 items: sorted.map((item) => item.id),
             })
                 .then((item) => {
-                    dispatch(actions.planning.ui.deselectAll());
                     notify.success(gettext('Article was created.'), 5000, {
                         button: {
                             label: gettext('Open'),
@@ -963,6 +962,9 @@ function exportAsArticle() {
                             },
                         },
                     });
+
+                    // this must go after notify, otherwise there is no notification displayed
+                    dispatch(actions.planning.ui.deselectAll());
                 }, () => {
                     notify.error(gettext('There was an error when exporting.'));
                 });
