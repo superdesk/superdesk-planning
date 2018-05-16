@@ -79,6 +79,20 @@ export class EventItem extends React.PureComponent {
                     grow={true}
                     border={false}>
                     <Row>
+                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                            {item.slugline &&
+                                    <span className="sd-list-item__slugline">{item.slugline}</span>
+                            }
+                            <InternalNoteLabel item={item} />
+                            {item.name}
+                        </span>
+                        <EventDateTime
+                            item={item}
+                            dateFormat={dateFormat}
+                            timeFormat={timeFormat}
+                        />
+                    </Row>
+                    <Row>
                         <Label
                             text={state.label}
                             iconType={state.iconType}
@@ -94,35 +108,24 @@ export class EventItem extends React.PureComponent {
                             text={actionedState.label}
                             iconType={actionedState.iconType}
                         />}
-                        <InternalNoteLabel item={item} />
-                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            {item.slugline &&
-                                    <span className="sd-list-item__slugline">{item.slugline}</span>
-                            }
-                            {item.name}
-                        </span>
-                        <EventDateTime
-                            item={item}
-                            dateFormat={dateFormat}
-                            timeFormat={timeFormat}
-                        />
+                        {(showRelatedPlanningLink || hasLocation) &&
+                            <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                                {showRelatedPlanningLink &&
+                                <a
+                                    className="sd-line-input__input--related-item-link"
+                                    onClick={toggleRelatedPlanning}
+                                >
+                                    <i className="icon-calendar" />
+                                    {this.props.relatedPlanningText}
+                                </a>}
+                                {hasLocation && <Location
+                                    name={get(item, 'location.name')}
+                                    address={get(item, 'location.formatted_address')}
+                                />}
+                            </span>
+                        }
+
                     </Row>
-                    {(showRelatedPlanningLink || hasLocation) && <Row>
-                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            {showRelatedPlanningLink &&
-                            <a
-                                className="sd-line-input__input--related-item-link"
-                                onClick={toggleRelatedPlanning}
-                            >
-                                <i className="icon-calendar" />
-                                {this.props.relatedPlanningText}
-                            </a>}
-                            {hasLocation && <Location
-                                name={get(item, 'location.name')}
-                                address={get(item, 'location.formatted_address')}
-                            />}
-                        </span>
-                    </Row>}
                 </Column>
                 {get(itemActions, 'length', 0) > 0 && <ActionMenu>
                     <ItemActionsMenu actions={itemActions} wide={true}/>
