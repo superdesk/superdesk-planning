@@ -19,7 +19,8 @@ export const PlanningInfo = ({item, onClick, timeFormat, dateFormat, active}) =>
                 <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                     <StateLabel
                         className="pull-right"
-                        item={item} />
+                        item={item}
+                        verbose={true} />
                 </span>
             </Row>
             <Row>
