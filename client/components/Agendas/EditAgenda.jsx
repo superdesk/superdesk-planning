@@ -120,6 +120,7 @@ export class EditAgenda extends React.Component {
                         onChange={this.onChange}
                         invalid={this.state.invalid}
                         message={this.state.message}
+                        autoFocus={true}
                     />
                 </Form.Row>
 

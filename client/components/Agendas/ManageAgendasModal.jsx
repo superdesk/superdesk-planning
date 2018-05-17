@@ -63,7 +63,7 @@ export class ManageAgendasComponent extends React.Component {
                     </a>
                     <h3 className="modal__heading">{gettext('Manage Agendas')}</h3>
                 </Modal.Header>
-                <Modal.Body noPadding={true}>
+                <Modal.Body noPadding={true} noScroll>
                     <SubNav>
                         <StretchBar />
                         {!this.state.editorOpen && <Button
@@ -75,7 +75,7 @@ export class ManageAgendasComponent extends React.Component {
                         </Button>}
                     </SubNav>
                     <ColumnBox.Box>
-                        <ColumnBox.MainColumn padded={true}>
+                        <ColumnBox.MainColumn padded={true} verticalScroll={true}>
                             <AgendaList privileges={privileges}
                                 agendas={enabledAgendas}
                                 editAgenda={this.state.editorOpen ? null : this.editAgenda.bind(this)}
