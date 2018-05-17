@@ -118,15 +118,11 @@ export class PlanningItem extends React.PureComponent {
                     border={false}
                 >
                     <Row>
-                        <Label
-                            text={state.label}
-                            iconType={state.iconType}
-                        />
-                        <InternalNoteLabel item={item} />
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                             {item.slugline &&
                                 <span className="sd-list-item__slugline">{item.slugline}</span>
                             }
+                            <InternalNoteLabel item={item} />
                             {item.description_text}
                         </span>
 
@@ -142,6 +138,7 @@ export class PlanningItem extends React.PureComponent {
                         }
                     </Row>
                     <Row>
+                        <Label text={state.label} iconType={state.iconType} />
                         <span className="sd-list-item__text-label">agenda:</span>
                         <span className="sd-overflow-ellipsis sd-list-item__text-strong sd-list-item--element-grow">
                             <AgendaNameList agendas={agendaNames}/>
