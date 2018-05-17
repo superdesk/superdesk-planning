@@ -63,7 +63,7 @@ describe('<IgnoreCancelSaveModal>', () => {
             ignore: new helpers.ui.Button(wrapper, 'Ignore'),
             cancel: new helpers.ui.Button(wrapper, 'Cancel'),
             save: new helpers.ui.Button(wrapper, 'Save'),
-            goto: new helpers.ui.Button(wrapper, 'GoTo'),
+            goto: new helpers.ui.Button(wrapper, 'Go-To'),
             create: new helpers.ui.Button(wrapper, 'Create'),
             update: new helpers.ui.Button(wrapper, 'Update'),
         };

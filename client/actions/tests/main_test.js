@@ -644,6 +644,7 @@ describe('actions.main', () => {
                         onIgnore: jasmine.any(Function),
                         onGoTo: null,
                         onSave: jasmine.any(Function),
+                        onSaveAndPost: null,
                         autoClose: false,
                         title: 'title',
                     }]);
@@ -684,6 +685,7 @@ describe('actions.main', () => {
                         onIgnore: jasmine.any(Function),
                         onGoTo: null,
                         onSave: jasmine.any(Function),
+                        onSaveAndPost: null,
                         autoClose: false,
                         title: 'title',
                     }]);
@@ -723,6 +725,7 @@ describe('actions.main', () => {
                         onIgnore: jasmine.any(Function),
                         onGoTo: jasmine.any(Function),
                         onSave: null,
+                        onSaveAndPost: null,
                         autoClose: false,
                         title: 'title',
                     }]);
