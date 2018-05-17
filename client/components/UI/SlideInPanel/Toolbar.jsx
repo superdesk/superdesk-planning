@@ -4,6 +4,11 @@ import classNames from 'classnames';
 
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name Toolbar
+ * @description Top toolbar of a slide-in panel
+ */
 export const Toolbar = ({children, className, invalid}) => (
     <div className={classNames(
         'sd-slide-in-panel__header',

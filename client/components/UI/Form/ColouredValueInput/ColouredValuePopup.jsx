@@ -10,6 +10,12 @@ import {Popup, Header, Content, Label} from '../../Popup';
 
 import './style.scss';
 
+
+/**
+ * @ngdoc react
+ * @name ColouredValuePopup
+ * @description Popup component to show color coded options
+ */
 export class ColouredValuePopup extends React.PureComponent {
     constructor(props) {
         super(props);
@@ -17,6 +23,11 @@ export class ColouredValuePopup extends React.PureComponent {
         this.state = {activeIndex: -1};
     }
 
+    /**
+     * @ngdoc method
+     * @name ColouredValuePopup#onKeyDown
+     * @description onKeyDown method to handle keyboard selection of options
+     */
     onKeyDown(event) {
         if (event) {
             switch (event.keyCode) {
@@ -36,16 +47,31 @@ export class ColouredValuePopup extends React.PureComponent {
         }
     }
 
+    /**
+     * @ngdoc method
+     * @name ColouredValuePopup#handleEnterKey
+     * @description handleEnterKey method to handle enter-key press on a selected option
+     */
     handleEnterKey(event) {
         this.props.onChange(this.props.options[this.state.activeIndex]);
     }
 
+    /**
+     * @ngdoc method
+     * @name ColouredValuePopup#handleDownArrowKey
+     * @description handleDownArrowKey method to handle down-key press to select options
+     */
     handleDownArrowKey(event) {
         if (get(this.props, 'options.length', 0) - 1 > this.state.activeIndex) {
             this.setState({activeIndex: this.state.activeIndex + 1});
         }
     }
 
+    /**
+     * @ngdoc method
+     * @name ColouredValuePopup#handleUpArrowKey
+     * @description handleUpArrowKey method to handle up-key press to select options
+     */
     handleUpArrowKey(event) {
         if (this.state.activeIndex > 0) {
             this.setState({activeIndex: this.state.activeIndex - 1});

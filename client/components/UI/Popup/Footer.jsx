@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name Footer
+ * @description Footer Component of a popup
+ */
 const Footer = ({children, className, noBorder, noPadding}) => (
     <div className={classNames(
         'popup__menu-footer',

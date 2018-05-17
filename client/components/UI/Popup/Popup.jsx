@@ -7,6 +7,11 @@ import Menu from './Menu';
 
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name Popup
+ * @description Main Popup Component which holds the entire popup
+ */
 export default class Popup extends React.Component {
     constructor(props) {
         super(props);

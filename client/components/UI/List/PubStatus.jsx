@@ -6,6 +6,11 @@ import {Column} from './Column';
 import {isNotForPublication, gettext} from '../utils';
 import {TOOLTIPS} from '../constants';
 
+/**
+ * @ngdoc react
+ * @name PubStatus
+ * @description Component to show published status of an item
+ */
 export const PubStatus = ({item, isPublic}) => {
     let badge;
     let title = null;

@@ -4,6 +4,11 @@ import {LineInput, Label, Input} from './';
 import {LineInputProps, LineInputDefaultProps} from './LineInput';
 import {get} from 'lodash';
 
+/**
+ * @ngdoc react
+ * @name TextInput
+ * @description Component to recieve text input in
+ */
 export const TextInput = ({
     field,
     label,

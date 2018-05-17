@@ -4,6 +4,11 @@ import classNames from 'classnames';
 
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name Label
+ * @description Form label component
+ */
 export const Label = ({text, row, light, invalid}) => (
     !text ? null : (
         <label className={classNames({

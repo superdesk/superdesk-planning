@@ -10,6 +10,11 @@ import {Popup, Content} from '../../Popup';
 
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name SelectTagPopup
+ * @description Popup component to SelectTagInput
+ */
 export class SelectTagPopup extends React.Component {
     constructor(props) {
         super(props);
@@ -19,6 +24,11 @@ export class SelectTagPopup extends React.Component {
         this.onKeyDown = this.onKeyDown.bind(this);
     }
 
+    /**
+     * @ngdoc method
+     * @name SelectTagPopup#onKeyDown
+     * @description onKeyDown method to handle keyboard selection of options
+     */
     onKeyDown(event) {
         if (event) {
             switch (event.keyCode) {
@@ -38,6 +48,11 @@ export class SelectTagPopup extends React.Component {
         }
     }
 
+    /**
+     * @ngdoc method
+     * @name SelectTagPopup#handleEnterKey
+     * @description handleEnterKey method to handle enter-key press on a selected option
+     */
     handleEnterKey(event) {
         let newTag;
 
@@ -52,12 +67,22 @@ export class SelectTagPopup extends React.Component {
         this.props.onChange(newTag);
     }
 
+    /**
+     * @ngdoc method
+     * @name SelectTagPopup#handleDownArrowKey
+     * @description handleDownArrowKey method to handle down-key press to select options
+     */
     handleDownKey(event) {
         if (this.state.activeOptionIndex < this.props.options.length - 1) {
             this.setState({activeOptionIndex: this.state.activeOptionIndex + 1});
         }
     }
 
+    /**
+     * @ngdoc method
+     * @name SelectTagPopup#handleUpArrowKey
+     * @description handleUpArrowKey method to handle up-key press to select options
+     */
     handleUpKey(event) {
         if (this.state.activeOptionIndex > -1) {
             this.setState({activeOptionIndex: this.state.activeOptionIndex - 1});

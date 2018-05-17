@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name Checkbox
+ * @description Component to show checkbox input in styles including radiobutton
+ */
 export const Checkbox = ({
     field,
     value,

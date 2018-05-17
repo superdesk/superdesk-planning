@@ -4,6 +4,11 @@ import classNames from 'classnames';
 
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name Button
+ * @description Button Component for a NavBar
+ */
 export const Button = ({
     className,
     onClick,

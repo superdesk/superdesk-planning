@@ -10,6 +10,11 @@ import {Button} from '../../';
 
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name TimeInputPopup
+ * @description Main Popup Component of TimePicker
+ */
 export class TimeInputPopup extends React.Component {
     constructor(props) {
         super(props);

@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name LineInput
+ * @description Component to style input component in a line-input style
+ */
 export const LineInput = ({
     children,
     required,

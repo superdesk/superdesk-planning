@@ -4,6 +4,11 @@ import {get} from 'lodash';
 
 import {Row} from './Row';
 
+/**
+ * @ngdoc react
+ * @name Field
+ * @description Component to encapsulate an input component in a form as a Field
+ */
 export class Field extends React.Component {
     constructor(props) {
         super(props);

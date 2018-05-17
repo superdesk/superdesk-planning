@@ -8,6 +8,11 @@ import {Button} from '../../';
 
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name DayPicker
+ * @description Component to Pick days of DatePicker
+ */
 export class DayPicker extends React.Component {
     constructor(props) {
         super(props);

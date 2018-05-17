@@ -7,6 +7,11 @@ import {Button} from '../../';
 
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name MonthPicker
+ * @description Component to Pick months of DatePicker
+ */
 export const MonthPicker = ({selectedDate, onChange}) => {
     const monthNames = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY',
         'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];

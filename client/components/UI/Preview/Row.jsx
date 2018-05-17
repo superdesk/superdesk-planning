@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name Row
+ * @description Row Component to be used in an item preview to show an item's detail
+ */
 export const Row = ({label, value, className, children, noPadding, enabled, flex, rowItem}) => (
     enabled ?
         <div

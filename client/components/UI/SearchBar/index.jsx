@@ -4,6 +4,11 @@ import DebounceInput from 'react-debounce-input';
 import {isNil, uniqueId} from 'lodash';
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name SearchBar
+ * @description Component to search by debounced input to fetch results from backend
+ */
 export default class SearchBar extends React.Component {
     constructor(props) {
         super(props);

@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name Menu
+ * @description Menu Component in a popup
+ */
 const Menu = ({children, noPadding}) => (
     <div className={classNames(
         'popup__menu',

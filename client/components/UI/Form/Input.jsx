@@ -1,7 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-
+/**
+ * @ngdoc react
+ * @name Input
+ * @description Text input component
+ */
 export const Input = ({
     field,
     type,

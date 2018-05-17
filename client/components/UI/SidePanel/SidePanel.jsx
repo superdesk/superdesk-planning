@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name SidePanel
+ * @description SidePanel Component used usually for Advanced Search panels
+ */
 export const SidePanel = ({children, shadowRight, shadowLeft, transparent, className}) => (
     <div className={classNames(
         'side-panel',

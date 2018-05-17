@@ -11,6 +11,11 @@ import {gettext} from '../../utils';
 
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name DateInputPopup
+ * @description Main Popup Component of DatePicker
+ */
 export class DateInputPopup extends React.Component {
     constructor(props) {
         super(props);
@@ -39,6 +44,11 @@ export class DateInputPopup extends React.Component {
         }
     }
 
+    /**
+    * @ngdoc method
+    * @name DateInputPopup#handleModeChange
+    * @description handleModeChange changes selection mode from days-months-years
+    */
     handleModeChange() {
         const maxMode = this.props.maxMode || 'year';
 
@@ -55,6 +65,11 @@ export class DateInputPopup extends React.Component {
         }
     }
 
+    /**
+    * @ngdoc method
+    * @name DateInputPopup#getFurtherValues
+    * @description getFurtherValues gets next set-list of options when left/right arrows are clicked
+    */
     getFurtherValues(direction) {
         let diff = 1, diffType = '';
 
@@ -102,6 +117,11 @@ export class DateInputPopup extends React.Component {
         close();
     }
 
+    /**
+    * @ngdoc method
+    * @name DateInputPopup#getStartingYearForYearPicker
+    * @description getStartingYearForYearPicker returns starting year option in Year-picker
+    */
     getStartingYearForYearPicker(date) {
         const yearRange = this.props.yearRange || 20;
 
@@ -120,6 +140,11 @@ export class DateInputPopup extends React.Component {
         }
     }
 
+    /**
+    * @ngdoc method
+    * @name DateInputPopup#handleSelectChange
+    * @description handleSelectChange changes mode from days-months-year
+    */
     handleSelectChange(newDate) {
         let nextMode = '';
 

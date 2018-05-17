@@ -4,6 +4,11 @@ import classNames from 'classnames';
 
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name Row
+ * @description Component to encapsulate a component in Form row style
+ */
 export const Row = ({children, flex, noPadding, halfWidth, className, enabled}) => (
     !enabled ?
         null :

@@ -9,6 +9,11 @@ import './style.scss';
 import {Popup} from '../../Popup';
 import {KEYCODES} from '../../constants';
 
+/**
+ * @ngdoc react
+ * @name SelectFieldPopup
+ * @description Popup component for SelectMetaTermsInput
+ */
 export class SelectFieldPopup extends React.Component {
     constructor(props) {
         super(props);
@@ -32,6 +37,11 @@ export class SelectFieldPopup extends React.Component {
         };
     }
 
+    /**
+     * @ngdoc method
+     * @name SelectFieldPopup#onKeyDown
+     * @description onKeyDown method to handle keyboard selection of options
+     */
     onKeyDown(event) {
         if (event) {
             switch (event.keyCode) {
@@ -66,6 +76,11 @@ export class SelectFieldPopup extends React.Component {
         }
     }
 
+    /**
+     * @ngdoc method
+     * @name SelectFieldPopup#handleEnterKey
+     * @description handleEnterKey method to handle enter-key press on a selected option
+     */
     handleEnterKey() {
         if (this.props.multiLevel) {
             if (this.state.activeOptionIndex !== -1) {
@@ -78,6 +93,11 @@ export class SelectFieldPopup extends React.Component {
         }
     }
 
+    /**
+     * @ngdoc method
+     * @name SelectFieldPopup#handleDownArrowKey
+     * @description handleDownArrowKey method to handle down-key press to select options
+     */
     handleDownArrowKey(event) {
         if (event.target.id && event.target.id.indexOf('SearchBar') >= 0) {
             // Lose focus on SearchBar
@@ -90,6 +110,11 @@ export class SelectFieldPopup extends React.Component {
         }
     }
 
+    /**
+     * @ngdoc method
+     * @name SelectFieldPopup#handleUpArrowKey
+     * @description handleUpArrowKey method to handle up-key press to select options
+     */
     handleUpArrowKey() {
         if (this.state.activeOptionIndex === 0) {
             if (this.state.selectedAncestry.length === 0) {
@@ -119,6 +144,11 @@ export class SelectFieldPopup extends React.Component {
         this.props.onChange(opt);
     }
 
+    /**
+     * @ngdoc method
+     * @name SelectFieldPopup#getFilteredOptionList
+     * @description getFilteredOptionList method to filter options list based on search text input
+     */
     getFilteredOptionList(currentParent, searchList) {
         if (this.props.multiLevel) {
             let filteredList;
@@ -138,6 +168,11 @@ export class SelectFieldPopup extends React.Component {
         }
     }
 
+    /**
+     * @ngdoc method
+     * @name SelectFieldPopup#onMutiLevelSelect
+     * @description onMutiLevelSelect method handle selection of a parent option
+     */
     onMutiLevelSelect(opt, keyDown = false) {
         if (opt && !this.state.searchList && this.isOptionAParent(opt)) {
             if (!this.state.selectedAncestry.find((o) => (opt[this.props.valueKey] === o[this.props.valueKey]))) {
@@ -159,10 +194,20 @@ export class SelectFieldPopup extends React.Component {
         )).length > 0;
     }
 
+    /**
+     * @ngdoc method
+     * @name SelectFieldPopup#chooseEntireCategory
+     * @description chooseEntireCategory method choose selection of an entire parent option
+     */
     chooseEntireCategory() {
         this.onSelect(this.state.currentParent);
     }
 
+    /**
+     * @ngdoc method
+     * @name SelectFieldPopup#popParent
+     * @description popParent method traverse up a parent level of options
+     */
     popParent(keydown) {
         const len = this.state.selectedAncestry.length;
         const opt = len > 1 ? this.state.selectedAncestry[len - 2] : null;
@@ -206,6 +251,12 @@ export class SelectFieldPopup extends React.Component {
         });
     }
 
+    /**
+     * @ngdoc method
+     * @name SelectFieldPopup#renderSingleLevelSelect
+     * @description renderSingleLevelSelect method to render a single level options list
+     * @returns {JSX}
+     */
     renderSingleLevelSelect() {
         return (
             <Popup
@@ -251,6 +302,12 @@ export class SelectFieldPopup extends React.Component {
         );
     }
 
+    /**
+     * @ngdoc method
+     * @name SelectFieldPopup#renderMultiLevelSelect
+     * @description renderMultiLevelSelect method to render a multi level options list
+     * @returns {JSX}
+     */
     renderMultiLevelSelect() {
         return (
             <Popup

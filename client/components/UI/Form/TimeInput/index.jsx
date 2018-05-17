@@ -7,6 +7,11 @@ import {IconButton} from '../../';
 import {KEYCODES} from '../../constants';
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name TimeInput
+ * @description Component to pick time in hours and minutes
+ */
 export class TimeInput extends React.Component {
     constructor(props) {
         super(props);
@@ -69,6 +74,11 @@ export class TimeInput extends React.Component {
         }
     }
 
+    /**
+    * @ngdoc method
+    * @name TimeInput#handleInputBlur
+    * @description handleInputBlur resets view-value incase of invalid time input
+    */
     handleInputBlur() {
         if (this.state.invalid) {
             this.setState({

@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name ContentBlockInner
+ * @description Inner Component to hold content block of a side panel
+ */
 export const ContentBlockInner = ({children, className, right, grow}) => (
     <div
         className={classNames(

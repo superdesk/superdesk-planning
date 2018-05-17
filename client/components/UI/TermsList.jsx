@@ -3,6 +3,11 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {get} from 'lodash';
 
+/**
+ * @ngdoc react
+ * @name TermsList
+ * @description Displays a list of terms: subject, categories
+ */
 const TermsList = ({terms, displayField, onClick, readOnly}) => (
     <div className={classNames(
         'terms-list',

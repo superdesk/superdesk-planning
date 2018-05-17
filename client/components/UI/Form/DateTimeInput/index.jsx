@@ -6,6 +6,11 @@ import './style.scss';
 import Button from '../../Button';
 import {gettext} from '../../utils';
 
+/**
+ * @ngdoc react
+ * @name DateTimeInput
+ * @description One Component packaging DatePicker and TimePicker to pick date and time
+ */
 export const DateTimeInput = ({
     field,
     label,

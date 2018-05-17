@@ -4,6 +4,11 @@ import classNames from 'classnames';
 
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name MainColumn
+ * @description Main panel component of column box
+ */
 export const MainColumn = ({children, padded, verticalScroll}) => (
     <div className={classNames(
         'sd-column-box__main-column',

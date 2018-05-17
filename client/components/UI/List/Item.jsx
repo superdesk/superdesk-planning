@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name Item
+ * @description Component to encapsulate a list item
+ */
 export const Item = ({children, noBg, noHover, shadow, activated, className, onClick, margin}) => (
     <div className={classNames(
         className,

@@ -11,6 +11,11 @@ import {UserAvatar} from '../../../';
 
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name SelectUserPopup
+ * @description Pop-up component of SelectUserList
+ */
 export class SelectUserPopup extends React.Component {
     constructor(props) {
         super(props);
@@ -20,6 +25,11 @@ export class SelectUserPopup extends React.Component {
         this.dom = {itemList: null};
     }
 
+    /**
+     * @ngdoc method
+     * @name SelectUserPopup#onKeyDown
+     * @description onKeyDown method to handle keyboard selection of options
+     */
     onKeyDown(event) {
         if (event) {
             switch (event.keyCode) {
@@ -39,10 +49,20 @@ export class SelectUserPopup extends React.Component {
         }
     }
 
+    /**
+     * @ngdoc method
+     * @name SelectUserPopup#handleEnterKey
+     * @description handleEnterKey method to handle enter-key press on a selected option
+     */
     handleEnterKey(event) {
         this.props.onChange(this.props.users[this.state.activeIndex]);
     }
 
+    /**
+     * @ngdoc method
+     * @name SelectUserPopup#handleDownArrowKey
+     * @description handleDownArrowKey method to handle down-key press to select options
+     */
     handleDownArrowKey(event) {
         if (get(this.props, 'users.length', 0) - 1 > this.state.activeIndex) {
             this.setState({activeIndex: this.state.activeIndex + 1});
@@ -50,6 +70,11 @@ export class SelectUserPopup extends React.Component {
         }
     }
 
+    /**
+     * @ngdoc method
+     * @name SelectUserPopup#handleUpArrowKey
+     * @description handleUpArrowKey method to handle up-key press to select options
+     */
     handleUpArrowKey(event) {
         if (this.state.activeIndex > 0) {
             this.setState({activeIndex: this.state.activeIndex - 1});

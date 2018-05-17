@@ -5,6 +5,11 @@ import {Button} from './index';
 import {KEYCODES} from './constants';
 import {onEventCapture} from './utils';
 
+/**
+ * @ngdoc react
+ * @name ButtonList
+ * @description List of buttons
+ */
 class ButtonList extends React.PureComponent {
     constructor(props) {
         super(props);

@@ -12,6 +12,11 @@ import {onEventCapture} from '../../utils';
 
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name SelectTagInput
+ * @description Component to select tags like Keyword of a news story
+ */
 export class SelectTagInput extends React.Component {
     constructor(props) {
         super(props);
@@ -100,6 +105,7 @@ export class SelectTagInput extends React.Component {
 
         return filteredOptions;
     }
+
 
     filterOptions(field, value) {
         this.setState({

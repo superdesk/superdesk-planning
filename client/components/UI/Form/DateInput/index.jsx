@@ -8,6 +8,11 @@ import {KEYCODES} from '../../constants';
 import {onEventCapture} from '../../utils';
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name DateInput
+ * @description Component to pick dates in calendar view
+ */
 export class DateInput extends React.Component {
     constructor(props) {
         super(props);
@@ -43,6 +48,11 @@ export class DateInput extends React.Component {
         this.setState({viewValue});
     }
 
+    /**
+    * @ngdoc method
+    * @name DateInput#toggleOpenDatePicker
+    * @description toggleOpenDatePicker toggles open state of date-picker pop-up
+    */
     toggleOpenDatePicker() {
         this.setState({openDatePicker: !this.state.openDatePicker});
 
@@ -52,6 +62,11 @@ export class DateInput extends React.Component {
         }
     }
 
+    /**
+    * @ngdoc method
+    * @name DateInput#validateDateText
+    * @description validateDateText sets validate-state after text-input of dates
+    */
     validateDateText(field, val) {
         let regex = new RegExp('[0-9][0-9]/[0-9][0-9]/[0-9][0-9][0-9][0-9]', 'i');
         const valMoment = moment(val, this.props.dateFormat);
@@ -71,6 +86,12 @@ export class DateInput extends React.Component {
         }
     }
 
+    /**
+    * @ngdoc method
+    * @name DateInput#handleInputBlur
+    * @description handleInputBlur resets view-value incase of invalid date input
+    * @returns {string} Icon class-name
+    */
     handleInputBlur() {
         if (this.state.invalid) {
             this.setState({

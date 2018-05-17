@@ -7,6 +7,11 @@ import {firstCharUpperCase} from '../utils';
 
 import {Menu, Label, Divider, Dropdown as DropMenu} from '../Dropdown';
 
+/**
+ * @ngdoc react
+ * @name Dropdown
+ * @description Dropdown of a Sub Nav bar
+ */
 export class Dropdown extends React.Component {
     constructor(props) {
         super(props);

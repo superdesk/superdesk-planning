@@ -3,6 +3,11 @@ import PropTypes from 'prop-types';
 import {LineInput, Label, Select} from './';
 import {get} from 'lodash';
 
+/**
+ * @ngdoc react
+ * @name SelectInput
+ * @description Component to select a list from dropdown with field label
+ */
 export const SelectInput = ({
     field,
     label,

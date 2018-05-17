@@ -8,6 +8,11 @@ import {Button} from '../../';
 import {Row, LineInput} from '../';
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name InputArray
+ * @description Component to create an array of input components
+ */
 export const InputArray = ({
     field,
     value,
