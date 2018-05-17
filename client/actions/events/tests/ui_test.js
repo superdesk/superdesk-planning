@@ -436,6 +436,7 @@ describe('actions.events.ui', () => {
                             end: newEndDate,
                         },
                         duplicate_from: 'e1',
+                        state: 'draft',
                         occur_status: {
                             name: 'Planned, occurs certainly',
                             label: 'Confirmed',
