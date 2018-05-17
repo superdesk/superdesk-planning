@@ -1,6 +1,7 @@
 export const PRIVILEGES = {
     ARCHIVE: 'archive',
     AGENDA_MANAGEMENT: 'planning_agenda_management',
+    DELETE_AGENDA: 'planning_agenda_delete',
     PLANNING_MANAGEMENT: 'planning_planning_management',
     PLANNING_UNLOCK: 'planning_unlock',
     SPIKE_PLANNING: 'planning_planning_spike',

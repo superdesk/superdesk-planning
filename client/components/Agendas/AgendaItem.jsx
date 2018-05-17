@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import {get} from 'lodash';
-import {TOOLTIPS} from '../../constants';
+import {TOOLTIPS, PRIVILEGES} from '../../constants';
 import {List} from '../UI';
 
 export const AgendaItem = ({agenda, deleteAgenda, editAgenda, privileges, active}) => (
@@ -14,13 +14,13 @@ export const AgendaItem = ({agenda, deleteAgenda, editAgenda, privileges, active
                 <time>updated {moment(agenda._updated).fromNow()}</time>
             </List.Row>
         </List.Column>
-        {privileges.planning_agenda_management === 1 &&
+        {!!privileges[PRIVILEGES.AGENDA_MANAGEMENT] &&
             <List.ActionMenu>
                 {editAgenda && <button onClick={editAgenda.bind(null, agenda)} className="dropdown__toggle"
                     data-sd-tooltip={TOOLTIPS.editAgenda} data-flow="left">
                     <i className="icon-pencil"/>
                 </button>}
-                {get(agenda, 'plannings.length', 0) === 0 &&
+                {get(agenda, 'plannings.length', 0) === 0 && !!privileges[PRIVILEGES.DELETE_AGENDA] &&
                 <button onClick={deleteAgenda.bind(null, agenda)} className="dropdown__toggle"
                     data-sd-tooltip={TOOLTIPS.deleteAgenda} data-flow="left">
                     <i className="icon-trash"/>

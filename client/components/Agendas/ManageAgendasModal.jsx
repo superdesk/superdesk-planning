@@ -4,7 +4,7 @@ import {connect} from 'react-redux';
 import {isEqual} from 'lodash';
 import {Modal} from '../index';
 import {gettext} from '../../utils';
-import {MODALS} from '../../constants';
+import {MODALS, PRIVILEGES} from '../../constants';
 import {SubNav, StretchBar, Button} from '../UI/SubNav';
 import {ColumnBox} from '../UI';
 import * as selectors from '../../selectors';
@@ -64,7 +64,7 @@ export class ManageAgendasComponent extends React.Component {
                     <h3 className="modal__heading">{gettext('Manage Agendas')}</h3>
                 </Modal.Header>
                 <Modal.Body noPadding={true} noScroll>
-                    <SubNav>
+                    {!!privileges[PRIVILEGES.AGENDA_MANAGEMENT] && <SubNav>
                         <StretchBar />
                         {!this.state.editorOpen && <Button
                             right={true}
@@ -73,7 +73,7 @@ export class ManageAgendasComponent extends React.Component {
                             <i className="icon-plus-sign icon-white" />
                             {gettext('Add New Agenda')}
                         </Button>}
-                    </SubNav>
+                    </SubNav>}
                     <ColumnBox.Box>
                         <ColumnBox.MainColumn padded={true} verticalScroll={true}>
                             <AgendaList privileges={privileges}

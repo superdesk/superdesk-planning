@@ -61,15 +61,9 @@ def init_app(app):
     )
 
     superdesk.privilege(
-        name='planning_agenda_spike',
-        label='Planning - Spike Agendas',
-        description='Ability to spike an Agenda'
-    )
-
-    superdesk.privilege(
-        name='planning_agenda_unspike',
-        label='Planning - Unspike Agendas',
-        description='Ability to unspike an Agenda'
+        name='planning_agenda_delete',
+        label='Planning - Delete Agendas',
+        description='Ability to delete an Agenda'
     )
 
     app.on_update_users += PlanningNotifications().user_update
