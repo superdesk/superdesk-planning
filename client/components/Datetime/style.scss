@@ -1,9 +1,5 @@
 @import '~superdesk-core/styles/sass/variables.scss';
 
-time.Datetime {
-    padding-left: 0;
-}
-
 .Datetime {
     &--dark-text {
         color: $grayDark;

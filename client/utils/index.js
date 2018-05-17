@@ -16,7 +16,7 @@ import {
     SPIKED_STATE,
 } from '../constants/index';
 import * as testData from './testData';
-import {gettext, gettextCatalog} from './gettext';
+import {gettext, gettextCatalog} from '../components/UI/utils';
 import {default as lockUtils} from './locks';
 import {default as planningUtils} from './planning';
 import {default as eventUtils} from './events';

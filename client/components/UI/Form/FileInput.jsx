@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Row, LineInput, Label, Input, TextArea} from './';
 import {IconButton} from '../';
-import {onEventCapture, gettext} from '../../../utils';
+import {onEventCapture, gettext} from '../utils';
 import {get} from 'lodash';
 import './style.scss';
 

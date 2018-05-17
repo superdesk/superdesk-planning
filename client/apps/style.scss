@@ -86,10 +86,6 @@
 
 // Fixes for Assignment Group List
 .sd-list-item-group {
-    &--vertical-scroll {
-        overflow-y: auto;
-    }
-
     &__empty-msg {
         line-height: 4rem;
         text-align: center;

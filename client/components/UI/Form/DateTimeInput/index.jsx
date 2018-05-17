@@ -4,7 +4,7 @@ import moment from 'moment';
 import {Row, DateInput, TimeInput, Field} from '..';
 import './style.scss';
 import Button from '../../Button';
-import {gettext} from '../../../../utils';
+import {gettext} from '../../utils';
 
 export const DateTimeInput = ({
     field,

@@ -4,7 +4,7 @@ import moment from 'moment';
 import {LineInput, Label, Input} from '../';
 import {TimeInputPopup} from './TimeInputPopup';
 import {IconButton} from '../../';
-import {KEYCODES} from '../../../../constants';
+import {KEYCODES} from '../../constants';
 import './style.scss';
 
 export class TimeInput extends React.Component {

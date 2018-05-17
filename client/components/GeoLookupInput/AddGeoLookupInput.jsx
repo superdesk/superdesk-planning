@@ -1,13 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import * as actions from '../../../../actions';
+import * as actions from '../../actions';
 import Geolookup from 'react-geolookup';
 import DebounceInput from 'react-debounce-input';
 import * as Nominatim from 'nominatim-browser';
-import {formatAddress} from '../../../../utils';
+import {formatAddress} from '../../utils';
 import {get, has} from 'lodash';
-import {TextAreaInput} from '../';
+import {TextAreaInput} from '../UI/Form';
 import {AddGeoLookupResultsPopUp} from './AddGeoLookupResultsPopUp';
 
 import './style.scss';

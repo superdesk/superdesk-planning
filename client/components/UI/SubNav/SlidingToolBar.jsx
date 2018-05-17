@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {Button} from '../index';
-import {gettext} from '../../../utils';
+import {gettext} from '../utils';
 import './style.scss';
 
 export const SlidingToolBar = ({hide, innerInfo, innerTools, tools, onCancel}) => (

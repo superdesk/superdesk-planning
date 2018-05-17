@@ -2,8 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {Button} from './index';
-import {KEYCODES} from '../../constants';
-import {onEventCapture} from '../../utils';
+import {KEYCODES} from './constants';
+import {onEventCapture} from './utils';
 
 class ButtonList extends React.PureComponent {
     constructor(props) {

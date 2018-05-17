@@ -12,7 +12,6 @@ import {
     SelectInput,
     SelectMetaTermsInput,
     TextAreaInput,
-    GeoLookupInput,
     FileInput,
     InputArray,
     LinkInput,
@@ -22,6 +21,7 @@ import {ContactField} from '../../Contacts';
 import {ToggleBox, IconButton} from '../../UI';
 import {RelatedPlannings} from '../../RelatedPlannings';
 import {EventScheduleInput, EventScheduleSummary} from '../';
+import {GeoLookupInput} from '../../index';
 
 import {EventEditorHeader} from './EventEditorHeader';
 import {gettext, editorMenuUtils} from '../../../utils';

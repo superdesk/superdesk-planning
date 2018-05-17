@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import {range} from 'lodash';
 
-import {gettext} from '../../../../utils';
+import {gettext} from '../../utils';
 
 import {Popup, Content, Header, Footer} from '../../Popup';
 import {Button} from '../../';
@@ -75,7 +75,7 @@ export class TimeInputPopup extends React.Component {
                 noPadding={true}
                 popupContainer={this.props.popupContainer}
             >
-                <Header noBorder={true} className="time-popup__header">
+                <Header noBorder={true}>
                     <div className="time-popup__header-row">
                         <Button
                             onClick={this.handleConfirm.bind(this, 30)}

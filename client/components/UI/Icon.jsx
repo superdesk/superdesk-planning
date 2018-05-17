@@ -5,7 +5,7 @@ import {values} from 'lodash';
 
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
-import {ICON_COLORS} from '../../constants';
+import {ICON_COLORS} from './constants';
 
 const Icon = ({icon, doubleSize, big, className, tooltip, color}) => {
     const iconElement = (

@@ -1,5 +1,6 @@
-@import '~superdesk-core/styles/sass/mixins.scss';
-@import '~superdesk-core/styles/sass/variables.scss';
+@import '~superdesk-ui-framework/app/styles/_mixins.scss';
+@import '~superdesk-ui-framework/app/styles/_variables.scss';
+@import '~superdesk-ui-framework/app/styles/dropdowns/_basic-dropdown.scss';
 
 .popup {
     &__menu {

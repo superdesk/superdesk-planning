@@ -7,7 +7,13 @@ import {EVENTS, MAIN, ICON_COLORS} from '../../constants';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
 import {EventDateTime} from './';
 import {ItemActionsMenu} from '../index';
-import {eventUtils, getItemWorkflowStateLabel, getItemActionedStateLabel, onEventCapture} from '../../utils';
+import {
+    eventUtils,
+    getItemWorkflowStateLabel,
+    getItemActionedStateLabel,
+    onEventCapture,
+    isItemPublic,
+} from '../../utils';
 
 
 export class EventItem extends React.PureComponent {
@@ -74,7 +80,7 @@ export class EventItem extends React.PureComponent {
                     onCheckToggle={onMultiSelectClick.bind(null, item)}
                     color={ICON_COLORS.DARK_BLUE_GREY}
                 />
-                <PubStatus item={item} />
+                <PubStatus item={item} isPublic={isItemPublic(item)}/>
                 <Column
                     grow={true}
                     border={false}>

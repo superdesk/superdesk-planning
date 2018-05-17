@@ -4,8 +4,8 @@ import moment from 'moment';
 import {LineInput, Label, Input} from '../';
 import {IconButton} from '../../';
 import {DateInputPopup} from './DateInputPopup';
-import {KEYCODES} from '../../../../constants';
-import {onEventCapture} from '../../../../utils';
+import {KEYCODES} from '../../constants';
+import {onEventCapture} from '../../utils';
 import './style.scss';
 
 export class DateInput extends React.Component {

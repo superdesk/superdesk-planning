@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {values} from 'lodash';
 
-import {ICON_COLORS} from '../../../constants';
+import {ICON_COLORS} from '../constants';
 
 import {Column} from './Column';
 import {ItemIcon} from '../../';

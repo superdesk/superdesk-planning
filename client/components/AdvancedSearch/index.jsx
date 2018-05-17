@@ -10,11 +10,11 @@ import {
     SelectMetaTermsInput,
     ColouredValueInput,
     SelectInput,
-    GeoLookupInput,
     ToggleInput,
     DateTimeInput,
     RadioButtonInput,
 } from '../UI/Form';
+import {GeoLookupInput} from '../index';
 
 
 export class AdvancedSearch extends React.Component {

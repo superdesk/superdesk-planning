@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import classNames from 'classnames';
 
-import {gettext, onEventCapture} from '../../../../utils';
-import {KEYCODES} from '../../../../constants';
+import {gettext, onEventCapture} from '../../utils';
+import {KEYCODES} from '../../constants';
 
 import {Popup, Header, Content, Label} from '../../Popup';
 

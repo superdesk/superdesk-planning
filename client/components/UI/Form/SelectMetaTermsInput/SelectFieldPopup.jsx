@@ -2,12 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {SearchBar} from '../../';
 import {differenceBy, get} from 'lodash';
-import {uiUtils, onEventCapture} from '../../../../utils';
+import {scrollListItemIfNeeded, onEventCapture} from '../../utils';
 import classNames from 'classnames';
 import './style.scss';
 
 import {Popup} from '../../Popup';
-import {KEYCODES} from '../../../../constants';
+import {KEYCODES} from '../../constants';
 
 export class SelectFieldPopup extends React.Component {
     constructor(props) {
@@ -86,7 +86,7 @@ export class SelectFieldPopup extends React.Component {
             this.setState({activeOptionIndex: 0});
         } else if (this.state.activeOptionIndex < this.state.filteredList.length - 1) {
             this.setState({activeOptionIndex: this.state.activeOptionIndex + 1});
-            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.dom.list);
+            scrollListItemIfNeeded(this.state.activeOptionIndex, this.dom.list);
         }
     }
 
@@ -103,7 +103,7 @@ export class SelectFieldPopup extends React.Component {
             }
         } else {
             this.setState({activeOptionIndex: this.state.activeOptionIndex - 1});
-            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.dom.list);
+            scrollListItemIfNeeded(this.state.activeOptionIndex, this.dom.list);
         }
     }
 
