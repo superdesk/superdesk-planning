@@ -91,12 +91,17 @@ class PlanningPostService(BaseService):
         """Post a Planning item
 
         """
-        plan.setdefault(config.VERSION, 1)
-        plan.setdefault('item_id', plan['_id'])
+        # update the planning with new state
         updates = {'state': get_item_post_state(plan, new_post_state), 'pubstatus': new_post_state}
         plan['pubstatus'] = new_post_state
         get_resource_service('planning').update(plan['_id'], updates, plan)
         get_resource_service('planning_history')._save_history(plan, updates, 'post')
+
+        # enqueue the planning item
+        # these fields are set for enqueue process to work. otherwise not needed
+        plan.setdefault(config.VERSION, 1)
+        plan.setdefault('item_id', plan['_id'])
+
         get_enqueue_service('publish').enqueue_item(plan, 'planning')
 
     def _get_post_state(self, plan, new_post_state):
