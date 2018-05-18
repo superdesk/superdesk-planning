@@ -130,6 +130,7 @@ const mapDispatchToProps = (dispatch) => ({
         modalProps: {
             body: `Do you want to delete "${agenda.name}" agenda ?`,
             action: () => dispatch(actions.deleteAgenda(agenda)),
+            autoClose: true,
         },
     })),
     createOrUpdateAgenda: (agenda) => dispatch(actions.createOrUpdateAgenda(agenda)),

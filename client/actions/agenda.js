@@ -144,6 +144,7 @@ const askForAddEventToCurrentAgenda = (events) => (
                 body: message,
                 action: () => dispatch(addEventToCurrentAgenda(events)),
                 itemType: ITEM_TYPE.EVENT,
+                autoClose: true,
             },
         }));
     }
