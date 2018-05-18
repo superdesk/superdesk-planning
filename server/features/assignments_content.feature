@@ -1,5 +1,9 @@
 Feature: Assignment content
     Background: Setup data
+        Given "content_types"
+        """
+        [{"schema": {"body_html": {}, "slugline": {}, "headline": {}, "ednote": null }}]
+        """
         Given "content_templates"
         """
         [
@@ -7,18 +11,21 @@ Feature: Assignment content
                 "template_name": "Default",
                 "template_type": "create",
                 "data": {
+                  "profile": "#content_types._id#",
                   "slugline": "Foo",
                   "headline": "Headline From Template"
                 }
             }
         ]
         """
-
         Given "desks"
         """
         [
-            {"name": "sports", "default_content_template": "#content_templates._id#",
-            "members": [{"user": "#CONTEXT_USER_ID#"}]}
+            {
+                "name": "sports",
+                "default_content_template": "#content_templates._id#",
+                "default_content_profile": "#content_types._id#",
+                "members": [{"user": "#CONTEXT_USER_ID#"}]}
         ]
         """
 
@@ -120,7 +127,7 @@ Feature: Assignment content
 
     @auth
     @vocabularies
-    Scenario: Create content from assignment
+    Scenario: Create content from assignment with ednote not in content as per content profile
         When we post to "/assignments/content"
         """
         [{"assignment_id": "#firstassignment#"}]
@@ -138,10 +145,11 @@ Feature: Assignment content
             },
             "slugline": "test slugline",
             "type": "text",
-            "ednote": "test coverage, I want 250 words",
-            "headline": "Headline From Template"
+            "headline": "Headline From Template",
+            "profile": "#content_types._id#"
         }
         """
+        And we get "ednote" does not exist
         When we get "/assignments_history"
         Then we get list with 2 items
         """
@@ -189,7 +197,6 @@ Feature: Assignment content
             },
             "slugline": "test slugline",
             "type": "text",
-            "ednote": "test coverage, I want 250 words",
             "headline": "Headline From Template"
         }
         """
@@ -226,7 +233,6 @@ Feature: Assignment content
             },
             "slugline": "test slugline",
             "type": "text",
-            "ednote": "test coverage, I want 250 words",
             "headline": "Headline From Template",
             "flags": {"marked_for_not_publication": true}
         }

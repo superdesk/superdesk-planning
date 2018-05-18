@@ -18,7 +18,6 @@ from planning.planning import get_desk_template
 from superdesk.errors import SuperdeskApiError
 from planning.common import ASSIGNMENT_WORKFLOW_STATE
 from superdesk.utc import utcnow
-from superdesk import get_resource_service
 from planning.planning_notifications import PlanningNotifications
 from superdesk import get_resource_service
 
@@ -87,6 +86,17 @@ def get_item_from_assignment(assignment, template=None):
         'stage': desk['working_stage'],
     }
 
+    # Load default content profile of the desk to the item
+    content_profile_id = template['data'].get('profile', desk.get('default_content_profile', None))
+    if content_profile_id:
+        content_profiles = get_resource_service('content_types').find({'_id': content_profile_id})
+        # Pop those items not in the content_profile
+        if content_profiles.count() > 0:
+            content_profile = content_profiles.next()
+            for key in content_profile.get('schema').keys():
+                if content_profile['schema'][key] is None:
+                    item.pop(key, None)
+
     return item
 
 
@@ -105,7 +115,6 @@ class AssignmentsContentService(superdesk.Service):
             item = get_item_from_assignment(assignment, doc.pop('template_name', None))
             item[config.VERSION] = 1
             item.setdefault('type', 'text')
-            item.setdefault('slugline', 'Planning')
             item['assignment_id'] = assignment[config.ID_FIELD]
 
             # create content
