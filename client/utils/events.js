@@ -652,7 +652,7 @@ const duplicateEvent = (event, occurStatus) => {
         k.startsWith('_')) ||
         ['guid', 'unique_name', 'unique_id', 'lock_user', 'lock_time', 'lock_session', 'lock_action',
             'pubstatus', 'recurrence_id', 'previous_recurrence_id', 'reschedule_from', 'reschedule_to',
-            'planning_ids'].indexOf(k) > -1));
+            'planning_ids', 'reason'].indexOf(k) > -1));
 
     // Delete recurring rule
     if (duplicatedEvent.dates.recurring_rule) {
@@ -669,6 +669,7 @@ const duplicateEvent = (event, occurStatus) => {
 
     duplicatedEvent.duplicate_from = event._id;
     duplicatedEvent.occur_status = occurStatus;
+    duplicatedEvent.state = WORKFLOW_STATE.DRAFT;
     return duplicatedEvent;
 };
 
