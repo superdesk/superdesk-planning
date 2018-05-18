@@ -136,12 +136,18 @@ class EventsPostService(EventsBaseService):
         return ids
 
     def post_event(self, event, new_post_state):
-        event.setdefault(config.VERSION, 1)
-        event.setdefault('item_id', event['_id'])
-        get_enqueue_service('publish').enqueue_item(event, 'event')
+        # update the event with new state
         updates = {'state': get_item_post_state(event, new_post_state), 'pubstatus': new_post_state}
         event['pubstatus'] = new_post_state
         updated_event = get_resource_service('events').update(event['_id'], updates, event)
+        event.update(updated_event)
+
+        # enqueue the event
+        # these fields are set for enqueue process to work. otherwise not needed
+        event.setdefault(config.VERSION, 1)
+        event.setdefault('item_id', event['_id'])
+
+        get_enqueue_service('publish').enqueue_item(event, 'event')
         get_resource_service('events_history')._save_history(event, updates, 'post')
         return updated_event
 
