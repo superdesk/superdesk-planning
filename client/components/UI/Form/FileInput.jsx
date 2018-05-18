@@ -6,6 +6,11 @@ import {onEventCapture, gettext} from '../utils';
 import {get} from 'lodash';
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name FileInput
+ * @description Component to sattach files as input
+ */
 export class FileInput extends React.Component {
     constructor(props) {
         super(props);

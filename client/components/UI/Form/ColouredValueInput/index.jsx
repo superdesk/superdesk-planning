@@ -9,6 +9,11 @@ import {gettext} from '../../utils';
 import {LineInput, Label} from '../';
 import {ColouredValuePopup} from './ColouredValuePopup';
 
+/**
+ * @ngdoc react
+ * @name ColouredValueInput
+ * @description Component to show color coded values. Eg. Urgency / Priority
+ */
 export class ColouredValueInput extends React.Component {
     constructor(props) {
         super(props);
@@ -19,10 +24,21 @@ export class ColouredValueInput extends React.Component {
         this.onChange = this.onChange.bind(this);
     }
 
+    /**
+    * @ngdoc method
+    * @name ColouredValueInput#togglePopup
+    * @description togglePopup method to toggle open state of opop-up component
+    */
     togglePopup() {
         this.setState({openPopup: !this.state.openPopup});
     }
 
+    /**
+     * @ngdoc method
+     * @name ColouredValueInput#getIconClasses
+     * @description getIconClasses returns appropriate icon class for a given value.
+     * @returns {string} Icon class-name
+     */
     getIconClasses(val) {
         return val ? classNames('line-input',
             this.props.iconName,

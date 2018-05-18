@@ -7,6 +7,11 @@ import classNames from 'classnames';
 import {ICON_COLORS} from './constants';
 import Icon from './Icon';
 
+/**
+ * @ngdoc react
+ * @name IconMix
+ * @description Mixing two icons
+ */
 const IconMix = ({icon, subIcon, big, doubleSize, className, tooltip, color}) => {
     let iconElement;
 

@@ -4,6 +4,11 @@ import classNames from 'classnames';
 
 import Label from './Label';
 
+/**
+ * @ngdoc react
+ * @name Header
+ * @description Header Component of a popup
+ */
 const Header = ({text, onClose, children, className, noBorder, noPadding, centerText}) => (
     <div className={classNames(
         'popup__menu-header',

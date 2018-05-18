@@ -2,6 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name Menu
+ * @description Menu container of dropdown component
+ */
+
 export const Menu = ({children, className, isOpen, alignRight, scrollable}) => (
     !isOpen ? null :
         <ul

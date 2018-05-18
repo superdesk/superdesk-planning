@@ -1,6 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+/**
+ * @ngdoc react
+ * @name Header
+ * @description Header of a slide-in panel
+ */
 export const Header = ({title, tools, children, onClose}) => (
     <div className="sd-slide-in-panel__header">
         <div className="subnav__sliding-toolbar">

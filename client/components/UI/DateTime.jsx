@@ -3,6 +3,11 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name DateTime
+ * @description DateTime component to display text formatted date and time
+ */
 function DateTime({date, withTime, withDate, withYear, dateFormat, timeFormat, padLeft}) {
     let format = withYear ? dateFormat : dateFormat.replace(/y/gi, '');
     let dateTimeFormat = [

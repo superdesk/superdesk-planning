@@ -5,6 +5,11 @@ import {debounce} from 'lodash';
 
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name TextArea
+ * @description Auto-resizing component to multi-line text input
+ */
 export class TextArea extends React.Component {
     constructor(props) {
         super(props);

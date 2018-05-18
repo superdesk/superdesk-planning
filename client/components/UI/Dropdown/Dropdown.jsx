@@ -2,6 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name Dropdown
+ * @description Main dropdown component
+ */
+
 export const Dropdown = ({children, className, isOpen, alignRight, dropUp}) => (
     <div
         className={classNames(

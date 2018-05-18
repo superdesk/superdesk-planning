@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name Row
+ * @description Row Component in a list of item where each item is a row
+ */
 export const Row = ({children, classes, paddingBottom}) => (
     <div className={classNames(
         'sd-list-item__row',

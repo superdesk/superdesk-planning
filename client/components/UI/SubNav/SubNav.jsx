@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name Subnav
+ * @description Main Sub Nav component
+ */
 export const SubNav = ({children, className, darkBlue, darker}) => (
     <div
         className={classNames(

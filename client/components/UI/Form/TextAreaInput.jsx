@@ -6,6 +6,11 @@ import {LineInput, Label, TextArea} from './';
 
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name TextAreaInput
+ * @description Component to multi-line text input with Field Label
+ */
 export const TextAreaInput = ({
     field,
     value,

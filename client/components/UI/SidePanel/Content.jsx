@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name Content
+ * @description Component to hold contents of a side panel
+ */
 export const Content = ({children, className, flex}) => (
     <div
         className={classNames(

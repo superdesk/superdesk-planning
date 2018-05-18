@@ -7,6 +7,11 @@ import {onEventCapture} from './utils';
 
 import {IconButton} from './';
 
+/**
+ * @ngdoc react
+ * @name CollapseBox
+ * @description CollapseBox which has a closed and open view of an item
+ */
 export class CollapseBox extends React.Component {
     constructor(props) {
         super(props);

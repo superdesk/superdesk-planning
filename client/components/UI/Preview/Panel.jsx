@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name Panel
+ * @description Panel Component to be used in a preview pane
+ */
 export const Panel = ({children, className}) => (
     <div
         className={classNames(

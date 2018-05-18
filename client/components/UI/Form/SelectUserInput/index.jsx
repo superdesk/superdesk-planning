@@ -7,6 +7,11 @@ import {SelectUserPopup} from './SelectUserPopup';
 import {KEYCODES} from '../../constants';
 import {onEventCapture} from '../../utils';
 
+/**
+ * @ngdoc react
+ * @name SelectUserInput
+ * @description Component to select users from a list
+ */
 export class SelectUserInput extends React.Component {
     constructor(props) {
         super(props);

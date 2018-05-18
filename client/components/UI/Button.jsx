@@ -5,6 +5,12 @@ import classNames from 'classnames';
 import {KEYCODES} from './constants';
 import {onEventCapture} from './utils';
 
+
+/**
+ * @ngdoc react
+ * @name Button
+ * @description Generic Button component
+ */
 const Button = ({
     className,
     onClick,

@@ -9,6 +9,11 @@ import {TermsList} from '../../';
 
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name SelectMetaTermsInput
+ * @description Component to select metadata terms like Subjects/Category
+ */
 export class SelectMetaTermsInput extends React.Component {
     constructor(props) {
         super(props);

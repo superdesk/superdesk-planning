@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name RowItem
+ * @description Component to encapsulate a component in row-item style
+ */
 export const RowItem = ({children, noGrow, className}) => (
     <div className={classNames(
         'form__row-item',

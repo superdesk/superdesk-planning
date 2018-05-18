@@ -1,6 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+/**
+ * @ngdoc react
+ * @name PanelInfo
+ * @description Information displayed in the middle of a panel
+ */
 const PanelInfo = ({heading, description}) => (
     <div className="panel-info">
         <div className="panel-info__icon">

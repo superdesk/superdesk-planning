@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name Group
+ * @description Component to group a list of items
+ */
 export const Group = ({
     className,
     children,

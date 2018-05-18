@@ -7,6 +7,11 @@ import {onEventCapture} from './utils';
 
 import {Icon} from './';
 
+/**
+ * @ngdoc react
+ * @name IconButton
+ * @description Icon with Button component
+ */
 const IconButton = ({
     onClick,
     tabIndex,

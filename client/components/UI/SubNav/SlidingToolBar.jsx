@@ -5,6 +5,11 @@ import {Button} from '../index';
 import {gettext} from '../utils';
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name SlidingToolBar
+ * @description Top sliding toolbar of a Sub Nav bar
+ */
 export const SlidingToolBar = ({hide, innerInfo, innerTools, tools, onCancel}) => (
     <div className={classNames(
         'subnav__sliding-toolbar',

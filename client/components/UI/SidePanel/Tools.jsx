@@ -4,6 +4,12 @@ import classNames from 'classnames';
 
 import {IconButton} from '../';
 
+
+/**
+ * @ngdoc react
+ * @name Tools
+ * @description Header tools of a side panel
+ */
 export const Tools = ({className, tools, children, topTools}) => (
     <div
         className={classNames(

@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name Column
+ * @description Column Component of a list item
+ */
 export const Column = ({children, grow, border, noPadding, hasCheck, checked}) => (
     <div className={classNames(
         'sd-list-item__column',

@@ -7,6 +7,11 @@ import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
 import {ICON_COLORS} from './constants';
 
+/**
+ * @ngdoc react
+ * @name Icon
+ * @description Generic Icon component with tooltip
+ */
 const Icon = ({icon, doubleSize, big, className, tooltip, color}) => {
     const iconElement = (
         <i className={classNames(

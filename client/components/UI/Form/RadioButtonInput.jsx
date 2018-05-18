@@ -3,6 +3,11 @@ import PropTypes from 'prop-types';
 import {Checkbox, Label, LineInput} from '.';
 
 
+/**
+ * @ngdoc react
+ * @name RadioButtonInput
+ * @description Component to show radio-button
+ */
 export const RadioButtonInput = ({
     field,
     value,

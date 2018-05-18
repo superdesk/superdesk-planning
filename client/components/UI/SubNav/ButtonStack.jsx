@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name ButtonStack
+ * @description Stack of buttons of a Sub Nav bar
+ */
 export const ButtonStack = ({children, right, padded, className}) => (
     <div className={classNames(
         'subnav__button-stack',

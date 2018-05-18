@@ -5,6 +5,11 @@ import {uniqueId} from 'lodash';
 import {KEYCODES} from '../constants';
 import {onEventCapture} from '../utils';
 
+/**
+ * @ngdoc react
+ * @name SearchField
+ * @description Input Field Component with search capabiities
+ */
 export default class SearchField extends React.Component {
     constructor(props) {
         super(props);

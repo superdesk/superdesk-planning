@@ -7,6 +7,11 @@ import {Toggle} from '../../';
 
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name ToggleInput
+ * @description Component to toggle input values
+ */
 export const ToggleInput = ({field, label, value, onChange, readOnly, className, labelLeftAuto, onFocus, ...props}) => (
     <LineInput {...props} readOnly={readOnly} labelLeftAuto={labelLeftAuto} className="sd-line-input__toggle">
         <Label text={label}/>

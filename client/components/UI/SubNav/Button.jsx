@@ -3,6 +3,11 @@ import PropTypes from 'prop-types';
 
 import {ButtonStack} from './ButtonStack';
 
+/**
+ * @ngdoc react
+ * @name Button
+ * @description Button of a Sub Nav bar
+ */
 export const Button = ({children, className, right, buttonClassName, onClick, padded}) => (
     <ButtonStack
         right={right}

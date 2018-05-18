@@ -3,6 +3,11 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name Tabs
+ * @description Tabs Component for a NavBar
+ */
 export const Tabs = ({tabs, active, setActive, className, darkUi}) => (
     <ul className={classNames(
         'nav-tabs',

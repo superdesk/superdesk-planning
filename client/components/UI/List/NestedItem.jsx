@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name NestedItem
+ * @description Component to have two items nested
+ */
 export const NestedItem = ({collapsed, expanded, parentItem, nestedChildren}) => (
     <div className={classNames(
         'sd-list-item-nested',

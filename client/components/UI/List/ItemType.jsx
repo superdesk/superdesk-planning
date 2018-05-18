@@ -8,6 +8,11 @@ import {Column} from './Column';
 import {ItemIcon} from '../../';
 import {Checkbox} from '../Form';
 
+/**
+ * @ngdoc react
+ * @name ItemType
+ * @description Component to show item type - generally left of the item with select checkbox
+ */
 export const ItemType = ({hasCheck, checked, onCheckToggle, item, color}) => (
     <Column hasCheck={hasCheck} checked={checked} >
         {hasCheck && (

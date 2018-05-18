@@ -6,6 +6,11 @@ import {KEYCODES} from '../constants';
 
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name ToggleBox
+ * @description ToggleBox used to open/close a set of details
+ */
 export class ToggleBox extends React.Component {
     constructor(props) {
         super(props);

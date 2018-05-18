@@ -1,6 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+/**
+ * @ngdoc react
+ * @name Select
+ * @description Component to select a list from dropdown
+ */
 export const Select = ({field, value, onChange, options, readOnly, clearable, autoFocus, onFocus, refNode}) => (
     <select
         className="sd-line-input__select"

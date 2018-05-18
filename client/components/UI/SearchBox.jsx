@@ -3,6 +3,11 @@ import PropTypes from 'prop-types';
 import {gettext} from './utils';
 import {KEYCODES} from './constants';
 
+/**
+ * @ngdoc react
+ * @name SearchBox
+ * @description Search box with input to search
+ */
 class SearchBox extends React.Component {
     constructor(props) {
         super(props);

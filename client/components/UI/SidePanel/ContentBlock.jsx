@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+/**
+ * @ngdoc react
+ * @name ContentBlock
+ * @description Component to hold a single block of content
+ */
 export const ContentBlock = ({children, className, padSmall, flex}) => (
     <div
         className={classNames(

@@ -10,6 +10,11 @@ import {IconButton} from '../';
 
 import './style.scss';
 
+/**
+ * @ngdoc react
+ * @name LinkInput
+ * @description Component to attach links as input
+ */
 export class LinkInput extends React.Component {
     constructor(props) {
         super(props);
