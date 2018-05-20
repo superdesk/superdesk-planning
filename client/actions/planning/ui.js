@@ -270,6 +270,24 @@ const openCancelPlanningModal = (plan, post = false) => (
     ))
 );
 
+const openSpikeModal = (plan, post = false) => (
+    (dispatch) => dispatch(self._openActionModal(
+        plan,
+        PLANNING.ITEM_ACTIONS.SPIKE.label,
+        null,
+        post
+    ))
+);
+
+const openUnspikeModal = (plan, post = false) => (
+    (dispatch) => dispatch(self._openActionModal(
+        plan,
+        PLANNING.ITEM_ACTIONS.UNSPIKE.label,
+        null,
+        post
+    ))
+);
+
 const openCancelAllCoverageModal = (plan, post = false) => (
     (dispatch) => dispatch(self._openActionModal(
         plan,
@@ -481,6 +499,8 @@ const removeAssignment = (original, updatedCoverage, index) => (
 const self = {
     spike,
     unspike,
+    openSpikeModal,
+    openUnspikeModal,
     save,
     saveAndReloadCurrentAgenda,
     _openActionModal,
