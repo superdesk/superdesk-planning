@@ -117,7 +117,7 @@ export class Dropdown extends React.Component {
                         } else {
                             return (
                                 <li key={index}>
-                                    <button onClick={() => item.action()}>
+                                    <button id={item.id} onClick={() => item.action()}>
                                         {item.icon && (
                                             <i className={classNames(
                                                 {'icon--gray': item.disabled},

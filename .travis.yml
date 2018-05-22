@@ -4,7 +4,11 @@ python: 3.5
 sudo: required
 
 env:
-  - TRAVIS_NODE_VERSION="6"
+  global:
+    - TRAVIS_NODE_VERSION="6"
+  matrix:
+    - TEST_TYPE="unit"
+    - TEST_TYPE="e2e"
 
 services:
     - mongodb
@@ -30,13 +34,11 @@ before_install:
     - sudo apt-get install -t stable elasticsearch && sudo service elasticsearch restart
     - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
     - node --version
-
-install:
-    - npm install --python=python2.7
-    - cd server && pip install -r requirements.txt && cd ..
-    - gem install coveralls-lcov
+    - export CHROME_BIN=`which google-chrome` && $CHROME_BIN --version
+    - chmod a+x ./scripts/*
 script:
-    - make test
+    - ./scripts/install_run_$TEST_TYPE.sh
+after_script:
+    - test $TEST_TYPE = "e2e" && killall -9 python
 after_success:
-    - coveralls-lcov -v -n coverage/lcov.info > coverage.json
-    - coveralls --merge=coverage.json
+    - test $TEST_TYPE = "unit" && coveralls-lcov -v -n coverage/lcov.info > coverage.json && coveralls --merge=coverage.json
