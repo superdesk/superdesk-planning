@@ -731,6 +731,7 @@ const showRemoveAssignmentModal = (assignment) => (
                         body: 'Are you sure you want to remove the Assignment?',
                         action: () => dispatch(self.removeAssignment(lockedAssignment)),
                         onCancel: () => dispatch(self.unlockAssignmentAndPlanning(lockedAssignment)),
+                        autoClose: true,
                     },
                 }));
 

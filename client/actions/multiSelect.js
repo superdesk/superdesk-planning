@@ -79,6 +79,7 @@ const itemBulkSpikeModal = (items) => (
                 body: gettext(`Do you want to spike ${items.length} item(s) ?`),
                 action: () => dispatch(itemSpikeDispatch(items)),
                 itemType: itemType,
+                autoClose: true,
             },
         }));
         return Promise.resolve();
@@ -97,6 +98,7 @@ const itemBulkUnSpikeModal = (items) => (
                 body: gettext(`Do you want to unspike ${items.length} item(s) ?`),
                 action: () => dispatch(itemUnSpikeDispatch(items)),
                 itemType: itemType,
+                autoClose: true,
             },
         }));
         return Promise.resolve();
