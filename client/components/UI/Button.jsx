@@ -15,6 +15,7 @@ const Button = ({
     className,
     onClick,
     icon,
+    id,
     title,
     text,
     disabled,
@@ -48,6 +49,7 @@ const Button = ({
 
     return (
         <button
+            id={id}
             className={classNames(
                 'btn',
                 color ? `btn--${color}` : null,
@@ -79,6 +81,7 @@ const Button = ({
 };
 
 Button.propTypes = {
+    id: PropTypes.string,
     className: PropTypes.string,
     onClick: PropTypes.func.isRequired,
     icon: PropTypes.string,
