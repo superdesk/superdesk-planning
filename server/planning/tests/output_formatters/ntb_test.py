@@ -1,32 +1,35 @@
-
 import lxml
 import unittest
 
+from planning.common import POST_STATE
 from planning.output_formatters.ntb_event import NTBEventFormatter
 
 
 class NTBEventTestCase(unittest.TestCase):
 
-    item = {
-        'name': 'Kronprinsparet besøker bydelen Gamle Oslo',
-        'firstcreated': '2016-10-31T08:27:25+0000',
-        'versioncreated': '2016-10-31T09:33:40+0000',
-        'dates': {
-            'start': '2016-10-31T23:00:00+0000',
-            'end': '2016-11-01T22:59:59+0000',
-            'tz': 'Europe/Oslo',
-        },
-        'definition_short': 'Kronprinsparet besøker bydelen Gamle Oslo.',
-        'anpa_category': [
-            {'qcode': 'o', 'name': 'Innenriks'},
-        ],
-        'subject': [
-            {'qcode': '05001000', 'name': 'adult education', 'parent': '0500000'},
-        ],
-        'location': [
-            {'location': {'lon': 14.4212535, 'lat': 50.0874654}, 'name': 'Prague'},
-        ],
-    }
+    def setUp(self):
+        super(NTBEventTestCase, self).setUp()
+
+        self.item = {
+            'name': 'Kronprinsparet besøker bydelen Gamle Oslo',
+            'firstcreated': '2016-10-31T08:27:25+0000',
+            'versioncreated': '2016-10-31T09:33:40+0000',
+            'dates': {
+                'start': '2016-10-31T23:00:00+0000',
+                'end': '2016-11-01T22:59:59+0000',
+                'tz': 'Europe/Oslo',
+            },
+            'definition_short': 'Kronprinsparet besøker bydelen Gamle Oslo.',
+            'anpa_category': [
+                {'qcode': 'o', 'name': 'Innenriks'},
+            ],
+            'subject': [
+                {'qcode': '05001000', 'name': 'adult education', 'parent': '0500000'},
+            ],
+            'location': [
+                {'location': {'lon': 14.4212535, 'lat': 50.0874654}, 'name': 'Prague'},
+            ],
+        }
 
     def test_formatter(self):
         formatter = NTBEventFormatter()
@@ -55,10 +58,45 @@ class NTBEventTestCase(unittest.TestCase):
         self.assertEqual(str(self.item['location'][0]['location']['lat']), geo.find('latitude').text)
         self.assertEqual(str(self.item['location'][0]['location']['lon']), geo.find('longitude').text)
 
-    def test_kill(self):
+    def test_unpost(self):
         item = self.item.copy()
-        item['pubstatus'] = 'canceled'
+        item['pubstatus'] = POST_STATE.CANCELLED
         formatter = NTBEventFormatter()
         output = formatter.format(item, {})[0]
         root = lxml.etree.fromstring(output['encoded_item'])
         self.assertEqual('true', root.get('DeleteRequest'))
+
+    def test_alldayevent_included(self):
+        # just in case main self.item['dates'] will be changed in setUp
+        self.item['dates']['start'] = '2016-10-31T23:00:00+0000'
+        self.item['dates']['end'] = '2016-11-01T22:59:59+0000'
+
+        formatter = NTBEventFormatter()
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        alldayevent = root.find('alldayevent')
+
+        self.assertIsNotNone(alldayevent)
+
+    def test_alldayevent_is_true(self):
+        # just in case main self.item['dates'] will be changed in setUp
+        self.item['dates']['start'] = '2016-10-31T23:00:00+0000'
+        self.item['dates']['end'] = '2016-11-01T22:59:59+0000'
+
+        formatter = NTBEventFormatter()
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        alldayevent = root.find('alldayevent')
+
+        self.assertEqual(alldayevent.text, str(True))
+
+    def test_alldayevent_is_false(self):
+        self.item['dates']['start'] = '2016-10-31T14:00:00+0000'
+        self.item['dates']['end'] = '2016-11-01T21:30:59+0000'
+
+        formatter = NTBEventFormatter()
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        alldayevent = root.find('alldayevent')
+
+        self.assertEqual(alldayevent.text, str(False))
