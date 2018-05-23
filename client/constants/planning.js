@@ -22,12 +22,12 @@ export const PLANNING = {
     FETCH_IDS_CHUNK_SIZE: 25,
     ITEM_ACTIONS: {
         SPIKE: {
-            label: gettext('Spike'),
+            label: gettext('Spike planning'),
             icon: 'icon-trash',
             actionName: 'onSpikePlanning',
         },
         UNSPIKE: {
-            label: gettext('Unspike'),
+            label: gettext('Unspike planning'),
             icon: 'icon-unspike',
             actionName: 'onUnspikePlanning',
         },

@@ -477,7 +477,7 @@ describe('PlanningUtils', () => {
 
             expectActions(itemActions, [
                 'Add coverage',
-                'Spike',
+                'Spike planning',
                 'Duplicate',
             ]);
 
@@ -492,7 +492,7 @@ describe('PlanningUtils', () => {
 
             expectActions(itemActions, [
                 'Add coverage',
-                'Spike',
+                'Spike planning',
                 'Duplicate',
                 'Cancel Event',
                 'Update Event Time',

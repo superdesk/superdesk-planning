@@ -7,6 +7,8 @@ export {PostponeEventForm} from './forms/postponeEventForm';
 export {UpdateTimeForm} from './forms/updateTimeForm';
 export {RescheduleEventForm} from './forms/rescheduleEventForm';
 export {ConvertToRecurringEventForm} from './forms/convertToRecurringEventForm';
+export {SpikePlanningForm} from './forms/spikePlanningForm';
+export {UnspikePlanningForm} from './forms/unspikePlanningForm';
 export {CancelPlanningCoveragesForm} from './forms/cancelPlanningCoveragesForm';
 export {UpdateAssignmentForm} from './forms/updateAssignmentForm';
 export {EditPriorityForm} from './forms/editPriorityForm';

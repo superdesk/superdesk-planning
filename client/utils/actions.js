@@ -41,9 +41,9 @@ const getActionDispatches = ({
         [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
             actions.planning.ui.duplicate,
         [PLANNING.ITEM_ACTIONS.SPIKE.actionName]:
-            actions.planning.ui.spike,
+            actions.planning.ui.openSpikeModal,
         [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]:
-            actions.planning.ui.unspike,
+            actions.planning.ui.openUnspikeModal,
         [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]:
             actions.planning.ui.openCancelPlanningModal,
         [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:

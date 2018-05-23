@@ -10,6 +10,8 @@ import {
     UpdateTimeForm,
     RescheduleEventForm,
     ConvertToRecurringEventForm,
+    SpikePlanningForm,
+    UnspikePlanningForm,
     CancelPlanningCoveragesForm,
     UpdateAssignmentForm,
     EditPriorityForm,
@@ -99,6 +101,18 @@ export class ItemActionConfirmationModal extends React.Component {
                 title: gettext('Post Event'),
                 saveText: get(propToForm, '_post', true) ? gettext('Post') : gettext('Unpost'),
                 form: PostEventsForm,
+            },
+            [PLANNING.ITEM_ACTIONS.SPIKE.label]: {
+                title: gettext('Spike planning item'),
+                propToForm: {...modalProps.planning},
+                saveText: gettext('Spike'),
+                form: SpikePlanningForm,
+            },
+            [PLANNING.ITEM_ACTIONS.UNSPIKE.label]: {
+                title: gettext('Unspike planning item'),
+                propToForm: {...modalProps.planning},
+                saveText: gettext('Unspike'),
+                form: UnspikePlanningForm,
             },
             [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label]: {
                 title: get(PLANNING, 'ITEM_ACTIONS.CANCEL_PLANNING.label'),
