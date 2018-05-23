@@ -31,7 +31,20 @@ apps: [
 features: {
     ....,
     planning: true
+},
+workspace: {
+    ....,
+    planning: true,
+    assignments: true
 }
+```
+
+If you have `importApps` in your superdesk config, you should also add planning to this list:
+```js
+importApps: [
+    ....,
+    'superdesk-planning'
+]
 ```
 
 This will import the `superdesk-planning` node module and load the `superdesk.planning` angular module in the main angular application.
