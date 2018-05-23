@@ -26,17 +26,54 @@ cache:
     - npm
 
 before_install:
+    - npm install -g grunt-cli
     - sudo apt-get purge elasticsearch
     - sudo apt-get install -t stable elasticsearch && sudo service elasticsearch restart
     - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
     - node --version
+    - export DISPLAY=:99.0 && /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1920x1080x24       - export DISPLAY=:99.0 && /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1920x1080x24
+    - export CHROME_BIN=`which google-chrome` && $CHROME_BIN --version ;
 
 install:
     - npm install --python=python2.7
     - cd server && pip install -r requirements.txt && cd ..
     - gem install coveralls-lcov
+    - ./node_modules/.bin/webdriver-manager update
+
+# Enable snapshot feature in elasticsearch (uses for prepopulation step)
+#
+# Some other optimizations
+# - disable journal for mongodb storage
+# - in memory indexes for elasticsearch
+before_script: >
+    df -h
+    && sudo sed -i 's\enabled: true\enabled: false\' /etc/mongod.conf
+    && sudo service mongod restart
+    && mkdir /tmp/es-backups
+    && sudo chown elasticsearch:elasticsearch /tmp/es-backups
+    && echo "path.repo: ['/tmp/es-backups']" | sudo tee -a /etc/elasticsearch/elasticsearch.yml
+    && echo "index.store.type: memory" | sudo tee -a /etc/elasticsearch/elasticsearch.yml
+    && sudo service elasticsearch restart
+    && sleep 10
+    && curl -XPUT 'http://localhost:9200/_snapshot/backups' -d '{"type": "fs", "settings": {"location": "/tmp/es-backups"}}'
+
 script:
+    - grunt ci:travis
+    - grunt build ;
+      cd dist ;
+      while [ ! -f index.html ]; do sleep .5; done ;
+        (nohup python -m http.server 9000 & );
+      cd .. ;
+    - cd test-server ;
+      nohup python manage.py ;
+      (nohup honcho start & ) ;
+      sleep 5 ;
+      cd ..;
+    - ./node_modules/protractor/bin/protractor protractor.conf.js --stackTrace --verbose
     - make test
+
+after_script:  
+    - killall -9 python
 after_success:
     - coveralls-lcov -v -n coverage/lcov.info > coverage.json
     - coveralls --merge=coverage.json

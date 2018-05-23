@@ -219,6 +219,7 @@ export class EditorHeader extends React.Component {
                 disabled: submitting,
                 onClick: dirty ? onSaveUnpost : onUnpost,
                 text: dirty ? gettext('Save & Unpost') : gettext('Unpost'),
+                id: 'unpost',
             },
         }, {
             state: 'showSave',
