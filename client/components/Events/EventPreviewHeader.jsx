@@ -47,7 +47,7 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
             true);
         const lockedUser = lockUtils.getLockedUser(item, lockedItems, users);
         const lockRestricted = eventUtils.isEventLockRestricted(item, session, lockedItems);
-        const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK];
+        const unlockPrivilege = !!privileges[PRIVILEGES.EVENT_MANAGEMENT];
 
         return (
             <Tools topTools={true}>

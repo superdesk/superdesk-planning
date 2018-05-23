@@ -173,8 +173,7 @@ class LockService(BaseComponent):
             resource_privileges = get_resource_privileges(resource).get('PATCH')
 
             if not (str(item.get(LOCK_USER, '')) == str(user_id) or
-                    (current_user_has_privilege(resource_privileges) and
-                    current_user_has_privilege('planning_unlock'))):
+                    current_user_has_privilege(resource_privileges)):
                 return False, 'You don\'t have permissions to unlock an item.'
         else:
             return False, error_message
