@@ -129,6 +129,7 @@ export function AddToPlanningController(
                     })
                         .then(() => {
                             store.dispatch(actions.main.closeEditor());
+                            store.dispatch(actions.main.closePreview());
                             ReactDOM.render(
                                 <Provider store={store}>
                                     <ModalsContainer/>
