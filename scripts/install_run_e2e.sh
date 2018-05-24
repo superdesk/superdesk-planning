@@ -34,8 +34,8 @@ echo "DEBUG = True" | sudo tee -a ./settings.py
 # echo "REDIS_URL='redis://localhost:6379/2'" | sudo tee -a ./settings.py
 # echo "WEB_CONCURRENCY=3" | sudo tee -a ./settings.py
 # echo "WEB_TIMEOUT=5" | sudo tee -a ./settings.py
-cd $PLANNING_DIR
-cd ./node_modules/superdesk-core/test-server/
+# cd $PLANNING_DIR
+# cd ./node_modules/superdesk-core/test-server/
 honcho start &
 sleep 60
 cd $PLANNING_DIR
