@@ -46,6 +46,7 @@ class NTBEventFormatter(Formatter):
         time_start.text = self._format_time(dates.get('start'), dates.get('tz'))
         time_end = etree.SubElement(doc, 'timeEnd')
         time_end.text = self._format_time(dates.get('end'), dates.get('tz'))
+        self._format_alldayevent(doc, dates)
         priority = etree.SubElement(doc, 'priority')
         priority.text = str(item.get('priority', self.PRIORITY))
         content = etree.SubElement(doc, 'content')
@@ -85,6 +86,21 @@ class NTBEventFormatter(Formatter):
     def _format_id(self, time):
         local_time = self._get_local_time(time)
         return 'NBRP{}_hh_00'.format(local_time.strftime('%y%m%d_%H%M%S'))
+
+    def _format_alldayevent(self, doc, dates):
+        """
+        Checks if the event is all day or not and sets `alldayevent` tag.
+
+        :param etree.Element doc: The xml document for publishing
+        :param dict dates: Event dates
+        """
+        local_start_time = self._get_local_time(dates.get('start'), dates.get('tz'))
+        local_end_time = self._get_local_time(dates.get('end'), dates.get('tz'))
+        _pattern = '%H:%M'
+        is_all_day_event = (local_start_time.strftime(_pattern) == '00:00' and
+                            local_end_time.strftime(_pattern) == '23:59')
+        alldayevent = etree.SubElement(doc, 'alldayevent')
+        alldayevent.text = str(is_all_day_event)
 
     def _get_local_time(self, time, tz=None):
         if time is None:
