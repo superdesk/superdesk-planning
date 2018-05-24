@@ -39,5 +39,5 @@ cd ./node_modules/superdesk-core/test-server/
 honcho start &
 sleep 60
 cd $PLANNING_DIR
-./node_modules/.bin/webdriver-manager update
+./node_modules/.bin/webdriver-manager update --gecko=false
 ./node_modules/protractor/bin/protractor protractor.conf.js --stackTrace --verbose
