@@ -139,10 +139,4 @@ def init_app(app):
         description='Ability to unpost an Event'
     )
 
-    superdesk.privilege(
-        name='planning_unlock',
-        label='Planning - Unlock events and planning items',
-        description='Ability to unlock Events and Planning Items'
-    )
-
     superdesk.intrinsic_privilege(EventsUnlockResource.endpoint_name, method=['POST'])

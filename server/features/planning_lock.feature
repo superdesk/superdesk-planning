@@ -95,7 +95,7 @@ Feature: Planning Item Locking
       When we switch user
       When we patch "/users/#USERS_ID#"
       """
-      {"user_type": "user", "privileges": {"planning_unlock":0}}
+      {"user_type": "user", "privileges": {"planning_planning_management":0}}
       """
       Then we get OK response
       When we post to "/planning/#planning._id#/unlock"

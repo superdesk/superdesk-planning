@@ -153,7 +153,8 @@ export class EditorHeader extends React.Component {
 
     renderIcon(states) {
         const {item, itemType, users, showUnlock, onUnlock, privileges} = this.props;
-        const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK];
+        const unlockPrivilege = states.isEvent ? !!privileges[PRIVILEGES.EVENT_MANAGEMENT] :
+            !!privileges[PRIVILEGES.PLANNING_MANAGEMENT];
 
         return (
             <StretchBar>

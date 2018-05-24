@@ -26,7 +26,7 @@ export class PlanningPreviewHeaderComponent extends React.Component {
             itemActionDispatches,
         } = this.props;
         const lockedUser = lockUtils.getLockedUser(item, lockedItems, users);
-        const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK];
+        const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_MANAGEMENT];
 
         const itemActionsCallBack = {
             [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
