@@ -36,7 +36,6 @@ echo "DEBUG = True" | sudo tee -a ./settings.py
 # echo "WEB_TIMEOUT=5" | sudo tee -a ./settings.py
 cd $PLANNING_DIR
 cd ./node_modules/superdesk-core/test-server/
-python manage.py
 honcho start &
 sleep 60
 cd $PLANNING_DIR
