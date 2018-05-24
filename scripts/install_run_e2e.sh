@@ -34,9 +34,9 @@ echo "DEBUG = True" | sudo tee -a ./settings.py
 # echo "REDIS_URL='redis://localhost:6379/2'" | sudo tee -a ./settings.py
 # echo "WEB_CONCURRENCY=3" | sudo tee -a ./settings.py
 # echo "WEB_TIMEOUT=5" | sudo tee -a ./settings.py
-curl -XGET 'http://localhost:9200/_cat/indices?pretty'
-python manage.py app:index_from_mongo --all
-honcho start &
+cd ./node_modules/superdesk-core/test-server/
+nohup python manage.py
+nohup honcho start &
 sleep 60
 cd $PLANNING_DIR
 ./node_modules/.bin/webdriver-manager update
