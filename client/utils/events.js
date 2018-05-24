@@ -19,6 +19,9 @@ import {
     isEmptyActions,
     isDateInRange,
     gettext,
+    getItemId,
+    generateTempId,
+    isExistingItem,
 } from './index';
 import moment from 'moment';
 import RRule from 'rrule';
@@ -195,8 +198,7 @@ const canCreateAndOpenPlanningFromEvent = (event, session, privileges, locks) =>
 );
 
 const canPostEvent = (event, session, privileges, locks) => (
-    !isNil(event) &&
-        !!get(event, '_id') &&
+    isExistingItem(event) &&
         !isItemSpiked(event) &&
         getPostedState(event) !== POST_STATE.USABLE &&
         !!privileges[PRIVILEGES.POST_EVENT] &&
@@ -510,7 +512,7 @@ const getMultiDayPlanningActions = (item, actions, createPlanning, createAndOpen
 };
 
 const getEventActions = (item, session, privileges, lockedItems, callBacks, withMultiPlanningDate = false) => {
-    if (!get(item, '_id')) {
+    if (!isExistingItem(item)) {
         return [];
     }
 
@@ -667,9 +669,11 @@ const duplicateEvent = (event, occurStatus) => {
         duplicatedEvent.dates.end = duplicatedEvent.dates.end.add(daysBetween, 'days');
     }
 
-    duplicatedEvent.duplicate_from = event._id;
+    duplicatedEvent.duplicate_from = getItemId(event);
     duplicatedEvent.occur_status = occurStatus;
     duplicatedEvent.state = WORKFLOW_STATE.DRAFT;
+    duplicatedEvent._id = generateTempId();
+
     return duplicatedEvent;
 };
 

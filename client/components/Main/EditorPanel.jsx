@@ -52,12 +52,11 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(validateItem(type, item, profile, errors, messages)),
     loadItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'edit')),
     itemActions: actionUtils.getActionDispatches({dispatch: dispatch}),
-    removeNewAutosaveItems: () => dispatch(actions.autosave.removeNewItems()),
     closeEditorAndOpenModal: (item) => dispatch(actions.main.closeEditorAndOpenModal(item)),
     notifyValidationErrors: (errors) => dispatch(actions.main.notifyValidationErrors(errors)),
 
-    saveAutosave: (formName, diff) => dispatch(actions.autosave.save(formName, diff)),
-    loadAutosave: (formName, itemId) => dispatch(actions.autosave.load(formName, itemId)),
+    saveAutosave: (diff) => dispatch(actions.autosave.save(diff)),
+    loadAutosave: (itemType, itemId) => dispatch(actions.autosave.fetchById(itemType, itemId, false)),
 });
 
 const mapDispatchToPropsModal = (dispatch) => ({
@@ -73,11 +72,10 @@ const mapDispatchToPropsModal = (dispatch) => ({
         dispatch(validateItem(type, item, profile, errors, messages)),
     loadItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'edit')),
     itemActions: actionUtils.getActionDispatches({dispatch: dispatch}),
-    removeNewAutosaveItems: () => dispatch(actions.autosave.removeNewItems()),
     notifyValidationErrors: (errors) => dispatch(actions.main.notifyValidationErrors(errors)),
 
-    saveAutosave: (formName, diff) => dispatch(actions.autosave.save(formName, diff)),
-    loadAutosave: (formName, itemId) => dispatch(actions.autosave.load(formName, itemId)),
+    saveAutosave: (diff) => dispatch(actions.autosave.save(diff)),
+    loadAutosave: (itemType, itemId) => dispatch(actions.autosave.fetchById(itemType, itemId, false)),
 });
 
 export const Editor = connect(mapStateToProps, mapDispatchToProps)(EditorComponent);

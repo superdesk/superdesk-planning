@@ -2,6 +2,8 @@ export const AUTOSAVE = {
     ACTIONS: {
         SAVE: 'AUTOSAVE_SAVE',
         REMOVE: 'AUTOSAVE_REMOVE',
+        RECEIVE: 'AUTOSAVE_RECEIVE',
+        UPDATE_ETAG: 'AUTOSAVE_UPDATE_ETAG',
     },
     INTERVAL: 3000,
 };

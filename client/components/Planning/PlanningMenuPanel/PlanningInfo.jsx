@@ -13,7 +13,7 @@ export const PlanningInfo = ({item, onClick, timeFormat, dateFormat, active}) =>
             <Row paddingBottom>
                 <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                     {item.slugline &&
-                            <span className="ListItem__slugline form-label">{item.slugline}</span>
+                        <span className="ListItem__slugline form-label">{item.slugline}</span>
                     }
                 </span>
                 <span className="sd-overflow-ellipsis sd-list-item--element-grow">
@@ -28,7 +28,9 @@ export const PlanningInfo = ({item, onClick, timeFormat, dateFormat, active}) =>
                 <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                     <time className="pull-right">
                         <i className="icon-time"/>
-                        {getDateTimeString(item.planning_date, dateFormat, timeFormat)}
+                        {item.planning_date &&
+                            getDateTimeString(item.planning_date, dateFormat, timeFormat)
+                        }
                     </time>
                 </span>
             </Row>

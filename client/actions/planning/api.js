@@ -7,6 +7,7 @@ import {
     lockUtils,
     appendStatesQueryForAdvancedSearch,
     timeUtils,
+    isExistingItem,
 } from '../../utils';
 import planningUtils from '../../utils/planning';
 import {
@@ -682,7 +683,7 @@ const save = (item, original = undefined) => (
         return new Promise((resolve, reject) => {
             if (original !== undefined && !isEqual(original, {})) {
                 return resolve(original);
-            } else if (get(item, '_id')) {
+            } else if (isExistingItem(item)) {
                 return dispatch(self.fetchById(item._id))
                     .then(
                         (planning) => resolve(planning),
@@ -737,7 +738,7 @@ const save = (item, original = undefined) => (
 const saveAndReloadCurrentAgenda = (item) => (
     (dispatch, getState) => (
         new Promise((resolve, reject) => {
-            if (get(item, '_id')) {
+            if (isExistingItem(item)) {
                 return dispatch(self.fetchById(item._id))
                     .then(
                         (item) => (resolve(item)),

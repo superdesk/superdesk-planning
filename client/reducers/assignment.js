@@ -1,7 +1,7 @@
 import {uniq, keyBy, get, cloneDeep, filter, pickBy, includes} from 'lodash';
 import {ASSIGNMENTS, RESET_STORE, INIT_STORE} from '../constants';
 import moment from 'moment';
-import {createReducer} from '../utils';
+import {createReducer, getItemId} from '../utils';
 
 const initialState = {
     assignments: {},
@@ -124,7 +124,7 @@ const assignmentReducer = createReducer(initialState, {
         {
             ...state,
             previewOpened: true,
-            currentAssignmentId: get(payload, '_id') || payload,
+            currentAssignmentId: getItemId(payload) || payload,
             readOnly: true,
         }
     ),

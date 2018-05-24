@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
-import {eventUtils, gettext, isItemPublic} from '../utils';
+import {eventUtils, gettext, isItemPublic, isExistingItem} from '../utils';
 import {ITEM_TYPE} from '../constants';
 import * as selectors from '../selectors';
 
@@ -114,7 +114,7 @@ export class IgnoreCancelSaveModalComponent extends React.Component {
 
         if (onGoTo) {
             okText = gettext('Go-To');
-        } else if (get(item, '_id')) {
+        } else if (isExistingItem(item)) {
             if (isItemPublic(item)) {
                 okText = onSaveAndPost ?
                     gettext('Save & Post') :

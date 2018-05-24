@@ -1,12 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get} from 'lodash';
 
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
 import {ICON_COLORS} from '../../constants';
-import {getItemType} from '../../utils';
+import {getItemType, getItemId} from '../../utils';
 
 import {WorkqueueItem} from './WorkqueueItem';
 import {Icon} from '../UI';
@@ -57,9 +56,9 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     unlockAndCloseEditor: (item) => dispatch(actions.main.unlockAndCancel(item)),
-    openEditForm: (item) => dispatch(actions.main.openEditor(item)),
+    openEditForm: (item) => dispatch(actions.main.lockAndEdit(item)),
     openConfirmationModal: (item, onGoTo, onIgnore) => dispatch(actions.main.openIgnoreCancelSaveModal({
-        itemId: get(item, '_id'),
+        itemId: getItemId(item),
         itemType: getItemType(item),
         onGoTo: onGoTo,
         onIgnore: onIgnore,

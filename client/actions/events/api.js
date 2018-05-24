@@ -15,6 +15,7 @@ import {
     getErrorMessage,
     appendStatesQueryForAdvancedSearch,
     timeUtils,
+    isExistingItem,
 } from '../../utils';
 import moment from 'moment';
 
@@ -1228,7 +1229,7 @@ const _saveLocation = (event) => (
 
 const _save = (eventUpdates) => (
     (dispatch, getState, {api}) => (
-        !get(eventUpdates, '_id') ?
+        !isExistingItem(eventUpdates) ?
             Promise.resolve({}) :
             dispatch(self.fetchById(eventUpdates._id, {saveToStore: false, loadPlanning: false}))
     )

@@ -326,7 +326,7 @@ describe('PlanningUtils', () => {
         },
         ];
 
-        it('creates photo coverage from unpublished news item', () => {
+        it('creates text coverage from unpublished news item', () => {
             const newsItem = {
                 _id: 'news1',
                 slugline: 'slugger',

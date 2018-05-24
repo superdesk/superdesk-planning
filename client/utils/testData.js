@@ -828,7 +828,10 @@ export const initialState = {
     desks: desks,
     forms: {
         profiles: formsProfile,
-        autosaves: {},
+        autosaves: {
+            event: {},
+            planning: {},
+        },
         itemId: null,
         itemType: null,
     },
@@ -864,4 +867,6 @@ export const items = {
     archive: archive,
     planning_search: events.concat(plannings),
     contacts: contacts,
+    event_autosave: [],
+    planning_autosave: [],
 };

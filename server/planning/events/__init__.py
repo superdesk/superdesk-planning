@@ -21,6 +21,8 @@ from .events_reschedule import EventsRescheduleService, EventsRescheduleResource
 from .events_postpone import EventsPostponeService, EventsPostponeResource
 from .events_update_time import EventsUpdateTimeService, EventsUpdateTimeResource
 from .events_update_repetitions import EventsUpdateRepetitionsService, EventsUpdateRepetitionsResource
+from .event_autosave import EventAutosaveResource
+from planning.autosave import AutosaveService
 
 
 def init_app(app):
@@ -97,6 +99,9 @@ def init_app(app):
         service=events_update_repetitions_service
     )
 
+    event_autosave_service = AutosaveService('event_autosave', superdesk.get_backend())
+    EventAutosaveResource('event_autosave', app=app, service=event_autosave_service)
+
     app.on_updated_events += events_history_service.on_item_updated
     app.on_inserted_events += events_history_service.on_item_created
     app.on_deleted_item_events -= events_history_service.on_item_deleted
@@ -107,6 +112,8 @@ def init_app(app):
     app.on_updated_events_reschedule += events_history_service.on_reschedule
     app.on_updated_events_postpone += events_history_service.on_postpone
     app.on_locked_events += events_search_service.on_locked_event
+
+    app.on_session_end += event_autosave_service.on_session_end
 
     # Privileges
     superdesk.privilege(

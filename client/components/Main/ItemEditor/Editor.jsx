@@ -12,6 +12,8 @@ import {
     updateFormValues,
     isExistingItem,
     isItemKilled,
+    isTemporaryId,
+    getItemId,
 } from '../../../utils';
 import {EventUpdateMethods} from '../../Events';
 
@@ -36,6 +38,7 @@ export class EditorComponent extends React.Component {
             submitting: false,
             submitFailed: false,
             partialSave: false,
+            itemReady: false,
         };
 
         this.tearDownRequired = false;
@@ -72,10 +75,10 @@ export class EditorComponent extends React.Component {
         // If the editor is in main page and the item is located in the URL, on first mount copy the diff from the item.
         // Otherwise all item changes will occur during the componentWillReceiveProps
         if (!this.props.inModalView && this.props.itemId && this.props.itemType) {
-            this.props.loadItem(this.props.itemId, this.props.itemType);
+            this.loadItem(this.props.itemId, this.props.itemType);
         }
 
-        if (this.props.inModalView && this.props.item) {
+        if (this.props.inModalView) {
             // Moved from editor on main document to modal mode
             this.resetForm(this.props.item);
         }
@@ -88,6 +91,17 @@ export class EditorComponent extends React.Component {
         }
     }
 
+    loadItem(itemId, itemType) {
+        if (isTemporaryId(itemId)) {
+            this.setState({itemReady: true});
+        } else {
+            this.setState({itemRead: false}, () => {
+                this.props.loadItem(itemId, itemType)
+                    .then(() => this.setState({itemReady: true}));
+            });
+        }
+    }
+
     resetForm(item = null, dirty = false) {
         this.setState({
             diff: item === null ? {} : cloneDeep(item),
@@ -95,6 +109,7 @@ export class EditorComponent extends React.Component {
             submitting: false,
             errors: {},
             errorMessages: [],
+            itemReady: true,
         });
 
         this.tabs[0].label = get(item, 'type') === ITEM_TYPE.EVENT ?
@@ -103,15 +118,23 @@ export class EditorComponent extends React.Component {
     }
 
     createNew(props) {
+        const itemId = getItemId(props.initialValues);
+
         if (props.itemType === ITEM_TYPE.EVENT) {
-            if (isEqual(omit(props.initialValues, '_tempId'), {type: ITEM_TYPE.EVENT})) {
-                this.resetForm(EVENTS.DEFAULT_VALUE(props.occurStatuses));
+            if (isEqual(omit(props.initialValues, '_id'), {type: ITEM_TYPE.EVENT})) {
+                this.resetForm({
+                    ...EVENTS.DEFAULT_VALUE(props.occurStatuses),
+                    _id: itemId,
+                });
             } else {
                 this.resetForm(props.initialValues, true);
             }
         } else if (props.itemType === ITEM_TYPE.PLANNING) {
-            if (isEqual(omit(props.initialValues, '_tempId'), {type: ITEM_TYPE.PLANNING})) {
-                this.resetForm(PLANNING.DEFAULT_VALUE);
+            if (isEqual(omit(props.initialValues, '_id'), {type: ITEM_TYPE.PLANNING})) {
+                this.resetForm({
+                    ...PLANNING.DEFAULT_VALUE,
+                    _id: itemId,
+                });
             } else {
                 this.resetForm(props.initialValues, true);
             }
@@ -120,56 +143,69 @@ export class EditorComponent extends React.Component {
         }
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.itemId !== this.props.itemId) {
-            if (nextProps.itemId === null) {
+    onItemIDChanged(nextProps) {
+        this.setState({itemReady: false}, () => {
+            if (isTemporaryId(nextProps.itemId)) {
                 // This happens when the editor is opened on an existing item and
                 // the user attempts to create a new item
-                setTimeout(() => {
-                    this.createNew(nextProps);
-                }, 0);
+                this.createNew(nextProps);
             } else if (nextProps.item === null) {
                 // This happens when the items have changed
-                // If we were editing a non-exising item, remove from store's autosave
-                if (get(this.props, 'initialValues._tempId')) {
-                    this.props.removeNewAutosaveItems();
-                }
-
-                // Using setTimeout allows the Editor to clear before displaying the new item
-                setTimeout(() => {
-                    this.props.loadItem(nextProps.itemId, nextProps.itemType);
-                }, 0);
+                this.loadItem(nextProps.itemId, nextProps.itemType);
             } else {
-                // This happens when the Editor has finished loading an existing item
                 this.resetForm(nextProps.item);
             }
-        } else if (nextProps.item !== null && this.props.item === null) {
-            // This happens when the Editor has finished loading an existing item or creating a duplicate
-            this.resetForm(nextProps.item, !isExistingItem(nextProps.item) && nextProps.item.duplicate_from);
-        } else if (isEqual(omit(this.state.diff, 'calendars'), {}) && get(nextProps, 'initialValues._tempId')) {
-            // This happens when creating a new item (when the editor is not currently open)
-            this.createNew(nextProps);
-        } else if (!this.itemsEqual(get(nextProps, 'item'), get(this.props, 'item'))) {
+        });
+    }
+
+    // This happens when the Editor has finished loading an existing item or creating a duplicate
+    onFinishLoading(nextProps) {
+        this.resetForm(
+            nextProps.item,
+            !isExistingItem(nextProps.item) && nextProps.item.duplicate_from
+        );
+    }
+
+    onItemChanged(nextProps) {
+        this.setState({itemReady: false}, () => {
             // This happens when the item attributes have changed
             if (this.state.partialSave) {
                 this.finalisePartialSave(nextProps);
             } else {
                 this.resetForm(get(nextProps, 'item') || {});
             }
-        } else if (get(this.props, 'initialValues._tempId') && get(nextProps, 'initialValues._tempId') &&
-            get(this.props, 'initialValues._tempId') !== get(nextProps, 'initialValues._tempId')) {
-            // This happens when creating a new item when the editor currently open with a new item
-            this.props.removeNewAutosaveItems();
-            this.createNew(nextProps);
+        });
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (!nextProps.itemType || !nextProps.itemId) {
+            // If the editor has been closed, then set the itemReady state to false
+            this.setState({itemReady: false});
+        } else if (nextProps.item !== null && this.props.item === null) {
+            // This happens when the Editor has finished loading an existing item or creating a duplicate
+            this.onFinishLoading(nextProps);
+        } else if (nextProps.itemId !== this.props.itemId) {
+            // If the item ID has changed
+            this.onItemIDChanged(nextProps);
+        } else if (!this.itemsEqual(get(nextProps, 'item'), get(this.props, 'item'))) {
+            // This happens when the item attributes have changed
+            this.onItemChanged(nextProps);
         }
 
         this.tabs[1].enabled = !!nextProps.itemId;
     }
 
     itemsEqual(nextItem, currentItem) {
+        const pickField = (value, key) => (
+            !key.startsWith('_') &&
+            !key.startsWith('lock_') &&
+            value !== null &&
+            value !== undefined
+        );
+
         return isEqual(
-            pickBy(nextItem, (value, key) => !key.startsWith('_')),
-            pickBy(currentItem, (value, key) => !key.startsWith('_'))
+            pickBy(nextItem, pickField),
+            pickBy(currentItem, pickField)
         );
     }
 
@@ -195,7 +231,7 @@ export class EditorComponent extends React.Component {
         const newState = {diff, errors, errorMessages};
 
         if (updateDirtyFlag) {
-            newState.dirty = !isEqual(this.props.item, diff);
+            newState.dirty = !this.itemsEqual(diff, this.props.item);
         }
 
         this.setState(newState);
@@ -286,6 +322,7 @@ export class EditorComponent extends React.Component {
             partialSave: false,
             submitting: false,
             dirty: !this.itemsEqual(nextProps.item, this.state.diff),
+            itemReady: true,
         });
     }
 
@@ -370,7 +407,7 @@ export class EditorComponent extends React.Component {
             const isKilled = isItemKilled(item);
 
             openCancelModal({
-                itemId: get(item, '_id') || get(initialValues, '_tempId'),
+                itemId: getItemId(initialValues),
                 itemType: itemType,
                 onIgnore: this.onCancel,
                 onSave: (isKilled || hasErrors) ?
@@ -388,7 +425,7 @@ export class EditorComponent extends React.Component {
     }
 
     onCancel() {
-        if (this.tearDownRequired || !isExistingItem(this.props.item)) {
+        if (!this.props.inModalView && (this.tearDownRequired || !isExistingItem(this.props.item))) {
             this.tearDownEditorState();
         }
 
@@ -415,34 +452,43 @@ export class EditorComponent extends React.Component {
         }
     }
 
-    render() {
-        if (!this.props.itemType) {
-            return null;
+    renderAutosave() {
+        if (!this.props.addNewsItemToPlanning &&
+            !this.props.isLoadingItem &&
+            this.props.itemType &&
+            this.state.itemReady
+        ) {
+            return (
+                <Autosave
+                    formName={this.props.itemType}
+                    initialValues={this.props.item ?
+                        cloneDeep(this.props.item) :
+                        cloneDeep(this.props.initialValues)
+                    }
+                    currentValues={cloneDeep(this.state.diff)}
+                    change={this.onChangeHandler}
+                    ref={(node) => this.dom.autosave = node}
+                    save={this.props.saveAutosave}
+                    load={this.props.loadAutosave}
+                    inModalView={this.props.inModalView}
+                    submitting={this.state.submitting}
+                />
+            );
         }
 
-        const RenderTab = this.tabs[this.state.tab].enabled ? this.tabs[this.state.tab].render :
-            this.tabs[0].render;
+        return null;
+    }
 
-        // Do not show the tabs if we're creating a new item
-        const existingItem = isExistingItem(this.props.item);
-        const isLockRestricted = lockUtils.isLockRestricted(
-            this.props.item,
-            this.props.session,
-            this.props.lockedItems
-        );
-        const itemLock = lockUtils.getLock(this.props.item, this.props.lockedItems);
-
-        let canEdit = false;
-
+    canEdit() {
         if (this.props.itemType === ITEM_TYPE.EVENT) {
-            canEdit = eventUtils.canEditEvent(
+            return eventUtils.canEditEvent(
                 this.props.item,
                 this.props.session,
                 this.props.privileges,
                 this.props.lockedItems
             );
         } else if (this.props.itemType === ITEM_TYPE.PLANNING) {
-            canEdit = planningUtils.canEditPlanning(
+            return planningUtils.canEditPlanning(
                 this.props.item,
                 null,
                 this.props.session,
@@ -451,28 +497,81 @@ export class EditorComponent extends React.Component {
             );
         }
 
-        const isReadOnly = existingItem &&
-            (!canEdit || !itemLock || isLockRestricted || get(itemLock, 'action') !== 'edit');
+        return false;
+    }
+
+    renderContent() {
+        const existingItem = isExistingItem(this.props.item);
+        const itemLock = lockUtils.getLock(this.props.item, this.props.lockedItems);
+        const isLockRestricted = lockUtils.isLockRestricted(
+            this.props.item,
+            this.props.session,
+            this.props.lockedItems
+        );
+
+        let canEdit = this.canEdit();
+
+        const isReadOnly = existingItem && (
+            !canEdit ||
+            !itemLock ||
+            isLockRestricted ||
+            get(itemLock, 'action') !== 'edit'
+        );
+
+        const RenderTab = this.tabs[this.state.tab].enabled ? this.tabs[this.state.tab].render :
+            this.tabs[0].render;
+
+        return (
+            <Content flex={true} className={this.props.contentClassName}>
+                {existingItem && (
+                    <NavTabs
+                        tabs={this.tabs}
+                        active={this.state.tab}
+                        setActive={this.setActiveTab}
+                        className="side-panel__content-tab-nav"
+                    />
+                )}
+
+                <div className={classNames(
+                    'side-panel__content-tab-content',
+                    {'editorModal__editor--padding-bottom': !!get(this.props, 'navigation.padContentForNavigation')}
+                )} >
+                    {(!this.props.isLoadingItem && this.props.itemType) && (
+                        <RenderTab
+                            item={this.props.item || {}}
+                            itemType={this.props.itemType}
+                            itemExists={isExistingItem(this.state.diff)}
+                            diff={this.state.diff}
+                            onChangeHandler={this.onChangeHandler}
+                            readOnly={isReadOnly}
+                            addNewsItemToPlanning={this.props.addNewsItemToPlanning}
+                            submitFailed={this.state.submitFailed}
+                            errors={this.state.errors}
+                            dirty={this.state.dirty}
+                            startPartialSave={this.startPartialSave}
+                            navigation={this.props.navigation}
+                        />
+                    )}
+                </div>
+            </Content>
+        );
+    }
+
+    render() {
+        if (!this.props.itemType || !this.props.itemId) {
+            return null;
+        }
 
         return (
             <SidePanel shadowRight={true} className={this.props.className}>
-                {(!this.props.isLoadingItem && this.props.itemType) && (
-                    <Autosave
-                        formName={this.props.itemType}
-                        initialValues={this.props.item ?
-                            cloneDeep(this.props.item) :
-                            cloneDeep(this.props.initialValues)
-                        }
-                        currentValues={cloneDeep(this.state.diff)}
-                        change={this.onChangeHandler}
-                        ref={(node) => this.dom.autosave = node}
-                        save={this.props.saveAutosave}
-                        load={this.props.loadAutosave}
-                    />
-                )}
+                {this.renderAutosave()}
                 <EditorHeader
                     item={this.props.item}
                     diff={this.state.diff}
+                    initialValues={this.props.item ?
+                        cloneDeep(this.props.item) :
+                        cloneDeep(this.props.initialValues)
+                    }
                     onSave={this.onSave}
                     onPost={this.onPost}
                     onSaveAndPost={this.onSaveAndPost}
@@ -503,37 +602,7 @@ export class EditorComponent extends React.Component {
                     hideExternalEdit={this.props.hideExternalEdit}
                     flushAutosave={this.flushAutosave}
                 />
-                <Content flex={true} className={this.props.contentClassName}>
-                    {existingItem && (
-                        <NavTabs
-                            tabs={this.tabs}
-                            active={this.state.tab}
-                            setActive={this.setActiveTab}
-                            className="side-panel__content-tab-nav"
-                        />
-                    )}
-
-                    <div className={
-                        classNames('side-panel__content-tab-content',
-                            {'editorModal__editor--padding-bottom':
-                                !!get(this.props, 'navigation.padContentForNavigation')})} >
-                        {(!this.props.isLoadingItem && this.props.itemType) && (
-                            <RenderTab
-                                item={this.props.item}
-                                itemType={this.props.itemType}
-                                diff={this.state.diff}
-                                onChangeHandler={this.onChangeHandler}
-                                readOnly={isReadOnly}
-                                addNewsItemToPlanning={this.props.addNewsItemToPlanning}
-                                submitFailed={this.state.submitFailed}
-                                errors={this.state.errors}
-                                dirty={this.state.dirty}
-                                startPartialSave={this.startPartialSave}
-                                navigation={this.props.navigation}
-                            />
-                        )}
-                    </div>
-                </Content>
+                {this.renderContent()}
             </SidePanel>
         );
     }
@@ -562,7 +631,6 @@ EditorComponent.propTypes = {
     occurStatuses: PropTypes.array,
     itemActions: PropTypes.object,
     loadItem: PropTypes.func,
-    removeNewAutosaveItems: PropTypes.func,
     isLoadingItem: PropTypes.bool,
     initialValues: PropTypes.object,
     showUnlock: PropTypes.bool,

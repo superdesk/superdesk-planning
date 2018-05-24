@@ -1,7 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {forEach, isEqual, get, throttle, cloneDeep, isEmpty} from 'lodash';
+import moment from 'moment';
+
 import {AUTOSAVE} from '../../constants';
-import {forEach, isEqual, get, throttle, cloneDeep, omit} from 'lodash';
+import {getItemId, isExistingItem} from '../../utils';
 
 export class Autosave extends React.Component {
     constructor(props) {
@@ -10,18 +13,15 @@ export class Autosave extends React.Component {
         this.state = {diff: {}};
 
         this.load = this.load.bind(this);
+        this._save = this._save.bind(this);
         this.save = this.save.bind(this);
         this.reset = this.reset.bind(this);
+        this.onSubmittingChange = this.onSubmittingChange.bind(this);
         this.throttledSave = null;
     }
 
     componentDidMount() {
-        this.reset(this.props);
-    }
-
-    getItemId(props) {
-        return get(props, 'initialValues._id',
-            get(props, 'initialValues._tempId'));
+        this.init(this.props);
     }
 
     reset(nextProps) {
@@ -31,56 +31,78 @@ export class Autosave extends React.Component {
         // Make sure we execute the last save request
         this.flush();
 
+        this.init(nextProps);
+    }
+
+    init(nextProps) {
         // Then reset the save throttle
         this.throttledSave = throttle(
-            this.save,
+            this._save,
             nextProps.interval,
             {leading: false, trailing: true}
         );
 
-        this.load(nextProps);
+        this.load(nextProps)
+            .then((changes) => {
+                if (isEmpty(changes)) {
+                    // If this is a new Autosave entry
+                    // then save the item now
+                    this._save(get(nextProps, 'currentValues', {}), nextProps);
+                }
+            });
     }
 
+    /**
+     * Load the autosave data from the Redux store (which should already be loaded from the server)
+     * Then pass the changes onto the Editor so the form fields can be updated with the autosave data
+     * @param {object} props - The props containing the initialValues
+     */
     load(props) {
-        const id = this.getItemId(props);
+        const id = getItemId(props.initialValues);
 
         if (!id) {
             return;
         }
 
-        let changes = this.props.load(props.formName, id);
-        // Strip off _tempId value as _id stored for new items
+        return this.props.load(props.formName, id)
+            .then((changes) => {
+                this.changeValues(changes, props);
 
-        if (get(props, 'initialValues._tempId') && get(changes, '_id')) {
-            delete changes._id;
-        }
-
-        this.changeValues(changes, props);
+                return Promise.resolve(changes);
+            });
     }
 
-    save(currentValues, props) {
-        const diff = this.changeValues(currentValues, props, false);
+    _save(currentValues, props) {
+        this.props.save({
+            ...currentValues,
+            _id: getItemId(props.initialValues),
+        });
+    }
 
-        if (diff !== null) {
-            this.props.save(
-                this.props.formName,
-                diff
+    save(nextValues, nextProps) {
+        if (!this.throttledSave) {
+            this.throttledSave = throttle(
+                this._save,
+                nextProps.interval,
+                {leading: false, trailing: true}
             );
         }
+
+        this.throttledSave(nextValues, nextProps);
     }
 
     changeValues(changes, props, updateFormValues = true) {
         const {initialValues, currentValues} = props;
-        const diff = {_id: this.getItemId(props)};
+        const diff = {_id: getItemId(props.initialValues)};
 
         // Don't change any values when moving from existing item to new one
         // Existing item will be in currentValues as Editor uses timeOut to propagate new item's changes
-        if (get(currentValues, '_id') && get(initialValues, '_tempId')) {
+        if (isExistingItem(currentValues) && !isExistingItem(initialValues)) {
             return;
         }
 
         // Merge all changes of the item and dispatch once
-        let mergedChanges = cloneDeep(omit(initialValues, '_tempId'));
+        let mergedChanges = cloneDeep(initialValues);
 
         forEach(changes, (value, key) => {
             if (!key.startsWith('_') && !key.startsWith('lock_') && !isEqual(value, get(initialValues, key))) {
@@ -94,7 +116,15 @@ export class Autosave extends React.Component {
             }
         });
 
-        if (!isEqual(mergedChanges, omit(initialValues, '_tempId'))) {
+        if (get(mergedChanges, 'dates.start')) {
+            mergedChanges.dates.start = moment(mergedChanges.dates.start);
+        }
+
+        if (get(mergedChanges, 'dates.end')) {
+            mergedChanges.dates.end = moment(mergedChanges.dates.end);
+        }
+
+        if (!isEqual(mergedChanges, initialValues)) {
             this.props.change(mergedChanges);
         }
 
@@ -106,18 +136,26 @@ export class Autosave extends React.Component {
         return null;
     }
 
+    onSubmittingChange(submitting) {
+        if (submitting) {
+            this.throttledSave.cancel();
+            this.throttledSave = null;
+        }
+    }
+
     componentWillReceiveProps(nextProps) {
         const currentValues = get(this.props, 'currentValues', {});
         const nextValues = get(nextProps, 'currentValues', {});
 
-        if (currentValues._id !== nextValues._id ||
-            currentValues._tempId !== nextValues._tempId) {
+        if (nextProps.submitting !== this.props.submitting) {
+            this.onSubmittingChange(nextProps.submitting);
+        } else if (getItemId(currentValues) !== getItemId(nextValues)) {
             // If the form item has changed, then reset this autosave
             this.reset(nextProps);
         } else if (!isEqual(currentValues, nextValues)) {
             // If the item's values have changed,
             // Then save the new values in the store
-            this.throttledSave(nextValues, nextProps);
+            this.save(nextValues, nextProps);
         }
     }
 
@@ -140,6 +178,8 @@ Autosave.propTypes = {
     formName: PropTypes.string.isRequired,
     initialValues: PropTypes.object,
     currentValues: PropTypes.object,
+    inModalView: PropTypes.bool,
+    submitting: PropTypes.bool,
 
     // The ms interval for throttling the save dispatch
     interval: PropTypes.number,

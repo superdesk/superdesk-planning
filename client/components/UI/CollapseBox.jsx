@@ -149,7 +149,7 @@ export class CollapseBox extends React.Component {
 
 CollapseBox.propTypes = {
     collapsedItem: PropTypes.node.isRequired,
-    openItem: PropTypes.node.isRequired,
+    openItem: PropTypes.node,
     openItemTopBar: PropTypes.node,
     tools: PropTypes.node,
     isOpen: PropTypes.bool,

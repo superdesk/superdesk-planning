@@ -3,7 +3,7 @@ import assignments from './index';
 import {get} from 'lodash';
 import planning from '../planning';
 import {ASSIGNMENTS, WORKSPACE} from '../../constants';
-import {lockUtils, assignmentUtils, gettext} from '../../utils';
+import {lockUtils, assignmentUtils, gettext, isExistingItem} from '../../utils';
 import {hideModal, showModal} from '../index';
 
 /**
@@ -133,7 +133,7 @@ const _getPlanningItemOnAssignmentUpdate = (data, plans) => {
 
     let planningItem = {...get(plans, data.planning)};
 
-    if (!get(planningItem, '_id')) {
+    if (!isExistingItem(planningItem)) {
         return;
     }
 

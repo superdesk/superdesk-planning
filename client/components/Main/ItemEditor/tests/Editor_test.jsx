@@ -10,7 +10,7 @@ import {EVENTS, PLANNING, ITEM_TYPE, WORKFLOW_STATE, POST_STATE} from '../../../
 
 import * as selectors from '../../../../selectors';
 import * as helpers from '../../../tests/helpers';
-import {main} from '../../../../actions';
+import {main, autosave} from '../../../../actions';
 
 import {Editor} from '../../';
 
@@ -62,11 +62,14 @@ describe('Main.ItemEditor.Editor', () => {
         sinon.stub(main, 'post').callsFake((item) => () => new Promise((resolve, reject) => setTimeout(
             () => onPost(resolve, reject)
         ), delay));
+
+        sinon.stub(autosave, 'save').returns({type: 'test'});
     });
 
     afterEach(() => {
         restoreSinonStub(main.save);
         restoreSinonStub(main.post);
+        restoreSinonStub(autosave.save);
     });
 
     const initStore = () => {

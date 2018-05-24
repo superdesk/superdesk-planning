@@ -1,6 +1,6 @@
 import {get, includes, isNil} from 'lodash';
 import {ASSIGNMENTS, PRIVILEGES, PLANNING} from '../constants';
-import {lockUtils, getCreator, getItemInArrayById} from './index';
+import {lockUtils, getCreator, getItemInArrayById, isExistingItem} from './index';
 
 const canEditAssignment = (assignment, session, privileges) => (
     !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
@@ -53,7 +53,7 @@ const canRemoveAssignment = (assignment, session, privileges) => (
 );
 
 const getAssignmentActions = (assignment, session, privileges, lockedItems, callBacks) => {
-    if (!get(assignment, '_id') || lockUtils.isLockRestricted(assignment, session, lockedItems)) {
+    if (!isExistingItem(assignment) || lockUtils.isLockRestricted(assignment, session, lockedItems)) {
         return [];
     }
 

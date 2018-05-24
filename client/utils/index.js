@@ -14,6 +14,7 @@ import {
     WORKSPACE,
     MAIN,
     SPIKED_STATE,
+    TEMP_ID_PREFIX,
 } from '../constants/index';
 import * as testData from './testData';
 import {gettext, gettextCatalog} from '../components/UI/utils';
@@ -362,13 +363,15 @@ export const getItemInArrayById = (items, id, field = '_id') => (
     id && Array.isArray(items) ? items.find((item) => get(item, field) === id) : null
 );
 
+export const getItemId = (item) => get(item, '_id');
 export const isSameItemId = (item1, item2) => get(item1, '_id') === get(item2, '_id');
 export const getItemWorkflowState = (item, field = 'state') => (get(item, field, WORKFLOW_STATE.DRAFT));
 export const isItemCancelled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.CANCELLED;
 export const isItemRescheduled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.RESCHEDULED;
 export const isItemKilled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.KILLED;
 export const isItemPostponed = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.POSTPONED;
-export const isExistingItem = (item) => !!get(item, '_id') && !item._id.startsWith('tempId-');
+export const isExistingItem = (item) => !!get(item, '_id') && !item._id.startsWith(TEMP_ID_PREFIX);
+export const isTemporaryId = (itemId) => itemId && itemId.startsWith(TEMP_ID_PREFIX);
 
 export const getItemActionedStateLabel = (item) => {
     // Currently will cater for 'rescheduled from' scenario.
@@ -484,7 +487,7 @@ export const isEvent = (item) => getItemType(item) === ITEM_TYPE.EVENT;
 export const isPlanning = (item) => getItemType(item) === ITEM_TYPE.PLANNING;
 
 export const shouldLockItemForEdit = (item, lockedItems, privileges) =>
-    get(item, '_id') &&
+    isExistingItem(item) &&
         !lockUtils.getLock(item, lockedItems) &&
         !isItemSpiked(item) &&
         !isItemCancelled(item) &&
@@ -496,8 +499,9 @@ export const shouldLockItemForEdit = (item, lockedItems, privileges) =>
 ;
 
 export const shouldUnLockItem = (item, session, currentWorkspace) =>
-    (currentWorkspace === WORKSPACE.AUTHORING && planningUtils.isLockedForAddToPlanning(item)) ||
-    (currentWorkspace !== WORKSPACE.AUTHORING && lockUtils.isItemLockedInThisSession(item, session));
+    isExistingItem(item) &&
+        ((currentWorkspace === WORKSPACE.AUTHORING && planningUtils.isLockedForAddToPlanning(item)) ||
+        (currentWorkspace !== WORKSPACE.AUTHORING && lockUtils.isItemLockedInThisSession(item, session)));
 
 /**
  * Get the timezone offset
@@ -719,3 +723,9 @@ export const appendStatesQueryForAdvancedSearch = (advancedSearch, spikeState, m
 export const getEnabledAgendas = (agendas) => (agendas || []).filter((agenda) => get(agenda, 'is_enabled', true));
 
 export const getDisabledAgendas = (agendas) => (agendas || []).filter((agenda) => get(agenda, 'is_enabled') === false);
+
+export const getAutosaveItem = (autosaves, itemType, itemId) => (
+    get(autosaves, `${itemType}["${itemId}"]`) || null
+);
+
+export const generateTempId = () => TEMP_ID_PREFIX + moment().valueOf();

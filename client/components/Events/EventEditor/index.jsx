@@ -24,7 +24,7 @@ import {EventScheduleInput, EventScheduleSummary} from '../';
 import {GeoLookupInput} from '../../index';
 
 import {EventEditorHeader} from './EventEditorHeader';
-import {gettext, editorMenuUtils} from '../../../utils';
+import {gettext, editorMenuUtils, getItemId, isTemporaryId} from '../../../utils';
 
 import '../style.scss';
 
@@ -48,7 +48,7 @@ export class EventEditorComponent extends React.Component {
     }
 
     componentWillMount() {
-        if (!get(this.props, 'item._id')) {
+        if (!this.props.itemExists) {
             this.props.onChangeHandler('calendars', this.props.defaultCalendar, false);
         } else {
             // Get the event with files with it
@@ -61,14 +61,17 @@ export class EventEditorComponent extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        const prevItemId = getItemId(prevProps.item);
+        const prevDiffId = getItemId(prevProps.diff);
+
+        const currentItemId = getItemId(this.props.item);
+        const currentDiffId = getItemId(this.props.diff);
+
         // If item changed or it got locked for editing
-        if ((get(prevProps, 'item._id') !== get(this.props, 'item._id')) ||
+        if ((prevItemId !== currentItemId) ||
             (!get(prevProps, 'diff.lock_user') && get(this.props, 'diff.lock_user'))) {
             this.dom.slugline.focus();
-        } else if (
-            get(prevProps, 'diff._id') !== get(this.props, 'diff._id') &&
-            !get(this.props, 'diff._id')
-        ) {
+        } else if (prevDiffId !== currentDiffId && isTemporaryId(currentDiffId)) {
             this.props.onChangeHandler('calendars', this.props.defaultCalendar, false);
         }
 
@@ -96,12 +99,13 @@ export class EventEditorComponent extends React.Component {
 
     getRelatedPlanningsForEvent() {
         const {plannings, planningsModalEvent, item} = this.props;
+        const itemId = getItemId(item);
 
-        if (plannings.filter((p) => p.event_item === get(item, '_id')).length > 0) {
+        if (plannings.filter((p) => p.event_item === itemId).length > 0) {
             return plannings;
         }
 
-        if (planningsModalEvent.filter((p) => p.event_item === get(item, '_id')).length > 0) {
+        if (planningsModalEvent.filter((p) => p.event_item === itemId).length > 0) {
             return planningsModalEvent;
         }
     }
@@ -127,9 +131,9 @@ export class EventEditorComponent extends React.Component {
             errors,
             onChangeHandler,
             navigation,
+            itemExists,
         } = this.props;
 
-        const existingEvent = !!get(diff, '_id');
         const detailsErrored = some(toggleDetails, (field) => !!get(errors, field));
         const relatedPlannings = this.getRelatedPlanningsForEvent();
 
@@ -169,7 +173,7 @@ export class EventEditorComponent extends React.Component {
                     users={users}
                 />
 
-                {existingEvent && (
+                {itemExists && (
                     <ContentBlock padSmall={true}>
                         <EventScheduleSummary
                             schedule={get(diff, 'dates', {})}
@@ -217,7 +221,7 @@ export class EventEditorComponent extends React.Component {
                     <Field
                         component={EventScheduleInput}
                         field="dates"
-                        enabled={!existingEvent}
+                        enabled={!itemExists}
                         timeFormat={timeFormat}
                         dateFormat={dateFormat}
                         row={false}
@@ -388,6 +392,7 @@ export class EventEditorComponent extends React.Component {
 EventEditorComponent.propTypes = {
     item: PropTypes.object,
     diff: PropTypes.object.isRequired,
+    itemExists: PropTypes.bool,
     onChangeHandler: PropTypes.func.isRequired,
     formProfile: PropTypes.object.isRequired,
     occurStatuses: PropTypes.array,

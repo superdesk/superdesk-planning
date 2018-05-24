@@ -20,12 +20,28 @@ import {
     isExistingItem,
     lockUtils,
     isItemKilled,
+    getItemId,
+    isTemporaryId,
+    generateTempId,
+    getAutosaveItem,
 } from '../utils';
 import eventsPlanningUi from './eventsPlanning/ui';
 import {get, omit, isEmpty, isNil, isEqual} from 'lodash';
 
 import * as selectors from '../selectors';
 import {validateItem} from '../validators';
+
+const createNew = (itemType) => (
+    (dispatch) => {
+        const newItem = {
+            _id: generateTempId(),
+            type: itemType,
+        };
+
+        dispatch(autosave.save(newItem, 'create', false));
+        return dispatch(self.lockAndEdit(newItem));
+    }
+);
 
 const lockAndEdit = (item, modal = false) => (
     (dispatch, getState, {notify}) => {
@@ -97,7 +113,7 @@ const unlockAndCancel = (item, modal = false) => (
         } else if (get(item, '_planning_item')) {
             promise = dispatch(planningApi.unlock({_id: item._planning_item}));
         } else if (!isExistingItem(item)) {
-            promise = dispatch(autosave.removeNewItems());
+            promise = dispatch(autosave.removeById(getItemType(item), getItemId(item)));
         }
 
         if (!modal) {
@@ -112,7 +128,14 @@ const unlockAndCancel = (item, modal = false) => (
 
 const save = (item, withConfirmation = true) => (
     (dispatch, getState, {notify}) => {
+        const itemId = getItemId(item);
         const itemType = getItemType(item);
+        const existingItem = !isTemporaryId(itemId);
+
+        if (!existingItem) {
+            delete item._id;
+        }
+
         let promise;
         let confirmation = withConfirmation;
 
@@ -139,10 +162,12 @@ const save = (item, withConfirmation = true) => (
             .then((savedItems) => {
                 const savedItem = Array.isArray(savedItems) ? savedItems[0] : savedItems;
 
-                if (!get(item, '_id') && selectors.general.currentWorkspace(getState()) !== WORKSPACE.AUTHORING) {
+                if (!existingItem && selectors.general.currentWorkspace(getState()) !== WORKSPACE.AUTHORING) {
                     notify.success(
                         gettext('{{ itemType }} created', {itemType: getItemTypeString(item)})
                     );
+
+                    dispatch(autosave.removeById(itemType, itemId));
                     return dispatch(self.lockAndEdit(savedItem));
                 }
 
@@ -273,9 +298,12 @@ const openConfirmationModal = ({title, body, okText, showIgnore, action, ignore}
 
 const saveAutosave = (item, withConfirmation = true, updateMethod) => (
     (dispatch, getState) => {
-        const autosaves = selectors.forms.autosaves(getState());
         const itemType = getItemType(item);
-        const autosaveData = get(autosaves, `${itemType}["${item._id}"]`);
+        const autosaveData = getAutosaveItem(
+            selectors.forms.autosaves(getState()),
+            itemType,
+            getItemId(item)
+        );
 
         if (!autosaveData) {
             return Promise.resolve(item);
@@ -311,12 +339,16 @@ const openActionModalFromEditor = (item, title, action) => (
         const lockedItems = selectors.locks.getLockedItems(getState());
         const itemLock = lockUtils.getLock(item, lockedItems);
 
+        const itemId = getItemId(item);
         const itemType = getItemType(item);
-        const autosaves = selectors.forms.autosaves(getState());
-        const autosaveData = get(autosaves, `${itemType}["${item._id}"]`);
+        const autosaveData = getAutosaveItem(
+            selectors.forms.autosaves(getState()),
+            itemType,
+            itemId
+        );
 
-        const isOpenInEditor = selectors.forms.currentItemId(getState()) === item._id;
-        const isOpenInModal = selectors.forms.currentItemIdModal(getState()) === item._id;
+        const isOpenInEditor = selectors.forms.currentItemId(getState()) === itemId;
+        const isOpenInModal = selectors.forms.currentItemIdModal(getState()) === itemId;
 
         let promise;
 
@@ -348,7 +380,7 @@ const openActionModalFromEditor = (item, title, action) => (
                 );
 
                 promise = dispatch(self.openIgnoreCancelSaveModal({
-                    itemId: item._id,
+                    itemId: itemId,
                     itemType: itemType,
                     onCancel: () =>
                         dispatch(hideModal()),
@@ -404,10 +436,11 @@ const openIgnoreCancelSaveModal = ({
     autoClose = true,
 }) => (
     (dispatch, getState) => {
-        const autosaves = selectors.forms.autosaves(getState());
-        const autosaveData = itemId ?
-            get(autosaves, `${itemType}["${itemId}"]`) :
-            {};
+        const autosaveData = getAutosaveItem(
+            selectors.forms.autosaves(getState()),
+            itemType,
+            itemId
+        ) || {};
 
         if (itemId && !autosaveData) {
             return onIgnore();
@@ -706,15 +739,15 @@ const openEditor = (item) => (
         });
 
         // Update the URL
-        $timeout(() => $location.search('edit', JSON.stringify({id: item._id, type: item.type})));
+        $timeout(() => $location.search('edit', JSON.stringify({id: getItemId(item), type: getItemType(item)})));
     }
 );
 
 const closeEditorAndOpenModal = (item) => (
-    (dispatch, getState, {$timeout, $location}) => {
+    (dispatch, getState) => {
         const currentItemId = selectors.forms.currentItemId(getState());
 
-        if (currentItemId === item._id) {
+        if (currentItemId === getItemId(item)) {
             dispatch(self.closeEditor());
         }
 
@@ -795,6 +828,26 @@ const closePreview = () => (
 );
 
 /**
+ * Action to fetch an Event or Planning by its ID
+ * If the itemId or itemType is not supplied then an empty object is returned
+ * @param {string} itemId - The ID of the item to fetch
+ * @param {string} itemType - The type of the item to fetch
+ */
+const fetchById = (itemId, itemType) => (
+    (dispatch) => {
+        if (itemId !== null && !isTemporaryId(itemId)) {
+            if (itemType === ITEM_TYPE.EVENT) {
+                return dispatch(eventsApi.fetchById(itemId));
+            } else if (itemType === ITEM_TYPE.PLANNING) {
+                return dispatch(planningApi.fetchById(itemId));
+            }
+        }
+
+        return Promise.resolve({});
+    }
+);
+
+/**
  * Action to load an item for a specific action (preview/edit).
  * Will dispatch the *_LOADING_START/*_LOADING_COMPLETE actions on start/finish of the action.
  * These actions will indicate to the preview panel/editor that the item is currently loading.
@@ -824,17 +877,7 @@ const loadItem = (itemId, itemType, action) => (
             dispatch({type: MAIN.ACTIONS.EDIT_LOADING_START});
         }
 
-        let promise;
-
-        if (itemId === null) {
-            promise = Promise.resolve({});
-        } else if (itemType === ITEM_TYPE.EVENT) {
-            promise = dispatch(eventsApi.fetchById(itemId));
-        } else if (itemType === ITEM_TYPE.PLANNING) {
-            promise = dispatch(planningApi.fetchById(itemId));
-        }
-
-        return promise
+        return dispatch(self.fetchById(itemId, itemType))
             .then(
                 (item) => Promise.resolve(item),
                 (error) => {
@@ -1002,6 +1045,8 @@ const self = {
     saveAutosave,
     openActionModalFromEditor,
     isItemValid,
+    createNew,
+    fetchById,
 };
 
 export default self;

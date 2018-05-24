@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom';
 import {Provider} from 'react-redux';
 import {registerNotifications} from '../utils';
 import * as actions from '../actions';
-import {locks} from '../actions';
 import {WORKSPACE} from '../constants';
 import {PlanningApp} from '../apps';
 
@@ -42,10 +41,11 @@ export function PlanningController(
             registerNotifications($scope, store);
 
             $q.all({
-                locks: store.dispatch(locks.loadAllLocks()),
+                locks: store.dispatch(actions.locks.loadAllLocks()),
                 agendas: store.dispatch(actions.fetchAgendas()),
                 userPreferences: store.dispatch(actions.users.fetchUserPreferences()),
                 calendars: store.dispatch(actions.events.api.fetchCalendars()),
+                autosaves: store.dispatch(actions.autosave.fetchAll()),
             })
                 .then(() => {
                     // Load the current items that are currently open for Preview/Editing

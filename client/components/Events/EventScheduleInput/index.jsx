@@ -141,19 +141,29 @@ export class EventScheduleInput extends React.Component {
 
         if (value) {
             // If allDay is enabled, then set the event to all day
-            newStart = get(this.props, 'diff.dates.start', moment())
+            newStart = (get(this.props, 'diff.dates.start') || moment())
                 .clone()
                 .startOf('day');
-            newEnd = get(this.props, 'diff.dates.end', moment())
+            newEnd = (get(this.props, 'diff.dates.end') || moment())
                 .clone()
                 .endOf('day');
         } else {
             // If allDay is disabled, then set the new dates to the initial values
             // since last save
             const dates = get(this.props, 'item.dates', get(this.props, 'diff.dates', {}));
+            const prevStart = get(dates, 'start') || moment().startOf('day');
+            const prevEnd = get(dates, 'end') || prevStart.clone();
 
-            newStart = get(dates, 'start', moment()).clone();
-            newEnd = get(dates, 'end', moment().add(1, 'h')).clone();
+            newStart = (get(dates, 'start') || moment().startOf('day')).clone();
+            newEnd = (get(dates, 'end') || newStart)
+                .clone()
+                .add(1, 'h')
+                // And make sure the date doesn't change when adding 1hr
+                .set({
+                    year: prevEnd.get('year'),
+                    month: prevEnd.get('month'),
+                    date: prevEnd.get('date'),
+                });
 
             // If the initial values were all day, then set the end minutes to 55
             // So that the allDay toggle is turned off

@@ -7,7 +7,7 @@ import {ModalsContainer} from '../components';
 import {locks} from '../actions';
 import {planning} from '../actions';
 import {get} from 'lodash';
-import {registerNotifications, getErrorMessage} from '../utils';
+import {registerNotifications, getErrorMessage, isExistingItem} from '../utils';
 import {WORKSPACE, MODALS, MAIN} from '../constants';
 
 AddToPlanningController.$inject = [
@@ -152,7 +152,7 @@ export function AddToPlanningController(
 
                                 const planningEdited = currentItem(store.getState());
 
-                                if (get(planningEdited, '_id')) {
+                                if (isExistingItem(planningEdited)) {
                                     store.dispatch(actions.main.unlockAndCancel(planningEdited))
                                         .then(() => {
                                             store.dispatch(actions.hideModal());

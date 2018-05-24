@@ -1,14 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {getCreator} from '../../../utils';
+import {getCreator, isExistingItem} from '../../../utils';
 import {ContentBlock, ContentBlockInner} from '../../UI/SidePanel';
 import {AuditInformation, StateLabel} from '../..';
 
 import './style.scss';
 
 export const EventEditorHeader = ({item, users}) => {
-    if (!get(item, '_id')) {
+    if (!isExistingItem(item)) {
         return null;
     }
 

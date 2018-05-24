@@ -59,7 +59,7 @@ export class PlanningEditorComponent extends React.Component {
     componentWillMount() {
         if (!this.props.addNewsItemToPlanning) {
             // Creating a new planning item from planning module
-            if (!get(this.props, 'item._id')) {
+            if (!this.props.itemExists) {
                 let newItem = cloneDeep(get(this.props, 'diff'));
 
                 this.fillCurrentAgenda(newItem);
@@ -72,12 +72,12 @@ export class PlanningEditorComponent extends React.Component {
     }
 
     handleAddToPlanningLoading() {
-        if (get(this.props, 'item._id') && !planningUtils.isLockedForAddToPlanning(this.props.item)) {
+        if (this.props.itemExists && !planningUtils.isLockedForAddToPlanning(this.props.item)) {
             return;
         }
 
         // If we are creating a new planning item for 'add-to-planning'
-        if (!get(this.props, 'item._id')) {
+        if (!this.props.itemExists) {
             let newPlanning = planningUtils.createNewPlanningFromNewsItem(
                 this.props.addNewsItemToPlanning,
                 this.props.newsCoverageStatus,
@@ -115,7 +115,7 @@ export class PlanningEditorComponent extends React.Component {
 
         newCoverage.news_coverage_status = {qcode: 'ncostat:int'};
         newCoverage.workflow_status = WORKFLOW_STATE.DRAFT;
-        if (coverage.workflow_status == WORKFLOW_STATE.CANCELLED) {
+        if (coverage.workflow_status === WORKFLOW_STATE.CANCELLED) {
             newCoverage.planning.internal_note = '';
             newCoverage.planning.ednote = '';
         }
@@ -286,6 +286,7 @@ export class PlanningEditorComponent extends React.Component {
     render() {
         const {
             item,
+            itemExists,
             diff,
             event,
             eventModal,
@@ -326,17 +327,16 @@ export class PlanningEditorComponent extends React.Component {
 
         const urgencyQcode = get(diff, 'urgency') || null;
         const urgency = getItemInArrayById(urgencies, urgencyQcode, 'qcode');
-        const existingPlanning = !!get(diff, '_id');
 
         // Read-only if
         // 1 - it is supposed to be readOnly by parent props
         // 2 - for add-to-planning and existing planning item
-        const updatedReadOnly = readOnly || (!!addNewsItemToPlanning && existingPlanning);
+        const updatedReadOnly = readOnly || (!!addNewsItemToPlanning && itemExists);
 
         let maxCoverageCount = 0;
 
         if (addNewsItemToPlanning) {
-            if (!existingPlanning) {
+            if (!itemExists) {
                 maxCoverageCount = 1;
             } else {
                 maxCoverageCount = get(item, 'coverages.length', 0) + 1;
@@ -551,6 +551,7 @@ export class PlanningEditorComponent extends React.Component {
 PlanningEditorComponent.propTypes = {
     item: PropTypes.object,
     diff: PropTypes.object,
+    itemExists: PropTypes.bool,
     event: PropTypes.object,
     onChangeHandler: PropTypes.func,
     locators: PropTypes.array,

@@ -1,6 +1,6 @@
 import {isNil, get} from 'lodash';
 import {ITEM_TYPE} from '../constants';
-import {getItemType, eventUtils, planningUtils, assignmentUtils} from './index';
+import {getItemType, eventUtils, planningUtils, assignmentUtils, getItemId} from './index';
 
 const isLockedByUser = (item, userId, action) => (
     !isNil(get(item, 'lock_session')) &&
@@ -17,7 +17,9 @@ const getLockedUser = (item, lockedItems, users) => {
 };
 
 const getLock = (item, lockedItems) => {
-    if (isNil(item) || !get(item, '_id')) {
+    const itemId = getItemId(item);
+
+    if (!itemId) {
         return null;
     }
 
@@ -27,8 +29,8 @@ const getLock = (item, lockedItems) => {
     case ITEM_TYPE.PLANNING:
         return self.getPlanningLock(item, lockedItems);
     default:
-        if (item._id in lockedItems.assignment) {
-            return lockedItems.assignment[item._id];
+        if (itemId in lockedItems.assignment) {
+            return lockedItems.assignment[itemId];
         }
 
         break;
@@ -38,18 +40,22 @@ const getLock = (item, lockedItems) => {
 };
 
 const getEventLock = (item, lockedItems) => {
+    const itemId = getItemId(item);
+
     if (get(item, 'recurrence_id') in lockedItems.recurring) {
         return lockedItems.recurring[item.recurrence_id];
-    } else if (item._id in lockedItems.event) {
-        return lockedItems.event[item._id];
+    } else if (itemId in lockedItems.event) {
+        return lockedItems.event[itemId];
     }
 
     return null;
 };
 
 const getPlanningLock = (item, lockedItems) => {
-    if (item._id in lockedItems.planning) {
-        return lockedItems.planning[item._id];
+    const itemId = getItemId(item);
+
+    if (itemId in lockedItems.planning) {
+        return lockedItems.planning[itemId];
     } else if (get(item, 'recurrence_id') in lockedItems.recurring) {
         return lockedItems.recurring[item.recurrence_id];
     } else if (get(item, 'event_item') in lockedItems.event) {
