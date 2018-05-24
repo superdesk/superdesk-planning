@@ -255,11 +255,15 @@ class PlanningService(superdesk.Service):
             return all_items
 
     def _set_coverage(self, updates, original=None):
-        if not updates.get('coverages'):
-            return
-
         if not original:
             original = {}
+
+        if not updates.get('coverages'):
+            # If the description text has changed, make sure to update the assignment(s)
+            if updates.get('description_text'):
+                for coverage in (original.get('coverages') or []):
+                    self._create_update_assignment(original, updates, coverage, coverage)
+            return
 
         for coverage in original.get('coverages') or []:
             updated_coverage = next((cov for cov in updates.get('coverages') or []
@@ -322,7 +326,7 @@ class PlanningService(superdesk.Service):
                             coverage_type=coverage.get('planning', {}).get('g2_content_type', ''),
                             slugline=coverage.get('planning', {}).get('slugline', ''))
 
-            self._create_update_assignment(original.get(config.ID_FIELD), coverage, original_coverage)
+            self._create_update_assignment(original, updates, coverage, original_coverage)
 
     @staticmethod
     def coverage_changed(updates, original):
@@ -368,15 +372,20 @@ class PlanningService(superdesk.Service):
 
         updates['_planning_schedule'] = schedule
 
-    def _create_update_assignment(self, planning_id, updates, original=None):
+    def _create_update_assignment(self, planning_original, planning_updates, updates, original=None):
         """Create or update the assignment.
 
-        :param str planning_id: planning id of the coverage
+        :param dict planning_original: original parent planning document
+        :param dict planning_updates: updates for the parent planning document
         :param dict updates: coverage update document
         :param dict original: coverage original document
         """
         if not original:
             original = {}
+
+        planning = deepcopy(planning_original)
+        planning.update(planning_updates)
+        planning_id = planning.get(config.ID_FIELD)
 
         doc = deepcopy(original)
         doc.update(updates)
@@ -410,7 +419,9 @@ class PlanningService(superdesk.Service):
                 'coverage_item': doc.get('coverage_id'),
                 'planning': doc.get('planning'),
                 'priority': assigned_to.get('priority'),
+                'description_text': planning.get('description_text')
             }
+
             if 'coverage_provider' in assigned_to:
                 assignment['assigned_to']['coverage_provider'] = assigned_to.get('coverage_provider')
 
@@ -454,10 +465,17 @@ class PlanningService(superdesk.Service):
                 assigned_to['state'] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
                 assignment['assigned_to'] = assigned_to
 
+            # If the Planning description has been changed
+            if planning_original.get('description_text') != planning_updates.get('description_text'):
+                assignment['description_text'] = planning['description_text']
+
             # Update only if anything got modified
-            if 'planning' in assignment or 'assigned_to' in assignment:
-                assignment_service.system_update(ObjectId(assigned_to.get('assignment_id')),
-                                                 assignment, original_assignment)
+            if 'planning' in assignment or 'assigned_to' in assignment or 'description_text' in assignment:
+                assignment_service.system_update(
+                    ObjectId(assigned_to.get('assignment_id')),
+                    assignment,
+                    original_assignment
+                )
 
         (updates.get('assigned_to') or {}).pop('user', None)
         (updates.get('assigned_to') or {}).pop('desk', None)

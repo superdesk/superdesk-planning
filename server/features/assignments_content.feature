@@ -167,6 +167,44 @@ Feature: Assignment content
 
     @auth
     @vocabularies
+    Scenario: Create content with headline derived from the Assignment
+        When we patch "/planning/#planning._id#"
+        """
+        {"description_text": "test description"}
+        """
+        Then we get OK response
+        When we get "/assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "description_text": "test description"
+        }
+        """
+        When we post to "/assignments/content"
+        """
+        [{"assignment_id": "#firstassignment#"}]
+        """
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "__any_value__",
+            "assignment_id": "#firstassignment#",
+            "task": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "stage": "#desks.working_stage#"
+            },
+            "slugline": "test slugline",
+            "type": "text",
+            "headline": "test description",
+            "profile": "#content_types._id#"
+        }
+        """
+
+    @auth
+    @vocabularies
     Scenario: Content creation fails if assignment not found
         When we post to "/assignments/content"
         """

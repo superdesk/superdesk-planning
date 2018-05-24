@@ -117,6 +117,7 @@ export class AssignmentItem extends React.Component {
                     <Row>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                             <span className="sd-text__slugline">{get(assignment, 'planning.slugline')}</span>
+                            <span>{get(assignment, 'description_text')}</span>
                         </span>
                     </Row>
                     <Row>
