@@ -121,7 +121,7 @@ const canCancelAllCoverage = (planning, event = null, session, privileges, locks
 );
 
 const canAddAsEvent = (planning, event = null, session, privileges, locks) => (
-    isPlanAdHoc(planning) &&
+    !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && isPlanAdHoc(planning) &&
         !isPlanningLocked(planning, locks)
 );
 

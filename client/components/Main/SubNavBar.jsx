@@ -20,6 +20,7 @@ export const SubNavBar = ({
     clearSearch,
     currentStartFilter,
     setStartFilter,
+    privileges,
 }) => (
     <SubNav>
         <MultiSelectActions />
@@ -41,6 +42,7 @@ export const SubNavBar = ({
             addEvent={addEvent}
             addPlanning={addPlanning}
             createPlanningOnly={createPlanningOnly}
+            privileges={privileges}
         />
     </SubNav>
 );
@@ -57,4 +59,5 @@ SubNavBar.propTypes = {
     clearSearch: PropTypes.func,
     currentStartFilter: PropTypes.object,
     setStartFilter: PropTypes.func,
+    privileges: PropTypes.object,
 };

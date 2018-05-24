@@ -2,17 +2,20 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {gettext} from '../../utils';
 import {Dropdown} from '../UI/SubNav';
+import {PRIVILEGES} from '../../constants';
 
-export const CreateNewSubnavDropdown = ({addEvent, addPlanning, createPlanningOnly}) => {
-    let items = [
-        {
+export const CreateNewSubnavDropdown = ({addEvent, addPlanning, createPlanningOnly, privileges}) => {
+    const items = [];
+
+    if (privileges[PRIVILEGES.PLANNING_MANAGEMENT]) {
+        items.push({
             label: gettext('Planning Item'),
             icon: 'icon-plus-sign icon--blue',
             action: addPlanning,
-        },
-    ];
+        });
+    }
 
-    if (!createPlanningOnly) {
+    if (!createPlanningOnly && !!privileges[PRIVILEGES.EVENT_MANAGEMENT]) {
         items.push({
             label: gettext('Event'),
             icon: 'icon-plus-sign icon--blue',
@@ -20,7 +23,7 @@ export const CreateNewSubnavDropdown = ({addEvent, addPlanning, createPlanningOn
         });
     }
 
-    return (
+    return (items.length === 0 ? null :
         <Dropdown
             icon="icon-plus-large"
             label={gettext('Create new')}
@@ -28,8 +31,7 @@ export const CreateNewSubnavDropdown = ({addEvent, addPlanning, createPlanningOn
             alignRight={true}
             disableSelection={createPlanningOnly}
             defaultAction={addPlanning}
-            tooltip={createPlanningOnly ? gettext('Create new planning item') : gettext('Create new item')}
-        />
+            tooltip={createPlanningOnly ? gettext('Create new planning item') : gettext('Create new item')} />
     );
 };
 
@@ -37,4 +39,5 @@ CreateNewSubnavDropdown.propTypes = {
     addEvent: PropTypes.func.isRequired,
     addPlanning: PropTypes.func.isRequired,
     createPlanningOnly: PropTypes.bool,
+    privileges: PropTypes.object,
 };
