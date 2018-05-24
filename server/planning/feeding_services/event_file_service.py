@@ -46,6 +46,14 @@ class EventFileFeedingService(FileFeedingService):
     """
     service = 'events'
 
+    fields = [
+        {
+            'id': 'path', 'type': 'text', 'label': 'Event File Server Folder',
+            'placeholder': 'path to folder', 'required': True,
+            'errors': {3003: 'Path not found on server.', 3004: 'Path should be directory.'}
+        }
+    ]
+
     def _update(self, provider, update):
         self.provider = provider
         self.path = provider.get('config', {}).get('path', None)
