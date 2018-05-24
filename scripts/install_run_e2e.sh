@@ -36,8 +36,9 @@ echo "DEBUG = True" | sudo tee -a ./settings.py
 # echo "WEB_TIMEOUT=5" | sudo tee -a ./settings.py
 cd $PLANNING_DIR
 cd ./node_modules/superdesk-core/test-server/
-nohup python manage.py
-nohup honcho start &
+python manage.py
+honcho start &
 sleep 60
+cd $PLANNING_DIR
 ./node_modules/.bin/webdriver-manager update
 ./node_modules/protractor/bin/protractor protractor.conf.js --stackTrace --verbose
