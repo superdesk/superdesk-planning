@@ -28,6 +28,20 @@ function openPlanning() {
     return nav('/planning');
 }
 
+
+/**
+ * @name waitForElementByClassName
+ * @param className
+ * @description Will wait for element with className to be loaded within 60 seconds
+ */
+function waitForElementByClassName() {
+    return browser.driver.wait(function() {
+        return element(by.className('login-screen')).isPresent().then(function(goOn) {
+            return goOn === true;
+        });
+    }, 100000, 'Element with class name login-screen not loaded');
+};
+
 module.exports = function(params) {
     // runs before every spec
     beforeEach((done) => {
@@ -36,6 +50,7 @@ module.exports = function(params) {
             .then(() => {
                 resetApp(params.fixture_profile, () => {
                     openBaseUrl()
+                        .then(waitForElementByClassName)
                         .then(clearStorage)
                         .then(openBaseUrl)
                         .then(waitForSuperdesk)

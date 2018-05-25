@@ -44,10 +44,6 @@ var config = {
     directConnect: true,
 
     onPrepare: function() {
-        // implicit and page load timeouts
-        browser.manage().timeouts().pageLoadTimeout(40000);
-        browser.manage().timeouts().implicitlyWait(25000);
-
         require('./client/spec/helpers/setup')({fixture_profile: 'app_prepopulate_data'});
 
         // so it can be used without import in tests
