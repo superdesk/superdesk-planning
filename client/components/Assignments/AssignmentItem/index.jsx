@@ -103,6 +103,8 @@ export class AssignmentItem extends React.Component {
 
         const borderState = isItemLocked ? 'locked' : false;
 
+        const planningSchedule = get(assignment, 'planning.scheduled');
+
         return (
             <Item
                 shadow={3}
@@ -140,8 +142,8 @@ export class AssignmentItem extends React.Component {
                                 <i className="icon-time" />
                             </span>
                             <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                                {get(assignment, 'planning.scheduled') ? (
-                                    <AbsoluteDate date={get(assignment, 'planning.scheduled').toString()} />
+                                {planningSchedule ? (
+                                    <AbsoluteDate date={moment(planningSchedule).format()} />
                                 ) : (
                                     <time><span>{gettext('\'not scheduled yet\'')}</span></time>
                                 )}

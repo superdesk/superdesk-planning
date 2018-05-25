@@ -2,20 +2,30 @@ import {get, includes, isNil} from 'lodash';
 import {ASSIGNMENTS, PRIVILEGES, PLANNING} from '../constants';
 import {lockUtils, getCreator, getItemInArrayById} from './index';
 
-const canEditAssignment = (assignment, session, privileges) => (
-    !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-    self.isAssignmentInEditableState(assignment) &&
-    (!get(assignment, 'lock_user') ||
-    lockUtils.isItemLockedInThisSession(assignment, session))
+const isNotLockRestricted = (assignment, session) => (
+    !get(assignment, 'lock_user') ||
+        lockUtils.isItemLockedInThisSession(assignment, session)
+);
+
+const isTextAssignment = (assignment) => (
+    get(assignment, 'planning.g2_content_type') === PLANNING.G2_CONTENT_TYPE.TEXT
+);
+
+const canEditAssignment = (assignment, session, privileges, privilege) => (
+    !!privileges[privilege] &&
+        self.isNotLockRestricted(assignment, session) &&
+        self.isAssignmentInEditableState(assignment)
 );
 
 const canStartWorking = (assignment, session, privileges) => (
     !!privileges[PRIVILEGES.ARCHIVE] &&
-    (!get(assignment, 'assigned_to.user') ||
-    assignment.assigned_to.user === get(session, 'identity._id')) &&
-    get(assignment, 'planning.g2_content_type') === PLANNING.G2_CONTENT_TYPE.TEXT &&
-    get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
-    !get(assignment, 'lock_user')
+        !get(assignment, 'lock_user') &&
+        self.isTextAssignment(assignment) &&
+        get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
+        (
+            !get(assignment, 'assigned_to.user') ||
+            assignment.assigned_to.user === get(session, 'identity._id')
+        )
 );
 
 const isAssignmentInEditableState = (assignment) => (
@@ -26,30 +36,29 @@ const isAssignmentInEditableState = (assignment) => (
 
 const canCompleteAssignment = (assignment, session, privileges) => (
     !!privileges[PRIVILEGES.ARCHIVE] &&
-        get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS &&
-        (!get(assignment, 'lock_user') || lockUtils.isItemLockedInThisSession(assignment, session))
+        self.isNotLockRestricted(assignment, session) &&
+        get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS
 );
 
 const canConfirmAvailability = (assignment, session, privileges) => (
-    get(assignment, 'planning.g2_content_type') !== PLANNING.G2_CONTENT_TYPE.TEXT &&
-    (get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED ||
-    get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED) &&
-    (!get(assignment, 'lock_user') || lockUtils.isItemLockedInThisSession(assignment, session))
+    !!privileges[PRIVILEGES.ARCHIVE] &&
+        self.isNotLockRestricted(assignment, session) &&
+        !self.isTextAssignment(assignment) &&
+        (
+            get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED ||
+            get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED
+        )
 );
 
 const canRevertAssignment = (assignment, session, privileges) => (
-    get(assignment, 'planning.g2_content_type') !== PLANNING.G2_CONTENT_TYPE.TEXT &&
-    get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED &&
-    (!get(assignment, 'lock_user') || lockUtils.isItemLockedInThisSession(assignment, session))
+    !!privileges[PRIVILEGES.ARCHIVE] &&
+        self.isNotLockRestricted(assignment, session) &&
+        !self.isTextAssignment(assignment) &&
+        get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED
 );
 
 const assignmentHasContent = (assignment) => (
     get(assignment, 'item_ids.length', 0) > 0
-);
-
-const canRemoveAssignment = (assignment, session, privileges) => (
-    canEditAssignment(assignment, session, privileges) &&
-        get(assignment, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED
 );
 
 const getAssignmentActions = (assignment, session, privileges, lockedItems, callBacks) => {
@@ -137,21 +146,21 @@ const getAssignmentItemActions = (assignment, session, privileges, actions) => {
 
     const actionsValidator = {
         [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: () =>
-            canEditAssignment(assignment, session, privileges),
+            self.canEditAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE),
         [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label]: () =>
-            canCompleteAssignment(assignment, session, privileges),
+            self.canCompleteAssignment(assignment, session, privileges),
         [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label]: () =>
-            canEditAssignment(assignment, session, privileges),
+            self.canEditAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE),
         [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label]: () =>
-            canStartWorking(assignment, session, privileges),
+            self.canStartWorking(assignment, session, privileges),
         [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.label]: () =>
-            canRemoveAssignment(assignment, session, privileges),
+            self.canEditAssignment(assignment, session, privileges, PRIVILEGES.PLANNING_MANAGEMENT),
         [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.label]: () =>
-            assignmentHasContent(assignment),
+            self.assignmentHasContent(assignment),
         [ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.label]: () =>
-            canConfirmAvailability(assignment, session, privileges),
+            self.canConfirmAvailability(assignment, session, privileges),
         [ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.label]: () =>
-            canRevertAssignment(assignment, session, privileges),
+            self.canRevertAssignment(assignment, session, privileges),
     };
 
     actions.forEach((action) => {
@@ -252,17 +261,20 @@ const getAssignmentInfo = (assignment, users, desks) => {
 
 // eslint-disable-next-line consistent-this
 const self = {
+    isNotLockRestricted,
     canEditAssignment,
     canCompleteAssignment,
     isAssignmentInEditableState,
     getAssignmentActions,
     canStartWorking,
     getAssignmentGroupByStates,
-    canRemoveAssignment,
     canEditDesk,
     assignmentHasContent,
     isAssignmentLockRestricted,
     getAssignmentInfo,
+    isTextAssignment,
+    canConfirmAvailability,
+    canRevertAssignment,
 };
 
 export default self;

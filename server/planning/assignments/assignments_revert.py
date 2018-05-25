@@ -28,7 +28,7 @@ class AssignmentsRevertResource(AssignmentsResource):
     datasource = {'source': 'assignments'}
     resource_methods = []
     item_methods = ['PATCH']
-    privileges = {'PATCH': 'planning_planning_management'}
+    privileges = {'PATCH': 'archive'}
 
     schema = assignments_revert_schema
 

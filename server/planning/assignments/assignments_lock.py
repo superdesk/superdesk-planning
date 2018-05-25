@@ -42,7 +42,7 @@ class AssignmentsLockResource(Resource):
     resource_methods = ['GET', 'POST']
     resource_title = endpoint_name
     privileges = {
-        'POST': 'planning_planning_management',
+        'POST': 'archive',
         'GET': 'archive'
     }
 
