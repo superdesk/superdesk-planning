@@ -16,8 +16,7 @@ function getChromeOptions() {
 }
 
 var config = {
-    allScriptsTimeout: 200000,
-    getPageTimeout : 200000,
+    allScriptsTimeout: 34000,
     baseUrl: 'http://localhost:9000',
     params: {
         baseBackendUrl: 'http://localhost:5000/api/',
@@ -45,6 +44,10 @@ var config = {
     directConnect: true,
 
     onPrepare: function() {
+        // implicit and page load timeouts
+        browser.manage().timeouts().pageLoadTimeout(40000);
+        browser.manage().timeouts().implicitlyWait(25000);
+
         require('./client/spec/helpers/setup')({fixture_profile: 'app_prepopulate_data'});
 
         // so it can be used without import in tests
