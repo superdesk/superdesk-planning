@@ -28,7 +28,7 @@ function openPlanning() {
     return nav('/planning');
 }
 
-
+module.exports.waitForElementByClassName = waitForElementByClassName;
 /**
  * @name waitForElementByClassName
  * @param className
@@ -36,10 +36,10 @@ function openPlanning() {
  */
 function waitForElementByClassName() {
     return browser.driver.wait(function() {
-        return element(by.className('login-screen')).isPresent().then(function(goOn) {
+        return element(by.className('superdesk.flags')).isPresent().then(function(goOn) {
             return goOn === true;
         });
-    }, 100000, 'Element with class name login-screen not loaded');
+    }, 100000, 'Element with class name superdesk.flags not loaded');
 };
 
 module.exports = function(params) {
@@ -50,7 +50,6 @@ module.exports = function(params) {
             .then(() => {
                 resetApp(params.fixture_profile, () => {
                     openBaseUrl()
-                        .then(waitForElementByClassName)
                         .then(clearStorage)
                         .then(openBaseUrl)
                         .then(waitForSuperdesk)

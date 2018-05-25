@@ -26,6 +26,7 @@ exports.constructUrl = function(base, uri) {
 };
 
 var LoginModal = require('./pages').login;
+var waitForElementByClassName = require('./setup').waitForElementByClassName;
 
 // authenticate if needed
 function login(username, password) {
@@ -83,7 +84,12 @@ function waitForSuperdesk() {
  * @return {Promise}
  */
 function nav(location) {
-    return login().then(() => browser.setLocation(location));
+    return login()
+            .then(waitForElementByClassName)
+            .then(() => {
+                browser.ignoreSynchronization = false;
+                return browser.setLocation(location)
+            })
 }
 
 /**
