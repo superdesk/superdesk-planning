@@ -5,7 +5,7 @@ require('babel-core/register');
 
 function getChromeOptions() {
     var chromeOptions = {
-        args: ['--no-sandbox', '--headless'],
+        args: ['--no-sandbox'],
     };
 
     if (process.env.CHROME_BIN) {
