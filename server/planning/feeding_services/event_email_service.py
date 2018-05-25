@@ -37,6 +37,41 @@ class EventEmailFeedingService(FeedingService):
 
     label = 'Event Email'
 
+    fields = [
+        {
+            'id': 'server', 'type': 'text', 'label': 'Email Server',
+            'placeholder': 'Email Server', 'required': True,
+            'errors': {6003: 'Server not found.', 6002: 'Unexpected server response'}
+        },
+        {
+            'id': 'port', 'type': 'text', 'label': 'Email Server Port',
+            'placeholder': 'Email Server Port', 'required': True,
+            'default': '993'
+        },
+        {
+            'id': 'user', 'type': 'text', 'label': 'User',
+            'placeholder': 'User', 'required': True
+        },
+        {
+            'id': 'password', 'type': 'password', 'label': 'Password',
+            'placeholder': 'Password', 'required': True,
+            'errors': {6000: 'Authentication error.'}
+        },
+        {
+            'id': 'mailbox', 'type': 'text', 'label': 'Mailbox',
+            'placeholder': 'Mailbox', 'required': True,
+            'errors': {6004: 'Authentication error.'}
+        },
+        {
+            'id': 'formatted', 'type': 'boolean', 'label': 'Formatted Email Parser',
+            'required': True
+        },
+        {
+            'id': 'filter', 'type': 'text', 'label': 'Filter',
+            'placeholder': 'Filter', 'required': True
+        }
+    ]
+
     """
     Defines the collection service to be used with this ingest feeding service.
     """

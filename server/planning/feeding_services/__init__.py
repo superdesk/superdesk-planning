@@ -15,17 +15,11 @@ from .event_email_service import EventEmailFeedingService
 
 
 register_feeding_service(
-    EventFileFeedingService.NAME,
-    EventFileFeedingService(),
-    EventFileFeedingService.ERRORS
+    EventFileFeedingService
 )
 register_feeding_service(
-    EventHTTPFeedingService.NAME,
-    EventHTTPFeedingService(),
-    EventHTTPFeedingService.ERRORS
+    EventHTTPFeedingService
 )
 register_feeding_service(
-    EventEmailFeedingService.NAME,
-    EventEmailFeedingService(),
-    EventEmailFeedingService.ERRORS
+    EventEmailFeedingService
 )

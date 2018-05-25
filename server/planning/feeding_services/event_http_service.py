@@ -43,6 +43,13 @@ class EventHTTPFeedingService(HTTPFeedingService):
     """
     service = 'events'
 
+    fields = [
+        {
+            'id': 'url', 'type': 'text', 'label': 'Feed URL',
+            'placeholder': 'Feed URL', 'required': True
+        }
+    ]
+
     def _update(self, provider, update):
         updated = utcnow()
 
