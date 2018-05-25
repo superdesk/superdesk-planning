@@ -17,6 +17,7 @@ function getChromeOptions() {
 
 var config = {
     allScriptsTimeout: 34000,
+    getPageTimeout: 200000,
     baseUrl: 'http://localhost:9000',
     params: {
         baseBackendUrl: 'http://localhost:5000/api/',
