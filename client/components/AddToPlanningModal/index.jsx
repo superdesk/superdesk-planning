@@ -53,7 +53,7 @@ export function AddToPlanningComponent({
 
             <Modal.Footer>
                 <Button
-                    text={gettext('Cancel')}
+                    text={gettext('Ignore')}
                     disabled={actionInProgress}
                     onClick={handleCancel}
                 />
