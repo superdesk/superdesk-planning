@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {get} from 'lodash';
 
 import {getDateTimeString} from '../../../utils';
 import {Item, Column, Row, Border} from '../../UI/List';
@@ -18,7 +19,9 @@ export const EventInfo = ({item, onClick, timeFormat, dateFormat, active}) => (
                 <time>
                     <InternalNoteLabel item={item} marginRight={true} />
                     <i className="icon-time"/>
-                    {getDateTimeString(item.dates.start, dateFormat, timeFormat)}
+                    {get(item, 'dates.start') &&
+                        getDateTimeString(item.dates.start, dateFormat, timeFormat)
+                    }
                 </time>
             </Row>
             <Row>

@@ -12,7 +12,7 @@ import {PlanningDateTime} from './';
 import {ItemActionsMenu} from '../index';
 import {PLANNING, EVENTS, MAIN, ICON_COLORS} from '../../constants';
 
-import {planningUtils, getItemWorkflowStateLabel, onEventCapture, isItemPublic} from '../../utils';
+import {planningUtils, getItemWorkflowStateLabel, onEventCapture, isItemPublic, getItemId} from '../../utils';
 import {AgendaNameList} from '../Agendas';
 
 export class PlanningItem extends React.PureComponent {
@@ -158,7 +158,7 @@ export class PlanningItem extends React.PureComponent {
                     <Column border={false}>
                         <OverlayTrigger placement="left"
                             overlay={
-                                <Tooltip id={get(item, '_id')}>
+                                <Tooltip id={getItemId(item)}>
                                     {gettext('Add as coverage')}
                                 </Tooltip>
                             }

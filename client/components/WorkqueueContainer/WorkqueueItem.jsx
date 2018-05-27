@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {get} from 'lodash';
 
 import {ICON_COLORS} from '../../constants';
+import {isExistingItem, getItemId} from '../../utils';
 
 import {ItemIcon} from '../';
 import {Icon} from '../UI';
@@ -13,7 +13,7 @@ export const WorkqueueItem = ({
     onOpen,
     onClose,
 }) => {
-    const isActive = get(item, '_id') === currentEditId;
+    const isActive = getItemId(item) === currentEditId;
 
     return (
         <li className={isActive ? 'active' : ''}>
@@ -25,6 +25,7 @@ export const WorkqueueItem = ({
                 />
                 <span className="item-label">
                     {item.headline || item.slugline || 'Untitled'}
+                    {!isExistingItem(item) && '*'}
                 </span>
             </a>
 

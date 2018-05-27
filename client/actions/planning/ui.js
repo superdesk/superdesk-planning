@@ -8,6 +8,8 @@ import {
     lockUtils,
     dispatchUtils,
     gettext,
+    getItemId,
+    isExistingItem,
 } from '../../utils';
 
 import * as selectors from '../../selectors';
@@ -374,13 +376,13 @@ const onAddCoverageClick = (item) => (
         // If a differet planning item is already open in editor, unlock that.
         const currentItem = selectors.forms.currentItem(state);
 
-        if (currentItem && get(item, '_id') !== get(currentItem, '_id')) {
+        if (currentItem && getItemId(item) !== getItemId(currentItem)) {
             dispatch(locks.unlock(currentItem));
         }
 
         // If it is an existing item and the item is not locked
         // then lock the item, otherwise return the existing item
-        if (get(item, '_id') && !lockUtils.getLock(item, lockedItems)) {
+        if (isExistingItem(item) && !lockUtils.getLock(item, lockedItems)) {
             promise = dispatch(locks.lock(item));
         } else {
             promise = Promise.resolve(item);
@@ -420,7 +422,7 @@ const saveFromAuthoring = (plan) => (
 
                         // If a new planning item was created, close editor
                         // As it is too early for scope.destroy() watcher to get hold of it
-                        if (!get(plan, '_id')) {
+                        if (!isExistingItem(plan)) {
                             return dispatch(main.closeEditor(newPlan));
                         }
 

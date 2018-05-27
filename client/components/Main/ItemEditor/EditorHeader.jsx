@@ -84,11 +84,20 @@ export class EditorHeader extends React.Component {
             !states.isLockedInContext &&
             planningUtils.canEditPlanning(item, null, session, privileges, lockedItems);
 
-        if (states.isLockedInContext && get(states.itemLock, 'action') === 'edit') {
-            states.canPost = planningUtils.canPostPlanning(diff, null, session, privileges, lockedItems);
-            states.canUnpost = planningUtils.canUnpostPlanning(item, null, session, privileges, lockedItems);
-            states.canUpdate = planningUtils.canUpdatePlanning(item, null, session, privileges, lockedItems);
-            states.canEdit = planningUtils.canEditPlanning(item, null, session, privileges, lockedItems);
+        if (states.isLockedInContext) {
+            switch (get(states, 'itemLock.action')) {
+            case 'edit':
+                states.canPost = planningUtils.canPostPlanning(diff, null, session, privileges, lockedItems);
+                states.canUnpost = planningUtils.canUnpostPlanning(item, null, session, privileges, lockedItems);
+                states.canUpdate = planningUtils.canUpdatePlanning(item, null, session, privileges, lockedItems);
+                states.canEdit = planningUtils.canEditPlanning(item, null, session, privileges, lockedItems);
+                break;
+            case 'add_to_planning':
+                states.canPost = planningUtils.canPostPlanning(diff, null, session, privileges, lockedItems);
+                states.canUpdate = planningUtils.canUpdatePlanning(item, null, session, privileges, lockedItems);
+                states.canEdit = planningUtils.canEditPlanning(item, null, session, privileges, lockedItems);
+                break;
+            }
         }
     }
 
@@ -145,8 +154,8 @@ export class EditorHeader extends React.Component {
 
         states.showUpdate = states.isPublic && states.canUpdate;
         states.showSave = !states.isPublic && states.canEdit;
-        states.isBeingEdited = states.showUpdate || states.showSave || states.canPost;
-        states.showCreateAndPost = states.existingItem && createAndPost;
+        states.isBeingEdited = states.showUpdate || states.showSave || states.canPost || states.notExistingItem;
+        states.showCreateAndPost = !states.existingItem && createAndPost;
 
         return states;
     }
@@ -283,6 +292,7 @@ export class EditorHeader extends React.Component {
     render() {
         const {
             item,
+            initialValues,
             onAddCoverage,
             minimize,
             session,
@@ -317,7 +327,7 @@ export class EditorHeader extends React.Component {
 
                 {states.isBeingEdited && !hideExternalEdit && (
                     <NavButton
-                        onClick={closeEditorAndOpenModal.bind(null, item)}
+                        onClick={closeEditorAndOpenModal.bind(null, initialValues)}
                         icon="icon-external"
                         title={gettext('Edit in popup')}
                     />
@@ -342,6 +352,7 @@ export class EditorHeader extends React.Component {
 EditorHeader.propTypes = {
     item: PropTypes.object,
     diff: PropTypes.object,
+    initialValues: PropTypes.object,
     onSave: PropTypes.func.isRequired,
     onPost: PropTypes.func.isRequired,
     onSaveAndPost: PropTypes.func.isRequired,

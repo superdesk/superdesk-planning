@@ -1,10 +1,13 @@
-import {AUTOSAVE, EVENTS, PLANNING, FORM_NAMES, MAIN, TEMP_ID_PREFIX} from '../constants';
-import {createReducer} from '../utils';
-import {pickBy, get} from 'lodash';
+import {AUTOSAVE, ITEM_TYPE, MAIN} from '../constants';
+import {createReducer, eventUtils, planningUtils, getItemId, getItemType, isTemporaryId} from '../utils';
+import {get, cloneDeep} from 'lodash';
 
 const initialState = {
     profiles: {},
-    autosaves: {},
+    autosaves: {
+        event: {},
+        planning: {},
+    },
     itemId: null,
     itemType: null,
     initialValues: null,
@@ -16,49 +19,36 @@ const initialState = {
 };
 
 const newStateOnEditorOpen = (state, payload, modal = false) => {
+    const itemId = getItemId(payload) || null;
+    const itemType = getItemType(payload) || null;
+
+    // If this is a new item, then initialValues will always be
+    // type/id until the item is created
+    const initialValues = !isTemporaryId(itemId) ?
+        payload :
+        {
+            _id: itemId,
+            type: itemType,
+        };
+
     if (modal) {
         return {
             ...state,
-            itemIdModal: get(payload, '_id') || null,
-            itemTypeModal: get(payload, 'type') || null,
-            initialValuesModal: payload,
+            itemIdModal: itemId,
+            itemTypeModal: itemType,
+            initialValuesModal: initialValues,
         };
     } else {
         return {
             ...state,
-            itemId: get(payload, '_id') || null,
-            itemType: get(payload, 'type') || null,
-            initialValues: payload,
+            itemId: itemId,
+            itemType: itemType,
+            initialValues: initialValues,
         };
     }
 };
 
 const formsReducer = createReducer(initialState, {
-    [AUTOSAVE.ACTIONS.SAVE]: (state, payload) => (
-        // If the formName of item ID is not provided,
-        // then we return the current state
-        (!get(payload, 'formName') || !get(payload, 'diff._id')) ? state :
-            {
-                ...state,
-                autosaves: {
-                    ...state.autosaves,
-                    [payload.formName]: {
-                        ...get(state.autosaves, payload.formName, {}),
-                        [payload.diff._id]: payload.diff,
-                    },
-                },
-            }
-    ),
-
-    [AUTOSAVE.ACTIONS.REMOVE]: (state, payload) => ({
-        ...state,
-        autosaves: {
-            ...state.autosaves,
-            [FORM_NAMES.EventForm]: pickBy(state.autosaves.event, (event, key) => !key.startsWith(TEMP_ID_PREFIX)),
-            [FORM_NAMES.PlanningForm]: pickBy(state.autosaves.planning, (plan, key) => !key.startsWith(TEMP_ID_PREFIX)),
-        },
-    }),
-
     [MAIN.ACTIONS.OPEN_EDITOR]: (state, payload) => (newStateOnEditorOpen(state, payload)),
 
     [MAIN.ACTIONS.OPEN_EDITOR_MODAL]: (state, payload) => (newStateOnEditorOpen(state, payload, true)),
@@ -76,30 +66,6 @@ const formsReducer = createReducer(initialState, {
         itemTypeModal: null,
         initialValuesModal: null,
     }),
-
-    [EVENTS.ACTIONS.UNLOCK_EVENT]: (state, payload) => (
-        !get(payload, 'event._id') ? state :
-            {
-                ...state,
-                autosaves: {
-                    ...state.autosaves,
-                    [FORM_NAMES.EventForm]: pickBy(state.autosaves.event, (event, key) =>
-                        !key.startsWith(TEMP_ID_PREFIX) && key !== payload.event._id),
-                },
-            }
-    ),
-
-    [PLANNING.ACTIONS.UNLOCK_PLANNING]: (state, payload) => (
-        !get(payload, 'plan._id') ? state :
-            {
-                ...state,
-                autosaves: {
-                    ...state.autosaves,
-                    [FORM_NAMES.PlanningForm]: pickBy(state.autosaves.planning, (plan, key) =>
-                        !key.startsWith(TEMP_ID_PREFIX) && key !== payload.plan._id),
-                },
-            }
-    ),
 
     [MAIN.ACTIONS.SET_EDIT_ITEM]: (state, payload) => ({
         ...state,
@@ -126,6 +92,79 @@ const formsReducer = createReducer(initialState, {
         ...state,
         loadingEditItemModal: false,
     }),
+
+    [AUTOSAVE.ACTIONS.SAVE]: (state, payload) => {
+        const newState = cloneDeep(state);
+        const autosaves = get(newState, `autosaves.${payload.type}`);
+
+        if (payload.type === ITEM_TYPE.EVENT) {
+            autosaves[payload._id] = eventUtils.convertToMoment(payload);
+        } else if (payload.type === ITEM_TYPE.PLANNING) {
+            autosaves[payload._id] = planningUtils.convertCoveragesGenreToObject(payload);
+        }
+
+        return newState;
+    },
+
+    [AUTOSAVE.ACTIONS.UPDATE_ETAG]: (state, payload) => {
+        const newState = cloneDeep(state);
+        const {itemType} = payload;
+        const itemId = getItemId(payload.item);
+        const autosaves = get(newState.autosaves, itemType);
+        const autosaveData = get(autosaves, itemId) || {_id: itemId};
+
+        if (itemType === ITEM_TYPE.EVENT) {
+            autosaves[itemId] = eventUtils.convertToMoment({
+                ...autosaveData,
+                ...payload.item,
+            });
+        } else if (itemType === ITEM_TYPE.PLANNING) {
+            autosaves[itemId] = planningUtils.convertCoveragesGenreToObject({
+                ...autosaveData,
+                ...payload.item,
+            });
+        }
+
+        return newState;
+    },
+
+    [AUTOSAVE.ACTIONS.REMOVE]: (state, payload) => {
+        const itemId = getItemId(payload);
+        const itemType = getItemType(payload);
+
+        if (!itemId || !itemType) {
+            return state;
+        }
+
+        const newState = cloneDeep(state);
+        const autosaves = get(newState, `autosaves.${itemType}`);
+
+        if (autosaves[itemId]) {
+            delete autosaves[itemId];
+        }
+
+        return newState;
+    },
+
+    [AUTOSAVE.ACTIONS.RECEIVE]: (state, payload) => {
+        const items = {};
+
+        payload.autosaves.forEach((item) => {
+            if (payload.itemType === ITEM_TYPE.EVENT) {
+                items[item._id] = eventUtils.convertToMoment(item);
+            } else if (payload.itemType === ITEM_TYPE.PLANNING) {
+                items[item._id] = planningUtils.convertCoveragesGenreToObject(item);
+            }
+        });
+
+        return {
+            ...state,
+            autosaves: {
+                ...state.autosaves,
+                [payload.itemType]: items,
+            },
+        };
+    },
 });
 
 export default formsReducer;

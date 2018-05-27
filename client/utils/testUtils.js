@@ -16,41 +16,17 @@ export const getTestActionStore = () => {
                 planning: {
                     query: sinon.spy(() => (store.spies.api._query('plannings'))),
                     save: sinon.spy((ori, item) => (store.spies.api._save('plannings', ori, item))),
-                    getById: sinon.spy((id) => {
-                        const planning = store.data.plannings.find((p) => (p._id === id));
-
-                        if (!planning) {
-                            return Promise.reject(`Planning '${id}' not found!`);
-                        }
-
-                        return Promise.resolve(planning);
-                    }),
+                    getById: sinon.spy((id) => store.spies.api._getById('plannings', id)),
                 },
                 agenda: {
                     query: sinon.spy(() => (store.spies.api._query('agendas'))),
                     save: sinon.spy((ori, item) => (store.spies.api._save('agendas', ori, item))),
-                    getById: sinon.spy((id) => {
-                        const agenda = store.data.agendas.find((a) => (a._id === id));
-
-                        if (!agenda) {
-                            return Promise.reject(`Agenda '${id}' not found!`);
-                        }
-
-                        return Promise.resolve(agenda);
-                    }),
+                    getById: sinon.spy((id) => store.spies.api._getById('agendas', id)),
                 },
                 events: {
                     query: sinon.spy(() => (store.spies.api._query('events'))),
                     save: sinon.spy((ori, item) => (store.spies.api._save('events', ori, item))),
-                    getById: sinon.spy((id) => {
-                        const event = store.data.events.find((e) => (e._id === id));
-
-                        if (!event) {
-                            return Promise.reject(`Event '${id}' not found!`);
-                        }
-
-                        return Promise.resolve(event);
-                    }),
+                    getById: sinon.spy((id) => store.spies.api._getById('events', id)),
                 },
                 events_history: {
                     query: sinon.spy(
@@ -69,27 +45,11 @@ export const getTestActionStore = () => {
                     save: sinon.spy((ori, item) => (
                         store.spies.api._save('assignments', ori, item
                         ))),
-                    getById: sinon.spy((id) => {
-                        const assignment = store.data.assignments.find((p) => (p._id === id));
-
-                        if (!assignment) {
-                            return Promise.reject(`Assignment '${id}' not found!`);
-                        }
-
-                        return Promise.resolve(assignment);
-                    }),
+                    getById: sinon.spy((id) => store.spies.api._getById('assignments', id)),
                     remove: sinon.spy((item) => store.spies.api._remove('assignments', item)),
                 },
                 archive: {
-                    getById: sinon.spy((id) => {
-                        const item = store.data.archive.find((i) => i._id === id);
-
-                        if (!item) {
-                            return Promise.reject(`Item '${id}' not found!`);
-                        }
-
-                        return Promise.resolve(item);
-                    }),
+                    getById: sinon.spy((id) => store.spies.api._getById('archive', id)),
                 },
 
                 assignments_link: {save: sinon.stub().returns(Promise.resolve({}))},
@@ -107,11 +67,34 @@ export const getTestActionStore = () => {
                     ...item,
                 })),
                 _remove: () => Promise.resolve(),
+                _getById: (resource, itemId) => {
+                    const item = get(store.data, resource, {}).find((item) => item._id === itemId);
+
+                    if (!item) {
+                        return Promise.reject(`Item '${itemId}' not found!`);
+                    }
+
+                    return Promise.resolve(item);
+                },
                 planning_search: {
                     query: sinon.spy(() => (store.spies.api._query('planning_search'))),
                 },
 
                 contacts: {query: sinon.spy(() => Promise.resolve(store.data.contacts))},
+
+                event_autosave: {
+                    query: sinon.spy(() => store.spies.api._query('event_autosave')),
+                    getById: sinon.spy((id) => store.spies.api._getById('event_autosave', id)),
+                    save: sinon.spy((ori, item) => store.spies.api._save('event_autosave', ori, item)),
+                    remove: sinon.spy((item) => store.spies.api._remove('event_autosave', item)),
+                },
+
+                planning_autosave: {
+                    query: sinon.spy(() => store.spies.api._query('planning_autosave')),
+                    getById: sinon.spy((id) => store.spies.api._getById('planning_autosave', id)),
+                    save: sinon.spy((ori, item) => store.spies.api._save('planning_autosave', ori, item)),
+                    remove: sinon.spy((item) => store.spies.api._remove('planning_autosave', item)),
+                },
             },
         },
 
@@ -228,7 +211,7 @@ export const getTestActionStore = () => {
                     // Otherwise this is a js exception
                     expect(error).toBe(null);
                     expect(error.stack).toBe(null);
-                    done();
+                    done.fail();
                     throw error;
                 });
         },
@@ -260,6 +243,15 @@ export const getTestActionStore = () => {
                     },
                 };
             });
+
+            // Set the autosave data
+            store.data.event_autosave.forEach((item) => {
+                store.initialState.forms.autosaves.event[item._id] = item;
+            });
+            store.data.planning_autosave.forEach((item) => {
+                store.initialState.forms.autosaves.planning[item._id] = item;
+            });
+
             store._ready = true;
         },
 

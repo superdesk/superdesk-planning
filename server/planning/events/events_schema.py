@@ -62,10 +62,7 @@ events_schema = {
     },
     # Event Details
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 15.2
-    'name': {
-        'type': 'string',
-        'required': True,
-    },
+    'name': {'type': 'string'},
     'definition_short': {'type': 'string'},
     'definition_long': {'type': 'string'},
     'internal_note': {'type': 'string'},
@@ -93,8 +90,14 @@ events_schema = {
     'dates': {
         'type': 'dict',
         'schema': {
-            'start': {'type': 'datetime'},
-            'end': {'type': 'datetime'},
+            'start': {
+                'type': 'datetime',
+                'nullable': True,
+            },
+            'end': {
+                'type': 'datetime',
+                'nullable': True,
+            },
             'tz': {'type': 'string'},
             'duration': {'type': 'string'},
             'confirmation': {'type': 'string'},

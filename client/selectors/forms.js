@@ -1,6 +1,8 @@
 import {createSelector} from 'reselect';
-import {get} from 'lodash';
+import {get, filter} from 'lodash';
 import {ITEM_TYPE} from '../constants';
+import {sessionId as getSessionId} from './general';
+import {isExistingItem} from '../utils';
 
 // Helper function
 const getcurrentItem = (itemId, itemType, events, plannings, isLoading, values, modal = false) => {
@@ -31,6 +33,17 @@ export const defaultEventDuration = createSelector(
 
 /** Autosaves **/
 export const autosaves = (state) => get(state, 'forms.autosaves', {});
+
+// Selector to get autosave entries for new/non-existing items only
+export const newItemAutosaves = createSelector(
+    [autosaves, getSessionId],
+    (data, sessionId) => ({
+        event: filter(data.event, (item) => !isExistingItem(item) && item.lock_session === sessionId)
+            .map((item) => item),
+        planning: filter(data.planning, (item) => !isExistingItem(item) && item.lock_session === sessionId)
+            .map((item) => item),
+    })
+);
 
 /** Forms */
 export const currentItemId = (state) => get(state, 'forms.itemId', null);

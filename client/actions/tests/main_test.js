@@ -403,16 +403,16 @@ describe('actions.main', () => {
                 .then((item) => {
                     expect(item).toEqual(data.events[0]);
 
-                    expect(store.dispatch.callCount).toBe(3);
+                    expect(store.dispatch.callCount).toBe(4);
                     expect(store.dispatch.args[0]).toEqual([{type: 'MAIN_PREVIEW_LOADING_START'}]);
 
                     expect(eventsApi.fetchById.callCount).toBe(1);
                     expect(eventsApi.fetchById.args[0]).toEqual(['e1']);
 
-                    expect(store.dispatch.args[2]).toEqual([{type: 'MAIN_PREVIEW_LOADING_COMPLETE'}]);
+                    expect(store.dispatch.args[3]).toEqual([{type: 'MAIN_PREVIEW_LOADING_COMPLETE'}]);
 
                     done();
-                })
+                }, done.fail)
         ));
 
         it('loads an Event for editing', (done) => (
@@ -420,16 +420,16 @@ describe('actions.main', () => {
                 .then((item) => {
                     expect(item).toEqual(data.events[0]);
 
-                    expect(store.dispatch.callCount).toBe(3);
+                    expect(store.dispatch.callCount).toBe(4);
                     expect(store.dispatch.args[0]).toEqual([{type: 'MAIN_EDIT_LOADING_START'}]);
 
                     expect(eventsApi.fetchById.callCount).toBe(1);
                     expect(eventsApi.fetchById.args[0]).toEqual(['e1']);
 
-                    expect(store.dispatch.args[2]).toEqual([{type: 'MAIN_EDIT_LOADING_COMPLETE'}]);
+                    expect(store.dispatch.args[3]).toEqual([{type: 'MAIN_EDIT_LOADING_COMPLETE'}]);
 
                     done();
-                })
+                }, done.fail)
         ));
 
         it('loads an Planning for preview', (done) => (
@@ -437,16 +437,16 @@ describe('actions.main', () => {
                 .then((item) => {
                     expect(item).toEqual(data.plannings[0]);
 
-                    expect(store.dispatch.callCount).toBe(3);
+                    expect(store.dispatch.callCount).toBe(4);
                     expect(store.dispatch.args[0]).toEqual([{type: 'MAIN_PREVIEW_LOADING_START'}]);
 
                     expect(planningApi.fetchById.callCount).toBe(1);
                     expect(planningApi.fetchById.args[0]).toEqual(['p1']);
 
-                    expect(store.dispatch.args[2]).toEqual([{type: 'MAIN_PREVIEW_LOADING_COMPLETE'}]);
+                    expect(store.dispatch.args[3]).toEqual([{type: 'MAIN_PREVIEW_LOADING_COMPLETE'}]);
 
                     done();
-                })
+                }, done.fail)
         ));
 
         it('loads an Planning for editing', (done) => (
@@ -454,16 +454,16 @@ describe('actions.main', () => {
                 .then((item) => {
                     expect(item).toEqual(data.plannings[0]);
 
-                    expect(store.dispatch.callCount).toBe(3);
+                    expect(store.dispatch.callCount).toBe(4);
                     expect(store.dispatch.args[0]).toEqual([{type: 'MAIN_EDIT_LOADING_START'}]);
 
                     expect(planningApi.fetchById.callCount).toBe(1);
                     expect(planningApi.fetchById.args[0]).toEqual(['p1']);
 
-                    expect(store.dispatch.args[2]).toEqual([{type: 'MAIN_EDIT_LOADING_COMPLETE'}]);
+                    expect(store.dispatch.args[3]).toEqual([{type: 'MAIN_EDIT_LOADING_COMPLETE'}]);
 
                     done();
-                })
+                }, done.fail)
         ));
 
         it('fails if unknown action type supplied', (done) => (

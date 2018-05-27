@@ -1,11 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import moment from 'moment';
 
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
-import {ITEM_TYPE, TEMP_ID_PREFIX} from '../../constants';
+import {ITEM_TYPE} from '../../constants';
 
 import {SubNavBar, FiltersBar} from '../../components/Main';
 import {ArchiveItem} from '../../components/Archive';
@@ -123,14 +122,8 @@ const mapDispatchToProps = (dispatch) => ({
     filter: (filterType) => dispatch(actions.main.filter(filterType)),
     selectAgenda: (agendaId) => dispatch(actions.selectAgenda(agendaId)),
     clearSearch: () => dispatch(actions.main.clearSearch()),
-    addEvent: () => dispatch(actions.main.lockAndEdit({
-        _tempId: TEMP_ID_PREFIX + moment().valueOf(),
-        type: ITEM_TYPE.EVENT,
-    })),
-    addPlanning: () => dispatch(actions.main.lockAndEdit({
-        _tempId: TEMP_ID_PREFIX + moment().valueOf(),
-        type: ITEM_TYPE.PLANNING,
-    })),
+    addEvent: () => dispatch(actions.main.createNew(ITEM_TYPE.EVENT)),
+    addPlanning: () => dispatch(actions.main.createNew(ITEM_TYPE.PLANNING)),
     selectCalendar: (calendarId) => dispatch(actions.events.ui.selectCalendar(calendarId)),
     setStartFilter: (start) => dispatch(actions.main.setStartFilter(start)),
 });

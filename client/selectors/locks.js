@@ -4,6 +4,7 @@ import {get, sortBy, filter} from 'lodash';
 import {storedEvents} from './events';
 import {storedPlannings} from './planning';
 import {currentUserId} from './general';
+import {newItemAutosaves} from './forms';
 
 import {lockUtils} from '../utils';
 
@@ -27,12 +28,14 @@ export const getLockedEvents = createSelector(
 );
 
 export const workqueueItems = createSelector(
-    [getLockedEvents, getLockedPlannings],
-    (lockedEvents, lockedPlanning) => (
+    [getLockedEvents, getLockedPlannings, newItemAutosaves],
+    (lockedEvents, lockedPlanning, newItems) => (
         sortBy(
             [
                 ...lockedEvents,
                 ...lockedPlanning,
+                ...newItems.event,
+                ...newItems.planning,
             ],
             (i) => i.lock_time
         )

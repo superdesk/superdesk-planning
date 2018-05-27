@@ -1,5 +1,5 @@
 import {showModal, main, locks} from '../index';
-import {EVENTS, MODALS, SPIKED_STATE, MAIN, ITEM_TYPE, TEMP_ID_PREFIX} from '../../constants';
+import {EVENTS, MODALS, SPIKED_STATE, MAIN, ITEM_TYPE} from '../../constants';
 import eventsApi from './api';
 import planningApi from '../planning/api';
 import * as selectors from '../../selectors';
@@ -13,6 +13,7 @@ import {
     gettext,
     getItemInArrayById,
     isExistingItem,
+    generateTempId,
 } from '../../utils';
 
 /**
@@ -578,8 +579,7 @@ const createEventFromPlanning = (plan) => (
                     place: plan.place,
                     occur_status: unplannedStatus,
                     _planning_item: plan._id,
-                    _tempId: TEMP_ID_PREFIX + moment().valueOf(),
-
+                    _id: generateTempId(),
                 }))
             );
     }

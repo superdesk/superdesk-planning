@@ -20,6 +20,8 @@ from .planning_reschedule import PlanningRescheduleService, PlanningRescheduleRe
 from .planning_postpone import PlanningPostponeService, PlanningPostponeResource
 from .planning_types import PlanningTypesService, PlanningTypesResource
 from .planning_export import PlanningExportResource, PlanningExportService, get_desk_template # noqa
+from .planning_autosave import PlanningAutosaveResource
+from planning.autosave import AutosaveService
 
 
 def init_app(app):
@@ -87,6 +89,9 @@ def init_app(app):
         _app=app
     )
 
+    planning_autosave_service = AutosaveService('planning_autosave', superdesk.get_backend())
+    PlanningAutosaveResource('planning_autosave', app=app, service=planning_autosave_service)
+
     app.on_inserted_planning += planning_history_service.on_item_created
     app.on_updated_planning += planning_history_service.on_item_updated
     app.on_updated_planning_spike += planning_history_service.on_spike
@@ -96,6 +101,8 @@ def init_app(app):
     app.on_updated_planning_postpone += planning_history_service.on_postpone
 
     app.on_locked_planning += planning_service.on_locked_planning
+
+    app.on_session_end += planning_autosave_service.on_session_end
 
     superdesk.privilege(
         name='planning_planning_management',

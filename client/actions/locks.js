@@ -1,6 +1,6 @@
 import * as selectors from '../selectors';
 import {LOCKS, ITEM_TYPE, WORKSPACE, PLANNING} from '../constants';
-import {planning, events, assignments} from './index';
+import {planning, events, assignments, autosave} from './index';
 import {lockUtils, getItemType, gettext} from '../utils';
 
 /**
@@ -65,12 +65,18 @@ const unlock = (item) => (
             return Promise.reject(errorMessage);
         }
 
+        let promise = Promise.resolve(item);
+
         switch (currentLock.item_type) {
         case 'planning':
-            return dispatch(planning.api.unlock({_id: currentLock.item_id}));
+            promise = dispatch(planning.api.unlock({_id: currentLock.item_id}));
+            break;
         case 'event':
-            return dispatch(events.api.unlock({_id: currentLock.item_id}));
+            promise = dispatch(events.api.unlock({_id: currentLock.item_id}));
+            break;
         }
+
+        return promise.then(() => dispatch(autosave.removeById(currentLock.item_type, currentLock.item_id)));
     }
 );
 

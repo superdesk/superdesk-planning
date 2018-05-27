@@ -430,7 +430,8 @@ describe('actions.events.ui', () => {
 
                     expect(main.lockAndEdit.callCount).toBe(1);
                     expect(main.lockAndEdit.args[0]).toEqual([{
-                        ...omit(data.events[0], ['_id', '_etag', 'planning_ids']),
+                        ...omit(data.events[0], ['_etag', 'planning_ids']),
+                        _id: jasmine.any(String),
                         dates: {
                             start: newStartDate,
                             end: newEndDate,
@@ -441,10 +442,11 @@ describe('actions.events.ui', () => {
                             name: 'Planned, occurs certainly',
                             label: 'Confirmed',
                             qcode: 'eocstat:eos5',
-                        }}]);
+                        },
+                    }]);
 
                     done();
-                });
+                }, done.fail);
         });
 
         xit('duplicate calls events.api.duplicate and notifies the user of success', (done) => {

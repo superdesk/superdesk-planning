@@ -3,7 +3,7 @@ import {mount} from 'enzyme';
 import sinon from 'sinon';
 import {cloneDeep} from 'lodash';
 
-import {eventUtils} from '../../utils';
+import {eventUtils, generateTempId} from '../../utils';
 import * as testData from '../../utils/testData';
 import * as helpers from './helpers';
 
@@ -90,7 +90,7 @@ describe('<IgnoreCancelSaveModal>', () => {
         expect(buttons.update.isMounted).toBeTruthy();
 
         // Renders the Ignore/Cancel/Create buttons
-        item = {_tempId: 'temp123', name: 'Test Event'};
+        item = {_id: generateTempId(), name: 'Test Event'};
         setWrapper();
         expect(buttons.ignore.isMounted).toBeTruthy();
         expect(buttons.cancel.isMounted).toBeTruthy();

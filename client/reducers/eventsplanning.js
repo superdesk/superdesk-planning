@@ -1,6 +1,6 @@
 import {EVENTS_PLANNING, INIT_STORE, RESET_STORE} from '../constants';
 import {cloneDeep, get, uniq} from 'lodash';
-import {createReducer} from '../utils';
+import {createReducer, getItemId} from '../utils';
 
 const initialState = {
     eventsAndPlanningInList: [],
@@ -35,7 +35,7 @@ const eventsPlanningReducer = createReducer(initialState, {
         }
     ),
     [EVENTS_PLANNING.ACTIONS.SHOW_RELATED_PLANNINGS]: (state, payload) => {
-        let eventId = get(payload, '_id');
+        const eventId = getItemId(payload);
 
         if (!eventId) {
             return state;

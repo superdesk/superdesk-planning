@@ -2,7 +2,7 @@ import * as selectors from '../../selectors';
 import {ASSIGNMENTS} from '../../constants';
 import planningUtils from '../../utils/planning';
 import {get, cloneDeep, has, pick} from 'lodash';
-import {lockUtils, getErrorMessage} from '../../utils';
+import {lockUtils, getErrorMessage, isExistingItem} from '../../utils';
 import planning from '../planning';
 
 /**
@@ -154,7 +154,7 @@ const save = (item, original = undefined) => (
         new Promise((resolve, reject) => {
             if (original !== undefined) {
                 return resolve(original);
-            } else if (get(item, '_id')) {
+            } else if (isExistingItem(item)) {
                 return dispatch(self.fetchAssignmentById(item._id))
                     .then(
                         (item) => (resolve(item)),

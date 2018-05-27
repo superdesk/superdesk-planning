@@ -26,15 +26,16 @@ import {
     gettext,
     getEnabledAgendas,
     stringUtils,
+    isExistingItem,
 } from './index';
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
 const canPostPlanning = (planning, event, session, privileges, locks) => (
-    !!privileges[PRIVILEGES.POST_PLANNING] &&
+    isExistingItem(planning) &&
+        !!privileges[PRIVILEGES.POST_PLANNING] &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !!get(planning, '_id') &&
         !isPlanningLockRestricted(planning, session, locks) &&
         getPostedState(planning) !== POST_STATE.USABLE &&
         (isNil(event) || getPostedState(event) === POST_STATE.USABLE) &&
@@ -276,7 +277,7 @@ const getPlanningActions = ({
     lockedItems,
     agendas,
     callBacks}) => {
-    if (!get(item, '_id')) {
+    if (!isExistingItem(item)) {
         return [];
     }
 
@@ -433,6 +434,7 @@ const getPlanningActions = ({
  * @return {object} planning item provided
  */
 export const convertCoveragesGenreToObject = (plan) => {
+    plan.planning_date = moment(plan.planning_date);
     get(plan, 'coverages', []).forEach(convertGenreToObject);
     return plan;
 };
@@ -444,10 +446,16 @@ export const convertCoveragesGenreToObject = (plan) => {
  */
 export const convertGenreToObject = (coverage) => {
     // Make sure the coverage has a planning field
-    if (!('planning' in coverage)) coverage.planning = {};
+    if (!get(coverage, 'planning')) {
+        coverage.planning = {};
+    }
 
     // Convert genre from an Array to an Object
     coverage.planning.genre = get(coverage, 'planning.genre[0]');
+
+    if (get(coverage, 'planning.scheduled')) {
+        coverage.planning.scheduled = moment(coverage.planning.scheduled);
+    }
 
     return coverage;
 };
