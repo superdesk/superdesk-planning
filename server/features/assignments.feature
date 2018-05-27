@@ -51,6 +51,7 @@ Feature: Assignments
         [
             {
                 "item_class": "item class value",
+                "description_text": "test description",
                 "headline": "test headline",
                 "slugline": "test slugline"
             }
@@ -90,6 +91,7 @@ Feature: Assignments
         {
             "_id": "#planning._id#",
             "item_class": "item class value",
+            "description_text": "test description",
             "headline": "test headline",
             "slugline": "test slugline",
             "coverages": [
@@ -128,7 +130,8 @@ Feature: Assignments
                 "user": "#CONTEXT_USER_ID#",
                 "coverage_provider": {"name": "Stringer"},
                 "state": "draft"
-            }
+            },
+            "description_text": "test description"
         }
         """
         When we get "/assignments_history"
@@ -171,6 +174,7 @@ Feature: Assignments
         [
             {
                 "item_class": "item class value",
+                "description_text": "test description",
                 "headline": "test headline",
                 "slugline": "test slugline"
             }
@@ -210,6 +214,7 @@ Feature: Assignments
         {
             "_id": "#planning._id#",
             "item_class": "item class value",
+            "description_text": "test description",
             "headline": "test headline",
             "slugline": "test slugline",
             "coverages": [
@@ -248,7 +253,8 @@ Feature: Assignments
                 "user": "#CONTEXT_USER_ID#",
                 "coverage_provider": {"name": "Stringer"},
                 "state": "draft"
-            }
+            },
+            "description_text": "test description"
         }
         """
         When we get "/assignments_history"
@@ -272,6 +278,7 @@ Feature: Assignments
         When we patch "/planning/#planning._id#"
         """
         {
+            "description_text": "second test description",
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",
@@ -302,6 +309,7 @@ Feature: Assignments
         {
             "_id": "#planning._id#",
             "item_class": "item class value",
+            "description_text": "second test description",
             "headline": "test headline",
             "slugline": "test slugline",
             "coverages": [
@@ -339,7 +347,8 @@ Feature: Assignments
                 "user": "#CONTEXT_USER_ID#",
                 "coverage_provider": {"name": "Stringer"},
                 "state": "assigned"
-            }
+            },
+            "description_text": "second test description"
         }
         """
         When we get "/assignments_history"
@@ -434,6 +443,7 @@ Feature: Assignments
         [
             {
                 "item_class": "item class value",
+                "description_text": "test description",
                 "headline": "test headline",
                 "slugline": "test slugline"
             }
@@ -473,6 +483,7 @@ Feature: Assignments
         {
             "_id": "#planning._id#",
             "item_class": "item class value",
+            "description_text": "test description",
             "headline": "test headline",
             "slugline": "test slugline",
             "coverages": [
@@ -510,7 +521,8 @@ Feature: Assignments
                 "user": "#CONTEXT_USER_ID#",
                 "coverage_provider": {"name": "Stringer"},
                 "state": "assigned"
-            }
+            },
+            "description_text": "test description"
         }
         """
         When we get "/assignments_history"

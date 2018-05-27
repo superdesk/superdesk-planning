@@ -793,7 +793,8 @@ assignments_schema = {
     },
 
     # coverage details
-    'planning': coverage_schema['planning']
+    'planning': coverage_schema['planning'],
+    'description_text': metadata_schema['description_text'],
 }
 
 
