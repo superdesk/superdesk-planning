@@ -71,7 +71,7 @@ function printLogs(prefix) {
 function waitForSuperdesk() {
     return browser.driver.wait(() =>
         browser.driver.executeScript('return window.superdeskIsReady || false'),
-    5000,
+    50000,
     '"window.superdeskIsReady" is not here');
 }
 
