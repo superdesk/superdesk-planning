@@ -4,7 +4,7 @@ VENV=`pwd`/$BACKEND_DIR/env/bin/activate
 PLANNING_DIR=`pwd`
 mkdir e2e && cd e2e
 git clone https://github.com/superdesk/superdesk-aap.git
-cd superdesk
+cd superdesk-aap
 # git checkout planning-mvp
 git checkout planning
 npm install --python=python2.7
@@ -26,9 +26,9 @@ sudo service mongod restart
 sudo service elasticsearch restart
 sleep 60
 #curl -XPUT 'http://localhost:9200/_snapshot/backups' -d '{"type": "fs", "settings": {"location": "/tmp/es-backups"}}'
-cd $PLANNING_DIR/e2e/superdesk/client/dist
+cd $PLANNING_DIR/e2e/superdesk-aap/client/dist
 nohup python -m http.server 9000 &
-cd $PLANNING_DIR/e2e/superdesk/server
+cd $PLANNING_DIR/e2e/superdesk-aap/server
 echo "SUPERDESK_TESTING = True" | sudo tee -a ./settings.py
 echo "DEBUG = True" | sudo tee -a ./settings.py
 # echo "MONGO_DBNAME = 'superdesk_e2e'" | sudo tee -a ./settings.py
