@@ -69,6 +69,7 @@ function printLogs(prefix) {
 }
 
 function waitForSuperdesk() {
+    printLogs('planning logs')
     return browser.driver.wait(() =>
         browser.driver.executeScript('return window.superdeskIsReady || false'),
     50000,

@@ -5,8 +5,8 @@ PLANNING_DIR=`pwd`
 mkdir e2e && cd e2e
 git clone https://github.com/superdesk/superdesk.git
 cd superdesk
-#git checkout planning-mvp
-git checkout master
+git checkout planning-mvp
+#git checkout master
 npm install --python=python2.7
 npm install -g grunt-cli
 export DISPLAY=:99.0 && /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1920x1080x24
