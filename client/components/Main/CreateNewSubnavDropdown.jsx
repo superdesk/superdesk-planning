@@ -12,6 +12,7 @@ export const CreateNewSubnavDropdown = ({addEvent, addPlanning, createPlanningOn
             label: gettext('Planning Item'),
             icon: 'icon-plus-sign icon--blue',
             action: addPlanning,
+            id: 'create_planning',
         });
     }
 
@@ -20,6 +21,7 @@ export const CreateNewSubnavDropdown = ({addEvent, addPlanning, createPlanningOn
             label: gettext('Event'),
             icon: 'icon-plus-sign icon--blue',
             action: addEvent,
+            id: 'create_event',
         });
     }
 

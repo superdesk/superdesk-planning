@@ -212,6 +212,7 @@ export class EditorHeader extends React.Component {
                 text: dirty ? gettext('Cancel') : gettext('Close'),
                 tabIndex: 0,
                 enterKeyIsClick: true,
+                id: 'close',
             },
         }, {
             state: 'canPost',
@@ -229,6 +230,7 @@ export class EditorHeader extends React.Component {
                 disabled: submitting,
                 onClick: dirty ? onSaveUnpost : onUnpost,
                 text: dirty ? gettext('Save & Unpost') : gettext('Unpost'),
+                id: 'unpost',
             },
         }, {
             state: 'showSave',
