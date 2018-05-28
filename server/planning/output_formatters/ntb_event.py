@@ -54,6 +54,7 @@ class NTBEventFormatter(Formatter):
         self._format_category(doc, item)
         self._format_subjects(doc, item)
         self._format_location(doc, item)
+        self._format_contactweb(doc, item)
 
     def _format_subjects(self, doc, item):
         subjects = etree.SubElement(doc, 'subjects')
@@ -101,6 +102,17 @@ class NTBEventFormatter(Formatter):
                             local_end_time.strftime(_pattern) == '23:59')
         alldayevent = etree.SubElement(doc, 'alldayevent')
         alldayevent.text = str(is_all_day_event)
+
+    def _format_contactweb(self, doc, item):
+        """
+        Checks if event contains external links, if so, adds `contactweb` tag with only first link included.
+
+        :param etree.Element doc: The xml document for publishing
+        :param dict item: Event item
+        """
+        if item.get('links'):
+            contactweb = etree.SubElement(doc, 'contactweb')
+            contactweb.text = item.get('links')[0]
 
     def _get_local_time(self, time, tz=None):
         if time is None:
