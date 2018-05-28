@@ -25,7 +25,7 @@ function resize(width, height) {
 }
 
 function openPlanning() {
-    return nav('/planning');
+    return nav('/workspace/monitoring');
 }
 
 module.exports.waitForElementByClassName = waitForElementByClassName;
