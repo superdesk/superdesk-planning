@@ -58,7 +58,7 @@ const fetchById = (itemType, itemId, tryServer = true) => (
         );
 
         if (autosaveItem || !tryServer) {
-            return Promise.resolve(autosaveItem || {});
+            return Promise.resolve(autosaveItem || null);
         }
 
         // Otherwise send an API request
@@ -114,7 +114,11 @@ const save = (item, action = 'edit', saveToServer = true) => (
         };
 
         if (itemType === ITEM_TYPE.EVENT) {
-            autosaveItem.location = autosaveItem.location ? [autosaveItem.location] : null;
+            autosaveItem.location = autosaveItem.location ? [autosaveItem.location] : [];
+
+            if (autosaveItem._planning_item === null) {
+                delete autosaveItem._planning_item;
+            }
         }
 
         // Push the changes to the local redux
@@ -183,16 +187,21 @@ const remove = (autosave) => (
  * The Autosave must be in the local Redux store to be removed
  * @param {string} itemType - The type of item to remove (ITEM_TYPE.EVENT/ITEM_TYPE.PLANNING)
  * @param {string} itemId - The ID of the item to remove the autosave for
+ * @param {boolean} tryServer - If true will try to fetch from the server
  */
-const removeById = (itemType, itemId) => (
+const removeById = (itemType, itemId, tryServer = true) => (
     (dispatch, getState, {notify}) => (
-        dispatch(self.fetchById(itemType, itemId))
-            .then((autosaveItem) => (
-                dispatch(self.remove({
-                    ...autosaveItem,
-                    _id: itemId,
-                }))
-            ), (error) => {
+        dispatch(self.fetchById(itemType, itemId, tryServer))
+            .then((autosaveItem) => {
+                if (autosaveItem) {
+                    dispatch(self.remove({
+                        ...autosaveItem,
+                        _id: itemId,
+                    }));
+                }
+
+                return Promise.resolve();
+            }, (error) => {
                 notify.error(
                     getErrorMessage(error, gettext('Failed to remove autosave. Not found'))
                 );

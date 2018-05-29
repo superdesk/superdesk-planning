@@ -66,7 +66,7 @@ export class Autosave extends React.Component {
 
         return this.props.load(props.formName, id)
             .then((changes) => {
-                this.changeValues(changes, props);
+                this.changeValues(changes || {}, props);
 
                 return Promise.resolve(changes);
             });
