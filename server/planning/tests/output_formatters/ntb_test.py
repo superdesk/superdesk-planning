@@ -27,7 +27,19 @@ class NTBEventTestCase(unittest.TestCase):
                 {'qcode': '05001000', 'name': 'adult education', 'parent': '0500000'},
             ],
             'location': [
-                {'location': {'lon': 14.4212535, 'lat': 50.0874654}, 'name': 'Prague'},
+                {
+                    'location': {'lon': 14.4212535, 'lat': 50.0874654},
+                    'name': 'Prague',
+                    'address': {
+                        'area': 'Old Town',
+                        'country': 'Czechia',
+                        'locality': 'Prague',
+                        'postal_code': '11000',
+                        'line': [
+                            '1092/10 Salvatorska street'
+                        ]
+                    }
+                },
             ],
             'links': [
                 'http://example.com',
@@ -49,7 +61,6 @@ class NTBEventTestCase(unittest.TestCase):
         self.assertEqual(self.item['name'], root.find('title').text)
         self.assertEqual('2016-10-31T10:33:40', root.find('time').text)  # utc + 1
         self.assertEqual('NBRP161031_092725_hh_00', root.find('ntbId').text)
-        self.assertEqual('Prague', root.find('location').text)
         self.assertEqual('2016-11-01T00:00:00', root.find('timeStart').text)
         self.assertEqual('2016-11-01T23:59:59', root.find('timeEnd').text)
         self.assertEqual('5', root.find('priority').text)
@@ -133,3 +144,39 @@ class NTBEventTestCase(unittest.TestCase):
 
         # include only 1st external link
         self.assertEqual(contactweb.text, self.item['links'][0])
+
+    def test_location(self):
+        formatter = NTBEventFormatter()
+
+        # full address data
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        location = root.find('location')
+        self.assertEqual(
+            location.text,
+            'Prague, 1092/10 Salvatorska street, Old Town, Prague, 11000, Czechia'
+        )
+
+        # partly address data
+        del self.item['location'][0]['address']['line']
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        location = root.find('location')
+        self.assertEqual(
+            location.text,
+            'Prague, Old Town, Prague, 11000, Czechia'
+        )
+
+        # no address data
+        del self.item['location'][0]['address']
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        location = root.find('location')
+        self.assertEqual(location.text, 'Prague')
+
+        # empty location name and no address data
+        del self.item['location'][0]['name']
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        location = root.find('location')
+        self.assertIsNone(location.text)

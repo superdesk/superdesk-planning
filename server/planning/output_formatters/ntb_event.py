@@ -74,7 +74,18 @@ class NTBEventFormatter(Formatter):
         longitude = etree.SubElement(geo, 'longitude')
         if item.get('location'):
             item_loc = item['location'][0]
-            location.text = item_loc.get('name', '')
+
+            location_chunks = []
+            location_chunks.append(item_loc.get('name', ''))
+            if 'address' in item_loc:
+                location_chunks.append(item_loc['address'].get('line', [''])[0])
+                location_chunks.append(item_loc['address'].get('area', ''))
+                location_chunks.append(item_loc['address'].get('locality', ''))
+                location_chunks.append(item_loc['address'].get('postal_code', ''))
+                location_chunks.append(item_loc['address'].get('country', ''))
+            # join non empty chunks together
+            location.text = ', '.join([chunk for chunk in location_chunks if chunk]).replace('\n', ' ')
+
             if item_loc.get('location'):
                 item_geo = item_loc.get('location', {})
                 latitude.text = str(item_geo.get('lat', ''))
