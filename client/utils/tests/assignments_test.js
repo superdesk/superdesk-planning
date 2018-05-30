@@ -29,79 +29,100 @@ describe('can edit assignment', () => {
         };
     });
 
-    const canEditAssignment = () => utils.assignmentUtils.canEditAssignment(
-        assignment, session, privileges
-    );
     const canStartWorking = () => utils.assignmentUtils.canStartWorking(
         assignment, session, privileges
     );
     const canCompleteAssignment = () => utils.assignmentUtils.canCompleteAssignment(
         assignment, session, privileges
     );
-    const isAssignmentInEditableState = () => utils.assignmentUtils.isAssignmentInEditableState(
-        assignment
-    );
 
-    const canRemoveAssignment = () => utils.assignmentUtils.canRemoveAssignment(
-        assignment, session, privileges
+    const canRemoveAssignment = () => utils.assignmentUtils.canEditAssignment(
+        assignment, session, privileges, PRIVILEGES.PLANNING_MANAGEMENT
     );
 
     const assignmentHasContent = () => utils.assignmentUtils.assignmentHasContent(
         assignment
     );
 
+    const canReassign = () => utils.assignmentUtils.canEditAssignment(
+        assignment, session, privileges, PRIVILEGES.ARCHIVE
+    );
+    const canEditPriority = () => utils.assignmentUtils.canEditAssignment(
+        assignment, session, privileges, PRIVILEGES.ARCHIVE
+    );
+    const canConfirmAvailability = () => utils.assignmentUtils.canConfirmAvailability(
+        assignment, session, privileges
+    );
+    const canRevertAvailability = () => utils.assignmentUtils.canRevertAssignment(
+        assignment, session, privileges
+    );
+
     it('no privileges', () => {
         privileges.planning_planning_management = 0;
         privileges.archive = 0;
-        expect(canEditAssignment()).toBe(false);
         expect(canStartWorking()).toBe(false);
         expect(canCompleteAssignment()).toBe(false);
+        expect(canRemoveAssignment()).toBe(false);
+        expect(canReassign()).toBe(false);
+        expect(canEditPriority()).toBe(false);
+        expect(canConfirmAvailability()).toBe(false);
+        expect(canRevertAvailability()).toBe(false);
     });
 
     describe('workflow state', () => {
         it('assignment workflow state is `assigned`', () => {
             assignment.assigned_to.state = 'assigned';
-            expect(canEditAssignment()).toBe(true);
             expect(canStartWorking()).toBe(true);
-            expect(isAssignmentInEditableState()).toBe(true);
             expect(canCompleteAssignment()).toBe(false);
             expect(canRemoveAssignment()).toBe(true);
+            expect(canReassign()).toBe(true);
+            expect(canEditPriority()).toBe(true);
+            expect(canConfirmAvailability()).toBe(false);
+            expect(canRevertAvailability()).toBe(false);
         });
 
         it('assignment workflow state is `in_progress`', () => {
             assignment.assigned_to.state = 'in_progress';
-            expect(canEditAssignment()).toBe(true);
             expect(canStartWorking()).toBe(false);
-            expect(isAssignmentInEditableState()).toBe(true);
             expect(canCompleteAssignment()).toBe(true);
             expect(canRemoveAssignment()).toBe(true);
+            expect(canReassign()).toBe(true);
+            expect(canEditPriority()).toBe(true);
+            expect(canConfirmAvailability()).toBe(false);
+            expect(canRevertAvailability()).toBe(false);
         });
 
         it('assignment workflow state is `completed`', () => {
             assignment.assigned_to.state = 'completed';
-            expect(canEditAssignment()).toBe(false);
             expect(canStartWorking()).toBe(false);
-            expect(isAssignmentInEditableState()).toBe(false);
             expect(canCompleteAssignment()).toBe(false);
             expect(canRemoveAssignment()).toBe(false);
+            expect(canReassign()).toBe(false);
+            expect(canEditPriority()).toBe(false);
+            expect(canConfirmAvailability()).toBe(false);
+            expect(canRevertAvailability()).toBe(false);
         });
 
         it('assignment workflow state is `submitted`', () => {
             assignment.assigned_to.state = 'submitted';
-            expect(canEditAssignment()).toBe(true);
             expect(canStartWorking()).toBe(false);
-            expect(isAssignmentInEditableState()).toBe(true);
             expect(canCompleteAssignment()).toBe(false);
             expect(canRemoveAssignment()).toBe(true);
+            expect(canReassign()).toBe(true);
+            expect(canEditPriority()).toBe(true);
+            expect(canConfirmAvailability()).toBe(false);
+            expect(canRevertAvailability()).toBe(false);
         });
 
         it('assignment workflow state is `cancelled`', () => {
             assignment.assigned_to.state = 'cancelled';
-            expect(canEditAssignment()).toBe(false);
             expect(canStartWorking()).toBe(false);
-            expect(isAssignmentInEditableState()).toBe(false);
             expect(canCompleteAssignment()).toBe(false);
             expect(canRemoveAssignment()).toBe(false);
+            expect(canReassign()).toBe(false);
+            expect(canEditPriority()).toBe(false);
+            expect(canConfirmAvailability()).toBe(false);
+            expect(canRevertAvailability()).toBe(false);
         });
     });
 
@@ -126,7 +147,6 @@ describe('can edit assignment', () => {
     describe('locks', () => {
         it('locked by another use', () => {
             assignment.lock_user = 'ident2';
-            expect(canEditAssignment()).toBe(false);
             expect(canStartWorking()).toBe(false);
             expect(canCompleteAssignment()).toBe(false);
         });
@@ -134,7 +154,6 @@ describe('can edit assignment', () => {
         it('locked by the same user in another session', () => {
             assignment.lock_user = 'ident1';
             assignment.lock_session = 'session2';
-            expect(canEditAssignment()).toBe(false);
             expect(canStartWorking()).toBe(false);
             expect(canCompleteAssignment()).toBe(false);
         });
@@ -142,7 +161,6 @@ describe('can edit assignment', () => {
         it('locked by the same user in the same session', () => {
             assignment.lock_user = 'ident1';
             assignment.lock_session = 'session1';
-            expect(canEditAssignment()).toBe(true);
             expect(canStartWorking()).toBe(false);
             expect(canCompleteAssignment()).toBe(false);
         });

@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {get} from 'lodash';
+import moment from 'moment';
 
 import {assignmentUtils, planningUtils, gettext} from '../../../utils';
 
@@ -41,6 +42,8 @@ export const AssignmentPreviewHeader = ({
         assignedUserName,
         assignedDeskName,
     } = assignmentUtils.getAssignmentInfo(assignment, users, desks);
+
+    const planningSchedule = get(assignment, 'planning.scheduled');
 
     return (
         <div>
@@ -110,7 +113,7 @@ export const AssignmentPreviewHeader = ({
                                     {gettext('Due:')}
                                 </span>
                                 <AbsoluteDate
-                                    date={get(assignment, 'planning.scheduled', '').toString()}
+                                    date={moment(planningSchedule).format()}
                                     noDateString={gettext('\'not scheduled yet\'')}
                                 />
                             </Row>
