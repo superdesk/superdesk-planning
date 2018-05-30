@@ -1,9 +1,32 @@
+@import '~superdesk-ui-framework/app/styles/_variables.scss';
+
 .AddToPlanning {
     display: flex;
     flex-direction: column;
     height: 100%;
+    overflow: auto;
 
     .sd-list-item {
         margin: 1rem;
+    }
+
+    .sd-column-box__main-column__listpanel {
+        .sd-column-box__main-column__items {
+            padding-bottom: 2.6rem !important;
+            // 96px = modal header + footer height
+            // 80px = top + bottom space for modal type .modal--fill
+            height: calc(100vh - (#{$nav-height} + #{$subnav-height} * 2 + 96px + 80px)); 
+        }
+	}
+
+    .sd-page-content--slide-in {
+        .sd-page-content__content-block--main {
+            width: calc(100vw - 8.0rem) !important;
+        }
+        &--open {
+            .sd-page-content__content-block--main {
+                width: calc(100vw - 60.8rem) !important;
+            }
+        }
     }
 }
