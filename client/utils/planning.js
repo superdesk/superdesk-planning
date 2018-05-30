@@ -25,7 +25,7 @@ import {
     isDateInRange,
     gettext,
     getEnabledAgendas,
-    stringUtils,
+    isExistingItem,
 } from './index';
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
@@ -275,8 +275,9 @@ const getPlanningActions = ({
     privileges,
     lockedItems,
     agendas,
-    callBacks}) => {
-    if (!get(item, '_id')) {
+    callBacks,
+    contentTypes}) => {
+    if (!isExistingItem(item)) {
         return [];
     }
 
@@ -289,13 +290,13 @@ const getPlanningActions = ({
     Object.keys(callBacks).forEach((callBackName) => {
         switch (callBackName) {
         case PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName:
-            Object.keys(PLANNING.G2_CONTENT_TYPE).forEach((type) => {
-                addCoverageCallBacks.push({
-                    label: stringUtils.firstCharUpperCase(PLANNING.G2_CONTENT_TYPE[type].replace('_', ' ')),
-                    icon: self.getCoverageIcon(PLANNING.G2_CONTENT_TYPE[type]),
-                    callback: callBacks[callBackName].bind(null, PLANNING.G2_CONTENT_TYPE[type]),
-                });
-            });
+            addCoverageCallBacks = contentTypes.map((c) => (
+                {
+                    label: c.name,
+                    icon: self.getCoverageIcon(c.qcode),
+                    action: callBacks[callBackName].bind(null, c.qcode),
+                }
+            ));
 
             addCoverageCallBacks.length > 0 && actions.push({
                 ...PLANNING.ITEM_ACTIONS.ADD_COVERAGE,

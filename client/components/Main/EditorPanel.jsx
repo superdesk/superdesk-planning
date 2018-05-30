@@ -19,6 +19,7 @@ const mapStateToProps = (state) => ({
     privileges: selectors.general.privileges(state),
     lockedItems: selectors.locks.getLockedItems(state),
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
+    contentTypes: selectors.general.contentTypes(state),
 });
 
 const mapStateToPropsModal = (state) => ({
@@ -35,6 +36,7 @@ const mapStateToPropsModal = (state) => ({
     lockedItems: selectors.locks.getLockedItems(state),
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     inModalView: !!selectors.forms.currentItemIdModal(state),
+    contentTypes: selectors.general.contentTypes(state),
 });
 
 

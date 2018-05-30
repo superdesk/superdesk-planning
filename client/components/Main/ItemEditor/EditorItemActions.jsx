@@ -15,6 +15,7 @@ export const EditorItemActions = ({
     lockedItems,
     itemActions,
     flushAutosave,
+    contentTypes,
 }) => {
     const itemType = getItemType(item);
 
@@ -80,7 +81,8 @@ export const EditorItemActions = ({
             session: session,
             privileges: privileges,
             lockedItems: lockedItems,
-            callBacks: itemActionsCallBack});
+            callBacks: itemActionsCallBack,
+            contentTypes: contentTypes});
     }
 
     if (actions.length === 0) {
@@ -104,5 +106,6 @@ EditorItemActions.propTypes = {
     lockedItems: PropTypes.object,
     itemActions: PropTypes.object,
     onAddCoverage: PropTypes.func,
+    contentTypes: PropTypes.array,
     flushAutosave: PropTypes.func,
 };
