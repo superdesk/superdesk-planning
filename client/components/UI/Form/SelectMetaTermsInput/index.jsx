@@ -69,8 +69,24 @@ export class SelectMetaTermsInput extends React.Component {
     }
 
     render() {
-        const {value, label, labelKey, searchKey, valueKey, popupContainer, readOnly, onFocus, ...props} = this.props;
+        const {
+            value,
+            label,
+            labelKey,
+            searchKey,
+            valueKey,
+            popupContainer,
+            readOnly,
+            onFocus,
+            scheme,
+            ...props
+        } = this.props;
         const options = this.removeValuesFromOptions();
+        let selected = value;
+
+        if (scheme) {
+            selected = selected.filter((val) => val.scheme === scheme);
+        }
 
         return (
             <LineInput
@@ -101,9 +117,9 @@ export class SelectMetaTermsInput extends React.Component {
                 <Label text={label} />
 
                 <div className="sd-line-input__input">
-                    {get(value, 'length', 0) > 0 && (
+                    {get(selected, 'length', 0) > 0 && (
                         <TermsList
-                            terms={value}
+                            terms={selected}
                             displayField={labelKey}
                             onClick={this.removeValue}
                             readOnly={readOnly}
@@ -113,7 +129,7 @@ export class SelectMetaTermsInput extends React.Component {
 
                 { this.state.openSelectPopup &&
                     <SelectFieldPopup
-                        value={value}
+                        value={selected}
                         multiLevel={this.state.multiLevel}
                         options={options}
                         onCancel={this.toggleOpenSelectPopup}
@@ -151,6 +167,7 @@ SelectMetaTermsInput.propTypes = {
     onChange: PropTypes.func,
     required: PropTypes.bool,
     field: PropTypes.string,
+    scheme: PropTypes.string,
     popupContainer: PropTypes.func,
     onFocus: PropTypes.func,
 };
@@ -160,4 +177,5 @@ SelectMetaTermsInput.defaultProps = {
     labelKey: 'name',
     valueKey: 'qcode',
     searchKey: 'name',
+    scheme: '',
 };

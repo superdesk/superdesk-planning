@@ -206,7 +206,7 @@ export class EventPreviewContentComponent extends React.Component {
                     />
                     <Row
                         enabled={get(formProfile, 'editor.anpa_category.enabled')}
-                        label={gettext('Category')}
+                        label={gettext('ANPA Category')}
                         value={categoryText}
                     />
                     <Row

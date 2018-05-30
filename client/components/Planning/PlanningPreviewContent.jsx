@@ -32,6 +32,7 @@ export class PlanningPreviewContentComponent extends React.Component {
             streetMapUrl,
             onEditEvent,
             lockedItems,
+            customVocabularies,
         } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
@@ -111,14 +112,31 @@ export class PlanningPreviewContentComponent extends React.Component {
                     />
                     <Row
                         enabled={get(formProfile, 'planning.editor.anpa_category.enabled')}
-                        label={gettext('Category')}
+                        label={gettext('ANPA Category')}
                         value={categoryText || ''}
                     />
-                    <Row
-                        enabled={get(formProfile, 'planning.editor.subject.enabled')}
-                        label={gettext('Subject')}
-                        value={subjectText || ''}
-                    />
+                    {!customVocabularies.length && (
+                        <Row
+                            enabled={get(formProfile, 'planning.editor.subject.enabled')}
+                            label={gettext('Subject')}
+                            value={subjectText || ''}
+                        />
+                    )}
+                    {customVocabularies.map((cv) => {
+                        const values = get(item, 'subject', []).filter((item) => item.scheme === cv._id);
+
+                        if (values.length) {
+                            return (
+                                <Row key={cv._id}
+                                    enabled={true}
+                                    label={cv.display_name}
+                                    value={values.map((item) => item.name).join(', ')}
+                                />
+                            );
+                        }
+
+                        return null;
+                    })}
                     <Row enabled={get(formProfile, 'planning.editor.urgency.enabled')}>
                         <ColouredValueInput
                             value={urgency}
@@ -179,6 +197,7 @@ PlanningPreviewContentComponent.propTypes = {
     urgencies: PropTypes.array,
     streetMapUrl: PropTypes.string,
     onEditEvent: PropTypes.func,
+    customVocabularies: PropTypes.array,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -196,6 +215,7 @@ const mapStateToProps = (state, ownProps) => ({
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     urgencies: selectors.getUrgencies(state),
     streetMapUrl: selectors.config.getStreetMapUrl(state),
+    customVocabularies: state.customVocabularies,
 });
 
 const mapDispatchToProps = (dispatch) => ({onEditEvent: (event) => (dispatch(actions.main.lockAndEdit(event)))});

@@ -108,6 +108,7 @@ Field.propTypes = {
     showErrors: PropTypes.bool,
     value: PropTypes.any,
     onFocus: PropTypes.func,
+    scheme: PropTypes.string,
 };
 
 Field.defaultProps = {
@@ -115,4 +116,5 @@ Field.defaultProps = {
     row: true,
     enabled: true,
     showErrors: false,
+    scheme: '',
 };
