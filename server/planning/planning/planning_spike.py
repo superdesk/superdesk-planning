@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from .planning import PlanningResource
-from planning.common import ITEM_EXPIRY, ITEM_STATE, set_item_expiry, WORKFLOW_STATE
+from planning.common import ITEM_EXPIRY, ITEM_STATE, set_item_expiry, WORKFLOW_STATE, get_coverage_type_name
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from apps.auth import get_user
@@ -63,7 +63,7 @@ class PlanningSpikeService(BaseService):
                                                           message='{{actioning_user}} has spiked a {{coverage_type}} '
                                                                   'coverage for \"{{slugline}}\"',
                                                           slugline=slugline,
-                                                          coverage_type=coverage_type,
+                                                          coverage_type=get_coverage_type_name(coverage_type),
                                                           actioning_user=user.get('display_name',
                                                                                   user.get('username', 'Unknown')),
                                                           omit_user=True)

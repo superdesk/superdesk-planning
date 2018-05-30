@@ -9,7 +9,7 @@ from copy import deepcopy
 from superdesk import Resource, Service, get_resource_service
 from superdesk.errors import SuperdeskApiError
 from eve.utils import config
-from planning.common import ASSIGNMENT_WORKFLOW_STATE
+from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_coverage_type_name
 from apps.content import push_content_notification
 from planning.item_lock import LOCK_USER, LOCK_SESSION
 from apps.archive.common import get_user, get_auth
@@ -61,7 +61,7 @@ class AssignmentsUnlinkService(Service):
                                                       actioning_user=user.get('display_name',
                                                                               user.get('username', 'Unknown')),
                                                       action='unlinked' if not spike else 'spiked',
-                                                      coverage_type=item.get('type', ''),
+                                                      coverage_type=get_coverage_type_name(item.get('type', '')),
                                                       slugline=item.get('slugline'),
                                                       omit_user=True)
 

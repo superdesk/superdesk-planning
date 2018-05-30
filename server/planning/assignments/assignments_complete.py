@@ -17,7 +17,7 @@ from eve.utils import config
 from copy import deepcopy
 from superdesk import get_resource_service
 from .assignments import AssignmentsResource, assignments_schema, AssignmentsService
-from planning.common import ASSIGNMENT_WORKFLOW_STATE, remove_lock_information
+from planning.common import ASSIGNMENT_WORKFLOW_STATE, remove_lock_information, get_coverage_type_name
 from planning.planning_notifications import PlanningNotifications
 
 
@@ -90,7 +90,8 @@ class AssignmentsCompleteService(BaseService):
                                                   message='{{coverage_type}} coverage \"{{slugline}}\" has been '
                                                           'completed by {{assignee}}',
                                                   assignee=assignee,
-                                                  coverage_type=original.get('planning', {}).get('g2_content_type', ''),
+                                                  coverage_type=get_coverage_type_name(
+                                                      original.get('planning', {}).get('g2_content_type', '')),
                                                   slugline=original.get('planning', {}).get('slugline'),
                                                   omit_user=True)
 
