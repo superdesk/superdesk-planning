@@ -30,6 +30,7 @@ from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
 from superdesk.utc import utc_to_local
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -309,8 +310,8 @@ class PlanningService(superdesk.Service):
                             slugline=coverage.get('planning', {}).get('slugline', ''),
                             internal_note=coverage.get('planning', {}).get('internal_note', ''))
                     # If the scheduled time for the coverage changes
-                    if coverage.get('planning', {}).get('scheduled', '') != original_coverage.get('planning', {}).get(
-                            'scheduled', ''):
+                    if coverage.get('planning', {}).get('scheduled', datetime.min).strftime('%c') != \
+                            original_coverage.get('planning', {}).get('scheduled', datetime.min).strftime('%c'):
                         message = 'Due time has been amended to {{due}} for {{coverage_type}} coverage \"{{slugline}}\"'
                         target_user = coverage.get('assigned_to', original_coverage.get('assigned_to', {})).get('user',
                                                                                                                 None)

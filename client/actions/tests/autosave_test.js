@@ -111,7 +111,7 @@ describe('actions.autosave', () => {
         it('fetchById without trying the server', (done) => (
             store.test(done, autosave.fetchById('event', 'e2', false))
                 .then((autosaveItem) => {
-                    expect(autosaveItem).toEqual({});
+                    expect(autosaveItem).toEqual(null);
                     expect(services.api('event_autosave').getById.callCount).toBe(0);
 
                     done();

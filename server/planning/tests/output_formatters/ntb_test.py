@@ -41,6 +41,10 @@ class NTBEventTestCase(unittest.TestCase):
                     }
                 },
             ],
+            'links': [
+                'http://example.com',
+                'https://github.com',
+            ]
         }
 
     def test_formatter(self):
@@ -147,3 +151,32 @@ class NTBEventTestCase(unittest.TestCase):
         root = lxml.etree.fromstring(output['encoded_item'])
         location = root.find('location')
         self.assertIsNone(location.text)
+
+    def test_contactweb_included(self):
+        formatter = NTBEventFormatter()
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        contactweb = root.find('contactweb')
+        contactweb_count = root.xpath('count(contactweb)')
+
+        self.assertIsNotNone(contactweb)
+        self.assertEqual(contactweb_count, 1)
+
+    def test_contactweb_not_included(self):
+        del self.item['links']
+
+        formatter = NTBEventFormatter()
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        contactweb = root.find('contactweb')
+
+        self.assertIsNone(contactweb)
+
+    def test_contactweb_text(self):
+        formatter = NTBEventFormatter()
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        contactweb = root.find('contactweb')
+
+        # include only 1st external link
+        self.assertEqual(contactweb.text, self.item['links'][0])

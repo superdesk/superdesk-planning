@@ -42,10 +42,7 @@ export function AddToPlanningComponent({
                 <h3>{gettext('Select an existing Planning Item or create a new one')}</h3>
             </Modal.Header>
 
-            <Modal.Body
-                noPadding={true}
-                fullHeight={true}
-            >
+            <Modal.Body noPadding fullHeight noScroll>
                 <div className="AddToPlanning">
                     <AddToPlanningApp addNewsItemToPlanning={newsItem} />
                 </div>

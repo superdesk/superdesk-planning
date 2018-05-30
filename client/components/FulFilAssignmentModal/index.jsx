@@ -43,9 +43,7 @@ export function FulFilAssignmentComponent({
                 <h3>{gettext('Select an Assignment')}</h3>
             </Modal.Header>
 
-            <Modal.Body
-                noPadding={true}
-                fullHeight={true}
+            <Modal.Body noPadding fullHeight noScroll
             >
                 <div className="FulfilAssignment">
                     <FulfilAssignmentApp newsItem={newsItem}/>

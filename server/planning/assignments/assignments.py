@@ -804,8 +804,8 @@ class AssignmentsResource(superdesk.Resource):
     schema = assignments_schema
     resource_methods = ['GET']
     item_methods = ['GET', 'PATCH', 'DELETE']
-    privileges = {'PATCH': 'planning',
-                  'DELETE': 'planning'}
+    privileges = {'PATCH': 'archive',
+                  'DELETE': 'planning_planning_management'}
 
     mongo_indexes = {
         'coverage_item_1': ([('coverage_item', 1)], {'background': True}),
