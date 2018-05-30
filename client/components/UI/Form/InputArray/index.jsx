@@ -18,6 +18,7 @@ export const InputArray = ({
     value,
     onChange,
     addButtonComponent,
+    addButtonProps,
     addButtonText,
     maxCount,
     addOnly,
@@ -49,7 +50,8 @@ export const InputArray = ({
 
     const showAddButton = (maxCount ? value.length < maxCount : true) && !readOnly;
     const isIndexReadOnly = (index) => (addOnly && index === originalCount) ? false : readOnly;
-    const customButton = addButtonComponent ? React.createElement(addButtonComponent, {onAdd: add}) : false;
+    const customButton = addButtonComponent ? React.createElement(addButtonComponent,
+        {...addButtonProps, onAdd: add}) : false;
     let addButton = row ? (customButton || <Button onClick={add} text={addButtonText} />) :
         (customButton || <Button onClick={add} text={addButtonText} tabIndex={0} enterKeyIsClick/>);
 
@@ -142,6 +144,7 @@ InputArray.propTypes = {
         PropTypes.func,
         PropTypes.object,
     ]),
+    addButtonProps: PropTypes.object,
     labelClassName: PropTypes.string,
 };
 

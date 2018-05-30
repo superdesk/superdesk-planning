@@ -304,6 +304,7 @@ export class EditorHeader extends React.Component {
             hideExternalEdit,
             closeEditorAndOpenModal,
             flushAutosave,
+            contentTypes,
         } = this.props;
 
         const states = this.getItemStates();
@@ -342,6 +343,7 @@ export class EditorHeader extends React.Component {
                         privileges={privileges}
                         lockedItems={lockedItems}
                         flushAutosave={flushAutosave}
+                        contentTypes={contentTypes}
                     />
                 )}
             </Header>
@@ -381,4 +383,5 @@ EditorHeader.propTypes = {
     hideExternalEdit: PropTypes.bool,
     onAddCoverage: PropTypes.func,
     flushAutosave: PropTypes.func,
+    contentTypes: PropTypes.array,
 };

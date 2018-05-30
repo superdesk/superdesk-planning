@@ -48,6 +48,7 @@ export const CoverageArrayInput = ({
                 navigation={navigation}
                 addButtonText={addButtonText}
                 addButtonComponent={CoverageAddButton}
+                addButtonProps={{contentTypes: contentTypes}}
                 element={CoverageEditor}
                 users={users}
                 desks={desks}
