@@ -76,7 +76,11 @@ const unlock = (item) => (
             break;
         }
 
-        return promise.then(() => dispatch(autosave.removeById(currentLock.item_type, currentLock.item_id)));
+        return promise.then(() => dispatch(autosave.removeById(
+            currentLock.item_type,
+            currentLock.item_id,
+            false // Don't attempt to get the autosave from the server
+        )));
     }
 );
 
