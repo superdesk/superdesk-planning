@@ -313,6 +313,7 @@ export class PlanningEditorComponent extends React.Component {
             coverageProfile,
             lockedItems,
             navigation,
+            customVocabularies,
         } = this.props;
 
         const agendaValues = cloneDeep(get(diff, 'agendas', [])
@@ -454,14 +455,14 @@ export class PlanningEditorComponent extends React.Component {
                         <Field
                             component={SelectMetaTermsInput}
                             field="anpa_category"
-                            label={gettext('Category')}
+                            label={gettext('ANPA Category')}
                             options={categories}
                             defaultValue={[]}
                             {...fieldProps}
                             onFocus={onFocusDetails}
                         />
 
-                        <Field
+                        {!customVocabularies.length && <Field
                             component={SelectMetaTermsInput}
                             field="subject"
                             label={gettext('Subject')}
@@ -469,7 +470,20 @@ export class PlanningEditorComponent extends React.Component {
                             defaultValue={[]}
                             {...fieldProps}
                             onFocus={onFocusDetails}
-                        />
+                        />}
+
+                        {customVocabularies.map((cv) => (
+                            <Field key={cv._id}
+                                component={SelectMetaTermsInput}
+                                field="subject"
+                                label={gettext(cv.display_name)}
+                                options={cv.items.map((item) => Object.assign({scheme: cv._id}, item))}
+                                defaultValue={[]}
+                                {...fieldProps}
+                                onFocus={onFocusDetails}
+                                scheme={cv._id}
+                            />
+                        ))}
 
                         <Field
                             component={ColouredValueInput}
@@ -585,6 +599,7 @@ PlanningEditorComponent.propTypes = {
     removeAssignment: PropTypes.func,
     navigation: PropTypes.object,
     eventModal: PropTypes.object,
+    customVocabularies: PropTypes.array,
 };
 
 PlanningEditorComponent.defaultProps = {
@@ -617,6 +632,7 @@ const mapStateToProps = (state) => ({
     defaultGenre: selectors.config.getDefaultGenre(state),
     currentAgenda: selectors.planning.currentAgenda(state),
     lockedItems: selectors.locks.getLockedItems(state),
+    customVocabularies: state.customVocabularies,
 });
 
 const mapDispatchToProps = (dispatch) => ({

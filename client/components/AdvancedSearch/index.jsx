@@ -164,7 +164,7 @@ export class AdvancedSearch extends React.Component {
                 anpa_category: {
                     props: {
                         field: 'advancedSearch.anpa_category',
-                        label: gettext('Category'),
+                        label: gettext('ANPA Category'),
                         value: get(diff, 'advancedSearch.anpa_category', []),
                         options: categories,
                     },
