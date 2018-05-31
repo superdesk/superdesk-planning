@@ -115,6 +115,9 @@ export class EditorModalComponent extends React.Component {
                 xLarge
             >
                 <Modal.Header>
+                    <a className="close" onClick={this.props.handleHide}>
+                        <i className="icon-close-small" />
+                    </a>
                     <h3>{gettext('Editor')}</h3>
                 </Modal.Header>
 
