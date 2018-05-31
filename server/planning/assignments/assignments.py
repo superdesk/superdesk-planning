@@ -30,7 +30,7 @@ from apps.common.components.utils import get_component
 from planning.item_lock import LockService, LOCK_USER
 from superdesk.users.services import current_user_has_privilege
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information, \
-    get_local_end_of_day, is_locked_in_this_session
+    get_local_end_of_day, is_locked_in_this_session, get_coverage_type_name
 from flask import request, json, current_app as app
 from planning.planning_notifications import PlanningNotifications
 from apps.content import push_content_notification
@@ -285,7 +285,7 @@ class AssignmentsService(superdesk.Service):
                     PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
                                                               message=message,
                                                               meta_message=meta_message,
-                                                              coverage_type=coverage_type,
+                                                              coverage_type=get_coverage_type_name(coverage_type),
                                                               slugline=slugline,
                                                               desk=desk_name,
                                                               client_url=client_url,
@@ -305,35 +305,37 @@ class AssignmentsService(superdesk.Service):
                                                                                     _id=assigned_from.get('user'))
                         old_assignee = assigned_from_user.get('display_name') if assigned_from_user else None
                         message = '{{coverage_type}} coverage \"{{slugline}}\" has been reassigned ' \
-                                  'to {{assignee}} ({{desk}}) from {{old_assignee}} ({{old_desk}})'
+                                  'to {{assignee}} ({{desk}}) from {{old_assignee}} ({{old_desk}}) by {{assignor}}'
                         PlanningNotifications().notify_assignment(target_desk=assigned_to.get('desk'),
                                                                   target_desk2=original.get('assigned_to').get('desk'),
                                                                   message=message,
                                                                   meta_message=meta_message,
-                                                                  coverage_type=coverage_type,
+                                                                  coverage_type=get_coverage_type_name(coverage_type),
                                                                   slugline=slugline,
                                                                   assignee=assignee,
                                                                   desk=desk_name,
                                                                   old_assignee=old_assignee,
                                                                   client_url=client_url,
                                                                   assignment_id=assignment_id,
-                                                                  old_desk=desk_from_name)
+                                                                  old_desk=desk_from_name,
+                                                                  assignor=user.get('display_name'))
                     else:
                         # it is being reassigned by someone else so notify both the new assignee and the old
                         message = '{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to {{assignee}} ' \
-                                  'on desk ({{desk}})'
+                                  'on desk ({{desk}}) by {{assignor}}'
                         PlanningNotifications().notify_assignment(target_user=original.get('assigned_to').get('user'),
                                                                   target_desk=original.get('assigned_to').get(
                                                                       'desk') if original.get('assigned_to').get(
                                                                       'user') is None else None,
                                                                   message=message,
                                                                   meta_message=meta_message,
-                                                                  coverage_type=coverage_type,
+                                                                  coverage_type=get_coverage_type_name(coverage_type),
                                                                   slugline=slugline,
                                                                   assignee=assignee,
                                                                   client_url=client_url,
                                                                   assignment_id=assignment_id,
-                                                                  desk=desk_name)
+                                                                  desk=desk_name,
+                                                                  assignor=user.get('display_name'))
                         # notify the assignee
                         message = '{{coverage_type}} coverage \"{{slugline}}\" has been reassigned' \
                                   '{{old_assignee}} to you on desk ({{desk}}) '
@@ -344,7 +346,7 @@ class AssignmentsService(superdesk.Service):
                         PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
                                                                   message=message,
                                                                   meta_message=meta_message,
-                                                                  coverage_type=coverage_type,
+                                                                  coverage_type=get_coverage_type_name(coverage_type),
                                                                   slugline=slugline,
                                                                   old_assignee=' from ' + old_assignee
                                                                   if old_assignee else '',
@@ -354,17 +356,17 @@ class AssignmentsService(superdesk.Service):
             else:  # A new assignment
                 # notify the user the assignment has been made to
                 PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
-                                                          message='{{assignor}} assigned a coverage to {{assignee}}',
+                                                          message='You have been assigned \"{{coverage_type}}\" '
+                                                                  'coverage \"{{slugline}}\" {{assignor}}',
                                                           meta_message=meta_message,
+                                                          coverage_type=get_coverage_type_name(coverage_type),
                                                           slugline=slugline,
                                                           client_url=client_url,
                                                           assignment_id=assignment_id,
-                                                          assignor=user.get('display_name')
+                                                          assignor='by ' + user.get('display_name', '')
                                                           if str(user.get(config.ID_FIELD, None)) != assigned_to.get(
-                                                              'user') else 'You',
-                                                          assignee='you'
-                                                          if str(user.get(config.ID_FIELD, None)) != assigned_to.get(
-                                                              'user') else 'yourself')
+                                                              'user', '') else 'to yourself',
+                                                          omit_user=True)
         else:  # Assigned/Reassigned to a desk, notify all desk members
             # if it was assigned to a desk before, test if there has been a change of desk
             if original.get('assigned_to') and original.get('assigned_to').get('desk') != updates.get(
@@ -380,7 +382,7 @@ class AssignmentsService(superdesk.Service):
                                                           target_desk2=original.get('assigned_to').get('desk'),
                                                           message=message,
                                                           meta_message=meta_message,
-                                                          coverage_type=coverage_type,
+                                                          coverage_type=get_coverage_type_name(coverage_type),
                                                           slugline=slugline,
                                                           desk=desk_name,
                                                           client_url=client_url,
@@ -388,15 +390,16 @@ class AssignmentsService(superdesk.Service):
                                                           from_desk=desk_from_name)
             else:
                 assign_type = 'reassigned' if original.get('assigned_to') else 'assigned'
-                message = '{{coverage_type}} coverage \"{{slugline}}\" {{assign_type}} to desk {{desk}}'
+                message = '{{coverage_type}} coverage \"{{slugline}}\" {{assign_type}} to desk {{desk}} by {{assignor}}'
                 PlanningNotifications().notify_assignment(target_desk=assigned_to.get('desk'), message=message,
                                                           meta_message=meta_message,
-                                                          coverage_type=coverage_type,
+                                                          coverage_type=get_coverage_type_name(coverage_type),
                                                           slugline=slugline,
                                                           assign_type=assign_type,
                                                           client_url=client_url,
                                                           assignment_id=assignment_id,
-                                                          desk=desk_name)
+                                                          desk=desk_name,
+                                                          assignor=user.get('display_name'))
 
     def send_assignment_cancellation_notification(self, assignment, original_state, event_cancellation=False):
         """Set the assignment information and send notification
@@ -420,7 +423,7 @@ class AssignmentsService(superdesk.Service):
                                                       message='The event associated with {{coverage_type}} coverage '
                                                               '\"{{slugline}}\" has been marked as cancelled',
                                                       slugline=slugline,
-                                                      coverage_type=coverage_type)
+                                                      coverage_type=get_coverage_type_name(coverage_type))
             return
         PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
                                                   target_desk=assigned_to.get('desk') if not assigned_to.get(

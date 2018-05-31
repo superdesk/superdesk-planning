@@ -25,7 +25,7 @@ from apps.archive.common import set_original_creator, get_user, get_auth
 from copy import deepcopy
 from eve.utils import config, ParsedRequest
 from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, get_coverage_cancellation_state,\
-    remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item
+    remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name
 from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
@@ -261,7 +261,7 @@ class PlanningService(superdesk.Service):
 
         if not updates.get('coverages'):
             # If the description text has changed, make sure to update the assignment(s)
-            if updates.get('description_text'):
+            if updates.get('description_text') or updates.get('internal_note'):
                 for coverage in (original.get('coverages') or []):
                     self._create_update_assignment(original, updates, coverage, coverage)
             return
@@ -306,7 +306,8 @@ class PlanningService(superdesk.Service):
                             target_desk=target_desk if target_user is None else None,
                             target_user=target_user,
                             message=message,
-                            coverage_type=coverage.get('planning', {}).get('g2_content_type', ''),
+                            coverage_type=get_coverage_type_name(
+                                coverage.get('planning', {}).get('g2_content_type', '')),
                             slugline=coverage.get('planning', {}).get('slugline', ''),
                             internal_note=coverage.get('planning', {}).get('internal_note', ''))
                     # If the scheduled time for the coverage changes
@@ -324,7 +325,8 @@ class PlanningService(superdesk.Service):
                             message=message,
                             due=utc_to_local(app.config['DEFAULT_TIMEZONE'],
                                              coverage.get('planning', {}).get('scheduled')).strftime('%c'),
-                            coverage_type=coverage.get('planning', {}).get('g2_content_type', ''),
+                            coverage_type=get_coverage_type_name(
+                                coverage.get('planning', {}).get('g2_content_type', '')),
                             slugline=coverage.get('planning', {}).get('slugline', ''))
 
             self._create_update_assignment(original, updates, coverage, original_coverage)
@@ -469,6 +471,18 @@ class PlanningService(superdesk.Service):
             # If the Planning description has been changed
             if planning_original.get('description_text') != planning_updates.get('description_text'):
                 assignment['description_text'] = planning['description_text']
+
+            # If there has been a change in the planning internal note then notify the assigned users/desk
+            if planning_original.get('internal_note') != planning_updates.get('internal_note'):
+                message = '{{coverage_type}} coverage \"slugline\" planning internal note: {{internal_note}}'
+                PlanningNotifications().notify_assignment(
+                    coverage_status=updates.get('workflow_status'),
+                    target_desk=assigned_to.get('desk') if assigned_to.get('user') is None else None,
+                    target_user=assigned_to.get('user'),
+                    message=message,
+                    coverage_type=get_coverage_type_name(updates.get('planning', {}).get('g2_content_type', '')),
+                    slugline=planning.get('slugline', ''),
+                    internal_note=planning.get('internal_note', ''))
 
             # Update only if anything got modified
             if 'planning' in assignment or 'assigned_to' in assignment or 'description_text' in assignment:

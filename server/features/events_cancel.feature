@@ -395,7 +395,8 @@ Feature: Events Cancel
                 "coverage_id": "cov1",
                 "slugline": "TestCoverage 1",
                 "planning": {
-                    "internal_note": "Cover something please!"
+                    "internal_note": "Cover something please!",
+                    "g2_content_type": "text"
                 },
                 "planning_item": "plan1",
                 "news_coverage_status": {

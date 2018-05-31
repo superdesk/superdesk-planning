@@ -14,7 +14,7 @@ from apps.archive.common import get_user, get_auth
 from eve.utils import config
 from copy import deepcopy
 from .planning import PlanningResource, planning_schema
-from planning.common import WORKFLOW_STATE, ITEM_STATE
+from planning.common import WORKFLOW_STATE, ITEM_STATE, get_coverage_type_name
 from superdesk import get_resource_service
 from planning.planning_notifications import PlanningNotifications
 
@@ -105,4 +105,4 @@ Event has been postponed
                                                       message='The event associated with {{coverage_type}} coverage '
                                                               '\"{{slugline}}\" has been marked as postponed',
                                                       slugline=slugline,
-                                                      coverage_type=coverage_type)
+                                                      coverage_type=get_coverage_type_name(coverage_type))

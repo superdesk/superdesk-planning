@@ -1379,11 +1379,11 @@ Feature: Assignments
                  "resource":"assignments",
                  "user":"#CONTEXT_USER_ID#",
                  "data":{
-                    "assignee":"yourself",
-                    "assignor":"You"
+                    "assignor":"to yourself",
+                    "coverage_type": "text"
                  },
                  "user_name":"test_user",
-                 "message":"{{assignor}} assigned a coverage to {{assignee}}"
+                 "message":"You have been assigned \"{{coverage_type}}\" coverage \"{{slugline}}\" {{assignor}}"
               }
            ]
         }
@@ -1412,7 +1412,7 @@ Feature: Assignments
                  },
                  "resource":"assignments",
                  "user":"#CONTEXT_USER_ID#",
-                 "message":"{{coverage_type}} coverage \"{{slugline}}\" {{assign_type}} to desk {{desk}}",
+                 "message":"{{coverage_type}} coverage \"{{slugline}}\" {{assign_type}} to desk {{desk}} by {{assignor}}",
                  "name":"update",
                  "recipients":[
                     {
@@ -1474,7 +1474,7 @@ Feature: Assignments
                         "assign_type" : "assigned",
                         "slugline" : "test slugline"
                     },
-                    "message" : "{{coverage_type}} coverage \"{{slugline}}\" {{assign_type}} to desk {{desk}}",
+                    "message" : "{{coverage_type}} coverage \"{{slugline}}\" {{assign_type}} to desk {{desk}} by {{assignor}}",
                     "name":"update",
                     "recipients":[
                        {
@@ -1513,7 +1513,7 @@ Feature: Assignments
                        "read":false
                     }
                  ],
-                 "message":"{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to {{assignee}} on desk ({{desk}})",
+                 "message":"{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to {{assignee}} on desk ({{desk}}) by {{assignor}}",
                  "data":{
                     "slugline":"test slugline",
                     "assignee":"test-user-2",
@@ -1622,7 +1622,7 @@ Feature: Assignments
                           "read":false
                        }
                     ],
-            "message" : "{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to {{assignee}} on desk ({{desk}})",
+            "message" : "{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to {{assignee}} on desk ({{desk}}) by {{assignor}}",
             "data" : {
                 "coverage_type" : "text",
                 "desk" : "Sports",
@@ -1805,7 +1805,7 @@ Feature: Assignments
                   "old_desk":"Sports",
                   "desk":"News"
                },
-               "message":"{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to {{assignee}} ({{desk}}) from {{old_assignee}} ({{old_desk}})"
+               "message":"{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to {{assignee}} ({{desk}}) from {{old_assignee}} ({{old_desk}}) by {{assignor}}"
             },
                         {
                "user_name":"test-user-2",
@@ -1823,7 +1823,7 @@ Feature: Assignments
                   "old_desk":"Sports",
                   "desk":"News"
                },
-               "message":"{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to {{assignee}} ({{desk}}) from {{old_assignee}} ({{old_desk}})"
+               "message":"{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to {{assignee}} ({{desk}}) from {{old_assignee}} ({{old_desk}}) by {{assignor}}"
             }
         ]}
         """

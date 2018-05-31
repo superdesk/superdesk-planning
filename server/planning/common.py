@@ -200,3 +200,19 @@ def update_post_item(updates, original):
                 'pubstatus': pub_status
             }
             item_post_service.post([doc])
+
+
+def get_coverage_type_name(qcode):
+    """
+    Given the qcode for a coverage type return the coresponding name
+
+    :param qcode:
+    :return: the name
+    """
+    coverage_types = get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
+
+    coverage_type = {}
+    if coverage_types:
+        coverage_type = next((x for x in coverage_types.get('items', []) if x['qcode'] == qcode), {})
+
+    return coverage_type.get('name', qcode)

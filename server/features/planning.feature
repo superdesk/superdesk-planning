@@ -733,10 +733,6 @@ Feature: Planning
                     "slugline": "test slugline"
                  },
                  "recipients": [{"user_id": "507f191e810c19729de870eb"}]
-            },
-            {
-                "resource": "assignments",
-                "message": "{{assignor}} assigned a coverage to {{assignee}}"
             }
         ]}
         """
@@ -997,7 +993,7 @@ Feature: Planning
                 "activity": {
                     "message" : "{{coverage_type}} coverage \"slugline\": {{internal_note}}",
                     "data" : {
-                        "coverage_type" : "text",
+                        "coverage_type" : "Text",
                         "internal_note" : "Mostly harmless",
                         "slugline" : "test slugline"
                     }
@@ -1441,3 +1437,80 @@ Feature: Planning
         Then we get OK response
         When we get "assignments"
         Then we get list with 0 items
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Updating the internal note sends a notification to all coverages
+        Given "desks"
+        """
+        [{"_id": "desk_123", "name": "Politic Desk",
+         "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
+        Given "assignments"
+        """
+        [{
+          "_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
+          "planning": {
+              "ednote": "test coverage, I want 250 words",
+              "headline": "test headline",
+              "slugline": "test slugline",
+              "g2_content_type" : "text"
+          },
+          "assigned_to": {
+              "desk": "desk_123",
+              "user": "#CONTEXT_USER_ID#",
+              "state": "assigned"
+          }
+        }]
+        """
+        When we post to "planning" with success
+        """
+        [{
+          "guid": "123",
+          "headline": "test headline",
+          "slugline": "test slugline",
+          "state": "scheduled",
+          "pubstatus": "usable",
+          "internal_note": "Thanks for all the ",
+          "coverages": [
+              {
+                  "coverage_id": "cov_123",
+                  "planning": {
+                      "ednote": "test coverage, 250 words",
+                      "headline": "test headline",
+                      "slugline": "test slugline",
+                      "scheduled": "2029-11-21T14:00:00.000Z",
+                      "g2_content_type": "text",
+                      "internal_note": "Harmless"
+                  },
+                  "assigned_to": {
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
+                        "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
+                        "state": "assigned"
+                  },
+                  "workflow_status": "active"
+              }
+          ]
+        }]
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+          "internal_note": "Thanks for all the fish"
+        }
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "activity",
+            "extra": {
+                "activity": {
+                "message" : "{{coverage_type}} coverage \"slugline\" planning internal note: {{internal_note}}",
+                "user_name" : "test_user"
+                }
+            }
+        }]
+        """

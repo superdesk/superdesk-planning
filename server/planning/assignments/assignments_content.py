@@ -16,7 +16,7 @@ from apps.auth import get_user_id
 from apps.templates.content_templates import get_item_from_template
 from planning.planning import get_desk_template
 from superdesk.errors import SuperdeskApiError
-from planning.common import ASSIGNMENT_WORKFLOW_STATE
+from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_coverage_type_name
 from superdesk.utc import utcnow
 from planning.planning_notifications import PlanningNotifications
 from superdesk import get_resource_service
@@ -151,7 +151,7 @@ class AssignmentsContentService(superdesk.Service):
                                                       message='{{assignee}} has commenced work on {{coverage_type}}'
                                                               ' coverage \"{{slugline}}\"',
                                                       assignee=assignee,
-                                                      coverage_type=item.get('type', ''),
+                                                      coverage_type=get_coverage_type_name(item.get('type', '')),
                                                       slugline=item.get('slugline'),
                                                       omit_user=True)
             # Save history
