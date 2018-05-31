@@ -585,6 +585,7 @@ export class EditorComponent extends React.Component {
                     errors={this.state.errors}
                     session={this.props.session}
                     privileges={this.props.privileges}
+                    contentTypes={this.props.contentTypes}
                     lockedItems={this.props.lockedItems}
                     openCancelModal={this.props.openCancelModal}
                     closeEditorAndOpenModal={this.props.closeEditorAndOpenModal}
@@ -638,6 +639,7 @@ EditorComponent.propTypes = {
     hideMinimize: PropTypes.bool,
     createAndPost: PropTypes.bool,
     newsCoverageStatus: PropTypes.array,
+    contentTypes: PropTypes.array,
     onChange: PropTypes.func,
     onCancel: PropTypes.func,
     className: PropTypes.string,

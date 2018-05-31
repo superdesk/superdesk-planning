@@ -2,37 +2,16 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {gettext, planningUtils} from '../../utils';
-import {PLANNING} from '../../constants';
 import {Dropdown} from '../UI/SubNav';
 
-export const CoverageAddButton = ({onAdd}) => {
-    let items = [
+export const CoverageAddButton = ({onAdd, contentTypes}) => {
+    let items = contentTypes.map((c) => (
         {
-            label: PLANNING.G2_CONTENT_TYPE.TEXT,
-            icon: planningUtils.getCoverageIcon(PLANNING.G2_CONTENT_TYPE.TEXT),
-            action: onAdd.bind(null, PLANNING.G2_CONTENT_TYPE.TEXT),
-        },
-        {
-            label: PLANNING.G2_CONTENT_TYPE.VIDEO,
-            icon: planningUtils.getCoverageIcon(PLANNING.G2_CONTENT_TYPE.VIDEO),
-            action: onAdd.bind(null, PLANNING.G2_CONTENT_TYPE.VIDEO),
-        },
-        {
-            label: PLANNING.G2_CONTENT_TYPE.LIVE_VIDEO.replace('_', ' '),
-            icon: planningUtils.getCoverageIcon(PLANNING.G2_CONTENT_TYPE.LIVE_VIDEO),
-            action: onAdd.bind(null, PLANNING.G2_CONTENT_TYPE.LIVE_VIDEO),
-        },
-        {
-            label: PLANNING.G2_CONTENT_TYPE.AUDIO,
-            icon: planningUtils.getCoverageIcon(PLANNING.G2_CONTENT_TYPE.AUDIO),
-            action: onAdd.bind(null, PLANNING.G2_CONTENT_TYPE.AUDIO),
-        },
-        {
-            label: PLANNING.G2_CONTENT_TYPE.PICTURE,
-            icon: planningUtils.getCoverageIcon(PLANNING.G2_CONTENT_TYPE.PICTURE),
-            action: onAdd.bind(null, PLANNING.G2_CONTENT_TYPE.PICTURE),
-        },
-    ];
+            label: c.name,
+            icon: planningUtils.getCoverageIcon(c.qcode),
+            action: onAdd.bind(null, c.qcode),
+        }
+    ));
 
     return (
         <Dropdown
@@ -48,4 +27,7 @@ export const CoverageAddButton = ({onAdd}) => {
     );
 };
 
-CoverageAddButton.propTypes = {onAdd: PropTypes.func};
+CoverageAddButton.propTypes = {
+    onAdd: PropTypes.func,
+    contentTypes: PropTypes.array,
+};
