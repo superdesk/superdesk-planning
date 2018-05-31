@@ -212,6 +212,7 @@ export class EditorHeader extends React.Component {
                 text: dirty ? gettext('Cancel') : gettext('Close'),
                 tabIndex: 0,
                 enterKeyIsClick: true,
+                id: 'close',
             },
         }, {
             state: 'canPost',
@@ -220,6 +221,7 @@ export class EditorHeader extends React.Component {
                 disabled: submitting,
                 onClick: dirty ? onSaveAndPost : onPost,
                 text: dirty ? gettext('Save & Post') : gettext('Post'),
+                id: 'post',
             },
         }, {
             state: 'canUnpost',
@@ -229,6 +231,7 @@ export class EditorHeader extends React.Component {
                 disabled: submitting,
                 onClick: dirty ? onSaveUnpost : onUnpost,
                 text: dirty ? gettext('Save & Unpost') : gettext('Unpost'),
+                id: 'unpost',
             },
         }, {
             state: 'showSave',
@@ -238,6 +241,7 @@ export class EditorHeader extends React.Component {
                 onClick: onSave,
                 text: gettext('Save'),
                 enterKeyIsClick: true,
+                id: 'save',
             },
         }, {
             state: 'showUpdate',
@@ -256,6 +260,7 @@ export class EditorHeader extends React.Component {
                 onClick: onSave,
                 text: gettext('Create'),
                 enterKeyIsClick: true,
+                id: 'create',
             },
         }, {
             state: 'showCreateAndPost',

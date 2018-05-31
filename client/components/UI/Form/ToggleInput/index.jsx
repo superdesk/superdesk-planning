@@ -16,6 +16,7 @@ export const ToggleInput = ({field, label, value, onChange, readOnly, className,
     <LineInput {...props} readOnly={readOnly} labelLeftAuto={labelLeftAuto} className="sd-line-input__toggle">
         <Label text={label}/>
         <Toggle
+            field={field}
             value={value}
             onChange={(e) => onChange(field, e.target.value)}
             readOnly={readOnly}
