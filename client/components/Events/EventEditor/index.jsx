@@ -122,6 +122,7 @@ export class EventEditorComponent extends React.Component {
             createUploadLink,
             iframelyKey,
             users,
+            desks,
             timeFormat,
             dateFormat,
             readOnly,
@@ -364,25 +365,24 @@ export class EventEditorComponent extends React.Component {
                         />
                     </ToggleBox>
 
-                    <ToggleBox
-                        title="Related Planning Items"
-                        isOpen={editorMenuUtils.isOpen(navigation, 'plannings')}
-                        onClose={editorMenuUtils.onItemClose(navigation, 'plannings')}
-                        onOpen={editorMenuUtils.onItemOpen(navigation, 'plannings')}
-                        scrollInView={true}
-                        forceScroll={editorMenuUtils.forceScroll(navigation, 'plannings')}
-                        paddingTop={!!onFocusPlannings} >
-                        {get(relatedPlannings, 'length', 0) > 0 && (
-                            <RelatedPlannings
-                                plannings={relatedPlannings}
-                                openPlanningItem={true}
-                                onFocus={onFocusPlannings}
-                            />
-                        ) ||
-                        (
-                            <span className="sd-text__info">{gettext('No related planning items.')}</span>
-                        )}
-                    </ToggleBox>
+                    {relatedPlannings && (
+                        <h3 className="side-panel__heading side-panel__heading--big">
+                            {gettext('Related Planning Items')}
+                        </h3>
+                    )}
+                    {get(relatedPlannings, 'length', 0) > 0 && (
+                        <RelatedPlannings
+                            plannings={relatedPlannings}
+                            openPlanningItem={true}
+                            onFocus={onFocusPlannings}
+                            expandable={true}
+                            navigation={navigation}
+                            users={users}
+                            desks={desks}
+                            timeFormat={timeFormat}
+                            dateFormat={dateFormat}
+                        />
+                    )}
                 </ContentBlock>
             </div>
         );
@@ -404,6 +404,7 @@ EventEditorComponent.propTypes = {
     createUploadLink: PropTypes.func,
     iframelyKey: PropTypes.string,
     users: PropTypes.array,
+    desks: PropTypes.array,
     timeFormat: PropTypes.string.isRequired,
     dateFormat: PropTypes.string.isRequired,
     readOnly: PropTypes.bool,
@@ -433,6 +434,7 @@ const mapStateToProps = (state) => ({
     createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
     iframelyKey: selectors.config.getIframelyKey(state),
     users: selectors.general.users(state),
+    desks: selectors.general.desks(state),
     timeFormat: selectors.config.getTimeFormat(state),
     dateFormat: selectors.config.getDateFormat(state),
     plannings: selectors.events.getRelatedPlannings(state),

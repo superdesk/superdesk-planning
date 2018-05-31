@@ -2,11 +2,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {gettext} from '../../../utils';
+import {get} from 'lodash';
 import * as selectors from '../../../selectors';
 
 import {ContentBlock} from '../../UI/SidePanel';
 import {EventInfo} from './EventInfo';
 import {MenuItem} from '../../Main/ItemEditorModal/MenuItem';
+import {PlanningMetaData} from '../../RelatedPlannings/PlanningMetaData';
+import {Label} from '../../UI/Form';
 
 export class EventMenuPanelComponent extends React.Component {
     render() {
@@ -15,6 +18,9 @@ export class EventMenuPanelComponent extends React.Component {
             timeFormat,
             onMenuItemClick,
             activeItem,
+            users,
+            desks,
+            plannings,
         } = this.props;
 
         return (
@@ -37,9 +43,22 @@ export class EventMenuPanelComponent extends React.Component {
                 <MenuItem label={gettext('Links')}
                     onClick={onMenuItemClick.bind(null, 'links')}
                     active={activeItem === 'links'}/>
-                <MenuItem label={gettext('Related Planning')}
-                    onClick={onMenuItemClick.bind(null, 'plannings')}
-                    active={activeItem === 'plannings'}/>
+                {get(plannings, 'length', 0) > 0 && <Label row text={gettext('Related Plannings')} />}
+                {plannings && (
+                    plannings.map((plan, index) => (<PlanningMetaData
+                        key={index}
+                        field={`plannings[${index}]`}
+                        plan={plan}
+                        users={users}
+                        desks={desks}
+                        dateFormat={dateFormat}
+                        timeFormat={timeFormat}
+                        onClick={onMenuItemClick.bind(null, 'plannings[' + index + ']')}
+                        active={activeItem === 'plannings[' + index + ']'}
+                        noOpen
+                        tabEnabled
+                        scrollInView />)
+                    ))}
             </ContentBlock>
         );
     }
@@ -51,11 +70,17 @@ EventMenuPanelComponent.propTypes = {
     timeFormat: PropTypes.string,
     activeItem: PropTypes.string,
     onMenuItemClick: PropTypes.func,
+    plannings: PropTypes.array,
+    users: PropTypes.array,
+    desks: PropTypes.array,
 };
 
 const mapStateToProps = (state, ownProps) => ({
+    users: selectors.general.users(state),
+    desks: selectors.general.desks(state),
     dateFormat: selectors.config.getDateFormat(state),
     timeFormat: selectors.config.getTimeFormat(state),
+    plannings: selectors.events.getRelatedPlanningsForModalEvent(state),
 });
 
 export const EventMenuPanel = connect(mapStateToProps, null)(EventMenuPanelComponent);
