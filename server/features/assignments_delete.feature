@@ -148,6 +148,29 @@ Feature: Assignments Delete
         """
         {"assignment_id": "__none__"}
         """
+        When we get "/activity"
+        Then we get existing resource
+        """
+        {"_items": [
+           {
+                    "data" : {
+                    "slugline" : "test slugline",
+                    "coverage_type" : "text"
+                    },
+                    "message" : "The {{coverage_type}} assignment {{slugline}} has been removed",
+                    "name":"update",
+                    "recipients":[
+                       {
+                          "user_id":"#CONTEXT_USER_ID#",
+                          "read":false
+                       }
+                    ],
+                    "resource":"assignments",
+                    "user":"#CONTEXT_USER_ID#",
+                    "user_name":"test_user"
+                 }
+        ]}
+        """
 
     @auth
     Scenario: Locks must be held by the current user in the current session
