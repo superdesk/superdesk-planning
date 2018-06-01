@@ -27,13 +27,14 @@ from superdesk.utc import utcnow
 from planning.planning import coverage_schema
 from superdesk import get_resource_service
 from apps.common.components.utils import get_component
-from planning.item_lock import LockService, LOCK_USER
+from planning.item_lock import LockService, LOCK_USER, LOCK_ACTION
 from superdesk.users.services import current_user_has_privilege
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information, \
     get_local_end_of_day, is_locked_in_this_session, get_coverage_type_name
 from flask import request, json, current_app as app
 from planning.planning_notifications import PlanningNotifications
 from apps.content import push_content_notification
+from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
 
 
 logger = logging.getLogger(__name__)
@@ -225,8 +226,13 @@ class AssignmentsService(superdesk.Service):
             doc = deepcopy(original)
             doc.update(updates)
             self._send_assignment_creation_notification(doc)
-        else:
-            self.notify('assignments:updated', updates, original)
+            get_resource_service('assignments_history').on_item_updated(updates,
+                                                                        original,
+                                                                        ASSIGNMENT_HISTORY_ACTIONS.ADD_TO_WORKFLOW)
+        elif original.get(LOCK_ACTION) != 'content_edit' and \
+                updates.get('assigned_to') and updates.get('assigned_to').get('state')\
+                != ASSIGNMENT_WORKFLOW_STATE.cancelled:
+            app.on_updated_assignments(updates, original)
 
     def is_assignment_modified(self, updates, original):
         """Checks whether the assignment is modified or not"""
@@ -462,7 +468,7 @@ class AssignmentsService(superdesk.Service):
             # Save history
             get_resource_service('assignments_history').on_item_updated(updated_assignment,
                                                                         original_assignment,
-                                                                        'cancelled')
+                                                                        ASSIGNMENT_HISTORY_ACTIONS.CANCELLED)
             self.send_assignment_cancellation_notification(updated_assignment,
                                                            original_assignment.get('assigned_to')['state'],
                                                            event_cancellation)
@@ -531,7 +537,7 @@ class AssignmentsService(superdesk.Service):
                 self._update_assignment_and_notify(updated_assignment, assignment_update_data['assignment'])
                 get_resource_service('assignments_history').on_item_updated(updated_assignment,
                                                                             assignment_update_data.get('assignment'),
-                                                                            'submitted')
+                                                                            ASSIGNMENT_HISTORY_ACTIONS.SUBMITTED)
         elif operation == ITEM_PUBLISH:
             assignment_update_data = \
                 self._get_assignment_data_on_archive_update(updates, original)
@@ -544,7 +550,7 @@ class AssignmentsService(superdesk.Service):
                     get_resource_service('assignments_history').on_item_updated(
                         updated_assignment,
                         assignment_update_data.get('assignment'),
-                        'complete')
+                        ASSIGNMENT_HISTORY_ACTIONS.COMPLETE)
 
     def duplicate_assignment_on_create_archive_rewrite(self, items):
         """Duplicates the coverage/assignment for the archive rewrite

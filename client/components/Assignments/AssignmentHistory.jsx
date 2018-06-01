@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get, includes, isEqual} from 'lodash';
+import {get, isEqual} from 'lodash';
 
 import {getItemInArrayById, gettext} from '../../utils';
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
+import {ASSIGNMENTS} from '../../constants';
 
 import {AbsoluteDate} from '../';
 import {ContentBlock} from '../UI/SidePanel';
@@ -35,51 +36,81 @@ class AssignmentHistoryComponent extends React.Component {
         }
     }
 
+    transcribedHistoryAction(item) {
+        const {operation, update} = item;
+        let desk, user, prefix;
+        const suffix = operation === ASSIGNMENTS.HISTORY_ACTIONS.CREATE ? gettext(' created by ') :
+            gettext(' by ');
+
+        switch (operation) {
+        case ASSIGNMENTS.HISTORY_ACTIONS.CREATE:
+        case ASSIGNMENTS.HISTORY_ACTIONS.REASSIGNED:
+            desk = getItemInArrayById(this.props.desks, get(update, 'assigned_to.desk'));
+            user = getItemInArrayById(this.props.users, get(update, 'assigned_to.user'));
+            prefix = operation === ASSIGNMENTS.HISTORY_ACTIONS.CREATE ? gettext('Assignment for ') :
+                gettext('Coverage re-assigned to ');
+
+            if (user) {
+                return (<span>{prefix}<strong>{desk.name}</strong>
+                    {gettext(' and ')}<strong>{user.display_name}</strong>{suffix}</span>);
+            } else {
+                return (<span>{prefix}<strong>{desk.name}</strong>{suffix}</span>);
+            }
+
+        case ASSIGNMENTS.HISTORY_ACTIONS.EDIT_PRIORITY:
+            return (<span>{gettext('Priority modified to ')}<strong>{get(update, 'priority')}</strong>{suffix}</span>);
+
+        case ASSIGNMENTS.HISTORY_ACTIONS.COMPLETE:
+            return (<span><strong>{gettext('Completed ')}</strong>{suffix}</span>);
+
+        case ASSIGNMENTS.HISTORY_ACTIONS.CONFIRM:
+            return (<span>{gettext('Coverage availability ')}<strong>{gettext(' confirmed ')}</strong>{suffix}</span>);
+
+        case ASSIGNMENTS.HISTORY_ACTIONS.REVERT:
+            return (<span>{gettext('Coverage availability ')}<strong>{gettext(' reverted ')}</strong>{suffix}</span>);
+
+        case ASSIGNMENTS.HISTORY_ACTIONS.CONTENT_LINK:
+            return (<span><strong>{gettext('Content linked ')}</strong>{gettext('to coverage assignment by ')}</span>);
+
+        case ASSIGNMENTS.HISTORY_ACTIONS.ADD_TO_WORKFLOW:
+            return (<span>{gettext('Assignment ')}<strong>{gettext('added to workflow')}</strong>{suffix}</span>);
+
+        case ASSIGNMENTS.HISTORY_ACTIONS.SUBMITTED:
+            desk = getItemInArrayById(this.props.desks, get(update, 'assigned_to.desk'));
+            return (<span>{gettext('Assignment ')}<strong>{gettext('submitted')}</strong>
+                {gettext(' to ')}<strong>{desk.name}</strong>{suffix}</span>);
+
+        case ASSIGNMENTS.HISTORY_ACTIONS.CANCELLED:
+            return (<span>{gettext('Coverage ')}<strong>{gettext('cancelled')}</strong>{suffix}</span>);
+
+        case ASSIGNMENTS.HISTORY_ACTIONS.SPIKE_UNLINK:
+            return (<span>{gettext('Content ')}<strong>{gettext('spiked and unlinked')}</strong>{suffix}</span>);
+
+        case ASSIGNMENTS.HISTORY_ACTIONS.UNLINK:
+            return (<span><strong>{gettext('Content unlinked ')}</strong>{gettext('from coverage assignment by ')}
+            </span>);
+
+        case ASSIGNMENTS.HISTORY_ACTIONS.START_WORKING:
+            return (<span><strong>{gettext('Work started ')}</strong>{gettext('on assignment by ')}</span>);
+
+        default:
+            return null;
+        }
+    }
 
     render() {
         const getHistoryActionUserName = (userId) => getItemInArrayById(this.props.users, userId).display_name;
-        const allowedOperations = ['create', 'update', 'unlink', 'start_working', 'complete',
-            'content_link', 'cancelled', 'submitted', 'spike_unlink', 'revert'];
 
         return (
             <ContentBlock>
                 <ul className="history-list">
                     {this.props.assignmentHistoryItems.map((historyItem) => (
                         <li className="item" key={historyItem._id}>
-                            {
-                                this.props.users &&
-                                includes(allowedOperations, historyItem.operation) &&
-                                <div>
-                                    <strong>
-                                        {historyItem.operation === 'create' && gettext('Created by ')}
-                                        {historyItem.operation === 'update' && gettext('Updated by ')}
-                                        {historyItem.operation === 'unlink' && gettext('Content unlinked by ')}
-                                        {historyItem.operation === 'content_link' && gettext('Content linked by ')}
-                                        {historyItem.operation === 'start_working' && gettext('Work started by ')}
-                                        {historyItem.operation === 'complete' && gettext('Completed by ')}
-                                        {historyItem.operation === 'submitted' && gettext('Submitted by ')}
-                                        {historyItem.operation === 'cancelled' && gettext('Cancelled by ')}
-                                        {historyItem.operation === 'spike_unlink' &&
-                                            gettext('Content Unlinked and Spiked by ')}
-                                        {historyItem.operation === 'revert' &&
-                                            gettext('Availability reverted by ')}
-                                    </strong>
-
-                                    <span className="user-name">{getHistoryActionUserName(historyItem.user_id)}</span>
-                                    <em> <AbsoluteDate date={historyItem._created} /> </em>
-                                    <div>
-                                        {historyItem.operation === 'update' &&
-                                            <div className="more-description">
-                                                Updated Fields:
-                                                { // List updated fields as comma separated
-                                                    <span>&nbsp;{Object.keys(historyItem.update).map((field) => field)
-                                                        .join(', ')}</span>
-                                                }
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
-                            }
+                            <div>
+                                {this.transcribedHistoryAction(historyItem)}
+                                <span className="user-name">{getHistoryActionUserName(historyItem.user_id)}</span>
+                                <em> <AbsoluteDate date={historyItem._created} /> </em>
+                            </div>
                         </li>
                     ))}
                 </ul>
@@ -93,12 +124,14 @@ AssignmentHistoryComponent.propTypes = {
     fetchAssignmentHistory: PropTypes.func,
     assignmentHistoryItems: PropTypes.array,
     users: PropTypes.array,
+    desks: PropTypes.array,
 };
 
 AssignmentHistoryComponent.defaultProps = {assignmentHistoryItems: []};
 
 const mapStateToProps = (state) => ({
     users: selectors.general.users(state),
+    desks: selectors.general.desks(state),
     assignment: selectors.getCurrentAssignment(state),
     assignmentHistoryItems: selectors.getAssignmentHistory(state),
 });

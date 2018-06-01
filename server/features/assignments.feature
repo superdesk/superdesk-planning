@@ -352,12 +352,16 @@ Feature: Assignments
         }
         """
         When we get "/assignments_history"
-        Then we get list with 1 items
+        Then we get list with 2 items
         """
         {"_items": [
             {
                 "assignment_id": "#firstassignment#",
                 "operation": "create"
+            },
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "add_to_workflow"
             }
         ]}
         """
@@ -755,7 +759,7 @@ Feature: Assignments
         }
         """
         When we get "/assignments_history"
-        Then we get list with 3 items
+        Then we get list with 4 items
         """
         {"_items": [
             {
@@ -764,11 +768,15 @@ Feature: Assignments
             },
             {
                 "assignment_id": "#firstassignment#",
-                "operation": "update"
+                "operation": "content_link"
             },
             {
                 "assignment_id": "#firstassignment#",
-                "operation": "update"
+                "operation": "reassigned"
+            },
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "reassigned"
             }
         ]}
         """
@@ -991,7 +999,7 @@ Feature: Assignments
         """
         Then we get OK response
         When we get "/assignments_history"
-        Then we get list with 4 items
+        Then we get list with 5 items
         """
         {"_items": [
             {
@@ -1008,7 +1016,11 @@ Feature: Assignments
             },
             {
                 "assignment_id": "#firstassignment#",
-                "operation": "update"
+                "operation": "reassigned"
+            },
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "reassigned"
             }
         ]}
         """
@@ -1132,7 +1144,7 @@ Feature: Assignments
         }
         """
         When we get "/assignments_history"
-        Then we get list with 3 items
+        Then we get list with 4 items
         """
         {"_items": [
             {
@@ -1146,6 +1158,10 @@ Feature: Assignments
             {
                 "assignment_id": "#firstassignment#",
                 "operation": "submitted"
+            },
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "reassigned"
             }
         ]}
         """
