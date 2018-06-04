@@ -1,4 +1,4 @@
-import {isNil, zipObject, get} from 'lodash';
+import {isNil, zipObject, get, isEmpty} from 'lodash';
 import {createStore} from '../utils';
 import {ITEM_TYPE} from '../constants';
 
@@ -99,6 +99,10 @@ export function PlanningStoreService(
                 q: 'public:(1) is_active:(1)',
             }).then((items) => items),
         }).then((data) => {
+            const genres = metadata.values.genre_custom
+                ? metadata.values.genre_custom.map((item) => Object.assign({scheme: 'genre_custom'}, item))
+                : metadata.values.genre;
+
             const initialState = {
                 config: config,
                 deployConfig: deployConfig.config,
@@ -115,8 +119,8 @@ export function PlanningStoreService(
                         })),
                 },
                 privileges: data.privileges,
-                subjects: metadata.values.subject_custom || metadata.values.subjectcodes,
-                genres: metadata.values.genre_custom || metadata.values.genre,
+                subjects: metadata.values.subjectcodes,
+                genres: genres,
                 users: data.users,
                 desks: desks.desks._items,
                 templates: data.all_templates._items,
@@ -135,12 +139,14 @@ export function PlanningStoreService(
                 },
                 forms: {profiles: {}},
                 contacts: data.contacts._items,
+                customVocabularies: metadata.cvs.filter((cv) =>
+                    !isEmpty(cv.service) && get(cv, 'schema_field', 'subject') === 'subject' && isEmpty(cv.field_type)
+                ),
             };
 
             // use custom cvs if any
             angular.extend(initialState.vocabularies, {
-                categories: initialState.vocabularies.category || initialState.vocabularies.categories,
-                genre: initialState.vocabularies.genre_custom || initialState.vocabularies.genre,
+                genre: genres,
             });
 
             data.formsProfile._items.forEach((p) => {

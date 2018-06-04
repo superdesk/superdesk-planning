@@ -277,7 +277,7 @@ export class EventEditorComponent extends React.Component {
                         <Field
                             component={SelectMetaTermsInput}
                             field="anpa_category"
-                            label={gettext('Category')}
+                            label={gettext('ANPA Category')}
                             options={categories}
                             defaultValue={[]}
                             {...fieldProps}

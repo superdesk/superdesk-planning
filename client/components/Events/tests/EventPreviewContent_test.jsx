@@ -104,7 +104,7 @@ describe('<EventPreviewContent />', () => {
             .find('.form__row');
 
         verifyDataRow(eventDetailRows.at(0), 'Place', 'ACT');
-        verifyDataRow(eventDetailRows.at(1), 'Category', 'cat1');
+        verifyDataRow(eventDetailRows.at(1), 'ANPA Category', 'cat1');
         verifyDataRow(eventDetailRows.at(2), 'Subject', 'sub1');
         verifyDataRow(eventDetailRows.at(3), 'Long Description', 'long description');
         verifyDataRow(eventDetailRows.at(4), 'Internal Note', 'internal note');

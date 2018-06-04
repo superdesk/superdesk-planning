@@ -47,7 +47,7 @@ export const AssignmentPreview = ({
             />
             <Row
                 enabled={get(planningFormProfile, 'editor.anpa_category.enabled')}
-                label={gettext('Category')}
+                label={gettext('ANPA Category')}
                 value={categoryText}
             />
             <Row
