@@ -303,7 +303,7 @@ class AssignmentsService(superdesk.Service):
                         assigned_from = original.get('assigned_to')
                         assigned_from_user = get_resource_service('users').find_one(req=None,
                                                                                     _id=assigned_from.get('user'))
-                        old_assignee = assigned_from_user.get('display_name') if assigned_from_user else None
+                        old_assignee = assigned_from_user.get('display_name') if assigned_from_user else ''
                         message = '{{coverage_type}} coverage \"{{slugline}}\" has been reassigned ' \
                                   'to {{assignee}} ({{desk}}) from {{old_assignee}} ({{old_desk}}) by {{assignor}}'
                         PlanningNotifications().notify_assignment(target_desk=assigned_to.get('desk'),
