@@ -14,6 +14,7 @@ from planning.common import ASSIGNMENT_WORKFLOW_STATE
 from apps.archive.common import get_user, is_assigned_to_a_desk
 from apps.content import push_content_notification
 from superdesk.notification import push_notification
+from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
 
 
 class AssignmentsLinkService(Service):
@@ -73,9 +74,11 @@ class AssignmentsLinkService(Service):
 
             # Save assignment history
             assignment_history_service = get_resource_service('assignments_history')
-            assignment_history_service.on_item_updated(updates, assignment, 'content_link')
+            assignment_history_service.on_item_updated(updates, assignment,
+                                                       ASSIGNMENT_HISTORY_ACTIONS.CONTENT_LINK)
             if updates['assigned_to'].get('state') == ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
-                assignment_history_service.on_item_updated(updates, assignment, 'complete')
+                assignment_history_service.on_item_updated(updates, assignment,
+                                                           ASSIGNMENT_HISTORY_ACTIONS.COMPLETE)
 
             doc.update(item)
             ids.append(doc[config.ID_FIELD])

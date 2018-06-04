@@ -16,6 +16,7 @@ from copy import deepcopy
 from superdesk import get_resource_service
 from .assignments import AssignmentsResource, assignments_schema
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, remove_lock_information
+from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
 
 
 assignments_revert_schema = deepcopy(assignments_schema)
@@ -55,7 +56,8 @@ class AssignmentsRevertService(BaseService):
         session = get_auth().get(config.ID_FIELD, '')
 
         # Save history
-        get_resource_service('assignments_history').on_item_updated(updates, original, 'revert')
+        get_resource_service('assignments_history').on_item_updated(updates, original,
+                                                                    ASSIGNMENT_HISTORY_ACTIONS.REVERT)
 
         push_notification(
             'assignments:reverted',

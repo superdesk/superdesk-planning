@@ -78,6 +78,7 @@ class PlanningService(superdesk.Service):
                     assignment.get('assigned_to', {}).get('assigned_date_user')
                 coverage['assigned_to']['coverage_provider'] = \
                     assignment.get('assigned_to', {}).get('coverage_provider')
+                coverage['assigned_to']['priority'] = assignment.get('priority')
 
     def on_fetched(self, docs):
         self.__generate_related_assignments(docs.get(config.ITEMS))
@@ -461,6 +462,7 @@ class PlanningService(superdesk.Service):
                 assignment['planning'] = doc.get('planning')
 
             if self.is_coverage_assignment_modified(updates, original_assignment):
+                assignment['priority'] = assigned_to.pop('priority', original_assignment.get('priority'))
                 assignment['assigned_to'] = assigned_to
 
             # If we made a coverage 'active' - change assignment status to active
@@ -614,6 +616,9 @@ class PlanningService(superdesk.Service):
             if key in updates['assigned_to'] and\
                     updates['assigned_to'][key] != original['assigned_to'].get(key):
                 return True
+
+        if updates['assigned_to'].get('priority') and updates['assigned_to']['priority'] != original['priority']:
+            return True
 
         return False
 

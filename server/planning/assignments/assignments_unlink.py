@@ -15,6 +15,7 @@ from planning.item_lock import LOCK_USER, LOCK_SESSION
 from apps.archive.common import get_user, get_auth
 from planning.planning_notifications import PlanningNotifications
 from superdesk.notification import push_notification
+from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
 
 
 class AssignmentsUnlinkService(Service):
@@ -73,9 +74,11 @@ class AssignmentsUnlinkService(Service):
             )
 
         if spike:
-            get_resource_service('assignments_history').on_item_updated(updates, assignment, 'spike_unlink')
+            get_resource_service('assignments_history').on_item_updated(updates, assignment,
+                                                                        ASSIGNMENT_HISTORY_ACTIONS.SPIKE_UNLINK)
         else:
-            get_resource_service('assignments_history').on_item_updated(updates, assignment, 'unlink')
+            get_resource_service('assignments_history').on_item_updated(updates, assignment,
+                                                                        ASSIGNMENT_HISTORY_ACTIONS.UNLINK)
 
         return ids
 
