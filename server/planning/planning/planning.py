@@ -577,6 +577,16 @@ class PlanningService(superdesk.Service):
                     'Coverage does not exist'
                 )
 
+            assigned_to = assignment_item.get('assigned_to')
+            message = 'The {{coverage_type}} assignment {{slugline}} has been removed'
+            PlanningNotifications().notify_assignment(
+                coverage_status=coverage_item.get('workflow_status'),
+                target_desk=assigned_to.get('desk') if assigned_to.get('user') is None else None,
+                target_user=assigned_to.get('user'),
+                message=message,
+                coverage_type=get_coverage_type_name(coverage_item.get('planning', {}).get('g2_content_type', '')),
+                slugline=planning_item.get('slugline', ''))
+
             coverage_item['assigned_to'] = None
             coverage_item['workflow_status'] = WORKFLOW_STATE.DRAFT
 

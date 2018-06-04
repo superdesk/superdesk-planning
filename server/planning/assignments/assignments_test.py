@@ -35,7 +35,7 @@ class AssignmentsTestCase(TestCase):
         'coverage_item': 'cov1',
         'assigned_to': {
             'state': 'in_progress',
-            'user': 'user1',
+            'user': 'aaaaaaaaaaaaaaaaaaaaaaaa',
             'desk': 'desk1'
         },
         'lock_user': users[0]['_id'],
@@ -49,7 +49,7 @@ class AssignmentsTestCase(TestCase):
         'coverages': [{
             'coverage_id': 'cov1',
             'assigned_to': {
-                'user': 'user1',
+                'user': 'aaaaaaaaaaaaaaaaaaaaaaaa',
                 'desk': 'desk1'
             }
         }],
