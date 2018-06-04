@@ -66,6 +66,35 @@ INSTALLED_APPS.extend([
 ])
 ```
 
+## Celery Task: Expire Items
+There is a Celery Task to expire items after a configured amount of time.
+
+In your settings.py, configure CELERY_TASK_ROUTES, CELERY_BEAT_SCHEDULE
+and PLANNING_EXPIRY_MINUTES:
+```
+CELERY_TASK_ROUTES['planning.flag_expired'] = {
+    'queue': celery_queue('expiry'),
+    'routing_key': 'expiry.planning'
+}
+
+CELERY_BEAT_SCHEDULE['planning:expiry'] = {
+    'task': 'planning.flag_expired',
+    'schedule': crontab(minute='0')
+}
+
+PLANNING_EXPIRY_MINUTES = 4320 # default is 0
+```
+
+The above example config will run the Celery Task once every hour,
+flagging items as expired after 3 days from the scheduled date.
+
+If PLANNING_EXPIRY_MINUTES = 0, then no item will be flagged as expired (effectively disabling this feature)
+
+There is also a manage.py command so that you can manually run this task.
+```
+python manage.py planning:flag_expired
+```
+
 ## Install for Production/Testing
 Installing Superdesk-Planning for production or test environments is as easy as running the following:
 ```

@@ -12,7 +12,15 @@ import {PlanningDateTime} from './';
 import {ItemActionsMenu} from '../index';
 import {PLANNING, EVENTS, MAIN, ICON_COLORS} from '../../constants';
 
-import {planningUtils, getItemWorkflowStateLabel, onEventCapture, isItemPublic, getItemId} from '../../utils';
+import {
+    planningUtils,
+    getItemWorkflowStateLabel,
+    onEventCapture,
+    isItemPublic,
+    getItemId,
+    gettext,
+    isItemExpired,
+} from '../../utils';
 import {AgendaNameList} from '../Agendas';
 
 export class PlanningItem extends React.PureComponent {
@@ -102,15 +110,22 @@ export class PlanningItem extends React.PureComponent {
                 agendas: agendas,
                 callBacks: itemActionsCallBack});
 
+        const isExpired = isItemExpired(item);
+
         return (
-            <Item shadow={1} activated={multiSelected} onClick={() => onItemClick(item)}>
+            <Item
+                shadow={1}
+                activated={multiSelected}
+                onClick={() => onItemClick(item)}
+                disabled={isExpired}
+            >
                 <Border state={borderState} />
                 <ItemType
                     item={item}
                     hasCheck={activeFilter !== MAIN.FILTERS.COMBINED}
                     checked={multiSelected}
                     onCheckToggle={onMultiSelectClick.bind(null, item)}
-                    color={ICON_COLORS.LIGHT_BLUE}
+                    color={!isExpired && ICON_COLORS.LIGHT_BLUE}
                 />
                 <PubStatus item={item} isPublic={isItemPublic(item)}/>
                 <Column
@@ -138,6 +153,13 @@ export class PlanningItem extends React.PureComponent {
                         }
                     </Row>
                     <Row>
+                        {isExpired && (
+                            <Label
+                                text={gettext('Expired')}
+                                iconType="alert"
+                                isHollow={true}
+                            />
+                        )}
                         <Label text={state.label} iconType={state.iconType} />
                         <span className="sd-list-item__text-label">agenda:</span>
                         <span className="sd-overflow-ellipsis sd-list-item__text-strong sd-list-item--element-grow">

@@ -287,6 +287,20 @@ Event Postponed
         ...state,
         currentCalendarId: payload,
     }),
+
+    [EVENTS.ACTIONS.EXPIRE_EVENTS]: (state, payload) => {
+        let events = cloneDeep(state.events);
+
+        payload.forEach((eventId) => {
+            if (events[eventId])
+                events[eventId].expired = true;
+        });
+
+        return {
+            ...state,
+            events,
+        };
+    },
 });
 
 const onEventPostChanged = (state, payload) => {

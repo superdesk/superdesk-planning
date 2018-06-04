@@ -11,6 +11,7 @@ import {
     lockUtils,
     onEventCapture,
     isExistingItem,
+    isItemExpired,
 } from '../../../utils';
 
 import {Button} from '../../UI';
@@ -59,6 +60,10 @@ export class EditorHeader extends React.Component {
             privileges,
         } = this.props;
 
+        if (states.isExpired && !states.canEditExpired) {
+            return;
+        }
+
         states.showEdit = states.existingItem &&
             !states.isLockedInContext &&
             eventUtils.canEditEvent(item, session, privileges, lockedItems);
@@ -79,6 +84,10 @@ export class EditorHeader extends React.Component {
             session,
             privileges,
         } = this.props;
+
+        if (states.isExpired && !states.canEditExpired) {
+            return;
+        }
 
         states.showEdit = states.existingItem &&
             !states.isLockedInContext &&
@@ -110,6 +119,7 @@ export class EditorHeader extends React.Component {
             createAndPost,
             users,
             session,
+            privileges,
         } = this.props;
 
         // Set the default states
@@ -132,8 +142,12 @@ export class EditorHeader extends React.Component {
             isPublic: false,
             showUpdate: false,
             isBeingEdited: false,
+            isExpired: false,
+            canEditExpired: false,
         };
 
+        states.isExpired = isItemExpired(item);
+        states.canEditExpired = privileges[PRIVILEGES.EDIT_EXPIRED];
         states.itemLock = lockUtils.getLock(item, lockedItems);
         states.isLockedInContext = addNewsItemToPlanning ?
             planningUtils.isLockedForAddToPlanning(item) :

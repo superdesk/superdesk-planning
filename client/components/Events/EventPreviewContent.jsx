@@ -134,7 +134,11 @@ export class EventPreviewContentComponent extends React.Component {
                         />
                     </div>
                     <div className="side-panel__content-block-inner side-panel__content-block-inner--right">
-                        <StateLabel item={item} verbose={true}/>
+                        <StateLabel
+                            item={item}
+                            verbose={true}
+                            withExpiredStatus={true}
+                        />
                     </div>
                 </div>
 

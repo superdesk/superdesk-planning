@@ -266,6 +266,20 @@ const planningReducer = createReducer(initialState, {
             return state;
         }
     },
+
+    [PLANNING.ACTIONS.EXPIRE_PLANNING]: (state, payload) => {
+        let plannings = cloneDeep(state.plannings);
+
+        payload.forEach((planId) => {
+            if (plannings[planId])
+                plannings[planId].expired = true;
+        });
+
+        return {
+            ...state,
+            plannings,
+        };
+    },
 });
 
 const markPlaning = (plan, payload, action) => {

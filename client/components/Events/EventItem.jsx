@@ -13,6 +13,8 @@ import {
     getItemActionedStateLabel,
     onEventCapture,
     isItemPublic,
+    gettext,
+    isItemExpired,
 } from '../../utils';
 
 
@@ -69,16 +71,22 @@ export class EventItem extends React.PureComponent {
                 this.props[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName].bind(null, item),
         };
         const itemActions = eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack);
+        const isExpired = isItemExpired(item);
 
         return (
-            <Item shadow={1} activated={this.props.multiSelected} onClick={() => onItemClick(item)}>
+            <Item
+                shadow={1}
+                activated={this.props.multiSelected}
+                onClick={() => onItemClick(item)}
+                disabled={isExpired}
+            >
                 <Border state={borderState} />
                 <ItemType
                     item={item}
                     hasCheck={activeFilter !== MAIN.FILTERS.COMBINED}
                     checked={this.props.multiSelected}
                     onCheckToggle={onMultiSelectClick.bind(null, item)}
-                    color={ICON_COLORS.DARK_BLUE_GREY}
+                    color={!isExpired && ICON_COLORS.DARK_BLUE_GREY}
                 />
                 <PubStatus item={item} isPublic={isItemPublic(item)}/>
                 <Column
@@ -99,6 +107,13 @@ export class EventItem extends React.PureComponent {
                         />
                     </Row>
                     <Row>
+                        {isExpired && (
+                            <Label
+                                text={gettext('Expired')}
+                                iconType="alert"
+                                isHollow={true}
+                            />
+                        )}
                         <Label
                             text={state.label}
                             iconType={state.iconType}

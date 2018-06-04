@@ -20,7 +20,9 @@ export const PlanningInfo = ({item, onClick, timeFormat, dateFormat, active}) =>
                     <StateLabel
                         className="pull-right"
                         item={item}
-                        verbose={true} />
+                        verbose={true}
+                        withExpiredStatus={true}
+                    />
                 </span>
             </Row>
             <Row>

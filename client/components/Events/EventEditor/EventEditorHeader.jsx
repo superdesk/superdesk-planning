@@ -37,6 +37,7 @@ export const EventEditorHeader = ({item, users}) => {
                 <StateLabel
                     item={item}
                     verbose={true}
+                    withExpiredStatus={true}
                 />
             </ContentBlockInner>
         </ContentBlock>

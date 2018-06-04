@@ -283,6 +283,17 @@ const onEventUpdated = (_e, data) => (
     }
 );
 
+const onEventExpired = (_e, data) => (
+    (dispatch) => {
+        if (data && data.items) {
+            dispatch({
+                type: EVENTS.ACTIONS.EXPIRE_EVENTS,
+                payload: data.items,
+            });
+        }
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     onEventCreated,
@@ -296,6 +307,7 @@ const self = {
     onEventScheduleChanged,
     onEventPostponed,
     onEventPostChanged,
+    onEventExpired,
 };
 
 // Map of notification name and Action Event to execute
@@ -319,6 +331,7 @@ self.events = {
     'events:update_time': () => (self.onEventScheduleChanged),
     'events:update_time:recurring': () => (self.onEventScheduleChanged),
     'events:update_repetitions:recurring': () => (self.onEventScheduleChanged),
+    'events:expired': () => self.onEventExpired,
 };
 
 export default self;

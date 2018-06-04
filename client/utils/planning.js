@@ -26,6 +26,7 @@ import {
     gettext,
     getEnabledAgendas,
     isExistingItem,
+    isItemExpired,
 } from './index';
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
@@ -62,7 +63,8 @@ const canEditPlanning = (planning, event, session, privileges, locks) => (
         !isItemSpiked(event) &&
         !isItemCancelled(planning) &&
         !(getPostedState(planning) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_PLANNING]) &&
-        !isItemRescheduled(planning)
+        !isItemRescheduled(planning) &&
+        (!isItemExpired(planning) || privileges[PRIVILEGES.EDIT_EXPIRED])
 );
 
 const canAssignAgenda = (planning, event, privileges, locks) => (
@@ -87,14 +89,16 @@ const canSpikePlanning = (plan, session, privileges, locks) => (
         !!privileges[PRIVILEGES.SPIKE_PLANNING] &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !isPlanningLockRestricted(plan, session, locks) &&
-        !get(plan, 'coverages', []).find((c) => isCoverageInWorkflow(c))
+        !get(plan, 'coverages', []).find((c) => isCoverageInWorkflow(c)) &&
+        (!isItemExpired(plan) || privileges[PRIVILEGES.EDIT_EXPIRED])
 );
 
 const canUnspikePlanning = (plan, event = null, privileges) => (
     isItemSpiked(plan) &&
         !!privileges[PRIVILEGES.UNSPIKE_PLANNING] &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isItemSpiked(event)
+        !isItemSpiked(event) &&
+        (!isItemExpired(plan) || privileges[PRIVILEGES.EDIT_EXPIRED])
 );
 
 const canDuplicatePlanning = (plan, event = null, session, privileges, locks) => (
@@ -289,7 +293,12 @@ const getPlanningActions = ({
     let addCoverageCallBacks = [];
     let eventActions = [GENERIC_ITEM_ACTIONS.DIVIDER];
 
-    Object.keys(callBacks).forEach((callBackName) => {
+    const isExpired = isItemExpired(item);
+
+    ((isExpired && !privileges[PRIVILEGES.EDIT_EXPIRED]) ?
+        [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName] :
+        Object.keys(callBacks)
+    ).forEach((callBackName) => {
         switch (callBackName) {
         case PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName:
             addCoverageCallBacks = contentTypes.map((c) => (
@@ -415,8 +424,8 @@ const getPlanningActions = ({
         }
     });
 
-    // Don't include event actions if planning is spiked
-    if (eventActions.length > 1 && !isItemSpiked(item)) {
+    // Don't include event actions if planning is spiked or expired
+    if (eventActions.length > 1 && !isItemSpiked(item) && (!isExpired || privileges[PRIVILEGES.EDIT_EXPIRED])) {
         actions.push(...eventActions);
     }
 

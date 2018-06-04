@@ -14,7 +14,7 @@ import {
     WORKSPACE,
     MAIN,
     SPIKED_STATE,
-    TEMP_ID_PREFIX,
+    TEMP_ID_PREFIX, PRIVILEGES,
 } from '../constants/index';
 import * as testData from './testData';
 import {gettext, gettextCatalog} from '../components/UI/utils';
@@ -475,6 +475,13 @@ export const getItemPostedStateLabel = (item) => {
     }
 };
 
+export const getItemExpiredStateLabel = (item) => (!isItemExpired(item) ? null : {
+    label: 'E',
+    labelVerbose: gettext('Expired'),
+    iconType: 'alert',
+    iconHollow: true,
+});
+
 export const isItemPublic = (item = {}) =>
     !!item && (typeof item === 'string' ?
         item === POST_STATE.USABLE || item === POST_STATE.CANCELLED :
@@ -485,6 +492,7 @@ export const isItemSpiked = (item) => item ?
 
 export const isEvent = (item) => getItemType(item) === ITEM_TYPE.EVENT;
 export const isPlanning = (item) => getItemType(item) === ITEM_TYPE.PLANNING;
+export const isItemExpired = (item) => get(item, 'expired') || false;
 
 export const shouldLockItemForEdit = (item, lockedItems, privileges) =>
     isExistingItem(item) &&
@@ -492,6 +500,7 @@ export const shouldLockItemForEdit = (item, lockedItems, privileges) =>
         !isItemSpiked(item) &&
         !isItemCancelled(item) &&
         !isItemRescheduled(item) &&
+        (!isItemExpired(item) || privileges[PRIVILEGES.EDIT_EXPIRED]) &&
         (
             (isEvent(item) && eventUtils.shouldLockEventForEdit(item, privileges)) ||
             (isPlanning(item) && planningUtils.shouldLockPlanningForEdit(item, privileges))

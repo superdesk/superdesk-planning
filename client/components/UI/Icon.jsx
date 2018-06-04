@@ -19,8 +19,8 @@ const Icon = ({icon, doubleSize, big, className, tooltip, color}) => {
             {
                 'icon--2x': doubleSize,
                 'double-size-icn': big,
+                [color]: color,
             },
-            color,
             className
         )} />
     );

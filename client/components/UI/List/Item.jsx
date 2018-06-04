@@ -7,15 +7,18 @@ import classNames from 'classnames';
  * @name Item
  * @description Component to encapsulate a list item
  */
-export const Item = ({children, noBg, noHover, shadow, activated, className, onClick, margin}) => (
+export const Item = ({children, noBg, noHover, shadow, activated, className, onClick, margin, disabled}) => (
     <div className={classNames(
         className,
         'sd-list-item',
-        {'sd-list-item--no-bg': noBg},
-        {'sd-list-item--no-hover': noHover},
-        {'sd-list-item--margin': margin},
-        shadow ? `sd-shadow--z${shadow}` : null,
-        {'sd-list-item--activated': activated}
+        {
+            'sd-list-item--no-bg': noBg,
+            'sd-list-item--no-hover': noHover,
+            'sd-list-item--margin': margin,
+            'sd-list-item--activated': activated,
+            [`sd-shadow--z${shadow}`]: shadow,
+            'sd-list-item--disabled': disabled,
+        }
     )}
     onClick={onClick}
     >
@@ -32,10 +35,12 @@ Item.propTypes = {
     className: PropTypes.string,
     onClick: PropTypes.func,
     margin: PropTypes.bool,
+    disabled: PropTypes.bool,
 };
 
 Item.defaultProps = {
     noBg: false,
     noHover: false,
     margin: false,
+    disabled: false,
 };

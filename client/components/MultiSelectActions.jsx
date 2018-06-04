@@ -20,7 +20,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
     }
 
     handleSelectAll() {
-        if (this.props.activeFilter == MAIN.FILTERS.EVENTS) {
+        if (this.props.activeFilter === MAIN.FILTERS.EVENTS) {
             this.props.selectAllEvents();
         } else {
             this.props.selectAllPlannings();
@@ -28,7 +28,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
     }
 
     handleDeSelectAll() {
-        if (this.props.activeFilter == MAIN.FILTERS.EVENTS) {
+        if (this.props.activeFilter === MAIN.FILTERS.EVENTS) {
             this.props.deSelectAllEvents();
         } else {
             this.props.deSelectAllPlannings();
@@ -39,7 +39,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
         let count = get(this.props.selectedEvents, 'length', 0);
         let itemType = 'event';
 
-        if (this.props.activeFilter == MAIN.FILTERS.PLANNING) {
+        if (this.props.activeFilter === MAIN.FILTERS.PLANNING) {
             count = get(this.props.selectedPlannings, 'length', 0);
             itemType = 'planning item';
         }
@@ -48,7 +48,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
     }
 
     canSelectAll() {
-        if (this.props.activeFilter == MAIN.FILTERS.EVENTS) {
+        if (this.props.activeFilter === MAIN.FILTERS.EVENTS) {
             return get(this.props, 'selectedEvents.length') <
                 get(this.props, 'eventsInList.length');
         } else {
@@ -58,7 +58,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
     }
 
     getMultiActionTools() {
-        if (this.props.activeFilter == MAIN.FILTERS.EVENTS) {
+        if (this.props.activeFilter === MAIN.FILTERS.EVENTS) {
             return this.getEventTools();
         } else {
             return this.getPlanningTools();

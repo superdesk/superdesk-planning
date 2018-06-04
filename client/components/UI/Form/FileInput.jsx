@@ -87,8 +87,8 @@ export class FileInput extends React.Component {
                         </a>
                         <a
                             href={createLink(val)}
-                            target="_blank"
                             onFocus={onFocus}
+                            target="_blank"
                             rel="noopener noreferrer"
                         >
                             {val.media.name}&nbsp;

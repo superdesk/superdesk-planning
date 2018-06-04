@@ -20,6 +20,7 @@ export const ICON_COLORS = {
     RED: 'icon--red',
     WHITE: 'icon--white',
     YELLOW: 'icon--yellow',
+    DEFAULT: false,
 };
 
 export const TOOLTIPS = {postedState: 'Posted'};
