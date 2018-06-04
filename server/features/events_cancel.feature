@@ -265,12 +265,12 @@ Feature: Events Cancel
         {"_items": [
             {
                 "planning_id": "plan1",
-                "operation": "planning_cancel",
+                "operation": "events_cancel",
                 "update": {"state": "cancelled"}
             },
             {
                 "planning_id": "plan2",
-                "operation": "planning_cancel",
+                "operation": "events_cancel",
                 "update": {"state": "cancelled"}
             }
         ]}
@@ -393,6 +393,7 @@ Feature: Events Cancel
             "state": "draft",
             "coverages": [{
                 "coverage_id": "cov1",
+                "workflow_status": "draft",
                 "slugline": "TestCoverage 1",
                 "planning": {
                     "internal_note": "Cover something please!",

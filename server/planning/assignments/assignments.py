@@ -226,9 +226,7 @@ class AssignmentsService(superdesk.Service):
             doc = deepcopy(original)
             doc.update(updates)
             self._send_assignment_creation_notification(doc)
-            get_resource_service('assignments_history').on_item_updated(updates,
-                                                                        original,
-                                                                        ASSIGNMENT_HISTORY_ACTIONS.ADD_TO_WORKFLOW)
+            get_resource_service('assignments_history').on_item_add_to_workflow(updates, original)
         elif original.get(LOCK_ACTION) != 'content_edit' and \
                 updates.get('assigned_to') and updates.get('assigned_to').get('state')\
                 != ASSIGNMENT_WORKFLOW_STATE.cancelled:
@@ -550,10 +548,8 @@ class AssignmentsService(superdesk.Service):
                 if updates.get(ITEM_STATE, original.get(ITEM_STATE, '')) != CONTENT_STATE.SCHEDULED:
                     updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED
                     self._update_assignment_and_notify(updated_assignment, assignment_update_data['assignment'])
-                    get_resource_service('assignments_history').on_item_updated(
-                        updated_assignment,
-                        assignment_update_data.get('assignment'),
-                        ASSIGNMENT_HISTORY_ACTIONS.COMPLETE)
+                    get_resource_service('assignments_history').on_item_complete(
+                        updated_assignment, assignment_update_data.get('assignment'))
 
     def duplicate_assignment_on_create_archive_rewrite(self, items):
         """Duplicates the coverage/assignment for the archive rewrite
@@ -747,7 +743,7 @@ class AssignmentsService(superdesk.Service):
 
     def is_assignment_being_activated(self, updates, original):
         return original.get('assigned_to').get('state') == ASSIGNMENT_WORKFLOW_STATE.DRAFT and\
-            updates.get('assigned_to').get('state') == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+            updates.get('assigned_to', {}).get('state') == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
 
 
 assignments_schema = {

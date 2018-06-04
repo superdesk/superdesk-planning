@@ -20,7 +20,6 @@ from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_coverage_type_name
 from superdesk.utc import utcnow
 from planning.planning_notifications import PlanningNotifications
 from superdesk import get_resource_service
-from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
 
 
 FIELDS_TO_COPY = ('anpa_category', 'subject', 'urgency')
@@ -156,8 +155,7 @@ class AssignmentsContentService(superdesk.Service):
                                                       slugline=item.get('slugline'),
                                                       omit_user=True)
             # Save history
-            get_resource_service('assignments_history').on_item_updated(updates, assignment,
-                                                                        ASSIGNMENT_HISTORY_ACTIONS.START_WORKING)
+            get_resource_service('assignments_history').on_item_start_working(updates, assignment)
 
         return ids
 

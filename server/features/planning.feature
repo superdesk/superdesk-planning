@@ -868,7 +868,7 @@ Feature: Planning
                     "item_class": "item class value",
                     "headline": "test headline"}},
                 {"planning_id":  "#planning._id#",
-                "operation": "update",
+                "operation": "edited",
                 "update": {"headline": "updated test headline"}}
             ]}
         """
@@ -948,6 +948,8 @@ Feature: Planning
           "coverages": [
               {
                   "coverage_id": "cov_123",
+                  "workflow_status": "active",
+                  "news_coverage_status": {"qcode": "ncostat:int"},
                   "planning": {
                       "ednote": "test coverage, 250 words",
                       "headline": "test headline",
@@ -970,6 +972,8 @@ Feature: Planning
           "coverages": [
               {
                   "coverage_id": "cov_123",
+                  "workflow_status": "active",
+                  "news_coverage_status": {"qcode": "ncostat:int"},
                   "planning": {
                       "internal_note" : "Mostly harmless",
                       "g2_content_type": "text",
@@ -1006,6 +1010,7 @@ Feature: Planning
     @notification
     @vocabulary
     Scenario: Updating the scheduled time send a notification
+        When we reset notifications
         Given "desks"
         """
         [{"_id": "desk_123", "name": "Politic Desk"}]
@@ -1021,6 +1026,8 @@ Feature: Planning
           "coverages": [
               {
                   "coverage_id": "cov_123",
+                  "workflow_status": "active",
+                  "news_coverage_status": {"qcode": "ncostat:int"},
                   "planning": {
                       "ednote": "test coverage, 250 words",
                       "headline": "test headline",
@@ -1043,6 +1050,8 @@ Feature: Planning
           "coverages": [
               {
                   "coverage_id": "cov_123",
+                  "workflow_status": "active",
+                  "news_coverage_status": {"qcode": "ncostat:int"},
                   "planning": {
                       "g2_content_type": "text",
                       "slugline": "test slugline",
@@ -1111,13 +1120,16 @@ Feature: Planning
                       "qcode": "ncostat:int",
                       "name": "coverage intended",
                       "label": "Planned"
-                  }
+                  },
+                  "workflow_status": "draft",
+                  "coverage_id": "cov_123"
               },
               {
                   "planning": {
                       "ednote": "test coverage2, 250 words",
                       "g2_content_type": "text"
                   },
+                  "workflow_status": "draft",
                   "news_coverage_status": {
                       "qcode": "ncostat:int",
                       "name": "coverage intended",
@@ -1236,7 +1248,7 @@ Feature: Planning
             },
             {
                 "planning_id":  "#planning._id#",
-                "operation": "update",
+                "operation": "edited",
                 "update": { "slugline": "test test test" }
             },
             {

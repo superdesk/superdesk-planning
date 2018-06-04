@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
-import {HISTORY_OPERATIONS, POST_STATE} from '../../constants';
-import {getItemInArrayById, gettext} from '../../utils';
+import {HISTORY_OPERATIONS} from '../../constants';
+import {gettext, historyUtils} from '../../utils';
 import {get} from 'lodash';
 import {AbsoluteDate} from '../index';
 import {ContentBlock} from '../UI/SidePanel';
@@ -29,55 +29,6 @@ export class EventHistoryComponent extends React.Component {
 
     closeAndOpenDuplicate(duplicateId) {
         this.props.openEventPreview(duplicateId);
-    }
-
-    getPostedHistoryElement(index) {
-        let text;
-        const historyItem = this.props.historyItems[index];
-
-        for (let i = index - 1; i >= 0; i--) {
-            const item = this.props.historyItems[i];
-
-            if (item.operation !== HISTORY_OPERATIONS.POST) {
-                continue;
-            }
-
-            if (get(item, 'update.pubstatus') === POST_STATE.USABLE) {
-                // Current history item happened when the event was in posted state
-
-                if (get(historyItem, 'update.pubstatus') === POST_STATE.USABLE &&
-                    historyItem.operation !== HISTORY_OPERATIONS.EDITED) {
-                    // If it is an edit and update operation don't show as a separate item
-                    return;
-                }
-
-                if (get(historyItem, 'update.pubstatus') !== POST_STATE.CANCELLED) {
-                    text = gettext('Updated');
-                    break;
-                }
-
-                if (get(historyItem, 'update.pubstatus') === POST_STATE.CANCELLED) {
-                    text = gettext('Event unposted');
-                    break;
-                }
-            } else if (get(historyItem, 'update.pubstatus') === POST_STATE.USABLE) {
-                // Posted when the event was in unposted state
-                text = gettext('Event re-posted');
-                break;
-            }
-        }
-
-        // Event posted for the first time
-        if (!text && historyItem.operation === HISTORY_OPERATIONS.POST) {
-            text = gettext('Event posted');
-        }
-
-        return text === 'Event unposted' ? (
-            <div>
-                {this.getHistoryRowElement(gettext('Updated'), historyItem)}
-                {this.getHistoryRowElement(text, historyItem)}
-            </div>
-        ) : this.getHistoryRowElement(text, historyItem);
     }
 
     getHistoryActionElement(historyItem) {
@@ -124,7 +75,8 @@ export class EventHistoryComponent extends React.Component {
                     <em><AbsoluteDate
                         date={get(historyItem, 'update._reschedule_from_schedule')}/></em>
                     {gettext(' by ')}
-                    <span className="user-name">{this.getDisplayUser(historyItem.user_id)}</span>
+                    <span className="user-name">{historyUtils.getDisplayUser(historyItem.user_id,
+                        this.props.users)}</span>
                     <em> <AbsoluteDate date={historyItem._created} /> </em>
                 </span>);
 
@@ -161,23 +113,7 @@ export class EventHistoryComponent extends React.Component {
             break;
         }
 
-        return this.getHistoryRowElement(text, historyItem);
-    }
-
-    getHistoryRowElement(text, historyItem) {
-        if (text) {
-            return (
-                <div>
-                    <span><strong>{text}</strong>{gettext(' by ')}</span>
-                    <span className="user-name">{this.getDisplayUser(historyItem.user_id)}</span>
-                    <em> <AbsoluteDate date={historyItem._created} /> </em>
-                </div>
-            );
-        }
-    }
-
-    getDisplayUser(userId) {
-        return get(getItemInArrayById(this.props.users, userId), 'display_name');
+        return historyUtils.getHistoryRowElement(text, historyItem, this.props.users);
     }
 
     render() {
@@ -185,7 +121,8 @@ export class EventHistoryComponent extends React.Component {
             <ContentBlock>
                 <ul className="history-list history-list--no-padding">
                     {get(this.props, 'historyItems', []).map((historyItem, index) => {
-                        const postElement = this.getPostedHistoryElement(index);
+                        const postElement = historyUtils.getPostedHistoryElement(
+                            index, this.props.historyItems, this.props.users);
                         const historyElement = this.getHistoryActionElement(historyItem);
 
                         if (postElement || historyElement) {

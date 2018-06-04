@@ -130,7 +130,6 @@ Coverage cancelled
         updates[ITEM_STATE] = WORKFLOW_STATE.CANCELLED
 
     def on_updated(self, updates, original):
-        if original.get('lock_action') in [ITEM_ACTIONS.EDIT,
-                                           ITEM_ACTIONS.PLANNING_CANCEL,
-                                           ITEM_ACTIONS.CANCEL_ALL_COVERAGE]:
+        lock_action = original.get('lock_action')
+        if lock_action in [ITEM_ACTIONS.EDIT, ITEM_ACTIONS.PLANNING_CANCEL, ITEM_ACTIONS.CANCEL_ALL_COVERAGE]:
             update_post_item(updates, original)

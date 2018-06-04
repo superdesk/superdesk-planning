@@ -39,15 +39,15 @@ class AssignmentHistoryComponent extends React.Component {
     transcribedHistoryAction(item) {
         const {operation, update} = item;
         let desk, user, prefix;
-        const suffix = operation === ASSIGNMENTS.HISTORY_ACTIONS.CREATE ? gettext(' created by ') :
+        const suffix = operation === ASSIGNMENTS.HISTORY_OPERATIONS.CREATE ? gettext(' created by ') :
             gettext(' by ');
 
         switch (operation) {
-        case ASSIGNMENTS.HISTORY_ACTIONS.CREATE:
-        case ASSIGNMENTS.HISTORY_ACTIONS.REASSIGNED:
+        case ASSIGNMENTS.HISTORY_OPERATIONS.CREATE:
+        case ASSIGNMENTS.HISTORY_OPERATIONS.REASSIGNED:
             desk = getItemInArrayById(this.props.desks, get(update, 'assigned_to.desk'));
             user = getItemInArrayById(this.props.users, get(update, 'assigned_to.user'));
-            prefix = operation === ASSIGNMENTS.HISTORY_ACTIONS.CREATE ? gettext('Assignment for ') :
+            prefix = operation === ASSIGNMENTS.HISTORY_OPERATIONS.CREATE ? gettext('Assignment for ') :
                 gettext('Coverage re-assigned to ');
 
             if (user) {
@@ -57,40 +57,40 @@ class AssignmentHistoryComponent extends React.Component {
                 return (<span>{prefix}<strong>{desk.name}</strong>{suffix}</span>);
             }
 
-        case ASSIGNMENTS.HISTORY_ACTIONS.EDIT_PRIORITY:
+        case ASSIGNMENTS.HISTORY_OPERATIONS.EDIT_PRIORITY:
             return (<span>{gettext('Priority modified to ')}<strong>{get(update, 'priority')}</strong>{suffix}</span>);
 
-        case ASSIGNMENTS.HISTORY_ACTIONS.COMPLETE:
+        case ASSIGNMENTS.HISTORY_OPERATIONS.COMPLETE:
             return (<span><strong>{gettext('Completed ')}</strong>{suffix}</span>);
 
-        case ASSIGNMENTS.HISTORY_ACTIONS.CONFIRM:
+        case ASSIGNMENTS.HISTORY_OPERATIONS.CONFIRM:
             return (<span>{gettext('Coverage availability ')}<strong>{gettext(' confirmed ')}</strong>{suffix}</span>);
 
-        case ASSIGNMENTS.HISTORY_ACTIONS.REVERT:
+        case ASSIGNMENTS.HISTORY_OPERATIONS.REVERT:
             return (<span>{gettext('Coverage availability ')}<strong>{gettext(' reverted ')}</strong>{suffix}</span>);
 
-        case ASSIGNMENTS.HISTORY_ACTIONS.CONTENT_LINK:
+        case ASSIGNMENTS.HISTORY_OPERATIONS.CONTENT_LINK:
             return (<span><strong>{gettext('Content linked ')}</strong>{gettext('to coverage assignment by ')}</span>);
 
-        case ASSIGNMENTS.HISTORY_ACTIONS.ADD_TO_WORKFLOW:
+        case ASSIGNMENTS.HISTORY_OPERATIONS.ADD_TO_WORKFLOW:
             return (<span>{gettext('Assignment ')}<strong>{gettext('added to workflow')}</strong>{suffix}</span>);
 
-        case ASSIGNMENTS.HISTORY_ACTIONS.SUBMITTED:
+        case ASSIGNMENTS.HISTORY_OPERATIONS.SUBMITTED:
             desk = getItemInArrayById(this.props.desks, get(update, 'assigned_to.desk'));
             return (<span>{gettext('Assignment ')}<strong>{gettext('submitted')}</strong>
                 {gettext(' to ')}<strong>{desk.name}</strong>{suffix}</span>);
 
-        case ASSIGNMENTS.HISTORY_ACTIONS.CANCELLED:
+        case ASSIGNMENTS.HISTORY_OPERATIONS.CANCELLED:
             return (<span>{gettext('Coverage ')}<strong>{gettext('cancelled')}</strong>{suffix}</span>);
 
-        case ASSIGNMENTS.HISTORY_ACTIONS.SPIKE_UNLINK:
+        case ASSIGNMENTS.HISTORY_OPERATIONS.SPIKE_UNLINK:
             return (<span>{gettext('Content ')}<strong>{gettext('spiked and unlinked')}</strong>{suffix}</span>);
 
-        case ASSIGNMENTS.HISTORY_ACTIONS.UNLINK:
+        case ASSIGNMENTS.HISTORY_OPERATIONS.UNLINK:
             return (<span><strong>{gettext('Content unlinked ')}</strong>{gettext('from coverage assignment by ')}
             </span>);
 
-        case ASSIGNMENTS.HISTORY_ACTIONS.START_WORKING:
+        case ASSIGNMENTS.HISTORY_OPERATIONS.START_WORKING:
             return (<span><strong>{gettext('Work started ')}</strong>{gettext('on assignment by ')}</span>);
 
         default:

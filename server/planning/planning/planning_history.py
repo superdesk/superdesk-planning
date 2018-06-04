@@ -8,11 +8,14 @@
 
 """Superdesk Files"""
 
-from superdesk import Resource
+from flask import request
+from superdesk import Resource, get_resource_service
 from planning.history import HistoryService
 import logging
 from eve.utils import config
 from copy import deepcopy
+from planning.common import WORKFLOW_STATE, ITEM_ACTIONS, ASSIGNMENT_WORKFLOW_STATE
+from planning.item_lock import LOCK_ACTION
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +39,10 @@ class PlanningHistoryService(HistoryService):
     """Service for keeping track of the history of a planning entries
     """
 
+    def on_item_created(self, items):
+        add_to_planning = request.args.get('add_to_planning')
+        super().on_item_created(items, 'add_to_planning' if add_to_planning else None)
+
     def _save_history(self, planning, update, operation):
         history = {
             'planning_id': planning[config.ID_FIELD],
@@ -51,11 +58,37 @@ class PlanningHistoryService(HistoryService):
             diff = updates
         else:
             diff = self._changes(original, updates)
+            diff.pop('coverages', None)
             if updates:
                 item.update(updates)
 
-        self._save_history(item, diff, operation or 'update')
+        if len(diff.keys()) > 0:
+            operation = operation or 'edited'
+            if original.get('lock_action') == 'assign_agenda':
+                operation = 'assign_agenda'
+                diff['agendas'] = [a for a in diff.get('agendas', []) if a not in original.get('agendas', [])]
+
+            self._save_history(item, diff, operation)
+
         self._save_coverage_history(updates, original)
+
+    def on_cancel(self, updates, original):
+        self.on_item_updated(updates, original,
+                             'planning_cancel' if original.get('lock_action') in ['planning_cancel', 'edit']
+                             else 'events_cancel')
+
+    def _get_coverage_diff(self, updates, original):
+        diff = {'coverage_id': original.get('coverage_id')}
+        cov_plan_diff = self._changes(original.get('planning'),
+                                      updates.get('planning'))
+
+        if cov_plan_diff:
+            diff['planning'] = cov_plan_diff
+
+        if original['news_coverage_status'] != updates['news_coverage_status']:
+            diff['news_coverage_status'] = updates['news_coverage_status']
+
+        return diff
 
     def _save_coverage_history(self, updates, original):
         """Save the coverage history for the planning item"""
@@ -63,23 +96,51 @@ class PlanningHistoryService(HistoryService):
         original_coverages = {c.get('coverage_id'): c for c in (original or {}).get('coverages') or []}
         updates_coverages = {c.get('coverage_id'): c for c in (updates or {}).get('coverages') or []}
         added, deleted, updated = [], [], []
+        planning_service = get_resource_service('planning')
 
         for coverage_id, coverage in updates_coverages.items():
-            if not original_coverages.get(coverage_id):
+            original_coverage = original_coverages.get(coverage_id)
+            if not original_coverage:
                 added.append(coverage)
-            elif original_coverages.get(coverage_id) != updates_coverages.get(coverage_id):
+            elif planning_service.is_coverage_planning_modified(coverage, original_coverage):
                 updated.append(coverage)
 
         deleted = [coverage for cid, coverage in original_coverages.items() if cid not in updates_coverages]
 
         for cov in added:
-            self._save_history(item, {'coverage_id': cov.get('coverage_id')}, 'coverage created')
+            if cov.get('assigned_to', {}).get('state') == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED:
+                diff = {'coverage_id': cov.get('coverage_id')}
+                diff.update(cov)
+                self._save_history(item, diff, 'coverage_created_content')
+                self._save_history(item, diff, 'reassigned')
+                self._save_history(item, diff, 'add_to_workflow')
+            else:
+                self._save_history(item, cov, 'coverage_created')
 
         for cov in updated:
-            self._save_history(item, {'coverage_id': cov.get('coverage_id')}, 'coverage updated')
+            original_coverage = original_coverages.get(cov.get('coverage_id'))
+            diff = self._get_coverage_diff(cov, original_coverage)
+            if len(diff.keys()) > 1:
+                self._save_history(item, diff, 'coverage_edited')
+
+            if cov['workflow_status'] == WORKFLOW_STATE.CANCELLED and \
+                    original_coverage['workflow_status'] != WORKFLOW_STATE.CANCELLED:
+                operation = 'coverage_cancelled'
+                diff = {
+                    'coverage_id': cov.get('coverage_id'),
+                    'workflow_status': cov['workflow_status']
+                }
+                if not original.get(LOCK_ACTION):
+                    operation = 'events_cancel'
+                elif original.get(LOCK_ACTION) == ITEM_ACTIONS.PLANNING_CANCEL or \
+                        updates.get('state') == WORKFLOW_STATE.CANCELLED:
+                    # If cancelled through item action or through editor
+                    operation = 'planning_cancel'
+
+                self._save_history(item, diff, operation)
 
         for cov in deleted:
-            self._save_history(item, {'coverage_id': cov.get('coverage_id')}, 'coverage deleted')
+            self._save_history(item, {'coverage_id': cov.get('coverage_id')}, 'coverage_deleted')
 
     def on_spike(self, updates, original):
         """Spike event

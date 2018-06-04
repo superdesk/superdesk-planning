@@ -4,3 +4,4 @@ export {CoverageItem} from './CoverageItem';
 export {CoveragePreview} from './CoveragePreview';
 export {CoverageIcon} from './CoverageIcon';
 export {CoverageAddButton} from './CoverageAddButton';
+export {CoverageHistory} from './CoverageHistory';

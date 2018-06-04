@@ -197,7 +197,7 @@ const scheduleRefetch = () => (
  */
 const assignToAgenda = (item, agenda) => (
     (dispatch, getState, {notify}) => (
-        dispatch(locks.lock(item))
+        dispatch(locks.lock(item, 'assign_agenda'))
             .then((lockedItem) => {
                 lockedItem.agendas = [...get(lockedItem, 'agendas', []), agenda._id];
                 return dispatch(self.saveAndUnlockPlanning(lockedItem)).then(() => {

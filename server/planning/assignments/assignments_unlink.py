@@ -73,12 +73,12 @@ class AssignmentsUnlinkService(Service):
                 assignment=str(assignment[config.ID_FIELD])
             )
 
+        assignment_history_service = get_resource_service('assignments_history')
         if spike:
-            get_resource_service('assignments_history').on_item_updated(updates, assignment,
-                                                                        ASSIGNMENT_HISTORY_ACTIONS.SPIKE_UNLINK)
+            get_resource_service('assignments_history').on_item_content_unlink(updates, assignment,
+                                                                               ASSIGNMENT_HISTORY_ACTIONS.SPIKE_UNLINK)
         else:
-            get_resource_service('assignments_history').on_item_updated(updates, assignment,
-                                                                        ASSIGNMENT_HISTORY_ACTIONS.UNLINK)
+            assignment_history_service.on_item_content_unlink(updates, assignment)
 
         return ids
 

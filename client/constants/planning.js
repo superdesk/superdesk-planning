@@ -94,4 +94,8 @@ export const PLANNING = {
         type: 'planning',
         planning_date: moment(),
     },
+    HISTORY_OPERATIONS: {
+        ASSIGN_AGENDA: 'assign_agenda',
+        PLANNING_CANCEL: 'planning_cancel',
+    },
 };

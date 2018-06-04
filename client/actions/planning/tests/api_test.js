@@ -586,6 +586,7 @@ describe('actions.planning.api', () => {
                             slugline: 'Planning3',
                             coverages: [],
                         },
+                        {add_to_planning: false},
                     ]);
 
                     expect(services.api('planning').save.args[1]).toEqual([
