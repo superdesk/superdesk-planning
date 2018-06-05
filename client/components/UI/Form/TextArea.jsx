@@ -107,7 +107,7 @@ export class TextArea extends React.Component {
 TextArea.propTypes = {
     field: PropTypes.string,
     value: PropTypes.string,
-    onChange: PropTypes.func.isRequired,
+    onChange: PropTypes.func,
     autoHeight: PropTypes.bool,
     autoHeightTimeout: PropTypes.number,
     nativeOnChange: PropTypes.bool,
