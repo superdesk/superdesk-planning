@@ -29,10 +29,16 @@ export const Location = ({name, address, mapUrl, multiLine}) => {
     const renderLocation = () => (multiLine ? renderMultiline() : renderSingleline());
 
     if (mapUrl) {
-        return (<a target="_blank" title={gettext('Show on map')}
-            href={getMapUrl(mapUrl, name, address)}>
-            {renderLocation()}
-        </a>);
+        return (
+            <a
+                title={gettext('Show on map')}
+                href={getMapUrl(mapUrl, name, address)}
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                {renderLocation()}
+            </a>
+        );
     }
 
     return renderLocation();
