@@ -128,7 +128,7 @@ class PlanningService(superdesk.Service):
         get_resource_service('events_history').on_item_updated(
             {'planning_id': doc.get('_id')},
             original_event,
-            'planning created'
+            'planning_created'
         )
 
     def on_duplicated(self, doc, parent_id):

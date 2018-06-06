@@ -14,10 +14,12 @@ from flask import g
 from eve.utils import config
 from bson import ObjectId
 from .item_lock import LOCK_ACTION, LOCK_USER, LOCK_TIME, LOCK_SESSION
+from superdesk.metadata.item import ITEM_TYPE
 
 
 fields_to_remove = ['_id', '_etag', '_current_version', '_updated', '_created', '_links', 'version_creator', 'guid',
-                    LOCK_ACTION, LOCK_USER, LOCK_TIME, LOCK_SESSION, '_planning_schedule', '_planning_date']
+                    LOCK_ACTION, LOCK_USER, LOCK_TIME, LOCK_SESSION,
+                    '_planning_schedule', '_planning_date', '_reschedule_from_schedule']
 
 
 class HistoryService(Service):
@@ -38,7 +40,7 @@ class HistoryService(Service):
             if updates:
                 item.update(updates)
 
-        self._save_history(item, diff, operation or 'update')
+        self._save_history(item, diff, operation or 'edited')
 
     def on_spike(self, updates, original):
         self.on_item_updated(updates, original, 'spiked')
@@ -47,7 +49,8 @@ class HistoryService(Service):
         self.on_item_updated(updates, original, 'unspiked')
 
     def on_cancel(self, updates, original):
-        self.on_item_updated(updates, original, 'cancel')
+        operation = 'events_cancel' if original.get(ITEM_TYPE) == 'event' else 'planning_cancel'
+        self.on_item_updated(updates, original, operation)
 
     def on_reschedule(self, updates, original):
         self.on_item_updated(updates, original, 'reschedule')

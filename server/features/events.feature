@@ -430,7 +430,7 @@ Feature: Events
                 "update": { "duplicate_id" : "123"}
             },
             {
-                "operation": "update",
+                "operation": "edited",
                 "update": { "duplicate_to": ["#events._id#"] }
             }
         ]}
@@ -475,7 +475,7 @@ Feature: Events
                 "event_id": "#events._id#"
             },
             {
-                "operation": "update",
+                "operation": "edited",
                 "update": { "name" : "New Event"}
             },
             {
@@ -602,7 +602,7 @@ Feature: Events
                 "update": { "duplicate_id" : "123"}
             },
             {
-                "operation": "update",
+                "operation": "edited",
                 "update": { "duplicate_to": ["#events._id#"] }
             }
         ]}

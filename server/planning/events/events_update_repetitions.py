@@ -13,9 +13,10 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from apps.auth import get_user_id
-from planning.common import remove_lock_information
+from planning.common import remove_lock_information, WORKFLOW_STATE
 from .events import EventsResource, generate_recurring_dates
 from .events_base_service import EventsBaseService
+from planning.item_lock import LOCK_ACTION
 
 from eve.utils import config
 from flask import current_app as app
@@ -103,7 +104,12 @@ class EventsUpdateRepetitionsService(EventsBaseService):
         # Now iterate over the new events and create them
         if new_events:
             events_service.create(new_events)
-            app.on_inserted_events(new_events)
+            for event in new_events:
+                get_resource_service('events_history').on_update_repetitions(
+                    event,
+                    event[config.ID_FIELD],
+                    'update_repetitions_create'
+                )
 
         # Iterate over the events to delete/cancel
         self._set_events_planning(deleted_events)
@@ -128,7 +134,8 @@ class EventsUpdateRepetitionsService(EventsBaseService):
         self.backend.update(self.datasource, original[config.ID_FIELD], updates, original)
         get_resource_service('events_history').on_update_repetitions(
             updates,
-            original[config.ID_FIELD]
+            original[config.ID_FIELD],
+            'update_repetitions' if original.get(LOCK_ACTION) == 'update_repetitions' else 'update_repetitions_update'
         )
 
     def _create_event(self, date, updates, original, time_delta):
@@ -137,6 +144,9 @@ class EventsUpdateRepetitionsService(EventsBaseService):
         new_event.update(deepcopy(updates))
 
         # Remove fields not required by new events
+        new_event.pop('reschedule_from', None)
+        new_event.pop('pubstatus', None)
+        new_event['state'] = WORKFLOW_STATE.DRAFT
         for key in list(new_event.keys()):
             if key.startswith('_') or key.startswith('lock_'):
                 new_event.pop(key)

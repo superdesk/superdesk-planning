@@ -167,7 +167,7 @@ Feature: Events Recurring
         {"_items": [
             {"operation": "create", "event_id": "__any_value__"},
             {"operation": "create", "event_id": "__any_value__"},
-            {"operation": "update", "event_id": "#EVENT_ID#", "update": {
+            {"operation": "edited", "event_id": "#EVENT_ID#", "update": {
                 "name": "Weekly Friday Club",
                 "dates": {
                     "start": "2019-11-22T12:00:00+0000",
@@ -317,12 +317,12 @@ Feature: Events Recurring
         """
         {"_items": [
             {"operation": "post", "event_id": "#events._id#"},
-            {"operation": "planning created", "event_id": "#events._id#"},
+            {"operation": "planning_created", "event_id": "#events._id#"},
             {"operation": "reschedule_from", "event_id": "__any_value__"},
             {"operation": "reschedule", "event_id": "#events._id#"},
             {"operation": "create", "event_id": "__any_value__"},
             {"operation": "create", "event_id": "__any_value__"},
-            {"operation": "update", "event_id": "#events._id#"}
+            {"operation": "convert_recurring", "event_id": "#events._id#"}
         ]}
         """
         When we get "publish_queue"
@@ -561,7 +561,7 @@ Feature: Events Recurring
             {"operation": "create", "event_id": "#EVENT1._id#"},
             {"operation": "create", "event_id": "#EVENT2._id#"},
             {"operation": "create", "event_id": "#EVENT3._id#"},
-            {"operation": "update", "event_id": "#EVENT2._id#", "update": {
+            {"operation": "edited", "event_id": "#EVENT2._id#", "update": {
                 "name": "Friday Club - altered",
                 "definition_short": "Something different today"
             }}
@@ -646,11 +646,11 @@ Feature: Events Recurring
             {"operation": "create", "event_id": "#EVENT1._id#"},
             {"operation": "create", "event_id": "#EVENT2._id#"},
             {"operation": "create", "event_id": "#EVENT3._id#"},
-            {"operation": "update", "event_id": "#EVENT2._id#", "update": {
+            {"operation": "edited", "event_id": "#EVENT2._id#", "update": {
                 "name": "Friday Club - altered",
                 "definition_short": "Something different today"
             }},
-            {"operation": "update", "event_id": "#EVENT3._id#", "update": {
+            {"operation": "edited", "event_id": "#EVENT3._id#", "update": {
                 "name": "Friday Club - altered",
                 "definition_short": "Something different today"
             }}
@@ -739,15 +739,15 @@ Feature: Events Recurring
             {"operation": "create", "event_id": "#EVENT1._id#"},
             {"operation": "create", "event_id": "#EVENT2._id#"},
             {"operation": "create", "event_id": "#EVENT3._id#"},
-            {"operation": "update", "event_id": "#EVENT1._id#", "update": {
+            {"operation": "edited", "event_id": "#EVENT1._id#", "update": {
                 "name": "Friday Club - altered",
                 "definition_short": "Something different today"
             }},
-            {"operation": "update", "event_id": "#EVENT2._id#", "update": {
+            {"operation": "edited", "event_id": "#EVENT2._id#", "update": {
                 "name": "Friday Club - altered",
                 "definition_short": "Something different today"
             }},
-            {"operation": "update", "event_id": "#EVENT3._id#", "update": {
+            {"operation": "edited", "event_id": "#EVENT3._id#", "update": {
                 "name": "Friday Club - altered",
                 "definition_short": "Something different today"
             }}

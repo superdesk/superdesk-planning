@@ -12,6 +12,8 @@ from superdesk import Resource
 from planning.history import HistoryService
 import logging
 from eve.utils import config
+from copy import deepcopy
+from planning.item_lock import LOCK_ACTION
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +36,20 @@ class EventsHistoryService(HistoryService):
         lookup = {'event_id': doc[config.ID_FIELD]}
         self.delete(lookup=lookup)
 
+    def on_item_updated(self, updates, original, operation=None):
+        item = deepcopy(original)
+        if list(item.keys()) == ['_id']:
+            diff = updates
+        else:
+            diff = self._changes(original, updates)
+            if updates:
+                item.update(updates)
+
+        if not operation:
+            operation = 'convert_recurring' if original.get(LOCK_ACTION) == 'convert_recurring' else 'edited'
+
+        self._save_history(item, diff, operation)
+
     def _save_history(self, event, update, operation):
         history = {
             'event_id': event[config.ID_FIELD],
@@ -51,5 +67,8 @@ class EventsHistoryService(HistoryService):
                 history['operation'] = 'ingested'
         self.post([history])
 
-    def on_update_repetitions(self, updates, event_id):
-        self.on_item_updated(updates, {'_id': event_id}, 'update_repetitions')
+    def on_update_repetitions(self, updates, event_id, operation):
+        self.on_item_updated(updates, {'_id': event_id}, operation or 'update_repetitions')
+
+    def on_update_time(self, updates, original):
+        self.on_item_updated(updates, original, 'update_time')

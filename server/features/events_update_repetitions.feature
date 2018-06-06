@@ -175,7 +175,7 @@ Feature: Events Update Repetitions
           {"operation": "create", "event_id": "#EVENT3._id#"},
           {"operation": "create", "event_id": "#EVENT4._id#"},
           {
-              "operation": "update_repetitions",
+              "operation": "update_repetitions_update",
               "event_id": "#EVENT1._id#",
               "update": {
                   "dates": {
@@ -209,7 +209,7 @@ Feature: Events Update Repetitions
               }
           },
           {
-              "operation": "update_repetitions",
+              "operation": "update_repetitions_update",
               "event_id": "#EVENT3._id#",
               "update": {
                   "dates": {
@@ -226,7 +226,7 @@ Feature: Events Update Repetitions
               }
           },
           {
-              "operation": "update_repetitions",
+              "operation": "update_repetitions_update",
               "event_id": "#EVENT4._id#",
               "update": {
                   "dates": {
@@ -243,7 +243,7 @@ Feature: Events Update Repetitions
               }
           },
           {
-              "operation": "create",
+              "operation": "update_repetitions_create",
               "event_id": "__any_value__",
               "update": {
                   "dates": {
@@ -260,7 +260,7 @@ Feature: Events Update Repetitions
               }
           },
           {
-              "operation": "create",
+              "operation": "update_repetitions_create",
               "event_id": "__any_value__",
               "update": {
                   "dates": {
