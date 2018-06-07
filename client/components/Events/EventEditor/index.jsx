@@ -330,7 +330,8 @@ export class EventEditorComponent extends React.Component {
                         hideUsingCSS={true} // hideUsingCSS so the file data is kept on hide/show
                         invalid={!!errors.files && (dirty || submitFailed)}
                         forceScroll={editorMenuUtils.forceScroll(navigation, 'files')}
-                        paddingTop={!!onFocusFiles} >
+                        paddingTop={!!onFocusFiles}
+                        badgeValue={get(item, 'files.length', 0) > 0 ? item.files.length : null} >
                         <Field
                             component={FileInput}
                             field="files"
@@ -349,7 +350,8 @@ export class EventEditorComponent extends React.Component {
                         scrollInView={true}
                         invalid={!!errors.links && (dirty || submitFailed)}
                         forceScroll={editorMenuUtils.forceScroll(navigation, 'links')}
-                        paddingTop={!!onFocusLinks} >
+                        paddingTop={!!onFocusLinks}
+                        badgeValue={get(item, 'links.length', 0) > 0 ? item.links.length : null}>
                         <Field
                             component={InputArray}
                             field="links"
