@@ -563,6 +563,7 @@ describe('actions.planning.api', () => {
                         ednote: 'Text coverage',
                         scheduled: '2016-10-15T13:01:11',
                         g2_content_type: 'text',
+                        genre: null,
                     },
                     assigned_to: {
                         user: 'ident1',
@@ -575,7 +576,7 @@ describe('actions.planning.api', () => {
 
             return store.test(done, planningApi.save(planningItem))
                 .then((item) => {
-                    expect(item).toEqual(jasmine.objectContaining({...planningItem}));
+                    expect(item).toEqual(jasmine.objectContaining(planningItem));
 
                     expect(planningApi.fetchById.callCount).toBe(0);
 

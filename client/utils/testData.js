@@ -576,6 +576,7 @@ export const plannings = [
                     ednote: 'Text coverage',
                     scheduled: '2016-10-15T13:01:11+0000',
                     g2_content_type: 'text',
+                    genre: null,
                 },
                 assigned_to: {
                     user: 'ident1',
@@ -592,6 +593,7 @@ export const plannings = [
                     ednote: 'Photo coverage',
                     scheduled: '2016-10-15T14:01:11+0000',
                     g2_content_type: 'photo',
+                    genre: null,
                 },
                 assigned_to: {
                     user: 'ident1',
@@ -607,6 +609,7 @@ export const plannings = [
                     ednote: 'Video coverage',
                     scheduled: '2016-10-15T16:01:11+0000',
                     g2_content_type: 'video',
+                    genre: null,
                 },
                 firstcreated: '2017-10-03T14:01:11+0000',
             },
@@ -628,6 +631,7 @@ export const plannings = [
                     ednote: 'Video coverage',
                     scheduled: '2016-10-15T13:01:11',
                     g2_content_type: 'video',
+                    genre: null,
                 },
             },
         ],

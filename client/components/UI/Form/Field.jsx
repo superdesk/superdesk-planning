@@ -65,7 +65,6 @@ export class Field extends React.Component {
         const schema = get(formProfile, `schema["${profileField}"]`) || {};
         let currentError = (this.state.dirty || showErrors) ? (error || get(errors, field)) : null;
         const currentValue = value || get(diff, field);
-        // console.log('field', currentError, showErrors, errors);
 
         const Component = component;
         const child = <Component
@@ -87,7 +86,7 @@ export class Field extends React.Component {
             {...props}
         />;
 
-        return row ? <Row>{child}</Row> : child;
+        return row ? <Row id={`form-row-${field}`}>{child}</Row> : child;
     }
 }
 

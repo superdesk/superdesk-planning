@@ -1,9 +1,19 @@
 import {AUTOSAVE, ITEM_TYPE} from '../constants';
-import {get, pickBy} from 'lodash';
+import {get, cloneDeep} from 'lodash';
 import moment from 'moment';
 
 import * as selectors from '../selectors';
-import {getAutosaveItem, getItemType, getItemId, getErrorMessage, gettext} from '../utils';
+import {
+    getAutosaveItem,
+    getItemType,
+    getItemId,
+    getErrorMessage,
+    gettext,
+    isTemporaryId,
+    eventUtils,
+    planningUtils,
+    removeAutosaveFields,
+} from '../utils';
 
 /**
  * Action to fetch Autosave items for the given itemType and the current user
@@ -17,7 +27,7 @@ const fetch = (itemType) => (
             }),
         })
             .then(
-                (autosaves) => dispatch(self.receive(itemType, autosaves._items)),
+                (autosaves) => dispatch(self.receive(itemType, cloneDeep(autosaves._items))),
                 (error) => {
                     notify.error(
                         getErrorMessage(error, gettext('Failed to load {{ itemType }} autosaves.', {itemType}))
@@ -62,7 +72,20 @@ const fetchById = (itemType, itemId, tryServer = true) => (
         }
 
         // Otherwise send an API request
-        return api(`${itemType}_autosave`).getById(itemId);
+        return api(`${itemType}_autosave`).getById(itemId)
+            .then((item) => {
+                if (itemType === ITEM_TYPE.EVENT) {
+                    return Promise.resolve(
+                        eventUtils.modifyForClient(cloneDeep(item), true)
+                    );
+                } else if (itemType === ITEM_TYPE.PLANNING) {
+                    return Promise.resolve(
+                        planningUtils.modifyForClient(cloneDeep(item))
+                    );
+                }
+
+                return Promise.resolve(item);
+            });
     }
 );
 
@@ -72,7 +95,7 @@ const fetchById = (itemType, itemId, tryServer = true) => (
  * @param {Array} autosaves - An Array of items to store
  */
 const receive = (itemType, autosaves) => ({
-    type: AUTOSAVE.ACTIONS.RECEIVE,
+    type: AUTOSAVE.ACTIONS.RECEIVE_ALL,
     payload: {
         itemType,
         autosaves,
@@ -83,62 +106,43 @@ const receive = (itemType, autosaves) => ({
  * Action to save the dirty values for an item
  * This will first push the changes to the local Redux store, then send an API request to the server
  * And finally update the etag on response
- * @param {object} item - The updated item
- * @param {string} action - The action for this autosave (i.e. create/edit)
- * @param {boolean} saveToServer - If true sends API request to save the autosave on the server
+ * @param {object} updates - The updated item
  */
-const save = (item, action = 'edit', saveToServer = true) => (
+const save = (updates) => (
     (dispatch, getState, {api, notify}) => {
-        const itemId = getItemId(item);
-        const itemType = getItemType(item);
+        const itemId = getItemId(updates);
+        const itemType = getItemType(updates);
 
-        const originalAutosave = getAutosaveItem(
+        const original = getAutosaveItem(
             selectors.forms.autosaves(getState()),
             itemType,
             itemId
-        ) || {};
+        );
 
-        // Merge the original autosave item (if any) with the new changes
-        const autosaveItem = {
-            ...originalAutosave,
-            ...pickBy(item, (value, key) => (
-                key === '_planning_item' ||
-                key === '_id' ||
-                !key.startsWith('_')
-            )),
-            // Set the lock_ fields to the current user/session/time
-            lock_action: get(originalAutosave, 'lock_action') || action,
-            lock_user: selectors.general.currentUserId(getState()),
-            lock_session: selectors.general.sessionId(getState()),
-            lock_time: get(originalAutosave, 'lock_time') || moment(),
-        };
+        const updateFields = removeAutosaveFields(updates);
 
         if (itemType === ITEM_TYPE.EVENT) {
-            autosaveItem.location = autosaveItem.location ? [autosaveItem.location] : [];
-
-            if (autosaveItem._planning_item === null) {
-                delete autosaveItem._planning_item;
-            }
+            eventUtils.modifyForServer(updateFields, false, true);
+        } else if (itemType === ITEM_TYPE.PLANNING) {
+            planningUtils.modifyForServer(updateFields);
         }
 
-        // Push the changes to the local redux
-        dispatch({
-            type: AUTOSAVE.ACTIONS.SAVE,
-            payload: autosaveItem,
-        });
-
-        if (!saveToServer) {
-            return Promise.resolve(autosaveItem);
+        // Only set the lock information when creating a new Autosave item
+        if (!original) {
+            updateFields.lock_action = isTemporaryId(itemId) ? 'create' : 'edit';
+            updateFields.lock_user = selectors.general.currentUserId(getState());
+            updateFields.lock_session = selectors.general.sessionId(getState());
+            updateFields.lock_time = moment();
         }
 
-        return api(`${itemType}_autosave`).save(originalAutosave, autosaveItem)
+        return api(`${itemType}_autosave`).save(
+            original || {},
+            updateFields
+        )
             .then((updatedAutosave) => {
                 dispatch({
-                    type: AUTOSAVE.ACTIONS.UPDATE_ETAG,
-                    payload: {
-                        itemType: itemType,
-                        item: updatedAutosave,
-                    },
+                    type: AUTOSAVE.ACTIONS.RECEIVE,
+                    payload: updatedAutosave,
                 });
 
                 return Promise.resolve(updatedAutosave);
@@ -194,7 +198,7 @@ const removeById = (itemType, itemId, tryServer = true) => (
         dispatch(self.fetchById(itemType, itemId, tryServer))
             .then((autosaveItem) => {
                 if (autosaveItem) {
-                    dispatch(self.remove({
+                    return dispatch(self.remove({
                         ...autosaveItem,
                         _id: itemId,
                     }));

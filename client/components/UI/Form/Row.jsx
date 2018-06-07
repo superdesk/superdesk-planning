@@ -9,10 +9,10 @@ import './style.scss';
  * @name Row
  * @description Component to encapsulate a component in Form row style
  */
-export const Row = ({children, flex, noPadding, halfWidth, className, enabled}) => (
+export const Row = ({children, flex, noPadding, halfWidth, className, enabled, id}) => (
     !enabled ?
         null :
-        <div className={classNames(
+        <div id={id} className={classNames(
             'form__row',
             {
                 'form__row--flex': flex,
@@ -35,6 +35,7 @@ Row.propTypes = {
     ]),
     halfWidth: PropTypes.bool,
     enabled: PropTypes.bool,
+    id: PropTypes.string,
 };
 
 Row.defaultProps = {

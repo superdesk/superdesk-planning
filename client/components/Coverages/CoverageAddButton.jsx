@@ -7,6 +7,7 @@ import {Dropdown} from '../UI/SubNav';
 export const CoverageAddButton = ({onAdd, contentTypes}) => {
     let items = contentTypes.map((c) => (
         {
+            id: `coverage-menu-add-${c.qcode}`,
             label: c.name,
             icon: planningUtils.getCoverageIcon(c.qcode),
             action: onAdd.bind(null, c.qcode),

@@ -1,6 +1,7 @@
 import sinon from 'sinon';
 import {autosave} from '../';
 import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
+import {eventUtils} from '../../utils';
 
 describe('actions.autosave', () => {
     let store;
@@ -16,11 +17,19 @@ describe('actions.autosave', () => {
         data.event_autosave = [{
             ...data.events[0],
             slugline: 'New Event Slugline',
+            lock_action: 'edit',
+            lock_user: store.initialState.session.identity._id,
+            lock_session: store.initialState.session.sessionId,
         }];
+
+        delete data.event_autosave[0].planning_ids;
 
         data.planning_autosave = [{
             ...data.plannings[0],
             slugline: 'New Planning Slugline',
+            lock_action: 'edit',
+            lock_user: store.initialState.session.identity._id,
+            lock_session: store.initialState.session.sessionId,
         }];
     });
 
@@ -40,7 +49,7 @@ describe('actions.autosave', () => {
                     }]);
 
                     expect(store.dispatch.args[0]).toEqual([{
-                        type: 'AUTOSAVE_RECEIVE',
+                        type: 'AUTOSAVE_RECEIVE_ALL',
                         payload: {
                             itemType: 'event',
                             autosaves: data.event_autosave,
@@ -99,7 +108,9 @@ describe('actions.autosave', () => {
             store.initialState.forms.autosaves.event = {};
             store.test(done, autosave.fetchById('event', data.events[0]._id))
                 .then((autosaveItem) => {
-                    expect(autosaveItem).toEqual(data.event_autosave[0]);
+                    expect(autosaveItem).toEqual(
+                        eventUtils.modifyForClient(data.event_autosave[0])
+                    );
 
                     expect(services.api('event_autosave').getById.callCount).toBe(1);
                     expect(services.api('event_autosave').getById.args[0]).toEqual([data.events[0]._id]);
@@ -121,19 +132,27 @@ describe('actions.autosave', () => {
 
     describe('save', () => {
         it('creates a new autosave item', (done) => (
-            store.test(done, autosave.save(data.events[1], 'create'))
+            store.test(done, autosave.save({
+                ...data.events[1],
+                _id: 'tempId-e4',
+            }))
                 .then((updatedItem) => {
-                    const autosaveItem = jasmine.objectContaining({
+                    const expectedItem = {
                         ...data.events[1],
+                        _id: 'tempId-e4',
                         lock_action: 'create',
                         lock_user: store.initialState.session.identity._id,
                         lock_session: store.initialState.session.sessionId,
-                    });
+                    };
+
+                    delete expectedItem.planning_ids;
+
+                    const autosaveItem = jasmine.objectContaining(expectedItem);
 
                     expect(updatedItem).toEqual(autosaveItem);
 
                     expect(store.dispatch.args[0]).toEqual([{
-                        type: 'AUTOSAVE_SAVE',
+                        type: 'AUTOSAVE_RECEIVE',
                         payload: autosaveItem,
                     }]);
 
@@ -142,14 +161,6 @@ describe('actions.autosave', () => {
                         {},
                         autosaveItem,
                     ]);
-
-                    expect(store.dispatch.args[1]).toEqual([{
-                        type: 'AUTOSAVE_UPDATE_ETAG',
-                        payload: {
-                            itemType: 'event',
-                            item: autosaveItem,
-                        },
-                    }]);
 
                     done();
                 }, done.fail)
@@ -162,19 +173,23 @@ describe('actions.autosave', () => {
                 name: 'Test Name',
             }))
                 .then((updatedItem) => {
-                    const autosaveItem = jasmine.objectContaining({
+                    const expectedItem = {
                         ...data.event_autosave[0],
                         slugline: 'Newest Event Slugline',
                         name: 'Test Name',
                         lock_action: 'edit',
                         lock_user: store.initialState.session.identity._id,
                         lock_session: store.initialState.session.sessionId,
-                    });
+                    };
+
+                    delete expectedItem._etag;
+
+                    const autosaveItem = jasmine.objectContaining(expectedItem);
 
                     expect(updatedItem).toEqual(autosaveItem);
 
                     expect(store.dispatch.args[0]).toEqual([{
-                        type: 'AUTOSAVE_SAVE',
+                        type: 'AUTOSAVE_RECEIVE',
                         payload: autosaveItem,
                     }]);
 
@@ -183,37 +198,6 @@ describe('actions.autosave', () => {
                         data.event_autosave[0],
                         autosaveItem,
                     ]);
-
-                    expect(store.dispatch.args[1]).toEqual([{
-                        type: 'AUTOSAVE_UPDATE_ETAG',
-                        payload: {
-                            itemType: 'event',
-                            item: autosaveItem,
-                        },
-                    }]);
-
-                    done();
-                }, done.fail)
-        ));
-
-        it('only update the local Redux store if saveToServer=false', (done) => (
-            store.test(done, autosave.save(data.event_autosave[0], 'edit', false))
-                .then((updatedItem) => {
-                    const autosaveItem = jasmine.objectContaining({
-                        ...data.event_autosave[0],
-                        lock_action: 'edit',
-                        lock_user: store.initialState.session.identity._id,
-                        lock_session: store.initialState.session.sessionId,
-                    });
-
-                    expect(updatedItem).toEqual(autosaveItem);
-
-                    expect(store.dispatch.args[0]).toEqual([{
-                        type: 'AUTOSAVE_SAVE',
-                        payload: autosaveItem,
-                    }]);
-
-                    expect(services.api('event_autosave').save.callCount).toBe(0);
 
                     done();
                 }, done.fail)

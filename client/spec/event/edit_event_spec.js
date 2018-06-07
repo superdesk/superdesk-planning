@@ -1,8 +1,8 @@
 
-import {subNavBar} from './helpers/subNavBar';
-import {editor} from './helpers/editor';
-import {inputToField} from './helpers/utils';
-import {listPanel} from './helpers/listPanel';
+import {subNavBar} from '../helpers/subNavBar';
+import {editor} from '../helpers/editor';
+import {inputToField} from '../helpers/utils';
+import {listPanel} from '../helpers/listPanel';
 
 describe('edit_event', () => {
     beforeEach(() => {

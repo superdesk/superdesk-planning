@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import {getItemInArrayById, gettext, planningUtils} from '../../../utils';
-import {COVERAGES} from '../../../constants';
 import moment from 'moment';
 
 
@@ -187,7 +186,7 @@ export class CoverageForm extends React.Component {
                     field={`${field}.news_coverage_status`}
                     profileName="news_coverage_status"
                     label={gettext('Coverage Status')}
-                    defaultValue={COVERAGES.DEFAULT_VALUE(newsCoverageStatus).news_coverage_status}
+                    defaultValue={planningUtils.defaultCoverageValues(newsCoverageStatus).news_coverage_status}
                     options={newsCoverageStatus}
                     {...fieldProps}
                     readOnly={!!get(value, 'assigned_to.desk', readOnly)}

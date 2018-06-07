@@ -82,7 +82,7 @@ describe('actions.events.api', () => {
             store.initialState.events.events = {};
             store.test(done, eventsApi.fetchById('e2'))
                 .then((event) => {
-                    expect(event).toEqual(eventUtils.convertToMoment(data.events[1]));
+                    expect(event).toEqual(eventUtils.modifyForClient(data.events[1]));
 
                     expect(services.api.find.callCount).toBe(1);
                     expect(services.api.find.args[0]).toEqual([
@@ -101,7 +101,7 @@ describe('actions.events.api', () => {
         it('returns the Event from the store instead of the API', (done) => (
             store.test(done, eventsApi.fetchById('e2'))
                 .then((event) => {
-                    expect(event).toEqual(eventUtils.convertToMoment(data.events[1]));
+                    expect(event).toEqual(eventUtils.modifyForClient(data.events[1]));
 
                     expect(services.api.find.callCount).toBe(0);
 
@@ -115,7 +115,7 @@ describe('actions.events.api', () => {
         it('returns the Event from the API if force = true', (done) => (
             store.test(done, eventsApi.fetchById('e2', {force: true}))
                 .then((event) => {
-                    expect(event).toEqual(eventUtils.convertToMoment(data.events[1]));
+                    expect(event).toEqual(eventUtils.modifyForClient(data.events[1]));
 
                     expect(services.api.find.callCount).toBe(1);
                     expect(services.api.find.args[0]).toEqual([

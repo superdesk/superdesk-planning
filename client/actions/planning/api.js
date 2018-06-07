@@ -374,7 +374,7 @@ const query = (
                 }
 
                 if (get(data, '_items')) {
-                    data._items.forEach(planningUtils.convertCoveragesGenreToObject);
+                    data._items.forEach(planningUtils.modifyForClient);
                     return Promise.resolve(data._items);
                 } else {
                     return Promise.reject('Failed to retrieve items');
@@ -482,7 +482,7 @@ const fetchById = (pid, {force = false, saveToStore = true, loadEvents = true} =
         } else {
             promise = api('planning').getById(pid)
                 .then((item) => {
-                    planningUtils.convertCoveragesGenreToObject(item);
+                    planningUtils.modifyForClient(item);
 
                     if (saveToStore) {
                         dispatch(self.receivePlannings([item]));
@@ -548,7 +548,7 @@ const receivePlanningHistory = (planningHistoryItems) => ({
 const loadPlanningById = (id, spikeState = SPIKED_STATE.BOTH, saveToStore = true) => (
     (dispatch, getState, {api}) => api('planning').getById(id)
         .then((item) => {
-            planningUtils.convertCoveragesGenreToObject(item);
+            planningUtils.modifyForClient(item);
             if (saveToStore) {
                 dispatch(self.receivePlannings([item]));
             }
@@ -575,7 +575,7 @@ const loadPlanningByEventId = (eventIds, loadToStore = true) => (
         })
             .then((data) => {
                 data._items.forEach((item) => {
-                    planningUtils.convertCoveragesGenreToObject(item);
+                    planningUtils.modifyForClient(item);
                 });
 
                 if (loadToStore) {
@@ -596,7 +596,7 @@ const loadPlanningByRecurrenceId = (recurrenceId, loadToStore = true) => (
         })
             .then((data) => {
                 data._items.forEach((item) => {
-                    planningUtils.convertCoveragesGenreToObject(item);
+                    planningUtils.modifyForClient(item);
                 });
 
                 if (loadToStore) {
@@ -673,12 +673,7 @@ const save = (item, original = undefined) => (
             updates.agendas = updates.agendas.map((agenda) => agenda._id || agenda);
         }
 
-        get(updates, 'coverages', []).forEach((coverage) => {
-            // Convert genre back to an Array
-            if (get(coverage, 'planning.genre')) {
-                coverage.planning.genre = [coverage.planning.genre];
-            }
-        });
+        planningUtils.modifyForServer(updates);
 
         // Find the original (if it exists) either from the store or the API
         return new Promise((resolve, reject) => {
@@ -832,7 +827,7 @@ const unlock = (item) => (
         api('planning_unlock', item).save({})
     )
         .then((item) => {
-            planningUtils.convertCoveragesGenreToObject(item);
+            planningUtils.modifyForClient(item);
 
             return Promise.resolve(item);
         }, (error) => Promise.reject(error))
@@ -858,7 +853,7 @@ const lock = (planning, lockAction = 'edit') => (
             {_id: planning._id}
         )
             .then((item) => {
-                planningUtils.convertCoveragesGenreToObject(item);
+                planningUtils.modifyForClient(item);
 
                 return Promise.resolve(item);
             }, (error) => Promise.reject(error));

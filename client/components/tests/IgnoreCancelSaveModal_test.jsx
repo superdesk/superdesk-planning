@@ -24,7 +24,7 @@ describe('<IgnoreCancelSaveModal>', () => {
     let buttons;
 
     beforeEach(() => {
-        item = eventUtils.convertToMoment(cloneDeep(testData.events[0]));
+        item = eventUtils.modifyForClient(cloneDeep(testData.events[0]));
         itemType = item.type;
         handleHide = sinon.spy();
         onCancel = sinon.spy();

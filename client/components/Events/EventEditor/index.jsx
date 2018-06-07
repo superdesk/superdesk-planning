@@ -4,7 +4,6 @@ import {connect} from 'react-redux';
 import {get, some} from 'lodash';
 import * as selectors from '../../../selectors';
 import eventsUi from '../../../actions/events/ui';
-import {EVENTS} from '../../../constants';
 
 import {ContentBlock} from '../../UI/SidePanel';
 import {
@@ -24,7 +23,7 @@ import {EventScheduleInput, EventScheduleSummary} from '../';
 import {GeoLookupInput} from '../../index';
 
 import {EventEditorHeader} from './EventEditorHeader';
-import {gettext, editorMenuUtils, getItemId, isTemporaryId} from '../../../utils';
+import {gettext, editorMenuUtils, getItemId} from '../../../utils';
 import CustomVocabulariesFields from '../../CustomVocabulariesFields';
 
 import '../style.scss';
@@ -49,9 +48,7 @@ export class EventEditorComponent extends React.Component {
     }
 
     componentWillMount() {
-        if (!this.props.itemExists) {
-            this.props.onChangeHandler('calendars', this.props.defaultCalendar, false);
-        } else {
+        if (this.props.itemExists) {
             // Get the event with files with it
             this.props.fetchEventWithFiles(this.props.item);
         }
@@ -63,17 +60,13 @@ export class EventEditorComponent extends React.Component {
 
     componentDidUpdate(prevProps) {
         const prevItemId = getItemId(prevProps.item);
-        const prevDiffId = getItemId(prevProps.diff);
 
         const currentItemId = getItemId(this.props.item);
-        const currentDiffId = getItemId(this.props.diff);
 
         // If item changed or it got locked for editing
         if ((prevItemId !== currentItemId) ||
             (!get(prevProps, 'diff.lock_user') && get(this.props, 'diff.lock_user'))) {
             this.dom.slugline.focus();
-        } else if (prevDiffId !== currentDiffId && isTemporaryId(currentDiffId)) {
-            this.props.onChangeHandler('calendars', this.props.defaultCalendar, false);
         }
 
         if (get(prevProps, 'navigation.scrollToViewItem') !== get(this.props, 'navigation.scrollToViewItem')) {
@@ -163,7 +156,7 @@ export class EventEditorComponent extends React.Component {
                 icon="icon-plus-sign"
                 label={gettext('Add link')}
                 useDefaultClass={false}
-                className="text-link cursor-pointer"
+                className="text-link cursor-pointer link-input__add-btn"
                 tabIndex={0}
                 enterKeyIsClick={true}
             />
@@ -215,7 +208,7 @@ export class EventEditorComponent extends React.Component {
                         component={SelectInput}
                         field="occur_status"
                         label={gettext('Occurrence Status')}
-                        defaultValue={EVENTS.DEFAULT_VALUE(occurStatuses).occur_status}
+                        defaultValue={null}
                         options={occurStatuses}
                         {...fieldProps}
                         onFocus={onFocusEvent}

@@ -101,11 +101,6 @@ export const EVENTS = {
             lock_action: 'edit',
         },
     },
-    DEFAULT_VALUE: (occurStatuses) => ({
-        type: 'event',
-        occur_status: occurStatuses[5], // eocstat:eos5: Planned, occurs certainly
-        dates: {},
-    }),
     FILTER: {
         NO_CALENDAR_ASSIGNED: 'NO_CALENDAR_ASSIGNED',
         ALL_CALENDARS: 'ALL_CALENDARS',

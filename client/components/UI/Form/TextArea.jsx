@@ -74,6 +74,7 @@ export class TextArea extends React.Component {
             readOnly,
             placeholder,
             paddingRight60,
+            className,
 
             // Remove these variables from the props variable
             // So they are not passed down to the textarea dom node
@@ -91,7 +92,8 @@ export class TextArea extends React.Component {
                     {
                         'sd-line-input__input--auto-height': autoHeight,
                         'sd-line-input__input--padding-right-60': paddingRight60,
-                    }
+                    },
+                    className
                 )}
                 value={value}
                 name={field}
@@ -115,6 +117,7 @@ TextArea.propTypes = {
     readOnly: PropTypes.bool,
     paddingRight60: PropTypes.bool,
     multiLine: PropTypes.bool,
+    className: PropTypes.string,
 };
 
 TextArea.defaultProps = {

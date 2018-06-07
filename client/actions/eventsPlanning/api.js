@@ -82,10 +82,10 @@ const query = (
                 if (get(data, '_items')) {
                     data._items.forEach((item) => {
                         if (item.type === 'event') {
-                            eventUtils.convertToMoment(item);
+                            eventUtils.modifyForClient(item);
                             return;
                         }
-                        planningUtils.convertCoveragesGenreToObject(item);
+                        planningUtils.modifyForClient(item);
                     });
 
                     return get(data, '_items', []);

@@ -121,6 +121,7 @@ export class LinkInput extends React.Component {
                     <Label text={label} />
 
                     <TextArea
+                        className="link-input__input"
                         field={field}
                         value={value}
                         onChange={onChange}
