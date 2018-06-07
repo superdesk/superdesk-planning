@@ -111,7 +111,8 @@ export class CollapseBox extends React.Component {
                     'sd-collapse-box',
                     'sd-shadow--z2',
                     {
-                        'sd-collapse-box--open': this.state.isOpen,
+                        'sd-collapse-box--open': this.state.isOpen && !this.props.inner,
+                        'sd-collapse-box--inner-open': this.state.isOpen && this.props.inner,
                         'sd-collapse-box--invalid': this.props.invalid,
                     }
                 )}
@@ -138,7 +139,13 @@ export class CollapseBox extends React.Component {
                         </div>
                     </div>
                 ) || (
-                    <div className="sd-collapse-box__header">
+                    <div className={classNames(
+                        'sd-collapse-box__header',
+                        {
+                            'sd-collapse-box__inner-header': this.props.inner,
+                        }
+                    )}
+                    >
                         {this.props.collapsedItem}
                     </div>
                 )}
@@ -162,10 +169,12 @@ CollapseBox.propTypes = {
     onClose: PropTypes.func,
     forceScroll: PropTypes.bool,
     onClick: PropTypes.func,
+    inner: PropTypes.bool,
 };
 
 CollapseBox.defaultProps = {
     isOpen: false,
     scrollInView: false,
     invalid: false,
+    inner: false,
 };

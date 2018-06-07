@@ -133,14 +133,11 @@ describe('<EventPreviewContent />', () => {
         expect(linkLabel.text()).toBe('www.google.com');
         expect(linkValue.text()).toBe('https://www.google.com');
 
-        let relatedPlannings = wrapper.find('.toggle-box').at(3);
-
-        relatedPlannings.find('.toggle-box__header').simulate('click');
-        relatedPlannings = wrapper.find('.toggle-box').at(3);
+        let relatedPlannings = wrapper.find('.related-plannings');
 
         const relPlan = relatedPlannings.find('span').first();
 
-        expect(relPlan.text()).toBe('Planning2 created by firstname lastname in agenda TestAgenda2');
+        expect(relPlan.text()).toBe('Planning2'); // expect to display slugline (i.e. Planning2)
         restoreSinonStub(eventsUi.fetchEventWithFiles);
     });
 });

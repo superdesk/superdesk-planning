@@ -7,7 +7,7 @@ import classNames from 'classnames';
  * @name ContentBlock
  * @description Component to hold a single block of content
  */
-export const ContentBlock = ({children, className, padSmall, flex}) => (
+export const ContentBlock = ({children, className, padSmall, flex, noPadding}) => (
     <div
         className={classNames(
             'side-panel__content-block',
@@ -15,6 +15,7 @@ export const ContentBlock = ({children, className, padSmall, flex}) => (
             {
                 'side-panel__content-block--pad-small': padSmall,
                 'side-panel__content-block--flex': flex,
+                'side-panel__content-block--no-padding': noPadding,
             }
         )}
     >
@@ -27,6 +28,7 @@ ContentBlock.propTypes = {
     className: PropTypes.string,
     padSmall: PropTypes.bool,
     flex: PropTypes.bool,
+    noPadding: PropTypes.bool,
 };
 
 ContentBlock.defaultProps = {

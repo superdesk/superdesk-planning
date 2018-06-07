@@ -7,57 +7,95 @@ import './style.scss';
 import * as actions from '../../actions';
 import {WORKFLOW_STATE} from '../../constants/index';
 import {gettext} from '../../utils';
+import {PlanningMetaData} from './PlanningMetaData';
+import * as selectors from '../../selectors';
 
-export const RelatedPlanningsComponent = ({plannings, openPlanningItem, openPlanningClick, short}) => (
-    <ul className="simple-list simple-list--dotted simple-list--no-padding">
-        {plannings.map(({
-            _id,
-            slugline,
-            headline,
-            anpa_category,
-            _agendas = [],
-            original_creator: {display_name},
-            state,
-        }) => {
-            const agendaElements = _agendas.map((_agenda) => (
-                _agenda && <span key={_agenda._id}>
-                    <a onClick={ openPlanningItem ? openPlanningClick.bind(null, _id, _agenda) : null}>
-                        {
-                            _agenda.is_enabled ? _agenda.name : `${_agenda.name} - [Disabled]`
-                        }
-                    </a>
-                </span>
-            )).reduce((accu, elem) => accu === null ? [elem] : [accu, ', ', elem], null);
+export const RelatedPlanningsComponent = ({
+    plannings,
+    openPlanningItem,
+    openPlanningClick,
+    short,
+    expandable,
+    navigation,
+    lockedItems,
+    onEditPlanning,
+    users,
+    desks,
+    dateFormat,
+    timeFormat,
+    allowEditPlanning,
+}) => (
+    (<div>
+        {expandable ?
+            plannings.map((plan, index) => (
+                <PlanningMetaData
+                    key={index}
+                    field={`plannings[${index}]`}
+                    plan={plan}
+                    scrollInView={true}
+                    navigation={navigation}
+                    lockedItems={lockedItems}
+                    onEditPlanning={allowEditPlanning ? onEditPlanning.bind(null, plan) : null}
+                    users={users}
+                    desks={desks}
+                    dateFormat={dateFormat}
+                    timeFormat={timeFormat}
+                    tabEnabled />
+            ))
+            :
+            (<ul className="simple-list simple-list--dotted simple-list--no-padding">
+                {plannings.map(({
+                    _id,
+                    slugline,
+                    headline,
+                    anpa_category,
+                    _agendas = [],
+                    original_creator: {display_name},
+                    state,
+                }) => {
+                    const agendaElements = _agendas.map((_agenda) => (
+                        _agenda && <span key={_agenda._id}>
+                            <a onClick={ openPlanningItem ? openPlanningClick.bind(null, _id, _agenda) : null}>
+                                {
+                                    _agenda.is_enabled ? _agenda.name : `${_agenda.name} - [Disabled]`
+                                }
+                            </a>
+                        </span>
+                    )).reduce((accu, elem) => accu === null ? [elem] : [accu, ', ', elem], null);
 
-            const inAgendaText = _agendas.length > 0 ? gettext('in agenda') : '';
+                    const inAgendaText = _agendas.length > 0 ? gettext('in agenda') : '';
 
-            return (
-                <li key={_id} className="simple-list__item simple-list__item--with-icon">
-                    <i className="icon-list-alt"/>&nbsp;
-                    {state && state === WORKFLOW_STATE.SPIKED &&
-                            <span className="label label--alert">spiked</span>
-                    }
-                    { short ? (
-                        <span><strong>{slugline || headline}</strong>{inAgendaText}{ agendaElements }</span>
-                    )
-                        :
-                        (
-                            <span>
-                                {agendaElements && <strong>{slugline || headline} </strong>}
-                                {!agendaElements && <a onClick={openPlanningItem ?
-                                    openPlanningClick.bind(null, _id) : null}>
-                                    <strong>{slugline || headline} </strong></a>}
-                                {gettext('created by') + ' ' + display_name + ' ' + inAgendaText} {agendaElements}
-                                {anpa_category && anpa_category.length && (
-                                    <span>&nbsp;[{anpa_category.map((c) => c.name).join(', ')}]</span>
+                    return (
+                        <li key={_id} className="simple-list__item simple-list__item--with-icon">
+                            <i className="icon-list-alt"/>&nbsp;
+                            {state && state === WORKFLOW_STATE.SPIKED &&
+                                        <span className="label label--alert">spiked</span>
+                            }
+                            { short ? (
+                                <span><strong>{slugline || headline}</strong>{inAgendaText}{ agendaElements }</span>
+                            )
+                                :
+                                (
+                                    <span>
+                                        {agendaElements && <strong>{slugline || headline} </strong>}
+                                        {!agendaElements && <a onClick={openPlanningItem ?
+                                            openPlanningClick.bind(null, _id) : null}>
+                                            <strong>{slugline || headline} </strong></a>}
+                                        {
+                                            gettext('created by') + ' ' + display_name + ' ' + inAgendaText
+                                        } {agendaElements}
+                                        {anpa_category && anpa_category.length && (
+                                            <span>&nbsp;[{anpa_category.map((c) => c.name).join(', ')}]</span>
+                                        )
+                                        }</span>
                                 )
-                                }</span>
-                        )
-                    }
-                </li>
-            );
-        })}
-    </ul>
+                            }
+                        </li>
+                    );
+                })}
+            </ul>)
+        }
+    </div>)
 );
 
 RelatedPlanningsComponent.propTypes = {
@@ -65,12 +103,22 @@ RelatedPlanningsComponent.propTypes = {
     openPlanningItem: PropTypes.bool,
     openPlanningClick: PropTypes.func.isRequired,
     short: PropTypes.bool,
+    expandable: PropTypes.bool,
+    lockedItems: PropTypes.object,
+    navigation: PropTypes.object,
+    users: PropTypes.array,
+    desks: PropTypes.array,
+    dateFormat: PropTypes.string,
+    timeFormat: PropTypes.string,
+    onEditPlanning: PropTypes.func,
+    allowEditPlanning: PropTypes.bool,
 };
 
 RelatedPlanningsComponent.defaultProps = {short: false};
 
 const mapStateToProps = (state, ownProps) => ({
     plannings: ownProps.plannings.map((planning) => ({...planning})),
+    lockedItems: selectors.locks.getLockedItems(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -80,6 +128,7 @@ const mapDispatchToProps = (dispatch) => ({
             type: 'planning',
         }))
     ),
+    onEditPlanning: (plan) => (dispatch(actions.main.lockAndEdit(plan))),
 });
 
 export const RelatedPlannings = connect(mapStateToProps, mapDispatchToProps)(RelatedPlanningsComponent);

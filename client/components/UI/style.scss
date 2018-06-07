@@ -90,6 +90,16 @@ time.Datetime {
     @extend .sd-collapse-box__content-wrapper--no-max-height;
 }
 
+.sd-collapse-box__inner-header {
+    display: block !important;
+}
+
+.sd-collapse-box--inner-open {
+    .sd-collapse-box__inner-header {
+        display: none !important;
+    }
+}
+
 // This is used so the action-menu is visible
 // when using tab to select an sd-list-item
 .sd-list-item:focus-within {
@@ -98,5 +108,11 @@ time.Datetime {
         width: auto;
         overflow: visible;
         opacity: 1;
+    }
+}
+
+.side-panel__content-block {
+    &--no-padding {
+        padding: unset !important;
     }
 }

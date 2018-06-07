@@ -33,6 +33,8 @@ export class PlanningPreviewContentComponent extends React.Component {
             onEditEvent,
             lockedItems,
             customVocabularies,
+            inner,
+            noPadding,
         } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
@@ -54,7 +56,7 @@ export class PlanningPreviewContentComponent extends React.Component {
         const urgency = getItemInArrayById(urgencies, item.urgency, 'qcode');
 
         return (
-            <ContentBlock>
+            <ContentBlock noPadding={noPadding}>
                 <div className="side-panel__content-block--flex">
                     <div className="side-panel__content-block-inner side-panel__content-block-inner--grow">
                         <AuditInformation
@@ -170,8 +172,8 @@ export class PlanningPreviewContentComponent extends React.Component {
                 />}
                 {hasCoverage &&
                     (<h3 className="side-panel__heading--big">{gettext('Coverages')}</h3>)}
-                {hasCoverage && (
-                    item.coverages.map((c, index) => <CoveragePreview
+                {hasCoverage &&
+                    (item.coverages.map((c, index) => <CoveragePreview
                         key={index}
                         coverage={c}
                         users= {users}
@@ -179,8 +181,10 @@ export class PlanningPreviewContentComponent extends React.Component {
                         newsCoverageStatus={newsCoverageStatus}
                         dateFormat={dateFormat}
                         timeFormat={timeFormat}
-                        formProfile={formProfile.coverage} />)
-                )}
+                        formProfile={formProfile.coverage}
+                        inner={inner} />)
+                    )
+                }
             </ContentBlock>
         );
     }
@@ -202,10 +206,12 @@ PlanningPreviewContentComponent.propTypes = {
     streetMapUrl: PropTypes.string,
     onEditEvent: PropTypes.func,
     customVocabularies: PropTypes.array,
+    inner: PropTypes.bool,
+    noPadding: PropTypes.bool,
 };
 
 const mapStateToProps = (state, ownProps) => ({
-    item: selectors.planning.currentPlanning(state),
+    item: selectors.planning.currentPlanning(state) || ownProps.item,
     event: selectors.events.planningWithEventDetails(state),
     session: selectors.general.session(state),
     privileges: selectors.general.privileges(state),
@@ -216,12 +222,13 @@ const mapStateToProps = (state, ownProps) => ({
     dateFormat: selectors.config.getDateFormat(state),
     timeFormat: selectors.config.getTimeFormat(state),
     formProfile: selectors.forms.profiles(state),
-    newsCoverageStatus: selectors.general.newsCoverageStatus(state),
+    newsCoverageStatus: selectors.general.newsCoverageStatus(state) || ownProps.item.coverages.news_coverage_status,
     urgencies: selectors.getUrgencies(state),
     streetMapUrl: selectors.config.getStreetMapUrl(state),
     customVocabularies: state.customVocabularies,
 });
 
 const mapDispatchToProps = (dispatch) => ({onEditEvent: (event) => (dispatch(actions.main.lockAndEdit(event)))});
+
 
 export const PlanningPreviewContent = connect(mapStateToProps, mapDispatchToProps)(PlanningPreviewContentComponent);

@@ -99,6 +99,7 @@ export class EventPreviewContentComponent extends React.Component {
         const {
             item,
             users,
+            desks,
             formProfile,
             timeFormat,
             dateFormat,
@@ -263,12 +264,25 @@ export class EventPreviewContentComponent extends React.Component {
                             <span className="sd-text__info">{gettext('No external links added.')}</span>}
                     </ToggleBox>
                 }
-                <ToggleBox title={gettext('Related Planning Items')} isOpen={false}>
-                    {get(item, '_plannings.length') > 0 ?
-                        <RelatedPlannings plannings={item._plannings}
-                            openPlanningItem={true}/> :
-                        <span className="sd-text__info">{gettext('No related planning items.')}</span>}
-                </ToggleBox>
+                {item._plannings &&
+                    <h3 className="side-panel__heading side-panel__heading--big">
+                        {gettext('Related Planning Items')}
+                    </h3>
+                }
+                {get(item, '_plannings.length') > 0 ?
+                    <RelatedPlannings
+                        className="related-plannings"
+                        plannings={item._plannings}
+                        openPlanningItem={true}
+                        expandable={true}
+                        users={users}
+                        desks={desks}
+                        timeFormat={timeFormat}
+                        dateFormat={dateFormat}
+                        allowEditPlanning={true} /> :
+                    <span className="sd-text__info">{gettext('No related planning items.')}</span>
+                }
+
             </ContentBlock>
         );
     }
@@ -277,6 +291,7 @@ export class EventPreviewContentComponent extends React.Component {
 EventPreviewContentComponent.propTypes = {
     item: PropTypes.object,
     users: PropTypes.array,
+    desks: PropTypes.array,
     session: PropTypes.object,
     lockedItems: PropTypes.object,
     formProfile: PropTypes.object,
@@ -293,6 +308,7 @@ const mapStateToProps = (state, ownProps) => ({
     session: selectors.general.session(state),
     privileges: selectors.general.privileges(state),
     users: selectors.general.users(state),
+    desks: selectors.general.desks(state),
     lockedItems: selectors.locks.getLockedItems(state),
     timeFormat: selectors.config.getTimeFormat(state),
     dateFormat: selectors.config.getDateFormat(state),
