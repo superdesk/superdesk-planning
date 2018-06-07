@@ -11,7 +11,7 @@ Feature: Events Autosave
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "#SESSION_ID#",
             "lock_action": "edit",
-            "lock_time": "#DATE#"
+            "lock_time": "2018-06-01T05:19:02+0000"
         }
         """
         Then we get OK response
@@ -24,7 +24,7 @@ Feature: Events Autosave
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "#SESSION_ID#",
             "lock_action": "edit",
-            "lock_time": "#DATE#"
+            "lock_time": "2018-06-01T05:19:02+0000"
         }
         """
 
@@ -39,21 +39,21 @@ Feature: Events Autosave
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "#SESSION_ID#",
             "lock_action": "edit",
-            "lock_time": "#DATE#"
+            "lock_time": "2018-06-01T05:19:02+0000"
         }, {
             "_id": "event2",
             "slugline": "Test Event 2",
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "session2",
             "lock_action": "edit",
-            "lock_time": "#DATE#"
+            "lock_time": "2018-06-01T05:19:02+0000"
         }, {
             "_id": "event3",
             "slugline": "Test Event 3",
             "lock_user": "ident2",
             "lock_session": "session3",
             "lock_action": "edit",
-            "lock_time": "#DATE#"
+            "lock_time": "2018-06-01T05:19:02+0000"
         }]
         """
         Given I logout
@@ -78,21 +78,21 @@ Feature: Events Autosave
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "#SESSION_ID#",
             "lock_action": "edit",
-            "lock_time": "#DATE#"
+            "lock_time": "2018-06-01T05:19:02+0000"
         }, {
             "_id": "plan2",
             "slugline": "Test Plan 2",
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "session2",
             "lock_action": "edit",
-            "lock_time": "#DATE#"
+            "lock_time": "2018-06-01T05:19:02+0000"
         }, {
             "_id": "plan3",
             "slugline": "Test Plan 3",
             "lock_user": "ident2",
             "lock_session": "session3",
             "lock_action": "edit",
-            "lock_time": "#DATE#"
+            "lock_time": "2018-06-01T05:19:02+0000"
         }]
         """
         Given I logout
@@ -116,7 +116,7 @@ Feature: Events Autosave
             "slugline": "Test Event",
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_action": "edit",
-            "lock_time": "#DATE#"
+            "lock_time": "2018-06-01T05:19:02+0000"
         }
         """
         Then we get error 400
@@ -133,7 +133,7 @@ Feature: Events Autosave
             "slugline": "Test Event",
             "lock_session": "#SESSION_ID#",
             "lock_action": "edit",
-            "lock_time": "#DATE#"
+            "lock_time": "2018-06-01T05:19:02+0000"
         }
         """
         Then we get error 400

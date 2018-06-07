@@ -4,11 +4,20 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import classNames from 'classnames';
 import {Label} from '../../components';
-import {getItemWorkflowStateLabel, getItemPostedStateLabel} from '../../utils';
+import {getItemWorkflowStateLabel, getItemPostedStateLabel, getItemExpiredStateLabel} from '../../utils';
 
-export const StateLabel = ({item, verbose, withPubStatus, className, fieldName, inline}) => {
+export const StateLabel = ({
+    item,
+    verbose,
+    withPubStatus,
+    className,
+    fieldName,
+    inline,
+    withExpiredStatus,
+}) => {
     const state = getItemWorkflowStateLabel(item, fieldName);
     const pubState = withPubStatus ? getItemPostedStateLabel(item) : null;
+    const expiredState = withExpiredStatus ? getItemExpiredStateLabel(item) : null;
 
     if (!state) {
         return null;
@@ -28,6 +37,11 @@ export const StateLabel = ({item, verbose, withPubStatus, className, fieldName, 
         )}>
             <div>{getStateLabel(state)}</div>
             <div>{withPubStatus && pubState && getStateLabel(pubState)}</div>
+            {expiredState && (
+                <div>
+                    {getStateLabel(expiredState)}
+                </div>
+            )}
         </span>
     );
 };
@@ -39,10 +53,12 @@ StateLabel.propTypes = {
     className: PropTypes.string,
     fieldName: PropTypes.string,
     inline: PropTypes.bool,
+    withExpiredStatus: PropTypes.bool,
 };
 
 StateLabel.defaultProps = {
     withPubStatus: true,
     fieldName: 'state',
     inline: false,
+    withExpiredStatus: false,
 };

@@ -22,7 +22,9 @@ from planning.planning import init_app as init_planning_app
 from planning.assignments import init_app as init_assignments_app
 from planning.search import init_app as init_search_app
 from planning.validate import init_app as init_validator_app
+from superdesk.celery_app import celery
 
+from .commands import FlagExpiredItems
 import planning.commands  # noqa
 import planning.feeding_services # noqa
 import planning.feed_parsers  # noqa
@@ -66,6 +68,12 @@ def init_app(app):
         description='Ability to delete an Agenda'
     )
 
+    superdesk.privilege(
+        name='planning_edit_expired',
+        label='Planning - Edit Expired Items',
+        description='Ability to edit expired Event and Planning items'
+    )
+
     app.on_update_users += PlanningNotifications().user_update
 
     superdesk.register_default_user_preference('slack:notification', {
@@ -85,3 +93,8 @@ def init_app(app):
 
     app.client_config['max_recurrent_events'] = get_max_recurrent_events(app)
     app.client_config['street_map_url'] = get_street_map_url(app)
+
+
+@celery.task(soft_time_limit=600)
+def flag_expired():
+    FlagExpiredItems().run()

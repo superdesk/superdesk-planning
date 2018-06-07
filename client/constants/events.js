@@ -19,6 +19,7 @@ export const EVENTS = {
         MARK_EVENT_UNPOSTED: 'MARK_EVENT_UNPOSTED',
         SELECT_CALENDAR: 'SELECT_EVENT_CALENDAR',
         RECEIVE_CALENDARS: 'RECEIVE_CALENDARS',
+        EXPIRE_EVENTS: 'EXPIRE_EVENTS',
     },
     // Number of ids to look for by single request
     // because url length must stay short

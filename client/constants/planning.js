@@ -15,6 +15,7 @@ export const PLANNING = {
         MARK_PLANNING_POSTPONED: 'MARK_PLANNING_POSTPONED',
         LOCK_PLANNING: 'LOCK_PLANNING',
         UNLOCK_PLANNING: 'UNLOCK_PLANNING',
+        EXPIRE_PLANNING: 'EXPIRE_PLANNING',
     },
     // Number of ids to look for by single request
     // because url length must stay short

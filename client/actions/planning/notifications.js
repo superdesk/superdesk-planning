@@ -263,6 +263,17 @@ const onPlanningPostponed = (e, data) => (
     }
 );
 
+const onPlanningExpired = (_e, data) => (
+    (dispatch) => {
+        if (data && data.items) {
+            dispatch({
+                type: PLANNING.ACTIONS.EXPIRE_PLANNING,
+                payload: data.items,
+            });
+        }
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     onPlanningCreated,
@@ -276,6 +287,7 @@ const self = {
     onPlanningRescheduled,
     onPlanningPostponed,
     onPlanningLocked,
+    onPlanningExpired,
 };
 
 // Map of notification name and Action Event to execute
@@ -292,6 +304,7 @@ self.events = {
     'coverage:cancelled': () => (self.onCoverageCancelled),
     'planning:rescheduled': () => (self.onPlanningRescheduled),
     'planning:postponed': () => (self.onPlanningPostponed),
+    'planning:expired': () => self.onPlanningExpired,
 };
 
 export default self;

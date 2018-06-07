@@ -66,7 +66,12 @@ export const EventMetadata = (
                 </Row>
             </Column>
             <Column>
-                <StateLabel item={event} verbose={true} className="pull-right"/>
+                <StateLabel
+                    item={event}
+                    verbose={true}
+                    className="pull-right"
+                    withExpiredStatus={true}
+                />
             </Column>
             {editEventComponent && <ActionMenu>{editEventComponent}</ActionMenu>}
         </Item>

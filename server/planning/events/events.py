@@ -26,7 +26,7 @@ from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, get_max_recurrent_even
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
-from eve.utils import config
+from eve.utils import config, date_to_str
 from flask import current_app as app
 import itertools
 import copy
@@ -420,6 +420,44 @@ class EventsService(superdesk.Service):
                 lock_session=str(get_auth().get('_id')),
                 etag=updated_plan['_etag']
             )
+
+    def get_expired_items(self, expiry_datetime):
+        """Get the expired items
+
+        Where end date is in the past
+        """
+        query = {
+            'query': {'bool': {'must_not': [{'term': {'expired': True}}]}},
+            'filter': {'range': {'dates.end': {'lte': date_to_str(expiry_datetime)}}},
+            'sort': [{'dates.start': 'asc'}],
+            'size': get_max_recurrent_events()
+        }
+
+        total_received = 0
+        total_events = -1
+
+        while True:
+            query["from"] = total_received
+
+            results = self.search(query)
+
+            # If the total_events has not been set, then this is the first query
+            # In which case we need to store the total hits from the search
+            if total_events < 0:
+                total_events = results.count()
+
+                # If the search doesn't contain any results, return here
+                if total_events < 1:
+                    break
+
+            # If the last query doesn't contain any results, return here
+            if not len(results.docs):
+                break
+
+            total_received += len(results.docs)
+
+            # Yield the results for iteration by the callee
+            yield list(results.docs)
 
 
 class EventsResource(superdesk.Resource):

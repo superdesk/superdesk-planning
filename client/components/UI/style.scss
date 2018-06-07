@@ -29,6 +29,19 @@ time.Datetime {
     &--margin {
         margin: 0.8rem;
     }
+
+    &--disabled {
+        opacity: 0.75;
+        background-color: #ccc;
+        &:hover {
+            opacity: 0.75;
+            background-color: #ddd;
+        }
+
+        .icn-mix__sub-icn {
+            color: gray;
+        }
+    }
 }
 
 .sd-list-item-group {

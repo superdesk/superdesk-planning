@@ -23,7 +23,7 @@ from superdesk.users.services import current_user_has_privilege
 from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user, get_auth
 from copy import deepcopy
-from eve.utils import config, ParsedRequest
+from eve.utils import config, ParsedRequest, date_to_str
 from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, get_coverage_cancellation_state,\
     remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name
 from superdesk.utc import utcnow
@@ -622,6 +622,81 @@ class PlanningService(superdesk.Service):
 
         return False
 
+    def get_expired_items(self, expiry_datetime):
+        """Get the expired items
+
+        Where planning_date is in the past
+        """
+        query = {
+            'query': {
+                'bool': {
+                    'must_not': [
+                        {
+                            'constant_score': {
+                                'filter': {
+                                    'exists': {
+                                        'field': 'event_item'
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            'term': {
+                                'expired': True
+                            }
+                        },
+                        {
+                            'nested': {
+                                'path': '_planning_schedule',
+                                'filter': {
+                                    'range': {
+                                        '_planning_schedule.scheduled': {
+                                            'gt': date_to_str(expiry_datetime)
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            'range': {
+                                'planning_date': {
+                                    'gt': date_to_str(expiry_datetime)
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            'sort': [{'planning_date': 'asc'}],
+            'size': 200
+        }
+
+        total_received = 0
+        total_items = -1
+
+        while True:
+            query["from"] = total_received
+
+            results = self.search(query)
+
+            # If the total_items has not been set, then this is the first query
+            # In which case we need to store the total hits from the search
+            if total_items < 0:
+                total_items = results.count()
+
+                # If the search doesn't contain any results, return here
+                if total_items < 1:
+                    break
+
+            # If the last query doesn't contain any results, return here
+            if not len(results.docs):
+                break
+
+            total_received += len(results.docs)
+
+            # Yield the results for iteration by the callee
+            yield list(results.docs)
+
 
 event_type = deepcopy(superdesk.Resource.rel('events', type='string'))
 event_type['mapping'] = not_analyzed
@@ -806,6 +881,10 @@ planning_schema = {
     'expiry': {
         'type': 'datetime',
         'nullable': True
+    },
+    'expired': {
+        'type': 'boolean',
+        'default': False
     },
 
     'lock_user': metadata_schema['lock_user'],

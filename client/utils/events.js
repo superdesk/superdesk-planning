@@ -22,6 +22,7 @@ import {
     getItemId,
     generateTempId,
     isExistingItem,
+    isItemExpired,
 } from './index';
 import moment from 'moment';
 import RRule from 'rrule';
@@ -149,24 +150,28 @@ const isEventIngested = (event) => (
     get(event, 'state', WORKFLOW_STATE.DRAFT) === WORKFLOW_STATE.INGESTED
 );
 
-const canSpikeEvent = (event, session, privileges, locks) => {
-    const eventState = getItemWorkflowState(event);
-
-    return !isNil(event) &&
+const canSpikeEvent = (event, session, privileges, locks) => (
+    !isNil(event) &&
         !isItemPublic(event) &&
-        (eventState === WORKFLOW_STATE.DRAFT || isEventIngested(event) || isItemPostponed(event)) &&
+        (
+            getItemWorkflowState(event) === WORKFLOW_STATE.DRAFT ||
+            isEventIngested(event) ||
+            isItemPostponed(event)
+        ) &&
         !!privileges[PRIVILEGES.SPIKE_EVENT] &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isEventLockRestricted(event, session, locks) &&
         !get(event, 'reschedule_from') &&
-        !isEventInUse(event);
-};
+        !isEventInUse(event) &&
+        (!isItemExpired(event) || privileges[PRIVILEGES.EDIT_EXPIRED])
+);
 
 const canUnspikeEvent = (event, privileges) => (
     !isNil(event) &&
         isItemSpiked(event) &&
         !!privileges[PRIVILEGES.UNSPIKE_EVENT] &&
-        !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
+        (!isItemExpired(event) || privileges[PRIVILEGES.EDIT_EXPIRED])
 );
 
 const canDuplicateEvent = (event, session, privileges, locks) => (
@@ -183,7 +188,8 @@ const canCreatePlanningFromEvent = (event, session, privileges, locks) => (
         !isEventLockRestricted(event, session, locks) &&
         !isItemCancelled(event) &&
         !isItemRescheduled(event) &&
-        !isItemPostponed(event)
+        !isItemPostponed(event) &&
+        (!isItemExpired(event) || privileges[PRIVILEGES.EDIT_EXPIRED])
 );
 
 const canCreateAndOpenPlanningFromEvent = (event, session, privileges, locks) => (
@@ -252,7 +258,8 @@ const canEditEvent = (event, session, privileges, locks) => (
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT]) &&
-        !isItemRescheduled(event)
+        !isItemRescheduled(event) &&
+        (!isItemExpired(event) || privileges[PRIVILEGES.EDIT_EXPIRED])
 );
 
 const canUpdateEvent = (event, session, privileges, locks) => (
@@ -517,20 +524,24 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks, with
     }
 
     let actions = [];
+    const isExpired = isItemExpired(item);
 
-    [
-        EVENTS.ITEM_ACTIONS.DUPLICATE.actionName,
-        EVENTS.ITEM_ACTIONS.SPIKE.actionName,
-        EVENTS.ITEM_ACTIONS.UNSPIKE.actionName,
-        EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName,
-        EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName,
-        EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName,
-        EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName,
-        EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName,
-        EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName,
-        EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName,
-        EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName,
-    ].forEach((callbackName) => {
+    ((isExpired && !privileges[PRIVILEGES.EDIT_EXPIRED]) ?
+        [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName] :
+        [
+            EVENTS.ITEM_ACTIONS.DUPLICATE.actionName,
+            EVENTS.ITEM_ACTIONS.SPIKE.actionName,
+            EVENTS.ITEM_ACTIONS.UNSPIKE.actionName,
+            EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName,
+            EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName,
+            EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName,
+            EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName,
+            EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName,
+            EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName,
+            EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName,
+            EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName,
+        ]
+    ).forEach((callbackName) => {
         const action = find(EVENTS.ITEM_ACTIONS, (action) => action.actionName === callbackName);
 
         if (callBacks[action.actionName]) {
@@ -541,12 +552,14 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks, with
         }
     });
 
-    const CREATE_PLANNING = callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName];
-    const CREATE_AND_OPEN_PLANNING = callBacks[EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName];
+    if (!isExpired || privileges[PRIVILEGES.EDIT_EXPIRED]) {
+        const CREATE_PLANNING = callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName];
+        const CREATE_AND_OPEN_PLANNING = callBacks[EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName];
 
-    (!withMultiPlanningDate || self.isEventSameDay(item)) ?
-        self.getSingleDayPlanningActions(item, actions, CREATE_PLANNING, CREATE_AND_OPEN_PLANNING) :
-        self.getMultiDayPlanningActions(item, actions, CREATE_PLANNING, CREATE_AND_OPEN_PLANNING);
+        (!withMultiPlanningDate || self.isEventSameDay(item)) ?
+            self.getSingleDayPlanningActions(item, actions, CREATE_PLANNING, CREATE_AND_OPEN_PLANNING) :
+            self.getMultiDayPlanningActions(item, actions, CREATE_PLANNING, CREATE_AND_OPEN_PLANNING);
+    }
 
     return getEventItemActions(
         item,

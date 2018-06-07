@@ -266,6 +266,10 @@ events_schema = {
         'type': 'datetime',
         'nullable': True
     },
+    'expired': {
+        'type': 'boolean',
+        'default': False
+    },
     # says if the event is for internal usage or posted
     'pubstatus': POST_STATE_SCHEMA,
 
