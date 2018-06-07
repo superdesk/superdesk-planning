@@ -1,5 +1,5 @@
 import moment from 'moment-timezone';
-import {createStore as _createStore, applyMiddleware} from 'redux';
+import {createStore as _createStore, applyMiddleware, compose} from 'redux';
 import planningApp from '../reducers';
 import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
@@ -211,16 +211,28 @@ export const createStore = (params = {}, app = planningApp) => {
 
         // adds the extra arguments to actions
         thunkMiddleware.withExtraArgument(extraArguments),
-
-        // logs actions (this should always be the last middleware)
-        createLogger(),
     ];
-    // return the store
+    // https://redux.js.org/api-reference/compose
+    let _compose = compose;
 
+    if (process.env.NODE_ENV !== 'production') {
+        // activate logs actions for non production instances.
+        // (this should always be the last middleware)
+        middlewares.push(createLogger());
+
+        // activate redux devtools for non production instances,
+        // if it's available in the browser
+        // https://github.com/zalmoxisus/redux-devtools-extension
+        if (window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) {
+            _compose = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__;
+        }
+    }
+
+    // return the store
     return _createStore(
         app,
         initialState,
-        applyMiddleware(...middlewares)
+        _compose(applyMiddleware(...middlewares))
     );
 };
 
