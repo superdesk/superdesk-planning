@@ -23,7 +23,7 @@ class JsonEventFormatter(Formatter):
     """
 
     remove_fields = {'lock_time', 'lock_action', 'lock_session', 'lock_user', '_etag', '_planning_schedule',
-                     'internal_note', 'expiry', 'original_creator'}
+                     'internal_note', 'expiry', 'original_creator', '_reschedule_from_schedule'}
 
     def __init__(self):
         """

@@ -97,3 +97,25 @@ export const ICON_COLORS = {
     YELLOW: 'icon--yellow',
     DEFAULT: false,
 };
+
+export const HISTORY_OPERATIONS = {
+    INGESTED: 'ingested',
+    CREATE: 'create',
+    EDITED: 'edited',
+    SPIKED: 'spiked',
+    UNSPIKED: 'unspiked',
+    RESCHEDULE: 'reschedule',
+    RESCHEDULE_FROM: 'reschedule_from',
+    UPDATE_TIME: 'update_time',
+    PLANNING_CREATED: 'planning_created',
+    POSTPONE: 'postpone',
+    POST: 'post',
+    EVENTS_CANCEL: 'events_cancel',
+    PLANNING_CANCEL: 'planning_cancel',
+    CONVERT_RECURRING: 'convert_recurring',
+    UPDATE_REPETITIONS: 'update_repetitions',
+    UPDATE_REPETITIONS_UPDATE: 'update_repetitions_update',
+    UPDATE_REPETITIONS_CREATE: 'update_repetitions_create',
+    DUPLICATE_FROM: 'duplicate_from',
+    DUPLICATE: 'duplicate',
+};

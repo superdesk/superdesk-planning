@@ -131,6 +131,7 @@ Event Rescheduled
         new_event['guid'] = generate_guid(type=GUID_NEWSML)
         new_event['_id'] = new_event['guid']
         new_event['reschedule_from'] = original[config.ID_FIELD]
+        new_event['_reschedule_from_schedule'] = original['dates']['start']
         set_original_creator(new_event)
 
         created_event = events_service.create([new_event])[0]

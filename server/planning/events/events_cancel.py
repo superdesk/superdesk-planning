@@ -171,6 +171,7 @@ Event Cancelled
             id,
             updates
         )
+        get_resource_service('events_history').on_cancel(updated_event, original)
 
         notifications.append({
             '_id': id,

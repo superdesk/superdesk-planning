@@ -924,7 +924,7 @@ Feature: Planning
         """
             {"_items": [{
                 "event_id": "#events._id#",
-                "operation": "planning created",
+                "operation": "planning_created",
                 "update": {"planning_id": "#planning._id#"}}
             ]}
         """

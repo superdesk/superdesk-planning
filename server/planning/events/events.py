@@ -589,6 +589,7 @@ def generate_recurring_events(event):
             elif key.startswith('lock_'):
                 new_event.pop(key)
         new_event.pop('pubstatus', None)
+        new_event.pop('reschedule_from', None)
 
         new_event['dates']['start'] = date
         new_event['dates']['end'] = date + time_delta

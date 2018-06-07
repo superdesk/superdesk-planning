@@ -153,12 +153,12 @@ Feature: Events Postpone
         {"_items": [
             {
                 "event_id": "event1",
-                "operation": "planning created",
+                "operation": "planning_created",
                 "update": {"planning_id": "plan1"}
             },
             {
                 "event_id": "event1",
-                "operation": "planning created",
+                "operation": "planning_created",
                 "update": {"planning_id": "plan2"}
             },
             {

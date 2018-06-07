@@ -3,8 +3,9 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
+import {HISTORY_OPERATIONS, POST_STATE} from '../../constants';
 import {getItemInArrayById, gettext} from '../../utils';
-import {get, includes} from 'lodash';
+import {get} from 'lodash';
 import {AbsoluteDate} from '../index';
 import {ContentBlock} from '../UI/SidePanel';
 
@@ -30,105 +31,233 @@ export class EventHistoryComponent extends React.Component {
         this.props.openEventPreview(duplicateId);
     }
 
-    render() {
-        const {users} = this.props;
-        const displayUser = (recievedUserId) => get(getItemInArrayById(users, recievedUserId), 'display_name');
+    getPostedHistoryElement(index) {
+        let text;
+        const historyItem = this.props.historyItems[index];
 
+        for (let i = index - 1; i >= 0; i--) {
+            const item = this.props.historyItems[i];
+
+            if (item.operation !== HISTORY_OPERATIONS.POST) {
+                continue;
+            }
+
+            if (get(item, 'update.pubstatus') === POST_STATE.USABLE) {
+                // Current history item happened when the event was in posted state
+
+                if (get(historyItem, 'update.pubstatus') === POST_STATE.USABLE &&
+                    historyItem.operation !== HISTORY_OPERATIONS.EDITED) {
+                    // If it is an edit and update operation don't show as a separate item
+                    return;
+                }
+
+                if (get(historyItem, 'update.pubstatus') !== POST_STATE.CANCELLED) {
+                    text = gettext('Updated');
+                    break;
+                }
+
+                if (get(historyItem, 'update.pubstatus') === POST_STATE.CANCELLED) {
+                    text = gettext('Event unposted');
+                    break;
+                }
+            } else if (get(historyItem, 'update.pubstatus') === POST_STATE.USABLE) {
+                // Posted when the event was in unposted state
+                text = gettext('Event re-posted');
+                break;
+            }
+        }
+
+        // Event posted for the first time
+        if (!text && historyItem.operation === HISTORY_OPERATIONS.POST) {
+            text = gettext('Event posted');
+        }
+
+        return text === 'Event unposted' ? (
+            <div>
+                {this.getHistoryRowElement(gettext('Updated'), historyItem)}
+                {this.getHistoryRowElement(text, historyItem)}
+            </div>
+        ) : this.getHistoryRowElement(text, historyItem);
+    }
+
+    getHistoryActionElement(historyItem) {
+        let text;
+
+        switch (historyItem.operation) {
+        case HISTORY_OPERATIONS.INGESTED:
+            text = gettext('Ingested');
+            break;
+
+        case HISTORY_OPERATIONS.CREATE:
+            text = gettext('Created');
+            break;
+
+        case HISTORY_OPERATIONS.EDITED:
+            text = gettext('Edited');
+            break;
+
+        case HISTORY_OPERATIONS.SPIKED:
+            text = gettext('Event spiked');
+            break;
+
+        case HISTORY_OPERATIONS.UNSPIKED:
+            text = gettext('Event unspiked');
+            break;
+
+        case HISTORY_OPERATIONS.RESCHEDULE:
+            text = gettext('Event Rescheduled');
+            break;
+
+        case HISTORY_OPERATIONS.EVENTS_CANCEL:
+            text = gettext('Event Cancelled');
+            break;
+
+        case HISTORY_OPERATIONS.POSTPONE:
+            text = gettext('Event Postponed');
+            break;
+
+        case HISTORY_OPERATIONS.RESCHEDULE_FROM:
+            text = gettext('Event Rescheduled from');
+            return (
+                <span>
+                    <strong>{text}</strong>
+                    <em><AbsoluteDate
+                        date={get(historyItem, 'update._reschedule_from_schedule')}/></em>
+                    {gettext(' by ')}
+                    <span className="user-name">{this.getDisplayUser(historyItem.user_id)}</span>
+                    <em> <AbsoluteDate date={historyItem._created} /> </em>
+                </span>);
+
+        case HISTORY_OPERATIONS.PLANNING_CREATED:
+            text = gettext('Planning item created');
+            break;
+
+        case HISTORY_OPERATIONS.UPDATE_TIME:
+            text = gettext('Event time modified');
+            break;
+
+        case HISTORY_OPERATIONS.CONVERT_RECURRING:
+            text = gettext('Converted to recurring event');
+            break;
+
+        case HISTORY_OPERATIONS.UPDATE_REPETITIONS:
+            text = gettext('Event repetitions modified');
+            break;
+
+        case HISTORY_OPERATIONS.UPDATE_REPETITIONS_UPDATE:
+            text = gettext('Repetitions updated');
+            break;
+
+        case HISTORY_OPERATIONS.UPDATE_REPETITIONS_CREATE:
+            text = gettext('Created from \'update repetitions\'');
+            break;
+
+        case HISTORY_OPERATIONS.DUPLICATE_FROM:
+            text = gettext('Duplicate created');
+            break;
+
+        case HISTORY_OPERATIONS.DUPLICATE:
+            text = gettext('Duplicated');
+            break;
+        }
+
+        return this.getHistoryRowElement(text, historyItem);
+    }
+
+    getHistoryRowElement(text, historyItem) {
+        if (text) {
+            return (
+                <div>
+                    <span><strong>{text}</strong>{gettext(' by ')}</span>
+                    <span className="user-name">{this.getDisplayUser(historyItem.user_id)}</span>
+                    <em> <AbsoluteDate date={historyItem._created} /> </em>
+                </div>
+            );
+        }
+    }
+
+    getDisplayUser(userId) {
+        return get(getItemInArrayById(this.props.users, userId), 'display_name');
+    }
+
+    render() {
         return (
             <ContentBlock>
                 <ul className="history-list history-list--no-padding">
-                    {get(this.props, 'historyItems', []).map((historyItem) => (
-                        <li className="item" key={historyItem._id}>
-                            {
-                                users &&
-                                includes(['create', 'update', 'spiked', 'unspiked',
-                                    'planning created', 'duplicate', 'duplicate_from',
-                                    'post', 'unpost', 'cancel', 'reschedule',
-                                    'reschedule_from', 'postpone', 'ingested', 'update_repetitions'],
-                                historyItem.operation)
-                                &&
-                                <div>
-                                    <strong>
-                                        {historyItem.operation === 'create' && gettext('Created by ')}
-                                        {historyItem.operation === 'update' && gettext('Updated by ')}
-                                        {historyItem.operation === 'spiked' && gettext('Spiked by ')}
-                                        {historyItem.operation === 'unspiked' && gettext('Unspiked by ')}
-                                        {historyItem.operation === 'planning created' &&
-                                            gettext('Planning item created by ')}
-                                        {historyItem.operation === 'duplicate_from' && gettext('Duplicate created by ')}
-                                        {historyItem.operation === 'duplicate' && gettext('Duplicated by ')}
-                                        {historyItem.operation === 'post' && gettext('Posted by ')}
-                                        {historyItem.operation === 'unpost' && gettext('Un-posted by ')}
-                                        {historyItem.operation === 'cancel' && gettext('Cancelled by ')}
-                                        {historyItem.operation === 'reschedule' && gettext('Rescheduled by ')}
-                                        {historyItem.operation === 'reschedule_from' && gettext('Rescheduled by ')}
-                                        {historyItem.operation === 'postpone' && gettext('Postponed by ')}
-                                        {historyItem.operation === 'ingested' && gettext('Ingested ')}
-                                        {historyItem.operation === 'update_repetitions' &&
-                                            gettext('Repetitions Updated ')}
-                                    </strong>
+                    {get(this.props, 'historyItems', []).map((historyItem, index) => {
+                        const postElement = this.getPostedHistoryElement(index);
+                        const historyElement = this.getHistoryActionElement(historyItem);
 
-                                    <span className="user-name">{displayUser(historyItem.user_id)}</span>
-                                    <em> <AbsoluteDate date={historyItem._created} /> </em>
+                        if (postElement || historyElement) {
+                            return (
+                                <li className="item" key={historyItem._id}>
                                     <div>
-                                        {historyItem.operation === 'update' &&
-                                            <div className="more-description">
-                                                {gettext('Updated Fields:')}
-                                                { // List updated fields as comma separated
-                                                    <span>&nbsp;{Object.keys(historyItem.update).map((field) => field)
-                                                        .join(', ')}</span>
-                                                }
-                                            </div>
-                                        }
-                                        {historyItem.operation === 'planning created' && (
-                                            <div className="history-list__link">
-                                                <a onClick={this.props.openPlanningClick.bind(
-                                                    null, historyItem.update.planning_id)}>
-                                                    View planning item
-                                                </a>
-                                            </div>)
-                                        }
-                                        {historyItem.operation === 'duplicate' && (
-                                            <div className="history-list__link">
-                                                <a onClick={this.closeAndOpenDuplicate.bind(this,
-                                                    historyItem.update.duplicate_id)}>
-                                                    View duplicate event
-                                                </a>
-                                            </div>
-                                        )}
-                                        {historyItem.operation === 'duplicate_from' && (
-                                            <div className="history-list__link">
-                                                <a onClick={this.closeAndOpenDuplicate.bind(this,
-                                                    historyItem.update.duplicate_id)}>
-                                                    View original event
-                                                </a>
-                                            </div>
-                                        )}
+                                        {postElement}
+                                        {historyElement}
+                                        <div>
+                                            {historyItem.operation === HISTORY_OPERATIONS.EDITED &&
+                                                <div className="more-description">
+                                                    {gettext('Updated Fields:')}
+                                                    { // List updated fields as comma separated
+                                                        <span>&nbsp;{Object.keys(historyItem.update)
+                                                            .map((field) => field)
+                                                            .join(', ')}</span>
+                                                    }
+                                                </div>
+                                            }
+                                            {historyItem.operation === HISTORY_OPERATIONS.PLANNING_CREATED && (
+                                                <div className="history-list__link">
+                                                    <a onClick={this.props.openPlanningClick.bind(
+                                                        null, historyItem.update.planning_id)}>
+                                                        View planning item
+                                                    </a>
+                                                </div>)
+                                            }
 
-                                        {historyItem.operation === 'reschedule' &&
-                                        get(historyItem, 'update.reschedule_to') &&
-                                            <div className="history-list__link">
-                                                <a onClick={this.closeAndOpenDuplicate.bind(this,
-                                                    historyItem.update.reschedule_to)}>
-                                                    View rescheduled event
-                                                </a>
-                                            </div>
-                                        }
+                                            {historyItem.operation === HISTORY_OPERATIONS.DUPLICATE && (
+                                                <div className="history-list__link">
+                                                    <a onClick={this.closeAndOpenDuplicate.bind(this,
+                                                        historyItem.update.duplicate_id)}>
+                                                        View duplicate event
+                                                    </a>
+                                                </div>
+                                            )}
+                                            {historyItem.operation === HISTORY_OPERATIONS.DUPLICATE_FROM && (
+                                                <div className="history-list__link">
+                                                    <a onClick={this.closeAndOpenDuplicate.bind(this,
+                                                        historyItem.update.duplicate_id)}>
+                                                        View original event
+                                                    </a>
+                                                </div>
+                                            )}
 
-                                        {historyItem.operation === 'reschedule_from' &&
-                                        get(historyItem, 'update.reschedule_from') &&
-                                            <div className="history-list__link">
-                                                <a onClick={this.closeAndOpenDuplicate.bind(this,
-                                                    historyItem.update.reschedule_from)}>
-                                                    View original event
-                                                </a>
-                                            </div>
-                                        }
+                                            {historyItem.operation === HISTORY_OPERATIONS.RESCHEDULE &&
+                                            get(historyItem, 'update.reschedule_to') &&
+                                                <div className="history-list__link">
+                                                    <a onClick={this.closeAndOpenDuplicate.bind(this,
+                                                        historyItem.update.reschedule_to)}>
+                                                        View rescheduled event
+                                                    </a>
+                                                </div>
+                                            }
+
+                                            {historyItem.operation === HISTORY_OPERATIONS.RESCHEDULE_FROM &&
+                                            get(historyItem, 'update.reschedule_from') &&
+                                                <div className="history-list__link">
+                                                    <a onClick={this.closeAndOpenDuplicate.bind(this,
+                                                        historyItem.update.reschedule_from)}>
+                                                        View original event
+                                                    </a>
+                                                </div>
+                                            }
+                                        </div>
                                     </div>
-                                </div>
-                            }
-                        </li>
-                    ))}
+                                </li>
+                            );
+                        }
+
+                        return null;
+                    })}
                 </ul>
             </ContentBlock>
         );

@@ -380,7 +380,7 @@ Feature: Events Unspike
             {"event_id": "#EVENT5._id#", "operation": "spiked", "update": {"state": "spiked", "revert_state": "draft"}},
 
             {"event_id": "#EVENT3._id#", "operation": "postpone", "update": {"state": "postponed"}},
-            {"event_id": "#EVENT4._id#", "operation": "cancel", "update": {"state": "cancelled"}},
+            {"event_id": "#EVENT4._id#", "operation": "events_cancel", "update": {"state": "cancelled"}},
 
             {"event_id": "#EVENT2._id#", "operation": "unspiked", "update": {"state": "draft"}},
             {"event_id": "#EVENT3._id#", "operation": "unspiked", "update": {"state": "postponed"}},

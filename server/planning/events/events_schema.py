@@ -321,7 +321,7 @@ events_schema = {
 
     'reschedule_from': event_type,
     'reschedule_to': event_type,
-
+    '_reschedule_from_schedule': {'type': 'datetime'},
     'place': metadata_schema['place'],
     'ednote': metadata_schema['ednote'],
 

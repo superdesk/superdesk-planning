@@ -65,7 +65,7 @@ Feature: Events Cancel
         """
         {"_items": [{
             "event_id": "event1",
-            "operation": "cancel",
+            "operation": "events_cancel",
             "update": {"state": "cancelled"}
         }]}
         """
@@ -244,17 +244,17 @@ Feature: Events Cancel
         {"_items": [
             {
                 "event_id": "event1",
-                "operation": "planning created",
+                "operation": "planning_created",
                 "update": {"planning_id": "plan1"}
             },
             {
                 "event_id": "event1",
-                "operation": "planning created",
+                "operation": "planning_created",
                 "update": {"planning_id": "plan2"}
             },
             {
                 "event_id": "event1",
-                "operation": "cancel",
+                "operation": "events_cancel",
                 "update": {"state": "cancelled"}
             }
         ]}
@@ -265,12 +265,12 @@ Feature: Events Cancel
         {"_items": [
             {
                 "planning_id": "plan1",
-                "operation": "cancel",
+                "operation": "planning_cancel",
                 "update": {"state": "cancelled"}
             },
             {
                 "planning_id": "plan2",
-                "operation": "cancel",
+                "operation": "planning_cancel",
                 "update": {"state": "cancelled"}
             }
         ]}
