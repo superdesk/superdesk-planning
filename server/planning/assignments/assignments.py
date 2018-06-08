@@ -324,7 +324,8 @@ class AssignmentsService(superdesk.Service):
                                                                   client_url=client_url,
                                                                   assignment_id=assignment_id,
                                                                   old_desk=desk_from_name,
-                                                                  assignor=user.get('display_name'))
+                                                                  assignor=user.get('display_name'),
+                                                                  omit_user=True)
                     else:
                         # it is being reassigned by someone else so notify both the new assignee and the old
                         message = '{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to {{assignee}} ' \
@@ -341,7 +342,8 @@ class AssignmentsService(superdesk.Service):
                                                                   client_url=client_url,
                                                                   assignment_id=assignment_id,
                                                                   desk=desk_name,
-                                                                  assignor=user.get('display_name'))
+                                                                  assignor=user.get('display_name'),
+                                                                  omit_user=True)
                         # notify the assignee
                         message = '{{coverage_type}} coverage \"{{slugline}}\" has been reassigned' \
                                   '{{old_assignee}} to you on desk ({{desk}}) '
@@ -405,7 +407,8 @@ class AssignmentsService(superdesk.Service):
                                                           client_url=client_url,
                                                           assignment_id=assignment_id,
                                                           desk=desk_name,
-                                                          assignor=user.get('display_name'))
+                                                          assignor=user.get('display_name'),
+                                                          omit_user=True)
 
     def send_assignment_cancellation_notification(self, assignment, original_state, event_cancellation=False):
         """Set the assignment information and send notification
