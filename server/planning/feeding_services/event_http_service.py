@@ -36,7 +36,7 @@ class EventHTTPFeedingService(HTTPFeedingService):
               IngestApiError.apiParseError().get_error_description(),
               IngestApiError.apiGeneralError().get_error_description()]
 
-    label = 'Event HTTP Feed'
+    label = 'Event HTTP feed'
 
     """
     Defines the collection service to be used with this ingest feeding service.

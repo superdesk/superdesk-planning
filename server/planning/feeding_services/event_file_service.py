@@ -39,7 +39,7 @@ class EventFileFeedingService(FileFeedingService):
         ParserError.parseFileError().get_error_description()
     ]
 
-    label = 'Event File Feed'
+    label = 'Event file feed'
 
     """
     Defines the collection service to be used with this ingest feeding service.
