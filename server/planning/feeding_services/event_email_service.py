@@ -35,7 +35,7 @@ class EventEmailFeedingService(FeedingService):
     ERRORS = [IngestEmailError.emailError().get_error_description(),
               IngestEmailError.emailLoginError().get_error_description()]
 
-    label = 'Event Email'
+    label = 'Event email'
 
     fields = [
         {
