@@ -16,6 +16,7 @@ export const WorkqueueComponent = ({
     unlockAndCloseEditor,
     openEditForm,
     openConfirmationModal,
+    unlockWorkqueueItem,
 }) => (
     <div className="opened-articles">
         <div className="quick-actions pull-left">
@@ -30,11 +31,14 @@ export const WorkqueueComponent = ({
                     item={openedItem}
                     currentEditId={currentEditId}
                     onOpen={openEditForm}
-                    onClose={(item) => openConfirmationModal(
-                        item,
-                        openEditForm.bind(null, item),
-                        unlockAndCloseEditor.bind(null, item)
-                    )}
+                    onClose={(item) =>
+                        openConfirmationModal(
+                            item,
+                            openEditForm.bind(null, item),
+                            item._id === currentEditId ?
+                                unlockAndCloseEditor.bind(null, item) : unlockWorkqueueItem.bind(null, item)
+                        )
+                    }
                 />
             ))}
         </ul>
@@ -47,6 +51,7 @@ WorkqueueComponent.propTypes = {
     unlockAndCloseEditor: PropTypes.func,
     openEditForm: PropTypes.func,
     openConfirmationModal: PropTypes.func,
+    unlockWorkqueueItem: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
@@ -55,6 +60,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
+    unlockWorkqueueItem: (item) => (dispatch(actions.locks.unlock(item))),
     unlockAndCloseEditor: (item) => dispatch(actions.main.unlockAndCancel(item)),
     openEditForm: (item) => dispatch(actions.main.lockAndEdit(item)),
     openConfirmationModal: (item, onGoTo, onIgnore) => dispatch(actions.main.openIgnoreCancelSaveModal({
