@@ -5,7 +5,7 @@ import * as actions from '../../actions';
 import Geolookup from 'react-geolookup';
 import DebounceInput from 'react-debounce-input';
 import * as Nominatim from 'nominatim-browser';
-import {formatAddress} from '../../utils';
+import {formatAddress, gettext} from '../../utils';
 import {get, has} from 'lodash';
 import {TextAreaInput} from '../UI/Form';
 import {AddGeoLookupResultsPopUp} from './AddGeoLookupResultsPopUp';
@@ -191,7 +191,7 @@ export class GeoLookupInputComponent extends React.Component {
                     debounceTimeout={500}
                     value={displayText}
                     onChange={this.handleInputChange}
-                    placeholder="Search for a location"
+                    placeholder={gettext('Search for a location')}
                     element={TextAreaInput}
                     nativeOnChange={true}
                     noLabel={true}

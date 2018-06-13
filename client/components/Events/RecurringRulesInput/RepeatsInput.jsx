@@ -2,12 +2,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {Select, LineInput, Label} from '../../UI/Form';
+import {gettext} from '../../../utils/gettext';
 
 export const repeatChoices = [
-    {label: 'Yearly', key: 'YEARLY'},
-    {label: 'Monthly', key: 'MONTHLY'},
-    {label: 'Weekly', key: 'WEEKLY'},
-    {label: 'Daily', key: 'DAILY'},
+    {label: gettext('Yearly'), key: 'YEARLY'},
+    {label: gettext('Monthly'), key: 'MONTHLY'},
+    {label: gettext('Weekly'), key: 'WEEKLY'},
+    {label: gettext('Daily'), key: 'DAILY'},
 ];
 
 export const RepeatsInput = ({label, field, onChange, value, readOnly, ...props}) => (

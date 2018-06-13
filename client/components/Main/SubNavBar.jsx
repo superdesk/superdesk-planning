@@ -24,7 +24,7 @@ export const SubNavBar = ({
 }) => (
     <SubNav>
         <MultiSelectActions />
-        <SearchBox label="Search planning" value={value} search={search} activeFilter={activeFilter}/>
+        <SearchBox label={gettext('Search planning')} value={value} search={search} activeFilter={activeFilter}/>
         {isViewFiltered &&
         <Button
             text={gettext('Clear Filters')}

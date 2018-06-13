@@ -4,12 +4,13 @@ import {range} from 'lodash';
 
 import {repeatChoices} from './RepeatsInput';
 import {Select, LineInput, Label} from '../../UI/Form';
+import {gettext} from '../../../utils/gettext';
 
 const repeatEveryChoices = {
-    YEARLY: 'year',
-    MONTHLY: 'month',
-    WEEKLY: 'week',
-    DAILY: 'day',
+    YEARLY: gettext('year'),
+    MONTHLY: gettext('month'),
+    WEEKLY: gettext('week'),
+    DAILY: gettext('day'),
 };
 
 export class RepeatsEveryInput extends React.Component {
