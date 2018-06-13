@@ -1,6 +1,6 @@
 import $ from 'jquery';
 import {get} from 'lodash';
-
+export {gettext, gettextCatalog} from '../../utils/gettext';
 
 /**
  * @ngdoc method
@@ -13,44 +13,6 @@ export const onEventCapture = (event) => {
         event.preventDefault();
         event.stopPropagation();
     }
-};
-
-/**
- * @ngdoc method
- * @name gettext
- * @param {String} text
- * @param {Object} params
- * @description Used angular gettext service for displaying localised text on Browser
- */
-export const gettext = (text, params = null) => {
-    const injector = angular.element(document.body).injector();
-
-    if (injector) { // in tests this will be empty
-        const translated = injector.get('gettextCatalog').getString(text);
-
-        return params ? injector.get('$interpolate')(translated)(params) : translated;
-    }
-
-    return text;
-};
-
-/**
- * @ngdoc method
- * @name gettextCatalog
- * @param {String} text
- * @param {Object} params
- * @description Used angular gettext service for displaying localised text on Browser
- */
-export const gettextCatalog = (text, params = null) => {
-    const injector = angular.element(document.body).injector();
-
-    if (injector) { // in tests this will be empty
-        const translated = injector.get('gettextCatalog').getString(text);
-
-        return params ? injector.get('$interpolate')(translated)(params) : translated;
-    }
-
-    return text;
 };
 
 /**

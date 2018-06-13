@@ -27,13 +27,13 @@ export const RepeatEventSummary = ({
 
         if (byDays) {
             const days = {
-                MO: 'Monday',
-                TU: 'Tuesday',
-                WE: 'Wednesday',
-                TH: 'Thursday',
-                FR: 'Friday',
-                SA: 'Saturday',
-                SU: 'Sunday',
+                MO: gettext('Monday'),
+                TU: gettext('Tuesday'),
+                WE: gettext('Wednesday'),
+                TH: gettext('Thursday'),
+                FR: gettext('Friday'),
+                SA: gettext('Saturday'),
+                SU: gettext('Sunday'),
             };
 
             let dayNames = [];
@@ -49,14 +49,45 @@ export const RepeatEventSummary = ({
         let prefix = '';
 
         if (interval > 1) {
-            const duration = frequency === 'DAILY' ? 'days' :
-                frequency.replace('LY', 's').toLowerCase();
+            let duration = '';
 
-            prefix = 'Every ' + interval + ' ' + duration;
+            switch (frequency) {
+            case 'DAILY':
+                duration = gettext('days');
+                break;
+
+            case 'WEEKLY':
+                duration = gettext('weeks');
+                break;
+
+            case 'MONTHLY':
+                duration = gettext('months');
+                break;
+
+            case 'YEARLY':
+                duration = gettext('years');
+                break;
+            }
+
+            prefix = gettext('Every') + ' ' + interval + ' ' + duration;
         } else if (frequency) {
-            const f = frequency;
+            switch (frequency) {
+            case 'DAILY':
+                prefix = gettext('Daily');
+                break;
 
-            prefix = f === 'YEARLY' ? 'Annualy' : (f.charAt(0).toUpperCase() + f.slice(1).toLowerCase());
+            case 'WEEKLY':
+                prefix = gettext('Weekly');
+                break;
+
+            case 'MONTHLY':
+                prefix = gettext('Monthly');
+                break;
+
+            case 'YEARLY':
+                prefix = gettext('Annualy');
+                break;
+            }
         }
 
         return prefix;
@@ -68,13 +99,13 @@ export const RepeatEventSummary = ({
 
         switch (frequency) {
         case 'WEEKLY':
-            stemText = days && days.length > 0 ? ('on ' + days.join(', ')) : '';
+            stemText = days && days.length > 0 ? (gettext('on') + ' ' + days.join(', ')) : '';
             break;
         case 'MONTHLY':
-            stemText = startDate ? ('on day ' + startDate.format('D')) : '';
+            stemText = startDate ? (gettext('on day') + ' ' + startDate.format('D')) : '';
             break;
         case 'YEARLY':
-            stemText = startDate ? ('on ' + startDate.format('MMM D')) : '';
+            stemText = startDate ? (gettext('on') + ' ' + startDate.format('MMM D')) : '';
             break;
         }
         return stemText;
@@ -84,9 +115,9 @@ export const RepeatEventSummary = ({
         let suffix = '';
 
         if (endRepeatMode === 'count' && parseInt(count, 10) > 0) {
-            suffix = ', ' + count + ' times';
+            suffix = ', ' + count + ' ' + gettext('times');
         } else if (endRepeatMode === 'until' && until && until.isValid()) {
-            suffix = ', until ' + until.format('D MMM YYYY');
+            suffix = ', ' + gettext('until') + ' ' + until.format('D MMM YYYY');
         }
 
         return suffix;

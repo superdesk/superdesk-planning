@@ -83,7 +83,7 @@ export class AssignmentPopup extends React.Component {
                 className="assignment-popup"
                 onKeyDown={this.onKeyDown}
             >
-                <Header text="Assignment Details" onClose={onClose} />
+                <Header text={gettext('Assignment Details')} onClose={onClose} />
                 <Content>
                     <AssignmentEditor
                         value={diff}

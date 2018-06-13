@@ -99,7 +99,7 @@ export class TimeInputPopup extends React.Component {
 
                 <Content>
                     <div className="time-popup__select-area">
-                        <div className="header">Hours</div>
+                        <div className="header">{gettext('Hours')}</div>
                         <ul>
                             {this.hours.map((hour, index) => (
                                 <li
@@ -112,7 +112,7 @@ export class TimeInputPopup extends React.Component {
                         </ul>
                     </div>
                     <div className="time-popup__select-area">
-                        <div className="header">Minutes</div>
+                        <div className="header">{gettext('Minutes')}</div>
                         <ul>
                             {this.minutes.map((minute, index) => (
                                 <li

@@ -16,7 +16,6 @@ import {
     SPIKED_STATE,
 } from '../constants/index';
 import * as testData from './testData';
-import {gettext, gettextCatalog} from '../components/UI/utils';
 import {default as lockUtils} from './locks';
 import {default as planningUtils} from './planning';
 import {default as eventUtils} from './events';
@@ -31,7 +30,7 @@ export {default as assignmentUtils} from './assignments';
 export {default as stringUtils} from './strings';
 export {default as actionUtils} from './actions';
 export {default as editorMenuUtils} from './editorMenu';
-export {gettext, gettextCatalog};
+export {gettext, gettextCatalog} from './gettext';
 export {lockUtils};
 export {planningUtils};
 export {timeUtils};
