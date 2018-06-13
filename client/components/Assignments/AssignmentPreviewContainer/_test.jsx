@@ -104,7 +104,7 @@ describe('<AssignmentPreviewContainer />', () => {
             // Cannot test data-sd-tooltip="Type: text"
             // Our gettext mock simply returns the string
             expect(topTools.contains(
-                <span data-sd-tooltip="Type: {{type}}" data-flow="down">
+                <span data-sd-tooltip="Type: {{type}}" data-flow="right">
                     <i className="sd-list-item__inline-icon icon-text" />
                 </span>
             )).toBe(true);
@@ -114,7 +114,7 @@ describe('<AssignmentPreviewContainer />', () => {
                 <span
                     className="priority-label priority-label--1 sd-list-item__inline-icon"
                     data-sd-tooltip="Priority: High"
-                    data-flow="down"
+                    data-flow="right"
                 >
                     {1}
                 </span>

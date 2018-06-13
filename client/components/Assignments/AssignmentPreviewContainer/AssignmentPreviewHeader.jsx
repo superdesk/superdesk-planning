@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import {get} from 'lodash';
 import moment from 'moment';
 
-import {assignmentUtils, planningUtils, gettext} from '../../../utils';
+import {assignmentUtils, planningUtils, gettext, stringUtils} from '../../../utils';
 
 import {Item, Column, Row} from '../../UI/List';
 import {ContentBlock, ContentBlockInner, Tools} from '../../UI/SidePanel';
@@ -120,9 +120,12 @@ export const AssignmentPreviewHeader = ({
                             <Row marginTop={true}>
                                 <span
                                     data-sd-tooltip={
-                                        gettext('Type: {{type}}', {type: get(planning, 'g2_content_type')})
+                                        gettext('Type: {{type}}', {
+                                            type: stringUtils.firstCharUpperCase(
+                                                get(planning, 'g2_content_type', '').replace('_', ' ')),
+                                        })
                                     }
-                                    data-flow="down"
+                                    data-flow="right"
                                 >
                                     <i
                                         className={classNames(
@@ -134,7 +137,7 @@ export const AssignmentPreviewHeader = ({
                                 <PriorityLabel
                                     item={assignment}
                                     priorities={priorities}
-                                    tooltipFlow="down"
+                                    tooltipFlow="right"
                                     inline={true}
                                 />
                                 <StateLabel
