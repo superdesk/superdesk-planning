@@ -2,6 +2,7 @@ from planning.tests import TestCase
 from unittest import mock
 from planning.output_formatters.json_planning import JsonPlanningFormatter
 import json
+from bson.objectid import ObjectId
 
 
 @mock.patch('superdesk.publish.subscribers.SubscribersService.generate_sequence_number', lambda self, subscriber: 1)
@@ -37,11 +38,11 @@ class JsonPlanningTestCase(TestCase):
                     'internal_note': 'An internal Note'
                 },
                 'assigned_to': {
-                    'assignment_id': '5acc3f8b1d41c81cc16a5e4f',
+                    'assignment_id': ObjectId('5b206de61d41c89c6659d5ec'),
                     'priority': 2
                 },
                 'original_creator': '57bcfc5d1d41c82e8401dcc0',
-                'workflow_status': 'draft',
+                'workflow_status': 'active',
                 'coverage_id': 'urn:newsml:localhost:2018-04-10T14:37:31.188619:e5da893e-8027-4923-8c39-868f11eee713',
                 'news_coverage_status': {
                     'label': 'Planned',
@@ -98,6 +99,49 @@ class JsonPlanningTestCase(TestCase):
         'urgency': 1,
         'version_creator': '57bcfc5d1d41c82e8401dcc0'
     }
+    assignment = [{
+        '_id': ObjectId('5b206de61d41c89c6659d5ec'),
+        'original_creator': '57bcfc5d1d41c82e8401dcc0',
+        'priority': 2,
+        'coverage_item': 'urn:newsml:localhost:2018-06-08T11:52:44.100395:cba5e7dc-f832-4c85-bf6e-bbff98679fbe',
+        '_updated': '2018-06-08T01:53:06.000Z',
+        'type': 'assignment',
+        'planning_item': 'urn:newsml:localhost:2018-06-08T11:51:24.704360:447788f4-641f-4248-8837-cf3dc8a6ac9a',
+        'planning': {
+            'genre': [
+                {
+                    'qcode': 'Article',
+                    'name': 'Article'
+                }
+            ],
+            'scheduled': '2018-06-08T08:00:00.000Z',
+            'g2_content_type': 'text',
+            'slugline': 'Raiders'
+        },
+        'description_text': 'Rugby League/Premiership/Round 14 Canberra V Penrith',
+        'assigned_to': {
+            'assignment_id': ObjectId('5b206de61d41c89c6659d5ec'),
+            'coverage_provider': None,
+            'desk': '54fe457210245489e2d3b564',
+            'assignor_desk': '57bcfc5d1d41c82e8401dcc0',
+            'assigned_date_desk': '2018-06-08T01:52:44+0000',
+            'user': '57bcfc5d1d41c82e8401dcc0',
+            'assignor_user': '57bcfc5d1d41c82e8401dcc0',
+            'assigned_date_user': '2018-06-08T01:52:44+0000',
+            'state': 'assigned'
+        },
+        '_etag': 'd06f331cb3cc133fdb83c990005f8f493cf3f56a',
+        '_created': '2018-06-08T01:52:44.000Z'
+    }]
+    delivery = [{
+        '_id': ObjectId('5b2079711d41c89c6659d6a0'),
+        'assignment_id': ObjectId('5b206de61d41c89c6659d5ec'),
+        '_created': '2018-06-13T01:54:57.000Z',
+        'coverage_id': 'urn:newsml:localhost:2018-06-13T11:05:42.447915:030c31c3-baaf-4f98-8401-fac332a2ef1c',
+        '_updated': '2018-06-13T01:54:57.000Z',
+        'item_id': 'urn:newsml:localhost:2018-06-13T11:54:57.477423:c944042d-f93b-4304-9732-e7b5798ee8f9',
+        'planning_id': 'urn:newsml:localhost:2018-06-13T11:05:42.040242:8d810c01-2c0e-403a-bd0d-b4e2d001b163'
+    }]
 
     def setUp(self):
         super().setUp()
@@ -109,15 +153,20 @@ class JsonPlanningTestCase(TestCase):
                 '_id': 1,
                 'is_enabled': True,
                 'original_creator': '57bcfc5d1d41c82e8401dcc0',
-                '_etag': '1573e7f9b288e65e28c0c0c73edac1ff8736b589',
                 'name': 'Culture',
                 '_updated': '2017-09-06T06:22:53.000Z',
                 '_created': '2017-09-06T06:22:53.000Z'
             }
             self.app.data.insert('agenda', [agenda])
+            self.app.data.insert('assignments', self.assignment)
+            self.app.data.insert('delivery', self.delivery)
             formatter = JsonPlanningFormatter()
             output = formatter.format(self.item, {'name': 'Test Subscriber'})[0]
             output_item = json.loads(output[1])
             self.assertEqual(output_item.get('slugline'), 'SLUGLINE')
             self.assertEqual(output_item.get('agendas')[0].get('name'), 'Culture')
             self.assertEqual(output_item.get('coverages')[0].get('planning').get('slugline'), 'SLUGLINE')
+            self.assertEqual(output_item.get('coverages')[0].get('assignment').get('deliveries')[0]['item_id'],
+                             'urn:newsml:localhost:2018-06-13T11:54:57.477423:c944042d-f93b-4304-9732-e7b5798ee8f9')
+            self.assertEqual(output_item.get('coverages')[0].get('assignment').get('planning').get('slugline'),
+                             'Raiders')

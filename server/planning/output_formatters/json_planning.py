@@ -15,6 +15,8 @@ import json
 from superdesk.utils import json_serialize_datetime_objectId
 from copy import deepcopy
 from superdesk import get_resource_service
+from planning.common import WORKFLOW_STATE
+from bson.objectid import ObjectId
 
 
 class JsonPlanningFormatter(Formatter):
@@ -47,9 +49,14 @@ class JsonPlanningFormatter(Formatter):
         output_item = deepcopy(item)
         for f in self.remove_fields:
             output_item.pop(f, None)
+        # Remove any coverage items that are in draft state
+        output_item['coverages'][:] = [x for x in output_item['coverages'] if
+                                       WORKFLOW_STATE.DRAFT != x.get('workflow_status')]
         for coverage in output_item.get('coverages', []):
+            assigned_to = self._expand_assignment(coverage.get('assigned_to', {}))
             for f in self.remove_coverage_fields:
                 coverage.pop(f, None)
+            coverage['assignment'] = assigned_to
 
         output_item['agendas'] = self._expand_agendas(item)
 
@@ -71,3 +78,34 @@ class JsonPlanningFormatter(Formatter):
                     agenda_details.pop(f, None)
                 expanded.append(agenda_details)
         return expanded
+
+    def _expand_assignment(self, assigned_to):
+        """
+        Expand the assigned_to item ny looking up the assignment removing the none required fields and returning it
+
+        :param assigned_to:
+        :return:
+        """
+        assignment_remove_fields = ('user', 'desk', 'assignor_user', 'assignor_desk', '_etag', 'original_creator',
+                                    'lock_action', 'lock_user', 'lock_time', 'lock_session', 'version_creator')
+        assignment_id = assigned_to.get('assignment_id')
+        assignment = superdesk.get_resource_service('assignments').find_one(req=None, _id=assignment_id)
+        if assignment:
+            for f in assignment_remove_fields:
+                assignment.pop(f, None)
+                assignment.get('assigned_to', {}).pop(f, None)
+            assignment['deliveries'] = self._expand_delivery(assignment_id)
+        return assignment
+
+    def _expand_delivery(self, assignment_id):
+        """
+        Find any deliveries associated with the assignment
+
+        :param assignment_id:
+        :return:
+        """
+        delivery_service = get_resource_service('delivery')
+        deliveries = list(delivery_service.get(req=None, lookup={'assignment_id': ObjectId(assignment_id)}))
+        for delivery in deliveries:
+            delivery.pop('_etag', None)
+        return deliveries
