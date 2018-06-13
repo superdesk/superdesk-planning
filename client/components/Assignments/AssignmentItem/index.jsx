@@ -4,7 +4,7 @@ import moment from 'moment';
 import {get, debounce} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
-import {planningUtils, assignmentUtils, gettext} from '../../../utils';
+import {planningUtils, assignmentUtils, gettext, stringUtils} from '../../../utils';
 import {ASSIGNMENTS, CLICK_DELAY} from '../../../constants';
 
 import {
@@ -113,7 +113,20 @@ export class AssignmentItem extends React.Component {
             >
                 <Border state={borderState} />
                 <Column>
-                    <i className={planningUtils.getCoverageIcon(get(assignment, 'planning.g2_content_type'))} />
+                    <OverlayTrigger placement="right"
+                        overlay={
+                            <Tooltip id="content_type">
+                                {
+                                    gettext('Type: {{type}}', {
+                                        type: stringUtils.firstCharUpperCase(
+                                            get(assignment, 'planning.g2_content_type', '').replace('_', ' ')),
+                                    })
+                                }
+                            </Tooltip>
+                        }
+                    >
+                        <i className={planningUtils.getCoverageIcon(get(assignment, 'planning.g2_content_type'))} />
+                    </OverlayTrigger>
                 </Column>
                 <Column grow={true} border={false}>
                     <Row>
