@@ -85,7 +85,7 @@ export class EndsInput extends React.Component {
                         </LineInput>
                     </RowItem>
                     <RowItem>
-                        <Label row={true} text="Occurrences" />
+                        <Label row={true} text={gettext('Occurrences')} />
                     </RowItem>
                 </Row>
                 <Row flex={true} noPadding={true}>

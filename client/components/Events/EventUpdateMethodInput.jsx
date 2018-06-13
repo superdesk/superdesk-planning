@@ -1,16 +1,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {SelectInput} from '../UI/Form';
+import {gettext} from '../../utils/gettext';
 
 export const EventUpdateMethods = [
     {
-        name: 'This event only',
+        name: gettext('This event only'),
         value: 'single',
     }, {
-        name: 'This and all future events',
+        name: gettext('This and all future events'),
         value: 'future',
     }, {
-        name: 'All events',
+        name: gettext('All Events'),
         value: 'all',
     },
 ];

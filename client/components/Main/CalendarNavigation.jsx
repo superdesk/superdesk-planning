@@ -6,6 +6,7 @@ import moment from 'moment';
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
 import {MAIN} from '../../constants';
+import {gettext} from '../../utils';
 
 import {ButtonStack} from '../UI/SubNav';
 import {Button} from '../UI';
@@ -21,7 +22,7 @@ export const CalendarNavigationComponent = ({
 }) => ([
     <ButtonStack key="today" padded={true}>
         <Button
-            text="Today"
+            text={gettext('Today')}
             onClick={onTodayClick}
             disabled={!start || moment(start).isSame(moment(), 'day')}
         />
@@ -42,7 +43,7 @@ export const CalendarNavigationComponent = ({
 
     <ButtonStack key="interval" padded={true}>
         <Checkbox
-            label="D"
+            label={gettext('D')}
             type="radio"
             labelPosition="inside"
             field={MAIN.JUMP.DAY}
@@ -52,7 +53,7 @@ export const CalendarNavigationComponent = ({
         />
 
         <Checkbox
-            label="W"
+            label={gettext('W')}
             type="radio"
             labelPosition="inside"
             field={MAIN.JUMP.WEEK}
@@ -62,7 +63,7 @@ export const CalendarNavigationComponent = ({
         />
 
         <Checkbox
-            label="M"
+            label={gettext('M')}
             type="radio"
             labelPosition="inside"
             field={MAIN.JUMP.MONTH}
