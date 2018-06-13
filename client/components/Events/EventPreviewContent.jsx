@@ -236,7 +236,10 @@ export class EventPreviewContentComponent extends React.Component {
                     />
                 </ToggleBox>
                 {get(formProfile, 'editor.files.enabled') &&
-                    <ToggleBox title={gettext('Attached Files')} isOpen={false}>
+                    <ToggleBox
+                        title={gettext('Attached Files')}
+                        isOpen={false}
+                        badgeValue={get(item, 'files.length', 0) > 0 ? item.files.length : null}>
                         {get(item, 'files.length') > 0 ?
                             <ul>
                                 {get(item, 'files', []).map((file, index) => (
@@ -252,7 +255,10 @@ export class EventPreviewContentComponent extends React.Component {
                     </ToggleBox>
                 }
                 {get(formProfile, 'editor.links.enabled') &&
-                    <ToggleBox title={gettext('External Links')} isOpen={false}>
+                    <ToggleBox
+                        title={gettext('External Links')}
+                        isOpen={false}
+                        badgeValue={get(item, 'links.length', 0) > 0 ? item.links.length : null}>
                         {get(item, 'links.length') > 0 ?
                             <ul>
                                 {get(item, 'links', []).map((link, index) => (

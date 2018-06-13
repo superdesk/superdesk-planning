@@ -70,6 +70,7 @@ export class ToggleBox extends React.Component {
             invalid,
             noMargin,
             paddingTop,
+            badgeValue,
         } = this.props;
 
         return (
@@ -96,8 +97,13 @@ export class ToggleBox extends React.Component {
                     <div className="toggle-box__chevron">
                         <i className="icon-chevron-right-thin"/>
                     </div>
-                    <div className="toggle-box__label">{gettext(title)}</div>
-                    <div className="toggle-box__line"/>
+                    <div className="toggle-box__label">
+                        {gettext(title)}
+                        {badgeValue && <span className="badge badge--light badge--margined">{badgeValue}</span>}
+                    </div>
+                    <div className={classNames(
+                        'toggle-box__line', {'toggle-box__line--badged': badgeValue}
+                    )} />
                 </a>
                 <div className="toggle-box__content-wraper">
                     {this.state.isOpen && !hideUsingCSS && (
@@ -134,6 +140,7 @@ ToggleBox.propTypes = {
     noMargin: PropTypes.bool,
     forceScroll: PropTypes.bool,
     paddingTop: PropTypes.bool,
+    badgeValue: PropTypes.string,
 };
 
 ToggleBox.defaultProps = {

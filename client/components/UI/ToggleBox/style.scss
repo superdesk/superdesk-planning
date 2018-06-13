@@ -27,6 +27,17 @@
 
     .toggle-box__header {
         @extend .toggle-box__header--focus;
+        .toggle-box__line {
+            &.toggle-box__line--badged {
+                height: 1.1px !important;
+            }
+        }
+
+        .badge {
+            &.badge--margined {
+                margin-left: 0.6rem !important;
+            }
+        }
     }
 
     &--no-margin {
