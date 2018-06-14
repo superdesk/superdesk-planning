@@ -42,3 +42,13 @@
   color: $grayLight !important;
   background-color: transparent !important;
 }
+
+.history-list {
+  &--no-padding {
+    padding: 0 !important;
+  }
+
+    &__link{
+        cursor: pointer;
+    }
+}

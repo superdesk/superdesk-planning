@@ -25,6 +25,7 @@ Feature: Duplicate Planning
                         "scheduled": "2029-11-21T14:00:00.0000",
                         "g2_content_type": "text"
                     },
+                    "workflow_status": "draft",
                     "assigned_to": {
                         "desk": "Politic Desk",
                         "user": "507f191e810c19729de870eb"
@@ -92,7 +93,7 @@ Feature: Duplicate Planning
         }
         """
         When we get "/planning_history"
-        Then we get list with 6 items
+        Then we get list with 5 items
         """
         {"_items": [
             {
@@ -110,11 +111,7 @@ Feature: Duplicate Planning
                 "planning_id": "123"
             },
             {
-                "operation": "update",
-                "planning_id": "123"
-            },
-            {
-                "operation": "coverage created",
+                "operation": "coverage_created",
                 "planning_id": "123",
                 "update": {"coverage_id": "__any_value__"}
             },

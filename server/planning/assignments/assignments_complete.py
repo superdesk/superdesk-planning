@@ -19,7 +19,6 @@ from superdesk import get_resource_service
 from .assignments import AssignmentsResource, assignments_schema, AssignmentsService
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, remove_lock_information, get_coverage_type_name
 from planning.planning_notifications import PlanningNotifications
-from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
 
 
 assignments_complete_schema = deepcopy(assignments_schema)
@@ -69,11 +68,9 @@ class AssignmentsCompleteService(BaseService):
 
         # Save history if user initiates complete
         if coverage_type == 'text':
-            get_resource_service('assignments_history').on_item_updated(updates, original,
-                                                                        ASSIGNMENT_HISTORY_ACTIONS.COMPLETE)
+            get_resource_service('assignments_history').on_item_complete(updates, original)
         else:
-            get_resource_service('assignments_history').on_item_updated(updates, original,
-                                                                        ASSIGNMENT_HISTORY_ACTIONS.CONFIRM)
+            get_resource_service('assignments_history').on_item_confirm_availability(updates, original)
 
         push_notification(
             'assignments:completed',

@@ -77,7 +77,7 @@ export const ASSIGNMENTS = {
             states: ['completed', 'cancelled'],
         },
     },
-    HISTORY_ACTIONS: {
+    HISTORY_OPERATIONS: {
         CREATE: 'create',
         ADD_TO_WORKFLOW: 'add_to_workflow',
         EDIT_PRIORITY: 'edit_priority',
@@ -91,5 +91,6 @@ export const ASSIGNMENTS = {
         SPIKE_UNLINK: 'spike_unlink',
         UNLINK: 'unlink',
         START_WORKING: 'start_working',
+        ASSIGNMENT_REMOVED: 'assignment_removed',
     },
 };

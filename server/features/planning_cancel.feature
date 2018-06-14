@@ -171,7 +171,8 @@ Feature: Cancel all coverage
                       "qcode": "ncostat:int",
                       "name": "coverage intended",
                       "label": "Planned"
-                  }
+                  },
+                  "workflow_status": "draft"
               }
           ]
       }]
@@ -332,7 +333,8 @@ Feature: Cancel all coverage
                       "qcode": "ncostat:int",
                       "name": "coverage intended",
                       "label": "Planned"
-                  }
+                  },
+                  "workflow_status": "draft"
               }
           ]
       }]
@@ -401,6 +403,7 @@ Feature: Cancel all coverage
           "ednote": "something happened",
           "coverages": [
               {
+                  "workflow_status": "draft",
                   "planning": {
                       "ednote": "test coverage, 250 words",
                       "g2_content_type": "text"
@@ -412,6 +415,7 @@ Feature: Cancel all coverage
                   }
               },
               {
+                  "workflow_status": "draft",
                   "planning": {
                       "ednote": "test coverage2, 250 words",
                       "g2_content_type": "text"
@@ -511,6 +515,7 @@ Feature: Cancel all coverage
           "ednote": "something happened",
           "coverages": [
               {
+                  "workflow_status": "draft",
                   "planning": {
                       "ednote": "test coverage, 250 words",
                       "g2_content_type": "text"
@@ -522,6 +527,7 @@ Feature: Cancel all coverage
                   }
               },
               {
+                  "workflow_status": "draft",
                   "planning": {
                       "ednote": "test coverage2, 250 words",
                       "g2_content_type": "text"
@@ -648,6 +654,7 @@ Feature: Cancel all coverage
         """
         {
             "coverages": [{
+                "workflow_status": "active",
                 "news_coverage_status": {
                     "qcode": "ncostat:int",
                     "name": "coverage intended",

@@ -171,6 +171,7 @@ Feature: Events Reschedule
             "ednote": "We planned this.",
             "coverages": [{
                 "coverage_id": "cov1",
+                "workflow_status": "active",
                 "planning": {
                     "internal_note": "Please write words."
                 },
@@ -922,7 +923,8 @@ Feature: Events Reschedule
                         "scheduled": "2029-11-21T14:00:00.000Z",
                         "g2_content_type": "text"
                     },
-                    "news_coverage_status": {"qcode": "ncostat:int"}
+                    "news_coverage_status": {"qcode": "ncostat:int"},
+                    "workflow_status" : "draft"
                 }]
             },
             {

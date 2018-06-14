@@ -17,6 +17,7 @@ import {
     MODALS,
     MAIN,
     WORKFLOW_STATE,
+    WORKSPACE,
 } from '../../constants';
 import main from '../main';
 
@@ -706,7 +707,7 @@ const save = (item, original = undefined) => (
                 return api('planning').save({}, {
                     ...modifiedUpdates,
                     coverages: [],
-                })
+                }, {add_to_planning: selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING})
                     .then(
                         (newItem) => resolve(newItem),
                         (error) => reject(error)

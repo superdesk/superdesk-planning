@@ -54,6 +54,7 @@ Feature: Planning Spike
                     "internal_note": "Cover something please!"
                 },
                 "planning_item": "plan1",
+                "workflow_status": "active",
                 "news_coverage_status": {
                     "qcode": "ncostat:int",
                     "name": "Coverage intended"
@@ -108,7 +109,7 @@ Feature: Planning Spike
             },
             {
             "planning_id": "#planning._id#",
-            "operation": "coverage deleted",
+            "operation": "coverage_deleted",
             "update": {"coverage_id": "cov1"}
             }
             ]}

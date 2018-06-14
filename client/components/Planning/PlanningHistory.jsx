@@ -3,10 +3,11 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
-import {getItemInArrayById, gettext} from '../../utils';
-import {get, includes} from 'lodash';
-import {AbsoluteDate} from '../index';
+import {PLANNING, HISTORY_OPERATIONS} from '../../constants';
+import {getItemInArrayById, gettext, historyUtils} from '../../utils';
+import {get} from 'lodash';
 import {ContentBlock} from '../UI/SidePanel';
+import {CoverageHistory} from '../Coverages';
 
 export class PlanningHistoryComponent extends React.Component {
     componentWillMount() {
@@ -30,54 +31,86 @@ export class PlanningHistoryComponent extends React.Component {
         this.props.openPlanningPreview(duplicateId);
     }
 
+    getHistoryActionElement(historyItem) {
+        let text, agenda;
+
+        switch (historyItem.operation) {
+        case HISTORY_OPERATIONS.CREATE:
+            text = gettext('Created');
+            break;
+
+        case HISTORY_OPERATIONS.ADD_TO_PLANNING:
+            text = gettext('Created from content by');
+            break;
+
+        case HISTORY_OPERATIONS.EDITED:
+            text = gettext('Edited');
+            break;
+
+        case HISTORY_OPERATIONS.SPIKED:
+            text = gettext('Spiked');
+            break;
+
+        case HISTORY_OPERATIONS.UNSPIKED:
+            text = gettext('Unspiked');
+            break;
+
+        case HISTORY_OPERATIONS.RESCHEDULE:
+            text = gettext('Event Rescheduled');
+            break;
+
+        case HISTORY_OPERATIONS.EVENTS_CANCEL:
+            text = gettext('Event Cancelled');
+            break;
+
+        case HISTORY_OPERATIONS.PLANNING_CANCEL:
+            text = gettext('Planning Cancelled');
+            break;
+
+        case HISTORY_OPERATIONS.POSTPONE:
+            text = gettext('Event Postponed');
+            break;
+
+        case PLANNING.HISTORY_OPERATIONS.PLANNING_CANCEL:
+            text = gettext('Planning cancelled');
+            break;
+
+        case PLANNING.HISTORY_OPERATIONS.ASSIGN_AGENDA:
+            agenda = get(getItemInArrayById(this.props.agendas, get(historyItem, 'update.agendas[0]')), 'name');
+            text = gettext('Assigned to agenda ') + agenda;
+            break;
+
+        case HISTORY_OPERATIONS.DUPLICATE_FROM:
+            text = gettext('Duplicate created');
+            break;
+
+        case HISTORY_OPERATIONS.DUPLICATE:
+            text = gettext('Duplicated');
+            break;
+        }
+
+        return historyUtils.getHistoryRowElement(text, historyItem, this.props.users);
+    }
+
     render() {
-        const {users, planningHistoryItems} = this.props;
-        const displayUser = (recievedUserId) => get(getItemInArrayById(users, recievedUserId), 'display_name');
+        const planningItemHistory = historyUtils.getPlanningItemHistory(this.props.historyItems);
+        const groupedCoverageHistory = historyUtils.getGroupedCoverageHistory(this.props.historyItems);
 
         return (
             <ContentBlock>
                 <ul className="history-list">
-                    {planningHistoryItems.map((historyItem) => (
-                        <li className="item" key={historyItem._id}>
-                            {
-                                users &&
-                                includes(['create', 'update', 'spiked', 'unspiked', 'coverage created',
-                                    'coverage updated', 'coverage deleted', 'post', 'duplicate',
-                                    'duplicate_from', 'cancel', 'reschedule',
-                                    'postpone'], historyItem.operation)
-                                &&
+                    {planningItemHistory.map((historyItem, index) => {
+                        const postElement = historyUtils.getPostedHistoryElement(
+                            index, planningItemHistory, this.props.users);
+                        const historyElement = this.getHistoryActionElement(historyItem);
+
+                        if (postElement || historyElement) {
+                            return (<li className="item" key={historyItem._id}>
                                 <div>
-                                    <strong>
-                                        {historyItem.operation === 'create' && gettext('Created by ')}
-                                        {historyItem.operation === 'update' && gettext('Updated by ')}
-                                        {historyItem.operation === 'spiked' && gettext('Spiked by ')}
-                                        {historyItem.operation === 'unspiked' && gettext('Unspiked by ')}
-                                        {historyItem.operation === 'coverage created' &&
-                                            gettext('Coverage created by ')}
-                                        {historyItem.operation === 'coverage updated' &&
-                                            gettext('Coverage updated by ')}
-                                        {historyItem.operation === 'coverage deleted' &&
-                                            gettext('Coverage deleted by ')}
-                                        {historyItem.operation === 'duplicate_from' && gettext('Duplicate created by ')}
-                                        {historyItem.operation === 'duplicate' && gettext('Duplicated by ')}
-                                        {historyItem.operation === 'cancel' && gettext('Cancelled by ')}
-                                        {historyItem.operation === 'reschedule' && gettext('Rescheduled by ')}
-                                        {historyItem.operation === 'postpone' && gettext('Postponed by ')}
-
-                                        {historyItem.operation === 'post' &&
-                                            historyItem.update.state === 'posted' &&
-                                            gettext('Posted by ')
-                                        }
-                                        {historyItem.operation === 'post' &&
-                                            historyItem.update.state === 'killed' &&
-                                            gettext('Killed by ')
-                                        }
-                                    </strong>
-
-                                    <span className="user-name">{displayUser(historyItem.user_id)}</span>
-                                    <em> <AbsoluteDate date={historyItem._created} /> </em>
+                                    {postElement}
+                                    {historyElement}
                                     <div>
-                                        {historyItem.operation === 'update' &&
+                                        {historyItem.operation === HISTORY_OPERATIONS.EDITED &&
                                             <div className="more-description">
                                                 Updated Fields:
                                                 { // List updated fields as comma separated
@@ -86,8 +119,8 @@ export class PlanningHistoryComponent extends React.Component {
                                                 }
                                             </div>
                                         }
-                                        {historyItem.operation === 'duplicate' && (
-                                            <div className="history-list__duplicate">
+                                        {historyItem.operation === HISTORY_OPERATIONS.DUPLICATE && (
+                                            <div className="history-list__link">
                                                 <a onClick={this.closeAndOpenDuplicate.bind(
                                                     this,
                                                     historyItem.update.duplicate_id
@@ -96,8 +129,8 @@ export class PlanningHistoryComponent extends React.Component {
                                                 </a>
                                             </div>
                                         )}
-                                        {historyItem.operation === 'duplicate_from' && (
-                                            <div className="history-list__duplicate">
+                                        {historyItem.operation === HISTORY_OPERATIONS.DUPLICATE_FROM && (
+                                            <div className="history-list__link">
                                                 <a onClick={this.closeAndOpenDuplicate.bind(
                                                     this,
                                                     historyItem.update.duplicate_id
@@ -108,10 +141,20 @@ export class PlanningHistoryComponent extends React.Component {
                                         )}
                                     </div>
                                 </div>
-                            }
-                        </li>
-                    ))}
+                            </li>);
+                        }
+
+                        return null;
+                    })}
                 </ul>
+                {Object.keys(groupedCoverageHistory).map((historyKey) =>
+                    <CoverageHistory
+                        key={historyKey}
+                        historyData={groupedCoverageHistory[historyKey]}
+                        users={this.props.users}
+                        desks={this.props.desks}
+                        timeFormat={this.props.timeFormat}
+                        dateFormat={this.props.dateFormat} />)}
             </ContentBlock>
         );
     }
@@ -119,20 +162,28 @@ export class PlanningHistoryComponent extends React.Component {
 
 PlanningHistoryComponent.propTypes = {
     item: PropTypes.object,
-    planningHistoryItems: PropTypes.array,
+    historyItems: PropTypes.array,
     users: PropTypes.oneOfType([
         PropTypes.array,
         PropTypes.object,
     ]),
+    desks: PropTypes.array,
+    agendas: PropTypes.array,
     currentPlanningId: PropTypes.string,
+    timeFormat: PropTypes.string,
+    dateFormat: PropTypes.string,
     fetchPlanningHistory: PropTypes.func,
     closePlanningHistory: PropTypes.func,
     openPlanningPreview: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
-    planningHistoryItems: selectors.planning.planningHistory(state),
+    historyItems: selectors.planning.planningHistory(state),
     users: selectors.general.users(state),
+    desks: selectors.general.desks(state),
+    agendas: selectors.general.agendas(state),
+    timeFormat: selectors.config.getTimeFormat(state),
+    dateFormat: selectors.config.getDateFormat(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

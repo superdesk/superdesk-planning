@@ -32,6 +32,7 @@ export {default as stringUtils} from './strings';
 export {default as actionUtils} from './actions';
 export {default as editorMenuUtils} from './editorMenu';
 export {gettext, gettextCatalog} from './gettext';
+export {default as historyUtils} from './history';
 export {lockUtils};
 export {planningUtils};
 export {timeUtils};

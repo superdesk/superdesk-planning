@@ -494,11 +494,6 @@ class PlanningService(superdesk.Service):
                     original_assignment
                 )
 
-        (updates.get('assigned_to') or {}).pop('user', None)
-        (updates.get('assigned_to') or {}).pop('desk', None)
-        (updates.get('assigned_to') or {}).pop('coverage_provider', None)
-        (updates.get('assigned_to') or {}).pop('state', None)
-
     def cancel_coverage(self, coverage, coverage_cancel_state, original_workflow_status, assignment=None, note=None,
                         reason=None, event_cancellation=False):
         if reason:
@@ -532,6 +527,7 @@ class PlanningService(superdesk.Service):
                 'Planning does not exist'
             )
 
+        self.__generate_related_assignments([planning])
         coverages = planning.get('coverages') or []
         try:
             coverage = next(c for c in coverages if c.get('coverage_id') == coverage_id)
@@ -596,28 +592,35 @@ class PlanningService(superdesk.Service):
             if unlock_planning:
                 remove_lock_information(updates)
 
-            return self.update(
+            updated_planning = self.update(
                 planning_item[config.ID_FIELD],
                 updates,
                 planning_item
             )
 
+            get_resource_service('planning_history')._save_history(
+                planning_item, {'coverage_id': coverage_item.get('coverage_id')},
+                'assignment_removed')
+
+            return updated_planning
+
     def is_coverage_planning_modified(self, updates, original):
         for key in updates.get('planning').keys():
-            if key in updates and not key.startswith('_') and \
+            if not key.startswith('_') and \
                     updates.get('planning')[key] != original.get('planning').get(key):
                 return True
 
         return False
 
     def is_coverage_assignment_modified(self, updates, original):
-        keys = ['desk', 'user', 'state']
+        keys = ['desk', 'user', 'state', 'coverage_provider']
         for key in keys:
             if key in updates['assigned_to'] and\
-                    updates['assigned_to'][key] != original['assigned_to'].get(key):
+                    updates['assigned_to'][key] != original.get('assigned_to').get(key):
                 return True
 
-        if updates['assigned_to'].get('priority') and updates['assigned_to']['priority'] != original['priority']:
+        if updates['assigned_to'].get('priority') and updates['assigned_to']['priority'] !=\
+                original.get('priority'):
             return True
 
         return False

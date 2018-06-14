@@ -69,7 +69,8 @@ Feature: Rewrite content
             "news_coverage_status": {"qcode": "ncostat:int"},
             "assigned_to": {
                 "desk": "#desks._id#",
-                "user": "#CONTEXT_USER_ID#"
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
             },
             "workflow_status": "active"
         }]}

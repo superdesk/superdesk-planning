@@ -222,8 +222,13 @@ Feature: Events Recurring
             "coverages": [
                 {
                     "coverage_id": "cov1",
+                    "workflow_status": "draft",
                     "planning": {
                         "internal_note": "Please write words."
+                    },
+                    "news_coverage_status": {
+                        "qcode": "ncostat:int",
+                        "name": "Coverage intended"
                     }
                 }
             ]

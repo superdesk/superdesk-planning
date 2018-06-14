@@ -118,4 +118,5 @@ export const HISTORY_OPERATIONS = {
     UPDATE_REPETITIONS_CREATE: 'update_repetitions_create',
     DUPLICATE_FROM: 'duplicate_from',
     DUPLICATE: 'duplicate',
+    ADD_TO_PLANNING: 'add_to_planning',
 };

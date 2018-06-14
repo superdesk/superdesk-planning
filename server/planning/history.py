@@ -26,10 +26,10 @@ class HistoryService(Service):
     """Provide common methods for tracking history of Creation, Updates and Spiking to collections
     """
 
-    def on_item_created(self, items):
+    def on_item_created(self, items, operation=None):
         for item in items:
             self._save_history({config.ID_FIELD: ObjectId(item[config.ID_FIELD]) if ObjectId.is_valid(
-                item[config.ID_FIELD]) else str(item[config.ID_FIELD])}, deepcopy(item), 'create')
+                item[config.ID_FIELD]) else str(item[config.ID_FIELD])}, deepcopy(item), operation or 'create')
 
     def on_item_updated(self, updates, original, operation=None):
         item = deepcopy(original)

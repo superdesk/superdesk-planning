@@ -8,7 +8,7 @@
 
 """Superdesk Files"""
 
-from superdesk import Resource
+from superdesk import Resource, get_resource_service
 from copy import deepcopy
 from planning.history import HistoryService
 import logging
@@ -59,9 +59,53 @@ class AssignmentsHistoryService(HistoryService):
             self._save_history(item, diff, operation)
             return
 
-        # Spilt an update to two actions if needed
+        # Split an update to two actions if needed
+        planning_history_service = get_resource_service('planning_history')
+        cov_diff = {
+            'coverage_id': original.get('coverage_item'),
+            'assigned_to': {}
+        }
         if 'priority' in diff.keys():
-            self._save_history(item, {'priority': diff.pop('priority')}, ASSIGNMENT_HISTORY_ACTIONS.EDIT_PRIORITY)
+            cov_diff['assigned_to']['priority'] = diff.pop('priority')
+            self._save_history(item, {'priority': cov_diff['assigned_to']['priority']},
+                               ASSIGNMENT_HISTORY_ACTIONS.EDIT_PRIORITY)
+            planning_history_service._save_history({'_id': original.get('planning_item')},
+                                                   cov_diff, ASSIGNMENT_HISTORY_ACTIONS.EDIT_PRIORITY)
 
         if 'assigned_to' in diff.keys():
+            cov_diff['assigned_to'] = diff['assigned_to']
             self._save_history(item, diff, ASSIGNMENT_HISTORY_ACTIONS.REASSIGNED)
+            planning_history_service._save_history({'_id': original.get('planning_item')},
+                                                   cov_diff, ASSIGNMENT_HISTORY_ACTIONS.REASSIGNED)
+
+    def _update_assignment_coverage_history(self, updates, original, operation):
+        self.on_item_updated(updates, original, operation)
+        cov = {'coverage_id': original.get('coverage_item')}
+        if operation in [
+                ASSIGNMENT_HISTORY_ACTIONS.CONFIRM,
+                ASSIGNMENT_HISTORY_ACTIONS.REVERT,
+                ASSIGNMENT_HISTORY_ACTIONS.COMPLETE]:
+            cov['assigned_to'] = updates.get('assigned_to')
+
+        get_resource_service('planning_history')._save_history({'_id': original.get('planning_item')}, cov, operation)
+
+    def on_item_add_to_workflow(self, updates, original):
+        self._update_assignment_coverage_history(updates, original, ASSIGNMENT_HISTORY_ACTIONS.ADD_TO_WORKFLOW)
+
+    def on_item_start_working(self, updates, original):
+        self._update_assignment_coverage_history(updates, original, ASSIGNMENT_HISTORY_ACTIONS.START_WORKING)
+
+    def on_item_complete(self, updates, original):
+        self._update_assignment_coverage_history(updates, original, ASSIGNMENT_HISTORY_ACTIONS.COMPLETE)
+
+    def on_item_confirm_availability(self, updates, original):
+        self._update_assignment_coverage_history(updates, original, ASSIGNMENT_HISTORY_ACTIONS.CONFIRM)
+
+    def on_item_revert_availability(self, updates, original):
+        self._update_assignment_coverage_history(updates, original, ASSIGNMENT_HISTORY_ACTIONS.REVERT)
+
+    def on_item_content_link(self, updates, original):
+        self._update_assignment_coverage_history(updates, original, ASSIGNMENT_HISTORY_ACTIONS.CONTENT_LINK)
+
+    def on_item_content_unlink(self, updates, original, operation=None):
+        self._update_assignment_coverage_history(updates, original, operation or ASSIGNMENT_HISTORY_ACTIONS.UNLINK)
