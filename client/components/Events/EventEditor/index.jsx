@@ -25,6 +25,7 @@ import {GeoLookupInput} from '../../index';
 
 import {EventEditorHeader} from './EventEditorHeader';
 import {gettext, editorMenuUtils, getItemId, isTemporaryId} from '../../../utils';
+import CustomVocabulariesFields from '../../CustomVocabulariesFields';
 
 import '../style.scss';
 
@@ -133,6 +134,7 @@ export class EventEditorComponent extends React.Component {
             onChangeHandler,
             navigation,
             itemExists,
+            customVocabularies,
         } = this.props;
 
         const detailsErrored = some(toggleDetails, (field) => !!get(errors, field));
@@ -285,7 +287,7 @@ export class EventEditorComponent extends React.Component {
                             onFocus={onFocusDetails}
                         />
 
-                        <Field
+                        {!customVocabularies.length && <Field
                             component={SelectMetaTermsInput}
                             field="subject"
                             label={gettext('Subject')}
@@ -293,6 +295,12 @@ export class EventEditorComponent extends React.Component {
                             defaultValue={[]}
                             {...fieldProps}
                             onFocus={onFocusDetails}
+                        />}
+
+                        <CustomVocabulariesFields
+                            customVocabularies={customVocabularies}
+                            fieldProps={fieldProps}
+                            onFocusDefails={onFocusDetails}
                         />
 
                         <Field
@@ -417,6 +425,7 @@ EventEditorComponent.propTypes = {
     planningsModalEvent: PropTypes.array,
     navigation: PropTypes.object,
     fetchEventWithFiles: PropTypes.func,
+    customVocabularies: PropTypes.array,
 };
 
 EventEditorComponent.defaultProps = {
@@ -441,6 +450,7 @@ const mapStateToProps = (state) => ({
     dateFormat: selectors.config.getDateFormat(state),
     plannings: selectors.events.getRelatedPlannings(state),
     planningsModalEvent: selectors.events.getRelatedPlanningsForModalEvent(state),
+    customVocabularies: state.customVocabularies,
 });
 
 const mapDispatchToProps = (dispatch) => ({

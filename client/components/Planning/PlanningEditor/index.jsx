@@ -32,6 +32,7 @@ import {PlanningEditorHeader} from './PlanningEditorHeader';
 import {CoverageArrayInput} from '../../Coverages';
 import {EventMetadata} from '../../Events';
 import {PLANNING, WORKFLOW_STATE, COVERAGES} from '../../../constants';
+import CustomVocabulariesFields from '../../CustomVocabulariesFields';
 
 const toggleDetails = [
     'ednote',
@@ -472,18 +473,11 @@ export class PlanningEditorComponent extends React.Component {
                             onFocus={onFocusDetails}
                         />}
 
-                        {customVocabularies.map((cv) => (
-                            <Field key={cv._id}
-                                component={SelectMetaTermsInput}
-                                field="subject"
-                                label={gettext(cv.display_name)}
-                                options={cv.items.map((item) => Object.assign({scheme: cv._id}, item))}
-                                defaultValue={[]}
-                                {...fieldProps}
-                                onFocus={onFocusDetails}
-                                scheme={cv._id}
-                            />
-                        ))}
+                        <CustomVocabulariesFields
+                            customVocabularies={customVocabularies}
+                            fieldProps={fieldProps}
+                            onFocusDefails={onFocusDetails}
+                        />
 
                         <Field
                             component={ColouredValueInput}
