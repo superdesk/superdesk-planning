@@ -131,6 +131,7 @@ export const getTestActionStore = () => {
                 editorOpened: false,
                 onlyActive: false,
             },
+            customVocabularies: [],
         },
 
         getState: sinon.spy(() => (store.initialState)),

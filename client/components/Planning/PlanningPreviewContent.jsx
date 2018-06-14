@@ -16,6 +16,7 @@ import {CoveragePreview} from '../Coverages';
 import {ContentBlock} from '../UI/SidePanel';
 import {EventMetadata} from '../Events';
 import {AgendaNameList} from '../Agendas';
+import CustomVocabulariesPreview from '../CustomVocabulariesPreview';
 
 export class PlanningPreviewContentComponent extends React.Component {
     render() {
@@ -122,21 +123,7 @@ export class PlanningPreviewContentComponent extends React.Component {
                             value={subjectText || ''}
                         />
                     )}
-                    {customVocabularies.map((cv) => {
-                        const values = get(item, 'subject', []).filter((item) => item.scheme === cv._id);
-
-                        if (values.length) {
-                            return (
-                                <Row key={cv._id}
-                                    enabled={true}
-                                    label={cv.display_name}
-                                    value={values.map((item) => item.name).join(', ')}
-                                />
-                            );
-                        }
-
-                        return null;
-                    })}
+                    <CustomVocabulariesPreview customVocabularies={customVocabularies} item={item} />
                     <Row enabled={get(formProfile, 'planning.editor.urgency.enabled')}>
                         <ColouredValueInput
                             value={urgency}

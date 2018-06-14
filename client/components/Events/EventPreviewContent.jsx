@@ -18,6 +18,7 @@ import {Location} from '../Location';
 import eventsApi from '../../actions/events/api';
 import eventsUi from '../../actions/events/ui';
 import {ContactMetaData} from '../Contacts/index';
+import CustomVocabulariesPreview from '../CustomVocabulariesPreview';
 
 export class EventPreviewContentComponent extends React.Component {
     constructor(props) {
@@ -104,6 +105,7 @@ export class EventPreviewContentComponent extends React.Component {
             dateFormat,
             createUploadLink,
             streetMapUrl,
+            customVocabularies,
         } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
@@ -209,11 +211,14 @@ export class EventPreviewContentComponent extends React.Component {
                         label={gettext('ANPA Category')}
                         value={categoryText}
                     />
-                    <Row
-                        enabled={get(formProfile, 'editor.subject.enabled')}
-                        label={gettext('Subject')}
-                        value={subjectText}
-                    />
+                    {!customVocabularies.length && (
+                        <Row
+                            enabled={get(formProfile, 'planning.editor.subject.enabled')}
+                            label={gettext('Subject')}
+                            value={subjectText || ''}
+                        />
+                    )}
+                    <CustomVocabulariesPreview customVocabularies={customVocabularies} item={item} />
                     <Row
                         enabled={get(formProfile, 'editor.definition_long.enabled')}
                         label={gettext('Long Description')}
@@ -282,6 +287,7 @@ EventPreviewContentComponent.propTypes = {
     fetchContacts: PropTypes.func,
     streetMapUrl: PropTypes.string,
     fetchEventWithFiles: PropTypes.func,
+    customVocabularies: PropTypes.array,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -295,6 +301,7 @@ const mapStateToProps = (state, ownProps) => ({
     formProfile: selectors.forms.eventProfile(state),
     createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
     streetMapUrl: selectors.config.getStreetMapUrl(state),
+    customVocabularies: state.customVocabularies,
 });
 
 const mapDispatchToProps = (dispatch) => ({
