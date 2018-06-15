@@ -131,6 +131,8 @@ const save = (item, withConfirmation = true) => (
         const itemId = getItemId(item);
         const itemType = getItemType(item);
         const existingItem = !isTemporaryId(itemId);
+        const itemIdModal = selectors.forms.currentItemIdModal(getState());
+        const createdFromModal = !existingItem && itemId === itemIdModal;
 
         if (!existingItem) {
             delete item._id;
@@ -163,6 +165,10 @@ const save = (item, withConfirmation = true) => (
                 const savedItem = Array.isArray(savedItems) ? savedItems[0] : savedItems;
 
                 if (!existingItem && selectors.general.currentWorkspace(getState()) !== WORKSPACE.AUTHORING) {
+                    if (createdFromModal) {
+                        dispatch(self.closeEditorModal());
+                    }
+
                     notify.success(
                         gettext('{{ itemType }} created', {itemType: getItemTypeString(item)})
                     );
@@ -786,6 +792,7 @@ const closeEditor = () => (
 const closeEditorModal = () => (
     (dispatch) => {
         dispatch({type: MAIN.ACTIONS.CLOSE_EDITOR_MODAL});
+        dispatch(hideModal());
     }
 );
 
