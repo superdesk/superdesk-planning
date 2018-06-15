@@ -278,7 +278,7 @@ describe('actions.events.notifications', () => {
                 }
             ))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(1);
+                    expect(store.dispatch.callCount).toBe(2);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'MARK_EVENT_POSTED',
                         payload: {
@@ -293,7 +293,7 @@ describe('actions.events.notifications', () => {
                     }]);
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('dispatches `MARK_EVENT_POSTED` for multiple events', (done) => (
             store.test(done, eventsNotifications.onEventPostChanged(
@@ -316,7 +316,7 @@ describe('actions.events.notifications', () => {
                 }
             ))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(1);
+                    expect(store.dispatch.callCount).toBe(2);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'MARK_EVENT_POSTED',
                         payload: {
@@ -337,7 +337,7 @@ describe('actions.events.notifications', () => {
                     }]);
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('dispatches `MARK_EVENT_UNPOSTED`', (done) => (
             store.test(done, eventsNotifications.onEventPostChanged(
@@ -350,7 +350,7 @@ describe('actions.events.notifications', () => {
                 }
             ))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(1);
+                    expect(store.dispatch.callCount).toBe(2);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'MARK_EVENT_UNPOSTED',
                         payload: {
@@ -365,7 +365,7 @@ describe('actions.events.notifications', () => {
                     }]);
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('dispatches `MARK_EVENT_UNPOSTED` for multiple events', (done) => (
             store.test(done, eventsNotifications.onEventPostChanged(
@@ -388,7 +388,7 @@ describe('actions.events.notifications', () => {
                 }
             ))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(1);
+                    expect(store.dispatch.callCount).toBe(2);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'MARK_EVENT_UNPOSTED',
                         payload: {
@@ -409,7 +409,7 @@ describe('actions.events.notifications', () => {
                     }]);
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 
     describe('onEventLocked', () => {
@@ -455,7 +455,7 @@ describe('actions.events.notifications', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 
     describe('onEventUnlocked', () => {
@@ -497,7 +497,8 @@ describe('actions.events.notifications', () => {
                     }]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('dispatches `UNLOCK_EVENT` action', (done) => (
@@ -531,7 +532,7 @@ describe('actions.events.notifications', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 
     describe('onEventSpiked/onEventUnspiked', () => {
@@ -595,7 +596,7 @@ describe('actions.events.notifications', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('onEventUnspiked dispatches `UNSPIKE_EVENT`', (done) => (
             store.test(done, eventsNotifications.onEventUnspiked({}, {
@@ -642,7 +643,7 @@ describe('actions.events.notifications', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 
     it('calls scheduleRefetch for events.ui and eventsPlanning.ui', (done) => {
@@ -658,6 +659,7 @@ describe('actions.events.notifications', () => {
                 restoreSinonStub(eventsPlanningUi.scheduleRefetch);
 
                 done();
-            });
+            })
+            .catch(done.fail);
     });
 });

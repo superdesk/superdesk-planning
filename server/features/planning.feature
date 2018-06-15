@@ -256,6 +256,10 @@ Feature: Planning
         {
             "coverages": [
                 {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -294,6 +298,10 @@ Feature: Planning
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -1337,12 +1345,15 @@ Feature: Planning
         {
             "coverages": [
                 {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
                         "slugline": "test slugline"
-                    },
-                    "workflow_status": "draft"
+                    }
                 }
             ]
         }
@@ -1376,6 +1387,10 @@ Feature: Planning
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -1441,7 +1456,10 @@ Feature: Planning
                         "headline": "test headline",
                         "slugline": "test slugline"
                     },
-                    "workflow_status": "draft"
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    }
                 }
             ]
         }

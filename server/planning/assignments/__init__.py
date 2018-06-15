@@ -67,6 +67,7 @@ def init_app(app):
     assignments_history_service = AssignmentsHistoryService('assignments_history', backend=superdesk.get_backend())
     AssignmentsHistoryResource('assignments_history', app=app, service=assignments_history_service)
     app.on_updated_assignments += assignments_history_service.on_item_updated
+    app.on_deleted_item_assignments += assignments_history_service.on_item_deleted
 
     delivery_service = BaseService('delivery', backend=superdesk.get_backend())
     DeliveryResource('delivery', app=app, service=delivery_service)

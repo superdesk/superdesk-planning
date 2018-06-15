@@ -55,7 +55,7 @@ class PlanningHistoryService(HistoryService):
     def on_item_updated(self, updates, original, operation=None):
         item = deepcopy(original)
         if list(item.keys()) == ['_id']:
-            diff = updates
+            diff = self._remove_unwanted_fields(updates)
         else:
             diff = self._changes(original, updates)
             diff.pop('coverages', None)
@@ -102,7 +102,8 @@ class PlanningHistoryService(HistoryService):
             original_coverage = original_coverages.get(coverage_id)
             if not original_coverage:
                 added.append(coverage)
-            elif planning_service.is_coverage_planning_modified(coverage, original_coverage):
+            elif planning_service.is_coverage_planning_modified(coverage, original_coverage) or \
+                    planning_service.is_coverage_assignment_modified(coverage, original_coverage):
                 updated.append(coverage)
 
         deleted = [coverage for cid, coverage in original_coverages.items() if cid not in updates_coverages]
@@ -139,6 +140,15 @@ class PlanningHistoryService(HistoryService):
 
                 self._save_history(item, diff, operation)
 
+            # If assignment was added in an update
+            if cov.get('assigned_to', {}).get('assignment_id') and\
+                    not original_coverage.get('assigned_to', {}).get('assignment_id'):
+                diff = {
+                    'coverage_id': cov.get('coverage_id'),
+                    'assigned_to': cov['assigned_to']
+                }
+                self._save_history(item, diff, 'coverage_assigned')
+
         for cov in deleted:
             self._save_history(item, {'coverage_id': cov.get('coverage_id')}, 'coverage_deleted')
 
@@ -161,6 +171,7 @@ class PlanningHistoryService(HistoryService):
             {config.ID_FIELD: str(parent[config.ID_FIELD])},
             {'duplicate_id': str(duplicate[config.ID_FIELD])},
             'duplicate'
+
         )
 
     def on_duplicate_from(self, item, duplicate_id):

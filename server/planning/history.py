@@ -28,8 +28,9 @@ class HistoryService(Service):
 
     def on_item_created(self, items, operation=None):
         for item in items:
-            self._save_history({config.ID_FIELD: ObjectId(item[config.ID_FIELD]) if ObjectId.is_valid(
-                item[config.ID_FIELD]) else str(item[config.ID_FIELD])}, deepcopy(item), operation or 'create')
+            if not item.get('duplicate_from'):
+                self._save_history({config.ID_FIELD: ObjectId(item[config.ID_FIELD]) if ObjectId.is_valid(
+                    item[config.ID_FIELD]) else str(item[config.ID_FIELD])}, deepcopy(item), operation or 'create')
 
     def on_item_updated(self, updates, original, operation=None):
         item = deepcopy(original)

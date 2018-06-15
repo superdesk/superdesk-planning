@@ -174,6 +174,24 @@ Feature: Assignment link
 
     @auth
     Scenario: Content item must not have an existing delivery record
+        Given "vocabularies"
+        """
+        [{
+            "_id": "newscoveragestatus",
+            "display_name": "News Coverage Status",
+            "type": "manageable",
+            "unique_field": "qcode",
+            "items": [
+                {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
+                    "label": "On merit"},
+                {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
+                    "label": "Not planned"},
+                {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
+                    "label": "On request"}
+            ]
+        }]
+        """
         When we post to "/archive"
         """
         [{
@@ -208,7 +226,10 @@ Feature: Assignment link
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#"
                 },
-                "workflow_status": "active"
+                "workflow_status": "active",
+                "news_coverage_status": {
+                    "qcode": "ncostat:int"
+                }
             }]
         }
         """
@@ -250,7 +271,10 @@ Feature: Assignment link
                     "assigned_to": {
                         "assignment_id": "#firstassignment#"
                     },
-                    "workflow_status": "active"
+                    "workflow_status": "active",
+                    "news_coverage_status": {
+                        "qcode": "ncostat:int"
+                    }
                 },
                 {
                     "planning": {
@@ -262,7 +286,10 @@ Feature: Assignment link
                         "desk": "#desks._id#",
                         "user": "#CONTEXT_USER_ID#"
                     },
-                    "workflow_status": "active"
+                    "workflow_status": "active",
+                    "news_coverage_status": {
+                        "qcode": "ncostat:int"
+                    }
                 }
             ]
         }

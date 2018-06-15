@@ -107,10 +107,11 @@ Event Rescheduled
             'state': state
         }
         for plan in plans:
-            planning_reschedule_service.patch(
+            updated_plan = planning_reschedule_service.patch(
                 plan[config.ID_FIELD],
                 plan_updates
             )
+            get_resource_service('planning_history').on_reschedule(updated_plan, plan)
             planning_cancel_service.update(plan[config.ID_FIELD], {'cancel_all_coverage': True}, plan)
 
     @staticmethod

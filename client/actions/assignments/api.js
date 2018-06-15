@@ -294,9 +294,13 @@ const unlock = (assignment) => (
  * @param {object} assignment - The Assignment to load history for
  */
 const fetchAssignmentHistory = (assignment) => (
-    (dispatch, getState, {api}) => (
+    (dispatch, getState, {api}) => {
+        if (selectors.getCurrentAssignmentId(getState()) !== get(assignment, '_id')) {
+            return Promise.resolve();
+        }
+
         // Query the API and sort by created
-        api('assignments_history').query({
+        return api('assignments_history').query({
             where: {assignment_id: assignment._id},
             max_results: 200,
             sort: '[(\'_created\', 1)]',
@@ -304,8 +308,8 @@ const fetchAssignmentHistory = (assignment) => (
             .then((data) => {
                 dispatch(self.receiveAssignmentHistory(data._items));
                 return Promise.resolve(data);
-            }, (error) => (Promise.reject(error)))
-    )
+            }, (error) => (Promise.reject(error)));
+    }
 );
 
 /**

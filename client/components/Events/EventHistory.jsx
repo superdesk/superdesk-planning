@@ -1,34 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
-import * as actions from '../../actions';
-import * as selectors from '../../selectors';
 import {HISTORY_OPERATIONS} from '../../constants';
 import {gettext, historyUtils} from '../../utils';
 import {get} from 'lodash';
 import {AbsoluteDate} from '../index';
 import {ContentBlock} from '../UI/SidePanel';
 
-export class EventHistoryComponent extends React.Component {
-    componentWillMount() {
-        const {item, fetchEventHistory} = this.props;
-
-        if (get(item, '_id', null) !== null) {
-            fetchEventHistory(item._id);
-        }
-    }
-
-    componentWillReceiveProps(nextProps) {
-        const nextId = get(nextProps, 'item._id', null);
-        const currentId = get(this.props, 'item._id', null);
-
-        if (nextId !== currentId || get(nextProps, 'historyItems.length') !== get(this.props, 'historyItems.length')) {
-            this.props.fetchEventHistory(nextId);
-        }
-    }
-
+export class EventHistory extends React.Component {
     closeAndOpenDuplicate(duplicateId) {
-        this.props.openEventPreview(duplicateId);
+        this.props.openItemPreview(duplicateId, 'event');
     }
 
     getHistoryActionElement(historyItem) {
@@ -144,8 +124,8 @@ export class EventHistoryComponent extends React.Component {
                                             }
                                             {historyItem.operation === HISTORY_OPERATIONS.PLANNING_CREATED && (
                                                 <div className="history-list__link">
-                                                    <a onClick={this.props.openPlanningClick.bind(
-                                                        null, historyItem.update.planning_id)}>
+                                                    <a onClick={this.props.openItemPreview.bind(
+                                                        null, historyItem.update.planning_id, 'planning')}>
                                                         View planning item
                                                     </a>
                                                 </div>)
@@ -201,36 +181,8 @@ export class EventHistoryComponent extends React.Component {
     }
 }
 
-EventHistoryComponent.propTypes = {
-    item: PropTypes.object,
-    users: PropTypes.array,
+EventHistory.propTypes = {
     historyItems: PropTypes.array,
-    fetchEventHistory: PropTypes.func,
-    openPlanningClick: PropTypes.func,
-    openEventPreview: PropTypes.func,
+    users: PropTypes.array,
+    openItemPreview: PropTypes.func,
 };
-
-const mapStateToProps = (state, ownProps) => ({
-    users: selectors.general.users(state),
-    historyItems: selectors.events.eventHistory(state),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-    fetchEventHistory: (event) => (
-        dispatch(actions.events.api.fetchEventHistory(event))
-    ),
-    openPlanningClick: (planningId) => (
-        dispatch(actions.main.openPreview({
-            _id: planningId,
-            type: 'planning',
-        }))
-    ),
-    openEventPreview: (eventId) => {
-        dispatch(actions.main.openPreview({
-            _id: eventId,
-            type: 'event',
-        }));
-    },
-});
-
-export const EventHistory = connect(mapStateToProps, mapDispatchToProps)(EventHistoryComponent);
