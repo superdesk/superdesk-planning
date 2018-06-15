@@ -374,3 +374,14 @@ class FlagExpiredItemsTest(TestCase):
                 'p15': True,
                 'p16': True,
             })
+
+    def test_bad_event_schedule(self):
+        with self.app.app_context():
+            self.insert('events', [
+                {'guid': 'e1', **expired['event'], '_plans': [{'_planning_schedule': [{'scheduled': None}]}]}
+            ])
+            FlagExpiredItems().run()
+
+            self.assertExpired('events', {
+                'e1': True,
+            })
