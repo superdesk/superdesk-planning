@@ -13,6 +13,7 @@ import {
     getItemType,
     gettext,
     eventUtils,
+    planningUtils,
     shouldLockItemForEdit,
     shouldUnLockItem,
     getItemTypeString,
@@ -22,7 +23,6 @@ import {
     isItemKilled,
     getItemId,
     isTemporaryId,
-    generateTempId,
     getAutosaveItem,
 } from '../utils';
 import eventsPlanningUi from './eventsPlanning/ui';
@@ -31,15 +31,34 @@ import {get, omit, isEmpty, isNil, isEqual} from 'lodash';
 import * as selectors from '../selectors';
 import {validateItem} from '../validators';
 
-const createNew = (itemType) => (
-    (dispatch) => {
-        const newItem = {
-            _id: generateTempId(),
-            type: itemType,
-        };
+/**
+ * Open the Editor for creating a new item, creating an Autosave entry if item values are provided
+ * @param {String} itemType - The type of item to create
+ * @param {Object} item - Values to add to the default values for the item
+ */
+const createNew = (itemType, item = null) => (
+    (dispatch, getState) => {
+        let newItem;
 
-        dispatch(autosave.save(newItem, 'create', false));
-        return dispatch(self.lockAndEdit(newItem));
+        if (itemType === ITEM_TYPE.EVENT) {
+            newItem = eventUtils.defaultEventValues(
+                selectors.vocabs.eventOccurStatuses(getState()),
+                selectors.events.defaultCalendarValue(getState())
+            );
+        } else if (itemType === ITEM_TYPE.PLANNING) {
+            newItem = planningUtils.defaultPlanningValues(
+                selectors.planning.currentAgenda(getState())
+            );
+        }
+
+        const promise = isNil(item) ?
+            Promise.resolve() :
+            dispatch(autosave.save({
+                ...newItem,
+                ...item,
+            }));
+
+        return promise.then(() => dispatch(self.lockAndEdit(newItem)));
     }
 );
 
@@ -60,20 +79,13 @@ const lockAndEdit = (item, modal = false) => (
             return Promise.resolve(item);
         }
 
-        dispatch(setLoadingEditItem(modal));
-        if (!modal) {
-            dispatch(self.openEditor(item));
-        } else {
-            // Open the modal to show the editor
-            dispatch(closeEditorAndOpenModal(item));
-        }
-
-
         // If the item being edited is currently opened in the Preview panel
         // then close the preview panel
         if (selectors.main.previewId(getState()) === item._id) {
             dispatch(self.closePreview());
         }
+
+        dispatch(setLoadingEditItem(modal));
 
         // If it is an existing item and the item is not locked
         // then lock the item, otherwise return the existing item
@@ -82,6 +94,13 @@ const lockAndEdit = (item, modal = false) => (
             Promise.resolve(item);
 
         return promise.then((lockedItem) => {
+            if (!modal) {
+                dispatch(self.openEditor(item));
+            } else {
+                // Open the modal to show the editor
+                dispatch(closeEditorAndOpenModal(item));
+            }
+
             dispatch(unsetLoadingEditItem(modal));
 
             return Promise.resolve(lockedItem);
@@ -133,7 +152,13 @@ const save = (item, withConfirmation = true) => (
         const existingItem = !isTemporaryId(itemId);
 
         if (!existingItem) {
+            // If this is a new item being created, then we do not need
+            // the temporary ID generated, along with the lock information
             delete item._id;
+            delete item.lock_action;
+            delete item.lock_user;
+            delete item.lock_session;
+            delete item.lock_time;
         }
 
         let promise;
@@ -167,8 +192,18 @@ const save = (item, withConfirmation = true) => (
                         gettext('{{ itemType }} created', {itemType: getItemTypeString(item)})
                     );
 
-                    dispatch(autosave.removeById(itemType, itemId));
-                    return dispatch(self.lockAndEdit(savedItem));
+                    return dispatch(autosave.removeById(itemType, itemId))
+                        // If this item was created from a Planning item
+                        // Then unlock the Planning item first
+                        .then(() => !get(savedItem, '_planning_item') ?
+                            Promise.resolve() :
+                            dispatch(locks.unlock({
+                                _id: savedItem._planning_item,
+                                type: ITEM_TYPE.PLANNING,
+                            }))
+                        )
+                        // And finally lock the newly created item for editing
+                        .then(() => dispatch(self.lockAndEdit(savedItem)));
                 }
 
                 if (!confirmation) {
@@ -553,7 +588,7 @@ const filter = (ftype = null) => (
         }
 
         if (get(params, 'advancedSearch.dates')) {
-            params.advancedSearch = eventUtils.convertToMoment(get(params, 'advancedSearch'));
+            params.advancedSearch = eventUtils.modifyForClient(get(params, 'advancedSearch'));
         }
 
         // Update the url (deep linking)
@@ -843,7 +878,7 @@ const fetchById = (itemId, itemType) => (
             }
         }
 
-        return Promise.resolve({});
+        return Promise.resolve(null);
     }
 );
 

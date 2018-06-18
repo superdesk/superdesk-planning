@@ -75,7 +75,7 @@ const query = ({
         })
             .then((data) => {
                 if (get(data, '_items')) {
-                    data._items.forEach(planningUtils.convertGenreToObject);
+                    data._items.forEach(planningUtils.modifyCoverageForClient);
                     return Promise.resolve(data);
                 } else {
                     return Promise.reject('Failed to retrieve items');
@@ -177,7 +177,7 @@ const save = (item, original = undefined) => (
 
                 return api('assignments').save(cloneDeep(originalItem), updates)
                     .then((updated) => {
-                        planningUtils.convertGenreToObject(updated);
+                        planningUtils.modifyCoverageForClient(updated);
                         dispatch(self.receivedAssignments([updated]));
                         return Promise.resolve(updated);
                     }, (error) => (Promise.reject(error))

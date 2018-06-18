@@ -3,7 +3,7 @@ import {createStore as _createStore, applyMiddleware, compose} from 'redux';
 import planningApp from '../reducers';
 import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
-import {get, set, map, cloneDeep, forEach} from 'lodash';
+import {get, set, map, cloneDeep, forEach, pickBy, includes} from 'lodash';
 import {
     POST_STATE,
     WORKFLOW_STATE,
@@ -750,3 +750,29 @@ export const getAutosaveItem = (autosaves, itemType, itemId) => (
 );
 
 export const generateTempId = () => TEMP_ID_PREFIX + moment().valueOf();
+
+/**
+ * Removes fields from an item for use with Autosave
+ * @param {object} item - The autosave item to strip fields from the item
+ * @param {boolean} stripLockFields - Strip lock fields from the item
+ * @return {object} Autosave item with fields stripped
+ */
+export const removeAutosaveFields = (item, stripLockFields = false) => {
+    const fieldsToKeep = ['_id', '_planning_item'];
+    const fieldsToIgnore = ['planning_ids', 'reason', 'update_method'];
+
+    if (stripLockFields) {
+        fieldsToIgnore.concat([
+            'lock_user',
+            'lock_action',
+            'lock_session',
+            'lock_time',
+        ]);
+    }
+
+    return pickBy(cloneDeep(item), (value, key) =>
+        key.startsWith('_') ?
+            includes(fieldsToKeep, key) :
+            !includes(fieldsToIgnore, key)
+    );
+};

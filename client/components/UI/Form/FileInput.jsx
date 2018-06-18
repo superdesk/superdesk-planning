@@ -86,6 +86,7 @@ export class FileInput extends React.Component {
                             <i className="icon-trash" />
                         </a>
                         <a
+                            className="file-input__file"
                             href={createLink(val)}
                             onFocus={onFocus}
                             target="_blank"
@@ -99,6 +100,7 @@ export class FileInput extends React.Component {
                 (
                     <LineInput readOnly={readOnly} noMargin>
                         <TextArea
+                            className="file-input__file"
                             field={field}
                             value={get(val, 'name')}
                             readOnly={true}

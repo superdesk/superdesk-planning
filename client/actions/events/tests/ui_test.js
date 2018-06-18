@@ -411,11 +411,11 @@ describe('actions.events.ui', () => {
 
     describe('duplicate', () => {
         beforeEach(() => {
-            sinon.stub(main, 'lockAndEdit').callsFake((item) => Promise.resolve(item));
+            sinon.stub(main, 'createNew').callsFake((item) => Promise.resolve(item));
         });
 
         afterEach(() => {
-            restoreSinonStub(main.lockAndEdit);
+            restoreSinonStub(main.createNew);
             restoreSinonStub(eventsApi.duplicate);
         });
 
@@ -428,10 +428,9 @@ describe('actions.events.ui', () => {
                     const newStartDate = data.events[0].dates.start.add(daysBetween, 'days');
                     const newEndDate = data.events[0].dates.end.add(daysBetween, 'days');
 
-                    expect(main.lockAndEdit.callCount).toBe(1);
-                    expect(main.lockAndEdit.args[0]).toEqual([{
-                        ...omit(data.events[0], ['_etag', 'planning_ids']),
-                        _id: jasmine.any(String),
+                    expect(main.createNew.callCount).toBe(1);
+                    expect(main.createNew.args[0]).toEqual(['event', {
+                        ...omit(data.events[0], ['_id', '_etag', 'planning_ids']),
                         dates: {
                             start: newStartDate,
                             end: newEndDate,
@@ -624,12 +623,12 @@ describe('actions.events.ui', () => {
     describe('createEventFromPlanning', () => {
         beforeEach(() => {
             sinon.stub(planningApi, 'lock').callsFake((item) => Promise.resolve(item));
-            sinon.stub(main, 'lockAndEdit').callsFake((item) => Promise.resolve(item));
+            sinon.stub(main, 'createNew').callsFake((item) => Promise.resolve(item));
         });
 
         afterEach(() => {
             restoreSinonStub(planningApi.lock);
-            restoreSinonStub(main.lockAndEdit);
+            restoreSinonStub(main.createNew);
         });
 
         it('locks the Planning item and opens the Event Editor', (done) => {
@@ -640,12 +639,11 @@ describe('actions.events.ui', () => {
                     expect(planningApi.lock.callCount).toBe(1);
                     expect(planningApi.lock.args[0]).toEqual([plan, 'add_as_event']);
 
-                    expect(main.lockAndEdit.callCount).toBe(1);
-                    const args = main.lockAndEdit.args[0][0];
+                    expect(main.createNew.callCount).toBe(1);
+                    const args = main.createNew.args[0];
 
-                    expect(args).toEqual(jasmine.objectContaining({
-                        type: 'event',
-
+                    expect(args[0]).toEqual('event');
+                    expect(args[1]).toEqual(jasmine.objectContaining({
                         slugline: plan.slugline,
                         name: plan.slugline,
                         subject: plan.subject,
@@ -662,9 +660,9 @@ describe('actions.events.ui', () => {
                         _planning_item: plan._id,
                     }));
 
-                    expect(moment(args.dates.start).isSame(moment('2016-10-15T13:01:11+0000'))).toBeTruthy();
-                    expect(moment(args.dates.end).isSame(moment('2016-10-15T14:01:11+0000'))).toBeTruthy();
-                    expect(args.dates.tz).toBe(moment.tz.guess());
+                    expect(moment(args[1].dates.start).isSame(moment('2016-10-15T13:01:11+0000'))).toBeTruthy();
+                    expect(moment(args[1].dates.end).isSame(moment('2016-10-15T14:01:11+0000'))).toBeTruthy();
+                    expect(args[1].dates.tz).toBe(moment.tz.guess());
 
                     done();
                 });

@@ -9,7 +9,6 @@ import {CoverageForm} from './CoverageForm';
 import {CoverageFormHeader} from './CoverageFormHeader';
 
 import {planningUtils, gettext, editorMenuUtils} from '../../../utils';
-import {COVERAGES} from '../../../constants';
 
 export const CoverageEditor = ({
     index,
@@ -94,9 +93,18 @@ export const CoverageEditor = ({
     const onClose = editorMenuUtils.onItemClose(navigation, field);
     const onOpen = editorMenuUtils.onItemOpen(navigation, field);
     const forceScroll = editorMenuUtils.forceScroll(navigation, field);
-    const isOpen = editorMenuUtils.isOpen(navigation, field) || (openComponent || !props.item._id ||
-        isEqual(value, COVERAGES.DEFAULT_VALUE(newsCoverageStatus, props.item,
-            get(value, 'planning.g2_content_type'))));
+    const isOpen = editorMenuUtils.isOpen(navigation, field) || (
+        openComponent ||
+        !props.item._id ||
+        isEqual(
+            value,
+            planningUtils.defaultCoverageValues(
+                newsCoverageStatus,
+                props.item,
+                get(value, 'planning.g2_content_type')
+            )
+        )
+    );
     const onFocus = editorMenuUtils.onItemFocus(navigation, field);
 
     const itemActionComponent = get(itemActions, 'length', 0) > 0 ?

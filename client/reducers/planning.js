@@ -1,6 +1,5 @@
 import {cloneDeep, get, uniq, find} from 'lodash';
-import {createReducer, getItemType} from '../utils';
-import moment from 'moment';
+import {createReducer, getItemId, getItemType, planningUtils} from '../utils';
 import {
     PLANNING,
     WORKFLOW_STATE,
@@ -30,22 +29,10 @@ const modifyPlanningsBeingAdded = (state, payload) => {
 
     // clone plannings
     plannings = cloneDeep(get(state, 'plannings'));
-    // add to state.plannings, use _id as key
-    plans.forEach((planning) => {
-        planning.planning_date = moment(planning.planning_date);
-        // Make sure that the Planning item has the coverages array
-        planning.coverages = get(planning, 'coverages', []);
-        modifyCoveragesForPlanning(planning);
-        plannings[planning._id] = planning;
-    });
-};
 
-const modifyCoveragesForPlanning = (planning) => {
-    // As with events, change the coverage dates to moment objects
-    planning.coverages.forEach((cov) => {
-        if (get(cov, 'planning.scheduled')) {
-            cov.planning.scheduled = moment(cov.planning.scheduled);
-        }
+    plans.forEach((planning) => {
+        planningUtils.modifyForClient(planning);
+        plannings[getItemId(planning)] = planning;
     });
 };
 

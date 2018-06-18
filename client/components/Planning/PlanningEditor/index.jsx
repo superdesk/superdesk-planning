@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import moment from 'moment';
 import {get, cloneDeep, remove as _remove, some, isEqual} from 'lodash';
 
 import * as selectors from '../../../selectors';
@@ -58,15 +57,7 @@ export class PlanningEditorComponent extends React.Component {
     }
 
     componentWillMount() {
-        if (!this.props.addNewsItemToPlanning) {
-            // Creating a new planning item from planning module
-            if (!this.props.itemExists) {
-                let newItem = cloneDeep(get(this.props, 'diff'));
-
-                this.fillCurrentAgenda(newItem);
-                this.props.onChangeHandler(null, newItem);
-            }
-        } else {
+        if (this.props.addNewsItemToPlanning) {
             // In add-to-planning modal
             this.handleAddToPlanningLoading();
         }
@@ -180,8 +171,7 @@ export class PlanningEditorComponent extends React.Component {
             .then((updates) => {
             // Make sure the coverage in our AutoSave is updated with the new workflow states
             // Otherwise this will cause the form to stay dirty when the initialValues change
-                planningUtils.convertGenreToObject(updates.coverages[index]);
-                updates.coverages[index].planning.scheduled = moment(updates.coverages[index].planning.scheduled);
+                planningUtils.modifyCoverageForClient(updates.coverages[index]);
                 this.onChange(`coverages[${index}]`, updates.coverages[index]);
             });
     }

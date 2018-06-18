@@ -197,6 +197,7 @@ export class GeoLookupInputComponent extends React.Component {
                     noLabel={true}
                     noMargin={true}
                     onFocus={this.props.onFocus}
+                    field={this.props.field}
                 />
 
                 {this.state.openSuggestsPopUp && (

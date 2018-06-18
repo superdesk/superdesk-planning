@@ -6,8 +6,7 @@ import {InputArray} from '../UI/Form';
 import {CoverageEditor} from './CoverageEditor';
 import {CoverageAddButton} from './CoverageAddButton';
 
-import {gettext} from '../../utils';
-import {COVERAGES} from '../../constants';
+import {gettext, planningUtils} from '../../utils';
 
 export const CoverageArrayInput = ({
     field,
@@ -38,7 +37,7 @@ export const CoverageArrayInput = ({
     ...props
 }) => (
     <div>
-        <ContentBlock>
+        <ContentBlock className="coverages__array">
             <InputArray
                 label={gettext('Coverages')}
                 labelClassName="side-panel__heading side-panel__heading--big"
@@ -58,7 +57,7 @@ export const CoverageArrayInput = ({
                 newsCoverageStatus={newsCoverageStatus}
                 contentTypes={contentTypes}
                 genres={genres}
-                defaultElement={COVERAGES.DEFAULT_VALUE.bind(null, newsCoverageStatus, props.diff)}
+                defaultElement={planningUtils.defaultCoverageValues.bind(null, newsCoverageStatus, props.diff)}
                 coverageProviders={coverageProviders}
                 priorities={priorities}
                 keywords={keywords}

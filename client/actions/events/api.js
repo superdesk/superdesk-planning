@@ -703,7 +703,7 @@ const query = (
             .then((data) => {
                 const results = {
                     ...data,
-                    _items: data._items.map(eventUtils.convertToMoment),
+                    _items: data._items.map(eventUtils.modifyForClient),
                 };
 
                 if (storeTotal) {
@@ -1003,7 +1003,7 @@ const fetchById = (eventId, {force = false, saveToStore = true, loadPlanning = t
         } else {
             promise = api.find('events', eventId, {embedded: {files: 1}})
                 .then((event) => {
-                    const newEvent = eventUtils.convertToMoment(event);
+                    const newEvent = eventUtils.modifyForClient(event);
 
                     if (saveToStore) {
                         dispatch(self.receiveEvents([newEvent]));
@@ -1238,25 +1238,9 @@ const _save = (eventUpdates) => (
             const original = cloneDeep(originalEvent);
 
             // clone the updates as we're going to modify it
-            let updates = cloneDeep(eventUpdates);
-
-            // remove links if it contains only null values
-            if (updates.links && updates.links.length > 0) {
-                updates.links = updates.links.filter(
-                    (l) => l && get(l, 'length', 0) > 0
-                );
-                if (!updates.links.length) {
-                    delete updates.links;
-                }
-            }
-
-            // save the timezone. This is useful for recurring events
-            if (updates.dates) {
-                updates.dates.tz = moment.tz.guess();
-            }
+            let updates = eventUtils.modifyForServer(cloneDeep(eventUpdates), true);
 
             original.location = original.location ? [original.location] : null;
-            updates.location = updates.location ? [updates.location] : null;
 
             // remove all properties starting with _
             // and updates that are the same as original
@@ -1265,7 +1249,7 @@ const _save = (eventUpdates) => (
                 !isEqual(updates[k], original[k])
             ));
 
-            updates.update_method = get(updates, 'update_method.value', EventUpdateMethods[0].value);
+            updates.update_method = get(updates, 'update_method.value') || EventUpdateMethods[0].value;
 
             return api('events').save(original, updates);
         })

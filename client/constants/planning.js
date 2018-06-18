@@ -1,4 +1,3 @@
-import moment from 'moment';
 import {gettext} from '../utils/gettext';
 
 export const PLANNING = {
@@ -89,10 +88,6 @@ export const PLANNING = {
         LIVE_VIDEO: gettext('live_video'),
         AUDIO: gettext('audio'),
         PICTURE: gettext('picture'),
-    },
-    DEFAULT_VALUE: {
-        type: 'planning',
-        planning_date: moment(),
     },
     HISTORY_OPERATIONS: {
         ASSIGN_AGENDA: 'assign_agenda',

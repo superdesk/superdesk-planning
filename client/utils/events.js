@@ -4,6 +4,7 @@ import {
     POST_STATE,
     EVENTS,
     GENERIC_ITEM_ACTIONS,
+    ITEM_TYPE,
 } from '../constants';
 import {
     getItemWorkflowState,
@@ -642,24 +643,50 @@ const getEventsByDate = (events, startDate, endDate) => {
     return sortBy(sortable, [(e) => (e.date)]);
 };
 
-/*
- * Convert event dates to moment.
- */
-const convertToMoment = (item) => {
-    const newItem = {
-        ...item,
-        dates: {
-            ...item.dates,
-            start: get(item.dates, 'start') ? moment(item.dates.start) : null,
-            end: get(item.dates, 'end') ? moment(item.dates.end) : null,
-        },
-    };
-
-    if (get(item, 'location[0]')) {
-        newItem.location = item.location[0];
+const modifyForClient = (event, removeFiles = false) => {
+    if (get(event, 'dates.start')) {
+        event.dates.start = moment(event.dates.start);
     }
 
-    return newItem;
+    if (get(event, 'dates.end')) {
+        event.dates.end = moment(event.dates.end);
+    }
+
+    if (get(event, 'location[0]')) {
+        event.location = event.location[0];
+    } else {
+        delete event.location;
+    }
+
+    if (removeFiles) {
+        // For now we don't support autosaving Files
+        delete event.files;
+    }
+
+    return event;
+};
+
+const modifyForServer = (event, removeNullLinks = false, removeFiles = false) => {
+    event.location = event.location ?
+        [event.location] : null;
+
+    // remove links if it contains only null values
+    if (removeNullLinks && get(event, 'links.length', 0) > 0) {
+        event.links = event.links.filter(
+            (link) => link && get(link, 'length', 0) > 0
+        );
+
+        if (get(event, 'link.length', 0) < 1) {
+            event.links = null;
+        }
+    }
+
+    if (removeFiles) {
+        // For now we don't support autosaving Files
+        delete event.files;
+    }
+
+    return event;
 };
 
 const duplicateEvent = (event, occurStatus) => {
@@ -685,7 +712,6 @@ const duplicateEvent = (event, occurStatus) => {
     duplicatedEvent.duplicate_from = getItemId(event);
     duplicatedEvent.occur_status = occurStatus;
     duplicatedEvent.state = WORKFLOW_STATE.DRAFT;
-    duplicatedEvent._id = generateTempId();
 
     return duplicatedEvent;
 };
@@ -694,6 +720,18 @@ export const shouldLockEventForEdit = (item, privileges) => (
     !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         (!isItemPublic(item) || !!privileges[PRIVILEGES.POST_EVENT])
 );
+
+const defaultEventValues = (occurStatuses, defaultCalendars) => ({
+    _id: generateTempId(),
+    type: ITEM_TYPE.EVENT,
+    occur_status: get(occurStatuses, '[5]') || null, // eocstat:eos5: Planned, occurs certainly
+    dates: {
+        start: null,
+        end: null,
+        tz: moment.tz.guess(),
+    },
+    calendars: defaultCalendars,
+});
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -723,12 +761,14 @@ const self = {
     getDateStringForEvent,
     getEventActions,
     getEventsByDate,
-    convertToMoment,
     duplicateEvent,
     shouldLockEventForEdit,
     getSingleDayPlanningActions,
     getMultiDayPlanningActions,
     generateMultiDayPlanningActions,
+    modifyForClient,
+    modifyForServer,
+    defaultEventValues,
 };
 
 export default self;

@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
-import {get, isEqual, cloneDeep, omit, pickBy} from 'lodash';
+import {get, isEqual, cloneDeep, pickBy, throttle, isNil} from 'lodash';
 
 import {
     gettext,
@@ -14,17 +14,17 @@ import {
     isItemKilled,
     isTemporaryId,
     getItemId,
+    removeAutosaveFields,
 } from '../../../utils';
 import {EventUpdateMethods} from '../../Events';
 
-import {ITEM_TYPE, EVENTS, PLANNING, POST_STATE, WORKFLOW_STATE, COVERAGES} from '../../../constants';
+import {ITEM_TYPE, POST_STATE, WORKFLOW_STATE, AUTOSAVE} from '../../../constants';
 
 import {Tabs as NavTabs} from '../../UI/Nav';
 import {SidePanel, Content} from '../../UI/SidePanel';
 
 import {EditorHeader, EditorContentTab} from './index';
 import {HistoryTab} from '../index';
-import {Autosave} from '../../index';
 
 export class EditorComponent extends React.Component {
     constructor(props) {
@@ -59,6 +59,8 @@ export class EditorComponent extends React.Component {
         this.flushAutosave = this.flushAutosave.bind(this);
         this.cancelFromHeader = this.cancelFromHeader.bind(this);
 
+        this.throttledSave = null;
+
         this.tabs = [
             {label: gettext('Content'), render: EditorContentTab, enabled: true},
             {label: gettext('History'), render: HistoryTab, enabled: true},
@@ -75,12 +77,14 @@ export class EditorComponent extends React.Component {
         // If the editor is in main page and the item is located in the URL, on first mount copy the diff from the item.
         // Otherwise all item changes will occur during the componentWillReceiveProps
         if (!this.props.inModalView && this.props.itemId && this.props.itemType) {
-            this.loadItem(this.props.itemId, this.props.itemType);
+            this.loadItem(this.props);
         }
 
         if (this.props.inModalView) {
             // Moved from editor on main document to modal mode
-            this.resetForm(this.props.item);
+            this.resetForm(this.props.item, false, () => {
+                this.loadAutosave(this.props);
+            });
         }
     }
 
@@ -91,18 +95,23 @@ export class EditorComponent extends React.Component {
         }
     }
 
-    loadItem(itemId, itemType) {
-        if (isTemporaryId(itemId)) {
-            this.setState({itemReady: true});
-        } else {
-            this.setState({itemRead: false}, () => {
-                this.props.loadItem(itemId, itemType)
-                    .then(() => this.setState({itemReady: true}));
-            });
-        }
+    loadItem(props) {
+        const {itemId, itemType} = props;
+
+        this.setState({itemReady: false}, () => {
+            this.props.loadItem(itemId, itemType)
+                .then((item) => {
+                    if (!item) {
+                        return this.loadAutosave(props);
+                    }
+
+                    return Promise.resolve();
+                })
+                .then(() => this.setState({itemReady: true}));
+        });
     }
 
-    resetForm(item = null, dirty = false) {
+    resetForm(item = null, dirty = false, callback) {
         this.setState({
             diff: item === null ? {} : cloneDeep(item),
             dirty: dirty,
@@ -110,6 +119,9 @@ export class EditorComponent extends React.Component {
             errors: {},
             errorMessages: [],
             itemReady: true,
+        }, () => {
+            if (callback)
+                callback();
         });
 
         this.tabs[0].label = get(item, 'type') === ITEM_TYPE.EVENT ?
@@ -118,26 +130,10 @@ export class EditorComponent extends React.Component {
     }
 
     createNew(props) {
-        const itemId = getItemId(props.initialValues);
-
-        if (props.itemType === ITEM_TYPE.EVENT) {
-            if (isEqual(omit(props.initialValues, '_id'), {type: ITEM_TYPE.EVENT})) {
-                this.resetForm({
-                    ...EVENTS.DEFAULT_VALUE(props.occurStatuses),
-                    _id: itemId,
-                });
-            } else {
-                this.resetForm(props.initialValues, true);
-            }
-        } else if (props.itemType === ITEM_TYPE.PLANNING) {
-            if (isEqual(omit(props.initialValues, '_id'), {type: ITEM_TYPE.PLANNING})) {
-                this.resetForm({
-                    ...PLANNING.DEFAULT_VALUE,
-                    _id: itemId,
-                });
-            } else {
-                this.resetForm(props.initialValues, true);
-            }
+        if (props.itemType === ITEM_TYPE.EVENT || props.itemType === ITEM_TYPE.PLANNING) {
+            this.resetForm(props.initialValues, !!get(props, 'initialValues.duplicate_from'), () => {
+                this.loadAutosave(props, props.initialValues);
+            });
         } else {
             this.resetForm();
         }
@@ -151,9 +147,11 @@ export class EditorComponent extends React.Component {
                 this.createNew(nextProps);
             } else if (nextProps.item === null) {
                 // This happens when the items have changed
-                this.loadItem(nextProps.itemId, nextProps.itemType);
+                this.loadItem(nextProps);
             } else {
-                this.resetForm(nextProps.item);
+                this.resetForm(nextProps.item, () => {
+                    this.loadAutosave(nextProps, nextProps.item);
+                });
             }
         });
     }
@@ -162,7 +160,10 @@ export class EditorComponent extends React.Component {
     onFinishLoading(nextProps) {
         this.resetForm(
             nextProps.item,
-            !isExistingItem(nextProps.item) && nextProps.item.duplicate_from
+            !isExistingItem(nextProps.item) && nextProps.item.duplicate_from,
+            () => {
+                this.loadAutosave(nextProps, nextProps.item);
+            }
         );
     }
 
@@ -180,6 +181,7 @@ export class EditorComponent extends React.Component {
     componentWillReceiveProps(nextProps) {
         if (!nextProps.itemType || !nextProps.itemId) {
             // If the editor has been closed, then set the itemReady state to false
+            this.flushAutosave();
             this.setState({itemReady: false});
         } else if (nextProps.item !== null && this.props.item === null) {
             // This happens when the Editor has finished loading an existing item or creating a duplicate
@@ -209,7 +211,7 @@ export class EditorComponent extends React.Component {
         );
     }
 
-    onChangeHandler(field, value, updateDirtyFlag = true) {
+    onChangeHandler(field, value, updateDirtyFlag = true, saveAutosave = true) {
         // If field (name) is passed, it will replace that field
         // Else, entire object will be replaced
         const diff = field ? Object.assign({}, this.state.diff) : cloneDeep(value);
@@ -231,13 +233,17 @@ export class EditorComponent extends React.Component {
         const newState = {diff, errors, errorMessages};
 
         if (updateDirtyFlag) {
-            newState.dirty = !this.itemsEqual(diff, this.props.item);
+            newState.dirty = !this.itemsEqual(diff, this.props.item || this.props.initialValues);
         }
 
         this.setState(newState);
 
         if (this.props.onChange) {
             this.props.onChange(diff);
+        }
+
+        if (saveAutosave) {
+            this.saveAutosave(this.props, diff);
         }
     }
 
@@ -266,6 +272,10 @@ export class EditorComponent extends React.Component {
 
             if (this.props.itemType === ITEM_TYPE.EVENT) {
                 itemToUpdate.update_method = updateMethod;
+            }
+
+            if (!isExistingItem(this.props.item)) {
+                this.cancelAutosave();
             }
 
             return this.props.onSave(itemToUpdate, withConfirmation)
@@ -377,7 +387,7 @@ export class EditorComponent extends React.Component {
 
     onAddCoverage(g2ContentType) {
         const {newsCoverageStatus, item} = this.props;
-        const newCoverage = COVERAGES.DEFAULT_VALUE(newsCoverageStatus, item, g2ContentType);
+        const newCoverage = planningUtils.defaultCoverageValues(newsCoverageStatus, item, g2ContentType);
 
         this.onChangeHandler('coverages', [...get(this.state, 'diff.coverages', []), newCoverage]);
     }
@@ -391,9 +401,57 @@ export class EditorComponent extends React.Component {
         });
     }
 
+    saveAutosave(props, diff) {
+        const {addNewsItemToPlanning, saveAutosave} = props;
+
+        // Don't use Autosave if we're in the 'Add To Planning' modal
+        if (addNewsItemToPlanning) {
+            return;
+        }
+
+        if (!this.throttledSave) {
+            this.throttledSave = throttle(
+                saveAutosave,
+                AUTOSAVE.INTERVAL,
+                {leading: false, trailing: true}
+            );
+        }
+
+        this.throttledSave(diff);
+    }
+
+    loadAutosave(props, diff = null) {
+        const {itemType, itemId, loadAutosave, addNewsItemToPlanning} = props;
+
+        // Don't use Autosave if we're in the 'Add To Planning' modal
+        if (addNewsItemToPlanning) {
+            return Promise.resolve();
+        }
+
+        return loadAutosave(itemType, itemId)
+            .then((autosaveData) => {
+                if (isNil(autosaveData) && diff !== null) {
+                    return props.saveAutosave(diff);
+                }
+
+                this.onChangeHandler(
+                    removeAutosaveFields(autosaveData, true),
+                    null,
+                    true,
+                    false
+                );
+            });
+    }
+
     flushAutosave() {
-        if (get(this.dom, 'autosave.flush')) {
-            this.dom.autosave.flush();
+        if (get(this, 'throttledSave.flush')) {
+            this.throttledSave.flush();
+        }
+    }
+
+    cancelAutosave() {
+        if (get(this, 'throttledSave.cancel')) {
+            this.throttledSave.cancel();
         }
     }
 
@@ -450,33 +508,6 @@ export class EditorComponent extends React.Component {
         if (this.props.onCancel) {
             this.props.onCancel();
         }
-    }
-
-    renderAutosave() {
-        if (!this.props.addNewsItemToPlanning &&
-            !this.props.isLoadingItem &&
-            this.props.itemType &&
-            this.state.itemReady
-        ) {
-            return (
-                <Autosave
-                    formName={this.props.itemType}
-                    initialValues={this.props.item ?
-                        cloneDeep(this.props.item) :
-                        cloneDeep(this.props.initialValues)
-                    }
-                    currentValues={cloneDeep(this.state.diff)}
-                    change={this.onChangeHandler}
-                    ref={(node) => this.dom.autosave = node}
-                    save={this.props.saveAutosave}
-                    load={this.props.loadAutosave}
-                    inModalView={this.props.inModalView}
-                    submitting={this.state.submitting}
-                />
-            );
-        }
-
-        return null;
     }
 
     canEdit() {
@@ -564,7 +595,6 @@ export class EditorComponent extends React.Component {
 
         return (
             <SidePanel shadowRight={true} className={this.props.className}>
-                {this.renderAutosave()}
                 <EditorHeader
                     item={this.props.item}
                     diff={this.state.diff}

@@ -13,7 +13,6 @@ import {
     gettext,
     getItemInArrayById,
     isExistingItem,
-    generateTempId,
 } from '../../utils';
 
 /**
@@ -371,7 +370,7 @@ const duplicate = (event) => (
         };
         const newEvent = eventUtils.duplicateEvent(event, plannedStatus);
 
-        return dispatch(main.lockAndEdit(newEvent));
+        return dispatch(main.createNew(ITEM_TYPE.EVENT, newEvent));
     }
 );
 
@@ -560,8 +559,7 @@ const createEventFromPlanning = (plan) => (
 
         return dispatch(planningApi.lock(plan, 'add_as_event'))
             .then(() =>
-                dispatch(main.lockAndEdit({
-                    type: ITEM_TYPE.EVENT,
+                dispatch(main.createNew(ITEM_TYPE.EVENT, {
                     dates: {
                         start: moment(plan.planning_date).clone(),
                         end: moment(plan.planning_date)
@@ -579,7 +577,6 @@ const createEventFromPlanning = (plan) => (
                     place: plan.place,
                     occur_status: unplannedStatus,
                     _planning_item: plan._id,
-                    _id: generateTempId(),
                 }))
             );
     }

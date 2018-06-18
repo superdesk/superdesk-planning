@@ -1,3 +1,8 @@
+import {forEach} from 'lodash';
+
+import {getInputHelper} from './form';
+import {waitAndClick} from './utils';
+
 class Editor {
     constructor() {
         this.editors = element.all(by.className('sd-edit-panel'));
@@ -20,6 +25,7 @@ class Editor {
         this.unpostButton = this.editor.element(by.id('unpost'));
         this.repeatButton = this.editor.element(by.xpath('//button[@name="dates.recurring"]'));
         this.allDayButton = this.editor.element(by.xpath('//button[@name="dates.all_day"]'));
+        this.minimizeButton = this.editor.element(by.xpath('//button[@title="Minimise"]'));
     }
 
     isItemPosted() {
@@ -40,6 +46,25 @@ class Editor {
                 return Promise.resolve(false);
             }
         });
+    }
+
+    inputValues(event) {
+        forEach(
+            event,
+            (value, field) => getInputHelper(this.editor, field).setValue(value)
+        );
+    }
+
+    expectValues(event) {
+        forEach(
+            event,
+            (value, field) => expect(getInputHelper(this.editor, field).getValue(value)).toEqual(value)
+        );
+    }
+
+    openAllToggleBoxes() {
+        this.editor.all(by.xpath('//div[@class="toggle-box toggle-box--circle hidden"]/a'))
+            .each((toggleHeader) => waitAndClick(toggleHeader));
     }
 }
 

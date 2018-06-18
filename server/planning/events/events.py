@@ -387,39 +387,24 @@ class EventsService(superdesk.Service):
         """
         Links an Event to an existing Planning Item
 
-        Also removed the lock information of the Planning Item and
-        notifies any connected clients of the unlock.
+        The Planning item remains locked, it is up to the client to release this lock
+        after this operation is complete
         """
         planning_service = get_resource_service('planning')
 
         plan_id = event['_planning_item']
-        plan = planning_service.find_one(req=None, _id=plan_id)
         event_id = event[config.ID_FIELD]
 
-        unlock_plan = plan.get('lock_user') and plan.get('lock_action') == 'add_as_event'
-
         updates = {'event_item': event_id}
-        if unlock_plan:
-            remove_lock_information(updates)
 
         if 'recurrence_id' in event:
             updates['recurrence_id'] = event['recurrence_id']
 
-        updated_plan = planning_service.patch(
+        planning_service.patch(
             plan_id,
             updates
         )
         app.on_updated_planning(updates, {'_id': plan_id})
-
-        # Only send out this notification if the Planning Item was originally locked
-        if unlock_plan:
-            push_notification(
-                'planning:unlock',
-                item=str(plan_id),
-                user=str(get_user_id()),
-                lock_session=str(get_auth().get('_id')),
-                etag=updated_plan['_etag']
-            )
 
     def get_expired_items(self, expiry_datetime):
         """Get the expired items

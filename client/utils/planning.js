@@ -27,6 +27,8 @@ import {
     getEnabledAgendas,
     isExistingItem,
     isItemExpired,
+    getItemId,
+    generateTempId,
 } from './index';
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
@@ -439,14 +441,26 @@ const getPlanningActions = ({
     );
 };
 
-/**
- * Utility to convert a genre from an Array to an Object
- * @param {object} plan - The planning item to modify it's coverages
- * @return {object} planning item provided
- */
-export const convertCoveragesGenreToObject = (plan) => {
-    plan.planning_date = moment(plan.planning_date);
-    get(plan, 'coverages', []).forEach(convertGenreToObject);
+const modifyForClient = (plan) => {
+    if (get(plan, 'planning_date')) {
+        plan.planning_date = moment(plan.planning_date);
+    }
+
+    plan.coverages = plan.coverages || [];
+
+    plan.coverages.forEach((coverage) => self.modifyCoverageForClient(coverage));
+
+    return plan;
+};
+
+const modifyForServer = (plan) => {
+    get(plan, 'coverages', []).forEach((coverage) => {
+        coverage.planning = coverage.planning || {};
+
+        coverage.planning.genre = coverage.planning.genre ?
+            [coverage.planning.genre] : null;
+    });
+
     return plan;
 };
 
@@ -455,17 +469,24 @@ export const convertCoveragesGenreToObject = (plan) => {
  * @param {object} coverage - The coverage to modify
  * @return {object} coverage item provided
  */
-export const convertGenreToObject = (coverage) => {
+const modifyCoverageForClient = (coverage) => {
     // Make sure the coverage has a planning field
     if (!get(coverage, 'planning')) {
         coverage.planning = {};
     }
 
     // Convert genre from an Array to an Object
-    coverage.planning.genre = get(coverage, 'planning.genre[0]');
+    if (get(coverage, 'planning.genre[0]')) {
+        coverage.planning.genre = coverage.planning.genre[0];
+    } else {
+        delete coverage.planning.genre;
+    }
 
+    // Convert scheduled into a moment instance
     if (get(coverage, 'planning.scheduled')) {
         coverage.planning.scheduled = moment(coverage.planning.scheduled);
+    } else {
+        delete coverage.planning.scheduled;
     }
 
     return coverage;
@@ -497,7 +518,7 @@ const createNewPlanningFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus
 };
 
 const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, desk, user, contentTypes) => {
-    let newCoverage = COVERAGES.DEFAULT_VALUE(newsCoverageStatus);
+    let newCoverage = self.defaultCoverageValues(newsCoverageStatus);
 
     newCoverage.workflow_status = COVERAGES.WORKFLOW_STATE.ACTIVE;
 
@@ -514,7 +535,7 @@ const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, d
 
     if (get(addNewsItemToPlanning, 'genre')) {
         newCoverage.planning.genre = addNewsItemToPlanning.genre;
-        self.convertGenreToObject(newCoverage);
+        self.modifyCoverageForClient(newCoverage);
     }
 
     if (get(addNewsItemToPlanning, 'keywords.length', 0) > 0) {
@@ -746,10 +767,30 @@ const getCoverageWorkflowIcon = (coverage) => {
     }
 };
 
-export const shouldLockPlanningForEdit = (item, privileges) => (
+const shouldLockPlanningForEdit = (item, privileges) => (
     !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         (!isItemPublic(item) || !!privileges[PRIVILEGES.POST_PLANNING])
 );
+
+const defaultPlanningValues = (currentAgenda) => ({
+    _id: generateTempId(),
+    type: ITEM_TYPE.PLANNING,
+    planning_date: moment(),
+    agendas: get(currentAgenda, 'is_enabled') ?
+        [getItemId(currentAgenda)] : [],
+});
+
+const defaultCoverageValues = (newsCoverageStatus, planningItem, g2contentType) => ({
+    planning: {
+        slugline: get(planningItem, 'slugline'),
+        internal_note: get(planningItem, 'internal_note'),
+        ednote: get(planningItem, 'ednote'),
+        scheduled: get(planningItem, 'planning_date', moment()),
+        g2_content_type: g2contentType,
+    },
+    news_coverage_status: newsCoverageStatus[0],
+    workflow_status: WORKFLOW_STATE.DRAFT,
+});
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -764,8 +805,7 @@ const self = {
     isPlanningLocked,
     isPlanningLockRestricted,
     isPlanAdHoc,
-    convertCoveragesGenreToObject,
-    convertGenreToObject,
+    modifyCoverageForClient,
     isCoverageCancelled,
     canCancelCoverage,
     canRemoveCoverage,
@@ -785,6 +825,10 @@ const self = {
     getCoverageIconColor,
     getCoverageWorkflowIcon,
     shouldLockPlanningForEdit,
+    modifyForClient,
+    modifyForServer,
+    defaultPlanningValues,
+    defaultCoverageValues,
 };
 
 export default self;

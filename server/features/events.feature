@@ -643,23 +643,11 @@ Feature: Events
         When we get "/planning/plan1"
         Then we get existing resource
         """
-        {
-            "event_item": "#events._id#",
-            "lock_user": null,
-            "lock_session": null,
-            "lock_action": null,
-            "lock_time": null
-        }
+        {"event_item": "#events._id#"}
         """
         And we get notifications
         """
         [{
-            "event": "planning:unlock",
-            "extra": {
-                "item": "plan1",
-                "user": "#CONTEXT_USER_ID#"
-            }
-        }, {
             "event": "planning:updated",
             "extra": {"item": "plan1"}
         }, {
