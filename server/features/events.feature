@@ -437,6 +437,51 @@ Feature: Events
         """
 
     @auth
+    Scenario: Duplicating an expired Event will remove the expired flag
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "name": "Test Event",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "state": "draft",
+            "expired": true
+        }]
+        """
+        When we post to "/events"
+        """
+        [{
+            "name": "Test Event",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "state": "draft",
+            "expired": true
+        }]
+        """
+        Then we get OK response
+        And we get existing resource
+        """
+        {
+            "name": "Test Event",
+            "dates": {
+                "start": "2029-11-21T12:00:00+0000",
+                "end": "2029-11-21T14:00:00+0000",
+                "tz": "Australia/Sydney"
+            },
+            "state": "draft",
+            "expired": "__no_value__"
+        }
+        """
+
+    @auth
     @notification
     Scenario: Posted event modified will re-post the event
         When we post to "events" with success

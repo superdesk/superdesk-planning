@@ -43,7 +43,11 @@ export class CoverageList {
     setCoverageValues(values, index) {
         const coverageForms = this.block.all(by.className('sd-collapse-box__content'));
 
-        browser.wait(() => isCount(coverageForms, index + 1), 7500);
+        browser.wait(
+            () => isCount(coverageForms, index + 1),
+            7500,
+            `Timeout while waiting for ${index + 1} Coverage forms`
+        );
 
         const coverage = new Coverage(coverageForms.get(index), index);
 

@@ -20,9 +20,18 @@ describe('edit_planning', () => {
         inputToField(editor.planningDate, '12/12/2045');
 
         // Create the planning
-        browser.wait(() => editor.createButton.isDisplayed(), 7500);
+        browser.wait(
+            () => editor.createButton.isDisplayed(),
+            7500,
+            'Timeout while waiting for the Planning Create button to be visible'
+        );
+
         editor.createButton.click();
-        browser.wait(() => listPanel.getItemCount());
+        browser.wait(
+            () => listPanel.getItemCount(),
+            30000,
+            'Timeout while waiting for the list panel to be populated'
+        );
 
         // Check planning created in list panel
         const itemCreated = listPanel.getItemInGroupAtIndex('Tuesday December 12, 2045', 0);

@@ -33,10 +33,18 @@ export class CollapseBox {
     }
 
     waitOpen(timeout = 7500) {
-        browser.wait(this.isOpen((isOpen) => Promise.resolve(isOpen)));
+        browser.wait(
+            this.isOpen((isOpen) => Promise.resolve(isOpen)),
+            timeout,
+            'Timeout while waiting for a Collapse Box to be expanded'
+        );
     }
 
     waitClose(timeout = 7500) {
-        browser.wait(this.isOpen((isOpen) => Promise.resolve(!isOpen)));
+        browser.wait(
+            this.isOpen((isOpen) => Promise.resolve(!isOpen)),
+            timeout,
+            'Timeout while waiting for a Collapse Box to be collapsed'
+        );
     }
 }

@@ -29,7 +29,11 @@ export class Coverage {
         ));
 
         // Wait for all the values to be populated
-        browser.wait(promise, 7500);
+        browser.wait(
+            promise,
+            7500,
+            'Timeout while getting Coverage values'
+        );
 
         return Promise.resolve(coverage);
     }
@@ -65,7 +69,11 @@ export class Coverage {
         );
 
         // Wait for all the coverage values to be entered into the form
-        browser.wait(promise, 7500);
+        browser.wait(
+            promise,
+            7500,
+            'Timeout while setting Coverage values'
+        );
 
         return Promise.resolve();
     }

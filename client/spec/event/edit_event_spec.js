@@ -22,9 +22,18 @@ describe('edit_event', () => {
         inputToField(editor.nameField, 'name of the event');
 
         // Create the event
-        browser.wait(() => editor.createButton.isDisplayed(), 7500);
+        browser.wait(
+            () => editor.createButton.isDisplayed(),
+            7500,
+            'Timeout while waiting for the Event Create button to be visible'
+        );
+
         editor.createButton.click();
-        browser.wait(() => listPanel.getItemCount());
+        browser.wait(
+            () => listPanel.getItemCount(),
+            30000,
+            'Timeout while waiting for the list panel to be populated'
+        );
 
         // Check event created in list panel
         const eventCreated = listPanel.getItemInGroupAtIndex('Tuesday December 12, 2045', 0);
@@ -39,7 +48,11 @@ describe('edit_event', () => {
 
         // Edit the event
         editor.repeatButton.click();
-        browser.wait(() => editor.createButton.isDisplayed(), 7500);
+        browser.wait(
+            () => editor.createButton.isDisplayed(),
+            7500,
+            'Timeout while waiting for the Event Create button to be visible'
+        );
 
         inputToField(editor.fromDateField, '12/12/2045');
         editor.allDayButton.click();
@@ -48,7 +61,11 @@ describe('edit_event', () => {
 
         // Create the event
         editor.createButton.click();
-        browser.wait(() => listPanel.getItemCount());
+        browser.wait(
+            () => listPanel.getItemCount(),
+            30000,
+            'Timeout while waiting for the list panel to be populated'
+        );
         expect(listPanel.getItemCount()).toBe(2);
 
         // Check event created in list panel

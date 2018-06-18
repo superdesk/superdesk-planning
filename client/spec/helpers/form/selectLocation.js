@@ -4,6 +4,7 @@ import {Popup} from '../popup';
 export class SelectLocation {
     constructor(form, name) {
         this.input = form.element(by.xpath(`//textarea[@name="${name}"]`));
+        this.name = name;
     }
 
     getValue() {
@@ -14,7 +15,8 @@ export class SelectLocation {
         this.input.clear();
         browser.wait(
             () => isFieldEmpty(this.input),
-            7500
+            7500,
+            `Timeout while waiting for input '${this.name}' to be cleared`
         );
 
         this.input.sendKeys(value);
@@ -39,7 +41,8 @@ export class SelectLocation {
         browser.wait(
             () => element.all(by.className('addgeolookup__item')).count()
                 .then((count) => count > 1), // 1 is for the search button!
-            7500
+            7500,
+            'Timeout while waiting for location search results to be visible'
         );
     }
 }

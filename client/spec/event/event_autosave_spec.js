@@ -59,7 +59,11 @@ describe('event_autosave', () => {
 
         // Wait for the Autosave to save the item
         // Which will then update the Workqueue item title
-        browser.wait(() => item1.isTitle('Event*'), 7500);
+        browser.wait(
+            () => item1.isTitle('Event*'),
+            7500,
+            'Timeout while waiting for the Workqueue item title to be "Event*"'
+        );
 
         // Minimize then open the item
         editor.minimizeButton.click();
@@ -105,7 +109,11 @@ describe('event_autosave', () => {
 
         // Now save the Event
         editor.createButton.click();
-        browser.wait(() => listPanel.getItemCount());
+        browser.wait(
+            () => listPanel.getItemCount(),
+            30000,
+            'Timeout while waiting for the list panel to be populated'
+        );
     });
 
     it('keeps existing files and removes unsaved files', () => {
@@ -132,7 +140,11 @@ describe('event_autosave', () => {
 
         // Now save the Event
         editor.createButton.click();
-        browser.wait(() => listPanel.getItemCount());
+        browser.wait(
+            () => listPanel.getItemCount(),
+            30000,
+            'Timeout while waiting for the list panel to be populated'
+        );
 
         // Now make the changes to the files
         // '\xA0' === '&nbsp' (non-breaking space)

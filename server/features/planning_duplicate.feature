@@ -360,7 +360,8 @@ Feature: Duplicate Planning
                     "user": "#CONTEXT_USER_ID#",
                     "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa"
                 }
-            }]
+            }],
+            "expired": true
 
         }]
         """
@@ -372,3 +373,101 @@ Feature: Duplicate Planning
         When we get "/planning/#duplicate._id#"
         Then planning item has current date
         Then coverage 0 has current date
+        Then we get existing resource
+        """
+        {"expired": "__no_value__"}
+        """
+
+    @auth
+    Scenario: Duplicating a Planning item will link to the same Event
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "name": "Test Event",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "state": "draft"
+        }]
+        """
+        Given "planning"
+        """
+        [{
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "Test Event",
+            "state": "draft",
+            "event_item": "event1",
+            "planning_date": "2029-11-21T14:00:00.000Z"
+        }]
+        """
+        When we post to "/planning/plan1/duplicate"
+        """
+        [{}]
+        """
+        Then we get OK response
+        When we get "/planning/#duplicate._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#duplicate._id#",
+            "guid": "#duplicate._id#",
+            "slugline": "Test Event",
+            "state": "draft",
+            "planning_date": "2029-11-21T14:00:00+0000",
+            "event_item": "event1",
+            "expired": "__no_value__"
+        }
+        """
+
+    @auth
+    Scenario: Duplicating an expired Planning item will remove the link to the Event
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "name": "Test Event",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "state": "draft",
+            "expired": true
+        }]
+        """
+        Given "planning"
+        """
+        [{
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "Test Event",
+            "state": "draft",
+            "event_item": "event1",
+            "planning_date": "2029-11-21T14:00:00.000Z",
+            "expired": true
+        }]
+        """
+        When we post to "/planning/plan1/duplicate"
+        """
+        [{}]
+        """
+        Then we get OK response
+        When we get "/planning/#duplicate._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#duplicate._id#",
+            "guid": "#duplicate._id#",
+            "slugline": "Test Event",
+            "state": "draft",
+            "planning_date": "2029-11-21T14:00:00+0000",
+            "event_item": "__no_value__",
+            "expired": "__no_value__"
+        }
+        """

@@ -55,8 +55,14 @@ class PlanningDuplicateService(BaseService):
     def _duplicate_planning(self, original):
         new_plan = deepcopy(original)
 
+        if new_plan.get('expired') and new_plan.get('event_item'):
+            # If the Planning item has expired and is associated with an Event
+            # then we remove the link to the associated Event as the Event would have
+            # been expired also
+            del new_plan['event_item']
+
         for f in ('_id', 'guid', 'lock_user', 'lock_time', 'original_creator', '_planning_schedule'
-                  'lock_session', 'lock_action', '_created', '_updated', '_etag', 'pubstatus'):
+                  'lock_session', 'lock_action', '_created', '_updated', '_etag', 'pubstatus', 'expired'):
             new_plan.pop(f, None)
 
         new_plan[ITEM_STATE] = WORKFLOW_STATE.DRAFT
