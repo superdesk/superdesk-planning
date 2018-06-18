@@ -21,11 +21,11 @@ export const AgendaList = ({
             key={agenda._id}
             active={agenda.is_enabled} />
     )) :
-        <span>{gettext('There are no ') + status + gettext(' agendas')}</span>;
+        <span>{gettext('There are no {{ status }} agendas', {status})}</span>;
 
     return (
         <div>
-            <List.Header title={status + gettext(' Agendas')} marginTop={status === 'disabled'}/>
+            <List.Header title={status + ' ' + gettext('agendas')} marginTop={status === 'disabled'}/>
             <List.Group spaceBetween={true}>
                 { agendaItems }
             </List.Group>

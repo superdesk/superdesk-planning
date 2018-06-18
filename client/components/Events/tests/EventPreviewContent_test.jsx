@@ -89,7 +89,7 @@ describe('<EventPreviewContent />', () => {
         const dataRows = wrapper.find('.form__row');
 
         verifyDataRow(dataRows.at(0), 'Slugline', 'test slugline');
-        verifyDataRow(dataRows.at(1), 'Name', 'Event 1');
+        verifyDataRow(dataRows.at(1), 'Event name', 'Event 1');
         verifyDataRow(dataRows.at(2), 'Description', 'description');
         verifyDataRow(dataRows.at(3), 'Occurrence Status', 'Planned, occurs certainly');
         verifyDataRow(dataRows.at(4), 'Date', dateString);

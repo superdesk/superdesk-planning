@@ -16,7 +16,10 @@ export const RepeatsInput = ({label, field, onChange, value, readOnly, ...props}
         <Label text={label} />
         <Select
             field={field}
-            options={repeatChoices}
+            options={repeatChoices.map((option) => ({
+                label: gettext(option.label),
+                key: option.key,
+            }))}
             onChange={onChange}
             value={value}
             readOnly={readOnly}

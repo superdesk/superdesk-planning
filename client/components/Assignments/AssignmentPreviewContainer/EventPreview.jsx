@@ -24,7 +24,7 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
         <div>
             <Row
                 enabled={get(formProfile, 'editor.name.enabled')}
-                label={gettext('Name')}
+                label={gettext('Event name')}
                 value={item.name || '-'}
             />
 

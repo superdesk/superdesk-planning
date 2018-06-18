@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import {SlideInPanel, Form, Toggle} from '../UI';
-import {gettext} from '../../utils';
+import {gettext} from '../../utils/gettext';
 
 export class EditAgenda extends React.Component {
     constructor(props) {
@@ -66,7 +66,7 @@ export class EditAgenda extends React.Component {
                 title: gettext('Disable confirmation'),
                 body: gettext('Agenda \'{{ name }}\' has planning items associated with it. Continue ?',
                     {name: this.state.agendaName}),
-                okText: 'Save',
+                okText: gettext('Save'),
                 action: () => this.saveAgenda(),
             });
         } else {
@@ -100,11 +100,11 @@ export class EditAgenda extends React.Component {
     }
 
     render() {
-        let tools = [<a className="btn" key={1} onClick={this.props.onClose}>Cancel</a>];
+        let tools = [<a className="btn" key={1} onClick={this.props.onClose}>{gettext('Cancel')}</a>];
 
         if (!this.state.pristine && this.state.agendaName && !this.state.invalid) {
             tools.push(<a className="btn btn--primary" key={2}
-                onClick={this.onSave.bind(this)}>Save</a>);
+                onClick={this.onSave.bind(this)}>{gettext('Save')}</a>);
         }
 
         return (<SlideInPanel.Panel>
@@ -114,7 +114,7 @@ export class EditAgenda extends React.Component {
                 <Form.Row>
                     <Form.TextInput
                         field="name"
-                        label="Name"
+                        label={gettext('Name')}
                         required={true}
                         value={this.state.agendaName}
                         onChange={this.onChange}
@@ -125,7 +125,7 @@ export class EditAgenda extends React.Component {
                 </Form.Row>
 
                 <Form.Row>
-                    <Form.Label text="Enabled"/>
+                    <Form.Label text={gettext('Enabled')} />
                     <Toggle
                         value={this.state.agendaEnabled}
                         onChange={this.onEnableChange}

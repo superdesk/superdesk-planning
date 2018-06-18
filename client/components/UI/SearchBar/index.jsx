@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import DebounceInput from 'react-debounce-input';
 import {isNil, uniqueId} from 'lodash';
+import {gettext} from '../../../utils/gettext';
 import './style.scss';
 
 /**
@@ -80,7 +81,7 @@ export default class SearchBar extends React.Component {
                         value={this.state.searchInputValue}
                         onChange={this.onSearchChange}
                         id={uniqueId}
-                        placeholder="Search"
+                        placeholder={gettext('Search')}
                         type="text"
                     />
                     {allowCollapsed && (

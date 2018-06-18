@@ -6,6 +6,7 @@ import {IconButton} from '../../';
 import {DateInputPopup} from './DateInputPopup';
 import {KEYCODES} from '../../constants';
 import {onEventCapture} from '../../utils';
+import {gettext} from '../../../../utils/gettext';
 import './style.scss';
 
 /**
@@ -141,7 +142,7 @@ export class DateInput extends React.Component {
                 <Input
                     field={field}
                     value={this.state.viewValue}
-                    placeholder={placeholder}
+                    placeholder={placeholder || gettext('Date')}
                     onChange={this.validateDateText}
                     onFocus={onFocus}
                     onBlur={this.handleInputBlur}
@@ -194,7 +195,6 @@ DateInput.propTypes = {
 };
 
 DateInput.defaultProps = {
-    placeholder: 'Date',
     required: false,
     invalid: false,
     readOnly: false,
