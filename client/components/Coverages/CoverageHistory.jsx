@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import {COVERAGES, ASSIGNMENTS, HISTORY_OPERATIONS} from '../../constants';
-import {stringUtils, historyUtils, getDateTimeString, getItemInArrayById} from '../../utils';
+import {stringUtils, historyUtils, getDateTimeString, getItemInArrayById, gettext} from '../../utils';
 import {Item, Column, Row, Border} from '../UI/List';
 import {ContentBlock} from '../UI/SidePanel';
 import {CollapseBox} from '../UI';
@@ -10,31 +10,36 @@ import {CoverageIcon} from './index';
 
 export class CoverageHistory extends React.Component {
     getHistoryActionElement(historyItem) {
-        let text, action, assignment = '', desk, user;
+        let text, action, assignment = '', desk, user, contentType;
 
         switch (historyItem.operation) {
         case ASSIGNMENTS.HISTORY_OPERATIONS.REASSIGNED:
         case COVERAGES.HISTORY_OPERATIONS.CREATED:
         case COVERAGES.HISTORY_OPERATIONS.CREATED_CONTENT:
-            action = (gettext('Coverage of type \'') + stringUtils.firstCharUpperCase(
-                get(historyItem, 'update.planning.g2_content_type', '').replace('_', ' ')) +
-                            gettext('\' created'));
+        case COVERAGES.HISTORY_OPERATIONS.ASSIGNED:
+            contentType = stringUtils.firstCharUpperCase(get(historyItem, 'update.planning.g2_content_type',
+                '').replace('_', ' '));
+            action = gettext('Coverage of type {{ type }} created', {type: contentType});
 
             if (historyItem.operation === COVERAGES.HISTORY_OPERATIONS.CREATED_CONTENT) {
                 action += gettext(' from content');
             } else if (historyItem.operation === ASSIGNMENTS.HISTORY_OPERATIONS.REASSIGNED) {
                 action = gettext('Coverage reassigned');
+            } else if (historyItem.operation === COVERAGES.HISTORY_OPERATIONS.ASSIGNED) {
+                action = gettext('Coverage assigned');
             }
 
             if (get(historyItem, 'update.assigned_to.desk')) {
                 desk = getItemInArrayById(this.props.desks, historyItem.update.assigned_to.desk);
                 user = getItemInArrayById(this.props.users, get(historyItem.update, 'assigned_to.user'));
 
-                assignment = (historyItem.operation == ASSIGNMENTS.HISTORY_OPERATIONS.REASSIGNED ? gettext(' to ') :
-                    gettext(' for ')) + desk.name;
+                assignment = ([ASSIGNMENTS.HISTORY_OPERATIONS.REASSIGNED,
+                    COVERAGES.HISTORY_OPERATIONS.ASSIGNED].includes(historyItem.operation) ?
+                    gettext(' to \'{{ desk }}\'', {desk: desk.name}) :
+                    gettext(' for \'{{ desk }}\'', {desk: desk.name}));
 
                 if (user) {
-                    assignment += (' and ' + user.display_name);
+                    assignment += gettext(' and \'{{ user }}\'', {user: user.display_name});
                 }
             }
             text = action + assignment;
@@ -146,7 +151,7 @@ export class CoverageHistory extends React.Component {
         );
 
         const coverageHistoryItems = (
-            <ContentBlock>
+            <ContentBlock noPadding>
                 <ul className="history-list">
                     {historyData.items.map((historyItem, index) => (
                         <li className="item" key={historyItem._id}>

@@ -406,7 +406,7 @@ Feature: Events
         }
         """
         When we get "/events_history"
-        Then we get list with 6 items
+        Then we get list with 5 items
         """
         {"_items": [
             {
@@ -416,10 +416,6 @@ Feature: Events
             {
                 "operation": "post",
                 "update": { "state" : "scheduled", "pubstatus": "usable" }
-            },
-            {
-                "operation": "create",
-                "event_id": "#events._id#"
             },
             {
                 "operation": "duplicate",
@@ -578,7 +574,7 @@ Feature: Events
         }
         """
         When we get "/events_history"
-        Then we get list with 6 items
+        Then we get list with 5 items
         """
         {"_items": [
             {
@@ -588,10 +584,6 @@ Feature: Events
             {
                 "operation": "post",
                 "update": { "state" : "scheduled", "pubstatus": "usable" }
-            },
-            {
-                "operation": "create",
-                "event_id": "#events._id#"
             },
             {
                 "operation": "duplicate",

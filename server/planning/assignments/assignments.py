@@ -470,6 +470,7 @@ class AssignmentsService(superdesk.Service):
             get_resource_service('assignments_history').on_item_updated(updated_assignment,
                                                                         original_assignment,
                                                                         ASSIGNMENT_HISTORY_ACTIONS.CANCELLED)
+            self.notify('assignments:updated', updated_assignment, original_assignment)
             self.send_assignment_cancellation_notification(updated_assignment,
                                                            original_assignment.get('assigned_to')['state'],
                                                            event_cancellation)

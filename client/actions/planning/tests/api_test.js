@@ -58,7 +58,7 @@ describe('actions.planning.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('api.spike returns Promise.reject on error', (done) => {
             services.api.update = sinon.spy(() => (Promise.reject('Failed!')));
@@ -66,7 +66,8 @@ describe('actions.planning.api', () => {
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toBe('Failed!');
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -83,7 +84,7 @@ describe('actions.planning.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('api.unspike returns Promise.reject on error', (done) => {
             services.api.update = sinon.spy(() => (Promise.reject('Failed!')));
@@ -91,7 +92,8 @@ describe('actions.planning.api', () => {
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toBe('Failed!');
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -144,7 +146,7 @@ describe('actions.planning.api', () => {
                     );
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('by list of planning not in any agendas', (done) => (
             store.test(done, planningApi.query({
@@ -176,7 +178,7 @@ describe('actions.planning.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('by spiked item state', (done) => (
             store.test(done, planningApi.query({
@@ -211,7 +213,7 @@ describe('actions.planning.api', () => {
                     expect(source.query.bool.must_not).toEqual([]);
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('by non-spiked item state', (done) => (
             store.test(done, planningApi.query({
@@ -246,7 +248,7 @@ describe('actions.planning.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('by workflow-state in advancedSearch', (done) => (
             store.test(done, planningApi.query({
@@ -290,7 +292,7 @@ describe('actions.planning.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('by workflow-state in advancedSearch including spiked', (done) => (
             store.test(done, planningApi.query({
@@ -334,7 +336,7 @@ describe('actions.planning.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('refetch', (done) => {
             sinon.stub(planningApi, 'query').callsFake(() => (Promise.resolve(['item'])));
@@ -347,7 +349,8 @@ describe('actions.planning.api', () => {
                     expect(items.length).toBe(3);
                     expect(items).toEqual(['item', 'item', 'item']);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -377,7 +380,8 @@ describe('actions.planning.api', () => {
 
                     expect(data.plannings).toEqual(items);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns Promise.reject on query error', (done) => {
@@ -391,7 +395,8 @@ describe('actions.planning.api', () => {
                     expect(planningApi.receivePlannings.callCount).toBe(1);
                     expect(planningApi.receivePlannings.args[0]).toEqual([[]]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -413,7 +418,7 @@ describe('actions.planning.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('fetches and returns linked events', (done) => (
             // Run store.test() first to construct initialValues
@@ -447,7 +452,7 @@ describe('actions.planning.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 
     describe('fetchById', () => {
@@ -478,7 +483,7 @@ describe('actions.planning.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('fetches using force=true', (done) => (
             store.test(done, planningApi.fetchById('p1', {force: true}))
@@ -500,7 +505,7 @@ describe('actions.planning.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('returns Promise.reject on error', (done) => {
             services.api('planning').getById = sinon.spy(() => (Promise.reject(errorMessage)));
@@ -508,7 +513,8 @@ describe('actions.planning.api', () => {
                 .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns store instance when already loaded', (done) => (
@@ -522,7 +528,7 @@ describe('actions.planning.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 
     describe('save', () => {
@@ -552,7 +558,8 @@ describe('actions.planning.api', () => {
                     ]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('create new planning item then updates with the coverages', (done) => {
@@ -599,7 +606,8 @@ describe('actions.planning.api', () => {
                     ]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('saves existing item', (done) => {
@@ -626,7 +634,8 @@ describe('actions.planning.api', () => {
                     expect(services.api('planning').save.args[0][0]).toEqual(data.plannings[0]);
                     expect(services.api('planning').save.args[0][1].slugline).toEqual('New Slugger');
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns Promise.reject on fetchById error', (done) => {
@@ -641,7 +650,8 @@ describe('actions.planning.api', () => {
                     expect(planningApi.fetchById.callCount).toBe(1);
                     expect(services.api('planning').save.callCount).toBe(0);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns Promise.reject on api.save error', (done) => {
@@ -663,7 +673,8 @@ describe('actions.planning.api', () => {
                     expect(services.api('planning').getById.callCount).toBe(0);
                     expect(services.api('planning').save.callCount).toBe(1);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -695,7 +706,8 @@ describe('actions.planning.api', () => {
                     expect(planningApi.save.args[0]).toEqual([newItem, {}]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('saves an existing item', (done) => {
@@ -735,7 +747,8 @@ describe('actions.planning.api', () => {
                     ]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns Promise.reject if no Agenda is selected', (done) => {
@@ -749,7 +762,8 @@ describe('actions.planning.api', () => {
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('if current Agenda is disabled', (done) => {
@@ -778,7 +792,8 @@ describe('actions.planning.api', () => {
                     expect(planningApi.save.args[0]).toEqual([newItem, {}]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -798,24 +813,16 @@ describe('actions.planning.api', () => {
         it('calls planning_history api and runs dispatch', (done) => (
             store.test(done, planningApi.fetchPlanningHistory('p2'))
                 .then((items) => {
-                    expect(items).toEqual({_items: data.planning_history});
-
+                    expect(items).toEqual(data.planning_history);
                     expect(services.api('planning_history').query.callCount).toBe(1);
                     expect(services.api('planning_history').query.args[0]).toEqual([{
                         where: {planning_id: 'p2'},
                         max_results: 200,
                         sort: '[(\'_created\', 1)]',
                     }]);
-
-                    expect(store.dispatch.callCount).toBe(1);
-                    expect(store.dispatch.args[0]).toEqual([{
-                        type: 'RECEIVE_PLANNING_HISTORY',
-                        payload: data.planning_history,
-                    }]);
-
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('returns Promise.reject is planning_history query fails', (done) => {
             services.api('planning_history').query = sinon.spy(
@@ -826,7 +833,8 @@ describe('actions.planning.api', () => {
                 .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -850,7 +858,8 @@ describe('actions.planning.api', () => {
                     ]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('api.post returns Promise.reject on error', (done) => {
@@ -860,7 +869,8 @@ describe('actions.planning.api', () => {
                 .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -879,7 +889,8 @@ describe('actions.planning.api', () => {
                 ]);
 
                 done();
-            });
+            })
+            .catch(done.fail);
     });
 
     describe('getPlanning', () => {
@@ -891,7 +902,7 @@ describe('actions.planning.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('loads the Planning if it is not in the store', (done) => {
             store.init();
@@ -903,7 +914,8 @@ describe('actions.planning.api', () => {
                     expect(services.api('planning').getById.args[0]).toEqual([data.plannings[1]._id]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns Promise.reject if getById fails', (done) => {
@@ -915,7 +927,8 @@ describe('actions.planning.api', () => {
                     expect(error).toEqual(errorMessage);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -932,7 +945,7 @@ describe('actions.planning.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('returns Promise.reject if recurrence_id query fails', (done) => {
             services.api('planning').query = sinon.spy(() => Promise.reject(errorMessage));
@@ -940,7 +953,8 @@ describe('actions.planning.api', () => {
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -964,7 +978,8 @@ describe('actions.planning.api', () => {
                     expect(apiSave.args[0]).toEqual([{}]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('duplicate returns Promise.reject on error', (done) => {
@@ -973,7 +988,8 @@ describe('actions.planning.api', () => {
                 .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 });

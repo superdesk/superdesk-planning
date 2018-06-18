@@ -520,10 +520,7 @@ const fetchPlanningHistory = (currentPlanningId) => (
             max_results: 200,
             sort: '[(\'_created\', 1)]',
         })
-            .then((data) => {
-                dispatch(self.receivePlanningHistory(data._items));
-                return Promise.resolve(data);
-            }, (error) => (Promise.reject(error)))
+            .then((data) => (Promise.resolve(data._items)), (error) => (Promise.reject(error)))
     )
 );
 

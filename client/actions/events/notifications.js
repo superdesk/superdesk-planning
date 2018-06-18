@@ -1,5 +1,5 @@
 import * as selectors from '../../selectors';
-import {WORKFLOW_STATE, EVENTS, MODALS} from '../../constants';
+import {WORKFLOW_STATE, EVENTS, MODALS, ITEM_TYPE} from '../../constants';
 import {showModal, hideModal} from '../index';
 import eventsApi from './api';
 import eventsUi from './ui';
@@ -167,6 +167,7 @@ const onEventCancelled = (e, data) => (
                 data.occur_status,
                 get(data, 'cancelled_items') || []
             ));
+            dispatch(fetchItemHistoryOnRecurringNotitication(data));
         }
     }
 );
@@ -177,6 +178,7 @@ const onEventScheduleChanged = (e, data) => (
             dispatch(eventsUi.scheduleRefetch());
             dispatch(eventsPlanning.ui.scheduleRefetch());
             dispatch(eventsApi.getEvent(data.item, false));
+            dispatch(fetchItemHistoryOnRecurringNotitication(data));
         }
     }
 );
@@ -192,6 +194,7 @@ const onEventPostponed = (e, data) => (
                     data.reason
                 ));
             }
+            dispatch(fetchItemHistoryOnRecurringNotitication(data));
         }
     }
 );
@@ -213,6 +216,7 @@ const onEventPostChanged = (e, data) => (
                     pubstatus: data.pubstatus,
                 },
             });
+            dispatch(fetchItemHistoryOnRecurringNotitication(data));
         }
 
         return Promise.resolve();
@@ -277,8 +281,45 @@ const onEventUpdated = (_e, data) => (
                         if (!loadedFromRefetch && (currentPreviewId === data.item || currentEditId === data.item)) {
                             dispatch(eventsApi.fetchById(data.item, {force: true}));
                         }
+                        dispatch(fetchItemHistoryOnRecurringNotitication(data));
                     });
                 });
+        }
+    }
+);
+
+const fetchItemHistoryOnRecurringNotitication = (data) => (
+    (dispatch, getState) => {
+        if (data && data.item) {
+            let item = {
+                _id: data.item,
+                recurrence_id: get(data, 'recurrence_id'),
+                type: ITEM_TYPE.EVENT,
+            };
+            const previewItem = selectors.main.getPreviewItem(getState());
+            const editItem = selectors.forms.currentItem(getState());
+
+            if (!editItem && !previewItem) {
+                return Promise.resolve();
+            }
+
+            if (!data.recurrence_id) {
+                if (data.item === get(previewItem, '_id')) {
+                    dispatch(main.fetchItemHistory(item));
+                }
+
+                if (data.item === get(editItem, '_id')) {
+                    dispatch(main.fetchItemHistory(item));
+                }
+            } else {
+                if (get(previewItem, 'recurrence_id') === data.recurrence_id) {
+                    dispatch(main.fetchItemHistory(previewItem));
+                }
+
+                if (get(editItem, 'recurrence_id') === data.recurrence_id) {
+                    dispatch(main.fetchItemHistory(editItem));
+                }
+            }
         }
     }
 );

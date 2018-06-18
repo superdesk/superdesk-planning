@@ -11,6 +11,7 @@ export const COVERAGES = {
         CANCELLED: 'coverage_cancelled',
         PLANNING_CANCELLED: 'planning_cancelled',
         CREATED_CONTENT: 'coverage_created_content',
+        ASSIGNED: 'coverage_assigned',
     },
 };
 

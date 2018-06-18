@@ -1,10 +1,11 @@
 import {get} from 'lodash';
 import planning from './index';
+import assignments from '../assignments/index';
 import {lockUtils, gettext} from '../../utils';
 import * as selectors from '../../selectors';
 import {showModal, hideModal, events, fetchAgendas} from '../index';
 import main from '../main';
-import {PLANNING, MODALS} from '../../constants';
+import {PLANNING, MODALS, ITEM_TYPE} from '../../constants';
 import eventsPlanning from '../eventsPlanning';
 
 /**
@@ -20,6 +21,7 @@ const onPlanningCreated = (_e, data) => (
                     data.event_item,
                     data.item
                 ));
+                dispatch(main.fetchItemHistory({_id: data.event_item, type: ITEM_TYPE.EVENT}));
             }
 
             dispatch(main.setUnsetLoadingIndicator(true));
@@ -58,6 +60,8 @@ const onPlanningUpdated = (_e, data) => (
                     if (get(data, 'added_agendas.length', 0) > 0 || get(data, 'removed_agendas.length', 0) > 0) {
                         dispatch(fetchAgendas());
                     }
+                    dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
+                    dispatch(udpateAssignmentHistory(data.item));
                 });
         }
 
@@ -156,6 +160,7 @@ const onPlanningPosted = (_e, data) => (
         if (get(data, 'item')) {
             dispatch(planning.ui.scheduleRefetch());
             dispatch(eventsPlanning.ui.scheduleRefetch());
+            dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
         }
 
         return Promise.resolve();
@@ -226,12 +231,14 @@ const onPlanningCancelled = (e, data) => (
                 get(data, 'coverage_state'),
                 get(data, 'event_cancellation')
             ));
+            dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
+            dispatch(udpateAssignmentHistory(data.item));
         }
     }
 );
 
 const onCoverageCancelled = (e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (get(data, 'planning_item') && get(data, 'ids')) {
             dispatch(planning.api.markCoverageCancelled(
                 data.planning_item,
@@ -240,7 +247,21 @@ const onCoverageCancelled = (e, data) => (
                 data.ids,
                 get(data, 'etag')
             ));
+            dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
+            dispatch(udpateAssignmentHistory(data.item));
         }
+    }
+);
+
+const udpateAssignmentHistory = (planningId) => (
+    (dispatch, getState) => {
+        const planningItem = selectors.planning.storedPlannings(getState())[planningId];
+
+        get(planningItem, 'coverages', []).forEach((cov) => {
+            if (get(cov, 'assigned_to.assignment_id')) {
+                dispatch(assignments.api.fetchAssignmentHistory({_id: cov.assigned_to.assignment_id}));
+            }
+        });
     }
 );
 
@@ -248,6 +269,7 @@ const onPlanningRescheduled = (e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
             dispatch(planning.api.loadPlanningById(data.item));
+            dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
         }
     }
 );
@@ -259,6 +281,7 @@ const onPlanningPostponed = (e, data) => (
                 data.item,
                 get(data, 'reason')
             ));
+            dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
         }
     }
 );

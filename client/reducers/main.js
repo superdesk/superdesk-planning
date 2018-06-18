@@ -21,6 +21,7 @@ const initialState = {
         [MAIN.FILTERS.COMBINED]: cloneDeep(search),
     },
     loadingIndicator: false,
+    itemHistory: [],
 };
 
 const modifyParams = (state, payload) => {
@@ -152,4 +153,8 @@ export default createReducer(initialState, {
             },
         };
     },
+    [MAIN.ACTIONS.RECEIVE_PREVIEW_ITEM_HISTORY]: (state, payload) => ({
+        ...state,
+        itemHistory: payload,
+    }),
 });

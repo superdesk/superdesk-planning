@@ -1132,12 +1132,9 @@ const fetchEventHistory = (eventId) => (
             max_results: 200,
             sort: '[(\'_created\', 1)]',
         })
-            .then((data) => {
-                dispatch(eventsUi.receiveEventHistory(data._items));
-                return data;
-            })
-    )
-);
+            .then((data) => (Promise.resolve(data._items))
+            )
+    ));
 
 /**
  * Set event.pubstatus canceled and post event.

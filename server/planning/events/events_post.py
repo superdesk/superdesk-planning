@@ -129,6 +129,7 @@ class EventsPostService(EventsBaseService):
             event_type,
             item=original[config.ID_FIELD],
             items=items,
+            recurrence_id=str(original.get('recurrence_id')),
             pubstatus=updated_event['pubstatus'],
             state=updated_event['state']
         )

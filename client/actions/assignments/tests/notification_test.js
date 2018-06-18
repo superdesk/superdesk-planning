@@ -4,6 +4,7 @@ import {registerNotifications} from '../../../utils/notifications';
 import * as selectors from '../../../selectors';
 import assignmentsUi from '../ui';
 import assignmentsApi from '../api';
+import main from '../../main';
 import assignmentNotifications from '../notifications';
 
 describe('actions.assignments.notification', () => {
@@ -97,7 +98,8 @@ describe('actions.assignments.notification', () => {
                     expect(assignmentsApi.query.callCount).toBe(2);
                     expect(assignmentsApi.receivedAssignments.callCount).toBe(1);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -131,7 +133,8 @@ describe('actions.assignments.notification', () => {
                     expect(coverage1.assigned_to.state).toBe('assigned');
                     expect(assignmentsUi.reloadAssignments.callCount).toBe(1);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('assignment list groups are reloaded when assignment moves groups', (done) => {
@@ -152,7 +155,40 @@ describe('actions.assignments.notification', () => {
                 .then(() => {
                     expect(assignmentsUi.reloadAssignments.callCount).toBe(2);
                     done();
-                });
+                })
+                .catch(done.fail);
+        });
+
+        it('updates planning-history if planning item in store', (done) => {
+            sinon.stub(main, 'fetchItemHistory').callsFake(
+                () => (Promise.resolve())
+            );
+            store.initialState.workspace.currentDeskId = 'desk1';
+            let payload = {
+                item: 'as1',
+                assigned_desk: 'desk2',
+                coverage: 'c1',
+                planning: 'p1',
+                original_assigned_desk: 'desk1',
+                assignment_state: 'assigned',
+            };
+            const plans = selectors.planning.storedPlannings(store.getState());
+            const planning1 = plans[payload.planning];
+            const coverage1 = planning1.coverages.find((cov) =>
+                cov.coverage_id === payload.coverage);
+
+            expect(coverage1.assigned_to.desk).toBe('desk1');
+            expect(coverage1.assigned_to.state).toBe(undefined);
+            sinon.stub(assignmentsUi, 'reloadAssignments').callsFake(() => Promise.resolve());
+
+            return store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
+                .then(() => {
+                    expect(main.fetchItemHistory.callCount).toBe(1);
+                    expect(main.fetchItemHistory.args[0]).toEqual([planning1]);
+                    restoreSinonStub(main.fetchItemHistory);
+                    done();
+                })
+                .catch(done.fail);
         });
     });
 
@@ -194,7 +230,8 @@ describe('actions.assignments.notification', () => {
                         },
                     }]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('calls UNLOCK_ASSIGNMENT action', (done) => {
@@ -221,7 +258,8 @@ describe('actions.assignments.notification', () => {
                         },
                     }]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -260,7 +298,8 @@ describe('actions.assignments.notification', () => {
                     expect(coverage1.assigned_to.state).toBe('completed');
                     expect(assignmentsUi.reloadAssignments.callCount).toBe(1);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('unlocks assignment on assignment complete', (done) => {
@@ -289,9 +328,9 @@ describe('actions.assignments.notification', () => {
                 .then(() => {
                     expect(coverage1.assigned_to.desk).toBe('desk2');
                     expect(coverage1.assigned_to.state).toBe('completed');
-                    expect(store.dispatch.callCount).toBe(4);
+                    expect(store.dispatch.callCount).toBe(5);
                     expect(assignmentsApi.fetchAssignmentById.callCount).toBe(1);
-                    expect(store.dispatch.args[3]).toEqual([{
+                    expect(store.dispatch.args[4]).toEqual([{
                         type: 'UNLOCK_ASSIGNMENT',
                         payload: {
                             assignment: {
@@ -304,7 +343,8 @@ describe('actions.assignments.notification', () => {
                         },
                     }]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -331,7 +371,7 @@ describe('actions.assignments.notification', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('notifies the user if they are viewing the removed Assignment', (done) => {
             store.initialState.assignment.currentAssignmentId = 'as1';
@@ -347,7 +387,8 @@ describe('actions.assignments.notification', () => {
                     );
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 });

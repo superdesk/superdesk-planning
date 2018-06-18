@@ -438,6 +438,11 @@ class PlanningService(superdesk.Service):
                     raise SuperdeskApiError.badRequestError('Coverage not in draft state to remove assignment.')
                 # Removing assignment
                 assignment_service.delete(lookup={'_id': assigned_to.get('assignment_id')})
+                assignment = {
+                    'planning_item': planning_id,
+                    'coverage_item': doc.get('coverage_id')
+                }
+                get_resource_service('assignments_history').on_item_deleted(assignment)
                 return
 
             # update the assignment using the coverage details
@@ -598,10 +603,6 @@ class PlanningService(superdesk.Service):
                 planning_item
             )
 
-            get_resource_service('planning_history')._save_history(
-                planning_item, {'coverage_id': coverage_item.get('coverage_id')},
-                'assignment_removed')
-
             return updated_planning
 
     def is_coverage_planning_modified(self, updates, original):
@@ -613,15 +614,16 @@ class PlanningService(superdesk.Service):
         return False
 
     def is_coverage_assignment_modified(self, updates, original):
-        keys = ['desk', 'user', 'state', 'coverage_provider']
-        for key in keys:
-            if key in updates['assigned_to'] and\
-                    updates['assigned_to'][key] != original.get('assigned_to').get(key):
-                return True
+        if (updates or {}).get('assigned_to'):
+            keys = ['desk', 'user', 'state', 'coverage_provider']
+            for key in keys:
+                if key in updates.get('assigned_to') and\
+                        updates['assigned_to'][key] != original.get('assigned_to', {}).get(key):
+                    return True
 
-        if updates['assigned_to'].get('priority') and updates['assigned_to']['priority'] !=\
-                original.get('priority'):
-            return True
+            if updates['assigned_to'].get('priority') and updates['assigned_to']['priority'] !=\
+                    original.get('priority'):
+                return True
 
         return False
 

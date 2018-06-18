@@ -1047,6 +1047,45 @@ const notifyValidationErrors = (messages) => (
     }
 );
 
+const fetchItemHistory = (item) => (
+    (dispatch, getState) => {
+        let historyDispatch;
+        const previewId = selectors.main.previewId(getState());
+        const editId = selectors.forms.currentItemId(getState());
+
+        if (!isExistingItem(item) || (previewId !== item._id && editId !== item._id)) {
+            return Promise.resolve();
+        }
+
+        switch (getItemType(item)) {
+        case ITEM_TYPE.EVENT:
+            historyDispatch = eventsApi.fetchEventHistory;
+            break;
+        case ITEM_TYPE.PLANNING:
+            historyDispatch = planningApi.fetchPlanningHistory;
+            break;
+        }
+
+        return dispatch(historyDispatch(item._id)).then((historyItems) => {
+            if (editId === item._id) {
+                dispatch({
+                    type: MAIN.ACTIONS.RECEIVE_EDITOR_ITEM_HISTORY,
+                    payload: historyItems,
+                });
+            }
+
+            if (previewId === item._id) {
+                dispatch({
+                    type: MAIN.ACTIONS.RECEIVE_PREVIEW_ITEM_HISTORY,
+                    payload: historyItems,
+                });
+            }
+
+            return Promise.resolve();
+        });
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     lockAndEdit,
@@ -1082,6 +1121,7 @@ const self = {
     isItemValid,
     createNew,
     fetchById,
+    fetchItemHistory,
 };
 
 export default self;

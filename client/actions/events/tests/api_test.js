@@ -63,7 +63,8 @@ describe('actions.events.api', () => {
                 expect(eventsApi.receiveEvents.args[0]).toEqual([{_items: data.events}]);
 
                 done();
-            });
+            })
+            .catch(done.fail);
     });
 
     describe('fetchById', () => {
@@ -95,7 +96,8 @@ describe('actions.events.api', () => {
                     expect(eventsApi.loadAssociatedPlannings.callCount).toBe(1);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns the Event from the store instead of the API', (done) => (
@@ -110,7 +112,7 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('returns the Event from the API if force = true', (done) => (
             store.test(done, eventsApi.fetchById('e2', {force: true}))
@@ -129,7 +131,7 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('doesnt save to the store if saveToStore = false', (done) => (
             store.test(done, eventsApi.fetchById('e2', {saveToStore: false}))
@@ -137,7 +139,7 @@ describe('actions.events.api', () => {
                     expect(eventsApi.receiveEvents.callCount).toBe(0);
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('doesnt load associated Planning if loadPlanning = false', (done) => (
             store.test(done, eventsApi.fetchById('e2', {loadPlanning: false}))
@@ -145,7 +147,7 @@ describe('actions.events.api', () => {
                     expect(eventsApi.loadAssociatedPlannings.callCount).toBe(0);
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('returns rejected promise if API fails', (done) => {
             services.api.find = sinon.spy(() => Promise.reject(errorMessage));
@@ -153,7 +155,8 @@ describe('actions.events.api', () => {
                 .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns rejected promise if loadPlanning fails', (done) => {
@@ -163,7 +166,8 @@ describe('actions.events.api', () => {
                 .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -191,7 +195,7 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('returns Promise.reject if query fails', (done) => {
             restoreSinonStub(eventsApi.query);
@@ -201,7 +205,8 @@ describe('actions.events.api', () => {
                     expect(error).toEqual(errorMessage);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -223,7 +228,7 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('can spike multiple events', (done) => (
             store.test(done, eventsApi.spike(data.events))
@@ -241,7 +246,7 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('can send `future` for `update_method`', (done) => {
             data.events[1].update_method = 'future';
@@ -255,7 +260,8 @@ describe('actions.events.api', () => {
                     ]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns Promise.reject if `events_spike` fails', (done) => {
@@ -264,7 +270,8 @@ describe('actions.events.api', () => {
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -283,7 +290,7 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('can unspike multiple events', (done) => (
             store.test(done, eventsApi.unspike(data.events))
@@ -301,7 +308,7 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('can send `future` for `update_method` when unspiking', (done) => {
             data.events[1].update_method = 'future';
@@ -315,7 +322,8 @@ describe('actions.events.api', () => {
                     ]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns Promise.reject if `events_unspike` fails', (done) => {
@@ -324,7 +332,8 @@ describe('actions.events.api', () => {
                 .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -355,7 +364,7 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('by list of ids', (done) => {
             store.test(done, eventsApi.query({ids: ['e1', 'e2'], onlyFuture: false}))
@@ -381,7 +390,8 @@ describe('actions.events.api', () => {
                     })]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('by fulltext', (done) => (
@@ -408,7 +418,7 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('by recurrence_id', (done) => {
             store.test(done, eventsApi.query({recurrenceId: 'rec1', onlyFuture: false}))
@@ -433,7 +443,8 @@ describe('actions.events.api', () => {
                     })]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         describe('advancedSearch', () => {
@@ -462,7 +473,7 @@ describe('actions.events.api', () => {
 
                         done();
                     })
-            ));
+            ).catch(done.fail));
 
             it('by single calendar', (done) => (
                 store.test(done, eventsApi.query({calendars: ['sport']}))
@@ -489,7 +500,7 @@ describe('actions.events.api', () => {
 
                         done();
                     })
-            ));
+            ).catch(done.fail));
 
             it('by source', (done) => (
                 store.test(done, eventsApi.query({
@@ -523,7 +534,7 @@ describe('actions.events.api', () => {
 
                         done();
                     })
-            ));
+            ).catch(done.fail));
 
             it('by workflow state', (done) => (
                 store.test(done, eventsApi.query({
@@ -560,7 +571,7 @@ describe('actions.events.api', () => {
 
                         done();
                     })
-            ));
+            ).catch(done.fail));
 
             it('by workflow state including spiked items', (done) => (
                 store.test(done, eventsApi.query({
@@ -596,7 +607,7 @@ describe('actions.events.api', () => {
 
                         done();
                     })
-            ));
+            ).catch(done.fail));
         });
     });
 
@@ -619,7 +630,8 @@ describe('actions.events.api', () => {
                     expect(eventsApi.receiveEvents.args[0]).toEqual([data.events]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -627,22 +639,16 @@ describe('actions.events.api', () => {
         it('calls events_history api and runs dispatch', (done) => {
             store.test(done, eventsApi.fetchEventHistory('e2'))
                 .then((data) => {
-                    expect(data._items).toEqual(store.data.events_history);
-                    expect(store.dispatch.callCount).toBe(1);
-
+                    expect(data).toEqual(store.data.events_history);
                     expect(store.services.api('events_history').query.callCount).toBe(1);
                     expect(store.services.api('events_history').query.args[0]).toEqual([{
                         where: {event_id: 'e2'},
                         max_results: 200,
                         sort: '[(\'_created\', 1)]',
                     }]);
-
-                    expect(store.dispatch.args[0]).toEqual([{
-                        type: 'RECEIVE_EVENT_HISTORY',
-                        payload: store.data.events_history,
-                    }]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -660,7 +666,8 @@ describe('actions.events.api', () => {
                         plannings: [],
                     });
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('loads events and planning items', (done) => {
@@ -690,7 +697,8 @@ describe('actions.events.api', () => {
                     ]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns Promise.reject if failed to load event series', (done) => {
@@ -703,7 +711,8 @@ describe('actions.events.api', () => {
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns Promise.reject if failed to load planning items', (done) => {
@@ -716,7 +725,8 @@ describe('actions.events.api', () => {
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -745,7 +755,8 @@ describe('actions.events.api', () => {
                     ]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('can send `future` when rescheduling', (done) => {
@@ -765,7 +776,8 @@ describe('actions.events.api', () => {
                     ]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns Promise.reject if `events_reschedule` fails', (done) => {
@@ -774,7 +786,8 @@ describe('actions.events.api', () => {
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -787,7 +800,7 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('loads associated Planning items', (done) => (
             store.test(done, eventsApi.loadAssociatedPlannings(data.events[0]))
@@ -798,7 +811,7 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 
     describe('queryLockedEvents', () => {
@@ -813,7 +826,7 @@ describe('actions.events.api', () => {
                     ]);
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('returns reject is lock query fails', (done) => {
             services.api('events').query = sinon.spy(() => Promise.reject(errorMessage));
@@ -821,7 +834,8 @@ describe('actions.events.api', () => {
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -841,7 +855,7 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('loads the Event if it is not in the store', (done) => {
             store.init();
@@ -860,7 +874,8 @@ describe('actions.events.api', () => {
                     expect(services.api('events').getById.args[0]).toEqual([data.events[0]._id]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns Promise.reject if getById fails', (done) => {
@@ -872,7 +887,8 @@ describe('actions.events.api', () => {
                     expect(error).toEqual(errorMessage);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -891,7 +907,7 @@ describe('actions.events.api', () => {
                 ]);
                 done();
             })
-    ));
+    ).catch(done.fail));
 
     it('unpost calls `events_post` endpoint', (done) => (
         store.test(done, eventsApi.unpost(data.events[0]))
@@ -908,7 +924,7 @@ describe('actions.events.api', () => {
                 ]);
                 done();
             })
-    ));
+    ).catch(done.fail));
 
     describe('_uploadFiles', () => {
         it('uploads files', (done) => {
@@ -936,7 +952,8 @@ describe('actions.events.api', () => {
                         {_id: 'test_file_2'},
                     ]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns Promise.reject if any upload fails', (done) => {
@@ -946,7 +963,8 @@ describe('actions.events.api', () => {
                 .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns if event has no files', (done) => (
@@ -956,7 +974,7 @@ describe('actions.events.api', () => {
                     expect(services.upload.start.callCount).toBe(0);
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('returns if no files to upload', (done) => {
             data.events[0].files = [{_id: 'test_file_1'}, {_id: 'test_file_2'}];
@@ -965,7 +983,8 @@ describe('actions.events.api', () => {
                     expect(files).toEqual([]);
                     expect(services.upload.start.callCount).toBe(0);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('only uploads new files', (done) => {
@@ -983,7 +1002,8 @@ describe('actions.events.api', () => {
 
                     expect(files).toEqual([{_id: 'test_file_1'}]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -1032,7 +1052,7 @@ describe('actions.events.api', () => {
 
                 done();
             })
-    ));
+    ).catch(done.fail));
 
     describe('save', () => {
         beforeEach(() => {
@@ -1062,7 +1082,8 @@ describe('actions.events.api', () => {
                     expect(eventsApi._save.callCount).toBe(0);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns Promise.reject is _saveLocation fails', (done) => {
@@ -1078,7 +1099,8 @@ describe('actions.events.api', () => {
                     expect(eventsApi._save.callCount).toBe(0);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('runs _save with files/location information', (done) => {
@@ -1105,7 +1127,8 @@ describe('actions.events.api', () => {
                     }]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('_save calls api.save', (done) => (
@@ -1138,7 +1161,7 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('doesnt call event.api.fetchById if it is a new Event', (done) => (
             store.test(done, eventsApi._save({name: 'New Event', slugline: 'New Slugline'}))
@@ -1157,7 +1180,7 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 
     describe('events.api.fetchCalendars', () => {
@@ -1206,7 +1229,7 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('fetchCalendars returns Promise.reject if an error occurs', (done) => {
             services.vocabularies.getVocabularies = sinon.spy(() => Promise.reject(errorMessage));
@@ -1214,7 +1237,8 @@ describe('actions.events.api', () => {
                 .then(null, (error) => {
                     expect(error).toBe(errorMessage);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 });

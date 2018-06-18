@@ -1,5 +1,6 @@
 import * as selectors from '../../selectors';
 import assignments from './index';
+import main from '../main';
 import {get} from 'lodash';
 import planning from '../planning';
 import {ASSIGNMENTS, WORKSPACE} from '../../constants';
@@ -52,6 +53,7 @@ const onAssignmentUpdated = (_e, data) => (
 
         if (planningItem) {
             dispatch(planning.api.receivePlannings([planningItem]));
+            dispatch(main.fetchItemHistory(planningItem));
         }
 
         if (!currentDesk) {
@@ -70,6 +72,7 @@ const onAssignmentUpdated = (_e, data) => (
 
         if (querySearchSettings.deskId === null ||
                 currentDesk === data.assigned_desk || currentDesk === data.original_assigned_desk) {
+            dispatch(assignments.api.fetchAssignmentHistory({_id: data.item}));
             dispatch(assignments.ui.reloadAssignments([data.assignment_state]));
 
             dispatch(assignments.api.fetchAssignmentById(data.item))
@@ -267,6 +270,13 @@ const onAssignmentRemoved = (_e, data) => (
                     ]
                 )
             );
+
+            const planningItem = _getPlanningItemOnAssignmentUpdate(data,
+                selectors.planning.storedPlannings(getState()));
+
+            if (planningItem) {
+                dispatch(main.fetchItemHistory(planningItem));
+            }
 
             return Promise.resolve();
         }

@@ -64,6 +64,7 @@ export const currentItemIdModal = (state) => get(state, 'forms.itemIdModal', nul
 export const currentItemTypeModal = (state) => get(state, 'forms.itemTypeModal', null);
 export const isLoadingItemModal = (state) => get(state, 'forms.loadingEditItemModal', false);
 export const initialValuesModal = (state) => get(state, 'forms.initialValuesModal', null);
+export const editorItemHistory = (state) => get(state, 'forms.itemHistory', false);
 
 export const currentItemModal = createSelector(
     [currentItemIdModal, currentItemTypeModal, storedEvents, storedPlannings, isLoadingItemModal, initialValuesModal],

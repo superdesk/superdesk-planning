@@ -11,15 +11,21 @@ Feature: Cancel all coverage
           "slugline": "test slugline",
           "state": "scheduled",
           "pubstatus": "usable",
-          "coverages": [{
-              "planning": {
-                  "ednote": "test coverage, 250 words",
-                  "headline": "test headline",
-                  "slugline": "test slugline",
-                  "scheduled": "2029-11-21T14:00:00.000Z",
-                  "g2_content_type": "text"
-              }
-          }]
+          "coverages": [
+            {
+                "planning": {
+                    "ednote": "test coverage, 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline",
+                    "scheduled": "2029-11-21T14:00:00.000Z",
+                    "g2_content_type": "text"
+                },
+                "workflow_status": "draft",
+                "news_coverage_status": {
+                    "qcode": "ncostat:int"
+                }
+            }
+          ]
       }]
       """
       When we perform cancel on planning "123"
@@ -75,6 +81,10 @@ Feature: Cancel all coverage
           "state": "draft",
           "lock_action": "planning_cancel",
           "coverages": [{
+              "workflow_status": "draft",
+              "news_coverage_status": {
+                  "qcode": "ncostat:int"
+              },
               "planning": {
                   "ednote": "test coverage, 250 words",
                   "headline": "test headline",

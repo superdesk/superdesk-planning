@@ -157,6 +157,24 @@ Feature: Assignments
     Scenario: Assignments move from draft to assigned when coverage is made active
         Given empty "assignments"
         Given empty "assignments_history"
+        Given "vocabularies"
+        """
+        [{
+            "_id": "newscoveragestatus",
+            "display_name": "News Coverage Status",
+            "type": "manageable",
+            "unique_field": "qcode",
+            "items": [
+                {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
+                    "label": "On merit"},
+                {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
+                    "label": "Not planned"},
+                {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
+                    "label": "On request"}
+            ]
+        }]
+        """
         When we post to "assignments"
         """
         [
@@ -199,7 +217,10 @@ Feature: Assignments
                             "qcode": "stringer",
                             "name": "Stringer"}
                     },
-                    "workflow_status": "draft"
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                        "qcode": "ncostat:int"
+                    }
                 }
             ]
         }
@@ -294,6 +315,9 @@ Feature: Assignments
                         "assignment_id": "#firstassignment#",
                         "coverage_provider": {"name": "Stringer"},
                         "state": "draft"
+                    },
+                    "news_coverage_status": {
+                        "qcode": "ncostat:int"
                     }
                 }
             ]

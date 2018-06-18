@@ -56,6 +56,11 @@ export class PreviewPanelComponent extends React.Component {
             this.setActiveTab(0);
         }
 
+        if (nextProps.itemId === null) {
+            // Preview closed
+            this.setActiveTab(0);
+        }
+
         if (nextProps.itemId !== null && nextProps.itemId !== this.props.itemId) {
             // Using setTimeout allows the PreviewPanel to clear before displaying the new item
             setTimeout(() => {

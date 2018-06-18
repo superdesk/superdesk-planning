@@ -14,15 +14,18 @@ from planning.history import HistoryService
 import logging
 from eve.utils import config
 from collections import namedtuple
+from planning.common import WORKFLOW_STATE
 
 logger = logging.getLogger(__name__)
 
 assignment_history_actions = ['add_to_workflow', 'edit_priority', 'reassigned', 'content_link', 'complete',
-                              'confirm', 'revert', 'submitted', 'cancelled', 'spike_unlink', 'unlink', 'start_working']
+                              'confirm', 'revert', 'submitted', 'cancelled', 'spike_unlink', 'unlink',
+                              'start_working', 'assignment_removed']
 ASSIGNMENT_HISTORY_ACTIONS = namedtuple('ASSIGNMENT_HISTORY_ACTIONS',
                                         ['ADD_TO_WORKFLOW', 'EDIT_PRIORITY', 'REASSIGNED', 'CONTENT_LINK',
                                          'COMPLETE', 'CONFIRM', 'REVERT', 'SUBMITTED', 'CANCELLED',
-                                         'SPIKE_UNLINK', 'UNLINK', 'START_WORKING'])(*assignment_history_actions)
+                                         'SPIKE_UNLINK', 'UNLINK', 'START_WORKING',
+                                         'ASSIGNMENT_REMOVED'])(*assignment_history_actions)
 
 
 class AssignmentsHistoryResource(Resource):
@@ -78,14 +81,22 @@ class AssignmentsHistoryService(HistoryService):
             planning_history_service._save_history({'_id': original.get('planning_item')},
                                                    cov_diff, ASSIGNMENT_HISTORY_ACTIONS.REASSIGNED)
 
+    def on_item_deleted(self, doc):
+        planning = {'_id': doc.get('planning_item')}
+        coverage_diff = {
+            'coverage_id': doc.get('coverage_item'),
+            'workflow_status': WORKFLOW_STATE.DRAFT
+        }
+        get_resource_service('planning_history')._save_history(planning, coverage_diff,
+                                                               ASSIGNMENT_HISTORY_ACTIONS.ASSIGNMENT_REMOVED)
+
     def _update_assignment_coverage_history(self, updates, original, operation):
         self.on_item_updated(updates, original, operation)
         cov = {'coverage_id': original.get('coverage_item')}
-        if operation in [
-                ASSIGNMENT_HISTORY_ACTIONS.CONFIRM,
-                ASSIGNMENT_HISTORY_ACTIONS.REVERT,
-                ASSIGNMENT_HISTORY_ACTIONS.COMPLETE]:
-            cov['assigned_to'] = updates.get('assigned_to')
+        cov['assigned_to'] = updates.get('assigned_to')
+
+        if operation == ASSIGNMENT_HISTORY_ACTIONS.ADD_TO_WORKFLOW:
+            cov['workflow_status'] = WORKFLOW_STATE.ACTIVE
 
         get_resource_service('planning_history')._save_history({'_id': original.get('planning_item')}, cov, operation)
 

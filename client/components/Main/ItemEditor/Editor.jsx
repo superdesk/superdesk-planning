@@ -63,7 +63,7 @@ export class EditorComponent extends React.Component {
 
         this.tabs = [
             {label: gettext('Content'), render: EditorContentTab, enabled: true},
-            {label: gettext('History'), render: HistoryTab, enabled: true},
+            {label: gettext('History'), render: HistoryTab, enabled: true, tabProps: {forEditor: true}},
         ];
 
         if (this.props.addNewsItemToPlanning) {
@@ -140,7 +140,10 @@ export class EditorComponent extends React.Component {
     }
 
     onItemIDChanged(nextProps) {
-        this.setState({itemReady: false}, () => {
+        this.setState({
+            itemReady: false,
+            tab: 0,
+        }, () => {
             if (isTemporaryId(nextProps.itemId)) {
                 // This happens when the editor is opened on an existing item and
                 // the user attempts to create a new item
@@ -182,7 +185,10 @@ export class EditorComponent extends React.Component {
         if (!nextProps.itemType || !nextProps.itemId) {
             // If the editor has been closed, then set the itemReady state to false
             this.flushAutosave();
-            this.setState({itemReady: false});
+            this.setState({
+                itemReady: false,
+                tab: 0,
+            });
         } else if (nextProps.item !== null && this.props.item === null) {
             // This happens when the Editor has finished loading an existing item or creating a duplicate
             this.onFinishLoading(nextProps);
@@ -549,8 +555,8 @@ export class EditorComponent extends React.Component {
             get(itemLock, 'action') !== 'edit'
         );
 
-        const RenderTab = this.tabs[this.state.tab].enabled ? this.tabs[this.state.tab].render :
-            this.tabs[0].render;
+        const currentTab = this.tabs[this.state.tab].enabled ? this.tabs[this.state.tab] :
+            this.tabs[0];
 
         return (
             <Content flex={true} className={this.props.contentClassName}>
@@ -568,7 +574,7 @@ export class EditorComponent extends React.Component {
                     {'editorModal__editor--padding-bottom': !!get(this.props, 'navigation.padContentForNavigation')}
                 )} >
                     {(!this.props.isLoadingItem && this.props.itemType) && (
-                        <RenderTab
+                        <currentTab.render
                             item={this.props.item || {}}
                             itemType={this.props.itemType}
                             itemExists={isExistingItem(this.state.diff)}
@@ -581,6 +587,7 @@ export class EditorComponent extends React.Component {
                             dirty={this.state.dirty}
                             startPartialSave={this.startPartialSave}
                             navigation={this.props.navigation}
+                            {...currentTab.tabProps}
                         />
                     )}
                 </div>
