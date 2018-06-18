@@ -193,7 +193,7 @@ export class EventEditorComponent extends React.Component {
                     <Field
                         component={TextInput}
                         field="name"
-                        label={gettext('Name')}
+                        label={gettext('Event name')}
                         {...fieldProps}
                         onFocus={onFocusEvent}
                     />

@@ -123,7 +123,7 @@ export class FileInput extends React.Component {
                 (value && (this.getComponent(value)))}
             {!readOnly && <div onDrop={this.onDrop} onDragEnter={this.onDragEnter} className="basic-drag-block">
                 <i className="big-icon--upload-alt" />
-                <span className="basic-drag-block__text">{gettext('Drag files here or ')}</span>
+                <span className="basic-drag-block__text">{gettext('Drag files here or') + ' '}</span>
                 <a className="text-link link" onClick={this.onBrowseClick}>&nbsp;{gettext('browse')}
                     <Input
                         className="file-input--hidden"

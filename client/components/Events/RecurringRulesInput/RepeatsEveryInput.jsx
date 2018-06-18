@@ -39,7 +39,7 @@ export class RepeatsEveryInput extends React.Component {
         const frequency = props.frequency || repeatChoices[0].key;
 
         const getLabel = (n) => {
-            let label = `${n} ${repeatEveryChoices[frequency]}`;
+            let label = `${n} ${gettext(repeatEveryChoices[frequency])}`;
 
             if (n > 1) {
                 label += 's';
