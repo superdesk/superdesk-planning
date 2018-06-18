@@ -21,10 +21,12 @@ class NTBEventTestCase(unittest.TestCase):
             },
             'definition_short': 'Kronprinsparet besøker bydelen Gamle Oslo.',
             'anpa_category': [
-                {'qcode': 'o', 'name': 'Innenriks'},
+                {'qcode': 'n', 'name': 'Nyhetstjenesten'},
             ],
             'subject': [
                 {'qcode': '05001000', 'name': 'adult education', 'parent': '0500000'},
+                {'name': 'Innenriks', 'qcode': 'Innenriks', 'scheme': 'category'},
+                {'name': 'Forurensning', 'qcode': '06005000', 'scheme': 'subject_custom'}
             ],
             'location': [
                 {
@@ -65,10 +67,11 @@ class NTBEventTestCase(unittest.TestCase):
         self.assertEqual('2016-11-01T23:59:59', root.find('timeEnd').text)
         self.assertEqual('5', root.find('priority').text)
         self.assertEqual(self.item['definition_short'], root.find('content').text)
-        self.assertEqual(self.item['anpa_category'][0]['name'], root.find('category').text)
+        self.assertEqual(self.item['subject'][1]['name'], root.find('category').text)
         subjects = root.find('subjects')
-        self.assertEqual(1, len(subjects))
+        self.assertEqual(2, len(subjects))
         self.assertEqual(self.item['subject'][0]['name'], subjects[0].text)
+        self.assertEqual(self.item['subject'][2]['name'], subjects[1].text)
         geo = root.find('geo')
         self.assertEqual(str(self.item['location'][0]['location']['lat']), geo.find('latitude').text)
         self.assertEqual(str(self.item['location'][0]['location']['lon']), geo.find('longitude').text)
