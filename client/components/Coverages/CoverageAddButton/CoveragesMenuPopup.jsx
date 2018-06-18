@@ -1,0 +1,81 @@
+import React from 'react';
+import PropTypes from 'prop-types';
+import {get} from 'lodash';
+
+import {GENERIC_ITEM_ACTIONS} from '../../../constants';
+import {onEventCapture} from '../../../utils';
+
+import {Popup, Content} from '../../UI/Popup';
+
+export class CoveragesMenuPopup extends React.PureComponent {
+    triggerAction(action, event) {
+        this.props.closeMenu(event);
+        action.callback();
+    }
+
+    render() {
+        const {actions, closeMenu, target} = this.props;
+
+        let items = actions.map(this.renderItem.bind(this));
+
+        return (
+            <Popup
+                target={target}
+                close={closeMenu}
+                noPadding={true}
+                className="item-actions-menu__popup"
+            >
+                <Content noPadding={true}>
+                    <ul className="dropdown dropdown__menu more-activity-menu open">
+                        <li onClick={onEventCapture.bind(this)}>
+                            <div className="dropdown__menu-label">
+                                Coverage Type
+                                <button
+                                    className="dropdown__menu-close"
+                                    onClick={closeMenu}
+                                >
+                                    <i className="icon-close-small" />
+                                </button>
+                            </div>
+                        </li>
+                        <li className="dropdown__menu-divider" />
+                        {items}
+                    </ul>
+                </Content>
+            </Popup>
+        );
+    }
+
+    renderItem(action) {
+        const key = action.key ? action.key : action.label;
+
+        if (get(action, 'text')) {
+            // Header of a menu
+            return (
+                <div className="dropdown__menu-label">{action.text}</div>
+            );
+        }
+
+        if (action.label === GENERIC_ITEM_ACTIONS.DIVIDER.label) {
+            return <li key={key} className="dropdown__menu-divider" />;
+        }
+
+        const trigger = this.triggerAction.bind(this, action);
+
+        return (
+            <li key={key}>
+                <button id={action.id} onClick={trigger}>
+                    {action.icon && (<i className={action.icon}/>)}
+                    {action.label}
+                </button>
+            </li>
+        );
+    }
+}
+
+
+CoveragesMenuPopup.propTypes = {
+    closeMenu: PropTypes.func.isRequired,
+    actions: PropTypes.array.isRequired,
+    target: PropTypes.string.isRequired,
+};

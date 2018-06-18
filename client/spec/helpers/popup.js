@@ -10,4 +10,8 @@ export class Popup {
             'Timeout while waiting for the Popup to be visible'
         );
     }
+
+    getMenu(className) {
+        return element(by.className(className));
+    }
 }
