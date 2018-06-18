@@ -119,7 +119,7 @@ class AssignmentGroupListComponent extends React.Component {
                             className="sd-list-header__name sd-list-header__name--cursorPointer"
                             onClick={this.changeAssignmentListSingleGroupView}
                         >
-                            <a>{ASSIGNMENTS.LIST_GROUPS[groupKey].label}</a>
+                            <a>{gettext(ASSIGNMENTS.LIST_GROUPS[groupKey].label)}</a>
                         </a>
                         <span className="sd-list-header__number badge">{totalCount}</span>
                     </Header>

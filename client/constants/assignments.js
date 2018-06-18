@@ -65,15 +65,15 @@ export const ASSIGNMENTS = {
     DEFAULT_PRIORITY: 2,
     LIST_GROUPS: {
         TODO: {
-            label: 'To Do',
+            label: gettext('To Do'),
             states: ['assigned', 'submitted'],
         },
         IN_PROGRESS: {
-            label: 'In Progress',
+            label: gettext('In Progress'),
             states: ['in_progress'],
         },
         COMPLETED: {
-            label: 'Completed',
+            label: gettext('Completed'),
             states: ['completed', 'cancelled'],
         },
     },
