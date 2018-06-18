@@ -59,13 +59,16 @@ class NTBEventFormatter(Formatter):
     def _format_subjects(self, doc, item):
         subjects = etree.SubElement(doc, 'subjects')
         for subject in item.get('subject', []):
-            subject_elem = etree.SubElement(subjects, 'subject')
-            subject_elem.text = subject.get('name')
+            if 'subject' in subject.get('scheme', 'subject'):
+                subject_elem = etree.SubElement(subjects, 'subject')
+                subject_elem.text = subject.get('name')
 
     def _format_category(self, doc, item):
         category = etree.SubElement(doc, 'category')
-        if item.get('anpa_category'):
-            category.text = item['anpa_category'][0].get('name')
+        for subject in item.get('subject', []):
+            if subject.get('scheme') == 'category':
+                category.text = subject.get('name')
+                return
 
     def _format_location(self, doc, item):
         geo = etree.SubElement(doc, 'geo')
