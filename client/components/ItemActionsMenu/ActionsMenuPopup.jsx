@@ -5,9 +5,16 @@ import {get} from 'lodash';
 
 import {GENERIC_ITEM_ACTIONS} from '../../constants';
 import {onEventCapture} from '../../utils';
+import {gettext} from '../../utils/gettext';
 
 import {Popup, Content} from '../UI/Popup';
 
+/**
+ * ActionMenuPopup component
+ *
+ * action labels must use gettext here because only when rendering
+ * there will be translations available, not when the constant is defined.
+ */
 export class ActionsMenuPopup extends React.PureComponent {
     triggerAction(action, event) {
         this.props.closeMenu(event);
@@ -33,7 +40,7 @@ export class ActionsMenuPopup extends React.PureComponent {
                     <ul className="dropdown dropdown__menu more-activity-menu open">
                         <li onClick={onEventCapture.bind(this)}>
                             <div className="dropdown__menu-label">
-                                Actions
+                                {gettext('Actions')}
                                 <button
                                     className="dropdown__menu-close"
                                     onClick={closeMenu}
@@ -56,7 +63,7 @@ export class ActionsMenuPopup extends React.PureComponent {
         if (get(action, 'text')) {
             // Header of a menu or submenu
             return (
-                <div className="dropdown__menu-label">{action.text}</div>
+                <div className="dropdown__menu-label">{gettext(action.text)}</div>
             );
         }
 
@@ -65,7 +72,9 @@ export class ActionsMenuPopup extends React.PureComponent {
 
             if (!items.length) {
                 items = <li>
-                    <button onClick={this.props.closeMenu.bind(this)}>There are no actions available.</button>
+                    <button onClick={this.props.closeMenu.bind(this)}>
+                        {gettext('There are no actions available.')}
+                    </button>
                 </li>;
             }
 
@@ -76,7 +85,7 @@ export class ActionsMenuPopup extends React.PureComponent {
                     <div className="dropdown dropdown--noarrow">
                         <a className="dropdown__toggle" onClick={this.props.closeMenu.bind(this)}>
                             {action.icon && (<i className={action.icon}/>)}
-                            {action.label}
+                            {gettext(action.label)}
                         </a>
                         <ul className={'dropdown__menu dropdown__menu--submenu-' + submenuDirection}>
                             {items}
@@ -99,7 +108,7 @@ export class ActionsMenuPopup extends React.PureComponent {
                     onClick={trigger}
                 >
                     {action.icon && (<i className={action.icon}/>)}
-                    {action.label}
+                    {gettext(action.label)}
                 </button>
             </li>
         );

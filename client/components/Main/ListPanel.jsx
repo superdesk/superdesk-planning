@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import {ListGroup} from '.';
 import {PanelInfo} from '../UI';
-import {gettext} from '../../utils';
+import {gettext} from '../../utils/gettext';
 import './style.scss';
 
 export class ListPanel extends React.Component {
@@ -100,8 +100,8 @@ export class ListPanel extends React.Component {
                 <div className="loading-indicator">{gettext('Loading')}</div>}
                 {!loadingIndicator && groups.length <= 0 &&
                 <PanelInfo
-                    heading="No Event or Planning items found"
-                    description="Create new items or change your search filters"
+                    heading={gettext('No Event or Planning items found')}
+                    description={gettext('Create new items or change your search filters')}
                 />}
                 {groups.length > 0 &&
                 <div className="sd-column-box__main-column__items"

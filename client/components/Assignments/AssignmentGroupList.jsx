@@ -6,7 +6,8 @@ import {get} from 'lodash';
 import {ASSIGNMENTS, UI} from '../../constants';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
-import {assignmentUtils, gettext} from '../../utils';
+import {assignmentUtils} from '../../utils';
+import {gettext} from '../../utils/gettext';
 
 import {AssignmentItem} from './AssignmentItem';
 import {Header, Group} from '../UI/List';
@@ -119,7 +120,7 @@ class AssignmentGroupListComponent extends React.Component {
                             className="sd-list-header__name sd-list-header__name--cursorPointer"
                             onClick={this.changeAssignmentListSingleGroupView}
                         >
-                            <span>{ASSIGNMENTS.LIST_GROUPS[groupKey].label}</span>
+                            <span>{gettext(ASSIGNMENTS.LIST_GROUPS[groupKey].label)}</span>
                         </a>
                         <span className="sd-list-header__number badge">{totalCount}</span>
                     </Header>
