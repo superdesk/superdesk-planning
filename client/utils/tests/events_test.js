@@ -193,6 +193,21 @@ describe('EventUtils', () => {
         expect(eventUtils.eventHasPlanning(events.e3)).toBe(false);
     });
 
+    it('canCreatePlanningFromEvent', () => {
+        const privileges = {planning_planning_management: 1};
+
+        expect(eventUtils.canCreatePlanningFromEvent({state: 'spiked'},
+            session, privileges, lockedItems)).toBe(false);
+        expect(eventUtils.canCreatePlanningFromEvent({state: 'draft'},
+            session, privileges, lockedItems)).toBe(true);
+        expect(eventUtils.canCreatePlanningFromEvent({state: 'cancelled'},
+            session, privileges, lockedItems)).toBe(false);
+        expect(eventUtils.canCreatePlanningFromEvent({state: 'rescheduled'},
+            session, privileges, lockedItems)).toBe(false);
+        expect(eventUtils.canCreatePlanningFromEvent({state: 'postponed'},
+            session, privileges, lockedItems)).toBe(false);
+    });
+
     const isEventLocked = (event, result) => (
         expect(eventUtils.isEventLocked(event, lockedItems)).toBe(result)
     );
