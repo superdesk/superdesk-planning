@@ -183,3 +183,12 @@ class NTBEventTestCase(unittest.TestCase):
 
         # include only 1st external link
         self.assertEqual(contactweb.text, self.item['links'][0])
+
+    def test_content_missing_desc_short(self):
+        formatter = NTBEventFormatter()
+        item = self.item.copy()
+        item['definition_short'] = None
+        item['definition_long'] = 'Long desc'
+        output = formatter.format(item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        self.assertIsNone(root.find('content').text)
