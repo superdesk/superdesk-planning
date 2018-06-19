@@ -50,7 +50,7 @@ class NTBEventFormatter(Formatter):
         priority = etree.SubElement(doc, 'priority')
         priority.text = str(item.get('priority', self.PRIORITY))
         content = etree.SubElement(doc, 'content')
-        content.text = item.get('definition_long', item.get('definition_short'))
+        content.text = item.get('definition_short', '')
         self._format_category(doc, item)
         self._format_subjects(doc, item)
         self._format_location(doc, item)
