@@ -21,7 +21,7 @@ from superdesk import get_resource_service
 from superdesk.resource import not_analyzed
 from superdesk.users.services import current_user_has_privilege
 from superdesk.notification import push_notification
-from apps.archive.common import set_original_creator, get_user, get_auth
+from apps.archive.common import set_original_creator, get_user, get_auth, update_dates_for
 from copy import deepcopy
 from eve.utils import config, ParsedRequest
 from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, get_coverage_cancellation_state,\
@@ -95,6 +95,8 @@ class PlanningService(superdesk.Service):
             self._set_planning_event_info(doc)
             self._set_coverage(doc)
             self.set_planning_schedule(doc)
+            # set timestamps
+            update_dates_for(doc)
 
     def on_created(self, docs):
         session_id = get_auth().get('_id')
@@ -146,6 +148,7 @@ class PlanningService(superdesk.Service):
         self.__generate_related_assignments([item])
 
     def update(self, id, updates, original):
+        updates.setdefault('versioncreated', utcnow())
         item = self.backend.update(self.datasource, id, updates, original)
         return item
 
