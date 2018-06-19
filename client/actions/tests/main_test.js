@@ -1,4 +1,6 @@
 import sinon from 'sinon';
+import moment from 'moment';
+
 import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
 import {main} from '../';
 import {AGENDA, MAIN} from '../../constants';
@@ -506,38 +508,82 @@ describe('actions.main', () => {
             restoreSinonStub(main.openEditor);
         });
 
-        it('loads the preview item from the URL', () => {
+        it('loads the preview item from the URL', (done) => {
             store.init();
             services.$location.search('preview', JSON.stringify({id: 'e1', type: 'event'}));
-            store.test(null, main.openFromURLOrRedux('preview'));
-            expect(main.openPreview.callCount).toBe(1);
-            expect(main.openPreview.args[0]).toEqual([{_id: 'e1', type: 'event'}]);
+            store.test(done, main.openFromURLOrRedux('preview'))
+                .then(() => {
+                    expect(main.openPreview.callCount).toBe(1);
+                    expect(main.openPreview.args[0]).toEqual([{
+                        ...data.events[0],
+                        dates: {
+                            ...data.events[0].dates,
+                            start: moment(data.events[0].dates.start),
+                            end: moment(data.events[0].dates.end),
+                        },
+                    }]);
+
+                    done();
+                }, done.fail);
         });
 
-        it('loads the preview item from the Redux store', () => {
+        it('loads the preview item from the Redux store', (done) => {
             store.init();
             store.initialState.main.previewId = 'e1';
             store.initialState.main.previewType = 'event';
-            store.test(null, main.openFromURLOrRedux('preview'));
-            expect(main.openPreview.callCount).toBe(1);
-            expect(main.openPreview.args[0]).toEqual([{_id: 'e1', type: 'event'}]);
+            store.test(done, main.openFromURLOrRedux('preview'))
+                .then(() => {
+                    expect(main.openPreview.callCount).toBe(1);
+                    expect(main.openPreview.args[0]).toEqual([{
+                        ...data.events[0],
+                        dates: {
+                            ...data.events[0].dates,
+                            start: moment(data.events[0].dates.start),
+                            end: moment(data.events[0].dates.end),
+                        },
+                    }]);
+
+                    done();
+                }, done.fail);
         });
 
-        it('loads the edit item from the URL', () => {
+        it('loads the edit item from the URL', (done) => {
             store.init();
             services.$location.search('edit', JSON.stringify({id: 'e1', type: 'event'}));
-            store.test(null, main.openFromURLOrRedux('edit'));
-            expect(main.openEditor.callCount).toBe(1);
-            expect(main.openEditor.args[0]).toEqual([{_id: 'e1', type: 'event'}]);
+            store.test(done, main.openFromURLOrRedux('edit'))
+                .then(() => {
+                    expect(main.openEditor.callCount).toBe(1);
+                    expect(main.openEditor.args[0]).toEqual([{
+                        ...data.events[0],
+                        dates: {
+                            ...data.events[0].dates,
+                            start: moment(data.events[0].dates.start),
+                            end: moment(data.events[0].dates.end),
+                        },
+                    }]);
+
+                    done();
+                }, done.fail);
         });
 
-        it('loads the edit item from the Redux store', () => {
+        it('loads the edit item from the Redux store', (done) => {
             store.init();
             store.initialState.forms.itemId = 'e1';
             store.initialState.forms.itemType = 'event';
-            store.test(null, main.openFromURLOrRedux('edit'));
-            expect(main.openEditor.callCount).toBe(1);
-            expect(main.openEditor.args[0]).toEqual([{_id: 'e1', type: 'event'}]);
+            store.test(done, main.openFromURLOrRedux('edit'))
+                .then(() => {
+                    expect(main.openEditor.callCount).toBe(1);
+                    expect(main.openEditor.args[0]).toEqual([{
+                        ...data.events[0],
+                        dates: {
+                            ...data.events[0].dates,
+                            start: moment(data.events[0].dates.start),
+                            end: moment(data.events[0].dates.end),
+                        },
+                    }]);
+
+                    done();
+                }, done.fail);
         });
     });
 

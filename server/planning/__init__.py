@@ -74,6 +74,12 @@ def init_app(app):
         description='Ability to edit expired Event and Planning items'
     )
 
+    superdesk.privilege(
+        name='planning_create_past',
+        label='Planning - Create Event/Planning in the past',
+        description='Ability to create an Event or Planning item in the past'
+    )
+
     app.on_update_users += PlanningNotifications().user_update
 
     superdesk.register_default_user_preference('slack:notification', {

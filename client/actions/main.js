@@ -364,14 +364,21 @@ const saveAutosave = (item, withConfirmation = true, updateMethod) => (
     }
 );
 
-const isItemValid = (item) => (
+const isItemValid = (diff) => (
     (dispatch, getState) => {
-        const itemType = getItemType(item);
+        const profileName = getItemType(diff);
         const formProfiles = selectors.forms.profiles(getState());
         const errors = {};
         const messages = [];
 
-        dispatch(validateItem(itemType, item, formProfiles, errors, messages));
+        dispatch(validateItem({
+            profileName,
+            diff,
+            formProfiles,
+            errors,
+            messages,
+        }));
+
         return isEqual(errors, {});
     }
 );
@@ -988,21 +995,27 @@ const openFromURLOrRedux = (action) => (
         }
 
         if (item.id && item.type) {
-            if (action === MAIN.PREVIEW) {
-                dispatch(self.openPreview({
-                    _id: item.id,
-                    type: item.type,
-                }));
-            } else if (action === MAIN.EDIT) {
-                dispatch(self.openEditor({
-                    _id: item.id,
-                    type: item.type,
-                }));
-            }
-        } else {
-            // Remove the item from the URL
-            $location.search(action, null);
+            // Make sure the item is loaded into the redux store
+            // and store the entire item in the forms initialValues
+            return dispatch(self.fetchById(item.id, item.type))
+                .then((loadedItem) => {
+                    if (action === MAIN.PREVIEW) {
+                        return dispatch(self.openPreview(loadedItem || {
+                            _id: item.id,
+                            type: item.type,
+                        }));
+                    } else if (action === MAIN.EDIT) {
+                        return dispatch(self.openEditor(loadedItem || {
+                            _id: item.id,
+                            type: item.type,
+                        }));
+                    }
+                });
         }
+
+        // Remove the item from the URL
+        $location.search(action, null);
+        return Promise.resolve();
     }
 );
 

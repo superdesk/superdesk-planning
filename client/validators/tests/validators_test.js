@@ -74,7 +74,13 @@ describe('validators', () => {
             formData.diff = cloneDeep(formData.diff);
             set(formData.diff, field, value);
 
-            dispatch(validateItem('test', formData.diff, {}, formData.errors));
+            // dispatch(validateItem('test', formData.diff, {}, formData.errors));
+            dispatch(validateItem({
+                profileName: 'test',
+                diff: formData.diff,
+                formProfiles: {},
+                errors: formData.errors,
+            }));
         });
 
         formData = {
@@ -87,27 +93,27 @@ describe('validators', () => {
             },
         };
 
-        validateRequired = sinon.spy((dispatch, getState, field, value, profile, e) => {
+        validateRequired = sinon.spy(({field, value, errors}) => {
             if (get(value, length, 0) < 1) {
                 if (field === 'datetime') {
-                    e.datetime = {
+                    errors.datetime = {
                         date: 'This field is required',
                         time: 'This field is required',
                     };
                 } else {
-                    e[field] = 'This field is required';
+                    errors[field] = 'This field is required';
                 }
             }
         });
 
-        validate1 = sinon.spy((dispatch, getState, field, value, profile, e) => {
+        validate1 = sinon.spy(({field, errors}) => {
             if (field === 'slugline') {
-                e[field] = 'Validate 1 failed';
+                errors[field] = 'Validate 1 failed';
             }
         });
 
-        validate2 = sinon.spy((dispatch, getState, field, value, profile, e) => {
-            e[field] = 'Validate 2 failed';
+        validate2 = sinon.spy(({field, errors}) => {
+            errors[field] = 'Validate 2 failed';
         });
 
         validators.test = {
@@ -160,7 +166,12 @@ describe('validators', () => {
             };
 
             // Validate on first render
-            dispatch(validateItem('test', formData.diff, {}, formData.errors));
+            dispatch(validateItem({
+                profileName: 'test',
+                diff: formData.diff,
+                formProfiles: {},
+                errors: formData.errors,
+            }));
             wrapper.update();
         };
 
@@ -230,18 +241,41 @@ describe('validators', () => {
     });
 
     it('validateItem: calls all validators in the list', () => {
-        dispatch(validateItem('test', formData.item, {}, formData.errors));
+        dispatch(validateItem({
+            profileName: 'test',
+            diff: formData.item,
+            formProfiles: {},
+            errors: formData.errors,
+        }));
 
         expect(validate1.callCount).toBe(2);
-        expect(validate1.args[0]).toEqual(
-            [dispatch, getState, 'slugline', 'slugline 1', undefined, formData.errors, []]
-        );
-        expect(validate1.args[1]).toEqual(
-            [dispatch, getState, 'name', 'name 2', undefined, formData.errors, []]
-        );
+        expect(validate1.args[0]).toEqual([jasmine.objectContaining({
+            dispatch: dispatch,
+            getState: getState,
+            field: 'slugline',
+            value: 'slugline 1',
+            errors: formData.errors,
+            messages: [],
+        })]);
+
+        expect(validate1.args[1]).toEqual([jasmine.objectContaining({
+            dispatch: dispatch,
+            getState: getState,
+            field: 'name',
+            value: 'name 2',
+            errors: formData.errors,
+            messages: [],
+        })]);
 
         expect(validate2.callCount).toBe(1);
-        expect(validate2.args[0]).toEqual([dispatch, getState, 'name', 'name 2', undefined, formData.errors, []]);
+        expect(validate2.args[0]).toEqual([jasmine.objectContaining({
+            dispatch: dispatch,
+            getState: getState,
+            field: 'name',
+            value: 'name 2',
+            errors: formData.errors,
+            messages: [],
+        })]);
 
         expect(formData.errors).toEqual({
             slugline: 'Validate 1 failed',

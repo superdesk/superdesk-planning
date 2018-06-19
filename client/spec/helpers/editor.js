@@ -1,7 +1,7 @@
 import {forEach} from 'lodash';
 
 import {getInputHelper} from './form';
-import {waitAndClick} from './utils';
+import {waitAndClick, waitPresent} from './utils';
 
 class Editor {
     constructor() {
@@ -63,7 +63,11 @@ class Editor {
     }
 
     openAllToggleBoxes() {
-        this.editor.all(by.xpath('//div[@class="toggle-box toggle-box--circle hidden"]/a'))
+        const xpath = '//div[@class="toggle-box toggle-box--circle hidden"]/a';
+
+        // Wait for the Toggle boxes to be visible before opening them
+        waitPresent(this.editor.all(by.xpath(xpath)));
+        this.editor.all(by.xpath(xpath))
             .each((toggleHeader) => waitAndClick(toggleHeader));
     }
 }

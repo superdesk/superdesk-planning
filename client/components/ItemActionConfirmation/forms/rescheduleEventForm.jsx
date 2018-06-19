@@ -8,7 +8,7 @@ import {validateItem} from '../../../validators';
 import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
 import {gettext, eventUtils, getDateTimeString, updateFormValues} from '../../../utils';
-import {EVENTS} from '../../../constants';
+import {EVENTS, ITEM_TYPE} from '../../../constants';
 
 import {EventScheduleSummary, EventScheduleInput} from '../../Events';
 import {RelatedPlannings} from '../../';
@@ -24,6 +24,7 @@ export class RescheduleEventComponent extends React.Component {
             diff: null,
             reason: '',
             errors: {},
+            errorMessages: [],
             multiDayChanged: false,
         };
 
@@ -53,11 +54,13 @@ export class RescheduleEventComponent extends React.Component {
         }
 
         const errors = cloneDeep(this.state.errors);
+        const errorMessages = [];
 
         this.props.onValidate(
             diff,
             this.props.formProfiles,
-            errors
+            errors,
+            errorMessages
         );
 
         const multiDayChanged = eventUtils.isEventSameDay(initialValues.dates.start, initialValues.dates.end) &&
@@ -67,12 +70,13 @@ export class RescheduleEventComponent extends React.Component {
             diff,
             errors,
             multiDayChanged,
+            errorMessages,
         });
 
         if (isEqual(diff.dates, initialValues.dates) ||
             (diff.dates.recurring_rule &&
             !diff.dates.recurring_rule.until && !diff.dates.recurring_rule.count) ||
-            !isEqual(errors, {})
+            !isEqual(errorMessages, [])
         ) {
             this.props.disableSaveInModal();
         } else {
@@ -233,7 +237,14 @@ const mapDispatchToProps = (dispatch) => ({
         return promise;
     },
 
-    onValidate: (item, profile, errors) => dispatch(validateItem('event', item, profile, errors, [], ['dates'])),
+    onValidate: (item, profile, errors, errorMessages) => dispatch(validateItem({
+        profileName: ITEM_TYPE.EVENT,
+        diff: item,
+        formProfiles: profile,
+        errors: errors,
+        messages: errorMessages,
+        fields: ['dates'],
+    })),
 });
 
 export const RescheduleEventForm = connect(

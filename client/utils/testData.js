@@ -20,6 +20,8 @@ export const privileges = {
     planning_event_unpost: 1,
     planning_planning_post: 1,
     planning_planning_unpost: 1,
+    planning_edit_expired: 1,
+    planning_create_past: 1,
 };
 
 export const sessions = [
