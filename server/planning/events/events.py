@@ -127,6 +127,7 @@ class EventsService(superdesk.Service):
             if 'guid' not in event:
                 event['guid'] = generate_guid(type=GUID_NEWSML)
             event[config.ID_FIELD] = event['guid']
+
             # set the author
             set_original_creator(event)
 
@@ -136,6 +137,11 @@ class EventsService(superdesk.Service):
             # We ignore the 'update_method' on create
             if 'update_method' in event:
                 del event['update_method']
+
+            # Remove the 'expired' flag if it is set, as no new Event can be created
+            # as expired
+            if 'expired' in event:
+                del event['expired']
 
             set_planning_schedule(event)
             planning_item = event.get('_planning_item')

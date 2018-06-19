@@ -8,6 +8,7 @@ export class Input {
         this.input = row.element(
             by.xpath(`//${type}[@name="${name}"]`)
         );
+        this.name = name;
     }
 
     getValue() {
@@ -18,7 +19,8 @@ export class Input {
         this.input.clear();
         browser.wait(
             () => isFieldEmpty(this.input),
-            7500
+            7500,
+            `Timeout while waiting for input '${this.name}' to be cleared`
         );
         return this.input.sendKeys(value);
     }

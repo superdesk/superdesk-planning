@@ -6,7 +6,8 @@ export class Popup {
     static wait(className = 'popup') {
         browser.wait(
             () => element(by.className(className)).isPresent(),
-            7500
+            7500,
+            'Timeout while waiting for the Popup to be visible'
         );
     }
 }

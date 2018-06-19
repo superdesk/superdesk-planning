@@ -8,21 +8,27 @@ export const isFieldEmpty = (field) => field.getAttribute('value').then((text) =
 
 export const inputToField = (field, input) => {
     field.clear();
-    browser.wait(() => isFieldEmpty(field), 7500);
+    browser.wait(
+        () => isFieldEmpty(field),
+        7500,
+        'Timeout while waiting for an input field to be cleared'
+    );
     field.sendKeys(input);
 };
 
 export const waitClickable = (domElement, timeout) => (
     browser.wait(
         protractor.ExpectedConditions.elementToBeClickable(domElement),
-        timeout
+        timeout,
+        'Timeout while waiting for an element to be clickable'
     )
 );
 
 export const waitPresent = (domElement, timeout = 7500) => (
     browser.wait(
         () => domElement.isPresent(),
-        timeout
+        timeout,
+        'Timeout while waiting for an element to be visible'
     )
 );
 

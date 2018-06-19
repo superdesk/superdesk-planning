@@ -57,7 +57,11 @@ describe('planning_autosave', () => {
 
         // Wait for the Autosave to save the item
         // Which will then update the Workqueue item title
-        browser.wait(() => item1.isTitle('Plan*'));
+        browser.wait(
+            () => item1.isTitle('Plan*'),
+            30000,
+            'Timeout while waiting for the Workqueue item title to be "Plan*"'
+        );
 
         // Minimize then open the item
         editor.minimizeButton.click();
@@ -97,6 +101,10 @@ describe('planning_autosave', () => {
 
         // Now save the Planning item
         editor.createButton.click();
-        browser.wait(() => listPanel.getItemCount());
+        browser.wait(
+            () => listPanel.getItemCount(),
+            30000,
+            'Timeout while waiting for the list panel to be populated'
+        );
     });
 });
