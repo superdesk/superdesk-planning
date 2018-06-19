@@ -13,6 +13,7 @@ import {ItemActionsMenu} from '../index';
 import {PLANNING, EVENTS, MAIN, ICON_COLORS} from '../../constants';
 
 import {planningUtils, getItemWorkflowStateLabel, onEventCapture, isItemPublic} from '../../utils';
+import {gettext} from '../../utils/gettext';
 import {AgendaNameList} from '../Agendas';
 
 export class PlanningItem extends React.PureComponent {
@@ -138,8 +139,8 @@ export class PlanningItem extends React.PureComponent {
                         }
                     </Row>
                     <Row>
-                        <Label text={state.label} iconType={state.iconType} />
-                        <span className="sd-list-item__text-label">agenda:</span>
+                        <Label text={gettext(state.label)} iconType={state.iconType} />
+                        <span className="sd-list-item__text-label">{gettext('Agenda') + ':'}</span>
                         <span className="sd-overflow-ellipsis sd-list-item__text-strong sd-list-item--element-grow">
                             <AgendaNameList agendas={agendaNames}/>
                         </span>

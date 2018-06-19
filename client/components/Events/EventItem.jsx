@@ -14,6 +14,7 @@ import {
     onEventCapture,
     isItemPublic,
 } from '../../utils';
+import {gettext} from '../../utils/gettext';
 
 
 export class EventItem extends React.PureComponent {
@@ -100,7 +101,7 @@ export class EventItem extends React.PureComponent {
                     </Row>
                     <Row>
                         <Label
-                            text={state.label}
+                            text={gettext(state.label)}
                             iconType={state.iconType}
                         />
                         {!!actionedState && <Label
