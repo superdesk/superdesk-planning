@@ -135,8 +135,6 @@ export class EditorModalComponent extends React.Component {
                             'sd-page-content__content-block',
                             'sd-page-content__content-block--right')} >
                             <EditorModal
-                                className="editorModal__editor--no-full-height"
-                                contentClassName="editorModal__editor--content"
                                 navigation={navigation}
                                 onChange={this.onEditorItemChange}
                                 onCancel={this.props.handleHide}
