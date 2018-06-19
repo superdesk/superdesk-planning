@@ -331,7 +331,7 @@ describe('agenda', () => {
                                 subject: events[0].subject,
                                 anpa_category: events[0].anpa_category,
                                 description_text: 'Some event',
-                                agendas: [],
+                                agendas: ['a2'],
                                 place: [{
                                     country: 'Australia',
                                     group: 'Australia',
@@ -350,36 +350,6 @@ describe('agenda', () => {
                     .catch((error) => {
                         expect(error).toBe(null);
                         expect(error.stack).toBe(null);
-                        done();
-                    });
-            });
-
-            it('addEventToCurrentAgenda raises error if no Agenda is selected', (done) => {
-                initialState.agenda.currentAgendaId = null;
-                const action = actions.addEventToCurrentAgenda(events[0]);
-
-                return action(dispatch, getState, {
-                    notify,
-                    $timeout,
-                })
-                    .catch(() => {
-                        expect(notify.error.args[0]).toEqual(['You have to select an agenda first']);
-                        done();
-                    });
-            });
-
-            it('addEventToCurrentAgenda raises error if the Event is spiked', (done) => {
-                events[0].state = 'spiked';
-                const action = actions.addEventToCurrentAgenda(events[0]);
-
-                return action(dispatch, getState, {
-                    notify,
-                    $timeout,
-                })
-                    .catch(() => {
-                        expect(notify.error.args[0]).toEqual([
-                            'Cannot create a Planning item from a spiked event!',
-                        ]);
                         done();
                     });
             });

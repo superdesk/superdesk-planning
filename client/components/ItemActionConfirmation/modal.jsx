@@ -17,6 +17,7 @@ import {
     EditPriorityForm,
     UpdateEventRepetitionsForm,
     PostEventsForm,
+    CreatePlanningForm,
 } from './index';
 import {get} from 'lodash';
 import {EVENTS, PLANNING, ASSIGNMENTS} from '../../constants';
@@ -101,6 +102,11 @@ export class ItemActionConfirmationModal extends React.Component {
                 title: gettext('Post Event'),
                 saveText: get(propToForm, '_post', true) ? gettext('Post') : gettext('Unpost'),
                 form: PostEventsForm,
+            },
+            [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.label]: {
+                title: modalProps.title,
+                saveText: gettext('Create'),
+                form: CreatePlanningForm,
             },
             [PLANNING.ITEM_ACTIONS.SPIKE.label]: {
                 title: gettext('Spike planning item'),

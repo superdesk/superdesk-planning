@@ -1,7 +1,7 @@
 import * as selectors from '../selectors';
 import {cloneDeep, pick, get, sortBy} from 'lodash';
-import {AGENDA, MODALS, ITEM_TYPE} from '../constants';
-import {getErrorMessage, isItemSpiked, gettext} from '../utils';
+import {AGENDA, MODALS, EVENTS} from '../constants';
+import {getErrorMessage, gettext} from '../utils';
 import {planning, showModal, main} from './index';
 
 const openAgenda = () => (
@@ -134,17 +134,16 @@ const fetchAgendaById = (_id) => (
  */
 const askForAddEventToCurrentAgenda = (events) => (
     (dispatch, getState) => {
-        const message = events.length === 1 ?
-            gettext('Do you want to add this event to the planning list ?') :
-            gettext(`Do you want to add these ${events.length} events to the planning list ?`);
+        const title = get(events, 'length', 0) === 1 ?
+            gettext('Add this event to the planning list?') :
+            gettext(`Add these ${events.length} events to the planning list?`);
 
         return dispatch(showModal({
-            modalType: MODALS.CONFIRMATION,
+            modalType: MODALS.ITEM_ACTIONS_MODAL,
             modalProps: {
-                body: message,
-                action: () => dispatch(addEventToCurrentAgenda(events)),
-                itemType: ITEM_TYPE.EVENT,
-                autoClose: true,
+                events: events,
+                actionType: EVENTS.ITEM_ACTIONS.CREATE_PLANNING.label,
+                title: title,
             },
         }));
     }
@@ -158,26 +157,25 @@ const askForAddEventToCurrentAgenda = (events) => (
  * @param {boolean} openInEditor - If true, opens the new Planning item in the Editor
  * @return Promise
  */
-const addEventToCurrentAgenda = (events, planningDate = null, openInEditor = false) => (
+const addEventToCurrentAgenda = (events, planningDate = null, openInEditor = false, agendas = null) => (
     (dispatch, getState, {notify}) => {
-        const currentAgendaId = selectors.planning.currentAgendaId(getState());
-
-        if (!currentAgendaId) {
-            let errorMsg = 'You have to select an agenda first';
-
-            notify.error(errorMsg);
-            return Promise.reject(errorMsg);
-        }
-
+        let updatesAgendas = get(agendas, 'length', 0) > 0 ? agendas.map((a) => a._id) : [];
         let eventsList = events;
+        const chunkSize = 5;
+        let promise = Promise.resolve();
+        let plannings = [];
+
+        if (!agendas) {
+            const currentAgenda = selectors.planning.currentAgenda(getState());
+
+            if (currentAgenda) {
+                updatesAgendas.push(currentAgenda);
+            }
+        }
 
         if (!Array.isArray(events)) {
             eventsList = [events];
         }
-
-        const chunkSize = 5;
-        let promise = Promise.resolve();
-        let plannings = [];
 
         for (let i = 0; i < Math.ceil(eventsList.length / chunkSize); i++) {
             let eventsChunk = eventsList.slice(i * chunkSize, (i + 1) * chunkSize);
@@ -185,7 +183,7 @@ const addEventToCurrentAgenda = (events, planningDate = null, openInEditor = fal
             promise = promise.then(() => (
                 Promise.all(
                     eventsChunk.map((event) => (
-                        dispatch(createPlanningFromEvent(event, planningDate))
+                        dispatch(createPlanningFromEvent(event, planningDate, updatesAgendas))
                     ))
                 )
                     .then((data) => data.forEach((p) => plannings.push(p)))
@@ -216,26 +214,9 @@ const addEventToCurrentAgenda = (events, planningDate = null, openInEditor = fal
  * @param {object} planningDate - The date to set for the new Planning item
  * @return Promise
  */
-const createPlanningFromEvent = (event, planningDate) => (
-    (dispatch, getState, {notify}) => {
-        // Check if no agenda is selected, or the current agenda is spiked
-        // And notify the end user of the error
-        const currentAgendaId = selectors.planning.currentAgendaId(getState());
-        let error;
-
-        if (!currentAgendaId) {
-            error = 'No Agenda is currently selected.';
-        } else if (isItemSpiked(event)) {
-            error = 'Cannot create a Planning item from a spiked event!';
-        }
-
-        if (error) {
-            notify.error(error);
-            return Promise.reject(error);
-        }
-
-        // planning inherits some fields from the given event
-        return dispatch(planning.api.save({
+const createPlanningFromEvent = (event, planningDate, agendas = []) => (
+    (dispatch, getState, {notify}) => (
+        dispatch(planning.api.save({
             event_item: event._id,
             slugline: event.slugline,
             planning_date: planningDate || event._sortDate || event.dates.start,
@@ -246,9 +227,9 @@ const createPlanningFromEvent = (event, planningDate) => (
             anpa_category: event.anpa_category,
             description_text: event.definition_short,
             ednote: event.ednote,
-            agendas: [],
-        }));
-    }
+            agendas: agendas,
+        }))
+    )
 );
 
 /**
