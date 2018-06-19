@@ -53,7 +53,9 @@ Feature: Planning
                 "original_creator": "__any_value__",
                 "item_class": "item class value",
                 "headline": "test headline",
-                "slugline": "test slugline"
+                "slugline": "test slugline",
+                "firstcreated": "__now__",
+                "versioncreated": "__now__"
             }]}
         """
         When we get "/planning_history"

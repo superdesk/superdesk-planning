@@ -72,7 +72,9 @@ Feature: Events
                 "slugline": "event-123",
                 "definition_short": "short value",
                 "definition_long": "long value",
-                "location": [{"qcode": "test qcaode", "name": "test name", "formatted_address": ""}]
+                "location": [{"qcode": "test qcaode", "name": "test name", "formatted_address": ""}],
+                "firstcreated": "__now__",
+                "versioncreated": "__now__"
             }]}
         """
         When we get "/events?sort=[("dates.start",1)]&source={"query":{"range":{"dates.start":{"lte":"2015-01-01T00:00:00.000Z"}}}}"
