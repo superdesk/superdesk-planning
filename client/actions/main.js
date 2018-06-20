@@ -1,10 +1,11 @@
-import {MAIN, ITEM_TYPE, MODALS, WORKSPACE, WORKFLOW_STATE, POST_STATE} from '../constants';
+import {MAIN, ITEM_TYPE, MODALS, WORKSPACE, WORKFLOW_STATE, POST_STATE, PLANNING, EVENTS} from '../constants';
 import {activeFilter, lastRequestParams} from '../selectors/main';
 import planningUi from './planning/ui';
 import planningApi from './planning/api';
 import eventsUi from './events/ui';
 import eventsApi from './events/api';
 import autosave from './autosave';
+import {actionUtils} from '../utils';
 import {locks, showModal, hideModal} from './';
 import {selectAgenda, fetchSelectedAgendaPlannings} from './agenda';
 import {
@@ -940,6 +941,29 @@ const loadItem = (itemId, itemType, action) => (
 );
 
 /**
+ * Action to open Modals based on the locks being held by the current session
+ */
+const openFromLockActions = () => (
+    (dispatch, getState) => {
+        const sessionLastLock = selectors.locks.getLastSessionLock(getState());
+
+        if (sessionLastLock) {
+            const action = Object.values(Object.assign({},
+                PLANNING.ITEM_ACTIONS,
+                EVENTS.ITEM_ACTIONS)).filter((a) => a.lock_action == sessionLastLock.action);
+
+            if (action) {
+                /* get the item we're operating on */
+                dispatch(self.fetchById(sessionLastLock.item_id, sessionLastLock.item_type)).then((item) => {
+                    actionUtils.getActionDispatches({dispatch: dispatch, eventOnly: false,
+                        planningOnly: false})[action[0].actionName](item, false, false);
+                });
+            }
+        }
+    }
+);
+
+/**
  * Action to open either the PreviewPanel or Editor based on the item ID and Type
  * from either the URL params or the redux-store
  * @param {string} action - The action to load the item for (MAIN.PREVIEW/MAIN.EDIT)
@@ -1116,6 +1140,7 @@ const self = {
     closePreviewAndEditorForItems,
     setUnsetLoadingIndicator,
     openFromURLOrRedux,
+    openFromLockActions,
     loadItem,
     openPreview,
     setJumpInterval,
