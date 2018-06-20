@@ -1449,7 +1449,6 @@ Feature: Events Reschedule
                 "operation": "reschedule",
                 "update": {
                   "ednote": "Something happening.\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Changed to the next day!\n",
-                  "reason": "Changed to the next day!",
                   "state": "draft"
                 }
             }

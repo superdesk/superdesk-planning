@@ -3,7 +3,7 @@ import {createStore as _createStore, applyMiddleware, compose} from 'redux';
 import planningApp from '../reducers';
 import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
-import {get, set, map, cloneDeep, forEach, pickBy, includes} from 'lodash';
+import {get, set, map, cloneDeep, forEach, pickBy, includes, isEqual} from 'lodash';
 import {
     POST_STATE,
     WORKFLOW_STATE,
@@ -15,6 +15,7 @@ import {
     MAIN,
     SPIKED_STATE,
     TEMP_ID_PREFIX, PRIVILEGES,
+    AUTOSAVE,
 } from '../constants/index';
 import * as testData from './testData';
 import {default as lockUtils} from './locks';
@@ -759,23 +760,29 @@ export const generateTempId = () => TEMP_ID_PREFIX + moment().valueOf();
  */
 export const removeAutosaveFields = (item, stripLockFields = false) => {
     const fieldsToKeep = ['_id', '_planning_item'];
-    const fieldsToIgnore = ['planning_ids', 'reason', 'update_method'];
+    let fieldsToIgnore = [...AUTOSAVE.IGNORE_FIELDS];
 
     if (stripLockFields) {
-        fieldsToIgnore.concat([
-            'lock_user',
-            'lock_action',
-            'lock_session',
-            'lock_time',
-        ]);
+        fieldsToIgnore.push('lock_user', 'lock_action', 'lock_session', 'lock_time');
     }
 
     return pickBy(cloneDeep(item), (value, key) =>
         key.startsWith('_') ?
-            includes(fieldsToKeep, key) :
+            (includes(fieldsToKeep, key) && value) :
             !includes(fieldsToIgnore, key)
     );
 };
 
 export const isValidFileInput = (f, includeObjectType = false) =>
     f instanceof FileList || f instanceof Array || (includeObjectType && f instanceof Object);
+
+export const itemsEqual = (nextItem, currentItem) => {
+    const pickField = (value, key) => (
+        !key.startsWith('_') &&
+        !key.startsWith('lock_') &&
+        value !== null &&
+        value !== undefined
+    );
+
+    return isEqual(pickBy(nextItem, pickField), pickBy(currentItem, pickField));
+};

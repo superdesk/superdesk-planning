@@ -50,6 +50,7 @@ class EventsRescheduleService(EventsBaseService):
         has_plannings = events_service.has_planning_items(original)
 
         remove_lock_information(updates)
+        reason = updates.pop('reason', None)
 
         event_in_use = has_plannings or 'pubstatus' in original
         if event_in_use or original.get('state') == WORKFLOW_STATE.POSTPONED:
@@ -59,21 +60,19 @@ class EventsRescheduleService(EventsBaseService):
                 duplicated_event_id = self._duplicate_event(updates, original, events_service)
                 updates['reschedule_to'] = duplicated_event_id
 
-            self._mark_event_rescheduled(updates, original, not event_in_use)
+            self._mark_event_rescheduled(updates, original, reason, not event_in_use)
 
             if not event_in_use:
                 updates['state'] = WORKFLOW_STATE.DRAFT
 
             if has_plannings:
-                self._reschedule_event_plannings(updates, original)
+                self._reschedule_event_plannings(original, reason)
 
     @staticmethod
-    def _mark_event_rescheduled(updates, original, keep_dates=False):
+    def _mark_event_rescheduled(updates, original, reason, keep_dates=False):
         ednote = '''------------------------------------------------------------
 Event Rescheduled
 '''
-
-        reason = updates.get('reason', None)
 
         if reason is not None:
             ednote += 'Reason: {}\n'.format(reason)
@@ -93,11 +92,10 @@ Event Rescheduled
             updates.pop('dates', None)
 
     @staticmethod
-    def _reschedule_event_plannings(updates, original, plans=None, state=None):
+    def _reschedule_event_plannings(original, reason, plans=None, state=None):
         planning_service = get_resource_service('planning')
         planning_cancel_service = get_resource_service('planning_cancel')
         planning_reschedule_service = get_resource_service('planning_reschedule')
-        reason = updates.get('reason', None)
 
         if plans is None:
             plans = list(planning_service.find(where={'event_item': original[config.ID_FIELD]}))
@@ -142,7 +140,7 @@ Event Rescheduled
         rules_changed = updates['dates']['recurring_rule'] != original['dates']['recurring_rule']
         times_changed = updates['dates']['start'] != original['dates']['start'] or \
             updates['dates']['end'] != original['dates']['end']
-        reason = updates.get('reason')
+        reason = updates.pop('reason', None)
 
         events_service = get_resource_service('events')
         historic, past, future = self.get_recurring_timeline(original, postponed=True)
@@ -225,16 +223,16 @@ Event Rescheduled
                 # If this is the selected Event, then simply update the fields and
                 # Reschedule associated Planning items
                 if event[config.ID_FIELD] == original[config.ID_FIELD]:
-                    self._mark_event_rescheduled(updates, original, True)
+                    self._mark_event_rescheduled(updates, original, reason, True)
                     updates['state'] = new_state
-                    self._reschedule_event_plannings(updates, event, state=WORKFLOW_STATE.DRAFT)
+                    self._reschedule_event_plannings(event, reason, state=WORKFLOW_STATE.DRAFT)
 
                 else:
                     new_updates = {
                         'reason': reason,
                         'skip_on_update': True
                     }
-                    self._mark_event_rescheduled(new_updates, event)
+                    self._mark_event_rescheduled(new_updates, event, reason)
                     new_updates['state'] = new_state
 
                     # Update the 'start', 'end' and 'recurring_rule' fields of the Event
@@ -248,7 +246,7 @@ Event Rescheduled
 
                     # And finally update the Event, and Reschedule associated Planning items
                     self.patch(event[config.ID_FIELD], new_updates)
-                    self._reschedule_event_plannings({'reason': reason}, event, state=WORKFLOW_STATE.DRAFT)
+                    self._reschedule_event_plannings(event, reason, state=WORKFLOW_STATE.DRAFT)
                     app.on_updated_events_reschedule(new_updates, {'_id': event[config.ID_FIELD]})
 
                 # Mark this date as being already processed
@@ -296,7 +294,7 @@ Event Rescheduled
             is_original = event[config.ID_FIELD] == original[config.ID_FIELD]
             if len(event_plans) > 0 or event.get('pubstatus', None) is not None:
                 if is_original:
-                    self._mark_event_rescheduled(updates, original)
+                    self._mark_event_rescheduled(updates, original, reason)
                 else:
                     # This event has Planning items, so spike this event and
                     # all Planning items
@@ -304,11 +302,11 @@ Event Rescheduled
                         'skip_on_update': True,
                         'reason': reason
                     }
-                    self._mark_event_rescheduled(new_updates, original)
+                    self._mark_event_rescheduled(new_updates, original, reason)
                     self.patch(event[config.ID_FIELD], new_updates)
 
                 if len(event_plans) > 0:
-                    self._reschedule_event_plannings(updates, original, event_plans)
+                    self._reschedule_event_plannings(original, reason, event_plans)
             else:
                 # This event has no Planning items, therefor we can safely
                 # delete this event
