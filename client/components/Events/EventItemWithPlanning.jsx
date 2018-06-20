@@ -4,7 +4,7 @@ import {get} from 'lodash';
 import {EventItem} from '.';
 import {PlanningItem} from '../Planning';
 import {NestedItem} from '../UI/List';
-import {gettext} from '../../utils';
+import {gettext} from '../../utils/gettext';
 
 
 export class EventItemWithPlanning extends React.Component {
@@ -24,9 +24,10 @@ export class EventItemWithPlanning extends React.Component {
 
     render() {
         const planningItems = get(this.props, 'eventProps.item.planning_ids', []).length;
-        const itemsText = planningItems > 1 ? gettext('items') : gettext('item');
-        const showHideText = this.state.openPlanningItems ? gettext('Hide') : gettext('Show');
-        const relatedPlanningText = `(${planningItems}) ${showHideText} ${gettext('planning')} ${itemsText}`;
+        const relatedPlanningText = gettext('({{ count }}) {{ action }} planning item(s)', {
+            count: planningItems,
+            action: this.state.openPlanningItems ? gettext('Hide') : gettext('Show'),
+        });
 
         const getPlannings = (item) => (
             get(this.props.relatedPlanningsInList, item._id, []).map((plan, index) => {

@@ -18,9 +18,9 @@ import {
     onEventCapture,
     isItemPublic,
     getItemId,
-    gettext,
     isItemExpired,
 } from '../../utils';
+import {gettext} from '../../utils/gettext';
 import {AgendaNameList} from '../Agendas';
 
 export class PlanningItem extends React.PureComponent {
@@ -160,7 +160,7 @@ export class PlanningItem extends React.PureComponent {
                                 isHollow={true}
                             />
                         )}
-                        <Label text={state.label} iconType={state.iconType} />
+                        <Label text={gettext(state.label)} iconType={state.iconType} />
                         <span className="sd-list-item__text-label">agenda:</span>
                         <span className="sd-overflow-ellipsis sd-list-item__text-strong sd-list-item--element-grow">
                             <AgendaNameList agendas={agendaNames}/>

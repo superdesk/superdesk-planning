@@ -5,6 +5,7 @@ import {range, chunk} from 'lodash';
 import classNames from 'classnames';
 
 import {Button} from '../../';
+import {gettext} from '../../../../utils/gettext';
 
 import './style.scss';
 
@@ -91,7 +92,15 @@ export class DayPicker extends React.Component {
     }
 
     render() {
-        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const dayNames = [
+            gettext('Sun'),
+            gettext('Mon'),
+            gettext('Tue'),
+            gettext('Wed'),
+            gettext('Thu'),
+            gettext('Fri'),
+            gettext('Sat'),
+        ];
         const rows = chunk(this.state.dates, 7);
 
         return (

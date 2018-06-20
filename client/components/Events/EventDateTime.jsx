@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 
 import {DateTime} from '../UI';
 import {eventUtils} from '../../utils';
+import {gettext} from '../../utils/gettext';
 
 import './style.scss';
 
@@ -14,7 +15,7 @@ export const EventDateTime = ({item, timeFormat, dateFormat}) => {
 
     return isAllDay ? (
         <span className="EventDateTime sd-list-item__slugline sd-no-wrap">
-            All day
+            {gettext('All day')}
         </span>
     ) : (
         <span className="EventDateTime sd-list-item__slugline sd-no-wrap">

@@ -202,7 +202,8 @@ export class MultiSelectActionsComponent extends React.PureComponent {
         let innerTools = [(<a key={1} onClick={this.handleDeSelectAll.bind(this)}>{gettext('Deselect All')}</a>)];
 
         if (this.canSelectAll()) {
-            innerTools.unshift(<a key={2} onClick={this.handleSelectAll.bind(this)}>{gettext('Select all / ')}</a>);
+            innerTools.unshift(<span key={2}>{' / '}</span>);
+            innerTools.unshift(<a key={3} onClick={this.handleSelectAll.bind(this)}>{gettext('Select all')}</a>);
         }
 
         return (<SlidingToolBar

@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {formatAddress, uiUtils, onEventCapture} from '../../utils';
+import {gettext} from '../../utils/gettext';
 import {KEYCODES} from '../../constants';
 import {get} from 'lodash';
 import './style.scss';
@@ -91,7 +92,7 @@ export class AddGeoLookupResultsPopUp extends React.Component {
             this.props.suggests : [];
 
         const searchButtonText = get(this.props.suggests, 'length') > 0 ?
-            'Results (Search again)' : 'Search External';
+            gettext('Results (Search again)') : gettext('Search External');
 
         return (
             <Popup

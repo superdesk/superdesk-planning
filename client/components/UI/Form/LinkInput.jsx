@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import 'whatwg-fetch';
 import {get} from 'lodash';
 
-import {gettext} from '../utils';
+import {gettext} from '../../../utils/gettext';
 
 import {Row, LineInput, Label, TextArea} from './';
 import {IconButton} from '../';
@@ -125,7 +125,7 @@ export class LinkInput extends React.Component {
                         field={field}
                         value={value}
                         onChange={onChange}
-                        placeholder="Paste link"
+                        placeholder={gettext('Paste link')}
                         readOnly={readOnly}
                         paddingRight60={true}
                         autoFocus

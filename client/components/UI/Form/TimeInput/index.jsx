@@ -5,6 +5,7 @@ import {LineInput, Label, Input} from '../';
 import {TimeInputPopup} from './TimeInputPopup';
 import {IconButton} from '../../';
 import {KEYCODES} from '../../constants';
+import {gettext} from '../../../../utils/gettext';
 import './style.scss';
 
 /**
@@ -121,7 +122,7 @@ export class TimeInput extends React.Component {
                     value={this.state.viewValue}
                     onChange={this.validateTimeText}
                     type="text"
-                    placeholder={placeholder}
+                    placeholder={placeholder || gettext('Time')}
                     onBlur={this.handleInputBlur}
                     readOnly={readOnly}
                     onFocus={onFocus}
@@ -170,7 +171,6 @@ TimeInput.propTypes = {
 };
 
 TimeInput.defaultProps = {
-    placeholder: 'Time',
     required: false,
     invalid: false,
     readOnly: false,

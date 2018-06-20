@@ -13,9 +13,9 @@ import {
     getItemActionedStateLabel,
     onEventCapture,
     isItemPublic,
-    gettext,
     isItemExpired,
 } from '../../utils';
+import {gettext} from '../../utils/gettext';
 
 
 export class EventItem extends React.PureComponent {
@@ -115,7 +115,7 @@ export class EventItem extends React.PureComponent {
                             />
                         )}
                         <Label
-                            text={state.label}
+                            text={gettext(state.label)}
                             iconType={state.iconType}
                         />
                         {!!actionedState && <Label

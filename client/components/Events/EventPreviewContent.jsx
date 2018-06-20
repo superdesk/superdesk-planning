@@ -153,7 +153,7 @@ export class EventPreviewContentComponent extends React.Component {
                 />
                 <Row
                     enabled={get(formProfile, 'editor.name.enabled')}
-                    label={gettext('Name')}
+                    label={gettext('Event name')}
                     value={item.name || ''}
                     className="strong"
                 />
