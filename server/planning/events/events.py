@@ -17,8 +17,9 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.notification import push_notification
+from superdesk.utc import utcnow
 from apps.auth import get_user, get_user_id
-from apps.archive.common import set_original_creator, get_auth
+from apps.archive.common import set_original_creator, get_auth, update_dates_for
 from superdesk.users.services import current_user_has_privilege
 from .events_base_service import EventsBaseService
 from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, get_max_recurrent_events, \
@@ -131,6 +132,9 @@ class EventsService(superdesk.Service):
             # set the author
             set_original_creator(event)
 
+            # set timestamps
+            update_dates_for(event)
+
             # overwrite expiry date
             overwrite_event_expiry_date(event)
 
@@ -224,6 +228,7 @@ class EventsService(superdesk.Service):
         return True, ''
 
     def update(self, id, updates, original):
+        updates.setdefault('versioncreated', utcnow())
         item = self.backend.update(self.datasource, id, updates, original)
         return item
 
