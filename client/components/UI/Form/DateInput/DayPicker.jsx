@@ -3,18 +3,23 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import {range, chunk} from 'lodash';
 import classNames from 'classnames';
-
-import {Button} from '../../';
+import {connect} from 'react-redux';
+import {getStartOfWeek} from '../../../../selectors/config';
 import {gettext} from '../../../../utils/gettext';
 
+import {Button} from '../../';
+
 import './style.scss';
+
+const MONDAY = 1;
+
 
 /**
  * @ngdoc react
  * @name DayPicker
  * @description Component to Pick days of DatePicker
  */
-export class DayPicker extends React.Component {
+class _DayPicker extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -45,14 +50,19 @@ export class DayPicker extends React.Component {
 
         let prevMonthDates = [];
 
-        if (firstDayOfMonth !== 7) { // In this case, need to also have dates of previous month in the view
+        if (firstDayOfMonth !== props.firstDayOfWeek) { // we need to also have dates of previous month in the view
             const previousYear = props.selectedDate.month() === 0 ? props.selectedDate.year() - 1 :
                 props.selectedDate.year();
             const previousMonth = props.selectedDate.month() === 0 ? 11 :
                 props.selectedDate.month() - 1;
             const daysOfPreviousMonth = this.getDaysInMonth(previousYear, previousMonth);
 
-            prevMonthDates = range(daysOfPreviousMonth - firstDayOfMonth + 1, daysOfPreviousMonth + 1);
+            prevMonthDates = range(
+                // we always add 1 because firstDayOfMonth is isoweekday
+                // and if week starts on monday we skip one more day than when it starts on sunday
+                daysOfPreviousMonth - firstDayOfMonth + (props.firstDayOfWeek === MONDAY ? 2 : 1),
+                daysOfPreviousMonth + 1
+            );
         }
 
         let nextMonthDates = range(1, 43 - (prevMonthDates.length + daysInCurrentMonth.length));
@@ -92,8 +102,9 @@ export class DayPicker extends React.Component {
     }
 
     render() {
+        const rows = chunk(this.state.dates, 7);
+        const sunday = gettext('Sun');
         const dayNames = [
-            gettext('Sun'),
             gettext('Mon'),
             gettext('Tue'),
             gettext('Wed'),
@@ -101,7 +112,12 @@ export class DayPicker extends React.Component {
             gettext('Fri'),
             gettext('Sat'),
         ];
-        const rows = chunk(this.state.dates, 7);
+
+        if (this.props.firstDayOfWeek === MONDAY) {
+            dayNames.push(sunday);
+        } else {
+            dayNames.unshift(sunday);
+        }
 
         return (
             <table>
@@ -144,7 +160,14 @@ export class DayPicker extends React.Component {
     }
 }
 
-DayPicker.propTypes = {
+_DayPicker.propTypes = {
     selectedDate: PropTypes.object.isRequired,
     onChange: PropTypes.func.isRequired,
+    firstDayOfWeek: PropTypes.number,
 };
+
+const mapStateToProps = (state) => ({
+    firstDayOfWeek: getStartOfWeek(state),
+});
+
+export const DayPicker = connect(mapStateToProps)(_DayPicker);
