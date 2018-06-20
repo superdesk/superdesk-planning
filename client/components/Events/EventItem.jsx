@@ -126,7 +126,7 @@ export class EventItem extends React.PureComponent {
                                     type: 'event',
                                 });
                             }}
-                            text={actionedState.label}
+                            text={gettext(actionedState.label)}
                             iconType={actionedState.iconType}
                         />}
                         {(showRelatedPlanningLink || hasLocation) &&

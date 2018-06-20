@@ -4,6 +4,7 @@ import {connect} from 'react-redux';
 import * as selectors from '../../selectors';
 import {get} from 'lodash';
 import moment from 'moment';
+import {gettext} from '../../utils/gettext';
 
 export const AuditInformationComponent = ({
     createdBy,
@@ -19,7 +20,7 @@ export const AuditInformationComponent = ({
         user = get(createdBy, 'display_name') ? createdBy : users.find((u) => (u._id === createdBy));
         provider = ingestProviders ? ingestProviders.find((p) => (p.id === createdBy)) : null;
         if (!user && provider) {
-            provider.display_name = 'Ingest: ' + provider.name;
+            provider.display_name = gettext('Ingest') + ': ' + provider.name;
         }
 
         return user || provider;
@@ -34,7 +35,7 @@ export const AuditInformationComponent = ({
         <div className="TimeAndAuthor">
             {createdDateTime && creator &&
                 <div className="sd-text__date-and-author">
-                    <time>Created {createdDateTime} by </time>
+                    <time>{gettext('Created') + ' ' + createdDateTime + ' ' + gettext('by') + ' '}</time>
                     <span className="TimeAndAuthor__author sd-text__author">
                         {creator.display_name || creator.name}
                     </span>
@@ -43,7 +44,7 @@ export const AuditInformationComponent = ({
 
             {modifiedDateTime && versionCreator &&
                 <div className="sd-text__date-and-author">
-                    <time>Updated {modifiedDateTime} by </time>
+                    <time>{gettext('Updated') + ' ' + modifiedDateTime + ' ' + gettext('by') + ' '}</time>
                     <span className="TimeAndAuthor__author sd-text__author">
                         {versionCreator.display_name}
                     </span>

@@ -37,14 +37,14 @@ export class MultiSelectActionsComponent extends React.PureComponent {
 
     getCountLabel() {
         let count = get(this.props.selectedEvents, 'length', 0);
-        let itemType = 'event';
+        let itemType = count > 1 ? gettext('events') : gettext('event');
 
         if (this.props.activeFilter === MAIN.FILTERS.PLANNING) {
             count = get(this.props.selectedPlannings, 'length', 0);
-            itemType = 'planning item';
+            itemType = count > 1 ? gettext('planning items') : gettext('planning item');
         }
 
-        return count + ' ' + (count > 1 ? itemType + 's' : itemType) + ' selected';
+        return gettext('{{ count }} {{ type }} selected', {count: count, type: itemType});
     }
 
     canSelectAll() {

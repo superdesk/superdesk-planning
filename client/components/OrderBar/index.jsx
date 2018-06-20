@@ -33,7 +33,7 @@ export default class OrderBar extends React.Component {
                 <div className="sortbar">
                     <div>
                         <select onChange={this.onChangeField} value={orderByField}>
-                            { fields.map((field) => (<option key={field} value={field}>{field}</option>)) }
+                            { fields.map((field) => (<option key={field} value={field}>{gettext(field)}</option>)) }
                         </select>
                     </div>
                     <Button

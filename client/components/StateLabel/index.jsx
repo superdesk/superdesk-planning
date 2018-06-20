@@ -5,6 +5,7 @@ import {get} from 'lodash';
 import classNames from 'classnames';
 import {Label} from '../../components';
 import {getItemWorkflowStateLabel, getItemPostedStateLabel, getItemExpiredStateLabel} from '../../utils';
+import {gettext} from '../../utils/gettext';
 
 export const StateLabel = ({
     item,
@@ -24,10 +25,10 @@ export const StateLabel = ({
     }
 
     const getStateLabel = (state) => <Label
-        text={state.label}
+        text={gettext(state.label)}
         iconType={state.iconType}
         verbose={verbose ? get(state, 'labelVerbose') : null}
-        tooltip={!verbose && state.tooltip ? {text: state.tooltip} : null}
+        tooltip={!verbose && state.tooltip ? {text: gettext(state.tooltip)} : null}
     />;
 
     return (
