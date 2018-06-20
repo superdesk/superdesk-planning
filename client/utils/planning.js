@@ -307,7 +307,7 @@ const getPlanningActions = ({
                 {
                     label: c.name,
                     icon: self.getCoverageIcon(c.qcode),
-                    action: callBacks[callBackName].bind(null, c.qcode),
+                    callback: callBacks[callBackName].bind(null, c.qcode),
                 }
             ));
 
