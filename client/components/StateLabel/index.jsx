@@ -18,7 +18,7 @@ export const StateLabel = ({item, verbose, withPubStatus, className, fieldName, 
     const getStateLabel = (state) => <Label
         text={gettext(state.label)}
         iconType={state.iconType}
-        verbose={verbose ? get(state, 'labelVerbose') : null}
+        verbose={verbose ? gettext(get(state, 'labelVerbose')) : null}
         tooltip={!verbose && state.tooltip ? {text: gettext(state.tooltip)} : null}
     />;
 

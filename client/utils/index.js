@@ -402,7 +402,7 @@ export const getItemWorkflowStateLabel = (item, field = 'state') => {
     case WORKFLOW_STATE.SCHEDULED:
         return {
             label: gettext('Scheduled'),
-            labelVerbose: 'Scheduled',
+            labelVerbose: gettext('Scheduled'),
             iconType: 'success',
             tooltip: TOOLTIPS.scheduledState,
         };

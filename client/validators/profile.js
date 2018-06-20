@@ -31,7 +31,7 @@ export const formProfile = (dispatch, getState, field, fieldValue, profile, erro
         }
 
         return gettext(label).toUpperCase();
-    }
+    };
 
     if (!schema.required && get(value, length, 0) < 1) {
         return;
