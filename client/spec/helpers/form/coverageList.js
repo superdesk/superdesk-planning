@@ -1,13 +1,17 @@
 import {get} from 'lodash';
 import {Coverage} from './index';
 import {waitAndClick, isCount} from '../utils';
+import {Popup} from '../popup';
 
 export class CoverageList {
     constructor(form) {
         this.form = form;
         this.block = form.element(by.className('coverages__array'));
-        this.dropdown = form.all(by.className('dropdown')).first();
-        this.addButton = this.dropdown.element(by.className('dropdown__toggle'));
+        this.addButton = this.block.element(by.className('sd-create-btn'));
+    }
+
+    static waitForPopup() {
+        Popup.wait('item-actions-menu__popup');
     }
 
     getValue(coverages) {
@@ -37,7 +41,11 @@ export class CoverageList {
 
     addCoverage(contentType) {
         waitAndClick(this.addButton);
-        waitAndClick(this.dropdown.element(by.id(`coverage-menu-add-${contentType}`)));
+        CoverageList.waitForPopup();
+        let menuPopup = new Popup();
+        let menu = menuPopup.getMenu('item-actions-menu__popup');
+
+        waitAndClick(menu.element(by.id(`coverage-menu-add-${contentType}`)));
     }
 
     setCoverageValues(values, index) {
