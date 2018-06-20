@@ -1,7 +1,7 @@
 import lxml
 import unittest
 
-from planning.common import POST_STATE
+from planning.common import POST_STATE, WORKFLOW_STATE
 from planning.output_formatters.ntb_event import NTBEventFormatter
 
 
@@ -83,6 +83,15 @@ class NTBEventTestCase(unittest.TestCase):
         output = formatter.format(item, {})[0]
         root = lxml.etree.fromstring(output['encoded_item'])
         self.assertEqual('true', root.get('DeleteRequest'))
+
+    def test_cancel(self):
+        item = self.item.copy()
+        for state in [WORKFLOW_STATE.CANCELLED, WORKFLOW_STATE.POSTPONED]:
+            item['state'] = state
+            formatter = NTBEventFormatter()
+            output = formatter.format(item, {})[0]
+            root = lxml.etree.fromstring(output['encoded_item'])
+            self.assertEqual('true', root.get('DeleteRequest'))
 
     def test_alldayevent_included(self):
         # just in case main self.item['dates'] will be changed in setUp
