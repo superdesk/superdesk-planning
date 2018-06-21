@@ -800,7 +800,10 @@ const unpost = (plan) => (
             planning: plan._id,
             etag: plan._etag,
             pubstatus: POST_STATE.CANCELLED,
-        })
+        }).then(
+            () => dispatch(self.fetchById(plan._id, {force: true})),
+            (error) => Promise.reject(error)
+        )
     )
 );
 
