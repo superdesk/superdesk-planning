@@ -7,6 +7,110 @@ import {AssignmentPreviewContainer} from '../components/Assignments';
 import {SidePanel} from '../components/UI/SidePanel';
 import {WORKSPACE} from '../constants';
 
+export class AssignmentPreviewController {
+    constructor(
+        $element,
+        $scope,
+        sdPlanningStore,
+        $q,
+        notify,
+        gettext
+    ) {
+        this.$element = $element;
+        this.$scope = $scope;
+        this.$q = $q;
+        this.notify = notify;
+        this.gettext = gettext;
+
+        this.render = this.render.bind(this);
+        this.loadWorkspace = this.loadWorkspace.bind(this);
+        this.onDestroy = this.onDestroy.bind(this);
+        this.fetchAssignment = this.fetchAssignment.bind(this);
+        this.previewAssignment = this.previewAssignment.bind(this);
+        this.onAssignmentIdChanged = this.onAssignmentIdChanged.bind(this);
+
+        this.store = null;
+
+        $scope.$on('$destroy', this.onDestroy);
+
+        sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, this.loadWorkspace)
+            .then(this.render);
+    }
+
+    render() {
+        ReactDOM.render(
+            <Provider store={this.store}>
+                <SidePanel shadowRight={true} className="content-container no-padding">
+                    <AssignmentPreviewContainer />
+                </SidePanel>
+            </Provider>,
+            document.getElementById('sd-planning-react-container')
+        );
+    }
+
+    loadWorkspace(store, workspaceChanged) {
+        this.store = store;
+        registerNotifications(this.$scope, this.store);
+
+        return this.$q.all({
+            locks: this.store.dispatch(actions.locks.loadAssignmentLocks()),
+            agendas: this.store.dispatch(actions.fetchAgendas()),
+            assignment: this.fetchAssignment(this.$scope.vm.item.assignment_id),
+        })
+            .then((results) => {
+                if (results.assignment) {
+                    this.previewAssignment(results.assignment)
+                        .then(() => {
+                            this.$scope.$watch('vm.item.assignment_id', this.onAssignmentIdChanged);
+                        }, () => {
+                            this.notify.error(
+                                this.gettext('Failed to fetch assignment information.')
+                            );
+                        });
+                }
+            });
+    }
+
+    onDestroy() {
+        if (this.store) {
+            // Unmount the React application
+            ReactDOM.unmountComponentAtNode(this.$element.get(0));
+            this.store.dispatch(actions.resetStore());
+        }
+    }
+
+    fetchAssignment(assignmentId) {
+        return this.store.dispatch(
+            actions.assignments.api.fetchAssignmentById(assignmentId, true)
+        );
+    }
+
+    previewAssignment(assignment) {
+        return this.store.dispatch(
+            actions.assignments.ui.preview(assignment)
+        );
+    }
+
+    onAssignmentIdChanged(newValue, oldValue) {
+        if (newValue && oldValue !== newValue) {
+            this.fetchAssignment(newValue)
+                .then((assignment) => {
+                    this.previewAssignment(assignment);
+                }, () => {
+                    this.notify.error(
+                        this.gettext('Failed to fetch assignment information.')
+                    );
+                });
+        }
+
+        if (!newValue) {
+            this.store.dispatch(
+                actions.assignments.ui.closePreview()
+            );
+        }
+    }
+}
+
 AssignmentPreviewController.$inject = [
     '$element',
     '$scope',
@@ -15,71 +119,3 @@ AssignmentPreviewController.$inject = [
     'notify',
     'gettext',
 ];
-export function AssignmentPreviewController(
-    $element,
-    $scope,
-    sdPlanningStore,
-    $q,
-    notify,
-    gettext
-) {
-    const fetchAssignment = (store, id) => store.dispatch(
-        actions.assignments.api.fetchAssignmentById(id, true)
-    );
-
-    const previewAssignment = (store, assignment) => (
-        store.dispatch(actions.assignments.ui.preview(assignment))
-    );
-
-    sdPlanningStore.getStore()
-        .then((store) => {
-            store.dispatch(actions.initStore(WORKSPACE.AUTHORING));
-            registerNotifications($scope, store);
-
-            $q.all({
-                locks: store.dispatch(actions.locks.loadAssignmentLocks()),
-                agendas: store.dispatch(actions.fetchAgendas()),
-                assignment: fetchAssignment(store, $scope.vm.item.assignment_id),
-            })
-                .then((results) => {
-                    if (results.assignment) {
-                        previewAssignment(store, results.assignment)
-                            .then(() => {
-                                $scope.$watch('vm.item.assignment_id', (newValue, oldValue) => {
-                                    if (newValue && oldValue !== newValue) {
-                                        fetchAssignment(store, newValue)
-                                            .then((assignment) => {
-                                                previewAssignment(store, assignment);
-                                            }, () => {
-                                                notify.error(gettext('Failed to fetch assignment information.'));
-                                            });
-                                    }
-
-                                    if (!newValue) {
-                                        store.dispatch(actions.assignments.ui.closePreview);
-                                    }
-                                });
-
-                                $scope.$on('$destroy', () => {
-                                    // Unmount the React application
-                                    ReactDOM.unmountComponentAtNode($element.get(0));
-                                    store.dispatch(actions.resetStore());
-                                });
-
-                                ReactDOM.render(
-                                    <Provider store={store}>
-                                        <SidePanel shadowRight={true} className="content-container no-padding">
-                                            <AssignmentPreviewContainer />
-                                        </SidePanel>
-                                    </Provider>,
-                                    $element.get(0)
-                                );
-                            }, () => {
-                                notify.error(gettext('Failed to fetch assignment information.'));
-                            });
-                    }
-                }, () => {
-                    notify.error(gettext('Failed to fetch assignment information.'));
-                });
-        });
-}

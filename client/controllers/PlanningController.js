@@ -6,79 +6,108 @@ import * as actions from '../actions';
 import {WORKSPACE} from '../constants';
 import {PlanningApp} from '../apps';
 
+export class PlanningController {
+    constructor(
+        $element,
+        $scope,
+        sdPlanningStore,
+        superdeskFlags,
+        $route,
+        pageTitle,
+        gettext
+    ) {
+        this.$element = $element;
+        this.$scope = $scope;
+        this.superdeskFlags = superdeskFlags;
+
+        this.render = this.render.bind(this);
+        this.loadWorkspace = this.loadWorkspace.bind(this);
+        this.onDestroy = this.onDestroy.bind(this);
+        this.onRouteChange = this.onRouteChange.bind(this);
+
+        this.store = null;
+        this.rendered = false;
+
+        this.prevFlags = {
+            workqueue: superdeskFlags.flags.workqueue,
+            authoring: superdeskFlags.flags.authoring,
+        };
+
+        pageTitle.setUrl(gettext('Planning'));
+
+        $scope.$on('$destroy', this.onDestroy);
+        $scope.$watch(() => $route.current, this.onRouteChange);
+
+        return sdPlanningStore.initWorkspace(WORKSPACE.PLANNING, this.loadWorkspace)
+            .then(this.render);
+    }
+
+    render() {
+        ReactDOM.render(
+            <Provider store={this.store}>
+                <PlanningApp />
+            </Provider>,
+            document.getElementById('sd-planning-react-container')
+        );
+
+        this.rendered = true;
+        return Promise.resolve();
+    }
+
+    loadWorkspace(store, workspaceChanged) {
+        this.store = store;
+        registerNotifications(this.$scope, this.store);
+
+        if (!workspaceChanged) {
+            return Promise.resolve();
+        }
+
+        return Promise.all([
+            this.store.dispatch(actions.locks.loadAllLocks()),
+            this.store.dispatch(actions.fetchAgendas()),
+            this.store.dispatch(actions.users.fetchUserPreferences()),
+            this.store.dispatch(actions.events.api.fetchCalendars()),
+            this.store.dispatch(actions.autosave.fetchAll()),
+        ])
+            .then(() => (
+                // Load the current items that are currently open for Preview/Editing
+                Promise.all([
+                    this.store.dispatch(actions.main.filter()),
+                    this.store.dispatch(actions.main.openFromLockActions()),
+                    this.store.dispatch(actions.main.openFromURLOrRedux('edit')),
+                    this.store.dispatch(actions.main.openFromURLOrRedux('preview')),
+                ])
+            ));
+    }
+
+    onDestroy() {
+        if (this.store) {
+            this.store.dispatch(actions.resetStore());
+        }
+
+        if (this.rendered) {
+            // Unmount the React application
+            ReactDOM.unmountComponentAtNode(this.$element.get(0));
+        }
+
+        this.superdeskFlags.flags.workqueue = this.prevFlags.workqueue;
+        this.superdeskFlags.flags.authoring = this.prevFlags.authoring;
+    }
+
+    onRouteChange(route) {
+        if (route.href.startsWith('/planning')) {
+            this.superdeskFlags.flags.workqueue = false;
+            this.superdeskFlags.flags.authoring = false;
+        }
+    }
+}
+
 PlanningController.$inject = [
     '$element',
     '$scope',
-    '$location',
     'sdPlanningStore',
-    '$q',
     'superdeskFlags',
     '$route',
     'pageTitle',
     'gettext',
 ];
-export function PlanningController(
-    $element,
-    $scope,
-    $location,
-    sdPlanningStore,
-    $q,
-    superdeskFlags,
-    $route,
-    pageTitle,
-    gettext
-) {
-    const prevFlags = {
-        workqueue: superdeskFlags.flags.workqueue,
-        authoring: superdeskFlags.flags.authoring,
-    };
-
-    pageTitle.setUrl(gettext('Planning'));
-
-    sdPlanningStore.getStore()
-        .then((store) => {
-            store.dispatch(actions.initStore(WORKSPACE.PLANNING));
-            registerNotifications($scope, store);
-
-            $q.all({
-                locks: store.dispatch(actions.locks.loadAllLocks()),
-                agendas: store.dispatch(actions.fetchAgendas()),
-                userPreferences: store.dispatch(actions.users.fetchUserPreferences()),
-                calendars: store.dispatch(actions.events.api.fetchCalendars()),
-                autosaves: store.dispatch(actions.autosave.fetchAll()),
-            })
-                .then(() => {
-                    // Load the current items that are currently open for Preview/Editing
-                    store.dispatch(actions.main.filter());
-                    store.dispatch(actions.main.openFromLockActions());
-                    store.dispatch(actions.main.openFromURLOrRedux('edit'));
-                    store.dispatch(actions.main.openFromURLOrRedux('preview'));
-
-                    $scope.$on('$destroy', () => {
-                        // Unmount the React application
-                        ReactDOM.unmountComponentAtNode($element.get(0));
-                        store.dispatch(actions.resetStore());
-                        superdeskFlags.flags.workqueue = prevFlags.workqueue;
-                        superdeskFlags.flags.authoring = prevFlags.authoring;
-                    });
-
-                    $scope.$watch(
-                        () => $route.current,
-                        (route) => {
-                            if (route.href.startsWith('/planning')) {
-                                superdeskFlags.flags.workqueue = false;
-                                superdeskFlags.flags.authoring = false;
-                            }
-                        }
-                    );
-
-                    // render the planning application
-                    ReactDOM.render(
-                        <Provider store={store}>
-                            <PlanningApp />
-                        </Provider>,
-                        $element.get(0)
-                    );
-                });
-        });
-}

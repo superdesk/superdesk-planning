@@ -49,3 +49,7 @@ export const isCount = (domElement, count) => (
     domElement.count()
         .then((numElements) => Promise.resolve(numElements >= count))
 );
+
+export const scrollIntoView = (domElement) => (
+    browser.executeScript('arguments[0].scrollIntoView()', domElement.getWebElement())
+);

@@ -24,6 +24,7 @@ describe('AddToPlanningController', () => {
             locals: {data: {item: newsItem}},
             resolve: sinon.stub().returns(Promise.resolve()),
             reject: sinon.stub().returns(Promise.reject()),
+            $on: sinon.stub(),
         };
     });
 
@@ -48,7 +49,9 @@ describe('AddToPlanningController', () => {
 
         $provide.constant('userList', {getUser: sinon.spy()});
 
-        $provide.constant('sdPlanningStore', {getStore: sinon.spy()});
+        $provide.constant('sdPlanningStore', {
+            initWorkspace: sinon.stub().callsFake((workspaceName, onLoadWorkspace) => onLoadWorkspace()),
+        });
 
         $provide.constant('gettext', sinon.stub().callsFake((str) => str));
     }));
@@ -69,7 +72,7 @@ describe('AddToPlanningController', () => {
         userList
     ) => {
         api.find = sinon.stub().returns($q.reject({}));
-        return AddToPlanningController(null,
+        return new AddToPlanningController(null,
             scope, $location, sdPlanningStore, $q, notify,
             gettext, api, lock, session, userList
         )
@@ -98,7 +101,7 @@ describe('AddToPlanningController', () => {
         delete newsItem.subject;
         delete newsItem.anpa_category;
 
-        return AddToPlanningController(null,
+        return new AddToPlanningController(null,
             scope, $location, sdPlanningStore, $q, notify,
             gettext, api, lock, session, userList
         )
@@ -123,7 +126,7 @@ describe('AddToPlanningController', () => {
         userList
     ) => {
         newsItem.assignment_id = 'as1';
-        return AddToPlanningController(null,
+        return new AddToPlanningController(null,
             scope, $location, sdPlanningStore, $q, notify,
             gettext, api, lock, session, userList
         )
@@ -145,7 +148,7 @@ describe('AddToPlanningController', () => {
             session,
             userList
         ) => (
-            AddToPlanningController(null,
+            new AddToPlanningController(null,
                 scope, $location, sdPlanningStore, $q, notify,
                 gettext, api, lock, session, userList
             )

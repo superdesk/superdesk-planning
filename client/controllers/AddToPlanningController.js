@@ -10,6 +10,237 @@ import {get} from 'lodash';
 import {registerNotifications, getErrorMessage, isExistingItem} from '../utils';
 import {WORKSPACE, MODALS, MAIN} from '../constants';
 
+export class AddToPlanningController {
+    constructor(
+        $element,
+        $scope,
+        $location,
+        sdPlanningStore,
+        $q,
+        notify,
+        gettext,
+        api,
+        lock,
+        session,
+        userList,
+        $timeout,
+        superdeskFlags
+    ) {
+        this.$element = $element;
+        this.$scope = $scope;
+        this.notify = notify;
+        this.gettext = gettext;
+        this.api = api;
+        this.lock = lock;
+        this.session = session;
+        this.userList = userList;
+        this.$timeout = $timeout;
+        this.superdeskFlags = superdeskFlags;
+
+        this.render = this.render.bind(this);
+        this.loadWorkspace = this.loadWorkspace.bind(this);
+        this.onDestroy = this.onDestroy.bind(this);
+        this.onItemUnlock = this.onItemUnlock.bind(this);
+
+        this.store = null;
+        this.newsItem = null;
+        this.item = get($scope, 'locals.data.item');
+        this.rendered = false;
+
+        $scope.$on('$destroy', this.onDestroy);
+        $scope.$on('item:unlock', this.onItemUnlock);
+
+        return sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, this.loadWorkspace)
+            .then(this.render);
+    }
+
+    render() {
+        this.store.dispatch(actions.main.closeEditor());
+        this.store.dispatch(actions.main.closePreview());
+
+        this.store.dispatch(actions.showModal({
+            modalType: MODALS.ADD_TO_PLANNING,
+            modalProps: {
+                newsItem: this.newsItem,
+                fullscreen: true,
+                $scope: this.$scope,
+            },
+        }));
+
+        ReactDOM.render(
+            <Provider store={this.store}>
+                <ModalsContainer/>
+            </Provider>,
+            document.getElementById('sd-planning-react-container')
+        );
+
+        this.rendered = true;
+        return Promise.resolve();
+    }
+
+    loadWorkspace(store, workspaceChanged) {
+        this.store = store;
+
+        return this.loadArchiveItem()
+            .then((newsItem) => {
+                this.newsItem = newsItem;
+
+                this.store.dispatch(planning.ui.requestPlannings({
+                    excludeRescheduledAndCancelled: true,
+                }));
+
+                registerNotifications(this.$scope, this.store);
+
+                return Promise.all([
+                    this.store.dispatch(actions.main.filter(MAIN.FILTERS.PLANNING)),
+                    this.store.dispatch(locks.loadAllLocks()),
+                    this.store.dispatch(actions.fetchAgendas()),
+                ]);
+            });
+    }
+
+    onDestroy() {
+        if (this.store) {
+            this.store.dispatch(planning.ui.requestPlannings({
+                excludeRescheduledAndCancelled: false,
+            }));
+
+            const planningEdited = currentItem(this.store.getState());
+
+            if (isExistingItem(planningEdited)) {
+                this.store.dispatch(actions.main.unlockAndCancel(planningEdited))
+                    .then(() => {
+                        this.store.dispatch(actions.hideModal());
+                        this.$timeout(() => {
+                            this.store.dispatch(actions.resetStore());
+                        }, 1000);
+                    });
+            } else if (currentItemType(this.store.getState())) {
+                // If we were creating a new planning item and editor is open
+                this.store.dispatch(actions.main.closeEditor());
+            }
+
+            // update the scope item.
+            this.item.assignment_id = this.newsItem.assignment_id;
+            this.store.dispatch(actions.hideModal());
+        }
+
+        // Only unlock the item if it was locked when launching this modal
+        if (get(this.newsItem, 'lock_session', null) !== null &&
+            get(this.newsItem, 'lock_action', 'edit') === 'add_to_planning') {
+            this.lock.unlock(this.newsItem);
+        }
+
+        if (this.rendered) {
+            ReactDOM.unmountComponentAtNode(this.$element.get(0));
+        }
+    }
+
+    onItemUnlock(_e, data) {
+        if (this.store &&
+            data.item === this.newsItem._id &&
+            data.lock_session !== this.session.sessionId
+        ) {
+            this.store.dispatch(actions.hideModal());
+            this.store.dispatch(actions.resetStore());
+
+            if (this.superdeskFlags.flags.authoring || !this.rendered) {
+                this.$scope.reject();
+                return;
+            }
+
+            this.userList.getUser(data.user).then(
+                (user) => Promise.resolve(user.display_name),
+                () => Promise.resolve('unknown')
+            )
+                .then((username) => this.store.dispatch(actions.showModal({
+                    modalType: MODALS.NOTIFICATION_MODAL,
+                    modalProps: {
+                        title: this.gettext('Item Unlocked'),
+                        body: this.gettext('The item was unlocked by "{{ username }}"', {username}),
+                        action: () => {
+                            this.newsItem.lock_session = null;
+                            this.$scope.reject();
+                        },
+                    },
+                })));
+        }
+    }
+
+    loadArchiveItem() {
+        return this.api.find('archive', this.item._id)
+            .then((newsItem) => {
+                let failed = false;
+                let errMessages = [];
+
+                if (get(newsItem, 'assignment_id')) {
+                    errMessages.push('Item already linked to a Planning item');
+                    failed = true;
+                }
+
+                if (get(newsItem, 'slugline', '') === '') {
+                    errMessages.push('[SLUGLINE] is a required field');
+                    failed = true;
+                }
+
+                if (get(newsItem, 'urgency', null) === null) {
+                    errMessages.push('[URGENCY] is a required field');
+                    failed = true;
+                }
+
+                if (get(newsItem, 'subject.length', 0) === 0) {
+                    errMessages.push('[SUBJECT] is a required field');
+                    failed = true;
+                }
+
+                if (get(newsItem, 'anpa_category.length', 0) === 0) {
+                    errMessages.push('[CATEGORY] is a required field');
+                    failed = true;
+                }
+
+                if (failed) {
+                    errMessages.forEach((err) => {
+                        this.notify.error(err);
+                    });
+
+                    this.$scope.reject();
+                    return Promise.reject();
+                }
+
+                if (this.lock.isLocked(newsItem)) {
+                    this.notify.error(
+                        this.gettext('Item already locked.')
+                    );
+                    this.$scope.reject();
+                    return Promise.reject();
+                }
+
+                if (!this.lock.isLockedInCurrentSession(newsItem)) {
+                    newsItem._editable = true;
+                    return this.lock.lock(newsItem, false, 'add_to_planning')
+                        .then(
+                            (lockedItem) => Promise.resolve(lockedItem),
+                            (error) => {
+                                this.notify.error(
+                                    getErrorMessage(error, 'Failed to lock the item.')
+                                );
+                                this.$scope.reject(error);
+                                return Promise.reject(error);
+                            }
+                        );
+                }
+
+                return Promise.resolve(newsItem);
+            }, (error) => {
+                this.notify.error(
+                    getErrorMessage(error, 'Failed to load the item.')
+                );
+                this.$scope.reject(error);
+                return Promise.reject(error);
+            });
+    }
+}
+
 AddToPlanningController.$inject = [
     '$element',
     '$scope',
@@ -25,193 +256,3 @@ AddToPlanningController.$inject = [
     '$timeout',
     'superdeskFlags',
 ];
-
-export function AddToPlanningController(
-    $element,
-    $scope,
-    $location,
-    sdPlanningStore,
-    $q,
-    notify,
-    gettext,
-    api,
-    lock,
-    session,
-    userList,
-    $timeout,
-    superdeskFlags
-) {
-    const item = get($scope, 'locals.data.item');
-
-    return api.find('archive', item._id)
-        .then((newsItem) => {
-            let failed = false;
-            let errMessages = [];
-
-            if (get(newsItem, 'assignment_id')) {
-                errMessages.push('Item already linked to a Planning item');
-                failed = true;
-            }
-
-            if (get(newsItem, 'slugline', '') === '') {
-                errMessages.push('[SLUGLINE] is a required field');
-                failed = true;
-            }
-
-            if (get(newsItem, 'urgency', null) === null) {
-                errMessages.push('[URGENCY] is a required field');
-                failed = true;
-            }
-
-            if (get(newsItem, 'subject.length', 0) === 0) {
-                errMessages.push('[SUBJECT] is a required field');
-                failed = true;
-            }
-
-            if (get(newsItem, 'anpa_category.length', 0) === 0) {
-                errMessages.push('[CATEGORY] is a required field');
-                failed = true;
-            }
-
-            if (failed) {
-                errMessages.forEach((err) => {
-                    notify.error(err);
-                });
-
-                $scope.reject();
-                return Promise.reject();
-            }
-
-            if (lock.isLocked(newsItem)) {
-                notify.error(
-                    gettext('Item already locked.')
-                );
-                $scope.reject();
-                return Promise.reject();
-            }
-
-            if (!lock.isLockedInCurrentSession(newsItem)) {
-                newsItem._editable = true;
-                return lock.lock(newsItem, false, 'add_to_planning')
-                    .then(
-                        (lockedItem) => Promise.resolve(lockedItem),
-                        (error) => {
-                            notify.error(
-                                getErrorMessage(error, 'Failed to lock the item.')
-                            );
-                            $scope.reject(error);
-                            return Promise.reject(error);
-                        }
-                    );
-            }
-
-            return Promise.resolve(newsItem);
-        }, (error) => {
-            notify.error(
-                getErrorMessage(error, 'Failed to load the item.')
-            );
-            $scope.reject(error);
-            return Promise.reject(error);
-        })
-        .then((newsItem) => (
-            sdPlanningStore.getStore()
-                .then((store) => {
-                    store.dispatch(actions.initStore(WORKSPACE.AUTHORING));
-                    store.dispatch(planning.ui.requestPlannings({
-                        excludeRescheduledAndCancelled: true,
-                    }));
-                    registerNotifications($scope, store);
-
-                    $q.all({
-                        data: store.dispatch(actions.main.filter(MAIN.FILTERS.PLANNING)),
-                        locks: store.dispatch(locks.loadAllLocks()),
-                        agendas: store.dispatch(actions.fetchAgendas()),
-                    })
-                        .then(() => {
-                            store.dispatch(actions.main.closeEditor());
-                            store.dispatch(actions.main.closePreview());
-                            ReactDOM.render(
-                                <Provider store={store}>
-                                    <ModalsContainer/>
-                                </Provider>,
-                                $element.get(0)
-                            );
-
-                            store.dispatch(actions.showModal({
-                                modalType: MODALS.ADD_TO_PLANNING,
-                                modalProps: {
-                                    newsItem: newsItem,
-                                    fullscreen: true,
-                                    $scope: $scope,
-                                },
-                            }));
-
-                            $scope.$on('$destroy', () => {
-                                store.dispatch(planning.ui.requestPlannings({
-                                    excludeRescheduledAndCancelled: false,
-                                }));
-
-                                const planningEdited = currentItem(store.getState());
-
-                                if (isExistingItem(planningEdited)) {
-                                    store.dispatch(actions.main.unlockAndCancel(planningEdited))
-                                        .then(() => {
-                                            store.dispatch(actions.hideModal());
-                                            $timeout(() => {
-                                                store.dispatch(actions.resetStore());
-                                            }, 1000);
-                                        });
-                                } else if (currentItemType(store.getState())) {
-                                    // If we were creating a new planning item and editor is open
-                                    store.dispatch(actions.main.closeEditor());
-                                }
-
-
-                                // Only unlock the item if it was locked when launching this modal
-                                if (get(newsItem, 'lock_session', null) !== null &&
-                                    get(newsItem, 'lock_action', 'edit') === 'add_to_planning') {
-                                    lock.unlock(newsItem);
-                                }
-
-                                // update the scope item.
-                                item.assignment_id = newsItem.assignment_id;
-                                store.dispatch(actions.hideModal());
-                                ReactDOM.unmountComponentAtNode($element.get(0));
-                            });
-
-                            $scope.$on('item:unlock', (_e, data) => {
-                                if (data.item === newsItem._id && data.lock_session !== session.sessionId) {
-                                    store.dispatch(actions.hideModal());
-                                    store.dispatch(actions.resetStore());
-
-                                    if (superdeskFlags.flags.authoring) {
-                                        $scope.reject();
-                                        return;
-                                    }
-
-                                    userList.getUser(data.user).then(
-                                        (user) => Promise.resolve(user.display_name),
-                                        () => Promise.resolve('unknown')
-                                    )
-                                        .then((username) => store.dispatch(actions.showModal({
-                                            modalType: MODALS.NOTIFICATION_MODAL,
-                                            modalProps: {
-                                                title: gettext('Item Unlocked'),
-                                                body: gettext(`The item was unlocked by "${username}"`),
-                                                action: () => {
-                                                    newsItem.lock_session = null;
-                                                    $scope.reject();
-                                                },
-                                            },
-                                        })));
-                                }
-                            });
-                        });
-                })
-        ),
-        (error) => {
-            $scope.reject(error);
-            return Promise.reject(error);
-        }
-        );
-}
