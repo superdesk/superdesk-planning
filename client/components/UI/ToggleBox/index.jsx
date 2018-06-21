@@ -140,7 +140,10 @@ ToggleBox.propTypes = {
     noMargin: PropTypes.bool,
     forceScroll: PropTypes.bool,
     paddingTop: PropTypes.bool,
-    badgeValue: PropTypes.string,
+    badgeValue: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.number,
+    ]),
 };
 
 ToggleBox.defaultProps = {

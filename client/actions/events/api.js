@@ -16,6 +16,7 @@ import {
     appendStatesQueryForAdvancedSearch,
     timeUtils,
     isExistingItem,
+    isValidFileInput,
 } from '../../utils';
 import moment from 'moment';
 
@@ -1163,7 +1164,7 @@ const _uploadFiles = (event) => (
 
         // Calculate the files to upload
         const filesToUpload = clonedEvent.files.filter(
-            (f) => f instanceof FileList || f instanceof Array
+            (f) => isValidFileInput(f)
         );
 
         if (filesToUpload.length < 1) {
@@ -1264,9 +1265,7 @@ const save = (event) => (
             .then((data) => {
                 const newFiles = data[0];
                 const modifiedEvent = data[1];
-                const originalFiles = get(modifiedEvent, 'files', []).filter(
-                    (f) => !(f instanceof FileList) && !(f instanceof Array)
-                );
+                const originalFiles = get(modifiedEvent, 'files', []).filter((f) => !isValidFileInput(f));
 
                 modifiedEvent.files = [
                     ...originalFiles.map((e) => e._id),

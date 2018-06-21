@@ -776,3 +776,6 @@ export const removeAutosaveFields = (item, stripLockFields = false) => {
             !includes(fieldsToIgnore, key)
     );
 };
+
+export const isValidFileInput = (f, includeObjectType = false) =>
+    f instanceof FileList || f instanceof Array || (includeObjectType && f instanceof Object);

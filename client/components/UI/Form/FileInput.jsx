@@ -63,11 +63,11 @@ export class FileInput extends React.Component {
     }
 
     getComponent(val, index = 0) {
-        const {readOnly, onFocus, field, createLink} = this.props;
+        const {readOnly, onFocus, field, createLink, noMargin} = this.props;
 
         return readOnly ? (
             <Row key={index} noPadding>
-                {get(val, 'media') && (<LineInput noMargin={true}>
+                {get(val, 'media') && (<LineInput noMargin={noMargin}>
                     <Label text={`${val.media.content_type} (${Math.round(val.media.length / 1024)}kB)`} />
                     <a
                         href={createLink(val)}
@@ -98,7 +98,7 @@ export class FileInput extends React.Component {
                     </LineInput>
                 ) ||
                 (
-                    <LineInput readOnly={readOnly} noMargin>
+                    <LineInput readOnly={readOnly} noMargin={noMargin}>
                         <TextArea
                             className="file-input__file"
                             field={field}
@@ -155,9 +155,15 @@ export class FileInput extends React.Component {
 FileInput.propTypes = {
     field: PropTypes.string,
     label: PropTypes.string,
-    value: PropTypes.array,
+    value: PropTypes.oneOfType([
+        PropTypes.array,
+        PropTypes.object,
+    ]),
     onChange: PropTypes.func,
     createLink: PropTypes.func,
     onFocus: PropTypes.func,
     readOnly: PropTypes.bool,
+    noMargin: PropTypes.bool,
 };
+
+FileInput.defaultProps = {noMargin: true};

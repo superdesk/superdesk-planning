@@ -96,7 +96,7 @@ export class LinkInput extends React.Component {
     }
 
     render() {
-        const {value, field, remove, onChange, label, readOnly, iframelyKey, onFocus, ...props} = this.props;
+        const {value, field, remove, onChange, label, readOnly, iframelyKey, noMargin, onFocus, ...props} = this.props;
 
         const showLink = this.state.title &&
             !props.message &&
@@ -104,7 +104,7 @@ export class LinkInput extends React.Component {
 
         return readOnly ? (
             <Row>
-                <LineInput noMargin={true}>
+                <LineInput noMargin={noMargin}>
                     <Label text={this.state.title} />
                     <a
                         href={this.getAbsoulteURL(value)}
@@ -117,7 +117,7 @@ export class LinkInput extends React.Component {
             </Row>
         ) : (
             <Row className="link-input">
-                <LineInput {...props} readOnly={readOnly} noMargin>
+                <LineInput {...props} readOnly={readOnly} noMargin={noMargin}>
                     <Label text={label} />
 
                     <TextArea
@@ -176,9 +176,11 @@ LinkInput.propTypes = {
     readOnly: PropTypes.bool,
     message: PropTypes.string,
     onFocus: PropTypes.func,
+    noMargin: PropTypes.bool,
 };
 
 LinkInput.defaultProps = {
     readOnly: false,
     value: '',
+    noMargin: true,
 };

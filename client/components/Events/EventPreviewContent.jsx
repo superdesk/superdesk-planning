@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {gettext, getCreator} from '../../utils';
+import {gettext, getCreator, isValidFileInput} from '../../utils';
 import * as selectors from '../../selectors';
 import {get, isEqual} from 'lodash';
 import {Row} from '../UI/Preview';
@@ -248,12 +248,12 @@ export class EventPreviewContentComponent extends React.Component {
                         {get(item, 'files.length') > 0 ?
                             <ul>
                                 {get(item, 'files', []).map((file, index) => (
-                                    <li key={index}>
+                                    isValidFileInput(file, true) ? (<li key={index}>
                                         <FileInput
                                             value={file}
                                             createLink={createUploadLink}
                                             readOnly={true} />
-                                    </li>
+                                    </li>) : null
                                 ))}
                             </ul> :
                             <span className="sd-text__info">{gettext('No attached files added.')}</span>}

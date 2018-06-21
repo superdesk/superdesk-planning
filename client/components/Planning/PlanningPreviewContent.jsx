@@ -19,6 +19,13 @@ import {AgendaNameList} from '../Agendas';
 import CustomVocabulariesPreview from '../CustomVocabulariesPreview';
 
 export class PlanningPreviewContentComponent extends React.Component {
+    componentWillMount() {
+        // If the planning item is associated with an event, get its files
+        if (this.props.event) {
+            this.props.fetchEventWithFiles(this.props.event);
+        }
+    }
+
     render() {
         const {item,
             users,
@@ -36,6 +43,7 @@ export class PlanningPreviewContentComponent extends React.Component {
             customVocabularies,
             inner,
             noPadding,
+            createUploadLink,
         } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
@@ -156,6 +164,7 @@ export class PlanningPreviewContentComponent extends React.Component {
                     streetMapUrl={streetMapUrl}
                     onEditEvent={onEditEvent.bind(null, event)}
                     lockedItems={lockedItems}
+                    createUploadLink={createUploadLink}
                 />}
                 {hasCoverage &&
                     (<h3 className="side-panel__heading--big">{gettext('Coverages')}</h3>)}
@@ -195,6 +204,8 @@ PlanningPreviewContentComponent.propTypes = {
     customVocabularies: PropTypes.array,
     inner: PropTypes.bool,
     noPadding: PropTypes.bool,
+    fetchEventWithFiles: PropTypes.func,
+    createUploadLink: PropTypes.func,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -213,9 +224,13 @@ const mapStateToProps = (state, ownProps) => ({
     urgencies: selectors.getUrgencies(state),
     streetMapUrl: selectors.config.getStreetMapUrl(state),
     customVocabularies: state.customVocabularies,
+    createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
 });
 
-const mapDispatchToProps = (dispatch) => ({onEditEvent: (event) => (dispatch(actions.main.lockAndEdit(event)))});
+const mapDispatchToProps = (dispatch) => ({
+    onEditEvent: (event) => dispatch(actions.main.lockAndEdit(event)),
+    fetchEventWithFiles: (event) => dispatch(actions.events.ui.fetchEventWithFiles(event)),
+});
 
 
 export const PlanningPreviewContent = connect(mapStateToProps, mapDispatchToProps)(PlanningPreviewContentComponent);

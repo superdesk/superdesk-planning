@@ -13,6 +13,7 @@ import {
     isSameItemId,
     editorMenuUtils,
     isExistingItem,
+    isValidFileInput,
 } from '../../../utils';
 
 import {ContentBlock} from '../../UI/SidePanel';
@@ -60,6 +61,11 @@ export class PlanningEditorComponent extends React.Component {
         if (this.props.addNewsItemToPlanning) {
             // In add-to-planning modal
             this.handleAddToPlanningLoading();
+        }
+
+        // If the planning item is associated with an event, get its files
+        if (this.props.event) {
+            this.props.fetchEventWithFiles(this.props.event);
         }
     }
 
@@ -248,6 +254,11 @@ export class PlanningEditorComponent extends React.Component {
                     }
                 });
             }
+
+            if (get(nextProps, 'event.files.length', 0) > 0 &&
+                nextProps.event.files.filter((f) => !isValidFileInput(f, true)).length > 0) {
+                this.props.fetchEventWithFiles(nextProps.event);
+            }
         }
     }
 
@@ -306,6 +317,7 @@ export class PlanningEditorComponent extends React.Component {
             lockedItems,
             navigation,
             customVocabularies,
+            createUploadLink,
         } = this.props;
 
         const agendaValues = cloneDeep(get(diff, 'agendas', [])
@@ -507,6 +519,7 @@ export class PlanningEditorComponent extends React.Component {
                             timeFormat={timeFormat}
                             lockedItems={lockedItems}
                             navigation={navigation}
+                            createUploadLink={createUploadLink}
                             tabEnabled
                         />
                     </ContentBlock>
@@ -585,6 +598,8 @@ PlanningEditorComponent.propTypes = {
     navigation: PropTypes.object,
     eventModal: PropTypes.object,
     customVocabularies: PropTypes.array,
+    fetchEventWithFiles: PropTypes.func,
+    createUploadLink: PropTypes.func,
 };
 
 PlanningEditorComponent.defaultProps = {
@@ -618,6 +633,7 @@ const mapStateToProps = (state) => ({
     currentAgenda: selectors.planning.currentAgenda(state),
     lockedItems: selectors.locks.getLockedItems(state),
     customVocabularies: state.customVocabularies,
+    createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -625,6 +641,7 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(actions.planning.ui.addCoverageToWorkflow(planning, coverage, index)),
     removeAssignment: (planning, coverage, index) =>
         dispatch(actions.planning.ui.removeAssignment(planning, coverage, index)),
+    fetchEventWithFiles: (event) => dispatch(actions.events.ui.fetchEventWithFiles(event)),
 });
 
 export const PlanningEditor = connect(
