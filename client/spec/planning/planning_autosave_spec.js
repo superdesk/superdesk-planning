@@ -11,7 +11,6 @@ describe('planning_autosave', () => {
     beforeEach(() => {
         plan = {
             slugline: 'Plan',
-            name: 'Namer',
             planning_date: {
                 date: '12/12/2045',
                 time: '12:13',
