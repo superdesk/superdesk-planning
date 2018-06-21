@@ -140,7 +140,7 @@ class AssignmentGroupListComponent extends React.Component {
                         <p className="sd-list-item-group__empty-msg">{
                             gettext(
                                 'There are no assignments {{ groupName }}',
-                                {groupName: ASSIGNMENTS.LIST_GROUPS[groupKey].label.toLowerCase()}
+                                {groupName: gettext(ASSIGNMENTS.LIST_GROUPS[groupKey].label).toLowerCase()}
                             )}
                         </p>
                     )}

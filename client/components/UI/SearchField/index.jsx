@@ -4,6 +4,7 @@ import DebounceInput from 'react-debounce-input';
 import {uniqueId} from 'lodash';
 import {KEYCODES} from '../constants';
 import {onEventCapture} from '../utils';
+import {gettext} from '../../../utils/gettext';
 
 /**
  * @ngdoc react
@@ -55,7 +56,7 @@ export default class SearchField extends React.Component {
                 onChange={this.onSearchChange.bind(this)}
                 onClick={this.onSearchClick.bind(this)}
                 id={uniqueId}
-                placeholder="Search"
+                placeholder={gettext('Search')}
                 className="sd-line-input__input"
                 type="text"
                 onKeyDown={(event) => {
