@@ -98,7 +98,7 @@ class NTBEventFormatter(Formatter):
                 longitude.text = str(item_geo.get('lon', ''))
 
     def _format_time(self, time, tz=None):
-        local_time = self._get_local_time(time, tz)
+        local_time = self._get_local_time(time, tz if tz else self.TIMEZONE)
         return local_time.strftime('%Y-%m-%dT%H:%M:%S')
 
     def _format_id(self, time):
@@ -134,6 +134,6 @@ class NTBEventFormatter(Formatter):
     def _get_local_time(self, time, tz=None):
         if time is None:
             time = utcnow()
-        if tz is None:
+        if not tz:
             tz = self.TIMEZONE
         return utc_to_local(tz, get_date(time))
