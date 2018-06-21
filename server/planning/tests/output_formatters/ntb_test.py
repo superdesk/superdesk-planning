@@ -201,3 +201,15 @@ class NTBEventTestCase(unittest.TestCase):
         output = formatter.format(item, {})[0]
         root = lxml.etree.fromstring(output['encoded_item'])
         self.assertIsNone(root.find('content').text)
+
+    def test_ingested_item_dates(self):
+        formatter = NTBEventFormatter()
+        item = self.item.copy()
+        item['dates'] = {
+            'start': '2018-07-01T16:00:00+0000',
+            'end': '2018-07-01T18:00:00+0000',
+            'tz': ''
+        }
+        output = formatter.format(item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        self.assertEqual('2018-07-01T18:00:00', root.find('timeStart').text)  # CEST + 2
