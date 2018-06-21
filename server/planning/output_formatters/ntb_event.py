@@ -1,8 +1,11 @@
 
 from lxml import etree
-from planning.common import POST_STATE
+from planning.common import POST_STATE, WORKFLOW_STATE
 from superdesk.publish.formatters import Formatter
 from superdesk.utc import get_date, utc_to_local, utcnow
+
+
+DELETE_STATES = {WORKFLOW_STATE.CANCELLED, WORKFLOW_STATE.POSTPONED}
 
 
 class NTBEventFormatter(Formatter):
@@ -31,7 +34,7 @@ class NTBEventFormatter(Formatter):
         service = etree.SubElement(doc, 'service')
         service.text = self.SERVICE
 
-        if item.get('pubstatus') == POST_STATE.CANCELLED:
+        if item.get('pubstatus') == POST_STATE.CANCELLED or item.get('state') in DELETE_STATES:
             doc.set('DeleteRequest', 'true')
             return
 
