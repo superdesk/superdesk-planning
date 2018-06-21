@@ -90,6 +90,11 @@ export class PlanningPreviewContentComponent extends React.Component {
                     className="slugline"
                 />
                 <Row
+                    enabled={get(formProfile, 'planning.editor.headline.enabled')}
+                    label={gettext('Headline')}
+                    value={item.headline || ''}
+                />
+                <Row
                     enabled={get(formProfile, 'planning.editor.name.enabled')}
                     label={gettext('Name')}
                     value={item.name || ''}
