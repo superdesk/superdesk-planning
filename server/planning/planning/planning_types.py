@@ -15,6 +15,11 @@ from copy import deepcopy
 from superdesk.utils import ListCursor
 
 
+def is_field_enabled(field, planning_type):
+    editor = planning_type.get('editor', {})
+    return editor.get(field, {}).get('enabled', False)
+
+
 class DateTimeField(schema.SchemaField):
     """Dict schema field."""
 
