@@ -33,6 +33,7 @@ const newStateOnEditorOpen = (state, payload, modal = false) => {
         initialValues = {
             ...eventUtils.defaultEventValues(),
             _id: payload._id,
+            _planning_item: payload._planning_item,
             occur_status: payload.occur_status,
             dates: payload.dates,
             calendars: payload.calendars,

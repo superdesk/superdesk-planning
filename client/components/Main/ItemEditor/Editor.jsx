@@ -254,7 +254,7 @@ export class EditorComponent extends React.Component {
         }
     }
 
-    _save({post, unpost, withConfirmation, updateMethod}) {
+    _save({post, unpost, withConfirmation, updateMethod, noSubsequentEditing}) {
         if (!isEqual(this.state.errorMessages, [])) {
             this.setState({
                 submitFailed: true,
@@ -285,7 +285,7 @@ export class EditorComponent extends React.Component {
                 this.cancelAutosave();
             }
 
-            return this.props.onSave(itemToUpdate, withConfirmation)
+            return this.props.onSave(itemToUpdate, withConfirmation, noSubsequentEditing)
                 .then(
                     () => this.setState({
                         submitting: false,
@@ -343,8 +343,14 @@ export class EditorComponent extends React.Component {
         });
     }
 
-    onSave(withConfirmation = true, updateMethod = EventUpdateMethods[0]) {
-        return this._save({post: false, unpost: false, withConfirmation: withConfirmation, updateMethod: updateMethod});
+    onSave(withConfirmation = true, updateMethod = EventUpdateMethods[0], noSubsequentEditing = false) {
+        return this._save({
+            post: false,
+            unpost: false,
+            withConfirmation: withConfirmation,
+            updateMethod: updateMethod,
+            noSubsequentEditing: noSubsequentEditing,
+        });
     }
 
     onPost() {
@@ -477,10 +483,11 @@ export class EditorComponent extends React.Component {
                 onIgnore: this.onCancel,
                 onSave: (isKilled || hasErrors) ?
                     null :
-                    (withConfirmation, updateMethod) => this.onSave(withConfirmation, updateMethod)
+                    (withConfirmation, updateMethod) => this.onSave(withConfirmation, updateMethod, true)
                         .finally(this.onCancel),
                 onSaveAndPost: (isKilled && !hasErrors) ?
-                    (withConfirmation, updateMethod) => this.onSaveAndPost(withConfirmation, updateMethod)
+                    (withConfirmation, updateMethod) => this.onSaveAndPost(withConfirmation, updateMethod,
+                        true)
                         .finally(this.onCancel) :
                     null,
             });

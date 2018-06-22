@@ -45,7 +45,8 @@ const mapDispatchToProps = (dispatch) => ({
     onLock: (item) => dispatch(actions.locks.lock(item)),
     minimize: () => dispatch(actions.main.closeEditor()),
     cancel: (item) => dispatch(actions.main.unlockAndCancel(item)),
-    onSave: (item, withConfirmation) => dispatch(actions.main.save(item, withConfirmation)),
+    onSave: (item, withConfirmation, noSubsequentEditing) =>
+        dispatch(actions.main.save(item, withConfirmation, noSubsequentEditing)),
     onUnpost: (item) => dispatch(actions.main.unpost(item)),
     onPost: (item) => dispatch(actions.main.post(item)),
     openCancelModal: (modalProps) => dispatch(actions.main.openIgnoreCancelSaveModal(modalProps)),
@@ -72,7 +73,8 @@ const mapDispatchToPropsModal = (dispatch) => ({
     onLock: (item) => dispatch(actions.locks.lock(item)),
     minimize: () => dispatch(actions.main.closeEditor()),
     cancel: (item) => dispatch(actions.main.unlockAndCancel(item, true)),
-    onSave: (item, withConfirmation) => dispatch(actions.main.save(item, withConfirmation)),
+    onSave: (item, withConfirmation, noSubsequentEditing) =>
+        dispatch(actions.main.save(item, withConfirmation, noSubsequentEditing)),
     onUnpost: (item) => dispatch(actions.main.unpost(item)),
     onPost: (item) => dispatch(actions.main.post(item)),
     openCancelModal: (modalProps) => dispatch(actions.main.openIgnoreCancelSaveModal(modalProps)),
