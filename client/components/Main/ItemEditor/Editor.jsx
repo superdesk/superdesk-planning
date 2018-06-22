@@ -411,7 +411,7 @@ export class EditorComponent extends React.Component {
         const {addNewsItemToPlanning, saveAutosave} = props;
 
         // Don't use Autosave if we're in the 'Add To Planning' modal
-        if (addNewsItemToPlanning) {
+        if (addNewsItemToPlanning || this.isReadOnly(props)) {
             return;
         }
 
@@ -430,7 +430,7 @@ export class EditorComponent extends React.Component {
         const {itemType, itemId, loadAutosave, addNewsItemToPlanning} = props;
 
         // Don't use Autosave if we're in the 'Add To Planning' modal
-        if (addNewsItemToPlanning) {
+        if (addNewsItemToPlanning || this.isReadOnly(props)) {
             return Promise.resolve();
         }
 
@@ -516,44 +516,48 @@ export class EditorComponent extends React.Component {
         }
     }
 
-    canEdit() {
-        if (this.props.itemType === ITEM_TYPE.EVENT) {
+    canEdit(props) {
+        if (props.itemType === ITEM_TYPE.EVENT) {
             return eventUtils.canEditEvent(
-                this.props.item,
-                this.props.session,
-                this.props.privileges,
-                this.props.lockedItems
+                props.item,
+                props.session,
+                props.privileges,
+                props.lockedItems
             );
-        } else if (this.props.itemType === ITEM_TYPE.PLANNING) {
+        } else if (props.itemType === ITEM_TYPE.PLANNING) {
             return planningUtils.canEditPlanning(
-                this.props.item,
+                props.item,
                 null,
-                this.props.session,
-                this.props.privileges,
-                this.props.lockedItems
+                props.session,
+                props.privileges,
+                props.lockedItems
             );
         }
 
         return false;
     }
 
-    renderContent() {
-        const existingItem = isExistingItem(this.props.item);
-        const itemLock = lockUtils.getLock(this.props.item, this.props.lockedItems);
+    isReadOnly(props) {
+        const existingItem = isExistingItem(props.item);
+        const itemLock = lockUtils.getLock(props.item, props.lockedItems);
         const isLockRestricted = lockUtils.isLockRestricted(
-            this.props.item,
-            this.props.session,
-            this.props.lockedItems
+            props.item,
+            props.session,
+            props.lockedItems
         );
+        const canEdit = this.canEdit(props);
 
-        let canEdit = this.canEdit();
-
-        const isReadOnly = existingItem && (
+        return existingItem && (
             !canEdit ||
             !itemLock ||
             isLockRestricted ||
             get(itemLock, 'action') !== 'edit'
         );
+    }
+
+    renderContent() {
+        const existingItem = isExistingItem(this.props.item);
+        const isReadOnly = this.isReadOnly(this.props);
 
         const currentTab = this.tabs[this.state.tab].enabled ? this.tabs[this.state.tab] :
             this.tabs[0];
