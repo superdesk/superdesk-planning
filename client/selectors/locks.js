@@ -41,3 +41,15 @@ export const workqueueItems = createSelector(
         )
     )
 );
+
+/** Returns the most recent lock for the current session */
+export const getLastSessionLock = (state) => {
+    /* Get the planning, event and recurring locks */
+    const Locks = Object.assign({}, getLockedItems(state).planning, getLockedItems(state).event,
+        getLockedItems(state).recurring);
+    /* Get the locks for this session ordered by time */
+    const sessionLastLock = sortBy(Object.values(Locks).filter((o) => o.session == state.session.sessionId),
+        [(l) => l.time]).reverse()[0];
+
+    return sessionLastLock;
+};

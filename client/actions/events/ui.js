@@ -170,54 +170,94 @@ const openUnspikeModal = (event, post = false) => (
     ))
 );
 
-const openUpdateTimeModal = (event, post = false) => (
-    self._openActionModalFromEditor({
-        event: event,
-        action: EVENTS.ITEM_ACTIONS.UPDATE_TIME,
-        title: gettext('Save changes before updating the Event\'s time?'),
-        loadPlannings: false,
-        post: post,
-        large: false,
-        loadEvents: true,
-    })
-);
+const openUpdateTimeModal = (event, post = false, fromEditor = true) => {
+    if (fromEditor) {
+        return self._openActionModalFromEditor({
+            event: event,
+            action: EVENTS.ITEM_ACTIONS.UPDATE_TIME,
+            title: gettext('Save changes before updating the Event\'s time?'),
+            loadPlannings: false,
+            post: post,
+            large: false,
+            loadEvents: true,
+        });
+    } else {
+        return self._openActionModal(
+            event,
+            EVENTS.ITEM_ACTIONS.UPDATE_TIME.label,
+            null,
+            true,
+            post
+        );
+    }
+};
 
-const openCancelModal = (event, post = false) => (
-    self._openActionModalFromEditor({
-        event: event,
-        action: EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
-        title: gettext('Save changes before cancelling the Event?'),
-        loadPlannings: true,
-        post: post,
-        large: true,
-        loadEvents: true,
-        refetchBeforeFinalLock: true,
-    })
-);
+const openCancelModal = (event, post = false, fromEditor = true) => {
+    if (fromEditor) {
+        return self._openActionModalFromEditor({
+            event: event,
+            action: EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
+            title: gettext('Save changes before cancelling the Event?'),
+            loadPlannings: true,
+            post: post,
+            large: true,
+            loadEvents: true,
+            refetchBeforeFinalLock: true,
+        });
+    } else {
+        return self._openActionModal(
+            event,
+            EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label,
+            null,
+            true,
+            post
+        );
+    }
+};
 
-const openPostponeModal = (event, post = false) => (
-    self._openActionModalFromEditor({
-        event: event,
-        action: EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
-        title: gettext('Save changes before postponing the Event?'),
-        loadPlannings: true,
-        post: post,
-        large: false,
-        loadEvents: false,
-    })
-);
+const openPostponeModal = (event, post = false, fromEditor = true) => {
+    if (fromEditor) {
+        return self._openActionModalFromEditor({
+            event: event,
+            action: EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
+            title: gettext('Save changes before postponing the Event?'),
+            loadPlannings: true,
+            post: post,
+            large: false,
+            loadEvents: false,
+        });
+    } else {
+        return self._openActionModal(
+            event,
+            EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label,
+            null,
+            true,
+            post
+        );
+    }
+};
 
-const openRescheduleModal = (event, post = false) => (
-    self._openActionModalFromEditor({
-        event: event,
-        action: EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
-        title: gettext('Save changes before rescheduling the Event?'),
-        loadPlannings: true,
-        post: post,
-        large: true,
-        loadEvents: false,
-    })
-);
+const openRescheduleModal = (event, post = false, fromEditor = true) => {
+    if (fromEditor) {
+        return self._openActionModalFromEditor({
+            event: event,
+            action: EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
+            title: gettext('Save changes before rescheduling the Event?'),
+            loadPlannings: true,
+            post: post,
+            large: true,
+            loadEvents: false,
+        });
+    } else {
+        return self._openActionModal(
+            event,
+            EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label,
+            null,
+            true,
+            post
+        );
+    }
+};
 
 const convertToRecurringEvent = (event, post) => (
     (dispatch) => dispatch(self._openActionModal(

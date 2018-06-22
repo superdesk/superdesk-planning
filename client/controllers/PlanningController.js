@@ -50,6 +50,7 @@ export function PlanningController(
                 .then(() => {
                     // Load the current items that are currently open for Preview/Editing
                     store.dispatch(actions.main.filter());
+                    store.dispatch(actions.main.openFromLockActions());
                     store.dispatch(actions.main.openFromURLOrRedux('edit'));
                     store.dispatch(actions.main.openFromURLOrRedux('preview'));
 
