@@ -50,8 +50,14 @@ const mapDispatchToProps = (dispatch) => ({
     onPost: (item) => dispatch(actions.main.post(item)),
     openCancelModal: (modalProps) => dispatch(actions.main.openIgnoreCancelSaveModal(modalProps)),
 
-    onValidate: (type, item, profile, errors, messages) =>
-        dispatch(validateItem(type, item, profile, errors, messages)),
+    onValidate: (type, item, diff, profile, errors, messages) => dispatch(validateItem({
+        profileName: type,
+        item: item,
+        diff: diff,
+        formProfiles: profile,
+        errors: errors,
+        messages: messages,
+    })),
     loadItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'edit')),
     itemActions: actionUtils.getActionDispatches({dispatch: dispatch}),
     closeEditorAndOpenModal: (item) => dispatch(actions.main.closeEditorAndOpenModal(item)),
@@ -70,8 +76,14 @@ const mapDispatchToPropsModal = (dispatch) => ({
     onUnpost: (item) => dispatch(actions.main.unpost(item)),
     onPost: (item) => dispatch(actions.main.post(item)),
     openCancelModal: (modalProps) => dispatch(actions.main.openIgnoreCancelSaveModal(modalProps)),
-    onValidate: (type, item, profile, errors, messages) =>
-        dispatch(validateItem(type, item, profile, errors, messages)),
+    onValidate: (type, item, diff, profile, errors, messages) => dispatch(validateItem({
+        profileName: type,
+        item: item,
+        diff: diff,
+        formProfiles: profile,
+        errors: errors,
+        messages: messages,
+    })),
     loadItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'edit')),
     itemActions: actionUtils.getActionDispatches({dispatch: dispatch}),
     notifyValidationErrors: (errors) => dispatch(actions.main.notifyValidationErrors(errors)),

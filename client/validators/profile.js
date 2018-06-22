@@ -1,7 +1,7 @@
 import {get, isEmpty} from 'lodash';
 import {gettext} from '../utils';
 
-export const formProfile = (dispatch, getState, field, fieldValue, profile, errors, messages) => {
+export const formProfile = ({field, value, profile, errors, messages}) => {
     // If the field is not enabled or no schema defined, then simply return
     if (!get(profile, `editor.${field}.enabled`, false) || !get(profile, `schema.${field}`)) {
         return;
@@ -9,52 +9,42 @@ export const formProfile = (dispatch, getState, field, fieldValue, profile, erro
 
     const schema = get(profile, `schema.${field}`) || {};
 
-    const value = (typeof fieldValue === 'string') ? fieldValue.trim() : fieldValue;
+    const fieldValue = (typeof value === 'string') ? value.trim() : value;
 
-    /**
-     * Get label for a field
-     *
-     * This should be temporary, we should define labels in the profile
-     *
-     * @param {String} field
-     * @return {String}
-     */
-    const fieldLabel = (field) => {
-        let label = field;
-
-        if (profile.name === 'event') {
-            if (field === 'name') {
-                label = 'Event name';
-            } else if (field === 'calendars') {
-                label = 'Calendars';
-            }
-        }
-
-        return gettext(label).toUpperCase();
-    };
-
-    if (!schema.required && get(value, length, 0) < 1) {
+    if (!schema.required && get(fieldValue, length, 0) < 1) {
         return;
     }
 
-    if (get(schema, 'maxlength', 0) > 0 && get(value, 'length', 0) > schema.maxlength) {
+    let fieldLabel = field;
+
+    if (profile.name === 'event') {
+        if (field === 'name') {
+            fieldLabel = 'Event name';
+        } else if (field === 'calendars') {
+            fieldLabel = 'Calendars';
+        }
+    }
+
+    fieldLabel = gettext(fieldLabel).toUpperCase();
+
+    if (get(schema, 'maxlength', 0) > 0 && get(fieldValue, 'length', 0) > schema.maxlength) {
         if (get(schema, 'type', 'string') === 'list') {
-            errors[field] = gettext('Too many ') + field;
-            messages.push(gettext('Too many {{ name }}', {name: fieldLabel(field)}));
+            errors[field] = gettext('Too many {{ name }}', {name: field});
+            messages.push(gettext('Too many {{ name }}', {name: fieldLabel}));
         } else {
             errors[field] = gettext('Too long');
-            messages.push(gettext('{{ name }} is too long', {name: fieldLabel(field)}));
+            messages.push(gettext('{{ name }} is too long', {name: fieldLabel}));
         }
-    } else if (schema.required && (typeof value === 'number' ? !value : isEmpty(value))) {
+    } else if (schema.required && (typeof fieldValue === 'number' ? !fieldValue : isEmpty(fieldValue))) {
         errors[field] = gettext('This field is required');
-        messages.push(gettext('{{ name }} is a required field', {name: fieldLabel(field)}));
-    } else if (get(schema, 'minlength', 0) > 0 && get(value, 'length', 0) < schema.minlength) {
+        messages.push(gettext('{{ name }} is a required field', {name: fieldLabel}));
+    } else if (get(schema, 'minlength', 0) > 0 && get(fieldValue, 'length', 0) < schema.minlength) {
         if (get(schema, 'type', 'string') === 'list') {
             errors[field] = gettext('Not enough');
-            messages.push(gettext('Not enough {{ name }}', {name: fieldLabel(field)}));
+            messages.push(gettext('Not enough {{ name }}', {name: fieldLabel}));
         } else {
             errors[field] = gettext('Too short');
-            messages.push(gettext('{{ name }} is too short', {name: fieldLabel(field)}));
+            messages.push(gettext('{{ name }} is too short', {name: fieldLabel}));
         }
     } else {
         delete errors[field];

@@ -67,7 +67,7 @@ time.Datetime {
 }
 
 .sd-collapse-box--invalid {
-    .sd-collapse-box__header {
+    .sd-collapse-box__header, .sd-collapse-box__content {
         border: 1px solid $red;
     }
 }

@@ -230,6 +230,7 @@ export class EditorComponent extends React.Component {
 
         this.props.onValidate(
             this.props.itemType,
+            this.props.initialValues,
             diff,
             this.props.formProfiles,
             errors,
@@ -254,7 +255,7 @@ export class EditorComponent extends React.Component {
     }
 
     _save({post, unpost, withConfirmation, updateMethod}) {
-        if (!isEqual(this.state.errors, {})) {
+        if (!isEqual(this.state.errorMessages, [])) {
             this.setState({
                 submitFailed: true,
             });
@@ -312,7 +313,7 @@ export class EditorComponent extends React.Component {
             errorMessages
         );
 
-        if (isEqual(errors, {})) {
+        if (isEqual(errorMessages, [])) {
             this.setState({
                 partialSave: true,
                 submitting: true,
@@ -463,11 +464,11 @@ export class EditorComponent extends React.Component {
 
     cancelFromHeader() {
         const {openCancelModal, item, initialValues, itemType} = this.props;
-        const {dirty, errors} = this.state;
+        const {dirty, errorMessages} = this.state;
 
         if (dirty) {
             this.flushAutosave();
-            const hasErrors = !isEqual(errors, {});
+            const hasErrors = !isEqual(errorMessages, []);
             const isKilled = isItemKilled(item);
 
             openCancelModal({

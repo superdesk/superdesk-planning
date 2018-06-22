@@ -46,7 +46,13 @@ describe('profileValidators', () => {
     });
 
     const testValidate = (field, response, messages = []) => {
-        formProfile(null, null, field, event[field], profile, errors, errorMessages);
+        formProfile({
+            field: field,
+            value: event[field],
+            profile: profile,
+            errors: errors,
+            messages: errorMessages,
+        });
         expect(errors).toEqual(response);
         expect(errorMessages).toEqual(messages);
     };
@@ -104,7 +110,7 @@ describe('profileValidators', () => {
         event.files = ['1', '2', '3', '4', '5', '6'];
         testValidate(
             'files',
-            {files: 'Too many files'},
+            {files: 'Too many {{ name }}'},
             ['Too many {{ name }}']
         );
     });

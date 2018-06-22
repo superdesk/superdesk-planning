@@ -1,6 +1,6 @@
 import eventValidators from '../events';
 import moment from 'moment';
-import {deployConfig} from '../../utils/testData';
+import {initialState} from '../../utils/testData';
 import {cloneDeep} from 'lodash';
 
 describe('eventValidators', () => {
@@ -13,8 +13,8 @@ describe('eventValidators', () => {
     beforeEach(() => {
         event = {
             dates: {
-                start: moment('2014-10-15T14:01:11'),
-                end: moment('2014-10-15T16:01:11'),
+                start: moment('2094-10-15T14:01:11'),
+                end: moment('2094-10-15T16:01:11'),
                 recurring_rule: {
                     frequency: 'DAILY',
                     endRepeatMode: 'count',
@@ -25,11 +25,17 @@ describe('eventValidators', () => {
         };
         errors = {};
         errorMessages = [];
-        state = {deployConfig: cloneDeep(deployConfig)};
+        state = cloneDeep(initialState);
     });
 
     const testValidate = (func, field, response, messages = []) => {
-        func(null, getState, field, event[field], null, errors, errorMessages);
+        func({
+            getState: getState,
+            field: field,
+            value: event[field],
+            errors: errors,
+            messages: errorMessages,
+        });
         expect(errors).toEqual(response);
         expect(errorMessages).toEqual(messages);
     };
@@ -72,7 +78,7 @@ describe('eventValidators', () => {
 
     describe('validateDateRange', () => {
         it('fail if end time should is after start time', () => {
-            event.dates.end = moment('2014-10-15T11:01:11');
+            event.dates.end = moment('2094-10-15T11:01:11');
             testValidate(eventValidators.validateDates, 'dates',
                 {dates: {end: {time: 'End time should be after start time'}}},
                 ['END TIME should be after START TIME']
@@ -80,10 +86,65 @@ describe('eventValidators', () => {
         });
 
         it('fail if end date should is after start date', () => {
-            event.dates.end = moment('2014-10-13T14:01:11');
+            event.dates.end = moment('2094-10-13T14:01:11');
             testValidate(eventValidators.validateDates, 'dates',
                 {dates: {end: {date: 'End date should be after start date'}}},
                 ['END DATE should be after START DATE']
+            );
+        });
+    });
+
+    describe('validateDateInPast', () => {
+        it('start or end date in the past without `planning_create_past` privilege', () => {
+            state.privileges.planning_create_past = 0;
+
+            event.dates.start = moment('2000-10-15T11:01:11');
+            testValidate(
+                eventValidators.validateDateInPast,
+                'dates',
+                {start: {date: 'Start date is in the past'}},
+                ['START DATE cannot be in the past']
+            );
+
+            errors = {};
+            errorMessages = [];
+            event.dates.start = moment('2094-10-15T11:01:11');
+            event.dates.end = moment('2000-10-15T11:01:11');
+            testValidate(
+                eventValidators.validateDateInPast,
+                'dates',
+                {end: {date: 'End date is in the past'}},
+                ['END DATE cannot be in the past']
+            );
+        });
+
+        it('start or end date in the past with `planning_create_past` privilege', () => {
+            event.dates.start = moment('2000-10-15T11:01:11');
+            testValidate(
+                eventValidators.validateDateInPast,
+                'dates',
+                {start: {date: 'Start date is in the past'}},
+                []
+            );
+
+            errors = {};
+            errorMessages = [];
+            event.dates.start = moment('2094-10-15T11:01:11');
+            event.dates.end = moment('2000-10-15T11:01:11');
+            testValidate(
+                eventValidators.validateDateInPast,
+                'dates',
+                {end: {date: 'End date is in the past'}},
+                []
+            );
+        });
+
+        it('both start and end date in the future', () => {
+            testValidate(
+                eventValidators.validateDateInPast,
+                'dates',
+                {},
+                []
             );
         });
     });

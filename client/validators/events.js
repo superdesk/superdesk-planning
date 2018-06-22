@@ -3,24 +3,25 @@ import {get, set, isEmpty, isEqual} from 'lodash';
 import {gettext, eventUtils} from '../utils';
 import * as selectors from '../selectors';
 import {formProfile} from './profile';
+import {PRIVILEGES} from '../constants';
 
-const validateRequiredDates = (dates, errors, messages) => {
-    if (!get(dates, 'start')) {
+const validateRequiredDates = ({value, errors, messages}) => {
+    if (!get(value, 'start')) {
         set(errors, 'start.date', gettext('This field is required'));
         set(errors, 'start.time', gettext('This field is required'));
         messages.push(gettext('START DATE/TIME are required fields'));
     }
 
-    if (!get(dates, 'end')) {
+    if (!get(value, 'end')) {
         set(errors, 'end.date', gettext('This field is required'));
         set(errors, 'end.time', gettext('This field is required'));
         messages.push(gettext('END DATE/TIME are required fields'));
     }
 };
 
-const validateDateRange = (dates, errors, messages) => {
-    const startDate = get(dates, 'start');
-    const endDate = get(dates, 'end');
+const validateDateRange = ({value, errors, messages}) => {
+    const startDate = get(value, 'start');
+    const endDate = get(value, 'end');
 
     if (moment.isMoment(startDate) &&
         moment.isMoment(endDate) &&
@@ -36,14 +37,39 @@ const validateDateRange = (dates, errors, messages) => {
     }
 };
 
-const validateRecurringRules = (getState, dates, errors, messages) => {
+const validateDateInPast = ({getState, value, errors, messages}) => {
+    const privileges = selectors.general.privileges(getState());
+    const canCreateInPast = !!privileges[PRIVILEGES.CREATE_IN_PAST];
+    const today = moment();
+
+    const startDate = get(value, 'start');
+    const endDate = get(value, 'end');
+
+    if (moment.isMoment(startDate) && startDate.isBefore(today, 'day')) {
+        set(errors, 'start.date', gettext('Start date is in the past'));
+
+        if (!canCreateInPast) {
+            messages.push(gettext('START DATE cannot be in the past'));
+        }
+    }
+
+    if (moment.isMoment(endDate) && endDate.isBefore(today, 'day')) {
+        set(errors, 'end.date', gettext('End date is in the past'));
+
+        if (!canCreateInPast) {
+            messages.push(gettext('END DATE cannot be in the past'));
+        }
+    }
+};
+
+const validateRecurringRules = ({getState, value, errors, messages}) => {
     const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
-    const frequency = get(dates, 'recurring_rule.frequency');
-    const byday = get(dates, 'recurring_rule.byday');
-    const endRepeatMode = get(dates, 'recurring_rule.endRepeatMode');
-    const until = get(dates, 'recurring_rule.until');
-    let count = get(dates, 'recurring_rule.count');
-    const startDate = get(dates, 'start');
+    const frequency = get(value, 'recurring_rule.frequency');
+    const byday = get(value, 'recurring_rule.byday');
+    const endRepeatMode = get(value, 'recurring_rule.endRepeatMode');
+    const until = get(value, 'recurring_rule.until');
+    let count = get(value, 'recurring_rule.count');
+    const startDate = get(value, 'start');
 
     let recurringErrors = {};
 
@@ -88,16 +114,35 @@ const validateRecurringRules = (getState, dates, errors, messages) => {
     }
 };
 
-const validateDates = (dispatch, getState, field, value, profile, errors, messages) => {
+const validateDates = ({getState, value, errors, messages}) => {
     if (!value) {
         return;
     }
 
     const newErrors = {};
 
-    self.validateRequiredDates(value, newErrors, messages);
-    self.validateDateRange(value, newErrors, messages);
-    self.validateRecurringRules(getState, value, newErrors, messages);
+    self.validateRequiredDates({
+        value: value,
+        errors: newErrors,
+        messages: messages,
+    });
+    self.validateDateRange({
+        value: value,
+        errors: newErrors,
+        messages: messages,
+    });
+    self.validateDateInPast({
+        getState: getState,
+        value: value,
+        errors: newErrors,
+        messages: messages,
+    });
+    self.validateRecurringRules({
+        getState: getState,
+        value: value,
+        errors: newErrors,
+        messages: messages,
+    });
 
     if (!isEqual(newErrors, {})) {
         errors.dates = newErrors;
@@ -106,10 +151,16 @@ const validateDates = (dispatch, getState, field, value, profile, errors, messag
     }
 };
 
-const validateFiles = (dispatch, getState, field, value, profile, errors, messages) => {
+const validateFiles = ({dispatch, getState, field, value, profile, errors, messages}) => {
     const error = {};
 
-    formProfile(dispatch, field, value, profile, error);
+    formProfile({
+        field: field,
+        value: value,
+        profile: profile,
+        errors: error,
+        messages: messages,
+    });
 
     if (Array.isArray(value)) {
         value.forEach((item, index) => {
@@ -130,10 +181,16 @@ const validateFiles = (dispatch, getState, field, value, profile, errors, messag
     }
 };
 
-const validateLinks = (dispatch, getState, field, value, profile, errors, messages) => {
+const validateLinks = ({dispatch, getState, field, value, profile, errors, messages}) => {
     const error = {};
 
-    formProfile(dispatch, getState, field, value, profile, error, messages);
+    formProfile({
+        field: field,
+        fieldValue: value,
+        profile: profile,
+        errors: error,
+        messages: messages,
+    });
 
     const protocolTest = new RegExp('^(?:https?://|ftp://|www\\.)');
 
@@ -173,6 +230,7 @@ const validateLinks = (dispatch, getState, field, value, profile, errors, messag
 const self = {
     validateRequiredDates,
     validateDateRange,
+    validateDateInPast,
     validateRecurringRules,
     validateDates,
     validateFiles,
