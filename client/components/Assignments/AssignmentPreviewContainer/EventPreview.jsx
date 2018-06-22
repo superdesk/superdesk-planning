@@ -4,7 +4,7 @@ import {connect} from 'react-redux';
 import {get} from 'lodash';
 
 import * as selectors from '../../../selectors';
-import {gettext, stringUtils} from '../../../utils';
+import {gettext, stringUtils, isValidFileInput} from '../../../utils';
 
 import {Datetime} from '../../';
 import {Location} from '../../Location';
@@ -86,13 +86,13 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
                 {get(item, 'files.length', 0) > 0 ? (
                     <ul>
                         {get(item, 'files').map((file, index) =>
-                            <li key={index}>
+                            isValidFileInput(file, true) ? (<li key={index}>
                                 <FileInput
                                     value={file}
                                     createLink={createLink}
                                     readOnly={true}
                                 />
-                            </li>
+                            </li>) : null
                         )}
                     </ul>
                 ) : (
