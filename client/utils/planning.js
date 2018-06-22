@@ -130,7 +130,8 @@ const canAddAsEvent = (planning, event = null, session, privileges, locks) => (
     !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         isPlanAdHoc(planning) &&
-        !isPlanningLocked(planning, locks)
+        !isPlanningLocked(planning, locks) &&
+        !isItemSpiked(planning)
 );
 
 const isCoverageCancelled = (coverage) =>
