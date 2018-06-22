@@ -1443,3 +1443,59 @@ Feature: Planning
         Then we get OK response
         When we get "assignments"
         Then we get list with 0 items
+
+    @auth
+    Scenario: Populate headline using name when creating item from event
+        Given "events"
+        """
+        [
+            {
+                "name": "test name",
+                "dates": {
+                    "start": "2016-11-17T12:00:00.000Z",
+                    "end": "2016-11-17T14:00:00.000Z",
+                    "tz": "Europe/Berlin"
+                },
+                "occur_status": {
+                    "name": "Planned, occurs certainly",
+                    "qcode": "eocstat:eos5"
+                }
+            }
+        ]
+        """
+        When we post to "/planning"
+        """
+        {
+            "item_class": "item class value",
+            "name": "test name",
+            "slugline": "test slugline",
+            "event_item": "#events._id#"
+        }
+        """
+        Then we get new resource
+        """
+        {
+            "name": "test name",
+            "headline": "test name",
+            "slugline": "test slugline"
+        }
+        """
+
+    @auth
+    Scenario: Don't populate headline using name when creating item manually
+        When we post to "/planning"
+        """
+        {
+            "item_class": "item class value",
+            "name": "test name",
+            "slugline": "test slugline"
+        }
+        """
+        Then we get new resource
+        """
+        {
+            "name": "test name",
+            "headline": "__no_value__",
+            "slugline": "test slugline"
+        }
+        """

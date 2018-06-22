@@ -97,6 +97,9 @@ class PlanningService(superdesk.Service):
             self.set_planning_schedule(doc)
             # set timestamps
             update_dates_for(doc)
+            # populate headline using name
+            if doc.get('name') and doc.get('event_item'):
+                doc.setdefault('headline', doc['name'])
 
     def on_created(self, docs):
         session_id = get_auth().get('_id')
