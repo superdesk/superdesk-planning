@@ -241,7 +241,6 @@ SelectListPopup.propTypes = {
         ]),
         value: PropTypes.oneOfType([
             PropTypes.object,
-            PropTypes.string,
         ]),
     })).isRequired,
     onCancel: PropTypes.func.isRequired,
@@ -254,7 +253,6 @@ SelectListPopup.propTypes = {
         ]),
         value: PropTypes.oneOfType([
             PropTypes.object,
-            PropTypes.string,
         ]),
     })),
     target: PropTypes.string,
@@ -265,4 +263,4 @@ SelectListPopup.propTypes = {
     onAddText: PropTypes.string,
 };
 
-SelectListPopup.defaultProps = {valueKey: 'label'};
+SelectListPopup.defaultProps = {valueKey: '_id'};

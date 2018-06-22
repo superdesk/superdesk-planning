@@ -61,7 +61,7 @@ export class ContactFieldComponent extends React.Component {
         const {field, ...props} = this.props;
         const opt = this.getOption(savedContact);
 
-        props.onChange(field, [...props.value, opt.value]);
+        props.onChange(field, [...props.value, opt.value._id]);
 
         onCancel();
     }
@@ -112,7 +112,7 @@ export class ContactFieldComponent extends React.Component {
 
         return {
             label: (<span>{contactLabel}</span>),
-            value: contact._id,
+            value: contact,
         };
     }
 
@@ -158,7 +158,6 @@ export class ContactFieldComponent extends React.Component {
                     label={label}
                     onChange={props.onChange}
                     querySearch={true}
-                    valueKey="value"
                     onQuerySearch={((text) => this.getSearchResult(text))}
                     options={this.state.filteredOptions}
                     value={this.state.filteredValues}
@@ -176,7 +175,6 @@ ContactFieldComponent.propTypes = {
     querySearch: PropTypes.bool,
     onQuerySearch: PropTypes.func,
     onFocus: PropTypes.func,
-    valueKey: PropTypes.string,
     value: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.array,

@@ -26,10 +26,10 @@ export class SelectSearchContactsField extends React.Component {
     }
 
     removeValue(index) {
-        const {value, field, onChange} = this.props;
+        const {value, valueKey, field, onChange} = this.props;
 
         value.splice(index, 1);
-        let newValues = value.map((v) => (v.value._id));
+        let newValues = value.map((v) => (v.value[valueKey]));
 
         onChange(field, [...newValues]);
     }
@@ -49,7 +49,7 @@ export class SelectSearchContactsField extends React.Component {
     }
 
     removeValuesFromOptions() {
-        return differenceBy(this.props.options, this.props.value, this.props.valueKey);
+        return differenceBy(this.props.options, this.props.value, `value[${this.props.valueKey}]`);
     }
 
     onChange(opt) {
@@ -57,15 +57,15 @@ export class SelectSearchContactsField extends React.Component {
 
         // Check if it's duplicate
         if (value && value.length > 0) {
-            if (value.find((v) => (v[valueKey] === opt[valueKey]))) {
+            if (value.find((v) => (v.value[valueKey] === opt.value[valueKey]))) {
                 return;
             }
 
-            let newValues = value.map((v) => (v.value._id));
+            let newValues = value.map((v) => (v.value[valueKey]));
 
-            onChange(field, [...newValues, opt.value]);
+            onChange(field, [...newValues, opt.value[valueKey]]);
         } else {
-            onChange(field, [opt.value]);
+            onChange(field, [opt.value[valueKey]]);
         }
     }
 
@@ -124,7 +124,6 @@ SelectSearchContactsField.propTypes = {
         ]),
         value: PropTypes.oneOfType([
             PropTypes.object,
-            PropTypes.string,
         ]),
     })).isRequired,
     value: PropTypes.oneOfType([
@@ -137,7 +136,6 @@ SelectSearchContactsField.propTypes = {
             ]),
             value: PropTypes.oneOfType([
                 PropTypes.object,
-                PropTypes.string,
             ]),
             onEditDetails: PropTypes.func,
         }),
@@ -158,6 +156,6 @@ SelectSearchContactsField.propTypes = {
 
 SelectSearchContactsField.defaultProps = {
     required: false,
-    valueKey: 'label',
+    valueKey: '_id',
     querySearch: false,
 };
