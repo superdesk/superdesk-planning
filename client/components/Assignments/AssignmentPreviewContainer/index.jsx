@@ -16,6 +16,12 @@ import {ToggleBox, Button} from '../../UI';
 import {ContentBlock, ContentBlockInner} from '../../UI/SidePanel';
 
 class AssignmentPreviewContainerComponent extends React.Component {
+    componentWillMount() {
+        if (this.props.eventItem) {
+            this.props.fetchEventWithFiles(this.props.eventItem);
+        }
+    }
+
     getItemActions() {
         const {
             reassign,
@@ -179,6 +185,7 @@ AssignmentPreviewContainerComponent.propTypes = {
     revertAssignment: PropTypes.func,
     hideItemActions: PropTypes.bool,
     showFulfilAssignment: PropTypes.bool,
+    fetchEventWithFiles: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
@@ -209,6 +216,7 @@ const mapDispatchToProps = (dispatch) => ({
     onFulFilAssignment: (assignment) => dispatch(actions.assignments.ui.onFulFilAssignment(assignment)),
     removeAssignment: (assignment) => dispatch(actions.assignments.ui.showRemoveAssignmentModal(assignment)),
     openArchivePreview: (assignment) => dispatch(actions.assignments.ui.openArchivePreview(assignment)),
+    fetchEventWithFiles: (event) => dispatch(actions.events.ui.fetchEventWithFiles(event)),
 });
 
 export const AssignmentPreviewContainer = connect(
