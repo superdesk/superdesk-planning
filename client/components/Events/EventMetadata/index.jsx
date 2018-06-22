@@ -5,10 +5,12 @@ import {ICON_COLORS} from '../../../constants';
 import {StateLabel} from '../..';
 import {EventScheduleSummary} from '../';
 import {ItemIcon} from '../../index';
+import {ToggleBox} from '../../UI';
 import {Item, Column, Row, ActionMenu, Border} from '../../UI/List';
 import {Row as PreviewRow} from '../../UI/Preview';
+import {FileInput, LinkInput} from '../../UI/Form';
 import {CollapseBox} from '../../UI/CollapseBox';
-import {eventUtils, gettext, onEventCapture, editorMenuUtils} from '../../../utils';
+import {eventUtils, gettext, onEventCapture, editorMenuUtils, isValidFileInput} from '../../../utils';
 import {Location} from '../../Location';
 
 export const EventMetadata = (
@@ -28,6 +30,7 @@ export const EventMetadata = (
         active,
         showIcon,
         showBorder,
+        createUploadLink,
     }
 ) => {
     const dateStr = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat, dateOnly);
@@ -139,6 +142,41 @@ export const EventMetadata = (
                 value={get(event, 'occur_status.name', '')} />
             <PreviewRow label={gettext('Description')}
                 value={event.definition_short || ''} />
+            <ToggleBox
+                title={gettext('Attached Files')}
+                badgeValue={get(event, 'files.length', 0) > 0 ? event.files.length : null}
+                scrollInView
+                isOpen={false}>
+                {get(event, 'files.length') > 0 ?
+                    (<ul>
+                        {get(event, 'files', []).map((file, index) => (
+                            isValidFileInput(file, true) ? (<li key={index}>
+                                <FileInput
+                                    value={file}
+                                    createLink={createUploadLink}
+                                    readOnly={true}
+                                    noMargin={false} />
+                            </li>) : null
+                        ))}
+                    </ul>) :
+                    <span className="sd-text__info">{gettext('No attached files added.')}</span>
+                }
+            </ToggleBox>
+            <ToggleBox
+                title={gettext('External Links')}
+                badgeValue={get(event, 'links.length', 0) > 0 ? event.links.length : null}
+                scrollInView
+                isOpen={false}>
+                {get(event, 'links.length') > 0 ?
+                    <ul>
+                        {get(event, 'links', []).map((link, index) => (
+                            <li key={index}>
+                                <LinkInput value={link} readOnly={true} noMargin={false} />
+                            </li>
+                        ))}
+                    </ul> :
+                    <span className="sd-text__info">{gettext('No external links added.')}</span>}
+            </ToggleBox>
         </div>
     );
 
@@ -180,6 +218,7 @@ EventMetadata.propTypes = {
     lockedItems: PropTypes.object,
     showIcon: PropTypes.bool,
     showBorder: PropTypes.bool,
+    createUploadLink: PropTypes.func,
 };
 
 

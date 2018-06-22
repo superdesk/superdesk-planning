@@ -676,7 +676,7 @@ const modifyForServer = (event, removeNullLinks = false, removeFiles = false) =>
             (link) => link && get(link, 'length', 0) > 0
         );
 
-        if (get(event, 'link.length', 0) < 1) {
+        if (get(event, 'links.length', 0) < 1) {
             event.links = null;
         }
     }
