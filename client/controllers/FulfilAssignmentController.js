@@ -8,9 +8,219 @@ import {registerNotifications} from '../utils';
 import {WORKSPACE, ASSIGNMENTS, MODALS} from '../constants';
 import {getErrorMessage} from '../utils/index';
 
+export class FulFilAssignmentController {
+    constructor(
+        $element,
+        $scope,
+        sdPlanningStore,
+        notify,
+        gettext,
+        lock,
+        session,
+        userList,
+        api,
+        $timeout,
+        superdeskFlags
+    ) {
+        this.$element = $element;
+        this.$scope = $scope;
+        this.notify = notify;
+        this.gettext = gettext;
+        this.lock = lock;
+        this.session = session;
+        this.userList = userList;
+        this.api = api;
+        this.$timeout = $timeout;
+        this.superdeskFlags = superdeskFlags;
+
+        this.render = this.render.bind(this);
+        this.loadWorkspace = this.loadWorkspace.bind(this);
+        this.onDestroy = this.onDestroy.bind(this);
+        this.onItemUnlock = this.onItemUnlock.bind(this);
+        this.loadArchiveItem = this.loadArchiveItem.bind(this);
+
+        this.store = null;
+        this.newsItem = null;
+        this.item = get($scope, 'locals.data.item');
+        this.rendered = false;
+
+        $scope.$on('$destroy', this.onDestroy);
+        $scope.$on('item:unlock', this.onItemUnlock);
+
+        if (get(this.item, 'slugline', '') === '') {
+            this.notify.error(
+                this.gettext('[SLUGLINE] is a required field')
+            );
+            this.$scope.reject();
+            return;
+        }
+
+        return sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, this.loadWorkspace)
+            .then(this.render);
+    }
+
+    render() {
+        this.store.dispatch(
+            actions.assignments.ui.changeAssignmentListSingleGroupView('TODO')
+        );
+
+        ReactDOM.render(
+            <Provider store={this.store}>
+                <ModalsContainer />
+            </Provider>,
+            document.getElementById('sd-planning-react-container')
+        );
+
+        this.store.dispatch(actions.showModal({
+            modalType: MODALS.FULFIL_ASSIGNMENT,
+            modalProps: {
+                newsItem: this.newsItem,
+                fullscreen: true,
+                $scope: this.$scope,
+            },
+        }));
+
+        this.rendered = true;
+        return Promise.resolve();
+    }
+
+    loadWorkspace(store, workspaceChanged) {
+        this.store = store;
+
+        return this.loadArchiveItem()
+            .then((newsItem) => {
+                this.newsItem = newsItem;
+
+                // set the current desk as the item desk.
+                this.store.dispatch({
+                    type: 'WORKSPACE_CHANGE',
+                    payload: {
+                        currentDeskId: get(this.item, 'task.desk'),
+                        currentStageId: get(this.item, 'task.stage'),
+                    },
+                });
+                registerNotifications(this.$scope, this.store);
+
+                return this.store.dispatch(
+                    actions.assignments.ui.loadAssignments(
+                        'All',
+                        null,
+                        'Created',
+                        'Desc',
+                        [ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED],
+                        this.newsItem.type
+                    )
+                );
+            });
+    }
+
+    onDestroy() {
+        if (this.store) {
+            this.store.dispatch(actions.hideModal());
+            this.$timeout(() => {
+                this.store.dispatch(actions.resetStore());
+            }, 1000);
+
+            // Only unlock the item if it was locked when launching this modal
+            if (get(this.newsItem, 'lock_session', null) !== null &&
+                get(this.newsItem, 'lock_action', 'edit') === 'fulfil_assignment' &&
+                this.lock.isLockedInCurrentSession(this.newsItem)
+            ) {
+                this.lock.unlock(this.newsItem);
+            }
+
+            // update the scope item.
+            this.item.assignment_id = this.newsItem.assignment_id;
+        }
+
+        if (this.rendered) {
+            ReactDOM.unmountComponentAtNode(this.$element.get(0));
+        }
+    }
+
+    onItemUnlock(_e, data) {
+        if (this.store &&
+            data.item === this.newsItem._id &&
+            data.lock_session !== this.session.sessionId
+        ) {
+            this.store.dispatch(actions.hideModal());
+            this.store.dispatch(actions.resetStore());
+
+            if (this.superdeskFlags.flags.authoring || !this.rendered) {
+                this.$scope.reject();
+                return;
+            }
+
+            this.userList.getUser(data.user).then(
+                (user) => Promise.resolve(user.display_name),
+                () => Promise.resolve('unknown')
+            )
+                .then((username) => this.store.dispatch(actions.showModal({
+                    modalType: 'NOTIFICATION_MODAL',
+                    modalProps: {
+                        title: this.gettext('Item Unlocked'),
+                        body: this.gettext('The item was unlocked by "{{ username }}"', {username}),
+                        action: () => {
+                            this.newsItem.lock_session = null;
+                            this.$scope.reject();
+                        },
+                    },
+                })));
+        }
+    }
+
+    loadArchiveItem() {
+        return this.api.find('archive', this.item._id)
+            .then((newsItem) => {
+                if (get(newsItem, 'assignment_id')) {
+                    this.notify.error(
+                        this.gettext('Item already linked to a Planning item')
+                    );
+                    this.$scope.reject();
+                    return Promise.reject();
+                }
+
+                if (this.lock.isLocked(newsItem)) {
+                    this.notify.error(
+                        this.gettext('Item already locked.')
+                    );
+                    this.$scope.reject();
+                    return Promise.reject();
+                }
+
+                if (!this.lock.isLockedInCurrentSession(newsItem)) {
+                    newsItem._editable = true;
+                    return this.lock.lock(newsItem, false, 'fulfil_assignment')
+                        .then(
+                            (lockedItem) => Promise.resolve(lockedItem),
+                            (error) => {
+                                this.notify.error(
+                                    this.gettext(
+                                        getErrorMessage(error, 'Failed to lock the item.')
+                                    )
+                                );
+                                this.$scope.reject(error);
+                                return Promise.reject(error);
+                            }
+                        );
+                }
+
+                return Promise.resolve(newsItem);
+            }, (error) => {
+                this.notify.error(
+                    this.gettext(
+                        getErrorMessage(error, 'Failed to load the item.')
+                    )
+                );
+                this.$scope.reject(error);
+                return Promise.reject(error);
+            });
+    }
+}
+
 FulFilAssignmentController.$inject = [
-    '$scope',
     '$element',
+    '$scope',
     'sdPlanningStore',
     'notify',
     'gettext',
@@ -21,155 +231,3 @@ FulFilAssignmentController.$inject = [
     '$timeout',
     'superdeskFlags',
 ];
-
-export function FulFilAssignmentController(
-    $scope,
-    $element,
-    sdPlanningStore,
-    notify,
-    gettext,
-    lock,
-    session,
-    userList,
-    api,
-    $timeout,
-    superdeskFlags) {
-    const item = get($scope, 'locals.data.item');
-
-    if (get(item, 'slugline', '') === '') {
-        notify.error(
-            gettext('[SLUGLINE] is a required field')
-        );
-        $scope.reject();
-        return;
-    }
-
-    api.find('archive', item._id)
-        .then((newsItem) => {
-            if (get(newsItem, 'assignment_id')) {
-                notify.error(gettext('Item already linked to a Planning item'));
-                $scope.reject();
-                return Promise.reject();
-            }
-
-            if (lock.isLocked(newsItem)) {
-                notify.error(gettext('Item already locked.'));
-                $scope.reject();
-                return Promise.reject();
-            }
-
-            if (!lock.isLockedInCurrentSession(newsItem)) {
-                newsItem._editable = true;
-                return lock.lock(newsItem, false, 'fulfil_assignment')
-                    .then(
-                        (lockedItem) => Promise.resolve(lockedItem),
-                        (error) => {
-                            notify.error(
-                                gettext(getErrorMessage(error, 'Failed to lock the item.'))
-                            );
-                            $scope.reject(error);
-                            return Promise.reject(error);
-                        }
-                    );
-            }
-
-            return Promise.resolve(newsItem);
-        }, (error) => {
-            notify.error(
-                gettext(getErrorMessage(error, 'Failed to load the item.'))
-            );
-            $scope.reject(error);
-            return Promise.reject(error);
-        })
-        .then((newsItem) => {
-            sdPlanningStore.getStore()
-                .then((store) => {
-                    store.dispatch(actions.initStore(WORKSPACE.AUTHORING));
-                    // set the current desk as the item desk.
-                    store.dispatch({
-                        type: 'WORKSPACE_CHANGE',
-                        payload: {
-                            currentDeskId: get(item, 'task.desk'),
-                            currentStageId: get(item, 'task.stage'),
-                        },
-                    });
-                    registerNotifications($scope, store);
-
-                    store.dispatch(actions.assignments.ui.loadAssignments('All', null,
-                        'Created', 'Desc', [ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED], newsItem.type))
-                        .then(() => {
-                            store.dispatch(actions.assignments.ui.changeAssignmentListSingleGroupView('TODO'));
-
-                            ReactDOM.render(
-                                <Provider store={store}>
-                                    <ModalsContainer />
-                                </Provider>,
-                                $element.get(0)
-                            );
-
-                            store.dispatch(actions.showModal({
-                                modalType: MODALS.FULFIL_ASSIGNMENT,
-                                modalProps: {
-                                    newsItem: newsItem,
-                                    fullscreen: true,
-                                    $scope: $scope,
-                                },
-                            }));
-
-                            $scope.$on('$destroy', () => {
-                                store.dispatch(actions.hideModal());
-                                $timeout(() => {
-                                    store.dispatch(actions.resetStore());
-                                }, 1000);
-
-                                // Only unlock the item if it was locked when launching this modal
-                                if (get(newsItem, 'lock_session', null) !== null &&
-                        get(newsItem, 'lock_action', 'edit') === 'fulfil_assignment' &&
-                        lock.isLockedInCurrentSession(newsItem)
-                                ) {
-                                    lock.unlock(newsItem);
-                                }
-                                // update the scope item.
-                                item.assignment_id = newsItem.assignment_id;
-                                ReactDOM.unmountComponentAtNode($element.get(0));
-                            });
-
-                            // handler of item unlock
-
-                            $scope.$on('item:unlock', (_e, data) => {
-                                if (data.item === newsItem._id && data.lock_session !== session.sessionId) {
-                                    store.dispatch(actions.hideModal());
-                                    store.dispatch(actions.resetStore());
-
-                                    if (superdeskFlags.flags.authoring) {
-                                        $scope.reject();
-                                        return;
-                                    }
-
-                                    userList.getUser(data.user).then(
-                                        (user) => Promise.resolve(user.display_name),
-                                        () => Promise.resolve('unknown')
-                                    )
-                                        .then((username) => store.dispatch(actions.showModal({
-                                            modalType: 'NOTIFICATION_MODAL',
-                                            modalProps: {
-                                                title: gettext('Item Unlocked'),
-                                                body: gettext(`The item was unlocked by "${username}"`),
-                                                action: () => {
-                                                    newsItem.lock_session = null;
-                                                    $scope.reject();
-                                                },
-                                            },
-                                        })));
-                                }
-                            });
-                        });
-                });
-        },
-
-        (error) => {
-            $scope.reject(error);
-            return Promise.reject(error);
-        }
-        );
-}

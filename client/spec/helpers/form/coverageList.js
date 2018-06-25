@@ -1,6 +1,6 @@
 import {get} from 'lodash';
 import {Coverage} from './index';
-import {waitAndClick, isCount} from '../utils';
+import {waitAndClick, isCount, scrollIntoView} from '../utils';
 import {Popup} from '../popup';
 
 export class CoverageList {
@@ -40,7 +40,11 @@ export class CoverageList {
     }
 
     addCoverage(contentType) {
+        // Make sure the 'Add Coverage' button is in the view,
+        // Otherwise the popup will not be visible
+        scrollIntoView(this.addButton);
         waitAndClick(this.addButton);
+
         CoverageList.waitForPopup();
         let menuPopup = new Popup();
         let menu = menuPopup.getMenu('item-actions-menu__popup');
