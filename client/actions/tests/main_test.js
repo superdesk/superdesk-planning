@@ -2,6 +2,7 @@ import sinon from 'sinon';
 import moment from 'moment';
 
 import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
+import {removeAutosaveFields} from '../../utils';
 import {main} from '../';
 import {AGENDA, MAIN} from '../../constants';
 import eventsUi from '../events/ui';
@@ -641,7 +642,9 @@ describe('actions.main', () => {
                     ]);
 
                     // Test running action with a lock and an empty autosave data
-                    store.initialState.forms.autosaves.event = {e1: {_id: 'e1'}};
+                    store.initialState.forms.autosaves.event = {
+                        e1: removeAutosaveFields(store.initialState.events.events['e1']),
+                    };
                     return store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback));
                 })
                 .then(() => {

@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
-import {get, isEqual, cloneDeep, pickBy, throttle, isNil} from 'lodash';
+import {get, isEqual, cloneDeep, throttle, isNil} from 'lodash';
 
 import {
     gettext,
@@ -15,6 +15,7 @@ import {
     isTemporaryId,
     getItemId,
     removeAutosaveFields,
+    itemsEqual,
 } from '../../../utils';
 import {EventUpdateMethods} from '../../Events';
 
@@ -195,26 +196,12 @@ export class EditorComponent extends React.Component {
         } else if (nextProps.itemId !== this.props.itemId) {
             // If the item ID has changed
             this.onItemIDChanged(nextProps);
-        } else if (!this.itemsEqual(get(nextProps, 'item'), get(this.props, 'item'))) {
+        } else if (!itemsEqual(get(nextProps, 'item'), get(this.props, 'item'))) {
             // This happens when the item attributes have changed
             this.onItemChanged(nextProps);
         }
 
         this.tabs[1].enabled = !!nextProps.itemId;
-    }
-
-    itemsEqual(nextItem, currentItem) {
-        const pickField = (value, key) => (
-            !key.startsWith('_') &&
-            !key.startsWith('lock_') &&
-            value !== null &&
-            value !== undefined
-        );
-
-        return isEqual(
-            pickBy(nextItem, pickField),
-            pickBy(currentItem, pickField)
-        );
     }
 
     onChangeHandler(field, value, updateDirtyFlag = true, saveAutosave = true) {
@@ -240,7 +227,7 @@ export class EditorComponent extends React.Component {
         const newState = {diff, errors, errorMessages};
 
         if (updateDirtyFlag) {
-            newState.dirty = !this.itemsEqual(diff, this.props.item || this.props.initialValues);
+            newState.dirty = !itemsEqual(diff, this.props.item || this.props.initialValues);
         }
 
         this.setState(newState);
@@ -338,7 +325,7 @@ export class EditorComponent extends React.Component {
         this.setState({
             partialSave: false,
             submitting: false,
-            dirty: !this.itemsEqual(nextProps.item, this.state.diff),
+            dirty: !itemsEqual(nextProps.item, this.state.diff),
             itemReady: true,
         });
     }

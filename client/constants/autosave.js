@@ -5,4 +5,6 @@ export const AUTOSAVE = {
         RECEIVE_ALL: 'AUTOSAVE_RECEIVE_ALL',
     },
     INTERVAL: 3000,
+    IGNORE_FIELDS: ['planning_ids', 'reason', 'update_method', 'expired', 'version', 'previous_recurrence_id',
+        'versioncreated', 'event_lastmodified', 'relationships', 'expiry', 'duplicate_to', 'files'],
 };

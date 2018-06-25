@@ -20,6 +20,7 @@ class AutosaveService(Service):
     def on_create(self, docs):
         for doc in docs:
             AutosaveService._validate(doc)
+            doc.pop('expired', None)
 
     @staticmethod
     def _validate(doc):

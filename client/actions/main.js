@@ -25,6 +25,8 @@ import {
     getItemId,
     isTemporaryId,
     getAutosaveItem,
+    itemsEqual,
+    removeAutosaveFields,
 } from '../utils';
 import eventsPlanningUi from './eventsPlanning/ui';
 import {get, omit, isEmpty, isNil, isEqual} from 'lodash';
@@ -402,10 +404,13 @@ const openActionModalFromEditor = (item, title, action) => (
         let promise;
 
         if (itemLock) {
-            // If we have Autosave Data, then open the IgnoreCancelSave modal
-            // Because the Autosave stores the _id and changed fields only
-            // If Autosave data only contains the '_id', then there are no Autosave changes
-            if (autosaveData && !isEqual(Object.keys(autosaveData), ['_id'])) {
+            const storedItems = itemType === ITEM_TYPE.EVENT ?
+                selectors.events.storedEvents(getState()) :
+                selectors.planning.storedPlannings(getState());
+            const originalItem = removeAutosaveFields(get(storedItems, itemId, null));
+
+            // If we have any dirty autosave data, then open the IgnoreCancelSave modal
+            if (autosaveData && !itemsEqual(originalItem, autosaveData)) {
                 // If the item is currently open in the ItemEditorModal
                 // then hide the modal for now (we will show the modal again later)
                 if (isOpenInModal) {
