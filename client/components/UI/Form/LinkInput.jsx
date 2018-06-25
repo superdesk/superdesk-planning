@@ -144,12 +144,13 @@ export class LinkInput extends React.Component {
                         </a>
                     )}
 
-                    <span className="sd-line-input__icon-bottom-right">
+                    <span className="sd-line-input__icon-right">
                         {showLink && (
                             <IconButton
                                 href={this.getAbsoulteURL(value)}
                                 target="_blank"
                                 icon="icon-link"
+                                tooltip={gettext('Open link')}
                             />
                         )}
 
@@ -158,6 +159,7 @@ export class LinkInput extends React.Component {
                             tabIndex={0}
                             icon="icon-trash"
                             enterKeyIsClick={true}
+                            tooltip={gettext('Delete link')}
                         />
                     </span>
                 </LineInput>
