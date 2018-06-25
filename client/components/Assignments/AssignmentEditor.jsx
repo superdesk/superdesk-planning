@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {get, cloneDeep, isEqual} from 'lodash';
 import {getItemInArrayById, getUsersForDesk, getDesksForUser, gettext} from '../../utils';
 import {validateItem} from '../../validators';
-import {ASSIGNMENTS} from '../../constants';
+import {ASSIGNMENTS, ITEM_TYPE} from '../../constants';
 
 import {
     Row,
@@ -247,7 +247,11 @@ AssignmentEditorComponent.defaultProps = {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-    onValidate: (diff, errors) => dispatch(validateItem('assignment', diff, {}, errors)),
+    onValidate: (diff, errors) => dispatch(validateItem({
+        profileName: ITEM_TYPE.ASSIGNMENT,
+        diff: diff,
+        errors: errors,
+    })),
 });
 
 export const AssignmentEditor = connect(

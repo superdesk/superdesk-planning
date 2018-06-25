@@ -51,22 +51,24 @@ export const validateItem = ({
     messages = [],
     fields = null,
 }) => (
-    (dispatch, getState) => (
-        (fields || Object.keys(validators[profileName])).forEach((key) => (
+    (dispatch, getState) => {
+        const profiles = formProfiles ? formProfiles : selectors.forms.profiles(getState());
+
+        return (fields || Object.keys(validators[profileName])).forEach((key) => (
             validateField({
                 dispatch: dispatch,
                 getState: getState,
                 profileName: profileName,
                 field: key,
                 value: key === '_all' ? diff : get(diff, key),
-                profile: key !== 'coverages' ? formProfiles[profileName] : formProfiles.coverage,
+                profile: key !== 'coverages' ? profiles[profileName] : profiles.coverage,
                 errors: errors,
                 messages: messages,
                 diff: diff,
                 item: item,
             })
-        ))
-    )
+        ));
+    }
 );
 
 export const validateCoverages = ({

@@ -5,7 +5,7 @@ import * as actions from '../../../actions';
 import '../style.scss';
 import {get, isEqual, cloneDeep} from 'lodash';
 import {EventScheduleSummary, EventScheduleInput} from '../../Events';
-import {EVENTS} from '../../../constants';
+import {EVENTS, ITEM_TYPE} from '../../../constants';
 import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
 import {Row} from '../../UI/Preview';
@@ -164,7 +164,13 @@ const mapDispatchToProps = (dispatch) => ({
         }
     },
 
-    onValidate: (item, profile, errors) => dispatch(validateItem('event', item, profile, errors, [], ['dates'])),
+    onValidate: (item, profile, errors) => dispatch(validateItem({
+        profileName: ITEM_TYPE.EVENT,
+        diff: item,
+        formProfiles: profile,
+        errors: errors,
+        fields: ['dates'],
+    })),
 });
 
 export const ConvertToRecurringEventForm = connect(

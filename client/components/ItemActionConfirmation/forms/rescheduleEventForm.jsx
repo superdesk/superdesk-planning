@@ -99,7 +99,7 @@ export class RescheduleEventComponent extends React.Component {
     render() {
         const {initialValues, dateFormat, timeFormat, formProfiles, submitting} = this.props;
         let reasonLabel = gettext('Reason for rescheduling this event:');
-        const numPlannings = initialValues._plannings.length;
+        const numPlannings = get(initialValues, '_plannings.length');
 
         return (
             <div className="MetadataView">
