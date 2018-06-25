@@ -33,6 +33,12 @@ export const PlanningPreview = ({urgencyLabel, item, formProfile, agendas, urgen
             />
 
             <Row
+                enabled={get(formProfile, 'editor.headline.enabled')}
+                label={gettext('Headline')}
+                value={item.headline || '-'}
+            />
+
+            <Row
                 enabled={get(formProfile, 'editor.name.enabled')}
                 label={gettext('Name')}
                 value={item.name || '-'}

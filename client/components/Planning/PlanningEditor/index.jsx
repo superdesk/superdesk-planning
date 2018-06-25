@@ -381,6 +381,14 @@ export class PlanningEditorComponent extends React.Component {
 
                     <Field
                         component={TextInput}
+                        field="headline"
+                        label={gettext('Headline')}
+                        {...fieldProps}
+                        onFocus={onFocusPlanning}
+                    />
+
+                    <Field
+                        component={TextInput}
                         field="name"
                         label={gettext('Name')}
                         {...fieldProps}
