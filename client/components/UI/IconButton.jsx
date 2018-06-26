@@ -22,6 +22,8 @@ const IconButton = ({
     useDefaultClass,
     className,
     label,
+    tooltip,
+    tooltipDirection,
     ...props
 }) => {
     const handleKeyDown = (event) => {
@@ -46,6 +48,8 @@ const IconButton = ({
             onFocus={onFocus}
             tabIndex={tabIndex}
             onKeyDown={enterKeyIsClick ? handleKeyDown : onKeyDown}
+            data-sd-tooltip={tooltip}
+            data-flow={tooltipDirection}
             {...props}
         >
             <Icon icon={icon} />
@@ -64,11 +68,14 @@ IconButton.propTypes = {
     useDefaultClass: PropTypes.bool,
     className: PropTypes.string,
     label: PropTypes.string,
+    tooltip: PropTypes.string,
+    tooltipDirection: PropTypes.string,
 };
 
 IconButton.defaultProps = {
     enterKeyIsClick: false,
     useDefaultClass: true,
+    tooltipDirection: 'down',
 };
 
 export default IconButton;
