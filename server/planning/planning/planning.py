@@ -31,6 +31,7 @@ from itertools import chain
 from planning.planning_notifications import PlanningNotifications
 from superdesk.utc import utc_to_local
 from datetime import datetime
+from .planning_types import is_field_enabled
 
 logger = logging.getLogger(__name__)
 
@@ -88,13 +89,13 @@ class PlanningService(superdesk.Service):
 
     def on_create(self, docs):
         """Set default metadata."""
-
+        planning_type = get_resource_service('planning_types').find_one(req=None, name='planning')
         for doc in docs:
             if 'guid' not in doc:
                 doc['guid'] = generate_guid(type=GUID_NEWSML)
             doc[config.ID_FIELD] = doc['guid']
             set_original_creator(doc)
-            self._set_planning_event_info(doc)
+            self._set_planning_event_info(doc, planning_type)
             self._set_coverage(doc)
             self.set_planning_schedule(doc)
             # set timestamps
@@ -182,12 +183,12 @@ class PlanningService(superdesk.Service):
             if not agenda.get('is_enabled', False):
                 raise SuperdeskApiError.forbiddenError('Agenda \'{}\' is not enabled'.format(agenda.get('name')))
 
-    def _set_planning_event_info(self, doc):
+    def _set_planning_event_info(self, doc, planning_type):
         """Set the planning event date
 
         :param dict doc: planning document
+        :param dict planning_types: planning type
         """
-
         event_id = doc.get('event_item')
         event = {}
         if event_id:
@@ -195,6 +196,9 @@ class PlanningService(superdesk.Service):
             if event:
                 if event.get('recurrence_id'):
                     doc['recurrence_id'] = event.get('recurrence_id')
+                # populate headline using name
+                if event.get('name') and is_field_enabled('headline', planning_type):
+                    doc.setdefault('headline', doc['name'])
 
     def _get_added_removed_agendas(self, updates, original):
         added_agendas = updates.get('agendas') or []

@@ -1546,3 +1546,105 @@ Feature: Planning
             }
         }]
         """
+
+    @auth
+    Scenario: Headline is not populated when creating item from event using default type
+        Given "events"
+        """
+        [
+            {
+                "name": "test name",
+                "dates": {
+                    "start": "2016-11-17T12:00:00.000Z",
+                    "end": "2016-11-17T14:00:00.000Z",
+                    "tz": "Europe/Berlin"
+                }
+            }
+        ]
+        """
+        When we post to "/planning"
+        """
+        {
+            "item_class": "item class value",
+            "name": "test name",
+            "slugline": "test slugline",
+            "event_item": "#events._id#"
+        }
+        """
+        Then we get new resource
+        """
+        {
+            "name": "test name",
+            "headline": "__no_value__",
+            "slugline": "test slugline"
+        }
+        """
+
+    @auth
+    Scenario: Headline is populated when enabled in planning_type
+        Given "planning_types"
+        """
+        [
+            {"name": "planning", "editor": {
+                "headline": {"enabled": true}
+            }}
+        ]
+        """
+        Given "events"
+        """
+        [
+            {
+                "name": "test name",
+                "dates": {
+                    "start": "2016-11-17T12:00:00.000Z",
+                    "end": "2016-11-17T14:00:00.000Z",
+                    "tz": "Europe/Berlin"
+                }
+            }
+        ]
+        """
+        When we post to "/planning"
+        """
+        {
+            "item_class": "item class value",
+            "name": "test name",
+            "slugline": "test slugline",
+            "event_item": "#events._id#"
+        }
+        """
+        Then we get new resource
+        """
+        {
+            "name": "test name",
+            "headline": "test name",
+            "slugline": "test slugline"
+        }
+        """
+
+    @auth
+    Scenario: Don't populate headline using name when creating item manually
+        Given "planning_types"
+        """
+        [
+            {"name": "planning", "editor": {
+                "headline": {"enabled": true}
+            }}
+        ]
+        """
+        When we post to "/planning"
+        """
+        {
+            "item_class": "item class value",
+            "name": "test name",
+            "slugline": "test slugline"
+        }
+        """
+        Then we get new resource
+        """
+        {
+            "name": "test name",
+            "headline": "__no_value__",
+            "slugline": "test slugline"
+        }
+        """
+
