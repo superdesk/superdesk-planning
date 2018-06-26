@@ -10,7 +10,7 @@ import {RepeatEventSummary} from '../../Events';
 import {EndsInput} from '../../Events/RecurringRulesInput/EndsInput';
 import '../style.scss';
 import {get, cloneDeep, isEqual} from 'lodash';
-import {EVENTS} from '../../../constants';
+import {EVENTS, ITEM_TYPE} from '../../../constants';
 import {validateItem} from '../../../validators';
 
 export class UpdateEventRepetitionsComponent extends React.Component {
@@ -155,7 +155,13 @@ const mapDispatchToProps = (dispatch) => ({
             dispatch(actions.events.api.unlock(event));
         }
     },
-    onValidate: (item, profile, errors) => dispatch(validateItem('event', item, profile, errors, [], ['dates'])),
+    onValidate: (item, profile, errors) => dispatch(validateItem({
+        profileName: ITEM_TYPE.EVENT,
+        diff: item,
+        formProfiles: profile,
+        errors: errors,
+        fields: ['dates'],
+    })),
 });
 
 export const UpdateEventRepetitionsForm = connect(

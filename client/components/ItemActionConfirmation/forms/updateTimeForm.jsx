@@ -11,7 +11,7 @@ import {EventUpdateMethods, EventScheduleSummary} from '../../Events';
 import '../style.scss';
 import {get, set, cloneDeep, isEqual} from 'lodash';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
-import {EVENTS} from '../../../constants';
+import {EVENTS, ITEM_TYPE} from '../../../constants';
 import {validateItem} from '../../../validators';
 
 export class UpdateTimeComponent extends React.Component {
@@ -247,7 +247,13 @@ const mapDispatchToProps = (dispatch) => ({
 
         return promise;
     },
-    onValidate: (item, profile, errors) => dispatch(validateItem('event', item, profile, errors, [], ['dates'])),
+    onValidate: (item, profile, errors) => dispatch(validateItem({
+        profileName: ITEM_TYPE.EVENT,
+        diff: item,
+        formProfiles: profile,
+        errors: errors,
+        fields: ['dates'],
+    })),
 });
 
 export const UpdateTimeForm = connect(

@@ -218,5 +218,17 @@ describe('Main.ItemEditor.Editor', () => {
                     done();
                 });
         });
+
+        it('Shows validation errors', () => {
+            setWrapper();
+            const nameFieldBeforeError = wrapper.find('.sd-line-input--required').first();
+
+            expect(nameFieldBeforeError.hasClass('sd-line-input--invalid')).toBe(false);
+            nameFieldBeforeError.find('[name="name"]').simulate('change', {target: {value: ''}});
+            const nameFieldAfterError = wrapper.find('.sd-line-input--required').first();
+
+            expect(nameFieldAfterError.hasClass('sd-line-input--invalid')).toBe(true);
+            expect(nameFieldAfterError.find('.sd-line-input__message').text()).toBe('This field is required');
+        });
     });
 });
