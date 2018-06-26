@@ -48,6 +48,7 @@ const createNew = (itemType, item = null) => (
                 selectors.vocabs.eventOccurStatuses(getState()),
                 selectors.events.defaultCalendarValue(getState())
             );
+            newItem._planning_item = get(item, '_planning_item');
         } else if (itemType === ITEM_TYPE.PLANNING) {
             newItem = planningUtils.defaultPlanningValues(
                 selectors.planning.currentAgenda(getState())
@@ -148,7 +149,7 @@ const unlockAndCancel = (item, modal = false) => (
     }
 );
 
-const save = (item, withConfirmation = true) => (
+const save = (item, withConfirmation = true, noSubsequentEditing = false) => (
     (dispatch, getState, {notify}) => {
         const itemId = getItemId(item);
         const itemType = getItemType(item);
@@ -211,8 +212,14 @@ const save = (item, withConfirmation = true) => (
                                 type: ITEM_TYPE.PLANNING,
                             }))
                         )
-                        // And finally lock the newly created item for editing
-                        .then(() => dispatch(self.lockAndEdit(savedItem)));
+                        .then(() => {
+                            // And finally lock the newly created item for editing
+                            if (!noSubsequentEditing) {
+                                return dispatch(self.lockAndEdit(savedItem));
+                            }
+
+                            return Promise.resolve();
+                        });
                 }
 
                 if (!confirmation) {
