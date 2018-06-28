@@ -6,8 +6,9 @@ import PropTypes from 'prop-types';
  * @name Select
  * @description Component to select a list from dropdown
  */
-export const Select = ({field, value, onChange, options, readOnly, clearable, autoFocus, onFocus, refNode}) => (
+export const Select = ({id, field, value, onChange, options, readOnly, clearable, autoFocus, onFocus, refNode}) => (
     <select
+        id={id}
         className="sd-line-input__select"
         value={value}
         onChange={(e) => onChange(field, e.target.value)}
@@ -33,6 +34,7 @@ export const Select = ({field, value, onChange, options, readOnly, clearable, au
 
 Select.propTypes = {
     field: PropTypes.string,
+    id: PropTypes.string,
     value: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.number,

@@ -9,8 +9,8 @@ export class Select {
         return this.input.getAttribute('value');
     }
 
-    setValue(value) {
-        return this.input.element(by.xpath(`option[@value="${value}"]`))
-            .click();
+    setValue(value, byLabel = false) {
+        return !byLabel ? this.input.element(by.xpath(`option[@value="${value}"]`))
+            .click() : this.input.element(by.cssContainingText('option', value)).click();
     }
 }

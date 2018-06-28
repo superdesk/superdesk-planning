@@ -11,13 +11,15 @@ export class CoverageAddButton extends React.Component {
         this.toggleMenu = this.toggleMenu.bind(this);
         this.closeMenu = this.closeMenu.bind(this);
         this.openMenu = this.openMenu.bind(this);
+    }
 
-        this.items = props.contentTypes.map((c) => (
+    componentWillReceiveProps(nextProps) {
+        this.items = nextProps.contentTypes.map((c) => (
             {
                 id: `coverage-menu-add-${c.qcode}`,
                 label: c.name,
                 icon: planningUtils.getCoverageIcon(c.qcode),
-                callback: props.onAdd.bind(null, c.qcode),
+                callback: nextProps.onAdd.bind(null, c.qcode),
             }
         ));
     }

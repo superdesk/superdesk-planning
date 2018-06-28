@@ -28,9 +28,6 @@ describe('planning_autosave', () => {
                 news_coverage_status: 'ncostat:notdec',
                 planning: {
                     g2_content_type: 'picture',
-                    slugline: 'Cov. Slug',
-                    ednote: 'Note Ed.',
-                    internal_note: 'Note Int.',
                     scheduled: {
                         date: '13/12/2045',
                         time: '15:45',

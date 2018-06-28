@@ -8,6 +8,7 @@ import {getItemWorkflowStateLabel, getItemPostedStateLabel, getItemExpiredStateL
 import {gettext} from '../../utils/gettext';
 
 export const StateLabel = ({
+    id,
     item,
     verbose,
     withPubStatus,
@@ -25,6 +26,7 @@ export const StateLabel = ({
     }
 
     const getStateLabel = (state) => <Label
+        id={id}
         text={gettext(state.label)}
         iconType={state.iconType}
         verbose={verbose ? gettext(get(state, 'labelVerbose')) : null}
@@ -48,6 +50,7 @@ export const StateLabel = ({
 };
 
 StateLabel.propTypes = {
+    id: PropTypes.string,
     item: PropTypes.object,
     verbose: PropTypes.bool,
     withPubStatus: PropTypes.bool,

@@ -1,10 +1,7 @@
-export const isFieldEmpty = (field) => field.getAttribute('value').then((text) => {
-    if (text || text !== '') {
-        return Promise.resolve(false);
-    }
+import {get} from 'lodash';
 
-    return Promise.resolve(true);
-});
+export const isFieldEmpty = (field) => field.getAttribute('value')
+    .then((text) => Promise.resolve(get(text, 'length', 0) <= 0));
 
 export const inputToField = (field, input) => {
     field.clear();
@@ -34,7 +31,7 @@ export const waitPresent = (domElement, timeout = 7500) => (
 
 export const waitAndClick = (domElement, timeout = 7500) => {
     waitClickable(domElement, timeout);
-    browser.actions()
+    return browser.actions()
         .mouseMove(domElement)
         .click()
         .perform();

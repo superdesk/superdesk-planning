@@ -267,19 +267,28 @@ class PlanningService(superdesk.Service):
         if not original:
             original = {}
 
-        if not updates.get('coverages'):
-            # If the description text has changed, make sure to update the assignment(s)
-            if updates.get('description_text') or updates.get('internal_note'):
-                for coverage in (original.get('coverages') or []):
-                    self._create_update_assignment(original, updates, coverage, coverage)
-            return
+        # [SDESK-3073]: Commenting the following section as we cannot reproduce the ******
+        # scenario where a patch is sent without any coverages (unless all coverages are removed)
+        # if not updates.get('coverages'):
+            # # If the description text has changed, make sure to update the assignment(s)
+            # if updates.get('description_text') or updates.get('internal_note'):
+            # for coverage in (original.get('coverages') or []):
+            # self._create_update_assignment(original, updates, coverage, coverage)
+            # return
+        # ********* [SDESK-3073]: End revert ***************"""
 
         for coverage in original.get('coverages') or []:
             updated_coverage = next((cov for cov in updates.get('coverages') or []
                                      if cov.get('coverage_id') == coverage.get('coverage_id')), None)
 
-            if not updated_coverage and (coverage.get('assigned_to') or {}).get('assignment_id'):
-                raise SuperdeskApiError.badRequestError('Assignment already exists. Coverage cannot be deleted.')
+            assignment = coverage.get('assigned_to', None)
+            if not updated_coverage:
+                if assignment and assignment.get('state') != WORKFLOW_STATE.DRAFT:
+                    raise SuperdeskApiError.badRequestError('Assignment already exists. Coverage cannot be deleted.')
+                else:
+                    updated_coverage = deepcopy(coverage)
+                    updated_coverage.pop('assigned_to', None)
+                    self._create_update_assignment(original, updates, updated_coverage, coverage)
 
         for coverage in (updates.get('coverages') or []):
             original_coverage = None

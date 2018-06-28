@@ -68,6 +68,7 @@ export class AssignmentPopup extends React.Component {
             disabled: !this.state.valid,
             text: gettext('OK'),
             enterKeyIsClick: true,
+            id: 'submitAssignment',
         },
         {
             className: 'pull-right',

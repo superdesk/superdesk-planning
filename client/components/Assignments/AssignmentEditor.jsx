@@ -159,7 +159,7 @@ export class AssignmentEditorComponent extends React.Component {
         return (
             <div className={className}>
                 {showDesk && (
-                    <Row>
+                    <Row id="form-row-desk">
                         <SelectInput
                             field={this.FIELDS.DESK}
                             label={gettext('Desk')}

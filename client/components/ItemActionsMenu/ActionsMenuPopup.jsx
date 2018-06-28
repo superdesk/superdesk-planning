@@ -104,6 +104,7 @@ export class ActionsMenuPopup extends React.PureComponent {
         return (
             <li key={key}>
                 <button
+                    id={action.id}
                     className={classNames({disabled: get(action, 'inactive', false)})}
                     onClick={trigger}
                 >

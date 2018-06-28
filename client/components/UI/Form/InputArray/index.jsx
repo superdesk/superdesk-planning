@@ -34,12 +34,13 @@ export const InputArray = ({
     labelClassName,
     ...props
 }) => {
-    const add = (...args) => {
+    const add = ((...args) => {
+        let currentValue = args.shift();
         const newElement = typeof defaultElement === 'function' ? defaultElement(...args) : defaultElement;
 
-        value.push(cloneDeep(newElement));
-        onChange(field, [...value]);
-    };
+        currentValue.push(cloneDeep(newElement));
+        onChange(field, [...currentValue]);
+    }).bind(null, value);
 
     const remove = (index) => {
         value.splice(index, 1);

@@ -178,7 +178,7 @@ export class PlanningEditorComponent extends React.Component {
             // Make sure the coverage in our AutoSave is updated with the new workflow states
             // Otherwise this will cause the form to stay dirty when the initialValues change
                 planningUtils.modifyCoverageForClient(updates.coverages[index]);
-                this.onChange(`coverages[${index}]`, updates.coverages[index]);
+                this.onChange(`coverages[${index}]`, updates.coverages[index], false);
             });
     }
 
@@ -196,7 +196,7 @@ export class PlanningEditorComponent extends React.Component {
         }
     }
 
-    onChange(field, value) {
+    onChange(field, value, planningFormEdited = true) {
         let valueToUpdate = value;
 
         if (field === 'agendas') {
@@ -223,7 +223,7 @@ export class PlanningEditorComponent extends React.Component {
             }
         }
 
-        this.props.onChangeHandler(field, valueToUpdate);
+        this.props.onChangeHandler(field, valueToUpdate, planningFormEdited);
     }
 
     componentWillReceiveProps(nextProps) {

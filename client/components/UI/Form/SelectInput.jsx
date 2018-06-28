@@ -9,6 +9,7 @@ import {get} from 'lodash';
  * @description Component to select a list from dropdown with field label
  */
 export const SelectInput = ({
+    id,
     field,
     label,
     value,
@@ -44,6 +45,7 @@ export const SelectInput = ({
         <LineInput {...props} isSelect={true} readOnly={readOnly}>
             <Label text={label} />
             <Select
+                id={id}
                 field={field}
                 value={key}
                 onChange={onChangeHandler}
@@ -60,6 +62,7 @@ export const SelectInput = ({
 
 SelectInput.propTypes = {
     field: PropTypes.string,
+    id: PropTypes.string,
     label: PropTypes.string,
     value: PropTypes.object,
     onChange: PropTypes.func.isRequired,

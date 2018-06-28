@@ -38,4 +38,50 @@ describe('edit_planning', () => {
 
         expect(itemCreated.getText()).toContain('SLUGLINE OF THE PLANNING');
     });
+
+    it('add coverage to workflow', () => {
+        let plan = {
+            slugline: 'Plan',
+            name: 'Namer',
+            planning_date: {
+                date: '12/12/2045',
+                time: '12:13',
+            },
+            coverages: [{
+                news_coverage_status: 'ncostat:int',
+                planning: {
+                    g2_content_type: 'picture',
+                },
+                assigned_to: {
+                    desk: 'Politic Desk',
+                },
+            }],
+        };
+
+
+        subNavBar.createPlanning();
+
+        expect(listPanel.getItemCount()).toBe(0);
+        expect(editor.editors.count()).toBe(1);
+        expect(editor.planningType.count()).toBe(1);
+
+        editor.openAllToggleBoxes();
+        editor.inputValues(plan);
+        editor.expectValues(plan);
+
+        // Create the item
+        editor.createButton.click();
+        browser.wait(
+            () => listPanel.getItemCount(),
+            30000,
+            'Timeout while waiting for the list panel to be populated'
+        );
+        editor.addCoverageToWorkflow(0, plan);
+
+        browser.sleep(1500);
+        editor.openAllToggleBoxes();
+        editor.expectValues(plan);
+        expect(editor.saveButton.getAttribute('class')).toMatch('btn--disabled');
+        expect(editor.closeButton.isEnabled()).toBe(true);
+    });
 });
