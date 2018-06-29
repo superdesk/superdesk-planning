@@ -263,8 +263,9 @@ describe('actions.planning.notifications', () => {
                     const modalStr = 'The planning item you were editing was unlocked' +
                     ' by "firstname2 lastname2"';
 
-                    expect(store.dispatch.args[0]).toEqual([{type: 'HIDE_MODAL'}]);
-                    expect(store.dispatch.args[1]).toEqual([{
+                    expect(store.dispatch.args[0][0].type).toEqual(PLANNING.ACTIONS.UNLOCK_PLANNING);
+                    expect(store.dispatch.args[1]).toEqual([{type: 'HIDE_MODAL'}]);
+                    expect(store.dispatch.args[2]).toEqual([{
                         type: 'SHOW_MODAL',
                         modalType: 'NOTIFICATION_MODAL',
                         modalProps: {

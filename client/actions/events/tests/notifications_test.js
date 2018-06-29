@@ -486,8 +486,9 @@ describe('actions.events.notifications', () => {
                     const modalStr = 'The event you were editing was unlocked' +
                     ' by "firstname2 lastname2"';
 
-                    expect(store.dispatch.args[0]).toEqual([{type: 'HIDE_MODAL'}]);
-                    expect(store.dispatch.args[1]).toEqual([{
+                    expect(store.dispatch.args[0][0].type).toEqual(EVENTS.ACTIONS.UNLOCK_EVENT);
+                    expect(store.dispatch.args[1]).toEqual([{type: 'HIDE_MODAL'}]);
+                    expect(store.dispatch.args[2]).toEqual([{
                         type: 'SHOW_MODAL',
                         modalType: 'NOTIFICATION_MODAL',
                         modalProps: {

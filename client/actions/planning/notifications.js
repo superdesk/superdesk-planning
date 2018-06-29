@@ -5,7 +5,7 @@ import {lockUtils, gettext} from '../../utils';
 import * as selectors from '../../selectors';
 import {showModal, hideModal, events, fetchAgendas} from '../index';
 import main from '../main';
-import {PLANNING, MODALS, ITEM_TYPE} from '../../constants';
+import {PLANNING, MODALS, ITEM_TYPE, AUTOSAVE} from '../../constants';
 import eventsPlanning from '../eventsPlanning';
 
 /**
@@ -70,8 +70,10 @@ const onPlanningUpdated = (_e, data) => (
 );
 
 const onPlanningLocked = (e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (get(data, 'item')) {
+            const sessionId = selectors.general.session(getState()).sessionId;
+
             return dispatch(planning.api.getPlanning(data.item, false))
                 .then((planInStore) => {
                     let plan = {
@@ -87,6 +89,11 @@ const onPlanningLocked = (e, data) => (
                         type: PLANNING.ACTIONS.LOCK_PLANNING,
                         payload: {plan: plan},
                     });
+
+                    // reload the initialvalues of the editor if different session has made changes
+                    if (data.lock_session !== sessionId) {
+                        dispatch(main.reloadEditor(plan));
+                    }
 
                     return Promise.resolve(plan);
                 });
@@ -112,14 +119,38 @@ const onPlanningUnlocked = (_e, data) => (
             const itemLock = lockUtils.getLock(planningItem, locks);
             const sessionId = selectors.general.session(getState()).sessionId;
 
+            planningItem = {
+                ...planningItem,
+                _id: data.item,
+                lock_action: null,
+                lock_user: null,
+                lock_session: null,
+                lock_time: null,
+                _etag: data.etag,
+            };
+
+            dispatch({
+                type: PLANNING.ACTIONS.UNLOCK_PLANNING,
+                payload: {plan: planningItem},
+            });
+
             // If this is the planning item currently being edited, show popup notification
             if (itemLock !== null &&
                 data.lock_session !== sessionId &&
                 itemLock.session === sessionId
             ) {
                 const user = selectors.general.users(getState()).find((u) => u._id === data.user);
-
                 const modalType = selectors.general.modalType(getState());
+                const autoSaves = selectors.forms.autosaves(getState());
+                let autoSaveInStore = get(autoSaves.planning, data.item);
+
+                if (autoSaveInStore) {
+                    // Delete the changes from the local redux
+                    dispatch({
+                        type: AUTOSAVE.ACTIONS.REMOVE,
+                        payload: autoSaveInStore,
+                    });
+                }
 
                 if (modalType !== MODALS.ADD_TO_PLANNING) {
                     dispatch(hideModal());
@@ -135,20 +166,10 @@ const onPlanningUnlocked = (_e, data) => (
                 }));
             }
 
-            planningItem = {
-                ...planningItem,
-                _id: data.item,
-                lock_action: null,
-                lock_user: null,
-                lock_session: null,
-                lock_time: null,
-                _etag: data.etag,
-            };
-
-            dispatch({
-                type: PLANNING.ACTIONS.UNLOCK_PLANNING,
-                payload: {plan: planningItem},
-            });
+            // reload the initialvalues of the editor if different session has made changes
+            if (data.lock_session !== sessionId) {
+                dispatch(main.reloadEditor(planningItem));
+            }
 
             return Promise.resolve();
         }

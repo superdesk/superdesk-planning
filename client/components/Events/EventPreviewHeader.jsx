@@ -101,7 +101,7 @@ const mapStateToProps = (state, ownProps) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onUnlock: (event) => dispatch(actions.locks.unlockThenLock(event)),
+    onUnlock: (event) => dispatch(actions.locks.unlock(event)),
     itemActionDispatches: actionUtils.getActionDispatches({dispatch: dispatch, eventOnly: true}),
 });
 

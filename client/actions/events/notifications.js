@@ -1,5 +1,5 @@
 import * as selectors from '../../selectors';
-import {WORKFLOW_STATE, EVENTS, MODALS, ITEM_TYPE} from '../../constants';
+import {WORKFLOW_STATE, EVENTS, MODALS, ITEM_TYPE, AUTOSAVE} from '../../constants';
 import {showModal, hideModal} from '../index';
 import eventsApi from './api';
 import eventsUi from './ui';
@@ -36,24 +36,6 @@ const onEventUnlocked = (_e, data) => (
             const itemLock = lockUtils.getLock(eventInStore, locks);
             const sessionId = selectors.general.session(getState()).sessionId;
 
-            // If this is the event item currently being edited, show popup notification
-            if (itemLock !== null &&
-                data.lock_session !== sessionId &&
-                itemLock.session === sessionId
-            ) {
-                const user = selectors.general.users(getState()).find((u) => u._id === data.user);
-
-                dispatch(hideModal());
-                dispatch(showModal({
-                    modalType: MODALS.NOTIFICATION_MODAL,
-                    modalProps: {
-                        title: 'Item Unlocked',
-                        body: 'The event you were editing was unlocked by "' +
-                            user.display_name + '"',
-                    },
-                }));
-            }
-
             eventInStore = {
                 ...eventInStore,
                 _id: data.item,
@@ -69,6 +51,39 @@ const onEventUnlocked = (_e, data) => (
                 payload: {event: eventInStore},
             });
 
+            // If this is the event item currently being edited, show popup notification
+            if (itemLock !== null &&
+                data.lock_session !== sessionId &&
+                itemLock.session === sessionId
+            ) {
+                const user = selectors.general.users(getState()).find((u) => u._id === data.user);
+                const autoSaves = selectors.forms.autosaves(getState());
+                let autoSaveInStore = get(autoSaves.event, data.item);
+
+                if (autoSaveInStore) {
+                    // Delete the changes from the local redux
+                    dispatch({
+                        type: AUTOSAVE.ACTIONS.REMOVE,
+                        payload: autoSaveInStore,
+                    });
+                }
+
+                dispatch(hideModal());
+                dispatch(showModal({
+                    modalType: MODALS.NOTIFICATION_MODAL,
+                    modalProps: {
+                        title: 'Item Unlocked',
+                        body: 'The event you were editing was unlocked by "' +
+                            user.display_name + '"',
+                    },
+                }));
+            }
+
+            // reload the initialvalues of the editor if different session has made changes
+            if (data.lock_session !== sessionId) {
+                dispatch(main.reloadEditor(eventInStore));
+            }
+
             return Promise.resolve(eventInStore);
         }
 
@@ -77,8 +92,10 @@ const onEventUnlocked = (_e, data) => (
 );
 
 const onEventLocked = (_e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (data && data.item) {
+            const sessionId = selectors.general.session(getState()).sessionId;
+
             return dispatch(eventsApi.getEvent(data.item, false))
                 .then((eventInStore) => {
                     const evtInStore = {
@@ -94,6 +111,11 @@ const onEventLocked = (_e, data) => (
                         type: EVENTS.ACTIONS.LOCK_EVENT,
                         payload: {event: evtInStore},
                     });
+
+                    // reload the initialvalues of the editor if different session has made changes
+                    if (data.lock_session !== sessionId) {
+                        dispatch(main.reloadEditor(eventInStore));
+                    }
 
                     return Promise.resolve(evtInStore);
                 });

@@ -792,7 +792,7 @@ const setUnsetLoadingIndicator = (value = false) => ({
  * Action to open the editor and update the URL
  * @param {object} item - The item to open. Must have _id and type attributes
  */
-const openEditor = (item) => (
+const openEditor = (item, updateUrl = true) => (
     (dispatch, getState, {$timeout, $location}) => {
         dispatch({
             type: MAIN.ACTIONS.OPEN_EDITOR,
@@ -800,7 +800,9 @@ const openEditor = (item) => (
         });
 
         // Update the URL
-        $timeout(() => $location.search('edit', JSON.stringify({id: getItemId(item), type: getItemType(item)})));
+        if (updateUrl) {
+            $timeout(() => $location.search('edit', JSON.stringify({id: getItemId(item), type: getItemType(item)})));
+        }
     }
 );
 
@@ -1142,6 +1144,20 @@ const fetchItemHistory = (item) => (
     }
 );
 
+/**
+ * Action to reset the initial values in the editor
+ * @param {object} item - planning or event item from store
+ */
+const reloadEditor = (item) => (
+    (dispatch, getState) => {
+        if (item._id === selectors.forms.currentItemId(getState())) {
+            dispatch(self.openEditor(item, false));
+        } else if (item._id === selectors.forms.currentItemIdModal(getState())) {
+            dispatch(self.openEditorModal(item));
+        }
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     lockAndEdit,
@@ -1179,6 +1195,7 @@ const self = {
     createNew,
     fetchById,
     fetchItemHistory,
+    reloadEditor,
 };
 
 export default self;

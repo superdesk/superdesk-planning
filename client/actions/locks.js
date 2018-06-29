@@ -1,6 +1,6 @@
 import * as selectors from '../selectors';
 import {LOCKS, ITEM_TYPE, WORKSPACE, PLANNING} from '../constants';
-import {planning, events, assignments, autosave} from './index';
+import {planning, events, assignments, autosave, main} from './index';
 import {lockUtils, getItemType, gettext} from '../utils';
 
 /**
@@ -76,14 +76,17 @@ const unlock = (item) => (
             break;
         }
 
-        return promise.then((unlockedItem) => {
+        return promise.then((unlockedItem) => (
             dispatch(autosave.removeById(
                 currentLock.item_type,
                 currentLock.item_id,
-                false // Don't attempt to get the autosave from the server
-            ));
-            return Promise.resolve(unlockedItem);
-        });
+                currentLock.action === 'edit'
+            ))
+                .then(
+                    () => Promise.resolve(unlockedItem),
+                    (err) => Promise.reject(err)
+                )
+        ));
     }
 );
 
@@ -115,7 +118,7 @@ const unlockThenLock = (item) => (
     (dispatch) => (
         dispatch(self.unlock(item))
             .then(
-                (unlockedItem) => dispatch(self.lock(unlockedItem)),
+                (unlockedItem) => dispatch(main.lockAndEdit(unlockedItem)),
                 (error) => Promise.reject(error)
             )
     )
