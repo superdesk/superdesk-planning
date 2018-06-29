@@ -118,7 +118,12 @@ const unlockThenLock = (item) => (
     (dispatch) => (
         dispatch(self.unlock(item))
             .then(
-                (unlockedItem) => dispatch(main.lockAndEdit(unlockedItem)),
+                (unlockedItem) => {
+                    if (item._id !== unlockedItem._id) {
+                        return dispatch(main.lockAndEdit(item));
+                    }
+                    return dispatch(main.lockAndEdit(unlockedItem));
+                },
                 (error) => Promise.reject(error)
             )
     )
