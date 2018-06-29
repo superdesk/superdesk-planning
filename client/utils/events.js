@@ -696,6 +696,7 @@ const duplicateEvent = (event, occurStatus) => {
             'pubstatus', 'recurrence_id', 'previous_recurrence_id', 'reschedule_from', 'reschedule_to',
             'planning_ids', 'reason', 'expired'].indexOf(k) > -1));
 
+    duplicatedEvent._id = generateTempId();
     // Delete recurring rule
     if (duplicatedEvent.dates.recurring_rule) {
         delete duplicatedEvent.dates.recurring_rule;
@@ -733,6 +734,11 @@ const defaultEventValues = (occurStatuses, defaultCalendars) => ({
     calendars: defaultCalendars,
 });
 
+const shouldFetchFilesForEvent = (event) => (
+    get(event, 'files', []).filter((f) => typeof (f) === 'string'
+            || f instanceof String).length > 0
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     isEventAllDay,
@@ -769,6 +775,7 @@ const self = {
     modifyForClient,
     modifyForServer,
     defaultEventValues,
+    shouldFetchFilesForEvent,
 };
 
 export default self;

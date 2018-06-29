@@ -402,15 +402,22 @@ const _openActionModal = (
 
 const duplicate = (event) => (
     (dispatch, getState) => {
-        const occurStatuses = selectors.vocabs.eventOccurStatuses(getState());
-        const plannedStatus = getItemInArrayById(occurStatuses, 'eocstat:eos5', 'qcode') || {
-            label: 'Planned, occurs certainly',
-            qcode: 'eocstat:eos5',
-            name: 'Planned, occurs certainly',
-        };
-        const newEvent = eventUtils.duplicateEvent(event, plannedStatus);
+        // If the event has files, get its entire file resource
+        // To show in the edit form during duplication
+        const promise = eventUtils.shouldFetchFilesForEvent(event) ? dispatch(self.fetchEventWithFiles(event, false)) :
+            Promise.resolve(event);
 
-        return dispatch(main.createNew(ITEM_TYPE.EVENT, newEvent));
+        return promise.then((updatedEvent) => {
+            const occurStatuses = selectors.vocabs.eventOccurStatuses(getState());
+            const plannedStatus = getItemInArrayById(occurStatuses, 'eocstat:eos5', 'qcode') || {
+                label: 'Planned, occurs certainly',
+                qcode: 'eocstat:eos5',
+                name: 'Planned, occurs certainly',
+            };
+            const newEvent = eventUtils.duplicateEvent(updatedEvent, plannedStatus);
+
+            return dispatch(main.lockAndEdit(newEvent));
+        });
     }
 );
 
@@ -645,13 +652,13 @@ const selectCalendar = (calendarId = '', params = {}) => (
     }
 );
 
-const fetchEventWithFiles = (event) => (
+const fetchEventWithFiles = (event, saveToStore = true) => (
     (dispatch) => {
         if (!isExistingItem(event) || get(event, 'files.length', 0) === 0) {
             return Promise.resolve(event);
         }
 
-        return dispatch(eventsApi.fetchById(event._id, {force: true}));
+        return dispatch(eventsApi.fetchById(event._id, {force: true, saveToStore: saveToStore}));
     }
 );
 

@@ -23,7 +23,7 @@ import {EventScheduleInput, EventScheduleSummary} from '../';
 import {GeoLookupInput} from '../../index';
 
 import {EventEditorHeader} from './EventEditorHeader';
-import {gettext, editorMenuUtils, getItemId} from '../../../utils';
+import {gettext, editorMenuUtils, getItemId, eventUtils} from '../../../utils';
 import CustomVocabulariesFields from '../../CustomVocabulariesFields';
 
 import '../style.scss';
@@ -81,8 +81,7 @@ export class EventEditorComponent extends React.Component {
             }
         }
 
-        if (get(this.props, 'item.files', []).filter((f) => typeof (f) === 'string'
-            || f instanceof String).length > 0) {
+        if (eventUtils.shouldFetchFilesForEvent(this.props.item)) {
             this.props.fetchEventWithFiles(this.props.item);
         }
 
@@ -148,6 +147,12 @@ export class EventEditorComponent extends React.Component {
             formProfile: formProfile,
             errors: errors,
             showErrors: submitFailed,
+        };
+
+        const getCountOfProperty = (propertyName) => {
+            const count = get(this.props, `diff.${propertyName}.length`, 0);
+
+            return count > 0 ? count : null;
         };
 
         const AddLinkButton = ({onAdd}) => (
@@ -332,7 +337,7 @@ export class EventEditorComponent extends React.Component {
                         invalid={!!errors.files && (dirty || submitFailed)}
                         forceScroll={editorMenuUtils.forceScroll(navigation, 'files')}
                         paddingTop={!!onFocusFiles}
-                        badgeValue={get(item, 'files.length', 0) > 0 ? item.files.length : null} >
+                        badgeValue={getCountOfProperty('files')} >
                         <Field
                             component={FileInput}
                             field="files"
@@ -352,7 +357,7 @@ export class EventEditorComponent extends React.Component {
                         invalid={!!errors.links && (dirty || submitFailed)}
                         forceScroll={editorMenuUtils.forceScroll(navigation, 'links')}
                         paddingTop={!!onFocusLinks}
-                        badgeValue={get(item, 'links.length', 0) > 0 ? item.links.length : null}>
+                        badgeValue={getCountOfProperty('links')}>
                         <Field
                             component={InputArray}
                             field="links"
