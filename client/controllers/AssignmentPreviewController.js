@@ -44,7 +44,7 @@ export class AssignmentPreviewController {
                     <AssignmentPreviewContainer />
                 </SidePanel>
             </Provider>,
-            document.getElementById('sd-planning-react-container')
+            this.$element.get(0)
         );
     }
 

@@ -71,7 +71,7 @@ export class AddToPlanningController {
             <Provider store={this.store}>
                 <ModalsContainer/>
             </Provider>,
-            document.getElementById('sd-planning-react-container')
+            this.$element.get(0)
         );
 
         this.rendered = true;
