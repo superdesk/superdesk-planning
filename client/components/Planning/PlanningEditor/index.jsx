@@ -13,7 +13,7 @@ import {
     isSameItemId,
     editorMenuUtils,
     isExistingItem,
-    isValidFileInput,
+    eventUtils,
 } from '../../../utils';
 
 import {ContentBlock} from '../../UI/SidePanel';
@@ -255,8 +255,7 @@ export class PlanningEditorComponent extends React.Component {
                 });
             }
 
-            if (get(nextProps, 'event.files.length', 0) > 0 &&
-                nextProps.event.files.filter((f) => !isValidFileInput(f, true)).length > 0) {
+            if (eventUtils.shouldFetchFilesForEvent(nextProps.event)) {
                 this.props.fetchEventWithFiles(nextProps.event);
             }
         }

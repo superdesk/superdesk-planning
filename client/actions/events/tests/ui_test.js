@@ -411,25 +411,29 @@ describe('actions.events.ui', () => {
 
     describe('duplicate', () => {
         beforeEach(() => {
-            sinon.stub(main, 'createNew').callsFake((item) => Promise.resolve(item));
+            sinon.stub(main, 'lockAndEdit').callsFake((item) => Promise.resolve(item));
+            sinon.stub(eventsUi, 'fetchEventWithFiles').callsFake((item) => Promise.resolve(item));
         });
 
         afterEach(() => {
-            restoreSinonStub(main.createNew);
+            restoreSinonStub(main.lockAndEdit);
             restoreSinonStub(eventsApi.duplicate);
+            restoreSinonStub(eventsUi.fetchEventWithFiles);
         });
 
-        it('duplicate updates past event date to current date', (done) => {
+        it('duplicate updates past event date to current date ad also preserves files and links', (done) => {
             data.events[0].dates.start = moment(data.events[0].dates.start);
             data.events[0].dates.end = moment(data.events[0].dates.end);
+            data.events[0].files = ['file1_id'];
+            data.events[0].links = ['http://www.google.com'];
             store.test(done, eventsUi.duplicate(data.events[0]))
                 .then(() => {
                     const daysBetween = moment().diff(data.events[0].dates.start, 'days');
                     const newStartDate = data.events[0].dates.start.add(daysBetween, 'days');
                     const newEndDate = data.events[0].dates.end.add(daysBetween, 'days');
 
-                    expect(main.createNew.callCount).toBe(1);
-                    expect(main.createNew.args[0]).toEqual(['event', {
+                    expect(main.lockAndEdit.callCount).toBe(1);
+                    expect(main.lockAndEdit.args[0]).toEqual([{
                         ...omit(data.events[0], ['_id', '_etag', 'planning_ids']),
                         dates: {
                             start: newStartDate,
@@ -442,6 +446,9 @@ describe('actions.events.ui', () => {
                             label: 'Confirmed',
                             qcode: 'eocstat:eos5',
                         },
+                        _id: jasmine.any(String),
+                        files: ['file1_id'],
+                        links: ['http://www.google.com'],
                     }]);
 
                     done();

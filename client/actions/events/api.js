@@ -704,7 +704,7 @@ const query = (
             .then((data) => {
                 const results = {
                     ...data,
-                    _items: data._items.map(eventUtils.modifyForClient),
+                    _items: data._items.map((item) => eventUtils.modifyForClient(item)),
                 };
 
                 if (storeTotal) {

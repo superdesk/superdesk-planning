@@ -5,7 +5,7 @@ import {get} from 'lodash';
 
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
-import {assignmentUtils, gettext} from '../../../utils';
+import {assignmentUtils, gettext, eventUtils} from '../../../utils';
 import {ASSIGNMENTS} from '../../../constants';
 
 import {AssignmentPreviewHeader} from './AssignmentPreviewHeader';
@@ -17,7 +17,7 @@ import {ContentBlock, ContentBlockInner} from '../../UI/SidePanel';
 
 class AssignmentPreviewContainerComponent extends React.Component {
     componentWillMount() {
-        if (this.props.eventItem) {
+        if (eventUtils.shouldFetchFilesForEvent(this.props.eventItem)) {
             this.props.fetchEventWithFiles(this.props.eventItem);
         }
     }
