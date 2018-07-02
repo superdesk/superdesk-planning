@@ -14,4 +14,5 @@ export const PRIVILEGES = {
     UNPOST_PLANNING: 'planning_planning_unpost',
     EDIT_EXPIRED: 'planning_edit_expired',
     CREATE_IN_PAST: 'planning_create_past',
+    FEATURED_STORIES: 'planning_planning_featured',
 };

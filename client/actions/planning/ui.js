@@ -263,6 +263,46 @@ const cancelAllCoverage = (plan) => (
     }
 );
 
+const modifyPlanningFeatured = (item, remove = false) => (
+    (dispatch) => (
+        dispatch(main.openActionModalFromEditor(
+            item,
+            gettext('Save changes before adding to top stories ?'),
+            (unlockedItem, previousLock, openInEditor, openInModal) => (
+                dispatch(self._modifyPlanningFeatured(unlockedItem, remove))
+                    .then((updatedItem) => {
+                        if (get(previousLock, 'action')) {
+                            return dispatch(locks.lock(updatedItem, previousLock.action));
+                        }
+                    })
+            )
+        ))
+    )
+);
+
+/**
+ * Action dispatcher that mark/unmark a Planning item as featured
+ * @param {object} item - The Planning item to add/remove as featured
+ * @return Promise
+ */
+const _modifyPlanningFeatured = (item, remove = false) => (
+    (dispatch, getState, {api, notify}) => (
+        dispatch(locks.lock(item, remove ? 'remove_featured' : 'add_featured'))
+            .then((lockedItem) => {
+                lockedItem.featured = !remove;
+                return dispatch(self.saveAndUnlockPlanning(lockedItem)).then((updatedItem) => {
+                    remove ? notify.success(gettext('Planning item removed as featured story')) :
+                        notify.success(gettext('Planning item added as featured story'));
+                    return Promise.resolve(updatedItem);
+                }, (error) => {
+                    remove ? notify.error(gettext('Failed to remove planning item as featured story')) :
+                        notify.error(gettext('Failed to add planning item added as featured story'));
+                    return Promise.reject(error);
+                });
+            })
+    )
+);
+
 const openCancelPlanningModal = (plan, post = false) => (
     (dispatch) => dispatch(self._openActionModal(
         plan,
@@ -347,7 +387,7 @@ const saveAndUnlockPlanning = (item) => (
     (dispatch, getState, {notify}) => (
         dispatch(self.save(item))
             .then((savedItem) => dispatch(locks.unlock(savedItem))
-                .then(() => Promise.resolve(savedItem))
+                .then((unlockedItem) => Promise.resolve(unlockedItem))
                 .catch(() => {
                     notify.error(gettext('Could not unlock the planning item.'));
                     return Promise.resolve(savedItem);
@@ -525,6 +565,8 @@ const self = {
     saveAndUnlockPlanning,
     addCoverageToWorkflow,
     removeAssignment,
+    _modifyPlanningFeatured,
+    modifyPlanningFeatured,
 };
 
 export default self;

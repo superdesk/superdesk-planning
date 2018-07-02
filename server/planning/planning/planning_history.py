@@ -18,6 +18,7 @@ from planning.common import WORKFLOW_STATE, ITEM_ACTIONS, ASSIGNMENT_WORKFLOW_ST
 from planning.item_lock import LOCK_ACTION
 
 logger = logging.getLogger(__name__)
+update_item_actions = ['assign_agenda', 'add_featured', 'remove_featured']
 
 
 class PlanningHistoryResource(Resource):
@@ -64,9 +65,10 @@ class PlanningHistoryService(HistoryService):
 
         if len(diff.keys()) > 0:
             operation = operation or 'edited'
-            if original.get('lock_action') == 'assign_agenda':
-                operation = 'assign_agenda'
-                diff['agendas'] = [a for a in diff.get('agendas', []) if a not in original.get('agendas', [])]
+            if original.get(LOCK_ACTION) in update_item_actions:
+                operation = original.get(LOCK_ACTION)
+                if original.get(LOCK_ACTION) == 'assign_agenda':
+                    diff['agendas'] = [a for a in diff.get('agendas', []) if a not in original.get('agendas', [])]
 
             self._save_history(item, diff, operation)
 

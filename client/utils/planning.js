@@ -78,6 +78,18 @@ const canAssignAgenda = (planning, event, privileges, locks) => (
         !isItemRescheduled(planning)
 );
 
+const canAddFeatured = (planning, event, session, privileges, locks) => (
+    !get(planning, 'featured', false) &&
+        canEditPlanning(planning, event, session, privileges, locks) &&
+        !!privileges[PRIVILEGES.FEATURED_STORIES]
+);
+
+const canRemovedFeatured = (planning, event, session, privileges, locks) => (
+    get(planning, 'featured', false) === true &&
+        canEditPlanning(planning, event, session, privileges, locks) &&
+        !!privileges[PRIVILEGES.FEATURED_STORIES]
+);
+
 const canUpdatePlanning = (planning, event, session, privileges, locks) => (
     canEditPlanning(planning, event, session, privileges, locks) &&
         isItemPublic(planning) &&
@@ -227,6 +239,10 @@ export const getPlanningItemActions = (plan, event = null, session, privileges, 
             canEditPlanning(plan, event, session, privileges, locks),
         [PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.label]: () =>
             canAssignAgenda(plan, event, privileges, locks),
+        [PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.label]: () =>
+            canAddFeatured(plan, event, session, privileges, locks),
+        [PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.label]: () =>
+            canRemovedFeatured(plan, event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: () =>
             !isPlanAdHoc(plan) && eventUtils.canCancelEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: () =>
@@ -387,6 +403,20 @@ const getPlanningActions = ({
             agendaCallBacks.length > 0 && actions.push({
                 ...PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA,
                 callback: agendaCallBacks,
+            });
+            break;
+
+        case PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName:
+            actions.push({
+                ...PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED,
+                callback: callBacks[callBackName].bind(null, item),
+            });
+            break;
+
+        case PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName:
+            actions.push({
+                ...PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED,
+                callback: callBacks[callBackName].bind(null, item, true),
             });
             break;
 

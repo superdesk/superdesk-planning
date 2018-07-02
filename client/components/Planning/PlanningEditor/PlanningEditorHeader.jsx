@@ -6,6 +6,7 @@ import {getCreator, isExistingItem} from '../../../utils';
 
 import {ContentBlock, ContentBlockInner} from '../../UI/SidePanel';
 import {AuditInformation, StateLabel} from '../..';
+import {FeatureLabel} from '../FeatureLabel';
 
 import './style.scss';
 
@@ -41,6 +42,7 @@ export const PlanningEditorHeader = ({item, users}) => {
                     verbose={true}
                     withExpiredStatus={true}
                 />
+                <FeatureLabel item={item} />
             </ContentBlockInner>
         </ContentBlock>
     );

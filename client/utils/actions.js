@@ -56,6 +56,10 @@ const getActionDispatches = ({
             actions.main.lockAndEdit,
         [PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName]:
             actions.planning.ui.assignToAgenda,
+        [PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName]:
+            actions.planning.ui.modifyPlanningFeatured,
+        [PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName]:
+            actions.planning.ui.modifyPlanningFeatured,
     };
     const props = {};
     const addAction = (action) => {

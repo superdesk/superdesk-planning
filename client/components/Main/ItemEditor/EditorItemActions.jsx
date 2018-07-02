@@ -63,6 +63,16 @@ export const EditorItemActions = ({
                 itemActions[PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName],
             [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
                 itemActions[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
+            [PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName]:
+                (item, remove) => {
+                    flushAutosave();
+                    itemActions[PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName](item, remove);
+                },
+            [PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName]:
+                (item, remove) => {
+                    flushAutosave();
+                    itemActions[PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName](item, remove);
+                },
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
