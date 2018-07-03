@@ -68,7 +68,7 @@ export class FulFilAssignmentController {
             <Provider store={this.store}>
                 <ModalsContainer />
             </Provider>,
-            document.getElementById('sd-planning-react-container')
+            this.$element.get(0)
         );
 
         this.store.dispatch(actions.showModal({
