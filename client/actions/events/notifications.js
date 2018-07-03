@@ -1,11 +1,10 @@
 import * as selectors from '../../selectors';
-import {WORKFLOW_STATE, EVENTS, MODALS, ITEM_TYPE, AUTOSAVE} from '../../constants';
-import {showModal, hideModal} from '../index';
+import {WORKFLOW_STATE, EVENTS, ITEM_TYPE} from '../../constants';
 import eventsApi from './api';
 import eventsUi from './ui';
 import main from '../main';
 import {get} from 'lodash';
-import {lockUtils, gettext, dispatchUtils, getErrorMessage} from '../../utils';
+import {gettext, dispatchUtils, getErrorMessage} from '../../utils';
 import eventsPlanning from '../eventsPlanning';
 
 /**
@@ -31,10 +30,10 @@ const onEventUnlocked = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
             const events = selectors.events.storedEvents(getState());
-            const locks = selectors.locks.getLockedItems(getState());
+            // const locks = selectors.locks.getLockedItems(getState());
             let eventInStore = get(events, data.item, {});
-            const itemLock = lockUtils.getLock(eventInStore, locks);
-            const sessionId = selectors.general.session(getState()).sessionId;
+            // const itemLock = lockUtils.getLock(eventInStore, locks);
+            // const sessionId = selectors.general.session(getState()).sessionId;
 
             eventInStore = {
                 ...eventInStore,
@@ -51,38 +50,7 @@ const onEventUnlocked = (_e, data) => (
                 payload: {event: eventInStore},
             });
 
-            // If this is the event item currently being edited, show popup notification
-            if (itemLock !== null &&
-                data.lock_session !== sessionId &&
-                itemLock.session === sessionId
-            ) {
-                const user = selectors.general.users(getState()).find((u) => u._id === data.user);
-                const autoSaves = selectors.forms.autosaves(getState());
-                let autoSaveInStore = get(autoSaves.event, data.item);
-
-                if (autoSaveInStore) {
-                    // Delete the changes from the local redux
-                    dispatch({
-                        type: AUTOSAVE.ACTIONS.REMOVE,
-                        payload: autoSaveInStore,
-                    });
-                }
-
-                dispatch(hideModal());
-                dispatch(showModal({
-                    modalType: MODALS.NOTIFICATION_MODAL,
-                    modalProps: {
-                        title: 'Item Unlocked',
-                        body: 'The event you were editing was unlocked by "' +
-                            user.display_name + '"',
-                    },
-                }));
-            }
-
-            // reload the initialvalues of the editor if different session has made changes
-            if (data.lock_session !== sessionId) {
-                dispatch(main.reloadEditor(eventInStore));
-            }
+            dispatch(main.onItemUnlocked(data, eventInStore, ITEM_TYPE.EVENT));
 
             return Promise.resolve(eventInStore);
         }

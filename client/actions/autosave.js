@@ -182,7 +182,8 @@ const remove = (autosave) => (
             return Promise.resolve();
         }
 
-        return api(`${itemType}_autosave`).remove(autosave);
+        return api(`${itemType}_autosave`).remove(autosave)
+            .then(() => Promise.resolve(), () => Promise.resolve());
     }
 );
 
@@ -206,11 +207,16 @@ const removeById = (itemType, itemId, tryServer = true) => (
 
                 return Promise.resolve();
             }, (error) => {
-                notify.error(
-                    getErrorMessage(error, gettext('Failed to remove autosave. Not found'))
-                );
+                // auto save record is not then ignore the error.
+                if (error.status !== 404) {
+                    notify.error(
+                        getErrorMessage(error, gettext('Failed to remove autosave. Not found'))
+                    );
 
-                return Promise.reject(error);
+                    return Promise.reject(error);
+                }
+
+                return Promise.resolve();
             })
     )
 );

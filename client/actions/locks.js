@@ -119,6 +119,7 @@ const unlockThenLock = (item) => (
         dispatch(self.unlock(item))
             .then(
                 (unlockedItem) => {
+                    // when unlock is trigger on the that not locked.
                     if (item._id !== unlockedItem._id) {
                         return dispatch(main.lockAndEdit(item));
                     }
