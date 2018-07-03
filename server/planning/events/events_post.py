@@ -2,15 +2,15 @@
 from flask import abort
 from eve.utils import config
 
-from superdesk import get_resource_service
+from superdesk import get_resource_service, logger
 from superdesk.resource import Resource, not_analyzed
-from apps.publish.enqueue import get_enqueue_service
 from superdesk.notification import push_notification
 
 from .events import EventsResource
 from .events_base_service import EventsBaseService
 from planning.common import WORKFLOW_STATE, POST_STATE, post_state,\
-    UPDATE_SINGLE, UPDATE_METHODS, UPDATE_FUTURE, get_item_post_state
+    UPDATE_SINGLE, UPDATE_METHODS, UPDATE_FUTURE, get_item_post_state, enqueue_planning_item
+from datetime import datetime
 
 
 class EventsPostResource(EventsResource):
@@ -145,11 +145,23 @@ class EventsPostService(EventsBaseService):
 
         # enqueue the event
         # these fields are set for enqueue process to work. otherwise not needed
-        event.setdefault(config.VERSION, 1)
+        version = int((datetime.utcnow() - datetime.min).total_seconds() * 100000.0)
+        event.setdefault(config.VERSION, version)
         event.setdefault('item_id', event['_id'])
+        # save the version into the history
+        updates['version'] = version
 
-        get_enqueue_service('publish').enqueue_item(event, 'event')
         get_resource_service('events_history')._save_history(event, updates, 'post')
+
+        version_id = get_resource_service('planning_versions').post([{'item_id': event['_id'],
+                                                                      'version': version, 'type': 'event',
+                                                                      'published_item': event}])
+        if version_id:
+            # Asynchronously enqueue the item for publishing.
+            enqueue_planning_item.apply_async(kwargs={'id': version_id[0]})
+        else:
+            logger.error('Failed to save planning version for event item id {}'.format(event['_id']))
+
         return updated_event
 
     @staticmethod

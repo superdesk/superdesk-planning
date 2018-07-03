@@ -56,11 +56,17 @@ Feature: Publish
         """
         {"state": "scheduled"}
         """
+        When we get "planning_versions"
+        Then we get list with 1 items
 
         When we get "publish_queue"
         Then we get list with 1 items
+        Then we store "PUBLISHQUEUE" with first item
         When we transmit items
-        Then file exists "/tmp/123-1-None.txt"
+        Then versioned file exists "/tmp/123-#PUBLISHQUEUE.item_version#-None.txt"
+
+        When we get "planning_versions?where={\"item_id\": \"#PUBLISHQUEUE.item_id#\", \"version\": #PUBLISHQUEUE.item_version#}"
+        Then we get list with 1 items
 
     @auth
     Scenario: Publish Event using json event formatter
@@ -124,7 +130,13 @@ Feature: Publish
         And we get "usable" in formatted output
         And we get "scheduled" in formatted output
         When we transmit items
-        Then file exists "/tmp/123-1-None.txt"
+        When we get "publish_queue"
+        Then we get existing resource
+        """
+            {"_items": [{"state": "success"}]}
+        """
+        Then we store "PUBLISHQUEUE" with first item
+        Then versioned file exists "/tmp/123-#PUBLISHQUEUE.item_version#-1.txt"
 
     @auth
     Scenario: Post non existing event
@@ -252,6 +264,9 @@ Feature: Publish
         """
         {"state": "killed"}
         """
+        When we get "publish_queue"
+        Then we get list with 1 items
+        Then we store "PUBLISHQUEUE" with first item
 
         When we transmit items
-        Then file exists "/tmp/123-1-None.txt"
+        Then versioned file exists "/tmp/123-#PUBLISHQUEUE.item_version#-None.txt"

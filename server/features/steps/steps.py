@@ -17,6 +17,7 @@ from flask import json
 from planning.common import get_local_end_of_day
 from wooper.assertions import assert_equal
 from datetime import datetime
+import os
 
 
 @then('we get a list with {total_count} items')
@@ -228,3 +229,9 @@ def then_coverage_has_current_date(context, index):
     coverage = response.get('coverages')[index]
     response_date_time = datetime.strptime(coverage['planning']['scheduled'], DATETIME_FORMAT)
     assert response_date_time.date() == get_local_end_of_day().date(), 'Coverage is not schedule for current date'
+
+
+@then('versioned file exists "{path}"')
+def then_versioned_file_exists(context, path):
+    path = apply_placeholders(context, path)
+    assert os.path.isfile(path), '{} is not a file'.format(path)

@@ -9,16 +9,15 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from flask import abort
-from superdesk import get_resource_service
+from superdesk import get_resource_service, logger
 from superdesk.resource import Resource
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
-from apps.publish.enqueue import get_enqueue_service
-
 
 from eve.utils import config
 from planning.planning import PlanningResource
-from planning.common import WORKFLOW_STATE, POST_STATE, post_state, get_item_post_state
+from planning.common import WORKFLOW_STATE, POST_STATE, post_state, get_item_post_state, enqueue_planning_item
+from datetime import datetime
 
 
 class PlanningPostResource(PlanningResource):
@@ -95,14 +94,25 @@ class PlanningPostService(BaseService):
         updates = {'state': get_item_post_state(plan, new_post_state), 'pubstatus': new_post_state}
         plan['pubstatus'] = new_post_state
         get_resource_service('planning').update(plan['_id'], updates, plan)
-        get_resource_service('planning_history')._save_history(plan, updates, 'post')
 
-        # enqueue the planning item
-        # these fields are set for enqueue process to work. otherwise not needed
-        plan.setdefault(config.VERSION, 1)
+        # Set a version number
+        version = int((datetime.utcnow() - datetime.min).total_seconds() * 100000.0)
+        plan.setdefault(config.VERSION, version)
         plan.setdefault('item_id', plan['_id'])
 
-        get_enqueue_service('publish').enqueue_item(plan, 'planning')
+        # Save the version into the history
+        updates['version'] = version
+        get_resource_service('planning_history')._save_history(plan, updates, 'post')
+
+        # Create an entry in the planning versions collection for this published version
+        version_id = get_resource_service('planning_versions').post([{'item_id': plan['_id'],
+                                                                      'version': version,
+                                                                      'type': 'planning', 'published_item': plan}])
+        if version_id:
+            # Asynchronously enqueue the item for publishing.
+            enqueue_planning_item.apply_async(kwargs={'id': version_id[0]})
+        else:
+            logger.error('Failed to save planning version for planning item id {}'.format(plan['_id']))
 
     def _get_post_state(self, plan, new_post_state):
         if new_post_state == POST_STATE.CANCELLED:

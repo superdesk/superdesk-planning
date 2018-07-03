@@ -13,7 +13,7 @@ from superdesk.utc import utcnow
 from datetime import timedelta
 from collections import namedtuple
 from superdesk.resource import not_analyzed
-from superdesk import get_resource_service
+from superdesk import get_resource_service, logger
 from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
 from superdesk.metadata.item import ITEM_TYPE
 from datetime import datetime, time
@@ -21,6 +21,8 @@ import tzlocal
 import pytz
 from apps.archive.common import get_user, get_auth
 from eve.utils import config
+from superdesk.celery_app import celery
+from apps.publish.enqueue import get_enqueue_service
 
 ITEM_STATE = 'state'
 ITEM_EXPIRY = 'expiry'
@@ -216,3 +218,21 @@ def get_coverage_type_name(qcode):
         coverage_type = next((x for x in coverage_types.get('items', []) if x['qcode'] == qcode), {})
 
     return coverage_type.get('name', qcode)
+
+
+@celery.task(soft_time_limit=600)
+def enqueue_planning_item(id):
+    """
+    Get the version of the item to be published from the planning versions collection and enqueue it.
+
+    :param id:
+    :return:
+    """
+    planning_version = get_resource_service('planning_versions').find_one(req=None, _id=id)
+    if planning_version:
+        try:
+            get_enqueue_service('publish').enqueue_item(planning_version.get('published_item'), 'event')
+        except Exception:
+            logger.exception('Failed to queue {} item {}'.format(planning_version.get('type'), id))
+    else:
+        logger.error('Failed to retrieve planning item from planning versions with id: {}'.format(id))
