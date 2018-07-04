@@ -16,6 +16,7 @@ import {
     getItemId,
     removeAutosaveFields,
     itemsEqual,
+    isSameItemId,
 } from '../../../utils';
 import {EventUpdateMethods} from '../../Events';
 
@@ -199,6 +200,9 @@ export class EditorComponent extends React.Component {
         } else if (!itemsEqual(get(nextProps, 'item'), get(this.props, 'item'))) {
             // This happens when the item attributes have changed
             this.onItemChanged(nextProps);
+        } else if (isSameItemId(nextProps.item, this.props.item) &&
+            this.isReadOnly(nextProps) && !this.isReadOnly(this.props)) {
+            this.resetForm(get(nextProps, 'item') || {});
         }
 
         this.tabs[1].enabled = !!nextProps.itemId;

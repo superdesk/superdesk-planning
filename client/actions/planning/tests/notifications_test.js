@@ -242,6 +242,11 @@ describe('actions.planning.notifications', () => {
             store.initialState.planning.currentPlanningId = 'p1';
             store.initialState.planning.plannings.p1.lock_user = 'ident1';
             store.initialState.planning.plannings.p1.lock_session = 'session1';
+            sinon.stub(main, 'reloadEditor').callsFake(() => Promise.resolve());
+        });
+
+        afterEach(() => {
+            restoreSinonStub(main.reloadEditor);
         });
 
         it('dispatches notification modal if item unlocked is being edited', (done) => {
@@ -260,11 +265,12 @@ describe('actions.planning.notifications', () => {
                     user: 'ident2',
                 }))
                 .then(() => {
-                    const modalStr = 'The planning item you were editing was unlocked' +
+                    const modalStr = 'The planning you were editing was unlocked' +
                     ' by "firstname2 lastname2"';
 
-                    expect(store.dispatch.args[0]).toEqual([{type: 'HIDE_MODAL'}]);
-                    expect(store.dispatch.args[1]).toEqual([{
+                    expect(store.dispatch.args[0][0].type).toEqual(PLANNING.ACTIONS.UNLOCK_PLANNING);
+                    expect(store.dispatch.args[2]).toEqual([{type: 'HIDE_MODAL'}]);
+                    expect(store.dispatch.args[3]).toEqual([{
                         type: 'SHOW_MODAL',
                         modalType: 'NOTIFICATION_MODAL',
                         modalProps: {
@@ -272,7 +278,7 @@ describe('actions.planning.notifications', () => {
                             body: modalStr,
                         },
                     }]);
-
+                    expect(main.reloadEditor.callCount).toBe(1);
                     done();
                 });
         });

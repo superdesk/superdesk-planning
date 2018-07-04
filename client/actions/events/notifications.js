@@ -1,11 +1,10 @@
 import * as selectors from '../../selectors';
-import {WORKFLOW_STATE, EVENTS, MODALS, ITEM_TYPE} from '../../constants';
-import {showModal, hideModal} from '../index';
+import {WORKFLOW_STATE, EVENTS, ITEM_TYPE} from '../../constants';
 import eventsApi from './api';
 import eventsUi from './ui';
 import main from '../main';
 import {get} from 'lodash';
-import {lockUtils, gettext, dispatchUtils, getErrorMessage} from '../../utils';
+import {gettext, dispatchUtils, getErrorMessage} from '../../utils';
 import eventsPlanning from '../eventsPlanning';
 
 /**
@@ -31,28 +30,10 @@ const onEventUnlocked = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
             const events = selectors.events.storedEvents(getState());
-            const locks = selectors.locks.getLockedItems(getState());
+            // const locks = selectors.locks.getLockedItems(getState());
             let eventInStore = get(events, data.item, {});
-            const itemLock = lockUtils.getLock(eventInStore, locks);
-            const sessionId = selectors.general.session(getState()).sessionId;
-
-            // If this is the event item currently being edited, show popup notification
-            if (itemLock !== null &&
-                data.lock_session !== sessionId &&
-                itemLock.session === sessionId
-            ) {
-                const user = selectors.general.users(getState()).find((u) => u._id === data.user);
-
-                dispatch(hideModal());
-                dispatch(showModal({
-                    modalType: MODALS.NOTIFICATION_MODAL,
-                    modalProps: {
-                        title: 'Item Unlocked',
-                        body: 'The event you were editing was unlocked by "' +
-                            user.display_name + '"',
-                    },
-                }));
-            }
+            // const itemLock = lockUtils.getLock(eventInStore, locks);
+            // const sessionId = selectors.general.session(getState()).sessionId;
 
             eventInStore = {
                 ...eventInStore,
@@ -69,6 +50,8 @@ const onEventUnlocked = (_e, data) => (
                 payload: {event: eventInStore},
             });
 
+            dispatch(main.onItemUnlocked(data, eventInStore, ITEM_TYPE.EVENT));
+
             return Promise.resolve(eventInStore);
         }
 
@@ -77,8 +60,10 @@ const onEventUnlocked = (_e, data) => (
 );
 
 const onEventLocked = (_e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (data && data.item) {
+            const sessionId = selectors.general.session(getState()).sessionId;
+
             return dispatch(eventsApi.getEvent(data.item, false))
                 .then((eventInStore) => {
                     const evtInStore = {
@@ -94,6 +79,11 @@ const onEventLocked = (_e, data) => (
                         type: EVENTS.ACTIONS.LOCK_EVENT,
                         payload: {event: evtInStore},
                     });
+
+                    // reload the initialvalues of the editor if different session has made changes
+                    if (data.lock_session !== sessionId) {
+                        dispatch(main.reloadEditor(eventInStore));
+                    }
 
                     return Promise.resolve(evtInStore);
                 });

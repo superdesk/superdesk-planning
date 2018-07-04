@@ -1,11 +1,11 @@
 import {get} from 'lodash';
 import planning from './index';
 import assignments from '../assignments/index';
-import {lockUtils, gettext} from '../../utils';
+import {gettext} from '../../utils';
 import * as selectors from '../../selectors';
-import {showModal, hideModal, events, fetchAgendas} from '../index';
+import {events, fetchAgendas} from '../index';
 import main from '../main';
-import {PLANNING, MODALS, ITEM_TYPE} from '../../constants';
+import {PLANNING, ITEM_TYPE} from '../../constants';
 import eventsPlanning from '../eventsPlanning';
 
 /**
@@ -70,8 +70,10 @@ const onPlanningUpdated = (_e, data) => (
 );
 
 const onPlanningLocked = (e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (get(data, 'item')) {
+            const sessionId = selectors.general.session(getState()).sessionId;
+
             return dispatch(planning.api.getPlanning(data.item, false))
                 .then((planInStore) => {
                     let plan = {
@@ -87,6 +89,11 @@ const onPlanningLocked = (e, data) => (
                         type: PLANNING.ACTIONS.LOCK_PLANNING,
                         payload: {plan: plan},
                     });
+
+                    // reload the initialvalues of the editor if different session has made changes
+                    if (data.lock_session !== sessionId) {
+                        dispatch(main.reloadEditor(plan));
+                    }
 
                     return Promise.resolve(plan);
                 });
@@ -108,32 +115,9 @@ const onPlanningUnlocked = (_e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
             let planningItem = selectors.planning.storedPlannings(getState())[data.item];
-            const locks = selectors.locks.getLockedItems(getState());
-            const itemLock = lockUtils.getLock(planningItem, locks);
-            const sessionId = selectors.general.session(getState()).sessionId;
-
-            // If this is the planning item currently being edited, show popup notification
-            if (itemLock !== null &&
-                data.lock_session !== sessionId &&
-                itemLock.session === sessionId
-            ) {
-                const user = selectors.general.users(getState()).find((u) => u._id === data.user);
-
-                const modalType = selectors.general.modalType(getState());
-
-                if (modalType !== MODALS.ADD_TO_PLANNING) {
-                    dispatch(hideModal());
-                }
-
-                dispatch(showModal({
-                    modalType: MODALS.NOTIFICATION_MODAL,
-                    modalProps: {
-                        title: 'Item Unlocked',
-                        body: 'The planning item you were editing was unlocked by "' +
-                            user.display_name + '"',
-                    },
-                }));
-            }
+            // const locks = selectors.locks.getLockedItems(getState());
+            // const itemLock = lockUtils.getLock(planningItem, locks);
+            // const sessionId = selectors.general.session(getState()).sessionId;
 
             planningItem = {
                 ...planningItem,
@@ -149,6 +133,8 @@ const onPlanningUnlocked = (_e, data) => (
                 type: PLANNING.ACTIONS.UNLOCK_PLANNING,
                 payload: {plan: planningItem},
             });
+
+            dispatch(main.onItemUnlocked(data, planningItem, ITEM_TYPE.PLANNING));
 
             return Promise.resolve();
         }

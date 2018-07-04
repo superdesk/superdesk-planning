@@ -1,4 +1,4 @@
-import {MAIN, ITEM_TYPE, MODALS, WORKSPACE, WORKFLOW_STATE, POST_STATE, PLANNING, EVENTS} from '../constants';
+import {MAIN, ITEM_TYPE, MODALS, WORKSPACE, WORKFLOW_STATE, POST_STATE, PLANNING, EVENTS, AUTOSAVE} from '../constants';
 import {activeFilter, lastRequestParams} from '../selectors/main';
 import planningUi from './planning/ui';
 import planningApi from './planning/api';
@@ -792,7 +792,7 @@ const setUnsetLoadingIndicator = (value = false) => ({
  * Action to open the editor and update the URL
  * @param {object} item - The item to open. Must have _id and type attributes
  */
-const openEditor = (item) => (
+const openEditor = (item, updateUrl = true) => (
     (dispatch, getState, {$timeout, $location}) => {
         dispatch({
             type: MAIN.ACTIONS.OPEN_EDITOR,
@@ -800,7 +800,9 @@ const openEditor = (item) => (
         });
 
         // Update the URL
-        $timeout(() => $location.search('edit', JSON.stringify({id: getItemId(item), type: getItemType(item)})));
+        if (updateUrl) {
+            $timeout(() => $location.search('edit', JSON.stringify({id: getItemId(item), type: getItemType(item)})));
+        }
     }
 );
 
@@ -1142,6 +1144,71 @@ const fetchItemHistory = (item) => (
     }
 );
 
+/**
+ * Action to reset the initial values in the editor
+ * @param {object} item - planning or event item from store
+ */
+const reloadEditor = (item) => (
+    (dispatch, getState) => {
+        if (item._id === selectors.forms.currentItemId(getState())) {
+            dispatch(self.openEditor(item, false));
+        } else if (item._id === selectors.forms.currentItemIdModal(getState())) {
+            dispatch(self.openEditorModal(item));
+        }
+    }
+);
+
+/**
+ * Action to reset the initial values in the editor
+ * @param {object} data - data from unlock notification
+ * @param {object} item - item in store
+ * @param {string} itemType - type of item, event or planning
+ */
+const onItemUnlocked = (data, item, itemType) => (
+    (dispatch, getState) => {
+        const locks = selectors.locks.getLockedItems(getState());
+        const itemLock = lockUtils.getLock(item, locks);
+        const sessionId = selectors.general.session(getState()).sessionId;
+
+        // If this is the event item currently being edited, show popup notification
+        if (itemLock !== null &&
+            data.lock_session !== sessionId &&
+            itemLock.session === sessionId
+        ) {
+            const user = selectors.general.users(getState()).find((u) => u._id === data.user);
+            const autoSaves = selectors.forms.autosaves(getState());
+            const modalType = selectors.general.modalType(getState());
+            let autoSaveInStore = get(autoSaves, `${itemType}.${data.item}`);
+
+            if (autoSaveInStore) {
+                // Delete the changes from the local redux
+                dispatch({
+                    type: AUTOSAVE.ACTIONS.REMOVE,
+                    payload: autoSaveInStore,
+                });
+            }
+
+            if (modalType !== MODALS.ADD_TO_PLANNING) {
+                dispatch(hideModal());
+            }
+
+            dispatch(showModal({
+                modalType: MODALS.NOTIFICATION_MODAL,
+                modalProps: {
+                    title: gettext('Item Unlocked'),
+                    body: gettext(`The ${itemType} you were editing was unlocked by`) +
+                        ' "' + user.display_name + '"',
+                },
+            }));
+        }
+
+        // reload the initial values of the editor if different session has made changes
+        if (data.lock_session !== sessionId) {
+            dispatch(self.reloadEditor(item));
+        }
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     lockAndEdit,
@@ -1179,6 +1246,8 @@ const self = {
     createNew,
     fetchById,
     fetchItemHistory,
+    reloadEditor,
+    onItemUnlocked,
 };
 
 export default self;
