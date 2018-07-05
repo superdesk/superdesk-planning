@@ -74,6 +74,7 @@ export const CoverageEditor = ({
 
             if (planningUtils.isCoverageDraft(value) && planningUtils.isCoverageAssigned(value)) {
                 itemActions.push({
+                    id: 'addToWorkflow',
                     label: gettext('Add to workflow'),
                     icon: 'icon-assign',
                     callback: onAddCoverageToWorkflow.bind(null, value, index),
@@ -111,6 +112,7 @@ export const CoverageEditor = ({
         (
             <div className="side-panel__top-tools-right">
                 <ItemActionsMenu
+                    field={field}
                     actions={itemActions}
                     onOpen={onFocus}
                 />

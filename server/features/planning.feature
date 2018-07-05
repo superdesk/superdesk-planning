@@ -350,7 +350,7 @@ Feature: Planning
 
     @auth
     @notification
-    Scenario: Coverage cannot be deleted after assignment is created.
+    Scenario: Coverage cannot be deleted after assignment is added to workflow.
         Given empty "planning"
         When we post to "planning"
         """
@@ -438,17 +438,13 @@ Feature: Planning
         Then we get OK response
         Then we store coverage id in "firstcoverage" from coverage 0
         Then we store assignment id in "firstassignment" from coverage 0
-        Then we get existing resource
+        When we patch "/planning/#planning._id#"
         """
         {
-            "_id": "#planning._id#",
-            "guid": "123",
-            "item_class": "item class value",
-            "headline": "test headline",
-            "slugline": "test slugline",
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",
+                    "workflow_status": "active",
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -463,6 +459,34 @@ Feature: Planning
             ]
         }
         """
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "active",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "assignment_id": "#firstassignment#",
+                        "state": "assigned"
+                    }
+                }
+            ]
+        }
+        """
         When we get "assignments/#firstassignment#"
         Then we get OK response
         When we patch "/planning/#planning._id#"
@@ -471,7 +495,7 @@ Feature: Planning
             "coverages": []
         }
         """
-        Then we get error 200
+        Then we get error 400
 
     @auth
     @notification
@@ -1530,7 +1554,27 @@ Feature: Planning
         When we patch "/planning/#planning._id#"
         """
         {
-          "internal_note": "Thanks for all the fish"
+          "internal_note": "Thanks for all the fish",
+          "coverages": [
+              {
+                  "coverage_id": "cov_123",
+                  "planning": {
+                      "ednote": "test coverage, 250 words",
+                      "headline": "test headline",
+                      "slugline": "test slugline",
+                      "scheduled": "2029-11-21T14:00:00.000Z",
+                      "g2_content_type": "text",
+                      "internal_note": "Harmless"
+                  },
+                  "assigned_to": {
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
+                        "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
+                        "state": "assigned"
+                  },
+                  "workflow_status": "active"
+              }
+          ]
         }
         """
         Then we get OK response

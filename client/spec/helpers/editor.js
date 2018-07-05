@@ -1,5 +1,5 @@
-import {forEach} from 'lodash';
-
+import {forEach, set} from 'lodash';
+import {Popup} from './popup';
 import {getInputHelper} from './form';
 import {waitAndClick, waitPresent} from './utils';
 
@@ -23,9 +23,14 @@ class Editor {
         this.closeButton = this.editor.element(by.id('close'));
         this.postButton = this.editor.element(by.id('post'));
         this.unpostButton = this.editor.element(by.id('unpost'));
+        this.saveButton = this.editor.element(by.id('save'));
         this.repeatButton = this.editor.element(by.xpath('//button[@name="dates.recurring"]'));
         this.allDayButton = this.editor.element(by.xpath('//button[@name="dates.all_day"]'));
         this.minimizeButton = this.editor.element(by.xpath('//button[@title="Minimise"]'));
+
+        this.createCoverageButton = this.editor.element(by.xpath('//button[@title="Create new coverage"]'));
+        this.textCoverageOption = this.editor.element(by.xpath('//button[@id="coverage-menu-add-text"]'));
+        this.editAssignmentButton = this.editor.element(by.xpath('//button[@id="editAssignment"]'));
     }
 
     isItemPosted() {
@@ -69,6 +74,23 @@ class Editor {
         waitPresent(this.editor.all(by.xpath(xpath)));
         this.editor.all(by.xpath(xpath))
             .each((toggleHeader) => waitAndClick(toggleHeader));
+    }
+
+    addCoverageToWorkflow(index, plan) {
+        // Open the coverage
+        const coverageBox = this.editor.all(by.className('sd-collapse-box')).get(0);
+
+        waitAndClick(coverageBox);
+
+        const itemAction = coverageBox.element(by.id(`coverages[${index}]-item-actions`));
+
+        waitAndClick(itemAction);
+
+        let menuPopup = new Popup();
+        let menu = menuPopup.getMenu('item-actions-menu__popup');
+
+        return waitAndClick(menu.element(by.id('addToWorkflow'))).
+            then(() => set(plan, 'coverages[0].assigned_to.state', 'ASSIGNED'));
     }
 }
 

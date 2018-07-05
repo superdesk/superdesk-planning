@@ -33,7 +33,7 @@ export class ItemActionsMenu extends React.Component {
     }
 
     render() {
-        const {actions, className, wide} = this.props;
+        const {actions, className, wide, field} = this.props;
 
         // If there are no actions, then we don't render anything
         if (get(actions, 'length', 0) < 1) {
@@ -46,7 +46,10 @@ export class ItemActionsMenu extends React.Component {
         }
 
         return (
-            <button className={className} onClick={this.toggleMenu} title={gettext('Actions')}>
+            <button id={`${field}-item-actions`}
+                className={className}
+                onClick={this.toggleMenu}
+                title={gettext('Actions')}>
                 <i className="icon-dots-vertical" />
 
                 {this.state.isOpen && (
@@ -69,6 +72,7 @@ export class ItemActionsMenu extends React.Component {
 }
 
 ItemActionsMenu.propTypes = {
+    field: PropTypes.string,
     actions: PropTypes.array.isRequired,
     className: PropTypes.string,
     buttonClass: PropTypes.string,

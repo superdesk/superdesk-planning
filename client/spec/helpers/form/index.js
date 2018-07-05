@@ -2,6 +2,7 @@ import {DateTime} from './dateTime';
 import {EventSchedule} from './eventSchedule';
 import {FileInput} from './fileInput';
 import {Input} from './input';
+import {Label} from './label';
 import {LinkInput} from './linkInput';
 import {Select} from './select';
 import {SelectLocation} from './selectLocation';
@@ -32,7 +33,10 @@ const fieldToHelper = {
     g2_content_type: (form, field) => new Select(form, field),
     news_coverage_status: (form, field) => new Select(form, field),
     scheduled: (form, field) => new DateTime(form, field),
+    desk: (form, field) => new Select(form, field),
 };
+
+const getLabelHelper = (form, field, type = 'label') => (new Label(form, field, type));
 
 const getInputHelper = (form, field) => {
     if (fieldToHelper[field]) {
@@ -64,6 +68,7 @@ export {
     ToggleInput,
     UrgencyInput,
     getInputHelper,
+    getLabelHelper,
     getCoverageInputHelper,
     Coverage,
     CoverageList,

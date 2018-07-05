@@ -19,7 +19,7 @@ export class Input {
         this.input.clear();
         browser.wait(
             () => isFieldEmpty(this.input),
-            7500,
+            20000,
             `Timeout while waiting for input '${this.name}' to be cleared`
         );
         return this.input.sendKeys(value);

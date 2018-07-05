@@ -170,7 +170,24 @@ Feature: Assignment content
     Scenario: Create content with headline derived from the Assignment
         When we patch "/planning/#planning._id#"
         """
-        {"description_text": "test description"}
+        {
+            "description_text": "test description",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "slugline": "test slugline",
+                        "g2_content_type": "text"
+                    },
+                    "assigned_to": {
+                        "desk": "#desks._id#",
+                        "assignment_id": "#firstassignment#",
+                        "state": "assigned"
+                    }
+                }
+            ]
+        }
         """
         Then we get OK response
         When we get "/assignments/#firstassignment#"
@@ -252,7 +269,22 @@ Feature: Assignment content
     Scenario: Perpetuate marked_for_not_publication flag when creating content from assignment
         When we patch "/planning/#planning._id#"
         """
-        {"flags": {"marked_for_not_publication": true}}
+        {
+            "flags": {"marked_for_not_publication": true},
+            "coverages": [{
+                "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "slugline": "test slugline",
+                        "g2_content_type": "text"
+                    },
+                    "assigned_to": {
+                        "desk": "#desks._id#",
+                        "assignment_id": "#firstassignment#",
+                        "state": "assigned"
+                    }
+                }]
+        }
         """
         When we post to "/assignments/content"
         """

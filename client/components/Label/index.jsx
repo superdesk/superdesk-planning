@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import './style.scss';
 
-export const Label = ({text, iconType, verbose, isHollow, tooltip, onClick}) => {
+export const Label = ({text, iconType, verbose, isHollow, tooltip, onClick, id}) => {
     const labelClasses = classNames(
         'label',
         `label--${iconType}`,
@@ -15,6 +15,8 @@ export const Label = ({text, iconType, verbose, isHollow, tooltip, onClick}) => 
 
     const label = tooltip ? (
         <span
+            id={id}
+            name={id}
             className={labelClasses}
             data-sd-tooltip={tooltip.text}
             data-flow={tooltip.flow ? tooltip.flow : 'down'}
@@ -22,7 +24,10 @@ export const Label = ({text, iconType, verbose, isHollow, tooltip, onClick}) => 
             {verbose ? verbose : text}
         </span>
     ) : (
-        <span className={labelClasses}>
+        <span
+            id={id}
+            name={id}
+            className={labelClasses}>
             {verbose ? verbose : text}
         </span>
     );
@@ -33,6 +38,7 @@ export const Label = ({text, iconType, verbose, isHollow, tooltip, onClick}) => 
 };
 
 Label.propTypes = {
+    id: PropTypes.string,
     text: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.node,

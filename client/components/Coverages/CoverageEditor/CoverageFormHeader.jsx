@@ -69,6 +69,7 @@ export class CoverageFormHeader extends React.Component {
                         </ListRow>
                         {!cancelled && !readOnly && (<ListRow>
                             <Button
+                                id="editAssignment"
                                 text={gettext('Assign')}
                                 tabIndex={0}
                                 enterKeyIsClick
@@ -112,7 +113,9 @@ export class CoverageFormHeader extends React.Component {
                             <span className="sd-list-item__text-label sd-list-item__text-label--normal">
                                 {gettext('Desk:')}
                             </span>
-                            {get(deskAssigned, 'name', '')}
+                            <span name={`${field}.assigned_to.desk`}>
+                                {get(deskAssigned, 'name', '')}
+                            </span>
                         </span>
                     </ListRow>
                     <ListRow>
@@ -120,7 +123,9 @@ export class CoverageFormHeader extends React.Component {
                             <span className="sd-list-item__text-label sd-list-item__text-label--normal">
                                 {gettext('Assignee:')}
                             </span>
-                            {get(userAssigned, 'display_name', '')}
+                            <span name={`${field}.assigned_to.user`}>
+                                {get(userAssigned, 'display_name', '')}
+                            </span>
                         </span>
                     </ListRow>
                     {coverageProvider && (
@@ -136,7 +141,9 @@ export class CoverageFormHeader extends React.Component {
                     {assignmentState &&
                         <ListRow>
                             <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                                <StateLabel item={get(value, 'assigned_to', {})}/>
+                                <StateLabel
+                                    id={`${field}.assigned_to.state`}
+                                    item={get(value, 'assigned_to', {})}/>
                             </span>
                         </ListRow>
                     }

@@ -329,7 +329,6 @@ export class EditorComponent extends React.Component {
         this.setState({
             partialSave: false,
             submitting: false,
-            dirty: !itemsEqual(nextProps.item, this.state.diff),
             itemReady: true,
         });
     }
