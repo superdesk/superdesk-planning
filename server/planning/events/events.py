@@ -64,6 +64,7 @@ class EventsService(superdesk.Service):
         return ids
 
     def patch_in_mongo(self, id, document, original):
+        set_planning_schedule(document)
         res = self.backend.update_in_mongo(self.datasource, id, document, original)
         return res
 
