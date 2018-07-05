@@ -16,6 +16,7 @@ import {CoveragePreview} from '../Coverages';
 import {ContentBlock} from '../UI/SidePanel';
 import {EventMetadata} from '../Events';
 import {AgendaNameList} from '../Agendas';
+import {FeatureLabel} from './FeatureLabel';
 import CustomVocabulariesPreview from '../CustomVocabulariesPreview';
 
 export class PlanningPreviewContentComponent extends React.Component {
@@ -81,6 +82,7 @@ export class PlanningPreviewContentComponent extends React.Component {
                             verbose={true}
                             withExpiredStatus={true}
                         />
+                        <FeatureLabel item={item} />
                     </div>
                 </div>
                 <Row

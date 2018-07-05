@@ -134,4 +134,10 @@ def init_app(app):
         description='Ability to unpost a Planning Item'
     )
 
+    superdesk.privilege(
+        name='planning_planning_featured',
+        label='Planning - Featured Stories',
+        description='Ability to create and modify a featured stories list from planning items'
+    )
+
     superdesk.intrinsic_privilege(PlanningUnlockResource.endpoint_name, method=['POST'])

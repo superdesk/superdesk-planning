@@ -208,7 +208,7 @@ class PlanningService(superdesk.Service):
 
     def on_updated(self, updates, original):
         added, removed = self._get_added_removed_agendas(updates, original)
-        session_id = get_auth().get('_id')
+        session_id = get_auth().get(config.ID_FIELD)
         push_notification(
             'planning:updated',
             item=str(original[config.ID_FIELD]),
@@ -216,6 +216,7 @@ class PlanningService(superdesk.Service):
             added_agendas=added, removed_agendas=removed,
             session=session_id
         )
+
         doc = deepcopy(original)
         doc.update(updates)
         self.__generate_related_assignments([doc])
@@ -897,6 +898,9 @@ planning_schema = {
     'expired': {
         'type': 'boolean',
         'default': False
+    },
+    'featured': {
+        'type': 'boolean'
     },
 
     'lock_user': metadata_schema['lock_user'],

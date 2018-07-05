@@ -8,7 +8,7 @@ import {Label, InternalNoteLabel} from '../';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
 import {Button as NavButton} from '../UI/Nav';
 import {EventDateTime} from '../Events';
-import {PlanningDateTime} from './';
+import {PlanningDateTime, FeatureLabel} from './';
 import {ItemActionsMenu} from '../index';
 import {PLANNING, EVENTS, MAIN, ICON_COLORS} from '../../constants';
 
@@ -88,6 +88,10 @@ export class PlanningItem extends React.PureComponent {
                 this.props[PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName],
             [PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName]:
                 this.props[PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName],
+            [PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName]:
+                this.props[PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName],
+            [PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName]:
+                this.props[PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName],
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
@@ -161,6 +165,7 @@ export class PlanningItem extends React.PureComponent {
                             />
                         )}
                         <Label text={gettext(state.label)} iconType={state.iconType} />
+                        <FeatureLabel item={item} tooltipFlowDirection="right"/>
                         <span className="sd-list-item__text-label">agenda:</span>
                         <span className="sd-overflow-ellipsis sd-list-item__text-strong sd-list-item--element-grow">
                             <AgendaNameList agendas={agendaNames}/>

@@ -41,6 +41,10 @@ export class PlanningPreviewHeaderComponent extends React.Component {
                 itemActionDispatches[PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName],
             [PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName]:
                 itemActionDispatches[PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName],
+            [PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName]:
+                itemActionDispatches[PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName],
+            [PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName]:
+                itemActionDispatches[PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName],
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
                 itemActionDispatches[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:

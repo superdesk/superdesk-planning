@@ -76,6 +76,16 @@ export const PLANNING = {
             icon: 'icon-plus-small',
             actionName: 'onAddCoverage',
         },
+        ADD_TO_FEATURED: {
+            label: gettext('Add to featured stories'),
+            icon: 'icon-list-plus',
+            actionName: 'onAddFeatured',
+        },
+        REMOVE_FROM_FEATURED: {
+            label: gettext('Remove from featured stories'),
+            icon: 'icon-revert',
+            actionName: 'onRemoveFeatured',
+        },
     },
     NEWS_COVERAGE_CANCELLED_STATUS: {
         qcode: 'ncostat:notint',
@@ -92,5 +102,7 @@ export const PLANNING = {
     HISTORY_OPERATIONS: {
         ASSIGN_AGENDA: 'assign_agenda',
         PLANNING_CANCEL: 'planning_cancel',
+        ADD_FEATURED: 'add_featured',
+        REMOVE_FEATURED: 'remove_featured',
     },
 };

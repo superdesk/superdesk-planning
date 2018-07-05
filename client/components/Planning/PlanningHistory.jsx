@@ -67,6 +67,14 @@ export class PlanningHistory extends React.Component {
         case HISTORY_OPERATIONS.DUPLICATE:
             text = gettext('Duplicated');
             break;
+
+        case PLANNING.HISTORY_OPERATIONS.REMOVE_FEATURED:
+            text = gettext('Removed from featured stories');
+            break;
+
+        case PLANNING.HISTORY_OPERATIONS.ADD_FEATURED:
+            text = gettext('Added to featured stories');
+            break;
         }
 
         return historyUtils.getHistoryRowElement(text, historyItem, this.props.users);
