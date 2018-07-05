@@ -13,7 +13,7 @@ from planning.tests import TestCase
 from superdesk import get_resource_service
 from superdesk.utc import utcnow
 from datetime import timedelta
-
+from bson.objectid import ObjectId
 
 now = utcnow()
 yesterday = now - timedelta(hours=48)
@@ -385,3 +385,27 @@ class FlagExpiredItemsTest(TestCase):
             self.assertExpired('events', {
                 'e1': True,
             })
+
+    def test_planning_versions_expiry(self):
+        with self.app.app_context():
+            self.app.config.update({'PUBLISH_QUEUE_EXPIRY_MINUTES': 1440})
+            self.app.data.insert('planning_versions', [
+                {
+                    '_id': ObjectId('5b30565a1d41c89f550c435f'),
+                    'published_item': {
+                    },
+                    'item_id': 'urn:newsml:localhost:2018-06-25T11:43:44.511050:f292ab66-9df4-47db-80b1-0f58fd37bf9c',
+                    'version': 6366549127730893,
+                    'type': 'event'
+                },
+                {
+                    'published_item': {
+                    },
+                    'type': 'planning',
+                    'version': 6366575615196523,
+                    'item_id': 'urn:newsml:localhost:2018-06-28T11:50:31.055283:21cb4c6d-42c9-4183-bb02-212cda2fb5a2'
+                }
+            ])
+            FlagExpiredItems().run()
+            version_entries = get_resource_service('planning_versions').get(req=None, lookup={})
+            self.assertEqual(1, version_entries.count())

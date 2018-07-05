@@ -17,6 +17,7 @@ from superdesk.lock import lock, unlock, remove_locks
 from superdesk.notification import push_notification
 from datetime import timedelta, datetime
 from eve.utils import config
+from bson.objectid import ObjectId
 
 
 class FlagExpiredItems(Command):
@@ -53,6 +54,9 @@ class FlagExpiredItems(Command):
 
         logger.info('{} Completed flagging expired items.'.format(self.log_msg))
         remove_locks()
+        logger.info('{} Starting to remove expired planning versions.'.format(self.log_msg))
+        self._remove_expired_planning_versions()
+        logger.info('{} Completed removing expired planning versions.'.format(self.log_msg))
 
     def _flag_expired_events(self, expiry_datetime):
         logger.info('{} Starting to flag expired events'.format(self.log_msg))
@@ -176,6 +180,23 @@ class FlagExpiredItems(Command):
 
         # Finally return the latest scheduled date among the Event, Planning and Coverages
         return latest_scheduled
+
+    @staticmethod
+    def _remove_expired_planning_versions():
+        """Expire planning versions
+
+        Expiry of the planning versions mirrors the expiry of items within the publish queue in Superdesk so it uses the
+        same configuration value
+
+        :param self:
+        :return:
+        """
+        expire_interval = app.config.get('PUBLISH_QUEUE_EXPIRY_MINUTES', 0)
+        if expire_interval:
+            expire_time = utcnow() - timedelta(minutes=expire_interval)
+            logger.info('Removing planning history items created before {}'.format(str(expire_time)))
+
+            get_resource_service('planning_versions').delete({'_id': {'$lte': ObjectId.from_datetime(expire_time)}})
 
 
 command('planning:flag_expired', FlagExpiredItems())
