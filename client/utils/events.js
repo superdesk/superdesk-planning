@@ -652,6 +652,10 @@ const modifyForClient = (event, removeFiles = false) => {
         event.dates.end = moment(event.dates.end);
     }
 
+    if (get(event, 'dates.recurring_rule.until')) {
+        event.dates.recurring_rule.until = moment(event.dates.recurring_rule.until);
+    }
+
     if (get(event, 'location[0]')) {
         event.location = event.location[0];
     } else {
