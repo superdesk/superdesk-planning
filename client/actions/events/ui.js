@@ -337,9 +337,11 @@ const _openActionModalFromEditor = ({
                     loadEvents,
                     {
                         onCloseModal: (savedItem) => {
+                            let modifiedEvent = eventUtils.modifyForClient(savedItem);
+
                             let promise = refetchBeforeFinalLock ?
-                                dispatch(eventsApi.fetchById(savedItem._id, {force: true})) :
-                                Promise.resolve(savedItem);
+                                dispatch(eventsApi.fetchById(modifiedEvent._id, {force: true})) :
+                                Promise.resolve(modifiedEvent);
 
                             if (get(previousLock, 'action')) {
                                 promise.then((refetchedEvent) => (
