@@ -277,7 +277,7 @@ export class PlanningStoreService {
 
     onSessionChanged() {
         if (this.store) {
-            self.store.dispatch({
+            this.store.dispatch({
                 type: 'RECEIVE_SESSION',
                 payload: {
                     sessionId: this.session.sessionId,
@@ -290,7 +290,7 @@ export class PlanningStoreService {
     onDeskChanged() {
         // Update the store with workspace
         if (this.store) {
-            self.store.dispatch({
+            this.store.dispatch({
                 type: 'WORKSPACE_CHANGE',
                 payload: {
                     currentDeskId: get(this.desks, 'active.desk'),
