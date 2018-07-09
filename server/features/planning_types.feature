@@ -52,7 +52,7 @@ Feature: Planning Types
             "calendars": {
               "enabled": true
             },
-            "contacts": {
+            "event_contact_info": {
               "enabled": true
             },
             "dates": {
@@ -104,7 +104,7 @@ Feature: Planning Types
               "required": false,
               "type": "list"
             },
-            "contacts": {
+            "event_contact_info": {
               "required": false,
               "type": "list"
             },
@@ -339,7 +339,7 @@ Feature: Planning Types
             "calendars": {
               "enabled": true
             },
-            "contacts": {
+            "event_contact_info": {
               "enabled": true
             },
             "dates": {
@@ -391,7 +391,7 @@ Feature: Planning Types
               "required": false,
               "type": "list"
             },
-            "contacts": {
+            "event_contact_info": {
               "required": false,
               "type": "list"
             },
