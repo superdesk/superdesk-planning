@@ -18,6 +18,7 @@ const initialState = {
     editorOpened: false,
     readOnly: true,
     planningHistoryItems: [],
+    featureLockUser: null,
 };
 
 let plannings;
@@ -267,6 +268,16 @@ const planningReducer = createReducer(initialState, {
             plannings,
         };
     },
+
+    [PLANNING.ACTIONS.FEATURED_LOCKED]: (state, payload) => ({
+        ...state,
+        featureLockUser: payload,
+    }),
+
+    [PLANNING.ACTIONS.FEATURED_UNLOCKED]: (state, payload) => ({
+        ...state,
+        featureLockUser: null,
+    }),
 });
 
 const markPlaning = (plan, payload, action) => {

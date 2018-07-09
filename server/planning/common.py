@@ -12,7 +12,7 @@ from flask import current_app as app
 from superdesk.utc import utcnow
 from datetime import timedelta
 from collections import namedtuple
-from superdesk.resource import not_analyzed
+from superdesk.resource import not_analyzed, build_custom_hateoas
 from superdesk import get_resource_service, logger
 from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
 from superdesk.metadata.item import ITEM_TYPE
@@ -218,6 +218,13 @@ def get_coverage_type_name(qcode):
         coverage_type = next((x for x in coverage_types.get('items', []) if x['qcode'] == qcode), {})
 
     return coverage_type.get('name', qcode)
+
+
+def update_returned_document(doc, item, custom_hateoas):
+    doc.clear()
+    doc.update(item)
+    build_custom_hateoas(custom_hateoas, doc)
+    return [doc['_id']]
 
 
 @celery.task(soft_time_limit=600)

@@ -2,6 +2,7 @@ import {get, cloneDeep, pickBy, isEqual, has} from 'lodash';
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
 import {
+    getErrorMessage,
     getTimeZoneOffset,
     sanitizeTextForQuery,
     lockUtils,
@@ -610,9 +611,9 @@ const loadPlanningByRecurrenceId = (recurrenceId, loadToStore = true) => (
  * that are currently locked
  * @return Array of locked Planning items
  */
-const queryLockedPlanning = () => (
+const queryLockedPlanning = (params = {featureLock: false}) => (
     (dispatch, getState, {api}) => (
-        api('planning').query({
+        api(params.featureLock ? 'planning_featured_lock' : 'planning').query({
             source: JSON.stringify(
                 {query: {constant_score: {filter: {exists: {field: 'lock_session'}}}}}
             ),
@@ -860,6 +861,23 @@ const lock = (planning, lockAction = 'edit') => (
     }
 );
 
+const lockFeaturedPlanning = () => (
+    (dispatch, getState, {api}) => (
+        api('planning_featured_lock').save({}, {})
+            .then((lockedItem) => lockedItem)
+    )
+);
+
+const unlockFeaturedPlanning = () => (
+    (dispatch, getState, {api, notify}) => (
+        api('planning_featured_unlock').save({}, {})
+            .catch((error) => {
+                notify.error(
+                    getErrorMessage(error, gettext('Failed to unlock featured story action!')));
+            })
+    )
+);
+
 const markPlanningCancelled = (plan, reason, coverageState, eventCancellation) => ({
     type: PLANNING.ACTIONS.MARK_PLANNING_CANCELLED,
     payload: {
@@ -1000,6 +1018,8 @@ const self = {
     cancel,
     cancelAllCoverage,
     getCriteria,
+    lockFeaturedPlanning,
+    unlockFeaturedPlanning,
 };
 
 export default self;

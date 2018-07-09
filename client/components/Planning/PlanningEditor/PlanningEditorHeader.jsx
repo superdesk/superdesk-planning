@@ -6,7 +6,7 @@ import {getCreator, isExistingItem} from '../../../utils';
 
 import {ContentBlock, ContentBlockInner} from '../../UI/SidePanel';
 import {AuditInformation, StateLabel} from '../..';
-import {FeatureLabel} from '../FeatureLabel';
+import {FeatureLabel} from '../FeaturedPlanning';
 
 import './style.scss';
 

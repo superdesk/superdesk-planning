@@ -5,7 +5,6 @@ import {connect} from 'react-redux';
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
 import {ITEM_TYPE} from '../../constants';
-
 import {SubNavBar, FiltersBar} from '../../components/Main';
 import {ArchiveItem} from '../../components/Archive';
 
@@ -15,6 +14,7 @@ export const PlanningSubNavComponent = ({
     addEvent,
     addPlanning,
     openAgendas,
+    openFeaturedPlanningModal,
     fullText,
     search,
     activeFilter,
@@ -43,6 +43,7 @@ export const PlanningSubNavComponent = ({
             addEvent={addEvent}
             addPlanning={addPlanning}
             openAgendas={openAgendas}
+            openFeaturedPlanningModal={openFeaturedPlanningModal}
             value={fullText}
             search={search}
             activeFilter={activeFilter}
@@ -98,6 +99,7 @@ PlanningSubNavComponent.propTypes = {
     currentStartFilter: PropTypes.object,
     setStartFilter: PropTypes.func,
     privileges: PropTypes.object,
+    openFeaturedPlanningModal: PropTypes.func,
 };
 
 PlanningSubNavComponent.defaultProps = {showFilters: true};
@@ -126,6 +128,7 @@ const mapDispatchToProps = (dispatch) => ({
     addPlanning: () => dispatch(actions.main.createNew(ITEM_TYPE.PLANNING)),
     selectCalendar: (calendarId) => dispatch(actions.events.ui.selectCalendar(calendarId)),
     setStartFilter: (start) => dispatch(actions.main.setStartFilter(start)),
+    openFeaturedPlanningModal: () => dispatch(actions.planning.ui.openFeaturedPlanningModal()),
 });
 
 export const PlanningSubNav = connect(mapStateToProps, mapDispatchToProps)(PlanningSubNavComponent);

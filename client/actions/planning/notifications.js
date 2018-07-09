@@ -5,7 +5,8 @@ import {gettext} from '../../utils';
 import * as selectors from '../../selectors';
 import {events, fetchAgendas} from '../index';
 import main from '../main';
-import {PLANNING, ITEM_TYPE} from '../../constants';
+import {PLANNING, ITEM_TYPE, MODALS} from '../../constants';
+import {showModal, hideModal} from '../index';
 import eventsPlanning from '../eventsPlanning';
 
 /**
@@ -283,6 +284,40 @@ const onPlanningExpired = (_e, data) => (
     }
 );
 
+const onPlanningFeaturedLocked = (_e, data) => (
+    (dispatch) => {
+        if (data && data.user) {
+            dispatch({
+                type: PLANNING.ACTIONS.FEATURED_LOCKED,
+                payload: data.user,
+            });
+        }
+    }
+);
+
+const onPlanningFeaturedUnLocked = (_e, data) => (
+    (dispatch, getState) => {
+        if (data) {
+            dispatch({type: PLANNING.ACTIONS.FEATURED_UNLOCKED});
+
+            if (selectors.general.modalType(getState()) === MODALS.FEATURED_STORIES) {
+                const user = selectors.general.users(getState()).find((u) => u._id === data.user);
+
+                // Close modal and send notification unlocked popup
+                dispatch(hideModal());
+                dispatch(showModal({
+                    modalType: MODALS.NOTIFICATION_MODAL,
+                    modalProps: {
+                        title: gettext('Featured Stories Unlocked'),
+                        body: gettext('Featured stories you were managing was ' +
+                            `unlocked by ${user.display_name}`),
+                    }}));
+            }
+            return Promise.resolve();
+        }
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     onPlanningCreated,
@@ -297,6 +332,8 @@ const self = {
     onPlanningPostponed,
     onPlanningLocked,
     onPlanningExpired,
+    onPlanningFeaturedLocked,
+    onPlanningFeaturedUnLocked,
 };
 
 // Map of notification name and Action Event to execute
@@ -314,6 +351,8 @@ self.events = {
     'planning:rescheduled': () => (self.onPlanningRescheduled),
     'planning:postponed': () => (self.onPlanningPostponed),
     'planning:expired': () => self.onPlanningExpired,
+    'featured:lock': () => self.onPlanningFeaturedLocked,
+    'featured:unlock': () => onPlanningFeaturedUnLocked,
 };
 
 export default self;

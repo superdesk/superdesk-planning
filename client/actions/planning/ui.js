@@ -263,6 +263,27 @@ const cancelAllCoverage = (plan) => (
     }
 );
 
+const openFeaturedPlanningModal = () => (
+    (dispatch, getState, {notify}) => {
+        const lockUser = selectors.planning.featureLockUser(getState());
+        const currentUser = selectors.general.currentUserId(getState());
+
+        if (lockUser && lockUser !== currentUser) {
+            return dispatch(showModal({modalType: MODALS.UNLOCK_FEATURED_STORIES}));
+        }
+
+        return dispatch(planningApi.lockFeaturedPlanning())
+            .then(() => dispatch(showModal({
+                modalType: MODALS.FEATURED_STORIES,
+            })),
+            (error) => {
+                notify.error(
+                    getErrorMessage(error, gettext('Failed to lock featured story action!'))
+                );
+            });
+    }
+);
+
 const modifyPlanningFeatured = (item, remove = false) => (
     (dispatch) => (
         dispatch(main.openActionModalFromEditor(
@@ -567,6 +588,7 @@ const self = {
     removeAssignment,
     _modifyPlanningFeatured,
     modifyPlanningFeatured,
+    openFeaturedPlanningModal,
 };
 
 export default self;

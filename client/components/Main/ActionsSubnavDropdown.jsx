@@ -2,12 +2,20 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {gettext} from '../../utils';
 import {Dropdown} from '../UI/SubNav';
+import {PRIVILEGES} from '../../constants';
 
 export const ActionsSubnavDropdown = (props) => {
-    const items = [{
+    let items = [{
         label: gettext('Manage agendas'),
         action: props.openAgendas,
     }];
+
+    if (props.privileges[PRIVILEGES.FEATURED_STORIES]) {
+        items.push({
+            label: gettext('Featured stories'),
+            action: props.openFeaturedPlanningModal,
+        });
+    }
 
     return (
         <Dropdown
@@ -20,4 +28,8 @@ export const ActionsSubnavDropdown = (props) => {
     );
 };
 
-ActionsSubnavDropdown.propTypes = {openAgendas: PropTypes.func};
+ActionsSubnavDropdown.propTypes = {
+    openFeaturedPlanningModal: PropTypes.func,
+    openAgendas: PropTypes.func,
+    privileges: PropTypes.object,
+};
