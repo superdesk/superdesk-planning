@@ -15,6 +15,8 @@ export const PLANNING = {
         LOCK_PLANNING: 'LOCK_PLANNING',
         UNLOCK_PLANNING: 'UNLOCK_PLANNING',
         EXPIRE_PLANNING: 'EXPIRE_PLANNING',
+        FEATURED_LOCKED: 'FEATURED_LOCKED',
+        FEATURED_UNLOCKED: 'FEATURED_UNLOCKED',
     },
     // Number of ids to look for by single request
     // because url length must stay short

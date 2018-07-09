@@ -1,3 +1,4 @@
+import {get} from 'lodash';
 import * as selectors from '../selectors';
 import {LOCKS, ITEM_TYPE, WORKSPACE, PLANNING} from '../constants';
 import {planning, events, assignments, autosave, main} from './index';
@@ -12,6 +13,7 @@ const loadAllLocks = () => (
         Promise.all([
             dispatch(events.api.queryLockedEvents()),
             dispatch(planning.api.queryLockedPlanning()),
+            dispatch(planning.api.queryLockedPlanning({featureLock: true})),
         ])
             .then((data) => {
                 const payload = {
@@ -23,6 +25,15 @@ const loadAllLocks = () => (
                     type: LOCKS.ACTIONS.RECEIVE,
                     payload: payload,
                 });
+
+                // If featured stories are locked
+                if (get(data, '[2][0].lock_user')) {
+                    dispatch({
+                        type: PLANNING.ACTIONS.FEATURED_LOCKED,
+                        payload: data[2][0].lock_user,
+                    });
+                }
+
                 return Promise.resolve(payload);
             }, (error) => Promise.reject(error))
     )

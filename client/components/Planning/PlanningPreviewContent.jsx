@@ -16,7 +16,7 @@ import {CoveragePreview} from '../Coverages';
 import {ContentBlock} from '../UI/SidePanel';
 import {EventMetadata} from '../Events';
 import {AgendaNameList} from '../Agendas';
-import {FeatureLabel} from './FeatureLabel';
+import {FeatureLabel} from './FeaturedPlanning/index';
 import CustomVocabulariesPreview from '../CustomVocabulariesPreview';
 
 export class PlanningPreviewContentComponent extends React.Component {

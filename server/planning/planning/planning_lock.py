@@ -9,22 +9,16 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from flask import request
-from superdesk.resource import Resource, build_custom_hateoas
+from superdesk.resource import Resource
 from superdesk.metadata.utils import item_url
 from apps.archive.common import get_user, get_auth
 from superdesk.services import BaseService
 from planning.item_lock import LockService
 from superdesk import get_resource_service
 from apps.common.components.utils import get_component
+from planning.common import update_returned_document
 
-CUSTOM_HATEOAS = {'self': {'title': 'Planning', 'href': '/planning/{_id}'}}
-
-
-def _update_returned_document(doc, item):
-    doc.clear()
-    doc.update(item)
-    build_custom_hateoas(CUSTOM_HATEOAS, doc)
-    return [doc['_id']]
+CUSTOM_HATEOAS_PLANNING = {'self': {'title': 'Planning', 'href': '/planning/{_id}'}}
 
 
 class PlanningLockResource(Resource):
@@ -34,7 +28,9 @@ class PlanningLockResource(Resource):
     datasource = {'source': 'planning'}
     resource_methods = ['GET', 'POST']
     resource_title = endpoint_name
-    privileges = {'POST': 'planning_planning_management'}
+    privileges = {'POST': 'planning',
+                  'PATCH': 'planning',
+                  'DELETE': 'planning'}
 
 
 class PlanningLockService(BaseService):
@@ -51,7 +47,7 @@ class PlanningLockService(BaseService):
             lock_service.validate_relationship_locks(item, 'planning')
 
         updated_item = lock_service.lock(item, user_id, session_id, lock_action, 'planning')
-        return _update_returned_document(docs[0], updated_item)
+        return update_returned_document(docs[0], updated_item, CUSTOM_HATEOAS_PLANNING)
 
 
 class PlanningUnlockResource(Resource):
@@ -73,4 +69,4 @@ class PlanningUnlockService(BaseService):
         resource_service = get_resource_service('planning')
         item = resource_service.find_one(req=None, _id=item_id)
         updated_item = lock_service.unlock(item, user_id, session_id, 'planning')
-        return _update_returned_document(docs[0], updated_item)
+        return update_returned_document(docs[0], updated_item, CUSTOM_HATEOAS_PLANNING)

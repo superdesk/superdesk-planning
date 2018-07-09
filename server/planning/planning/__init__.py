@@ -21,6 +21,8 @@ from .planning_postpone import PlanningPostponeService, PlanningPostponeResource
 from .planning_types import PlanningTypesService, PlanningTypesResource
 from .planning_export import PlanningExportResource, PlanningExportService, get_desk_template # noqa
 from .planning_autosave import PlanningAutosaveResource
+from .planning_featured_lock import PlanningFeaturedLockResource, PlanningFeaturedLockService,\
+    PlanningFeaturedUnlockResource, PlanningFeaturedUnlockService
 from planning.autosave import AutosaveService
 
 
@@ -80,6 +82,16 @@ def init_app(app):
 
     planning_history_service = PlanningHistoryService('planning_history', backend=superdesk.get_backend())
     PlanningHistoryResource('planning_history', app=app, service=planning_history_service)
+
+    planning_featured_lock_service = PlanningFeaturedLockService(PlanningFeaturedLockResource.endpoint_name,
+                                                                 backend=superdesk.get_backend())
+    PlanningFeaturedLockResource(PlanningFeaturedLockResource.endpoint_name, app=app,
+                                 service=planning_featured_lock_service)
+
+    planning_featured_unlock_service = PlanningFeaturedUnlockService(PlanningFeaturedUnlockResource.endpoint_name,
+                                                                     backend=superdesk.get_backend())
+    PlanningFeaturedUnlockResource(PlanningFeaturedUnlockResource.endpoint_name, app=app,
+                                   service=planning_featured_unlock_service)
 
     superdesk.register_resource(
         'planning_export',

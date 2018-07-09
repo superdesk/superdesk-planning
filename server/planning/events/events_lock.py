@@ -10,24 +10,18 @@
 
 from flask import request
 import logging
-from superdesk.resource import Resource, build_custom_hateoas
+from superdesk.resource import Resource
 from superdesk.metadata.utils import item_url
 from apps.archive.common import get_user, get_auth
 from superdesk.services import BaseService
 from planning.item_lock import LockService, LOCK_USER
 from superdesk import get_resource_service
 from apps.common.components.utils import get_component
+from planning.common import update_returned_document
 
 
-CUSTOM_HATEOAS = {'self': {'title': 'Events', 'href': '/events/{_id}'}}
+CUSTOM_HATEOAS_EVENTS = {'self': {'title': 'Events', 'href': '/events/{_id}'}}
 logger = logging.getLogger(__name__)
-
-
-def _update_returned_document(doc, item):
-    doc.clear()
-    doc.update(item)
-    build_custom_hateoas(CUSTOM_HATEOAS, doc)
-    return [doc['_id']]
 
 
 class EventsLockResource(Resource):
@@ -55,7 +49,7 @@ class EventsLockService(BaseService):
         lock_service.validate_relationship_locks(item, 'events')
         updated_item = lock_service.lock(item, user_id, session_id, lock_action, 'events')
 
-        return _update_returned_document(docs[0], updated_item)
+        return update_returned_document(docs[0], updated_item, CUSTOM_HATEOAS_EVENTS)
 
 
 class EventsUnlockResource(Resource):
@@ -91,4 +85,4 @@ class EventsUnlockService(BaseService):
         else:
             updated_item = lock_service.unlock(item, user_id, session_id, 'events')
 
-        return _update_returned_document(docs[0], updated_item)
+        return update_returned_document(docs[0], updated_item, CUSTOM_HATEOAS_EVENTS)

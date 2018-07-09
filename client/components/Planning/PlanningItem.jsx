@@ -8,7 +8,8 @@ import {Label, InternalNoteLabel} from '../';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
 import {Button as NavButton} from '../UI/Nav';
 import {EventDateTime} from '../Events';
-import {PlanningDateTime, FeatureLabel} from './';
+import {PlanningDateTime} from './';
+import {FeatureLabel} from './FeaturedPlanning/index';
 import {ItemActionsMenu} from '../index';
 import {PLANNING, EVENTS, MAIN, ICON_COLORS} from '../../constants';
 

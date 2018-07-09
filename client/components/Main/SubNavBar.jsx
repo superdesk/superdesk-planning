@@ -12,6 +12,7 @@ export const SubNavBar = ({
     addEvent,
     addPlanning,
     openAgendas,
+    openFeaturedPlanningModal,
     value,
     search,
     activeFilter,
@@ -37,7 +38,10 @@ export const SubNavBar = ({
             currentStartFilter={currentStartFilter}
             setStartFilter={setStartFilter}
         />
-        <ActionsSubnavDropdown openAgendas={openAgendas} />
+        <ActionsSubnavDropdown
+            openAgendas={openAgendas}
+            openFeaturedPlanningModal={openFeaturedPlanningModal}
+            privileges={privileges} />
         <CreateNewSubnavDropdown
             addEvent={addEvent}
             addPlanning={addPlanning}
@@ -59,5 +63,6 @@ SubNavBar.propTypes = {
     clearSearch: PropTypes.func,
     currentStartFilter: PropTypes.object,
     setStartFilter: PropTypes.func,
+    openFeaturedPlanningModal: PropTypes.func,
     privileges: PropTypes.object,
 };

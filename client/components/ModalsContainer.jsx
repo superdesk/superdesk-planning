@@ -13,6 +13,7 @@ import {
     SelectItemModal,
     IgnoreCancelSaveModal,
 } from './index';
+import {FeaturedPlanningModal, UnlockFeaturedPlanning} from './Planning';
 import {EditorModalPanel} from './Main';
 import {MODALS, ITEM_TYPE} from '../constants';
 
@@ -30,6 +31,8 @@ const modals = {
     [MODALS.MANAGE_AGENDAS]: ManageAgendasModal,
     [MODALS.EDIT_ITEM]: EditorModalPanel,
     [MODALS.IGNORE_CANCEL_SAVE]: IgnoreCancelSaveModal,
+    [MODALS.FEATURED_STORIES]: FeaturedPlanningModal,
+    [MODALS.UNLOCK_FEATURED_STORIES]: UnlockFeaturedPlanning,
 };
 
 export function Modals({modalType, modalProps, handleHide}) {
