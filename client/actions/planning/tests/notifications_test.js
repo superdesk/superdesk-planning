@@ -259,6 +259,15 @@ describe('actions.planning.notifications', () => {
                     item_type: 'planning',
                 },
             };
+            store.initialState.forms.autosaves.planning = {
+                p1: {
+                    lock_action: 'edit',
+                    lock_user: 'ident1',
+                    lock_session: 'session1',
+                    _id: 'p1',
+                    type: 'event',
+                },
+            };
             store.test(done, planningNotifications.onPlanningUnlocked({},
                 {
                     item: 'p1',
@@ -268,7 +277,7 @@ describe('actions.planning.notifications', () => {
                     const modalStr = 'The planning you were editing was unlocked' +
                     ' by "firstname2 lastname2"';
 
-                    expect(store.dispatch.args[0][0].type).toEqual(PLANNING.ACTIONS.UNLOCK_PLANNING);
+                    expect(store.dispatch.args[1][0].type).toEqual('AUTOSAVE_REMOVE');
                     expect(store.dispatch.args[2]).toEqual([{type: 'HIDE_MODAL'}]);
                     expect(store.dispatch.args[3]).toEqual([{
                         type: 'SHOW_MODAL',
@@ -278,6 +287,7 @@ describe('actions.planning.notifications', () => {
                             body: modalStr,
                         },
                     }]);
+                    expect(store.dispatch.args[4][0].type).toEqual(PLANNING.ACTIONS.UNLOCK_PLANNING);
                     expect(main.reloadEditor.callCount).toBe(1);
                     done();
                 });
@@ -291,7 +301,7 @@ describe('actions.planning.notifications', () => {
                     etag: 'e123',
                 }))
                 .then(() => {
-                    expect(store.dispatch.args[0]).toEqual([{
+                    expect(store.dispatch.args[1]).toEqual([{
                         type: 'UNLOCK_PLANNING',
                         payload: {
                             plan: {

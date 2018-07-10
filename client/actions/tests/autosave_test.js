@@ -14,13 +14,13 @@ describe('actions.autosave', () => {
         services = store.services;
         data = store.data;
 
-        data.event_autosave = [{
+        data.event_autosave = [eventUtils.modifyForClient({
             ...data.events[0],
             slugline: 'New Event Slugline',
             lock_action: 'edit',
             lock_user: store.initialState.session.identity._id,
             lock_session: store.initialState.session.sessionId,
-        }];
+        })];
 
         delete data.event_autosave[0].planning_ids;
 
@@ -120,9 +120,9 @@ describe('actions.autosave', () => {
         });
 
         it('fetchById without trying the server', (done) => (
-            store.test(done, autosave.fetchById('event', 'e2', false))
+            store.test(done, autosave.fetchById('event', 'e1', false))
                 .then((autosaveItem) => {
-                    expect(autosaveItem).toEqual(null);
+                    expect(autosaveItem).toEqual(data.event_autosave[0]);
                     expect(services.api('event_autosave').getById.callCount).toBe(0);
 
                     done();
@@ -253,7 +253,7 @@ describe('actions.autosave', () => {
         it('removes an item by itemType and itemId', (done) => (
             store.test(done, autosave.removeById('event', data.events[0]._id))
                 .then(() => {
-                    expect(store.dispatch.args[2]).toEqual([{
+                    expect(store.dispatch.args[1]).toEqual([{
                         type: 'AUTOSAVE_REMOVE',
                         payload: data.event_autosave[0],
                     }]);
@@ -266,5 +266,29 @@ describe('actions.autosave', () => {
                     done();
                 }, done.fail)
         ));
+
+        describe('auto save not found', () => {
+            beforeEach(() => {
+                sinon.stub(store.spies.api, '_getById').callsFake(() => Promise.reject({status: 404}));
+            });
+
+            afterEach(() => {
+                restoreSinonStub(store.spies.api._getById);
+            });
+
+            it('removes an item from the store', (done) => (
+                store.test(done, autosave.removeById('event', data.events[0]._id))
+                    .then(() => {
+                        expect(store.dispatch.args[0]).toEqual([{
+                            type: 'AUTOSAVE_REMOVE',
+                            payload: {_id: data.events[0]._id, type: 'event'},
+                        }]);
+
+                        expect(services.api('event_autosave').remove.callCount).toBe(0);
+
+                        done();
+                    }, done.fail)
+            ));
+        });
     });
 });
