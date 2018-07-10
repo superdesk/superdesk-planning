@@ -129,7 +129,9 @@ locations_schema = {
                     'type': 'object',
                     'enabled': False
                 }
-            }
+            },
+            'boundingbox': {'type': 'list', 'mapping': not_indexed},
+            'type': not_indexed,
         },
     },
     'access': {
@@ -156,7 +158,7 @@ locations_schema = {
         'mapping': {
             'type': 'string'
         }
-    }
+    },
 }
 
 
