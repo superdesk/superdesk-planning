@@ -169,7 +169,6 @@ const remove = (autosave) => (
         if (itemType === ITEM_TYPE.UNKNOWN) {
             return Promise.resolve(autosave);
         }
-
         // Delete the changes from the local redux
         dispatch({
             type: AUTOSAVE.ACTIONS.REMOVE,
@@ -195,8 +194,8 @@ const remove = (autosave) => (
  * @param {boolean} tryServer - If true will try to fetch from the server
  */
 const removeById = (itemType, itemId, tryServer = true) => (
-    (dispatch, getState, {notify}) => (
-        dispatch(self.fetchById(itemType, itemId, tryServer))
+    (dispatch, getState, {notify, api}) => (
+        api(`${itemType}_autosave`).getById(itemId)
             .then((autosaveItem) => {
                 if (autosaveItem) {
                     return dispatch(self.remove({
@@ -215,6 +214,12 @@ const removeById = (itemType, itemId, tryServer = true) => (
 
                     return Promise.reject(error);
                 }
+
+                // ensure that autosave is removed from redux
+                dispatch({
+                    type: AUTOSAVE.ACTIONS.REMOVE,
+                    payload: {_id: itemId, type: itemType},
+                });
 
                 return Promise.resolve();
             })

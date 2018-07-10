@@ -30,10 +30,10 @@ const onEventUnlocked = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
             const events = selectors.events.storedEvents(getState());
-            // const locks = selectors.locks.getLockedItems(getState());
             let eventInStore = get(events, data.item, {});
-            // const itemLock = lockUtils.getLock(eventInStore, locks);
-            // const sessionId = selectors.general.session(getState()).sessionId;
+            const sessionId = selectors.general.session(getState()).sessionId;
+
+            dispatch(main.onItemUnlocked(data, eventInStore, ITEM_TYPE.EVENT));
 
             eventInStore = {
                 ...eventInStore,
@@ -50,7 +50,10 @@ const onEventUnlocked = (_e, data) => (
                 payload: {event: eventInStore},
             });
 
-            dispatch(main.onItemUnlocked(data, eventInStore, ITEM_TYPE.EVENT));
+            // reload the initial values of the editor if different session has made changes
+            if (data.lock_session !== sessionId) {
+                dispatch(main.reloadEditor(eventInStore));
+            }
 
             return Promise.resolve(eventInStore);
         }

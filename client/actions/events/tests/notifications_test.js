@@ -479,6 +479,15 @@ describe('actions.events.notifications', () => {
                     item_type: 'event',
                 },
             };
+            store.initialState.forms.autosaves.event = {
+                e1: {
+                    lock_action: 'edit',
+                    lock_user: 'ident1',
+                    lock_session: 'session1',
+                    _id: 'e1',
+                    type: 'event',
+                },
+            };
             store.test(done, eventsNotifications.onEventUnlocked(
                 {},
                 {
@@ -491,7 +500,7 @@ describe('actions.events.notifications', () => {
                     const modalStr = 'The event you were editing was unlocked' +
                     ' by "firstname2 lastname2"';
 
-                    expect(store.dispatch.args[0][0].type).toEqual(EVENTS.ACTIONS.UNLOCK_EVENT);
+                    expect(store.dispatch.args[1][0].type).toEqual('AUTOSAVE_REMOVE');
                     expect(store.dispatch.args[2]).toEqual([{type: 'HIDE_MODAL'}]);
                     expect(store.dispatch.args[3]).toEqual([{
                         type: 'SHOW_MODAL',
@@ -501,6 +510,7 @@ describe('actions.events.notifications', () => {
                             body: modalStr,
                         },
                     }]);
+                    expect(store.dispatch.args[4][0].type).toEqual(EVENTS.ACTIONS.UNLOCK_EVENT);
                     expect(main.reloadEditor.callCount).toBe(1);
                     done();
                 })
@@ -517,7 +527,7 @@ describe('actions.events.notifications', () => {
                 }
             ))
                 .then(() => {
-                    expect(store.dispatch.args[0]).toEqual([{
+                    expect(store.dispatch.args[1]).toEqual([{
                         type: 'UNLOCK_EVENT',
                         payload: {
                             event: {

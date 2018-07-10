@@ -1178,7 +1178,7 @@ const onItemUnlocked = (data, item, itemType) => (
             const user = selectors.general.users(getState()).find((u) => u._id === data.user);
             const autoSaves = selectors.forms.autosaves(getState());
             const modalType = selectors.general.modalType(getState());
-            let autoSaveInStore = get(autoSaves, `${itemType}.${data.item}`);
+            let autoSaveInStore = get(autoSaves, `${itemType}['${data.item}']`);
 
             if (autoSaveInStore) {
                 // Delete the changes from the local redux
@@ -1200,11 +1200,6 @@ const onItemUnlocked = (data, item, itemType) => (
                         ' "' + user.display_name + '"',
                 },
             }));
-        }
-
-        // reload the initial values of the editor if different session has made changes
-        if (data.lock_session !== sessionId) {
-            dispatch(self.reloadEditor(item));
         }
     }
 );

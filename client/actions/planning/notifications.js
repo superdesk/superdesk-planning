@@ -116,9 +116,9 @@ const onPlanningUnlocked = (_e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
             let planningItem = selectors.planning.storedPlannings(getState())[data.item];
-            // const locks = selectors.locks.getLockedItems(getState());
-            // const itemLock = lockUtils.getLock(planningItem, locks);
-            // const sessionId = selectors.general.session(getState()).sessionId;
+            const sessionId = selectors.general.session(getState()).sessionId;
+
+            dispatch(main.onItemUnlocked(data, planningItem, ITEM_TYPE.PLANNING));
 
             planningItem = {
                 ...planningItem,
@@ -135,7 +135,10 @@ const onPlanningUnlocked = (_e, data) => (
                 payload: {plan: planningItem},
             });
 
-            dispatch(main.onItemUnlocked(data, planningItem, ITEM_TYPE.PLANNING));
+            // reload the initial values of the editor if different session has made changes
+            if (data.lock_session !== sessionId) {
+                dispatch(main.reloadEditor(planningItem));
+            }
 
             return Promise.resolve();
         }
