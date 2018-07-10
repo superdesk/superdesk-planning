@@ -150,6 +150,8 @@ export class GeoLookupInputComponent extends React.Component {
                 label: shortName,
                 // used for the field value
                 name: shortName,
+                boundingbox: get(suggest, 'boundingbox'),
+                type: get(suggest, 'type'),
             };
         }
     }

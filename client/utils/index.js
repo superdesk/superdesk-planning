@@ -298,6 +298,8 @@ export const formatAddress = (nominatim) => {
             country: nominatim.address.country,
             postal_code: nominatim.address.postcode,
             external: {nominatim},
+            type: nominatim.type,
+            boundingbox: nominatim.boundingbox,
         };
     }
 
