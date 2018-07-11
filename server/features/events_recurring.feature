@@ -318,7 +318,7 @@ Feature: Events Recurring
         }
         """
         When we get "/events_history"
-        Then we get list with 7 items
+        Then we get list with 10 items
         """
         {"_items": [
             {"operation": "post", "event_id": "#events._id#"},
@@ -331,7 +331,7 @@ Feature: Events Recurring
         ]}
         """
         When we get "publish_queue"
-        Then we get list with 1 items
+        Then we get list with 4 items
 
     @auth
     Scenario: Spike single event from recurring series

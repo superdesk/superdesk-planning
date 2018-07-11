@@ -36,6 +36,12 @@ Feature: Events Update Repetitions
             {"_id": "#EVENT4._id#", "recurrence_id": "#EVENT1.recurrence_id#"}
         ]}
         """
+        When we post to "/events/post"
+        """
+            {"event": "#EVENT1._id#", "etag": "#EVENT1._etag#", "pubstatus": "usable", "update_method": "all"}
+        """
+        Then we get OK response
+
         When we post to "/events/#EVENT2._id#/lock" with success
         """
         {"lock_action": "update_repetitions"}
@@ -167,7 +173,7 @@ Feature: Events Update Repetitions
         ]}
         """
         When we get "/events_history"
-        Then we get list with 10 items
+        Then we get list with 21 items
         """
         {"_items": [
           {"operation": "create", "event_id": "#EVENT1._id#"},
@@ -278,6 +284,8 @@ Feature: Events Update Repetitions
           }
         ]}
         """
+        When we get "/planning_versions"
+        Then we get list with 11 items
 
     @auth
     Scenario: Reduces series using count

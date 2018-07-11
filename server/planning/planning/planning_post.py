@@ -54,6 +54,8 @@ class PlanningPostService(BaseService):
                 abort(412)
 
             self.validate_post_state(doc['pubstatus'])
+            if plan.get('event_item'):
+                self.post_associated_event(plan.get('event_item'))
             self.post_planning(plan, doc['pubstatus'])
             ids.append(doc['planning'])
         return ids
@@ -85,6 +87,18 @@ class PlanningPostService(BaseService):
             # We use abort here instead of raising SuperdeskApiError.badRequestError
             # as eve handles error responses differently between POST and PATCH methods
             abort(400, description=errors)
+
+    def post_associated_event(self, event_id):
+        """If the planning item is associated with an even that is not posted we need to post the event
+
+        :param event_id:
+        :return:
+        """
+        if event_id:
+            event = get_resource_service('events').find_one(req=None, _id=event_id)
+            if event and event.get('pubstatus') is None:
+                get_resource_service('events_post').post([{'event': event[config.ID_FIELD], 'etag': event['_etag'],
+                                                           'update_method': 'single', 'pubstatus': 'usable'}])
 
     def post_planning(self, plan, new_post_state):
         """Post a Planning item

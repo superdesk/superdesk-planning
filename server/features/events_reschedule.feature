@@ -1111,7 +1111,7 @@ Feature: Events Reschedule
                         "endRepeatMode": "count"
                     }
                 },
-                "state": "draft",
+                "state": "scheduled",
                 "ednote": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n"
             },
             {

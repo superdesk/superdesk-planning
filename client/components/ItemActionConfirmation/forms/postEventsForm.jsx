@@ -6,15 +6,17 @@ import {get} from 'lodash';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
 import {getDateFormat, getTimeFormat} from '../../../selectors/config';
-import {eventUtils, gettext} from '../../../utils';
+import {eventUtils, gettext, isItemPublic} from '../../../utils';
 import {Row} from '../../UI/Preview';
 import '../style.scss';
 
 export class PostEventsComponent extends React.Component {
     constructor(props) {
         super(props);
+        const postAll = get(props.initialValues, '_post', true) && !isItemPublic(props.initialValues);
+
         this.state = {
-            eventUpdateMethod: EventUpdateMethods[0],
+            eventUpdateMethod: postAll ? EventUpdateMethods[2] : EventUpdateMethods[0],
             relatedEvents: [],
         };
 
@@ -57,6 +59,7 @@ export class PostEventsComponent extends React.Component {
         const updateMethodLabel = posting ?
             gettext('Post all recurring events or just this one?') :
             gettext('Unpost all recurring events or just this one?');
+        const postAll = posting && !isItemPublic(initialValues);
         const eventsInUse = this.state.relatedEvents.filter((e) => (
             get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
         ));
@@ -95,11 +98,17 @@ export class PostEventsComponent extends React.Component {
                 <UpdateMethodSelection
                     value={this.state.eventUpdateMethod}
                     onChange={this.onEventUpdateMethodChange}
-                    showMethodSelection={isRecurring}
+                    showMethodSelection={isRecurring && !postAll}
                     updateMethodLabel={updateMethodLabel}
                     showSpace={false}
                     readOnly={submitting}
                     action={posting ? gettext('post') : gettext('unpost')} />
+                {postAll && (
+                    <div className="sd-alert sd-alert--hollow
+                        sd-alert--alert sd-alert--flex-direction">
+                        {gettext('This event is a recurring event. Post all recurring events')}
+                    </div>
+                )}
             </div>
         );
     }
