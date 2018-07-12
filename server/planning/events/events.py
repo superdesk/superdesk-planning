@@ -412,6 +412,8 @@ class EventsService(superdesk.Service):
         if 'recurrence_id' in event:
             updates['recurrence_id'] = event['recurrence_id']
 
+        planning_service.validate_on_update(updates, planning_item, get_user())
+
         planning_service.system_update(
             plan_id,
             updates,

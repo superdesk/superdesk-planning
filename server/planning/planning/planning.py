@@ -157,7 +157,7 @@ class PlanningService(superdesk.Service):
 
     def on_update(self, updates, original):
         user = get_user()
-        self._validate_on_update(updates, original, user)
+        self.validate_on_update(updates, original, user)
 
         if user and user.get(config.ID_FIELD):
             updates['version_creator'] = user[config.ID_FIELD]
@@ -165,7 +165,7 @@ class PlanningService(superdesk.Service):
         self._set_coverage(updates, original)
         self.set_planning_schedule(updates, original)
 
-    def _validate_on_update(self, updates, original, user):
+    def validate_on_update(self, updates, original, user):
         lock_user = original.get('lock_user', None)
         str_user_id = str(user.get(config.ID_FIELD)) if user else None
 
