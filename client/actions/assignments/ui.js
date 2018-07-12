@@ -640,16 +640,30 @@ const lockPlanning = (assignment, action) => (
  * @return Promise - The locked Assignment item, otherwise the API error
  */
 const lockAssignmentAndPlanning = (assignment, action) => (
-    (dispatch) => (
-        Promise.all([
-            dispatch(self.lockAssignment(assignment, action)),
-            dispatch(self.lockPlanning(assignment, action)),
-        ])
+    (dispatch) => {
+        let planning = null;
+
+        return dispatch(self.lockPlanning(assignment, action))
             .then(
-                (data) => Promise.resolve(data[0]),
-                (error) => Promise.reject(error)
+                (lockedPlan) => {
+                    planning = lockedPlan;
+                    return dispatch(self.lockAssignment(assignment, action));
+                }
             )
-    )
+            .then(
+                (lockedItem) => Promise.resolve(lockedItem),
+                (error) => {
+                    if (!planning) {
+                        return Promise.reject(error);
+                    }
+                    return dispatch(self.unlockPlanning(assignment))
+                        .then(
+                            () => Promise.reject(error),
+                            () => Promise.reject(error)
+                        );
+                }
+            );
+    }
 );
 
 /**
@@ -687,7 +701,7 @@ const unlockPlanning = (assignment) => (
                 (unlockedPlanning) => Promise.resolve(unlockedPlanning),
                 (error) => {
                     notify.error(
-                        getErrorMessage(error, 'Failed to lock the Planning item')
+                        getErrorMessage(error, 'Failed to unlock the Planning item')
                     );
 
                     return Promise.reject(error);
