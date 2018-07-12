@@ -13,7 +13,7 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from apps.auth import get_user_id
-from planning.common import remove_lock_information, WORKFLOW_STATE
+from planning.common import remove_lock_information, WORKFLOW_STATE, POST_STATE
 from .events import EventsResource, generate_recurring_dates
 from .events_base_service import EventsBaseService
 from planning.item_lock import LOCK_ACTION
@@ -117,6 +117,12 @@ class EventsUpdateRepetitionsService(EventsBaseService):
         for event in deleted_events.values():
             self._delete_event(event, events_service, updated_rule)
 
+        # if the original event was "posted" then post the new generated events
+        if original.get('pubstatus') in [POST_STATE.CANCELLED, POST_STATE.USABLE]:
+            post = {'event': original[config.ID_FIELD], 'etag': original['_etag'],
+                    'update_method': 'all', 'pubstatus': original.get('pubstatus')}
+            get_resource_service('events_post').post([post])
+
     def update(self, id, updates, original):
         """
         Don't update the Event item here
@@ -180,6 +186,12 @@ class EventsUpdateRepetitionsService(EventsBaseService):
         cancel_service.update_single_event(updates, event)
         self.backend.update(self.datasource, event[config.ID_FIELD], updates, event)
         app.on_updated_events_cancel(updates, {'_id': event[config.ID_FIELD]})
+
+        # If the event was posted we need to post the cancellation
+        if event.get('pubstatus') in [POST_STATE.CANCELLED, POST_STATE.USABLE]:
+            post = {'event': event[config.ID_FIELD], 'etag': event['_etag'],
+                    'update_method': 'single', 'pubstatus': event.get('pubstatus')}
+            get_resource_service('events_post').post([post])
 
     @staticmethod
     def _update_rules(event, updated_rules):

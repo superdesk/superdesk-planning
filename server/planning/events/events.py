@@ -23,7 +23,7 @@ from apps.archive.common import set_original_creator, get_auth, update_dates_for
 from superdesk.users.services import current_user_has_privilege
 from .events_base_service import EventsBaseService
 from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, get_max_recurrent_events, \
-    WORKFLOW_STATE, ITEM_STATE, remove_lock_information, format_address, update_post_item, post_required
+    WORKFLOW_STATE, ITEM_STATE, remove_lock_information, format_address, update_post_item, post_required, POST_STATE
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
@@ -294,6 +294,12 @@ class EventsService(superdesk.Service):
         # Determine if we're to convert this single event to a recurring series of events
         if updates.get('dates', {}).get('recurring_rule', None) is not None:
             generated_events = self._convert_to_recurring_event(updates, original)
+
+            # if the original event was "posted" then post all the generated events
+            if original.get('pubstatus') in [POST_STATE.CANCELLED, POST_STATE.USABLE]:
+                post = {'event': generated_events[0][config.ID_FIELD], 'etag': generated_events[0]['_etag'],
+                        'update_method': 'all', 'pubstatus': original.get('pubstatus')}
+                get_resource_service('events_post').post([post])
 
             push_notification(
                 'events:updated:recurring',

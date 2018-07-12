@@ -258,6 +258,8 @@ class EventsBaseService(BaseService):
         for event in self.get_series(query):
             event['dates']['end'] = datetime.strptime(event['dates']['end'], '%Y-%m-%dT%H:%M:%S%z')
             event['dates']['start'] = datetime.strptime(event['dates']['start'], '%Y-%m-%dT%H:%M:%S%z')
+            for sched in event.get('_planning_schedule', []):
+                sched['scheduled'] = datetime.strptime(sched['scheduled'], '%Y-%m-%dT%H:%M:%S%z')
             end = event['dates']['end']
             start = event['dates']['start']
             if end < utcnow():

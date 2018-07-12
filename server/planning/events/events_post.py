@@ -39,7 +39,7 @@ class EventsPostService(EventsBaseService):
     def create(self, docs):
         ids = []
         for doc in docs:
-            event = get_resource_service('events').find_one(req=None, _id=doc['event'], _etag=doc['etag'])
+            event = get_resource_service('events').find_one(req=None, _id=doc['event'])
 
             if not event:
                 abort(412)
