@@ -145,7 +145,7 @@ export const EventMetadata = (
             <ToggleBox
                 title={gettext('Attached Files')}
                 badgeValue={get(event, 'files.length', 0) > 0 ? event.files.length : null}
-                scrollInView
+                scrollInView={scrollInView}
                 isOpen={false}>
                 {get(event, 'files.length') > 0 ?
                     (<ul>
@@ -165,7 +165,7 @@ export const EventMetadata = (
             <ToggleBox
                 title={gettext('External Links')}
                 badgeValue={get(event, 'links.length', 0) > 0 ? event.links.length : null}
-                scrollInView
+                scrollInView={scrollInView}
                 isOpen={false}>
                 {get(event, 'links.length') > 0 ?
                     <ul>
