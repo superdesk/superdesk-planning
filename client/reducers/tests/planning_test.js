@@ -146,11 +146,13 @@ describe('planning', () => {
                                 _etag: 'e123',
                                 coverages: [{
                                     coverage_id: 'cov1',
+                                    workflow_status: 'active',
                                     assigned_to: {
                                         desk: 'desk1',
                                         user: 'user1',
                                     },
                                 }],
+                                workflow_status: 'active',
                                 lock_action: 'remove_assignment',
                                 lock_user: 'user1',
                                 lock_session: 'session1',
@@ -174,7 +176,8 @@ describe('planning', () => {
                         p1: {
                             _id: 'p1',
                             _etag: 'e456',
-                            coverages: [{coverage_id: 'cov1'}],
+                            workflow_status: 'active',
+                            coverages: [{coverage_id: 'cov1', workflow_status: 'draft'}],
                         },
                     },
                 });

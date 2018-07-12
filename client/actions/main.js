@@ -639,11 +639,13 @@ const _filter = (filterType, params = {}) => (
         if (filterType === MAIN.FILTERS.EVENTS) {
             dispatch(eventsPlanningUi.clearList());
             dispatch(planningUi.clearList());
-            promise = dispatch(eventsUi.selectCalendar($location.search().calendar, params));
+            const calender = $location.search().calendar || selectors.main.lastRequestCalander(getState());
+
+            promise = dispatch(eventsUi.selectCalendar(calender, params));
         } else if (filterType === MAIN.FILTERS.PLANNING) {
             dispatch(eventsPlanningUi.clearList());
             dispatch(eventsUi.clearList());
-            const searchAgenda = $location.search().agenda;
+            const searchAgenda = $location.search().agenda || selectors.main.lastRequestAgenda(getState());
 
             if (searchAgenda) {
                 promise = dispatch(selectAgenda(searchAgenda, params));
