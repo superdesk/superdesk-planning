@@ -635,7 +635,7 @@ class PlanningService(superdesk.Service):
             keys = ['desk', 'user', 'state', 'coverage_provider']
             for key in keys:
                 if key in updates.get('assigned_to') and\
-                        updates['assigned_to'][key] != original.get('assigned_to', {}).get(key):
+                        updates['assigned_to'][key] != (original.get('assigned_to') or {}).get(key):
                     return True
 
             if updates['assigned_to'].get('priority') and updates['assigned_to']['priority'] !=\
