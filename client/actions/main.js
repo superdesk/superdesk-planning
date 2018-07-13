@@ -1,4 +1,15 @@
-import {MAIN, ITEM_TYPE, MODALS, WORKSPACE, WORKFLOW_STATE, POST_STATE, PLANNING, EVENTS, AUTOSAVE} from '../constants';
+import {
+    MAIN,
+    ITEM_TYPE,
+    MODALS,
+    WORKSPACE,
+    WORKFLOW_STATE,
+    POST_STATE,
+    PLANNING,
+    EVENTS,
+    AUTOSAVE,
+    AGENDA,
+} from '../constants';
 import {activeFilter, lastRequestParams} from '../selectors/main';
 import planningUi from './planning/ui';
 import planningApi from './planning/api';
@@ -634,18 +645,23 @@ const filter = (ftype = null) => (
 const _filter = (filterType, params = {}) => (
     (dispatch, getState, {$location, notify}) => {
         let promise = Promise.resolve();
+        const lastParams = selectors.main.lastRequestParams(getState());
 
         dispatch(self.setUnsetLoadingIndicator(true));
         if (filterType === MAIN.FILTERS.EVENTS) {
             dispatch(eventsPlanningUi.clearList());
             dispatch(planningUi.clearList());
-            const calender = $location.search().calendar || selectors.main.lastRequestCalander(getState());
+            const calender = $location.search().calendar ||
+                get(lastParams, 'calendars[0]', null) ||
+                (get(lastParams, 'noCalendarAssigned', false) ? EVENTS.FILTER.NO_CALENDAR_ASSIGNED : null);
 
             promise = dispatch(eventsUi.selectCalendar(calender, params));
         } else if (filterType === MAIN.FILTERS.PLANNING) {
             dispatch(eventsPlanningUi.clearList());
             dispatch(eventsUi.clearList());
-            const searchAgenda = $location.search().agenda || selectors.main.lastRequestAgenda(getState());
+            const searchAgenda = $location.search().agenda ||
+                get(lastParams, 'agendas[0]', null) ||
+                (get(lastParams, 'noAgendaAssigned', false) ? AGENDA.FILTER.NO_AGENDA_ASSIGNED : null);
 
             if (searchAgenda) {
                 promise = dispatch(selectAgenda(searchAgenda, params));
