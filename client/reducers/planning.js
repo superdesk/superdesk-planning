@@ -237,6 +237,7 @@ const planningReducer = createReducer(initialState, {
 
         if (coverage) {
             delete coverage.assigned_to;
+            coverage.workflow_status = WORKFLOW_STATE.DRAFT;
         }
 
         return {

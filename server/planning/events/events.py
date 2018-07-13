@@ -409,18 +409,21 @@ class EventsService(superdesk.Service):
         after this operation is complete
         """
         planning_service = get_resource_service('planning')
-
         plan_id = event['_planning_item']
         event_id = event[config.ID_FIELD]
+        planning_item = planning_service.find_one(req=None, _id=plan_id)
 
         updates = {'event_item': event_id}
 
         if 'recurrence_id' in event:
             updates['recurrence_id'] = event['recurrence_id']
 
-        planning_service.patch(
+        planning_service.validate_on_update(updates, planning_item, get_user())
+
+        planning_service.system_update(
             plan_id,
-            updates
+            updates,
+            planning_item
         )
         app.on_updated_planning(updates, {'_id': plan_id})
 

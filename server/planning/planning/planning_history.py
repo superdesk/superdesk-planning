@@ -144,7 +144,7 @@ class PlanningHistoryService(HistoryService):
 
             # If assignment was added in an update
             if cov.get('assigned_to', {}).get('assignment_id') and\
-                    not original_coverage.get('assigned_to', {}).get('assignment_id'):
+                    not (original_coverage.get('assigned_to') or {}).get('assignment_id'):
                 diff = {
                     'coverage_id': cov.get('coverage_id'),
                     'assigned_to': cov['assigned_to']

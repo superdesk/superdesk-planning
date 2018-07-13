@@ -1,6 +1,6 @@
 import {createSelector} from 'reselect';
 import {get, isEmpty, isBoolean} from 'lodash';
-import {MAIN, SPIKED_STATE} from '../constants';
+import {AGENDA, EVENTS, MAIN, SPIKED_STATE} from '../constants';
 import {orderedEvents, storedEvents} from './events';
 import {orderedPlanningList, storedPlannings} from './planning';
 import {orderedEventsPlanning} from './eventsplanning';
@@ -90,6 +90,16 @@ export const lastRequestParams = createSelector(
 export const fullText = createSelector(
     [activeFilter, searchParams],
     (filter, params) => get(params, `${filter}.fulltext`, '')
+);
+
+export const lastRequestCalander = createSelector(
+    [lastRequestParams],
+    (params) => get(params, 'calendars[0]', EVENTS.FILTER.ALL_CALENDARS)
+);
+
+export const lastRequestAgenda = createSelector(
+    [lastRequestParams],
+    (params) => get(params, 'agendas[0]', AGENDA.FILTER.ALL_PLANNING)
 );
 
 export const isViewFiltered = createSelector(
