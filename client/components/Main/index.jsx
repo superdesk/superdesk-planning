@@ -6,7 +6,7 @@ export {FiltersBar} from './FiltersBar';
 export {FiltersBox} from './FiltersBox';
 export {SearchPanel} from './SearchPanel';
 export {HistoryTab} from './HistoryTab';
-export {PreviewPanel} from './ItemPreview/';
+export {PreviewPanel} from './ItemPreview';
 export {Editor} from './EditorPanel';
 export {EditorModal} from './EditorPanel';
 export {EditorModalPanel} from './ItemEditorModal';

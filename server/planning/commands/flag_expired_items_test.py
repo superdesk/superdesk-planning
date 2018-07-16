@@ -386,10 +386,10 @@ class FlagExpiredItemsTest(TestCase):
                 'e1': True,
             })
 
-    def test_planning_versions_expiry(self):
+    def test_published_planning_expiry(self):
         with self.app.app_context():
             self.app.config.update({'PUBLISH_QUEUE_EXPIRY_MINUTES': 1440})
-            self.app.data.insert('planning_versions', [
+            self.app.data.insert('published_planning', [
                 {
                     '_id': ObjectId('5b30565a1d41c89f550c435f'),
                     'published_item': {
@@ -407,5 +407,5 @@ class FlagExpiredItemsTest(TestCase):
                 }
             ])
             FlagExpiredItems().run()
-            version_entries = get_resource_service('planning_versions').get(req=None, lookup={})
+            version_entries = get_resource_service('published_planning').get(req=None, lookup={})
             self.assertEqual(1, version_entries.count())

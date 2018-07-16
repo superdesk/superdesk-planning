@@ -2,7 +2,7 @@ Feature: Planning Versions
 
   @auth
   Scenario: Retrive Planning Version
-    Given "planning_versions"
+    Given "published_planning"
       """
             [{
           "published_item": {
@@ -203,7 +203,7 @@ Feature: Planning Versions
           "type": "event"
       }]
       """
-    When we get "/planning_versions?where={\"item_id\": \"urn:aapsportsfixtures:3:int-476:int-603355\", \"version\": 6366566284435790}"
+    When we get "/published_planning?where={\"item_id\": \"urn:aapsportsfixtures:3:int-476:int-603355\", \"version\": 6366566284435790}"
     Then we get a list with 1 items
     """
         {"_items": [{"item_id" : "urn:aapsportsfixtures:3:int-476:int-603355", "version": 6366566284435790}]}

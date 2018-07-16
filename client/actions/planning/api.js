@@ -9,6 +9,7 @@ import {
     appendStatesQueryForAdvancedSearch,
     timeUtils,
     isExistingItem,
+    isPublishedItemId,
 } from '../../utils';
 import planningUtils from '../../utils/planning';
 import {
@@ -477,6 +478,10 @@ const fetchById = (pid, {force = false, saveToStore = true, loadEvents = true} =
         // If so, return that instance instead
         const storedPlannings = selectors.planning.storedPlannings(getState());
         let promise;
+
+        if (isPublishedItemId(pid)) {
+            return Promise.resolve({});
+        }
 
         if (has(storedPlannings, pid) && !force) {
             promise = Promise.resolve(storedPlannings[pid]);

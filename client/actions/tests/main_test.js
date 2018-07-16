@@ -863,4 +863,72 @@ describe('actions.main', () => {
                 });
         });
     });
+
+    describe('publishqueuePreview', () => {
+        beforeEach(() => {
+            sinon.stub(main, 'openPreview').callsFake((item) => Promise.resolve(item));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(main.openPreview);
+        });
+
+        it('fetch planning version', (done) => {
+            const queueItem = {
+                _id: 123,
+                item_id: 'e1',
+                item_version: 12,
+                content_type: 'event',
+            };
+
+            store.init();
+
+            return store.test(done, main.fetchQueueItem(queueItem))
+                .then((item) => {
+                    expect(item._id).toEqual('queueitem--e1--12');
+                    expect(store.spies.api.published_planning.query.callCount).toBe(1);
+                    expect(store.dispatch.args[0][0].type).toEqual('ADD_EVENTS');
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('fetch planning version and open preview', (done) => {
+            const queueItem = {
+                _id: 123,
+                item_id: 'e1',
+                item_version: 12,
+                content_type: 'event',
+            };
+
+            store.init();
+            store.test(done, main.fetchQueueItemAndPreview(queueItem))
+                .then(() => {
+                    expect(main.openPreview.callCount).toBe(1);
+                    expect(store.spies.api.published_planning.query.callCount).toBe(1);
+                    expect(store.dispatch.args[1][0].type).toEqual('ADD_EVENTS');
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('fetch planning version for store and open preview', (done) => {
+            const queueItem = {
+                _id: 123,
+                item_id: 'e1',
+                item_version: 12,
+                content_type: 'event',
+            };
+
+            store.init();
+            store.initialState.events.events['queueitem--e1--12'] = data.events[0];
+            store.test(done, main.fetchQueueItemAndPreview(queueItem))
+                .then(() => {
+                    expect(main.openPreview.callCount).toBe(1);
+                    expect(store.spies.api.published_planning.query.callCount).toBe(0);
+                    done();
+                })
+                .catch(done.fail);
+        });
+    });
 });

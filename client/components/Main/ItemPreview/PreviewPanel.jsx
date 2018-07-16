@@ -35,12 +35,16 @@ export class PreviewPanelComponent extends React.Component {
                 render: PreviewContentTab,
                 enabled: true,
             },
-            {
-                label: gettext('History'),
-                render: HistoryTab,
-                enabled: true,
-            },
         ];
+        if (!get(props, 'hideHistory', false)) {
+            this.tabs.push(
+                {
+                    label: gettext('History'),
+                    render: HistoryTab,
+                    enabled: true,
+                }
+            );
+        }
 
         this.dom = {panel: null};
     }
@@ -135,9 +139,9 @@ export class PreviewPanelComponent extends React.Component {
                         <PreviewHeader
                             item={this.props.item}
                             hideItemActions={this.props.hideItemActions}
-                            showUnlock={this.props.showUnlock} />
+                            showUnlock={this.props.showUnlock}/>
                         }
-                        <RenderTab item={this.props.item}/>
+                        <RenderTab item={this.props.item} hideRelatedItems={this.props.hideRelatedItems}/>
                     </Content>
                 )}
             </SidePanel>
@@ -161,7 +165,8 @@ PreviewPanelComponent.propTypes = {
     session: PropTypes.object,
     privileges: PropTypes.object,
     lockedItems: PropTypes.object,
-
+    hideRelatedItems: PropTypes.bool,
+    hideHistory: PropTypes.bool,
 };
 
 PreviewPanelComponent.defaultProps = {initialLoad: false};

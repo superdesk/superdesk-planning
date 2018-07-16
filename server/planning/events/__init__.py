@@ -36,8 +36,8 @@ def init_app(app):
     events_unlock_service = EventsUnlockService('events_unlock', backend=superdesk.get_backend())
     EventsUnlockResource('events_unlock', app=app, service=events_unlock_service)
 
-    events_search_service = EventsService('events', backend=superdesk.get_backend())
-    EventsResource('events', app=app, service=events_search_service)
+    events_search_service = EventsService(EventsResource.endpoint_name, backend=superdesk.get_backend())
+    EventsResource(EventsResource.endpoint_name, app=app, service=events_search_service)
 
     events_spike_service = EventsSpikeService('events_spike', backend=superdesk.get_backend())
     EventsSpikeResource('events_spike', app=app, service=events_spike_service)

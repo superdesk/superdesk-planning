@@ -63,6 +63,7 @@ export class FulFilAssignmentController {
         this.store.dispatch(
             actions.assignments.ui.changeAssignmentListSingleGroupView('TODO')
         );
+        this.store.dispatch(actions.main.closePublishQueuePreviewOnWorkspaceChange());
 
         ReactDOM.render(
             <Provider store={this.store}>

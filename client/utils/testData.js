@@ -795,6 +795,16 @@ export const archive = [
     },
 ];
 
+export const publishedPlanning = [
+    {
+        _id: 123,
+        type: 'event',
+        version: 12,
+        item_id: 'e1',
+        published_item: events[0],
+    },
+];
+
 export const main = {
     previewId: null,
     previewIType: null,
@@ -859,6 +869,7 @@ export const initialState = {
     eventsPlanning: eventsPlanningInitialState,
     multiSelect: multiSelect,
     contacts: contacts,
+    selected: {preview: {}},
 };
 
 export const items = {
@@ -875,4 +886,5 @@ export const items = {
     contacts: contacts,
     event_autosave: [],
     planning_autosave: [],
+    published_planning: publishedPlanning,
 };

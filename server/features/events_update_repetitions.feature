@@ -284,7 +284,7 @@ Feature: Events Update Repetitions
           }
         ]}
         """
-        When we get "/planning_versions"
+        When we get "/published_planning"
         Then we get list with 11 items
 
     @auth

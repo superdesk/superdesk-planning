@@ -95,6 +95,9 @@ export const getTestActionStore = () => {
                     save: sinon.spy((ori, item) => store.spies.api._save('planning_autosave', ori, item)),
                     remove: sinon.spy((item) => store.spies.api._remove('planning_autosave', item)),
                 },
+                published_planning: {
+                    query: sinon.spy(() => store.spies.api._query('published_planning')),
+                },
             },
         },
 

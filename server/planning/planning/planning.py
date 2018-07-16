@@ -1015,7 +1015,7 @@ class PlanningResource(superdesk.Resource):
     See IPTC-G2-Implementation_Guide (version 2.21) Section 16.5 for schema details
     """
 
-    url = 'planning'
+    endpoint_name = url = 'planning'
     item_url = item_url
     schema = planning_schema
     datasource = {

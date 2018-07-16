@@ -45,6 +45,7 @@ export class PlanningPreviewContentComponent extends React.Component {
             inner,
             noPadding,
             createUploadLink,
+            hideRelatedItems,
         } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
@@ -163,8 +164,9 @@ export class PlanningPreviewContentComponent extends React.Component {
                         <span className="state-label not-for-publication">{gettext('Not for Publication')}</span>
                     </Row>
                 </ToggleBox>
-                {event && <h3 className="side-panel__heading--big">{gettext('Associated Event')}</h3>}
-                {event && <EventMetadata event={event}
+                {!hideRelatedItems && event &&
+                <h3 className="side-panel__heading--big">{gettext('Associated Event')}</h3>}
+                {!hideRelatedItems && event && <EventMetadata event={event}
                     dateFormat={dateFormat}
                     timeFormat={timeFormat}
                     dateOnly={true}
@@ -213,6 +215,7 @@ PlanningPreviewContentComponent.propTypes = {
     noPadding: PropTypes.bool,
     fetchEventWithFiles: PropTypes.func,
     createUploadLink: PropTypes.func,
+    hideRelatedItems: PropTypes.bool,
 };
 
 const mapStateToProps = (state, ownProps) => ({

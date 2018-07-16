@@ -88,6 +88,7 @@ export class AddToPlanningController {
                 this.store.dispatch(planning.ui.requestPlannings({
                     excludeRescheduledAndCancelled: true,
                 }));
+                this.store.dispatch(actions.main.closePublishQueuePreviewOnWorkspaceChange());
 
                 registerNotifications(this.$scope, this.store);
 

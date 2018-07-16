@@ -45,7 +45,18 @@ Feature: Publish
             "event_contact_info": ["#contacts._id#"]
         }
         """
-
+        Then we get OK response
+        When we upload a file "bike.jpg" to "/events_files"
+        Then we get OK response
+        And we store "FILE" from patch
+        When we patch "/events/#events._id#"
+        """
+        {"files": ["#FILE._id#"]}
+        """
+        Then we get updated response
+        """
+        {"files": ["#FILE._id#"], "_id": "#events._id#"}
+        """
         When we post to "/events/post"
         """
         {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
@@ -56,7 +67,7 @@ Feature: Publish
         """
         {"state": "scheduled"}
         """
-        When we get "planning_versions"
+        When we get "published_planning"
         Then we get list with 1 items
 
         When we get "publish_queue"
@@ -64,9 +75,38 @@ Feature: Publish
         Then we store "PUBLISHQUEUE" with first item
         When we transmit items
         Then versioned file exists "/tmp/123-#PUBLISHQUEUE.item_version#-None.txt"
-
-        When we get "planning_versions?where={\"item_id\": \"#PUBLISHQUEUE.item_id#\", \"version\": #PUBLISHQUEUE.item_version#}"
+        When we get "published_planning?where={\"item_id\": \"#PUBLISHQUEUE.item_id#\", \"version\": #PUBLISHQUEUE.item_version#}"
         Then we get list with 1 items
+        """
+        {
+            "_items": [
+                {
+                    "item_id": "#events._id#",
+                    "type": "event",
+                    "published_item": {
+                        "_id": "#events._id#",
+                        "files": ["#FILE._id#"]
+                    }
+                }
+            ]
+        }
+        """
+        When we get "published_planning?where={\"item_id\": \"#PUBLISHQUEUE.item_id#\", \"version\": #PUBLISHQUEUE.item_version#}&embedded={"files": 1}"
+        Then we get list with 1 items
+        """
+        {
+            "_items": [
+                {
+                    "item_id": "#events._id#",
+                    "type": "event",
+                    "published_item": {
+                        "_id": "#events._id#",
+                        "files": [{"_id": "#FILE._id#", "media": {"_id": "#FILE.filemeta.media_id#"}}]
+                    }
+                }
+            ]
+        }
+        """
 
     @auth
     Scenario: Publish Event using json event formatter
