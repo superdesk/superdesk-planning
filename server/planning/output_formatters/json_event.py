@@ -8,12 +8,13 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-
-from superdesk.publish.formatters import Formatter
-import superdesk
 import json
-from superdesk.utils import json_serialize_datetime_objectId
+import superdesk
+
 from copy import deepcopy
+from flask import current_app as app
+from superdesk.publish.formatters import Formatter
+from superdesk.utils import json_serialize_datetime_objectId
 from superdesk import get_resource_service
 
 
@@ -40,9 +41,25 @@ class JsonEventFormatter(Formatter):
         pub_seq_num = superdesk.get_resource_service('subscribers').generate_sequence_number(subscriber)
         output_item = deepcopy(item)
         output_item['event_contact_info'] = self._expand_contact_info(item)
+        if item.get('files'):
+            output_item['files'] = self._publish_files(item)
         for f in self.remove_fields:
             output_item.pop(f, None)
         return [(pub_seq_num, json.dumps(output_item, default=json_serialize_datetime_objectId))]
+
+    def _publish_files(self, item):
+        def publish_file(file_id):
+            event_file = superdesk.get_resource_service('events_files').find_one(req=None, _id=file_id)
+            media = app.media.get(event_file['media'], resource='events_files')
+            self._publish_media(media)
+            return {
+                'media': str(event_file['media']),
+                'name': media.name,
+                'length': media.length,
+                'mimetype': media.content_type,
+            }
+
+        return [publish_file(file_id) for file_id in item['files']]
 
     def _expand_contact_info(self, item):
         """

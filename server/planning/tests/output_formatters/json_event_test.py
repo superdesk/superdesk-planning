@@ -1,8 +1,12 @@
-from superdesk.tests import TestCase
-from unittest import mock
-from planning.output_formatters.json_event import JsonEventFormatter
-from superdesk.publish import init_app
 import json
+import tempfile
+
+from unittest import mock
+from superdesk.tests import TestCase
+from superdesk.publish import init_app, registered_transmitters
+from planning.output_formatters.json_event import JsonEventFormatter
+from planning.events import init_app
+from eve.methods.common import store_media_files
 
 
 @mock.patch('superdesk.publish.subscribers.SubscribersService.generate_sequence_number', lambda self, subscriber: 1)
@@ -40,8 +44,7 @@ class JsonEventTestCase(TestCase):
             'label': 'Confirmed',
             'name': 'Planned, occurs certainly',
             'qcode': 'eocstat:eos5'
-        },
-        'dates': {
+        }, 'dates': {
             'start': '2018-04-09T14:00:53.581Z',
             'tz': 'Australia/Sydney',
             'end': '2018-04-10T13:59:59.999Z'
@@ -152,3 +155,33 @@ class JsonEventTestCase(TestCase):
         output_item = json.loads(output[1])
         self.assertEqual(output_item.get('name'), 'Name of the event')
         self.assertEqual(output_item.get('event_contact_info')[0].get('last_name'), 'Doe')
+
+    def test_files_publishing(self):
+        init_app(self.app)
+        with tempfile.NamedTemporaryFile(suffix='txt') as input:
+            input.write('foo'.encode('utf-8'))
+            input.seek(0)
+            input.filename = 'foo.txt'
+            input.mimetype = 'text/plain'
+            attachment = {'media': input}
+            store_media_files(attachment, 'events_files')
+            files_ids = self.app.data.insert('events_files', [attachment])
+        item = self.item.copy()
+        item['files'] = files_ids
+
+        subscriber = {'name': 'Test Subscriber', 'is_active': True}
+        destination = {'delivery_type': 'http_push'}
+        formatter = JsonEventFormatter()
+        formatter.set_destination(destination, subscriber)
+        with mock.patch.object(registered_transmitters['http_push'], '_transmit_media', return_value='new-href') as push_media:  # noqa
+            output = formatter.format(item, subscriber)[0]
+            push_media.assert_called_once_with(mock.ANY, destination)
+
+        output_item = json.loads(output[1])
+        self.assertEqual(1, len(output_item['files']))
+        self.assertEqual({
+            'name': 'foo.txt',
+            'length': 3,
+            'mimetype': 'text/plain',
+            'media': str(self.app.data.find_one('events_files', req=None, _id=files_ids[0]).get('media')),
+        }, output_item['files'][0])
