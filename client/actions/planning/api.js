@@ -90,6 +90,7 @@ const getCriteria = ({
     adHocPlanning = false,
     excludeRescheduledAndCancelled = false,
     startOfWeek = 0,
+    featured,
 }) => {
     let query = {};
     let mustNot = [];
@@ -286,6 +287,12 @@ const getCriteria = ({
                 must.push({term: {pubstatus: POST_STATE.USABLE}});
             },
         },
+        {
+            condition: () => (advancedSearch.featured),
+            do: () => {
+                must.push({term: {featured: true}});
+            },
+        },
     ].forEach((action) => {
         if (action.condition()) {
             action.do();
@@ -322,6 +329,7 @@ const query = (
         maxResults = MAIN.PAGE_SIZE,
         adHocPlanning = false,
         excludeRescheduledAndCancelled = false,
+        featured,
     },
     storeTotal = true
 ) => (
@@ -336,6 +344,7 @@ const query = (
             adHocPlanning,
             excludeRescheduledAndCancelled,
             startOfWeek,
+            featured,
         });
 
         const sortField = '_planning_schedule.scheduled';
