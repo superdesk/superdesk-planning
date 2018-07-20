@@ -79,7 +79,8 @@ describe('actions.eventsplanning.api', () => {
                         ]
                     );
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -102,7 +103,8 @@ describe('actions.eventsplanning.api', () => {
                     expect(items.length).toBe(3);
                     expect(items).toEqual(['item', 'item', 'item']);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 });

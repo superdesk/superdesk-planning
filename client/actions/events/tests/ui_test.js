@@ -96,7 +96,7 @@ describe('actions.events.ui', () => {
 
                 done();
             })
-    ));
+    ).catch(done.fail));
 
     it('openCancelModal calls `_openActionModalFromEditor`', () => {
         eventsUi.openCancelModal(data.events[1]);
@@ -171,7 +171,7 @@ describe('actions.events.ui', () => {
 
                 done();
             })
-    ));
+    ).catch(done.fail));
 
     describe('openActionModal', () => {
         beforeEach(() => {
@@ -210,7 +210,7 @@ describe('actions.events.ui', () => {
 
                 done();
             })
-        ));
+        ).catch(done.fail));
 
         it('openActionModal displays error message if lock fails', (done) => {
             restoreSinonStub(eventsApi.lock);
@@ -224,7 +224,8 @@ describe('actions.events.ui', () => {
             )).then(() => { /* no-op */ }, (error) => {
                 expect(error).toEqual(errorMessage);
                 done();
-            });
+            })
+                .catch(done.fail);
         });
 
         it('openActionModal displays error message if loadEvents fails', (done) => {
@@ -241,7 +242,8 @@ describe('actions.events.ui', () => {
             )).then(() => { /* no-op */ }, (error) => {
                 expect(error).toEqual(errorMessage);
                 done();
-            });
+            })
+                .catch(done.fail);
         });
     });
 
@@ -261,7 +263,7 @@ describe('actions.events.ui', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('notifies user if `api.spike` fails', (done) => {
             restoreSinonStub(eventsApi.spike);
@@ -277,7 +279,8 @@ describe('actions.events.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -297,7 +300,7 @@ describe('actions.events.ui', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('notifies user if `api.unspike` fails', (done) => {
             restoreSinonStub(eventsApi.unspike);
@@ -313,7 +316,8 @@ describe('actions.events.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -346,7 +350,8 @@ describe('actions.events.ui', () => {
                     expect(eventsUi.setEventsList.args[0]).toEqual([['e1', 'e2', 'e3']]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('notifies user if api.refetchEvents fails', (done) => {
@@ -367,7 +372,8 @@ describe('actions.events.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('doesnt refetch events if main filter is not EVENTS', (done) => {
@@ -381,7 +387,8 @@ describe('actions.events.ui', () => {
                     expect(eventsApi.refetch.callCount).toBe(0);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -406,7 +413,7 @@ describe('actions.events.ui', () => {
                     expect(response).toEqual(data.events);
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 
     describe('duplicate', () => {
@@ -519,7 +526,8 @@ describe('actions.events.ui', () => {
                     expect(services.notify.success.args[0]).toEqual(['Event has been rescheduled']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('reschedule in use Event', (done) => {
@@ -544,7 +552,8 @@ describe('actions.events.ui', () => {
                     expect(services.notify.success.args[0]).toEqual(['Event has been rescheduled']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('on reschedule error notify the user of the failure', (done) => {
@@ -560,7 +569,8 @@ describe('actions.events.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('on fetchById error notify the user of the failure', (done) => {
@@ -586,7 +596,8 @@ describe('actions.events.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -609,7 +620,8 @@ describe('actions.events.ui', () => {
                     expect(services.notify.success.args[0]).toEqual(['Event repetitions updated']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('on updateRepetitions error notify the user of the failure', (done) => {
@@ -623,7 +635,8 @@ describe('actions.events.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -672,7 +685,8 @@ describe('actions.events.ui', () => {
                     expect(args[1].dates.tz).toBe(moment.tz.guess());
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -703,7 +717,7 @@ describe('actions.events.ui', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('selects specific calendar and passes params to fetchEvents', (done) => (
             store.test(done, eventsUi.selectCalendar('cal1', {fulltext: 'search text'}))
@@ -723,6 +737,6 @@ describe('actions.events.ui', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 });

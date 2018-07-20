@@ -59,7 +59,8 @@ describe('actions.assignments.api', () => {
                     });
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('query without search and filter by user Desc by Updated', (done) => {
@@ -86,7 +87,8 @@ describe('actions.assignments.api', () => {
                     });
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('query using state', (done) => {
@@ -113,7 +115,8 @@ describe('actions.assignments.api', () => {
                     });
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('query using type', (done) => {
@@ -140,7 +143,8 @@ describe('actions.assignments.api', () => {
                     });
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('query using priority', (done) => {
@@ -166,7 +170,8 @@ describe('actions.assignments.api', () => {
                     });
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('Can sort by priority Desceding', (done) => {
@@ -192,7 +197,8 @@ describe('actions.assignments.api', () => {
                     });
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('Can sort by priority Ascending', (done) => {
@@ -218,7 +224,8 @@ describe('actions.assignments.api', () => {
                     });
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -234,7 +241,7 @@ describe('actions.assignments.api', () => {
                     ]);
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 
     describe('fetchByAssignmentId', () => {
@@ -255,7 +262,8 @@ describe('actions.assignments.api', () => {
                     expect(assignmentsApi.receivedAssignments.callCount).toBe(1);
                     expect(assignmentsApi.receivedAssignments.args[0]).toEqual([[data.assignments[0]]]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('fetch assignment using force=true', (done) => {
@@ -268,7 +276,8 @@ describe('actions.assignments.api', () => {
                     expect(assignmentsApi.receivedAssignments.callCount).toBe(1);
                     expect(assignmentsApi.receivedAssignments.args[0]).toEqual([[data.assignments[0]]]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns store instance when already loaded', (done) => {
@@ -287,7 +296,8 @@ describe('actions.assignments.api', () => {
                     expect(assignmentsApi.receivedAssignments.callCount).toBe(0);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns Promise.reject on error', (done) => {
@@ -304,7 +314,8 @@ describe('actions.assignments.api', () => {
 
                     expect(error).toBe('Failed!');
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -325,7 +336,8 @@ describe('actions.assignments.api', () => {
                         },
                     ]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -339,7 +351,8 @@ describe('actions.assignments.api', () => {
                         {lock_action: 'edit'},
                     ]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('does not call lock endpoint if assignment already locked', (done) => {
@@ -353,7 +366,8 @@ describe('actions.assignments.api', () => {
                     expect(services.api('assignments_lock').save.callCount).toBe(0);
                     expect(item).toEqual(store.initialState.assignment.assignments[1]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('calls unlock endpoint', (done) => {
@@ -361,7 +375,8 @@ describe('actions.assignments.api', () => {
                 .then(() => {
                     expect(services.api('assignments_unlock').save.callCount).toBe(1);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -373,5 +388,5 @@ describe('actions.assignments.api', () => {
 
                 done();
             })
-    ));
+    ).catch(done.fail));
 });

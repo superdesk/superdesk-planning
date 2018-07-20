@@ -1,6 +1,6 @@
 import {get} from 'lodash';
 import * as selectors from '../selectors';
-import {LOCKS, ITEM_TYPE, WORKSPACE, PLANNING} from '../constants';
+import {LOCKS, ITEM_TYPE, WORKSPACE, PLANNING, FEATURED_PLANNING} from '../constants';
 import {planning, events, assignments, autosave, main} from './index';
 import {lockUtils, getItemType, gettext} from '../utils';
 
@@ -29,8 +29,11 @@ const loadAllLocks = () => (
                 // If featured stories are locked
                 if (get(data, '[2][0].lock_user')) {
                     dispatch({
-                        type: PLANNING.ACTIONS.FEATURED_LOCKED,
-                        payload: data[2][0].lock_user,
+                        type: FEATURED_PLANNING.ACTIONS.LOCKED,
+                        payload: {
+                            lock_user: data[2][0].lock_user,
+                            lock_session: data[2][0].lock_session,
+                        },
                     });
                 }
 

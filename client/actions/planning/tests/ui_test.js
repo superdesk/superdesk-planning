@@ -92,7 +92,7 @@ describe('actions.planning.ui', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('ui.spike closes editor if item is open', (done) => {
             store.initialState.planning.currentPlanningId = data.plannings[1]._id;
@@ -100,7 +100,8 @@ describe('actions.planning.ui', () => {
                 .then(() => {
                     expect(main.closePreviewAndEditorForItems.callCount).toBe(1);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('ui.spike notifies end user on failure to spike', (done) => {
@@ -116,7 +117,8 @@ describe('actions.planning.ui', () => {
 
                     expect(services.notify.success.callCount).toBe(0);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -144,7 +146,7 @@ describe('actions.planning.ui', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('ui.unspike notifies end user on failure to unspike', (done) => {
             restoreSinonStub(planningApi.unspike);
@@ -159,7 +161,8 @@ describe('actions.planning.ui', () => {
 
                     expect(services.notify.success.callCount).toBe(0);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -176,7 +179,7 @@ describe('actions.planning.ui', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('on save fail notifies the end user', (done) => {
             restoreSinonStub(planningApi.saveAndReloadCurrentAgenda);
@@ -189,7 +192,8 @@ describe('actions.planning.ui', () => {
                     expect(error).toEqual(errorMessage);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -235,7 +239,8 @@ describe('actions.planning.ui', () => {
                 expect(planningUi.setInList.args[0]).toEqual([['p1', 'p2']]);
 
                 done();
-            });
+            })
+            .catch(done.fail);
     });
 
     it('loadMore with data fetched less than page size', (done) => {
@@ -270,7 +275,8 @@ describe('actions.planning.ui', () => {
                 expect(planningUi.addToList.args[0]).toEqual([['p1', 'p2']]);
 
                 done();
-            });
+            })
+            .catch(done.fail);
     });
 
     it('loadMore with data fetched equal to page size', (done) => {
@@ -305,7 +311,8 @@ describe('actions.planning.ui', () => {
                 expect(planningUi.addToList.callCount).toBe(1);
 
                 done();
-            });
+            })
+            .catch(done.fail);
     });
 
     it('requestPlannings', () => {
@@ -352,7 +359,8 @@ describe('actions.planning.ui', () => {
                     expect(main.openEditor.callCount).toBe(1);
                     expect(main.openEditor.args[0]).toEqual([store.initialState.planning.plannings.p1]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         afterEach(() => {
@@ -397,7 +405,8 @@ describe('actions.planning.ui', () => {
                     expect(locks.unlock.args[0]).toEqual([data.plannings[0]]);
 
                     done();
-                }));
+                })
+                .catch(done.fail));
 
         afterEach(() => {
             restoreSinonStub(planningUi.save);
@@ -452,7 +461,8 @@ describe('actions.planning.ui', () => {
                     expect(modalProps.$scope.reject.callCount).toBe(1);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('notifies user if link fails', (done) => {
@@ -470,7 +480,8 @@ describe('actions.planning.ui', () => {
                     expect(modalProps.$scope.reject.callCount).toBe(1);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('calls link and notifies user of success', (done) => (
@@ -506,7 +517,7 @@ describe('actions.planning.ui', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 
     describe('duplicate', () => {
@@ -536,7 +547,8 @@ describe('actions.planning.ui', () => {
                     expect(main.lockAndEdit.args[0]).toEqual([data.plannings[0]]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('on duplicate error notify the user of the failure', (done) => {
@@ -550,7 +562,8 @@ describe('actions.planning.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -585,7 +598,8 @@ describe('actions.planning.ui', () => {
                     expect(locks.unlock.args[0]).toEqual([planningWithAgenda]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -630,6 +644,7 @@ describe('actions.planning.ui', () => {
                 ]);
 
                 done();
-            });
+            })
+            .catch(done.fail);
     });
 });

@@ -1,5 +1,6 @@
 import planningApi from '../api';
 import planningUi from '../ui';
+import featuredPlanning from '../featuredPlanning';
 import eventsPlanningUi from '../../eventsPlanning/ui';
 import eventsApi from '../../events/api';
 import main from '../../main';
@@ -187,7 +188,8 @@ describe('actions.planning.notifications', () => {
                     expect(planningUi.scheduleRefetch.callCount).toBe(1);
                     expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -234,7 +236,7 @@ describe('actions.planning.notifications', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 
     describe('onPlanningUnlocked', () => {
@@ -290,7 +292,8 @@ describe('actions.planning.notifications', () => {
                     expect(store.dispatch.args[4][0].type).toEqual(PLANNING.ACTIONS.UNLOCK_PLANNING);
                     expect(main.reloadEditor.callCount).toBe(1);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('dispatches `UNLOCK_PLANNING` action', (done) => (
@@ -317,7 +320,7 @@ describe('actions.planning.notifications', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 
     describe('onPlanningPosted', () => {
@@ -339,7 +342,8 @@ describe('actions.planning.notifications', () => {
                     expect(planningUi.refetch.callCount).toBe(1);
                     expect(eventsPlanningUi.refetch.callCount).toBe(1);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -350,6 +354,12 @@ describe('actions.planning.notifications', () => {
             sinon.stub(main, 'setUnsetLoadingIndicator').callsFake(() => (Promise.resolve()));
             sinon.stub(planningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
             sinon.stub(eventsPlanningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
+            sinon.stub(featuredPlanning, 'removePlanningItemFromSelection').callsFake(
+                () => (Promise.resolve())
+            );
+            sinon.stub(featuredPlanning, 'addPlanningItemToSelection').callsFake(
+                () => (Promise.resolve())
+            );
         });
 
         afterEach(() => {
@@ -357,6 +367,8 @@ describe('actions.planning.notifications', () => {
             restoreSinonStub(main.setUnsetLoadingIndicator);
             restoreSinonStub(planningUi.scheduleRefetch);
             restoreSinonStub(eventsPlanningUi.scheduleRefetch);
+            restoreSinonStub(featuredPlanning.removePlanningItemFromSelection);
+            restoreSinonStub(featuredPlanning.addPlanningItemToSelection);
         });
 
         it('onPlanningSpiked dispatches `SPIKE_PLANNING`', (done) => (
@@ -367,7 +379,7 @@ describe('actions.planning.notifications', () => {
                 etag: 'e123',
             }))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(6);
+                    expect(store.dispatch.callCount).toBe(7);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: PLANNING.ACTIONS.SPIKE_PLANNING,
                         payload: {
@@ -392,10 +404,11 @@ describe('actions.planning.notifications', () => {
 
                     expect(planningUi.scheduleRefetch.callCount).toBe(1);
                     expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
+                    expect(featuredPlanning.removePlanningItemFromSelection.callCount).toBe(1);
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('onPlanningUnspiked dispatches `UNSPIKE_PLANNING`', (done) => (
             store.test(done, planningNotifications.onPlanningUnspiked({}, {
@@ -404,7 +417,7 @@ describe('actions.planning.notifications', () => {
                 etag: 'e123',
             }))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(6);
+                    expect(store.dispatch.callCount).toBe(7);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
                         payload: {
@@ -428,9 +441,10 @@ describe('actions.planning.notifications', () => {
 
                     expect(planningUi.scheduleRefetch.callCount).toBe(1);
                     expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
+                    expect(featuredPlanning.addPlanningItemToSelection.callCount).toBe(1);
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 });

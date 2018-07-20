@@ -38,7 +38,7 @@ describe('event_autosave', () => {
                     time: '00:59',
                 },
             },
-            location: 'Sydney\nSydney, Australia',
+            location: 'Sydney\nNSW, Australia',
             files: ['file1.test', 'file2.test'],
         });
 

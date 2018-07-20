@@ -1,4 +1,5 @@
 import {get} from 'lodash';
+import moment from 'moment-timezone';
 
 export const getDateFormat = (state) =>
     get(state, 'config.model.dateformat') ||
@@ -23,3 +24,5 @@ export const getStartOfWeek = (state) =>
     parseInt(get(state, 'config.startingDay', 0), 10);
 
 export const getIframelyKey = (state) => get(state, 'config.iframely.key', null);
+
+export const defaultTimeZone = (state) => get(state, 'config.defaultTimezone', moment.tz.guess());

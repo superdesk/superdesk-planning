@@ -265,7 +265,7 @@ const cancelAllCoverage = (plan) => (
 
 const openFeaturedPlanningModal = () => (
     (dispatch, getState, {notify}) => {
-        const lockUser = selectors.planning.featureLockUser(getState());
+        const lockUser = selectors.featuredPlanning.featureLockUser(getState());
         const currentUser = selectors.general.currentUserId(getState());
 
         if (lockUser && lockUser !== currentUser) {

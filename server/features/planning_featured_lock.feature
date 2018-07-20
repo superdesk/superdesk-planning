@@ -16,7 +16,7 @@ Feature: Planning Featured Lock
     And we get notifications
     """
     [{
-        "event": "featured:lock",
+        "event": "planning_featured_lock:lock",
         "extra": {"user": "#CONTEXT_USER_ID#"}
     }]
     """
@@ -72,7 +72,7 @@ Feature: Planning Featured Lock
       And we get notifications
       """
       [{
-        "event": "featured:unlock",
+        "event": "planning_featured_lock:unlock",
          "extra": {"user": "#CONTEXT_USER_ID#"}
       }]
       """

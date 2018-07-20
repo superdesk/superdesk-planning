@@ -297,7 +297,8 @@ describe('agenda', () => {
                         ]);
 
                         done();
-                    });
+                    })
+                    .catch(done.fail);
             });
         });
 
@@ -366,7 +367,8 @@ describe('agenda', () => {
                     .then(() => {
                         expect(apiSpy.save.callCount).toBe(1);
                         done();
-                    });
+                    })
+                    .catch(done.fail);
             });
         });
 
@@ -391,7 +393,8 @@ describe('agenda', () => {
                         expect(planningUi.clearList.callCount).toBe(1);
                         expect(planningUi.fetchToList.callCount).toBe(0);
                         done();
-                    });
+                    })
+                    .catch(done.fail);
             });
 
             it('fetches planning items for the agenda', (done) => {
@@ -410,7 +413,8 @@ describe('agenda', () => {
                             excludeRescheduledAndCancelled: false,
                         }]);
                         done();
-                    });
+                    })
+                    .catch(done.fail);
             });
 
             it('fetches planning items for no agenda assigned', (done) => {
@@ -429,7 +433,8 @@ describe('agenda', () => {
                             excludeRescheduledAndCancelled: false,
                         }]);
                         done();
-                    });
+                    })
+                    .catch(done.fail);
             });
         });
     });

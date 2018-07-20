@@ -122,11 +122,26 @@ export class IgnoreCancelSaveModalComponent extends React.Component {
             } else {
                 okText = gettext('Save');
             }
-        } else {
+        } else if (item) {
             okText = gettext('Create');
+        } else {
+            okText = gettext('Save');
         }
 
+
         return okText;
+    }
+
+    getRenderItem(itemType) {
+        switch (itemType) {
+        case ITEM_TYPE.EVENT:
+            return this.renderEvent();
+
+        case ITEM_TYPE.PLANNING:
+            return this.renderPlanning();
+        }
+
+        return null;
     }
 
     render() {
@@ -140,6 +155,7 @@ export class IgnoreCancelSaveModalComponent extends React.Component {
             onGoTo,
             onSaveAndPost,
             autoClose,
+            bodyText,
         } = modalProps || {};
 
         const okText = this.getOkText();
@@ -156,9 +172,7 @@ export class IgnoreCancelSaveModalComponent extends React.Component {
                     action: (onGoTo || onSave || onSaveAndPost) ? this.onSubmit : null,
                     okText: okText,
                     title: title || gettext('Save Changes?'),
-                    body: itemType === ITEM_TYPE.EVENT ?
-                        this.renderEvent() :
-                        this.renderPlanning(),
+                    body: bodyText || this.getRenderItem(itemType),
                     autoClose: autoClose,
                 }}
             />
@@ -178,6 +192,7 @@ IgnoreCancelSaveModalComponent.propTypes = {
         onSaveAndPost: PropTypes.func,
         title: PropTypes.string,
         autoClose: PropTypes.bool,
+        bodyText: PropTypes.string,
     }),
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,

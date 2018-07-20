@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import {get} from 'lodash';
 import {Modal} from '../../index';
 import {ButtonList} from '../../UI';
 import * as actions from '../../../actions';
@@ -9,8 +10,20 @@ import {PRIVILEGES} from '../../../constants';
 import {getItemInArrayById} from '../../../utils';
 
 
-const UnlockFeaturedPlanningComponent = ({handleHide, lockUser, unlockFeaturedPlanning, users, privileges}) => {
-    const userName = getItemInArrayById(users, lockUser).display_name;
+const UnlockFeaturedPlanningComponent = ({
+    handleHide,
+    currentUserId,
+    lockUser,
+    unlockFeaturedPlanning,
+    users,
+    privileges,
+}) => {
+    if (!lockUser) {
+        handleHide();
+        return null;
+    }
+
+    const userName = get(getItemInArrayById(users, lockUser), 'display_name');
     let buttonList = [{
         className: 'pull-right',
         onClick: handleHide,
@@ -35,7 +48,9 @@ const UnlockFeaturedPlanningComponent = ({handleHide, lockUser, unlockFeaturedPl
                 <h3>{gettext('Featured Stories Locked')}</h3>
             </Modal.Header>
             <Modal.Body>
-                {gettext(`'${userName}' is currently managing featured stories.`
+                {currentUserId === lockUser ?
+                    gettext('You are currently managing featured story in another session') :
+                    gettext(`'${userName}' is currently managing featured stories.`
                     + ' This feature can only be accessed by one user at a time.')}
             </Modal.Body>
             <Modal.Footer>
@@ -49,14 +64,16 @@ UnlockFeaturedPlanningComponent.propTypes = {
     handleHide: PropTypes.func,
     unlockFeaturedPlanning: PropTypes.func.isRequired,
     lockUser: PropTypes.string,
-    users: PropTypes.arry,
+    users: PropTypes.array,
     privileges: PropTypes.object,
+    currentUserId: PropTypes.string,
 };
 
 const mapStateToProps = (state) => (
     {
         users: selectors.general.users(state),
-        lockUser: selectors.planning.featureLockUser(state),
+        currentUserId: selectors.general.currentUserId(state),
+        lockUser: selectors.featuredPlanning.featureLockUser(state),
         privileges: selectors.general.privileges(state),
     }
 );

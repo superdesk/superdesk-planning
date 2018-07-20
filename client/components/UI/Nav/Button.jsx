@@ -21,12 +21,13 @@ export const Button = ({
     left,
     darker,
     active,
+    navbtn,
     ...props
 }) => (
     <button
         className={classNames(
-            'navbtn',
             {
+                navbtn: navbtn,
                 'navbtn--left': left,
                 'navbtn--darker': darker,
                 'navbtn--active': active,
@@ -58,6 +59,7 @@ Button.propTypes = {
     left: PropTypes.bool,
     darker: PropTypes.bool,
     active: PropTypes.bool,
+    navbtn: PropTypes.bool,
 };
 
 Button.defaultProps = {
@@ -67,4 +69,5 @@ Button.defaultProps = {
     left: false,
     darker: false,
     active: false,
+    navbtn: true,
 };

@@ -57,7 +57,8 @@ describe('actions.assignments.ui', () => {
                     expect(assignmentsApi.link.args[0]).toEqual([{_id: 'as1'}, {_id: 'item1'}, true]);
                     expect(services.notify.success.callCount).toBe(1);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('call fails', (done) => {
@@ -71,7 +72,8 @@ describe('actions.assignments.ui', () => {
                     expect(services.notify.success.callCount).toBe(0);
                     expect(services.notify.error.callCount).toBe(1);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -82,7 +84,8 @@ describe('actions.assignments.ui', () => {
                     expect(assignmentsApi.query.callCount).toBe(1);
                     expect(assignmentsApi.query.args[0][0].states).toEqual(['in_progress']);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('queryAndSetAssignmentListGroups will use default page as 1 in query', (done) => {
@@ -91,7 +94,8 @@ describe('actions.assignments.ui', () => {
                     expect(assignmentsApi.query.callCount).toBe(1);
                     expect(assignmentsApi.query.args[0][0].page).toEqual(1);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('reloadAssignments will query all list groups if not state filter is passed', (done) => {
@@ -99,7 +103,8 @@ describe('actions.assignments.ui', () => {
                 .then(() => {
                     expect(assignmentsApi.query.callCount).toBe(3);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('loadMoreAssignments will increment page number', (done) => {
@@ -108,7 +113,8 @@ describe('actions.assignments.ui', () => {
                     expect(assignmentsApi.query.callCount).toBe(1);
                     expect(assignmentsApi.query.args[0][0].page).toEqual(2);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -121,7 +127,7 @@ describe('actions.assignments.ui', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('Notifies the user if the planning lock fails', (done) => {
             restoreSinonStub(planningApi.lock);
@@ -137,7 +143,8 @@ describe('actions.assignments.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -150,7 +157,7 @@ describe('actions.assignments.ui', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('Notifies the user if the assignment lock fails', (done) => {
             restoreSinonStub(assignmentsApi.lock);
@@ -166,7 +173,8 @@ describe('actions.assignments.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -179,7 +187,7 @@ describe('actions.assignments.ui', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('Notifies the user if the planning unlock fails', (done) => {
             restoreSinonStub(planningApi.unlock);
@@ -192,7 +200,8 @@ describe('actions.assignments.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -205,7 +214,7 @@ describe('actions.assignments.ui', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('Notifies the user if the assignment unlock fails', (done) => {
             restoreSinonStub(assignmentsApi.unlock);
@@ -218,7 +227,8 @@ describe('actions.assignments.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -251,7 +261,7 @@ describe('actions.assignments.ui', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('Notifies the user if locking Assignment fails', (done) => {
             restoreSinonStub(assignmentsUi.lockAssignment);
@@ -270,7 +280,8 @@ describe('actions.assignments.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('Notifies the user if locking Planning fails', (done) => {
@@ -290,7 +301,8 @@ describe('actions.assignments.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -322,7 +334,7 @@ describe('actions.assignments.ui', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('Notifies the user if unlocking Assignment fails', (done) => {
             restoreSinonStub(assignmentsUi.unlockAssignment);
@@ -338,7 +350,8 @@ describe('actions.assignments.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('Notifies the user if unlocking Planning fails', (done) => {
@@ -355,7 +368,8 @@ describe('actions.assignments.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -392,7 +406,7 @@ describe('actions.assignments.ui', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('returns Promise.reject on locking error', (done) => {
             restoreSinonStub(assignmentsUi.lockAssignmentAndPlanning);
@@ -404,7 +418,8 @@ describe('actions.assignments.ui', () => {
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -430,7 +445,7 @@ describe('actions.assignments.ui', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('Notifies user if removeAssignment fails', (done) => {
             restoreSinonStub(assignmentsApi.removeAssignment);
@@ -444,7 +459,8 @@ describe('actions.assignments.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -466,7 +482,8 @@ describe('actions.assignments.ui', () => {
                     expect(assignmentsUi.closePreview.callCount).toBe(0);
                     expect(services.authoringWorkspace.view.callCount).toBe(0);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('openArchivePreview fetches the archive item and opens the authoring workspace in view mode', (done) => {
@@ -484,7 +501,8 @@ describe('actions.assignments.ui', () => {
                     expect(services.authoringWorkspace.view.callCount).toBe(1);
                     expect(services.authoringWorkspace.view.args[0]).toEqual([testData.archive[0]]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('openArchivePreview returns rejected Promise on failure to load the archive item', (done) => {
@@ -499,7 +517,8 @@ describe('actions.assignments.ui', () => {
                     expect(services.authoringWorkspace.view.callCount).toBe(0);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -559,7 +578,8 @@ describe('actions.assignments.ui', () => {
                 .then(() => {
                     expect(assignmentsUi.preview.callCount).toBe(1);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('Fetches assignment if not in store', (done) => {
@@ -573,7 +593,8 @@ describe('actions.assignments.ui', () => {
                 .then(() => {
                     expect(assignmentsUi.preview.callCount).toBe(1);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('Does not preview assignment if user is not part of assignment item desk', (done) => {
@@ -590,7 +611,8 @@ describe('actions.assignments.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(
                         ['Insufficient privileges to view the assignment']);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('Notifies if assignment does not exist', (done) => {
@@ -607,7 +629,8 @@ describe('actions.assignments.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(
                         ['Assignment does not exist']);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 });

@@ -179,7 +179,8 @@ describe('Main.ItemEditor.Editor', () => {
                     expect(buttons.unpost.isDisabled()).toBe(false);
                     expect(buttons.update.isDisabled()).toBe(true);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('EditorHeader button states on posting error', (done) => {
@@ -216,7 +217,8 @@ describe('Main.ItemEditor.Editor', () => {
                     expect(buttons.post.isDisabled()).toBe(false);
                     expect(buttons.save.isDisabled()).toBe(true);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('Shows validation errors', () => {

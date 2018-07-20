@@ -42,7 +42,7 @@ export class JumpToDropdown extends React.Component {
                     dropdown={true}
                     textWithIcon={true}
                 >
-                    {this.props.currentStartFilter.format('LL')}
+                    {this.props.currentStartFilter.format(this.props.dateFormat)}
                 </NavButton>
 
                 {this.state.popupOpened && (
@@ -51,6 +51,7 @@ export class JumpToDropdown extends React.Component {
                         close={this.togglePopup}
                         target="subnav-calendar__jump-to"
                         value={this.props.currentStartFilter}
+                        timezone={this.props.defaultTimeZone}
                     />
                 )}
             </DropMenu>
@@ -61,4 +62,8 @@ export class JumpToDropdown extends React.Component {
 JumpToDropdown.propTypes = {
     currentStartFilter: PropTypes.object,
     setStartFilter: PropTypes.func,
+    defaultTimeZone: PropTypes.string,
+    dateFormat: PropTypes.string,
 };
+
+JumpToDropdown.defaultProps = {dateFormat: 'LL'};

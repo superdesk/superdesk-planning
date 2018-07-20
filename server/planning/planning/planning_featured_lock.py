@@ -71,12 +71,14 @@ class PlanningFeaturedLockService(BaseService):
 
     def on_created(self, docs):
         user_id = get_user(required=True)['_id']
+        session_id = get_auth()['_id']
         unlock(LOCK_ID, remove=True)
-        push_notification('featured:lock', user=str(user_id))
+        push_notification('planning_featured_lock:lock', user=str(user_id), lock_session=str(session_id))
 
     def on_deleted(self, doc):
         user_id = get_user(required=True)['_id']
-        push_notification('featured:unlock', user=str(user_id))
+        session_id = get_auth()['_id']
+        push_notification('planning_featured_lock:unlock', user=str(user_id), lock_session=str(session_id))
 
 
 class PlanningFeaturedUnlockResource(Resource):

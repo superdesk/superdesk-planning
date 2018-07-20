@@ -42,7 +42,8 @@ describe('actions.locks', () => {
                         payload: {assignments: ['as']},
                     }]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -61,7 +62,7 @@ describe('actions.locks', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('Uses add_to_planning if in AUTHORING workspace', (done) => {
             store.initialState.workspace.currentWorkspace = WORKSPACE.AUTHORING;
@@ -71,7 +72,8 @@ describe('actions.locks', () => {
                     expect(planningApi.lock.args[0]).toEqual([data.plannings[0], 'add_to_planning']);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('Returns Promise.reject if could not determine item type', (done) => (
@@ -87,6 +89,6 @@ describe('actions.locks', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 });

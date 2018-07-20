@@ -14,7 +14,6 @@ export const agendas = (state) => get(state, 'agenda.agendas', []);
 export const currentAgendaId = (state) => get(state, 'agenda.currentAgendaId', null);
 export const currentPlanningId = (state) => get(state, 'planning.currentPlanningId');
 export const currentSearch = (state) => get(state, 'main.search.PLANNING.currentSearch');
-export const featureLockUser = (state) => get(state, 'planning.featureLockUser', null);
 const fullText = (state) => get(state, 'main.search.PLANNING.fulltext', '');
 const previewId = (state) => get(state, 'main.previewId', null);
 

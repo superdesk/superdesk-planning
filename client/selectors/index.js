@@ -8,6 +8,7 @@ import * as locks from './locks';
 import * as eventsPlanning from './eventsplanning';
 import * as multiSelect from './multiSelect';
 import * as vocabs from './vocabs';
+import * as featuredPlanning from './featuredPlanning';
 
 export * from './assignments';
 
@@ -22,4 +23,5 @@ export {
     eventsPlanning,
     multiSelect,
     vocabs,
+    featuredPlanning,
 };

@@ -137,6 +137,13 @@ class LockService(BaseComponent):
         self.unlock_session_for_resource(user_id, session_id, 'planning')
         self.unlock_session_for_resource(user_id, session_id, 'events')
         self.unlock_session_for_resource(user_id, session_id, 'assignments')
+        self.unlock_featured_planning(user_id, session_id)
+
+    def unlock_featured_planning(self, user_id, session_id):
+        item_service = get_resource_service('planning_featured_lock')
+        items = item_service.find(where={'lock_session': session_id})
+        if items.count() > 0:
+            item_service.delete_action(lookup={})
 
     def unlock_session_for_resource(self, user_id, session_id, resource):
         item_service = get_resource_service(resource)

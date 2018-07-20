@@ -25,7 +25,7 @@ describe('actions.events.ui', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 
     describe('itemBulkUnSpikeModal', () => {
@@ -43,6 +43,6 @@ describe('actions.events.ui', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 });

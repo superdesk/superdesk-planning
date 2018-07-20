@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
+import momentTz from 'moment-timezone';
+import {get} from 'lodash';
 import {LineInput, Label, Input} from '../';
 import {IconButton} from '../../';
 import {DateInputPopup} from './DateInputPopup';
@@ -113,7 +115,7 @@ export class DateInput extends React.Component {
         if (newMoment.isValid() && (!newMoment.isSame(value)) || !value) {
             onChange(
                 field,
-                newMoment
+                moment.tz(newMoment, get(this.props, 'timezone', momentTz.tz.guess()))
             );
         }
     }
@@ -192,6 +194,7 @@ DateInput.propTypes = {
     noMargin: PropTypes.bool,
     popupContainer: PropTypes.func,
     onFocus: PropTypes.func,
+    timezone: PropTypes.string,
 };
 
 DateInput.defaultProps = {
