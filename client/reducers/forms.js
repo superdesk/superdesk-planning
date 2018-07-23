@@ -17,6 +17,7 @@ const initialState = {
     initialValuesModal: null,
     loadingEditItemModal: false,
     itemHistory: [],
+    itemHistoryModal: [],
 };
 
 const newStateOnEditorOpen = (state, payload, modal = false) => {
@@ -74,6 +75,8 @@ const formsReducer = createReducer(initialState, {
         itemId: null,
         itemType: null,
         initialValues: null,
+        itemHistory: [],
+        itemHistoryModal: [],
     }),
 
     [MAIN.ACTIONS.CLOSE_EDITOR_MODAL]: (state) => ({
@@ -164,6 +167,11 @@ const formsReducer = createReducer(initialState, {
     [MAIN.ACTIONS.RECEIVE_EDITOR_ITEM_HISTORY]: (state, payload) => ({
         ...state,
         itemHistory: payload,
+    }),
+
+    [MAIN.ACTIONS.RECEIVE_EDITOR_MODAL_ITEM_HISTORY]: (state, payload) => ({
+        ...state,
+        itemHistoryModal: payload,
     }),
 });
 

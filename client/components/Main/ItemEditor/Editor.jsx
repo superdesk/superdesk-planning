@@ -65,7 +65,14 @@ export class EditorComponent extends React.Component {
 
         this.tabs = [
             {label: gettext('Content'), render: EditorContentTab, enabled: true},
-            {label: gettext('History'), render: HistoryTab, enabled: true, tabProps: {forEditor: true}},
+            {
+                label: gettext('History'),
+                render: HistoryTab,
+                enabled: true,
+                tabProps: {
+                    forEditor: !this.props.inModalView,
+                    forEditorModal: this.props.inModalView,
+                }},
         ];
 
         if (this.props.addNewsItemToPlanning) {

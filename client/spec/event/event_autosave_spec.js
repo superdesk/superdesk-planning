@@ -17,7 +17,6 @@ describe('event_autosave', () => {
             dates: {start: {date: '12/12/2045'}},
             occur_status: 'eocstat:eos1',
             calendars: ['Sport', 'Finance'],
-            location: 'Sydney, Australia',
             anpa_category: ['Domestic Sport', 'Finance'],
             subject: ['sports awards'],
             definition_long: 'Desc. Long',
@@ -38,7 +37,6 @@ describe('event_autosave', () => {
                     time: '00:59',
                 },
             },
-            location: 'Sydney\nNSW, Australia',
             files: ['file1.test', 'file2.test'],
         });
 

@@ -1136,8 +1136,9 @@ const fetchItemHistory = (item) => (
         let historyDispatch;
         const previewId = selectors.main.previewId(getState());
         const editId = selectors.forms.currentItemId(getState());
+        const editIdModal = selectors.forms.currentItemIdModal(getState());
 
-        if (!isExistingItem(item) || (previewId !== item._id && editId !== item._id)) {
+        if (!isExistingItem(item) || ![previewId, editIdModal, editId].includes(item._id)) {
             return Promise.resolve();
         }
 
@@ -1161,6 +1162,13 @@ const fetchItemHistory = (item) => (
             if (previewId === item._id) {
                 dispatch({
                     type: MAIN.ACTIONS.RECEIVE_PREVIEW_ITEM_HISTORY,
+                    payload: historyItems,
+                });
+            }
+
+            if (editIdModal === item._id) {
+                dispatch({
+                    type: MAIN.ACTIONS.RECEIVE_EDITOR_MODAL_ITEM_HISTORY,
                     payload: historyItems,
                 });
             }
