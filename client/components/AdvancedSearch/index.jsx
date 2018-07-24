@@ -208,6 +208,15 @@ export class AdvancedSearch extends React.Component {
                     },
                     component: ToggleInput,
                 },
+                featured: {
+                    props: {
+                        field: 'advancedSearch.featured',
+                        label: gettext('Featured'),
+                        value: get(diff, 'advancedSearch.featured', null),
+                        labelLeft: true,
+                    },
+                    component: ToggleInput,
+                },
                 contentType: {
                     props: {
                         field: 'advancedSearch.g2_content_type',
@@ -310,8 +319,8 @@ export class AdvancedSearch extends React.Component {
                     fields.dateFilters,
                 ],
                 [MAIN.FILTERS.PLANNING]: [
-                    fields.slugline, fields.contentType, fields.noCoverage, fields.anpa_category, fields.subject,
-                    fields.urgency, fields.state,
+                    fields.slugline, fields.contentType, fields.noCoverage, fields.featured,
+                    fields.anpa_category, fields.subject, fields.urgency, fields.state,
                     fields.pubstatus, fields.spikeState,
                     fields.startDateTime, fields.endDateTime, fields.dateFilters,
                 ],
