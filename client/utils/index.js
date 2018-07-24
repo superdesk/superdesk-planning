@@ -15,7 +15,9 @@ import {
     MAIN,
     SPIKED_STATE,
     TEMP_ID_PREFIX, PRIVILEGES,
-    AUTOSAVE, QUEUE_ITEM_PREFIX,
+    AUTOSAVE,
+    QUEUE_ITEM_PREFIX,
+    FEATURED_PLANNING,
 } from '../constants/index';
 import * as testData from './testData';
 import {default as lockUtils} from './locks';
@@ -797,3 +799,5 @@ export const itemsEqual = (nextItem, currentItem) => {
  * @returns {boolean}
  */
 export const isPlanningModuleItem = (item) => isEvent(item) || isPlanning(item) || isAssignment(item);
+
+export const getIdForFeauturedPlanning = (date) => (date.format(FEATURED_PLANNING.ID_DATE_FORMAT));

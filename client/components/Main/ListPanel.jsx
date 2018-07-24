@@ -171,4 +171,3 @@ ListPanel.propTypes = {
     showAddCoverage: PropTypes.bool,
     hideItemActions: PropTypes.bool,
 };
-

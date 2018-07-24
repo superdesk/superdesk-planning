@@ -23,6 +23,7 @@ from .planning_export import PlanningExportResource, PlanningExportService, get_
 from .planning_autosave import PlanningAutosaveResource
 from .planning_featured_lock import PlanningFeaturedLockResource, PlanningFeaturedLockService,\
     PlanningFeaturedUnlockResource, PlanningFeaturedUnlockService
+from .planning_featured import PlanningFeaturedResource, PlanningFeaturedService
 from planning.autosave import AutosaveService
 
 
@@ -92,6 +93,9 @@ def init_app(app):
                                                                      backend=superdesk.get_backend())
     PlanningFeaturedUnlockResource(PlanningFeaturedUnlockResource.endpoint_name, app=app,
                                    service=planning_featured_unlock_service)
+
+    planning_featured_service = PlanningFeaturedService('planning_featured', backend=superdesk.get_backend())
+    PlanningFeaturedResource('planning_featured', app=app, service=planning_featured_service)
 
     superdesk.register_resource(
         'planning_export',

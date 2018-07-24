@@ -14,6 +14,7 @@ import main from './main';
 import eventsPlanning from './eventsplanning';
 import multiSelect from './multiSelect';
 import selected from './publishQueuePreview';
+import featuredPlanning from './featuredPlanning';
 
 const returnState = (state) => state || {};
 
@@ -33,7 +34,7 @@ const planningApp = combineReducers({
     eventsPlanning: eventsPlanning,
     multiSelect: multiSelect,
     selected: selected,
-
+    featuredPlanning: featuredPlanning,
 
     // The following doesn't require reducers as they are loaded using sdPlanningService
     config: returnState,

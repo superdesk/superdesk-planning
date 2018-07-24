@@ -32,7 +32,6 @@ describe('planning', () => {
                 editorOpened: false,
                 readOnly: true,
                 planningHistoryItems: [],
-                featureLockUser: null,
             });
         });
 

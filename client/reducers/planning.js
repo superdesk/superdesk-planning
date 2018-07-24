@@ -1,5 +1,5 @@
 import {cloneDeep, get, uniq, find} from 'lodash';
-import {createReducer, getItemId, getItemType, planningUtils} from '../utils';
+import {createReducer, getItemType, planningUtils} from '../utils';
 import {
     PLANNING,
     WORKFLOW_STATE,
@@ -18,24 +18,10 @@ const initialState = {
     editorOpened: false,
     readOnly: true,
     planningHistoryItems: [],
-    featureLockUser: null,
 };
 
 let plannings;
 let plan;
-
-const modifyPlanningsBeingAdded = (state, payload) => {
-    // payload must be an array. If not, we transform
-    const plans = Array.isArray(payload) ? payload : [payload];
-
-    // clone plannings
-    plannings = cloneDeep(get(state, 'plannings'));
-
-    plans.forEach((planning) => {
-        planningUtils.modifyForClient(planning);
-        plannings[getItemId(planning)] = planning;
-    });
-};
 
 const planningReducer = createReducer(initialState, {
     [RESET_STORE]: () => (initialState),
@@ -64,14 +50,12 @@ const planningReducer = createReducer(initialState, {
         }
     ),
 
-    [PLANNING.ACTIONS.RECEIVE_PLANNINGS]: (state, payload) => {
-        modifyPlanningsBeingAdded(state, payload);
+    [PLANNING.ACTIONS.RECEIVE_PLANNINGS]: (state, payload) =>
         // return new state
-        return {
+        ({
             ...state,
-            plannings: plannings,
-        };
-    },
+            plannings: planningUtils.modifyPlanningsBeingAdded(state, payload),
+        }),
 
     [PLANNING.ACTIONS.RECEIVE_PLANNING_HISTORY]: (state, payload) => ({
         ...state,
@@ -269,16 +253,6 @@ const planningReducer = createReducer(initialState, {
             plannings,
         };
     },
-
-    [PLANNING.ACTIONS.FEATURED_LOCKED]: (state, payload) => ({
-        ...state,
-        featureLockUser: payload,
-    }),
-
-    [PLANNING.ACTIONS.FEATURED_UNLOCKED]: (state, payload) => ({
-        ...state,
-        featureLockUser: null,
-    }),
 });
 
 const markPlaning = (plan, payload, action) => {

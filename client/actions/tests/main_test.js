@@ -88,7 +88,7 @@ describe('actions.main', () => {
                     expect(eventsUi.clearList.callCount).toBe(1);
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('filter events', (done) => (
             store.test(done, main.filter(MAIN.FILTERS.EVENTS))
@@ -111,7 +111,7 @@ describe('actions.main', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('filter planning', (done) => (
             store.test(done, main.filter(MAIN.FILTERS.PLANNING))
@@ -131,7 +131,7 @@ describe('actions.main', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 
     describe('unpost', () => {
@@ -153,7 +153,7 @@ describe('actions.main', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('calls planning.ui.unpost', (done) => (
             store.test(done, main.unpost(data.plannings[0]))
@@ -163,7 +163,7 @@ describe('actions.main', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('raises an error if the item type was not found', (done) => (
             store.test(done, main.unpost({}))
@@ -175,7 +175,7 @@ describe('actions.main', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 
     describe('lockAndEdit', () => {
@@ -202,7 +202,7 @@ describe('actions.main', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('calls locks.lock then main.openEditor when called with an existing item', (done) => (
             store.test(done, main.lockAndEdit(data.events[0]))
@@ -219,7 +219,7 @@ describe('actions.main', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('closes the preview panel if item being edited is open for preview', (done) => {
             store.init();
@@ -238,7 +238,8 @@ describe('actions.main', () => {
                     expect(main.openEditor.args[0]).toEqual([data.events[1]]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('notifies the user if locking failed', (done) => {
@@ -250,7 +251,8 @@ describe('actions.main', () => {
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -273,7 +275,8 @@ describe('actions.main', () => {
                 .then(() => {
                     expect(eventsUi.loadMore.callCount).toBe(1);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('load more planning', (done) => {
@@ -281,7 +284,8 @@ describe('actions.main', () => {
                 .then(() => {
                     expect(planningUi.loadMore.callCount).toBe(1);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('load more combined', (done) => {
@@ -289,7 +293,8 @@ describe('actions.main', () => {
                 .then(() => {
                     expect(eventsPlanningUi.loadMore.callCount).toBe(1);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -313,7 +318,8 @@ describe('actions.main', () => {
                     expect(eventsUi.fetchEvents.callCount).toBe(1);
                     expect(eventsUi.fetchEvents.args[0]).toEqual([{page: 1, fulltext: 'EVENTS'}]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('search planning', (done) => {
@@ -324,7 +330,8 @@ describe('actions.main', () => {
                     expect(planningUi.fetchToList.args[0][0].page).toBe(1);
                     expect(planningUi.fetchToList.args[0][0].fulltext).toBe('PLANNING');
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('search combined', (done) => {
@@ -334,7 +341,8 @@ describe('actions.main', () => {
                     expect(eventsPlanningUi.fetch.callCount).toBe(1);
                     expect(eventsPlanningUi.fetch.args[0]).toEqual([{page: 1, fulltext: 'COMBINED'}]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -358,7 +366,8 @@ describe('actions.main', () => {
                     expect(eventsUi.fetchEvents.callCount).toBe(1);
                     expect(eventsUi.fetchEvents.args[0]).toEqual([{}]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('clear search planning', (done) => {
@@ -376,7 +385,8 @@ describe('actions.main', () => {
                         excludeRescheduledAndCancelled: false,
                         page: 1}]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('clear search event planning', (done) => {
@@ -386,7 +396,8 @@ describe('actions.main', () => {
                     expect(eventsPlanningUi.fetch.callCount).toBe(1);
                     expect(eventsPlanningUi.fetch.args[0]).toEqual([{}]);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -481,7 +492,7 @@ describe('actions.main', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('fails if unknown item type supplied', (done) => (
             store.test(done, main.loadItem('e1', 'dummy', 'edit'))
@@ -495,7 +506,7 @@ describe('actions.main', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
     });
 
     describe('openFromURLOrRedux', () => {
@@ -614,7 +625,7 @@ describe('actions.main', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('unlocks and runs action if there is no autosave data', (done) => {
             store.init();
@@ -660,7 +671,8 @@ describe('actions.main', () => {
                     ]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('runs openIgnoreCancelSaveModal when open in the Editor', (done) => {
@@ -699,7 +711,8 @@ describe('actions.main', () => {
                     }]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('runs openIgnoreCancelSaveModal when open in the EditorModal', (done) => {
@@ -740,7 +753,8 @@ describe('actions.main', () => {
                     }]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('runs openIgnoreCancelSaveModal when item minimised', (done) => {
@@ -780,7 +794,8 @@ describe('actions.main', () => {
                     }]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -801,7 +816,7 @@ describe('actions.main', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('Autosaves a Planning item', (done) => {
             store.init();
@@ -829,7 +844,8 @@ describe('actions.main', () => {
                     ]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('Autosaves an Event', (done) => {
@@ -860,7 +876,8 @@ describe('actions.main', () => {
                     ]);
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 

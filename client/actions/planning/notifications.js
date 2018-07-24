@@ -5,7 +5,7 @@ import {gettext} from '../../utils';
 import * as selectors from '../../selectors';
 import {events, fetchAgendas} from '../index';
 import main from '../main';
-import {PLANNING, ITEM_TYPE, MODALS} from '../../constants';
+import {PLANNING, ITEM_TYPE, MODALS, FEATURED_PLANNING} from '../../constants';
 import {showModal, hideModal} from '../index';
 import eventsPlanning from '../eventsPlanning';
 
@@ -45,13 +45,13 @@ const onPlanningUpdated = (_e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
             dispatch(planning.ui.scheduleRefetch())
-                .then((items) => {
+                .then((results) => {
                     const selectedItems = selectors.multiSelect.selectedPlannings(getState());
                     const currentPreviewId = selectors.main.previewId(getState());
                     const currentEditId = selectors.forms.currentItemId(getState());
 
                     const loadedFromRefetch = selectedItems.indexOf(data.item) !== -1 &&
-                        !items.find((plan) => plan._id === data.item);
+                        !get(results, '[0]._items').find((plan) => plan._id === data.item);
 
                     if (!loadedFromRefetch && (currentPreviewId === data.item || currentEditId === data.item)) {
                         dispatch(planning.api.fetchById(data.item, {force: true}));
@@ -63,6 +63,7 @@ const onPlanningUpdated = (_e, data) => (
                     }
                     dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
                     dispatch(udpateAssignmentHistory(data.item));
+                    dispatch(planning.featuredPlanning.onPlanningUpdatedNotification(data.item));
                 });
         }
 
@@ -175,6 +176,7 @@ const onPlanningSpiked = (_e, data) => (
                 gettext('The Planning item was spiked')
             ));
 
+            dispatch(planning.featuredPlanning.removePlanningItemFromSelection(data.item));
             dispatch(main.setUnsetLoadingIndicator(true));
             return dispatch(planning.ui.scheduleRefetch())
                 .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
@@ -201,6 +203,7 @@ const onPlanningUnspiked = (_e, data) => (
                 [{_id: data.item}],
                 gettext('The Planning item was unspiked')
             ));
+            dispatch(planning.featuredPlanning.addPlanningItemToSelection(data.item));
 
             dispatch(main.setUnsetLoadingIndicator(true));
             return dispatch(planning.ui.scheduleRefetch())
@@ -223,6 +226,7 @@ const onPlanningCancelled = (e, data) => (
             ));
             dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
             dispatch(udpateAssignmentHistory(data.item));
+            dispatch(planning.featuredPlanning.removePlanningItemFromSelection(data.item));
         }
     }
 );
@@ -290,9 +294,14 @@ const onPlanningExpired = (_e, data) => (
 const onPlanningFeaturedLocked = (_e, data) => (
     (dispatch) => {
         if (data && data.user) {
+            const payload = {
+                lock_user: data.user,
+                lock_session: data.lock_session,
+            };
+
             dispatch({
-                type: PLANNING.ACTIONS.FEATURED_LOCKED,
-                payload: data.user,
+                type: FEATURED_PLANNING.ACTIONS.LOCKED,
+                payload: payload,
             });
         }
     }
@@ -301,9 +310,9 @@ const onPlanningFeaturedLocked = (_e, data) => (
 const onPlanningFeaturedUnLocked = (_e, data) => (
     (dispatch, getState) => {
         if (data) {
-            dispatch({type: PLANNING.ACTIONS.FEATURED_UNLOCKED});
+            dispatch({type: FEATURED_PLANNING.ACTIONS.UNLOCKED});
 
-            if (selectors.general.modalType(getState()) === MODALS.FEATURED_STORIES) {
+            if (selectors.featuredPlanning.inUse(getState())) {
                 const user = selectors.general.users(getState()).find((u) => u._id === data.user);
 
                 // Close modal and send notification unlocked popup
@@ -354,8 +363,8 @@ self.events = {
     'planning:rescheduled': () => (self.onPlanningRescheduled),
     'planning:postponed': () => (self.onPlanningPostponed),
     'planning:expired': () => self.onPlanningExpired,
-    'featured:lock': () => self.onPlanningFeaturedLocked,
-    'featured:unlock': () => onPlanningFeaturedUnLocked,
+    'planning_featured_lock:lock': () => self.onPlanningFeaturedLocked,
+    'planning_featured_lock:unlock': () => onPlanningFeaturedUnLocked,
 };
 
 export default self;

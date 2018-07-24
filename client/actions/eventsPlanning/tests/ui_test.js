@@ -76,7 +76,7 @@ describe('actions.eventsplanning.ui', () => {
 
                 done();
             })
-    ));
+    ).catch(done.fail));
 
     it('load more and fetch data equal to page size', (done) => {
         store.initialState.main.search.COMBINED.lastRequestParams = {page: 2};
@@ -122,7 +122,8 @@ describe('actions.eventsplanning.ui', () => {
                 );
 
                 done();
-            });
+            })
+            .catch(done.fail);
     });
 
     describe('load more', () => {
@@ -175,7 +176,8 @@ describe('actions.eventsplanning.ui', () => {
                     );
 
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 
@@ -216,7 +218,8 @@ describe('actions.eventsplanning.ui', () => {
                 );
 
                 done();
-            });
+            })
+            .catch(done.fail);
     });
 
     it('show related plannings', (done) => {
@@ -237,6 +240,7 @@ describe('actions.eventsplanning.ui', () => {
                 );
 
                 done();
-            });
+            })
+            .catch(done.fail);
     });
 });

@@ -128,7 +128,7 @@ const mapDispatchToProps = (dispatch) => ({
     addPlanning: () => dispatch(actions.main.createNew(ITEM_TYPE.PLANNING)),
     selectCalendar: (calendarId) => dispatch(actions.events.ui.selectCalendar(calendarId)),
     setStartFilter: (start) => dispatch(actions.main.setStartFilter(start)),
-    openFeaturedPlanningModal: () => dispatch(actions.planning.ui.openFeaturedPlanningModal()),
+    openFeaturedPlanningModal: () => dispatch(actions.planning.featuredPlanning.openFeaturedPlanningModal()),
 });
 
 export const PlanningSubNav = connect(mapStateToProps, mapDispatchToProps)(PlanningSubNavComponent);

@@ -333,6 +333,7 @@ const query = (
         featured,
     },
     storeTotal = true
+
 ) => (
     (dispatch, getState, {api}) => {
         const startOfWeek = selectors.config.getStartOfWeek(getState());
@@ -386,6 +387,17 @@ const query = (
 
                 if (get(data, '_items')) {
                     data._items.forEach(planningUtils.modifyForClient);
+                    if (selectors.featuredPlanning.inUse(getState())) {
+                        // For featuredstories modal, we get all items in a loop
+                        // So, send the total along with the result for loop calculation
+                        const result = {
+                            _items: data._items,
+                            total: data._meta.total,
+                        };
+
+                        return Promise.resolve(result);
+                    }
+
                     return Promise.resolve(data._items);
                 } else {
                     return Promise.reject('Failed to retrieve items');
@@ -875,6 +887,10 @@ const lock = (planning, lockAction = 'edit') => (
     }
 );
 
+/**
+ * Locks featured stories action
+ * @return Promise
+ */
 const lockFeaturedPlanning = () => (
     (dispatch, getState, {api}) => (
         api('planning_featured_lock').save({}, {})
@@ -882,6 +898,39 @@ const lockFeaturedPlanning = () => (
     )
 );
 
+
+/**
+ * Fetches featured stories record
+ * @param {string} id - id of the record
+ * @return Promise
+ */
+const fetchFeaturedPlanningItemById = (id) => (
+    (dispatch, getState, {api}) => api.find('planning_featured', id).then((item) => item)
+);
+
+
+/**
+ * Action dispatcher to save the featured planning record through the API
+ * @param {object} updates - updates to save
+ * @return Promise
+ */
+const saveFeaturedPlanning = (updates) => (
+    (dispatch, getState, {api}) => {
+        const item = selectors.featuredPlanning.featuredPlanningItem(getState()) || {};
+
+        return api('planning_featured').save(cloneDeep(item), {
+            ...(pickBy(cloneDeep(item), (v, k) => (!k.startsWith('_')))),
+            ...updates,
+        })
+            .then((savedItem) => savedItem);
+    }
+);
+
+
+/**
+ * Unlocks featured planning action
+ * @return Promise
+ */
 const unlockFeaturedPlanning = () => (
     (dispatch, getState, {api, notify}) => (
         api('planning_featured_unlock').save({}, {})
@@ -1034,6 +1083,8 @@ const self = {
     getCriteria,
     lockFeaturedPlanning,
     unlockFeaturedPlanning,
+    saveFeaturedPlanning,
+    fetchFeaturedPlanningItemById,
 };
 
 export default self;

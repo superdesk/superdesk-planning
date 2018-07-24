@@ -57,9 +57,9 @@ const getActionDispatches = ({
         [PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName]:
             actions.planning.ui.assignToAgenda,
         [PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName]:
-            actions.planning.ui.modifyPlanningFeatured,
+            actions.planning.featuredPlanning.modifyPlanningFeatured,
         [PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName]:
-            actions.planning.ui.modifyPlanningFeatured,
+            actions.planning.featuredPlanning.modifyPlanningFeatured,
     };
     const props = {};
     const addAction = (action) => {

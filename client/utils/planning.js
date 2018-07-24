@@ -823,6 +823,22 @@ const defaultCoverageValues = (newsCoverageStatus, planningItem, g2contentType) 
     workflow_status: WORKFLOW_STATE.DRAFT,
 });
 
+
+const modifyPlanningsBeingAdded = (state, payload) => {
+    // payload must be an array. If not, we transform
+    const plans = Array.isArray(payload) ? payload : [payload];
+
+    // clone plannings
+    const plannings = cloneDeep(get(state, 'plannings'));
+
+    plans.forEach((planning) => {
+        self.modifyForClient(planning);
+        plannings[getItemId(planning)] = planning;
+    });
+
+    return plannings;
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     canSpikePlanning,
@@ -860,6 +876,7 @@ const self = {
     modifyForServer,
     defaultPlanningValues,
     defaultCoverageValues,
+    modifyPlanningsBeingAdded,
 };
 
 export default self;

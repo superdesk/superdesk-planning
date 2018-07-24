@@ -95,7 +95,7 @@ describe('Utils', () => {
 
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('rejects when maxRetries is exceeded', (done) => (
             dispatch(utils.dispatchUtils.retryDispatch(mockActionDispatcher(), mockCheck, maxRetries))
@@ -108,7 +108,7 @@ describe('Utils', () => {
                     expect(mockCheck.callCount).toBe(maxRetries);
                     done();
                 })
-        ));
+        ).catch(done.fail));
 
         it('fails on first action error', (done) => {
             mockAction = sinon.spy(() => Promise.reject({error_msg: 'Action failed!'}));
@@ -123,7 +123,8 @@ describe('Utils', () => {
                     expect(mockAction.callCount).toBe(1);
                     expect(mockCheck.callCount).toBe(0);
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('returns the action response on success', (done) => {
@@ -136,7 +137,8 @@ describe('Utils', () => {
                 }, () => {
                     expect(1).toBe(0, 'Should never get executed');
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('executes provided check function on data', (done) => {
@@ -157,7 +159,8 @@ describe('Utils', () => {
                 }, () => {
                     expect(1).toBe(0, 'Should never get executed');
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('if not scheduled dispatch is called', (done) => {
@@ -174,7 +177,8 @@ describe('Utils', () => {
                 }, () => {
                     expect(1).toBe(0, 'Should never get executed');
                     done();
-                });
+                })
+                .catch(done.fail);
         });
 
         it('if scheduled dispatch is not called', (done) => {
@@ -191,7 +195,8 @@ describe('Utils', () => {
                 }, () => {
                     expect(1).toBe(0, 'Should never get executed');
                     done();
-                });
+                })
+                .catch(done.fail);
         });
     });
 

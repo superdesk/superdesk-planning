@@ -870,6 +870,18 @@ export const initialState = {
     multiSelect: multiSelect,
     contacts: contacts,
     selected: {preview: {}},
+    featuredPlanning: {
+        item: null,
+        plannings: {},
+        planningsInList: [],
+        featureLockUser: null,
+        featureLockSession: null,
+        inUse: false,
+        currentSearch: null,
+        total: null,
+        loading: false,
+        unsavedItems: null,
+    },
 };
 
 export const items = {
