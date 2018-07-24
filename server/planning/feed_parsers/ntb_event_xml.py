@@ -31,7 +31,7 @@ class NTBEventXMLFeedParser(XMLFeedParser):
     label = 'NTB Event XML'
 
     def can_parse(self, xml):
-        return True
+        return xml.tag.endswith('document')
 
     def parse(self, xml, provider=None, content=None):
         items = []

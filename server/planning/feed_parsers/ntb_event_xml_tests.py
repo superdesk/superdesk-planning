@@ -47,7 +47,11 @@ class NTBEventXMLFeedParserTestCase(TestCase):
             </document>""")
 
     def test_ntb_event_xml_feed_parser_can_parse(self):
-        self.assertEqual(True, NTBEventXMLFeedParser().can_parse(self.xml))
+        self.assertTrue(NTBEventXMLFeedParser().can_parse(self.xml))
+        self.assertFalse(NTBEventXMLFeedParser().can_parse(ET.fromstring("""
+        <?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+        <newsMessage></newsMessage>
+        """.strip())))
 
     def test_ntb_event_xml_feed_parser_parse(self):
         with self.app.app_context():
