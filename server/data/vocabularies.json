@@ -60,6 +60,7 @@
             {"is_active": true, "name": "All", "qcode": "all",
                 "formats": [
                     {"name": "NINJS", "qcode": "ninjs"},
+                    {"name": "Newsroom NINJS", "qcode": "newsroom ninjs"},
                     {"name": "NewsML G2", "qcode": "newsmlg2"},
                     {"name": "Email", "qcode": "email"},
                     {"name": "NTB Event", "qcode": "ntb_event"},
@@ -69,6 +70,7 @@
             {"is_active": true, "name": "Digital/Internet", "qcode": "digital",
                 "formats": [
                     {"name": "NINJS", "qcode": "ninjs"},
+                    {"name": "Newsroom NINJS", "qcode": "newsroom ninjs"},
                     {"name": "NewsML G2", "qcode": "newsmlg2"},
                     {"name": "Email", "qcode": "email"},
                     {"name": "NTB Event", "qcode": "ntb_event"},
@@ -78,6 +80,7 @@
             {"is_active": true, "name": "Wire/Paper", "qcode": "wire",
                 "formats": [
                     {"name": "NITF", "qcode": "nitf"},
+                    {"name": "Newsroom NINJS", "qcode": "newsroom ninjs"},
                     {"name": "Email", "qcode": "email"},
                     {"name": "NTB Event", "qcode": "ntb_event"},
                     {"name": "JSON Event", "qcode": "json_event"},
