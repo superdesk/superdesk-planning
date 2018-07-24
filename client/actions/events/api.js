@@ -17,6 +17,7 @@ import {
     timeUtils,
     isExistingItem,
     isValidFileInput,
+    isPublishedItemId,
 } from '../../utils';
 import moment from 'moment';
 
@@ -998,6 +999,10 @@ const fetchById = (eventId, {force = false, saveToStore = true, loadPlanning = t
         // If so, return that instance instead
         const storedEvents = selectors.events.storedEvents(getState());
         let promise;
+
+        if (isPublishedItemId(eventId)) {
+            return Promise.resolve({});
+        }
 
         if (has(storedEvents, eventId) && !force) {
             promise = Promise.resolve(storedEvents[eventId]);

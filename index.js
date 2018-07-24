@@ -6,8 +6,9 @@ import planningModule from './client';
 import * as ctrl from './client/controllers';
 import {get} from 'lodash';
 
-configurePlanning.$inject = ['superdeskProvider'];
-function configurePlanning(superdesk) {
+
+configurePlanning.$inject = ['superdeskProvider', '$injector'];
+function configurePlanning(superdesk, $injector) {
     superdesk
         .activity('/planning', {
             label: gettext('Planning'),

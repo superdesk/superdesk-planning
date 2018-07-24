@@ -6,6 +6,7 @@ import * as actions from '../actions';
 import {WORKSPACE} from '../constants';
 import {PlanningApp} from '../apps';
 
+
 export class PlanningController {
     constructor(
         $element,
@@ -61,6 +62,8 @@ export class PlanningController {
         if (!workspaceChanged) {
             return Promise.resolve();
         }
+
+        this.store.dispatch(actions.main.closePublishQueuePreviewOnWorkspaceChange());
 
         return Promise.all([
             this.store.dispatch(actions.locks.loadAllLocks()),

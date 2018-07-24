@@ -68,7 +68,7 @@ export const unspikeEvent = (events, payload) => {
 };
 
 const eventsReducer = createReducer(initialState, {
-    [RESET_STORE]: () => (null),
+    [RESET_STORE]: () => (initialState),
 
     [INIT_STORE]: () => (initialState),
 

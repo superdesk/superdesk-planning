@@ -9,6 +9,7 @@ import {
     EVENTS,
     AUTOSAVE,
     AGENDA,
+    QUEUE_ITEM_PREFIX,
 } from '../constants';
 import {activeFilter, lastRequestParams} from '../selectors/main';
 import planningUi from './planning/ui';
@@ -38,6 +39,7 @@ import {
     getAutosaveItem,
     itemsEqual,
     removeAutosaveFields,
+    isPublishedItemId,
 } from '../utils';
 import eventsPlanningUi from './eventsPlanning/ui';
 import {get, omit, isEmpty, isNil, isEqual} from 'lodash';
@@ -892,8 +894,10 @@ const openPreview = (item) => (
             },
         });
 
-        // Update the URL
-        $timeout(() => $location.search('preview', JSON.stringify({id: item._id, type: item.type})));
+        if (!isPublishedItemId(item._id)) {
+            // Update the URL
+            $timeout(() => $location.search('preview', JSON.stringify({id: item._id, type: item.type})));
+        }
     }
 );
 
@@ -902,6 +906,10 @@ const openPreview = (item) => (
  */
 const closePreview = () => (
     (dispatch, getState, {$timeout, $location}) => {
+        if (selectors.main.publishQueuePreviewItem(getState())) {
+            $timeout(() => $location.search('_id', null));
+        }
+
         dispatch({type: MAIN.ACTIONS.CLOSE_PREVIEW});
 
         // Update the URL
@@ -1222,6 +1230,102 @@ const onItemUnlocked = (data, item, itemType) => (
     }
 );
 
+/**
+ * Action to fetch data from published planning version
+ * @param {object} item - published queue item
+ */
+const fetchQueueItem = (item) => (
+    (dispatch, getState, {api, notify}) => {
+        const itemId = get(item, 'item_id');
+        const itemType = get(item, 'content_type');
+        const itemVersion = get(item, 'item_version');
+        const uniqueKey = `${QUEUE_ITEM_PREFIX}--${itemId}--${itemVersion}`;
+        let storedItem = null;
+
+        if (itemType === ITEM_TYPE.EVENT) {
+            storedItem = get(selectors.events.storedEvents(getState()), `[${uniqueKey}]`, null);
+        } else if (itemType === ITEM_TYPE.PLANNING) {
+            storedItem = get(selectors.planning.storedPlannings(getState()), `[${uniqueKey}]`, null);
+        } else {
+            return Promise.reject();
+        }
+        if (storedItem) {
+            return Promise.resolve(storedItem);
+        }
+
+        return api('published_planning').query({
+            size: 1,
+            where: JSON.stringify({$and: [{item_id: itemId}, {version: itemVersion}, {type: itemType}]}),
+            embedded: {files: 1},
+        })
+            .then((results) => {
+                if (get(results, '_items.length', 0) > 0) {
+                    const publishedItem = get(results, '_items[0].published_item', null);
+
+                    if (publishedItem) {
+                        // set the _id as unique key
+                        publishedItem._id = uniqueKey;
+                        publishedItem.item_id = itemId;
+                        if (itemType === ITEM_TYPE.EVENT) {
+                            eventUtils.modifyForClient(publishedItem);
+                            dispatch(eventsApi.receiveEvents([publishedItem]));
+                        } else {
+                            planningUtils.modifyForClient(publishedItem);
+                            dispatch(planningApi.receivePlannings([publishedItem]));
+                        }
+                    }
+                    return Promise.resolve(publishedItem);
+                }
+                return Promise.resolve({});
+            }, (error) => {
+                notify.error(
+                    getErrorMessage(error, gettext('Failed to get the queue item'))
+                );
+                return Promise.reject();
+            });
+    }
+);
+
+/**
+ * Action to fetched published item and open the preview.
+ * @param {object} item - published queue item
+ */
+const fetchQueueItemAndPreview = (item) => (
+    (dispatch) => (
+        dispatch(self.fetchQueueItem(item))
+            .then(
+                (publishedItem) => dispatch(self.openPreview(publishedItem)),
+                (error) => Promise.reject(error)
+            )
+    )
+);
+
+/**
+ * Action to set the queue item.
+ * @param {object} item - published queue item
+ */
+const onQueueItemChange = (item) => (
+    (dispatch) => (
+        dispatch({
+            type: MAIN.ACTIONS.SET_PUBLISH_QUEUE_ITEM,
+            payload: item,
+        })
+    )
+);
+
+/**
+ * Action to close the publish queue item preview
+ */
+const closePublishQueuePreviewOnWorkspaceChange = () => (
+    (dispatch, getState) => {
+        const previewId = selectors.main.previewId(getState());
+
+        if (isPublishedItemId(previewId)) {
+            dispatch(self.closePreview());
+        }
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     lockAndEdit,
@@ -1261,6 +1365,10 @@ const self = {
     fetchItemHistory,
     reloadEditor,
     onItemUnlocked,
+    fetchQueueItem,
+    fetchQueueItemAndPreview,
+    onQueueItemChange,
+    closePublishQueuePreviewOnWorkspaceChange,
 };
 
 export default self;

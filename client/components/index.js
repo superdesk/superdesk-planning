@@ -35,6 +35,7 @@ export {AdvancedSearch} from './AdvancedSearch';
 export {InternalNoteLabel} from './InternalNoteLabel';
 export {Location} from './Location';
 export {IgnoreCancelSaveModal} from './IgnoreCancelSaveModal';
+export {PublishQueuePreview} from './PublishQueuePreview';
 
 // This must go last, as it imports Modals from above modules
 export {ModalsContainer} from './ModalsContainer';

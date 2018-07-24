@@ -123,3 +123,5 @@ export const isViewFiltered = createSelector(
             });
     }
 );
+
+export const publishQueuePreviewItem = (state) => get(state, 'selected.preview', null);

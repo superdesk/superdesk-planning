@@ -23,7 +23,7 @@ from planning.assignments import init_app as init_assignments_app
 from planning.search import init_app as init_search_app
 from planning.validate import init_app as init_validator_app
 from superdesk.celery_app import celery
-from .planning_published_versions import PublishedVersionsResource, PublishedVersionsService
+from .published_planning import PublishedPlanningResource, PublishedPlanningService
 
 from .commands import FlagExpiredItems
 import planning.commands  # noqa
@@ -43,10 +43,6 @@ def init_app(app):
     locations_search_service = LocationsService('locations', backend=superdesk.get_backend())
     LocationsResource('locations', app=app, service=locations_search_service)
 
-    endpoint_name = 'planning_versions'
-    planning_versions_service = PublishedVersionsService(endpoint_name, backend=superdesk.get_backend())
-    PublishedVersionsResource(endpoint_name, app=app, service=planning_versions_service)
-
     register_component(LockService(app))
 
     init_events_app(app)
@@ -54,6 +50,10 @@ def init_app(app):
     init_assignments_app(app)
     init_search_app(app)
     init_validator_app(app)
+
+    endpoint_name = 'published_planning'
+    planning_published_service = PublishedPlanningService(endpoint_name, backend=superdesk.get_backend())
+    PublishedPlanningResource(endpoint_name, app=app, service=planning_published_service)
 
     superdesk.privilege(
         name='planning',

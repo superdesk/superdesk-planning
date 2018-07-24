@@ -153,9 +153,9 @@ class EventsPostService(EventsBaseService):
 
         get_resource_service('events_history')._save_history(event, updates, 'post')
 
-        version_id = get_resource_service('planning_versions').post([{'item_id': event['_id'],
-                                                                      'version': version, 'type': 'event',
-                                                                      'published_item': event}])
+        version_id = get_resource_service('published_planning').post([{'item_id': event['_id'],
+                                                                       'version': version, 'type': 'event',
+                                                                       'published_item': event}])
         if version_id:
             # Asynchronously enqueue the item for publishing.
             enqueue_planning_item.apply_async(kwargs={'id': version_id[0]})

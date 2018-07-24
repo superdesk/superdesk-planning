@@ -55,7 +55,7 @@ class FlagExpiredItems(Command):
         logger.info('{} Completed flagging expired items.'.format(self.log_msg))
         remove_locks()
         logger.info('{} Starting to remove expired planning versions.'.format(self.log_msg))
-        self._remove_expired_planning_versions()
+        self._remove_expired_published_planning()
         logger.info('{} Completed removing expired planning versions.'.format(self.log_msg))
 
     def _flag_expired_events(self, expiry_datetime):
@@ -182,7 +182,7 @@ class FlagExpiredItems(Command):
         return latest_scheduled
 
     @staticmethod
-    def _remove_expired_planning_versions():
+    def _remove_expired_published_planning():
         """Expire planning versions
 
         Expiry of the planning versions mirrors the expiry of items within the publish queue in Superdesk so it uses the
@@ -196,7 +196,7 @@ class FlagExpiredItems(Command):
             expire_time = utcnow() - timedelta(minutes=expire_interval)
             logger.info('Removing planning history items created before {}'.format(str(expire_time)))
 
-            get_resource_service('planning_versions').delete({'_id': {'$lte': ObjectId.from_datetime(expire_time)}})
+            get_resource_service('published_planning').delete({'_id': {'$lte': ObjectId.from_datetime(expire_time)}})
 
 
 command('planning:flag_expired', FlagExpiredItems())

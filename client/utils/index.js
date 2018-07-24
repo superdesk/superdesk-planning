@@ -15,7 +15,7 @@ import {
     MAIN,
     SPIKED_STATE,
     TEMP_ID_PREFIX, PRIVILEGES,
-    AUTOSAVE,
+    AUTOSAVE, QUEUE_ITEM_PREFIX,
 } from '../constants/index';
 import * as testData from './testData';
 import {default as lockUtils} from './locks';
@@ -387,6 +387,7 @@ export const isItemKilled = (item) => getItemWorkflowState(item) === WORKFLOW_ST
 export const isItemPostponed = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.POSTPONED;
 export const isExistingItem = (item) => !!get(item, '_id') && !item._id.startsWith(TEMP_ID_PREFIX);
 export const isTemporaryId = (itemId) => itemId && itemId.startsWith(TEMP_ID_PREFIX);
+export const isPublishedItemId = (itemId) => itemId && itemId.startsWith(QUEUE_ITEM_PREFIX);
 
 export const getItemActionedStateLabel = (item) => {
     // Currently will cater for 'rescheduled from' scenario.
@@ -507,6 +508,7 @@ export const isItemSpiked = (item) => item ?
 
 export const isEvent = (item) => getItemType(item) === ITEM_TYPE.EVENT;
 export const isPlanning = (item) => getItemType(item) === ITEM_TYPE.PLANNING;
+export const isAssignment = (item) => getItemType(item) === ITEM_TYPE.ASSIGNMENT;
 export const isItemExpired = (item) => get(item, 'expired') || false;
 
 export const shouldLockItemForEdit = (item, lockedItems, privileges) =>
@@ -788,3 +790,10 @@ export const itemsEqual = (nextItem, currentItem) => {
 
     return isEqual(pickBy(nextItem, pickField), pickBy(currentItem, pickField));
 };
+
+/**
+ * Check if the item type is event or planning or assignment
+ * @param item
+ * @returns {boolean}
+ */
+export const isPlanningModuleItem = (item) => isEvent(item) || isPlanning(item) || isAssignment(item);

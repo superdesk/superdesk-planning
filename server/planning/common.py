@@ -235,7 +235,7 @@ def enqueue_planning_item(id):
     :param id:
     :return:
     """
-    planning_version = get_resource_service('planning_versions').find_one(req=None, _id=id)
+    planning_version = get_resource_service('published_planning').find_one(req=None, _id=id)
     if planning_version:
         try:
             get_enqueue_service('publish').enqueue_item(planning_version.get('published_item'), 'event')

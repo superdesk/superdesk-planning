@@ -472,7 +472,7 @@ class EventsResource(superdesk.Resource):
     See IPTC-G2-Implementation_Guide (version 2.21) Section 15.4 for schema details
     """
 
-    url = 'events'
+    endpoint_name = url = 'events'
     schema = events_schema
     item_url = 'regex("[\w,.:-]+")'
     resource_methods = ['GET', 'POST']

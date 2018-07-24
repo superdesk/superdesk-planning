@@ -19,6 +19,7 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
             session,
             onUnlock,
             itemActionDispatches,
+            hideItemActions,
         } = this.props;
 
         const itemActionsCallBack = {
@@ -43,8 +44,8 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
                 itemActionDispatches[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName].bind(null, item),
         };
-        const itemActions = eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack,
-            true);
+        const itemActions = !hideItemActions ?
+            eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack, true) : null;
         const lockedUser = lockUtils.getLockedUser(item, lockedItems, users);
         const lockRestricted = eventUtils.isEventLockRestricted(item, session, lockedItems);
         const unlockPrivilege = !!privileges[PRIVILEGES.EVENT_MANAGEMENT];
@@ -87,9 +88,10 @@ EventPreviewHeaderComponent.propTypes = {
     privileges: PropTypes.object,
     users: PropTypes.array,
     lockedItems: PropTypes.object,
+    itemActionDispatches: PropTypes.object,
+    hideItemActions: PropTypes.bool,
     duplicateEvent: PropTypes.func,
     onUnlock: PropTypes.func,
-    itemActionDispatches: PropTypes.object,
 };
 
 const mapStateToProps = (state, ownProps) => ({

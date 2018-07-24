@@ -107,6 +107,7 @@ export class EventPreviewContentComponent extends React.Component {
             createUploadLink,
             streetMapUrl,
             customVocabularies,
+            hideRelatedItems,
         } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
@@ -275,12 +276,12 @@ export class EventPreviewContentComponent extends React.Component {
                             <span className="sd-text__info">{gettext('No external links added.')}</span>}
                     </ToggleBox>
                 }
-                {item._plannings &&
+                {!hideRelatedItems && item._plannings &&
                     <h3 className="side-panel__heading side-panel__heading--big">
                         {gettext('Related Planning Items')}
                     </h3>
                 }
-                {get(item, '_plannings.length') > 0 ?
+                {!hideRelatedItems && get(item, '_plannings.length') > 0 ?
                     <RelatedPlannings
                         className="related-plannings"
                         plannings={item._plannings}
@@ -291,6 +292,7 @@ export class EventPreviewContentComponent extends React.Component {
                         timeFormat={timeFormat}
                         dateFormat={dateFormat}
                         allowEditPlanning={true} /> :
+                    !hideRelatedItems &&
                     <span className="sd-text__info">{gettext('No related planning items.')}</span>
                 }
 
@@ -313,6 +315,7 @@ EventPreviewContentComponent.propTypes = {
     streetMapUrl: PropTypes.string,
     fetchEventWithFiles: PropTypes.func,
     customVocabularies: PropTypes.array,
+    hideRelatedItems: PropTypes.bool,
 };
 
 const mapStateToProps = (state, ownProps) => ({

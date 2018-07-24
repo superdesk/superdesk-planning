@@ -31,8 +31,8 @@ def init_app(app):
 
     :param app: superdesk app
     """
-    planning_service = PlanningService('planning', backend=superdesk.get_backend())
-    PlanningResource('planning', app=app, service=planning_service)
+    planning_service = PlanningService(PlanningResource.endpoint_name, backend=superdesk.get_backend())
+    PlanningResource(PlanningResource.endpoint_name, app=app, service=planning_service)
 
     planning_lock_service = PlanningLockService('planning_lock', backend=superdesk.get_backend())
     PlanningLockResource('planning_lock', app=app, service=planning_lock_service)

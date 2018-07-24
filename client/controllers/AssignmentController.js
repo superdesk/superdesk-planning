@@ -59,6 +59,8 @@ export class AssignmentController {
             return Promise.resolve();
         }
 
+        this.store.dispatch(actions.main.closePublishQueuePreviewOnWorkspaceChange());
+
         return Promise.all([
             this.store.dispatch(actions.locks.loadAssignmentLocks()),
             this.store.dispatch(actions.fetchAgendas()),

@@ -1,6 +1,10 @@
 import * as ctrl from './controllers';
 import * as svc from './services';
+import {WORKSPACE} from './constants';
 import ng from 'superdesk-core/scripts/core/services/ng';
+import * as actions from './actions';
+import {PublishQueuePanel} from './apps';
+
 
 export default angular.module('superdesk-planning', [])
     .directive('sdPlanning',
@@ -28,4 +32,26 @@ export default angular.module('superdesk-planning', [])
         })
     )
     .service('sdPlanningStore', svc.PlanningStoreService)
-    .run(['$injector', ng.register]);
+    .run(['$injector', 'sdPlanningStore', 'extensionPoints', ($injector, sdPlanningStore, extensionPoints) => {
+        ng.register($injector);
+
+        //
+        const callback = (extension, scope) => (
+            sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, (store) => {
+                store.dispatch(actions.fetchAgendas());
+                extension.props.store = store;
+                scope.$watch('selected.preview', (newValue, oldValue) => {
+                    if (newValue && !_.isEqual(newValue, oldValue)) {
+                        extension.props.store.dispatch(actions.main.onQueueItemChange(newValue));
+                    }
+                });
+            })
+        );
+
+        ng.waitForServicesToBeAvailable()
+            .then(() => {
+                extensionPoints.register('publish_queue:preview',
+                    PublishQueuePanel, {}, ['selected'],
+                    callback);
+            });
+    }]);

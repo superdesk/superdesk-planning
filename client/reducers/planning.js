@@ -38,7 +38,7 @@ const modifyPlanningsBeingAdded = (state, payload) => {
 };
 
 const planningReducer = createReducer(initialState, {
-    [RESET_STORE]: () => (null),
+    [RESET_STORE]: () => (initialState),
 
     [INIT_STORE]: () => (initialState),
 
