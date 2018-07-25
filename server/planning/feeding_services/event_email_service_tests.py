@@ -1,6 +1,7 @@
 import imaplib
 from mock import Mock, patch
 from planning.feeding_services.event_email_service import EventEmailFeedingService
+from planning.feed_parsers.ntb_event_xml import NTBEventXMLFeedParser
 from planning.tests import TestCase
 
 
@@ -14,6 +15,7 @@ class EventEmailFeedingServiceTestCase(TestCase):
         with self.app.app_context():
 
             service = EventEmailFeedingService()
+
             provider = {
                 'feed_parser': 'ntb_event_xml',
                 'config': {
@@ -25,6 +27,7 @@ class EventEmailFeedingServiceTestCase(TestCase):
                     'filter': '(UNSEEN)',
                 }
             }
+
             mock_conn = Mock(spec=imaplib.IMAP4)
             mock_imaplib.IMAP4_SSL.return_value = mock_conn
             mock_conn.login.return_value = ('OK', [])
@@ -32,5 +35,7 @@ class EventEmailFeedingServiceTestCase(TestCase):
             mock_conn.search.return_value = ('OK', ['(UNSEEN SUBJECT "test subject")'])
             mock_conn.fetch.return_value = ('OK', [('1 (RFC822 {858569}', 'body of the message', ')')])
             mock_conn.store.return_value = ('OK', [])
-            events = list(service._update(provider, None))
+
+            with patch.object(service, 'get_feed_parser', return_value=NTBEventXMLFeedParser()):
+                events = list(service._update(provider, None))
             self.assertEqual(len(events), 0)
