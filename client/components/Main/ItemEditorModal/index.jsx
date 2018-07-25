@@ -113,6 +113,7 @@ export class EditorModalComponent extends React.Component {
                 show={true}
                 onHide={this.props.handleHide}
                 xLarge
+                fullheight
             >
                 <Modal.Header>
                     <a className="close" onClick={this.props.handleHide}>

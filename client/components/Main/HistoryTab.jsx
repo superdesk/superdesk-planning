@@ -10,9 +10,15 @@ import {EventHistory} from '../Events/';
 import {PlanningHistory} from '../Planning/';
 
 export class HistoryTabComponent extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {fetchingHistory: false};
+    }
+
     componentWillMount() {
         const {fetchItemHistory, item} = this.props;
 
+        this.setState({fetchingHistory: true});
         fetchItemHistory(item);
     }
 
@@ -21,7 +27,13 @@ export class HistoryTabComponent extends React.Component {
         const currentId = get(this.props, 'item._id', null);
 
         if (nextId !== currentId) {
+            this.setState({fetchingHistory: true});
             this.props.fetchItemHistory(nextProps.item);
+            return;
+        }
+
+        if (this.state.fetchingHistory && get(nextProps, 'historyItems.length', 0) > 0) {
+            this.setState({fetchingHistory: false});
         }
     }
 
@@ -36,6 +48,10 @@ export class HistoryTabComponent extends React.Component {
             desks: desks,
             openItemPreview: openItemPreview,
         };
+
+        if (this.state.fetchingHistory) {
+            return null;
+        }
 
         switch (itemType) {
         case ITEM_TYPE.EVENT:
@@ -61,12 +77,24 @@ HistoryTabComponent.propTypes = {
     timeFormat: PropTypes.string,
     dateFormat: PropTypes.string,
     forEditor: PropTypes.bool,
+    forEditorModal: PropTypes.bool,
+};
+
+const getHistoryItems = (props) => {
+    if (props.forEditor) {
+        return selectors.forms.editorItemHistory;
+    }
+
+    if (props.forEditorModal) {
+        return selectors.forms.editorModalItemHistory;
+    }
+
+    return selectors.main.previewItemHistory;
 };
 
 const mapStateToProps = (state, ownProps) => ({
     users: selectors.general.users(state),
-    historyItems: ownProps.forEditor ? selectors.forms.editorItemHistory(state) :
-        selectors.main.previewItemHistory(state),
+    historyItems: getHistoryItems(ownProps)(state),
     desks: selectors.general.desks(state),
     agendas: selectors.general.agendas(state),
     timeFormat: selectors.config.getTimeFormat(state),
@@ -74,9 +102,7 @@ const mapStateToProps = (state, ownProps) => ({
 });
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-    fetchItemHistory: (item) => (
-        dispatch(main.fetchItemHistory(item, false, ownProps.forEditor))
-    ),
+    fetchItemHistory: (item) => dispatch(main.fetchItemHistory(item)),
     openItemPreview: (id, type) => (
         dispatch(main.openPreview({
             _id: id,

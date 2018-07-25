@@ -18,6 +18,7 @@ export default function Modal({
     fullscreen,
     white,
     className,
+    fullheight,
 }) {
     const classes = classNames(className, {
         modal: true,
@@ -35,6 +36,7 @@ export default function Modal({
             className={classes}
             onHide={handleHide}
             dialogComponentClass={ModalDialog}
+            dialogClassName={fullheight ? 'modal__dialog--full-height' : undefined}
         >{children}</_Modal>
     );
 }
@@ -49,6 +51,7 @@ Modal.propTypes = {
     white: PropTypes.bool,
     xLarge: PropTypes.bool,
     className: PropTypes.string,
+    fullheight: PropTypes.bool,
 };
 
 Modal.Header = Header;
