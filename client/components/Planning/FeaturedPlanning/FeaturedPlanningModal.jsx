@@ -38,7 +38,10 @@ export class FeaturedPlanningModalComponent extends React.Component {
     }
 
     componentWillMount() {
-        this.props.setFeaturePlanningInUse();
+        if (!this.props.inUse) {
+            return;
+        }
+
         if (!this.props.unsavedItems) {
             this.props.loadFeaturedPlanningsData(this.props.currentSearchDate);
         } else {
@@ -111,11 +114,12 @@ export class FeaturedPlanningModalComponent extends React.Component {
 
     getNewState(props) {
         const planingIds = props.featuredPlanningItems.map((i) => i._id);
+        const selectedPlanningIds = get(props, 'featuredPlanningItem.date') ?
+            get(props, 'featuredPlanningItem.items', []) : planingIds;
 
         return {
-            unselectedPlanningIds: difference(planingIds, get(props, 'featuredPlanningItem.items', [])),
-            selectedPlanningIds: get(props, 'featuredPlanningItem.date') ? props.featuredPlanningItem.items :
-                planingIds,
+            unselectedPlanningIds: difference(planingIds, selectedPlanningIds),
+            selectedPlanningIds: selectedPlanningIds,
             dirty: !get(props, 'featuredPlanningItem.date'),
             highlights: [],
         };
@@ -246,7 +250,7 @@ export class FeaturedPlanningModalComponent extends React.Component {
 
         const emptyMsg = this.state.unselectedPlanningIds.length === 0 &&
             get(this.props, 'featuredPlanningItems.length', 0) > 0 ?
-            gettext('No more available selections') :
+            gettext('All featured planning items are currently selected') :
             gettext('No available selections');
 
         const listProps = {
