@@ -93,6 +93,12 @@ export const CoverageEditor = ({
 
     const onClose = editorMenuUtils.onItemClose(navigation, field);
     const onOpen = editorMenuUtils.onItemOpen(navigation, field);
+    let scrollIntoView = true;
+
+    if (get(navigation, 'scrollToViewItem') && navigation.scrollToViewItem !== field) {
+        scrollIntoView = false;
+    }
+
     const forceScroll = editorMenuUtils.forceScroll(navigation, field);
     const isOpen = editorMenuUtils.isOpen(navigation, field) || (
         openComponent ||
@@ -177,7 +183,7 @@ export const CoverageEditor = ({
             tools={itemActionComponent}
             openItemTopBar={coverageTopBar}
             openItem={coverageForm}
-            scrollInView={true}
+            scrollInView={scrollIntoView}
             isOpen={isOpen}
             invalid={invalid}
             forceScroll={forceScroll}

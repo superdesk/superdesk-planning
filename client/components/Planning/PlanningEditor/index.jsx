@@ -262,7 +262,9 @@ export class PlanningEditorComponent extends React.Component {
     }
 
     componentDidMount() {
-        this.dom.slugline.focus();
+        if (!get(this.props, 'navigation.scrollToViewItem')) {
+            this.dom.slugline.focus();
+        }
     }
 
     componentDidUpdate(prevProps) {

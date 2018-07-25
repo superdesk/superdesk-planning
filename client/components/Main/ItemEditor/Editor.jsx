@@ -20,7 +20,7 @@ import {
 } from '../../../utils';
 import {EventUpdateMethods} from '../../Events';
 
-import {ITEM_TYPE, POST_STATE, WORKFLOW_STATE, AUTOSAVE} from '../../../constants';
+import {ITEM_TYPE, POST_STATE, WORKFLOW_STATE, AUTOSAVE, UI} from '../../../constants';
 
 import {Tabs as NavTabs} from '../../UI/Nav';
 import {SidePanel, Content} from '../../UI/SidePanel';
@@ -32,7 +32,7 @@ export class EditorComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            tab: 0,
+            tab: UI.EDITOR.CONTENT_TAB_INDEX,
             diff: {},
             errors: {},
             errorMessages: [],
@@ -126,7 +126,7 @@ export class EditorComponent extends React.Component {
                 callback();
         });
 
-        this.tabs[0].label = get(item, 'type') === ITEM_TYPE.EVENT ?
+        this.tabs[UI.EDITOR.CONTENT_TAB_INDEX].label = get(item, 'type') === ITEM_TYPE.EVENT ?
             gettext('Event Details') :
             gettext('Planning Details');
     }
@@ -144,7 +144,7 @@ export class EditorComponent extends React.Component {
     onItemIDChanged(nextProps) {
         this.setState({
             itemReady: false,
-            tab: 0,
+            tab: UI.EDITOR.CONTENT_TAB_INDEX,
         }, () => {
             if (isTemporaryId(nextProps.itemId)) {
                 // This happens when the editor is opened on an existing item and
@@ -189,7 +189,7 @@ export class EditorComponent extends React.Component {
             this.flushAutosave();
             this.setState({
                 itemReady: false,
-                tab: 0,
+                tab: UI.EDITOR.CONTENT_TAB_INDEX,
             });
         } else if (nextProps.item !== null && this.props.item === null) {
             // This happens when the Editor has finished loading an existing item or creating a duplicate
@@ -205,7 +205,7 @@ export class EditorComponent extends React.Component {
             this.resetForm(get(nextProps, 'item') || {});
         }
 
-        this.tabs[1].enabled = !!nextProps.itemId;
+        this.tabs[UI.EDITOR.HISTORY_TAB_INDEX].enabled = !!nextProps.itemId;
     }
 
     onChangeHandler(field, value, updateDirtyFlag = true, saveAutosave = true) {
@@ -503,7 +503,13 @@ export class EditorComponent extends React.Component {
     }
 
     setActiveTab(tab) {
-        this.setState({tab});
+        if (this.state.tab !== tab) {
+            this.setState({tab});
+
+            if (get(this.props, 'navigation.onTabChange')) {
+                this.props.navigation.onTabChange(tab);
+            }
+        }
     }
 
     onMinimized() {
@@ -558,7 +564,7 @@ export class EditorComponent extends React.Component {
         const isReadOnly = this.isReadOnly(this.props);
 
         const currentTab = this.tabs[this.state.tab].enabled ? this.tabs[this.state.tab] :
-            this.tabs[0];
+            this.tabs[UI.EDITOR.CONTENT_TAB_INDEX];
 
         return (
             <Content flex={true} className={this.props.contentClassName}>
@@ -574,7 +580,8 @@ export class EditorComponent extends React.Component {
                 <div className={classNames(
                     'side-panel__content-tab-content',
                     {'editorModal__editor--padding-bottom': !!get(this.props, 'navigation.padContentForNavigation')}
-                )} >
+                )}
+                onScroll={this.onScroll} >
                     {(!this.props.isLoadingItem && this.props.itemType) && (
                         <currentTab.render
                             item={this.props.item || {}}

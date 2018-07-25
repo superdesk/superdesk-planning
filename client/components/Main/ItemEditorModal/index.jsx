@@ -5,7 +5,7 @@ import {get, union} from 'lodash';
 import classNames from 'classnames';
 
 import {main} from '../../../actions';
-import {ITEM_TYPE} from '../../../constants';
+import {ITEM_TYPE, UI} from '../../../constants';
 
 import {ItemMenuPanel} from './ItemMenuPanel';
 import {Modal} from '../../index';
@@ -23,6 +23,7 @@ export class EditorModalComponent extends React.Component {
             scrollToViewItem: '',
             diff: get(this.props, 'modalProps.item'),
             activeItem: '',
+            currentTab: UI.EDITOR.CONTENT_TAB_INDEX,
         };
 
         this.dom = {menu: null};
@@ -33,6 +34,7 @@ export class EditorModalComponent extends React.Component {
         this.onItemOpenFromEditor = this.onItemOpenFromEditor.bind(this);
         this.onItemFocusFromEditor = this.onItemFocusFromEditor.bind(this);
         this.onDragEvents = this.onDragEvents.bind(this);
+        this.onEditorTabChange = this.onEditorTabChange.bind(this);
     }
 
     onDragEvents(e) {
@@ -64,6 +66,11 @@ export class EditorModalComponent extends React.Component {
     }
 
     onMenuItemClick(menuItemName) {
+        // Change tab to content
+        if (this.refs.editor && this.state.currentTab !== UI.EDITOR.CONTENT_TAB_INDEX) {
+            this.refs.editor.getWrappedInstance().setActiveTab(UI.EDITOR.CONTENT_TAB_INDEX);
+        }
+
         this.setState({
             openItems: union(this.state.openItems, [menuItemName]),
             scrollToViewItem: menuItemName,
@@ -98,6 +105,20 @@ export class EditorModalComponent extends React.Component {
         this.setState({diff: diff});
     }
 
+    onEditorTabChange(tab) {
+        let newState = {currentTab: tab};
+
+        if (tab !== UI.EDITOR.CONTENT_TAB_INDEX) {
+            newState = {
+                ...newState,
+                openItems: [],
+                scrollToViewItem: '',
+                activeItem: '',
+            };
+        }
+        this.setState(newState);
+    }
+
     render() {
         const navigation = {
             padContentForNavigation: getItemType(get(this.props, 'modalProps.item')) === ITEM_TYPE.EVENT,
@@ -106,6 +127,7 @@ export class EditorModalComponent extends React.Component {
             onItemOpen: this.onItemOpenFromEditor,
             onItemClose: this.onItemCloseFromEditor,
             onItemFocus: this.onItemFocusFromEditor,
+            onTabChange: this.onEditorTabChange,
         };
 
         return (
@@ -139,7 +161,9 @@ export class EditorModalComponent extends React.Component {
                                 onChange={this.onEditorItemChange}
                                 onCancel={this.props.handleHide}
                                 hideMinimize
-                                hideExternalEdit />
+                                hideExternalEdit
+                                ref="editor"
+                            />
                         </div>
                     </div>
                 </Modal.Body>
