@@ -55,7 +55,14 @@ export class EventEditorComponent extends React.Component {
     }
 
     componentDidMount() {
-        this.dom.slugline.focus();
+        if (!get(this.props, 'navigation.scrollToViewItem')) {
+            this.dom.slugline.focus();
+        }
+
+        // scroll to contacts
+        if (editorMenuUtils.forceScroll(this.props.navigation, 'contacts')) {
+            this.dom.contacts.scrollIntoView();
+        }
     }
 
     componentDidUpdate(prevProps) {

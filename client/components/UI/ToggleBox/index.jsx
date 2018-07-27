@@ -21,6 +21,12 @@ export class ToggleBox extends React.Component {
         this.dom = {node: null};
     }
 
+    componentDidMount() {
+        if (this.props.scrollInView && this.props.forceScroll) {
+            this.scrollInView();
+        }
+    }
+
     handleKeyDown(event) {
         if (event.keyCode === KEYCODES.RIGHT && !this.state.isOpen) {
             onEventCapture(event);
