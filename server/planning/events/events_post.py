@@ -8,9 +8,8 @@ from superdesk.notification import push_notification
 
 from .events import EventsResource
 from .events_base_service import EventsBaseService
-from planning.common import WORKFLOW_STATE, POST_STATE, post_state,\
-    UPDATE_SINGLE, UPDATE_METHODS, UPDATE_FUTURE, get_item_post_state, enqueue_planning_item
-from datetime import datetime
+from planning.common import WORKFLOW_STATE, POST_STATE, post_state, UPDATE_SINGLE,\
+    UPDATE_METHODS, UPDATE_FUTURE, get_item_post_state, enqueue_planning_item, get_version_item_for_post
 
 
 class EventsPostResource(EventsResource):
@@ -145,9 +144,7 @@ class EventsPostService(EventsBaseService):
 
         # enqueue the event
         # these fields are set for enqueue process to work. otherwise not needed
-        version = int((datetime.utcnow() - datetime.min).total_seconds() * 100000.0)
-        event.setdefault(config.VERSION, version)
-        event.setdefault('item_id', event['_id'])
+        version, event = get_version_item_for_post(event)
         # save the version into the history
         updates['version'] = version
 

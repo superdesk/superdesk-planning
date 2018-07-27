@@ -17,8 +17,7 @@ from superdesk.notification import push_notification
 from eve.utils import config
 from planning.planning import PlanningResource
 from planning.common import WORKFLOW_STATE, POST_STATE, post_state, \
-    get_item_post_state, enqueue_planning_item, ITEM_STATE
-from datetime import datetime
+    get_item_post_state, enqueue_planning_item, ITEM_STATE, get_version_item_for_post
 
 
 class PlanningPostResource(PlanningResource):
@@ -111,9 +110,7 @@ class PlanningPostService(BaseService):
         get_resource_service('planning').update(plan['_id'], updates, plan)
 
         # Set a version number
-        version = int((datetime.utcnow() - datetime.min).total_seconds() * 100000.0)
-        plan.setdefault(config.VERSION, version)
-        plan.setdefault('item_id', plan['_id'])
+        version, plan = get_version_item_for_post(plan)
         plan[ITEM_STATE] = updates.get(ITEM_STATE)
 
         # Save the version into the history

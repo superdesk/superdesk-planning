@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get} from 'lodash';
+import {get, isNil} from 'lodash';
 
 import {eventUtils, gettext, isItemPublic, isExistingItem} from '../utils';
 import {ITEM_TYPE} from '../constants';
@@ -156,6 +156,7 @@ export class IgnoreCancelSaveModalComponent extends React.Component {
             onSaveAndPost,
             autoClose,
             bodyText,
+            showIgnore,
         } = modalProps || {};
 
         const okText = this.getOkText();
@@ -166,7 +167,7 @@ export class IgnoreCancelSaveModalComponent extends React.Component {
                 modalProps={{
                     onCancel: onCancel,
                     cancelText: gettext('Cancel'),
-                    showIgnore: true,
+                    showIgnore: isNil(showIgnore) ? true : showIgnore,
                     ignore: onIgnore,
                     ignoreText: gettext('Ignore'),
                     action: (onGoTo || onSave || onSaveAndPost) ? this.onSubmit : null,

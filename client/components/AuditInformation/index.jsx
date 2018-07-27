@@ -11,6 +11,8 @@ export const AuditInformationComponent = ({
     createdAt,
     updatedBy,
     updatedAt,
+    postedBy,
+    postedAt,
     users,
     ingestProviders,
 }) => {
@@ -30,6 +32,9 @@ export const AuditInformationComponent = ({
     const versionCreator = get(updatedBy, 'display_name') ? updatedBy : users.find((user) => user._id === updatedBy);
     const createdDateTime = createdAt ? moment(createdAt).fromNow() : null;
     const modifiedDateTime = updatedAt ? moment(updatedAt).fromNow() : null;
+    const postCreator = get(postedBy, 'display_name') ? postedBy : users.find((user) => user._id === postedBy);
+    const postedDateTime = postedAt ? moment(postedAt).fromNow() : null;
+
 
     return (
         <div className="TimeAndAuthor">
@@ -50,6 +55,15 @@ export const AuditInformationComponent = ({
                     </span>
                 </div>
             }
+
+            {postedDateTime && postCreator &&
+                <div className="sd-text__date-and-author">
+                    <time>{gettext('Posted') + ' ' + modifiedDateTime + ' ' + gettext('by') + ' '}</time>
+                    <span className="TimeAndAuthor__author sd-text__author">
+                        {postCreator.display_name}
+                    </span>
+                </div>
+            }
         </div>
     );
 };
@@ -64,6 +78,8 @@ AuditInformationComponent.propTypes = {
     createdAt: PropTypes.any,
     updatedBy: PropTypes.any,
     updatedAt: PropTypes.any,
+    postedAt: PropTypes.any,
+    postedBy: PropTypes.any,
 };
 
 const mapStateToProps = (state) => (

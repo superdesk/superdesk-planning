@@ -6,10 +6,14 @@ import classNames from 'classnames';
 import {FeaturedPlanningItem} from './FeaturedPlanningItem';
 import {Header, Group} from '../../UI/List';
 import {PanelInfo} from '../../UI';
+import {AuditInformation, StateLabel} from '../../';
+import {getCreator, planningUtils} from '../../../utils';
+import {POST_STATE} from '../../../constants';
 import {SortableContainer, SortableElement} from 'react-sortable-hoc';
 import './style.scss';
 
 export const FeaturedPlanningList = ({
+    item,
     items,
     readOnly,
     lockedItems,
@@ -31,6 +35,7 @@ export const FeaturedPlanningList = ({
     header,
     withMargin,
     emptyMsg,
+    showAuditInformation,
 }) => {
     const getItem = (item) => (<FeaturedPlanningItem
         key={item._id}
@@ -61,6 +66,13 @@ export const FeaturedPlanningList = ({
         </ul>
     );
 
+    const createdBy = getCreator(item, 'original_creator', users);
+    const updatedBy = getCreator(item, 'version_creator', users);
+    const postedBy = getCreator(item, 'last_posted_by', users);
+    const creationDate = get(item, '_created');
+    const updatedDate = get(item, '_updated');
+    const postedDate = get(item, 'last_posted_time');
+
     return (
         <div className={classNames('sd-page-content__content-block',
             'grid__item grid__item--col-6',
@@ -70,7 +82,31 @@ export const FeaturedPlanningList = ({
             <div>
                 <div className="sd-column-box__main-column__items">
                     <div className="ListGroup">
-                        <Header title={header || gettext('Available selections')} />
+                        <Header
+                            marginBottom
+                            title={header || gettext('Available selections')} />
+                        <div className="grid grid--extra-margin">
+                            {showAuditInformation && item &&
+                                    <div className="grid__item grid__item--col-6">
+                                        <AuditInformation
+                                            createdBy={createdBy}
+                                            updatedBy={updatedBy}
+                                            postedBy={postedBy}
+                                            createdAt={creationDate}
+                                            updatedAt={updatedDate}
+                                            postedAt={postedDate}
+                                        />
+                                    </div> }
+                            {!planningUtils.isFeaturedPlanningUpdatedAfterPosting(item) && get(item, 'posted') &&
+                                    <div className="grid__item grid__item--col-6">
+                                        <div className="pull-right">
+                                            <StateLabel
+                                                item={{pubstatus: POST_STATE.USABLE}}
+                                                verbose={true}
+                                                noState />
+                                        </div>
+                                    </div>}
+                        </div>
                         {(get(items, 'length', 0) === 0 && !loadingIndicator) ?
                             (<PanelInfo heading={emptyMsg} />) :
                             (<Group spaceBetween={true}>
@@ -116,6 +152,8 @@ FeaturedPlanningList.propTypes = {
     showAddCoverage: PropTypes.bool,
     sortable: PropTypes.bool,
     emptyMsg: PropTypes.string,
+    item: PropTypes.object,
+    showAuditInformation: PropTypes.bool,
 };
 
 FeaturedPlanningList.defaultProps = {selectedPlanningIds: []};

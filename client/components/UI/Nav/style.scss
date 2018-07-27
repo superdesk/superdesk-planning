@@ -15,4 +15,10 @@
             margin-right: 0.6rem;
         }
     }
+
+
+    &--no-padding-no-border {
+        padding: 0px !important;
+        border: 0px !important;
+    }
 }

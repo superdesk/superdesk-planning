@@ -9,11 +9,17 @@
 """Superdesk Planning Featured"""
 
 import superdesk
-from superdesk import get_resource_service
+from superdesk.resource import not_analyzed
+from superdesk import get_resource_service, logger
 from eve.utils import config
 from superdesk.errors import SuperdeskApiError
-from superdesk.utc import utc_to_local
+from superdesk.utc import utc_to_local, utcnow
+from apps.archive.common import set_original_creator, update_dates_for
+from planning.common import get_version_item_for_post, enqueue_planning_item
+from apps.auth import get_user_id
+from superdesk.metadata.item import metadata_schema, ITEM_TYPE
 from flask import current_app as app
+from copy import deepcopy
 
 ID_DATE_FORMAT = '%Y%m%d'
 
@@ -28,24 +34,92 @@ class PlanningFeaturedService(superdesk.Service):
 
             items = self.find(where={'_id': _id})
             if items.count() > 0:
-                raise SuperdeskApiError.forbiddenError(
+                raise SuperdeskApiError.badRequestError(
                     message="Featured story already exists for this date.")
 
             self.validate_featured_attrribute(doc.get('items'))
             doc['_id'] = _id
+            # set the author
+            set_original_creator(doc)
+
+            # set timestamps
+            update_dates_for(doc)
+
+    def on_created(self, docs):
+        for doc in docs:
+            if doc.get('posted'):
+                self.post_featured_planning(doc, doc, str(get_user_id()))
 
     def on_update(self, updates, original):
         # Find all planning items in the list
         added_featured = [id for id in updates.get('items') if id not in original.get('items')]
         self.validate_featured_attrribute(added_featured)
+        updates['version_creator'] = str(get_user_id())
+
+    def on_updated(self, updates, original):
+        if updates.get('posted', False):
+            self.post_featured_planning(updates, original, str(get_user_id()))
+
+    def post_featured_planning(self, updates, original, user_id):
+        self.validate_post_status(updates.get('items', original.get('items' or [])))
+        updates['posted'] = True
+        updates['last_posted_time'] = utcnow()
+        updates['last_posted_by'] = user_id
+        plan = deepcopy(original)
+        plan.update(updates)
+        version, plan = get_version_item_for_post(plan)
+
+        # Create an entry in the planning versions collection for this published version
+        version_id = get_resource_service('published_planning').post([{'item_id': plan['_id'],
+                                                                       'version': version,
+                                                                       'type': 'planning_featured',
+                                                                       'published_item': plan}])
+        if version_id:
+            # Asynchronously enqueue the item for publishing.
+            enqueue_planning_item.apply_async(kwargs={'id': version_id[0]})
+        else:
+            logger.error('Failed to save planning_featured version for featured item id {}'.format(plan['_id']))
 
     def validate_featured_attrribute(self, planning_ids):
         planning_service = get_resource_service('planning')
         for planning_id in planning_ids:
             planning_item = planning_service.find_one(req=None, _id=planning_id)
             if not planning_item.get('featured'):
-                raise SuperdeskApiError.forbiddenError(
+                raise SuperdeskApiError.badRequestError(
                     message="A planning item in the list is not featured.")
+
+    def validate_post_status(self, planning_ids):
+        planning_service = get_resource_service('planning')
+        for planning_id in planning_ids:
+            planning_item = planning_service.find_one(req=None, _id=planning_id)
+            if not planning_item.get('pubstatus', None):
+                raise SuperdeskApiError.badRequestError(
+                    message="Not all planning items are posted. Aborting post action.")
+
+    def get_id_for_date(self, date):
+        local_date = utc_to_local(app.config['DEFAULT_TIMEZONE'], date)
+        return local_date.strftime(ID_DATE_FORMAT)
+
+    def remove_planning_item_for_date(self, date, planning):
+        if not date:
+            return
+
+        id = self.get_id_for_date(date)
+        item = self.find_one(req=None, _id=id)
+        if item:
+            items = item.get('items', [])
+            if planning.get(config.ID_FIELD) in items:
+                items.remove(planning.get(config.ID_FIELD))
+                updates = {'items': items}
+                self.patch(id, updates)
+
+    def remove_planning_item(self, planning):
+        featured_items = list(self.find(where={'items': planning.get(config.ID_FIELD)}))
+        for featured_item in featured_items:
+            items = featured_item.get('items', [])
+            items.remove(planning.get(config.ID_FIELD))
+            updates = {'items': items}
+            self.patch(featured_item.get(config.ID_FIELD), updates)
 
 
 planning_featured_schema = {
@@ -60,6 +134,19 @@ planning_featured_schema = {
     },
     'items': {'type': 'list'},
     'tz': {'type': 'string'},
+    'posted': {'type': 'boolean'},
+    'last_posted_time': {'type': 'datetime'},
+    'last_posted_by': metadata_schema['version_creator'],
+    'original_creator': metadata_schema['original_creator'],
+    'version_creator': metadata_schema['version_creator'],
+    'firstcreated': metadata_schema['firstcreated'],
+    'versioncreated': metadata_schema['versioncreated'],
+    # Item type used by superdesk publishing
+    ITEM_TYPE: {
+        'type': 'string',
+        'mapping': not_analyzed,
+        'default': 'planning_featured'
+    }
 }
 
 
@@ -67,6 +154,7 @@ class PlanningFeaturedResource(superdesk.Resource):
     """Resource for planning featured data model"""
 
     url = 'planning_featured'
+    endpoint_name = url
     item_url = r'regex("[-_\w]+")'
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']

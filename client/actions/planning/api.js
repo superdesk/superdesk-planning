@@ -918,10 +918,7 @@ const saveFeaturedPlanning = (updates) => (
     (dispatch, getState, {api}) => {
         const item = selectors.featuredPlanning.featuredPlanningItem(getState()) || {};
 
-        return api('planning_featured').save(cloneDeep(item), {
-            ...(pickBy(cloneDeep(item), (v, k) => (!k.startsWith('_')))),
-            ...updates,
-        })
+        return api('planning_featured').save(cloneDeep(item), {...updates})
             .then((savedItem) => savedItem);
     }
 );
