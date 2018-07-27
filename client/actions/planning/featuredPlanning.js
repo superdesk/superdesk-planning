@@ -214,10 +214,10 @@ const openFeaturedPlanningModal = () => (
         }
 
         return dispatch(planningApi.lockFeaturedPlanning())
-            .then(() => dispatch(showModal({
-                modalType: MODALS.FEATURED_STORIES,
-            })),
-            (error) => {
+            .then(() => {
+                dispatch(self.setFeaturePlanningInUse());
+                dispatch(showModal({modalType: MODALS.FEATURED_STORIES}));
+            }, (error) => {
                 notify.error(
                     getErrorMessage(error, gettext('Failed to lock featured story action!'))
                 );
