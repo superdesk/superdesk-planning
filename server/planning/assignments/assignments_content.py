@@ -22,7 +22,7 @@ from planning.planning_notifications import PlanningNotifications
 from superdesk import get_resource_service
 
 
-FIELDS_TO_COPY = ('anpa_category', 'subject', 'urgency')
+FIELDS_TO_COPY = ('anpa_category', 'subject', 'urgency', 'place')
 
 
 def get_item_from_assignment(assignment, template=None):

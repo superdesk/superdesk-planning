@@ -283,7 +283,17 @@ Feature: Assignment content
                         "assignment_id": "#firstassignment#",
                         "state": "assigned"
                     }
-                }]
+                }],
+            "place" : [
+                {
+                    "state" : "",
+                    "country" : "",
+                    "group" : "Rest Of World",
+                    "name" : "CIS",
+                    "world_region" : "Commonwealth of Independent States",
+                    "qcode" : "CIS"
+                }
+            ]
         }
         """
         When we post to "/assignments/content"
@@ -304,6 +314,16 @@ Feature: Assignment content
             "slugline": "test slugline",
             "type": "text",
             "headline": "Headline From Template",
-            "flags": {"marked_for_not_publication": true}
+            "flags": {"marked_for_not_publication": true},
+            "place" : [
+                {
+                    "state" : "",
+                    "country" : "",
+                    "group" : "Rest Of World",
+                    "name" : "CIS",
+                    "world_region" : "Commonwealth of Independent States",
+                    "qcode" : "CIS"
+                }
+            ]
         }
         """
