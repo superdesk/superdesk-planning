@@ -16,12 +16,13 @@ export const StateLabel = ({
     fieldName,
     inline,
     withExpiredStatus,
+    noState,
 }) => {
     const state = getItemWorkflowStateLabel(item, fieldName);
     const pubState = withPubStatus ? getItemPostedStateLabel(item) : null;
     const expiredState = withExpiredStatus ? getItemExpiredStateLabel(item) : null;
 
-    if (!state) {
+    if (!state && !noState) {
         return null;
     }
 
@@ -38,7 +39,7 @@ export const StateLabel = ({
             {'sd-list-item__inline-icon': inline},
             className
         )}>
-            <div>{getStateLabel(state)}</div>
+            {!noState && <div>{getStateLabel(state)}</div>}
             <div>{withPubStatus && pubState && getStateLabel(pubState)}</div>
             {expiredState && (
                 <div>
@@ -58,6 +59,7 @@ StateLabel.propTypes = {
     fieldName: PropTypes.string,
     inline: PropTypes.bool,
     withExpiredStatus: PropTypes.bool,
+    noState: PropTypes.bool,
 };
 
 StateLabel.defaultProps = {

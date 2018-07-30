@@ -227,6 +227,13 @@ def update_returned_document(doc, item, custom_hateoas):
     return [doc['_id']]
 
 
+def get_version_item_for_post(item):
+    version = int((datetime.utcnow() - datetime.min).total_seconds() * 100000.0)
+    item.setdefault(config.VERSION, version)
+    item.setdefault('item_id', item['_id'])
+    return version, item
+
+
 @celery.task(soft_time_limit=600)
 def enqueue_planning_item(id):
     """

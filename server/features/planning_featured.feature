@@ -20,7 +20,7 @@ Feature: Featured Planning
         "items": ["#planning._id#"]
     }]
     """
-    Then we get error 403
+    Then we get error 400
     """
       {"_message": "A planning item in the list is not featured."}
     """

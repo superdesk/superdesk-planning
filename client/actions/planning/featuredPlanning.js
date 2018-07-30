@@ -283,7 +283,12 @@ const _modifyPlanningFeatured = (item, remove = false) => (
 const saveFeaturedPlanningForDate = (item) => (
     (dispatch, getState, {notify}) => (dispatch(planningApi.saveFeaturedPlanning(item))
         .then((item) => {
-            notify.success(gettext('Saved Featured Stories record'));
+            if (get(item, ' posted')) {
+                notify.success(gettext('Posted Featured Stories record'));
+            } else {
+                notify.success(gettext('Saved Featured Stories record'));
+            }
+
             dispatch({
                 type: FEATURED_PLANNING.ACTIONS.RECEIVE_FEATURED_PLANNING_ITEM,
                 payload: item,

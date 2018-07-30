@@ -70,6 +70,10 @@ class PlanningSpikeService(BaseService):
 
         return item
 
+    def on_updated(self, updates, original):
+        planning_featured_service = get_resource_service('planning_featured')
+        planning_featured_service.remove_planning_item(original)
+
 
 class PlanningUnspikeResource(PlanningResource):
     url = 'planning/unspike'

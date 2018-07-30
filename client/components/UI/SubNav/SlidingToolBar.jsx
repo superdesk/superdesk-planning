@@ -10,7 +10,15 @@ import './style.scss';
  * @name SlidingToolBar
  * @description Top sliding toolbar of a Sub Nav bar
  */
-export const SlidingToolBar = ({hide, innerInfo, innerTools, tools, onCancel, rightCancelButton}) => (
+export const SlidingToolBar = ({
+    hide,
+    innerInfo,
+    innerTools,
+    tools,
+    onCancel,
+    rightCancelButton,
+    cancelText,
+}) => (
     <div className={classNames(
         'subnav__sliding-toolbar',
         {'ng-hide': hide})} >
@@ -20,7 +28,7 @@ export const SlidingToolBar = ({hide, innerInfo, innerTools, tools, onCancel, ri
             <span className="sliding-toolbar__info-tools">{innerTools}</span>
         </div>
         {tools}
-        {rightCancelButton && <Button onClick={onCancel} text={gettext('Cancel')} />}
+        {rightCancelButton && <Button onClick={onCancel} text={cancelText} />}
     </div>
 );
 
@@ -31,6 +39,10 @@ SlidingToolBar.propTypes = {
     innerTools: PropTypes.node,
     tools: PropTypes.node,
     rightCancelButton: PropTypes.bool,
+    cancelText: PropTypes.string,
 };
 
-SlidingToolBar.defaultProp = {hide: true};
+SlidingToolBar.defaultProp = {
+    hide: true,
+    cancelText: gettext('Cancel'),
+};

@@ -22,6 +22,7 @@ export const Button = ({
     darker,
     active,
     navbtn,
+    noBorderNoPadding,
     ...props
 }) => (
     <button
@@ -34,6 +35,8 @@ export const Button = ({
                 'navbtn--text-with-icon': textWithIcon,
                 'dropdown-toggle': dropdown,
                 dropdown__toggle: dropdown,
+                'navbtn--no-padding-no-border': noBorderNoPadding,
+
             },
             className
         )}
@@ -60,6 +63,7 @@ Button.propTypes = {
     darker: PropTypes.bool,
     active: PropTypes.bool,
     navbtn: PropTypes.bool,
+    noBorderNoPadding: PropTypes.bool,
 };
 
 Button.defaultProps = {

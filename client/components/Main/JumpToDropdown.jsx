@@ -41,6 +41,7 @@ export class JumpToDropdown extends React.Component {
                     onClick={this.togglePopup}
                     dropdown={true}
                     textWithIcon={true}
+                    noBorderNoPadding={this.props.noBorderNoPadding}
                 >
                     {this.props.currentStartFilter.format(this.props.dateFormat)}
                 </NavButton>
@@ -64,6 +65,7 @@ JumpToDropdown.propTypes = {
     setStartFilter: PropTypes.func,
     defaultTimeZone: PropTypes.string,
     dateFormat: PropTypes.string,
+    noBorderNoPadding: PropTypes.bool,
 };
 
 JumpToDropdown.defaultProps = {dateFormat: 'LL'};

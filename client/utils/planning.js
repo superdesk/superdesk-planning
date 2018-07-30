@@ -839,6 +839,17 @@ const modifyPlanningsBeingAdded = (state, payload) => {
     return plannings;
 };
 
+const isFeaturedPlanningUpdatedAfterPosting = (item) => {
+    if (!item || !get(item, '_updated')) {
+        return;
+    }
+
+    const updatedDate = moment(item._updated);
+    const postedDate = moment(get(item, 'last_posted_time'));
+
+    return updatedDate.isAfter(postedDate);
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     canSpikePlanning,
@@ -877,6 +888,7 @@ const self = {
     defaultPlanningValues,
     defaultCoverageValues,
     modifyPlanningsBeingAdded,
+    isFeaturedPlanningUpdatedAfterPosting,
 };
 
 export default self;

@@ -224,6 +224,14 @@ class PlanningService(superdesk.Service):
 
         update_post_item(updates, original)
 
+        # update planning_featured record if schedule has changed
+        removed_schedules = [s for s in original.get('_planning_schedule', [])
+                             if s not in updates.get('_planning_schedule')]
+        planning_featured_service = get_resource_service('planning_featured')
+        for removed in removed_schedules:
+            # get the planning_featured record for that day
+            planning_featured_service.remove_planning_item_for_date(removed.get('scheduled'), original)
+
     def can_edit(self, item, user_id):
         # Check privileges
         if not current_user_has_privilege('planning_planning_management'):
