@@ -1,4 +1,4 @@
-import {get} from 'lodash';
+import {get, isEmpty} from 'lodash';
 import eventsAndPlanningApi from './api';
 import eventsApi from '../events/api';
 import planningApi from '../planning/api';
@@ -70,6 +70,26 @@ const refetch = () => (
                 dispatch(self.setInList(results));
                 return results;
             });
+    }
+);
+
+/**
+ * Action refetch planning item in combined view
+ *
+ */
+const refetchPlanning = (planningId) => (
+    (dispatch, getState) => {
+        const storedPlannings = selectors.planning.storedPlannings(getState());
+        const plan = get(storedPlannings, planningId);
+        const eventId = get(plan, 'event_item');
+        const events = selectors.eventsPlanning.getRelatedPlanningsList(getState()) || {};
+
+        if (!selectors.main.isEventsPlanningView(getState()) || !eventId ||
+            isEmpty(events) || !get(events, eventId)) {
+            return Promise.resolve();
+        }
+
+        return dispatch(planningApi.loadPlanningById(planningId));
     }
 );
 
@@ -159,6 +179,7 @@ const self = {
     refetch,
     receiveEventsPlanning,
     scheduleRefetch,
+    refetchPlanning,
 };
 
 export default self;

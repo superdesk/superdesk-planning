@@ -1,7 +1,7 @@
+import moment from 'moment-timezone';
 import eventsPlanningApi from '../api';
 import sinon from 'sinon';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
-import {getTimeZoneOffset} from '../../../utils';
 import {MAIN} from '../../../constants';
 
 describe('actions.eventsplanning.api', () => {
@@ -15,69 +15,41 @@ describe('actions.eventsplanning.api', () => {
 
     describe('query', () => {
         it('fulltext search', (done) => {
-            store.test(done, eventsPlanningApi.query({fulltext: 'search*'}))
+            const params = {
+                fulltext: 'search*',
+                advancedSearch: {
+                    anpa_category: [{qcode: 't', name: 'test'}, {qcode: 'r', name: 'foo'}],
+                    subject: [{qcode: 'y', name: 'test'}, {qcode: 'x', name: 'foo'}],
+                    state: [{qcode: 'foo', name: 'test'}, {qcode: 'bar', name: 'foo'}],
+                    posted: true,
+                    slugline: 'slugline',
+                    dates: {
+                        range: 'today',
+                        start: moment('2018-06-01T00:00:00'),
+                        end: moment('2018-06-02T00:00:00'),
+                    },
+                },
+                maxResults: 50,
+                page: 2,
+                spikeState: 'draft',
+            };
+
+            store.test(done, eventsPlanningApi.query(params))
                 .then(() => {
-                    expect(services.api('planning_search').query.callCount).toBe(1);
-                    const source = JSON.parse(services.api('planning_search').query.args[0][0].source);
+                    expect(services.api('events_planning_search').query.callCount).toBe(1);
+                    const args = services.api('events_planning_search').query.args[0][0];
 
-                    expect(source.query.bool.must).toEqual([
-                        {
-                            query_string: {
-                                query: '(search*)',
-                                lenient: false,
-                                default_operator: 'AND',
-                            },
-                        },
-                    ]);
-
-                    expect(source.filter.or.filters).toEqual([
-                        {
-                            and: {
-                                filters: [
-                                    {type: {value: 'events'}},
-                                    {
-                                        range: {
-                                            'dates.end': {
-                                                gte: 'now/d',
-                                                time_zone: getTimeZoneOffset(),
-                                            },
-                                        },
-                                    },
-                                ],
-                            },
-                        },
-                        {
-                            and: {
-                                filters: [
-                                    {type: {value: 'planning'}},
-                                    {
-                                        nested: {
-                                            path: '_planning_schedule',
-                                            filter: {
-                                                range: {
-                                                    '_planning_schedule.scheduled': {
-                                                        gte: 'now/d',
-                                                        time_zone: getTimeZoneOffset(),
-                                                    },
-                                                },
-                                            },
-                                        },
-                                    },
-                                ],
-                            },
-                        },
-                    ]);
-
-                    expect(source.sort).toEqual(
-                        [
-                            {
-                                '_planning_schedule.scheduled': {
-                                    order: 'asc',
-                                    nested_path: '_planning_schedule',
-                                },
-                            },
-                        ]
-                    );
+                    expect(args.max_results).toBe(50);
+                    expect(args.full_text).toBe('search*');
+                    expect(args.page).toBe(2);
+                    expect(args.anpa_category).toBe('["t","r"]');
+                    expect(args.subject).toBe('["y","x"]');
+                    expect(args.state).toBe('["foo","bar"]');
+                    expect(args.posted).toBe(true);
+                    expect(args.slugline).toBe('slugline');
+                    expect(args.date_filter).toBe('today');
+                    expect(args.start_date).toBe('2018-06-01T00:00:00+0000');
+                    expect(args.end_date).toBe('2018-06-02T00:00:00+0000');
                     done();
                 })
                 .catch(done.fail);

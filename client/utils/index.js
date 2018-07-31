@@ -619,9 +619,14 @@ export const getItemTypeString = (item) => {
     }
 };
 
-export const getDateTimeString = (date, dateFormat, timeFormat) => (
+export const getDateTimeString = (date, dateFormat, timeFormat, separator = ' @ ') => (
     // !! Note - expects date as instance of moment() !! //
-    date.format(dateFormat) + ' @ ' + date.format(timeFormat)
+    date.format(dateFormat) + separator + date.format(timeFormat)
+);
+
+export const getDateTimeElasticFormat = (date) => (
+    // !! Note - expects date as instance of moment() !! //
+    getDateTimeString(date, 'YYYY-MM-DD', 'HH:mm:ss+0000', 'T')
 );
 
 export const isEmptyActions = (actions) => {

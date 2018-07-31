@@ -1,8 +1,6 @@
-import {pick, get} from 'lodash';
+import {get} from 'lodash';
 import {MAIN, SPIKED_STATE} from '../../constants';
-import eventsApi from '../events/api';
-import planningApi from '../planning/api';
-import {planningUtils, eventUtils} from '../../utils';
+import {planningUtils, eventUtils, getDateTimeElasticFormat} from '../../utils';
 import * as selectors from '../../selectors';
 import main from '../main';
 
@@ -21,59 +19,29 @@ const query = (
     storeTotal = false
 ) => (
     (dispatch, getState, {api}) => {
-        const filter = {};
-
         let search = {
-            fulltext: fulltext,
-            spikeState: spikeState,
-            adHocPlanning: true, // only adhoc planning items,
-            advancedSearch: pick(advancedSearch,
-                ['anpa_category', 'subject', 'slugline', 'posted', 'spikeState', 'state', 'dates']),
-        };
-
-        const planningCriteria = planningApi.getCriteria(search);
-        const eventsCriteria = eventsApi.getCriteria(search);
-
-        filter.or = {
-            filters: [
-                {
-                    and: {
-                        filters: [
-                            {type: {value: 'events'}},
-                            eventsCriteria.filter,
-                        ],
-                    },
-                },
-                {
-                    and: {
-                        filters: [
-                            {type: {value: 'planning'}},
-                            planningCriteria.filter,
-                        ],
-                    },
-                },
-            ],
-        };
-
-        const sortField = '_planning_schedule.scheduled';
-        const sortParams = {
-            [sortField]: {
-                order: 'asc',
-                nested_path: '_planning_schedule',
-            },
+            full_text: fulltext,
+            spike_state: spikeState,
+            anpa_category: get(advancedSearch, 'anpa_category.length', 0) ?
+                JSON.stringify(get(advancedSearch, 'anpa_category', []).map((c) => c.qcode)) : null,
+            subject: get(advancedSearch, 'subject.length', 0) ?
+                JSON.stringify(get(advancedSearch, 'subject', []).map((s) => s.qcode)) : null,
+            slugline: advancedSearch.slugline,
+            state: get(advancedSearch, 'state.length', 0) ?
+                JSON.stringify(get(advancedSearch, 'state', []).map((c) => c.qcode)) : null,
+            posted: advancedSearch.posted,
+            date_filter: get(advancedSearch, 'dates.range'),
+            start_date: get(advancedSearch, 'dates.start') ?
+                getDateTimeElasticFormat(get(advancedSearch, 'dates.start')) : null,
+            end_date: get(advancedSearch, 'dates.end') ?
+                getDateTimeElasticFormat(get(advancedSearch, 'dates.end')) : null,
+            start_of_week: selectors.config.getStartOfWeek(getState()),
+            page: page,
+            max_results: maxResults,
         };
 
         // Query the API
-        return api('planning_search').query({
-            source: JSON.stringify({
-                query: planningCriteria.query,
-                filter: filter,
-                sort: [sortParams],
-                size: maxResults,
-                from: (page - 1) * maxResults,
-            }),
-            timestamp: new Date(),
-        })
+        return api('events_planning_search').query(search)
             .then((data) => {
                 if (storeTotal) {
                     dispatch(main.setTotal(MAIN.FILTERS.COMBINED, get(data, '_meta.total')));

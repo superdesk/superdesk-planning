@@ -435,7 +435,7 @@ describe('actions.planning.api', () => {
                     expect(services.api('events').query.callCount).toBe(1);
                     expect(services.api('events').query.args[0]).toEqual([{
                         page: 1,
-                        max_results: 25,
+                        max_results: 100,
                         sort: '[("dates.start",1)]',
                         source: JSON.stringify({
                             query: {

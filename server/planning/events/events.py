@@ -520,7 +520,7 @@ def generate_recurring_dates(start, frequency, interval=1, endRepeatMode='count'
     # check format of the recurring_rule byday value
     if byday and re.match(r'^-?[1-5]+.*', byday):
         # byday uses monthly or yearly frequency rule with day of week and
-        # preceeding day of month intenger byday value
+        # preceding day of month integer by day value
         # examples:
         # 1FR - first friday of the month
         # -2MON - second to last monday of the month

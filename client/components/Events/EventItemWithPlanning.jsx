@@ -22,6 +22,17 @@ export class EventItemWithPlanning extends React.Component {
         this.setState({openPlanningItems: !this.state.openPlanningItems});
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (this.state.openPlanningItems) {
+            const currentPlannings = get(this.props, 'eventProps.item.planning_ids', []).length;
+            const nextPlannings = get(nextProps, 'eventProps.item.planning_ids', []).length;
+
+            if (currentPlannings !== nextPlannings) {
+                this.props.showRelatedPlannings(get(nextProps, 'eventProps.item', {}));
+            }
+        }
+    }
+
     render() {
         const planningItems = get(this.props, 'eventProps.item.planning_ids', []).length;
         const relatedPlanningText = gettext('({{ count }}) {{ action }} planning item(s)', {
