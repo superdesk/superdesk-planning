@@ -243,7 +243,7 @@ export class PlanningStoreService {
                     contacts: data.contacts._items,
                     customVocabularies: this.metadata.cvs.filter((cv) =>
                         !isEmpty(cv.service) &&
-                        get(cv, 'schema_field', 'subject') === 'subject' &&
+                        get(cv, 'schema_field') === 'subject' &&
                         isEmpty(cv.field_type)
                     ),
                 };
