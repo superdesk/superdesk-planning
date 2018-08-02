@@ -9,10 +9,12 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from .planning import PlanningResource
-from planning.common import ITEM_EXPIRY, ITEM_STATE, set_item_expiry, WORKFLOW_STATE, get_coverage_type_name
+from planning.common import ITEM_EXPIRY, ITEM_STATE, set_item_expiry, WORKFLOW_STATE, get_coverage_type_name,\
+    remove_autosave_on_spike
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
-from apps.auth import get_user
+from apps.auth import get_user, get_user_id
+from apps.archive.common import get_auth
 from superdesk import config
 from planning.item_lock import LOCK_USER, LOCK_SESSION
 from superdesk import get_resource_service
@@ -42,6 +44,7 @@ class PlanningSpikeService(BaseService):
         updates.update({LOCK_USER: None, LOCK_SESSION: None, 'lock_time': None,
                         'lock_action': None})
 
+        remove_autosave_on_spike(original)
         item = self.backend.update(self.datasource, id, updates, original)
         push_notification('planning:spiked', item=str(id), user=str(user.get(config.ID_FIELD)),
                           etag=item['_etag'], revert_state=item['revert_state'])
@@ -73,6 +76,15 @@ class PlanningSpikeService(BaseService):
     def on_updated(self, updates, original):
         planning_featured_service = get_resource_service('planning_featured')
         planning_featured_service.remove_planning_item(original)
+
+        if original.get('lock_user') and 'lock_user' in updates and updates.get('lock_user') is None:
+            push_notification(
+                'planning:unlock',
+                item=str(original.get(config.ID_FIELD)),
+                user=str(get_user_id()),
+                lock_session=str(get_auth().get('_id')),
+                etag=updates.get('_etag')
+            )
 
 
 class PlanningUnspikeResource(PlanningResource):

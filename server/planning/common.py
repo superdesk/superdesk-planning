@@ -220,6 +220,15 @@ def get_coverage_type_name(qcode):
     return coverage_type.get('name', qcode)
 
 
+def remove_autosave_on_spike(item):
+    if item.get('lock_action') == 'edit':
+        autosave_service = get_resource_service('planning_autosave')
+        if item.get('type') == 'event':
+            autosave_service = get_resource_service('event_autosave')
+
+        autosave_service.delete_action(lookup={'_id': item.get(config.ID_FIELD)})
+
+
 def update_returned_document(doc, item, custom_hateoas):
     doc.clear()
     doc.update(item)

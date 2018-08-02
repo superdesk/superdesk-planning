@@ -333,13 +333,18 @@ const openCancelPlanningModal = (plan, post = false) => (
     ))
 );
 
-const openSpikeModal = (plan, post = false) => (
-    (dispatch) => dispatch(self._openActionModal(
-        plan,
-        PLANNING.ITEM_ACTIONS.SPIKE.label,
-        null,
-        post
-    ))
+const openSpikeModal = (plan, post = false, modalProps = {}) => (
+    (dispatch) => (
+        dispatch(self._openActionModal(
+            plan,
+            PLANNING.ITEM_ACTIONS.SPIKE.label,
+            null,
+            post,
+            false,
+            modalProps
+        )
+        )
+    )
 );
 
 const openUnspikeModal = (plan, post = false) => (
@@ -364,7 +369,8 @@ const _openActionModal = (plan,
     action,
     lockAction = null,
     post = false,
-    large = false
+    large = false,
+    modalProps = {}
 ) => (
     (dispatch, getState, {notify}) => (
         dispatch(planningApi.lock(plan, lockAction))
@@ -376,6 +382,7 @@ const _openActionModal = (plan,
                         planning: lockedPlanning,
                         actionType: action,
                         large: large,
+                        ...modalProps,
                     },
                 }));
             }, (error) => {

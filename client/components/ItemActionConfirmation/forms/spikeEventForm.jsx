@@ -129,6 +129,12 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (event) => dispatch(actions.events.ui.spike(event)),
+    onHide: (event, modalProps) => {
+        if (get(modalProps, 'onCloseModal')) {
+            modalProps.onCloseModal(event);
+        }
+        return Promise.resolve(event);
+    },
 });
 
 export const SpikeEventForm = connect(

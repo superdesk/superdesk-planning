@@ -150,13 +150,16 @@ const postponeEvent = (event) => (
     )
 );
 
-const openSpikeModal = (event, post = false) => (
+const openSpikeModal = (event, post = false, modalProps = {}) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         EVENTS.ITEM_ACTIONS.SPIKE.label,
         null,
         true,
-        post
+        post,
+        false,
+        true,
+        modalProps
     ))
 );
 

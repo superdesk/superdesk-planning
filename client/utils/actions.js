@@ -19,7 +19,7 @@ const getActionDispatches = ({
         [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]:
             actions.events.ui.openUnspikeModal,
         [EVENTS.ITEM_ACTIONS.SPIKE.actionName]:
-            actions.events.ui.openSpikeModal,
+            actions.main.spikeItem,
         [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
             actions.events.ui.openCancelModal,
         [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
@@ -41,7 +41,7 @@ const getActionDispatches = ({
         [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
             actions.planning.ui.duplicate,
         [PLANNING.ITEM_ACTIONS.SPIKE.actionName]:
-            actions.planning.ui.openSpikeModal,
+            actions.main.spikeItem,
         [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]:
             actions.planning.ui.openUnspikeModal,
         [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]:
