@@ -8,21 +8,21 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from flask import current_app as app
-from superdesk.utc import utcnow
-from datetime import timedelta
-from collections import namedtuple
-from superdesk.resource import not_analyzed, build_custom_hateoas
-from superdesk import get_resource_service, logger
-from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
-from superdesk.metadata.item import ITEM_TYPE
-from datetime import datetime, time
 import tzlocal
 import pytz
-from apps.archive.common import get_user, get_auth
+import re
+from flask import current_app as app
+from datetime import datetime, time, timedelta
+from collections import namedtuple
 from eve.utils import config
+from superdesk.resource import not_analyzed, build_custom_hateoas
+from superdesk import get_resource_service, logger
+from superdesk.metadata.item import ITEM_TYPE
+from superdesk.utc import utcnow
 from superdesk.celery_app import celery
+from apps.archive.common import get_user, get_auth
 from apps.publish.enqueue import get_enqueue_service
+from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
 
 ITEM_STATE = 'state'
 ITEM_EXPIRY = 'expiry'
@@ -70,6 +70,9 @@ ITEM_ACTIONS = namedtuple('ITEM_ACTIONS',
                           ['CANCEL', 'POSTPONED', 'RESCHEDULE', 'UPDATE_TIME',
                            'CONVERT_RECURRING', 'PLANNING_CANCEL', 'CANCEL_ALL_COVERAGE',
                            'EDIT'])(*item_actions)
+
+spiked_state = ['both', 'draft', 'spiked']
+SPIKED_STATE = namedtuple('SPIKED_STATE', ['BOTH', 'NOT_SPIKED', 'SPIKED'])(*spiked_state)
 
 
 def set_item_expiry(doc):
@@ -250,3 +253,22 @@ def enqueue_planning_item(id):
             logger.exception('Failed to queue {} item {}'.format(planning_version.get('type'), id))
     else:
         logger.error('Failed to retrieve planning item from planning versions with id: {}'.format(id))
+
+
+def sanitize_query_text(text):
+    """Sanitize the query text"""
+    if text:
+        regex = re.compile('/')
+        text = regex.sub('\\/', text)
+        regex = re.compile('[()]')
+        text = regex.sub('', text)
+    return text
+
+
+def get_start_of_next_week(date=None, start_of_week=0):
+    """Get the start of the next week based on the date and start of week"""
+    current_date = (date if date else utcnow()).replace(hour=0, minute=0, second=0, microsecond=0)
+    weekday = current_date.isoweekday()
+    weekDay = 0 if weekday == 7 else weekday
+    diff = start_of_week - weekDay if weekday < start_of_week else 7 - weekDay + start_of_week
+    return current_date + timedelta(days=diff)

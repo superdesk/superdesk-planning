@@ -354,6 +354,7 @@ describe('actions.planning.notifications', () => {
             sinon.stub(main, 'setUnsetLoadingIndicator').callsFake(() => (Promise.resolve()));
             sinon.stub(planningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
             sinon.stub(eventsPlanningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
+            sinon.stub(eventsPlanningUi, 'refetchPlanning').callsFake(() => (Promise.resolve()));
             sinon.stub(featuredPlanning, 'removePlanningItemFromSelection').callsFake(
                 () => (Promise.resolve())
             );
@@ -367,6 +368,7 @@ describe('actions.planning.notifications', () => {
             restoreSinonStub(main.setUnsetLoadingIndicator);
             restoreSinonStub(planningUi.scheduleRefetch);
             restoreSinonStub(eventsPlanningUi.scheduleRefetch);
+            restoreSinonStub(eventsPlanningUi.refetchPlanning);
             restoreSinonStub(featuredPlanning.removePlanningItemFromSelection);
             restoreSinonStub(featuredPlanning.addPlanningItemToSelection);
         });
@@ -379,7 +381,7 @@ describe('actions.planning.notifications', () => {
                 etag: 'e123',
             }))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(7);
+                    expect(store.dispatch.callCount).toBe(8);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: PLANNING.ACTIONS.SPIKE_PLANNING,
                         payload: {
@@ -405,7 +407,7 @@ describe('actions.planning.notifications', () => {
                     expect(planningUi.scheduleRefetch.callCount).toBe(1);
                     expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
                     expect(featuredPlanning.removePlanningItemFromSelection.callCount).toBe(1);
-
+                    expect(eventsPlanningUi.refetchPlanning.callCount).toBe(1);
                     done();
                 })
         ).catch(done.fail));
@@ -417,7 +419,7 @@ describe('actions.planning.notifications', () => {
                 etag: 'e123',
             }))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(7);
+                    expect(store.dispatch.callCount).toBe(8);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
                         payload: {
@@ -442,6 +444,7 @@ describe('actions.planning.notifications', () => {
                     expect(planningUi.scheduleRefetch.callCount).toBe(1);
                     expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
                     expect(featuredPlanning.addPlanningItemToSelection.callCount).toBe(1);
+                    expect(eventsPlanningUi.refetchPlanning.callCount).toBe(1);
 
                     done();
                 })

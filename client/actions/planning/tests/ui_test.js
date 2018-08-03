@@ -281,7 +281,7 @@ describe('actions.planning.ui', () => {
 
     it('loadMore with data fetched equal to page size', (done) => {
         store.initialState.main.filter = MAIN.FILTERS.PLANNING;
-        store.initialState.main.search.PLANNING.totalItems = 50;
+        store.initialState.main.search.PLANNING.totalItems = 200;
         store.initialState.main.search.PLANNING.lastRequestParams = {
             agendas: ['a1'],
             noAgendaAssigned: false,
@@ -291,7 +291,7 @@ describe('actions.planning.ui', () => {
         restoreSinonStub(planningUi.loadMore);
         restoreSinonStub(planningApi.fetch);
         sinon.stub(planningApi, 'fetch').callsFake(
-            () => (Promise.resolve([...Array(25).keys()]))
+            () => (Promise.resolve([...Array(100).keys()]))
         );
 
         const expectedParams = {

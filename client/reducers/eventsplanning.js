@@ -7,7 +7,6 @@ const initialState = {
     relatedPlannings: {},
 };
 
-
 const eventsPlanningReducer = createReducer(initialState, {
     [RESET_STORE]: () => (null),
 

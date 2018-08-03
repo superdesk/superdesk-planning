@@ -5,7 +5,7 @@ import {gettext} from '../../utils';
 import * as selectors from '../../selectors';
 import {events, fetchAgendas} from '../index';
 import main from '../main';
-import {PLANNING, ITEM_TYPE, MODALS, FEATURED_PLANNING} from '../../constants';
+import {PLANNING, ITEM_TYPE, MODALS, FEATURED_PLANNING, WORKFLOW_STATE} from '../../constants';
 import {showModal, hideModal} from '../index';
 import eventsPlanning from '../eventsPlanning';
 
@@ -64,6 +64,7 @@ const onPlanningUpdated = (_e, data) => (
                     dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
                     dispatch(udpateAssignmentHistory(data.item));
                     dispatch(planning.featuredPlanning.onPlanningUpdatedNotification(data.item));
+                    dispatch(eventsPlanning.ui.refetchPlanning(data.item));
                 });
         }
 
@@ -152,6 +153,7 @@ const onPlanningPosted = (_e, data) => (
             dispatch(planning.ui.scheduleRefetch());
             dispatch(eventsPlanning.ui.scheduleRefetch());
             dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
+            dispatch(eventsPlanning.ui.refetchPlanning(data.item));
         }
 
         return Promise.resolve();
@@ -165,7 +167,7 @@ const onPlanningSpiked = (_e, data) => (
                 type: PLANNING.ACTIONS.SPIKE_PLANNING,
                 payload: {
                     id: data.item,
-                    state: data.state,
+                    state: WORKFLOW_STATE.SPIKED,
                     revert_state: data.revert_state,
                     etag: data.etag,
                 },
@@ -179,7 +181,10 @@ const onPlanningSpiked = (_e, data) => (
             dispatch(planning.featuredPlanning.removePlanningItemFromSelection(data.item));
             dispatch(main.setUnsetLoadingIndicator(true));
             return dispatch(planning.ui.scheduleRefetch())
-                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
+                .then(() => {
+                    dispatch(eventsPlanning.ui.refetchPlanning(data.item));
+                    return dispatch(eventsPlanning.ui.scheduleRefetch());
+                })
                 .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
         }
 
@@ -207,7 +212,10 @@ const onPlanningUnspiked = (_e, data) => (
 
             dispatch(main.setUnsetLoadingIndicator(true));
             return dispatch(planning.ui.scheduleRefetch())
-                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
+                .then(() => {
+                    dispatch(eventsPlanning.ui.refetchPlanning(data.item));
+                    return dispatch(eventsPlanning.ui.scheduleRefetch());
+                })
                 .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
         }
 

@@ -899,4 +899,5 @@ export const items = {
     event_autosave: [],
     planning_autosave: [],
     published_planning: publishedPlanning,
+    events_planning_search: events.concat(plannings),
 };

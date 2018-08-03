@@ -80,6 +80,10 @@ export const getTestActionStore = () => {
                     query: sinon.spy(() => (store.spies.api._query('planning_search'))),
                 },
 
+                events_planning_search: {
+                    query: sinon.spy(() => (store.spies.api._query('events_planning_search'))),
+                },
+
                 contacts: {query: sinon.spy(() => Promise.resolve(store.data.contacts))},
 
                 event_autosave: {
