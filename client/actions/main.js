@@ -40,6 +40,7 @@ import {
     itemsEqual,
     removeAutosaveFields,
     isPublishedItemId,
+    isItemSpiked,
 } from '../utils';
 import eventsPlanningUi from './eventsPlanning/ui';
 import {get, omit, isEmpty, isNil, isEqual} from 'lodash';
@@ -1334,6 +1335,40 @@ const closePublishQueuePreviewOnWorkspaceChange = () => (
     }
 );
 
+const spikeItem = (item, post = false) => (
+    (dispatch) => dispatch(self.openActionModalFromEditor(
+        item,
+        gettext('Save changes before spiking ?'),
+        (unlockedItem, previousLock, openInEditor, openInModal) => (
+            dispatch(self.spikeAfterUnlock(unlockedItem, previousLock, openInEditor, openInModal)
+            )
+        )
+    ))
+
+);
+
+const spikeAfterUnlock = (unlockedItem, previousLock, openInEditor, openInModal) => (
+    (dispatch) => {
+        const onCloseModal = (updatedItem) => {
+            if (!isItemSpiked(updatedItem) && get(previousLock, 'action')) {
+                if (openInEditor || openInModal) {
+                    return dispatch(self.lockAndEdit(updatedItem, openInModal));
+                }
+
+                return dispatch(locks.lock(updatedItem, previousLock.action));
+            }
+        };
+        const dispatchCall = getItemType(unlockedItem) === ITEM_TYPE.PLANNING ?
+            planningUi.openSpikeModal : eventsUi.openSpikeModal;
+
+        return dispatch(dispatchCall(
+            unlockedItem,
+            post,
+            {onCloseModal: (updatedItem) => (onCloseModal(updatedItem))}
+        ));
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     lockAndEdit,
@@ -1377,6 +1412,8 @@ const self = {
     fetchQueueItemAndPreview,
     onQueueItemChange,
     closePublishQueuePreviewOnWorkspaceChange,
+    spikeItem,
+    spikeAfterUnlock,
 };
 
 export default self;

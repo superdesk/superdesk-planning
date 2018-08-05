@@ -92,6 +92,9 @@ describe('actions.events.ui', () => {
                     null,
                     true,
                     false,
+                    false,
+                    true,
+                    {},
                 ]);
 
                 done();

@@ -12,7 +12,7 @@ from .events import EventsResource
 from .events_base_service import EventsBaseService
 from superdesk.errors import SuperdeskApiError
 from planning.common import ITEM_EXPIRY, ITEM_STATE, set_item_expiry, UPDATE_FUTURE, \
-    WORKFLOW_STATE, remove_lock_information
+    WORKFLOW_STATE, remove_lock_information, remove_autosave_on_spike
 from superdesk.notification import push_notification
 from apps.archive.common import get_user
 from superdesk import config, get_resource_service
@@ -42,6 +42,7 @@ class EventsSpikeService(EventsBaseService):
 
     def update(self, id, updates, original):
         spiked_items = updates.pop('_spiked_items', [])
+        remove_autosave_on_spike(original)
         item = super().update(id, updates, original)
 
         if self.is_original_event(original):

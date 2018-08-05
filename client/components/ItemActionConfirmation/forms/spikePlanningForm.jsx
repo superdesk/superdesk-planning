@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import {get} from 'lodash';
 import * as actions from '../../../actions';
 import '../style.scss';
 import {getDateFormat, getTimeFormat} from '../../../selectors/config';
@@ -64,6 +65,12 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (plan) => dispatch(actions.planning.ui.spike(plan)),
+    onHide: (plan, modalProps) => {
+        if (get(modalProps, 'onCloseModal')) {
+            modalProps.onCloseModal(plan);
+        }
+        return Promise.resolve(plan);
+    },
 });
 
 export const SpikePlanningForm = connect(
