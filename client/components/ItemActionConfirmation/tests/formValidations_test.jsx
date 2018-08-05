@@ -19,12 +19,22 @@ describe('form validations', () => {
     let data;
     const enableSaveInModal = sinon.spy(() => true);
     const disableSaveInModal = sinon.spy(() => true);
+    const startDate = moment().add(3, 'days')
+        .set({
+            hour: 0,
+            minute: 0,
+        });
+    const endDate = moment().add(3, 'days')
+        .set({
+            hour: 23,
+            minute: 50,
+        });
 
     beforeEach(() => {
         astore = getTestActionStore();
         data = astore.data;
-        data.events[1].dates.start = moment(data.events[1].dates.start);
-        data.events[1].dates.end = moment(data.events[1].dates.end);
+        data.events[1].dates.start = startDate;
+        data.events[1].dates.end = endDate;
 
         astore.init();
 
@@ -43,13 +53,17 @@ describe('form validations', () => {
         )
     );
 
-    // Excluding this as this will change during refactoring
     it('forms with validation shows validation errors', () => {
         let wrapper = getWrapper(ConvertToRecurringEventForm);
-        const countField_convertToRecurringEventForm = wrapper.find('[name="count"]');
+        const endsField_convertToRecurringEventForm = wrapper.find('[name="dates.recurring_rule.endRepeatMode"]');
 
+        expect(wrapper.find('.sd-line-input--invalid').length).toBe(1);
+        endsField_convertToRecurringEventForm.simulate('change', {target: {value: 'count'}});
+        const countField_convertToRecurringEventForm = wrapper.find('[name="dates.recurring_rule.count"]');
+
+        countField_convertToRecurringEventForm.simulate('change', {target: {value: '3'}});
         expect(wrapper.find('.sd-line-input--invalid').length).toBe(0);
-        countField_convertToRecurringEventForm.simulate('change', {target: {value: 300}});
+        countField_convertToRecurringEventForm.simulate('change', {target: {value: '300'}});
         expect(wrapper.find('.sd-line-input--invalid').length > 0).toBe(true);
 
         wrapper = getWrapper(UpdateTimeForm);
@@ -73,8 +87,8 @@ describe('form validations', () => {
             count: 1,
         };
 
-        data.events[0].dates.start = moment(data.events[1].dates.start);
-        data.events[0].dates.end = moment(data.events[1].dates.end);
+        data.events[0].dates.start = startDate;
+        data.events[0].dates.end = endDate;
         data.events[0].dates.recurring_rule = recurrence_rule;
         data.events[0].dates.recurrence_id = 'r1';
         data.events[1].dates.recurring_rule = recurrence_rule;
@@ -82,9 +96,10 @@ describe('form validations', () => {
         data.events[1]._recurring = [data.events[0]];
 
         wrapper = getWrapper(UpdateEventRepetitionsForm);
-        const countField_updateEventRepetitionsForm = wrapper.find('[name="count"]');
-
         expect(wrapper.find('.sd-line-input--invalid').length).toBe(0);
+        endsField_convertToRecurringEventForm.simulate('change', {target: {value: 'count'}});
+        const countField_updateEventRepetitionsForm = wrapper.find('[name="dates.recurring_rule.count"]');
+
         countField_updateEventRepetitionsForm.simulate('change', {target: {value: 300}});
         expect(wrapper.find('.sd-line-input--invalid').length > 0).toBe(true);
     });

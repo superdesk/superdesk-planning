@@ -7,7 +7,7 @@ import * as selectors from '../../../selectors';
 import {gettext, updateFormValues} from '../../../utils';
 import {Row} from '../../UI/Preview/';
 import {RepeatEventSummary} from '../../Events';
-import {EndsInput} from '../../Events/RecurringRulesInput/EndsInput';
+import {RecurringRulesInput} from '../../Events/RecurringRulesInput/index';
 import '../style.scss';
 import {get, cloneDeep, isEqual} from 'lodash';
 import {EVENTS, ITEM_TYPE} from '../../../constants';
@@ -70,14 +70,6 @@ export class UpdateEventRepetitionsComponent extends React.Component {
         const {initialValues, dateFormat, submitting} = this.props;
         const {diff} = this.state;
 
-        const frequency = get(diff, 'dates.recurring_rule.frequency');
-        const endRepeatMode = get(diff, 'dates.recurring_rule.endRepeatMode');
-        const until = get(diff, 'dates.recurring_rule.until');
-        const count = get(diff, 'dates.recurring_rule.count');
-        const byDay = get(diff, 'dates.recurring_rule.byday');
-        const startDate = get(diff, 'dates.start');
-        const interval = get(diff, 'dates.recurring_rule.interval');
-
         return (
             <div className="MetadataView">
                 <Row
@@ -103,27 +95,17 @@ export class UpdateEventRepetitionsComponent extends React.Component {
                 />
 
                 <Row>
-                    <RepeatEventSummary
-                        byDay={byDay}
-                        interval={interval}
-                        frequency={frequency}
-                        endRepeatMode={endRepeatMode}
-                        until={until}
-                        count={count}
-                        startDate={startDate}
-                    />
+                    <RepeatEventSummary schedule={diff.dates || {}} />
                 </Row>
 
-                <EndsInput
-                    count={count}
-                    until={until}
-                    endRepeatMode={endRepeatMode}
+                <RecurringRulesInput
+                    onlyUpdateRepetitions
                     onChange={this.onChange}
+                    schedule={diff.dates || {}}
                     dateFormat={dateFormat}
                     readOnly={submitting}
                     errors={get(this.state.errors, 'dates.recurring_rule')}
-                    label={gettext('Ends')}
-                    popupContainer={this.getPopupContainer}
+                    popupContainer={() => this.dom.popupContainer}
                 />
 
                 <div ref={(node) => this.dom.popupContainer = node} />

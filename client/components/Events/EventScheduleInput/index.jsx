@@ -11,7 +11,6 @@ import {RecurringRulesInput} from '../RecurringRulesInput';
 export class EventScheduleInput extends React.Component {
     constructor(props) {
         super(props);
-
         this.state = {
             isAllDay: false,
             isMultiDay: false,
@@ -192,8 +191,8 @@ export class EventScheduleInput extends React.Component {
                 {
                     frequency: 'DAILY',
                     interval: 1,
-                    endRepeatMode: 'count',
-                    count: 2,
+                    endRepeatMode: 'until',
+                    until: null,
                 }
             );
         }
@@ -242,50 +241,57 @@ export class EventScheduleInput extends React.Component {
 
         return (
             <div>
+                <Row flex={true}>
+                    <Field
+                        enabled={showRepeat && showRepeatToggle}
+                        onChange={this.handleDoesRepeatChange}
+                        field="dates.recurring"
+                        label={gettext('Repeats')}
+                        value={doesRepeat}
+                        {...toggleProps}
+                    />
+                </Row>
+
+                {showRepeat && doesRepeat && (
+                    <RecurringRulesInput
+                        onChange={this.onChange}
+                        schedule={diff.dates || {}}
+                        dateFormat={dateFormat}
+                        readOnly={readOnly}
+                        errors={get(errors, 'dates.recurring_rule')}
+                        popupContainer={popupContainer}
+                    />
+                )}
+
                 <Field
                     component={DateTimeInput}
                     field="dates.start"
-                    label={gettext('From')}
+                    label={ doesRepeat ? gettext('First Event Starts') : gettext('Event Starts')}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
                     row={false}
                     defaultValue={null}
                     popupContainer={popupContainer}
+                    hideTime={isAllDay}
+                    halfWidth={isAllDay}
                     {...fieldProps}
                 />
 
                 <Field
                     component={DateTimeInput}
                     field="dates.end"
-                    label={gettext('To')}
+                    label={ doesRepeat ? gettext('First Event Ends') : gettext('Event Ends')}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
                     row={false}
                     defaultValue={null}
                     popupContainer={popupContainer}
+                    hideTime={isAllDay}
+                    halfWidth={isAllDay}
                     {...fieldProps}
                 />
 
-                <Row
-                    enabled={!!get(errors, 'dates.range')}
-                    noPadding={true}
-                >
-                    <LineInput invalid={true}
-                        message={get(errors, 'dates.range')}
-                        readOnly={true} />
-                </Row>
-
-
-                <Row flex={true} className="event-toggle">
-                    <Field
-                        enabled={showRepeat && showRepeatToggle}
-                        onChange={this.handleDoesRepeatChange}
-                        field="dates.recurring"
-                        label={gettext('Repeat')}
-                        value={doesRepeat}
-                        {...toggleProps}
-                    />
-
+                <Row flex={true} className="event-toggle" noPadding>
                     <Field
                         onChange={this.handleAllDayChange}
                         field="dates.all_day"
@@ -296,16 +302,14 @@ export class EventScheduleInput extends React.Component {
                     />
                 </Row>
 
-                {showRepeat && doesRepeat && (
-                    <RecurringRulesInput
-                        onChange={this.onChange}
-                        schedule={diff || {}}
-                        dateFormat={dateFormat}
-                        readOnly={readOnly}
-                        errors={get(errors, 'dates.recurring_rule')}
-                        popupContainer={popupContainer}
-                    />
-                )}
+                <Row
+                    enabled={!!get(errors, 'dates.range')}
+                    noPadding={true}
+                >
+                    <LineInput invalid={true}
+                        message={get(errors, 'dates.range')}
+                        readOnly={true} />
+                </Row>
             </div>
         );
     }

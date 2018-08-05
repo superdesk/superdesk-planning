@@ -18,6 +18,12 @@ export const gettext = (text, params = null) => {
         return params ? injector.get('$interpolate')(translated)(params) : translated;
     }
 
+    if (text && params) {
+        const template = (tpl, args) => tpl.replace(/\{{\s*(\w+)\s*}}/g, (_, v) => args[v]);
+
+        return template(text, params);
+    }
+
     return text;
 };
 

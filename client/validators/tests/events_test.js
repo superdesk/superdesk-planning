@@ -180,8 +180,8 @@ describe('eventValidators', () => {
         it('fail if count is greater than', () => {
             event.dates.recurring_rule.count = 250;
             testValidate(eventValidators.validateDates, 'dates',
-                {dates: {recurring_rule: {count: 'Must be less than {{ maximum }}'}}},
-                ['RECURRING REPEAT COUNT must be less than {{ maximum }}']
+                {dates: {recurring_rule: {count: 'Must be less than 201'}}},
+                ['RECURRING REPEAT COUNT must be less than 201']
             );
         });
 
@@ -203,7 +203,7 @@ describe('eventValidators', () => {
         event.files = [{}];
         testValidate(eventValidators.validateFiles, 'files',
             {files: {0: 'Required'}},
-            ['ATTACHED FILE {{ index }} is required']
+            ['ATTACHED FILE 1 is required']
         );
     });
 
@@ -222,14 +222,14 @@ describe('eventValidators', () => {
         event.links = ['foobar.com'];
         testValidate(eventValidators.validateLinks, 'links',
             {links: {0: 'Must start with "http://", "https://" or "www."'}},
-            ['EXTERNAL LINK {{ index }} must start with "http://", "https://" or "www."']
+            ['EXTERNAL LINK 1 must start with "http://", "https://" or "www."']
         );
 
         errorMessages = [];
         event.links = ['www.foobar.com.'];
         testValidate(eventValidators.validateLinks, 'links',
             {links: {0: 'Cannot end with "."'}},
-            ['EXTERNAL LINK {{ index }} cannot end with "."']
+            ['EXTERNAL LINK 1 cannot end with "."']
         );
 
         errorMessages = [];

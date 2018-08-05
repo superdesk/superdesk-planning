@@ -743,6 +743,95 @@ const shouldFetchFilesForEvent = (event) => (
             || f instanceof String).length > 0
 );
 
+const getRepeatSummaryForEvent = (schedule) => {
+    const frequency = get(schedule, 'recurring_rule.frequency');
+    const endRepeatMode = get(schedule, 'recurring_rule.endRepeatMode');
+    const until = get(schedule, 'recurring_rule.until');
+    const count = get(schedule, 'recurring_rule.count');
+    const byDay = get(schedule, 'recurring_rule.byday');
+    const startDate = get(schedule, 'start');
+    const interval = get(schedule, 'recurring_rule.interval');
+    const weekdays = byDay === 'MO TU WE TH FR';
+    const allWeek = byDay === 'MO TU WE TH FR SA SU';
+
+    const getFrequency = () => {
+        switch (frequency) {
+        case 'YEARLY':
+            return gettext('Every {{interval}} year(s) on {{date}} ',
+                {
+                    interval: interval,
+                    date: startDate.format('MMM D'),
+                });
+
+        case 'MONTHLY':
+            return gettext('Every {{interval}} month(s) on day {{day}} ',
+                {
+                    interval: interval,
+                    day: startDate.format('D'),
+                });
+
+        case 'DAILY':
+            return gettext('Every {{interval}} day(s) ', {interval: interval});
+
+        case 'WEEKLY':
+            return gettext('Every {{interval}} week(s) ', {interval: interval});
+        }
+    };
+
+    const getEnds = () => {
+        if (endRepeatMode === 'until') {
+            return gettext('until {{until}} ', {until: until ? until.format('D MMM YYYY') : ' '});
+        }
+
+        if (endRepeatMode === 'count') {
+            return count ? gettext('for {{ repeatCount }} repeats ', {repeatCount: count}) : gettext('for ');
+        }
+
+        return '';
+    };
+
+    const getDays = () => {
+        if (frequency !== 'WEEKLY') {
+            return '';
+        }
+
+        if (weekdays) {
+            return gettext('on week days');
+        }
+        if (allWeek) {
+            return gettext('on all week (including weekends)');
+        }
+        let byDays = '';
+
+        if (byDay && byDay.length > 0) {
+            byDays = byDay;
+        } else if (startDate) {
+            byDays = startDate.format('dd').toUpperCase();
+        }
+        if (byDays) {
+            const days = {
+                MO: gettext('Monday'),
+                TU: gettext('Tuesday'),
+                WE: gettext('Wednesday'),
+                TH: gettext('Thursday'),
+                FR: gettext('Friday'),
+                SA: gettext('Saturday'),
+                SU: gettext('Sunday'),
+            };
+            let dayNames = [];
+
+            byDays.split(' ').forEach((day) => {
+                dayNames.push(days[day]);
+            });
+            return (gettext('on') + ' ' + dayNames.join(', '));
+        }
+
+        return '';
+    };
+
+    return getFrequency() + getEnds() + getDays();
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     isEventAllDay,
@@ -780,6 +869,7 @@ const self = {
     modifyForServer,
     defaultEventValues,
     shouldFetchFilesForEvent,
+    getRepeatSummaryForEvent,
 };
 
 export default self;

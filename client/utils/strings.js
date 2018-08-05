@@ -1,6 +1,6 @@
 import React from 'react';
 
-const firstCharUpperCase = (string) => string && string.replace(/\b\w/g, (l) => l.toUpperCase());
+const firstCharUpperCase = (string) => string && string.toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase());
 
 const convertNewlineToBreak = (string) => !string ? '' :
     string.split('\n')

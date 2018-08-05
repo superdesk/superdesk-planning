@@ -55,6 +55,7 @@ describe('edit_event', () => {
         );
 
         inputToField(editor.fromDateField, '12/12/2045');
+        inputToField(editor.untilDateField, '13/12/2045');
         editor.allDayButton.click();
         inputToField(editor.slugField, 'slugline of the recurring event');
         inputToField(editor.nameField, 'name of the recurring event');

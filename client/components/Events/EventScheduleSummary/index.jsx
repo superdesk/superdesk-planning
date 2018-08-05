@@ -12,13 +12,6 @@ export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPaddin
         return null;
 
     const doesRepeat = get(schedule, 'recurring_rule', null) !== null;
-    const frequency = get(schedule, 'recurring_rule.frequency');
-    const endRepeatMode = get(schedule, 'recurring_rule.endRepeatMode');
-    const until = get(schedule, 'recurring_rule.until');
-    const count = get(schedule, 'recurring_rule.count');
-    const byDay = get(schedule, 'recurring_rule.byday');
-    const start = get(schedule, 'start');
-    const interval = get(schedule, 'recurring_rule.interval');
     const eventDateText = eventUtils.getDateStringForEvent({dates: schedule}, dateFormat, timeFormat);
 
     return (
@@ -32,14 +25,8 @@ export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPaddin
             {doesRepeat && (
                 <Row noPadding={noPadding}>
                     <RepeatEventSummary
-                        byDay={byDay}
-                        interval={interval}
-                        frequency={frequency}
-                        endRepeatMode={endRepeatMode}
-                        until={until}
-                        count={count}
-                        startDate={start}
-                        asInputField={true}
+                        schedule={schedule}
+                        asInputField
                         noMargin={noPadding}
                         forUpdating={forUpdating}
                     />

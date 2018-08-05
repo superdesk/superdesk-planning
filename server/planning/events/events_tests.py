@@ -24,12 +24,12 @@ class EventTestCase(TestCase):
             datetime.datetime(2016, 1, 28, 15, 0),  # thursday 28th
             datetime.datetime(2016, 1, 29, 15, 0),  # friday 29th
         ])
-        # Every working day
+        # Every working day - 2 cycles
         self.assertEquals(list(generate_recurring_dates(
             start=datetime.datetime(2016, 1, 1),
             frequency='WEEKLY',
             byday='MO TU WE TH FR',
-            count=5,
+            count=2,
             endRepeatMode='count',
         )), [
             datetime.datetime(2016, 1, 1),  # friday
@@ -37,6 +37,11 @@ class EventTestCase(TestCase):
             datetime.datetime(2016, 1, 5),
             datetime.datetime(2016, 1, 6),
             datetime.datetime(2016, 1, 7),
+            datetime.datetime(2016, 1, 8),  # friday again
+            datetime.datetime(2016, 1, 11),
+            datetime.datetime(2016, 1, 12),
+            datetime.datetime(2016, 1, 13),
+            datetime.datetime(2016, 1, 14),
         ])
         # Next 4 Summer Olympics
         self.assertEquals(list(generate_recurring_dates(
