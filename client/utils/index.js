@@ -626,7 +626,7 @@ export const getDateTimeString = (date, dateFormat, timeFormat, separator = ' @ 
 
 export const getDateTimeElasticFormat = (date) => (
     // !! Note - expects date as instance of moment() !! //
-    getDateTimeString(date, 'YYYY-MM-DD', 'HH:mm:ss+0000', 'T')
+    getDateTimeString(date.utc(), 'YYYY-MM-DD', 'HH:mm:ss+0000', 'T')
 );
 
 export const isEmptyActions = (actions) => {
