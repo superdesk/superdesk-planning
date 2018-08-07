@@ -81,7 +81,7 @@ const mapStateToProps = (state) => (
 const mapDispatchToProps = (dispatch, ownProps) => ({
     unlockFeaturedPlanning: () => {
         ownProps.handleHide();
-        return dispatch(actions.planning.api.unlockFeaturedPlanning());
+        return dispatch(actions.planning.featuredPlanning.forceUnlock());
     },
 });
 

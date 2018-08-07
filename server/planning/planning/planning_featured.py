@@ -39,6 +39,7 @@ class PlanningFeaturedService(superdesk.Service):
 
             self.validate_featured_attrribute(doc.get('items'))
             doc['_id'] = _id
+            self.post_featured_planning(doc, None)
             # set the author
             set_original_creator(doc)
 
@@ -47,38 +48,41 @@ class PlanningFeaturedService(superdesk.Service):
 
     def on_created(self, docs):
         for doc in docs:
-            if doc.get('posted'):
-                self.post_featured_planning(doc, doc, str(get_user_id()))
+            self.enqueue_published_item(doc, doc)
 
     def on_update(self, updates, original):
         # Find all planning items in the list
         added_featured = [id for id in updates.get('items') if id not in original.get('items')]
         self.validate_featured_attrribute(added_featured)
         updates['version_creator'] = str(get_user_id())
+        self.post_featured_planning(updates, original)
 
     def on_updated(self, updates, original):
+        self.enqueue_published_item(updates, original)
+
+    def post_featured_planning(self, updates, original):
         if updates.get('posted', False):
-            self.post_featured_planning(updates, original, str(get_user_id()))
+            self.validate_post_status(updates.get('items', original.get('items' or [])))
+            updates['posted'] = True
+            updates['last_posted_time'] = utcnow()
+            updates['last_posted_by'] = str(get_user_id())
 
-    def post_featured_planning(self, updates, original, user_id):
-        self.validate_post_status(updates.get('items', original.get('items' or [])))
-        updates['posted'] = True
-        updates['last_posted_time'] = utcnow()
-        updates['last_posted_by'] = user_id
-        plan = deepcopy(original)
-        plan.update(updates)
-        version, plan = get_version_item_for_post(plan)
+    def enqueue_published_item(self, updates, original):
+        if updates.get('posted', False):
+            plan = deepcopy(original)
+            plan.update(updates)
+            version, plan = get_version_item_for_post(plan)
 
-        # Create an entry in the planning versions collection for this published version
-        version_id = get_resource_service('published_planning').post([{'item_id': plan['_id'],
-                                                                       'version': version,
-                                                                       'type': 'planning_featured',
-                                                                       'published_item': plan}])
-        if version_id:
-            # Asynchronously enqueue the item for publishing.
-            enqueue_planning_item.apply_async(kwargs={'id': version_id[0]})
-        else:
-            logger.error('Failed to save planning_featured version for featured item id {}'.format(plan['_id']))
+            # Create an entry in the planning versions collection for this published version
+            version_id = get_resource_service('published_planning').post([{'item_id': plan['_id'],
+                                                                           'version': version,
+                                                                           'type': 'planning_featured',
+                                                                           'published_item': plan}])
+            if version_id:
+                # Asynchronously enqueue the item for publishing.
+                enqueue_planning_item.apply_async(kwargs={'id': version_id[0]})
+            else:
+                logger.error('Failed to save planning_featured version for featured item id {}'.format(plan['_id']))
 
     def validate_featured_attrribute(self, planning_ids):
         planning_service = get_resource_service('planning')

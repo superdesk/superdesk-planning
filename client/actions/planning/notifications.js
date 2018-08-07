@@ -316,6 +316,7 @@ const onPlanningFeaturedUnLocked = (_e, data) => (
                 const user = selectors.general.users(getState()).find((u) => u._id === data.user);
 
                 // Close modal and send notification unlocked popup
+                dispatch(planning.featuredPlanning.unsetFeaturePlanningInUse(false));
                 dispatch(hideModal());
                 dispatch(showModal({
                     modalType: MODALS.NOTIFICATION_MODAL,
