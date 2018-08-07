@@ -25,8 +25,8 @@ describe('actions.eventsplanning.api', () => {
                     slugline: 'slugline',
                     dates: {
                         range: 'today',
-                        start: moment('2018-06-01T00:00:00'),
-                        end: moment('2018-06-02T00:00:00'),
+                        start: moment('2018-06-01T00:00:00+1000'),
+                        end: moment('2018-06-02T00:00:00+1000'),
                     },
                 },
                 maxResults: 50,
@@ -48,8 +48,8 @@ describe('actions.eventsplanning.api', () => {
                     expect(args.posted).toBe(true);
                     expect(args.slugline).toBe('slugline');
                     expect(args.date_filter).toBe('today');
-                    expect(args.start_date).toBe('2018-06-01T00:00:00+0000');
-                    expect(args.end_date).toBe('2018-06-02T00:00:00+0000');
+                    expect(args.start_date).toBe('2018-05-31T14:00:00+0000');
+                    expect(args.end_date).toBe('2018-06-01T14:00:00+0000');
                     done();
                 })
                 .catch(done.fail);
