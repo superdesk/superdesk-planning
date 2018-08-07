@@ -344,6 +344,7 @@ describe('PlanningUtils', () => {
                     user: 'ident1',
                     priority: ASSIGNMENTS.DEFAULT_PRIORITY,
                 },
+                place: [{name: 'Australia'}],
             };
 
             const plan = planUtils.createNewPlanningFromNewsItem(
@@ -357,6 +358,7 @@ describe('PlanningUtils', () => {
                 anpa_category: 'cat',
                 urgency: 3,
                 description_text: 'some abstractions',
+                place: [{name: 'Australia'}],
                 coverages: [{
                     planning: {
                         g2_content_type: 'text',
