@@ -806,3 +806,10 @@ export const itemsEqual = (nextItem, currentItem) => {
 export const isPlanningModuleItem = (item) => isEvent(item) || isPlanning(item) || isAssignment(item);
 
 export const getIdForFeauturedPlanning = (date) => (date.format(FEATURED_PLANNING.ID_DATE_FORMAT));
+
+export const isItemSameAsAutosave = (item, autosave, events, plannings) => {
+    const storedItems = getItemType(item) === ITEM_TYPE.EVENT ? events : plannings;
+    const originalItem = removeAutosaveFields(get(storedItems, getItemId(item), null));
+
+    return itemsEqual(originalItem, autosave);
+};
