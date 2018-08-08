@@ -545,6 +545,10 @@ const createNewPlanningFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus
         newPlanning.flags = {marked_for_not_publication: true};
     }
 
+    if (get(addNewsItemToPlanning, 'place.length', 0) > 0) {
+        newPlanning.place = addNewsItemToPlanning.place;
+    }
+
     return newPlanning;
 };
 
