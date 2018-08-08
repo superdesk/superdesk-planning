@@ -306,14 +306,18 @@ const saveFeaturedPlanningForDate = (item) => (
  * Notifies that the featured planning modal is now closed by unlocking and closing modal
  * @return Promise
  */
-const unsetFeaturePlanningInUse = () => (
+const unsetFeaturePlanningInUse = (unlock = true) => (
     (dispatch) => {
         dispatch({type: FEATURED_PLANNING.ACTIONS.COMPLETE});
-        return dispatch(planningApi.unlockFeaturedPlanning())
-            .then(() => {
-                dispatch(hideModal());
-                return Promise.resolve();
-            });
+        if (unlock) {
+            return dispatch(planningApi.unlockFeaturedPlanning())
+                .then(() => {
+                    dispatch(hideModal());
+                    return Promise.resolve();
+                });
+        }
+
+        return Promise.resolve();
     }
 );
 
@@ -401,6 +405,15 @@ const addPlanningItemToSelection = (id, item = null) => (
     }
 );
 
+const forceUnlock = () => (
+    (dispatch, getState) => (
+        dispatch(planningApi.unlockFeaturedPlanning())
+            .then(() => {
+                dispatch(self.openFeaturedPlanningModal());
+            })
+    )
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     clearList,
@@ -422,6 +435,7 @@ const self = {
     onPlanningUpdatedNotification,
     removePlanningItemFromSelection,
     addPlanningItemToSelection,
+    forceUnlock,
 };
 
 export default self;
