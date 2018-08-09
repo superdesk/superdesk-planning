@@ -20,11 +20,12 @@ import {
     isItemPublic,
     getItemId,
     isItemExpired,
+    isItemDifferent,
 } from '../../utils';
 import {gettext} from '../../utils/gettext';
 import {AgendaNameList} from '../Agendas';
 
-export class PlanningItem extends React.PureComponent {
+export class PlanningItem extends React.Component {
     constructor(props) {
         super(props);
 
@@ -34,6 +35,10 @@ export class PlanningItem extends React.PureComponent {
     onAddCoverageButtonClick(event) {
         onEventCapture(event);
         this.props.onAddCoverageClick();
+    }
+
+    shouldComponentUpdate(nextProps) {
+        return isItemDifferent(this.props.item, nextProps.item);
     }
 
     render() {
