@@ -813,3 +813,6 @@ export const isItemSameAsAutosave = (item, autosave, events, plannings) => {
 
     return itemsEqual(originalItem, autosave);
 };
+
+export const isItemDifferent = (original, update) => get(original, '_etag') !== get(update, '_etag') ||
+    get(original, '_updated') !== get(update, '_updated');

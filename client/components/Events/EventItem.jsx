@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-
 import {Label, InternalNoteLabel, Location} from '../';
 import {EVENTS, MAIN, ICON_COLORS} from '../../constants';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
@@ -14,11 +13,16 @@ import {
     onEventCapture,
     isItemPublic,
     isItemExpired,
+    isItemDifferent,
 } from '../../utils';
 import {gettext} from '../../utils/gettext';
 
 
-export class EventItem extends React.PureComponent {
+export class EventItem extends React.Component {
+    shouldComponentUpdate(nextProps) {
+        return isItemDifferent(this.props.item, nextProps.item);
+    }
+
     render() {
         const {item, onItemClick, lockedItems, dateFormat, timeFormat,
             session, privileges, activeFilter, toggleRelatedPlanning, onMultiSelectClick} = this.props;
