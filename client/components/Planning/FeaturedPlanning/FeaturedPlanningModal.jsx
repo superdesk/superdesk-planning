@@ -75,7 +75,7 @@ export class FeaturedPlanningModalComponent extends React.Component {
                 this.setState(this.getNewState(nextProps));
             }
 
-            if (this.props.featuredPlanningItems !== nextProps.featuredPlanningItems) {
+            if (!isEqual(this.props.featuredPlanningItems, nextProps.featuredPlanningItems)) {
                 // on update notifications
                 const addedPlannings = difference(nextProps.featuredPlanIdsInList, this.props.featuredPlanIdsInList);
                 const removedPlannings = difference(this.props.featuredPlanIdsInList, nextProps.featuredPlanIdsInList);

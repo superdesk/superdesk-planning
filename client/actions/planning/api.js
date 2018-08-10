@@ -1,6 +1,7 @@
 import {get, cloneDeep, pickBy, isEqual, has} from 'lodash';
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
+import moment from 'moment';
 import {
     getErrorMessage,
     getTimeZoneOffset,
@@ -185,6 +186,11 @@ const getCriteria = ({
 
                     range[fieldName].lt = startOfNextWeek.format('YYYY-MM-DD') + '||/d';
                     range[fieldName].gte = startOfNextWeek.subtract(7, 'days').format('YYYY-MM-DD') + '||/d';
+                } else if (rangeType === MAIN.DATE_RANGE.FOR_DATE) {
+                    let starDate = moment(get(advancedSearch, 'dates.start'));
+
+                    range[fieldName].gte = starDate.format('YYYY-MM-DD') + '||/d';
+                    range[fieldName].lt = starDate.add(1, 'days').format('YYYY-MM-DD') + '||/d';
                 } else {
                     if (get(advancedSearch, 'dates.start')) {
                         range[fieldName].gte = get(advancedSearch, 'dates.start');

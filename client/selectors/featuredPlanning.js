@@ -31,8 +31,8 @@ export const orderedFeaturedPlanningList = createSelector(
         const search = {
             advancedSearch: {
                 dates: {
-                    start: moment(date).set({hour: 0, minute: 0}),
-                    end: moment(date).set({hour: 23, minute: 59}),
+                    start: moment(date).set({hour: 0, minute: 0, second: 0, millisecond: 0}),
+                    end: moment(date).set({hour: 23, minute: 59, second: 0, millisecond: 0}),
                 },
             },
         };

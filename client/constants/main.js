@@ -52,5 +52,6 @@ export const MAIN = {
         THIS_WEEK: 'this_week',
         NEXT_WEEK: 'next_week',
         LAST_24: 'last24',
+        FOR_DATE: 'forDate',
     },
 };

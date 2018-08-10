@@ -651,8 +651,8 @@ export const isDateInRange = (inputDate, startDate, endDate) => {
         return false;
     }
 
-    if (startDate && moment(inputDate).isBefore(startDate, 'seconds') ||
-        endDate && moment(inputDate).isSameOrAfter(endDate, 'seconds')) {
+    if (startDate && moment(inputDate).isBefore(startDate, 'millisecond') ||
+        endDate && moment(inputDate).isSameOrAfter(endDate, 'millisecond')) {
         return false;
     }
 
