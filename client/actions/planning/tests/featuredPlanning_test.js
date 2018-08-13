@@ -3,7 +3,7 @@ import featuredPlanning from '../featuredPlanning';
 import moment from 'moment';
 import sinon from 'sinon';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
-import {FEATURED_PLANNING} from '../../../constants';
+import {FEATURED_PLANNING, MAIN} from '../../../constants';
 
 describe('actions.planning.api', () => {
     let store;
@@ -68,17 +68,14 @@ describe('actions.planning.api', () => {
                                         minute: 0,
                                         second: 0,
                                     }),
-                                    end: moment(date).set({
-                                        hour: 23,
-                                        minute: 59,
-                                        second: 0,
-                                    }),
+                                    range: MAIN.DATE_RANGE.FOR_DATE,
                                 },
                                 featured: true,
                             },
                             page: 1,
                             spikeState: 'draft',
                         },
+                        false,
                     ]);
                     done();
                 })

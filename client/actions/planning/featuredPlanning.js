@@ -12,7 +12,7 @@ import {
 } from '../../utils';
 
 import * as selectors from '../../selectors';
-import {MODALS, FEATURED_PLANNING, SPIKED_STATE} from '../../constants';
+import {MODALS, FEATURED_PLANNING, SPIKED_STATE, MAIN} from '../../constants';
 import {get, findIndex} from 'lodash';
 import moment from 'moment';
 
@@ -119,24 +119,13 @@ const receivePlannings = (plannings, append = false) => (
  */
 const loadFeaturedPlanningsData = (date) => (
     (dispatch) => {
-        let startDate = moment(date || moment()), endDate = moment(date || moment());
-
-        startDate.set({
-            hour: 0,
-            minute: 0,
-            second: 0,
-        });
-        endDate.set({
-            hour: 23,
-            minute: 59,
-            second: 0,
-        });
+        let startDate = date ? date : moment();
 
         const params = {
             advancedSearch: {
                 dates: {
                     start: startDate,
-                    end: endDate,
+                    range: MAIN.DATE_RANGE.FOR_DATE,
                 },
                 featured: true,
             },
@@ -184,7 +173,7 @@ const fetchToList = (params = {}, append = false) => (
         const currentItemCount = Object.keys(selectors.featuredPlanning.storedPlannings(getState())).length;
 
         dispatch(self.requestFeaturedPlannings(params));
-        return dispatch(planningApi.query(params))
+        return dispatch(planningApi.query(params, false))
             .then((data) => {
                 dispatch(self.total(data.total));
                 dispatch(self.receivePlannings(data._items, append));
@@ -339,9 +328,9 @@ const onPlanningUpdatedNotification = (planningId) => (
                 const currentSearchDate = selectors.featuredPlanning.currentSearchDate(getState());
                 const currentFeaturedPlannings = selectors.featuredPlanning.storedPlannings(getState());
                 const planningsForDate = get(planningUtils.getPlanningByDate([item], null,
-                    moment(currentSearchDate).set({hour: 0, minute: 0}),
-                    moment(currentSearchDate).set({hour: 23, minute: 59})), '[0].events', [])
-                    .map((p) => p._id);
+                    moment(currentSearchDate.format('YYYY-MM-DD')),
+                    moment(currentSearchDate).set({hour: 23, minute: 59, second: 0, millisecond: 0})),
+                '[0].events', []).map((p) => p._id);
 
                 if (!(planningId in currentFeaturedPlannings) && !planningsForDate.includes(planningId)) {
                     return Promise.resolve();
