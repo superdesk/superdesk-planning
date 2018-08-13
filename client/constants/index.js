@@ -123,3 +123,15 @@ export const HISTORY_OPERATIONS = {
 };
 
 export const QUEUE_ITEM_PREFIX = 'queueitem';
+
+export const TIME_COMPARISON_GRANULARITY = {
+    DATE: 'date',
+    YEAR: 'year',
+    MONTH: 'month',
+    WEEK: 'week',
+    DAY: 'day',
+    HOUR: 'hour',
+    MINUTE: 'minute',
+    SECOND: 'second',
+    MILLISECOND: 'millisecond',
+};

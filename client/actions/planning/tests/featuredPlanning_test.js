@@ -3,7 +3,7 @@ import featuredPlanning from '../featuredPlanning';
 import moment from 'moment';
 import sinon from 'sinon';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
-import {FEATURED_PLANNING, MAIN} from '../../../constants';
+import {FEATURED_PLANNING, MAIN, TIME_COMPARISON_GRANULARITY} from '../../../constants';
 
 describe('actions.planning.api', () => {
     let store;
@@ -25,14 +25,14 @@ describe('actions.planning.api', () => {
             advancedSearch: {
                 dates: {
                     start: date.set({
-                        hour: 0,
-                        minute: 0,
-                        second: 0,
+                        [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
+                        [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
+                        [TIME_COMPARISON_GRANULARITY.SECOND]: 0,
                     }),
                     end: date.set({
-                        hour: 0,
-                        minute: 0,
-                        second: 0,
+                        [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
+                        [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
+                        [TIME_COMPARISON_GRANULARITY.SECOND]: 0,
                     }),
                 },
                 featured: true,
@@ -64,9 +64,9 @@ describe('actions.planning.api', () => {
                             advancedSearch: {
                                 dates: {
                                     start: moment(date).set({
-                                        hour: 0,
-                                        minute: 0,
-                                        second: 0,
+                                        [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
+                                        [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
+                                        [TIME_COMPARISON_GRANULARITY.SECOND]: 0,
                                     }),
                                     range: MAIN.DATE_RANGE.FOR_DATE,
                                 },

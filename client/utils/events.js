@@ -5,6 +5,7 @@ import {
     EVENTS,
     GENERIC_ITEM_ACTIONS,
     ITEM_TYPE,
+    TIME_COMPARISON_GRANULARITY,
 } from '../constants';
 import {
     getItemWorkflowState,
@@ -27,7 +28,7 @@ import {
 } from './index';
 import moment from 'moment';
 import RRule from 'rrule';
-import {get, map, isNil, sortBy, cloneDeep, omitBy, find} from 'lodash';
+import {get, map, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy} from 'lodash';
 import {EventUpdateMethods} from '../components/Events';
 
 
@@ -832,6 +833,37 @@ const getRepeatSummaryForEvent = (schedule) => {
     return getFrequency() + getEnds() + getDays();
 };
 
+const eventsDatesSame = (event1, event2, granularity = TIME_COMPARISON_GRANULARITY.MILLISECOND) => {
+    const pickField = (value, key) => (key !== 'until');
+    const nonMomentFieldsEqual = isEqual(
+        pickBy(get(event1, 'dates.recurring_rule'), pickField),
+        pickBy(get(event2, 'dates.recurring_rule'), pickField));
+    const eventsDateFieldsEqual = (path) => {
+        const val1 = get(event1, path);
+        const val2 = get(event2, path);
+
+        if (moment.isMoment(val1) || moment.isMoment(val2)) {
+            return moment.isMoment(val1) ? val1.isSame(val2, granularity) : val2.isSame(val1, granularity);
+        }
+
+        return isEqual(val1, val2);
+    };
+
+    if (!eventsDateFieldsEqual('dates.start')) {
+        return false;
+    }
+
+    if (!eventsDateFieldsEqual('dates.end')) {
+        return false;
+    }
+
+    if (!eventsDateFieldsEqual('dates.recurring_rule.until')) {
+        return false;
+    }
+
+    return nonMomentFieldsEqual;
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     isEventAllDay,
@@ -870,6 +902,7 @@ const self = {
     defaultEventValues,
     shouldFetchFilesForEvent,
     getRepeatSummaryForEvent,
+    eventsDatesSame,
 };
 
 export default self;

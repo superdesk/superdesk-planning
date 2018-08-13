@@ -1,4 +1,4 @@
-import {MAIN, RESET_STORE} from '../constants';
+import {MAIN, RESET_STORE, TIME_COMPARISON_GRANULARITY} from '../constants';
 import {cloneDeep, get, omit, set} from 'lodash';
 import {createReducer} from '../utils';
 
@@ -138,7 +138,12 @@ export default createReducer(initialState, {
 
         // Remove the time values from the jump
         if (payload) {
-            payload.set({hour: 0, minute: 0, second: 0, millisecond: 0});
+            payload.set({
+                [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
+                [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
+                [TIME_COMPARISON_GRANULARITY.SECOND]: 0,
+                [TIME_COMPARISON_GRANULARITY.MILLISECOND]: 0,
+            });
         }
 
 

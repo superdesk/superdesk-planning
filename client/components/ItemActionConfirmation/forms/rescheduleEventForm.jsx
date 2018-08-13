@@ -1,14 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get, isEqual, cloneDeep} from 'lodash';
+import {get, isEqual, cloneDeep, omit} from 'lodash';
+import moment from 'moment';
 
 import * as actions from '../../../actions';
 import {validateItem} from '../../../validators';
 import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
 import {gettext, eventUtils, getDateTimeString, updateFormValues} from '../../../utils';
-import {EVENTS, ITEM_TYPE} from '../../../constants';
+import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY} from '../../../constants';
 
 import {EventScheduleSummary, EventScheduleInput} from '../../Events';
 import {RelatedPlannings} from '../../';
@@ -24,7 +25,6 @@ export class RescheduleEventComponent extends React.Component {
             diff: null,
             reason: '',
             errors: {},
-            errorMessages: [],
             multiDayChanged: false,
         };
 
@@ -54,10 +54,10 @@ export class RescheduleEventComponent extends React.Component {
         }
 
         const errors = cloneDeep(this.state.errors);
-        const errorMessages = [];
+        let errorMessages = [];
 
         this.props.onValidate(
-            diff,
+            omit(diff, 'dates.recurring_rule'), // Omit recurring rules as we reschedule only single instance
             this.props.formProfiles,
             errors,
             errorMessages
@@ -70,10 +70,9 @@ export class RescheduleEventComponent extends React.Component {
             diff,
             errors,
             multiDayChanged,
-            errorMessages,
         });
 
-        if (isEqual(diff.dates, initialValues.dates) ||
+        if (eventUtils.eventsDatesSame(diff, initialValues, TIME_COMPARISON_GRANULARITY.MINUTE) ||
             (diff.dates.recurring_rule &&
             !diff.dates.recurring_rule.until && !diff.dates.recurring_rule.count) ||
             !isEqual(errorMessages, [])
@@ -100,6 +99,9 @@ export class RescheduleEventComponent extends React.Component {
         const {initialValues, dateFormat, timeFormat, formProfiles, submitting} = this.props;
         let reasonLabel = gettext('Reason for rescheduling this event:');
         const numPlannings = get(initialValues, '_plannings.length');
+        const afterUntil = moment.isMoment(get(initialValues, 'dates.recurring_rule.until')) &&
+            moment.isMoment(get(this.state, 'diff.dates.start')) &&
+            this.state.diff.dates.start.isAfter(initialValues.dates.recurring_rule.until);
 
         return (
             <div className="MetadataView">
@@ -157,6 +159,13 @@ export class RescheduleEventComponent extends React.Component {
                         })}
                     </div>
                 )}
+
+                {afterUntil &&
+                <div className="sd-alert sd-alert--hollow sd-alert--orange2 sd-alert--flex-direction">
+                    <strong>{gettext(
+                        'This Event is scheduled to occur after the end date of its recurring cycle!'
+                    )}</strong>
+                </div>}
 
                 <Field
                     component={EventScheduleInput}

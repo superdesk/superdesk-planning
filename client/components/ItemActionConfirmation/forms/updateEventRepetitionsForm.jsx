@@ -4,13 +4,13 @@ import {connect} from 'react-redux';
 import * as actions from '../../../actions';
 import {getDateFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
-import {gettext, updateFormValues} from '../../../utils';
+import {gettext, updateFormValues, eventUtils} from '../../../utils';
 import {Row} from '../../UI/Preview/';
 import {RepeatEventSummary} from '../../Events';
 import {RecurringRulesInput} from '../../Events/RecurringRulesInput/index';
 import '../style.scss';
 import {get, cloneDeep, isEqual} from 'lodash';
-import {EVENTS, ITEM_TYPE} from '../../../constants';
+import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY} from '../../../constants';
 import {validateItem} from '../../../validators';
 
 export class UpdateEventRepetitionsComponent extends React.Component {
@@ -36,13 +36,15 @@ export class UpdateEventRepetitionsComponent extends React.Component {
     onChange(field, value) {
         const errors = cloneDeep(this.state.errors);
         const diff = cloneDeep(get(this.state, 'diff') || {});
+        let errorMessages = [];
 
         updateFormValues(diff, field, value);
 
         this.props.onValidate(
             diff,
             this.props.formProfiles,
-            errors
+            errors,
+            errorMessages
         );
 
         this.setState({
@@ -51,7 +53,8 @@ export class UpdateEventRepetitionsComponent extends React.Component {
             errors: errors,
         });
 
-        if (isEqual(diff.dates, this.props.initialValues.dates) || !isEqual(errors, {})) {
+        if (eventUtils.eventsDatesSame(diff, this.props.initialValues, TIME_COMPARISON_GRANULARITY.DAY) ||
+            !isEqual(errorMessages, [])) {
             this.props.disableSaveInModal();
         } else {
             this.props.enableSaveInModal();
@@ -137,11 +140,12 @@ const mapDispatchToProps = (dispatch) => ({
             dispatch(actions.events.api.unlock(event));
         }
     },
-    onValidate: (item, profile, errors) => dispatch(validateItem({
+    onValidate: (item, profile, errors, errorMessages) => dispatch(validateItem({
         profileName: ITEM_TYPE.EVENT,
         diff: item,
         formProfiles: profile,
         errors: errors,
+        messages: errorMessages,
         fields: ['dates'],
     })),
 });

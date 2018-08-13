@@ -11,7 +11,7 @@ import {EventUpdateMethods, EventScheduleSummary} from '../../Events';
 import '../style.scss';
 import {get, set, cloneDeep, isEqual} from 'lodash';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
-import {EVENTS, ITEM_TYPE} from '../../../constants';
+import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY} from '../../../constants';
 import {validateItem} from '../../../validators';
 
 export class UpdateTimeComponent extends React.Component {
@@ -52,6 +52,7 @@ export class UpdateTimeComponent extends React.Component {
         const diff = cloneDeep(get(this.state, 'diff') || {});
         const errors = cloneDeep(this.state.errors);
         let relatedEvents = this.state.relatedEvents;
+        let errorMessages = [];
 
         if (field === 'dates.start.time') {
             diff.dates.start = value;
@@ -72,7 +73,8 @@ export class UpdateTimeComponent extends React.Component {
         this.props.onValidate(
             diff,
             this.props.formProfiles,
-            errors
+            errors,
+            errorMessages
         );
 
         this.setState({
@@ -82,9 +84,9 @@ export class UpdateTimeComponent extends React.Component {
             relatedEvents: relatedEvents,
         });
 
-        if ((isEqual(diff.dates, this.props.initialValues.dates) &&
+        if ((eventUtils.eventsDatesSame(diff, this.props.initialValues, TIME_COMPARISON_GRANULARITY.MINUTE) &&
                 diff.update_method.value === EventUpdateMethods[0].value) ||
-            !isEqual(errors, {})
+            !isEqual(errorMessages, [])
         ) {
             this.props.disableSaveInModal();
         } else {
@@ -247,11 +249,12 @@ const mapDispatchToProps = (dispatch) => ({
 
         return promise;
     },
-    onValidate: (item, profile, errors) => dispatch(validateItem({
+    onValidate: (item, profile, errors, errorMessages) => dispatch(validateItem({
         profileName: ITEM_TYPE.EVENT,
         diff: item,
         formProfiles: profile,
         errors: errors,
+        messages: errorMessages,
         fields: ['dates'],
     })),
 });

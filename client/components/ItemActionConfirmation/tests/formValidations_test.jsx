@@ -11,6 +11,7 @@ import {
 } from '../index';
 import {getTestActionStore} from '../../../utils/testUtils';
 import {createTestStore} from '../../../utils';
+import {TIME_COMPARISON_GRANULARITY} from '../../../constants';
 import sinon from 'sinon';
 
 describe('form validations', () => {
@@ -21,13 +22,13 @@ describe('form validations', () => {
     const disableSaveInModal = sinon.spy(() => true);
     const startDate = moment().add(3, 'days')
         .set({
-            hour: 0,
-            minute: 0,
+            [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
+            [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
         });
     const endDate = moment().add(3, 'days')
         .set({
-            hour: 23,
-            minute: 50,
+            [TIME_COMPARISON_GRANULARITY.HOUR]: 23,
+            [TIME_COMPARISON_GRANULARITY.MINUTE]: 50,
         });
 
     beforeEach(() => {

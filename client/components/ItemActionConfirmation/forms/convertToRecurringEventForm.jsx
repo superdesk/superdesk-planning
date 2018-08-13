@@ -5,13 +5,13 @@ import * as actions from '../../../actions';
 import '../style.scss';
 import {get, isEqual, cloneDeep} from 'lodash';
 import {EventScheduleSummary, EventScheduleInput} from '../../Events';
-import {EVENTS, ITEM_TYPE} from '../../../constants';
+import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY} from '../../../constants';
 import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
 import {Row} from '../../UI/Preview';
 import {Field} from '../../UI/Form';
 import {validateItem} from '../../../validators';
-import {updateFormValues} from '../../../utils';
+import {updateFormValues, eventUtils} from '../../../utils';
 
 export class ConvertToRecurringEventComponent extends React.Component {
     constructor(props) {
@@ -50,12 +50,11 @@ export class ConvertToRecurringEventComponent extends React.Component {
             updateFormValues(diff, field, val);
         }
 
-        const errors = this.validateAndSetState(diff);
+        const errorsMessages = this.validateAndSetState(diff);
 
-        if (
-            isEqual(diff.dates, this.props.initialValues.dates) ||
-            (!diff.dates.recurring_rule && !diff.dates.recurring_rule.until && !diff.dates.recurring_rule.count) ||
-            !isEqual(errors, {})
+        if (eventUtils.eventsDatesSame(diff, this.props.initialValues, TIME_COMPARISON_GRANULARITY.MINUTE) ||
+            (!diff.dates.recurring_rule) ||
+            !isEqual(errorsMessages, [])
         ) {
             this.props.disableSaveInModal();
         } else {
@@ -65,11 +64,14 @@ export class ConvertToRecurringEventComponent extends React.Component {
 
     validateAndSetState(diff) {
         let errors = cloneDeep(this.state.errors);
+        let errorsMessages = [];
+
 
         this.props.onValidate(
             diff,
             this.props.formProfiles,
-            errors
+            errors,
+            errorsMessages
         );
 
         this.setState({
@@ -77,7 +79,7 @@ export class ConvertToRecurringEventComponent extends React.Component {
             errors: errors,
         });
 
-        return errors;
+        return errorsMessages;
     }
 
     submit() {
@@ -170,11 +172,12 @@ const mapDispatchToProps = (dispatch) => ({
         }
     },
 
-    onValidate: (item, profile, errors) => dispatch(validateItem({
+    onValidate: (item, profile, errors, errorsMessages) => dispatch(validateItem({
         profileName: ITEM_TYPE.EVENT,
         diff: item,
         formProfiles: profile,
         errors: errors,
+        messages: errorsMessages,
         fields: ['dates'],
     })),
 });
