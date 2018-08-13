@@ -22,8 +22,20 @@
     padding: 0;
 }
 
-.form__row--half-width {
-    max-width: 50%;
+.form__row {
+    &--half-width {
+        max-width: 50%;
+    }
+
+    &--max-width-35 {
+        max-width: 35px;
+        margin-right: 5px;
+    }
+
+    &--max-width-80 {
+        max-width: 80px;
+        margin-right: 5px;
+    }
 }
 
 .sd-line-input {
@@ -50,5 +62,20 @@
 
     .sd-line-input__icon-bottom-right {
         bottom: 18px;
+    }
+}
+
+.form-label {
+    &--no-min-width {
+        min-width: initial;
+        padding-right: 10px;
+    }
+
+    &--padding {
+        padding-top: 20px;
+    }
+
+    &--left-margin {
+        margin-left: 50px;
     }
 }

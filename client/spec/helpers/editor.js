@@ -17,6 +17,7 @@ class Editor {
         this.fromDateField = this.editor.element(by.xpath('//input[@name="dates.start.date"]'));
         this.planningDate = this.editor.element(by.xpath('//input[@name="planning_date.date"]'));
         this.countField = this.editor.element(by.xpath('//input[@name="count"]'));
+        this.untilDateField = this.editor.element(by.xpath('//input[@name="dates.recurring_rule.until"]'));
 
 
         this.createButton = this.editor.element(by.id('create'));

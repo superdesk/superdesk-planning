@@ -34,10 +34,10 @@ export class ConvertToRecurringEventComponent extends React.Component {
         diff.dates.recurring_rule = {
             frequency: 'DAILY',
             interval: 1,
-            endRepeatMode: 'count',
-            count: 1,
+            endRepeatMode: 'until',
+            until: null,
         };
-        this.setState({diff: diff});
+        this.validateAndSetState(diff);
     }
 
     onChange(field, val) {
@@ -50,7 +50,21 @@ export class ConvertToRecurringEventComponent extends React.Component {
             updateFormValues(diff, field, val);
         }
 
-        const errors = cloneDeep(this.state.errors);
+        const errors = this.validateAndSetState(diff);
+
+        if (
+            isEqual(diff.dates, this.props.initialValues.dates) ||
+            (!diff.dates.recurring_rule && !diff.dates.recurring_rule.until && !diff.dates.recurring_rule.count) ||
+            !isEqual(errors, {})
+        ) {
+            this.props.disableSaveInModal();
+        } else {
+            this.props.enableSaveInModal();
+        }
+    }
+
+    validateAndSetState(diff) {
+        let errors = cloneDeep(this.state.errors);
 
         this.props.onValidate(
             diff,
@@ -63,15 +77,7 @@ export class ConvertToRecurringEventComponent extends React.Component {
             errors: errors,
         });
 
-        if (
-            isEqual(diff.dates, this.props.initialValues.dates) ||
-            (!diff.dates.recurring_rule && !diff.dates.recurring_rule.until && !diff.dates.recurring_rule.count) ||
-            !isEqual(errors, {})
-        ) {
-            this.props.disableSaveInModal();
-        } else {
-            this.props.enableSaveInModal();
-        }
+        return errors;
     }
 
     submit() {

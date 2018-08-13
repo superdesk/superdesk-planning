@@ -535,6 +535,11 @@ def generate_recurring_dates(start, frequency, interval=1, endRepeatMode='count'
     else:
         # byday uses DAYS constants
         byweekday = byday and [DAYS.get(d) for d in byday.split()] or None
+
+    # Convert count of repeats to count of events
+    if count:
+        count = count * (len(byday.split()) if byday else 1)
+
     # TODO: use dateutil.rrule.rruleset to incude ex_date and ex_rule
     dates = rrule(
         FREQUENCIES.get(frequency),

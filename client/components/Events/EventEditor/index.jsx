@@ -192,6 +192,17 @@ export class EventEditorComponent extends React.Component {
 
                 <ContentBlock>
                     <Field
+                        component={EventScheduleInput}
+                        field="dates"
+                        enabled={!itemExists}
+                        timeFormat={timeFormat}
+                        dateFormat={dateFormat}
+                        row={false}
+                        {...fieldProps}
+                        onFocus={onFocusEvent}
+                    />
+
+                    <Field
                         component={TextInput}
                         field="slugline"
                         label={gettext('Slugline')}
@@ -222,17 +233,6 @@ export class EventEditorComponent extends React.Component {
                         label={gettext('Occurrence Status')}
                         defaultValue={null}
                         options={occurStatuses}
-                        {...fieldProps}
-                        onFocus={onFocusEvent}
-                    />
-
-                    <Field
-                        component={EventScheduleInput}
-                        field="dates"
-                        enabled={!itemExists}
-                        timeFormat={timeFormat}
-                        dateFormat={dateFormat}
-                        row={false}
                         {...fieldProps}
                         onFocus={onFocusEvent}
                     />

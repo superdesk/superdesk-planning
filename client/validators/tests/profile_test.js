@@ -68,7 +68,7 @@ describe('profileValidators', () => {
         testValidate(
             'slugline',
             {slugline: 'Too short'},
-            ['{{ name }} is too short']
+            ['SLUGLINE is too short']
         );
 
         errorMessages = [];
@@ -81,7 +81,7 @@ describe('profileValidators', () => {
         testValidate(
             'files',
             {files: 'Not enough'},
-            ['Not enough {{ name }}']
+            ['Not enough FILES']
         );
 
         errorMessages = [];
@@ -98,7 +98,7 @@ describe('profileValidators', () => {
         testValidate(
             'slugline',
             {slugline: 'Too long'},
-            ['{{ name }} is too long']
+            ['SLUGLINE is too long']
         );
     });
 
@@ -110,8 +110,8 @@ describe('profileValidators', () => {
         event.files = ['1', '2', '3', '4', '5', '6'];
         testValidate(
             'files',
-            {files: 'Too many {{ name }}'},
-            ['Too many {{ name }}']
+            {files: 'Too many files'},
+            ['Too many FILES']
         );
     });
 
@@ -120,7 +120,7 @@ describe('profileValidators', () => {
         testValidate(
             'slugline',
             {slugline: 'This field is required'},
-            ['{{ name }} is a required field']
+            ['SLUGLINE is a required field']
         );
 
         errorMessages = [];
@@ -135,7 +135,7 @@ describe('profileValidators', () => {
         testValidate(
             'files',
             {files: 'This field is required'},
-            ['{{ name }} is a required field']
+            ['FILES is a required field']
         );
 
         errorMessages = [];
