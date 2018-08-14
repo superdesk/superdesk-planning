@@ -37,7 +37,7 @@ export const FeaturedPlanningList = ({
     emptyMsg,
     showAuditInformation,
 }) => {
-    const getItem = (item) => (<FeaturedPlanningItem
+    const getItem = (item) => (item ? (<FeaturedPlanningItem
         key={item._id}
         item={item}
         date={currentSearchDate}
@@ -52,7 +52,7 @@ export const FeaturedPlanningList = ({
         onRemoveFromSelectedFeaturedPlanning={onRemoveFromSelectedFeaturedPlanning}
         onClick={onClick}
         withMargin={withMargin}
-        activated={highlights.includes(item._id)} />);
+        activated={highlights.includes(item._id)} />) : null);
 
     const SortableItem = SortableElement(({item}) => (
         <li>{getItem(item)}</li>
@@ -61,7 +61,7 @@ export const FeaturedPlanningList = ({
     const SortableList = SortableContainer(({items}) =>
         <ul>
             {items.map((item, index) =>
-                <SortableItem key={item._id} index={index} item={item} />
+                item ? <SortableItem key={item._id} index={index} item={item} /> : null
             )}
         </ul>
     );

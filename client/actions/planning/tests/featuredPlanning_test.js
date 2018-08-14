@@ -74,6 +74,7 @@ describe('actions.planning.api', () => {
                             },
                             page: 1,
                             spikeState: 'draft',
+                            excludeRescheduledAndCancelled: true,
                         },
                         false,
                     ]);

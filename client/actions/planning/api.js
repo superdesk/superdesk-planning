@@ -393,7 +393,8 @@ const query = (
 
                 if (get(data, '_items')) {
                     data._items.forEach(planningUtils.modifyForClient);
-                    if (selectors.featuredPlanning.inUse(getState())) {
+                    if (selectors.featuredPlanning.inUse(getState()) &&
+                        get(advancedSearch, 'dates.range') === MAIN.DATE_RANGE.FOR_DATE) {
                         // For featuredstories modal, we get all items in a loop
                         // So, send the total along with the result for loop calculation
                         const result = {
