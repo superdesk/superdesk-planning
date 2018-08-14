@@ -483,6 +483,12 @@ class EventsResource(superdesk.Resource):
     }
     item_methods = ['GET', 'PATCH', 'PUT']
     public_methods = ['GET']
+    mongo_indexes = {
+        'recurrence_id_1': ([('recurrence_id', 1)], {'background': True}),
+        'state': ([('state', 1)], {'background': True}),
+        'dates_start_1': ([('dates.start', 1)], {'background': True}),
+        'dates_end_1': ([('dates.end', 1)], {'background': True}),
+    }
     privileges = {'POST': 'planning_event_management',
                   'PATCH': 'planning_event_management'}
 
