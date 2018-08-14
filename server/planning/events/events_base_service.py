@@ -7,6 +7,10 @@
 # For the full copyright and license information, please see the
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
+import json
+from datetime import datetime
+from flask import request
+from eve.utils import config, ParsedRequest
 
 from superdesk.errors import SuperdeskApiError
 from superdesk.services import BaseService
@@ -15,13 +19,9 @@ from superdesk.notification import push_notification
 from superdesk.utc import utcnow
 from apps.auth import get_user_id
 from apps.archive.common import get_auth
-from flask import request
 
 from planning.common import UPDATE_SINGLE, WORKFLOW_STATE, get_max_recurrent_events, update_post_item
 from planning.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION
-
-from eve.utils import config
-from datetime import datetime
 
 
 class EventsBaseService(BaseService):
@@ -176,38 +176,26 @@ class EventsBaseService(BaseService):
             **data
         )
 
-    def get_series(self, query):
-        total_received = 0  # Total events yielded
-        total_events = -1  # Total event to be yielded
+    def get_series(self, query, sort, max_results):
+        page = 1
 
         while True:
-            # If we have received all the events, then return here
-            if 0 < total_received >= total_events:
+            # Get the results from mongo
+            req = ParsedRequest()
+            req.sort = sort
+            req.where = json.dumps(query)
+            req.max_results = max_results
+            req.page = page
+            results = self.get_from_mongo(req=req, lookup=None)
+
+            docs = list(results)
+            if not docs:
                 break
 
-            # Update the query with the next page
-            query["from"] = total_received
-
-            # Get the results from elastic search
-            results = self.search(query)
-
-            # If total_events has not been set, then this is the first query
-            # In which case we need to store the total hits from the search
-            if total_events < 0:
-                total_events = results.count()
-
-                # If the search doesn't contain any results, return here
-                if total_events < 1:
-                    break
-
-            # If the last query doesn't contain any results, return here
-            if not len(results.docs):
-                break
-
-            total_received += len(results.docs)
+            page += 1
 
             # Yield the results for iteration by the callee
-            for doc in results.docs:
+            for doc in docs:
                 yield doc
 
     def get_recurring_timeline(self, selected, spiked=False, rescheduled=False, cancelled=False, postponed=False):
@@ -230,21 +218,17 @@ class EventsBaseService(BaseService):
             excluded_states.append(WORKFLOW_STATE.POSTPONED)
 
         query = {
-            'query': {
-                'bool': {
-                    'must': [
-                        {'term': {'recurrence_id': selected['recurrence_id']}}
-                    ],
-                    'must_not': [
-                        {'term': {'_id': selected[config.ID_FIELD]}},
-                        {'terms': {'state': excluded_states}}
-                    ]
-                }
-            },
-            'sort': [{'dates.start': 'asc'}],
-            'size': get_max_recurrent_events()
+            '$and': [
+                {'recurrence_id': selected['recurrence_id']},
+                {'_id': {'$ne': selected[config.ID_FIELD]}}
+            ]
         }
 
+        if excluded_states:
+            query['$and'].append({'state': {'$nin': excluded_states}})
+
+        sort = '[("dates.start", 1)]'
+        max_results = get_max_recurrent_events()
         selected_start = selected.get('dates', {}).get('start', utcnow())
 
         # Make sure we are working with a datetime instance
@@ -255,11 +239,11 @@ class EventsBaseService(BaseService):
         past = []
         future = []
 
-        for event in self.get_series(query):
-            event['dates']['end'] = datetime.strptime(event['dates']['end'], '%Y-%m-%dT%H:%M:%S%z')
-            event['dates']['start'] = datetime.strptime(event['dates']['start'], '%Y-%m-%dT%H:%M:%S%z')
+        for event in self.get_series(query, sort, max_results):
+            event['dates']['end'] = event['dates']['end']
+            event['dates']['start'] = event['dates']['start']
             for sched in event.get('_planning_schedule', []):
-                sched['scheduled'] = datetime.strptime(sched['scheduled'], '%Y-%m-%dT%H:%M:%S%z')
+                sched['scheduled'] = sched['scheduled']
             end = event['dates']['end']
             start = event['dates']['start']
             if end < utcnow():

@@ -814,5 +814,16 @@ export const isItemSameAsAutosave = (item, autosave, events, plannings) => {
     return itemsEqual(originalItem, autosave);
 };
 
-export const isItemDifferent = (original, update) => get(original, '_etag') !== get(update, '_etag') ||
-    get(original, '_updated') !== get(update, '_updated');
+/**
+ * Checks if the item being rendered is different or not.
+ * @param original
+ * @param update
+ * @returns {boolean}
+ */
+export const isItemDifferent = (original, update) => (
+    get(original, 'item._etag') !== get(update, 'item._etag') ||
+    get(original, 'item._updated') !== get(update, 'item._updated') ||
+    get(original, 'item.planning_ids') !== get(update, 'item.planning_ids') ||
+    lockUtils.isLockRestricted(original.item, original.session, original.lockedItems) !==
+    lockUtils.isLockRestricted(update.item, update.session, update.lockedItems)
+);

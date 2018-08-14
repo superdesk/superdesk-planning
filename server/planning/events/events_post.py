@@ -122,7 +122,7 @@ class EventsPostService(EventsBaseService):
             })
 
         event_type = 'events:posted:recurring' if doc['pubstatus'] == POST_STATE.USABLE \
-            else 'events:posted:recurring'
+            else 'events:unposted:recurring'
 
         push_notification(
             event_type,

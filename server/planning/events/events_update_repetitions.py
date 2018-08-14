@@ -13,7 +13,7 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from apps.auth import get_user_id
-from planning.common import remove_lock_information, WORKFLOW_STATE, POST_STATE
+from planning.common import remove_lock_information, WORKFLOW_STATE, POST_STATE, get_max_recurrent_events
 from .events import EventsResource, generate_recurring_dates
 from .events_base_service import EventsBaseService
 from planning.item_lock import LOCK_ACTION
@@ -23,7 +23,6 @@ from flask import current_app as app
 
 from copy import deepcopy
 import pytz
-from datetime import datetime
 
 
 class EventsUpdateRepetitionsResource(EventsResource):
@@ -202,18 +201,15 @@ class EventsUpdateRepetitionsService(EventsBaseService):
 
     def _get_series(self, original):
         query = {
-            'query': {
-                'bool': {
-                    'must': [{'term': {'recurrence_id': original['recurrence_id']}}]
-                }
-            },
-            'sort': [{'dates.start': 'asc'}]
+            '$and': [{'recurrence_id': original['recurrence_id']}]
         }
+        sort = '[("dates.start", 1)]'
+        max_results = get_max_recurrent_events()
 
         events = []
-        for event in self.get_series(query):
-            event['dates']['start'] = datetime.strptime(event['dates']['start'], '%Y-%m-%dT%H:%M:%S%z')
-            event['dates']['end'] = datetime.strptime(event['dates']['end'], '%Y-%m-%dT%H:%M:%S%z')
+        for event in self.get_series(query, sort, max_results):
+            event['dates']['start'] = event['dates']['start']
+            event['dates']['end'] = event['dates']['end']
             events.append(event)
 
         return events
