@@ -91,7 +91,7 @@ export class RecurringRulesInput extends React.Component {
                             text={gettext('ends')}
                             noMinWidth
                             padding
-                            marginLeft />
+                            marginLeft={!onlyUpdateRepetitions} />
                         <LineInput {...this.props} isSelect={true} readOnly={readOnly}
                             noMargin={frequency === 'WEEKLY'}
                             className="form__row form__row--max-width-80">
