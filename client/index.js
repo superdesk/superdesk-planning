@@ -40,10 +40,8 @@ export default angular.module('superdesk-planning', [])
             sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, (store) => {
                 store.dispatch(actions.fetchAgendas());
                 extension.props.store = store;
-                scope.$watch('selected.preview', (newValue, oldValue) => {
-                    if (newValue && !_.isEqual(newValue, oldValue)) {
-                        extension.props.store.dispatch(actions.main.onQueueItemChange(newValue));
-                    }
+                scope.$watch('selected.preview', (newValue) => {
+                    extension.props.store.dispatch(actions.main.onQueueItemChange(newValue));
                 });
             })
         );
