@@ -172,6 +172,7 @@ export class RescheduleEventComponent extends React.Component {
                     errors={this.state.errors}
                     formProfile={formProfiles.events}
                     popupContainer={this.getPopupContainer}
+                    showFirstEventLabel={false}
                 />
 
                 <Row label={reasonLabel}>

@@ -210,6 +210,7 @@ export class EventScheduleInput extends React.Component {
             errors,
             showErrors,
             popupContainer,
+            showFirstEventLabel,
         } = this.props;
         const {isAllDay} = this.state;
 
@@ -266,7 +267,7 @@ export class EventScheduleInput extends React.Component {
                 <Field
                     component={DateTimeInput}
                     field="dates.start"
-                    label={ doesRepeat ? gettext('First Event Starts') : gettext('Event Starts')}
+                    label={ doesRepeat && showFirstEventLabel ? gettext('First Event Starts') : gettext('Event Starts')}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
                     row={false}
@@ -280,7 +281,7 @@ export class EventScheduleInput extends React.Component {
                 <Field
                     component={DateTimeInput}
                     field="dates.end"
-                    label={ doesRepeat ? gettext('First Event Ends') : gettext('Event Ends')}
+                    label={ doesRepeat && showFirstEventLabel ? gettext('First Event Ends') : gettext('Event Ends')}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
                     row={false}
@@ -330,6 +331,7 @@ EventScheduleInput.propTypes = {
     dirty: PropTypes.bool,
     formProfile: PropTypes.object,
     popupContainer: PropTypes.func,
+    showFirstEventLabel: PropTypes.bool,
 };
 
 EventScheduleInput.defaultProps = {
@@ -337,4 +339,5 @@ EventScheduleInput.defaultProps = {
     showRepeat: true,
     showRepeatSummary: true,
     showRepeatToggle: true,
+    showFirstEventLabel: true,
 };
