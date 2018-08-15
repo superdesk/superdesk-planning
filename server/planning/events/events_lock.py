@@ -14,7 +14,7 @@ from superdesk.resource import Resource
 from superdesk.metadata.utils import item_url
 from apps.archive.common import get_user, get_auth
 from superdesk.services import BaseService
-from planning.item_lock import LockService, LOCK_USER
+from planning.item_lock import LockService
 from superdesk import get_resource_service
 from apps.common.components.utils import get_component
 from planning.common import update_returned_document
@@ -64,7 +64,6 @@ class EventsUnlockResource(Resource):
 class EventsUnlockService(BaseService):
 
     def create(self, docs, **kwargs):
-        updated_item = None
         user_id = get_user(required=True)['_id']
         session_id = get_auth()['_id']
         lock_service = get_component(LockService)
@@ -73,16 +72,5 @@ class EventsUnlockService(BaseService):
         item_id = request.view_args['item_id']
         resource_service = get_resource_service('events')
         item = resource_service.find_one(req=None, _id=item_id)
-        if item.get('recurrence_id') and not item.get(LOCK_USER):
-            # Find the actual event that is locked
-            historic, past, future = resource_service.get_recurring_timeline(item)
-            series = historic + past + future
-
-            for event in series:
-                if event.get(LOCK_USER):
-                    updated_item = lock_service.unlock(event, user_id, session_id, 'events')
-                    break
-        else:
-            updated_item = lock_service.unlock(item, user_id, session_id, 'events')
-
+        updated_item = lock_service.unlock(item, user_id, session_id, 'events')
         return update_returned_document(docs[0], updated_item, CUSTOM_HATEOAS_EVENTS)
