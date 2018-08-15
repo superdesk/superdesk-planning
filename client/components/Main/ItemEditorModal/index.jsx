@@ -35,6 +35,7 @@ export class EditorModalComponent extends React.Component {
         this.onItemFocusFromEditor = this.onItemFocusFromEditor.bind(this);
         this.onDragEvents = this.onDragEvents.bind(this);
         this.onEditorTabChange = this.onEditorTabChange.bind(this);
+        this.onCloseModal = this.onCloseModal.bind(this);
     }
 
     onDragEvents(e) {
@@ -62,6 +63,12 @@ export class EditorModalComponent extends React.Component {
         if (prevState.activeItem !== this.state.activeItem &&
             this.state.activeItem === 'event' || this.state.activeItem === 'planning') {
             this.dom.menu.scrollTop = 0;
+        }
+    }
+
+    onCloseModal() {
+        if (this.refs.editor) {
+            this.refs.editor.getWrappedInstance().cancelFromHeader();
         }
     }
 
@@ -133,12 +140,11 @@ export class EditorModalComponent extends React.Component {
         return (
             <Modal
                 show={true}
-                onHide={this.props.handleHide}
                 xLarge
                 fullheight
             >
                 <Modal.Header>
-                    <a className="close" onClick={this.props.handleHide}>
+                    <a className="close" onClick={this.onCloseModal}>
                         <i className="icon-close-small" />
                     </a>
                     <h3>{gettext('Editor')}</h3>
