@@ -42,7 +42,12 @@ class JsonEventFormatter(Formatter):
         output_item = deepcopy(item)
         output_item['event_contact_info'] = self._expand_contact_info(item)
         if item.get('files'):
-            output_item['files'] = self._publish_files(item)
+            try:
+                output_item['files'] = self._publish_files(item)
+            except NotImplementedError:
+                #  Current http_push transmitters only support media publish
+                pass
+
         for f in self.remove_fields:
             output_item.pop(f, None)
         return [(pub_seq_num, json.dumps(output_item, default=json_serialize_datetime_objectId))]
