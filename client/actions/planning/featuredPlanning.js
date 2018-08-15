@@ -12,7 +12,7 @@ import {
 } from '../../utils';
 
 import * as selectors from '../../selectors';
-import {MODALS, FEATURED_PLANNING, SPIKED_STATE, MAIN} from '../../constants';
+import {MODALS, FEATURED_PLANNING, SPIKED_STATE, MAIN, TIME_COMPARISON_GRANULARITY} from '../../constants';
 import {get, findIndex} from 'lodash';
 import moment from 'moment';
 
@@ -120,7 +120,6 @@ const receivePlannings = (plannings, append = false) => (
 const loadFeaturedPlanningsData = (date) => (
     (dispatch) => {
         let startDate = date ? date : moment();
-
         const params = {
             advancedSearch: {
                 dates: {
@@ -329,7 +328,12 @@ const onPlanningUpdatedNotification = (planningId) => (
                 const currentFeaturedPlannings = selectors.featuredPlanning.storedPlannings(getState());
                 const planningsForDate = get(planningUtils.getPlanningByDate([item], null,
                     moment(currentSearchDate.format('YYYY-MM-DD')),
-                    moment(currentSearchDate).set({hour: 23, minute: 59, second: 0, millisecond: 0})),
+                    moment(currentSearchDate).set({
+                        [TIME_COMPARISON_GRANULARITY.HOUR]: 23,
+                        [TIME_COMPARISON_GRANULARITY.MINUTE]: 59,
+                        [TIME_COMPARISON_GRANULARITY.SECOND]: 0,
+                        [TIME_COMPARISON_GRANULARITY.MILLISECOND]: 0,
+                    })),
                 '[0].events', []).map((p) => p._id);
 
                 if (!(planningId in currentFeaturedPlannings) && !planningsForDate.includes(planningId)) {

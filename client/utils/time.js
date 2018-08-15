@@ -1,4 +1,5 @@
 import moment from 'moment';
+import {TIME_COMPARISON_GRANULARITY} from '../constants';
 
 /**
  * Returns the start date/time of next week
@@ -7,7 +8,12 @@ import moment from 'moment';
  * @return {moment} Cloned moment instance of the start date/time of next week
  */
 const getStartOfNextWeek = (date = null, startOfWeek = 0) => {
-    let current = (date ? date.clone() : moment()).set({hour: 0, minute: 0, second: 0, millisecond: 0});
+    let current = (date ? date.clone() : moment()).set({
+        [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
+        [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
+        [TIME_COMPARISON_GRANULARITY.SECOND]: 0,
+        [TIME_COMPARISON_GRANULARITY.MILLISECOND]: 0,
+    });
     let weekDay = current.isoWeekday();
 
     // If the day is Sunday, then change this to 0
@@ -34,7 +40,12 @@ const getStartOfNextWeek = (date = null, startOfWeek = 0) => {
  * @return {moment} Cloned moment instance of the start date/time of the previous week
  */
 const getStartOfPreviousWeek = (date = null, startOfWeek = 0) => {
-    let current = (date ? date.clone() : moment()).set({hour: 0, minute: 0, second: 0, millisecond: 0});
+    let current = (date ? date.clone() : moment()).set({
+        [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
+        [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
+        [TIME_COMPARISON_GRANULARITY.SECOND]: 0,
+        [TIME_COMPARISON_GRANULARITY.MILLISECOND]: 0,
+    });
     let weekDay = current.isoWeekday();
     let diff = 7;
 
@@ -57,7 +68,12 @@ const getStartOfPreviousWeek = (date = null, startOfWeek = 0) => {
  * @return {moment} Cloned moment instance of the start date/time of the next month
  */
 const getStartOfNextMonth = (date = null) => {
-    let current = (date ? date.clone() : moment()).set({hour: 0, minute: 0, second: 0, millisecond: 0});
+    let current = (date ? date.clone() : moment()).set({
+        [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
+        [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
+        [TIME_COMPARISON_GRANULARITY.SECOND]: 0,
+        [TIME_COMPARISON_GRANULARITY.MILLISECOND]: 0,
+    });
 
     return current.add(1, 'M').date(1);
 };
@@ -70,7 +86,12 @@ const getStartOfNextMonth = (date = null) => {
  * @return {moment} Cloned moment instance of the start date/time of the previous month
  */
 const getStartOfPreviousMonth = (date = null) => {
-    let current = (date ? date.clone() : moment()).set({hour: 0, minute: 0, second: 0, millisecond: 0});
+    let current = (date ? date.clone() : moment()).set({
+        [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
+        [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
+        [TIME_COMPARISON_GRANULARITY.SECOND]: 0,
+        [TIME_COMPARISON_GRANULARITY.MILLISECOND]: 0,
+    });
 
     return current.date() > 1 ?
         current.date(1) :

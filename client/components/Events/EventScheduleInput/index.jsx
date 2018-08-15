@@ -4,6 +4,7 @@ import {get} from 'lodash';
 import moment from 'moment';
 
 import {eventUtils, gettext} from '../../../utils';
+import {TIME_COMPARISON_GRANULARITY} from '../../../constants';
 
 import {Row, DateTimeInput, LineInput, ToggleInput, Field} from '../../UI/Form';
 import {RecurringRulesInput} from '../RecurringRulesInput';
@@ -159,9 +160,9 @@ export class EventScheduleInput extends React.Component {
                 .add(1, 'h')
                 // And make sure the date doesn't change when adding 1hr
                 .set({
-                    year: prevEnd.get('year'),
-                    month: prevEnd.get('month'),
-                    date: prevEnd.get('date'),
+                    [TIME_COMPARISON_GRANULARITY.YEAR]: prevEnd.get(TIME_COMPARISON_GRANULARITY.YEAR),
+                    [TIME_COMPARISON_GRANULARITY.MONTH]: prevEnd.get(TIME_COMPARISON_GRANULARITY.MONTH),
+                    [TIME_COMPARISON_GRANULARITY.DATE]: prevEnd.get(TIME_COMPARISON_GRANULARITY.DATE),
                 });
 
             // If the initial values were all day, then set the end minutes to 55

@@ -13,7 +13,7 @@ import {FeaturedPlanningList} from './FeaturedPlanningList';
 import {FeaturedPlanningSelectedList} from './FeaturedPlanningSelectedList';
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
-import {MODALS} from '../../../constants';
+import {MODALS, TIME_COMPARISON_GRANULARITY} from '../../../constants';
 import {gettext, onEventCapture, isExistingItem, isItemPublic, planningUtils} from '../../../utils';
 
 export class FeaturedPlanningModalComponent extends React.Component {
@@ -202,8 +202,8 @@ export class FeaturedPlanningModalComponent extends React.Component {
         if (!isExistingItem(this.props.featuredPlanningItem)) {
             updates.date = this.props.currentSearchDate.clone();
             updates.date.set({
-                hour: 0,
-                minute: 0,
+                [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
+                [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
             });
         }
 
@@ -231,8 +231,8 @@ export class FeaturedPlanningModalComponent extends React.Component {
         if (!isExistingItem(this.props.featuredPlanningItem)) {
             updates.date = this.props.currentSearchDate.clone();
             updates.date.set({
-                hour: 0,
-                minute: 0,
+                [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
+                [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
             });
         }
 
