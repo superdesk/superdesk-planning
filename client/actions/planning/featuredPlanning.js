@@ -130,6 +130,7 @@ const loadFeaturedPlanningsData = (date) => (
             },
             page: 1,
             spikeState: SPIKED_STATE.NOT_SPIKED,
+            excludeRescheduledAndCancelled: true,
         };
 
         dispatch({type: FEATURED_PLANNING.ACTIONS.LOADING_START});
