@@ -26,7 +26,11 @@ export class CollapseBox extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         if (this.props.onOpen) {
-            this.setState({isOpen: nextProps.isOpen});
+            if (nextProps.isOpen) {
+                this.openBox();
+            } else {
+                this.closeBox();
+            }
         }
     }
 
@@ -91,6 +95,9 @@ export class CollapseBox extends React.Component {
     componentDidMount() {
         // Upon first rendering, if the box is open then scroll it into view
         this.scrollInView();
+        if (this.state.isOpen && this.props.onOpen) {
+            this.props.onOpen();
+        }
     }
 
     componentDidUpdate(prevProps, prevState) {
