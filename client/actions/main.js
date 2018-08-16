@@ -344,7 +344,7 @@ const post = (item, withConfirmation = true) => (
     }
 );
 
-const openConfirmationModal = ({title, body, okText, showIgnore, action, ignore}) => (
+const openConfirmationModal = ({title, body, okText, showIgnore, action, ignore, autoClose}) => (
     (dispatch) => (
         dispatch(showModal({
             modalType: MODALS.CONFIRMATION,
@@ -355,6 +355,7 @@ const openConfirmationModal = ({title, body, okText, showIgnore, action, ignore}
                 showIgnore,
                 action,
                 ignore,
+                autoClose,
             },
         }))
     )

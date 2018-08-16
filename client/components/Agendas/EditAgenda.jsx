@@ -68,6 +68,7 @@ export class EditAgenda extends React.Component {
                     {name: this.state.agendaName}),
                 okText: gettext('Save'),
                 action: () => this.saveAgenda(),
+                autoClose: true,
             });
         } else {
             this.saveAgenda();
