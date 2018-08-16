@@ -105,19 +105,18 @@ class LockService(BaseComponent):
         item_service = get_resource_service(resource)
         item_id = item.get(config.ID_FIELD)
 
-        if not item.get(LOCK_USER):
-            raise SuperdeskApiError.badRequestError(message="Item is not locked.")
-
         can_user_unlock, error_message = self.can_unlock(item, user_id, resource)
 
         if can_user_unlock:
             # following line executes handlers attached to function:
             # on_unlock_'resource' - ex. on_unlock_planning, on_unlock_event
             getattr(self.app, 'on_unlock_%s' % resource)(item, user_id)
-            updates = {LOCK_USER: None, LOCK_SESSION: None, 'lock_time': None,
-                       'lock_action': None}
+            updates = {}
+            if item.get(LOCK_USER):
+                updates = {LOCK_USER: None, LOCK_SESSION: None, 'lock_time': None,
+                           'lock_action': None}
 
-            item_service.update(item.get(config.ID_FIELD), updates, item)
+                item_service.update(item.get(config.ID_FIELD), updates, item)
 
             # following line executes handlers attached to function:
             # on_unlocked_'resource' - ex. on_unlocked_planning, on_unlocked_event
@@ -126,7 +125,7 @@ class LockService(BaseComponent):
             push_notification(resource + ':unlock',
                               item=str(item.get(config.ID_FIELD)),
                               user=str(user_id), lock_session=str(session_id),
-                              etag=updates['_etag'])
+                              etag=updates.get('_etag') or item.get('_etag'))
         else:
             raise SuperdeskApiError.forbiddenError(message=error_message)
 
