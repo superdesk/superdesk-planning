@@ -185,7 +185,11 @@ export class EditorComponent extends React.Component {
             if (this.state.partialSave) {
                 this.finalisePartialSave(nextProps);
             } else {
-                this.resetForm(get(nextProps, 'item') || {});
+                this.resetForm(get(nextProps, 'item') || {}, false, () => {
+                    if (this.props.inModalView && this.props.onChange) {
+                        this.props.onChange(nextProps.item);
+                    }
+                });
             }
         });
     }
