@@ -18,7 +18,7 @@ describe('agenda', () => {
             expect(initialState).toEqual({
                 agendas: [],
                 currentPlanningId: undefined,
-                currentAgendaId: 'ALL_PLANNING',
+                currentAgendaId: null,
                 agendasAreLoading: false,
             });
         });
@@ -43,7 +43,7 @@ describe('agenda', () => {
         });
 
         it('SELECT_AGENDA', () => {
-            expect(initialState.currentAgendaId).toBe('ALL_PLANNING');
+            expect(initialState.currentAgendaId).toBe(null);
             const result = agenda(
                 initialState,
                 {

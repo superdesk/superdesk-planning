@@ -1,4 +1,5 @@
 import * as selectors from '../index';
+import {AGENDA} from '../../constants';
 import {cloneDeep} from 'lodash';
 import moment from 'moment';
 
@@ -116,5 +117,17 @@ describe('selectors', () => {
         delete newState.agenda.currentAgendaId;
         result = selectors.planning.currentAgenda(newState);
         expect(result).toEqual(undefined);
+    });
+
+    it('default currentAgendaId', () => {
+        let result;
+
+        result = selectors.planning.currentAgenda(state);
+        expect(result).toEqual(state.agenda.agendas[0]);
+        const newState = cloneDeep(state);
+
+        newState.agenda.currentAgendaId = undefined;
+        result = selectors.planning.currentAgendaId(newState);
+        expect(result).toEqual(AGENDA.FILTER.ALL_PLANNING);
     });
 });

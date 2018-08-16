@@ -390,8 +390,8 @@ describe('agenda', () => {
                 store.initialState.agenda.currentAgendaId = undefined;
                 store.test(done, actions.fetchSelectedAgendaPlannings())
                     .then(() => {
-                        expect(planningUi.clearList.callCount).toBe(1);
-                        expect(planningUi.fetchToList.callCount).toBe(0);
+                        expect(planningUi.clearList.callCount).toBe(0);
+                        expect(planningUi.fetchToList.callCount).toBe(1);
                         done();
                     })
                     .catch(done.fail);

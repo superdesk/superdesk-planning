@@ -23,7 +23,7 @@ const replaceOrAddInAgendas = (agendas, agenda) => {
 const initialState = {
     agendas: [],
     currentPlanningId: undefined,
-    currentAgendaId: AGENDA.FILTER.ALL_PLANNING,
+    currentAgendaId: null,
     agendasAreLoading: false,
 };
 

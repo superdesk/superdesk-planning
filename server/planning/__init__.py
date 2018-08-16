@@ -102,6 +102,14 @@ def init_app(app):
         'calendar': {}
     })
 
+    superdesk.register_default_user_preference('planning:agenda', {
+        'type': 'dict',
+        'label': 'Default Agenda',
+        'category': 'planning',
+        'agenda': {},
+        'default': None
+    })
+
     app.client_config['max_recurrent_events'] = get_max_recurrent_events(app)
     app.client_config['street_map_url'] = get_street_map_url(app)
 
