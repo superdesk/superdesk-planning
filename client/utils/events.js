@@ -526,23 +526,29 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks, with
 
     let actions = [];
     const isExpired = isItemExpired(item);
+    let alllowedCallBacks = [
+        EVENTS.ITEM_ACTIONS.DUPLICATE.actionName,
+        EVENTS.ITEM_ACTIONS.SPIKE.actionName,
+        EVENTS.ITEM_ACTIONS.UNSPIKE.actionName,
+        EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName,
+        EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName,
+        EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName,
+        EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName,
+        EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName,
+        EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName,
+        EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName,
+        EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName,
+    ];
 
-    ((isExpired && !privileges[PRIVILEGES.EDIT_EXPIRED]) ?
-        [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName] :
-        [
-            EVENTS.ITEM_ACTIONS.DUPLICATE.actionName,
-            EVENTS.ITEM_ACTIONS.SPIKE.actionName,
-            EVENTS.ITEM_ACTIONS.UNSPIKE.actionName,
-            EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName,
-            EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName,
-            EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName,
-            EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName,
-            EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName,
-            EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName,
-            EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName,
-            EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName,
-        ]
-    ).forEach((callbackName) => {
+    if (isExpired && !privileges[PRIVILEGES.EDIT_EXPIRED]) {
+        alllowedCallBacks = [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName];
+    }
+
+    if (isItemSpiked(item)) {
+        alllowedCallBacks = [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName];
+    }
+
+    alllowedCallBacks.forEach((callbackName) => {
         const action = find(EVENTS.ITEM_ACTIONS, (action) => action.actionName === callbackName);
 
         if (callBacks[action.actionName]) {

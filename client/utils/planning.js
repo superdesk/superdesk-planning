@@ -311,13 +311,19 @@ const getPlanningActions = ({
     let actions = [];
     let addCoverageCallBacks = [];
     let eventActions = [GENERIC_ITEM_ACTIONS.DIVIDER];
-
     const isExpired = isItemExpired(item);
+    let alllowedCallBacks = Object.keys(callBacks);
 
-    ((isExpired && !privileges[PRIVILEGES.EDIT_EXPIRED]) ?
-        [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName] :
-        Object.keys(callBacks)
-    ).forEach((callBackName) => {
+
+    if (isExpired && !privileges[PRIVILEGES.EDIT_EXPIRED]) {
+        alllowedCallBacks = [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName];
+    }
+
+    if (isItemSpiked(item)) {
+        alllowedCallBacks = [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName];
+    }
+
+    alllowedCallBacks.forEach((callBackName) => {
         switch (callBackName) {
         case PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName:
             addCoverageCallBacks = contentTypes.map((c) => (
