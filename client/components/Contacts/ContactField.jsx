@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as selectors from '../../selectors';
-import {get, isEqual} from 'lodash';
+import {get, isEqual, difference} from 'lodash';
 import {ContactEditor, SelectSearchContactsField} from './index';
 import eventsApi from '../../actions/events/api';
 import {CONTACTS} from '../../constants';
@@ -75,11 +75,16 @@ export class ContactFieldComponent extends React.Component {
     }
 
     fetchEventContacts(values) {
-        this.props.fetchContacts(values)
-            .then(this.getResponseResult)
-            .then((results) => {
-                this.getOptions(results || []);
-            });
+        if (get(values, 'length', 0) &&
+            difference(values, this.props.eventContacts.map((c) => c._id)).length > 0) {
+            this.props.fetchContacts(values)
+                .then(this.getResponseResult)
+                .then((results) => {
+                    this.getOptions(results || []);
+                });
+        } else {
+            this.getOptions(this.props.eventContacts, false, values);
+        }
     }
 
     getResponseResult(data = null) {
@@ -126,7 +131,7 @@ export class ContactFieldComponent extends React.Component {
         };
     }
 
-    getOptions(filteredContacts = this.props.eventContacts, onSearch) {
+    getOptions(filteredContacts = this.props.eventContacts, onSearch, currentValues = this.props.value) {
         let options = [];
         let values = [];
         let _filteredValues = [];
@@ -134,7 +139,8 @@ export class ContactFieldComponent extends React.Component {
         options = (filteredContacts).map((contact) => this.getOption(contact));
 
         if (!onSearch) {
-            values = (filteredContacts).map((contact) => this.getValue(contact));
+            values = (filteredContacts.filter((c) => currentValues.includes(c._id)))
+                .map((contact) => this.getValue(contact));
 
             _filteredValues = values;
         } else {

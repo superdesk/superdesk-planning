@@ -47,13 +47,6 @@ export class EventEditorComponent extends React.Component {
         };
     }
 
-    componentWillMount() {
-        if (this.props.itemExists) {
-            // Get the event with files with it
-            this.props.fetchEventWithFiles(this.props.item);
-        }
-    }
-
     componentDidMount() {
         if (!get(this.props, 'navigation.scrollToViewItem')) {
             this.dom.slugline.focus();
@@ -88,8 +81,11 @@ export class EventEditorComponent extends React.Component {
             }
         }
 
-        if (eventUtils.shouldFetchFilesForEvent(this.props.item)) {
-            this.props.fetchEventWithFiles(this.props.item);
+        if (eventUtils.shouldFetchFilesForEvent(this.props.diff)) {
+            this.props.fetchEventWithFiles(this.props.item)
+                .then((eventWithFiles) => {
+                    this.props.onChangeHandler('files', eventWithFiles.files, false, false);
+                });
         }
 
         if (this.dom.top) {
