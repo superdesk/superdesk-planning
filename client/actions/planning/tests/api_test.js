@@ -7,6 +7,7 @@ import {
     convertEventDatesToMoment,
 } from '../../../utils/testUtils';
 import {getTimeZoneOffset} from '../../../utils/index';
+import * as selectors from '../../../selectors';
 import {SPIKED_STATE} from '../../../constants/index';
 import {MAIN} from '../../../constants';
 
@@ -754,6 +755,7 @@ describe('actions.planning.api', () => {
         it('returns Promise.reject if no Agenda is selected', (done) => {
             store.initialState.agenda.currentAgendaId = undefined;
             errorMessage.data._message = 'No Agenda is currently selected.';
+            sinon.stub(selectors.planning, 'currentAgendaId').callsFake(() => (null));
 
             return store.test(
                 done,
@@ -761,6 +763,7 @@ describe('actions.planning.api', () => {
             )
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
+                    restoreSinonStub(selectors.planning.currentAgendaId);
                     done();
                 })
                 .catch(done.fail);

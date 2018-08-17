@@ -1,6 +1,6 @@
 import {createSelector} from 'reselect';
 import {get, cloneDeep} from 'lodash';
-import {session} from './general';
+import {session, userPreferences} from './general';
 import {getStartOfWeek} from './config';
 import {planningUtils, lockUtils, getSearchDateRange} from '../utils';
 import {AGENDA, SPIKED_STATE} from '../constants';
@@ -11,11 +11,29 @@ export const planningHistory = (state) => get(state, 'planning.planningHistoryIt
 export const storedPlannings = (state) => get(state, 'planning.plannings', {});
 export const planIdsInList = (state) => get(state, 'planning.planningsInList', []);
 export const agendas = (state) => get(state, 'agenda.agendas', []);
-export const currentAgendaId = (state) => get(state, 'agenda.currentAgendaId', null);
 export const currentPlanningId = (state) => get(state, 'planning.currentPlanningId');
 export const currentSearch = (state) => get(state, 'main.search.PLANNING.currentSearch');
+export const selectedAgendaId = (state) => get(state, 'agenda.currentAgendaId', null);
 const fullText = (state) => get(state, 'main.search.PLANNING.fulltext', '');
 const previewId = (state) => get(state, 'main.previewId', null);
+
+
+export const usersDefaultAgenda = createSelector(
+    [agendas, userPreferences],
+    (items, preferences) => {
+        const defaultAgendaNameCode = get(preferences, 'planning:agenda.agenda.name');
+
+        return items.find((agenda) => agenda.name === defaultAgendaNameCode) || null;
+    }
+);
+
+export const defaultAgendaFilter = createSelector(
+    [usersDefaultAgenda],
+    (agenda) => agenda || {name: AGENDA.FILTER.AGENDA.FILTER.ALL_PLANNING}
+);
+
+export const currentAgendaId = createSelector([usersDefaultAgenda, selectedAgendaId],
+    (userAgenda, selectedAgendaId) => (selectedAgendaId || get(userAgenda, '_id') || AGENDA.FILTER.ALL_PLANNING));
 
 export const currentPlanning = createSelector(
     [previewId, storedPlannings],
