@@ -657,13 +657,13 @@ const selectCalendar = (calendarId = '', params = {}) => (
     }
 );
 
-const fetchEventWithFiles = (event, saveToStore = true) => (
+const fetchEventWithFiles = (event) => (
     (dispatch) => {
         if (!isExistingItem(event) || get(event, 'files.length', 0) === 0) {
             return Promise.resolve(event);
         }
 
-        return dispatch(eventsApi.fetchById(event._id, {force: true, saveToStore: saveToStore}));
+        return dispatch(eventsApi.fetchById(event._id, {force: true, saveToStore: false}));
     }
 );
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {gettext, getCreator, isValidFileInput} from '../../utils';
+import {gettext, getCreator, isValidFileInput, eventUtils} from '../../utils';
 import * as selectors from '../../selectors';
 import {get, isEqual} from 'lodash';
 import {Row} from '../UI/Preview';
@@ -29,6 +29,7 @@ export class EventPreviewContentComponent extends React.Component {
             currentContact: [],
             editDetails: false,
             viewIndex: null,
+            files: [],
         };
         this.fetchEventContacts = this.fetchEventContacts.bind(this);
         this.getResponseResult = this.getResponseResult.bind(this);
@@ -43,7 +44,14 @@ export class EventPreviewContentComponent extends React.Component {
     }
 
     componentWillMount() {
-        this.props.fetchEventWithFiles(this.props.item);
+        if (eventUtils.shouldFetchFilesForEvent(this.props.item)) {
+            this.props.fetchEventWithFiles(this.props.item)
+                .then((eventWithFiles) => {
+                    this.setState({files: eventWithFiles.files});
+                });
+        } else if (get(this.props, 'item.files.length', 0) > 0) {
+            this.setState({files: [...this.props.item.files]});
+        }
     }
 
     componentDidMount() {
@@ -248,7 +256,7 @@ export class EventPreviewContentComponent extends React.Component {
                         badgeValue={get(item, 'files.length', 0) > 0 ? item.files.length : null}>
                         {get(item, 'files.length') > 0 ?
                             <ul>
-                                {get(item, 'files', []).map((file, index) => (
+                                {this.state.files.map((file, index) => (
                                     isValidFileInput(file, true) ? (<li key={index}>
                                         <FileInput
                                             value={file}
