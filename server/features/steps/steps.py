@@ -40,20 +40,6 @@ def step_impl_exactly(context, field):
     assert data[field] == expected_value, 'Field %s is not equal to %s but %s' % (field, expected_value, data[field])
 
 
-@then('we store "{tag}" with first item')
-def steip_impl_store_first_item_to_ctx(context, tag):
-    data = get_json_data(context.response)
-    first_item = data['_items'][0]
-    setattr(context, tag, first_item)
-
-
-@then('we store "{tag}" with {index} item')
-def steip_impl_store_indexed_item_to_ctx(context, tag, index):
-    data = get_json_data(context.response)
-    item = data['_items'][int(index) - 1]
-    setattr(context, tag, item)
-
-
 @then('we store "{tag}" from patch')
 def step_imp_store_item_from_patch(context, tag):
     data = get_json_data(context.response)
