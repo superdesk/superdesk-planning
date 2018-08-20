@@ -3,7 +3,8 @@ import {createStore as _createStore, applyMiddleware, compose} from 'redux';
 import planningApp from '../reducers';
 import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
-import {get, set, map, cloneDeep, forEach, pickBy, includes, isEqual, isEmpty, isObjectLike, xor, some} from 'lodash';
+import {get, set, map, cloneDeep, forEach, pickBy,
+    includes, isEqual, isEmpty, isObjectLike, xor, some, pick} from 'lodash';
 import {
     POST_STATE,
     WORKFLOW_STATE,
@@ -840,14 +841,18 @@ export const isItemSameAsAutosave = (item, autosave, events, plannings) => {
 
 /**
  * Checks if the item being rendered is different or not.
- * @param original
- * @param update
+ * @param currentProps
+ * @param nextProps
  * @returns {boolean}
  */
-export const isItemDifferent = (original, update) => (
-    get(original, 'item._etag') !== get(update, 'item._etag') ||
-    get(original, 'item._updated') !== get(update, 'item._updated') ||
-    get(original, 'item.planning_ids') !== get(update, 'item.planning_ids') ||
-    lockUtils.isLockRestricted(original.item, original.session, original.lockedItems) !==
-    lockUtils.isLockRestricted(update.item, update.session, update.lockedItems)
-);
+export const isItemDifferent = (currentProps, nextProps) => {
+    const original = pick(currentProps, ['item', 'lockedItems', 'session', 'multiSelected']);
+    const updates = pick(nextProps, ['item', 'lockedItems', 'session', 'multiSelected']);
+
+    return get(original, 'item._etag') !== get(updates, 'item._etag') ||
+        get(original, 'item._updated') !== get(updates, 'item._updated') ||
+        get(original, 'item.planning_ids') !== get(updates, 'item.planning_ids') ||
+        get(original, 'multiSelected') !== get(updates, 'multiSelected') ||
+        lockUtils.isLockRestricted(original.item, original.session, original.lockedItems) !==
+        lockUtils.isLockRestricted(updates.item, updates.session, updates.lockedItems);
+};

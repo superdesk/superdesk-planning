@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {get, pick} from 'lodash';
+import {get} from 'lodash';
 import {Label, InternalNoteLabel, Location} from '../';
 import {EVENTS, MAIN, ICON_COLORS} from '../../constants';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
@@ -20,10 +20,7 @@ import {gettext} from '../../utils/gettext';
 
 export class EventItem extends React.Component {
     shouldComponentUpdate(nextProps) {
-        const original = pick(this.props, ['item', 'lockedItems', 'session']);
-        const updates = pick(nextProps, ['item', 'lockedItems', 'session']);
-
-        return isItemDifferent(original, updates);
+        return isItemDifferent(this.props, nextProps);
     }
 
     render() {
