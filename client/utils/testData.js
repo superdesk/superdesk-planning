@@ -834,7 +834,13 @@ export const multiSelect = {
     selectedPlanningIds: [],
 };
 
-export const contacts = [];
+export const contacts = {
+    contacts: [{
+        _id: 'contact1',
+        first_name: 'Albert',
+        last_name: 'Foo',
+    }],
+};
 
 export const initialState = {
     config: config,

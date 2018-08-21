@@ -18,7 +18,7 @@ import {ContentBlock, ContentBlockInner} from '../../UI/SidePanel';
 class AssignmentPreviewContainerComponent extends React.Component {
     componentWillMount() {
         if (eventUtils.shouldFetchFilesForEvent(this.props.eventItem)) {
-            this.props.fetchEventWithFiles(this.props.eventItem);
+            this.props.fetchEventFiles(this.props.eventItem);
         }
     }
 
@@ -185,7 +185,7 @@ AssignmentPreviewContainerComponent.propTypes = {
     revertAssignment: PropTypes.func,
     hideItemActions: PropTypes.bool,
     showFulfilAssignment: PropTypes.bool,
-    fetchEventWithFiles: PropTypes.func,
+    fetchEventFiles: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
@@ -216,7 +216,7 @@ const mapDispatchToProps = (dispatch) => ({
     onFulFilAssignment: (assignment) => dispatch(actions.assignments.ui.onFulFilAssignment(assignment)),
     removeAssignment: (assignment) => dispatch(actions.assignments.ui.showRemoveAssignmentModal(assignment)),
     openArchivePreview: (assignment) => dispatch(actions.assignments.ui.openArchivePreview(assignment)),
-    fetchEventWithFiles: (event) => dispatch(actions.events.ui.fetchEventWithFiles(event)),
+    fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
 });
 
 export const AssignmentPreviewContainer = connect(

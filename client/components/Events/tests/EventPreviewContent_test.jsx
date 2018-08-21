@@ -1,11 +1,9 @@
 import React from 'react';
-import sinon from 'sinon';
 import {mount} from 'enzyme';
 import {Provider} from 'react-redux';
 import {EventPreviewContent} from '../EventPreviewContent';
-import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
+import {getTestActionStore} from '../../../utils/testUtils';
 import {createTestStore, eventUtils} from '../../../utils';
-import eventsUi from '../../../actions/events/ui';
 
 import {FileInput, LinkInput} from '../../UI/Form';
 
@@ -13,6 +11,7 @@ describe('<EventPreviewContent />', () => {
     let astore = getTestActionStore();
 
     astore.init();
+    const storeContact = astore.initialState.contacts.contacts[0];
 
     astore.initialState.events.events.e1 = {
         ...astore.initialState.events.events.e1,
@@ -47,21 +46,28 @@ describe('<EventPreviewContent />', () => {
             name: 'sub1',
             qcode: 'sub1',
         }],
-        files: [{
-            filemeta: {media_id: 'file'},
-            media: {
-                name: 'file1.jpg',
-                length: 1024,
-                content_type: 'video/ogg',
-            },
-        }],
+        files: ['file1'],
         links: ['https://www.google.com'],
+        event_contact_info: [storeContact._id],
     };
 
     astore.initialState.planning.plannings.p2.original_creator =
         astore.initialState.users[0];
     astore.initialState.main.previewId = 'e1';
     astore.initialState.main.previewType = 'event';
+    astore.initialState.files = {
+        files: {
+            file1: {
+                filemeta: {media_id: 'file1'},
+                media: {
+                    name: 'file1.jpg',
+                    length: 1024,
+                    content_type: 'video/ogg',
+                },
+                _id: 'file1',
+            },
+        },
+    };
 
     const getWrapper = () => {
         const store = createTestStore({initialState: astore.initialState});
@@ -82,7 +88,6 @@ describe('<EventPreviewContent />', () => {
         'DD/MM/YYYY', 'HH:mm');
 
     it('renders an event with all its details', () => {
-        sinon.stub(eventsUi, 'fetchEventWithFiles').returns({type: 'Test'});
         const wrapper = getWrapper();
 
         expect(wrapper.find('EventPreviewContentComponent').length).toBe(1);
@@ -108,6 +113,13 @@ describe('<EventPreviewContent />', () => {
         verifyDataRow(eventDetailRows.at(2), 'Subject', 'sub1');
         verifyDataRow(eventDetailRows.at(3), 'Long Description', 'long description');
         verifyDataRow(eventDetailRows.at(4), 'Internal Note', 'internal note');
+
+        let contacts = wrapper.find('.contact-info');
+
+        expect(contacts.length).toBe(1);
+        expect(contacts.find('span').first()
+            .text()).toBe(`${storeContact.first_name} ${storeContact.last_name} `);
+
 
         let files = wrapper.find('.toggle-box').at(1);
 
@@ -138,6 +150,5 @@ describe('<EventPreviewContent />', () => {
         const relPlan = relatedPlannings.find('span').first();
 
         expect(relPlan.text()).toBe('Planning2'); // expect to display slugline (i.e. Planning2)
-        restoreSinonStub(eventsUi.fetchEventWithFiles);
     });
 });

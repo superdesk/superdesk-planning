@@ -89,7 +89,6 @@ describe('actions.events.api', () => {
                     expect(services.api.find.args[0]).toEqual([
                         'events',
                         'e2',
-                        {embedded: {files: 1}},
                     ]);
 
                     expect(eventsApi.receiveEvents.callCount).toBe(1);
@@ -123,7 +122,6 @@ describe('actions.events.api', () => {
                     expect(services.api.find.args[0]).toEqual([
                         'events',
                         'e2',
-                        {embedded: {files: 1}},
                     ]);
 
                     expect(eventsApi.receiveEvents.callCount).toBe(1);

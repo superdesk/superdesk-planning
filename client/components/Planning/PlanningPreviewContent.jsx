@@ -23,7 +23,7 @@ export class PlanningPreviewContentComponent extends React.Component {
     componentWillMount() {
         // If the planning item is associated with an event, get its files
         if (this.props.event) {
-            this.props.fetchEventWithFiles(this.props.event);
+            this.props.fetchEventFiles(this.props.event);
         }
     }
 
@@ -46,6 +46,7 @@ export class PlanningPreviewContentComponent extends React.Component {
             noPadding,
             createUploadLink,
             hideRelatedItems,
+            files,
         } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
@@ -174,6 +175,7 @@ export class PlanningPreviewContentComponent extends React.Component {
                     onEditEvent={onEditEvent.bind(null, event)}
                     lockedItems={lockedItems}
                     createUploadLink={createUploadLink}
+                    files={files}
                 />}
                 {hasCoverage &&
                     (<h3 className="side-panel__heading--big">{gettext('Coverages')}</h3>)}
@@ -213,9 +215,10 @@ PlanningPreviewContentComponent.propTypes = {
     customVocabularies: PropTypes.array,
     inner: PropTypes.bool,
     noPadding: PropTypes.bool,
-    fetchEventWithFiles: PropTypes.func,
+    fetchEventFiles: PropTypes.func,
     createUploadLink: PropTypes.func,
     hideRelatedItems: PropTypes.bool,
+    files: PropTypes.object,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -235,11 +238,12 @@ const mapStateToProps = (state, ownProps) => ({
     streetMapUrl: selectors.config.getStreetMapUrl(state),
     customVocabularies: state.customVocabularies,
     createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
+    files: selectors.general.files(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
     onEditEvent: (event) => dispatch(actions.main.lockAndEdit(event)),
-    fetchEventWithFiles: (event) => dispatch(actions.events.ui.fetchEventWithFiles(event)),
+    fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
 });
 
 

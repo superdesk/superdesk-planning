@@ -4,14 +4,14 @@ import {connect} from 'react-redux';
 import {get} from 'lodash';
 
 import * as selectors from '../../../selectors';
-import {gettext, stringUtils, isValidFileInput} from '../../../utils';
+import {gettext, stringUtils} from '../../../utils';
 
 import {Datetime} from '../../';
 import {Location} from '../../Location';
 import {Row} from '../../UI/Preview';
 import {FileInput, LinkInput} from '../../UI/Form';
 
-export const EventPreviewComponent = ({item, formProfile, createLink, streetMapUrl}) => {
+export const EventPreviewComponent = ({item, formProfile, createLink, streetMapUrl, files}) => {
     if (!item) {
         return null;
     }
@@ -86,13 +86,14 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
                 {get(item, 'files.length', 0) > 0 ? (
                     <ul>
                         {get(item, 'files').map((file, index) =>
-                            isValidFileInput(file, true) ? (<li key={index}>
+                            (<li key={index}>
                                 <FileInput
                                     value={file}
                                     createLink={createLink}
                                     readOnly={true}
+                                    files={files}
                                 />
-                            </li>) : null
+                            </li>)
                         )}
                     </ul>
                 ) : (
@@ -128,11 +129,13 @@ EventPreviewComponent.propTypes = {
     formProfile: PropTypes.object,
     createLink: PropTypes.func,
     streetMapUrl: PropTypes.string,
+    files: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
     createLink: (f) => (selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw'),
     streetMapUrl: selectors.config.getStreetMapUrl(state),
+    files: selectors.general.files(state),
 });
 
 

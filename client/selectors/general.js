@@ -39,3 +39,6 @@ export const currentUserId = createSelector(
     [session],
     (session) => get(session, 'identity._id')
 );
+
+export const files = (state) => get(state, 'files.files');
+export const contacts = (state) => get(state, 'contacts.contacts');

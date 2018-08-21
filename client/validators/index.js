@@ -1,5 +1,5 @@
 import moment from 'moment';
-import {get, set, isEqual} from 'lodash';
+import {get, set, isEqual, omit} from 'lodash';
 
 import {WORKSPACE, WORKFLOW_STATE, PRIVILEGES} from '../constants';
 import * as selectors from '../selectors';
@@ -50,11 +50,13 @@ export const validateItem = ({
     errors,
     messages = [],
     fields = null,
+    ignoreDateValidation = false,
 }) => (
     (dispatch, getState) => {
         const profiles = formProfiles ? formProfiles : selectors.forms.profiles(getState());
 
-        return (fields || Object.keys(validators[profileName])).forEach((key) => (
+        return (fields || Object.keys(
+            ignoreDateValidation ? omit(validators[profileName], 'dates') : validators[profileName])).forEach((key) => (
             validateField({
                 dispatch: dispatch,
                 getState: getState,

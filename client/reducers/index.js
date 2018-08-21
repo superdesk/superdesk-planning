@@ -15,6 +15,8 @@ import eventsPlanning from './eventsplanning';
 import multiSelect from './multiSelect';
 import selected from './publishQueuePreview';
 import featuredPlanning from './featuredPlanning';
+import files from './files';
+import contacts from './contacts';
 
 const returnState = (state) => state || {};
 
@@ -35,6 +37,8 @@ const planningApp = combineReducers({
     multiSelect: multiSelect,
     selected: selected,
     featuredPlanning: featuredPlanning,
+    files: files,
+    contacts: contacts,
 
     // The following doesn't require reducers as they are loaded using sdPlanningService
     config: returnState,
@@ -46,7 +50,6 @@ const planningApp = combineReducers({
     users: returnState,
     desks: returnState,
     urgency: returnState,
-    contacts: returnState,
     customVocabularies: returnState,
 });
 

@@ -12,7 +12,6 @@ import {
     dispatchUtils,
     gettext,
     getItemInArrayById,
-    isExistingItem,
 } from '../../utils';
 
 /**
@@ -409,20 +408,19 @@ const duplicate = (event) => (
     (dispatch, getState) => {
         // If the event has files, get its entire file resource
         // To show in the edit form during duplication
-        const promise = eventUtils.shouldFetchFilesForEvent(event) ? dispatch(self.fetchEventWithFiles(event, false)) :
-            Promise.resolve(event);
+        if (eventUtils.shouldFetchFilesForEvent(event)) {
+            dispatch(eventsApi.fetchEventFiles(event, false));
+        }
 
-        return promise.then((updatedEvent) => {
-            const occurStatuses = selectors.vocabs.eventOccurStatuses(getState());
-            const plannedStatus = getItemInArrayById(occurStatuses, 'eocstat:eos5', 'qcode') || {
-                label: 'Planned, occurs certainly',
-                qcode: 'eocstat:eos5',
-                name: 'Planned, occurs certainly',
-            };
-            const newEvent = eventUtils.duplicateEvent(updatedEvent, plannedStatus);
+        const occurStatuses = selectors.vocabs.eventOccurStatuses(getState());
+        const plannedStatus = getItemInArrayById(occurStatuses, 'eocstat:eos5', 'qcode') || {
+            label: 'Planned, occurs certainly',
+            qcode: 'eocstat:eos5',
+            name: 'Planned, occurs certainly',
+        };
+        const newEvent = eventUtils.duplicateEvent(event, plannedStatus);
 
-            return dispatch(main.lockAndEdit(newEvent));
-        });
+        return dispatch(main.lockAndEdit(newEvent));
     }
 );
 
@@ -657,16 +655,6 @@ const selectCalendar = (calendarId = '', params = {}) => (
     }
 );
 
-const fetchEventWithFiles = (event) => (
-    (dispatch) => {
-        if (!isExistingItem(event) || get(event, 'files.length', 0) === 0) {
-            return Promise.resolve(event);
-        }
-
-        return dispatch(eventsApi.fetchById(event._id, {force: true, saveToStore: false}));
-    }
-);
-
 // eslint-disable-next-line consistent-this
 const self = {
     fetchEvents,
@@ -699,7 +687,6 @@ const self = {
     postWithConfirmation,
     createEventFromPlanning,
     selectCalendar,
-    fetchEventWithFiles,
     _openActionModalFromEditor,
 };
 

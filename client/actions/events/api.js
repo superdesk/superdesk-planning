@@ -5,7 +5,7 @@ import {
     MAIN,
 } from '../../constants';
 import {EventUpdateMethods} from '../../components/Events';
-import {get, isEqual, cloneDeep, pickBy, isNil, has, find} from 'lodash';
+import {get, isEqual, cloneDeep, pickBy, isNil, has, find, every} from 'lodash';
 import * as selectors from '../../selectors';
 import {
     eventUtils,
@@ -1007,7 +1007,7 @@ const fetchById = (eventId, {force = false, saveToStore = true, loadPlanning = t
         if (has(storedEvents, eventId) && !force) {
             promise = Promise.resolve(storedEvents[eventId]);
         } else {
-            promise = api.find('events', eventId, {embedded: {files: 1}})
+            promise = api('events').getById(eventId)
                 .then((event) => {
                     const newEvent = eventUtils.modifyForClient(event);
 
@@ -1273,9 +1273,16 @@ const save = (event) => (
                 const originalFiles = get(modifiedEvent, 'files', []).filter((f) => !isValidFileInput(f));
 
                 modifiedEvent.files = [
-                    ...originalFiles.map((e) => e._id),
+                    ...originalFiles.map((e) => get(e, '_id', e)),
                     ...newFiles.map((e) => e._id),
                 ];
+
+                if (get(newFiles, 'length', 0) > 0) {
+                    dispatch({
+                        type: 'RECEIVE_FILES',
+                        payload: newFiles,
+                    });
+                }
 
                 return dispatch(self._save(modifiedEvent));
             })
@@ -1292,7 +1299,7 @@ const updateRepetitions = (event) => (
     )
 );
 
-const getEventContacts = (searchText, searchFields = []) => (
+const getContacts = (searchText, searchFields = []) => (
     (dispatch, getState, {api}) => api('contacts')
         .query({
             source: {
@@ -1315,25 +1322,39 @@ const getEventContacts = (searchText, searchFields = []) => (
         })
 );
 
-const fetchEventContactsByIds = (ids = []) => (
-    (dispatch, getState, {api}) => api('contacts')
-        .query({
-            source: {
-                query: {
-                    bool: {
-                        must: [{
-                            terms: {
-                                _id: ids,
-                            },
-                        }],
-                        should: [
-                            {term: {is_active: true}},
-                            {term: {public: true}},
-                        ],
+const fetchEventFiles = (event, saveToStore = true) => (
+    (dispatch, getState, {api}) => {
+        if (!eventUtils.shouldFetchFilesForEvent(event)) {
+            return Promise.resolve();
+        }
+
+        const filesInStore = selectors.general.files(getState());
+
+        if (every(event.files, (f) => f in filesInStore)) {
+            return Promise.resolve();
+        }
+
+        return api('events_files').query(
+            {
+                source: {
+                    query: {
+                        terms: {
+                            _id: event.files,
+                        },
                     },
                 },
-            },
-        })
+            }
+        )
+            .then((data) => {
+                if (get(data, '_items.length')) {
+                    dispatch({
+                        type: 'RECEIVE_FILES',
+                        payload: get(data, '_items'),
+                    });
+                }
+                return Promise.resolve();
+            });
+    }
 );
 
 const fetchCalendars = () => (
@@ -1388,10 +1409,10 @@ const self = {
     getCriteria,
     fetchById,
     updateRepetitions,
-    getEventContacts,
-    fetchEventContactsByIds,
+    getContacts,
     fetchCalendars,
     receiveCalendars,
+    fetchEventFiles,
 };
 
 export default self;

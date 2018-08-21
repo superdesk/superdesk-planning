@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {gettext, getCreator, isValidFileInput, eventUtils} from '../../utils';
+import {gettext, getCreator} from '../../utils';
 import * as selectors from '../../selectors';
-import {get, isEqual} from 'lodash';
+import {get} from 'lodash';
 import {Row} from '../UI/Preview';
 import {
     AuditInformation,
@@ -16,7 +16,6 @@ import {ContentBlock} from '../UI/SidePanel';
 import {LinkInput, FileInput} from '../UI/Form';
 import {Location} from '../Location';
 import eventsApi from '../../actions/events/api';
-import eventsUi from '../../actions/events/ui';
 import {ContactMetaData} from '../Contacts/index';
 import CustomVocabulariesPreview from '../CustomVocabulariesPreview';
 
@@ -24,50 +23,17 @@ export class EventPreviewContentComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            filteredContacts: [],
             showContactInfo: false,
             currentContact: [],
             editDetails: false,
             viewIndex: null,
             files: [],
         };
-        this.fetchEventContacts = this.fetchEventContacts.bind(this);
         this.getResponseResult = this.getResponseResult.bind(this);
     }
 
-    componentWillReceiveProps(nextProps) {
-        let field = 'event_contact_info';
-
-        if (!isEqual(nextProps.item[field], this.props.item[field])) {
-            this.fetchEventContacts(nextProps.item[field]);
-        }
-    }
-
     componentWillMount() {
-        if (eventUtils.shouldFetchFilesForEvent(this.props.item)) {
-            this.props.fetchEventWithFiles(this.props.item)
-                .then((eventWithFiles) => {
-                    this.setState({files: eventWithFiles.files});
-                });
-        } else if (get(this.props, 'item.files.length', 0) > 0) {
-            this.setState({files: [...this.props.item.files]});
-        }
-    }
-
-    componentDidMount() {
-        this.fetchEventContacts(this.props.item['event_contact_info']);
-    }
-
-    fetchEventContacts(values) {
-        setTimeout(() => {
-            this.props.fetchContacts(values)
-                .then(this.getResponseResult)
-                .then((results) => {
-                    this.setState({
-                        filteredContacts: results,
-                    });
-                });
-        }, 500);
+        this.props.fetchEventFiles(this.props.item);
     }
 
     getResponseResult(data = null) {
@@ -116,6 +82,7 @@ export class EventPreviewContentComponent extends React.Component {
             streetMapUrl,
             customVocabularies,
             hideRelatedItems,
+            files,
         } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
@@ -202,8 +169,8 @@ export class EventPreviewContentComponent extends React.Component {
                     enabled={get(formProfile, 'editor.event_contact_info.enabled') && get(item, '_contacts.length') > 0}
                     label={gettext('Contact')}
                 >
-                    {get(this.state, 'filteredContacts.length') > 0 &&
-                        get(this.state, 'filteredContacts', []).map((contact, index) => (
+                    {get(this.props, 'item._contacts.length', 0) > 0 &&
+                        this.props.item._contacts.map((contact, index) => (
                             <ContactMetaData
                                 key={index}
                                 contact={this.getContactInfo(contact)}
@@ -256,13 +223,14 @@ export class EventPreviewContentComponent extends React.Component {
                         badgeValue={get(item, 'files.length', 0) > 0 ? item.files.length : null}>
                         {get(item, 'files.length') > 0 ?
                             <ul>
-                                {this.state.files.map((file, index) => (
-                                    isValidFileInput(file, true) ? (<li key={index}>
+                                {get(item, 'files', []).map((file, index) => (
+                                    <li key={index}>
                                         <FileInput
                                             value={file}
                                             createLink={createUploadLink}
-                                            readOnly={true} />
-                                    </li>) : null
+                                            readOnly={true}
+                                            files={files} />
+                                    </li>
                                 ))}
                             </ul> :
                             <span className="sd-text__info">{gettext('No attached files added.')}</span>}
@@ -321,9 +289,10 @@ EventPreviewContentComponent.propTypes = {
     createUploadLink: PropTypes.func,
     fetchContacts: PropTypes.func,
     streetMapUrl: PropTypes.string,
-    fetchEventWithFiles: PropTypes.func,
+    fetchEventFiles: PropTypes.func,
     customVocabularies: PropTypes.array,
     hideRelatedItems: PropTypes.bool,
+    files: PropTypes.object,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -339,11 +308,10 @@ const mapStateToProps = (state, ownProps) => ({
     createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
     streetMapUrl: selectors.config.getStreetMapUrl(state),
     customVocabularies: state.customVocabularies,
+    files: selectors.general.files(state),
+    contacts: selectors.general.contacts(state),
 });
 
-const mapDispatchToProps = (dispatch) => ({
-    fetchContacts: (ids) => dispatch(eventsApi.fetchEventContactsByIds(ids || [])),
-    fetchEventWithFiles: (event) => dispatch(eventsUi.fetchEventWithFiles(event)),
-});
+const mapDispatchToProps = (dispatch) => ({fetchEventFiles: (event) => dispatch(eventsApi.fetchEventFiles(event))});
 
 export const EventPreviewContent = connect(mapStateToProps, mapDispatchToProps)(EventPreviewContentComponent);

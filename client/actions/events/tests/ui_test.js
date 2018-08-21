@@ -422,13 +422,13 @@ describe('actions.events.ui', () => {
     describe('duplicate', () => {
         beforeEach(() => {
             sinon.stub(main, 'lockAndEdit').callsFake((item) => Promise.resolve(item));
-            sinon.stub(eventsUi, 'fetchEventWithFiles').callsFake((item) => Promise.resolve(item));
+            sinon.stub(eventsApi, 'fetchEventFiles').callsFake((item) => Promise.resolve(item));
         });
 
         afterEach(() => {
             restoreSinonStub(main.lockAndEdit);
             restoreSinonStub(eventsApi.duplicate);
-            restoreSinonStub(eventsUi.fetchEventWithFiles);
+            restoreSinonStub(eventsApi.fetchEventFiles);
         });
 
         it('duplicate updates past event date to current date ad also preserves files and links', (done) => {
