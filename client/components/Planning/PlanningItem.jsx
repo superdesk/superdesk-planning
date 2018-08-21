@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import {get, pick} from 'lodash';
+import {get} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
 import {Label, InternalNoteLabel} from '../';
@@ -38,10 +38,7 @@ export class PlanningItem extends React.Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        const original = pick(this.props, ['item', 'lockedItems', 'session']);
-        const updates = pick(nextProps, ['item', 'lockedItems', 'session']);
-
-        return isItemDifferent(original, updates);
+        return isItemDifferent(this.props, nextProps);
     }
 
     render() {
