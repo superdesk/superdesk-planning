@@ -1,5 +1,6 @@
 import lxml
 import unittest
+from unittest import mock
 
 from planning.common import POST_STATE, WORKFLOW_STATE
 from planning.output_formatters.ntb_event import NTBEventFormatter
@@ -192,6 +193,191 @@ class NTBEventTestCase(unittest.TestCase):
 
         # include only 1st external link
         self.assertEqual(contactweb.text, self.item['links'][0])
+
+    @mock.patch('apps.contacts.service.ContactsService.find_one', return_value={
+        'first_name': 'John',
+        'last_name': 'Smith',
+        'organisation': 'NASA',
+    })
+    def test_contactname_included(self, magic_mock):
+        self.item['event_contact_info'] = [
+            '5b7a8228f7ab23b336d7f84d',
+            '7ab23b336d7f84d5b7a8228f',
+        ]
+
+        formatter = NTBEventFormatter()
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        contactname = root.find('contactname')
+        contactname_count = root.xpath('count(contactname)')
+
+        self.assertIsNotNone(contactname)
+        self.assertEqual(contactname_count, 1)
+
+    def test_contactname_not_included(self):
+        formatter = NTBEventFormatter()
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        contactname = root.find('contactname')
+
+        self.assertIsNone(contactname)
+
+    @mock.patch('apps.contacts.service.ContactsService.find_one', return_value={
+        'first_name': 'John',
+        'last_name': 'Smith',
+    })
+    def test_contactname_format_no_organisation(self, magic_mock):
+        self.item['event_contact_info'] = [
+            '5b7a8228f7ab23b336d7f84d',
+            '7ab23b336d7f84d5b7a8228f',
+        ]
+
+        formatter = NTBEventFormatter()
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        contactname = root.find('contactname')
+
+        self.assertEqual(contactname.text, 'John Smith')
+
+    @mock.patch('apps.contacts.service.ContactsService.find_one', return_value={
+        'first_name': 'John',
+        'last_name': 'Smith',
+        'organisation': 'NASA',
+    })
+    def test_contactname_format_organisation(self, magic_mock):
+        self.item['event_contact_info'] = [
+            '5b7a8228f7ab23b336d7f84d',
+            '7ab23b336d7f84d5b7a8228f',
+        ]
+
+        formatter = NTBEventFormatter()
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        contactname = root.find('contactname')
+
+        self.assertEqual(contactname.text, 'John Smith, NASA')
+
+    @mock.patch('apps.contacts.service.ContactsService.find_one', return_value={
+        'last_name': 'Smith',
+        'organisation': 'NASA',
+    })
+    def test_contactname_format_no_firstname(self, magic_mock):
+        self.item['event_contact_info'] = [
+            '5b7a8228f7ab23b336d7f84d',
+            '7ab23b336d7f84d5b7a8228f',
+        ]
+
+        formatter = NTBEventFormatter()
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        contactname = root.find('contactname')
+
+        self.assertEqual(contactname.text, 'Smith, NASA')
+
+    @mock.patch('apps.contacts.service.ContactsService.find_one', return_value={
+        'first_name': 'John',
+        'organisation': 'NASA',
+    })
+    def test_contactname_format_no_lastname(self, magic_mock):
+        self.item['event_contact_info'] = [
+            '5b7a8228f7ab23b336d7f84d',
+            '7ab23b336d7f84d5b7a8228f',
+        ]
+
+        formatter = NTBEventFormatter()
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        contactname = root.find('contactname')
+
+        self.assertEqual(contactname.text, 'John, NASA')
+
+    @mock.patch('apps.contacts.service.ContactsService.find_one', return_value={
+        'organisation': 'NASA',
+    })
+    def test_contactname_format_no_names(self, magic_mock):
+        self.item['event_contact_info'] = [
+            '5b7a8228f7ab23b336d7f84d',
+            '7ab23b336d7f84d5b7a8228f',
+        ]
+
+        formatter = NTBEventFormatter()
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        contactname = root.find('contactname')
+
+        self.assertEqual(contactname.text, 'NASA')
+
+    @mock.patch('apps.contacts.service.ContactsService.find_one', return_value={
+        'contact_email': ['john.smith@nasa.org']
+    })
+    def test_contactmail_included(self, magic_mock):
+        self.item['event_contact_info'] = [
+            '5b7a8228f7ab23b336d7f84d',
+            '7ab23b336d7f84d5b7a8228f',
+        ]
+
+        formatter = NTBEventFormatter()
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        contactmail = root.find('contactmail')
+        contactmail_count = root.xpath('count(contactmail)')
+
+        self.assertIsNotNone(contactmail)
+        self.assertEqual(contactmail_count, 1)
+
+    @mock.patch('apps.contacts.service.ContactsService.find_one', return_value={
+        'contact_email': []
+    })
+    def test_contactmail_not_included(self, magic_mock):
+        self.item['event_contact_info'] = [
+            '5b7a8228f7ab23b336d7f84d',
+            '7ab23b336d7f84d5b7a8228f',
+        ]
+
+        formatter = NTBEventFormatter()
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        contactmail = root.find('contactmail')
+        contactmail_count = root.xpath('count(contactmail)')
+
+        self.assertIsNone(contactmail)
+        self.assertEqual(contactmail_count, 0)
+
+    @mock.patch('apps.contacts.service.ContactsService.find_one', return_value={
+        'contact_phone': [{'number': '99999', 'public': True}]
+    })
+    def test_contactphone_included(self, magic_mock):
+        self.item['event_contact_info'] = [
+            '5b7a8228f7ab23b336d7f84d',
+            '7ab23b336d7f84d5b7a8228f',
+        ]
+
+        formatter = NTBEventFormatter()
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        contactphone = root.find('contactphone')
+        contactphone_count = root.xpath('count(contactphone)')
+
+        self.assertIsNotNone(contactphone)
+        self.assertEqual(contactphone_count, 1)
+
+    @mock.patch('apps.contacts.service.ContactsService.find_one', return_value={
+        'contact_phone': [{'number': '99999', 'public': False}]
+    })
+    def test_contactphone_not_included(self, magic_mock):
+        self.item['event_contact_info'] = [
+            '5b7a8228f7ab23b336d7f84d',
+            '7ab23b336d7f84d5b7a8228f',
+        ]
+
+        formatter = NTBEventFormatter()
+        output = formatter.format(self.item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        contactphone = root.find('contactphone')
+        contactphone_count = root.xpath('count(contactphone)')
+
+        self.assertIsNone(contactphone)
+        self.assertEqual(contactphone_count, 0)
 
     def test_content_missing_desc_short(self):
         formatter = NTBEventFormatter()

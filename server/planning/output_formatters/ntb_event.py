@@ -148,11 +148,16 @@ class NTBEventFormatter(Formatter):
         :param item:
         """
         if len(item.get('event_contact_info', [])) > 0:
-            contact = item.get('event_contact_info')[0]
-            contact_details = get_resource_service('contacts').find_one(req=None, _id=contact)
+            # find first public contact
+            contact_details = get_resource_service('contacts').find_one(
+                req=None,
+                _id={'$in': item['event_contact_info']},
+                public=True
+            )
+
             if contact_details:
                 firstName = contact_details.get('first_name', '')
-                lastName = contact_details.get('first_name', '')
+                lastName = contact_details.get('last_name', '')
                 organisation = contact_details.get('organisation', '')
 
                 name = firstName + lastName if firstName == '' or lastName == '' else firstName + ' ' + lastName
@@ -166,7 +171,7 @@ class NTBEventFormatter(Formatter):
                 phones = [p for p in contact_details.get('contact_phone', []) if p.get('public')]
                 if len(phones) > 0:
                     contactphone = etree.SubElement(doc, 'contactphone')
-                    contactphone.text = phones[0].number
+                    contactphone.text = phones[0]['number']
 
                 if len(contact_details.get('contact_email', [])) > 0:
                     contactmail = etree.SubElement(doc, 'contactmail')
