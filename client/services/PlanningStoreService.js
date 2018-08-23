@@ -29,7 +29,6 @@ export class PlanningStoreService {
         $q,
         $interpolate,
         search,
-        contacts,
         preferencesService
     ) {
         this.$rootScope = $rootScope;
@@ -55,7 +54,6 @@ export class PlanningStoreService {
         this.$q = $q;
         this.$interpolate = $interpolate;
         this.search = search;
-        this.contacts = contacts;
         this.preferencesService = preferencesService;
 
         this.onSessionChanged = this.onSessionChanged.bind(this);
@@ -161,7 +159,6 @@ export class PlanningStoreService {
                         $interpolate: this.$interpolate,
                         search: this.search,
                         config: this.config,
-                        contacts: this.contacts,
                         preferencesService: this.preferencesService,
                     },
                 });
@@ -186,13 +183,6 @@ export class PlanningStoreService {
                 max_results: 200,
                 page: 1,
             }),
-            contacts: this.contacts.query({
-                max_results: 200,
-                page: 1,
-                all: true,
-                default_operator: 'AND',
-                q: 'public:(1) is_active:(1)',
-            }).then((items) => items),
         });
     }
 
@@ -240,7 +230,6 @@ export class PlanningStoreService {
                         label: this.gettextCatalog.getString('Urgency'),
                     },
                     forms: {profiles: {}},
-                    contacts: data.contacts._items,
                     customVocabularies: this.metadata.cvs.filter((cv) =>
                         !isEmpty(cv.service) &&
                         get(cv, 'schema_field') === 'subject' &&
@@ -325,6 +314,5 @@ PlanningStoreService.$inject = [
     '$q',
     '$interpolate',
     'search',
-    'contacts',
     'preferencesService',
 ];

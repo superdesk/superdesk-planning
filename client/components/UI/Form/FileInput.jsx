@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {Row, LineInput, Label, Input, TextArea} from './';
 import {IconButton} from '../';
 import {onEventCapture, gettext} from '../utils';
-import {get} from 'lodash';
+import {get, isArrayLikeObject} from 'lodash';
 import './style.scss';
 
 /**
@@ -125,13 +125,24 @@ export class FileInput extends React.Component {
         );
     }
 
+    getFileItems() {
+        const {value, files} = this.props;
+
+        if (!value) {
+            return null;
+        }
+
+        const objectValues = (Array.isArray(value) ? value : [value]).map((v) =>
+            (isArrayLikeObject(v) ? v[0] : files[v]));
+
+        return objectValues.map((val, index) => this.getComponent(val, index));
+    }
+
     render() {
-        const {field, value, readOnly, onFocus} = this.props;
+        const {field, readOnly, onFocus} = this.props;
 
         return (<Row>
-            {value && Array.isArray(value) &&
-                (value.map((val, index) => (this.getComponent(get(val, '[0]', val), index)))) ||
-                (value && (this.getComponent(value)))}
+            {this.getFileItems()}
             {!readOnly && <div onDrop={this.onDrop} onDragEnter={this.onDragEnter} className="basic-drag-block">
                 <i className="big-icon--upload-alt" />
                 <span className="basic-drag-block__text">{gettext('Drag files here or') + ' '}</span>
@@ -164,6 +175,7 @@ FileInput.propTypes = {
     onFocus: PropTypes.func,
     readOnly: PropTypes.bool,
     noMargin: PropTypes.bool,
+    files: PropTypes.object,
 };
 
 FileInput.defaultProps = {noMargin: true};

@@ -10,7 +10,7 @@ import {Item, Column, Row, ActionMenu, Border} from '../../UI/List';
 import {Row as PreviewRow} from '../../UI/Preview';
 import {FileInput, LinkInput} from '../../UI/Form';
 import {CollapseBox} from '../../UI/CollapseBox';
-import {eventUtils, gettext, onEventCapture, editorMenuUtils, isValidFileInput} from '../../../utils';
+import {eventUtils, gettext, onEventCapture, editorMenuUtils} from '../../../utils';
 import {Location} from '../../Location';
 
 export const EventMetadata = (
@@ -31,6 +31,7 @@ export const EventMetadata = (
         showIcon,
         showBorder,
         createUploadLink,
+        files,
     }
 ) => {
     const dateStr = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat, dateOnly);
@@ -150,13 +151,14 @@ export const EventMetadata = (
                 {get(event, 'files.length') > 0 ?
                     (<ul>
                         {get(event, 'files', []).map((file, index) => (
-                            isValidFileInput(file, true) ? (<li key={index}>
+                            <li key={index}>
                                 <FileInput
                                     value={file}
                                     createLink={createUploadLink}
                                     readOnly={true}
-                                    noMargin={false} />
-                            </li>) : null
+                                    noMargin={false}
+                                    files={files} />
+                            </li>
                         ))}
                     </ul>) :
                     <span className="sd-text__info">{gettext('No attached files added.')}</span>
@@ -219,6 +221,7 @@ EventMetadata.propTypes = {
     showIcon: PropTypes.bool,
     showBorder: PropTypes.bool,
     createUploadLink: PropTypes.func,
+    files: PropTypes.object,
 };
 
 

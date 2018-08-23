@@ -746,7 +746,7 @@ const defaultEventValues = (occurStatuses, defaultCalendars) => ({
 });
 
 const shouldFetchFilesForEvent = (event) => (
-    get(event, 'files', []).filter((f) => typeof (f) === 'string'
+    isExistingItem(event) && get(event, 'files', []).filter((f) => typeof (f) === 'string'
             || f instanceof String).length > 0
 );
 

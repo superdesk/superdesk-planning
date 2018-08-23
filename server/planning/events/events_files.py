@@ -29,7 +29,8 @@ class EventsFilesResource(superdesk.Resource):
             '_updated': 1,
             '_etag': 1,
             'media': 1,
-        }
+        },
+        'search_backend': 'elastic'
     }
     url = 'events_files'
     item_methods = ['GET', 'DELETE']

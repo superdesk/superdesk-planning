@@ -2,9 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as selectors from '../../selectors';
-import {get, isEqual, difference} from 'lodash';
+import {get, isEqual} from 'lodash';
 import {ContactEditor, SelectSearchContactsField} from './index';
-import eventsApi from '../../actions/events/api';
+import * as actions from '../../actions';
 import {CONTACTS} from '../../constants';
 import {gettext} from '../../utils/index';
 
@@ -21,7 +21,6 @@ export class ContactFieldComponent extends React.Component {
         };
 
         this.getSearchResult = this.getSearchResult.bind(this);
-        this.fetchEventContacts = this.fetchEventContacts.bind(this);
         this.getResponseResult = this.getResponseResult.bind(this);
         this.addOption = this.addOption.bind(this);
         this.getOption = this.getOption.bind(this);
@@ -32,12 +31,13 @@ export class ContactFieldComponent extends React.Component {
     }
 
     componentDidMount() {
-        this.fetchEventContacts(this.props.value);
+        this.getOptions();
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (!isEqual(nextProps.value, this.props.value)) {
-            this.fetchEventContacts(nextProps.value);
+    componentDidUpdate(prevProps) {
+        if (!isEqual(prevProps.value, this.props.value) ||
+            !isEqual(prevProps.contacts, this.props.contacts)) {
+            this.getOptions();
         }
     }
 
@@ -61,6 +61,7 @@ export class ContactFieldComponent extends React.Component {
         const {field, ...props} = this.props;
         const opt = this.getOption(savedContact);
 
+        props.addContact(savedContact);
         props.onChange(field, [...props.value, opt.value._id]);
 
         onCancel();
@@ -72,19 +73,6 @@ export class ContactFieldComponent extends React.Component {
             .then((results) => {
                 this.getOptions(results || [], true);
             });
-    }
-
-    fetchEventContacts(values) {
-        if (get(values, 'length', 0) &&
-            difference(values, this.props.eventContacts.map((c) => c._id)).length > 0) {
-            this.props.fetchContacts(values)
-                .then(this.getResponseResult)
-                .then((results) => {
-                    this.getOptions(results || []);
-                });
-        } else {
-            this.getOptions(this.props.eventContacts, false, values);
-        }
     }
 
     getResponseResult(data = null) {
@@ -131,7 +119,7 @@ export class ContactFieldComponent extends React.Component {
         };
     }
 
-    getOptions(filteredContacts = this.props.eventContacts, onSearch, currentValues = this.props.value) {
+    getOptions(filteredContacts = this.props.contacts, onSearch) {
         let options = [];
         let values = [];
         let _filteredValues = [];
@@ -139,7 +127,7 @@ export class ContactFieldComponent extends React.Component {
         options = (filteredContacts).map((contact) => this.getOption(contact));
 
         if (!onSearch) {
-            values = (filteredContacts.filter((c) => currentValues.includes(c._id)))
+            values = (filteredContacts).filter((c) => get(this.props, 'value', []).includes(get(c, '_id')))
                 .map((contact) => this.getValue(contact));
 
             _filteredValues = values;
@@ -187,20 +175,20 @@ ContactFieldComponent.propTypes = {
     ]),
     searchContacts: PropTypes.func,
     fetchContacts: PropTypes.func,
-    eventContacts: PropTypes.array,
+    contacts: PropTypes.array,
     privileges: PropTypes.object,
     refNode: PropTypes.func,
     paddingTop: PropTypes.bool,
 };
 
 const mapStateToProps = (state, ownProps) => ({
-    eventContacts: selectors.events.getEventContacts(state),
+    contacts: selectors.general.contacts(state),
     privileges: selectors.general.privileges(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    searchContacts: (text) => dispatch(eventsApi.getEventContacts(text, CONTACTS.SEARCH_FIELDS)),
-    fetchContacts: (ids) => dispatch(eventsApi.fetchEventContactsByIds(ids || [])),
+    searchContacts: (text) => dispatch(actions.contacts.getContacts(text, CONTACTS.SEARCH_FIELDS)),
+    addContact: (newContact) => dispatch(actions.contacts.addContact(newContact)),
 });
 
 export const ContactField = connect(

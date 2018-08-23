@@ -14,6 +14,8 @@ import multiSelect from './multiSelect';
 import {agendaNotifications} from './agenda';
 import users from './users';
 import * as modalActions from './modal';
+import contacts from './contacts';
+import otherNotifications from './notifications';
 
 import {RESET_STORE, INIT_STORE} from '../constants';
 
@@ -33,6 +35,7 @@ const notifications = {
     ...planning.notifications.events,
     ...events.notifications.events,
     ...assignments.notifications.events,
+    ...otherNotifications.events,
 };
 
 export {
@@ -50,4 +53,5 @@ export {
     multiSelect,
     users,
     modalActions,
+    contacts,
 };

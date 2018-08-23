@@ -85,12 +85,8 @@ describe('actions.events.api', () => {
                 .then((event) => {
                     expect(event).toEqual(eventUtils.modifyForClient(data.events[1]));
 
-                    expect(services.api.find.callCount).toBe(1);
-                    expect(services.api.find.args[0]).toEqual([
-                        'events',
-                        'e2',
-                        {embedded: {files: 1}},
-                    ]);
+                    expect(services.api('events').getById.callCount).toBe(1);
+                    expect(services.api('events').getById.args[0]).toEqual(['e2']);
 
                     expect(eventsApi.receiveEvents.callCount).toBe(1);
                     expect(eventsApi.loadAssociatedPlannings.callCount).toBe(1);
@@ -105,7 +101,7 @@ describe('actions.events.api', () => {
                 .then((event) => {
                     expect(event).toEqual(eventUtils.modifyForClient(data.events[1]));
 
-                    expect(services.api.find.callCount).toBe(0);
+                    expect(services.api('events').getById.callCount).toBe(0);
 
                     expect(eventsApi.receiveEvents.callCount).toBe(0);
                     expect(eventsApi.loadAssociatedPlannings.callCount).toBe(1);
@@ -119,12 +115,8 @@ describe('actions.events.api', () => {
                 .then((event) => {
                     expect(event).toEqual(eventUtils.modifyForClient(data.events[1]));
 
-                    expect(services.api.find.callCount).toBe(1);
-                    expect(services.api.find.args[0]).toEqual([
-                        'events',
-                        'e2',
-                        {embedded: {files: 1}},
-                    ]);
+                    expect(services.api('events').getById.callCount).toBe(1);
+                    expect(services.api('events').getById.args[0]).toEqual(['e2']);
 
                     expect(eventsApi.receiveEvents.callCount).toBe(1);
                     expect(eventsApi.loadAssociatedPlannings.callCount).toBe(1);
@@ -150,7 +142,7 @@ describe('actions.events.api', () => {
         ).catch(done.fail));
 
         it('returns rejected promise if API fails', (done) => {
-            services.api.find = sinon.spy(() => Promise.reject(errorMessage));
+            services.api('events').getById = sinon.spy(() => Promise.reject(errorMessage));
             store.test(done, eventsApi.fetchById('e2', {force: true}))
                 .then(null, (error) => {
                     expect(error).toEqual(errorMessage);

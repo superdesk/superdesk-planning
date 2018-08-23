@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, some} from 'lodash';
 import * as selectors from '../../../selectors';
-import eventsUi from '../../../actions/events/ui';
+import * as actions from '../../../actions';
+
 
 import {ContentBlock} from '../../UI/SidePanel';
 import {
@@ -23,7 +24,7 @@ import {EventScheduleInput, EventScheduleSummary} from '../';
 import {GeoLookupInput} from '../../index';
 
 import {EventEditorHeader} from './EventEditorHeader';
-import {gettext, editorMenuUtils, getItemId, eventUtils} from '../../../utils';
+import {gettext, editorMenuUtils, getItemId} from '../../../utils';
 import CustomVocabulariesFields from '../../CustomVocabulariesFields';
 
 import '../style.scss';
@@ -45,6 +46,17 @@ export class EventEditorComponent extends React.Component {
             top: null,
             contacts: null,
         };
+    }
+
+    componentWillMount() {
+        this.props.fetchEventFiles(this.props.item);
+        this.props.getEventContacts(this.props.item);
+    }
+
+    componentWillUpdate(nextProps) {
+        if (getItemId(this.props.item) !== getItemId(nextProps.item)) {
+            this.props.fetchEventFiles(this.props.item);
+        }
     }
 
     componentDidMount() {
@@ -79,13 +91,6 @@ export class EventEditorComponent extends React.Component {
             if (editorMenuUtils.forceScroll(this.props.navigation, 'contacts')) {
                 this.dom.contacts.scrollIntoView();
             }
-        }
-
-        if (eventUtils.shouldFetchFilesForEvent(this.props.diff)) {
-            this.props.fetchEventWithFiles(this.props.item)
-                .then((eventWithFiles) => {
-                    this.props.onChangeHandler('files', eventWithFiles.files, false, false);
-                });
         }
 
         if (this.dom.top) {
@@ -130,6 +135,7 @@ export class EventEditorComponent extends React.Component {
             navigation,
             itemExists,
             customVocabularies,
+            files,
         } = this.props;
 
         const detailsErrored = some(toggleDetails, (field) => !!get(errors, field));
@@ -348,6 +354,7 @@ export class EventEditorComponent extends React.Component {
                             defaultValue={[]}
                             {...fieldProps}
                             onFocus={onFocusFiles}
+                            files={files}
                         />
                     </ToggleBox>
 
@@ -425,8 +432,10 @@ EventEditorComponent.propTypes = {
     plannings: PropTypes.array,
     planningsModalEvent: PropTypes.array,
     navigation: PropTypes.object,
-    fetchEventWithFiles: PropTypes.func,
+    fetchEventFiles: PropTypes.func,
+    getEventContacts: PropTypes.func,
     customVocabularies: PropTypes.array,
+    files: PropTypes.object,
 };
 
 EventEditorComponent.defaultProps = {
@@ -452,10 +461,12 @@ const mapStateToProps = (state) => ({
     plannings: selectors.events.getRelatedPlannings(state),
     planningsModalEvent: selectors.events.getRelatedPlanningsForModalEvent(state),
     customVocabularies: state.customVocabularies,
+    files: selectors.general.files(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    fetchEventWithFiles: (event) => dispatch(eventsUi.fetchEventWithFiles(event)),
+    fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
+    getEventContacts: (event) => dispatch(actions.contacts.getEventContacts(event)),
 });
 
 export const EventEditor = connect(mapStateToProps, mapDispatchToProps)(EventEditorComponent);

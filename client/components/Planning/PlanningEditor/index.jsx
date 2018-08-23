@@ -65,7 +65,7 @@ export class PlanningEditorComponent extends React.Component {
 
         // If the planning item is associated with an event, get its files
         if (this.props.event) {
-            this.props.fetchEventWithFiles(this.props.event);
+            this.props.fetchEventFiles(this.props.event);
         }
     }
 
@@ -256,7 +256,7 @@ export class PlanningEditorComponent extends React.Component {
             }
 
             if (eventUtils.shouldFetchFilesForEvent(nextProps.event)) {
-                this.props.fetchEventWithFiles(nextProps.event);
+                this.props.fetchEventFiles(nextProps.event);
             }
         }
     }
@@ -319,6 +319,7 @@ export class PlanningEditorComponent extends React.Component {
             navigation,
             customVocabularies,
             createUploadLink,
+            files,
         } = this.props;
 
         const agendaValues = cloneDeep(get(diff, 'agendas', [])
@@ -529,6 +530,7 @@ export class PlanningEditorComponent extends React.Component {
                             lockedItems={lockedItems}
                             navigation={navigation}
                             createUploadLink={createUploadLink}
+                            files={files}
                             tabEnabled
                         />
                     </ContentBlock>
@@ -607,8 +609,9 @@ PlanningEditorComponent.propTypes = {
     navigation: PropTypes.object,
     eventModal: PropTypes.object,
     customVocabularies: PropTypes.array,
-    fetchEventWithFiles: PropTypes.func,
+    fetchEventFiles: PropTypes.func,
     createUploadLink: PropTypes.func,
+    files: PropTypes.object,
 };
 
 PlanningEditorComponent.defaultProps = {
@@ -643,6 +646,7 @@ const mapStateToProps = (state) => ({
     lockedItems: selectors.locks.getLockedItems(state),
     customVocabularies: state.customVocabularies,
     createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
+    files: selectors.general.files(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -650,7 +654,7 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(actions.planning.ui.addCoverageToWorkflow(planning, coverage, index)),
     removeAssignment: (planning, coverage, index) =>
         dispatch(actions.planning.ui.removeAssignment(planning, coverage, index)),
-    fetchEventWithFiles: (event) => dispatch(actions.events.ui.fetchEventWithFiles(event)),
+    fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
 });
 
 export const PlanningEditor = connect(
