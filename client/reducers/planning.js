@@ -1,5 +1,6 @@
 import {cloneDeep, get, uniq, find} from 'lodash';
-import {createReducer, getItemType, planningUtils} from '../utils';
+import {createReducer} from './createReducer';
+import {getItemType, planningUtils} from '../utils';
 import {
     PLANNING,
     WORKFLOW_STATE,

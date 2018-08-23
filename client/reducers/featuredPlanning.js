@@ -1,5 +1,6 @@
 import {cloneDeep, uniq} from 'lodash';
-import {createReducer, planningUtils} from '../utils';
+import {createReducer} from './createReducer';
+import {planningUtils} from '../utils';
 import {
     FEATURED_PLANNING,
     RESET_STORE,

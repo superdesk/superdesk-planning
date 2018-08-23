@@ -291,7 +291,7 @@ describe('actions.planning.ui', () => {
         restoreSinonStub(planningUi.loadMore);
         restoreSinonStub(planningApi.fetch);
         sinon.stub(planningApi, 'fetch').callsFake(
-            () => (Promise.resolve([...Array(100).keys()]))
+            () => (Promise.resolve(Array.from(Array(100).keys())))
         );
 
         const expectedParams = {

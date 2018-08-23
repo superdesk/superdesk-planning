@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {modalType, modalProps} from '../selectors/general';
-import {hideModal} from '../actions';
+import {modalActions} from '../actions';
 import multiSelect from '../actions/multiSelect';
 import {
     ConfirmationModal,
@@ -58,7 +58,7 @@ const mapStateToProps = (state) => ({
 });
 const mapDispatchToProps = (dispatch) => ({
     handleHide: (itemType) => {
-        dispatch(hideModal());
+        dispatch(modalActions.hideModal());
         if (itemType === ITEM_TYPE.EVENT) {
             dispatch(multiSelect.deSelectEvents(null, true));
         } else {

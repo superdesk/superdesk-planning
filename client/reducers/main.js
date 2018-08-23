@@ -1,6 +1,6 @@
 import {MAIN, RESET_STORE, TIME_COMPARISON_GRANULARITY} from '../constants';
 import {cloneDeep, get, omit, set} from 'lodash';
-import {createReducer} from '../utils';
+import {createReducer} from './createReducer';
 
 const search = {
     lastRequestParams: {page: 1},
