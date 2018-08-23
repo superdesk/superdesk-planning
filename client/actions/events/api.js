@@ -1158,7 +1158,7 @@ const unpost = (event) => (
     )
 );
 
-const _uploadFiles = (event) => (
+const uploadFiles = (event) => (
     (dispatch, getState, {upload}) => {
         const clonedEvent = cloneDeep(event);
 
@@ -1184,11 +1184,18 @@ const _uploadFiles = (event) => (
                 data: {media: [file]},
                 arrayKey: '',
             })
-                .then(
-                    (file) => Promise.resolve(file.data),
-                    (error) => Promise.reject(error)
-                )
-        )));
+        )))
+            .then((results) => {
+                const files = results.map((res) => res.data);
+
+                if (get(files, 'length', 0) > 0) {
+                    dispatch({
+                        type: 'RECEIVE_FILES',
+                        payload: files,
+                    });
+                }
+                return Promise.resolve(files);
+            }, (error) => Promise.reject(error));
     }
 );
 
@@ -1263,29 +1270,9 @@ const _save = (eventUpdates) => (
 
 const save = (event) => (
     (dispatch, getState, {notify}) => (
-        Promise.all([
-            dispatch(self._uploadFiles(event)), // Returns the new files uploaded
-            dispatch(self._saveLocation(event)), // Returns the modified unsaved event with the locations changes
-        ])
-            .then((data) => {
-                const newFiles = data[0];
-                const modifiedEvent = data[1];
-                const originalFiles = get(modifiedEvent, 'files', []).filter((f) => !isValidFileInput(f));
-
-                modifiedEvent.files = [
-                    ...originalFiles.map((e) => get(e, '_id', e)),
-                    ...newFiles.map((e) => e._id),
-                ];
-
-                if (get(newFiles, 'length', 0) > 0) {
-                    dispatch({
-                        type: 'RECEIVE_FILES',
-                        payload: newFiles,
-                    });
-                }
-
-                return dispatch(self._save(modifiedEvent));
-            })
+        // Returns the modified unsaved event with the locations changes
+        dispatch(self._saveLocation(event))
+            .then((modifiedEvent) => dispatch(self._save(modifiedEvent)))
     )
 );
 
@@ -1334,6 +1321,23 @@ const fetchEventFiles = (event) => (
     }
 );
 
+const removeFile = (file) => (
+    (dispatch, getState, {api, notify}) => (
+        api('events_files').remove(file)
+            .then(() => {
+                dispatch({
+                    type: 'REMOVE_FILE',
+                    payload: file._id,
+                });
+            }, (err) => {
+                notify.error(
+                    getErrorMessage(err, gettext('Failed to remove the file from event.'))
+                );
+                return Promise.reject(err);
+            })
+    )
+);
+
 const fetchCalendars = () => (
     (dispatch, getState, {vocabularies}) => (
         vocabularies.getVocabularies()
@@ -1379,7 +1383,7 @@ const self = {
     post,
     fetchEventHistory,
     unpost,
-    _uploadFiles,
+    uploadFiles,
     _save,
     save,
     _saveLocation,
@@ -1389,6 +1393,7 @@ const self = {
     fetchCalendars,
     receiveCalendars,
     fetchEventFiles,
+    removeFile,
 };
 
 export default self;

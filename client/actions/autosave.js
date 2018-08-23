@@ -122,7 +122,7 @@ const save = (updates) => (
         const updateFields = removeAutosaveFields(updates);
 
         if (itemType === ITEM_TYPE.EVENT) {
-            eventUtils.modifyForServer(updateFields, false, true);
+            eventUtils.modifyForServer(updateFields, false);
         } else if (itemType === ITEM_TYPE.PLANNING) {
             planningUtils.modifyForServer(updateFields);
         }

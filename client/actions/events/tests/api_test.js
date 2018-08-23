@@ -918,10 +918,10 @@ describe('actions.events.api', () => {
             })
     ).catch(done.fail));
 
-    describe('_uploadFiles', () => {
-        it('uploads files', (done) => {
+    describe('uploadFiles', () => {
+        it('uploads files and dispatches RECEIVE_FILES', (done) => {
             data.events[0].files = [['test_file_1'], ['test_file_2']];
-            store.test(done, eventsApi._uploadFiles(data.events[0]))
+            store.test(done, eventsApi.uploadFiles(data.events[0]))
                 .then((files) => {
                     expect(services.upload.start.callCount).toBe(2);
                     expect(services.upload.start.args[0]).toEqual([{
@@ -943,6 +943,13 @@ describe('actions.events.api', () => {
                         {_id: 'test_file_1'},
                         {_id: 'test_file_2'},
                     ]);
+                    expect(store.dispatch.args[0]).toEqual([{
+                        type: 'RECEIVE_FILES',
+                        payload: [
+                            {_id: 'test_file_1'},
+                            {_id: 'test_file_2'},
+                        ],
+                    }]);
                     done();
                 })
                 .catch(done.fail);
@@ -951,7 +958,7 @@ describe('actions.events.api', () => {
         it('returns Promise.reject if any upload fails', (done) => {
             data.events[0].files = [['test_file_1'], ['test_file_2']];
             services.upload.start = sinon.stub().returns(Promise.reject(errorMessage));
-            store.test(done, eventsApi._uploadFiles(data.events[0]))
+            store.test(done, eventsApi.uploadFiles(data.events[0]))
                 .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
@@ -960,7 +967,7 @@ describe('actions.events.api', () => {
         });
 
         it('returns if event has no files', (done) => (
-            store.test(done, eventsApi._uploadFiles(data.events[0]))
+            store.test(done, eventsApi.uploadFiles(data.events[0]))
                 .then((files) => {
                     expect(files).toEqual([]);
                     expect(services.upload.start.callCount).toBe(0);
@@ -970,7 +977,7 @@ describe('actions.events.api', () => {
 
         it('returns if no files to upload', (done) => {
             data.events[0].files = [{_id: 'test_file_1'}, {_id: 'test_file_2'}];
-            store.test(done, eventsApi._uploadFiles(data.events[0]))
+            store.test(done, eventsApi.uploadFiles(data.events[0]))
                 .then((files) => {
                     expect(files).toEqual([]);
                     expect(services.upload.start.callCount).toBe(0);
@@ -981,7 +988,7 @@ describe('actions.events.api', () => {
 
         it('only uploads new files', (done) => {
             data.events[0].files = [['test_file_1'], {_id: 'test_file_2'}];
-            store.test(done, eventsApi._uploadFiles(data.events[0]))
+            store.test(done, eventsApi.uploadFiles(data.events[0]))
                 .then((files) => {
                     expect(services.upload.start.callCount).toBe(1);
                     expect(services.upload.start.args[0]).toEqual([{
@@ -1056,37 +1063,17 @@ describe('actions.events.api', () => {
 
         afterEach(() => {
             restoreSinonStub(eventsApi.fetchById);
-            restoreSinonStub(eventsApi._uploadFiles);
             restoreSinonStub(eventsApi._saveLocation);
             restoreSinonStub(eventsApi._save);
         });
 
-        it('returns Promise.reject is _uploadFiles fails', (done) => {
-            sinon.stub(eventsApi, '_uploadFiles').callsFake(() => Promise.reject('Upload Files Failed'));
-            sinon.stub(eventsApi, '_saveLocation').callsFake(() => Promise.resolve());
-            sinon.stub(eventsApi, '_save').callsFake(() => Promise.resolve());
-            store.test(done, eventsApi.save(data.events[0]))
-                .then(null, (error) => {
-                    expect(error).toEqual('Upload Files Failed');
-
-                    expect(eventsApi._uploadFiles.callCount).toBe(1);
-                    expect(eventsApi._saveLocation.callCount).toBe(1);
-                    expect(eventsApi._save.callCount).toBe(0);
-
-                    done();
-                })
-                .catch(done.fail);
-        });
-
         it('returns Promise.reject is _saveLocation fails', (done) => {
-            sinon.stub(eventsApi, '_uploadFiles').callsFake(() => Promise.resolve());
             sinon.stub(eventsApi, '_saveLocation').callsFake(() => Promise.reject('Save Location Failed'));
             sinon.stub(eventsApi, '_save').callsFake(() => Promise.resolve());
             store.test(done, eventsApi.save(data.events[0]))
                 .then(null, (error) => {
                     expect(error).toEqual('Save Location Failed');
 
-                    expect(eventsApi._uploadFiles.callCount).toBe(1);
                     expect(eventsApi._saveLocation.callCount).toBe(1);
                     expect(eventsApi._save.callCount).toBe(0);
 
@@ -1095,28 +1082,15 @@ describe('actions.events.api', () => {
                 .catch(done.fail);
         });
 
-        it('runs _save with files/location information', (done) => {
-            sinon.stub(eventsApi, '_uploadFiles').callsFake(() => Promise.resolve([{_id: 'file2', name: 'File 2'}]));
+        it('runs _save with location information', (done) => {
             sinon.stub(eventsApi, '_saveLocation').callsFake((item) => Promise.resolve(item));
             sinon.stub(eventsApi, '_save').callsFake((item) => Promise.resolve(item));
-
-            store.test(done, eventsApi.save({
-                ...data.events[0],
-                files: [{_id: 'file1', name: 'File 1'}],
-            }))
+            store.test(done, eventsApi.save(data.events[0]))
                 .then((item) => {
-                    expect(item).toEqual({
-                        ...data.events[0],
-                        files: ['file1', 'file2'],
-                    });
-
-                    expect(eventsApi._uploadFiles.callCount).toBe(1);
+                    expect(item).toEqual(data.events[0]);
                     expect(eventsApi._saveLocation.callCount).toBe(1);
                     expect(eventsApi._save.callCount).toBe(1);
-                    expect(eventsApi._save.args[0]).toEqual([{
-                        ...data.events[0],
-                        files: ['file1', 'file2'],
-                    }]);
+                    expect(eventsApi._save.args[0]).toEqual([data.events[0]]);
 
                     done();
                 })

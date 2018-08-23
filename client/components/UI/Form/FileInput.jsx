@@ -49,17 +49,12 @@ export class FileInput extends React.Component {
     }
 
     onAdd(field, fileList) {
-        const files = Array.from(fileList).map((f) => [f]);
-
-        this.props.onChange(this.props.field,
-            [...this.props.value, ...files]);
+        this.props.onAddFiles(fileList);
     }
 
     onRemove(index) {
         this.handleOnFocus();
-        this.props.value.splice(index, 1);
-        this.props.onChange(this.props.field,
-            [...this.props.value]);
+        this.props.onRemoveFile(this.props.files[this.props.value[index]]);
     }
 
     getComponent(val, index = 0) {
@@ -172,10 +167,12 @@ FileInput.propTypes = {
     ]),
     onChange: PropTypes.func,
     createLink: PropTypes.func,
+    onRemoveFile: PropTypes.func,
     onFocus: PropTypes.func,
     readOnly: PropTypes.bool,
     noMargin: PropTypes.bool,
     files: PropTypes.object,
+    onAddFiles: PropTypes.func,
 };
 
 FileInput.defaultProps = {noMargin: true};

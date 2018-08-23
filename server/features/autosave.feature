@@ -68,6 +68,52 @@ Feature: Events Autosave
         """
 
     @auth
+    Scenario: Deletes new associated file when autosave is deleted
+        Given we have sessions "/sessions"
+        When we upload a file "bike.jpg" to "/events_files"
+        Then we get an event file reference
+        When we get "events_files/"
+        Then we get list with 1 items
+        """
+        {"_items": [{ "_id": "#events_files._id#" }]}
+        """
+        When we post to "event_autosave"
+        """
+        {
+            "type": "event",
+            "slugline": "Test Event",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "2018-06-01T05:19:02+0000",
+            "files": ["#events_files._id#"]
+
+        }
+        """
+        Then we get OK response
+        When we get "/event_autosave/#event_autosave._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#event_autosave._id#",
+            "type": "event",
+            "slugline": "Test Event",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "2018-06-01T05:19:02+0000",
+            "files": ["#events_files._id#"]
+        }
+        """
+        When we delete "/event_autosave/#event_autosave._id#"
+        Then we get OK response
+        When we get "events_files/"
+        Then we get list with 0 items
+        """
+        {"_items": []}
+        """
+
+    @auth
     Scenario: Delete Planning Autosaves on session end
         Given we have sessions "/sessions"
         Given "planning_autosave"

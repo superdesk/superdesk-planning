@@ -37,7 +37,7 @@ describe('event_autosave', () => {
                     time: '00:59',
                 },
             },
-            files: ['file1.test', 'file2.test'],
+            files: ['file1.test\xA0 (0kB)', 'file2.test\xA0 (0kB)'],
         });
 
         subNavBar.createEvent();
@@ -65,11 +65,6 @@ describe('event_autosave', () => {
 
         // Minimize then open the item
         editor.minimizeButton.click();
-
-        // Files are not currently autosaved
-        // So after we minimize (or navigate away), we expect our unsaved files
-        // to be removed
-        expectedEvent.files = [];
 
         item1.openItem();
 
@@ -122,7 +117,7 @@ describe('event_autosave', () => {
             files: ['uploads/file1.test', 'uploads/file2.test'],
         };
 
-        expectedEvent = {files: ['file1.test', 'file2.test']};
+        expectedEvent = {files: ['file1.test\xA0 (0kB)', 'file2.test\xA0 (0kB)']};
 
         subNavBar.createEvent();
 
@@ -147,7 +142,7 @@ describe('event_autosave', () => {
         // Now make the changes to the files
         // '\xA0' === '&nbsp' (non-breaking space)
         editor.inputValues({files: ['uploads/file3.test']});
-        expectedEvent.files = ['file1.test\xA0 (0kB)', 'file2.test\xA0 (0kB)', 'file3.test'];
+        expectedEvent.files = ['file1.test\xA0 (0kB)', 'file2.test\xA0 (0kB)', 'file3.test\xA0 (0kB)'];
         editor.expectValues(expectedEvent);
 
         // Minimize then open the item
@@ -156,7 +151,7 @@ describe('event_autosave', () => {
         browser.sleep(2000);
         editor.openAllToggleBoxes();
 
-        expectedEvent.files = ['file1.test\xA0 (0kB)', 'file2.test\xA0 (0kB)'];
+        expectedEvent.files = ['file1.test\xA0 (0kB)', 'file2.test\xA0 (0kB)', 'file3.test\xA0 (0kB)'];
         editor.expectValues(expectedEvent);
     });
 });

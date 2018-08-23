@@ -650,7 +650,7 @@ const getEventsByDate = (events, startDate, endDate) => {
     return sortBy(sortable, [(e) => (e.date)]);
 };
 
-const modifyForClient = (event, removeFiles = false) => {
+const modifyForClient = (event) => {
     if (get(event, 'dates.start')) {
         event.dates.start = moment(event.dates.start);
     }
@@ -669,15 +669,10 @@ const modifyForClient = (event, removeFiles = false) => {
         delete event.location;
     }
 
-    if (removeFiles) {
-        // For now we don't support autosaving Files
-        delete event.files;
-    }
-
     return event;
 };
 
-const modifyForServer = (event, removeNullLinks = false, removeFiles = false) => {
+const modifyForServer = (event, removeNullLinks = false) => {
     event.location = event.location ?
         [event.location] : null;
 
@@ -690,11 +685,6 @@ const modifyForServer = (event, removeNullLinks = false, removeFiles = false) =>
         if (get(event, 'links.length', 0) < 1) {
             event.links = null;
         }
-    }
-
-    if (removeFiles) {
-        // For now we don't support autosaving Files
-        delete event.files;
     }
 
     return event;
@@ -746,7 +736,7 @@ const defaultEventValues = (occurStatuses, defaultCalendars) => ({
 });
 
 const shouldFetchFilesForEvent = (event) => (
-    isExistingItem(event) && get(event, 'files', []).filter((f) => typeof (f) === 'string'
+    get(event, 'files', []).filter((f) => typeof (f) === 'string'
             || f instanceof String).length > 0
 );
 
