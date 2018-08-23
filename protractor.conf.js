@@ -1,7 +1,7 @@
 
 
 var path = require('path');
-require('babel-core/register');
+require('ts-node/register/transpile-only');
 
 function getChromeOptions() {
     var chromeOptions = {

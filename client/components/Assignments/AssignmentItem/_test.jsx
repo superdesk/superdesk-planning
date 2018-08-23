@@ -1,5 +1,5 @@
 import React from 'react';
-import {shallow, mount} from 'enzyme';
+import {mount} from 'enzyme';
 import {AssignmentItem} from './index';
 import sinon from 'sinon';
 import {createTestStore} from '../../../utils';
@@ -7,6 +7,9 @@ import {List} from '../../UI';
 import {Provider} from 'react-redux';
 import * as helpers from '../../tests/helpers';
 import {cloneDeep} from 'lodash';
+import {AbsoluteDate} from '../../AbsoluteDate';
+import {UserAvatar} from '../../UserAvatar';
+
 
 describe('assignments', () => {
     describe('components', () => {
@@ -19,27 +22,16 @@ describe('assignments', () => {
                 archive: 1,
             };
             let session = {identity: {_id: 'ident1'}};
+            let user = {
+                _id: 'user1',
+                display_name: 'Foo Bar',
+                first_name: 'Foo',
+                last_name: 'Bar',
+            };
+
 
             let [reassign, revertAssignment, editAssignmentPriority,
                 startWorking, removeAssignment, onDoubleClick, completeAssignment] = Array(7).fill(() => true);
-
-            const getShallowWrapper = () => (
-                shallow(<AssignmentItem
-                    onClick={onClick}
-                    onDoubleClick={onDoubleClick}
-                    assignment={assignment}
-                    lockedItems={lockedItems}
-                    reassign={reassign}
-                    editAssignmentPriority={editAssignmentPriority}
-                    completeAssignment={completeAssignment}
-                    startWorking={startWorking}
-                    removeAssignment={removeAssignment}
-                    revertAssignment={revertAssignment}
-                    inAssignments={true}
-                    privileges={privileges}
-                    session={session}
-                />)
-            );
 
             const getMountedWrapper = () => {
                 const store = createTestStore({});
@@ -61,6 +53,8 @@ describe('assignments', () => {
                             privileges={privileges}
                             session={session}
                             inAssignments={true}
+                            assignedUser={user}
+                            isCurrentUser={false}
                         />
                     </Provider>
                 );
@@ -77,6 +71,7 @@ describe('assignments', () => {
                         assigned_date: '2017-07-28T11:16:36+0000',
                         desk: 'desk1',
                         state: 'assigned',
+                        user: 'user1',
                     },
                     priority: 2,
                 };
@@ -92,11 +87,11 @@ describe('assignments', () => {
             });
 
             it('show item', () => {
-                const wrapper = getShallowWrapper();
+                const wrapper = getMountedWrapper();
 
                 expect(wrapper.find('.icon-time').length).toBe(1);
-                expect(wrapper.find('UserAvatar').length).toBe(1);
-                expect(wrapper.find('AbsoluteDate').length).toBe(1);
+                expect(wrapper.find(UserAvatar).length).toBe(1);
+                expect(wrapper.find(AbsoluteDate).length).toBe(1);
             });
 
             it('executes `onClick` callback', () => {

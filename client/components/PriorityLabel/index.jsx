@@ -9,8 +9,11 @@ export const PriorityLabel = ({item, priorities, tooltipFlow, inline, className}
     if (!qcode) {
         return null;
     }
+    const priority = priorities && priorities.find((p) => p.qcode === qcode);
 
-    const priority = priorities.find((p) => p.qcode === qcode);
+    if (!priority) {
+        return null;
+    }
 
     return (
         <span

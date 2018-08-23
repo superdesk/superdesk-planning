@@ -1,7 +1,7 @@
 import {orderBy, cloneDeep, uniq, get} from 'lodash';
 import moment from 'moment';
 import {EVENTS, RESET_STORE, INIT_STORE, LOCKS} from '../constants';
-import {createReducer} from '../utils';
+import {createReducer} from './createReducer';
 import {WORKFLOW_STATE} from '../constants';
 
 const initialState = {

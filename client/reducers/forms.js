@@ -1,5 +1,6 @@
 import {AUTOSAVE, ITEM_TYPE, MAIN} from '../constants';
-import {createReducer, eventUtils, planningUtils, getItemId, getItemType, isTemporaryId} from '../utils';
+import {createReducer} from './createReducer';
+import {eventUtils, planningUtils, getItemId, getItemType, isTemporaryId} from '../utils';
 import {get, set, cloneDeep} from 'lodash';
 
 const initialState = {

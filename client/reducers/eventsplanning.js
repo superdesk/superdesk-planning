@@ -1,6 +1,7 @@
 import {EVENTS_PLANNING, INIT_STORE, RESET_STORE} from '../constants';
 import {cloneDeep, get, uniq} from 'lodash';
-import {createReducer, getItemId} from '../utils';
+import {createReducer} from './createReducer';
+import {getItemId} from '../utils';
 
 const initialState = {
     eventsAndPlanningInList: [],

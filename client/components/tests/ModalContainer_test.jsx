@@ -2,7 +2,7 @@ import React from 'react';
 import {mount, ReactWrapper} from 'enzyme';
 import {ModalsContainer} from '../ModalsContainer';
 import {Provider} from 'react-redux';
-import * as modalActions from '../../actions/modal';
+import {modalActions} from '../../actions';
 import {createTestStore} from '../../utils';
 import {restoreSinonStub} from '../../utils/testUtils';
 import sinon from 'sinon';
@@ -17,7 +17,7 @@ describe('<ModalsContainer />', () => {
         );
         const action = sinon.spy();
 
-        sinon.stub(modalActions, 'hideModal').returns({type: 'HIDE_MODAL'});
+        sinon.stub(modalActions, 'hideModal').callsFake(() => ({type: 'HIDE_MODAL'}));
 
         expect(wrapper.find('ConfirmationModal').length).toBe(0);
         store.dispatch(modalActions.showModal({
@@ -39,8 +39,8 @@ describe('<ModalsContainer />', () => {
         expect(confirmationModal.length).toBe(1);
         expect(modal.text()).toContain('Are you sure you want to spike event');
         modal.find('.btn--primary').simulate('click');
-        expect(action.calledOnce).toBe(true);
-        expect(modalActions.hideModal.calledOnce).toBe(true);
+        expect(action.callCount).toBe(1);
+        expect(modalActions.hideModal.callCount).toBe(1);
 
         restoreSinonStub(modalActions.hideModal);
     });

@@ -1,4 +1,4 @@
-import {createReducer} from '../utils';
+import {createReducer} from './createReducer';
 import {MAIN, RESET_STORE} from '../constants';
 
 const initialState = {preview: null};

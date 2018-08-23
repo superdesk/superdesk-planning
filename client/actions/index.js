@@ -13,6 +13,7 @@ import eventsPlanning from './eventsPlanning/index';
 import multiSelect from './multiSelect';
 import {agendaNotifications} from './agenda';
 import users from './users';
+import * as modalActions from './modal';
 
 import {RESET_STORE, INIT_STORE} from '../constants';
 
@@ -48,4 +49,5 @@ export {
     eventsPlanning,
     multiSelect,
     users,
+    modalActions,
 };

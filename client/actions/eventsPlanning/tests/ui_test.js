@@ -9,6 +9,7 @@ describe('actions.eventsplanning.ui', () => {
     let store;
     let services;
     let data;
+    let payload = Array.from(Array(MAIN.PAGE_SIZE).keys());
 
     beforeEach(() => {
         store = getTestActionStore();
@@ -16,7 +17,7 @@ describe('actions.eventsplanning.ui', () => {
         data = store.data;
 
         sinon.stub(eventsPlanningApi, 'query').callsFake(
-            () => Promise.resolve([...Array(MAIN.PAGE_SIZE).keys()])
+            () => Promise.resolve(payload)
         );
         sinon.stub(eventsPlanningApi, 'refetch').callsFake(
             () => Promise.resolve(data.planning_search)
@@ -65,7 +66,7 @@ describe('actions.eventsplanning.ui', () => {
                     jasmine.objectContaining(
                         {
                             type: EVENTS_PLANNING.ACTIONS.SET_EVENTS_PLANNING_LIST,
-                            payload: [...Array(MAIN.PAGE_SIZE).keys()],
+                            payload: payload,
                         }
                     )
                 );
@@ -116,7 +117,7 @@ describe('actions.eventsplanning.ui', () => {
                     jasmine.objectContaining(
                         {
                             type: EVENTS_PLANNING.ACTIONS.ADD_EVENTS_PLANNING_LIST,
-                            payload: [...Array(MAIN.PAGE_SIZE).keys()],
+                            payload: payload,
                         }
                     )
                 );

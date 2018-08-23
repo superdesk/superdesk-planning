@@ -1,4 +1,4 @@
-import {createReducer} from '../utils';
+import {createReducer} from './createReducer';
 import {RESET_STORE, INIT_STORE, LOCKS, PLANNING, EVENTS, ASSIGNMENTS} from '../constants';
 import {cloneDeep, get} from 'lodash';
 
