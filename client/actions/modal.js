@@ -1,4 +1,4 @@
-export const showModal = ({modalType, modalProps = undefined}) => ({
+export const showModal = ({modalType, modalProps = {}}) => ({
     type: 'SHOW_MODAL',
     modalType: modalType,
     modalProps: modalProps,

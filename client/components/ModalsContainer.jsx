@@ -13,7 +13,8 @@ import {
     SelectItemModal,
     IgnoreCancelSaveModal,
 } from './index';
-import {FeaturedPlanningModal, UnlockFeaturedPlanning} from './Planning';
+import {FeaturedPlanningModal} from './Planning/FeaturedPlanning/FeaturedPlanningModal';
+import {UnlockFeaturedPlanning} from './Planning/FeaturedPlanning/UnlockFeaturedPlanning';
 import {EditorModalPanel} from './Main';
 import {MODALS, ITEM_TYPE} from '../constants';
 
