@@ -39,7 +39,7 @@ class PlanningFeaturedService(superdesk.Service):
 
             self.validate_featured_attrribute(doc.get('items'))
             doc['_id'] = _id
-            self.post_featured_planning(doc, None)
+            self.post_featured_planning(doc)
             # set the author
             set_original_creator(doc)
 
@@ -60,7 +60,7 @@ class PlanningFeaturedService(superdesk.Service):
     def on_updated(self, updates, original):
         self.enqueue_published_item(updates, original)
 
-    def post_featured_planning(self, updates, original):
+    def post_featured_planning(self, updates, original={}):
         if updates.get('posted', False):
             self.validate_post_status(updates.get('items', original.get('items' or [])))
             updates['posted'] = True
