@@ -170,10 +170,7 @@ const remove = (autosave) => (
             return Promise.resolve(autosave);
         }
         // Delete the changes from the local redux
-        dispatch({
-            type: AUTOSAVE.ACTIONS.REMOVE,
-            payload: autosave,
-        });
+        dispatch(self.removeLocalAutosave(autosave));
 
         // If the Autosave item does not have an etag
         // then it has not been saved to the server yet.
@@ -216,15 +213,20 @@ const removeById = (itemType, itemId, tryServer = true) => (
                 }
 
                 // ensure that autosave is removed from redux
-                dispatch({
-                    type: AUTOSAVE.ACTIONS.REMOVE,
-                    payload: {_id: itemId, type: itemType},
-                });
+                dispatch(self.removeLocalAutosave({
+                    _id: itemId,
+                    type: itemType,
+                }));
 
                 return Promise.resolve();
             })
     )
 );
+
+const removeLocalAutosave = (item) => ({
+    type: AUTOSAVE.ACTIONS.REMOVE,
+    payload: item,
+});
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -237,6 +239,7 @@ const self = {
     fetchPlanning,
     fetchAll,
     fetchById,
+    removeLocalAutosave,
 };
 
 export default self;
