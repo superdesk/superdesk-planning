@@ -1,13 +1,38 @@
 import {get} from 'lodash';
 
-const fetchAllContacts = (ids = []) => (
+const getContacts = (searchText, searchFields = []) => (
+    (dispatch, getState, {api}) => api('contacts')
+        .query({
+            source: {
+                query: {
+                    bool: {
+                        must: [{
+                            query_string: {
+                                default_field: 'first_name',
+                                fields: searchFields,
+                                query: searchText + '*',
+                            },
+                        }],
+                        should: [
+                            {term: {is_active: true}},
+                            {term: {public: true}},
+                        ],
+                    },
+                },
+            },
+        })
+);
+
+const getEventContacts = (event) => (
     (dispatch, getState, {api}) => (
         api('contacts').query({
-            max_results: 200,
-            page: 1,
-            all: true,
-            default_operator: 'AND',
-            q: 'public:(1) is_active:(1)',
+            source: {
+                query: {
+                    terms: {
+                        _id: get(event, 'event_contact_info', []),
+                    },
+                },
+            },
         })
             .then((data) => {
                 if (get(data, '_items.length') > 0) {
@@ -21,7 +46,7 @@ const fetchAllContacts = (ids = []) => (
     )
 );
 
-const getContact = (id) => (
+const getContactById = (id) => (
     (dispatch, getState, {api}) => (
         api('contacts').getById(id)
             .then((contact) => {
@@ -40,9 +65,10 @@ const addContact = (newContact) => ({
 
 // eslint-disable-next-line consistent-this
 const self = {
-    fetchAllContacts,
+    getEventContacts,
     addContact,
-    getContact,
+    getContacts,
+    getContactById,
 };
 
 export default self;

@@ -35,7 +35,8 @@ export class ContactFieldComponent extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (!isEqual(prevProps.value, this.props.value)) {
+        if (!isEqual(prevProps.value, this.props.value) ||
+            !isEqual(prevProps.contacts, this.props.contacts)) {
             this.getOptions();
         }
     }
@@ -186,7 +187,7 @@ const mapStateToProps = (state, ownProps) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    searchContacts: (text) => dispatch(actions.events.api.getContacts(text, CONTACTS.SEARCH_FIELDS)),
+    searchContacts: (text) => dispatch(actions.contacts.getContacts(text, CONTACTS.SEARCH_FIELDS)),
     addContact: (newContact) => dispatch(actions.contacts.addContact(newContact)),
 });
 

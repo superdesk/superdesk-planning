@@ -66,7 +66,6 @@ export class PlanningController {
         this.store.dispatch(actions.main.closePublishQueuePreviewOnWorkspaceChange());
 
         return Promise.all([
-            this.store.dispatch(actions.contacts.fetchAllContacts()),
             this.store.dispatch(actions.locks.loadAllLocks()),
             this.store.dispatch(actions.fetchAgendas()),
             this.store.dispatch(actions.users.fetchUserPreferences()),

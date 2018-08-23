@@ -55,9 +55,7 @@ export const getEventPreviewRelatedDetails = createSelector(
                         plannings[id].agendas.map((id) =>
                             agendas.find(((agenda) => agenda._id === id))),
                 })),
-                _contacts: get(event, 'event_contact_info', []).map((id) => (
-                    allContacts.find((contact) => contact._id === id))
-                ),
+                _contacts: allContacts.filter((contact) => get(event, 'event_contact_info', []).includes(contact._id)),
             };
         }
     }

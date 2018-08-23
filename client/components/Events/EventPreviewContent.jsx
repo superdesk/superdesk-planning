@@ -15,7 +15,7 @@ import {ToggleBox} from '../UI';
 import {ContentBlock} from '../UI/SidePanel';
 import {LinkInput, FileInput} from '../UI/Form';
 import {Location} from '../Location';
-import eventsApi from '../../actions/events/api';
+import * as actions from '../../actions';
 import {ContactMetaData} from '../Contacts/index';
 import CustomVocabulariesPreview from '../CustomVocabulariesPreview';
 
@@ -34,6 +34,7 @@ export class EventPreviewContentComponent extends React.Component {
 
     componentWillMount() {
         this.props.fetchEventFiles(this.props.item);
+        this.props.getEventContacts(this.props.item);
     }
 
     getResponseResult(data = null) {
@@ -288,6 +289,7 @@ EventPreviewContentComponent.propTypes = {
     dateFormat: PropTypes.string,
     createUploadLink: PropTypes.func,
     fetchContacts: PropTypes.func,
+    getEventContacts: PropTypes.func,
     streetMapUrl: PropTypes.string,
     fetchEventFiles: PropTypes.func,
     customVocabularies: PropTypes.array,
@@ -312,6 +314,9 @@ const mapStateToProps = (state, ownProps) => ({
     contacts: selectors.general.contacts(state),
 });
 
-const mapDispatchToProps = (dispatch) => ({fetchEventFiles: (event) => dispatch(eventsApi.fetchEventFiles(event))});
+const mapDispatchToProps = (dispatch) => ({
+    fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
+    getEventContacts: (event) => dispatch(actions.contacts.getEventContacts(event)),
+});
 
 export const EventPreviewContent = connect(mapStateToProps, mapDispatchToProps)(EventPreviewContentComponent);

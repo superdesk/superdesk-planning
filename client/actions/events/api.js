@@ -1299,30 +1299,7 @@ const updateRepetitions = (event) => (
     )
 );
 
-const getContacts = (searchText, searchFields = []) => (
-    (dispatch, getState, {api}) => api('contacts')
-        .query({
-            source: {
-                query: {
-                    bool: {
-                        must: [{
-                            query_string: {
-                                default_field: 'first_name',
-                                fields: searchFields,
-                                query: searchText + '*',
-                            },
-                        }],
-                        should: [
-                            {term: {is_active: true}},
-                            {term: {public: true}},
-                        ],
-                    },
-                },
-            },
-        })
-);
-
-const fetchEventFiles = (event, saveToStore = true) => (
+const fetchEventFiles = (event) => (
     (dispatch, getState, {api}) => {
         if (!eventUtils.shouldFetchFilesForEvent(event)) {
             return Promise.resolve();
@@ -1409,7 +1386,6 @@ const self = {
     getCriteria,
     fetchById,
     updateRepetitions,
-    getContacts,
     fetchCalendars,
     receiveCalendars,
     fetchEventFiles,

@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, some} from 'lodash';
 import * as selectors from '../../../selectors';
-import eventsApi from '../../../actions/events/api';
+import * as actions from '../../../actions';
+
 
 import {ContentBlock} from '../../UI/SidePanel';
 import {
@@ -49,6 +50,7 @@ export class EventEditorComponent extends React.Component {
 
     componentWillMount() {
         this.props.fetchEventFiles(this.props.item);
+        this.props.getEventContacts(this.props.item);
     }
 
     componentWillUpdate(nextProps) {
@@ -431,6 +433,7 @@ EventEditorComponent.propTypes = {
     planningsModalEvent: PropTypes.array,
     navigation: PropTypes.object,
     fetchEventFiles: PropTypes.func,
+    getEventContacts: PropTypes.func,
     customVocabularies: PropTypes.array,
     files: PropTypes.object,
 };
@@ -462,7 +465,8 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    fetchEventFiles: (event) => dispatch(eventsApi.fetchEventFiles(event)),
+    fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
+    getEventContacts: (event) => dispatch(actions.contacts.getEventContacts(event)),
 });
 
 export const EventEditor = connect(mapStateToProps, mapDispatchToProps)(EventEditorComponent);

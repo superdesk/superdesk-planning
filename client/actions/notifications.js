@@ -9,7 +9,7 @@ import contacts from './contacts';
 const onContactsUpdated = (_e, data) => (
     (dispatch) => {
         if (get(data, '_id')) {
-            return dispatch(contacts.getContact(data._id));
+            return dispatch(contacts.getContactById(data._id));
         }
 
         return Promise.resolve();
