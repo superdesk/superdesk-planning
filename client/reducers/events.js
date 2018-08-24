@@ -217,8 +217,6 @@ Event Postponed
         event.ednote = ednote;
         event.state = WORKFLOW_STATE.POSTPONED;
 
-        removeLock(event);
-
         return {
             ...state,
             events,
