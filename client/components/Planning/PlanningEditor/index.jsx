@@ -461,6 +461,7 @@ export class PlanningEditorComponent extends React.Component {
                             label={gettext('Place')}
                             options={locators}
                             defaultValue={[]}
+                            groupField="group"
                             {...fieldProps}
                             onFocus={onFocusDetails}
                         />
