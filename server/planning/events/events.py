@@ -23,7 +23,8 @@ from apps.archive.common import set_original_creator, get_auth, update_dates_for
 from superdesk.users.services import current_user_has_privilege
 from .events_base_service import EventsBaseService
 from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, get_max_recurrent_events, \
-    WORKFLOW_STATE, ITEM_STATE, remove_lock_information, format_address, update_post_item, post_required, POST_STATE
+    WORKFLOW_STATE, ITEM_STATE, remove_lock_information, format_address, update_post_item, \
+    post_required, POST_STATE, get_event_max_multi_day_duration
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
@@ -151,6 +152,9 @@ class EventsService(superdesk.Service):
             set_planning_schedule(event)
             planning_item = event.get('_planning_item')
 
+            # validate event
+            self.validate_event(event)
+
             # generates events based on recurring rules
             if event['dates'].get('recurring_rule', None):
                 recurring_events = generate_recurring_events(event)
@@ -176,6 +180,29 @@ class EventsService(superdesk.Service):
 
         if generated_events:
             docs.extend(generated_events)
+
+    def validate_event(self, event):
+        """Validate the event
+
+        @:param dict event: event created or updated
+        """
+        self._validate_multiday_event_duration(event)
+
+    def _validate_multiday_event_duration(self, event):
+        """Validate that the multiday event duration is not greater than PLANNING_MAX_MULTI_DAY_DURATION
+
+        @:param dict event: event created or updated
+        """
+        max_duration = get_event_max_multi_day_duration(app)
+        if not max_duration > 0:
+            return
+
+        if not event.get('dates'):
+            return
+
+        event_duration = event.get('dates').get('end') - event.get('dates').get('start')
+        if event_duration.days > max_duration:
+            raise SuperdeskApiError(message="Event duration is greater than {} days.".format(max_duration))
 
     def on_created(self, docs):
         """Send WebSocket Notifications for created Events
@@ -258,6 +285,9 @@ class EventsService(superdesk.Service):
 
         if lock_user and str(lock_user) != str_user_id:
             raise SuperdeskApiError.forbiddenError('The item was locked by another user')
+
+        # validate event
+        self.validate_event(updates)
 
         # Run the specific methods based on if the original is a
         # single or a series of recurring events

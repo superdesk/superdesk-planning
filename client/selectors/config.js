@@ -26,3 +26,5 @@ export const getStartOfWeek = (state) =>
 export const getIframelyKey = (state) => get(state, 'config.iframely.key', null);
 
 export const defaultTimeZone = (state) => get(state, 'config.defaultTimezone', moment.tz.guess());
+
+export const getMaxMultiDayEventDuration = (state) => get(state, 'deployConfig.max_multi_day_event_duration', 0);

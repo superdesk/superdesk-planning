@@ -114,6 +114,25 @@ const validateRecurringRules = ({getState, value, errors, messages}) => {
     }
 };
 
+const validateMultiDayDuration = ({getState, value, errors, messages}) => {
+    const startDate = get(value, 'start');
+    const endDate = get(value, 'end');
+
+    if (!moment.isMoment(startDate) || !moment.isMoment(endDate)) {
+        return;
+    }
+
+    const diff = endDate.diff(startDate, 'minutes');
+    const maxDuration = selectors.config.getMaxMultiDayEventDuration(getState());
+
+    if (maxDuration > 0 && diff > maxDuration * 1440) {
+        const message = gettext('Event duration is greater than {{maxDuration}} days.', {maxDuration});
+
+        set(errors, 'end.date', message);
+        messages.push(message);
+    }
+};
+
 const validateDates = ({getState, value, errors, messages}) => {
     if (!value) {
         return;
@@ -140,6 +159,12 @@ const validateDates = ({getState, value, errors, messages}) => {
     self.validateRecurringRules({
         getState: getState,
         value: value,
+        errors: newErrors,
+        messages: messages,
+    });
+    self.validateMultiDayDuration({
+        value: value,
+        getState: getState,
         errors: newErrors,
         messages: messages,
     });
@@ -235,6 +260,7 @@ const self = {
     validateDates,
     validateFiles,
     validateLinks,
+    validateMultiDayDuration,
 };
 
 export default self;

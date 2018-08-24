@@ -364,7 +364,7 @@ describe('actions.events.api', () => {
                     expect(services.api('events').query.callCount).toBe(1);
                     expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
                         page: 1,
-                        max_results: 100,
+                        max_results: MAIN.PAGE_SIZE,
                         sort: '[("dates.start",1)]',
                         source: JSON.stringify({
                             query: {
@@ -446,7 +446,7 @@ describe('actions.events.api', () => {
                         expect(services.api('events').query.callCount).toBe(1);
                         expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
                             page: 1,
-                            max_results: 100,
+                            max_results: MAIN.PAGE_SIZE,
                             sort: '[("dates.start",1)]',
                             source: JSON.stringify({
                                 query: {
@@ -473,7 +473,7 @@ describe('actions.events.api', () => {
                         expect(services.api('events').query.callCount).toBe(1);
                         expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
                             page: 1,
-                            max_results: 100,
+                            max_results: MAIN.PAGE_SIZE,
                             sort: '[("dates.start",1)]',
                             source: JSON.stringify({
                                 query: {
@@ -507,7 +507,7 @@ describe('actions.events.api', () => {
                         expect(services.api('events').query.callCount).toBe(1);
                         expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
                             page: 1,
-                            max_results: 100,
+                            max_results: MAIN.PAGE_SIZE,
                             sort: '[("dates.start",1)]',
                             source: JSON.stringify({
                                 query: {
@@ -544,7 +544,7 @@ describe('actions.events.api', () => {
                         expect(services.api('events').query.callCount).toBe(1);
                         expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
                             page: 1,
-                            max_results: 100,
+                            max_results: MAIN.PAGE_SIZE,
                             sort: '[("dates.start",1)]',
                             source: JSON.stringify({
                                 query: {
@@ -582,7 +582,7 @@ describe('actions.events.api', () => {
                         expect(services.api('events').query.callCount).toBe(1);
                         expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
                             page: 1,
-                            max_results: 100,
+                            max_results: MAIN.PAGE_SIZE,
                             sort: '[("dates.start",1)]',
                             source: JSON.stringify({
                                 query: {

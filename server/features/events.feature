@@ -730,6 +730,7 @@ Feature: Events
         """
 
     @auth
+
     Scenario: Deletes file if no longer used by any event during a patch call
         Given we have sessions "/sessions"
         When we upload a file "bike.jpg" to "/events_files"
@@ -895,4 +896,34 @@ Feature: Events
         Then we get list with 1 items
         """
         {"_items": [{ "_id": "#events_files._id#" }]}
+        """
+
+    @auth
+    Scenario: Create new event fails if max duration is greater than 7 days
+        Given config update
+        """
+        {"MAX_MULTI_DAY_EVENT_DURATION": 7}
+        """
+        When we post to "/events"
+        """
+        [
+            {
+                "guid": "123",
+                "unique_id": "123",
+                "unique_name": "123 name",
+                "name": "event 123",
+                "slugline": "event-123",
+                "definition_short": "short value",
+                "definition_long": "long value",
+                "dates": {
+                    "start": "2099-01-02",
+                    "end": "2099-01-12"
+                },
+                "subject": [{"qcode": "test qcaode", "name": "test name"}]
+            }
+        ]
+        """
+        Then we get error 400
+        """
+        {"_message": "Event duration is greater than 7 days.", "_status": "ERR"}
         """
