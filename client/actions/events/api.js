@@ -157,9 +157,9 @@ const getCriteria = (
         {
             condition: () => (advancedSearch.source),
             do: () => {
-                const providers = advancedSearch.source.map((provider) => provider.name);
+                const providers = advancedSearch.source.map((provider) => provider.id);
 
-                must.push({terms: {source: providers}});
+                must.push({terms: {ingest_provider: providers}});
             },
         },
         {
