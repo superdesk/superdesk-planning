@@ -83,6 +83,19 @@ const isLockRestricted = (item, session, lockedItems) => {
     return false;
 };
 
+const isItemLocked = (item, lockedItems) => {
+    switch (getItemType(item)) {
+    case ITEM_TYPE.EVENT:
+        return eventUtils.isEventLocked(item, lockedItems);
+    case ITEM_TYPE.PLANNING:
+        return planningUtils.isPlanningLocked(item, lockedItems);
+    case ITEM_TYPE.ASSIGNMENT:
+        return assignmentUtils.isAssignmentLocked(item, lockedItems);
+    }
+
+    return false;
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     getLockedUser,
@@ -92,6 +105,7 @@ const self = {
     isLockRestricted,
     isItemLockedInThisSession,
     isLockedByUser,
+    isItemLocked,
 };
 
 export default self;
