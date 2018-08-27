@@ -513,7 +513,7 @@ describe('actions.events.api', () => {
                                 query: {
                                     bool: {
                                         must: [
-                                            {terms: {source: ['AFP']}},
+                                            {terms: {ingest_provider: ['ingest123']}},
                                         ],
                                         must_not: [
                                             {term: {state: WORKFLOW_STATE.SPIKED}},
