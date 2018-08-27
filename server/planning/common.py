@@ -44,6 +44,8 @@ POST_STATE = namedtuple('POST_STATE', ['USABLE', 'CANCELLED'])(*post_state)
 
 PLANNING_ITEM_CUSTOM_HATEOAS = {'self': {'title': 'planning', 'href': '/planning/{_id}'}}
 EVENT_ITEM_CUSTOM_HATEOAS = {'self': {'title': 'events', 'href': '/events/{_id}'}}
+MAX_MULTI_DAY_EVENT_DURATION = 'MAX_MULTI_DAY_EVENT_DURATION'
+
 
 POST_STATE_SCHEMA = {
     'type': 'string',
@@ -281,3 +283,10 @@ def get_start_of_next_week(date=None, start_of_week=0):
     weekDay = 0 if weekday == 7 else weekday
     diff = start_of_week - weekDay if weekday < start_of_week else 7 - weekDay + start_of_week
     return current_date + timedelta(days=diff)
+
+
+def get_event_max_multi_day_duration(current_app=None):
+    """Get the max multi day duration"""
+    if current_app is not None:
+        return int(current_app.config.get(MAX_MULTI_DAY_EVENT_DURATION, 0))
+    return int(app.config.get(MAX_MULTI_DAY_EVENT_DURATION, 0))

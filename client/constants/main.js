@@ -35,7 +35,7 @@ export const MAIN = {
         EVENTS: 'EVENTS',
         PLANNING: 'PLANNING',
     },
-    PAGE_SIZE: 100,
+    PAGE_SIZE: 50,
     PREVIEW: 'preview',
     EDIT: 'edit',
     JUMP: {

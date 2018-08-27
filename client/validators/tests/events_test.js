@@ -94,6 +94,18 @@ describe('eventValidators', () => {
         });
     });
 
+    describe('validate max multi day duration', () => {
+        it('fail if multi day duration is greater than max duration', () => {
+            state.deployConfig.max_multi_day_event_duration = 7;
+            event.dates.start = moment('2094-10-15T11:01:11');
+            event.dates.end = moment('2094-10-22T12:01:11');
+            testValidate(eventValidators.validateDates, 'dates',
+                {dates: {end: {date: 'Event duration is greater than 7 days.'}}},
+                ['Event duration is greater than 7 days.']
+            );
+        });
+    });
+
     describe('validateDateInPast', () => {
         it('start or end date in the past without `planning_create_past` privilege', () => {
             state.privileges.planning_create_past = 0;

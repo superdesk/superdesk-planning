@@ -1454,3 +1454,46 @@ Feature: Events Reschedule
             }
         ]}
         """
+
+    @auth
+    Scenario: Rescheduled fails if the event duration exceeds max multi day duration
+        Given config update
+        """
+        {"MAX_MULTI_DAY_EVENT_DURATION": 7}
+        """
+        Given we have sessions "/sessions"
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "name": "TestEvent",
+            "ednote": "Something happening.",
+            "dates": {
+                "start": "2029-11-11T12:00:00.000Z",
+                "end": "2029-11-11T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "reschedule",
+            "lock_time": "#DATE#"
+        }]
+        """
+        When we perform reschedule on events "event1"
+        """
+        {
+            "reason": "Changed to the next day!",
+            "dates": {
+                "start": "2029-11-11T12:00:00.000Z",
+                "end": "2029-11-24T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get error 400
+        """
+        {"_status": "ERR", "_issues": {"validator exception": "400: Event duration is greater than 7 days."}}
+        """
