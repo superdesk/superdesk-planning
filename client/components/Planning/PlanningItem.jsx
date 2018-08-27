@@ -28,8 +28,12 @@ import {AgendaNameList} from '../Agendas';
 export class PlanningItem extends React.Component {
     constructor(props) {
         super(props);
+        this.state = {hover: false};
 
         this.onAddCoverageButtonClick = this.onAddCoverageButtonClick.bind(this);
+        this.onItemHoverOn = this.onItemHoverOn.bind(this);
+        this.onItemHoverOff = this.onItemHoverOff.bind(this);
+        this.renderItemActions = this.renderItemActions.bind(this);
     }
 
     onAddCoverageButtonClick(event) {
@@ -37,47 +41,24 @@ export class PlanningItem extends React.Component {
         this.props.onAddCoverageClick();
     }
 
-    shouldComponentUpdate(nextProps) {
-        return isItemDifferent(this.props, nextProps);
+    shouldComponentUpdate(nextProps, nextState) {
+        return isItemDifferent(this.props, nextProps) || this.state.hover !== nextState.hover;
     }
 
-    render() {
-        const {
-            item,
-            onItemClick,
-            lockedItems,
-            dateFormat,
-            timeFormat,
-            agendas,
-            date,
-            session,
-            privileges,
-            onMultiSelectClick,
-            multiSelected,
-            activeFilter,
-            users,
-            desks,
-            showAddCoverage,
-            hideItemActions,
-        } = this.props;
+    onItemHoverOn() {
+        this.setState({hover: true});
+    }
 
-        if (!item) {
+    onItemHoverOff() {
+        this.setState({hover: false});
+    }
+
+    renderItemActions() {
+        if (!this.state.hover) {
             return null;
         }
 
-        const isItemLocked = planningUtils.isPlanningLocked(item, lockedItems);
-        const state = getItemWorkflowStateLabel(item);
-        const event = get(item, 'event');
-
-        let borderState = false;
-
-        if (isItemLocked)
-            borderState = 'locked';
-
-        const agendaNames = get(item, 'agendas', [])
-            .map((agendaId) => agendas.find((agenda) => agenda._id === agendaId))
-            .filter((agenda) => agenda);
-
+        const {session, privileges, item, lockedItems, hideItemActions, agendas} = this.props;
         const itemActionsCallBack = {
             [PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName]:
                 this.props[PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName],
@@ -120,6 +101,51 @@ export class PlanningItem extends React.Component {
                 agendas: agendas,
                 callBacks: itemActionsCallBack});
 
+        if (get(itemActions, 'length', 0) === 0) {
+            return null;
+        }
+
+        return (
+            <ActionMenu>
+                <ItemActionsMenu actions={itemActions} />
+            </ActionMenu>
+        );
+    }
+
+    render() {
+        const {
+            item,
+            onItemClick,
+            lockedItems,
+            dateFormat,
+            timeFormat,
+            agendas,
+            date,
+            onMultiSelectClick,
+            multiSelected,
+            activeFilter,
+            users,
+            desks,
+            showAddCoverage,
+        } = this.props;
+
+        if (!item) {
+            return null;
+        }
+
+        const isItemLocked = planningUtils.isPlanningLocked(item, lockedItems);
+        const state = getItemWorkflowStateLabel(item);
+        const event = get(item, 'event');
+
+        let borderState = false;
+
+        if (isItemLocked)
+            borderState = 'locked';
+
+        const agendaNames = get(item, 'agendas', [])
+            .map((agendaId) => agendas.find((agenda) => agenda._id === agendaId))
+            .filter((agenda) => agenda);
+
         const isExpired = isItemExpired(item);
 
         return (
@@ -128,6 +154,8 @@ export class PlanningItem extends React.Component {
                 activated={multiSelected}
                 onClick={() => onItemClick(item)}
                 disabled={isExpired}
+                onMouseLeave={this.onItemHoverOff}
+                onMouseEnter={this.onItemHoverOn}
             >
                 <Border state={borderState} />
                 <ItemType
@@ -206,11 +234,7 @@ export class PlanningItem extends React.Component {
                         </OverlayTrigger>
                     </Column>
                 }
-                {get(itemActions, 'length', 0) > 0 &&
-                    <ActionMenu>
-                        <ItemActionsMenu actions={itemActions} />
-                    </ActionMenu>
-                }
+                {this.renderItemActions()}
             </Item>
         );
     }

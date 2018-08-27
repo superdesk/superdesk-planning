@@ -7,7 +7,20 @@ import classNames from 'classnames';
  * @name Item
  * @description Component to encapsulate a list item
  */
-export const Item = ({children, noBg, noHover, shadow, activated, className, onClick, margin, disabled}) => (
+export const Item = (
+    {
+        children,
+        noBg,
+        noHover,
+        shadow,
+        activated,
+        className,
+        onClick,
+        margin,
+        disabled,
+        onMouseEnter,
+        onMouseLeave,
+    }) => (
     <div className={classNames(
         className,
         'sd-list-item',
@@ -21,6 +34,8 @@ export const Item = ({children, noBg, noHover, shadow, activated, className, onC
         }
     )}
     onClick={onClick}
+    onMouseEnter={onMouseEnter}
+    onMouseLeave={onMouseLeave}
     >
         {children}
     </div>
@@ -36,6 +51,8 @@ Item.propTypes = {
     onClick: PropTypes.func,
     margin: PropTypes.bool,
     disabled: PropTypes.bool,
+    onMouseEnter: PropTypes.func,
+    onMouseLeave: PropTypes.func,
 };
 
 Item.defaultProps = {
@@ -43,4 +60,7 @@ Item.defaultProps = {
     noHover: false,
     margin: false,
     disabled: false,
+    onClick: () => { /* no-op */ },
+    onMouseEnter: () => { /* no-op */ },
+    onMouseLeave: () => { /* no-op */ },
 };
