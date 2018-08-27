@@ -728,3 +728,171 @@ Feature: Events
         """
         {"_message": "The item was locked by another user"}
         """
+
+    @auth
+    Scenario: Deletes file if no longer used by any event during a patch call
+        Given we have sessions "/sessions"
+        When we upload a file "bike.jpg" to "/events_files"
+        Then we get an event file reference
+        When we get "events_files/"
+        Then we get list with 1 items
+        """
+        {"_items": [{ "_id": "#events_files._id#" }]}
+        """
+        When we post to "events"
+        """
+        {
+            "name": "Whatever",
+            "dates": {
+                "start": "2016-01-02",
+                "end": "2016-01-03"
+            },
+            "type": "event",
+            "slugline": "Test Event",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "2018-06-01T05:19:02+0000",
+            "files": ["#events_files._id#"]
+
+        }
+        """
+        Then we get OK response
+        When we get "/events/#events._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#events._id#",
+            "type": "event",
+            "slugline": "Test Event",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "2018-06-01T05:19:02+0000",
+            "files": ["#events_files._id#"]
+        }
+        """
+        When we patch "/events/#events._id#"
+        """
+        { "files": [] }
+        """
+        Then we get existing resource
+        """
+        {
+            "_id": "#events._id#",
+            "type": "event",
+            "slugline": "Test Event",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "2018-06-01T05:19:02+0000",
+            "files": []
+        }
+        """
+        When we get "events_files/"
+        Then we get list with 0 items
+        """
+        {"_items": []}
+        """
+
+
+    @auth
+    Scenario: Does not delete file if used by other events
+        Given we have sessions "/sessions"
+        When we upload a file "bike.jpg" to "/events_files"
+        Then we get an event file reference
+        When we get "events_files/"
+        Then we get list with 1 items
+        """
+        {"_items": [{ "_id": "#events_files._id#" }]}
+        """
+        When we post to "events"
+        """
+        {
+            "guid": "123",
+            "name": "Whatever",
+            "dates": {
+                "start": "2016-01-02",
+                "end": "2016-01-03"
+            },
+            "type": "event",
+            "slugline": "Test Event",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "2018-06-01T05:19:02+0000",
+            "files": ["#events_files._id#"]
+
+        }
+        """
+        Then we get OK response
+        When we get "/events/123"
+        Then we get existing resource
+        """
+        {
+            "guid": "123",
+            "type": "event",
+            "slugline": "Test Event",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "2018-06-01T05:19:02+0000",
+            "files": ["#events_files._id#"]
+        }
+        """
+        When we post to "events"
+        """
+        {
+            "name": "Whatever",
+            "dates": {
+                "start": "2016-01-02",
+                "end": "2016-01-03"
+            },
+            "type": "event",
+            "slugline": "Test Event",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "2018-06-01T05:19:02+0000",
+            "files": ["#events_files._id#"],
+            "duplicate_from": "123"
+        }
+        """
+        Then we get OK response
+        When we get "/events/#events._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#events._id#",
+            "type": "event",
+            "slugline": "Test Event",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "2018-06-01T05:19:02+0000",
+            "files": ["#events_files._id#"],
+            "duplicate_from": "123"
+        }
+        """
+        When we patch "/events/#events._id#"
+        """
+        { "files": [] }
+        """
+        Then we get existing resource
+        """
+        {
+            "_id": "#events._id#",
+            "type": "event",
+            "slugline": "Test Event",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "2018-06-01T05:19:02+0000",
+            "files": []
+        }
+        """
+        When we get "events_files/"
+        Then we get list with 1 items
+        """
+        {"_items": [{ "_id": "#events_files._id#" }]}
+        """

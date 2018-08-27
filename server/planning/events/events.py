@@ -279,6 +279,8 @@ class EventsService(superdesk.Service):
         if not updates.get('duplicate_to'):
             update_post_item(updates, original)
 
+        self.delete_event_files(updates, original)
+
     def _update_single_event(self, updates, original):
         """Updates the metadata of a single event.
 
@@ -464,6 +466,14 @@ class EventsService(superdesk.Service):
 
             # Yield the results for iteration by the callee
             yield list(results.docs)
+
+    def delete_event_files(self, updates, original):
+        files = [f for f in original.get('files', []) if f not in (updates or {}).get('files', [])]
+        files_service = get_resource_service('events_files')
+        for file in files:
+            events_using_file = self.find(where={'files': file})
+            if events_using_file.count() == 0:
+                files_service.delete_action(lookup={'_id': file})
 
 
 class EventsResource(superdesk.Resource):

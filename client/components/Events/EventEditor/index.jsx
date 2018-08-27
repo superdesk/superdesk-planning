@@ -4,8 +4,6 @@ import {connect} from 'react-redux';
 import {get, some} from 'lodash';
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
-
-
 import {ContentBlock} from '../../UI/SidePanel';
 import {
     TextInput,
@@ -22,11 +20,9 @@ import {ToggleBox, IconButton} from '../../UI';
 import {RelatedPlannings} from '../../RelatedPlannings';
 import {EventScheduleInput, EventScheduleSummary} from '../';
 import {GeoLookupInput} from '../../index';
-
 import {EventEditorHeader} from './EventEditorHeader';
 import {gettext, editorMenuUtils, getItemId} from '../../../utils';
 import CustomVocabulariesFields from '../../CustomVocabulariesFields';
-
 import '../style.scss';
 
 const toggleDetails = [
@@ -46,6 +42,9 @@ export class EventEditorComponent extends React.Component {
             top: null,
             contacts: null,
         };
+
+        this.onAddFiles = this.onAddFiles.bind(this);
+        this.onRemoveFile = this.onRemoveFile.bind(this);
     }
 
     componentWillMount() {
@@ -55,7 +54,9 @@ export class EventEditorComponent extends React.Component {
 
     componentWillUpdate(nextProps) {
         if (getItemId(this.props.item) !== getItemId(nextProps.item)) {
-            this.props.fetchEventFiles(this.props.item);
+            this.props.fetchEventFiles(nextProps.item);
+        } else if (get(this.props, 'diff.files') !== get(nextProps, 'diff.files')) {
+            this.props.fetchEventFiles(nextProps.diff);
         }
     }
 
@@ -109,6 +110,30 @@ export class EventEditorComponent extends React.Component {
         if (planningsModalEvent.filter((p) => p.event_item === itemId).length > 0) {
             return planningsModalEvent;
         }
+    }
+
+    onAddFiles(fileList) {
+        const files = Array.from(fileList).map((f) => [f]);
+
+        this.props.uploadFiles(files)
+            .then((newFiles) => {
+                this.props.onChangeHandler('files',
+                    [
+                        ...get(this.props, 'diff.files', []),
+                        ...newFiles.map((f) => f._id),
+                    ]);
+            }, () => {
+                this.notifyValidationErrors('Failed to upload files');
+            });
+    }
+
+    onRemoveFile(file) {
+        const promise = !get(this.props, 'item.files', []).includes(file._id) ?
+            this.props.removeFile(file) : Promise.resolve();
+
+        promise.then(() =>
+            this.props.onChangeHandler('files', get(this.props, 'diff.files', []).filter((f) => f !== file._id))
+        );
     }
 
     render() {
@@ -355,6 +380,8 @@ export class EventEditorComponent extends React.Component {
                             {...fieldProps}
                             onFocus={onFocusFiles}
                             files={files}
+                            onAddFiles={this.onAddFiles}
+                            onRemoveFile={this.onRemoveFile}
                         />
                     </ToggleBox>
 
@@ -436,6 +463,8 @@ EventEditorComponent.propTypes = {
     getEventContacts: PropTypes.func,
     customVocabularies: PropTypes.array,
     files: PropTypes.object,
+    uploadFiles: PropTypes.func,
+    removeFile: PropTypes.func,
 };
 
 EventEditorComponent.defaultProps = {
@@ -467,6 +496,8 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
     fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
     getEventContacts: (event) => dispatch(actions.contacts.getEventContacts(event)),
+    uploadFiles: (files) => dispatch(actions.events.api.uploadFiles({files: files})),
+    removeFile: (file) => dispatch(actions.events.api.removeFile(file)),
 });
 
 export const EventEditor = connect(mapStateToProps, mapDispatchToProps)(EventEditorComponent);

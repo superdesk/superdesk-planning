@@ -607,6 +607,7 @@ export class EditorComponent extends React.Component {
                             dirty={this.state.dirty}
                             startPartialSave={this.startPartialSave}
                             navigation={this.props.navigation}
+                            notifyValidationErrors={this.props.notifyValidationErrors}
                             {...currentTab.tabProps}
                         />
                     )}

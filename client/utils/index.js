@@ -3,8 +3,7 @@ import {createStore as _createStore, applyMiddleware, compose} from 'redux';
 import planningApp from '../reducers';
 import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
-import {get, set, map, cloneDeep, forEach, pickBy,
-    includes, isEqual, isEmpty, isObjectLike, xor, some, pick} from 'lodash';
+import {get, set, map, cloneDeep, forEach, pickBy, includes, isEqual, pick} from 'lodash';
 import {
     POST_STATE,
     WORKFLOW_STATE,
@@ -777,35 +776,11 @@ export const itemsEqual = (nextItem, currentItem) => {
     const pickField = (value, key) => (
         !key.startsWith('_') &&
         !key.startsWith('lock_') &&
-        key !== 'files' &&
         value !== null &&
         value !== undefined
     );
 
-    return isEqual(pickBy(nextItem, pickField), pickBy(currentItem, pickField)) &&
-        filesAreSame(nextItem, currentItem);
-};
-
-export const filesAreSame = (nextItem, currentItem) => {
-    if (isEmpty(get(nextItem, 'files')) && isEmpty(get(currentItem, 'files'))) {
-        // Possibly not an event type or events with no files
-        return true;
-    }
-
-    if (get(nextItem, 'files.length') !== get(currentItem, 'files.length')) {
-        return false;
-    }
-
-    if (some(get(currentItem, 'files', []), isValidFileInput) ||
-        some(get(nextItem, 'files', []), isValidFileInput)) {
-        // Inputs modified by editing files
-        return false;
-    }
-
-    const nextFiles = get(nextItem, 'files', []).map((f) => isObjectLike(f) ? f._id : f);
-    const currentFiles = get(currentItem, 'files', []).map((f) => isObjectLike(f) ? f._id : f);
-
-    return xor(nextFiles, currentFiles).length === 0;
+    return isEqual(pickBy(nextItem, pickField), pickBy(currentItem, pickField));
 };
 
 /**

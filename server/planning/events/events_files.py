@@ -9,6 +9,8 @@
 """Superdesk Files"""
 
 import superdesk
+from superdesk import get_resource_service
+from superdesk.errors import SuperdeskApiError
 import logging
 
 logger = logging.getLogger(__name__)
@@ -45,3 +47,8 @@ class EventsFilesService(superdesk.Service):
         for doc in docs:
             # save the media id to retrieve the file later
             doc['filemeta'] = {'media_id': doc['media']}
+
+    def on_delete(self, doc):
+        events_using_file = get_resource_service("events").find(where={'files': doc.get("_id")})
+        if events_using_file.count() > 0:
+            raise SuperdeskApiError.forbiddenError('Delete failed. File still used by other events.')

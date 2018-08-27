@@ -11,7 +11,9 @@
 """Superdesk Planning - Planning Autosaves"""
 
 from superdesk import Service
+from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
+from superdesk.metadata.item import ITEM_TYPE
 
 
 class AutosaveService(Service):
@@ -21,6 +23,10 @@ class AutosaveService(Service):
         for doc in docs:
             AutosaveService._validate(doc)
             doc.pop('expired', None)
+
+    def on_delete(self, doc):
+        if doc.get(ITEM_TYPE) == 'event':
+            get_resource_service('events').delete_event_files(None, doc)
 
     @staticmethod
     def _validate(doc):
