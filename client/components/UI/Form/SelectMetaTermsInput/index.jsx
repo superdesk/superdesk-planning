@@ -79,6 +79,7 @@ export class SelectMetaTermsInput extends React.Component {
             readOnly,
             onFocus,
             scheme,
+            groupField,
             ...props
         } = this.props;
         const options = this.removeValuesFromOptions();
@@ -142,6 +143,7 @@ export class SelectMetaTermsInput extends React.Component {
                         valueKey={valueKey}
                         searchKey={searchKey}
                         popupContainer={popupContainer}
+                        groupField={groupField}
                     />
                 }
             </LineInput>
@@ -170,6 +172,7 @@ SelectMetaTermsInput.propTypes = {
     scheme: PropTypes.string,
     popupContainer: PropTypes.func,
     onFocus: PropTypes.func,
+    groupField: PropTypes.string,
 };
 
 SelectMetaTermsInput.defaultProps = {

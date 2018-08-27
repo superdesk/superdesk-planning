@@ -258,6 +258,42 @@ export class SelectFieldPopup extends React.Component {
      * @returns {JSX}
      */
     renderSingleLevelSelect() {
+        let noGroupList = this.props.groupField ? [] : [...this.state.filteredList];
+        let groupsList = {};
+
+        if (this.props.groupField) {
+            this.state.filteredList.forEach((o) => {
+                if (o[this.props.groupField]) {
+                    groupsList[o[this.props.groupField]] = [...get(groupsList, o[this.props.groupField], []), o];
+                } else {
+                    noGroupList.push(o);
+                }
+            });
+        }
+
+        const renderList = (list, noGroup = false) => (
+            list.map((opt, index) => (
+                <li
+                    key={index}
+                    className={classNames(
+                        'Select__popup__item',
+                        {'Select__popup__item--active': index === this.state.activeOptionIndex},
+                        {'Select__popup__item--no-group': noGroup}
+                    )}
+                >
+                    <button
+                        type="button"
+                        onClick={this.onSelect.bind(
+                            this,
+                            list[index]
+                        )}
+                    >
+                        <span>{get(opt, this.props.labelKey)}</span>
+                    </button>
+                </li>
+            ))
+        );
+
         return (
             <Popup
                 close={this.props.onCancel}
@@ -277,25 +313,13 @@ export class SelectFieldPopup extends React.Component {
                         />
                     </div>
                     <ul className="Select__popup__list" ref={(node) => this.dom.list = node}>
-                        {this.state.filteredList.map((opt, index) => (
-                            <li
-                                key={index}
-                                className={classNames(
-                                    'Select__popup__item',
-                                    {'Select__popup__item--active': index === this.state.activeOptionIndex}
-                                )}
-                            >
-                                <button
-                                    type="button"
-                                    onClick={this.onSelect.bind(
-                                        this,
-                                        this.state.filteredList[index]
-                                    )}
-                                >
-                                    <span>{get(opt, this.props.labelKey)}</span>
-                                </button>
-                            </li>
-                        ))}
+                        {Object.keys(groupsList).map((g) => (
+                            <li key={g} className="Select__popup__item">
+                                <div className="Select__popup__group">{g}</div>
+                                {renderList(groupsList[g], g)}
+                            </li>))
+                        }
+                        {renderList(noGroupList, true)}
                     </ul>
                 </div>
             </Popup>
@@ -396,6 +420,7 @@ SelectFieldPopup.propTypes = {
         value: PropTypes.object,
     })),
     target: PropTypes.string,
+    groupField: PropTypes.string,
     popupContainer: PropTypes.func,
 };
 
