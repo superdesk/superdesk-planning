@@ -7,7 +7,6 @@ import {
     POST_STATE,
     PLANNING,
     EVENTS,
-    AUTOSAVE,
     AGENDA,
     QUEUE_ITEM_PREFIX,
 } from '../constants';
@@ -600,6 +599,20 @@ const closePreviewAndEditorForItems = (items, actionMessage = '', field = '_id')
                 notify.warning(actionMessage);
             }
         }
+
+
+        items.forEach((item) => {
+            const itemType = (get(item, field) in selectors.planning.storedPlannings(getState())) ?
+                ITEM_TYPE.PLANNING : ITEM_TYPE.EVENT;
+            const autoSaves = selectors.forms.autosaves(getState());
+
+            if (getAutosaveItem(autoSaves, itemType, item[field])) {
+                dispatch(autosave.removeLocalAutosave({
+                    _id: item[field],
+                    type: itemType,
+                }));
+            }
+        });
 
         return Promise.resolve();
     }
@@ -1223,10 +1236,7 @@ const onItemUnlocked = (data, item, itemType) => (
 
             if (autoSaveInStore) {
                 // Delete the changes from the local redux
-                dispatch({
-                    type: AUTOSAVE.ACTIONS.REMOVE,
-                    payload: autoSaveInStore,
-                });
+                dispatch(autosave.removeLocalAutosave(autoSaveInStore));
             }
 
             if (modalType !== MODALS.ADD_TO_PLANNING) {
