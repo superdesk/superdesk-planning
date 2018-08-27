@@ -19,33 +19,32 @@ import {gettext} from '../../utils/gettext';
 
 
 export class EventItem extends React.Component {
-    shouldComponentUpdate(nextProps) {
-        return isItemDifferent(this.props, nextProps);
+    constructor(props) {
+        super(props);
+        this.state = {hover: false};
+        this.onItemHoverOn = this.onItemHoverOn.bind(this);
+        this.onItemHoverOff = this.onItemHoverOff.bind(this);
+        this.renderItemActions = this.renderItemActions.bind(this);
     }
 
-    render() {
-        const {item, onItemClick, lockedItems, dateFormat, timeFormat,
-            session, privileges, activeFilter, toggleRelatedPlanning, onMultiSelectClick} = this.props;
+    shouldComponentUpdate(nextProps, nextState) {
+        return isItemDifferent(this.props, nextProps) || this.state.hover !== nextState.hover;
+    }
 
-        if (!item) {
+    onItemHoverOn() {
+        this.setState({hover: true});
+    }
+
+    onItemHoverOff() {
+        this.setState({hover: false});
+    }
+
+    renderItemActions() {
+        if (!this.state.hover) {
             return null;
         }
 
-        const hasPlanning = eventUtils.eventHasPlanning(item);
-        const isItemLocked = eventUtils.isEventLocked(item, lockedItems);
-        const state = getItemWorkflowStateLabel(item);
-        const actionedState = getItemActionedStateLabel(item);
-        const hasLocation = !!get(item, 'location.name') ||
-            !!get(item, 'location.formatted_address');
-        const showRelatedPlanningLink = activeFilter === MAIN.FILTERS.COMBINED && hasPlanning;
-
-        let borderState = false;
-
-        if (isItemLocked)
-            borderState = 'locked';
-        else if (hasPlanning)
-            borderState = 'active';
-
+        const {session, privileges, item, lockedItems} = this.props;
         const itemActionsCallBack = {
             [EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName].bind(null, item),
@@ -75,6 +74,42 @@ export class EventItem extends React.Component {
                 this.props[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName].bind(null, item),
         };
         const itemActions = eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack);
+
+        if (get(itemActions, 'length', 0) === 0) {
+            return null;
+        }
+
+        return (
+            <ActionMenu>
+                <ItemActionsMenu actions={itemActions} wide={true}/>
+            </ActionMenu>
+        );
+    }
+
+    render() {
+        const {item, onItemClick, lockedItems, dateFormat, timeFormat,
+            activeFilter, toggleRelatedPlanning, onMultiSelectClick} = this.props;
+
+        if (!item) {
+            return null;
+        }
+
+        const hasPlanning = eventUtils.eventHasPlanning(item);
+        const isItemLocked = eventUtils.isEventLocked(item, lockedItems);
+        const state = getItemWorkflowStateLabel(item);
+        const actionedState = getItemActionedStateLabel(item);
+        const hasLocation = !!get(item, 'location.name') ||
+            !!get(item, 'location.formatted_address');
+        const showRelatedPlanningLink = activeFilter === MAIN.FILTERS.COMBINED && hasPlanning;
+
+        let borderState = false;
+
+        if (isItemLocked)
+            borderState = 'locked';
+        else if (hasPlanning)
+            borderState = 'active';
+
+
         const isExpired = isItemExpired(item);
 
         return (
@@ -83,6 +118,8 @@ export class EventItem extends React.Component {
                 activated={this.props.multiSelected}
                 onClick={() => onItemClick(item)}
                 disabled={isExpired}
+                onMouseLeave={this.onItemHoverOff}
+                onMouseEnter={this.onItemHoverOn}
             >
                 <Border state={borderState} />
                 <ItemType
@@ -152,9 +189,7 @@ export class EventItem extends React.Component {
 
                     </Row>
                 </Column>
-                {get(itemActions, 'length', 0) > 0 && <ActionMenu>
-                    <ItemActionsMenu actions={itemActions} wide={true}/>
-                </ActionMenu>}
+                {this.renderItemActions()}
             </Item>
         );
     }
