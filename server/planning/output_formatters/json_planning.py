@@ -15,7 +15,6 @@ import json
 from superdesk.utils import json_serialize_datetime_objectId
 from copy import deepcopy
 from superdesk import get_resource_service
-from planning.common import WORKFLOW_STATE
 from bson.objectid import ObjectId
 
 
@@ -49,9 +48,6 @@ class JsonPlanningFormatter(Formatter):
         output_item = deepcopy(item)
         for f in self.remove_fields:
             output_item.pop(f, None)
-        # Remove any coverage items that are in draft state
-        output_item['coverages'][:] = [x for x in output_item['coverages'] if
-                                       WORKFLOW_STATE.DRAFT != x.get('workflow_status')]
         for coverage in output_item.get('coverages', []):
             assigned_to = self._expand_assignment(coverage.get('assigned_to', {}))
             for f in self.remove_coverage_fields:
