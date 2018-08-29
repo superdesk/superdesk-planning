@@ -65,7 +65,8 @@ export default class SearchField extends React.Component {
                         this.onSearchClick();
                     }
                 }}
-                onFocus={this.props.onFocus} />
+                onFocus={this.props.onFocus}
+                disabled={this.props.readOnly} />
         );
     }
 }
@@ -76,4 +77,5 @@ SearchField.propTypes = {
     value: PropTypes.string,
     minLength: PropTypes.number,
     onFocus: PropTypes.func,
+    readOnly: PropTypes.bool,
 };

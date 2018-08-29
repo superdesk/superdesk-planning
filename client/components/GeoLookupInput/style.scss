@@ -21,7 +21,6 @@
 
     &__suggests {
         overflow: auto;
-        margin-right: 10px; // override default ul
         list-style: none;
         &--hidden {
             max-height: 0;
@@ -29,6 +28,7 @@
             border-width: 0;
         }
         max-height: 200px;
+        min-height: 50px;
     }
     &__item {
         font-weight: normal;

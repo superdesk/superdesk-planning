@@ -8,7 +8,7 @@ const contacts = (state = initialState, action) => {
         return {contacts: uniqBy([...action.payload, ...state.contacts], '_id')};
 
     case 'ADD_CONTACT':
-        return {contacts: uniqBy([...state.contacts, action.payload], '_id')};
+        return {contacts: uniqBy([action.payload, ...state.contacts], '_id')};
 
     default:
         return state;

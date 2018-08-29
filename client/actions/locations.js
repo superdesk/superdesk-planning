@@ -20,8 +20,8 @@ const saveNominatim = (nominatim) => (
 const saveFreeTextLocation = (location) => (
     (dispatch, getState, {api}) => (
         api('locations').save({}, {
-            unique_name: location,
-            name: location,
+            ...location,
+            unique_name: location.name,
         })
     )
 );
@@ -50,7 +50,7 @@ const saveLocation = (newLocation) => (
                         );
                 }
 
-                return dispatch(self.saveFreeTextLocation(uniqueName))
+                return dispatch(self.saveFreeTextLocation(newLocation))
                     .then(
                         (result) => Promise.resolve(result),
                         () => Promise.reject('Failed to save location.!')
@@ -69,9 +69,11 @@ const saveLocation = (newLocation) => (
                     };
                 }
 
-                if (get(data, 'address.external.nominatim.address')) {
+                if (get(data, 'address')) {
                     eventData.address = data.address;
-                    delete eventData.address.external;
+                    if (eventData.address.external) {
+                        delete eventData.address.external;
+                    }
                 }
 
                 return eventData;
@@ -93,6 +95,9 @@ const getLocation = (searchText, unique = false) => (
                     },
                 });
         } else {
+            const terms = searchText.split(' ');
+            const queryString = (terms.length > 1 ? terms.join('* AND ') : terms[0]) + '*';
+
             return api('locations')
                 .query({
                     source: {
@@ -101,7 +106,7 @@ const getLocation = (searchText, unique = false) => (
                                 must: [{
                                     query_string: {
                                         default_field: 'name',
-                                        query: searchText + '*',
+                                        query: queryString,
                                     },
                                 }],
                             },

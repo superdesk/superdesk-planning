@@ -25,7 +25,6 @@ const UnlockFeaturedPlanningComponent = ({
 
     const userName = get(getItemInArrayById(users, lockUser), 'display_name');
     let buttonList = [{
-        className: 'pull-right',
         onClick: handleHide,
         text: gettext('Cancel'),
     }];
@@ -33,7 +32,6 @@ const UnlockFeaturedPlanningComponent = ({
     if (privileges[PRIVILEGES.FEATURED_STORIES]) {
         buttonList.push({
             color: 'primary',
-            className: 'pull-right',
             onClick: unlockFeaturedPlanning,
             text: gettext('Unlock'),
         });

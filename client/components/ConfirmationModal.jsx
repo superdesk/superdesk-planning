@@ -94,7 +94,7 @@ export class ConfirmationModal extends React.Component {
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
-                    <ButtonList buttonList={buttons} />
+                    <ButtonList buttonList={buttons} right={false} />
                 </Modal.Footer>
             </Modal>
         );

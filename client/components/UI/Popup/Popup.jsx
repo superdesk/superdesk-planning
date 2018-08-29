@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Portal} from 'react-portal';
 import classNames from 'classnames';
+import {get} from 'lodash';
 import {KEYCODES} from '../constants';
 import Menu from './Menu';
 
@@ -30,10 +31,7 @@ export default class Popup extends React.Component {
         };
     }
 
-    componentDidMount() {
-        document.addEventListener('keydown', this.handleKeydown);
-        document.addEventListener('click', this.handleClickOutside);
-
+    positionPopup() {
         if (this.dom.root) {
             // First render it somewhere not visible
             this.dom.root.style.zIndex = -1;
@@ -95,13 +93,24 @@ export default class Popup extends React.Component {
         }
     }
 
+    componentDidMount() {
+        document.addEventListener('keydown', this.handleKeydown);
+        document.addEventListener('click', this.handleClickOutside);
+        this.positionPopup();
+    }
+
+    componentDidUpdate() {
+        this.positionPopup();
+    }
+
     componentWillUnmount() {
         document.removeEventListener('keydown', this.handleKeydown);
         document.removeEventListener('click', this.handleClickOutside);
     }
 
     handleClickOutside(event) {
-        if (!this.dom.root || this.dom.root.contains(event.target) || !document.contains(event.target)) {
+        if (!this.dom.root || this.dom.root.contains(event.target) || !document.contains(event.target) ||
+            (this.props.ignoreOnClickElement && get(event, 'target.name') === this.props.ignoreOnClickElement)) {
             return;
         }
 
@@ -176,6 +185,7 @@ Popup.propTypes = {
     noPadding: PropTypes.bool,
     popupContainer: PropTypes.func,
     inheritWidth: PropTypes.bool,
+    ignoreOnClickElement: PropTypes.string,
 };
 
 PropTypes.defaultProps = {

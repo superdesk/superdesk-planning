@@ -90,7 +90,8 @@ export class SelectSearchContactsField extends React.Component {
                     onQuerySearch={onQuerySearch}
                     onAdd={onAdd}
                     onAddText={onAddText}
-                    onFocus={onFocus} />
+                    onFocus={onFocus}
+                    readOnly={this.props.readOnly} />
 
                 <div>
                     {this.state.editDetails && (
