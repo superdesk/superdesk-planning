@@ -1,7 +1,7 @@
 import {get} from 'lodash';
 
 const getContacts = (searchText, searchFields = []) => (
-    (dispatch, getState, {api}) => api('contacts')
+    (dispatch, getState, {api}) => (api('contacts')
         .query({
             source: {
                 query: {
@@ -21,11 +21,16 @@ const getContacts = (searchText, searchFields = []) => (
                 },
             },
         })
+    ).then((data) => dispatch(self.receiveContacts(get(data, '_items', []))))
 );
 
 const getEventContacts = (event) => (
-    (dispatch, getState, {api}) => (
-        api('contacts').query({
+    (dispatch, getState, {api}) => {
+        if (!get(event, 'event_contact_info.length')) {
+            return Promise.resolve();
+        }
+
+        return api('contacts').query({
             source: {
                 query: {
                     terms: {
@@ -34,16 +39,8 @@ const getEventContacts = (event) => (
                 },
             },
         })
-            .then((data) => {
-                if (get(data, '_items.length') > 0) {
-                    dispatch({
-                        type: 'RECEIVE_CONTACTS',
-                        payload: get(data, '_items'),
-                    });
-                }
-                return Promise.resolve();
-            })
-    )
+            .then((data) => dispatch(self.receiveContacts(get(data, '_items', []))));
+    }
 );
 
 const getContactById = (id) => (
@@ -63,12 +60,25 @@ const addContact = (newContact) => ({
     payload: newContact,
 });
 
+const receiveContacts = (contacts) => (
+    (dispatch) => {
+        if (get(contacts, 'length', 0) > 0) {
+            dispatch({
+                type: 'RECEIVE_CONTACTS',
+                payload: contacts,
+            });
+        }
+        return Promise.resolve(contacts);
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     getEventContacts,
     addContact,
     getContacts,
     getContactById,
+    receiveContacts,
 };
 
 export default self;
