@@ -131,6 +131,9 @@ class EventsService(superdesk.Service):
                 event['guid'] = generate_guid(type=GUID_NEWSML)
             event[config.ID_FIELD] = event['guid']
 
+            # family_id get on ingest we don't need it planning
+            event.pop('family_id', None)
+
             # set the author
             set_original_creator(event)
 
