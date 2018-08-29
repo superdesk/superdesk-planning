@@ -21,7 +21,6 @@ export class ContactFieldComponent extends React.Component {
         };
 
         this.getSearchResult = this.getSearchResult.bind(this);
-        this.getResponseResult = this.getResponseResult.bind(this);
         this.addOption = this.addOption.bind(this);
         this.getOption = this.getOption.bind(this);
         this.getOptions = this.getOptions.bind(this);
@@ -69,20 +68,9 @@ export class ContactFieldComponent extends React.Component {
 
     getSearchResult(text) {
         this.props.searchContacts(text)
-            .then(this.getResponseResult)
-            .then((results) => {
-                this.getOptions(results || [], true);
+            .then((items) => {
+                this.getOptions(items || [], true);
             });
-    }
-
-    getResponseResult(data = null) {
-        let results = null;
-
-        if (get(data, '_items.length', 0) > 0) {
-            results = data._items;
-        }
-
-        return results;
     }
 
     getContactLabel(contact) {
