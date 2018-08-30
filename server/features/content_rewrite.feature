@@ -85,71 +85,12 @@ Feature: Rewrite content
             "reassign": true
         }]
         """
-
-    @auth
-    Scenario: Rewrite content duplicates assignment and coverage
-        When we rewrite "#archive._id#"
-        """
-        {"desk_id": "#desks._id#"}
-        """
-        Then we get OK response
-        When we get "/planning/#planning._id#"
-        Then we store assignment id in "secondassignment" from coverage 1
-        Then we store coverage id in "secondcoverage" from coverage 1
-        Then we get array of coverages by coverage_id
+        When we get "/assignments"
+        Then we get array of _items by _id
         """
         {
-            "#firstcoverage#": {
-                "planning": {
-                    "g2_content_type": "text",
-                    "slugline": "test slugline",
-                    "ednote": "test coverage, I want 250 words",
-                    "scheduled": "2029-10-12T14:00:00+0000"
-                },
-                "news_coverage_status": {"qcode": "ncostat:int"},
-                "assigned_to": {
-                    "user": "#CONTEXT_USER_ID#",
-                    "desk": "#desks._id#",
-                    "state": "in_progress"
-                }
-            },
-            "#secondcoverage#": {
-                "planning": {
-                    "g2_content_type": "text",
-                    "slugline": "test slugline",
-                    "ednote": "__no_value__"
-                },
-                "news_coverage_status": {"qcode": "ncostat:int"},
-                "assigned_to": {
-                    "user": "#CONTEXT_USER_ID#",
-                    "desk": "#desks._id#",
-                    "state": "in_progress"
-                }
-            }
+            "#firstassignment#": {"assigned_to": {"state": "in_progress"}}
         }
-        """
-        Then assignment 1 is scheduled for end of today
-        When we get "/assignments"
-        Then we get list with 2 items
-        """
-        {"_items": [
-            {
-                "_id": "#firstassignment#",
-                "assigned_to": {"state": "in_progress"}
-            },
-            {
-                "_id": "#secondassignment#",
-                "assigned_to": {"state": "in_progress"}
-            }
-        ]}
-        """
-        When we get "/archive"
-        Then we get list with 2 items
-        """
-        {"_items": [
-            {"_id": "#archive._id#", "assignment_id": "#firstassignment#"},
-            {"_id": "#REWRITE_ID#", "assignment_id": "#secondassignment#"}
-        ]}
         """
 
     @auth
@@ -160,8 +101,70 @@ Feature: Rewrite content
         """
         Then we get OK response
         When we get "/planning/#planning._id#"
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {"coverages": [
+            {
+                "coverage_id": "#firstcoverage#",
+                "planning": {
+                    "g2_content_type": "text",
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline",
+                    "scheduled": "2029-10-12T14:00:00.000"
+                },
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "assignment_id": "#firstassignment#"
+                },
+                "workflow_status": "active"
+            },
+            {
+                "planning": {
+                    "g2_content_type": "text",
+                    "ednote": "test coverage 2, I want 350 words",
+                    "slugline": "test slugline 2",
+                    "scheduled": "2029-10-12T14:00:00.000"
+                },
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "state": "assigned"
+                },
+                "workflow_status": "active"
+            }
+        ]}
+        """
+        Then we get OK response
         Then we store assignment id in "secondassignment" from coverage 1
         Then we store coverage id in "secondcoverage" from coverage 1
+        When we get "/assignments"
+        Then we get array of _items by _id
+        """
+        {
+            "#firstassignment#": {"assigned_to": {"state": "in_progress"}},
+            "#secondassignment#": {"assigned_to": {"state": "assigned"}}
+        }
+        """
+        When we post to "assignments/link" with success
+        """
+        [{
+            "assignment_id": "#secondassignment#",
+            "item_id": "#REWRITE_ID#",
+            "reassign": true
+        }]
+        """
+        When we get "/assignments"
+        Then we get array of _items by _id
+        """
+        {
+            "#firstassignment#": {"assigned_to": {"state": "in_progress"}},
+            "#secondassignment#": {"assigned_to": {"state": "in_progress"}}
+        }
+        """
         When we delete link "archive/#REWRITE_ID#/rewrite"
         Then we get OK response
         When we get "/assignments"
@@ -178,48 +181,5 @@ Feature: Rewrite content
         {
             "#archive._id#": {"assignment_id": "#firstassignment#"},
             "#REWRITE_ID#": {"assignment_id": "__none__"}
-        }
-        """
-
-    @auth
-    Scenario: New assignment derives metadata from the news item
-        When we patch "/archive/#archive._id#"
-        """
-        {
-            "slugline": "newest slugline",
-            "ednote": "newest ednote"
-        }
-        """
-        Then we get OK response
-        When we get "/archive/#archive._id#"
-        Then we get existing resource
-        """
-        {
-            "slugline": "newest slugline",
-            "ednote": "newest ednote"
-        }
-        """
-        When we rewrite "#archive._id#"
-        """
-        {"desk_id": "#desks._id#"}
-        """
-        Then we get OK response
-        When we get "/planning/#planning._id#"
-        Then we store coverage id in "secondcoverage" from coverage 1
-        Then we get array of coverages by coverage_id
-        """
-        {
-            "#firstcoverage#": {
-                "planning": {
-                    "slugline": "test slugline",
-                    "ednote": "test coverage, I want 250 words"
-                }
-            },
-            "#secondcoverage#": {
-                "planning": {
-                    "slugline": "newest slugline",
-                    "ednote": "__no_value__"
-                }
-            }
         }
         """
