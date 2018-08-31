@@ -215,7 +215,7 @@ export class PlanningItem extends React.Component {
                         />
                     </Row>
                 </Column>
-                {showAddCoverage &&
+                {showAddCoverage && !isItemLocked &&
                     <Column border={false}>
                         <OverlayTrigger placement="left"
                             overlay={

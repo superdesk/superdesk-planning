@@ -563,7 +563,8 @@ class AssignmentsService(superdesk.Service):
         planning_service = get_resource_service('planning')
         assignment_link_service = get_resource_service('assignments_link')
 
-        for item in items:
+        for doc in items:
+            item = archive_service.find_one(req=None, _id=doc.get(config.ID_FIELD))
             original_item = archive_service.find_one(req=None, _id=item.get('rewrite_of'))
 
             # Skip items not linked to an Assignment/Coverage
