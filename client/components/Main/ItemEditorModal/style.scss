@@ -8,6 +8,7 @@
         padding: 2rem;
         overflow-y: auto;
         height: 100%;
+        flex-shrink: 0;
     }
 
     &__editor {
