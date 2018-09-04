@@ -214,7 +214,7 @@ Feature: Events Recurring
         [{
             "_id": "plan1",
             "guid": "plan1",
-            "slugline": "TestEvent",
+            "slugline": "TestPlan",
             "event_item": "event1",
             "state": "scheduled",
             "pubstatus": "usable",
@@ -314,6 +314,16 @@ Feature: Events Recurring
         {
             "_id": "event1",
             "state": "rescheduled",
+            "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+        }
+        """
+        When we get "/planning/plan1"
+        Then we get existing resource
+        """
+        {
+            "slugline": "TestPlan",
+            "state": "rescheduled",
+            "event_item": "event1",
             "recurrence_id": "#NEW_RECURRING.recurrence_id#"
         }
         """
