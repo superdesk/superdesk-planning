@@ -733,6 +733,14 @@ class PlanningService(superdesk.Service):
             # Yield the results for iteration by the callee
             yield list(results.docs)
 
+    def on_event_converted_to_recurring(self, updates, original):
+        items = self.find(where={
+            'event_item': original[config.ID_FIELD]
+        })
+
+        for item in items:
+            self.patch(item[config.ID_FIELD], {'recurrence_id': updates['recurrence_id']})
+
 
 event_type = deepcopy(superdesk.Resource.rel('events', type='string'))
 event_type['mapping'] = not_analyzed

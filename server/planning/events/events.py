@@ -300,6 +300,11 @@ class EventsService(superdesk.Service):
             self._update_recurring_events(updates, original, update_method)
 
     def on_updated(self, updates, original):
+        # If this Event was converted to a recurring series
+        # Then update all associated Planning items with the recurrence_id
+        if updates.get('recurrence_id') and not original.get('recurrence_id'):
+            get_resource_service('planning').on_event_converted_to_recurring(updates, original)
+
         if original.get('lock_user') and 'lock_user' in updates and updates.get('lock_user') is None:
             # when the event is unlocked by the patch.
             push_notification(
