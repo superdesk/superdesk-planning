@@ -1,5 +1,5 @@
 import * as selectors from '../selectors';
-import {cloneDeep, pick, get, sortBy} from 'lodash';
+import {cloneDeep, pick, get, sortBy, findIndex} from 'lodash';
 import {AGENDA, MODALS, EVENTS} from '../constants';
 import {getErrorMessage, gettext} from '../utils';
 import {planning, showModal, main} from './index';
@@ -72,6 +72,18 @@ const receiveAgendas = (agendas) => ({
  */
 const selectAgenda = (agendaId, params = {}) => (
     (dispatch, getState, {$timeout, $location}) => {
+        const agendas = selectors.planning.agendas(getState());
+
+        // If the provided Agenda does not exist, then select all planning instead
+        if (agendaId !== AGENDA.FILTER.ALL_PLANNING &&
+            agendaId !== AGENDA.FILTER.NO_AGENDA_ASSIGNED &&
+            findIndex(agendas, (agenda) => agenda._id === agendaId) < 0
+        ) {
+            return dispatch(
+                selectAgenda(AGENDA.FILTER.ALL_PLANNING, params)
+            );
+        }
+
         // save in store selected agenda
         dispatch({
             type: AGENDA.ACTIONS.SELECT_AGENDA,
@@ -294,8 +306,22 @@ const onAgendaCreatedOrUpdated = (_e, data) => (
 /**
  * Action Event when a Agenda is deleted
  */
-const onAgendaDeleted = () => (
-    (dispatch) => dispatch(fetchAgendas())
+const onAgendaDeleted = (_e, data) => (
+    (dispatch, getState, {notify}) => {
+        if (data && data.item) {
+            const currentAgendaId = selectors.planning.currentAgendaId(getState());
+
+            if (currentAgendaId === data.item) {
+                dispatch(selectAgenda(AGENDA.FILTER.ALL_PLANNING));
+
+                notify.warning(
+                    gettext('The Agenda you were viewing was deleted!')
+                );
+            }
+        }
+
+        dispatch(fetchAgendas());
+    }
 );
 
 // Map of notification name and Action Event to execute
