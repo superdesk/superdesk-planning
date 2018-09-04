@@ -56,7 +56,10 @@ export class FulFilAssignmentController {
         }
 
         return sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, this.loadWorkspace)
-            .then(this.render);
+            .then(
+                this.render,
+                this.$scope.reject
+            );
     }
 
     render() {
@@ -131,7 +134,9 @@ export class FulFilAssignmentController {
             }
 
             // update the scope item.
-            this.item.assignment_id = this.newsItem.assignment_id;
+            if (this.item && get(this.newsItem, 'assignment_id')) {
+                this.item.assignment_id = this.newsItem.assignment_id;
+            }
         }
 
         if (this.rendered) {
