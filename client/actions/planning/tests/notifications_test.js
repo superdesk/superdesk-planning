@@ -314,6 +314,8 @@ describe('actions.planning.notifications', () => {
                                 lock_session: null,
                                 lock_time: null,
                                 _etag: 'e123',
+                                event_item: null,
+                                recurrence_id: null,
                             },
                         },
                     }]);

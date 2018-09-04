@@ -36,6 +36,7 @@ const onEventUnlocked = (_e, data) => (
             dispatch(main.onItemUnlocked(data, eventInStore, ITEM_TYPE.EVENT));
 
             eventInStore = {
+                recurrence_id: get(data, 'recurrence_id') || null,
                 ...eventInStore,
                 _id: data.item,
                 lock_action: null,

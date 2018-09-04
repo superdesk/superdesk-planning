@@ -122,10 +122,15 @@ class LockService(BaseComponent):
             # on_unlocked_'resource' - ex. on_unlocked_planning, on_unlocked_event
             getattr(self.app, 'on_unlocked_%s' % resource)(item, user_id)
 
-            push_notification(resource + ':unlock',
-                              item=str(item.get(config.ID_FIELD)),
-                              user=str(user_id), lock_session=str(session_id),
-                              etag=updates.get('_etag') or item.get('_etag'))
+            push_notification(
+                resource + ':unlock',
+                item=str(item.get(config.ID_FIELD)),
+                user=str(user_id),
+                lock_session=str(session_id),
+                etag=updates.get('_etag') or item.get('_etag'),
+                event_item=item.get('event_item') or None,
+                recurrence_id=item.get('recurrence_id') or None
+            )
         else:
             raise SuperdeskApiError.forbiddenError(message=error_message)
 

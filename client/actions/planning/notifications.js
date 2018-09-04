@@ -123,6 +123,8 @@ const onPlanningUnlocked = (_e, data) => (
             dispatch(main.onItemUnlocked(data, planningItem, ITEM_TYPE.PLANNING));
 
             planningItem = {
+                event_item: get(data, 'event_item') || null,
+                recurrence_id: get(data, 'recurrence_id') || null,
                 ...planningItem,
                 _id: data.item,
                 lock_action: null,
