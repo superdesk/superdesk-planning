@@ -35,6 +35,7 @@ export const Location = ({name, address, mapUrl, multiLine}) => {
                 href={getMapUrl(mapUrl, name, address)}
                 target="_blank"
                 rel="noopener noreferrer"
+                className="addgeolookup"
             >
                 {renderLocation()}
             </a>

@@ -1,14 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import Geolookup from 'react-geolookup';
 import DebounceInput from 'react-debounce-input';
 import * as Nominatim from 'nominatim-browser';
-import {formatAddress, gettext} from '../../utils';
+import {formatAddress, gettext, getItemInArrayById} from '../../utils';
 import {get, has} from 'lodash';
-import {TextAreaInput} from '../UI/Form';
 import {AddGeoLookupResultsPopUp} from './AddGeoLookupResultsPopUp';
+import {CreateNewGeoLookup} from './CreateNewGeoLookup';
+import {LocationItem} from './LocationItem';
 
 import './style.scss';
 
@@ -22,8 +24,11 @@ export class GeoLookupInputComponent extends React.Component {
         this.state = {
             searchResults: null,
             openSuggestsPopUp: false,
+            openNewLocationPopup: false,
             unsavedInput: '',
             localSearchResults: null,
+            searchLocalAlways: true,
+            searching: false,
         };
         this.handleInputChange = this.handleInputChange.bind(this);
         this.resetSearchResults = this.resetSearchResults.bind(this);
@@ -31,11 +36,58 @@ export class GeoLookupInputComponent extends React.Component {
         this.handleSearchClick = this.handleSearchClick.bind(this);
         this.onSuggestResults = this.onSuggestResults.bind(this);
         this.setLocalLocations = this.setLocalLocations.bind(this);
+        this.onLocalSearchOnly = this.onLocalSearchOnly.bind(this);
+        this.closeSuggestsPopUp = this.closeSuggestsPopUp.bind(this);
+        this.closeNewLocationPopUp = this.closeNewLocationPopUp.bind(this);
+        this.saveNewLocation = this.saveNewLocation.bind(this);
+        this.onAddNewLocation = this.onAddNewLocation.bind(this);
+        this.removeLocation = this.removeLocation.bind(this);
 
         this.dom = {
             geolookup: null,
             parent: null,
         };
+        this.language = get(getItemInArrayById(this.props.users, this.props.currentUserId), 'language', 'en');
+    }
+
+    closeSuggestsPopUp() {
+        this.setState({
+            openSuggestsPopUp: false,
+            unsavedInput: '',
+            searching: false,
+            searchLocalAlways: true,
+        });
+    }
+
+    closeNewLocationPopUp() {
+        this.setState({
+            openNewLocationPopup: false,
+            unsavedInput: '',
+            searching: false,
+            searchLocalAlways: true,
+        });
+    }
+
+    onAddNewLocation() {
+        this.setState({
+            openSuggestsPopUp: false,
+            openNewLocationPopup: true,
+            searching: false,
+            searchLocalAlways: true,
+        });
+    }
+
+    saveNewLocation(value) {
+        this.props.onChange(this.props.field, value);
+        this.setState({
+            unsavedInput: '',
+            searching: false,
+            searchLocalAlways: true,
+        });
+    }
+
+    removeLocation() {
+        this.props.onChange(this.props.field, null);
     }
 
     setLocalLocations(data = null) {
@@ -53,64 +105,69 @@ export class GeoLookupInputComponent extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         if (!get(nextProps.initialValue, 'name')) {
-            this.resetSearchResults(true);
-        } else if (get(nextProps.initialValue, 'name.length') > 1) {
-            if ((!get(nextProps, 'initialValue.address') && !get(nextProps, 'initialValue.nominatim.address')) &&
-            nextProps.initialValue.name !== this.props.initialValue.name) {
-                this.props.searchLocalLocations(nextProps.initialValue.name.trim())
-                    .then(this.setLocalLocations);
-            }
+            this.resetSearchResults();
         }
     }
 
     handleInputChange(event) {
         this.dom.geolookup.onInputChange(event.target.value.replace(/(?:\r\n|\r|\n)/g, ' '));
-        this.handleChange(event.target.value);
 
         // Open pop-up to show external search option
         if (get(event.target, 'value.length') > 1) {
             this.setState({
                 openSuggestsPopUp: true,
+                openNewLocationPopup: false,
                 unsavedInput: event.target.value,
+                searching: !this.state.searchLocalAlways,
+                searchLocalAlways: !this.state.openSuggestsPopUp || this.state.searchLocalAlways,
             });
+
+            if (this.state.searchLocalAlways) {
+                this.searchLocalLocations(event.target.value);
+            } else {
+                this.searchGeoLookupComponent();
+            }
         }
     }
 
-    handleSearchClick() {
+    searchLocalLocations(name = this.state.unsavedInput) {
+        this.props.searchLocalLocations(name.trim())
+            .then(this.setLocalLocations);
+    }
+
+    searchGeoLookupComponent() {
         this.dom.geolookup.hideSuggests();
         this.dom.geolookup.onButtonClick();
+    }
+
+    handleSearchClick() {
+        if (this.state.unsavedInput) {
+            this.searchGeoLookupComponent();
+
+            this.setState({
+                searching: !!this.state.unsavedInput,
+                searchLocalAlways: false,
+            });
+        }
     }
 
     onSuggestResults(suggests) {
         this.setState({
             searchResults: suggests,
             openSuggestsPopUp: true,
+            openNewLocationPopup: false,
+            searching: false,
         });
     }
 
-    resetSearchResults(resetInputText) {
-        const textState = resetInputText ? {unsavedInput: ''} : '';
-
-        if (this.state.searchResults || this.state.openSuggestsPopUp) {
-            this.setState({
-                ...textState,
-                searchResults: null,
-                openSuggestsPopUp: false,
-            });
-        } else if (this.state.unsavedInput !== textState) {
-            this.setState({...textState});
-        }
-
+    resetSearchResults() {
+        this.setState({
+            unsavedInput: '',
+            searchLocalAlways: true,
+            openSuggestsPopUp: false,
+        });
         if (get(this.state, 'localSearchResults.length', 0) > 0) {
             this.setLocalLocations();
-        }
-    }
-
-    handleChange(value) {
-        if (!value) {
-            this.props.onChange(this.props.field, null);
-        } else {
-            this.props.onChange(this.props.field, {name: value});
         }
     }
 
@@ -139,6 +196,8 @@ export class GeoLookupInputComponent extends React.Component {
             return {...suggest};
         } else {
             const {shortName} = has(suggest, 'raw') ? formatAddress(suggest.raw) : {};
+            const nameField = get(suggest, `raw.namedetails.name:${this.language}`) ?
+                `raw.namedetails.name:${this.language}` : 'raw.namedetails.name';
 
             return {
                 nominatim: get(suggest, 'raw', {}),
@@ -147,9 +206,7 @@ export class GeoLookupInputComponent extends React.Component {
                     lon: get(suggest, 'raw.lon'),
                 },
                 placeId: get(suggest, 'placeId'),
-                label: shortName,
-                // used for the field value
-                name: shortName,
+                name: get(suggest, nameField, shortName),
                 boundingbox: get(suggest, 'boundingbox'),
                 type: get(suggest, 'type'),
             };
@@ -160,62 +217,63 @@ export class GeoLookupInputComponent extends React.Component {
         return formatAddress(suggest).shortName;
     }
 
+    onLocalSearchOnly() {
+        this.setState({searchLocalAlways: true});
+        this.searchLocalLocations();
+    }
+
     render() {
-        let locationName = get(this.props.initialValue, 'name') || this.state.unsavedInput;
-        let formattedAddress = '';
-        let displayText = locationName;
+        const {
+            initialValue,
+            streetMapUrl,
+            onFocus,
+            field,
+            disableSearch,
+            readOnly,
+        } = this.props;
 
-        if (get(this.props.initialValue, 'address')) {
-            // Location from local locations collection in database
-            formattedAddress = formatAddress(this.props.initialValue).formattedAddress;
-            displayText = displayText + '\n' + formattedAddress;
-        } else if (get(this.props.initialValue, 'nominatim.address')) {
-            // Location select from lookup suggests
-            locationName = get(this.props.initialValue.nominatim, 'namedetails.name');
-            formattedAddress = formatAddress(this.props.initialValue.nominatim).formattedAddress;
-            displayText = locationName + '\n' + formattedAddress;
-        }
-
-        return this.props.readOnly ? (
-            <div className="addgeolookup">
-                <div className="sd-line-input__input sd-line-input__input--disabled">
-                    {locationName}
-                    <span className="sd-line-input__input--address">
-                        <br />
-                        {formattedAddress}
-                    </span>
-                </div>
-            </div>
-        ) : (
+        return (
             <div className="addgeolookup" ref={(node) => this.dom.parent = node}>
+                {get(initialValue, 'name') && <LocationItem
+                    location={initialValue}
+                    streetMapUrl={streetMapUrl}
+                    onRemoveLocation={this.removeLocation} />}
                 <DebounceInput
                     minLength={2}
                     debounceTimeout={500}
-                    value={displayText}
+                    value={this.state.unsavedInput}
                     onChange={this.handleInputChange}
                     placeholder={gettext('Search for a location')}
-                    element={TextAreaInput}
-                    nativeOnChange={true}
-                    noLabel={true}
-                    noMargin={true}
-                    onFocus={this.props.onFocus}
-                    field={this.props.field}
+                    className="sd-line-input__input"
+                    type="text"
+                    name="location"
+                    onFocus={onFocus}
+                    field={field}
+                    disabled={readOnly}
                 />
 
                 {this.state.openSuggestsPopUp && (
                     <AddGeoLookupResultsPopUp
                         localSuggests={this.state.localSearchResults}
                         suggests={this.state.searchResults}
-                        onCancel={this.resetSearchResults}
+                        onCancel={this.closeSuggestsPopUp}
                         onChange={this.onSuggestSelect}
                         handleSearchClick={this.handleSearchClick}
-                        showExternalSearch={!this.props.readOnly && !this.props.disableSearch}
+                        showExternalSearch={!readOnly && !disableSearch}
+                        showAddLocation={!readOnly}
+                        onLocalSearchOnly={this.onLocalSearchOnly}
+                        searching={this.state.searching}
+                        onAddNewLocation={this.onAddNewLocation}
                         target="sd-line-input__input"
                     />
                 )}
 
-                {get(this.state.searchResults, 'length') === 0 && (
-                    <div className="error-block" style={{display: 'table-row'}}>No results found</div>
+                {this.state.openNewLocationPopup && (
+                    <CreateNewGeoLookup
+                        initialName={this.state.unsavedInput}
+                        onSave={this.saveNewLocation}
+                        onCancel={this.closeNewLocationPopUp}
+                        target="sd-line-input__input" />
                 )}
 
                 <Geolookup
@@ -242,13 +300,22 @@ GeoLookupInputComponent.propTypes = {
     searchLocalLocations: PropTypes.func,
     onFocus: PropTypes.func,
     disableSearch: PropTypes.bool,
+    streetMapUrl: PropTypes.string,
+    users: PropTypes.array,
+    currentUserId: PropTypes.string,
 };
+
+const mapStateToProps = (state, ownProps) => ({
+    streetMapUrl: selectors.config.getStreetMapUrl(state),
+    currentUserId: selectors.general.currentUserId(state),
+    users: selectors.general.users(state),
+});
 
 const mapDispatchToProps = (dispatch) => ({
     searchLocalLocations: (text) => dispatch(actions.locations.getLocation(text)),
 });
 
 export const AddGeoLookupInput = connect(
-    null,
+    mapStateToProps,
     mapDispatchToProps
 )(GeoLookupInputComponent);

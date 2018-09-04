@@ -33,6 +33,7 @@ const Button = ({
     iconOnlyCircle,
     children,
     pullRight,
+    empty,
     ...props
 }) => {
     const handeKeyDown = (event) => {
@@ -51,10 +52,10 @@ const Button = ({
         <button
             id={id}
             className={classNames(
-                'btn',
                 color ? `btn--${color}` : null,
                 size ? `btn--${size}` : null,
                 {
+                    btn: !empty,
                     'btn--disabled': disabled,
                     'btn--text-only': textOnly,
                     'btn--hollow': hollow,

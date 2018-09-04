@@ -131,7 +131,7 @@ export class ContactFieldComponent extends React.Component {
     }
 
     render() {
-        const {label, field, privileges, onFocus, refNode, paddingTop, ...props} = this.props;
+        const {label, field, privileges, onFocus, refNode, paddingTop, readOnly, ...props} = this.props;
 
         return (
             <div ref={refNode} className={paddingTop ? 'contact-field--padding-top' : null}>
@@ -145,7 +145,8 @@ export class ContactFieldComponent extends React.Component {
                     value={this.state.filteredValues}
                     onAdd={privileges.contacts ? (onCancel) => this.addContact(onCancel) : null}
                     onAddText={privileges.contacts ? gettext('Add Contact') : null}
-                    onFocus={onFocus} />
+                    onFocus={onFocus}
+                    readOnly={readOnly} />
             </div>
         );
     }
@@ -167,6 +168,7 @@ ContactFieldComponent.propTypes = {
     privileges: PropTypes.object,
     refNode: PropTypes.func,
     paddingTop: PropTypes.bool,
+    readOnly: PropTypes.bool,
 };
 
 const mapStateToProps = (state, ownProps) => ({

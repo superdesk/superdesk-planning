@@ -5,6 +5,7 @@ import {formatAddress, uiUtils, onEventCapture} from '../../utils';
 import {gettext} from '../../utils/gettext';
 import {KEYCODES} from '../../constants';
 import {get} from 'lodash';
+import {Button} from '../UI';
 import './style.scss';
 
 import {Popup, Content} from '../UI/Popup';
@@ -13,10 +14,11 @@ export class AddGeoLookupResultsPopUp extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            searching: false,
             activeOptionIndex: -1,
+            tab: 'localResults',
         };
         this.handleKeyBoardEvent = this.handleKeyBoardEvent.bind(this);
+        this.onTabChange = this.onTabChange.bind(this);
 
         this.dom = {itemList: null};
     }
@@ -48,7 +50,7 @@ export class AddGeoLookupResultsPopUp extends React.Component {
             }
 
             if (this.state.activeOptionIndex === get(this.props.localSuggests, 'length', 0)) {
-                this.onSearchClick();
+                this.onSearch();
                 return;
             }
 
@@ -76,13 +78,20 @@ export class AddGeoLookupResultsPopUp extends React.Component {
         }
     }
 
-    componentWillReceiveProps() {
-        this.setState({searching: false});
+    onSearch() {
+        this.props.handleSearchClick();
     }
 
-    onSearchClick() {
-        this.setState({searching: true});
-        this.props.handleSearchClick();
+    onTabChange(tabName) {
+        if (tabName !== this.state.tab) {
+            this.setState({tab: tabName});
+
+            if (this.state.tab === 'localResults') {
+                this.onSearch();
+            } else {
+                this.props.onLocalSearchOnly();
+            }
+        }
     }
 
     render() {
@@ -90,9 +99,6 @@ export class AddGeoLookupResultsPopUp extends React.Component {
             this.props.localSuggests : [];
         const suggests = get(this.props.suggests, 'length') > 0 ?
             this.props.suggests : [];
-
-        const searchButtonText = get(this.props.suggests, 'length') > 0 ?
-            gettext('Results (Search again)') : gettext('Search External');
 
         return (
             <Popup
@@ -102,74 +108,97 @@ export class AddGeoLookupResultsPopUp extends React.Component {
                 noPadding={true}
                 inheritWidth={true}
                 className="addgeolookup__popup"
+                ignoreOnClickElement="location"
             >
                 <Content noPadding={true} className="addgeolookup__suggests-wrapper">
-                    <ul className="addgeolookup__suggests" ref={(node) => this.dom.itemList = node}>
-                        {localSuggests.map((suggest, index) => {
-                            const shortName = suggest.existingLocation ?
-                                suggest.name :
-                                formatAddress(suggest.raw).shortName;
-
-                            return (
-                                <li
-                                    key={index}
-                                    className={classNames(
-                                        'addgeolookup__item',
-                                        {'addgeolookup__item--active': index === this.state.activeOptionIndex}
-                                    )}
-                                    onClick={this.props.onChange.bind(null, suggest)}
-                                >
-                                    <span>&nbsp;&nbsp;{shortName}</span>
-                                </li>
-                            );
-                        })}
-
-                        {this.props.showExternalSearch && (
-                            <li className={classNames(
-                                'addgeolookup__item',
-                                {
-                                    'addgeolookup__item--active':
-                                        this.state.activeOptionIndex === get(localSuggests, 'length'),
-                                }
-                            )} >
-                                <button
-                                    type="button"
-                                    className="btn"
-                                    disabled={this.state.searching}
-                                    onClick={this.onSearchClick.bind(this)}
-                                    style={{width: '100%'}}
-                                >
-                                    <span>{searchButtonText}</span>
-                                    {this.state.searching && <div className="spinner">
-                                        <div className="dot1" />
-                                        <div className="dot2" />
-                                    </div>}
-                                </button>
-                            </li>
-                        )}
-                        {suggests.map((suggest, index) => {
-                            const shortName = suggest.existingLocation ?
-                                suggest.name :
-                                formatAddress(suggest.raw).shortName;
-
-                            return (
-                                <li
-                                    key={index}
-                                    className={classNames(
-                                        'addgeolookup__item',
-                                        {
-                                            'addgeolookup__item--active':
-                                                (index + get(this.props.localSuggests, 'length', 0) + 1) ===
-                                                this.state.activeOptionIndex,
-                                        }
-                                    )}
-                                    onClick={this.props.onChange.bind(null, suggest)}
-                                >
-                                    <span>&nbsp;&nbsp;{shortName}</span>
-                                </li>
-                            );
-                        })}
+                    <ul className="nav-tabs">
+                        <li className={classNames('nav-tabs__tab',
+                            'nav-tabs--small',
+                            {'nav-tabs__tab--active': this.state.tab === 'localResults'})} >
+                            <Button
+                                onClick={this.onTabChange.bind(null, 'localResults')}
+                                className="nav-tabs__link"><span>{gettext('Existing locations')}</span>
+                            </Button>
+                        </li>
+                        {this.props.showExternalSearch &&
+                            <li className={classNames('nav-tabs__tab',
+                                'nav-tabs--small',
+                                {'nav-tabs__tab--active': this.state.tab === 'searchResults'})} >
+                                <Button
+                                    onClick={this.onTabChange.bind(null, 'searchResults')}
+                                    className="nav-tabs__link">
+                                    <span>&nbsp;{gettext('Search OpenStreetMap')}&nbsp;</span>
+                                </Button>
+                            </li>}
                     </ul>
+                    <div className="nav-tabs__content nav-tabs__content--no-padding">
+                        {this.state.tab === 'localResults' &&
+                            <div className="nav-tabs__pane">
+                                <ul className="addgeolookup__suggests" ref={(node) => this.dom.itemList = node}>
+                                    {localSuggests.map((suggest, index) => {
+                                        const shortName = suggest.existingLocation ?
+                                            suggest.name :
+                                            formatAddress(suggest.raw).shortName;
+
+                                        return (
+                                            <li
+                                                key={index}
+                                                className={classNames(
+                                                    'addgeolookup__item',
+                                                    {'addgeolookup__item--active':
+                                                        index === this.state.activeOptionIndex}
+                                                )}
+                                                onClick={this.props.onChange.bind(null, suggest)}
+                                            >
+                                                <span>&nbsp;&nbsp;{shortName}</span>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </div>
+                        }
+                        {this.state.tab === 'searchResults' &&
+                            <div className="nav-tabs__pane">
+                                {this.props.searching && <div className="spinner-big" />}
+                                {!this.props.searching && <ul className="addgeolookup__suggests"
+                                    ref={(node) => this.dom.itemList = node}>
+                                    {suggests.map((suggest, index) => {
+                                        const shortName = suggest.existingLocation ?
+                                            suggest.name :
+                                            formatAddress(suggest.raw).shortName;
+
+                                        return (
+                                            <li
+                                                key={index}
+                                                className={classNames(
+                                                    'addgeolookup__item',
+                                                    {
+                                                        'addgeolookup__item--active':
+                                                            (index + get(this.props.localSuggests, 'length', 0) + 1) ===
+                                                            this.state.activeOptionIndex,
+                                                    }
+                                                )}
+                                                onClick={this.props.onChange.bind(null, suggest)}
+                                            >
+                                                <span>&nbsp;&nbsp;{shortName}</span>
+                                            </li>
+                                        );
+                                    })}
+                                    {get(suggests, 'length') === 0 && (
+                                        <li className="addgeolookup__item">{gettext('No results found')}</li>
+                                    )}
+                                </ul>}
+                            </div>
+                        }
+                    </div>
+                    {this.props.showAddLocation &&
+                        <Button
+                            className="addgeolookup"
+                            disabled={this.props.searching}
+                            onClick={this.props.onAddNewLocation} >
+                            <span>{gettext('Add a new location')}</span>
+                        </Button>
+                    }
                 </Content>
             </Popup>
         );
@@ -182,6 +211,10 @@ AddGeoLookupResultsPopUp.propTypes = {
     onChange: PropTypes.func.isRequired,
     onCancel: PropTypes.func,
     handleSearchClick: PropTypes.func,
+    onLocalSearchOnly: PropTypes.func,
+    onAddNewLocation: PropTypes.func,
     showExternalSearch: PropTypes.bool,
+    showAddLocation: PropTypes.bool,
     target: PropTypes.string.isRequired,
+    searching: PropTypes.bool,
 };

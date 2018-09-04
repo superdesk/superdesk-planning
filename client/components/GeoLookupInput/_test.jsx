@@ -13,12 +13,17 @@ describe('<AddGeoLookupInput />', () => {
 
     beforeEach(() => {
         inputText = {target: {value: 'Syd'}};
-        initialValue = {name: 'Timbaktu'};
+        initialValue = {
+            name: 'Timbaktu',
+            address: {
+                line: ['all roads lead to timbaktu'],
+                locality: 'City',
+                country: 'Mali',
+            },
+        };
         handleSearch = sinon.stub().returns(Promise.resolve());
 
-        onChange = sinon.spy((field, value) => {
-            wrapper.setProps({initialValue: value});
-        });
+        onChange = sinon.spy((field, value) => { /* no-op */ });
     });
 
     const setWrapper = () => {
@@ -27,31 +32,18 @@ describe('<AddGeoLookupInput />', () => {
                 initialValue={initialValue}
                 onChange={onChange}
                 searchLocalLocations={handleSearch}
+                users={[]}
             />
         );
         return wrapper;
     };
 
-    it('calls location search action on typeahead', () => {
+    it('searches local locations on typeahead', () => {
         setWrapper();
         wrapper.instance().handleInputChange(inputText);
-
-        expect(onChange.callCount).toBe(1);
-        expect(onChange.args[0]).toEqual([undefined, {name: 'Syd'}]);
 
         expect(handleSearch.callCount).toBe(1);
         expect(handleSearch.args[0]).toEqual(['Syd']);
-    });
-
-    it('opens search external popup on text input', () => {
-        setWrapper();
-        wrapper.instance().handleInputChange(inputText);
-        wrapper.update();
-
-        const popup = new helpers.ui.Popup(wrapper);
-        const suggestsPopup = popup.find('.addgeolookup__suggests-wrapper').at(0);
-
-        expect(suggestsPopup.find('button').length).toBe(1);
     });
 
     it('invokes external search', () => {
@@ -60,6 +52,7 @@ describe('<AddGeoLookupInput />', () => {
         const externalSearchSpy = sinon.stub(wrapper.instance(),
             'handleSearchClick').callsFake(() => { /* no-op */ });
 
+
         // See https://github.com/airbnb/enzyme/issues/586
         // Force the component and wrapper to update so that the stub is used
         // ONLY works when both of these are present
@@ -67,28 +60,14 @@ describe('<AddGeoLookupInput />', () => {
         wrapper.update();
 
         const popup = new helpers.ui.Popup(wrapper);
-        const suggestsPopup = popup.find('.addgeolookup__suggests-wrapper').at(0);
+        const searchTab = popup.find('.nav-tabs').childAt(1);
+        const searchBtn = searchTab.find('.btn');
 
-        expect(suggestsPopup.find('button').length).toBe(1);
-        suggestsPopup.find('button').at(0)
-            .simulate('click');
-
+        searchBtn.simulate('click');
         expect(externalSearchSpy.callCount).toBe(1);
     });
 
     it('external search button can be controlled by disableSearch prop', () => {
-        setWrapper();
-        wrapper.instance().handleInputChange(inputText);
-        wrapper.update();
-
-        let popup = new helpers.ui.Popup(wrapper);
-
-        let suggestsPopup = popup.find('.addgeolookup__suggests-wrapper').at(0);
-        let searchExternalButton = suggestsPopup.find('button');
-
-        expect(searchExternalButton.length).toBe(1);
-        expect(searchExternalButton.text()).toBe('Search External');
-
         wrapper = mount(<GeoLookupInputComponent
             initialValue={initialValue}
             onChange={onChange}
@@ -96,12 +75,16 @@ describe('<AddGeoLookupInput />', () => {
             disableSearch={true} />);
 
         wrapper.instance().handleInputChange(inputText);
+
+        // See https://github.com/airbnb/enzyme/issues/586
+        // Force the component and wrapper to update so that the stub is used
+        // ONLY works when both of these are present
+        wrapper.instance().forceUpdate();
         wrapper.update();
 
-        popup = new helpers.ui.Popup(wrapper);
+        const popup = new helpers.ui.Popup(wrapper);
+        const searchTab = popup.find('.nav-tabs').childAt(1);
 
-        suggestsPopup = popup.find('.addgeolookup__suggests-wrapper').at(0);
-        searchExternalButton = suggestsPopup.find('button');
-        expect(searchExternalButton.length).toBe(0);
+        expect(searchTab.length).toBe(0);
     });
 });

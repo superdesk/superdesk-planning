@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import classNames from 'classnames';
 
 import {Button} from './index';
 import {KEYCODES} from './constants';
@@ -36,10 +37,11 @@ class ButtonList extends React.PureComponent {
     }
 
     render() {
-        const {buttonList} = this.props;
+        const {buttonList, right} = this.props;
 
         return (<div>
             {buttonList.map((buttonProps, index) => <Button
+                className={classNames({'pull-right': right})}
                 key={index}
                 onKeyDown={this.onKeyDown.bind(this, index)}
                 refNode={(ref) => {
@@ -60,11 +62,13 @@ class ButtonList extends React.PureComponent {
 ButtonList.propTypes = {
     buttonList: PropTypes.array,
     captureShiftTab: PropTypes.bool,
+    right: PropTypes.bool,
 };
 
 ButtonList.defaultProps = {
     buttonList: [],
     captureShiftTab: true,
+    right: true,
 };
 
 export default ButtonList;

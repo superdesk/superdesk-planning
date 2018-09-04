@@ -174,7 +174,8 @@ export class SelectListPopup extends React.Component {
                 onSearchClick={this.openSearchList.bind(this)}
                 onSearch={(val) => this.filterSearchResults(val)}
                 ref={(node) => this.dom.searchField = node}
-                onFocus={this.props.onFocus} />
+                onFocus={this.props.onFocus}
+                readOnly={this.props.readOnly} />
             {this.state.addOption && (
                 this.props.onAdd(this.closeAddOption.bind(this))
             )}
@@ -261,6 +262,7 @@ SelectListPopup.propTypes = {
     onFocus: PropTypes.func,
     onAdd: PropTypes.func,
     onAddText: PropTypes.string,
+    readOnly: PropTypes.bool,
 };
 
 SelectListPopup.defaultProps = {valueKey: '_id'};

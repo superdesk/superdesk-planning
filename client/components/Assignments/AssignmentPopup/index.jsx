@@ -63,7 +63,6 @@ export class AssignmentPopup extends React.Component {
 
         const buttonList = [{
             color: 'primary',
-            className: 'pull-right',
             onClick: this.onSubmit,
             disabled: !this.state.valid,
             text: gettext('OK'),
@@ -71,7 +70,6 @@ export class AssignmentPopup extends React.Component {
             id: 'submitAssignment',
         },
         {
-            className: 'pull-right',
             onClick: onClose,
             text: gettext('Cancel'),
             enterKeyIsClick: true,
