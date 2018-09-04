@@ -306,7 +306,8 @@ class EventsService(superdesk.Service):
                 'events:unlock',
                 item=str(original.get(config.ID_FIELD)),
                 user=str(get_user_id()), lock_session=str(get_auth().get('_id')),
-                etag=updates['_etag']
+                etag=updates['_etag'],
+                recurrence_id=original.get('recurrence_id') or None
             )
 
         if not updates.get('duplicate_to'):

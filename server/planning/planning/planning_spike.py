@@ -83,7 +83,9 @@ class PlanningSpikeService(BaseService):
                 item=str(original.get(config.ID_FIELD)),
                 user=str(get_user_id()),
                 lock_session=str(get_auth().get('_id')),
-                etag=updates.get('_etag')
+                etag=updates.get('_etag'),
+                event_item=original.get('event_item') or None,
+                recurrence_id=original.get('recurrence_id') or None
             )
 
 

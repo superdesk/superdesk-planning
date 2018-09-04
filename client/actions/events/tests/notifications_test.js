@@ -542,6 +542,7 @@ describe('actions.events.notifications', () => {
                                 lock_session: null,
                                 lock_time: null,
                                 _etag: 'e123',
+                                recurrence_id: null,
                             },
                         },
                     }]);
