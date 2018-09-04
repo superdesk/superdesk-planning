@@ -119,7 +119,7 @@ export class PlanningStoreService {
                     onLoadWorkspace(this.store, workspaceChanged) :
                     Promise.resolve();
             })
-            .then(() => {
+            .finally(() => {
                 this.loading = false;
                 return Promise.resolve();
             });

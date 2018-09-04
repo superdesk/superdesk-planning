@@ -51,7 +51,10 @@ export class AddToPlanningController {
         $scope.$on('item:unlock', this.onItemUnlock);
 
         return sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, this.loadWorkspace)
-            .then(this.render);
+            .then(
+                this.render,
+                this.$scope.reject
+            );
     }
 
     render() {
@@ -122,8 +125,14 @@ export class AddToPlanningController {
             }
 
             // update the scope item.
-            this.item.assignment_id = this.newsItem.assignment_id;
+            if (this.item && get(this.newsItem, 'assignment_id')) {
+                this.item.assignment_id = this.newsItem.assignment_id;
+            }
+
             this.store.dispatch(actions.hideModal());
+            this.$timeout(() => {
+                this.store.dispatch(actions.resetStore());
+            }, 1000);
         }
 
         // Only unlock the item if it was locked when launching this modal

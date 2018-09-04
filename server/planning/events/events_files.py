@@ -31,14 +31,13 @@ class EventsFilesResource(superdesk.Resource):
             '_updated': 1,
             '_etag': 1,
             'media': 1,
-        },
-        'search_backend': 'elastic'
+        }
     }
     url = 'events_files'
     item_methods = ['GET', 'DELETE']
     public_methods = ['GET']
     resource_methods = ['GET', 'POST']
-    privileges = {'POST': 'planning', 'DELETE': 'planning'}
+    privileges = {'POST': 'planning_event_management', 'DELETE': 'planning_event_management'}
 
 
 class EventsFilesService(superdesk.Service):
