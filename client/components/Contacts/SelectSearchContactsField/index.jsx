@@ -107,7 +107,9 @@ export class SelectSearchContactsField extends React.Component {
                                     onRemoveContact={onAdd && this.removeValue.bind(this, index) || null}
                                     scrollInView={true}
                                     scrollIntoViewOptions={{block: 'center'}}
-                                    tabEnabled />
+                                    tabEnabled
+                                    readOnly={this.props.readOnly}
+                                />
                             ))}
                         </div>
                     )}

@@ -42,7 +42,7 @@ const mapStateToPropsModal = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     onUnlock: (item) => dispatch(actions.locks.unlockThenLock(item)),
-    onLock: (item) => dispatch(actions.locks.lock(item)),
+    onLock: (item) => dispatch(actions.main.lockAndEdit(item)),
     minimize: () => dispatch(actions.main.closeEditor()),
     cancel: (item) => dispatch(actions.main.unlockAndCancel(item)),
     onSave: (item, withConfirmation, noSubsequentEditing) =>

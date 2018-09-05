@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as selectors from '../../selectors';
-import {get, isEqual} from 'lodash';
+import {get, isEqual, every, map} from 'lodash';
 import {ContactEditor, SelectSearchContactsField} from './index';
 import * as actions from '../../actions';
 import {CONTACTS} from '../../constants';
@@ -18,6 +18,7 @@ export class ContactFieldComponent extends React.Component {
             fetchedEventContacts: [],
             filteredOptions: [],
             filteredValues: [],
+            fetchingContacts: false,
         };
 
         this.getSearchResult = this.getSearchResult.bind(this);
@@ -27,16 +28,41 @@ export class ContactFieldComponent extends React.Component {
         this.getValue = this.getValue.bind(this);
         this.getContactLabel = this.getContactLabel.bind(this);
         this.editDetails = this.editDetails.bind(this);
+        this.fetchContacts = this.fetchContacts.bind(this);
+        this.fetchContactsRequired = this.fetchContactsRequired.bind(this);
+    }
+
+    fetchContactsRequired() {
+        const loadedContactIds = map(this.props.contacts, '_id');
+
+        return !every(
+            this.props.value,
+            (contactId) => loadedContactIds.indexOf(contactId) >= 0
+        );
+    }
+
+    fetchContacts() {
+        this.setState({fetchingContacts: true});
+        this.props.fetchContacts(this.props.value);
     }
 
     componentDidMount() {
-        this.getOptions();
+        if (this.fetchContactsRequired()) {
+            this.fetchContacts();
+        } else {
+            this.getOptions(this.props.contacts, false, false);
+        }
     }
 
     componentDidUpdate(prevProps) {
-        if (!isEqual(prevProps.value, this.props.value) ||
-            !isEqual(prevProps.contacts, this.props.contacts)) {
-            this.getOptions();
+        if (!this.state.fetchingContacts) {
+            if (this.fetchContactsRequired()) {
+                this.fetchContacts();
+            } else if (!isEqual(prevProps.value, this.props.value)) {
+                this.getOptions(this.props.contacts, false, false);
+            }
+        } else if (!isEqual(prevProps.contacts, this.props.contacts)) {
+            this.getOptions(this.props.contacts, false, false);
         }
     }
 
@@ -67,9 +93,10 @@ export class ContactFieldComponent extends React.Component {
     }
 
     getSearchResult(text) {
+        this.setState({fetchingContacts: true});
         this.props.searchContacts(text)
             .then((items) => {
-                this.getOptions(items || [], true);
+                this.getOptions(items || [], true, false);
             });
     }
 
@@ -107,16 +134,21 @@ export class ContactFieldComponent extends React.Component {
         };
     }
 
-    getOptions(filteredContacts = this.props.contacts, onSearch) {
-        let options = [];
+    getOptions(filteredContacts, onSearch = false, fetchingContacts = null) {
         let values = [];
         let _filteredValues = [];
-
-        options = (filteredContacts).map((contact) => this.getOption(contact));
+        const options = filteredContacts.map((contact) => this.getOption(contact));
 
         if (!onSearch) {
-            values = (filteredContacts).filter((c) => get(this.props, 'value', []).includes(get(c, '_id')))
-                .map((contact) => this.getValue(contact));
+            const currentValues = get(this.props, 'value') || [];
+
+            values = filteredContacts
+                .filter(
+                    (contact) => currentValues.includes(get(contact, '_id'))
+                )
+                .map(
+                    (contact) => this.getValue(contact)
+                );
 
             _filteredValues = values;
         } else {
@@ -127,6 +159,9 @@ export class ContactFieldComponent extends React.Component {
             filteredEventContacts: filteredContacts,
             filteredOptions: options,
             filteredValues: _filteredValues,
+            fetchingContacts: fetchingContacts !== null ?
+                fetchingContacts :
+                this.state.fetchingContacts,
         });
     }
 
@@ -179,6 +214,7 @@ const mapStateToProps = (state, ownProps) => ({
 const mapDispatchToProps = (dispatch) => ({
     searchContacts: (text) => dispatch(actions.contacts.getContacts(text, CONTACTS.SEARCH_FIELDS)),
     addContact: (newContact) => dispatch(actions.contacts.addContact(newContact)),
+    fetchContacts: (ids) => dispatch(actions.contacts.fetchContactsByIds(ids)),
 });
 
 export const ContactField = connect(
