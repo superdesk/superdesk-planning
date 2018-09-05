@@ -17,6 +17,7 @@ export const AddToPlanningUi = ({
     showWorkqueue,
     editorOpen,
     previewOpen,
+    popupContainer,
 }) => {
     const editorComponent = (props) => (
         <Editor
@@ -45,6 +46,7 @@ export const AddToPlanningUi = ({
             {...props}
             workflowStateOptions={getWorkFlowStateAsOptions(MAIN.FILTERS.PLANNING).filter(
                 (option) => ![WORKFLOW_STATE.RESCHEDULED, WORKFLOW_STATE.CANCELLED].includes(option.qcode))}
+            popupContainer={popupContainer}
         />
     );
 
@@ -87,4 +89,5 @@ AddToPlanningUi.propTypes = {
     showWorkqueue: PropTypes.bool,
     editorOpen: PropTypes.bool,
     previewOpen: PropTypes.bool,
+    popupContainer: PropTypes.func,
 };

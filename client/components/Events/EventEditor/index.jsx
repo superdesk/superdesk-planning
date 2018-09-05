@@ -271,6 +271,7 @@ export class EventEditorComponent extends React.Component {
                         defaultValue={[]}
                         {...fieldProps}
                         onFocus={onFocusEvent}
+                        popupContainer={this.props.popupContainer}
                     />
 
                     <Field
@@ -278,7 +279,9 @@ export class EventEditorComponent extends React.Component {
                         field="location"
                         label={gettext('Location')}
                         {...fieldProps}
-                        onFocus={onFocusEvent} />
+                        onFocus={onFocusEvent}
+                        popupContainer={this.props.popupContainer}
+                    />
 
                     <Field
                         component={ContactField}
@@ -306,6 +309,7 @@ export class EventEditorComponent extends React.Component {
                             defaultValue={[]}
                             {...fieldProps}
                             onFocus={onFocusDetails}
+                            popupContainer={this.props.popupContainer}
                         />
 
                         <Field
@@ -316,6 +320,7 @@ export class EventEditorComponent extends React.Component {
                             defaultValue={[]}
                             {...fieldProps}
                             onFocus={onFocusDetails}
+                            popupContainer={this.props.popupContainer}
                         />
 
                         {!customVocabularies.length && <Field
@@ -326,6 +331,7 @@ export class EventEditorComponent extends React.Component {
                             defaultValue={[]}
                             {...fieldProps}
                             onFocus={onFocusDetails}
+                            popupContainer={this.props.popupContainer}
                         />}
 
                         <CustomVocabulariesFields
@@ -463,6 +469,7 @@ EventEditorComponent.propTypes = {
     files: PropTypes.object,
     uploadFiles: PropTypes.func,
     removeFile: PropTypes.func,
+    popupContainer: PropTypes.func,
 };
 
 EventEditorComponent.defaultProps = {

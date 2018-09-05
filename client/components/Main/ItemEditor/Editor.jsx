@@ -79,7 +79,10 @@ export class EditorComponent extends React.Component {
             this.tearDownRequired = true;
         }
 
-        this.dom = {autosave: null};
+        this.dom = {
+            autosave: null,
+            popupContainer: null,
+        };
     }
 
     componentDidMount() {
@@ -608,6 +611,9 @@ export class EditorComponent extends React.Component {
                             startPartialSave={this.startPartialSave}
                             navigation={this.props.navigation}
                             notifyValidationErrors={this.props.notifyValidationErrors}
+                            popupContainer={(this.props.inModalView || this.props.addNewsItemToPlanning) ?
+                                () => this.dom.popupContainer : undefined
+                            }
                             {...currentTab.tabProps}
                         />
                     )}
@@ -662,6 +668,10 @@ export class EditorComponent extends React.Component {
                     flushAutosave={this.flushAutosave}
                 />
                 {this.renderContent()}
+
+                {(this.props.inModalView || this.props.addNewsItemToPlanning) && (
+                    <div ref={(node) => this.dom.popupContainer = node} />
+                )}
             </SidePanel>
         );
     }

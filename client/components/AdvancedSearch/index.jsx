@@ -103,6 +103,7 @@ export class AdvancedSearch extends React.Component {
             diff,
             onChange,
             workflowStateOptions,
+            popupContainer,
         } = this.props;
 
         // Change spikeState options based on workflow-state selection in the from
@@ -158,6 +159,7 @@ export class AdvancedSearch extends React.Component {
                         label: gettext('Workflow State'),
                         value: get(diff, 'advancedSearch.state', []),
                         options: workflowStateOptions,
+                        popupContainer: popupContainer,
                     },
                     component: SelectMetaTermsInput,
                 },
@@ -167,6 +169,7 @@ export class AdvancedSearch extends React.Component {
                         label: gettext('ANPA Category'),
                         value: get(diff, 'advancedSearch.anpa_category', []),
                         options: categories,
+                        popupContainer: popupContainer,
                     },
                     component: SelectMetaTermsInput,
                 },
@@ -176,6 +179,7 @@ export class AdvancedSearch extends React.Component {
                         label: gettext('Subject'),
                         value: get(diff, 'advancedSearch.subject', []),
                         options: subjects,
+                        popupContainer: popupContainer,
                     },
                     component: SelectMetaTermsInput,
                 },
@@ -368,4 +372,5 @@ AdvancedSearch.propTypes = {
     timeFormat: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
     workflowStateOptions: PropTypes.array,
+    popupContainer: PropTypes.func,
 };

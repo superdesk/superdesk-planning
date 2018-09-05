@@ -37,6 +37,7 @@ export class CoverageFormHeader extends React.Component {
             addNewsItemToPlanning,
             onRemoveAssignment,
             readOnly,
+            popupContainer,
         } = this.props;
 
         const userAssigned = getCreator(value, 'assigned_to.user', users);
@@ -91,6 +92,7 @@ export class CoverageFormHeader extends React.Component {
                             onClose={this.togglePopup}
                             target="btn--primary"
                             priorityPrefix="assigned_to."
+                            popupContainer={popupContainer}
                         />
                     )}
                 </Item>
@@ -186,6 +188,7 @@ export class CoverageFormHeader extends React.Component {
                         priorityPrefix="assigned_to."
                         disableDeskSelection={!!addNewsItemToPlanning}
                         disableUserSelection={!!addNewsItemToPlanning}
+                        popupContainer={popupContainer}
                     />
                 )}
             </Item>
@@ -205,4 +208,5 @@ CoverageFormHeader.propTypes = {
     addNewsItemToPlanning: PropTypes.object,
     onFocus: PropTypes.func,
     onRemoveAssignment: PropTypes.func,
+    popupContainer: PropTypes.func,
 };

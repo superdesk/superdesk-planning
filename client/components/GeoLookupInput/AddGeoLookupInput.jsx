@@ -273,7 +273,9 @@ export class GeoLookupInputComponent extends React.Component {
                         initialName={this.state.unsavedInput}
                         onSave={this.saveNewLocation}
                         onCancel={this.closeNewLocationPopUp}
-                        target="sd-line-input__input" />
+                        target="sd-line-input__input"
+                        popupContainer={this.props.popupContainer}
+                    />
                 )}
 
                 <Geolookup
@@ -303,6 +305,7 @@ GeoLookupInputComponent.propTypes = {
     streetMapUrl: PropTypes.string,
     users: PropTypes.array,
     currentUserId: PropTypes.string,
+    popupContainer: PropTypes.func,
 };
 
 const mapStateToProps = (state, ownProps) => ({
