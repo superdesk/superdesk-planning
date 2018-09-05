@@ -37,6 +37,7 @@ export const CoverageEditor = ({
     defaultGenre,
     addNewsItemToPlanning,
     navigation,
+    popupContainer,
     ...props
 }) => {
     // Coverage item actions
@@ -151,6 +152,7 @@ export const CoverageEditor = ({
             readOnly={readOnly}
             addNewsItemToPlanning={addNewsItemToPlanning}
             onRemoveAssignment={onRemoveAssignment.bind(null, value, index)}
+            popupContainer={popupContainer}
             {...props}
         />
     );
@@ -229,6 +231,7 @@ CoverageEditor.propTypes = {
     navigation: PropTypes.object,
     onRemoveAssignment: PropTypes.func,
     index: PropTypes.number,
+    popupContainer: PropTypes.func,
 };
 
 CoverageEditor.defaultProps = {

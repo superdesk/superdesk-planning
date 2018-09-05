@@ -34,6 +34,7 @@ export const CoverageArrayInput = ({
     readOnly,
     message,
     navigation,
+    popupContainer,
     ...props
 }) => (
     <div>
@@ -72,6 +73,7 @@ export const CoverageArrayInput = ({
                 message={message}
                 row={false}
                 buttonWithLabel
+                popupContainer={popupContainer}
                 {...props}
             />
         </ContentBlock>
@@ -114,6 +116,7 @@ CoverageArrayInput.propTypes = {
     showErrors: PropTypes.bool,
     addNewsItemToPlanning: PropTypes.object,
     navigation: PropTypes.object,
+    popupContainer: PropTypes.func,
 };
 
 CoverageArrayInput.defaultProps = {

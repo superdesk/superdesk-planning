@@ -12,6 +12,7 @@ export const GeoLookupInput = ({
     field,
     readOnly,
     onFocus,
+    popupContainer,
     ...props
 }) => (
     <LineInput {...props} readOnly={readOnly}>
@@ -24,6 +25,7 @@ export const GeoLookupInput = ({
             disableSearch={disableSearch}
             localSearchResults={localSearchResults}
             onFocus={onFocus}
+            popupContainer={popupContainer}
         />
     </LineInput>
 );
@@ -47,6 +49,7 @@ GeoLookupInput.propTypes = {
     boxed: PropTypes.bool,
     noMargin: PropTypes.bool,
     onFocus: PropTypes.func,
+    popupContainer: PropTypes.func,
 };
 
 GeoLookupInput.defaultProps = {

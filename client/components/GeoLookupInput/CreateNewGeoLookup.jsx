@@ -86,7 +86,8 @@ export class CreateNewGeoLookup extends React.Component {
                 target={this.props.target}
                 noPadding={true}
                 inheritWidth={true}
-                className="addgeolookup__popup"
+                className="addgeolookup__popup-create"
+                popupContainer={this.props.popupContainer}
             >
                 <Header
                     text={gettext('Add New Event Location')}
@@ -140,7 +141,6 @@ export class CreateNewGeoLookup extends React.Component {
 CreateNewGeoLookup.propTypes = {
     suggests: PropTypes.array,
     localSuggests: PropTypes.array,
-    onChange: PropTypes.func.isRequired,
     onCancel: PropTypes.func,
     handleSearchClick: PropTypes.func,
     onLocalSearchOnly: PropTypes.func,
@@ -149,4 +149,5 @@ CreateNewGeoLookup.propTypes = {
     showAddLocation: PropTypes.bool,
     target: PropTypes.string.isRequired,
     initialName: PropTypes.string,
+    popupContainer: PropTypes.func,
 };

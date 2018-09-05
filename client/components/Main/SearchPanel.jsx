@@ -66,6 +66,7 @@ export class SearchPanelComponent extends React.Component {
             search,
             isViewFiltered,
             workflowStateOptions,
+            popupContainer,
         } = this.props;
 
         const {
@@ -92,6 +93,7 @@ export class SearchPanelComponent extends React.Component {
             currentSearch: currentSearch,
             onChange: this.onChangeHandler,
             workflowStateOptions: workflowStateOptions || getWorkFlowStateAsOptions(activeFilter),
+            popupContainer: popupContainer,
         };
 
         return (
@@ -138,6 +140,7 @@ SearchPanelComponent.propTypes = {
     clearSearch: PropTypes.func,
     isViewFiltered: PropTypes.bool,
     workflowStateOptions: PropTypes.array,
+    popupContainer: PropTypes.func,
 };
 
 

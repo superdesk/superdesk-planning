@@ -320,6 +320,7 @@ export class PlanningEditorComponent extends React.Component {
             customVocabularies,
             createUploadLink,
             files,
+            popupContainer,
         } = this.props;
 
         const agendaValues = cloneDeep(get(diff, 'agendas', [])
@@ -435,6 +436,7 @@ export class PlanningEditorComponent extends React.Component {
                         value={agendaValues}
                         {...fieldProps}
                         onFocus={onFocusPlanning}
+                        popupContainer={popupContainer}
                     />
 
                     <ToggleBox
@@ -464,6 +466,7 @@ export class PlanningEditorComponent extends React.Component {
                             groupField="group"
                             {...fieldProps}
                             onFocus={onFocusDetails}
+                            popupContainer={popupContainer}
                         />
 
                         <Field
@@ -474,6 +477,7 @@ export class PlanningEditorComponent extends React.Component {
                             defaultValue={[]}
                             {...fieldProps}
                             onFocus={onFocusDetails}
+                            popupContainer={popupContainer}
                         />
 
                         {!customVocabularies.length && <Field
@@ -484,6 +488,7 @@ export class PlanningEditorComponent extends React.Component {
                             defaultValue={[]}
                             {...fieldProps}
                             onFocus={onFocusDetails}
+                            popupContainer={popupContainer}
                         />}
 
                         <CustomVocabulariesFields
@@ -565,6 +570,7 @@ export class PlanningEditorComponent extends React.Component {
                     {...fieldProps}
                     formProfile={coverageProfile}
                     navigation={navigation}
+                    popupContainer={popupContainer}
                 />
             </div>
         );
@@ -613,6 +619,7 @@ PlanningEditorComponent.propTypes = {
     fetchEventFiles: PropTypes.func,
     createUploadLink: PropTypes.func,
     files: PropTypes.object,
+    popupContainer: PropTypes.func,
 };
 
 PlanningEditorComponent.defaultProps = {

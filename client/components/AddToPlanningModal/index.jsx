@@ -11,52 +11,65 @@ import {gettext} from '../../utils';
 
 import './style.scss';
 
+export class AddToPlanningComponent extends React.Component {
+    constructor(props) {
+        super(props);
 
-export function AddToPlanningComponent({
-    handleHide,
-    modalProps,
-    currentWorkspace,
-    actionInProgress,
-}) {
-    const {newsItem, $scope} = modalProps;
-
-    const handleCancel = () => {
-        handleHide();
-        $scope.reject();
-    };
-
-    if (currentWorkspace !== 'AUTHORING') {
-        return null;
+        this.dom = {popupContainer: null};
     }
 
-    return (
-        <Modal
-            show={true}
-            onHide={handleHide}
-            fill={true}
-        >
-            <Modal.Header>
-                {!actionInProgress && <a className="close" onClick={handleCancel}>
-                    <i className="icon-close-small" />
-                </a>}
-                <h3>{gettext('Select an existing Planning Item or create a new one')}</h3>
-            </Modal.Header>
+    render() {
+        const {
+            handleHide,
+            modalProps,
+            currentWorkspace,
+            actionInProgress,
+        } = this.props;
 
-            <Modal.Body noPadding fullHeight noScroll>
-                <div className="AddToPlanning">
-                    <AddToPlanningApp addNewsItemToPlanning={newsItem} />
-                </div>
-            </Modal.Body>
+        const {newsItem, $scope} = modalProps;
 
-            <Modal.Footer>
-                <Button
-                    text={gettext('Ignore')}
-                    disabled={actionInProgress}
-                    onClick={handleCancel}
-                />
-            </Modal.Footer>
-        </Modal>
-    );
+        const handleCancel = () => {
+            handleHide();
+            $scope.reject();
+        };
+
+        if (currentWorkspace !== 'AUTHORING') {
+            return null;
+        }
+
+        return (
+            <Modal
+                show={true}
+                onHide={handleHide}
+                fill={true}
+            >
+                <Modal.Header>
+                    {!actionInProgress && <a className="close" onClick={handleCancel}>
+                        <i className="icon-close-small" />
+                    </a>}
+                    <h3>{gettext('Select an existing Planning Item or create a new one')}</h3>
+                </Modal.Header>
+
+                <Modal.Body noPadding fullHeight noScroll>
+                    <div className="AddToPlanning">
+                        <AddToPlanningApp
+                            addNewsItemToPlanning={newsItem}
+                            popupContainer={() => this.dom.popupContainer}
+                        />
+                    </div>
+                </Modal.Body>
+
+                <Modal.Footer>
+                    <Button
+                        text={gettext('Ignore')}
+                        disabled={actionInProgress}
+                        onClick={handleCancel}
+                    />
+                </Modal.Footer>
+                <div ref={(node) => this.dom.popupContainer = node} />
+            </Modal>
+        );
+    }
 }
 
 AddToPlanningComponent.propTypes = {
