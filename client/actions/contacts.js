@@ -24,23 +24,13 @@ const getContacts = (searchText, searchFields = []) => (
     ).then((data) => dispatch(self.receiveContacts(get(data, '_items', []))))
 );
 
-const getEventContacts = (event) => (
-    (dispatch, getState, {api}) => {
-        if (!get(event, 'event_contact_info.length')) {
-            return Promise.resolve();
-        }
-
-        return api('contacts').query({
-            source: {
-                query: {
-                    terms: {
-                        _id: get(event, 'event_contact_info', []),
-                    },
-                },
-            },
-        })
-            .then((data) => dispatch(self.receiveContacts(get(data, '_items', []))));
-    }
+const fetchContactsByIds = (ids) => (
+    (dispatch, getState, {api}) => (
+        api('contacts').query(
+            {source: {query: {terms: {_id: ids}}}}
+        )
+            .then((data) => dispatch(self.receiveContacts(get(data, '_items', []))))
+    )
 );
 
 const getContactById = (id) => (
@@ -74,7 +64,7 @@ const receiveContacts = (contacts) => (
 
 // eslint-disable-next-line consistent-this
 const self = {
-    getEventContacts,
+    fetchContactsByIds,
     addContact,
     getContacts,
     getContactById,

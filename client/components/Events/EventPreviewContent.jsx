@@ -34,7 +34,6 @@ export class EventPreviewContentComponent extends React.Component {
 
     componentWillMount() {
         this.props.fetchEventFiles(this.props.item);
-        this.props.getEventContacts(this.props.item);
     }
 
     getResponseResult(data = null) {
@@ -288,8 +287,6 @@ EventPreviewContentComponent.propTypes = {
     timeFormat: PropTypes.string,
     dateFormat: PropTypes.string,
     createUploadLink: PropTypes.func,
-    fetchContacts: PropTypes.func,
-    getEventContacts: PropTypes.func,
     streetMapUrl: PropTypes.string,
     fetchEventFiles: PropTypes.func,
     customVocabularies: PropTypes.array,
@@ -316,7 +313,6 @@ const mapStateToProps = (state, ownProps) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
-    getEventContacts: (event) => dispatch(actions.contacts.getEventContacts(event)),
 });
 
 export const EventPreviewContent = connect(mapStateToProps, mapDispatchToProps)(EventPreviewContentComponent);

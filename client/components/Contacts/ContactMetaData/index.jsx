@@ -15,38 +15,41 @@ export const ContactMetaData = (
         onEditContact,
         onRemoveContact,
         active,
+        readOnly,
     }
 ) => {
-    const editContactComponent = onEditContact ?
-        (<button
-            data-sd-tooltip={gettext('Edit Contact')}
-            data-flow="left"
-            onClick={(event) => {
-                onEventCapture(event);
-                onEditContact();
-            }}>
-            <i className="icon-pencil" />
-        </button>) : null;
-
-    const removeContactComponent = onRemoveContact ?
-        (<button
-            data-sd-tooltip={gettext('Remove Contact')}
-            data-flow="left"
-            onClick={(event) => {
-                onEventCapture(event);
-                onRemoveContact();
-            }}>
-            <i className="icon-trash" />
-        </button>) : null;
-
     const contactActions = [];
 
-    if (editContactComponent) {
-        contactActions.push(editContactComponent);
-    }
+    if (!readOnly) {
+        if (onEditContact) {
+            contactActions.push(
+                <button
+                    data-sd-tooltip={gettext('Edit Contact')}
+                    data-flow="left"
+                    onClick={(event) => {
+                        onEventCapture(event);
+                        onEditContact();
+                    }}
+                >
+                    <i className="icon-pencil" />
+                </button>
+            );
+        }
 
-    if (removeContactComponent) {
-        contactActions.push(removeContactComponent);
+        if (onRemoveContact) {
+            contactActions.push(
+                <button
+                    data-sd-tooltip={gettext('Remove Contact')}
+                    data-flow="left"
+                    onClick={(event) => {
+                        onEventCapture(event);
+                        onRemoveContact();
+                    }}
+                >
+                    <i className="icon-trash" />
+                </button>
+            );
+        }
     }
 
     const contactListView = (
@@ -70,18 +73,22 @@ export const ContactMetaData = (
     const contactInDetail = (
         <ContactInfoContainer
             target="sd-list-item__border"
-            currentContact={contact.value} />
+            currentContact={contact.value}
+        />
     );
 
-    return (<div className="contact-metadata">
-        <CollapseBox
-            collapsedItem={contactListView}
-            openItem={contactInDetail}
-            scrollInView={scrollInView}
-            scrollIntoViewOptions={scrollIntoViewOptions}
-            tabEnabled={tabEnabled}
-            tools={contactActions} />
-    </div>);
+    return (
+        <div className="contact-metadata">
+            <CollapseBox
+                collapsedItem={contactListView}
+                openItem={contactInDetail}
+                scrollInView={scrollInView}
+                scrollIntoViewOptions={scrollIntoViewOptions}
+                tabEnabled={tabEnabled}
+                tools={contactActions}
+            />
+        </div>
+    );
 };
 
 ContactMetaData.propTypes = {
@@ -92,9 +99,11 @@ ContactMetaData.propTypes = {
     onEditContact: PropTypes.func,
     onRemoveContact: PropTypes.func,
     active: PropTypes.bool,
+    readOnly: PropTypes.bool,
 };
 
 
 ContactMetaData.defaultProps = {
     scrollInView: true,
+    readOnly: false,
 };

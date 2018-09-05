@@ -49,7 +49,6 @@ export class EventEditorComponent extends React.Component {
 
     componentWillMount() {
         this.props.fetchEventFiles(this.props.item);
-        this.props.getEventContacts(this.props.item);
     }
 
     componentWillUpdate(nextProps) {
@@ -460,7 +459,6 @@ EventEditorComponent.propTypes = {
     planningsModalEvent: PropTypes.array,
     navigation: PropTypes.object,
     fetchEventFiles: PropTypes.func,
-    getEventContacts: PropTypes.func,
     customVocabularies: PropTypes.array,
     files: PropTypes.object,
     uploadFiles: PropTypes.func,
@@ -495,7 +493,6 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
-    getEventContacts: (event) => dispatch(actions.contacts.getEventContacts(event)),
     uploadFiles: (files) => dispatch(actions.events.api.uploadFiles({files: files})),
     removeFile: (file) => dispatch(actions.events.api.removeFile(file)),
 });
