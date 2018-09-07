@@ -13,14 +13,13 @@ module.exports = {
             __dirname,
             path.join(__dirname, 'client'),
             path.join(__dirname, 'node_modules/superdesk-core'),
+            path.join(__dirname, 'node_modules/superdesk-core/scripts'),
             path.join(__dirname, 'node_modules/superdesk-core/styles/sass'),
             'node_modules'
         ],
         extensions: ['.js', '.jsx', '.json', '.ts', '.tsx'],
         alias: {
             images: path.resolve(__dirname, 'node_modules/superdesk-core/images'),
-            apps: path.resolve(__dirname, 'node_modules/superdesk-core/scripts/apps'),
-            core: path.resolve(__dirname, 'node_modules/superdesk-core/scripts/core'),
         }
     },
     module: {
