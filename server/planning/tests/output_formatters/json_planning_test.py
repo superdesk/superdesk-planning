@@ -2,6 +2,7 @@ from planning.tests import TestCase
 from unittest import mock
 from planning.output_formatters.json_planning import JsonPlanningFormatter
 import json
+from copy import deepcopy
 from bson.objectid import ObjectId
 
 
@@ -147,7 +148,7 @@ class JsonPlanningTestCase(TestCase):
         super().setUp()
         self.maxDiff = None
 
-    def test_formatter(self):
+    def test_formatter_active_coverage(self):
         with self.app.app_context():
             agenda = {
                 '_id': 1,
@@ -170,3 +171,25 @@ class JsonPlanningTestCase(TestCase):
                              'urn:newsml:localhost:2018-06-13T11:54:57.477423:c944042d-f93b-4304-9732-e7b5798ee8f9')
             self.assertEqual(output_item.get('coverages')[0].get('assignment').get('planning').get('slugline'),
                              'Raiders')
+
+    def test_formatter_draft_coverage(self):
+        with self.app.app_context():
+            agenda = {
+                '_id': 1,
+                'is_enabled': True,
+                'original_creator': '57bcfc5d1d41c82e8401dcc0',
+                'name': 'Culture',
+                '_updated': '2017-09-06T06:22:53.000Z',
+                '_created': '2017-09-06T06:22:53.000Z'
+            }
+            self.app.data.insert('agenda', [agenda])
+            formatter = JsonPlanningFormatter()
+            item = deepcopy(self.item)
+            item['coverages'][0].pop('assigned_to', None)
+            item['coverages'][0]['workflow_status'] = 'draft'
+            output = formatter.format(item, {'name': 'Test Subscriber'})[0]
+            output_item = json.loads(output[1])
+            self.assertEqual(output_item.get('slugline'), 'SLUGLINE')
+            self.assertEqual(output_item.get('agendas')[0].get('name'), 'Culture')
+            self.assertEqual(output_item.get('coverages')[0].get('planning').get('slugline'), 'SLUGLINE')
+            self.assertEqual(output_item.get('coverages')[0].get('assignment'), {})
