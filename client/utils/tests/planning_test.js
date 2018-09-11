@@ -1,4 +1,5 @@
 import moment from 'moment';
+import {get} from 'lodash';
 import planUtils from '../planning';
 import lockReducer from '../../reducers/locks';
 import {EVENTS, PLANNING, ASSIGNMENTS} from '../../constants';
@@ -578,6 +579,111 @@ describe('PlanningUtils', () => {
             expectActions(itemActions, [
                 'Duplicate',
             ]);
+        });
+    });
+
+    describe('modifyForClient', () => {
+        it('convert genre array to object', () => {
+            let planning = {
+                state: 'draft',
+                coverages: [
+                    {
+                        _id: '123',
+                        planning: {
+                            genre: [{name: 'foo', qcode: 'bar'}],
+                        },
+                    },
+                ],
+            };
+
+            planUtils.modifyForClient(planning);
+            expect(get(planning, 'coverages[0].planning.genre.name')).toEqual('foo');
+            expect(get(planning, 'coverages[0].planning.genre.qcode')).toEqual('bar');
+        });
+
+        it('if genre an object then don\'t touch genre', () => {
+            let planning = {
+                state: 'draft',
+                coverages: [
+                    {
+                        _id: '123',
+                        planning: {
+                            genre: {name: 'foo', qcode: 'bar'},
+                        },
+                    },
+                ],
+            };
+
+            planUtils.modifyForClient(planning);
+            expect(get(planning, 'coverages[0].planning.genre.name')).toEqual('foo');
+            expect(get(planning, 'coverages[0].planning.genre.qcode')).toEqual('bar');
+        });
+
+        it('delete genre field', () => {
+            let planning = {
+                state: 'draft',
+                coverages: [
+                    {
+                        _id: '123',
+                        planning: {genre: null},
+                    },
+                ],
+            };
+
+            planUtils.modifyForClient(planning);
+            expect(get(planning, 'coverages[0].planning')).toEqual({});
+        });
+    });
+
+    describe('modifyForServer', () => {
+        it('convert genre object to array', () => {
+            let planning = {
+                state: 'draft',
+                coverages: [
+                    {
+                        _id: '123',
+                        planning: {
+                            genre: {name: 'foo', qcode: 'bar'},
+                        },
+                    },
+                ],
+            };
+
+            planUtils.modifyForServer(planning);
+            expect(get(planning, 'coverages[0].planning.genre[0].name')).toEqual('foo');
+            expect(get(planning, 'coverages[0].planning.genre[0].qcode')).toEqual('bar');
+        });
+
+        it('array is not modified', () => {
+            let planning = {
+                state: 'draft',
+                coverages: [
+                    {
+                        _id: '123',
+                        planning: {
+                            genre: [1, 2],
+                        },
+                    },
+                ],
+            };
+
+            planUtils.modifyForServer(planning);
+            expect(get(planning, 'coverages[0].planning.genre')).toEqual([1, 2]);
+        });
+
+        it('set genre to  null', () => {
+            let planning = {
+                state: 'draft',
+                coverages: [
+                    {
+                        _id: '123',
+                        planning: {},
+                    },
+                ],
+            };
+
+            planUtils.modifyForServer(planning);
+            expect(get(planning, 'coverages[0].planning.genre')).toBeNull(null);
         });
     });
 });

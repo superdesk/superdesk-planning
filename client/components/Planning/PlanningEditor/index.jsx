@@ -122,6 +122,7 @@ export class PlanningEditorComponent extends React.Component {
         delete newCoverage.assigned_to;
 
         if (duplicateAs) {
+            newCoverage.planning.genre = null;
             newCoverage.planning.g2_content_type = duplicateAs;
         }
 

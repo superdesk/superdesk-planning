@@ -33,6 +33,14 @@ export const CoverageItem = ({
     const coverageDateText = !coverageDate ? 'Not scheduled yet' :
         getDateTimeString(coverageDate, dateFormat, timeFormat);
     const coverageInWorkflow = planningUtils.isCoverageInWorkflow(coverage);
+    const displayContentType = [
+        stringUtils.firstCharUpperCase(get(coverage, 'planning.g2_content_type', '').replace('_', ' ')),
+    ];
+    const genre = stringUtils.firstCharUpperCase(get(coverage, 'planning.genre.name', ''));
+
+    if (genre) {
+        displayContentType.push(`/${genre}`);
+    }
 
     return (
         <Item noBg={!active} activated={active}>
@@ -57,8 +65,7 @@ export const CoverageItem = ({
                     <CoverageIcon coverage={coverage} dateFormat={dateFormat} timeFormat={timeFormat}
                         users={users} desks={desks}/>
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                        {stringUtils.firstCharUpperCase(
-                            get(coverage, 'planning.g2_content_type', '').replace('_', ' '))}
+                        {displayContentType.join('')}
                     </span>
                     <time>
                         <InternalNoteLabel item={coverage} prefix="planning." marginRight={true} />

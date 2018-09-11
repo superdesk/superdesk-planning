@@ -86,7 +86,10 @@ export class CoverageForm extends React.Component {
 
         const contentTypeQcode = get(value, 'planning.g2_content_type') || null;
         const contentType = contentTypeQcode ? getItemInArrayById(contentTypes, contentTypeQcode, 'qcode') : null;
-        const onContentTypeChange = (f, v) => onChange(f, get(v, 'qcode') || null);
+        const onContentTypeChange = (f, v) => {
+            onChange(f, get(v, 'qcode') || null);
+            onChange(`${field}.planning.genre`, null);
+        };
 
         if (contentTypeQcode === 'text' && !get(value, 'planning.genre')) {
             value.planning.genre = defaultGenre;
@@ -130,14 +133,13 @@ export class CoverageForm extends React.Component {
 
                 <Field
                     component={SelectInput}
-                    enabled={contentTypeQcode === 'text'}
                     field={`${field}.planning.genre`}
                     profileName="genre"
                     label={gettext('Genre')}
                     options={genres}
                     labelField="name"
                     clearable={true}
-                    defaultValue={defaultGenre}
+                    defaultValue={contentTypeQcode === 'text' ? defaultGenre : null}
                     readOnly={roFields.genre}
                     {...fieldProps}
                 />
