@@ -83,8 +83,12 @@ class JsonPlanningFormatter(Formatter):
         :return:
         """
         assignment_remove_fields = ('user', 'desk', 'assignor_user', 'assignor_desk', '_etag', 'original_creator',
-                                    'lock_action', 'lock_user', 'lock_time', 'lock_session', 'version_creator')
+                                    'lock_action', 'lock_user', 'lock_time', 'lock_session',
+                                    'version_creator', '_type')
         assignment_id = assigned_to.get('assignment_id')
+        if not assignment_id:
+            return {}
+
         assignment = superdesk.get_resource_service('assignments').find_one(req=None, _id=assignment_id)
         if assignment:
             for f in assignment_remove_fields:
