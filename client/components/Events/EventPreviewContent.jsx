@@ -16,58 +16,12 @@ import {ContentBlock} from '../UI/SidePanel';
 import {LinkInput, FileInput} from '../UI/Form';
 import {Location} from '../Location';
 import * as actions from '../../actions';
-import {ContactMetaData} from '../Contacts/index';
+import {ContactsPreviewList} from '../Contacts/index';
 import CustomVocabulariesPreview from '../CustomVocabulariesPreview';
 
 export class EventPreviewContentComponent extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            showContactInfo: false,
-            currentContact: [],
-            editDetails: false,
-            viewIndex: null,
-            files: [],
-        };
-        this.getResponseResult = this.getResponseResult.bind(this);
-    }
-
     componentWillMount() {
         this.props.fetchEventFiles(this.props.item);
-    }
-
-    getResponseResult(data = null) {
-        let results = null;
-
-        if (get(data, '_items.length', 0) > 0) {
-            results = data._items;
-        }
-
-        return results;
-    }
-
-    getContactLabel(contact) {
-        const avatarClass = (contact) => contact.first_name ? 'avatar' : 'avatar organisation';
-
-        const displayContact = (contact) => (contact.first_name ?
-            `${contact.first_name} ${contact.last_name}` : contact.organisation);
-
-        const displayContactInfo = (contact) => (contact.first_name && contact.job_title && contact.organisation &&
-                <h5>{contact.job_title}, {contact.organisation}</h5>);
-
-        return (<span className="contact-info">
-            <figure className={avatarClass(contact)} />
-            <span>{displayContact(contact)} {displayContactInfo(contact)}</span>
-        </span>);
-    }
-
-    getContactInfo(currentContact) {
-        let contactLabel = this.getContactLabel(currentContact);
-
-        return {
-            label: (<span>{contactLabel}</span>),
-            value: currentContact,
-        };
     }
 
     render() {
@@ -99,7 +53,7 @@ export class EventPreviewContentComponent extends React.Component {
             item.anpa_category.map((c) => c.name).join(', ');
         const subjectText = get(item, 'subject.length', 0) === 0 ? '' :
             item.subject.map((s) => s.name).join(', ');
-
+        const contacts = get(item, 'event_contact_info') || [];
 
         return (
             <ContentBlock>
@@ -166,19 +120,19 @@ export class EventPreviewContentComponent extends React.Component {
                 </Row>
 
                 <Row
-                    enabled={get(formProfile, 'editor.event_contact_info.enabled') && get(item, '_contacts.length') > 0}
-                    label={gettext('Contact')}
+                    enabled={get(formProfile, 'editor.event_contact_info.enabled')}
+                    label={gettext('Contacts')}
                 >
-                    {get(this.props, 'item._contacts.length', 0) > 0 &&
-                        this.props.item._contacts.map((contact, index) => (
-                            <ContactMetaData
-                                key={index}
-                                contact={this.getContactInfo(contact)}
-                                scrollInView={true}
-                                scrollIntoViewOptions={{block: 'center'}}
-                                tabEnabled />
-                        ))
-                    }
+                    {contacts.length > 0 ? (
+                        <ContactsPreviewList
+                            contactIds={contacts}
+                            scrollInView={true}
+                            scrollIntoViewOptions={{block: 'center'}}
+                            tabEnabled={true}
+                        />
+                    ) : (
+                        <div>-</div>
+                    )}
                 </Row>
 
                 <ToggleBox title={gettext('Details')} isOpen={false}>

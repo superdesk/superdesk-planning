@@ -10,15 +10,17 @@ import {Datetime} from '../../';
 import {Location} from '../../Location';
 import {Row} from '../../UI/Preview';
 import {FileInput, LinkInput} from '../../UI/Form';
+import {ContactsPreviewList} from '../../Contacts';
 
 export const EventPreviewComponent = ({item, formProfile, createLink, streetMapUrl, files}) => {
     if (!item) {
         return null;
     }
 
-    let location = get(item, 'location', {});
-    let locationName = get(location, 'name');
-    let formattedAddress = get(location, 'formatted_address', '');
+    const location = get(item, 'location', {});
+    const locationName = get(location, 'name');
+    const formattedAddress = get(location, 'formatted_address', '');
+    const contacts = get(item, 'event_contact_info') || [];
 
     return (
         <div>
@@ -67,6 +69,23 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
                 label={gettext('Long Description')}
                 value={stringUtils.convertNewlineToBreak(item.definition_long || '-')}
             />
+
+            <Row
+                enabled={get(formProfile, 'editor.event_contact_info.enabled')}
+                label={gettext('Contacts')}
+            >
+                {contacts.length > 0 ? (
+                    <ContactsPreviewList
+                        contactIds={contacts}
+                        scrollInView={true}
+                        scrollIntoViewOptions={{block: 'center'}}
+                        tabEnabled={true}
+                        readOnly={true}
+                    />
+                ) : (
+                    <div>-</div>
+                )}
+            </Row>
 
             <Row
                 enabled={get(formProfile, 'editor.ednote.enabled')}

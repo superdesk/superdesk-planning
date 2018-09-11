@@ -12,6 +12,7 @@ import {FileInput, LinkInput} from '../../UI/Form';
 import {CollapseBox} from '../../UI/CollapseBox';
 import {eventUtils, gettext, onEventCapture, editorMenuUtils} from '../../../utils';
 import {Location} from '../../Location';
+import {ContactsPreviewList} from '../../Contacts';
 
 export const EventMetadata = (
     {
@@ -121,6 +122,7 @@ export const EventMetadata = (
         </Item>
     );
 
+    const contacts = get(event, 'event_contact_info') || [];
     const eventInDetail = (
         <div>
             <PreviewRow>
@@ -136,6 +138,7 @@ export const EventMetadata = (
                         name={get(event, 'location.name')}
                         address={get(event, 'location.formatted_address')}
                         multiLine={true}
+                        mapUrl={streetMapUrl}
                     />
                 </div>
             </PreviewRow>
@@ -143,6 +146,22 @@ export const EventMetadata = (
                 value={get(event, 'occur_status.name', '')} />
             <PreviewRow label={gettext('Description')}
                 value={event.definition_short || ''} />
+
+            <PreviewRow label={gettext('Contacts')}>
+                {contacts.length > 0 ? (
+                    <ContactsPreviewList
+                        contactIds={contacts}
+                        scrollInView={true}
+                        scrollIntoViewOptions={{block: 'center'}}
+                        tabEnabled={true}
+                        readOnly={true}
+                        inner={true}
+                    />
+                ) : (
+                    <div>-</div>
+                )}
+            </PreviewRow>
+
             <ToggleBox
                 title={gettext('Attached Files')}
                 badgeValue={get(event, 'files.length', 0) > 0 ? event.files.length : null}

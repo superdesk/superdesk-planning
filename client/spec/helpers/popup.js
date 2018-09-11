@@ -1,3 +1,5 @@
+import {isCount} from './utils';
+
 export class Popup {
     constructor(className = 'popup') {
         this.element = element(by.className(className));
@@ -8,6 +10,14 @@ export class Popup {
             () => element(by.className(className)).isPresent(),
             7500,
             'Timeout while waiting for the Popup to be visible'
+        );
+    }
+
+    static waitForClose(className = 'popup') {
+        browser.wait(
+            () => isCount(element.all(by.className(className)), 0),
+            7500,
+            'Timeout while waiting for the Popup to close'
         );
     }
 

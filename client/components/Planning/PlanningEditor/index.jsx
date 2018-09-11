@@ -321,6 +321,7 @@ export class PlanningEditorComponent extends React.Component {
             createUploadLink,
             files,
             popupContainer,
+            streetMapUrl,
         } = this.props;
 
         const agendaValues = cloneDeep(get(diff, 'agendas', [])
@@ -537,6 +538,7 @@ export class PlanningEditorComponent extends React.Component {
                             navigation={navigation}
                             createUploadLink={createUploadLink}
                             files={files}
+                            streetMapUrl={streetMapUrl}
                             tabEnabled
                         />
                     </ContentBlock>
@@ -620,6 +622,7 @@ PlanningEditorComponent.propTypes = {
     createUploadLink: PropTypes.func,
     files: PropTypes.object,
     popupContainer: PropTypes.func,
+    streetMapUrl: PropTypes.string,
 };
 
 PlanningEditorComponent.defaultProps = {
@@ -655,6 +658,7 @@ const mapStateToProps = (state) => ({
     customVocabularies: state.customVocabularies,
     createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
     files: selectors.general.files(state),
+    streetMapUrl: selectors.config.getStreetMapUrl(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

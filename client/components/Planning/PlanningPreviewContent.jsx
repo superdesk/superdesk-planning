@@ -165,18 +165,23 @@ export class PlanningPreviewContentComponent extends React.Component {
                         <span className="state-label not-for-publication">{gettext('Not for Publication')}</span>
                     </Row>
                 </ToggleBox>
-                {!hideRelatedItems && event &&
-                <h3 className="side-panel__heading--big">{gettext('Associated Event')}</h3>}
-                {!hideRelatedItems && event && <EventMetadata event={event}
-                    dateFormat={dateFormat}
-                    timeFormat={timeFormat}
-                    dateOnly={true}
-                    streetMapUrl={streetMapUrl}
-                    onEditEvent={onEditEvent.bind(null, event)}
-                    lockedItems={lockedItems}
-                    createUploadLink={createUploadLink}
-                    files={files}
-                />}
+                {!hideRelatedItems && event && (
+                    <h3 className="side-panel__heading--big">
+                        {gettext('Associated Event')}
+                    </h3>
+                )}
+                {!hideRelatedItems && event && (
+                    <EventMetadata event={event}
+                        dateFormat={dateFormat}
+                        timeFormat={timeFormat}
+                        dateOnly={true}
+                        streetMapUrl={streetMapUrl}
+                        onEditEvent={onEditEvent.bind(null, event)}
+                        lockedItems={lockedItems}
+                        createUploadLink={createUploadLink}
+                        files={files}
+                    />
+                )}
                 {hasCoverage &&
                     (<h3 className="side-panel__heading--big">{gettext('Coverages')}</h3>)}
                 {hasCoverage &&
