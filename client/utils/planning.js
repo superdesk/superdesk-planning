@@ -10,7 +10,7 @@ import {
     COVERAGES,
     ITEM_TYPE,
 } from '../constants/index';
-import {get, isNil, uniq, sortBy, isEmpty, cloneDeep} from 'lodash';
+import {get, isNil, uniq, sortBy, isEmpty, cloneDeep, isArray} from 'lodash';
 import {
     getItemWorkflowState,
     lockUtils,
@@ -494,8 +494,11 @@ const modifyForServer = (plan) => {
     get(plan, 'coverages', []).forEach((coverage) => {
         coverage.planning = coverage.planning || {};
 
-        coverage.planning.genre = coverage.planning.genre ?
-            [coverage.planning.genre] : null;
+        if (!get(coverage, 'planning.genre', null)) {
+            coverage.planning.genre = null;
+        } else if (!isArray(coverage.planning.genre)) {
+            coverage.planning.genre = [coverage.planning.genre];
+        }
     });
 
     return plan;
@@ -515,7 +518,8 @@ const modifyCoverageForClient = (coverage) => {
     // Convert genre from an Array to an Object
     if (get(coverage, 'planning.genre[0]')) {
         coverage.planning.genre = coverage.planning.genre[0];
-    } else {
+    } else if (!get(coverage, 'planning.genre.qcode')) {
+        // only delete when genre not object
         delete coverage.planning.genre;
     }
 
