@@ -288,6 +288,7 @@ export class EventEditorComponent extends React.Component {
                         field="event_contact_info"
                         label={gettext('Contacts')}
                         refNode={(node) => this.dom.contacts = node}
+                        defaultValue={[]}
                         {...fieldProps}
                         onFocus={onFocusContacts}
                         paddingTop={!!onFocusContacts} />

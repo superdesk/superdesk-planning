@@ -1,7 +1,7 @@
 import {createSelector} from 'reselect';
 import {get} from 'lodash';
 import {storedPlannings, currentPlanning} from './planning';
-import {agendas, userPreferences, contacts} from './general';
+import {agendas, userPreferences} from './general';
 import {currentItem, currentItemModal} from './forms';
 import {getStartOfWeek} from './config';
 import {eventUtils, getSearchDateRange} from '../utils';
@@ -38,8 +38,8 @@ export const orderedEvents = createSelector(
 export const previewId = (state) => get(state, 'main.previewId', null);
 
 export const getEventPreviewRelatedDetails = createSelector(
-    [previewId, storedEvents, storedPlannings, agendas, contacts],
-    (itemId, events, plannings, agendas, allContacts) => {
+    [previewId, storedEvents, storedPlannings, agendas],
+    (itemId, events, plannings, agendas) => {
         const event = get(events, itemId) || null;
 
         if (event === null) {
@@ -55,7 +55,6 @@ export const getEventPreviewRelatedDetails = createSelector(
                         plannings[id].agendas.map((id) =>
                             agendas.find(((agenda) => agenda._id === id))),
                 })),
-                _contacts: allContacts.filter((contact) => get(event, 'event_contact_info', []).includes(contact._id)),
             };
         }
     }

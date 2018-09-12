@@ -3,21 +3,21 @@ import PropTypes from 'prop-types';
 import {Item, Column, Row, ActionMenu} from '../../UI/List';
 import {CollapseBox} from '../../UI/CollapseBox';
 import {gettext, onEventCapture} from '../../../utils';
-import {ContactInfoContainer} from '../ContactInfoContainer';
+import {ContactInfoContainer, ContactLabel} from '../';
+
 import '../SelectSearchContactsField/style.scss';
 
-export const ContactMetaData = (
-    {
-        contact,
-        scrollInView,
-        scrollIntoViewOptions,
-        tabEnabled,
-        onEditContact,
-        onRemoveContact,
-        active,
-        readOnly,
-    }
-) => {
+export const ContactMetaData = ({
+    contact,
+    scrollInView,
+    scrollIntoViewOptions,
+    tabEnabled,
+    onEditContact,
+    onRemoveContact,
+    active,
+    readOnly,
+    inner,
+}) => {
     const contactActions = [];
 
     if (!readOnly) {
@@ -59,7 +59,9 @@ export const ContactMetaData = (
                 <Column grow={true} border={false}>
                     <Row>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            <span className="sd-list-item__text-strong">{contact.label}</span>
+                            <span className="sd-list-item__text-strong">
+                                <ContactLabel contact={contact} />
+                            </span>
                         </span>
                     </Row>
                 </Column>
@@ -73,7 +75,7 @@ export const ContactMetaData = (
     const contactInDetail = (
         <ContactInfoContainer
             target="sd-list-item__border"
-            currentContact={contact.value}
+            currentContact={contact}
         />
     );
 
@@ -86,6 +88,7 @@ export const ContactMetaData = (
                 scrollIntoViewOptions={scrollIntoViewOptions}
                 tabEnabled={tabEnabled}
                 tools={contactActions}
+                inner={inner}
             />
         </div>
     );
@@ -100,10 +103,12 @@ ContactMetaData.propTypes = {
     onRemoveContact: PropTypes.func,
     active: PropTypes.bool,
     readOnly: PropTypes.bool,
+    inner: PropTypes.bool,
 };
 
 
 ContactMetaData.defaultProps = {
     scrollInView: true,
     readOnly: false,
+    inner: false,
 };

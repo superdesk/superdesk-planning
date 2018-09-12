@@ -1,4 +1,4 @@
-import {get} from 'lodash';
+import {get, keyBy} from 'lodash';
 import {createSelector} from 'reselect';
 import {getEnabledAgendas, getDisabledAgendas} from '../utils';
 
@@ -41,4 +41,5 @@ export const currentUserId = createSelector(
 );
 
 export const files = (state) => get(state, 'files.files');
-export const contacts = (state) => get(state, 'contacts.contacts');
+export const contacts = (state) => get(state, 'contacts.contacts') || [];
+export const contactsById = (state) => keyBy(get(state, 'contacts.contacts') || [], '_id');
