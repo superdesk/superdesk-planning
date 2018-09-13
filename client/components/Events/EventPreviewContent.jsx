@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {gettext, getCreator} from '../../utils';
+import {gettext, getCreator, stringUtils} from '../../utils';
 import * as selectors from '../../selectors';
 import {get} from 'lodash';
 import {Row} from '../UI/Preview';
@@ -90,7 +90,7 @@ export class EventPreviewContentComponent extends React.Component {
                 <Row
                     enabled={get(formProfile, 'editor.definition_short.enabled')}
                     label={gettext('Description')}
-                    value={item.definition_short || ''}
+                    value={stringUtils.convertNewlineToBreak(item.definition_short || '-')}
                 />
                 <Row
                     enabled={get(formProfile, 'editor.occur_status.enabled')}
@@ -157,17 +157,17 @@ export class EventPreviewContentComponent extends React.Component {
                     <Row
                         enabled={get(formProfile, 'editor.definition_long.enabled')}
                         label={gettext('Long Description')}
-                        value={item.definition_long || ''}
+                        value={stringUtils.convertNewlineToBreak(item.definition_long || '-')}
                     />
                     <Row
                         enabled={get(formProfile, 'editor.internal_note.enabled')}
                         label={gettext('Internal Note')}
-                        value={item.internal_note || ''}
+                        value={stringUtils.convertNewlineToBreak(item.internal_note || '-')}
                     />
                     <Row
                         enabled={get(formProfile, 'editor.ednote.enabled')}
                         label={gettext('Ed Note')}
-                        value={item.ednote || ''}
+                        value={stringUtils.convertNewlineToBreak(item.ednote || '-')}
                     />
                 </ToggleBox>
                 {get(formProfile, 'editor.files.enabled') &&

@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {gettext, getCreator, getItemInArrayById, getDateTimeString} from '../../utils';
+import {gettext, getCreator, getItemInArrayById, getDateTimeString, stringUtils} from '../../utils';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {get} from 'lodash';
@@ -111,12 +111,12 @@ export class PlanningPreviewContentComponent extends React.Component {
                 <Row
                     enabled={get(formProfile, 'planning.editor.description_text.enabled')}
                     label={gettext('Description')}
-                    value={item.description_text || ''}
+                    value={stringUtils.convertNewlineToBreak(item.description_text || '-')}
                 />
                 <Row
                     enabled={get(formProfile, 'planning.editor.internal_note.enabled')}
                     label={gettext('Internal Note')}
-                    value={item.internal_note || ''}
+                    value={stringUtils.convertNewlineToBreak(item.internal_note || '-')}
                 />
                 <Row
                     enabled={get(formProfile, 'planning.editor.agendas.enabled')}
@@ -127,7 +127,7 @@ export class PlanningPreviewContentComponent extends React.Component {
                     <Row
                         enabled={get(formProfile, 'planning.editor.ednote.enabled')}
                         label={gettext('Ed Note')}
-                        value={item.ednote || ''}
+                        value={stringUtils.convertNewlineToBreak(item.ednote || '-')}
                     />
                     <Row
                         enabled={get(formProfile, 'planning.editor.place.enabled')}
