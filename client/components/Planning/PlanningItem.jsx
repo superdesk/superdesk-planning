@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import {get} from 'lodash';
+import {get, isEqual} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
 import {Label, InternalNoteLabel} from '../';
@@ -42,7 +42,9 @@ export class PlanningItem extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        return isItemDifferent(this.props, nextProps) || this.state.hover !== nextState.hover;
+        return isItemDifferent(this.props, nextProps) ||
+            this.state.hover !== nextState.hover ||
+            !isEqual(this.getAgendaNames(this.props), this.getAgendaNames(nextProps));
     }
 
     onItemHoverOn() {
@@ -112,6 +114,12 @@ export class PlanningItem extends React.Component {
         );
     }
 
+    getAgendaNames(props) {
+        return get(props.item, 'agendas', [])
+            .map((agendaId) => props.agendas.find((agenda) => agenda._id === agendaId))
+            .filter((agenda) => agenda);
+    }
+
     render() {
         const {
             item,
@@ -119,7 +127,6 @@ export class PlanningItem extends React.Component {
             lockedItems,
             dateFormat,
             timeFormat,
-            agendas,
             date,
             onMultiSelectClick,
             multiSelected,
@@ -142,9 +149,7 @@ export class PlanningItem extends React.Component {
         if (isItemLocked)
             borderState = 'locked';
 
-        const agendaNames = get(item, 'agendas', [])
-            .map((agendaId) => agendas.find((agenda) => agenda._id === agendaId))
-            .filter((agenda) => agenda);
+        const agendaNames = this.getAgendaNames(this.props);
 
         const isExpired = isItemExpired(item);
 
