@@ -10,7 +10,7 @@ import {Item, Column, Row, ActionMenu, Border} from '../../UI/List';
 import {Row as PreviewRow} from '../../UI/Preview';
 import {FileInput, LinkInput} from '../../UI/Form';
 import {CollapseBox} from '../../UI/CollapseBox';
-import {eventUtils, gettext, onEventCapture, editorMenuUtils} from '../../../utils';
+import {eventUtils, gettext, onEventCapture, editorMenuUtils, stringUtils} from '../../../utils';
 import {Location} from '../../Location';
 import {ContactsPreviewList} from '../../Contacts';
 
@@ -144,8 +144,11 @@ export const EventMetadata = (
             </PreviewRow>
             <PreviewRow label={gettext('Occurrence Status')}
                 value={get(event, 'occur_status.name', '')} />
-            <PreviewRow label={gettext('Description')}
-                value={event.definition_short || ''} />
+
+            <PreviewRow
+                label={gettext('Description')}
+                value={stringUtils.convertNewlineToBreak(event.definition_short || '-')}
+            />
 
             <PreviewRow label={gettext('Contacts')}>
                 {contacts.length > 0 ? (
