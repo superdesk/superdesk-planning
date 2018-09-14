@@ -143,8 +143,11 @@ export class PlanningEditorComponent extends React.Component {
             coverageToUpdate.planning = {
                 ...coverageToUpdate.planning,
                 internal_note: `------------------------------------------------------------
-Coverage cancelled
-`,
+        Coverage cancelled
+        `,
+                ednote: `------------------------------------------------------------
+        Coverage cancelled
+        `,
             };
             coverageToUpdate.workflow_status = WORKFLOW_STATE.CANCELLED;
         }
