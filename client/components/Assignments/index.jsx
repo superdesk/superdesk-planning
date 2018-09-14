@@ -6,3 +6,4 @@ export {AssignmentGroupList} from './AssignmentGroupList';
 export {AssignmentItem} from './AssignmentItem';
 export {AssignmentPreviewContainer} from './AssignmentPreviewContainer';
 export {AssignmentHistory} from './AssignmentHistory';
+export {SelectDeskTemplate} from './SelectDeskTemplate';

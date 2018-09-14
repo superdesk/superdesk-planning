@@ -537,37 +537,55 @@ const canLinkItem = (item) => (
 );
 
 const openSelectTemplateModal = (assignment) => (
-    (dispatch, getState) => (
+    (dispatch, getState, {templates, session, desks}) => (
         dispatch(self.lockAssignment(assignment, 'start_working'))
             .then((lockedAssignment) => {
-                let items = [];
-                const templates = selectors.general.templates(getState());
+                const currentDesk = desks.getCurrentDesk();
+                const defaultTemplateId = get(currentDesk, 'default_content_template') || null;
 
-                templates.forEach((t) => {
-                    items.push({
-                        value: t,
-                        label: t.template_name,
+                return templates.fetchTemplatesByUserDesk(
+                    session.identity._id,
+                    get(currentDesk, '_id') || null,
+                    1,
+                    200,
+                    'create'
+                ).then((data) => {
+                    let defaultTemplate = null;
+                    const publicTemplates = [];
+                    const privateTemplates = [];
+
+                    (get(data, '_items') || []).forEach((template) => {
+                        if (get(template, '_id') === defaultTemplateId) {
+                            defaultTemplate = template;
+                        } else if (get(template, 'is_public') !== false) {
+                            publicTemplates.push(template);
+                        } else {
+                            privateTemplates.push(template);
+                        }
                     });
+
+                    const onSelect = (template) => (
+                        dispatch(assignments.api.createFromTemplateAndShow(
+                            assignment._id,
+                            template.template_name
+                        ))
+                    );
+
+                    const onCancel = () => (
+                        dispatch(assignments.api.unlock(lockedAssignment))
+                    );
+
+                    return dispatch(showModal({
+                        modalType: MODALS.SELECT_DESK_TEMPLATE,
+                        modalProps: {
+                            onSelect: onSelect,
+                            onCancel: onCancel,
+                            defaultTemplate: defaultTemplate,
+                            publicTemplates: publicTemplates,
+                            privateTemplates: privateTemplates,
+                        },
+                    }));
                 });
-
-                const onSelect = (template) => (
-                    dispatch(assignments.api.createFromTemplateAndShow(assignment._id,
-                        template.template_name))
-                );
-
-                const onCancel = () => (
-                    dispatch(assignments.api.unlock(lockedAssignment))
-                );
-
-                return dispatch(showModal({
-                    modalType: MODALS.SELECT_ITEM_MODAL,
-                    modalProps: {
-                        title: 'Select template',
-                        items: items,
-                        onSelect: onSelect,
-                        onCancel: onCancel,
-                    },
-                }));
             }, (error) => Promise.reject(error))
     )
 );

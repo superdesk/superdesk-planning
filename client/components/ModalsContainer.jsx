@@ -20,6 +20,7 @@ import {MODALS, ITEM_TYPE} from '../constants';
 
 import SortItemsModal from './SortItemsModal';
 import {ManageAgendasModal} from './Agendas/ManageAgendasModal';
+import {SelectDeskTemplate} from './Assignments';
 
 const modals = {
     [MODALS.CONFIRMATION]: ConfirmationModal,
@@ -34,6 +35,7 @@ const modals = {
     [MODALS.IGNORE_CANCEL_SAVE]: IgnoreCancelSaveModal,
     [MODALS.FEATURED_STORIES]: FeaturedPlanningModal,
     [MODALS.UNLOCK_FEATURED_STORIES]: UnlockFeaturedPlanning,
+    [MODALS.SELECT_DESK_TEMPLATE]: SelectDeskTemplate,
 };
 
 export function Modals({modalType, modalProps, handleHide}) {
