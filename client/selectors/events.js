@@ -1,5 +1,5 @@
 import {createSelector} from 'reselect';
-import {get} from 'lodash';
+import {get, sortBy} from 'lodash';
 import {storedPlannings, currentPlanning} from './planning';
 import {agendas, userPreferences} from './general';
 import {currentItem, currentItemModal} from './forms';
@@ -120,13 +120,19 @@ export const currentCalendar = createSelector(
 export const enabledCalendars = createSelector(
     [calendars],
     (items) =>
-        items.filter((calendar) => !!get(calendar, 'is_active', false))
+        sortBy(
+            items.filter((calendar) => !!get(calendar, 'is_active', false)),
+            'name'
+        )
 );
 
 export const disabledCalendars = createSelector(
     [calendars],
     (items) =>
-        items.filter((calendar) => !get(calendar, 'is_active', false))
+        sortBy(
+            items.filter((calendar) => !get(calendar, 'is_active', false)),
+            'name'
+        )
 );
 
 export const getEventFilterParams = createSelector(
