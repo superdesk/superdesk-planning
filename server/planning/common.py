@@ -290,3 +290,13 @@ def get_event_max_multi_day_duration(current_app=None):
     if current_app is not None:
         return int(current_app.config.get(MAX_MULTI_DAY_EVENT_DURATION, 0))
     return int(app.config.get(MAX_MULTI_DAY_EVENT_DURATION, 0))
+
+
+def set_original_creator(doc):
+    """Set the original creator"""
+    usr = get_user()
+    user = str(usr.get('_id', doc.get('original_creator', ''))) or None
+    if not user:
+        doc.pop('original_creator', None)
+        return
+    doc['original_creator'] = user

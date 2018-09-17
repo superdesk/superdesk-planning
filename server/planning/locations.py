@@ -12,7 +12,7 @@ import superdesk
 import logging
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
-from apps.archive.common import set_original_creator
+from .common import set_original_creator
 
 logger = logging.getLogger(__name__)
 

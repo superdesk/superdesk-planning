@@ -21,11 +21,12 @@ from superdesk import get_resource_service
 from superdesk.resource import not_analyzed
 from superdesk.users.services import current_user_has_privilege
 from superdesk.notification import push_notification
-from apps.archive.common import set_original_creator, get_user, get_auth, update_dates_for
+from apps.archive.common import get_user, get_auth, update_dates_for
 from copy import deepcopy
 from eve.utils import config, ParsedRequest, date_to_str
 from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, get_coverage_cancellation_state,\
-    remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name
+    remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name,\
+    set_original_creator
 from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications

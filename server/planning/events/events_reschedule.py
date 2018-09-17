@@ -12,8 +12,7 @@ from superdesk import get_resource_service
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from eve.utils import config
-from apps.archive.common import set_original_creator
-from planning.common import UPDATE_FUTURE, WORKFLOW_STATE, ITEM_STATE, remove_lock_information
+from planning.common import UPDATE_FUTURE, WORKFLOW_STATE, ITEM_STATE, remove_lock_information, set_original_creator
 from copy import deepcopy
 from .events import EventsResource, events_schema, generate_recurring_dates
 from flask import current_app as app
