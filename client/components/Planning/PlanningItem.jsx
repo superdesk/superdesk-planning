@@ -92,6 +92,7 @@ export class PlanningItem extends React.Component {
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
         };
+        const event = get(item, 'event');
 
         const itemActions = hideItemActions ? [] :
             planningUtils.getPlanningActions({
