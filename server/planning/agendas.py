@@ -1,4 +1,4 @@
-from apps.archive.common import set_original_creator
+from .common import set_original_creator
 from apps.auth import get_user_id
 from superdesk import Resource, Service, config, get_resource_service
 from superdesk.errors import SuperdeskApiError

@@ -14,8 +14,8 @@ from superdesk import get_resource_service, logger
 from eve.utils import config
 from superdesk.errors import SuperdeskApiError
 from superdesk.utc import utc_to_local, utcnow
-from apps.archive.common import set_original_creator, update_dates_for
-from planning.common import get_version_item_for_post, enqueue_planning_item
+from apps.archive.common import update_dates_for
+from planning.common import get_version_item_for_post, enqueue_planning_item, set_original_creator
 from apps.auth import get_user_id
 from superdesk.metadata.item import metadata_schema, ITEM_TYPE
 from flask import current_app as app

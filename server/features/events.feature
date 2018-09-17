@@ -66,7 +66,7 @@ Feature: Events
         """
             {"_items": [{
                 "guid": "__any_value__",
-                "original_creator": "__any_value__",
+                "original_creator": "#CONTEXT_USER_ID#",
                 "type": "event",
                 "name": "event 123",
                 "slugline": "event-123",
@@ -392,6 +392,7 @@ Feature: Events
             "name": "event 123",
             "type": "event",
             "state": "scheduled",
+            "original_creator": "#CONTEXT_USER_ID#",
             "duplicate_to": ["#events._id#"]
         }
         """
@@ -403,6 +404,7 @@ Feature: Events
             "name": "event 123",
             "state": "draft",
             "type": "event",
+            "original_creator": "#CONTEXT_USER_ID#",
             "occur_status": {"qcode": "eocstat:eos5"},
             "duplicate_from": "123"
         }

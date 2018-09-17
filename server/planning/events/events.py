@@ -19,12 +19,12 @@ from superdesk.metadata.item import GUID_NEWSML
 from superdesk.notification import push_notification
 from superdesk.utc import utcnow
 from apps.auth import get_user, get_user_id
-from apps.archive.common import set_original_creator, get_auth, update_dates_for
+from apps.archive.common import get_auth, update_dates_for
 from superdesk.users.services import current_user_has_privilege
 from .events_base_service import EventsBaseService
 from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, get_max_recurrent_events, \
     WORKFLOW_STATE, ITEM_STATE, remove_lock_information, format_address, update_post_item, \
-    post_required, POST_STATE, get_event_max_multi_day_duration
+    post_required, POST_STATE, get_event_max_multi_day_duration, set_original_creator
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
