@@ -625,6 +625,7 @@ const closePreviewAndEditorForItems = (items, actionMessage = '', field = '_id')
  */
 const filter = (ftype = null) => (
     (dispatch, getState, {$timeout, $location}) => {
+        const isNewSearch = $location.search().isNewSearch || false;
         let filterType = ftype;
 
         if (filterType === null) {
@@ -642,7 +643,7 @@ const filter = (ftype = null) => (
         const searchParams = omit(JSON.parse($location.search().searchParams || '{}'), 'page');
         let params = previousParams;
 
-        if (filterType === $location.search().filter && isEmpty(previousParams)) {
+        if (filterType === $location.search().filter && isEmpty(previousParams) || isNewSearch) {
             params = searchParams;
         }
 

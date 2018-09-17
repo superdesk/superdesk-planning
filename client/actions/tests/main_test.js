@@ -78,9 +78,9 @@ describe('actions.main', () => {
                     }]);
                     expect(store.dispatch.callCount).toBe(7);
                     expect(services.$timeout.callCount).toBe(1);
-                    expect(services.$location.search.callCount).toBe(3);
+                    expect(services.$location.search.callCount).toBe(4);
                     expect(services.$location.search.args).toEqual(
-                        [[], [], ['filter', 'COMBINED']]
+                        [[], [], [], ['filter', 'COMBINED']]
                     );
 
                     expect(eventsPlanningUi.fetch.callCount).toBe(1);
@@ -100,9 +100,9 @@ describe('actions.main', () => {
 
                     expect(store.dispatch.callCount).toBe(9);
                     expect(services.$timeout.callCount).toBe(2);
-                    expect(services.$location.search.callCount).toBe(5);
+                    expect(services.$location.search.callCount).toBe(6);
                     expect(services.$location.search.args).toEqual(
-                        [[], [], ['filter', 'EVENTS'], [], ['calendar', 'ALL_CALENDARS']]
+                        [[], [], [], ['filter', 'EVENTS'], [], ['calendar', 'ALL_CALENDARS']]
                     );
 
                     expect(planningUi.clearList.callCount).toBe(1);
@@ -123,7 +123,7 @@ describe('actions.main', () => {
 
                     expect(store.dispatch.callCount).toBe(15);
                     expect(services.$location.search.args).toEqual(
-                        [[], [], ['filter', 'PLANNING'], [], ['searchParams', '{}']]
+                        [[], [], [], ['filter', 'PLANNING'], [], ['searchParams', '{}']]
                     );
 
                     expect(eventsUi.clearList.callCount).toBe(1);
