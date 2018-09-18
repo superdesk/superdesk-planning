@@ -91,6 +91,10 @@ class EventsService(superdesk.Service):
         for location in (doc.get('location') or []):
             format_address(location)
 
+        # this is to fix the existing events have original creator as empty string
+        if not doc.get('original_creator'):
+            doc.pop('original_creator', None)
+
     @staticmethod
     def has_planning_items(doc):
         return EventsService.get_plannings_for_event(doc).count() > 0
