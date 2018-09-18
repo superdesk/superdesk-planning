@@ -70,10 +70,10 @@ Event Rescheduled
         if reason:
             ednote += 'Reason: {}\n'.format(reason)
 
-        if 'ednote' in original:
-            ednote = original['ednote'] + '\n\n' + ednote
-
-        updates['ednote'] = ednote
+        if len(original.get('ednote') or '') > 0:
+            updates['ednote'] = '{}\n\n{}'.format(original['ednote'], ednote)
+        else:
+            updates['ednote'] = ednote
 
         if updates.get(ITEM_STATE) == WORKFLOW_STATE.DRAFT and original.get('pubstatus'):
             updates[ITEM_STATE] = WORKFLOW_STATE.SCHEDULED
@@ -90,7 +90,15 @@ Event has been rescheduled
         if not coverage.get('planning'):
             coverage['planning'] = {}
 
-        coverage['planning']['internal_note'] = (coverage['planning'].get('internal_note') or '') + '\n\n' + note
+        if len(coverage['planning'].get('internal_note') or '') > 0:
+            coverage['planning']['internal_note'] += '\n\n' + note
+        else:
+            coverage['planning']['internal_note'] = note
+
+        if len(coverage['planning'].get('ednote') or '') > 0:
+            coverage['planning']['ednote'] += '\n\n' + note
+        else:
+            coverage['planning']['ednote'] = note
 
         assigned_to = coverage.get('assigned_to')
         if assigned_to:

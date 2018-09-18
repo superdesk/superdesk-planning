@@ -93,6 +93,8 @@ class EventsPostponeService(EventsBaseService):
     @staticmethod
     def _set_event_postponed(updates, original):
         reason = updates.get('reason', None)
+        remove_lock_information(updates)
+        updates['state'] = WORKFLOW_STATE.POSTPONED
 
         ednote = '''------------------------------------------------------------
 Event Postponed
@@ -100,15 +102,10 @@ Event Postponed
         if reason is not None:
             ednote += 'Reason: {}\n'.format(reason)
 
-        if 'ednote' in original:
-            ednote = original['ednote'] + '\n\n' + ednote
-
-        remove_lock_information(updates)
-
-        updates.update({
-            'state': WORKFLOW_STATE.POSTPONED,
-            'ednote': ednote
-        })
+        if len(original.get('ednote') or '') > 0:
+            updates['ednote'] = original['ednote'] + '\n\n' + ednote
+        else:
+            updates['ednote'] = ednote
 
     def update_recurring_events(self, updates, original, update_method):
         historic, past, future = self.get_recurring_timeline(original)

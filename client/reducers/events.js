@@ -206,15 +206,16 @@ const eventsReducer = createReducer(initialState, {
 Event Postponed
 `;
 
-        if (get(payload, 'reason', null) !== null) {
+        if (get(payload, 'reason.length', 0) > 0) {
             ednote += `Reason: ${payload.reason}\n`;
         }
 
-        if (get(event, 'ednote', null) !== null) {
-            ednote = `${event.ednote}\n\n${ednote}`;
+        if (get(event, 'ednote.length', 0) > 0) {
+            event.ednote += `\n\n${ednote}`;
+        } else {
+            event.ednote = ednote;
         }
 
-        event.ednote = ednote;
         event.state = WORKFLOW_STATE.POSTPONED;
 
         return {
@@ -347,15 +348,16 @@ const markEventCancelled = (events, eventId, etag, reason, occurStatus) => {
 Event Cancelled
 `;
 
-    if (reason !== null) {
+    if (get(reason, 'length', 0) > 0) {
         ednote += `Reason: ${reason}\n`;
     }
 
-    if (get(updatedEvent, 'ednote', null) !== null) {
-        ednote = `${updatedEvent.ednote}\n\n${ednote}`;
+    if (get(updatedEvent, 'ednote.length', 0) > 0) {
+        updatedEvent.ednote += `\n\n${ednote}`;
+    } else {
+        updatedEvent.ednote = ednote;
     }
 
-    updatedEvent.ednote = ednote;
     updatedEvent.state = WORKFLOW_STATE.CANCELLED;
     updatedEvent.occur_status = occurStatus;
     updatedEvent._etag = etag;

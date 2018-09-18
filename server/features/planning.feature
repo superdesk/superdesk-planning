@@ -1214,9 +1214,9 @@ Feature: Planning
           "coverages":       [
               {
                   "planning": {
-                      "ednote": "test coverage, 250 words",
+                      "ednote": "test coverage, 250 words\n\n------------------------------------------------------------\nCoverage cancelled\n",
                       "g2_content_type": "text",
-                      "internal_note" : "\n\n------------------------------------------------------------\nCoverage cancelled\n"
+                      "internal_note" : "------------------------------------------------------------\nCoverage cancelled\n"
                   },
                   "news_coverage_status": {
                       "qcode" : "ncostat:notint"
@@ -1224,9 +1224,9 @@ Feature: Planning
               },
               {
                   "planning": {
-                      "ednote": "test coverage2, 250 words",
+                      "ednote": "test coverage2, 250 words\n\n------------------------------------------------------------\nCoverage cancelled\n",
                       "g2_content_type": "text",
-                      "internal_note" : "\n\n------------------------------------------------------------\nCoverage cancelled\n"
+                      "internal_note" : "------------------------------------------------------------\nCoverage cancelled\n"
                   },
                   "news_coverage_status": {
                       "qcode" : "ncostat:notint"
@@ -1291,7 +1291,7 @@ Feature: Planning
             }
         ]}
     """
-        
+
     @auth
     Scenario: Assigning disabled agenda throws an error
         When we post to "agenda" with "agenda1" and success
