@@ -229,9 +229,9 @@ Feature: Cancel all coverage
               {
                   "coverage_id": "__any_value__",
                   "planning": {
-                      "ednote": "test coverage, 250 words",
+                      "ednote": "test coverage, 250 words\n\n------------------------------------------------------------\nPlanning cancelled\n",
                       "g2_content_type": "text",
-                      "internal_note" : "\n\n------------------------------------------------------------\nPlanning cancelled\n"
+                      "internal_note" : "------------------------------------------------------------\nPlanning cancelled\n"
                   },
                   "news_coverage_status": {
                       "name" : "coverage not intended",
@@ -471,9 +471,9 @@ Feature: Cancel all coverage
           "coverages":       [
               {
                   "planning": {
-                      "ednote": "test coverage, 250 words",
+                      "ednote": "test coverage, 250 words\n\n------------------------------------------------------------\nCoverage cancelled\n",
                       "g2_content_type": "text",
-                      "internal_note" : "\n\n------------------------------------------------------------\nCoverage cancelled\n"
+                      "internal_note" : "------------------------------------------------------------\nCoverage cancelled\n"
                   },
                   "news_coverage_status": {
                       "qcode" : "ncostat:notint"
@@ -481,9 +481,9 @@ Feature: Cancel all coverage
               },
               {
                   "planning": {
-                      "ednote": "test coverage2, 250 words",
+                      "ednote": "test coverage2, 250 words\n\n------------------------------------------------------------\nCoverage cancelled\n",
                       "g2_content_type": "text",
-                      "internal_note" : "\n\n------------------------------------------------------------\nCoverage cancelled\n"
+                      "internal_note" : "------------------------------------------------------------\nCoverage cancelled\n"
                   },
                   "news_coverage_status": {
                       "qcode" : "ncostat:notint"
@@ -592,9 +592,9 @@ Feature: Cancel all coverage
           "coverages":       [
               {
                   "planning": {
-                      "ednote": "test coverage, 250 words",
+                      "ednote": "test coverage, 250 words\n\n------------------------------------------------------------\nCoverage cancelled\n",
                       "g2_content_type": "text",
-                      "internal_note" : "\n\n------------------------------------------------------------\nCoverage cancelled\n"
+                      "internal_note" : "------------------------------------------------------------\nCoverage cancelled\n"
                   },
                   "news_coverage_status": {
                       "qcode" : "ncostat:notint"
@@ -602,9 +602,9 @@ Feature: Cancel all coverage
               },
               {
                   "planning": {
-                      "ednote": "test coverage2, 250 words",
+                      "ednote": "test coverage2, 250 words\n\n------------------------------------------------------------\nCoverage cancelled\n",
                       "g2_content_type": "text",
-                      "internal_note" : "\n\n------------------------------------------------------------\nCoverage cancelled\n"
+                      "internal_note" : "------------------------------------------------------------\nCoverage cancelled\n"
                   },
                   "news_coverage_status": {
                       "qcode" : "ncostat:notint"

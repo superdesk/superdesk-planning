@@ -73,10 +73,11 @@ Event Postponed
         if updates.get('reason', None) is not None:
             ednote += 'Reason: {}\n'.format(updates['reason'])
 
-        if 'ednote' in original:
-            ednote = original['ednote'] + '\n\n' + ednote
+        if len(original.get('ednote') or '') > 0:
+            updates['ednote'] = original['ednote'] + '\n\n' + ednote
+        else:
+            updates['ednote'] = ednote
 
-        updates['ednote'] = ednote
         updates[ITEM_STATE] = WORKFLOW_STATE.POSTPONED
 
     def _postpone_coverage(self, updates, coverage):
@@ -89,7 +90,15 @@ Event has been postponed
         if not coverage.get('planning'):
             coverage['planning'] = {}
 
-        coverage['planning']['internal_note'] = (coverage['planning'].get('internal_note') or '') + '\n\n' + note
+        if len(coverage['planning'].get('internal_note') or '') > 0:
+            coverage['planning']['internal_note'] += '\n\n' + note
+        else:
+            coverage['planning']['internal_note'] = note
+
+        if len(coverage['planning'].get('ednote') or '') > 0:
+            coverage['planning']['ednote'] += '\n\n' + note
+        else:
+            coverage['planning']['ednote'] = note
 
         assigned_to = coverage.get('assigned_to')
         if assigned_to:

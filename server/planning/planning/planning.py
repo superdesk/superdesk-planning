@@ -539,7 +539,16 @@ class PlanningService(superdesk.Service):
         if note:
             if not coverage.get('planning'):
                 coverage['planning'] = {}
-            coverage['planning']['internal_note'] = (coverage['planning'].get('internal_note') or '') + '\n\n' + note
+
+            if len(coverage['planning'].get('internal_note') or '') > 0:
+                coverage['planning']['internal_note'] += '\n\n' + note
+            else:
+                coverage['planning']['internal_note'] = note
+
+            if len(coverage['planning'].get('ednote') or '') > 0:
+                coverage['planning']['ednote'] += '\n\n' + note
+            else:
+                coverage['planning']['ednote'] = note
 
         coverage['news_coverage_status'] = coverage_cancel_state
         coverage['previous_status'] = original_workflow_status

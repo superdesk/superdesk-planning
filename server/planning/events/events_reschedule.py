@@ -69,6 +69,8 @@ class EventsRescheduleService(EventsBaseService):
 
     @staticmethod
     def _mark_event_rescheduled(updates, original, reason, keep_dates=False):
+        updates['state'] = WORKFLOW_STATE.RESCHEDULED
+
         ednote = '''------------------------------------------------------------
 Event Rescheduled
 '''
@@ -76,14 +78,10 @@ Event Rescheduled
         if reason is not None:
             ednote += 'Reason: {}\n'.format(reason)
 
-        if 'ednote' in original:
-            ednote = original['ednote'] + '\n\n' + ednote
-
-        # Update the workflow state and definition of the original Event
-        updates.update({
-            'state': WORKFLOW_STATE.RESCHEDULED,
-            'ednote': ednote
-        })
+        if len(original.get('ednote') or '') > 0:
+            updates['ednote'] = original['ednote'] + '\n\n' + ednote
+        else:
+            updates['ednote'] = ednote
 
         # We don't want to update the schedule of this current event
         # As the duplicated Event will have the new schedule

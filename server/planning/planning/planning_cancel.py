@@ -123,10 +123,11 @@ Coverage cancelled
         if reason:
             ednote += 'Reason: {}\n'.format(reason)
 
-        if 'ednote' in original:
-            ednote = original['ednote'] + '\n\n' + ednote
+        if len(original.get('ednote') or '') > 0:
+            updates['ednote'] = original['ednote'] + '\n\n' + ednote
+        else:
+            updates['ednote'] = ednote
 
-        updates['ednote'] = ednote
         updates[ITEM_STATE] = WORKFLOW_STATE.CANCELLED
 
     def on_updated(self, updates, original):

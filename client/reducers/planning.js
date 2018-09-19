@@ -267,15 +267,15 @@ Event ${action}
 `;
     }
 
-    if (get(payload, 'reason', null) !== null) {
+    if (get(payload, 'reason.length', 0) > 0) {
         ednote += `Reason: ${payload.reason}\n`;
     }
 
-    if (get(plan, 'ednote', null) !== null) {
-        ednote = `${plan.ednote}\n\n${ednote}`;
+    if (get(plan, 'ednote.length', 0) > 0) {
+        plan.ednote += `\n\n${ednote}`;
+    } else {
+        plan.ednote = ednote;
     }
-
-    plan.ednote = ednote;
 };
 
 const markCoverage = (coverage, payload, action) => {
@@ -293,16 +293,20 @@ Coverage ${action}
 `;
     }
 
-    if (get(payload, 'reason', null) !== null) {
+    if (get(payload, 'reason.length', 0) > 0) {
         note += `Reason: ${payload.reason}\n`;
     }
 
-    if (get(coverage, 'planning.internal_note', null) !== null) {
-        note = `${coverage.planning.internal_note}\n\n${note}`;
+    if (get(coverage, 'planning.internal_note.length', 0) > 0) {
+        coverage.planning.internal_note += `\n\n${note}`;
+    } else {
+        coverage.planning.internal_note = note;
     }
 
-    if (get(coverage, 'planning.ednote', null) !== null) {
-        note = `${coverage.planning.ednote}\n\n${note}`;
+    if (get(coverage, 'planning.ednote.length', 0) > 0) {
+        coverage.planning.ednote += `\n\n${note}`;
+    } else {
+        coverage.planning.ednote = note;
     }
 
     if ('coverage_state' in payload) {
@@ -313,8 +317,6 @@ Coverage ${action}
         coverage.previous_status = coverage.workflow_status;
         coverage.workflow_status = WORKFLOW_STATE.CANCELLED;
     }
-
-    coverage.planning.internal_note = note;
 };
 
 export default planningReducer;

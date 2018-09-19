@@ -4,7 +4,7 @@ import {Row as PreviewRow} from '../UI/Preview';
 import {CollapseBox} from '../UI';
 import moment from 'moment-timezone';
 import {get} from 'lodash';
-import {getCreator, getItemInArrayById, getDateTimeString, gettext} from '../../utils';
+import {getCreator, getItemInArrayById, getDateTimeString, gettext, stringUtils} from '../../utils';
 import {StateLabel} from '../index';
 import {PLANNING} from '../../constants';
 
@@ -98,24 +98,64 @@ export const CoveragePreview = ({
     const coverageInDetail = (
         <div>
             {get(formProfile, 'editor.slugline.enabled') &&
-            <PreviewRow label={gettext('Slugline')} value={coverage.planning.slugline} />}
+                <PreviewRow
+                    label={gettext('Slugline')}
+                    value={coverage.planning.slugline}
+                />
+            }
+
             {get(formProfile, 'editor.ednote.enabled') &&
-            <PreviewRow label={gettext('Ed Note')} value={coverage.planning.ednote} />}
+                <PreviewRow
+                    label={gettext('Ed Note')}
+                    value={stringUtils.convertNewlineToBreak(
+                        coverage.planning.ednote || ''
+                    )}
+                />
+            }
+
             {get(formProfile, 'editor.keyword.enabled') &&
-            <PreviewRow label={gettext('Keyword')} value={keywordText} />}
+                <PreviewRow
+                    label={gettext('Keyword')}
+                    value={keywordText}
+                />
+            }
+
             {get(formProfile, 'editor.internal_note.enabled') &&
-            <PreviewRow label={gettext('Internal Note')} value={coverage.planning.internal_note} />}
+                <PreviewRow
+                    label={gettext('Internal Note')}
+                    value={stringUtils.convertNewlineToBreak(
+                        coverage.planning.internal_note || ''
+                    )}
+                />
+            }
+
             {get(formProfile, 'editor.g2_content_type.enabled') &&
-            <PreviewRow label={gettext('Type')}
-                value={!coverage.planning.g2_content_type ? '' :
-                    coverage.planning.g2_content_type.charAt(0).toUpperCase() +
-                        coverage.planning.g2_content_type.slice(1)}
-            />}
+                <PreviewRow
+                    label={gettext('Type')}
+                    value={!coverage.planning.g2_content_type ? '' :
+                        stringUtils.firstCharUpperCase(!coverage.planning.g2_content_type)
+                    }
+                />
+            }
+
             {get(formProfile, 'editor.genre.enabled') && coverage.planning.genre &&
-                <PreviewRow label={gettext('Genre')} value={get(coverage, 'planning.genre.name')} />}
-            <PreviewRow label={gettext('Coverage Status')} value={coverageStatus.label || ''} />
+                <PreviewRow
+                    label={gettext('Genre')}
+                    value={get(coverage, 'planning.genre.name')}
+                />
+            }
+
+            <PreviewRow
+                label={gettext('Coverage Status')}
+                value={coverageStatus.label || ''}
+            />
+
             {get(formProfile, 'editor.scheduled.enabled') &&
-            <PreviewRow label={gettext('Due')} value={coverageDateText} />}
+                <PreviewRow
+                    label={gettext('Due')}
+                    value={coverageDateText}
+                />
+            }
         </div>
     );
 
