@@ -71,6 +71,8 @@ export const AssignmentPreviewHeader = ({
                                 initials={false}
                             />
                         </Column>
+                    </Item>
+                    <Item noBg={true} noHover={true}>
                         <Column border={false}>
                             <Row margin={false}>
                                 <span className="sd-list-item__normal">

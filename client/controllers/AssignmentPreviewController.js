@@ -40,7 +40,7 @@ export class AssignmentPreviewController {
     render() {
         ReactDOM.render(
             <Provider store={this.store}>
-                <SidePanel shadowRight={true} className="content-container no-padding">
+                <SidePanel className="content-container no-padding">
                     <AssignmentPreviewContainer />
                 </SidePanel>
             </Provider>,
