@@ -18,6 +18,7 @@ export class CreateNewGeoLookup extends React.Component {
             address: '',
             state: '',
             country: '',
+            city: '',
         };
         this.dom = {name: null};
 
@@ -48,7 +49,8 @@ export class CreateNewGeoLookup extends React.Component {
         const locationAddress = formatAddress({
             address: {
                 road: this.state.address,
-                locality: this.state.state,
+                locality: this.state.city,
+                state: this.state.state,
                 country: this.state.country,
             },
         });
@@ -113,8 +115,17 @@ export class CreateNewGeoLookup extends React.Component {
                     />
                     <Field
                         component={TextInput}
+                        field="city"
+                        label={gettext('City/Town')}
+                        onChange={this.onChange}
+                        value={this.state.city}
+                        required
+                        noMargin
+                    />
+                    <Field
+                        component={TextInput}
                         field="state"
-                        label={gettext('State')}
+                        label={gettext('State/Province/Region')}
                         onChange={this.onChange}
                         value={this.state.state}
                         required
