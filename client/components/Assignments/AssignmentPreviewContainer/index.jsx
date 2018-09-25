@@ -75,6 +75,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
             keywords,
             formProfile,
             agendas,
+            hideAvatar,
         } = this.props;
 
         if (!assignment) {
@@ -95,6 +96,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
                     itemActions={itemActions}
                     users={users}
                     desks={desks}
+                    hideAvatar={hideAvatar}
                 />
 
                 {showFulfilAssignment && state === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
@@ -158,6 +160,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
 }
 
 AssignmentPreviewContainerComponent.propTypes = {
+    hideAvatar: PropTypes.bool,
     assignment: PropTypes.object.isRequired,
     onFulFilAssignment: PropTypes.func,
     startWorking: PropTypes.func.isRequired,

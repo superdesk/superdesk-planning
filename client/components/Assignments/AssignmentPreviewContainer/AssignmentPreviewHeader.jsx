@@ -25,6 +25,7 @@ export const AssignmentPreviewHeader = ({
     itemActions,
     users,
     desks,
+    hideAvatar,
 }) => {
     const {
         assignedTo,
@@ -63,14 +64,18 @@ export const AssignmentPreviewHeader = ({
             <Tools className="AssignmentPreview__toolbar" topTools={true}>
                 <div>
                     <Item noBg={true} noHover={true}>
-                        <Column border={false}>
-                            <UserAvatar
-                                user={assignedUser}
-                                large={true}
-                                noMargin={true}
-                                initials={false}
-                            />
-                        </Column>
+                        {
+                            hideAvatar === true ? null : (
+                                <Column border={false}>
+                                    <UserAvatar
+                                        user={assignedUser}
+                                        large={true}
+                                        noMargin={true}
+                                        initials={false}
+                                    />
+                                </Column>
+                            )
+                        }
                         <Column border={false}>
                             <Row margin={false}>
                                 <span className="sd-list-item__normal">
@@ -160,4 +165,5 @@ AssignmentPreviewHeader.propTypes = {
     itemActions: PropTypes.array,
     users: PropTypes.array,
     desks: PropTypes.array,
+    hideAvatar: PropTypes.bool,
 };
