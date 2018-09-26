@@ -41,7 +41,7 @@ export class AssignmentPreviewController {
         ReactDOM.render(
             <Provider store={this.store}>
                 <SidePanel shadowRight={true} className="content-container no-padding">
-                    <AssignmentPreviewContainer />
+                    <AssignmentPreviewContainer hideAvatar={this.$scope.vm.hideAvatar} />
                 </SidePanel>
             </Provider>,
             this.$element.get(0)

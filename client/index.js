@@ -25,7 +25,7 @@ export default angular.module('superdesk-planning', [])
     )
     .directive('sdAssignmentPreview',
         () => ({
-            scope: {item: '='},
+            scope: {item: '=', hideAvatar: '<'},
             bindToController: true,
             controllerAs: 'vm',
             controller: ctrl.AssignmentPreviewController,
