@@ -51,14 +51,14 @@ const mapDispatchToProps = (dispatch) => ({
     onPost: (item) => dispatch(actions.main.post(item)),
     openCancelModal: (modalProps) => dispatch(actions.main.openIgnoreCancelSaveModal(modalProps)),
 
-    onValidate: (type, item, diff, profile, errors, messages) => dispatch(validateItem({
+    onValidate: (type, item, diff, profile, errors, messages, ignoreDateValidation = false) => dispatch(validateItem({
         profileName: type,
         item: item,
         diff: diff,
         formProfiles: profile,
         errors: errors,
         messages: messages,
-        ignoreDateValidation: true,
+        ignoreDateValidation: ignoreDateValidation,
     })),
     loadItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'edit')),
     itemActions: actionUtils.getActionDispatches({dispatch: dispatch}),
@@ -79,14 +79,14 @@ const mapDispatchToPropsModal = (dispatch) => ({
     onUnpost: (item) => dispatch(actions.main.unpost(item)),
     onPost: (item) => dispatch(actions.main.post(item)),
     openCancelModal: (modalProps) => dispatch(actions.main.openIgnoreCancelSaveModal(modalProps)),
-    onValidate: (type, item, diff, profile, errors, messages) => dispatch(validateItem({
+    onValidate: (type, item, diff, profile, errors, messages, ignoreDateValidation = false) => dispatch(validateItem({
         profileName: type,
         item: item,
         diff: diff,
         formProfiles: profile,
         errors: errors,
         messages: messages,
-        ignoreDateValidation: true,
+        ignoreDateValidation: ignoreDateValidation,
     })),
     loadItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'edit')),
     itemActions: actionUtils.getActionDispatches({dispatch: dispatch}),

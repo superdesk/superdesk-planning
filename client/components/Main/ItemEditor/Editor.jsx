@@ -239,7 +239,8 @@ export class EditorComponent extends React.Component {
             diff,
             this.props.formProfiles,
             errors,
-            errorMessages
+            errorMessages,
+            !isTemporaryId(this.props.itemId)
         );
 
         const newState = {diff, errors, errorMessages};
@@ -315,7 +316,8 @@ export class EditorComponent extends React.Component {
             updates,
             this.props.formProfiles,
             errors,
-            errorMessages
+            errorMessages,
+            !isTemporaryId(this.props.itemId)
         );
 
         if (isEqual(errorMessages, [])) {

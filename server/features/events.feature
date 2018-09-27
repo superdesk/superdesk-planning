@@ -929,3 +929,33 @@ Feature: Events
         """
         {"_message": "Event duration is greater than 7 days.", "_status": "ERR"}
         """
+
+    @auth
+    Scenario: Create new event fails start date less than end date
+        Given config update
+        """
+        {"MAX_MULTI_DAY_EVENT_DURATION": 7}
+        """
+        When we post to "/events"
+        """
+        [
+            {
+                "guid": "123",
+                "unique_id": "123",
+                "unique_name": "123 name",
+                "name": "event 123",
+                "slugline": "event-123",
+                "definition_short": "short value",
+                "definition_long": "long value",
+                "dates": {
+                    "start": "2099-01-12",
+                    "end": "2099-01-10"
+                },
+                "subject": [{"qcode": "test qcaode", "name": "test name"}]
+            }
+        ]
+        """
+        Then we get error 400
+        """
+        {"_message": "END TIME should be after START TIME", "_status": "ERR"}
+        """

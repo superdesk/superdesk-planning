@@ -278,7 +278,7 @@ def step_impl_when_we_duplicate_event(context, event_id):
 
         duplicate_event['duplicate_from'] = event_id
         duplicate_event['dates']['start'] = "2099-01-02"
-        duplicate_event['dates']['start'] = "2099-01-03"
+        duplicate_event['dates']['end'] = "2099-01-03"
         duplicate_event['unique_id'] = 456
         duplicate_event['definition_short'] = 'duplicate'
         duplicate_event['name'] = 'duplicate'

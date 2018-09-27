@@ -26,7 +26,7 @@ active = {
 }
 
 expired = {
-    'event': {'dates': {'start': yesterday, 'end': yesterday - timedelta(hours=1)}},
+    'event': {'dates': {'start': yesterday, 'end': yesterday + timedelta(hours=1)}},
     'plan': {'planning_date': yesterday},
     'coverage': {'planning': {'scheduled': yesterday}}
 }

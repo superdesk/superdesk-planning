@@ -194,6 +194,21 @@ class EventsService(superdesk.Service):
         @:param dict event: event created or updated
         """
         self._validate_multiday_event_duration(event)
+        self._validate_dates(event)
+
+    def _validate_dates(self, event):
+        """Validate the dates
+
+        @:param dict event:
+        """
+        start_date = event.get('dates', {}).get('start')
+        end_date = event.get('dates', {}).get('end')
+
+        if not start_date or not end_date:
+            return
+
+        if end_date < start_date:
+            raise SuperdeskApiError(message="END TIME should be after START TIME")
 
     def _validate_multiday_event_duration(self, event):
         """Validate that the multiday event duration is not greater than PLANNING_MAX_MULTI_DAY_DURATION
