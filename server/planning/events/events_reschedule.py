@@ -67,6 +67,8 @@ class EventsRescheduleService(EventsBaseService):
             if has_plannings:
                 self._reschedule_event_plannings(original, reason)
 
+        self.set_planning_schedule(updates)
+
     @staticmethod
     def _mark_event_rescheduled(updates, original, reason, keep_dates=False):
         updates['state'] = WORKFLOW_STATE.RESCHEDULED
@@ -114,10 +116,8 @@ Event Rescheduled
         new_event = deepcopy(original)
         new_event.update(updates)
 
-        for f in {'_id', 'guid', 'unique_name', 'unique_id', 'lock_user', 'lock_time',
-                  'lock_session', 'lock_action', '_created', '_updated', '_etag', 'pubstatus',
-                  'reason', 'duplicate_to', 'duplicate_from', 'reschedule_to'}:
-            new_event.pop(f, None)
+        # Remove fields not required by new events
+        EventsRescheduleService.remove_fields(new_event)
 
         new_event[ITEM_STATE] = WORKFLOW_STATE.DRAFT
         new_event['guid'] = generate_guid(type=GUID_NEWSML)
@@ -125,6 +125,7 @@ Event Rescheduled
         new_event['reschedule_from'] = original[config.ID_FIELD]
         new_event['_reschedule_from_schedule'] = original['dates']['start']
         set_original_creator(new_event)
+        EventsRescheduleService.set_planning_schedule(new_event)
 
         created_event = events_service.create([new_event])[0]
         history_service = get_resource_service('events_history')

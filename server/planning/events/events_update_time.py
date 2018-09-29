@@ -76,7 +76,8 @@ class EventsUpdateTimeService(EventsBaseService):
             if not event.get(config.ID_FIELD):
                 continue
 
-            new_updates = {'dates': deepcopy(event['dates'])}
+            new_updates = {'dates': deepcopy(event['dates'])} \
+                if event.get(config.ID_FIELD) != original.get(config.ID_FIELD) else updates
 
             # Calculate midnight in local time for this occurrence
             start_of_day_local = utc_to_local(timezone, event['dates']['start'])\
