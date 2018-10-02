@@ -13,7 +13,8 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from apps.auth import get_user_id
-from planning.common import remove_lock_information, WORKFLOW_STATE, POST_STATE, get_max_recurrent_events
+from planning.common import remove_lock_information, WORKFLOW_STATE, POST_STATE, \
+    get_max_recurrent_events, set_original_creator
 from .events import EventsResource, generate_recurring_dates
 from .events_base_service import EventsBaseService
 from planning.item_lock import LOCK_ACTION
@@ -136,6 +137,7 @@ class EventsUpdateRepetitionsService(EventsBaseService):
 
     def _update_event(self, updated_rule, original):
         updates = self._update_rules(original, updated_rule)
+        self.set_planning_schedule(updates)
         self.backend.update(self.datasource, original[config.ID_FIELD], updates, original)
         get_resource_service('events_history').on_update_repetitions(
             updates,
@@ -149,8 +151,9 @@ class EventsUpdateRepetitionsService(EventsBaseService):
         new_event.update(deepcopy(updates))
 
         # Remove fields not required by new events
-        new_event.pop('reschedule_from', None)
-        new_event.pop('pubstatus', None)
+        EventsUpdateRepetitionsService.remove_fields(new_event,
+                                                     extra_fields=['reschedule_from', 'pubstatus'])
+
         new_event['state'] = WORKFLOW_STATE.DRAFT
         for key in list(new_event.keys()):
             if key.startswith('_') or key.startswith('lock_'):
@@ -160,6 +163,7 @@ class EventsUpdateRepetitionsService(EventsBaseService):
         new_event['dates']['start'] = date
         new_event['dates']['end'] = date + time_delta
         new_event[config.ID_FIELD] = new_event['guid'] = generate_guid(type=GUID_NEWSML)
+        set_original_creator(new_event)
         self.set_planning_schedule(new_event)
 
         return new_event

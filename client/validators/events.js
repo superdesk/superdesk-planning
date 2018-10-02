@@ -3,7 +3,7 @@ import {get, set, isEmpty, isEqual} from 'lodash';
 import {gettext, eventUtils} from '../utils';
 import * as selectors from '../selectors';
 import {formProfile} from './profile';
-import {PRIVILEGES} from '../constants';
+import {PRIVILEGES, EVENTS} from '../constants';
 
 const validateRequiredDates = ({value, errors, messages}) => {
     if (!get(value, 'start')) {
@@ -139,6 +139,7 @@ const validateDates = ({getState, value, errors, messages}) => {
     }
 
     const newErrors = {};
+    const modalProps = selectors.general.modalProps(getState());
 
     self.validateRequiredDates({
         value: value,
@@ -150,24 +151,30 @@ const validateDates = ({getState, value, errors, messages}) => {
         errors: newErrors,
         messages: messages,
     });
-    self.validateDateInPast({
-        getState: getState,
-        value: value,
-        errors: newErrors,
-        messages: messages,
-    });
-    self.validateRecurringRules({
-        getState: getState,
-        value: value,
-        errors: newErrors,
-        messages: messages,
-    });
-    self.validateMultiDayDuration({
-        value: value,
-        getState: getState,
-        errors: newErrors,
-        messages: messages,
-    });
+
+    // we don't have to validate all recurring form update time action
+    // as only time is modified. we could be modifying a event that schedule
+    // after until or difference could be greater than multi day duration
+    if (get(modalProps, 'actionType', '') !== EVENTS.ITEM_ACTIONS.UPDATE_TIME.label) {
+        self.validateDateInPast({
+            getState: getState,
+            value: value,
+            errors: newErrors,
+            messages: messages,
+        });
+        self.validateRecurringRules({
+            getState: getState,
+            value: value,
+            errors: newErrors,
+            messages: messages,
+        });
+        self.validateMultiDayDuration({
+            value: value,
+            getState: getState,
+            errors: newErrors,
+            messages: messages,
+        });
+    }
 
     if (!isEqual(newErrors, {})) {
         errors.dates = newErrors;

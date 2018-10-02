@@ -290,3 +290,15 @@ class EventsBaseService(BaseService):
             if '_plans' not in event:
                 event['_plans'] = []
             event['_plans'].append(plan)
+
+    @staticmethod
+    def remove_fields(new_event, extra_fields=None):
+        """Remove fields not required by new event"""
+        for f in {'_id', 'guid', 'unique_name', 'unique_id', 'lock_user', 'lock_time',
+                  'lock_session', 'lock_action', '_created', '_updated', '_etag', 'pubstatus',
+                  'reason', 'duplicate_to', 'duplicate_from', 'reschedule_to'}:
+            new_event.pop(f, None)
+
+        if extra_fields:
+            for f in extra_fields:
+                new_event.pop(f, None)
