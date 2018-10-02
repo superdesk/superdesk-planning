@@ -5,7 +5,7 @@ import {gettext} from '../../utils';
 import * as selectors from '../../selectors';
 import {events, fetchAgendas} from '../index';
 import main from '../main';
-import {PLANNING, ITEM_TYPE, MODALS, FEATURED_PLANNING, WORKFLOW_STATE} from '../../constants';
+import {PLANNING, ITEM_TYPE, MODALS, FEATURED_PLANNING, WORKFLOW_STATE, WORKSPACE} from '../../constants';
 import {showModal, hideModal} from '../index';
 import eventsPlanning from '../eventsPlanning';
 
@@ -53,7 +53,9 @@ const onPlanningUpdated = (_e, data) => (
                     const loadedFromRefetch = selectedItems.indexOf(data.item) !== -1 &&
                         !get(results, '[0]._items').find((plan) => plan._id === data.item);
 
-                    if (!loadedFromRefetch && (currentPreviewId === data.item || currentEditId === data.item)) {
+                    if (!loadedFromRefetch && (
+                        selectors.general.currentWorkspace(getState()) === WORKSPACE.ASSIGNMENTS ||
+                        currentPreviewId === data.item || currentEditId === data.item)) {
                         dispatch(planning.api.fetchById(data.item, {force: true}));
                     }
 
@@ -62,7 +64,7 @@ const onPlanningUpdated = (_e, data) => (
                         dispatch(fetchAgendas());
                     }
                     dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
-                    dispatch(udpateAssignmentHistory(data.item));
+                    dispatch(udpateAssignment(data.item));
                     dispatch(planning.featuredPlanning.onPlanningUpdatedNotification(data.item));
                     dispatch(eventsPlanning.ui.refetchPlanning(data.item));
                 });
@@ -235,7 +237,7 @@ const onPlanningCancelled = (e, data) => (
                 get(data, 'event_cancellation')
             ));
             dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
-            dispatch(udpateAssignmentHistory(data.item));
+            dispatch(udpateAssignment(data.item));
             dispatch(planning.featuredPlanning.removePlanningItemFromSelection(data.item));
         }
     }
@@ -252,17 +254,22 @@ const onCoverageCancelled = (e, data) => (
                 get(data, 'etag')
             ));
             dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
-            dispatch(udpateAssignmentHistory(data.item));
+            dispatch(udpateAssignment(data.item));
         }
     }
 );
 
-const udpateAssignmentHistory = (planningId) => (
+const udpateAssignment = (planningId) => (
     (dispatch, getState) => {
+        if (selectors.general.currentWorkspace(getState()) !== WORKSPACE.ASSIGNMENTS) {
+            return Promise.resolve();
+        }
+
         const planningItem = selectors.planning.storedPlannings(getState())[planningId];
 
         get(planningItem, 'coverages', []).forEach((cov) => {
             if (get(cov, 'assigned_to.assignment_id')) {
+                dispatch(assignments.api.fetchAssignmentById(cov.assigned_to.assignment_id, true));
                 dispatch(assignments.api.fetchAssignmentHistory({_id: cov.assigned_to.assignment_id}));
             }
         });

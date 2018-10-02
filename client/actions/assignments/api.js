@@ -105,6 +105,7 @@ const fetchAssignmentById = (id, force = false, recieve = true) => (
 
         return api('assignments').getById(id)
             .then((item) => {
+                planningUtils.modifyCoverageForClient(item);
                 if (recieve) {
                     dispatch(self.receivedAssignments([item]));
                 }
