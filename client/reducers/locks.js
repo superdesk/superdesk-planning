@@ -23,10 +23,9 @@ const removeLock = (item, state, itemType) => {
         delete state.recurring[item.recurrence_id];
     } else if (get(item, 'event_item')) {
         delete state.event[item.event_item];
-    } else {
-        delete state[itemType][item._id];
     }
 
+    delete state[itemType][item._id];
     return state;
 };
 

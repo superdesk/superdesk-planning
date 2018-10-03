@@ -1263,9 +1263,14 @@ const _save = (eventUpdates) => (
 
             return api('events').save(original, updates);
         })
-        .then((data) => (
-            Promise.resolve(get(data, '_items') || [data])
-        ), (error) => Promise.reject(error))
+        .then((data) => {
+            if (get(data, '_planning_item')) {
+                // If event was created by a planning item, unlock the planning item
+                dispatch(planningApi.unlock({_id: data._planning_item}));
+            }
+
+            return Promise.resolve(get(data, '_items') || [data]);
+        }, (error) => Promise.reject(error))
 );
 
 const save = (event) => (

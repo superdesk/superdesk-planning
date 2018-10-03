@@ -655,6 +655,13 @@ const selectCalendar = (calendarId = '', params = {}) => (
     }
 );
 
+const onEventEditUnlock = (event) => (
+    (dispatch) => (
+        get(event, '_planning_item') ? dispatch(planningApi.unlock({_id: event._planning_item})) :
+            Promise.resolve()
+    )
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     fetchEvents,
@@ -688,6 +695,7 @@ const self = {
     createEventFromPlanning,
     selectCalendar,
     _openActionModalFromEditor,
+    onEventEditUnlock,
 };
 
 export default self;
