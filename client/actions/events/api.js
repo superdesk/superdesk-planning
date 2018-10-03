@@ -1300,13 +1300,7 @@ const fetchEventFiles = (event) => (
 
         return api('events_files').query(
             {
-                source: {
-                    query: {
-                        terms: {
-                            _id: event.files,
-                        },
-                    },
-                },
+                where: {$and: [{_id: {$in: event.files}}]},
             }
         )
             .then((data) => {
