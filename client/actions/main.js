@@ -1380,6 +1380,32 @@ const spikeAfterUnlock = (unlockedItem, previousLock, openInEditor, openInModal)
     }
 );
 
+/**
+ * Action dispatcher that attempts to save and unlock an item
+ * @param {object} item - The item to save and unlock
+ * @return Promise
+ */
+const saveAndUnlockItem = (item) => (
+    (dispatch, getState, {notify}) => {
+        const promise = getItemType(item) === ITEM_TYPE.PLANNING ? dispatch(planningUi.save(item)) :
+            dispatch(eventsUi.saveWithConfirmation(item));
+
+        return promise
+            .then((savedItem) =>
+                (dispatch(locks.unlock(get(savedItem, '[0]', savedItem), false))
+                    .then((unlockedItem) => Promise.resolve(unlockedItem))
+                    .catch(() => {
+                        notify.error(gettext('Could not unlock the item.'));
+                        return Promise.reject(savedItem);
+                    })),
+            (error) => {
+                notify.error(gettext('Could not save the item.'));
+                return Promise.reject(error);
+            });
+    }
+);
+
+
 // eslint-disable-next-line consistent-this
 const self = {
     lockAndEdit,
@@ -1425,6 +1451,7 @@ const self = {
     closePublishQueuePreviewOnWorkspaceChange,
     spikeItem,
     spikeAfterUnlock,
+    saveAndUnlockItem,
 };
 
 export default self;

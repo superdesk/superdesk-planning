@@ -41,6 +41,7 @@ export class PlanningListComponent extends React.Component {
             timeFormat,
             session,
             privileges,
+            calendars,
             activeFilter,
             onAddCoverageClick,
             selectedEventIds,
@@ -85,6 +86,7 @@ export class PlanningListComponent extends React.Component {
                 itemActions={itemActions}
                 hideItemActions={hideItemActions}
                 showAddCoverage={showAddCoverage}
+                calendars={calendars}
             />
         );
     }
@@ -117,6 +119,7 @@ PlanningListComponent.propTypes = {
     itemActions: PropTypes.object,
     hideItemActions: PropTypes.bool,
     showAddCoverage: PropTypes.bool,
+    calendars: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({
@@ -134,6 +137,7 @@ const mapStateToProps = (state) => ({
     loadingIndicator: selectors.main.loadingIndicator(state),
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
+    calendars: selectors.events.enabledCalendars(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

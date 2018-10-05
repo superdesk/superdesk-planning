@@ -918,7 +918,7 @@ const lock = (event, action = 'edit') => (
                     // On lock, file object in the event is lost, so, replace it from original event
                     item.files = event.files;
 
-                    return Promise.resolve(item);
+                    return Promise.resolve(eventUtils.modifyForClient(item));
                 }, (error) => {
                     const msg = get(error, 'data._message') || 'Could not lock the event.';
 

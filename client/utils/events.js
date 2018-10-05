@@ -335,6 +335,8 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
             canEditEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.label]: () =>
             canEditEvent(event, session, privileges, locks),
+        [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.label]: () =>
+            canEditEvent(event, session, privileges, locks),
     };
 
     actions.forEach((action) => {
@@ -520,7 +522,7 @@ const getMultiDayPlanningActions = (item, actions, createPlanning, createAndOpen
     }
 };
 
-const getEventActions = (item, session, privileges, lockedItems, callBacks, withMultiPlanningDate = false) => {
+const getEventActions = ({item, session, privileges, lockedItems, callBacks, withMultiPlanningDate, calendars}) => {
     if (!isExistingItem(item)) {
         return [];
     }
@@ -559,6 +561,23 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks, with
             });
         }
     });
+
+    if (get(calendars, 'length', 0) > 0) {
+        let calendarCallBacks = [];
+
+        calendars.forEach((cal) => {
+            calendarCallBacks.push({
+                label: cal.name,
+                inactive: !!get(item, 'calendars', []).find((c) => c.qcode === cal.qcode),
+                callback: callBacks[EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName].bind(null, item, cal),
+            });
+        });
+
+        calendarCallBacks.length > 0 && actions.push({
+            ...EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR,
+            callback: calendarCallBacks,
+        });
+    }
 
     if (!isExpired || privileges[PRIVILEGES.EDIT_EXPIRED]) {
         const CREATE_PLANNING = callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName];

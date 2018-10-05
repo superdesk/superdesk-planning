@@ -51,8 +51,19 @@ Feature: Planning Validate
             }
         }]
         """
+        Given the "vocabularies"
+        """
+        [{
+            "_id": "event_calendars",
+            "display_name": "Event Calendars",
+            "type": "manageable",
+            "unique_field": "qcode",
+            "items": [{"is_active": true, "name": "Calendar 1", "qcode": "cal1"}]
+        }]
+        """
 
     @auth
+    @vocabulary
     Scenario: Event post validation failure
         When we post to "events"
         """
@@ -100,6 +111,7 @@ Feature: Planning Validate
         Then we get OK response
 
     @auth
+    @vocabulary
     Scenario: Post invalid series doesnt post any event in the series
         When we post to "events"
         """

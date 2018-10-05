@@ -44,8 +44,8 @@ export class EventItem extends React.Component {
             return null;
         }
 
-        const {session, privileges, item, lockedItems} = this.props;
-        const itemActionsCallBack = {
+        const {session, privileges, item, lockedItems, calendars} = this.props;
+        const callBacks = {
             [EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName]:
@@ -72,8 +72,10 @@ export class EventItem extends React.Component {
                 this.props[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName].bind(null, item),
+            [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]:
+                this.props[EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName],
         };
-        const itemActions = eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack);
+        const itemActions = eventUtils.getEventActions({item, session, privileges, lockedItems, callBacks, calendars});
 
         if (get(itemActions, 'length', 0) === 0) {
             return null;
@@ -208,6 +210,7 @@ EventItem.propTypes = {
     relatedPlanningText: PropTypes.string,
     multiSelected: PropTypes.bool,
     onMultiSelectClick: PropTypes.func,
+    calendars: PropTypes.array,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName]: PropTypes.func,
@@ -219,6 +222,7 @@ EventItem.propTypes = {
     [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]: PropTypes.func,
 };
 
 EventItem.defaultProps = {

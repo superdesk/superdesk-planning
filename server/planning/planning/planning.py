@@ -26,7 +26,7 @@ from copy import deepcopy
 from eve.utils import config, ParsedRequest, date_to_str
 from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, get_coverage_cancellation_state,\
     remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name,\
-    set_original_creator
+    set_original_creator, list_uniq_with_order
 from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
@@ -95,6 +95,7 @@ class PlanningService(superdesk.Service):
             if 'guid' not in doc:
                 doc['guid'] = generate_guid(type=GUID_NEWSML)
             doc[config.ID_FIELD] = doc['guid']
+            self.validate_agendas(doc)
             set_original_creator(doc)
             self._set_planning_event_info(doc, planning_type)
             self._set_coverage(doc)
@@ -173,9 +174,12 @@ class PlanningService(superdesk.Service):
         if lock_user and str(lock_user) != str_user_id:
             raise SuperdeskApiError.forbiddenError('The item was locked by another user')
 
+        self.validate_agendas(updates, original)
+
+    def validate_agendas(self, updates, original=None):
         # Validate if agendas being added are enabled agendas
         new_agendas = [agenda for agenda in updates.get('agendas', [])
-                       if agenda not in original.get('agendas', [])]
+                       if agenda not in (original or {}).get('agendas', [])]
         agenda_service = get_resource_service('agenda')
         for agenda_id in new_agendas:
             agenda = agenda_service.find_one(req=None, _id=str(agenda_id))
@@ -183,6 +187,10 @@ class PlanningService(superdesk.Service):
                 raise SuperdeskApiError.forbiddenError('Agenda \'{}\' does not exist'.format(agenda.get('name')))
             if not agenda.get('is_enabled', False):
                 raise SuperdeskApiError.forbiddenError('Agenda \'{}\' is not enabled'.format(agenda.get('name')))
+
+        # Remove duplicate agendas
+        if len(updates.get('agendas', [])) > 0:
+            updates['agendas'] = list_uniq_with_order(updates['agendas'])
 
     def _set_planning_event_info(self, doc, planning_type):
         """Set the planning event date

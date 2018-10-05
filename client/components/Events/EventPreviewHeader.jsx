@@ -14,6 +14,7 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
         const {
             users,
             privileges,
+            calendars,
             item,
             lockedItems,
             session,
@@ -22,7 +23,8 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
             hideItemActions,
         } = this.props;
 
-        const itemActionsCallBack = {
+        const withMultiPlanningDate = true;
+        const callBacks = {
             [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
                 itemActionDispatches[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
@@ -43,9 +45,19 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
                 itemActionDispatches[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
                 itemActionDispatches[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName].bind(null, item),
+            [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]:
+                itemActionDispatches[EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName],
         };
         const itemActions = !hideItemActions ?
-            eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack, true) : null;
+            eventUtils.getEventActions({
+                item,
+                session,
+                privileges,
+                lockedItems,
+                callBacks,
+                withMultiPlanningDate,
+                calendars,
+            }) : null;
         const lockedUser = lockUtils.getLockedUser(item, lockedItems, users);
         const lockRestricted = eventUtils.isEventLockRestricted(item, session, lockedItems);
         const unlockPrivilege = !!privileges[PRIVILEGES.EVENT_MANAGEMENT];
@@ -92,6 +104,7 @@ EventPreviewHeaderComponent.propTypes = {
     hideItemActions: PropTypes.bool,
     duplicateEvent: PropTypes.func,
     onUnlock: PropTypes.func,
+    calendars: PropTypes.array,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -100,6 +113,7 @@ const mapStateToProps = (state, ownProps) => ({
     privileges: selectors.general.privileges(state),
     users: selectors.general.users(state),
     lockedItems: selectors.locks.getLockedItems(state),
+    calendars: selectors.events.enabledCalendars(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

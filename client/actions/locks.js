@@ -67,7 +67,7 @@ const loadAssignmentLocks = () => (
  * and calls the appropriate unlock method on the item that is actually locked
  * @param {object} item - The Event or Planning item chain to unlock
  */
-const unlock = (item) => (
+const unlock = (item, removeAutosave = true) => (
     (dispatch, getState, {notify}) => {
         const locks = selectors.locks.getLockedItems(getState());
         const currentLock = lockUtils.getLock(item, locks);
@@ -91,15 +91,16 @@ const unlock = (item) => (
         }
 
         return promise.then((unlockedItem) => (
-            dispatch(autosave.removeById(
-                currentLock.item_type,
-                currentLock.item_id,
-                currentLock.action === 'edit'
-            ))
-                .then(
-                    () => Promise.resolve(unlockedItem),
-                    (err) => Promise.reject(err)
-                )
+            !removeAutosave ? Promise.resolve(unlockedItem) :
+                dispatch(autosave.removeById(
+                    currentLock.item_type,
+                    currentLock.item_id,
+                    currentLock.action === 'edit'
+                ))
+                    .then(
+                        () => Promise.resolve(unlockedItem),
+                        (err) => Promise.reject(err)
+                    )
         ));
     }
 );
