@@ -26,6 +26,7 @@ export const AssignmentPreviewHeader = ({
     users,
     desks,
     hideAvatar,
+    hideItemActions,
 }) => {
     const {
         assignedTo,
@@ -57,9 +58,9 @@ export const AssignmentPreviewHeader = ({
                         updatedAt={updatedDate}
                     />
                 </ContentBlockInner>
-                <div>
-                    {get(itemActions, 'length') > 0 && <ItemActionsMenu actions={itemActions}/>}
-                </div>
+                {get(itemActions, 'length') > 0 && !hideItemActions &&
+                    <div><ItemActionsMenu actions={itemActions}/></div>
+                }
             </ContentBlock>
             <Tools className="AssignmentPreview__toolbar" topTools={true}>
                 <div>
@@ -166,4 +167,5 @@ AssignmentPreviewHeader.propTypes = {
     users: PropTypes.array,
     desks: PropTypes.array,
     hideAvatar: PropTypes.bool,
+    hideItemActions: PropTypes.bool,
 };
