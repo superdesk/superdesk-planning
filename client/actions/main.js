@@ -135,6 +135,7 @@ const lockAndEdit = (item, modal = false) => (
 const unlockAndCancel = (item, modal = false) => (
     (dispatch, getState) => {
         const state = getState();
+        const itemType = getItemType(item);
         let promise = Promise.resolve();
 
         // If the item exists and is locked in this session
@@ -145,10 +146,12 @@ const unlockAndCancel = (item, modal = false) => (
             selectors.general.currentWorkspace(state))
         ) {
             promise = dispatch(locks.unlock(item));
-        } else if (get(item, '_planning_item')) {
-            promise = dispatch(planningApi.unlock({_id: item._planning_item}));
         } else if (!isExistingItem(item)) {
-            promise = dispatch(autosave.removeById(getItemType(item), getItemId(item)));
+            promise = dispatch(autosave.removeById(itemType, getItemId(item)));
+        }
+
+        if (itemType === ITEM_TYPE.EVENT) {
+            dispatch(eventsUi.onEventEditUnlock(item));
         }
 
         if (!modal) {
@@ -215,17 +218,8 @@ const save = (item, withConfirmation = true, noSubsequentEditing = false) => (
                     );
 
                     return dispatch(autosave.removeById(itemType, itemId))
-                        // If this item was created from a Planning item
-                        // Then unlock the Planning item first
-                        .then(() => !get(savedItem, '_planning_item') ?
-                            Promise.resolve() :
-                            dispatch(locks.unlock({
-                                _id: savedItem._planning_item,
-                                type: ITEM_TYPE.PLANNING,
-                            }))
-                        )
                         .then(() => {
-                            // And finally lock the newly created item for editing
+                            // Lock the newly created item for editing
                             if (!noSubsequentEditing) {
                                 return dispatch(self.lockAndEdit(savedItem));
                             }
