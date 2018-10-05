@@ -6,7 +6,7 @@ import {get} from 'lodash';
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
 import {assignmentUtils, gettext, eventUtils} from '../../../utils';
-import {ASSIGNMENTS} from '../../../constants';
+import {ASSIGNMENTS, WORKSPACE} from '../../../constants';
 
 import {AssignmentPreviewHeader} from './AssignmentPreviewHeader';
 import {AssignmentPreview} from './AssignmentPreview';
@@ -76,6 +76,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
             formProfile,
             agendas,
             hideAvatar,
+            currentWorkspace,
         } = this.props;
 
         if (!assignment) {
@@ -97,6 +98,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
                     users={users}
                     desks={desks}
                     hideAvatar={hideAvatar}
+                    hideItemActions={currentWorkspace === WORKSPACE.AUTHORING}
                 />
 
                 {showFulfilAssignment && state === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
@@ -189,6 +191,7 @@ AssignmentPreviewContainerComponent.propTypes = {
     hideItemActions: PropTypes.bool,
     showFulfilAssignment: PropTypes.bool,
     fetchEventFiles: PropTypes.func,
+    currentWorkspace: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({
@@ -208,6 +211,7 @@ const mapStateToProps = (state) => ({
     formProfile: selectors.forms.profiles(state),
     lockedItems: selectors.locks.getLockedItems(state),
     agendas: selectors.general.agendas(state),
+    currentWorkspace: selectors.general.currentWorkspace(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
