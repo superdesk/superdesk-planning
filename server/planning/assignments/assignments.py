@@ -30,7 +30,8 @@ from apps.common.components.utils import get_component
 from planning.item_lock import LockService, LOCK_USER, LOCK_ACTION
 from superdesk.users.services import current_user_has_privilege
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information, \
-    get_local_end_of_day, is_locked_in_this_session, get_coverage_type_name
+    get_local_end_of_day, is_locked_in_this_session, get_coverage_type_name, \
+    get_version_item_for_post, enqueue_planning_item
 from flask import request, json, current_app as app
 from planning.planning_notifications import PlanningNotifications
 from apps.content import push_content_notification
@@ -229,7 +230,7 @@ class AssignmentsService(superdesk.Service):
             get_resource_service('assignments_history').on_item_add_to_workflow(updates, original)
         elif original.get(LOCK_ACTION) != 'content_edit' and \
                 updates.get('assigned_to') and updates.get('assigned_to').get('state')\
-                != ASSIGNMENT_WORKFLOW_STATE.cancelled:
+                != ASSIGNMENT_WORKFLOW_STATE.CANCELLED:
             app.on_updated_assignments(updates, original)
 
     def is_assignment_modified(self, updates, original):
@@ -449,7 +450,7 @@ class AssignmentsService(superdesk.Service):
         if original_assignment:
             updated_assignment = {'assigned_to': {}}
             updated_assignment['assigned_to'].update(original_assignment.get('assigned_to'))
-            updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.cancelled
+            updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.CANCELLED
             updated_assignment['planning'] = coverage_to_copy.get('planning')
             updated_assignment['planning']['news_coverage_status'] = coverage_to_copy.get('news_coverage_status')
 
@@ -551,6 +552,8 @@ class AssignmentsService(superdesk.Service):
                     self._update_assignment_and_notify(updated_assignment, assignment_update_data['assignment'])
                     get_resource_service('assignments_history').on_item_complete(
                         updated_assignment, assignment_update_data.get('assignment'))
+                    # publish planning
+                    self.publish_planning(assignment_update_data.get('assignment').get('planning_item'))
 
     def duplicate_assignment_on_create_archive_rewrite(self, items):
         """Duplicates the coverage/assignment for the archive rewrite
@@ -633,31 +636,33 @@ class AssignmentsService(superdesk.Service):
         # send notification
         self.notify('assignments:updated', updates, original)
 
+    def _get_assignment_from_archive_item(self, updates, original):
+        if not original.get('assignment_id'):
+            return None
+
+        assignment_update_data = self._get_assignment_data_on_archive_update({}, original)
+        if not assignment_update_data.get('assignment'):
+            return None
+
+        return assignment_update_data.get('assignment')
+
     def validate_assignment_lock(self, item, user_id):
-        if item.get('assignment_id'):
-            assignment_update_data = self._get_assignment_data_on_archive_update({}, item)
-            if assignment_update_data.get('assignment'):
-                assignment = assignment_update_data.get('assignment')
-                if assignment and assignment.get('lock_user'):
-                    if assignment['lock_session'] != get_auth()['_id'] or assignment['lock_user'] != user_id:
-                        raise SuperdeskApiError.badRequestError(message="Lock Failed: Related assignment is locked.")
+        assignment = self._get_assignment_from_archive_item({}, item)
+        if assignment and assignment.get('lock_user') and \
+                (assignment['lock_session'] != get_auth()['_id'] or assignment['lock_user'] != user_id):
+                raise SuperdeskApiError.badRequestError(message="Lock Failed: Related assignment is locked.")
 
     def sync_assignment_lock(self, item, user_id):
-        if item.get('assignment_id'):
-            assignment_update_data = self._get_assignment_data_on_archive_update({}, item)
-            if assignment_update_data.get('assignment'):
-                assignment = assignment_update_data.get('assignment')
-                lock_service = get_component(LockService)
-                lock_service.lock(assignment, user_id, get_auth()['_id'], 'content_edit', 'assignments')
+        assignment = self._get_assignment_from_archive_item({}, item)
+        if assignment:
+            lock_service = get_component(LockService)
+            lock_service.lock(assignment, user_id, get_auth()['_id'], 'content_edit', 'assignments')
 
     def sync_assignment_unlock(self, item, user_id):
-        if item.get('assignment_id'):
-            assignment_update_data = self._get_assignment_data_on_archive_update({}, item)
-            if assignment_update_data.get('assignment'):
-                assignment = assignment_update_data.get('assignment')
-                if assignment.get(LOCK_USER):
-                    lock_service = get_component(LockService)
-                    lock_service.unlock(assignment, user_id, get_auth()['_id'], 'assignments')
+        assignment = self._get_assignment_from_archive_item({}, item)
+        if assignment and assignment.get(LOCK_USER):
+            lock_service = get_component(LockService)
+            lock_service.unlock(assignment, user_id, get_auth()['_id'], 'assignments')
 
     def can_edit(self, item, user_id):
         # Check privileges
@@ -739,6 +744,9 @@ class AssignmentsService(superdesk.Service):
             session=get_auth()['_id']
         )
 
+        # publish planning
+        self.publish_planning(doc.get('planning_item'))
+
     def is_assignment_draft(self, updates, original):
         return updates.get('assigned_to', original.get('assigned_to')).get('state') ==\
             ASSIGNMENT_WORKFLOW_STATE.DRAFT
@@ -746,6 +754,66 @@ class AssignmentsService(superdesk.Service):
     def is_assignment_being_activated(self, updates, original):
         return original.get('assigned_to').get('state') == ASSIGNMENT_WORKFLOW_STATE.DRAFT and\
             updates.get('assigned_to', {}).get('state') == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+
+    def publish_planning(self, planning_id):
+        """Publish the planning item if assignment state changes for following actions
+
+        - Work is started on Assignment
+        - Assignment link using fullfill assignment
+        - Un-linking the item from assignment
+        - Complete an Assignment
+        - Revert Availability of an assignment
+        - Remove Assignment
+
+        It uses the last published planning item from the published_planning collection
+        to re-transmit the coverage/assignment changes.
+        :param  planning_id: planning ID
+        """
+        try:
+            planning_service = get_resource_service('planning')
+            published_service = get_resource_service('published_planning')
+            lock_service = get_component(LockService)
+
+            planning_item = planning_service.find_one(req=None, _id=planning_id)
+            published_planning_item = published_service.get_last_published_item(planning_id)
+
+            if not planning_item or not published_planning_item:
+                return
+
+            def _publish_planning(item):
+                item.pop(config.VERSION, None)
+                item.pop('item_id', None)
+                version, item = get_version_item_for_post(item)
+
+                # Create an entry in the planning versions collection for this published version
+                version_id = get_resource_service('published_planning').post([{'item_id': item['_id'],
+                                                                               'version': version,
+                                                                               'type': 'planning',
+                                                                               'published_item': item}])
+                if version_id:
+                    # Asynchronously enqueue the item for publishing.
+                    enqueue_planning_item.apply_async(kwargs={'id': version_id[0]})
+                else:
+                    logger.error('Failed to save planning version for planning item id {}'.format(item['_id']))
+
+            try:
+                # check if the planning item is locked
+                lock_service.validate_relationship_locks(planning_item, 'planning')
+                use_published_planning = False
+            except SuperdeskApiError as ex:
+                # planning item is already locked.
+                use_published_planning = True
+                logger.exception(ex.message)
+
+            if use_published_planning:
+                # use the published planning and enqueue again
+                plan = published_planning_item.get('published_item')
+            else:
+                plan = planning_item
+
+            _publish_planning(plan)
+        except Exception:
+            logger.exception('Failed to publish assignment for planning.')
 
 
 assignments_schema = {
@@ -819,7 +887,8 @@ class AssignmentsResource(superdesk.Resource):
 
     mongo_indexes = {
         'coverage_item_1': ([('coverage_item', 1)], {'background': True}),
-        'planning_item_1': ([('planning_item', 1)], {'background': True})
+        'planning_item_1': ([('planning_item', 1)], {'background': True}),
+        'published_state_1': ([('published_state', 1)], {'background': True}),
     }
 
     datasource = {
@@ -827,4 +896,4 @@ class AssignmentsResource(superdesk.Resource):
         'search_backend': 'elastic'
     }
 
-    etag_ignore_fields = ['planning']
+    etag_ignore_fields = ['planning', 'published_state', 'published_at']

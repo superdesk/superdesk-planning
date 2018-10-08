@@ -156,7 +156,8 @@ class AssignmentsContentService(superdesk.Service):
                                                       omit_user=True)
             # Save history
             get_resource_service('assignments_history').on_item_start_working(updates, assignment)
-
+            # publishing planning item
+            assignments_service.publish_planning(assignment['planning_item'])
         return ids
 
     def _validate(self, doc):

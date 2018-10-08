@@ -229,6 +229,27 @@ def then_versioned_file_exists(context, path):
     assert os.path.isfile(path), '{} is not a file'.format(path)
 
 
+@then('store versioned json file from "{path}"')
+def then_versioned_file_exists(context, path):
+    path = apply_placeholders(context, path)
+    assert os.path.isfile(path), '{} is not a file'.format(path)
+    file_name = os.path.basename(path)
+    with open(path, 'r') as json_file:
+        data = json.load(json_file)
+        set_placeholder(context, file_name, data)
+
+
+@then('we get transmitted item "{path}"')
+def then_get_transmitted_item(context, path):
+    path = apply_placeholders(context, path)
+    assert os.path.isfile(path), '{} is not a file'.format(path)
+    with open(path, 'r') as json_file:
+        data = json.load(json_file)
+        json_file.close()
+    context_data = json.loads(apply_placeholders(context, context.text))
+    json_match(context_data, data)
+
+
 @when('we fetch events from "{provider_name}" ingest "{guid}"')
 def step_impl_fetch_from_provider_ingest(context, provider_name, guid):
     with context.app.test_request_context(context.app.config['URL_PREFIX']):

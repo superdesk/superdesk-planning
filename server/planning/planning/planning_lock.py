@@ -36,10 +36,14 @@ class PlanningLockResource(Resource):
 class PlanningLockService(BaseService):
 
     def create(self, docs, **kwargs):
-        user_id = get_user(required=True)['_id']
-        session_id = get_auth()['_id']
         item_id = request.view_args['item_id']
         lock_action = docs[0].get('lock_action', 'edit')
+        return self.lock_item(item_id, lock_action, docs[0])
+
+    def lock_item(self, item_id, action, doc):
+        user_id = get_user(required=True)['_id']
+        session_id = get_auth()['_id']
+        lock_action = action
         lock_service = get_component(LockService)
         item = get_resource_service('planning').find_one(req=None, _id=item_id)
 
@@ -47,7 +51,7 @@ class PlanningLockService(BaseService):
             lock_service.validate_relationship_locks(item, 'planning')
 
         updated_item = lock_service.lock(item, user_id, session_id, lock_action, 'planning')
-        return update_returned_document(docs[0], updated_item, CUSTOM_HATEOAS_PLANNING)
+        return update_returned_document(doc, updated_item, CUSTOM_HATEOAS_PLANNING)
 
 
 class PlanningUnlockResource(Resource):
@@ -62,11 +66,14 @@ class PlanningUnlockResource(Resource):
 class PlanningUnlockService(BaseService):
 
     def create(self, docs, **kwargs):
+        item_id = request.view_args['item_id']
+        return self.unlock_item(item_id, docs[0])
+
+    def unlock_item(self, item_id, doc):
         user_id = get_user(required=True)['_id']
         session_id = get_auth()['_id']
-        item_id = request.view_args['item_id']
         lock_service = get_component(LockService)
         resource_service = get_resource_service('planning')
         item = resource_service.find_one(req=None, _id=item_id)
         updated_item = lock_service.unlock(item, user_id, session_id, 'planning')
-        return update_returned_document(docs[0], updated_item, CUSTOM_HATEOAS_PLANNING)
+        return update_returned_document(doc, updated_item, CUSTOM_HATEOAS_PLANNING)

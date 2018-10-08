@@ -7,7 +7,7 @@
 # For the full copyright and license information, please see the
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
-from eve.utils import config
+from eve.utils import config, ParsedRequest
 from eve.methods.common import resolve_embedded_fields, resolve_embedded_documents
 from superdesk import Service, Resource
 from superdesk.utils import ListCursor
@@ -52,6 +52,16 @@ class PublishedPlanningService(Service):
             cursor = ListCursor(docs=documents)
 
         return cursor
+
+    def get_last_published_item(self, item_id):
+        """Get the last published item
+
+        :param item_id: Id of the planning item or event ite,
+        :return:
+        """
+        req = ParsedRequest()
+        req.sort = '-version'
+        return self.find_one(req=req, item_id=item_id)
 
 
 class PublishedPlanningResource(Resource):
