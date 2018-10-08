@@ -24,7 +24,7 @@ from superdesk.users.services import current_user_has_privilege
 from .events_base_service import EventsBaseService
 from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, get_max_recurrent_events, \
     WORKFLOW_STATE, ITEM_STATE, remove_lock_information, format_address, update_post_item, \
-    post_required, POST_STATE, get_event_max_multi_day_duration, set_original_creator
+    post_required, POST_STATE, get_event_max_multi_day_duration, set_original_creator, list_uniq_with_order
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
@@ -195,6 +195,19 @@ class EventsService(superdesk.Service):
         """
         self._validate_multiday_event_duration(event)
         self._validate_dates(event)
+
+        if len(event.get('calendars', [])) > 0:
+            existing_calendars = get_resource_service('vocabularies').find_one(req=None, _id='event_calendars')
+            for calendar in event['calendars']:
+                cal = [x for x in existing_calendars.get('items', []) if x['qcode'] == calendar.get('qcode')]
+                if not cal:
+                    raise SuperdeskApiError(message="Calendar does not exist.")
+                if not cal[0].get('is_active'):
+                    raise SuperdeskApiError(message="Disabled calendar cannot be selected.")
+
+            # Remove duplicated calendars
+            uniq_qcodes = list_uniq_with_order([o['qcode'] for o in event['calendars']])
+            event['calendars'] = [cal for cal in existing_calendars.get('items', []) if cal['qcode'] in uniq_qcodes]
 
     def _validate_dates(self, event):
         """Validate the dates

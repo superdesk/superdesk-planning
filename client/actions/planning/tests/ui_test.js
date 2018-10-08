@@ -388,32 +388,6 @@ describe('actions.planning.ui', () => {
         });
     });
 
-
-    describe('saveAndUnlockPlanning', () => {
-        beforeEach(() => {
-            sinon.stub(planningUi, 'save').callsFake((item) => (Promise.resolve(item)));
-            sinon.stub(locks, 'unlock').callsFake((item) => (Promise.resolve(item)));
-        });
-
-        it('saves and unlocks planning item', (done) =>
-            store.test(done, planningUi.saveAndUnlockPlanning(data.plannings[0]))
-                .then(() => {
-                    expect(planningUi.save.callCount).toBe(1);
-                    expect(planningUi.save.args[0]).toEqual([data.plannings[0]]);
-
-                    expect(locks.unlock.callCount).toBe(1);
-                    expect(locks.unlock.args[0]).toEqual([data.plannings[0]]);
-
-                    done();
-                })
-                .catch(done.fail));
-
-        afterEach(() => {
-            restoreSinonStub(planningUi.save);
-            restoreSinonStub(locks.unlock);
-        });
-    });
-
     describe('saveFromAuthoring', () => {
         let modalProps;
 
@@ -595,7 +569,7 @@ describe('actions.planning.ui', () => {
                         ['Agenda assigned to the planning item.']);
 
                     expect(locks.unlock.callCount).toBe(1);
-                    expect(locks.unlock.args[0]).toEqual([planningWithAgenda]);
+                    expect(locks.unlock.args[0]).toEqual([planningWithAgenda, false]);
 
                     done();
                 })

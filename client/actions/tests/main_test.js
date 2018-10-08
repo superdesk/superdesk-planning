@@ -948,4 +948,46 @@ describe('actions.main', () => {
                 .catch(done.fail);
         });
     });
+
+    describe('saveAndUnlockItem', () => {
+        beforeEach(() => {
+            sinon.stub(planningUi, 'save').callsFake((item) => (Promise.resolve(item)));
+            sinon.stub(eventsUi, 'saveWithConfirmation').callsFake((item) => (Promise.resolve(item)));
+            sinon.stub(locks, 'unlock').callsFake((item) => (Promise.resolve(item)));
+        });
+
+        it('saves and unlocks planning item', (done) =>
+            store.test(done, main.saveAndUnlockItem(data.plannings[0]))
+                .then(() => {
+                    expect(planningUi.save.callCount).toBe(1);
+                    expect(planningUi.save.args[0]).toEqual([data.plannings[0]]);
+
+                    expect(locks.unlock.callCount).toBe(1);
+                    expect(locks.unlock.args[0]).toEqual([data.plannings[0], false]);
+
+                    done();
+                })
+                .catch(done.fail)
+        );
+
+        it('saves and unlocks event', (done) =>
+            store.test(done, main.saveAndUnlockItem(data.events[0]))
+                .then(() => {
+                    expect(eventsUi.saveWithConfirmation.callCount).toBe(1);
+                    expect(eventsUi.saveWithConfirmation.args[0]).toEqual([data.events[0]]);
+
+                    expect(locks.unlock.callCount).toBe(1);
+                    expect(locks.unlock.args[0]).toEqual([data.events[0], false]);
+
+                    done();
+                })
+                .catch(done.fail)
+        );
+
+        afterEach(() => {
+            restoreSinonStub(planningUi.save);
+            restoreSinonStub(locks.unlock);
+            restoreSinonStub(eventsUi.saveWithConfirmation);
+        });
+    });
 });

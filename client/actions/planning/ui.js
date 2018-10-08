@@ -200,7 +200,7 @@ const assignToAgenda = (item, agenda) => (
         dispatch(locks.lock(item, 'assign_agenda'))
             .then((lockedItem) => {
                 lockedItem.agendas = [...get(lockedItem, 'agendas', []), agenda._id];
-                return dispatch(self.saveAndUnlockPlanning(lockedItem)).then(() => {
+                return dispatch(main.saveAndUnlockItem(lockedItem)).then(() => {
                     notify.success(gettext('Agenda assigned to the planning item.'));
                     return Promise.resolve();
                 });
@@ -407,26 +407,6 @@ const save = (item) => (
 );
 
 /**
- * Action dispatcher that attempts to save and unlock a Planning item
- * @param {object} item - The Planning item to save and unlock
- * @return Promise
- */
-const saveAndUnlockPlanning = (item) => (
-    (dispatch, getState, {notify}) => (
-        dispatch(self.save(item))
-            .then((savedItem) => dispatch(locks.unlock(savedItem))
-                .then((unlockedItem) => Promise.resolve(unlockedItem))
-                .catch(() => {
-                    notify.error(gettext('Could not unlock the planning item.'));
-                    return Promise.resolve(savedItem);
-                }), (error) => {
-                notify.error(gettext('Could not save the planning item.'));
-                return Promise.resolve(item);
-            })
-    )
-);
-
-/**
  * Action that states that there are Planning items currently loading
  * @param {object} params - Parameters used when querying for planning items
  */
@@ -590,7 +570,6 @@ const self = {
     saveFromAuthoring,
     scheduleRefetch,
     assignToAgenda,
-    saveAndUnlockPlanning,
     addCoverageToWorkflow,
     removeAssignment,
     _modifyPlanningFeatured,

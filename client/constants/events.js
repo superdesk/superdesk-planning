@@ -100,6 +100,12 @@ export const EVENTS = {
             actionName: 'onEditEventModal',
             lock_action: 'edit',
         },
+        ASSIGN_TO_CALENDAR: {
+            label: gettext('Assign to calendar'),
+            icon: 'icon-list-plus',
+            actionName: 'onEventAssignCalendar',
+            lock_action: 'assign_calendar',
+        },
     },
     FILTER: {
         NO_CALENDAR_ASSIGNED: 'NO_CALENDAR_ASSIGNED',

@@ -13,6 +13,7 @@ export const ListGroup = ({
     agendas,
     session,
     privileges,
+    calendars,
     activeFilter,
     showRelatedPlannings,
     relatedPlanningsInList,
@@ -56,6 +57,7 @@ export const ListGroup = ({
                     desks={desks}
                     showAddCoverage={showAddCoverage}
                     hideItemActions={hideItemActions}
+                    calendars={calendars}
                 />
             ))}
         </Group>
@@ -77,6 +79,7 @@ ListGroup.propTypes = {
     agendas: PropTypes.array.isRequired,
     session: PropTypes.object,
     privileges: PropTypes.object,
+    calendars: PropTypes.array,
     activeFilter: PropTypes.string,
     showRelatedPlannings: PropTypes.func,
     relatedPlanningsInList: PropTypes.object,

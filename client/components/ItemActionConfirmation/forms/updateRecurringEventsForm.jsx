@@ -115,8 +115,20 @@ const mapStateToProps = (state) => ({
     dateFormat: getDateFormat(state),
 });
 
-const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event) => dispatch(actions.main.save(event, false)),
+const mapDispatchToProps = (dispatch, ownProps) => ({
+    onSubmit: (event) => (
+        dispatch(actions.main.save(event, false))
+            .then((savedItem) => {
+                if (ownProps.modalProps.unlockOnClose) {
+                    dispatch(actions.events.api.unlock(savedItem));
+                }
+            })
+    ),
+    onHide: (event) => {
+        if (ownProps.modalProps.unlockOnClose) {
+            dispatch(actions.events.api.unlock(event));
+        }
+    },
 });
 
 export const UpdateRecurringEventsForm = connect(

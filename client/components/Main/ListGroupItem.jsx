@@ -58,6 +58,7 @@ export class ListGroupItem extends React.Component {
             date,
             session,
             privileges,
+            calendars,
             activeFilter,
             onMultiSelectClick,
             selectedEventIds,
@@ -88,6 +89,7 @@ export class ListGroupItem extends React.Component {
 
         let eventProps = {
             ...itemProps,
+            calendars: calendars,
             multiSelected: indexOf(selectedEventIds, item._id) !== -1,
             [EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName],
@@ -115,6 +117,8 @@ export class ListGroupItem extends React.Component {
                 itemActions[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
             [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName],
+            [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]:
+                itemActions[EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName],
         };
 
         let planningProps = {

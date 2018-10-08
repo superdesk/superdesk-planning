@@ -18,43 +18,54 @@ export const EditorItemActions = ({
     contentTypes,
 }) => {
     const itemType = getItemType(item);
+    const withMultiPlanningDate = true;
+    let actions = [], callBacks;
 
-    let itemActionsCallBack = {
-        [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
-            itemActions[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName].bind(null, item),
-        [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
-            itemActions[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
-        [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]:
-            itemActions[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName].bind(null, item),
-        [EVENTS.ITEM_ACTIONS.SPIKE.actionName]:
-            itemActions[EVENTS.ITEM_ACTIONS.SPIKE.actionName].bind(null, item),
-        [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
-            () => {
-                flushAutosave();
-                itemActions[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName](item);
-            },
-        [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
-            () => {
-                flushAutosave();
-                itemActions[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName](item);
-            },
-        [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]:
-            () => {
-                flushAutosave();
-                itemActions[EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName](item);
-            },
-        [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]:
-            () => {
-                flushAutosave();
-                itemActions[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName](item);
-            },
-        [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
-            itemActions[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName].bind(null, item),
-    };
-    let actions = eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack, true);
+    if (itemType === ITEM_TYPE.EVENT) {
+        callBacks = {
+            [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
+                itemActions[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName].bind(null, item),
+            [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
+                itemActions[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
+            [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]:
+                itemActions[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName].bind(null, item),
+            [EVENTS.ITEM_ACTIONS.SPIKE.actionName]:
+                itemActions[EVENTS.ITEM_ACTIONS.SPIKE.actionName].bind(null, item),
+            [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
+                () => {
+                    flushAutosave();
+                    itemActions[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName](item);
+                },
+            [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
+                () => {
+                    flushAutosave();
+                    itemActions[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName](item);
+                },
+            [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]:
+                () => {
+                    flushAutosave();
+                    itemActions[EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName](item);
+                },
+            [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]:
+                () => {
+                    flushAutosave();
+                    itemActions[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName](item);
+                },
+            [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
+                itemActions[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName].bind(null, item),
+        };
+        actions = eventUtils.getEventActions({
+            item,
+            session,
+            privileges,
+            lockedItems,
+            callBacks,
+            withMultiPlanningDate,
+        });
+    }
 
     if (itemType === ITEM_TYPE.PLANNING) {
-        itemActionsCallBack = {
+        callBacks = {
             [PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName]: onAddCoverage,
             [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: itemActions[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
             [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: itemActions[PLANNING.ITEM_ACTIONS.UNSPIKE.actionName],
@@ -84,28 +95,23 @@ export const EditorItemActions = ({
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
         };
-
         actions = planningUtils.getPlanningActions({
-            item: item,
-            event: event,
-            session: session,
-            privileges: privileges,
-            lockedItems: lockedItems,
-            callBacks: itemActionsCallBack,
-            contentTypes: contentTypes});
+            item,
+            event,
+            session,
+            privileges,
+            lockedItems,
+            callBacks,
+            contentTypes,
+        });
     }
 
-    if (actions.length === 0) {
-        return null;
-    }
 
-    return (
-        <ItemActionsMenu
-            className="navbtn"
-            actions={actions}
-            wide={itemType === ITEM_TYPE.EVENT}
-        />
-    );
+    return actions.length === 0 ? null : (<ItemActionsMenu
+        className="navbtn"
+        actions={actions}
+        wide={itemType === ITEM_TYPE.EVENT}
+    />);
 };
 
 EditorItemActions.propTypes = {

@@ -100,13 +100,14 @@ export class ActionsMenuPopup extends React.PureComponent {
         }
 
         const trigger = this.triggerAction.bind(this, action);
+        const inactiveOption = get(action, 'inactive', false);
 
         return (
             <li key={key}>
                 <button
                     id={action.id}
-                    className={classNames({disabled: get(action, 'inactive', false)})}
-                    onClick={trigger}
+                    className={classNames({disabled: inactiveOption})}
+                    onClick={!inactiveOption ? trigger : undefined}
                 >
                     {action.icon && (<i className={action.icon}/>)}
                     {gettext(action.label)}

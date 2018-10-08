@@ -36,6 +36,8 @@ const getActionDispatches = ({
             actions.main.lockAndEdit,
         [EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName]:
             actions.main.lockAndEdit,
+        [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]:
+            actions.events.ui.assignToCalendar,
 
         // Planning Item Actions
         [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:

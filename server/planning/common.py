@@ -300,3 +300,9 @@ def set_original_creator(doc):
         doc.pop('original_creator', None)
         return
     doc['original_creator'] = user
+
+
+def list_uniq_with_order(list):
+    seen = set()
+    seen_add = seen.add
+    return [x for x in list if not (x in seen or seen_add(x))]

@@ -454,7 +454,7 @@ const updateRepetitions = (event) => (
     )
 );
 
-const saveWithConfirmation = (event) => (
+const saveWithConfirmation = (event, unlockOnClose) => (
     (dispatch, getState) => {
         const events = selectors.events.storedEvents(getState());
         const originalEvent = get(events, event._id, {});
@@ -481,6 +481,7 @@ const saveWithConfirmation = (event) => (
                             _originalEvent: originalEvent,
                         },
                         actionType: 'save',
+                        unlockOnClose: unlockOnClose,
                     },
                 }))
             ));
@@ -661,6 +662,30 @@ const onEventEditUnlock = (event) => (
             Promise.resolve()
     )
 );
+/**
+ * Action dispatcher that attempts to assign a calendar to an event
+ * @param {object} item - The Event to asssign the agenda
+ * @param {object} item - Calendar to be assigned
+ * @return Promise
+ */
+const assignToCalendar = (event, calendar) => (
+    (dispatch, getState, {notify}) => (
+        dispatch(locks.lock(event, 'assign_calendar'))
+            .then((lockedItem) => {
+                lockedItem.calendars = [...get(lockedItem, 'calendars', []), calendar];
+                return get(event, 'recurrence_id') ? dispatch(self.saveWithConfirmation(lockedItem, true)) :
+                    dispatch(main.saveAndUnlockItem(lockedItem)).then(() => {
+                        notify.success(gettext('Calendar assigned to the event.'));
+                        return Promise.resolve();
+                    });
+            }, (error) => {
+                notify.error(
+                    getErrorMessage(error, gettext('Could not obtain lock on the event.'))
+                );
+                return Promise.reject(error);
+            })
+    )
+);
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -696,6 +721,7 @@ const self = {
     selectCalendar,
     _openActionModalFromEditor,
     onEventEditUnlock,
+    assignToCalendar,
 };
 
 export default self;
