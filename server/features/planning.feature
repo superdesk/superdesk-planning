@@ -1692,3 +1692,258 @@ Feature: Planning
         }
         """
 
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Assignment cannot be edited after it is added to workflow.
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then the assignment not created for coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": []
+        }
+        """
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": []
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "active",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "assignment_id": "#firstassignment#"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "active",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "assignment_id": "#firstassignment#",
+                        "state": "assigned"
+                    }
+                }
+            ]
+        }
+        """
+        When we get "assignments/#firstassignment#"
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "active",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "assignment_id": "#firstassignment#",
+                        "state": "draft"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "active",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "assignment_id": "#firstassignment#",
+                        "state": "assigned"
+                    }
+                }
+            ]
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "active",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "assigned_to": {
+                        "desk": "Sports Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "assignment_id": "#firstassignment#",
+                        "state": "assigned"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "active",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "assignment_id": "#firstassignment#",
+                        "state": "assigned"
+                    }
+                }
+            ]
+        }
+        """

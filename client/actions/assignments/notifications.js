@@ -48,13 +48,7 @@ const onAssignmentUpdated = (_e, data) => (
         const currentDesk = selectors.general.currentDeskId(getState());
         let querySearchSettings = selectors.getAssignmentSearch(getState());
 
-        const planningItem = _getPlanningItemOnAssignmentUpdate(data,
-            selectors.planning.storedPlannings(getState()));
-
-        if (planningItem) {
-            dispatch(planning.api.receivePlannings([planningItem]));
-            dispatch(main.fetchItemHistory(planningItem));
-        }
+        dispatch(_updatePlannigRelatedToAssignment(data));
 
         if (!currentDesk) {
             return;
@@ -129,34 +123,39 @@ const onAssignmentUpdated = (_e, data) => (
     }
 );
 
-const _getPlanningItemOnAssignmentUpdate = (data, plans) => {
-    if (!get(data, 'planning')) {
-        return;
+const _updatePlannigRelatedToAssignment = (data) => (
+    (dispatch, getState) => {
+        const plans = selectors.planning.storedPlannings(getState());
+
+        if (!get(data, 'planning')) {
+            return Promise.resolve();
+        }
+
+        let planningItem = {...get(plans, data.planning)};
+
+        if (!isExistingItem(planningItem)) {
+            return Promise.resolve();
+        }
+
+        let coverages = get(planningItem, 'coverages') || [];
+        let coverage = coverages.find((cov) => cov.coverage_id === data.coverage);
+
+        if (!coverage) {
+            return Promise.resolve();
+        }
+
+        coverage.assigned_to.user = data.assigned_user;
+        coverage.assigned_to.desk = data.assigned_desk;
+        coverage.assigned_to.state = data.assignment_state;
+
+        if (get(data, 'priority')) {
+            coverage.assigned_to.priority = data.priority;
+        }
+
+        dispatch(planning.api.receivePlannings([planningItem]));
+        dispatch(main.fetchItemHistory(planningItem));
     }
-
-    let planningItem = {...get(plans, data.planning)};
-
-    if (!isExistingItem(planningItem)) {
-        return;
-    }
-
-    let coverages = get(planningItem, 'coverages') || [];
-    let coverage = coverages.find((cov) => cov.coverage_id === data.coverage);
-
-    if (!coverage) {
-        return;
-    }
-
-    coverage.assigned_to.user = data.assigned_user;
-    coverage.assigned_to.desk = data.assigned_desk;
-    coverage.assigned_to.state = data.assignment_state;
-
-    if (get(data, 'priority')) {
-        coverage.assigned_to.priority = data.priority;
-    }
-
-    return planningItem;
-};
+);
 
 const onAssignmentLocked = (_e, data) => (
     (dispatch) => {
@@ -271,14 +270,7 @@ const onAssignmentRemoved = (_e, data) => (
                 )
             );
 
-            const planningItem = _getPlanningItemOnAssignmentUpdate(data,
-                selectors.planning.storedPlannings(getState()));
-
-            if (planningItem) {
-                dispatch(main.fetchItemHistory(planningItem));
-            }
-
-            return Promise.resolve();
+            return dispatch(_updatePlannigRelatedToAssignment(data));
         }
 
         return Promise.resolve();

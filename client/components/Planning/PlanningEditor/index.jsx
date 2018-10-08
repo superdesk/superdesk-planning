@@ -237,7 +237,7 @@ export class PlanningEditorComponent extends React.Component {
         if (isSameItemId(nextProps.item, this.props.item)) {
             // if the assignment associated with the planning item are modified
             const storedCoverages = get(nextProps, 'item.coverages') || [];
-            const diffCoverages = get(this.props, 'diff.coverages') || [];
+            const diffCoverages = get(nextProps, 'diff.coverages') || [];
 
             if (get(storedCoverages, 'length', 0) > 0) {
                 storedCoverages.forEach((coverage) => {

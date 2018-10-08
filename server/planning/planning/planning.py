@@ -498,9 +498,10 @@ class PlanningService(superdesk.Service):
             if self.is_coverage_planning_modified(updates, original):
                 assignment['planning'] = doc.get('planning')
 
-            if self.is_coverage_assignment_modified(updates, original_assignment):
-                assignment['priority'] = assigned_to.pop('priority', original_assignment.get('priority'))
-                assignment['assigned_to'] = assigned_to
+            if original_assignment.get('assigned_to').get('state') == ASSIGNMENT_WORKFLOW_STATE.DRAFT:
+                if self.is_coverage_assignment_modified(updates, original_assignment):
+                    assignment['priority'] = assigned_to.pop('priority', original_assignment.get('priority'))
+                    assignment['assigned_to'] = assigned_to
 
             # If we made a coverage 'active' - change assignment status to active
             if original.get('workflow_status') == WORKFLOW_STATE.DRAFT and not is_coverage_draft:
