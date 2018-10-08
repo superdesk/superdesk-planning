@@ -8,6 +8,8 @@ export const privileges = (state) => get(state, 'privileges');
 export const users = (state) => get(state, 'users', []);
 export const keywords = (state) => get(state, 'vocabularies.keywords', []);
 export const newsCoverageStatus = (state) => get(state, 'vocabularies.newscoveragestatus', []);
+export const regions = (state) => get(state, 'vocabularies.regions', []);
+export const countries = (state) => get(state, 'vocabularies.countries', []);
 
 export const contentTypes = (state) => get(state, 'vocabularies.g2_content_type', []);
 

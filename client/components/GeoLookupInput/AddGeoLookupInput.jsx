@@ -275,6 +275,8 @@ export class GeoLookupInputComponent extends React.Component {
                         onCancel={this.closeNewLocationPopUp}
                         target="sd-line-input__input"
                         popupContainer={this.props.popupContainer}
+                        regions={this.props.regions}
+                        countries={this.props.countries}
                     />
                 )}
 
@@ -306,12 +308,16 @@ GeoLookupInputComponent.propTypes = {
     users: PropTypes.array,
     currentUserId: PropTypes.string,
     popupContainer: PropTypes.func,
+    regions: PropTypes.array,
+    countries: PropTypes.array,
 };
 
 const mapStateToProps = (state, ownProps) => ({
     streetMapUrl: selectors.config.getStreetMapUrl(state),
     currentUserId: selectors.general.currentUserId(state),
     users: selectors.general.users(state),
+    regions: selectors.general.regions(state),
+    countries: selectors.general.countries(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

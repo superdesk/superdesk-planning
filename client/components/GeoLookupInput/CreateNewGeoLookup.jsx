@@ -1,10 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {omit} from 'lodash';
+import {omit, get} from 'lodash';
 import {formatAddress} from '../../utils';
 import {gettext} from '../../utils/gettext';
 import {ButtonList} from '../UI';
-import {Field, TextInput} from '../UI/Form';
+import {Field, TextInput, SelectInput} from '../UI/Form';
 import './style.scss';
 
 import {Popup, Content, Footer, Header} from '../UI/Popup';
@@ -50,8 +50,8 @@ export class CreateNewGeoLookup extends React.Component {
             address: {
                 road: this.state.address,
                 locality: this.state.city,
-                state: this.state.state,
-                country: this.state.country,
+                state: get(this.state.state, 'name'),
+                country: get(this.state.country, 'name'),
             },
         });
 
@@ -123,22 +123,28 @@ export class CreateNewGeoLookup extends React.Component {
                         noMargin
                     />
                     <Field
-                        component={TextInput}
+                        component={SelectInput}
                         field="state"
                         label={gettext('State/Province/Region')}
                         onChange={this.onChange}
                         value={this.state.state}
+                        options={this.props.regions}
+                        labelField="name"
                         required
                         noMargin
+                        clearable
                     />
                     <Field
-                        component={TextInput}
+                        component={SelectInput}
                         field="country"
                         label={gettext('Country')}
                         onChange={this.onChange}
+                        options={this.props.countries}
                         value={this.state.country}
+                        labelField="name"
                         required
                         noMargin
+                        clearable
                     />
                 </Content>
                 <Footer>
@@ -152,6 +158,7 @@ export class CreateNewGeoLookup extends React.Component {
 CreateNewGeoLookup.propTypes = {
     suggests: PropTypes.array,
     localSuggests: PropTypes.array,
+    regions: PropTypes.array,
     onCancel: PropTypes.func,
     handleSearchClick: PropTypes.func,
     onLocalSearchOnly: PropTypes.func,
@@ -161,4 +168,5 @@ CreateNewGeoLookup.propTypes = {
     target: PropTypes.string.isRequired,
     initialName: PropTypes.string,
     popupContainer: PropTypes.func,
+    countries: PropTypes.array,
 };
