@@ -26,6 +26,7 @@ export const EventInfo = ({item, onClick, timeFormat, dateFormat, active}) => (
             </Row>
             <Row>
                 <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                    <span>{item.name}</span>
                     <StateLabel
                         className="pull-right"
                         item={item}
