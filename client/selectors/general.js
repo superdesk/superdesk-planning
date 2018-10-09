@@ -12,6 +12,7 @@ export const regions = (state) => get(state, 'vocabularies.regions', []);
 export const countries = (state) => get(state, 'vocabularies.countries', []);
 
 export const contentTypes = (state) => get(state, 'vocabularies.g2_content_type', []);
+export const preferredVocabularies = (state) => get(state, 'session.userPreferences.cvs:preferred_items.value');
 
 export const currentDeskId = (state) => get(state, 'workspace.currentDeskId', null);
 export const desks = (state) => get(state, 'desks', []);
@@ -31,6 +32,11 @@ export const enabledAgendas = createSelector(
 export const disabledAgendas = createSelector(
     [agendas],
     (agendas) => getDisabledAgendas(agendas)
+);
+
+export const preferredCountry = createSelector(
+    [preferredVocabularies],
+    (vocab) => get(vocab, 'countries[0]', null)
 );
 
 export const session = (state) => get(state, 'session');

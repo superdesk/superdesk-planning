@@ -277,6 +277,7 @@ export class GeoLookupInputComponent extends React.Component {
                         popupContainer={this.props.popupContainer}
                         regions={this.props.regions}
                         countries={this.props.countries}
+                        defaultCountry={this.props.preferredCountry}
                     />
                 )}
 
@@ -310,6 +311,7 @@ GeoLookupInputComponent.propTypes = {
     popupContainer: PropTypes.func,
     regions: PropTypes.array,
     countries: PropTypes.array,
+    preferredCountry: PropTypes.object,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -318,6 +320,7 @@ const mapStateToProps = (state, ownProps) => ({
     users: selectors.general.users(state),
     regions: selectors.general.regions(state),
     countries: selectors.general.countries(state),
+    preferredCountry: selectors.general.preferredCountry(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

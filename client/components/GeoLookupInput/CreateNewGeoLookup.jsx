@@ -17,7 +17,7 @@ export class CreateNewGeoLookup extends React.Component {
             name: this.props.initialName,
             address: '',
             state: '',
-            country: '',
+            country: (this.props.defaultCountry || ''),
             city: '',
         };
         this.dom = {name: null};
@@ -169,4 +169,5 @@ CreateNewGeoLookup.propTypes = {
     initialName: PropTypes.string,
     popupContainer: PropTypes.func,
     countries: PropTypes.array,
+    defaultCountry: PropTypes.object,
 };
