@@ -73,6 +73,9 @@ class AssignmentsUnlinkService(Service):
                 assignment=str(assignment[config.ID_FIELD])
             )
 
+            # publishing planning item
+            assignments_service.publish_planning(assignment['planning_item'])
+
         assignment_history_service = get_resource_service('assignments_history')
         if spike:
             get_resource_service('assignments_history').on_item_content_unlink(updates, assignment,

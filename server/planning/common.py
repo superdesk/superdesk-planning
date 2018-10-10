@@ -64,7 +64,7 @@ WORKFLOW_STATE_SCHEMA = {
 assignment_workflow_state = ['draft', 'assigned', 'in_progress', 'completed', 'submitted', 'cancelled']
 ASSIGNMENT_WORKFLOW_STATE = namedtuple('ASSIGNMENT_WORKFLOW_STATE',
                                        ['DRAFT', 'ASSIGNED', 'IN_PROGRESS',
-                                        'COMPLETED', 'SUBMITTED', 'cancelled'])(*assignment_workflow_state)
+                                        'COMPLETED', 'SUBMITTED', 'CANCELLED'])(*assignment_workflow_state)
 
 item_actions = ['cancel', 'postpone', 'reschedule', 'update_time', 'convert_recurring', 'planning_cancel',
                 'cancel_all_coverage', 'edit']

@@ -48,6 +48,7 @@ class AssignmentsRevertService(BaseService):
         updates['assigned_to']['state'] = updates['assigned_to'].get(
             'revert_state', ASSIGNMENT_WORKFLOW_STATE.ASSIGNED)
         updates['assigned_to']['revert_state'] = None
+
         remove_lock_information(updates)
 
     def on_updated(self, updates, original):
@@ -68,6 +69,9 @@ class AssignmentsRevertService(BaseService):
             session=str(session),
             coverage=original.get('coverage_item')
         )
+
+        # publish the planning item
+        get_resource_service('assignments').publish_planning(original.get('planning_item'))
 
         # External (slack/browser pop-up) notifications
         assignments_service = get_resource_service('assignments')

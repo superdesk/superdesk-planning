@@ -79,6 +79,10 @@ class AssignmentsLinkService(Service):
             ids.append(doc[config.ID_FIELD])
             items.append(item)
 
+            if item.get(ITEM_STATE) not in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED]:
+                # publishing planning item
+                assignments_service.publish_planning(assignment['planning_item'])
+
         push_content_notification(items)
         push_notification(
             'content:link',

@@ -47,6 +47,7 @@ class DeliveryResource(superdesk.Resource):
     mongo_indexes = {
         'planning_id_1': ([('planning_id', 1)], {'background': True}),
         'assignment_id_1': ([('assignment_id', 1)], {'background': True}),
+        'coverage_id_1': ([('coverage_id', 1)], {'background': True}),
         'item_id_1': ([('item_id', 1)], {'background': True})
     }
     query_objectid_as_string = True

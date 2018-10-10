@@ -35,7 +35,7 @@ class JsonPlanningTestCase(TestCase):
                         'Motoring'
                     ],
                     'scheduled': '2018-04-09T14:00:53.000Z',
-                    'slugline': 'SLUGLINE',
+                    'slugline': 'Raiders',
                     'internal_note': 'An internal Note'
                 },
                 'assigned_to': {
@@ -129,7 +129,7 @@ class JsonPlanningTestCase(TestCase):
             'user': '57bcfc5d1d41c82e8401dcc0',
             'assignor_user': '57bcfc5d1d41c82e8401dcc0',
             'assigned_date_user': '2018-06-08T01:52:44+0000',
-            'state': 'assigned'
+            'state': 'completed'
         },
         '_etag': 'd06f331cb3cc133fdb83c990005f8f493cf3f56a',
         '_created': '2018-06-08T01:52:44.000Z'
@@ -164,13 +164,12 @@ class JsonPlanningTestCase(TestCase):
             formatter = JsonPlanningFormatter()
             output = formatter.format(self.item, {'name': 'Test Subscriber'})[0]
             output_item = json.loads(output[1])
+            print(output_item.get('coverages')[0].get('deliveries'))
             self.assertEqual(output_item.get('slugline'), 'SLUGLINE')
             self.assertEqual(output_item.get('agendas')[0].get('name'), 'Culture')
-            self.assertEqual(output_item.get('coverages')[0].get('planning').get('slugline'), 'SLUGLINE')
-            self.assertEqual(output_item.get('coverages')[0].get('assignment').get('deliveries')[0]['item_id'],
+            self.assertEqual(output_item.get('coverages')[0].get('planning').get('slugline'), 'Raiders')
+            self.assertEqual(output_item.get('coverages')[0].get('deliveries')[0]['item_id'],
                              'urn:newsml:localhost:2018-06-13T11:54:57.477423:c944042d-f93b-4304-9732-e7b5798ee8f9')
-            self.assertEqual(output_item.get('coverages')[0].get('assignment').get('planning').get('slugline'),
-                             'Raiders')
 
     def test_formatter_draft_coverage(self):
         with self.app.app_context():
@@ -191,5 +190,5 @@ class JsonPlanningTestCase(TestCase):
             output_item = json.loads(output[1])
             self.assertEqual(output_item.get('slugline'), 'SLUGLINE')
             self.assertEqual(output_item.get('agendas')[0].get('name'), 'Culture')
-            self.assertEqual(output_item.get('coverages')[0].get('planning').get('slugline'), 'SLUGLINE')
-            self.assertEqual(output_item.get('coverages')[0].get('assignment'), {})
+            self.assertEqual(output_item.get('coverages')[0].get('planning').get('slugline'), 'Raiders')
+            self.assertEqual(output_item.get('coverages')[0].get('deliveries'), [])
