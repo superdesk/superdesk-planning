@@ -607,29 +607,32 @@ const createEventFromPlanning = (plan) => (
             qcode: 'eocstat:eos0',
             name: 'Unplanned event',
         };
+        const eventProfile = selectors.forms.eventProfile(getState());
+        const newEvent = {
+            dates: {
+                start: moment(plan.planning_date).clone(),
+                end: moment(plan.planning_date)
+                    .clone()
+                    .add(defaultDurationOnChange, 'h'),
+                tz: moment.tz.guess(),
+            },
+            name: plan.name || plan.slugline,
+            subject: plan.subject,
+            anpa_category: plan.anpa_category,
+            definition_short: plan.description_text,
+            calendars: [],
+            internal_note: plan.internal_note,
+            place: plan.place,
+            occur_status: unplannedStatus,
+            _planning_item: plan._id,
+        };
+
+        if (get(eventProfile, 'editor.slugline.enabled', false)) {
+            newEvent.slugline = plan.slugline;
+        }
 
         return dispatch(planningApi.lock(plan, 'add_as_event'))
-            .then(() =>
-                dispatch(main.createNew(ITEM_TYPE.EVENT, {
-                    dates: {
-                        start: moment(plan.planning_date).clone(),
-                        end: moment(plan.planning_date)
-                            .clone()
-                            .add(defaultDurationOnChange, 'h'),
-                        tz: moment.tz.guess(),
-                    },
-                    slugline: plan.slugline,
-                    name: plan.name || plan.slugline,
-                    subject: plan.subject,
-                    anpa_category: plan.anpa_category,
-                    definition_short: plan.description_text,
-                    calendars: [],
-                    internal_note: plan.internal_note,
-                    place: plan.place,
-                    occur_status: unplannedStatus,
-                    _planning_item: plan._id,
-                }))
-            );
+            .then(() => dispatch(main.createNew(ITEM_TYPE.EVENT, newEvent)));
     }
 );
 

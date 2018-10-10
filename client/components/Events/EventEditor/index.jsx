@@ -38,7 +38,7 @@ export class EventEditorComponent extends React.Component {
         super(props);
 
         this.dom = {
-            slugline: null,
+            initialFocus: null,
             top: null,
             contacts: null,
         };
@@ -60,8 +60,8 @@ export class EventEditorComponent extends React.Component {
     }
 
     componentDidMount() {
-        if (!get(this.props, 'navigation.scrollToViewItem')) {
-            this.dom.slugline.focus();
+        if (!get(this.props, 'navigation.scrollToViewItem') && this.dom.initialFocus) {
+            this.dom.initialFocus.focus();
         }
 
         // scroll to contacts
@@ -76,9 +76,9 @@ export class EventEditorComponent extends React.Component {
         const currentItemId = getItemId(this.props.item);
 
         // If item changed or it got locked for editing
-        if ((prevItemId !== currentItemId) ||
-            (!get(prevProps, 'diff.lock_user') && get(this.props, 'diff.lock_user'))) {
-            this.dom.slugline.focus();
+        if (((prevItemId !== currentItemId) ||
+            (!get(prevProps, 'diff.lock_user') && get(this.props, 'diff.lock_user'))) && this.dom.initialFocus) {
+            this.dom.initialFocus.focus();
         }
 
         if (get(prevProps, 'navigation.scrollToViewItem') !== get(this.props, 'navigation.scrollToViewItem')) {
@@ -232,7 +232,7 @@ export class EventEditorComponent extends React.Component {
                         component={TextInput}
                         field="slugline"
                         label={gettext('Slugline')}
-                        refNode={(node) => this.dom.slugline = node}
+                        refNode={(node) => this.dom.initialFocus = node}
                         {...fieldProps}
                         onFocus={onFocusEvent}
                     />
@@ -241,6 +241,8 @@ export class EventEditorComponent extends React.Component {
                         component={TextInput}
                         field="name"
                         label={gettext('Event name')}
+                        refNode={get(formProfile, 'editor.slugline.enabled') ? undefined :
+                            (node) => this.dom.initialFocus = node}
                         {...fieldProps}
                         onFocus={onFocusEvent}
                     />
