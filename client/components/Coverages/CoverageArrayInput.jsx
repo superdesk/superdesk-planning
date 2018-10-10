@@ -13,6 +13,7 @@ export const CoverageArrayInput = ({
     value,
     onChange,
     addButtonText,
+    defaultDesk,
     users,
     desks,
     timeFormat,
@@ -48,8 +49,12 @@ export const CoverageArrayInput = ({
                 navigation={navigation}
                 addButtonText={addButtonText}
                 addButtonComponent={CoverageAddButton}
-                addButtonProps={{contentTypes: contentTypes}}
+                addButtonProps={{
+                    contentTypes: contentTypes,
+                    defaultDesk: defaultDesk,
+                }}
                 element={CoverageEditor}
+                defaultDesk={defaultDesk}
                 users={users}
                 desks={desks}
                 timeFormat={timeFormat}

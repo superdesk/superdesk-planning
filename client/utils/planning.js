@@ -817,25 +817,45 @@ const shouldLockPlanningForEdit = (item, privileges) => (
         (!isItemPublic(item) || !!privileges[PRIVILEGES.POST_PLANNING])
 );
 
-const defaultPlanningValues = (currentAgenda) => ({
-    _id: generateTempId(),
-    type: ITEM_TYPE.PLANNING,
-    planning_date: moment(),
-    agendas: get(currentAgenda, 'is_enabled') ?
-        [getItemId(currentAgenda)] : [],
-});
+const defaultPlanningValues = (currentAgenda, defaultPlaceList) => {
+    const newPlanning = {
+        _id: generateTempId(),
+        type: ITEM_TYPE.PLANNING,
+        planning_date: moment(),
+        agendas: get(currentAgenda, 'is_enabled') ?
+            [getItemId(currentAgenda)] : [],
+    };
 
-const defaultCoverageValues = (newsCoverageStatus, planningItem, g2contentType) => ({
-    planning: {
-        slugline: get(planningItem, 'slugline'),
-        internal_note: get(planningItem, 'internal_note'),
-        ednote: get(planningItem, 'ednote'),
-        scheduled: get(planningItem, 'planning_date', moment()),
-        g2_content_type: g2contentType,
-    },
-    news_coverage_status: newsCoverageStatus[0],
-    workflow_status: WORKFLOW_STATE.DRAFT,
-});
+    if (defaultPlaceList) {
+        newPlanning.place = defaultPlaceList;
+    }
+    return newPlanning;
+};
+
+const defaultCoverageValues = (newsCoverageStatus, planningItem, g2contentType, defaultDesk) => (
+    (g2contentType !== PLANNING.G2_CONTENT_TYPE.TEXT || !defaultDesk) ? {
+        planning: {
+            slugline: get(planningItem, 'slugline'),
+            internal_note: get(planningItem, 'internal_note'),
+            ednote: get(planningItem, 'ednote'),
+            scheduled: get(planningItem, 'planning_date', moment()),
+            g2_content_type: g2contentType,
+        },
+        news_coverage_status: newsCoverageStatus[0],
+        workflow_status: WORKFLOW_STATE.DRAFT,
+    } : {
+        planning: {
+            slugline: get(planningItem, 'slugline'),
+            internal_note: get(planningItem, 'internal_note'),
+            ednote: get(planningItem, 'ednote'),
+            scheduled: get(planningItem, 'planning_date', moment()),
+            g2_content_type: g2contentType,
+        },
+        news_coverage_status: newsCoverageStatus[0],
+        workflow_status: WORKFLOW_STATE.DRAFT,
+        assigned_to: {desk: defaultDesk._id},
+    }
+);
 
 
 const modifyPlanningsBeingAdded = (state, payload) => {

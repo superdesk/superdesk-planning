@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get, cloneDeep, remove as _remove, some, isEqual} from 'lodash';
+import {get, cloneDeep, remove as _remove, some, isEqual, isEmpty} from 'lodash';
 
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
@@ -208,7 +208,7 @@ export class PlanningEditorComponent extends React.Component {
             valueToUpdate = get(value, 'qcode', null);
         }
 
-        if (field.match(/coverages\[/)) {
+        if (field.match(/^coverages\[/)) {
             const {newsCoverageStatus} = this.props;
 
             // If there is an assignment and coverage status not planned,
@@ -221,6 +221,18 @@ export class PlanningEditorComponent extends React.Component {
                     ...value,
                     news_coverage_status: this.props.newsCoverageStatus[0],
                 };
+            }
+
+            if (field.match(/g2_content_type$/) && value === PLANNING.G2_CONTENT_TYPE.TEXT && this.props.defaultDesk) {
+                const coverageStr = field.substr(0, field.indexOf('.'));
+                let existingCoverage = {...get(this.props, `diff.${coverageStr}`)};
+
+                if (get(existingCoverage, 'assigned_to.desk') !== this.props.defaultDesk._id) {
+                    existingCoverage.planning.g2_content_type = value;
+                    this.assignCoverageToDefaultDesk(existingCoverage);
+                    this.props.onChangeHandler(coverageStr, existingCoverage);
+                    return;
+                }
             }
         }
 
@@ -287,6 +299,20 @@ export class PlanningEditorComponent extends React.Component {
         this.onChange('planning_date', value);
     }
 
+    assignCoverageToDefaultDesk(coverage) {
+        if (!coverage.assigned_to || isEmpty(coverage.assigned_to)) {
+            coverage.assigned_to = {desk: this.props.defaultDesk._id};
+        } else {
+            coverage.assigned_to.desk = this.props.defaultDesk._id;
+            const deskMembers = get(this.props, 'defaultDesk.members', []).map((m) => m.user);
+
+            // If the user does not belong to default desk, remove the user
+            if (coverage.assigned_to.user && !deskMembers.includes(coverage.assigned_to.user)) {
+                coverage.assigned_to.user = null;
+            }
+        }
+    }
+
     render() {
         const {
             item,
@@ -298,6 +324,7 @@ export class PlanningEditorComponent extends React.Component {
             categories,
             subjects,
             users,
+            defaultDesk,
             desks,
             agendas,
             readOnly,
@@ -549,6 +576,7 @@ export class PlanningEditorComponent extends React.Component {
                     component={CoverageArrayInput}
                     row={false}
                     field="coverages"
+                    defaultDesk={defaultDesk}
                     users={users}
                     desks={desks}
                     timeFormat={timeFormat}
@@ -624,6 +652,7 @@ PlanningEditorComponent.propTypes = {
     files: PropTypes.object,
     popupContainer: PropTypes.func,
     streetMapUrl: PropTypes.string,
+    defaultDesk: PropTypes.object,
 };
 
 PlanningEditorComponent.defaultProps = {
@@ -660,6 +689,7 @@ const mapStateToProps = (state) => ({
     createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
     files: selectors.general.files(state),
     streetMapUrl: selectors.config.getStreetMapUrl(state),
+    defaultDesk: selectors.general.defaultDesk(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

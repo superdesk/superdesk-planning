@@ -54,17 +54,17 @@ import {validateItem} from '../validators';
 const createNew = (itemType, item = null) => (
     (dispatch, getState) => {
         let newItem;
+        const defaultPlaceList = selectors.general.defaultPlaceList(getState());
 
         if (itemType === ITEM_TYPE.EVENT) {
             newItem = eventUtils.defaultEventValues(
                 selectors.vocabs.eventOccurStatuses(getState()),
-                selectors.events.defaultCalendarValue(getState())
-            );
+                selectors.events.defaultCalendarValue(getState()),
+                defaultPlaceList);
             newItem._planning_item = get(item, '_planning_item');
         } else if (itemType === ITEM_TYPE.PLANNING) {
-            newItem = planningUtils.defaultPlanningValues(
-                selectors.planning.currentAgenda(getState())
-            );
+            newItem = planningUtils.defaultPlanningValues(selectors.planning.currentAgenda(getState()),
+                defaultPlaceList);
         }
 
         const promise = isNil(item) ?

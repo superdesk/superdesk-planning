@@ -2,7 +2,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import {cloneDeep, get} from 'lodash';
+import {get} from 'lodash';
 
 import {Button} from '../../';
 import {Row, LineInput} from '../';
@@ -38,13 +38,11 @@ export const InputArray = ({
         let currentValue = args.shift();
         const newElement = typeof defaultElement === 'function' ? defaultElement(...args) : defaultElement;
 
-        currentValue.push(cloneDeep(newElement));
-        onChange(field, [...currentValue]);
+        onChange(field, [...currentValue, newElement]);
     }).bind(null, value);
 
     const remove = (index) => {
-        value.splice(index, 1);
-        onChange(field, [...value]);
+        onChange(field, value.filter((v, ind) => ind !== index));
     };
 
     const Component = element;

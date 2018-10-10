@@ -39,6 +39,7 @@ const newStateOnEditorOpen = (state, payload, modal = false) => {
             occur_status: payload.occur_status,
             dates: payload.dates,
             calendars: payload.calendars,
+            place: payload.place,
         };
     } else if (itemType === ITEM_TYPE.PLANNING) {
         initialValues = {
@@ -46,6 +47,7 @@ const newStateOnEditorOpen = (state, payload, modal = false) => {
             _id: payload._id,
             agendas: payload.agendas,
             planning_date: payload.planning_date,
+            place: payload.place,
         };
     }
 

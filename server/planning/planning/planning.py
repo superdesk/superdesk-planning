@@ -508,8 +508,16 @@ class PlanningService(superdesk.Service):
 
             if original_assignment.get('assigned_to').get('state') == ASSIGNMENT_WORKFLOW_STATE.DRAFT:
                 if self.is_coverage_assignment_modified(updates, original_assignment):
+                    user = get_user()
                     assignment['priority'] = assigned_to.pop('priority', original_assignment.get('priority'))
                     assignment['assigned_to'] = assigned_to
+                    if original_assignment.get('assigned_to', {}).get('desk') != assigned_to.get('desk'):
+                        assigned_to['assigned_date_desk'] = utcnow()
+                        assigned_to['assignor_desk'] = user.get(config.ID_FIELD)
+                    if assigned_to.get('user') and original.get('assigned_to', {}).get('user') != \
+                            assigned_to.get('user'):
+                        assigned_to['assigned_date_user'] = utcnow()
+                        assigned_to['assignor_user'] = user.get(config.ID_FIELD)
 
             # If we made a coverage 'active' - change assignment status to active
             if original.get('workflow_status') == WORKFLOW_STATE.DRAFT and not is_coverage_draft:
