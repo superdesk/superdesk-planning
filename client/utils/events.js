@@ -742,17 +742,24 @@ export const shouldLockEventForEdit = (item, privileges) => (
         (!isItemPublic(item) || !!privileges[PRIVILEGES.POST_EVENT])
 );
 
-const defaultEventValues = (occurStatuses, defaultCalendars) => ({
-    _id: generateTempId(),
-    type: ITEM_TYPE.EVENT,
-    occur_status: get(occurStatuses, '[5]') || null, // eocstat:eos5: Planned, occurs certainly
-    dates: {
-        start: null,
-        end: null,
-        tz: moment.tz.guess(),
-    },
-    calendars: defaultCalendars,
-});
+const defaultEventValues = (occurStatuses, defaultCalendars, defaultPlaceList) => {
+    let newEvent = {
+        _id: generateTempId(),
+        type: ITEM_TYPE.EVENT,
+        occur_status: get(occurStatuses, '[5]') || null, // eocstat:eos5: Planned, occurs certainly
+        dates: {
+            start: null,
+            end: null,
+            tz: moment.tz.guess(),
+        },
+        calendars: defaultCalendars,
+    };
+
+    if (defaultPlaceList) {
+        newEvent.place = defaultPlaceList;
+    }
+    return newEvent;
+};
 
 const shouldFetchFilesForEvent = (event) => (
     get(event, 'files', []).filter((f) => typeof (f) === 'string'

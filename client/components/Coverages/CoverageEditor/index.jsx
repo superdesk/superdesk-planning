@@ -14,6 +14,7 @@ export const CoverageEditor = ({
     index,
     field,
     value,
+    defaultDesk,
     users,
     desks,
     dateFormat,
@@ -109,7 +110,8 @@ export const CoverageEditor = ({
             planningUtils.defaultCoverageValues(
                 newsCoverageStatus,
                 props.item,
-                get(value, 'planning.g2_content_type')
+                get(value, 'planning.g2_content_type'),
+                defaultDesk
             )
         )
     );
