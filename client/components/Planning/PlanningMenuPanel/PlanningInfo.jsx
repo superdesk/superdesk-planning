@@ -9,26 +9,18 @@ import {StateLabel, InternalNoteLabel} from '../../../components';
 export const PlanningInfo = ({item, onClick, timeFormat, dateFormat, active}) => {
     const collapsedItem = (<Item noBg={!active} onClick={onClick} activated={active}>
         <Border/>
-        <Column grow={true} border={false}>
+        <Column grow={true}>
             <Row paddingBottom>
                 <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                     {item.slugline &&
-                        <span className="ListItem__slugline form-label">{item.slugline}</span>
+                        <span className="sd-list-item__slugline">{item.slugline}</span>
                     }
-                </span>
-                <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                    <StateLabel
-                        className="pull-right"
-                        item={item}
-                        verbose={true}
-                        withExpiredStatus={true}
-                    />
                 </span>
             </Row>
             <Row>
                 <InternalNoteLabel item={item} marginRight={true} />
                 <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                    <time className="pull-right">
+                    <time className="no-padding">
                         <i className="icon-time"/>
                         {item.planning_date &&
                             getDateTimeString(item.planning_date, dateFormat, timeFormat)
@@ -36,6 +28,14 @@ export const PlanningInfo = ({item, onClick, timeFormat, dateFormat, active}) =>
                     </time>
                 </span>
             </Row>
+        </Column>
+        <Column>
+            <StateLabel
+                className="pull-right"
+                item={item}
+                verbose={true}
+                withExpiredStatus={true}
+            />
         </Column>
     </Item>);
 
