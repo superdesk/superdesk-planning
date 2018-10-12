@@ -238,6 +238,7 @@ const getAssignmentInfo = (assignment, users, desks) => {
         get(assignedUser, 'name') ||
         '-';
     const assignedDeskName = get(assignedDesk, 'name') || '-';
+    const coverageProvider = get(assignedTo, 'coverage_provider.name');
 
     return {
         assignedTo,
@@ -256,6 +257,7 @@ const getAssignmentInfo = (assignment, users, desks) => {
         assignedDateUser,
         assignedUserName,
         assignedDeskName,
+        coverageProvider,
     };
 };
 
