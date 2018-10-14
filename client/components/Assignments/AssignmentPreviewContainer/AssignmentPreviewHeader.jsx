@@ -43,6 +43,7 @@ export const AssignmentPreviewHeader = ({
         assignedDateUser,
         assignedUserName,
         assignedDeskName,
+        coverageProvider,
     } = assignmentUtils.getAssignmentInfo(assignment, users, desks);
 
     const planningSchedule = get(assignment, 'planning.scheduled');
@@ -114,6 +115,15 @@ export const AssignmentPreviewHeader = ({
                                     )}
                                 </span>
                             </Row>
+                            {coverageProvider &&
+                                <Row margin={false}>
+                                    <span className="sd-list-item__normal">
+                                        {gettext('Coverage Provider:')}
+                                    </span>
+                                    <span className="sd-list-item__strong">
+                                        {coverageProvider}
+                                    </span>
+                                </Row>}
                             <Row marginTop={true}>
                                 <span className="sd-list-item__normal">
                                     {gettext('Due:')}
