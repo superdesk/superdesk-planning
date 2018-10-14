@@ -812,6 +812,7 @@ export const isItemDifferent = (currentProps, nextProps) => {
         get(original, 'item._updated') !== get(updates, 'item._updated') ||
         get(original, 'item.planning_ids') !== get(updates, 'item.planning_ids') ||
         get(original, 'multiSelected') !== get(updates, 'multiSelected') ||
+        get(original, 'item.event') !== get(updates, 'item.event') ||
         lockUtils.isItemLocked(original.item, original.lockedItems) !==
         lockUtils.isItemLocked(updates.item, updates.lockedItems);
 };

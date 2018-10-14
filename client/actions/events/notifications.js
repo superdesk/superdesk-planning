@@ -167,11 +167,14 @@ const onEventCancelled = (e, data) => (
 );
 
 const onEventScheduleChanged = (e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (get(data, 'item')) {
-            dispatch(eventsUi.scheduleRefetch());
-            dispatch(eventsPlanning.ui.scheduleRefetch());
-            dispatch(eventsApi.getEvent(data.item, false));
+            dispatch(eventsUi.scheduleRefetch()); // Will update only 'events only' view
+            dispatch(eventsPlanning.ui.scheduleRefetch()); // Will update only 'combined' view
+            // Fetch the event if it is 'planning only' view
+            if (selectors.main.isPlanningView(getState())) {
+                dispatch(eventsApi.fetchById(data.item, {force: true}));
+            }
             dispatch(fetchItemHistoryOnRecurringNotitication(data));
         }
     }
