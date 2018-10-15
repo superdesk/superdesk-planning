@@ -11,6 +11,7 @@
 """Superdesk Planning Plugin."""
 
 import superdesk
+from eve.utils import config
 from .locations import LocationsResource, LocationsService
 from .agendas import AgendasResource, AgendasService
 from .common import get_max_recurrent_events, get_street_map_url, get_event_max_multi_day_duration
@@ -24,6 +25,9 @@ from planning.search import init_app as init_search_app
 from planning.validate import init_app as init_validator_app
 from superdesk.celery_app import celery
 from .published_planning import PublishedPlanningResource, PublishedPlanningService
+from superdesk.default_settings import celery_queue, CELERY_TASK_ROUTES as CTR, \
+    CELERY_BEAT_SCHEDULE as CBS
+from celery.schedules import crontab
 
 from .commands import FlagExpiredItems
 import planning.commands  # noqa
@@ -113,6 +117,50 @@ def init_app(app):
     app.client_config['max_recurrent_events'] = get_max_recurrent_events(app)
     app.client_config['street_map_url'] = get_street_map_url(app)
     app.client_config['max_multi_day_event_duration'] = get_event_max_multi_day_duration(app)
+
+    # Set up Celery task options
+    if not app.config.get('CELERY_TASK_ROUTES'):
+        app.config['CELERY_TASK_ROUTES'] = CTR
+
+    if not app.config.get('CELERY_TASK_ROUTES').get('planning.flag_expired'):
+        app.config['CELERY_TASK_ROUTES']['planning.flag_expired'] = {
+            'queue': celery_queue('expiry'),
+            'routing_key': 'expiry.planning'
+        }
+
+    if not app.config.get('CELERY_BEAT_SCHEDULE'):
+        app.config['CELERY_BEAT_SCHEDULE'] = CBS
+
+    if app.config.get('PLANNING_EXPIRY_MINUTES', 0) != 0 and \
+            not app.config.get('CELERY_BEAT_SCHEDULE').get('planning:expiry'):
+        app.config['CELERY_BEAT_SCHEDULE']['planning:expiry'] = {
+            'task': 'planning.flag_expired',
+            'schedule': crontab(minute='0')  # Runs once every hour
+        }
+
+    # Create 'type' required for planning module if not already preset
+    with app.app_context():
+        vocabulary_service = superdesk.get_resource_service('vocabularies')
+        types = vocabulary_service.find_one(req=None, _id='type')
+        if types:
+            items = types.get('items') or []
+            added_types = []
+            type_names = [t['name'] for t in items]
+
+            planning_type_list = [
+                {"is_active": True, "name": "planning item", "qcode": "planning"},
+                {"is_active": True, "name": "event", "qcode": "event"},
+                {"is_active": True, "name": "Featured Stories", "qcode": "planning_featured"}
+            ]
+
+            for item in planning_type_list:
+                if item['qcode'] not in type_names:
+                    added_types.append(item)
+
+            if len(added_types) > 0:
+                vocabulary_service.patch(types.get(config.ID_FIELD), {
+                    "items": (items + added_types)
+                })
 
 
 @celery.task(soft_time_limit=600)
