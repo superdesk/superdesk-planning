@@ -501,7 +501,7 @@ describe('PlanningUtils', () => {
                 'Update Event Time',
                 'Reschedule Event',
                 'Mark Event as Postponed',
-                'Convert to recurring event',
+                'Convert to Recurring Event',
             ]);
         });
 

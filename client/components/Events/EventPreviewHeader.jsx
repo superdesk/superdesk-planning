@@ -45,6 +45,8 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
                 itemActionDispatches[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
                 itemActionDispatches[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName].bind(null, item),
+            [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]:
+                itemActionDispatches[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]:
                 itemActionDispatches[EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName],
         };

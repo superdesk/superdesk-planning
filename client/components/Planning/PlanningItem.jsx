@@ -91,6 +91,8 @@ export class PlanningItem extends React.Component {
                 this.props[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
+            [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]:
+                this.props[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName],
         };
         const event = get(item, 'event');
 

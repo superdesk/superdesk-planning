@@ -47,6 +47,7 @@ export class ItemActionConfirmationModal extends React.Component {
         let form;
         let saveText = gettext('Save');
         let propToForm = modalProps.eventDetail;
+        const isRecurring = get(modalProps, 'eventDetail.recurrence_id');
 
         const getSaveAndPostTitle = () => {
             const post = get(modalProps, 'eventDetail._post', false);
@@ -61,31 +62,37 @@ export class ItemActionConfirmationModal extends React.Component {
 
         const modalFormsMapper = {
             [EVENTS.ITEM_ACTIONS.SPIKE.label]: {
-                title: gettext('Spike an event'),
+                title: gettext('Spike {{event}}',
+                    {event: isRecurring ? gettext('Recurring Event(s)') : gettext('an Event')}),
                 saveText: gettext('Spike'),
                 form: SpikeEventForm,
             },
             [EVENTS.ITEM_ACTIONS.UNSPIKE.label]: {
-                title: gettext('Unspike an event'),
+                title: gettext('Unspike {{event}}',
+                    {event: isRecurring ? gettext('Recurring Event(s)') : gettext('an Event')}),
                 saveText: gettext('Unspike'),
                 form: UnspikeEventForm,
             },
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: {
-                title: gettext('Cancel an event'),
+                title: gettext('Cancel {{event}}',
+                    {event: isRecurring ? gettext('Recurring Event(s)') : gettext('an Event')}),
                 saveText: gettext('OK'),
                 form: CancelEventForm,
             },
             [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: {
-                title: gettext('Update time'),
+                title: gettext('Update time of {{event}}',
+                    {event: isRecurring ? gettext('Recurring Event(s)') : gettext('an Event')}),
                 form: UpdateTimeForm,
             },
             [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label]: {
-                title: gettext('Reschedule an event'),
+                title: gettext('Reschedule {{event}}',
+                    {event: isRecurring ? gettext('a Recurring Event') : gettext('an Event')}),
                 saveText: gettext('Reschedule'),
                 form: RescheduleEventForm,
             },
             [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label]: {
-                title: gettext('Postpone an event'),
+                title: gettext('Postpone {{event}}',
+                    {event: isRecurring ? gettext('a Recurring Event') : gettext('an Event')}),
                 saveText: gettext('Postpone'),
                 form: PostponeEventForm,
             },
@@ -94,12 +101,15 @@ export class ItemActionConfirmationModal extends React.Component {
                 form: ConvertToRecurringEventForm,
             },
             [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.label]: {
-                title: gettext('Update Event Repetitions'),
+                title: gettext('Update Repetitions of the series'),
                 saveText: gettext('Update Repetitions'),
                 form: UpdateEventRepetitionsForm,
             },
             [EVENTS.ITEM_ACTIONS.POST_EVENT.label]: {
-                title: gettext('Post Event'),
+                title: gettext('{{action}} {{event}}', {
+                    action: get(propToForm, '_post', true) ? gettext('Post') : gettext('Unpost'),
+                    event: isRecurring ? gettext('Recurring Event(s)') : gettext('an Event'),
+                }),
                 saveText: get(propToForm, '_post', true) ? gettext('Post') : gettext('Unpost'),
                 form: PostEventsForm,
             },
@@ -109,13 +119,13 @@ export class ItemActionConfirmationModal extends React.Component {
                 form: CreatePlanningForm,
             },
             [PLANNING.ITEM_ACTIONS.SPIKE.label]: {
-                title: gettext('Spike planning item'),
+                title: gettext('Spike Planning Item'),
                 propToForm: {...modalProps.planning},
                 saveText: gettext('Spike'),
                 form: SpikePlanningForm,
             },
             [PLANNING.ITEM_ACTIONS.UNSPIKE.label]: {
-                title: gettext('Unspike planning item'),
+                title: gettext('Unspike Planning Item'),
                 propToForm: {...modalProps.planning},
                 saveText: gettext('Unspike'),
                 form: UnspikePlanningForm,

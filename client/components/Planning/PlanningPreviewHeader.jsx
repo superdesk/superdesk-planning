@@ -55,6 +55,8 @@ export class PlanningPreviewHeaderComponent extends React.Component {
                 itemActionDispatches[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
                 itemActionDispatches[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
+            [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]:
+                itemActionDispatches[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName],
         };
 
         const itemActions = !hideItemActions ? planningUtils.getPlanningActions({
