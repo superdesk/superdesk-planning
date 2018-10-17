@@ -390,6 +390,10 @@ export const getItemActionedStateLabel = (item) => {
 
 // eslint-disable-next-line complexity
 export const getItemWorkflowStateLabel = (item, field = 'state') => {
+    if (field === 'is_active' && !item[field]) {
+        return {label: gettext('Inactive')};
+    }
+
     switch (getItemWorkflowState(item, field)) {
     case WORKFLOW_STATE.DRAFT:
         return {

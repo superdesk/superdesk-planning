@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {StateLabel} from '../../';
 import {Item, Column, Row, ActionMenu} from '../../UI/List';
 import {CollapseBox} from '../../UI/CollapseBox';
 import {gettext, onEventCapture} from '../../../utils';
@@ -58,12 +59,15 @@ export const ContactMetaData = ({
                 <div className="sd-list-item__border" />
                 <Column grow={true} border={false}>
                     <Row>
-                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            <span className="sd-list-item__text-strong">
-                                <ContactLabel contact={contact} />
-                            </span>
-                        </span>
+                        <ContactLabel contact={contact} />
                     </Row>
+                </Column>
+                <Column border={false}>
+                    <StateLabel
+                        item={contact}
+                        verbose={true}
+                        className="pull-right"
+                        fieldName="is_active" />
                 </Column>
                 {contactActions.length > 0 && contactActions.map((actionComponent, index) => (
                     <ActionMenu className="pull-right" key={index}>{actionComponent}</ActionMenu>

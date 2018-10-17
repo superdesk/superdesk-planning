@@ -26,8 +26,10 @@ const getContacts = (searchText, searchFields = []) => (
 
 const fetchContactsByIds = (ids) => (
     (dispatch, getState, {api}) => (
-        api('contacts').query(
-            {source: {query: {terms: {_id: ids}}}}
+        api('contacts').query({
+            source: {query: {terms: {_id: ids}}},
+            all: true,
+        }
         )
             .then((data) => dispatch(self.receiveContacts(get(data, '_items', []))))
     )
