@@ -145,11 +145,11 @@ def init_app(app):
         if types:
             items = types.get('items') or []
             added_types = []
-            type_names = [t['name'] for t in items]
+            type_names = [t['qcode'] for t in items]
 
             planning_type_list = [
-                {"is_active": True, "name": "planning item", "qcode": "planning"},
-                {"is_active": True, "name": "event", "qcode": "event"},
+                {"is_active": True, "name": "Planning item", "qcode": "planning"},
+                {"is_active": True, "name": "Event", "qcode": "event"},
                 {"is_active": True, "name": "Featured Stories", "qcode": "planning_featured"}
             ]
 
