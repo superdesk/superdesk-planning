@@ -37,13 +37,13 @@ export const PLANNING = {
             actionName: 'onDuplicatePlanning',
         },
         CANCEL_PLANNING: {
-            label: gettext('Cancel planning'),
+            label: gettext('Cancel Planning'),
             icon: 'icon-close-small',
             actionName: 'onCancelPlanning',
             lock_action: 'planning_cancel',
         },
         CANCEL_ALL_COVERAGE: {
-            label: gettext('Cancel all coverage'),
+            label: gettext('Cancel all coverage(s)'),
             icon: 'icon-close-small',
             actionName: 'onCancelAllCoverage',
             lock_action: 'cancel_all_coverage',

@@ -1,6 +1,5 @@
 import {showModal, hideModal} from '../index';
 import planningApi from './api';
-import planningUi from './ui';
 import {locks} from '../index';
 import main from '../main';
 
@@ -250,7 +249,7 @@ const _modifyPlanningFeatured = (item, remove = false) => (
         dispatch(locks.lock(item, remove ? 'remove_featured' : 'add_featured'))
             .then((lockedItem) => {
                 lockedItem.featured = !remove;
-                return dispatch(planningUi.saveAndUnlockPlanning(lockedItem)).then((updatedItem) => {
+                return dispatch(main.saveAndUnlockItem(lockedItem)).then((updatedItem) => {
                     remove ? notify.success(gettext('Planning item removed as featured story')) :
                         notify.success(gettext('Planning item added as featured story'));
                     return Promise.resolve(updatedItem);

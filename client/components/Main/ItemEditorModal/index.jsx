@@ -11,7 +11,7 @@ import {ItemMenuPanel} from './ItemMenuPanel';
 import {Modal} from '../../index';
 import {EditorModal} from '../index';
 
-import {gettext, onEventCapture, getItemType} from '../../../utils';
+import {gettext, onEventCapture, getItemType, isExistingItem} from '../../../utils';
 import './style.scss';
 
 export class EditorModalComponent extends React.Component {
@@ -127,8 +127,9 @@ export class EditorModalComponent extends React.Component {
     }
 
     render() {
+        const itemType = getItemType(get(this.props, 'modalProps.item'));
         const navigation = {
-            padContentForNavigation: getItemType(get(this.props, 'modalProps.item')) === ITEM_TYPE.EVENT,
+            padContentForNavigation: itemType === ITEM_TYPE.EVENT,
             openItems: this.state.openItems,
             scrollToViewItem: this.state.scrollToViewItem,
             onItemOpen: this.onItemOpenFromEditor,
@@ -136,6 +137,11 @@ export class EditorModalComponent extends React.Component {
             onItemFocus: this.onItemFocusFromEditor,
             onTabChange: this.onEditorTabChange,
         };
+        const modalTitle = gettext('{{action}} {{type}}', {
+            action: isExistingItem(get(this.props, 'modalProps.item')) ?
+                gettext('Edit') : gettext('Create'),
+            type: itemType === ITEM_TYPE.EVENT ? gettext('Event') : gettext('Planning'),
+        });
 
         return (
             <Modal
@@ -147,7 +153,7 @@ export class EditorModalComponent extends React.Component {
                     <a className="close" onClick={this.onCloseModal}>
                         <i className="icon-close-small" />
                     </a>
-                    <h3>{gettext('Editor')}</h3>
+                    <h3>{modalTitle}</h3>
                 </Modal.Header>
 
                 <Modal.Body noPadding fullHeight noScroll>

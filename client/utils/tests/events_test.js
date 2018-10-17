@@ -302,7 +302,7 @@ describe('EventUtils', () => {
                 'Update time',
                 'Reschedule',
                 'Mark as Postponed',
-                'Convert to recurring event',
+                'Convert to Recurring Event',
                 'Create Planning Item',
             ]);
         });

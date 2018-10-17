@@ -207,7 +207,7 @@ class PlanningService(superdesk.Service):
                     doc['recurrence_id'] = event.get('recurrence_id')
                 # populate headline using name
                 if event.get('name') and is_field_enabled('headline', planning_type):
-                    doc.setdefault('headline', doc['name'])
+                    doc.setdefault('headline', event['name'])
 
     def _get_added_removed_agendas(self, updates, original):
         added_agendas = updates.get('agendas') or []

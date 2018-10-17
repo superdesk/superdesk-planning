@@ -76,7 +76,7 @@ export const EVENTS = {
             lock_action: 'postpone',
         },
         CONVERT_TO_RECURRING: {
-            label: gettext('Convert to recurring event'),
+            label: gettext('Convert to Recurring Event'),
             icon: 'icon-repeat',
             actionName: 'onConvertToRecurringEvent',
             lock_action: 'convert_recurring',

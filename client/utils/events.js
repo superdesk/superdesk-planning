@@ -530,17 +530,18 @@ const getEventActions = ({item, session, privileges, lockedItems, callBacks, wit
     let actions = [];
     const isExpired = isItemExpired(item);
     let alllowedCallBacks = [
-        EVENTS.ITEM_ACTIONS.DUPLICATE.actionName,
-        EVENTS.ITEM_ACTIONS.SPIKE.actionName,
-        EVENTS.ITEM_ACTIONS.UNSPIKE.actionName,
-        EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName,
-        EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName,
-        EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName,
-        EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName,
-        EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName,
-        EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName,
         EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName,
         EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName,
+        EVENTS.ITEM_ACTIONS.DUPLICATE.actionName,
+        EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName,
+        EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName,
+        EVENTS.ITEM_ACTIONS.SPIKE.actionName,
+        EVENTS.ITEM_ACTIONS.UNSPIKE.actionName,
+        EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName,
+        EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName,
+        EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName,
+        EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName,
+        EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName,
     ];
 
     if (isExpired && !privileges[PRIVILEGES.EDIT_EXPIRED]) {
@@ -562,7 +563,7 @@ const getEventActions = ({item, session, privileges, lockedItems, callBacks, wit
         }
     });
 
-    if (get(calendars, 'length', 0) > 0) {
+    if (get(calendars, 'length', 0) > 0 && callBacks[EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]) {
         let calendarCallBacks = [];
 
         calendars.forEach((cal) => {
@@ -573,10 +574,14 @@ const getEventActions = ({item, session, privileges, lockedItems, callBacks, wit
             });
         });
 
-        calendarCallBacks.length > 0 && actions.push({
-            ...EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR,
-            callback: calendarCallBacks,
-        });
+        let assignToCalendarAction = actions.find((a) =>
+            a.actionName === EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName);
+
+        if (assignToCalendarAction) {
+            assignToCalendarAction.callback = calendarCallBacks;
+        }
+    } else {
+        actions = actions.filter((a) => a.actionName !== EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName);
     }
 
     if (!isExpired || privileges[PRIVILEGES.EDIT_EXPIRED]) {
@@ -907,6 +912,7 @@ const self = {
     canPostponeEvent,
     canUpdateEventTime,
     canConvertToRecurringEvent,
+    canUpdateEventRepetitions,
     isEventLocked,
     isEventLockRestricted,
     isEventSameDay,

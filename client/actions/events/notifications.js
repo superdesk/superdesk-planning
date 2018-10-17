@@ -246,6 +246,10 @@ const onRecurringEventCreated = (_e, data) => (
                 .then((items) => {
                     dispatch(eventsUi.scheduleRefetch());
                     dispatch(eventsPlanning.ui.scheduleRefetch());
+                    // Fetch the event if it is 'planning only' view
+                    if (selectors.main.isPlanningView(getState())) {
+                        dispatch(eventsApi.fetchById(data.item, {force: true}));
+                    }
                     return Promise.resolve(items);
                 }, (error) => {
                     notify.error(getErrorMessage(
