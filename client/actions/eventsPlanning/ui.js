@@ -5,6 +5,7 @@ import planningApi from '../planning/api';
 import {EVENTS_PLANNING, MAIN, ITEM_TYPE} from '../../constants';
 import * as selectors from '../../selectors';
 import {getItemType, dispatchUtils} from '../../utils';
+import main from '../main';
 
 /**
  * Action to fetch events and planning based on the params
@@ -60,8 +61,14 @@ const loadMore = () => (
 
 const refetch = () => (
     (dispatch, getState) => {
+        var previewId = selectors.main.previewId(getState());
+        var previewType = selectors.main.previewType(getState());
+
         if (!selectors.main.isEventsPlanningView(getState())) {
             return Promise.resolve();
+        }
+        if (previewId && previewType === 'planning') {
+            dispatch(main.fetchItemHistory({_id: previewId, type: ITEM_TYPE.PLANNING}));
         }
 
         return dispatch(eventsAndPlanningApi.refetch())
