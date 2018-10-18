@@ -90,6 +90,8 @@ export class ColouredValuePopup extends React.PureComponent {
             labelKey,
             valueKey,
             popupContainer,
+            onPopupOpen,
+            onPopupClose,
         } = this.props;
 
         return (<Popup
@@ -98,6 +100,8 @@ export class ColouredValuePopup extends React.PureComponent {
             className="select-coloured-value__popup"
             popupContainer={popupContainer}
             onKeyDown={this.onKeyDown}
+            onPopupOpen={onPopupOpen}
+            onPopupClose={onPopupClose}
         >
             {title && (
                 <Header noPadding={true}>
@@ -151,6 +155,8 @@ ColouredValuePopup.propTypes = {
     labelKey: PropTypes.string,
     valueKey: PropTypes.string,
     popupContainer: PropTypes.func,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };
 
 ColouredValuePopup.defaultProps = {

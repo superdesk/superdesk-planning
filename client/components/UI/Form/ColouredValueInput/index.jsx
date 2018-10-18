@@ -114,6 +114,8 @@ export class ColouredValueInput extends React.Component {
                         labelKey={labelKey}
                         valueKey={valueKey}
                         popupContainer={popupContainer}
+                        onPopupOpen={props.onPopupOpen}
+                        onPopupClose={props.onPopupClose}
                     />
                 )}
             </LineInput>

@@ -39,7 +39,7 @@ export class CoverageAddButton extends React.Component {
     }
 
     render() {
-        const {className, buttonClass} = this.props;
+        const {className, buttonClass, onPopupOpen, onPopupClose} = this.props;
 
         return (
             <div className={className}>
@@ -52,6 +52,8 @@ export class CoverageAddButton extends React.Component {
                             closeMenu={this.closeMenu}
                             actions={this.items}
                             target="icon-plus-large"
+                            onPopupOpen={onPopupOpen}
+                            onPopupClose={onPopupClose}
                         />
                     )}
                 </button>
@@ -73,6 +75,8 @@ CoverageAddButton.propTypes = {
     buttonClass: PropTypes.string,
     onOpen: PropTypes.func,
     onAdd: PropTypes.func,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };
 
 CoverageAddButton.defaultProps = {

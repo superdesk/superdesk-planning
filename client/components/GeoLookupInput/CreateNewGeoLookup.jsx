@@ -90,6 +90,8 @@ export class CreateNewGeoLookup extends React.Component {
                 inheritWidth={true}
                 className="addgeolookup__popup-create"
                 popupContainer={this.props.popupContainer}
+                onPopupOpen={this.props.onPopupOpen}
+                onPopupClose={this.props.onPopupClose}
             >
                 <Header
                     text={gettext('Add New Event Location')}
@@ -170,4 +172,6 @@ CreateNewGeoLookup.propTypes = {
     popupContainer: PropTypes.func,
     countries: PropTypes.array,
     defaultCountry: PropTypes.object,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };

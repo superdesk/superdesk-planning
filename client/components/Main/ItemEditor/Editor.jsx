@@ -44,7 +44,6 @@ export class EditorComponent extends React.Component {
         };
 
         this.tearDownRequired = false;
-        this.editorHeaderComponent = null;
         this.onChangeHandler = this.onChangeHandler.bind(this);
         this.setActiveTab = this.setActiveTab.bind(this);
         this.onSave = this.onSave.bind(this);
@@ -60,6 +59,8 @@ export class EditorComponent extends React.Component {
         this.onMinimized = this.onMinimized.bind(this);
         this.flushAutosave = this.flushAutosave.bind(this);
         this.cancelFromHeader = this.cancelFromHeader.bind(this);
+        this.onPopupOpen = this.onPopupOpen.bind(this);
+        this.onPopupClose = this.onPopupClose.bind(this);
 
         this.throttledSave = null;
 
@@ -82,6 +83,8 @@ export class EditorComponent extends React.Component {
         this.dom = {
             autosave: null,
             popupContainer: null,
+            editorHeaderComponent: null,
+            scrollContainer: null,
         };
     }
 
@@ -104,6 +107,18 @@ export class EditorComponent extends React.Component {
         if (!this.tearDownRequired) {
             // problem of modal within modal, so setting this before unmount
             this.tearDownEditorState();
+        }
+    }
+
+    onPopupOpen() {
+        if (this.dom.scrollContainer) {
+            this.dom.scrollContainer.style.overflow = 'hidden';
+        }
+    }
+
+    onPopupClose() {
+        if (this.dom.scrollContainer) {
+            this.dom.scrollContainer.style.overflow = this.containerScrollStyle || '';
         }
     }
 
@@ -507,8 +522,8 @@ export class EditorComponent extends React.Component {
             this.tearDownEditorState();
         }
 
-        if (this.editorHeaderComponent) {
-            this.editorHeaderComponent.unregisterKeyBoardShortcuts();
+        if (this.dom.editorHeaderComponent) {
+            this.dom.editorHeaderComponent.unregisterKeyBoardShortcuts();
         }
 
         this.props.cancel(this.props.item || this.props.initialValues);
@@ -597,7 +612,13 @@ export class EditorComponent extends React.Component {
                     'side-panel__content-tab-content',
                     {'editorModal__editor--padding-bottom': !!get(this.props, 'navigation.padContentForNavigation')}
                 )}
-                onScroll={this.onScroll} >
+                onScroll={this.onScroll}
+                ref={(ref) => {
+                    this.dom.scrollContainer = ref;
+                    if (ref && ref.style.overflow !== 'hidden') {
+                        this.containerScrollStyle = ref.style.overflow;
+                    }
+                }} >
                     {(!this.props.isLoadingItem && this.props.itemType) && (
                         <currentTab.render
                             item={this.props.item || {}}
@@ -616,6 +637,8 @@ export class EditorComponent extends React.Component {
                             popupContainer={(this.props.inModalView || this.props.addNewsItemToPlanning) ?
                                 () => this.dom.popupContainer : undefined
                             }
+                            onPopupOpen={this.onPopupOpen}
+                            onPopupClose={this.onPopupClose}
                             {...currentTab.tabProps}
                         />
                     )}
@@ -659,7 +682,7 @@ export class EditorComponent extends React.Component {
                     onUnlock={this.props.onUnlock}
                     onLock={this.props.onLock}
                     itemActions={this.props.itemActions}
-                    ref={(ref) => this.editorHeaderComponent = ref}
+                    ref={(ref) => this.dom.editorHeaderComponent = ref}
                     itemType={this.props.itemType}
                     addNewsItemToPlanning={this.props.addNewsItemToPlanning}
                     showUnlock={this.props.showUnlock}

@@ -164,6 +164,8 @@ export class SelectTagInput extends React.Component {
                                 onChange={this.addTag}
                                 labelKey={labelKey}
                                 allowCustom={allowCustom}
+                                onPopupOpen={props.onPopupOpen}
+                                onPopupClose={props.onPopupClose}
                             />
                         )}
                     </LineInput>

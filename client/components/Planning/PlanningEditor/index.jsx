@@ -350,6 +350,8 @@ export class PlanningEditorComponent extends React.Component {
             files,
             popupContainer,
             streetMapUrl,
+            onPopupOpen,
+            onPopupClose,
         } = this.props;
 
         const agendaValues = cloneDeep(get(diff, 'agendas', [])
@@ -387,6 +389,11 @@ export class PlanningEditorComponent extends React.Component {
             formProfile: planningProfile,
             errors: errors,
             showErrors: submitFailed,
+        };
+
+        const popupProps = {
+            onPopupOpen,
+            onPopupClose,
         };
 
         const detailsErrored = some(toggleDetails, (field) => !!get(errors, field));
@@ -438,6 +445,7 @@ export class PlanningEditorComponent extends React.Component {
                         {...fieldProps}
                         onChange={this.onPlanningDateChange}
                         onFocus={onFocusPlanning}
+                        {...popupProps}
                     />
 
                     <Field
@@ -466,6 +474,7 @@ export class PlanningEditorComponent extends React.Component {
                         {...fieldProps}
                         onFocus={onFocusPlanning}
                         popupContainer={popupContainer}
+                        {...popupProps}
                     />
 
                     <ToggleBox
@@ -496,6 +505,7 @@ export class PlanningEditorComponent extends React.Component {
                             {...fieldProps}
                             onFocus={onFocusDetails}
                             popupContainer={popupContainer}
+                            {...popupProps}
                         />
 
                         <Field
@@ -507,6 +517,7 @@ export class PlanningEditorComponent extends React.Component {
                             {...fieldProps}
                             onFocus={onFocusDetails}
                             popupContainer={popupContainer}
+                            {...popupProps}
                         />
 
                         {!customVocabularies.length && <Field
@@ -518,6 +529,7 @@ export class PlanningEditorComponent extends React.Component {
                             {...fieldProps}
                             onFocus={onFocusDetails}
                             popupContainer={popupContainer}
+                            {...popupProps}
                         />}
 
                         <CustomVocabulariesFields
@@ -536,6 +548,7 @@ export class PlanningEditorComponent extends React.Component {
                             defaultValue={null}
                             {...fieldProps}
                             onFocus={onFocusDetails}
+                            {...popupProps}
                         />
 
                         {!get(item, 'pubstatus') && <Field
@@ -602,6 +615,7 @@ export class PlanningEditorComponent extends React.Component {
                     formProfile={coverageProfile}
                     navigation={navigation}
                     popupContainer={popupContainer}
+                    {...popupProps}
                 />
             </div>
         );

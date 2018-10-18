@@ -80,6 +80,8 @@ export class SelectMetaTermsInput extends React.Component {
             onFocus,
             scheme,
             groupField,
+            onPopupOpen,
+            onPopupClose,
             ...props
         } = this.props;
         const options = this.removeValuesFromOptions();
@@ -144,6 +146,8 @@ export class SelectMetaTermsInput extends React.Component {
                         searchKey={searchKey}
                         popupContainer={popupContainer}
                         groupField={groupField}
+                        onPopupOpen={onPopupOpen}
+                        onPopupClose={onPopupClose}
                     />
                 }
             </LineInput>

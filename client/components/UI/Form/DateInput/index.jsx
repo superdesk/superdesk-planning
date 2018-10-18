@@ -129,6 +129,8 @@ export class DateInput extends React.Component {
             readOnly,
             popupContainer,
             onFocus,
+            onPopupOpen,
+            onPopupClose,
             ...props
         } = this.props;
 
@@ -166,6 +168,8 @@ export class DateInput extends React.Component {
                         close={this.toggleOpenDatePicker}
                         target="icon-calendar"
                         popupContainer={popupContainer}
+                        onPopupOpen={onPopupOpen}
+                        onPopupClose={onPopupClose}
                     />
                 )}
             </LineInput>

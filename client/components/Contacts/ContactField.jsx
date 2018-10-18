@@ -66,7 +66,17 @@ export class ContactFieldComponent extends React.Component {
     }
 
     render() {
-        const {label, field, privileges, onFocus, refNode, paddingTop, readOnly} = this.props;
+        const {
+            label,
+            field,
+            privileges,
+            onFocus,
+            refNode,
+            paddingTop,
+            onPopupOpen,
+            onPopupClose,
+            readOnly,
+        } = this.props;
 
         return (
             <div ref={refNode} className={paddingTop ? 'contact-field--padding-top' : null}>
@@ -79,6 +89,8 @@ export class ContactFieldComponent extends React.Component {
                     onAddText={privileges.contacts ? gettext('Add Contact') : null}
                     onFocus={onFocus}
                     readOnly={readOnly}
+                    onPopupOpen={onPopupOpen}
+                    onPopupClose={onPopupClose}
                 />
 
                 <ContactsPreviewList
@@ -120,6 +132,8 @@ ContactFieldComponent.propTypes = {
     readOnly: PropTypes.bool,
     onChange: PropTypes.func,
     addContact: PropTypes.func,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({

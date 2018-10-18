@@ -82,6 +82,8 @@ export class CoverageForm extends React.Component {
             addNewsItemToPlanning,
             popupContainer,
             onFieldFocus,
+            onPopupOpen,
+            onPopupClose,
         } = this.props;
 
         const contentTypeQcode = get(value, 'planning.g2_content_type') || null;
@@ -172,6 +174,8 @@ export class CoverageForm extends React.Component {
                     options={keywords}
                     readOnly={roFields.keyword}
                     {...fieldProps}
+                    onPopupOpen={onPopupOpen}
+                    onPopupClose={onPopupClose}
                 />
 
                 <Field
@@ -207,6 +211,8 @@ export class CoverageForm extends React.Component {
                     onChange={this.onScheduleChanged}
                     readOnly={roFields.scheduled}
                     popupContainer={popupContainer}
+                    onPopupOpen={onPopupOpen}
+                    onPopupClose={onPopupClose}
                 />
             </div>
         );

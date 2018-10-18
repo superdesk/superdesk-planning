@@ -38,6 +38,8 @@ export class SelectSearchContactsField extends React.Component {
                     onAddText={onAddText}
                     onFocus={onFocus}
                     readOnly={readOnly}
+                    onPopupOpen={props.onPopupOpen}
+                    onPopupClose={props.onPopupClose}
                 />
             </LineInput>
         );

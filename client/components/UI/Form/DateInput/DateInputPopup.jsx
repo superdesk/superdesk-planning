@@ -177,6 +177,8 @@ export class DateInputPopup extends React.Component {
                 noPadding={true}
                 popupContainer={this.props.popupContainer}
                 className="date-popup"
+                onPopupOpen={this.props.onPopupOpen}
+                onPopupClose={this.props.onPopupClose}
             >
                 <Header noBorder={true} className="date-popup__header">
                     <div className="date-popup__header-row">
@@ -258,4 +260,6 @@ DateInputPopup.propTypes = {
     maxMode: PropTypes.string,
     yearRange: PropTypes.number,
     popupContainer: PropTypes.func,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };

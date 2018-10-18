@@ -109,6 +109,8 @@ export class AddGeoLookupResultsPopUp extends React.Component {
                 inheritWidth={true}
                 className="addgeolookup__popup"
                 ignoreOnClickElement="location"
+                onPopupOpen={this.props.onPopupOpen}
+                onPopupClose={this.props.onPopupClose}
             >
                 <Content noPadding={true} className="addgeolookup__suggests-wrapper">
                     <ul className="nav-tabs">
@@ -217,4 +219,6 @@ AddGeoLookupResultsPopUp.propTypes = {
     showAddLocation: PropTypes.bool,
     target: PropTypes.string.isRequired,
     searching: PropTypes.bool,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };
