@@ -60,7 +60,7 @@ export default class Popup extends React.Component {
 
             // Compute menu position
             let top = targetRect.top + targetRect.height;
-            let left = targetRect.left + targetRect.width - width;
+            let left = targetRect.left;
 
             // Menu goes off on the right side
             if (left + width + BUFFER > workspace.clientWidth) {
