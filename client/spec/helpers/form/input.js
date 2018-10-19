@@ -1,3 +1,4 @@
+import {get} from 'lodash';
 import {isFieldEmpty} from '../utils';
 
 export class Input {
@@ -15,8 +16,16 @@ export class Input {
         return this.input.getAttribute('value');
     }
 
-    setValue(value) {
-        this.input.clear();
+    setValue(value, clearByDeleteKey = false) {
+        if (clearByDeleteKey) {
+            this.getValue().then((value) => {
+                for (var i = 0; i < get(value, 'length', 0); i++) {
+                    this.input.sendKeys('\b');
+                }
+            });
+        } else {
+            this.input.clear();
+        }
         browser.wait(
             () => isFieldEmpty(this.input),
             20000,

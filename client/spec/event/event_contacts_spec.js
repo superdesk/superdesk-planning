@@ -129,13 +129,15 @@ describe('event contacts', () => {
 
         // Close the contact and edit 'Elder Bows'
         contactInput.closePopup();
-        const conactEditor = contactInput.editContact(0);
+        const contactEditor = contactInput.editContact(0);
 
         browser.sleep(1000);
 
         // Changing 'Elder Bows' to 'Elder Bower'
-        conactEditor.getFormInput('last_name').setValue('Bower');
-        conactEditor.saveButton.click();
+        const lastNameField = contactEditor.getFormInput('last_name');
+
+        lastNameField.setValue('Bower', true);
+        contactEditor.saveButton.click();
         contactInput.waitForEditorClose();
 
         // Make sure the Event form is updated, and the contact is not duplicated
