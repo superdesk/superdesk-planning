@@ -212,6 +212,8 @@ export class EventScheduleInput extends React.Component {
             showErrors,
             popupContainer,
             showFirstEventLabel,
+            onPopupOpen,
+            onPopupClose,
         } = this.props;
         const {isAllDay} = this.state;
 
@@ -251,6 +253,8 @@ export class EventScheduleInput extends React.Component {
                         label={gettext('Repeats')}
                         value={doesRepeat}
                         {...toggleProps}
+                        onPopupOpen={onPopupOpen}
+                        onPopupClose={onPopupClose}
                     />
                 </Row>
 
@@ -262,6 +266,8 @@ export class EventScheduleInput extends React.Component {
                         readOnly={readOnly}
                         errors={get(errors, 'dates.recurring_rule')}
                         popupContainer={popupContainer}
+                        onPopupOpen={onPopupOpen}
+                        onPopupClose={onPopupClose}
                     />
                 )}
 
@@ -277,6 +283,8 @@ export class EventScheduleInput extends React.Component {
                     hideTime={isAllDay}
                     halfWidth={isAllDay}
                     {...fieldProps}
+                    onPopupOpen={onPopupOpen}
+                    onPopupClose={onPopupClose}
                 />
 
                 <Field
@@ -291,6 +299,8 @@ export class EventScheduleInput extends React.Component {
                     hideTime={isAllDay}
                     halfWidth={isAllDay}
                     {...fieldProps}
+                    onPopupOpen={onPopupOpen}
+                    onPopupClose={onPopupClose}
                 />
 
                 <Row flex={true} className="event-toggle" noPadding>

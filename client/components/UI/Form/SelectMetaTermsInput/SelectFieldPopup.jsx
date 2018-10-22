@@ -300,6 +300,8 @@ export class SelectFieldPopup extends React.Component {
                 target={this.props.target}
                 onKeyDown={this.onKeyDown}
                 popupContainer={this.props.popupContainer}
+                onPopupOpen={this.props.onPopupOpen}
+                onPopupClose={this.props.onPopupClose}
             >
                 <div className="Select__popup" ref={(node) => this.dom.root = node}>
                     <div className="Select__popup__search">
@@ -339,6 +341,8 @@ export class SelectFieldPopup extends React.Component {
                 target={this.props.target}
                 onKeyDown={this.onKeyDown}
                 popupContainer={this.props.popupContainer}
+                onPopupOpen={this.props.onPopupOpen}
+                onPopupClose={this.props.onPopupClose}
             >
                 <div className="Select__popup" ref={(node) => this.dom.root = node}>
                     <div className="Select__popup__search">
@@ -422,6 +426,8 @@ SelectFieldPopup.propTypes = {
     target: PropTypes.string,
     groupField: PropTypes.string,
     popupContainer: PropTypes.func,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };
 
 SelectFieldPopup.defaultProps = {

@@ -49,6 +49,8 @@ export class RecurringRulesInput extends React.Component {
             errors,
             popupContainer,
             onlyUpdateRepetitions,
+            onPopupOpen,
+            onPopupClose,
         } = this.props;
 
         const frequency = get(schedule, 'recurring_rule.frequency');
@@ -115,6 +117,8 @@ export class RecurringRulesInput extends React.Component {
                                 message={get(errors, 'until', '')}
                                 popupContainer={popupContainer}
                                 noMargin={frequency === 'WEEKLY'}
+                                onPopupOpen={onPopupOpen}
+                                onPopupClose={onPopupClose}
                             />}
                         {endRepeatMode === 'count' &&
                             <div className="form__row form__row--flex">

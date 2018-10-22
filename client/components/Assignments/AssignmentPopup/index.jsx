@@ -58,6 +58,8 @@ export class AssignmentPopup extends React.Component {
             disableDeskSelection,
             disableUserSelection,
             popupContainer,
+            onPopupOpen,
+            onPopupClose,
         } = this.props;
 
         const {diff} = this.state;
@@ -83,6 +85,8 @@ export class AssignmentPopup extends React.Component {
                 className="assignment-popup"
                 onKeyDown={this.onKeyDown}
                 popupContainer={popupContainer}
+                onPopupOpen={onPopupOpen}
+                onPopupClose={onPopupClose}
             >
                 <Header text={gettext('Assignment Details')} onClose={onClose} />
                 <Content>
@@ -124,6 +128,8 @@ AssignmentPopup.propTypes = {
     disableDeskSelection: PropTypes.bool,
     disableUserSelection: PropTypes.bool,
     popupContainer: PropTypes.func,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };
 
 AssignmentPopup.defaultProps = {priorityPrefix: ''};

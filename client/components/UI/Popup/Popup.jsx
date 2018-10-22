@@ -97,6 +97,9 @@ export default class Popup extends React.Component {
         document.addEventListener('keydown', this.handleKeydown);
         document.addEventListener('click', this.handleClickOutside);
         this.positionPopup();
+        if (this.props.onPopupOpen) {
+            this.props.onPopupOpen();
+        }
     }
 
     componentDidUpdate() {
@@ -106,6 +109,9 @@ export default class Popup extends React.Component {
     componentWillUnmount() {
         document.removeEventListener('keydown', this.handleKeydown);
         document.removeEventListener('click', this.handleClickOutside);
+        if (this.props.onPopupClose) {
+            this.props.onPopupClose();
+        }
     }
 
     handleClickOutside(event) {
@@ -186,6 +192,8 @@ Popup.propTypes = {
     popupContainer: PropTypes.func,
     inheritWidth: PropTypes.bool,
     ignoreOnClickElement: PropTypes.string,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };
 
 PropTypes.defaultProps = {

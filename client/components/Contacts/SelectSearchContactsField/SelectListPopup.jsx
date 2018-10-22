@@ -168,6 +168,8 @@ export class SelectListPopupComponent extends React.Component {
                     onKeyDown={this.onKeyDown}
                     inheritWidth={true}
                     noPadding={true}
+                    onPopupOpen={this.props.onPopupOpen}
+                    onPopupClose={this.props.onPopupClose}
                 >
                     <div className="Select__popup__wrapper">
                         <ul className="Select__popup__list" ref={(node) => this.dom.listItems = node}>
@@ -219,6 +221,8 @@ SelectListPopupComponent.propTypes = {
     onAddText: PropTypes.string,
     readOnly: PropTypes.bool,
     searchContacts: PropTypes.func,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({

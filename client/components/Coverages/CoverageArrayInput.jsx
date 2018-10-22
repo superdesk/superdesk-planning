@@ -36,6 +36,8 @@ export const CoverageArrayInput = ({
     message,
     navigation,
     popupContainer,
+    onPopupOpen,
+    onPopupClose,
     ...props
 }) => (
     <div>
@@ -50,8 +52,10 @@ export const CoverageArrayInput = ({
                 addButtonText={addButtonText}
                 addButtonComponent={CoverageAddButton}
                 addButtonProps={{
-                    contentTypes: contentTypes,
-                    defaultDesk: defaultDesk,
+                    contentTypes,
+                    defaultDesk,
+                    onPopupOpen,
+                    onPopupClose,
                 }}
                 element={CoverageEditor}
                 defaultDesk={defaultDesk}
@@ -79,6 +83,8 @@ export const CoverageArrayInput = ({
                 row={false}
                 buttonWithLabel
                 popupContainer={popupContainer}
+                onPopupOpen={onPopupOpen}
+                onPopupClose={onPopupClose}
                 {...props}
             />
         </ContentBlock>

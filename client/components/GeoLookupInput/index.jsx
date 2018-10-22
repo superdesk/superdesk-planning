@@ -26,6 +26,8 @@ export const GeoLookupInput = ({
             localSearchResults={localSearchResults}
             onFocus={onFocus}
             popupContainer={popupContainer}
+            onPopupOpen={props.onPopupOpen}
+            onPopupClose={props.onPopupClose}
         />
     </LineInput>
 );

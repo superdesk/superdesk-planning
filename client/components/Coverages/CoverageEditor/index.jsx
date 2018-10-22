@@ -39,6 +39,8 @@ export const CoverageEditor = ({
     addNewsItemToPlanning,
     navigation,
     popupContainer,
+    onPopupOpen,
+    onPopupClose,
     ...props
 }) => {
     // Coverage item actions
@@ -155,6 +157,8 @@ export const CoverageEditor = ({
             addNewsItemToPlanning={addNewsItemToPlanning}
             onRemoveAssignment={onRemoveAssignment.bind(null, value, index)}
             popupContainer={popupContainer}
+            onPopupOpen={onPopupOpen}
+            onPopupClose={onPopupClose}
             {...props}
         />
     );
@@ -177,6 +181,8 @@ export const CoverageEditor = ({
             defaultGenre={defaultGenre}
             addNewsItemToPlanning={addNewsItemToPlanning}
             onFieldFocus={onFocus}
+            onPopupOpen={onPopupOpen}
+            onPopupClose={onPopupClose}
             {...props}
         />
     );

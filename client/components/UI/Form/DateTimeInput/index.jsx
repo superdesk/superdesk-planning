@@ -30,6 +30,8 @@ export const DateTimeInput = ({
     onFocus,
     hideTime,
     halfWidth,
+    onPopupOpen,
+    onPopupClose,
     ...props
 }) => (
     <Row flex={true} halfWidth={halfWidth} noPadding={!!invalid} className={{
@@ -54,6 +56,8 @@ export const DateTimeInput = ({
             required={required}
             popupContainer={popupContainer}
             onFocus={onFocus}
+            onPopupOpen={onPopupOpen}
+            onPopupClose={onPopupClose}
         />
 
         {!hideTime && <Field
@@ -71,6 +75,8 @@ export const DateTimeInput = ({
             timeFormat={timeFormat}
             popupContainer={popupContainer}
             onFocus={onFocus}
+            onPopupOpen={onPopupOpen}
+            onPopupClose={onPopupClose}
         />}
         {canClear && <Button
             onClick={() => onChange(field, null)}
@@ -110,6 +116,8 @@ DateTimeInput.propTypes = {
     onFocus: PropTypes.func,
     hideTime: PropTypes.bool,
     halfWidth: PropTypes.bool,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };
 
 DateTimeInput.defaultProps = {

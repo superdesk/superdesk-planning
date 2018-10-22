@@ -96,6 +96,8 @@ export class SelectTagPopup extends React.Component {
             popupContainer,
             options,
             labelKey,
+            onPopupOpen,
+            onPopupClose,
         } = this.props;
 
         return (
@@ -107,6 +109,8 @@ export class SelectTagPopup extends React.Component {
                 noPadding={true}
                 className="select-tag__popup"
                 inheritWidth={true}
+                onPopupOpen={onPopupOpen}
+                onPopupClose={onPopupClose}
             >
                 <Content noPadding={true}>
                     {options.length > 0 && (
@@ -141,4 +145,6 @@ SelectTagPopup.propTypes = {
     labelKey: PropTypes.string,
     popupContainer: PropTypes.func,
     allowCustom: PropTypes.bool,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };

@@ -230,6 +230,8 @@ export class GeoLookupInputComponent extends React.Component {
             field,
             disableSearch,
             readOnly,
+            onPopupOpen,
+            onPopupClose,
         } = this.props;
 
         return (
@@ -264,6 +266,8 @@ export class GeoLookupInputComponent extends React.Component {
                         onLocalSearchOnly={this.onLocalSearchOnly}
                         searching={this.state.searching}
                         onAddNewLocation={this.onAddNewLocation}
+                        onPopupOpen={onPopupOpen}
+                        onPopupClose={onPopupClose}
                         target="sd-line-input__input"
                     />
                 )}
@@ -278,6 +282,8 @@ export class GeoLookupInputComponent extends React.Component {
                         regions={this.props.regions}
                         countries={this.props.countries}
                         defaultCountry={this.props.preferredCountry}
+                        onPopupOpen={onPopupOpen}
+                        onPopupClose={onPopupClose}
                     />
                 )}
 
@@ -312,6 +318,8 @@ GeoLookupInputComponent.propTypes = {
     regions: PropTypes.array,
     countries: PropTypes.array,
     preferredCountry: PropTypes.object,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };
 
 const mapStateToProps = (state, ownProps) => ({

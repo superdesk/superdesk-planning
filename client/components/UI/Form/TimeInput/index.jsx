@@ -141,6 +141,8 @@ export class TimeInput extends React.Component {
                         close={this.toggleOpenTimePicker}
                         target="icon-time"
                         popupContainer={popupContainer}
+                        onPopupOpen={props.onPopupOpen}
+                        onPopupClose={props.onPopupClose}
                     />
                 )}
             </LineInput>

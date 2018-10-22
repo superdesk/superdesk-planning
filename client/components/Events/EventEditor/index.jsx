@@ -160,6 +160,8 @@ export class EventEditorComponent extends React.Component {
             itemExists,
             customVocabularies,
             files,
+            onPopupOpen,
+            onPopupClose,
         } = this.props;
 
         const detailsErrored = some(toggleDetails, (field) => !!get(errors, field));
@@ -180,6 +182,11 @@ export class EventEditorComponent extends React.Component {
             formProfile: formProfile,
             errors: errors,
             showErrors: submitFailed,
+        };
+
+        const popupProps = {
+            onPopupOpen,
+            onPopupClose,
         };
 
         const getCountOfProperty = (propertyName) => {
@@ -226,6 +233,7 @@ export class EventEditorComponent extends React.Component {
                         row={false}
                         {...fieldProps}
                         onFocus={onFocusEvent}
+                        {...popupProps}
                     />
 
                     <Field
@@ -274,6 +282,7 @@ export class EventEditorComponent extends React.Component {
                         {...fieldProps}
                         onFocus={onFocusEvent}
                         popupContainer={this.props.popupContainer}
+                        {...popupProps}
                     />
 
                     <Field
@@ -283,6 +292,7 @@ export class EventEditorComponent extends React.Component {
                         {...fieldProps}
                         onFocus={onFocusEvent}
                         popupContainer={this.props.popupContainer}
+                        {...popupProps}
                     />
 
                     <Field
@@ -293,7 +303,8 @@ export class EventEditorComponent extends React.Component {
                         defaultValue={[]}
                         {...fieldProps}
                         onFocus={onFocusContacts}
-                        paddingTop={!!onFocusContacts} />
+                        paddingTop={!!onFocusContacts}
+                        {...popupProps} />
 
                     <ToggleBox
                         title={gettext('Details')}
@@ -313,6 +324,7 @@ export class EventEditorComponent extends React.Component {
                             {...fieldProps}
                             onFocus={onFocusDetails}
                             popupContainer={this.props.popupContainer}
+                            {...popupProps}
                         />
 
                         <Field
@@ -324,6 +336,7 @@ export class EventEditorComponent extends React.Component {
                             {...fieldProps}
                             onFocus={onFocusDetails}
                             popupContainer={this.props.popupContainer}
+                            {...popupProps}
                         />
 
                         {!customVocabularies.length && <Field
@@ -335,6 +348,7 @@ export class EventEditorComponent extends React.Component {
                             {...fieldProps}
                             onFocus={onFocusDetails}
                             popupContainer={this.props.popupContainer}
+                            {...popupProps}
                         />}
 
                         <CustomVocabulariesFields

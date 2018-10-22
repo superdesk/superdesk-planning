@@ -38,6 +38,8 @@ export class CoverageFormHeader extends React.Component {
             onRemoveAssignment,
             readOnly,
             popupContainer,
+            onPopupOpen,
+            onPopupClose,
         } = this.props;
 
         const userAssigned = getCreator(value, 'assigned_to.user', users);
@@ -93,6 +95,8 @@ export class CoverageFormHeader extends React.Component {
                             target="btn--primary"
                             priorityPrefix="assigned_to."
                             popupContainer={popupContainer}
+                            onPopupOpen={onPopupOpen}
+                            onPopupClose={onPopupClose}
                         />
                     )}
                 </Item>
@@ -209,4 +213,6 @@ CoverageFormHeader.propTypes = {
     onFocus: PropTypes.func,
     onRemoveAssignment: PropTypes.func,
     popupContainer: PropTypes.func,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };
