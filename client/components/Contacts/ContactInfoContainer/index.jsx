@@ -35,7 +35,7 @@ export class ContactInfoContainer extends React.Component {
 
         contents.push(
             <ContactHeader item={this.props.currentContact} svc={services} />,
-            <ContactInfo item={this.props.currentContact} svc={services} />,
+            <ContactInfo item={this.props.currentContact} svc={services} labelInactive />,
             <ContactFooter item={this.props.currentContact} svc={services} />
         );
 

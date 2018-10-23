@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 export const ContactLabel = ({contact}) => (
-    <span className="contact-info">
+    <span className="contact-info sd-list-item__text-strong sd-overflow-ellipsis">
         <figure className={classNames(
             'avatar',
             {organisation: !contact.first_name}
@@ -15,7 +15,7 @@ export const ContactLabel = ({contact}) => (
                 `${contact.organisation} `
             }
             {(contact.first_name && contact.job_title && contact.organisation) && (
-                <h5>{contact.job_title}, {contact.organisation}</h5>
+                <h5 className="sd-overflow-ellipsis">{contact.job_title}, {contact.organisation}</h5>
             )}
         </span>
     </span>

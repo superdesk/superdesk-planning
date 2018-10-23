@@ -99,8 +99,6 @@
 
 .contact-info {
     margin: 5px;
-    display: flex !important;
-    flex-grow: 1;
     .avatar {
         @include border-radius(50%);
         position: relative;
