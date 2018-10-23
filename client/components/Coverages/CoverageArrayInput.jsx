@@ -38,6 +38,8 @@ export const CoverageArrayInput = ({
     popupContainer,
     onPopupOpen,
     onPopupClose,
+    setCoverageDefaultDesk,
+    preferredCoverageDesks,
     ...props
 }) => (
     <div>
@@ -56,9 +58,9 @@ export const CoverageArrayInput = ({
                     defaultDesk,
                     onPopupOpen,
                     onPopupClose,
+                    preferredCoverageDesks,
                 }}
                 element={CoverageEditor}
-                defaultDesk={defaultDesk}
                 users={users}
                 desks={desks}
                 timeFormat={timeFormat}
@@ -85,6 +87,7 @@ export const CoverageArrayInput = ({
                 popupContainer={popupContainer}
                 onPopupOpen={onPopupOpen}
                 onPopupClose={onPopupClose}
+                setCoverageDefaultDesk={setCoverageDefaultDesk}
                 {...props}
             />
         </ContentBlock>

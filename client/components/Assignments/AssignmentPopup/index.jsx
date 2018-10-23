@@ -35,6 +35,7 @@ export class AssignmentPopup extends React.Component {
 
     onSubmit() {
         this.props.onChange(this.props.field, this.state.diff);
+        this.props.setCoverageDefaultDesk(this.state.diff);
         this.props.onClose();
     }
 
@@ -130,6 +131,7 @@ AssignmentPopup.propTypes = {
     popupContainer: PropTypes.func,
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
+    setCoverageDefaultDesk: PropTypes.func,
 };
 
 AssignmentPopup.defaultProps = {priorityPrefix: ''};

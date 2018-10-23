@@ -13,5 +13,6 @@ export const COVERAGES = {
         CREATED_CONTENT: 'coverage_created_content',
         ASSIGNED: 'coverage_assigned',
     },
+    DEFAULT_DESK_PREFERENCE: 'planning:default_coverage_desks',
 };
 

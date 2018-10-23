@@ -776,8 +776,13 @@ const defaultPlanningValues = (currentAgenda, defaultPlaceList) => {
     return newPlanning;
 };
 
-const defaultCoverageValues = (newsCoverageStatus, planningItem, g2contentType, defaultDesk) => (
-    (g2contentType !== PLANNING.G2_CONTENT_TYPE.TEXT || !defaultDesk) ? {
+const defaultCoverageValues = (
+    newsCoverageStatus,
+    planningItem,
+    g2contentType,
+    defaultDesk,
+    preferredCoverageDesks) => {
+    let newCoverage = {
         planning: {
             slugline: get(planningItem, 'slugline'),
             internal_note: get(planningItem, 'internal_note'),
@@ -787,19 +792,16 @@ const defaultCoverageValues = (newsCoverageStatus, planningItem, g2contentType, 
         },
         news_coverage_status: newsCoverageStatus[0],
         workflow_status: WORKFLOW_STATE.DRAFT,
-    } : {
-        planning: {
-            slugline: get(planningItem, 'slugline'),
-            internal_note: get(planningItem, 'internal_note'),
-            ednote: get(planningItem, 'ednote'),
-            scheduled: get(planningItem, 'planning_date', moment()),
-            g2_content_type: g2contentType,
-        },
-        news_coverage_status: newsCoverageStatus[0],
-        workflow_status: WORKFLOW_STATE.DRAFT,
-        assigned_to: {desk: defaultDesk._id},
+    };
+
+    if (get(preferredCoverageDesks, g2contentType)) {
+        newCoverage.assigned_to = {desk: preferredCoverageDesks[g2contentType]};
+    } else if (g2contentType === PLANNING.G2_CONTENT_TYPE.TEXT && defaultDesk) {
+        newCoverage.assigned_to = {desk: defaultDesk._id};
     }
-);
+
+    return newCoverage;
+};
 
 
 const modifyPlanningsBeingAdded = (state, payload) => {

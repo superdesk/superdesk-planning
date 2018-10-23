@@ -68,7 +68,7 @@ export class PlanningController {
         return Promise.all([
             this.store.dispatch(actions.locks.loadAllLocks()),
             this.store.dispatch(actions.fetchAgendas()),
-            this.store.dispatch(actions.users.fetchUserPreferences()),
+            this.store.dispatch(actions.users.fetchAndRegisterUserPreferences()),
             this.store.dispatch(actions.events.api.fetchCalendars()),
             this.store.dispatch(actions.autosave.fetchAll()),
         ])

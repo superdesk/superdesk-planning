@@ -101,7 +101,7 @@ export class ItemActionConfirmationModal extends React.Component {
                 form: ConvertToRecurringEventForm,
             },
             [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.label]: {
-                title: gettext('Update Repetitions of the series'),
+                title: gettext('Update Repetitions of the Series'),
                 saveText: gettext('Update Repetitions'),
                 form: UpdateEventRepetitionsForm,
             },

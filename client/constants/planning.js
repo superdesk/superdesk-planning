@@ -43,7 +43,7 @@ export const PLANNING = {
             lock_action: 'planning_cancel',
         },
         CANCEL_ALL_COVERAGE: {
-            label: gettext('Cancel all coverage(s)'),
+            label: gettext('Cancel all Coverage(s)'),
             icon: 'icon-close-small',
             actionName: 'onCancelAllCoverage',
             lock_action: 'cancel_all_coverage',
