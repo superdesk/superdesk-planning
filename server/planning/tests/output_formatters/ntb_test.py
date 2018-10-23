@@ -12,6 +12,8 @@ class NTBEventTestCase(unittest.TestCase):
         super(NTBEventTestCase, self).setUp()
 
         self.item = {
+            '_id': '6116453c-abf6-4a31-b6a9-a02f4207a7be',
+            '_created': '2016-10-31T08:27:25+0000',
             'name': 'Kronprinsparet besøker bydelen Gamle Oslo',
             'firstcreated': '2016-10-31T08:27:25+0000',
             'versioncreated': '2016-10-31T09:33:40+0000',
@@ -49,6 +51,11 @@ class NTBEventTestCase(unittest.TestCase):
                 'https://github.com',
             ]
         }
+
+        self.item_duplicated = self.item.copy()
+        self.item_duplicated['_id'] = '152d0084-fcae-4ef3-abba-c4f8292d2fd7'
+        self.item_duplicated['_created'] = '2016-10-31T08:37:25+0000'
+        self.item_duplicated['duplicate_from'] = self.item['_id']
 
     def test_formatter(self):
         formatter = NTBEventFormatter()
@@ -399,3 +406,17 @@ class NTBEventTestCase(unittest.TestCase):
         output = formatter.format(item, {})[0]
         root = lxml.etree.fromstring(output['encoded_item'])
         self.assertEqual('2018-07-01T18:00:00', root.find('timeStart').text)  # CEST + 2
+
+    def test_ntbid(self):
+        formatter = NTBEventFormatter()
+        item = self.item.copy()
+        output = formatter.format(item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        self.assertEqual('NBRP161031_092725_hh_00', root.find('ntbId').text)
+
+    def test_ntbid_duplicated(self):
+        formatter = NTBEventFormatter()
+        item = self.item_duplicated.copy()
+        output = formatter.format(item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        self.assertEqual('NBRP161031_093725_hh_00', root.find('ntbId').text)
