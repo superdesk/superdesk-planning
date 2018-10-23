@@ -90,7 +90,7 @@ export class EventItem extends React.Component {
 
     render() {
         const {item, onItemClick, lockedItems, dateFormat, timeFormat,
-            activeFilter, toggleRelatedPlanning, onMultiSelectClick} = this.props;
+            activeFilter, toggleRelatedPlanning, onMultiSelectClick, calendars} = this.props;
 
         if (!item) {
             return null;
@@ -113,6 +113,7 @@ export class EventItem extends React.Component {
 
 
         const isExpired = isItemExpired(item);
+        const isCalendarActive = (cal) => (get(calendars.find((c) => c.qcode === cal.qcode), 'is_active', false));
 
         return (
             <Item
@@ -172,8 +173,19 @@ export class EventItem extends React.Component {
                             text={gettext(actionedState.label)}
                             iconType={actionedState.iconType}
                         />}
+                        <span className="sd-list-item__text-label">{gettext('Calendar:')}</span>
+                        {<span className="sd-overflow-ellipsis sd-list-item__text-strong sd-list-item--element-rm-10">
+                            {get(item, 'calendars.length', 0) > 0 && item.calendars.map((c, index, arr) =>
+                                <span key={c.qcode}
+                                    className={!isCalendarActive(c) ? 'sd-list-item__text--disabled' : ''}>
+                                    {c.name}{arr.length - 1 > index && ', '}
+                                </span>)
+                            }
+                            {get(item, 'calendars.length', 0) === 0 && <span>{gettext('No  calendar assigned')}</span>}
+                        </span>}
                         {(showRelatedPlanningLink || hasLocation) &&
-                            <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                            <span
+                                className="sd-overflow-ellipsis sd-list-item--element-grow sd-list-item__element-lm-10">
                                 {showRelatedPlanningLink &&
                                 <a
                                     className="sd-line-input__input--related-item-link"
