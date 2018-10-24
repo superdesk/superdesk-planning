@@ -410,7 +410,7 @@ Feature: Events
         }
         """
         When we get "/events_history"
-        Then we get list with 5 items
+        Then we get list with 4 items
         """
         {"_items": [
             {
@@ -428,10 +428,6 @@ Feature: Events
             {
                 "operation": "duplicate_from",
                 "update": { "duplicate_id" : "123"}
-            },
-            {
-                "operation": "edited",
-                "update": { "duplicate_to": ["#events._id#"] }
             }
         ]}
         """
@@ -623,7 +619,7 @@ Feature: Events
         }
         """
         When we get "/events_history"
-        Then we get list with 5 items
+        Then we get list with 4 items
         """
         {"_items": [
             {
@@ -641,10 +637,6 @@ Feature: Events
             {
                 "operation": "duplicate_from",
                 "update": { "duplicate_id" : "123"}
-            },
-            {
-                "operation": "edited",
-                "update": { "duplicate_to": ["#events._id#"] }
             }
         ]}
         """

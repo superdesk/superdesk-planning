@@ -262,7 +262,6 @@ class EventsService(superdesk.Service):
                 duplicate_ids = parent_event.get('duplicate_to', [])
                 duplicate_ids.append(event_id)
                 self.patch(parent_id, {'duplicate_to': duplicate_ids})
-                app.on_updated_events({'duplicate_to': duplicate_ids}, {'_id': parent_id})
 
             event_type = 'events:created'
             user_id = str(doc.get('original_creator', ''))
