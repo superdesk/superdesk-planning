@@ -20,7 +20,8 @@ from superdesk.utc import utcnow
 from apps.auth import get_user_id
 from apps.archive.common import get_auth
 
-from planning.common import UPDATE_SINGLE, WORKFLOW_STATE, get_max_recurrent_events, update_post_item
+from planning.common import UPDATE_SINGLE, WORKFLOW_STATE, get_max_recurrent_events, update_post_item, \
+    set_ingested_event_state
 from planning.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION
 
 
@@ -46,6 +47,7 @@ class EventsBaseService(BaseService):
         user_id = get_user_id()
         if user_id:
             updates['version_creator'] = user_id
+            set_ingested_event_state(updates, original)
 
         # If `skip_on_update` is provided in the updates
         # Then return here so no further processing is performed on this event.
@@ -270,7 +272,7 @@ class EventsBaseService(BaseService):
 
     @staticmethod
     def is_event_in_use(event):
-        return EventsBaseService.has_planning_items(event) or 'pubstatus' in event
+        return EventsBaseService.has_planning_items(event) or (event.get('pubstatus') or '') != ''
 
     @staticmethod
     def is_original_event(original):
