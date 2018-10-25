@@ -2,6 +2,7 @@ import {showModal} from '../index';
 import planningApi from './api';
 import {locks} from '../index';
 import main from '../main';
+import {ITEM_TYPE} from '../../constants';
 
 import {
     getErrorMessage,
@@ -156,8 +157,13 @@ const loadMore = () => (
  */
 const refetch = () => (
     (dispatch, getState, {notify}) => {
+        var previewId = selectors.main.previewId(getState());
+
         if (!selectors.main.isPlanningView(getState())) {
             return Promise.resolve();
+        }
+        if (previewId) {
+            dispatch(main.fetchItemHistory({_id: previewId, type: ITEM_TYPE.PLANNING}));
         }
 
         return dispatch(planningApi.refetch())
