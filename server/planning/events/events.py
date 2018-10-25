@@ -314,6 +314,9 @@ class EventsService(superdesk.Service):
 
         if user_id:
             updates['version_creator'] = user_id
+            # don't change status to draft when event was duplicated
+            if original.get(ITEM_STATE) == WORKFLOW_STATE.INGESTED and not updates.get('duplicate_to'):
+                updates[ITEM_STATE] = WORKFLOW_STATE.DRAFT
 
         lock_user = original.get('lock_user', None)
         str_user_id = str(user.get(config.ID_FIELD)) if user_id else None
