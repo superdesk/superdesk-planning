@@ -27,9 +27,9 @@ export class CollapseBox extends React.Component {
     componentWillReceiveProps(nextProps) {
         if (this.props.onOpen) {
             if (nextProps.isOpen) {
-                this.openBox();
+                this.openBox(nextProps);
             } else {
-                this.closeBox();
+                this.closeBox(nextProps);
             }
         }
     }
@@ -47,22 +47,22 @@ export class CollapseBox extends React.Component {
         }
     }
 
-    openBox() {
-        if (this.props.noOpen || this.state.isOpen) {
+    openBox(contextProps = this.props) {
+        if (contextProps.noOpen || this.state.isOpen) {
             return;
         }
 
         this.setState({isOpen: true});
-        if (this.props.onOpen) {
-            this.props.onOpen();
+        if (contextProps.onOpen) {
+            contextProps.onOpen();
         }
     }
 
-    closeBox() {
+    closeBox(contextProps = this.props) {
         if (this.state.isOpen) {
             this.setState({isOpen: false});
-            if (this.props.onClose) {
-                this.props.onClose();
+            if (contextProps.onClose) {
+                contextProps.onClose();
             }
         }
     }
@@ -101,9 +101,10 @@ export class CollapseBox extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        // Scroll into view only upon first opening
-        if (prevState.isOpen !== this.state.isOpen ||
-                (this.props.forceScroll && this.props.forceScroll !== prevProps.forceScroll)) {
+        if (prevProps.entityId === this.props.entityId && // Rendering the same entity
+            ((prevState.isOpen !== this.state.isOpen && this.state.isOpen) || // was opened
+            (this.props.forceScroll && this.props.forceScroll !== prevProps.forceScroll))
+        ) {
             this.scrollInView();
         }
     }
@@ -134,7 +135,7 @@ export class CollapseBox extends React.Component {
                                 <IconButton
                                     icon="icon-chevron-up-thin"
                                     tabIndex={this.props.tabEnabled ? 0 : null}
-                                    onClick={this.closeBox}
+                                    onClick={this.closeBox.bind(null, this.props)}
                                     onKeyDown={this.props.tabEnabled ? this.handleKeyDown : null}
                                 />
                             </div>
@@ -177,6 +178,7 @@ CollapseBox.propTypes = {
     forceScroll: PropTypes.bool,
     onClick: PropTypes.func,
     inner: PropTypes.bool,
+    entityId: PropTypes.string,
 };
 
 CollapseBox.defaultProps = {

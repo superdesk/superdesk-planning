@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {get, isEmpty} from 'lodash';
 
 import {ContentBlock} from '../UI/SidePanel';
 import {InputArray} from '../UI/Form';
@@ -8,129 +9,139 @@ import {CoverageAddButton} from './CoverageAddButton';
 
 import {gettext, planningUtils} from '../../utils';
 
-export const CoverageArrayInput = ({
-    field,
-    value,
-    onChange,
-    addButtonText,
-    defaultDesk,
-    users,
-    desks,
-    timeFormat,
-    dateFormat,
-    newsCoverageStatus,
-    contentTypes,
-    genres,
-    coverageProviders,
-    priorities,
-    keywords,
-    maxCoverageCount,
-    addOnly,
-    originalCount,
-    onDuplicateCoverage,
-    onCancelCoverage,
-    onAddCoverageToWorkflow,
-    onRemoveAssignment,
-    addNewsItemToPlanning,
-    readOnly,
-    message,
-    navigation,
-    popupContainer,
-    onPopupOpen,
-    onPopupClose,
-    setCoverageDefaultDesk,
-    preferredCoverageDesks,
-    ...props
-}) => (
-    <div>
-        <ContentBlock className="coverages__array">
-            <InputArray
-                label={gettext('Coverages')}
-                labelClassName="side-panel__heading side-panel__heading--big"
-                field={field}
-                value={value}
-                onChange={onChange}
-                navigation={navigation}
-                addButtonText={addButtonText}
-                addButtonComponent={CoverageAddButton}
-                addButtonProps={{
-                    contentTypes,
-                    defaultDesk,
-                    onPopupOpen,
-                    onPopupClose,
-                    preferredCoverageDesks,
-                }}
-                element={CoverageEditor}
-                users={users}
-                desks={desks}
-                timeFormat={timeFormat}
-                dateFormat={dateFormat}
-                addNewsItemToPlanning={addNewsItemToPlanning}
-                newsCoverageStatus={newsCoverageStatus}
-                contentTypes={contentTypes}
-                genres={genres}
-                defaultElement={planningUtils.defaultCoverageValues.bind(null, newsCoverageStatus, props.diff)}
-                coverageProviders={coverageProviders}
-                priorities={priorities}
-                keywords={keywords}
-                onRemoveAssignment={onRemoveAssignment}
-                onDuplicateCoverage={onDuplicateCoverage}
-                onCancelCoverage={onCancelCoverage}
-                onAddCoverageToWorkflow={onAddCoverageToWorkflow}
-                readOnly={readOnly}
-                maxCount={maxCoverageCount}
-                addOnly={addOnly}
-                originalCount={originalCount}
-                message={message}
-                row={false}
-                buttonWithLabel
-                popupContainer={popupContainer}
-                onPopupOpen={onPopupOpen}
-                onPopupClose={onPopupClose}
-                setCoverageDefaultDesk={setCoverageDefaultDesk}
-                {...props}
-            />
-        </ContentBlock>
-    </div>
-);
+export class CoverageArrayInput extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {openCoverageIds: []};
+
+        this.onCoverageClose = this.onCoverageClose.bind(this);
+        this.onCoverageOpen = this.onCoverageOpen.bind(this);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (isEmpty(get(this.props, 'diff'))) {
+            // Autosave loading in progress
+            return;
+        }
+
+        if (get(nextProps, 'value.length', 0) > get(this.props, 'value.length', 0) &&
+            !nextProps.readOnly) {
+            const coverageId = nextProps.value[nextProps.value.length - 1].coverage_id;
+            // A coverage was just added, mark it to be opened in the editor
+
+            if (!nextProps.useLocalNavigation && !isEmpty(nextProps.navigation)) {
+                nextProps.navigation.onItemOpen(coverageId);
+            } else {
+                this.onCoverageOpen(coverageId);
+            }
+        }
+    }
+
+    onCoverageOpen(coverageId) {
+        if (!this.state.openCoverageIds.includes(coverageId)) {
+            this.setState({openCoverageIds: [...this.state.openCoverageIds, coverageId]});
+        }
+    }
+
+    onCoverageClose(coverageId) {
+        if (this.state.openCoverageIds.includes(coverageId)) {
+            this.setState({openCoverageIds: this.state.openCoverageIds.filter((c) => c !== coverageId)});
+        }
+    }
+
+    render() {
+        const {
+            field,
+            value,
+            onChange,
+            addButtonText,
+            defaultDesk,
+            contentTypes,
+            newsCoverageStatus,
+            maxCoverageCount,
+            addOnly,
+            originalCount,
+            readOnly,
+            message,
+            popupContainer,
+            onPopupOpen,
+            onPopupClose,
+            setCoverageDefaultDesk,
+            preferredCoverageDesks,
+            diff,
+            navigation,
+            useLocalNavigation,
+            ...props
+        } = this.props;
+
+        const coverageNavigation = !useLocalNavigation ? navigation : {
+            onItemOpen: this.onCoverageOpen,
+            onItemClose: this.onCoverageClose,
+        };
+
+        return (
+            <div>
+                <ContentBlock className="coverages__array">
+                    <InputArray
+                        label={gettext('Coverages')}
+                        labelClassName="side-panel__heading side-panel__heading--big"
+                        field={field}
+                        value={value}
+                        onChange={onChange}
+                        addButtonText={addButtonText}
+                        addButtonComponent={CoverageAddButton}
+                        addButtonProps={{
+                            contentTypes,
+                            defaultDesk,
+                            onPopupOpen,
+                            onPopupClose,
+                            preferredCoverageDesks,
+                        }}
+                        element={CoverageEditor}
+                        defaultElement={planningUtils.defaultCoverageValues.bind(null, newsCoverageStatus, diff)}
+                        readOnly={readOnly}
+                        maxCount={maxCoverageCount}
+                        addOnly={addOnly}
+                        originalCount={originalCount}
+                        message={message}
+                        row={false}
+                        buttonWithLabel
+                        popupContainer={popupContainer}
+                        onPopupOpen={onPopupOpen}
+                        onPopupClose={onPopupClose}
+                        setCoverageDefaultDesk={setCoverageDefaultDesk}
+                        contentTypes={contentTypes}
+                        defaultDesk={defaultDesk}
+                        newsCoverageStatus={newsCoverageStatus}
+                        diff={diff}
+                        navigation={coverageNavigation}
+                        openCoverageIds={this.state.openCoverageIds}
+                        {...props}
+                    />
+                </ContentBlock>
+            </div>);
+    }
+}
 
 CoverageArrayInput.propTypes = {
     field: PropTypes.string,
     value: PropTypes.array,
     onChange: PropTypes.func,
     addButtonText: PropTypes.string,
-    users: PropTypes.array,
-    desks: PropTypes.array,
-    timeFormat: PropTypes.string,
-    dateFormat: PropTypes.string,
     newsCoverageStatus: PropTypes.array,
     contentTypes: PropTypes.array,
-    genres: PropTypes.array,
     defaultValue: PropTypes.object,
-    coverageProviders: PropTypes.array,
-    priorities: PropTypes.array,
-    keywords: PropTypes.array,
     readOnly: PropTypes.bool,
     maxCoverageCount: PropTypes.number,
     addOnly: PropTypes.bool,
     originalCount: PropTypes.number,
-    onDuplicateCoverage: PropTypes.func,
-    onCancelCoverage: PropTypes.func,
-    onAddCoverageToWorkflow: PropTypes.func,
-    onRemoveAssignment: PropTypes.func,
     message: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.object,
     ]),
-
-    item: PropTypes.object,
     diff: PropTypes.object,
     formProfile: PropTypes.object,
-    errors: PropTypes.object,
-    showErrors: PropTypes.bool,
-    addNewsItemToPlanning: PropTypes.object,
-    navigation: PropTypes.object,
-    popupContainer: PropTypes.func,
+    useLocalNavigation: PropTypes.bool,
 };
 
 CoverageArrayInput.defaultProps = {

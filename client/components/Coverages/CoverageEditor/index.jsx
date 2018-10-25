@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {isEqual, get, omit} from 'lodash';
+import {get} from 'lodash';
 
 import {ItemActionsMenu} from '../../index';
 import {CollapseBox} from '../../UI';
@@ -33,7 +33,6 @@ export const CoverageEditor = ({
     readOnly,
     message,
     invalid,
-    openComponent,
     defaultGenre,
     addNewsItemToPlanning,
     navigation,
@@ -41,6 +40,7 @@ export const CoverageEditor = ({
     onPopupOpen,
     onPopupClose,
     setCoverageDefaultDesk,
+    openCoverageIds,
     ...props
 }) => {
     // Coverage item actions
@@ -95,28 +95,17 @@ export const CoverageEditor = ({
         }
     }
 
-    const onClose = editorMenuUtils.onItemClose(navigation, field);
-    const onOpen = editorMenuUtils.onItemOpen(navigation, field);
+    const onClose = editorMenuUtils.onItemClose(navigation, value.coverage_id);
+    const onOpen = editorMenuUtils.onItemOpen(navigation, value.coverage_id);
     let scrollIntoView = true;
 
-    if (get(navigation, 'scrollToViewItem') && navigation.scrollToViewItem !== field) {
+    if (get(navigation, 'scrollToViewItem') && navigation.scrollToViewItem !== value.coverage_id) {
         scrollIntoView = false;
     }
 
-    const forceScroll = editorMenuUtils.forceScroll(navigation, field);
-    const isOpen = editorMenuUtils.isOpen(navigation, field) || (
-        openComponent ||
-        !props.item._id ||
-        isEqual(
-            omit(value, 'assigned_to'),
-            omit(planningUtils.defaultCoverageValues(
-                newsCoverageStatus,
-                props.item,
-                get(value, 'planning.g2_content_type')
-            ), 'assigned_to')
-        )
-    );
-    const onFocus = editorMenuUtils.onItemFocus(navigation, field);
+    const forceScroll = editorMenuUtils.forceScroll(navigation, value.coverage_id);
+    const isOpen = editorMenuUtils.isOpen(navigation, value.coverage_id) || openCoverageIds.includes(value.coverage_id);
+    const onFocus = editorMenuUtils.onItemFocus(navigation, value.coverage_id);
 
     const itemActionComponent = get(itemActions, 'length', 0) > 0 ?
         (
@@ -199,6 +188,7 @@ export const CoverageEditor = ({
             forceScroll={forceScroll}
             onClose={onClose}
             onOpen={onOpen}
+            entityId={value.coverage_id}
             tabEnabled
         />
     );
@@ -233,12 +223,12 @@ CoverageEditor.propTypes = {
     errors: PropTypes.object,
     showErrors: PropTypes.bool,
     invalid: PropTypes.bool,
-    openComponent: PropTypes.bool,
     defaultGenre: PropTypes.object,
     addNewsItemToPlanning: PropTypes.object,
     navigation: PropTypes.object,
     onRemoveAssignment: PropTypes.func,
     index: PropTypes.number,
+    openCoverageIndex: PropTypes.number,
     popupContainer: PropTypes.func,
     setCoverageDefaultDesk: PropTypes.func,
 };

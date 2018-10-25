@@ -26,7 +26,7 @@ from copy import deepcopy
 from eve.utils import config, ParsedRequest, date_to_str
 from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, get_coverage_cancellation_state,\
     remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name,\
-    set_original_creator, list_uniq_with_order
+    set_original_creator, list_uniq_with_order, TEMP_ID_PREFIX
 from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
@@ -317,7 +317,7 @@ class PlanningService(superdesk.Service):
         for coverage in (updates.get('coverages') or []):
             original_coverage = None
             coverage_id = coverage.get('coverage_id')
-            if not coverage_id:
+            if not coverage_id or TEMP_ID_PREFIX in coverage_id:
                 # coverage to be created
                 coverage['coverage_id'] = generate_guid(type=GUID_NEWSML)
                 coverage['firstcreated'] = utcnow()

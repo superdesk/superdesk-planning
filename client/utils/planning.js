@@ -565,11 +565,11 @@ const getCoverageReadOnlyFields = (
             slugline: true,
             ednote: true,
             keyword: true,
-            internal_note: false,
+            internal_note: readOnly || false,
             g2_content_type: true,
             genre: true,
             newsCoverageStatus: true,
-            scheduled: get(addNewsItemToPlanning, 'state') === 'published',
+            scheduled: readOnly || get(addNewsItemToPlanning, 'state') === 'published',
         };
     }
 
@@ -783,6 +783,7 @@ const defaultCoverageValues = (
     defaultDesk,
     preferredCoverageDesks) => {
     let newCoverage = {
+        coverage_id: generateTempId(),
         planning: {
             slugline: get(planningItem, 'slugline'),
             internal_note: get(planningItem, 'internal_note'),

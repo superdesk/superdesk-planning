@@ -74,7 +74,6 @@ export const InputArray = ({
                 readOnly={indexReadOnly}
                 message={get(message, `[${index}]`)}
                 invalid={!!get(message, `[${index}]`)}
-                openComponent={addOnly && !indexReadOnly}
                 {...props}
             />) :
             (<Component
@@ -87,7 +86,6 @@ export const InputArray = ({
                 readOnly={indexReadOnly}
                 message={get(message, `[${index}]`)}
                 invalid={!!get(message, `[${index}]`)}
-                openComponent={addOnly && !indexReadOnly}
                 {...props}
             />);
     };

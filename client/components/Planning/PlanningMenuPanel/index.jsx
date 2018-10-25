@@ -65,8 +65,8 @@ export class PlanningMenuPanelComponent extends React.Component {
                         dateFormat={dateFormat}
                         timeFormat={timeFormat}
                         formProfile={formProfile.coverage}
-                        onClick={onMenuItemClick.bind(null, 'coverages[' + index + ']')}
-                        active={activeItem === 'coverages[' + index + ']'}
+                        onClick={onMenuItemClick.bind(null, c.coverage_id)}
+                        active={activeItem === c.coverage_id}
                         noOpen
                         scrollInView />)
                 )}
