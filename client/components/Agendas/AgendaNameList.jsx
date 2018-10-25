@@ -8,7 +8,7 @@ export const AgendaNameList = ({agendas}) => (
         {get(agendas, 'length', 0) === 0 ? gettext('No Agenda Assigned.') :
             sortBy(agendas, [(a) => a.name.toLowerCase()])
                 .map((agenda, index, arr) => {
-                    const className = !agenda.is_enabled ? 'Agenda--disabled' : '';
+                    const className = !agenda.is_enabled ? 'sd-list-item__text--disabled' : '';
 
                     return (
                         <span key={index} className={className}>
