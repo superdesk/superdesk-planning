@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {SearchBar} from '../../';
 import {differenceBy, get} from 'lodash';
-import {scrollListItemIfNeeded, onEventCapture} from '../../utils';
+import {scrollListItemIfNeeded, onEventCapture, gettext} from '../../utils';
 import classNames from 'classnames';
 import './style.scss';
 
@@ -321,6 +321,9 @@ export class SelectFieldPopup extends React.Component {
                                 {renderList(groupsList[g], g)}
                             </li>))
                         }
+                        {this.state.filteredList.length === 0 &&
+                            <li>{gettext('No items found')}</li>
+                        }
                         {renderList(noGroupList, true)}
                     </ul>
                 </div>
@@ -400,6 +403,9 @@ export class SelectFieldPopup extends React.Component {
                                 </button>
                             </li>
                         ))}
+                        {this.state.filteredList.length === 0 &&
+                            <li>{gettext('No items found')}</li>
+                        }
                     </ul>
                 </div>
             </Popup>
