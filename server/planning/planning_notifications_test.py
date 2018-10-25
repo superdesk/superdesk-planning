@@ -50,7 +50,7 @@ class NotificationTests(TestCase):
         try:
             PlanningNotifications()._notify_slack('hdskjgdsjg', target_user=None, target_desk=self.desk_ids[0],
                                                   target_desk2=None, message='hello world by Unknown')
-        except Exception as ex:
+        except Exception:
             self.assertTrue(False)
 
     @mock.patch('planning.planning_notifications._get_slack_client', return_value=MockSlack())
@@ -58,5 +58,5 @@ class NotificationTests(TestCase):
         try:
             PlanningNotifications()._notify_slack('djkjhkjhdkjhdk', target_user=self.user_ids[0], target_desk=None,
                                                   target_desk2=None, message='hello user from world by Unknown')
-        except Exception as ex:
+        except Exception:
             self.assertTrue(False)

@@ -555,7 +555,7 @@ class EventsResource(superdesk.Resource):
 
     endpoint_name = url = 'events'
     schema = events_schema
-    item_url = 'regex("[\w,.:-]+")'
+    item_url = r'regex("[\w,.:-]+")'
     resource_methods = ['GET', 'POST']
     datasource = {
         'source': 'events',
