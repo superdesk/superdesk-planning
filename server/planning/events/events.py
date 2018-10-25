@@ -24,7 +24,8 @@ from superdesk.users.services import current_user_has_privilege
 from .events_base_service import EventsBaseService
 from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, get_max_recurrent_events, \
     WORKFLOW_STATE, ITEM_STATE, remove_lock_information, format_address, update_post_item, \
-    post_required, POST_STATE, get_event_max_multi_day_duration, set_original_creator, list_uniq_with_order
+    post_required, POST_STATE, get_event_max_multi_day_duration, set_original_creator, list_uniq_with_order, \
+    set_ingested_event_state
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
@@ -313,9 +314,7 @@ class EventsService(superdesk.Service):
 
         if user_id:
             updates['version_creator'] = user_id
-            # don't change status to draft when event was duplicated
-            if original.get(ITEM_STATE) == WORKFLOW_STATE.INGESTED and not updates.get('duplicate_to'):
-                updates[ITEM_STATE] = WORKFLOW_STATE.DRAFT
+            set_ingested_event_state(updates, original)
 
         lock_user = original.get('lock_user', None)
         str_user_id = str(user.get(config.ID_FIELD)) if user_id else None

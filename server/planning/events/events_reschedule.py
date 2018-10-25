@@ -51,7 +51,7 @@ class EventsRescheduleService(EventsBaseService):
         remove_lock_information(updates)
         reason = updates.pop('reason', None)
 
-        event_in_use = has_plannings or 'pubstatus' in original
+        event_in_use = has_plannings or (original.get('pubstatus') or '') != ''
         if event_in_use or original.get('state') == WORKFLOW_STATE.POSTPONED:
             if event_in_use:
                 # If the Event is in use, then we will duplicate the original

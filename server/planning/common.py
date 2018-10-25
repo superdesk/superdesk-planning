@@ -306,3 +306,13 @@ def list_uniq_with_order(list):
     seen = set()
     seen_add = seen.add
     return [x for x in list if not (x in seen or seen_add(x))]
+
+
+def set_ingested_event_state(updates, original):
+    """Set the ingested event state to draft"""
+    if not updates.get('version_creator'):
+        return
+
+    # don't change status to draft when event was duplicated
+    if original.get(ITEM_STATE) == WORKFLOW_STATE.INGESTED and not updates.get('duplicate_to'):
+        updates[ITEM_STATE] = WORKFLOW_STATE.DRAFT
