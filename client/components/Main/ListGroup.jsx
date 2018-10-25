@@ -28,6 +28,7 @@ export const ListGroup = ({
     desks,
     showAddCoverage,
     hideItemActions,
+    listFields,
 }) => (
     <div className="ListGroup">
         <Header title={moment(name).format('dddd LL')} />
@@ -58,6 +59,7 @@ export const ListGroup = ({
                     showAddCoverage={showAddCoverage}
                     hideItemActions={hideItemActions}
                     calendars={calendars}
+                    listFields={listFields}
                 />
             ))}
         </Group>
@@ -90,4 +92,5 @@ ListGroup.propTypes = {
     itemActions: PropTypes.object,
     showAddCoverage: PropTypes.bool,
     hideItemActions: PropTypes.bool,
+    listFields: PropTypes.object,
 };

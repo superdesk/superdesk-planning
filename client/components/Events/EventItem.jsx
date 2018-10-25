@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {Label, InternalNoteLabel, Location} from '../';
+import {Label, Location} from '../';
 import {EVENTS, MAIN, ICON_COLORS} from '../../constants';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
 import {EventDateTime} from './';
@@ -16,6 +16,9 @@ import {
     isItemDifferent,
 } from '../../utils';
 import {gettext} from '../../utils/gettext';
+import {renderFields} from '../fields';
+
+const PRIMARY_FIELDS = ['slugline', 'internalnote', 'name'];
 
 
 export class EventItem extends React.Component {
@@ -90,7 +93,7 @@ export class EventItem extends React.Component {
 
     render() {
         const {item, onItemClick, lockedItems, dateFormat, timeFormat,
-            activeFilter, toggleRelatedPlanning, onMultiSelectClick, calendars} = this.props;
+            activeFilter, toggleRelatedPlanning, onMultiSelectClick, calendars, listFields} = this.props;
 
         if (!item) {
             return null;
@@ -138,11 +141,7 @@ export class EventItem extends React.Component {
                     border={false}>
                     <Row>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            {item.slugline &&
-                                    <span className="sd-list-item__slugline">{item.slugline}</span>
-                            }
-                            <InternalNoteLabel item={item} />
-                            {item.name}
+                            {renderFields(get(listFields, 'event.primary_fields', PRIMARY_FIELDS), item)}
                         </span>
                         <EventDateTime
                             item={item}
@@ -223,6 +222,7 @@ EventItem.propTypes = {
     multiSelected: PropTypes.bool,
     onMultiSelectClick: PropTypes.func,
     calendars: PropTypes.array,
+    listFields: PropTypes.object,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName]: PropTypes.func,

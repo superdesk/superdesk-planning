@@ -25,6 +25,16 @@ export const coverageProfile = createSelector([profiles], (p) => get(p, 'coverag
 export const eventProfile = createSelector([profiles], (p) => get(p, 'event', {}));
 export const planningProfile = createSelector([profiles], (p) => get(p, 'planning', {}));
 
+export const listFields = createSelector([profiles], (p) => {
+    const fields = {};
+
+    Object.keys(p).forEach((type) => {
+        fields[type] = get(p[type], 'list', {});
+    });
+
+    return fields;
+});
+
 export const defaultEventDuration = createSelector(
     [eventProfile],
     (profile) => parseInt(get(profile, 'editor.dates.default_duration_on_change', 1), 10)

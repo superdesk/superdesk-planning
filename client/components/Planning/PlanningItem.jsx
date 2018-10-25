@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {get, isEqual} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
-import {Label, InternalNoteLabel} from '../';
+import {Label} from '../';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
 import {Button as NavButton} from '../UI/Nav';
 import {EventDateTime} from '../Events';
@@ -24,6 +24,9 @@ import {
 } from '../../utils';
 import {gettext} from '../../utils/gettext';
 import {AgendaNameList} from '../Agendas';
+import {renderFields} from '../fields';
+
+const PRIMARY_FIELDS = ['slugline', 'internalnote', 'description'];
 
 export class PlanningItem extends React.Component {
     constructor(props) {
@@ -137,6 +140,7 @@ export class PlanningItem extends React.Component {
             users,
             desks,
             showAddCoverage,
+            listFields,
         } = this.props;
 
         if (!item) {
@@ -180,11 +184,7 @@ export class PlanningItem extends React.Component {
                 >
                     <Row>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            {item.slugline &&
-                                <span className="sd-list-item__slugline">{item.slugline}</span>
-                            }
-                            <InternalNoteLabel item={item} />
-                            {item.description_text}
+                            {renderFields(get(listFields, 'planning.primary_fields', PRIMARY_FIELDS), item)}
                         </span>
 
                         {event &&
@@ -267,6 +267,7 @@ PlanningItem.propTypes = {
     showUnlock: PropTypes.bool,
     hideItemActions: PropTypes.bool,
     showAddCoverage: PropTypes.bool,
+    listFields: PropTypes.object,
     [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
