@@ -40,6 +40,7 @@ export class CoverageFormHeader extends React.Component {
             popupContainer,
             onPopupOpen,
             onPopupClose,
+            setCoverageDefaultDesk,
         } = this.props;
 
         const userAssigned = getCreator(value, 'assigned_to.user', users);
@@ -97,6 +98,7 @@ export class CoverageFormHeader extends React.Component {
                             popupContainer={popupContainer}
                             onPopupOpen={onPopupOpen}
                             onPopupClose={onPopupClose}
+                            setCoverageDefaultDesk={setCoverageDefaultDesk}
                         />
                     )}
                 </Item>
@@ -193,6 +195,7 @@ export class CoverageFormHeader extends React.Component {
                         disableDeskSelection={!!addNewsItemToPlanning}
                         disableUserSelection={!!addNewsItemToPlanning}
                         popupContainer={popupContainer}
+                        setCoverageDefaultDesk={setCoverageDefaultDesk}
                     />
                 )}
             </Item>
@@ -215,4 +218,5 @@ CoverageFormHeader.propTypes = {
     popupContainer: PropTypes.func,
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
+    setCoverageDefaultDesk: PropTypes.func,
 };

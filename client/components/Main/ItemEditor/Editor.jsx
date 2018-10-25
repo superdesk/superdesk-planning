@@ -420,8 +420,13 @@ export class EditorComponent extends React.Component {
     }
 
     onAddCoverage(g2ContentType) {
-        const {newsCoverageStatus, item, defaultDesk} = this.props;
-        const newCoverage = planningUtils.defaultCoverageValues(newsCoverageStatus, item, g2ContentType, defaultDesk);
+        const {newsCoverageStatus, item, defaultDesk, preferredCoverageDesks} = this.props;
+        const newCoverage = planningUtils.defaultCoverageValues(
+            newsCoverageStatus,
+            item,
+            g2ContentType,
+            defaultDesk,
+            preferredCoverageDesks);
 
         this.onChangeHandler('coverages', [...get(this.state, 'diff.coverages', []), newCoverage]);
     }
@@ -744,4 +749,5 @@ EditorComponent.propTypes = {
     saveAutosave: PropTypes.func,
     loadAutosave: PropTypes.func,
     defaultDesk: PropTypes.object,
+    preferredCoverageDesks: PropTypes.object,
 };

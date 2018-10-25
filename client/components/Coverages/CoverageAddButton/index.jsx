@@ -19,7 +19,7 @@ export class CoverageAddButton extends React.Component {
                 id: `coverage-menu-add-${c.qcode}`,
                 label: c.name,
                 icon: planningUtils.getCoverageIcon(c.qcode),
-                callback: nextProps.onAdd.bind(null, c.qcode, nextProps.defaultDesk),
+                callback: nextProps.onAdd.bind(null, c.qcode, nextProps.defaultDesk, nextProps.preferredCoverageDesks),
             }
         ));
     }
@@ -77,6 +77,7 @@ CoverageAddButton.propTypes = {
     onAdd: PropTypes.func,
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
+    preferredCoverageDesks: PropTypes.object,
 };
 
 CoverageAddButton.defaultProps = {

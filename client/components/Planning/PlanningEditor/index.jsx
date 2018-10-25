@@ -352,6 +352,8 @@ export class PlanningEditorComponent extends React.Component {
             streetMapUrl,
             onPopupOpen,
             onPopupClose,
+            setCoverageDefaultDesk,
+            preferredCoverageDesks,
         } = this.props;
 
         const agendaValues = cloneDeep(get(diff, 'agendas', [])
@@ -616,6 +618,8 @@ export class PlanningEditorComponent extends React.Component {
                     navigation={navigation}
                     popupContainer={popupContainer}
                     {...popupProps}
+                    setCoverageDefaultDesk={setCoverageDefaultDesk}
+                    preferredCoverageDesks={preferredCoverageDesks}
                 />
             </div>
         );
@@ -704,6 +708,7 @@ const mapStateToProps = (state) => ({
     files: selectors.general.files(state),
     streetMapUrl: selectors.config.getStreetMapUrl(state),
     defaultDesk: selectors.general.defaultDesk(state),
+    preferredCoverageDesks: get(selectors.general.preferredCoverageDesks(state), 'desks'),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -712,6 +717,7 @@ const mapDispatchToProps = (dispatch) => ({
     removeAssignment: (planning, coverage, index) =>
         dispatch(actions.planning.ui.removeAssignment(planning, coverage, index)),
     fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
+    setCoverageDefaultDesk: (coverage) => dispatch(actions.users.setCoverageDefaultDesk(coverage)),
 });
 
 export const PlanningEditor = connect(

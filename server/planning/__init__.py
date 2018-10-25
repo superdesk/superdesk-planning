@@ -114,6 +114,14 @@ def init_app(app):
         'default': None
     })
 
+    superdesk.register_default_user_preference('planning:default_coverage_desks', {
+        'type': 'dict',
+        'label': 'Default desk for coverage types',
+        'category': 'planning',
+        'desks': {},
+        'default': None
+    })
+
     app.client_config['max_recurrent_events'] = get_max_recurrent_events(app)
     app.client_config['street_map_url'] = get_street_map_url(app)
     app.client_config['max_multi_day_event_duration'] = get_event_max_multi_day_duration(app)

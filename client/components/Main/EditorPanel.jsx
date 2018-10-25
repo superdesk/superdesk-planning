@@ -1,4 +1,5 @@
 import {connect} from 'react-redux';
+import {get} from 'lodash';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {actionUtils} from '../../utils';
@@ -21,6 +22,7 @@ const mapStateToProps = (state) => ({
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     contentTypes: selectors.general.contentTypes(state),
     defaultDesk: selectors.general.defaultDesk(state),
+    preferredCoverageDesks: get(selectors.general.preferredCoverageDesks(state), 'desks'),
 });
 
 const mapStateToPropsModal = (state) => ({
@@ -39,6 +41,7 @@ const mapStateToPropsModal = (state) => ({
     inModalView: !!selectors.forms.currentItemIdModal(state),
     contentTypes: selectors.general.contentTypes(state),
     defaultDesk: selectors.general.defaultDesk(state),
+    preferredCoverageDesks: get(selectors.general.preferredCoverageDesks(state), 'desks'),
 });
 
 

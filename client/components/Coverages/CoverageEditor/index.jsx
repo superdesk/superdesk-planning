@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {isEqual, get} from 'lodash';
+import {isEqual, get, omit} from 'lodash';
 
 import {ItemActionsMenu} from '../../index';
 import {CollapseBox} from '../../UI';
@@ -14,7 +14,6 @@ export const CoverageEditor = ({
     index,
     field,
     value,
-    defaultDesk,
     users,
     desks,
     dateFormat,
@@ -41,6 +40,7 @@ export const CoverageEditor = ({
     popupContainer,
     onPopupOpen,
     onPopupClose,
+    setCoverageDefaultDesk,
     ...props
 }) => {
     // Coverage item actions
@@ -108,13 +108,12 @@ export const CoverageEditor = ({
         openComponent ||
         !props.item._id ||
         isEqual(
-            value,
-            planningUtils.defaultCoverageValues(
+            omit(value, 'assigned_to'),
+            omit(planningUtils.defaultCoverageValues(
                 newsCoverageStatus,
                 props.item,
-                get(value, 'planning.g2_content_type'),
-                defaultDesk
-            )
+                get(value, 'planning.g2_content_type')
+            ), 'assigned_to')
         )
     );
     const onFocus = editorMenuUtils.onItemFocus(navigation, field);
@@ -159,6 +158,7 @@ export const CoverageEditor = ({
             popupContainer={popupContainer}
             onPopupOpen={onPopupOpen}
             onPopupClose={onPopupClose}
+            setCoverageDefaultDesk={setCoverageDefaultDesk}
             {...props}
         />
     );
@@ -240,6 +240,7 @@ CoverageEditor.propTypes = {
     onRemoveAssignment: PropTypes.func,
     index: PropTypes.number,
     popupContainer: PropTypes.func,
+    setCoverageDefaultDesk: PropTypes.func,
 };
 
 CoverageEditor.defaultProps = {

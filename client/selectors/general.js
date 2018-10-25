@@ -48,6 +48,7 @@ export const defaultDesk = createSelector(
     (deskList, sessionDetails) => (!get(sessionDetails, 'identity.desk') ? null :
         getItemInArrayById(deskList, sessionDetails.identity.desk))
 );
+export const preferredCoverageDesks = (state) => get(state, 'session.userPreferences.planning:default_coverage_desks');
 
 export const currentUserId = createSelector(
     [session],
