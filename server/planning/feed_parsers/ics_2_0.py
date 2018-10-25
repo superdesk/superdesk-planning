@@ -82,7 +82,7 @@ class IcsTwoFeedParser(FileFeedParser):
                                  datetime.timedelta(days=1)).replace(microsecond=0)
                         if not dates_end.tzinfo:
                             dates_end = local_to_utc(config.DEFAULT_TIMEZONE, dates_end)
-                    except AttributeError as e:
+                    except AttributeError:
                         dates_end = None
                     item['dates'] = {
                         'start': dates_start,
