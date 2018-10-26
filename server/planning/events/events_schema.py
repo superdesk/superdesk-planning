@@ -20,6 +20,8 @@ event_type['mapping'] = not_analyzed
 
 planning_type = deepcopy(Resource.rel('planning', type='string'))
 planning_type['mapping'] = not_analyzed
+original_creator_schema = metadata_schema['original_creator']
+original_creator_schema.update({'nullable': True})
 
 events_schema = {
     # Identifiers
@@ -43,7 +45,7 @@ events_schema = {
     },
 
     # Audit Information
-    'original_creator': metadata_schema['original_creator'],
+    'original_creator': original_creator_schema,
     'version_creator': metadata_schema['version_creator'],
     'firstcreated': metadata_schema['firstcreated'],
     'versioncreated': metadata_schema['versioncreated'],
