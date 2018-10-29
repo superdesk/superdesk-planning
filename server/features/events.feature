@@ -951,3 +951,38 @@ Feature: Events
         """
         {"_message": "END TIME should be after START TIME", "_status": "ERR"}
         """
+    
+    @auth
+    Scenario: Duplicate ingested event
+        Given "events"
+        """
+        [
+            {
+                "guid": "123",
+                "unique_id": "123",
+                "unique_name": "123 name",
+                "name": "event 123",
+                "slugline": "event-123",
+                "definition_short": "short value",
+                "definition_long": "long value",
+                "dates": {
+                    "start": "2099-01-01",
+                    "end": "2099-01-02"
+                },
+                "subject": [{"qcode": "test qcaode", "name": "test name"}]
+            }
+        ]
+        """
+        When we post to "events"
+        """
+        {
+            "name": "duplicate 123",
+            "duplicate_from": "123",
+            "original_creator": "",
+            "dates": {
+                    "start": "2099-01-01",
+                    "end": "2099-01-02"
+            }
+        }
+        """
+        Then we get OK response
