@@ -677,10 +677,12 @@ const getEventsByDate = (events, startDate, endDate) => {
 const modifyForClient = (event) => {
     if (get(event, 'dates.start')) {
         event.dates.start = moment(event.dates.start);
+        event._startTime = moment(event.dates.start);
     }
 
     if (get(event, 'dates.end')) {
         event.dates.end = moment(event.dates.end);
+        event._endTime = moment(event.dates.end);
     }
 
     if (get(event, 'dates.recurring_rule.until')) {
@@ -758,6 +760,8 @@ const defaultEventValues = (occurStatuses, defaultCalendars, defaultPlaceList) =
             tz: moment.tz.guess(),
         },
         calendars: defaultCalendars,
+        _startTime: null,
+        _endTime: null,
     };
 
     if (defaultPlaceList) {

@@ -4,7 +4,6 @@ import {get} from 'lodash';
 import moment from 'moment';
 
 import {eventUtils, gettext} from '../../../utils';
-import {TIME_COMPARISON_GRANULARITY} from '../../../constants';
 
 import {Row, DateTimeInput, LineInput, ToggleInput, Field} from '../../UI/Form';
 import {RecurringRulesInput} from '../RecurringRulesInput';
@@ -34,11 +33,11 @@ export class EventScheduleInput extends React.Component {
     onChange(field, value) {
         if (field === 'dates.start.date') {
             this.changeStartDate(value);
-        } else if (field === 'dates.start.time') {
+        } else if (field === '_startTime') {
             this.changeStartTime(value);
         } else if (field === 'dates.end.date') {
             this.changeEndDate(value);
-        } else if (field === 'dates.end.time') {
+        } else if (field === '_endTime') {
             this.changeEndTime(value);
         } else if (field === 'dates.recurring_rule.count' && !value) {
             // Count is an integer. So set it to null, not to ''
@@ -60,14 +59,10 @@ export class EventScheduleInput extends React.Component {
                 .minute(0);
         }
 
-        if (endDate && endDate.isBefore(value)) {
+        if (!endDate || endDate.isBefore(value)) {
             // If we have an end date set, and the end date is before the new start date
             // then set the end date to be the same as this new start date
-            changes['dates.end'] = endDate.clone().add(value.diff(startDate));
-        } else if (!endDate) {
-            // If we have a new start date with no end date set
-            // then set the end date to be 'All Day'
-            changes['dates.end'] = value.clone().endOf('day');
+            changes['dates.end'] = (endDate || value).clone().add(value.diff(startDate));
         }
 
         this.props.onChange(changes, null);
@@ -76,14 +71,19 @@ export class EventScheduleInput extends React.Component {
     changeStartTime(value) {
         const startDate = get(this.props, 'diff.dates.start');
         const defaultDurationOnChange = get(this.props.formProfile, 'editor.dates.default_duration_on_change', 1);
+        const newStartDate = startDate ? startDate.hour(value.hour()).minute(value.minute()) : value;
 
-        const changes = {'dates.start': value};
+        const changes = {
+            'dates.start': newStartDate,
+            _startTime: newStartDate,
+        };
 
         if (((startDate && this.state.isAllDay) || !startDate) &&
             defaultDurationOnChange > 0 &&
             !this.state.isMultiDay
         ) {
-            changes['dates.end'] = value.clone().add(defaultDurationOnChange, 'h');
+            changes['dates.end'] = newStartDate.clone().add(defaultDurationOnChange, 'h');
+            changes['_endTime'] = changes['dates.end'].clone();
         }
 
         this.props.onChange(changes, null);
@@ -95,9 +95,8 @@ export class EventScheduleInput extends React.Component {
 
         if (!startDate) {
             // If we have a new end date with no start date set
-            // then set the start date to be 'All Day'
+            // then set the start date as well
             changes['dates.start'] = value.clone().startOf('day');
-            changes['dates.end'].endOf('day');
         }
         this.props.onChange(changes, null);
     }
@@ -105,13 +104,18 @@ export class EventScheduleInput extends React.Component {
     changeEndTime(value) {
         const endDate = get(this.props, 'diff.dates.end');
         const defaultDurationOnChange = get(this.props.formProfile, 'editor.dates.default_duration_on_change', 1);
-        const changes = {'dates.end': value};
+        const newEndDate = endDate ? endDate.hour(value.hour()).minute(value.minute()) : value;
+        const changes = {
+            'dates.end': newEndDate,
+            _endTime: newEndDate,
+        };
 
         if (((endDate && this.state.isAllDay) || !endDate)
             && defaultDurationOnChange > 0 &&
             !this.state.isMultiDay
         ) {
-            changes['dates.start'] = value.clone().subtract(defaultDurationOnChange, 'h');
+            changes['dates.start'] = newEndDate.clone().subtract(defaultDurationOnChange, 'h');
+            changes['_startTime'] = changes['dates.start'].clone();
         }
 
         this.props.onChange(changes, null);
@@ -136,8 +140,7 @@ export class EventScheduleInput extends React.Component {
     }
 
     handleAllDayChange(field, value) {
-        let newStart;
-        let newEnd;
+        let newStart, newEnd, startTime = null, endTime = null;
 
         if (value) {
             // If allDay is enabled, then set the event to all day
@@ -147,34 +150,22 @@ export class EventScheduleInput extends React.Component {
             newEnd = (get(this.props, 'diff.dates.end') || moment())
                 .clone()
                 .endOf('day');
+            startTime = newStart.clone();
+            endTime = newEnd.clone();
         } else {
             // If allDay is disabled, then set the new dates to the initial values
-            // since last save
+            // since last save and time to empty
             const dates = get(this.props, 'item.dates', get(this.props, 'diff.dates', {}));
-            const prevStart = get(dates, 'start') || moment().startOf('day');
-            const prevEnd = get(dates, 'end') || prevStart.clone();
 
-            newStart = (get(dates, 'start') || moment().startOf('day')).clone();
-            newEnd = (get(dates, 'end') || newStart)
-                .clone()
-                .add(1, 'h')
-                // And make sure the date doesn't change when adding 1hr
-                .set({
-                    [TIME_COMPARISON_GRANULARITY.YEAR]: prevEnd.get(TIME_COMPARISON_GRANULARITY.YEAR),
-                    [TIME_COMPARISON_GRANULARITY.MONTH]: prevEnd.get(TIME_COMPARISON_GRANULARITY.MONTH),
-                    [TIME_COMPARISON_GRANULARITY.DATE]: prevEnd.get(TIME_COMPARISON_GRANULARITY.DATE),
-                });
-
-            // If the initial values were all day, then set the end minutes to 55
-            // So that the allDay toggle is turned off
-            if (eventUtils.isEventAllDay(newStart, newEnd, true)) {
-                newEnd.minutes(55);
-            }
+            newStart = get(dates, 'start') || moment().startOf('day');
+            newEnd = newStart.clone();
         }
 
         this.props.onChange({
             'dates.start': newStart,
             'dates.end': newEnd,
+            _startTime: startTime,
+            _endTime: endTime,
         }, null);
     }
 
@@ -285,6 +276,7 @@ export class EventScheduleInput extends React.Component {
                     {...fieldProps}
                     onPopupOpen={onPopupOpen}
                     onPopupClose={onPopupClose}
+                    timeField="_startTime"
                 />
 
                 <Field
@@ -301,6 +293,7 @@ export class EventScheduleInput extends React.Component {
                     {...fieldProps}
                     onPopupOpen={onPopupOpen}
                     onPopupClose={onPopupClose}
+                    timeField="_endTime"
                 />
 
                 <Row flex={true} className="event-toggle" noPadding>

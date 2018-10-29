@@ -69,7 +69,10 @@ describe('event contacts', () => {
         // Create the Event with base values
         event = {
             name: 'Test',
-            dates: {start: {date: '12/12/2045'}},
+            dates: {
+                start: {date: '12/12/2045', time: '00:00'},
+                end: {time: '00:59'},
+            },
         };
         subNavBar.createEvent();
         editor.inputValues(event);

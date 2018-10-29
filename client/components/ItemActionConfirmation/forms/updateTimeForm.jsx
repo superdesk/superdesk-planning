@@ -54,10 +54,12 @@ export class UpdateTimeComponent extends React.Component {
         let relatedEvents = this.state.relatedEvents;
         let errorMessages = [];
 
-        if (field === 'dates.start.time') {
+        if (field === '_startTime') {
             diff.dates.start = value;
-        } else if (field === 'dates.end.time') {
+            diff._startTime = value;
+        } else if (field === '_endTime') {
             diff.dates.end = value;
+            diff._endTime = value;
         } else if (field === 'update_method') {
             const event = eventUtils.getRelatedEventsForRecurringEvent(
                 this.props.initialValues,
@@ -156,12 +158,12 @@ export class UpdateTimeComponent extends React.Component {
                     flex={true}
                     halfWidth={true}
                     noPadding={true}
-                    invalid={!!get(this.state, 'errors.dates.start.time')}
+                    invalid={!!get(this.state, 'errors._startTime')}
                 >
                     <Label text={gettext('From')} row={true}/>
                     <Field
                         component={TimeInput}
-                        field="dates.start.time"
+                        field="_startTime"
                         value={get(this.state, 'diff.dates.start')}
                         timeFormat={timeFormat}
                         noMargin={true}
@@ -174,11 +176,11 @@ export class UpdateTimeComponent extends React.Component {
                     <Label
                         text={gettext('To')}
                         row={true}
-                        invalid={!!get(this.state, 'errors.dates.end.time')}
+                        invalid={!!get(this.state, 'errors._endTime')}
                     />
                     <Field
                         component={TimeInput}
-                        field="dates.end.time"
+                        field="_endTime"
                         value={get(this.state, 'diff.dates.end')}
                         timeFormat={timeFormat}
                         noMargin={true}

@@ -58,24 +58,24 @@ describe('form validations', () => {
         let wrapper = getWrapper(ConvertToRecurringEventForm);
         const endsField_convertToRecurringEventForm = wrapper.find('[name="dates.recurring_rule.endRepeatMode"]');
 
-        expect(wrapper.find('.sd-line-input--invalid').length).toBe(1);
+        expect(wrapper.find('.sd-line-input--invalid').length).toBe(3);
         endsField_convertToRecurringEventForm.simulate('change', {target: {value: 'count'}});
         const countField_convertToRecurringEventForm = wrapper.find('[name="dates.recurring_rule.count"]');
 
         countField_convertToRecurringEventForm.simulate('change', {target: {value: '3'}});
-        expect(wrapper.find('.sd-line-input--invalid').length).toBe(0);
+        expect(wrapper.find('.sd-line-input--invalid').length).toBe(2);
         countField_convertToRecurringEventForm.simulate('change', {target: {value: '300'}});
         expect(wrapper.find('.sd-line-input--invalid').length > 0).toBe(true);
 
         wrapper = getWrapper(UpdateTimeForm);
-        const endDateField_updateTimeForm = wrapper.find('[name="dates.end.time"]');
+        const endDateField_updateTimeForm = wrapper.find('[name="_endTime"]');
 
         expect(wrapper.find('.sd-line-input--invalid').length).toBe(0);
         endDateField_updateTimeForm.simulate('change', {target: {value: '00:00'}});
         expect(wrapper.find('.sd-line-input--invalid').length > 0).toBe(true);
 
         wrapper = getWrapper(RescheduleEventForm);
-        const endDateField_rescheduleEventForm = wrapper.find('[name="dates.end.time"]');
+        const endDateField_rescheduleEventForm = wrapper.find('[name="_endTime"]');
 
         expect(wrapper.find('.sd-line-input--invalid').length).toBe(0);
         endDateField_rescheduleEventForm.simulate('change', {target: {value: '00:00'}});

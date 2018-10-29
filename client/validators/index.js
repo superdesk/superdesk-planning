@@ -55,6 +55,14 @@ export const validateItem = ({
     (dispatch, getState) => {
         const profiles = formProfiles ? formProfiles : selectors.forms.profiles(getState());
 
+        const getValue = (key) => (
+            key !== 'dates' ? get(diff, key) : {
+                ...get(diff, key),
+                _startTime: get(diff, '_startTime'),
+                _endTime: get(diff, '_endTime'),
+            }
+        );
+
         return (fields || Object.keys(
             ignoreDateValidation ? omit(validators[profileName], 'dates') : validators[profileName])).forEach((key) => (
             validateField({
@@ -62,7 +70,7 @@ export const validateItem = ({
                 getState: getState,
                 profileName: profileName,
                 field: key,
-                value: key === '_all' ? diff : get(diff, key),
+                value: key === '_all' ? diff : getValue(key),
                 profile: key !== 'coverages' ? profiles[profileName] : profiles.coverage,
                 errors: errors,
                 messages: messages,
