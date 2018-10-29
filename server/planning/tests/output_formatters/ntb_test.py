@@ -57,6 +57,12 @@ class NTBEventTestCase(unittest.TestCase):
         self.item_duplicated['_created'] = '2016-10-31T08:37:25+0000'
         self.item_duplicated['duplicate_from'] = self.item['_id']
 
+        self.item_ingested = self.item.copy()
+        self.item_ingested['_id'] = '﻿d31dde37-272e-4437-8216-d74ec871b586'
+        self.item_ingested['guid'] = '﻿d31dde37-272e-4437-8216-d74ec871b586'
+        self.item_ingested['state'] = 'ingested'
+        self.item_ingested['ntb_id'] = 'NBRP123456_123456_na_00'
+
     def test_formatter(self):
         formatter = NTBEventFormatter()
         output = formatter.format(self.item, {})[0]
@@ -420,3 +426,10 @@ class NTBEventTestCase(unittest.TestCase):
         output = formatter.format(item, {})[0]
         root = lxml.etree.fromstring(output['encoded_item'])
         self.assertEqual('NBRP161031_093725_hh_00', root.find('ntbId').text)
+
+    def test_ntb_id_ingested(self):
+        formatter = NTBEventFormatter()
+        item = self.item_ingested.copy()
+        output = formatter.format(item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        self.assertEqual('NBRP123456_123456_na_00', root.find('ntbId').text)

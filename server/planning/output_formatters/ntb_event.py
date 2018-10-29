@@ -31,7 +31,11 @@ class NTBEventFormatter(Formatter):
 
     def _format_doc(self, doc, item):
         ntb_id = etree.SubElement(doc, 'ntbId')
-        ntb_id.text = self._format_id(item)
+        if item.get('ntb_id'):
+            ntb_id.text = item.get('ntb_id')
+        else:
+            ntb_id.text = self._format_id(item)
+
         service = etree.SubElement(doc, 'service')
         service.text = self.SERVICE
 
