@@ -17,3 +17,5 @@ export const selectedPlannings = createSelector(
         event: get(events, get(plannings[planningId], 'event_item')),
     }))
 );
+
+export const isTotalSelected = (state) => get(state, 'multiSelect.isTotalSelected');

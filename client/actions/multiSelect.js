@@ -37,6 +37,13 @@ const deSelectEvents = (eventId, all = false) => (
     }
 );
 
+const isTotalSelected = (totalSelected) => (
+    (dispatch) => dispatch({
+        type: MULTISELECT.ACTIONS.IS_TOTAL_SELECTED,
+        payload: totalSelected,
+    })
+);
+
 const selectPlannings = (planningId, all = false) => (
     (dispatch, getState) => {
         if (all) {
@@ -113,6 +120,7 @@ const self = {
     deSelectPlannings,
     itemBulkSpikeModal,
     itemBulkUnSpikeModal,
+    isTotalSelected,
 };
 
 export default self;

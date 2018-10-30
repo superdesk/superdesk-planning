@@ -371,6 +371,10 @@ const query = (
             },
         };
 
+        if (selectors.multiSelect.isTotalSelected(getState())) {
+            maxResults = selectors.main.planningTotalItems(getState()); // eslint-disable-line no-param-reassign
+        }
+
         if (get(criteria.filter, 'nested.filter.range')) {
             sortParams[sortField].nested_filter.range = get(criteria.filter, 'nested.filter.range');
         }

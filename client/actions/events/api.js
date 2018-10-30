@@ -653,6 +653,10 @@ const query = (
     (dispatch, getState, {api}) => {
         let must = [];
 
+        if (selectors.multiSelect.isTotalSelected(getState())) {
+            maxResults = selectors.main.eventsTotalItems(getState()); // eslint-disable-line no-param-reassign
+        }
+
         if (ids) {
             const chunkSize = EVENTS.FETCH_IDS_CHUNK_SIZE;
 
@@ -690,8 +694,8 @@ const query = (
                 must,
                 startOfWeek,
             });
-
         // Query the API and sort by date
+
         return api('events').query({
             page: page,
             max_results: maxResults,

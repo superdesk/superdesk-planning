@@ -4,6 +4,7 @@ import {MULTISELECT} from '../constants';
 const initialState = {
     selectedEventIds: [],
     selectedPlanningIds: [],
+    isTotalSelected: false,
 };
 
 export default function(state = initialState, action) {
@@ -54,6 +55,11 @@ export default function(state = initialState, action) {
         return {
             ...state,
             selectedPlanningIds: [],
+        };
+    case MULTISELECT.ACTIONS.IS_TOTAL_SELECTED:
+        return {
+            ...state,
+            isTotalSelected: action.payload,
         };
 
     default:

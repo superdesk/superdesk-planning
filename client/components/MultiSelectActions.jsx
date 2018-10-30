@@ -8,6 +8,9 @@ import {eventUtils, planningUtils, gettext} from '../utils';
 import {MAIN} from '../constants';
 import {SlidingToolBar} from './UI/SubNav';
 import {Button} from './UI';
+import eventsUi from '../actions/events/ui';
+import planningUi from '../actions/planning/ui';
+
 
 export class MultiSelectActionsComponent extends React.PureComponent {
     constructor(props) {
@@ -33,6 +36,26 @@ export class MultiSelectActionsComponent extends React.PureComponent {
         } else {
             this.props.deSelectAllPlannings();
         }
+        if (this.props.isTotalSelected) {
+            this.props.setIsTotalSelected(false);
+            this.fetchTotalItems();
+        }
+    }
+
+    handleSelectTotal() {
+        this.props.setIsTotalSelected(true);
+
+        this.fetchTotalItems().then((data) => {
+            this.handleSelectAll();
+        });
+    }
+
+    fetchTotalItems() {
+        if (this.props.activeFilter === MAIN.FILTERS.EVENTS) {
+            return this.props.refetchAllEvents();
+        } else {
+            return this.props.refetchAllPlannings();
+        }
     }
 
     getCountLabel() {
@@ -42,6 +65,11 @@ export class MultiSelectActionsComponent extends React.PureComponent {
         if (this.props.activeFilter === MAIN.FILTERS.PLANNING) {
             count = get(this.props.selectedPlannings, 'length', 0);
             itemType = count > 1 ? gettext('planning items') : gettext('planning item');
+        }
+
+        if (this.props.isTotalSelected) {
+            count = this.props.activeFilter === MAIN.FILTERS.PLANNING ?
+                this.props.totalPlannings : this.props.totalEvents;
         }
 
         return gettext('{{ count }} {{ type }} selected', {count: count, type: itemType});
@@ -54,6 +82,16 @@ export class MultiSelectActionsComponent extends React.PureComponent {
         } else {
             return get(this.props, 'selectedPlannings.length') <
                 get(this.props, 'plansInList.length');
+        }
+    }
+
+    canSelectTotal() {
+        if (this.props.activeFilter === MAIN.FILTERS.EVENTS) {
+            return get(this.props, 'selectedEvents.length') <
+                get(this.props, 'totalEvents');
+        } else {
+            return get(this.props, 'selectedPlannings.length') <
+                get(this.props, 'totalPlannings');
         }
     }
 
@@ -192,6 +230,8 @@ export class MultiSelectActionsComponent extends React.PureComponent {
             activeFilter,
             selectedPlanningIds,
             selectedEventIds,
+            totalEvents,
+            totalPlannings,
         } = this.props;
 
         const hideSlidingToolBar = (activeFilter === MAIN.FILTERS.PLANNING &&
@@ -199,8 +239,15 @@ export class MultiSelectActionsComponent extends React.PureComponent {
             (activeFilter === MAIN.FILTERS.EVENTS && get(selectedEventIds, 'length') === 0) ||
             activeFilter === MAIN.FILTERS.COMBINED;
 
+        let totalItems = activeFilter === MAIN.FILTERS.EVENTS ? totalEvents : totalPlannings;
+
         let innerTools = [(<a key={1} onClick={this.handleDeSelectAll.bind(this)}>{gettext('Deselect All')}</a>)];
 
+        if (this.canSelectTotal() && !this.canSelectAll() && !this.props.isTotalSelected) {
+            innerTools.unshift(<span key={4}>{' / '}</span>);
+            innerTools.unshift(<a key={5} onClick={this.handleSelectTotal.bind(this)}>
+                {gettext(` Select all ${totalItems} items`)}</a>);
+        }
         if (this.canSelectAll()) {
             innerTools.unshift(<span key={2}>{' / '}</span>);
             innerTools.unshift(<a key={3} onClick={this.handleSelectAll.bind(this)}>{gettext('Select all')}</a>);
@@ -218,6 +265,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
 MultiSelectActionsComponent.propTypes = {
     selectedEvents: PropTypes.array,
     selectAllEvents: PropTypes.func,
+    handleSelectTotal: PropTypes.func,
     deSelectAllEvents: PropTypes.func,
     selectedPlannings: PropTypes.array,
     selectAllPlannings: PropTypes.func,
@@ -233,6 +281,12 @@ MultiSelectActionsComponent.propTypes = {
     addEventToCurrentAgenda: PropTypes.func,
     selectedPlanningIds: PropTypes.array,
     selectedEventIds: PropTypes.array,
+    refetchAllEvents: PropTypes.func,
+    refetchAllPlannings: PropTypes.func,
+    totalEvents: PropTypes.number,
+    totalPlannings: PropTypes.number,
+    setIsTotalSelected: PropTypes.func,
+    isTotalSelected: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -246,6 +300,9 @@ const mapStateToProps = (state) => ({
     lockedItems: selectors.locks.getLockedItems(state),
     selectedEventIds: selectors.multiSelect.selectedEventIds(state),
     selectedPlanningIds: selectors.multiSelect.selectedPlanningIds(state),
+    totalEvents: selectors.main.eventsTotalItems(state),
+    totalPlannings: selectors.main.planningTotalItems(state),
+    isTotalSelected: selectors.multiSelect.isTotalSelected(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -257,6 +314,9 @@ const mapDispatchToProps = (dispatch) => ({
     spikeItems: (items) => dispatch(actions.multiSelect.itemBulkSpikeModal(items)),
     unspikeItems: (items) => dispatch(actions.multiSelect.itemBulkUnSpikeModal(items)),
     exportAsArticle: () => dispatch(actions.planning.api.exportAsArticle()),
+    refetchAllEvents: () => dispatch(eventsUi.refetch()),
+    refetchAllPlannings: () => dispatch(planningUi.refetch()),
+    setIsTotalSelected: (item) => dispatch(actions.multiSelect.isTotalSelected(item)),
 });
 
 
