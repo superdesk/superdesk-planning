@@ -645,6 +645,7 @@ export class EditorComponent extends React.Component {
                             onPopupOpen={this.onPopupOpen}
                             onPopupClose={this.onPopupClose}
                             {...currentTab.tabProps}
+                            inModalView={this.props.inModalView}
                         />
                     )}
                 </div>

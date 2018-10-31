@@ -75,6 +75,7 @@ ITEM_ACTIONS = namedtuple('ITEM_ACTIONS',
 
 spiked_state = ['both', 'draft', 'spiked']
 SPIKED_STATE = namedtuple('SPIKED_STATE', ['BOTH', 'NOT_SPIKED', 'SPIKED'])(*spiked_state)
+TEMP_ID_PREFIX = 'tempId-'
 
 
 def set_item_expiry(doc):

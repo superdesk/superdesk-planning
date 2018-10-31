@@ -9,6 +9,7 @@ import * as actions from '../../../actions';
 import {
     gettext,
     getItemInArrayById,
+    generateTempId,
     planningUtils,
     isSameItemId,
     editorMenuUtils,
@@ -49,6 +50,9 @@ export class PlanningEditorComponent extends React.Component {
             top: null,
             details: null,
         };
+
+        this.state = {openCoverageIds: []};
+
         this.onChange = this.onChange.bind(this);
         this.onDuplicateCoverage = this.onDuplicateCoverage.bind(this);
         this.onCancelCoverage = this.onCancelCoverage.bind(this);
@@ -118,7 +122,7 @@ export class PlanningEditorComponent extends React.Component {
             newCoverage.planning.ednote = '';
         }
 
-        delete newCoverage.coverage_id;
+        newCoverage.coverage_id = generateTempId();
         delete newCoverage.assigned_to;
 
         if (duplicateAs) {
@@ -354,6 +358,7 @@ export class PlanningEditorComponent extends React.Component {
             onPopupClose,
             setCoverageDefaultDesk,
             preferredCoverageDesks,
+            inModalView,
         } = this.props;
 
         const agendaValues = cloneDeep(get(diff, 'agendas', [])
@@ -620,6 +625,7 @@ export class PlanningEditorComponent extends React.Component {
                     {...popupProps}
                     setCoverageDefaultDesk={setCoverageDefaultDesk}
                     preferredCoverageDesks={preferredCoverageDesks}
+                    useLocalNavigation={!inModalView}
                 />
             </div>
         );

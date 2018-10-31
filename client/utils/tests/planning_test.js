@@ -1,5 +1,5 @@
 import moment from 'moment';
-import {get} from 'lodash';
+import {get, omit} from 'lodash';
 import planUtils from '../planning';
 import lockReducer from '../../reducers/locks';
 import {EVENTS, PLANNING, ASSIGNMENTS} from '../../constants';
@@ -259,7 +259,7 @@ describe('PlanningUtils', () => {
             const coverage = planUtils.createCoverageFromNewsItem(
                 newsItem, newsCoverageStatus, desk, user, contentTypes);
 
-            expect(coverage).toEqual({
+            expect(omit(coverage, 'coverage_id')).toEqual({
                 planning: {
                     g2_content_type: 'picture',
                     slugline: 'slug',
@@ -293,7 +293,7 @@ describe('PlanningUtils', () => {
             const coverage = planUtils.createCoverageFromNewsItem(
                 newsItem, newsCoverageStatus, desk, user, contentTypes);
 
-            expect(coverage).toEqual({
+            expect(omit(coverage, 'coverage_id')).toEqual({
                 planning: {
                     g2_content_type: 'text',
                     slugline: 'slug',
@@ -361,6 +361,7 @@ describe('PlanningUtils', () => {
                 description_text: 'some abstractions',
                 place: [{name: 'Australia'}],
                 coverages: [{
+                    coverage_id: jasmine.any(String),
                     planning: {
                         g2_content_type: 'text',
                         slugline: 'slugger',
@@ -412,6 +413,7 @@ describe('PlanningUtils', () => {
                 description_text: 'some abstractions',
                 flags: {marked_for_not_publication: true},
                 coverages: [{
+                    coverage_id: jasmine.any(String),
                     planning: {
                         g2_content_type: 'text',
                         slugline: 'slugger',
