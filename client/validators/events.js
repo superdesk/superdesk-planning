@@ -249,7 +249,7 @@ const validateLinks = ({dispatch, getState, field, value, profile, errors, messa
         messages: messages,
     });
 
-    const protocolTest = new RegExp('^(?:https?://|ftp://|www\\.)');
+    const protocolTest = new RegExp('^(?:https?://|ftp://|www\\.|bit\\.ly|goo\\.gl|t\\.co|youtu\\.be|tinyurl\\.)');
 
     if (Array.isArray(value)) {
         value.forEach((url, index) => {
