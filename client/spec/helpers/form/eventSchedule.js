@@ -4,8 +4,8 @@ import {DateTime} from './dateTime';
 export class EventSchedule {
     constructor(form, name = 'dates') {
         this.inputs = {
-            start: new DateTime(form, `${name}.start`),
-            end: new DateTime(form, `${name}.end`),
+            start: new DateTime(form, `${name}.start`, '_startTime'),
+            end: new DateTime(form, `${name}.end`, '_endTime'),
         };
     }
 

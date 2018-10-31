@@ -26,6 +26,8 @@ const modifyEventsBeingAdded = (state, payload) => {
             if (get(e, 'dates.recurring_rule.until')) {
                 e.dates.recurring_rule.until = moment(e.dates.recurring_rule.until);
             }
+            e._startTime = moment(e.dates.start);
+            e._endTime = moment(e.dates.end);
         }
 
         if (e.location && Array.isArray(e.location)) {

@@ -77,7 +77,7 @@ describe('<EventScheduleInput />', () => {
         it('sets the default duration', () => {
             const wrapper = getShallowWrapper();
 
-            wrapper.instance().onChange('dates.start.time', moment('2099-06-16T00:00'));
+            wrapper.instance().onChange('_startTime', moment('2099-06-16T00:00'));
 
             expect(diff.dates.start.isSame(
                 diff.dates.end.clone().subtract(1, 'h')
@@ -98,7 +98,7 @@ describe('<EventScheduleInput />', () => {
             delete formProfile.editor.dates.default_duration_on_change;
             const wrapper = getShallowWrapper();
 
-            wrapper.instance().onChange('dates.start.time', moment('2099-06-16T00:00'));
+            wrapper.instance().onChange('_startTime', moment('2099-06-16T00:00'));
 
             expect(diff.dates.start.isSame(
                 diff.dates.end.clone().subtract(1, 'h')

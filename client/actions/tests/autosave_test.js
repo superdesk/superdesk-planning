@@ -1,4 +1,5 @@
 import sinon from 'sinon';
+import {omit} from 'lodash';
 import {autosave} from '../';
 import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
 import {eventUtils} from '../../utils';
@@ -173,7 +174,7 @@ describe('actions.autosave', () => {
                 name: 'Test Name',
             }))
                 .then((updatedItem) => {
-                    const expectedItem = {
+                    let expectedItem = {
                         ...data.event_autosave[0],
                         slugline: 'Newest Event Slugline',
                         name: 'Test Name',
@@ -196,7 +197,7 @@ describe('actions.autosave', () => {
                     expect(services.api('event_autosave').save.callCount).toBe(1);
                     expect(services.api('event_autosave').save.args[0]).toEqual([
                         data.event_autosave[0],
-                        autosaveItem,
+                        jasmine.objectContaining(omit(expectedItem, ['_startTime', '_endTime'])),
                     ]);
 
                     done();

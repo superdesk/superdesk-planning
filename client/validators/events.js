@@ -1,5 +1,5 @@
 import moment from 'moment';
-import {get, set, isEmpty, isEqual} from 'lodash';
+import {get, set, isEmpty, isEqual, pick} from 'lodash';
 import {gettext, eventUtils} from '../utils';
 import * as selectors from '../selectors';
 import {formProfile} from './profile';
@@ -8,27 +8,36 @@ import {PRIVILEGES, EVENTS} from '../constants';
 const validateRequiredDates = ({value, errors, messages}) => {
     if (!get(value, 'start')) {
         set(errors, 'start.date', gettext('This field is required'));
-        set(errors, 'start.time', gettext('This field is required'));
-        messages.push(gettext('START DATE/TIME are required fields'));
+        messages.push(gettext('START DATE is a required field'));
     }
 
     if (!get(value, 'end')) {
         set(errors, 'end.date', gettext('This field is required'));
-        set(errors, 'end.time', gettext('This field is required'));
-        messages.push(gettext('END DATE/TIME are required fields'));
+        messages.push(gettext('END DATE is a required field'));
+    }
+
+    if (!get(value, '_startTime')) {
+        set(errors, '_startTime', gettext('This field is required'));
+        messages.push(gettext('START TIME is a required field'));
+    }
+
+    if (!get(value, '_endTime')) {
+        set(errors, '_endTime', gettext('This field is required'));
+        messages.push(gettext('END TIME is a required field'));
     }
 };
 
 const validateDateRange = ({value, errors, messages}) => {
-    const startDate = get(value, 'start');
-    const endDate = get(value, 'end');
+    let startDate = moment(value.start);
+    let endDate = moment(value.end);
 
-    if (moment.isMoment(startDate) &&
-        moment.isMoment(endDate) &&
-        endDate.isSameOrBefore(startDate)
-    ) {
-        if (eventUtils.isEventSameDay(startDate, endDate)) {
-            set(errors, 'end.time', gettext('End time should be after start time'));
+    if (!self.valdiateStartEndDateValues(value, startDate, endDate)) {
+        return;
+    }
+
+    if (endDate.isSameOrBefore(startDate)) {
+        if (eventUtils.isEventSameDay(value.start, value.end)) {
+            set(errors, '_endTime', gettext('End time should be after start time'));
             messages.push(gettext('END TIME should be after START TIME'));
         } else {
             set(errors, 'end.date', gettext('End date should be after start date'));
@@ -68,9 +77,8 @@ const validateRecurringRules = ({getState, value, errors, messages}) => {
     const byday = get(value, 'recurring_rule.byday');
     const endRepeatMode = get(value, 'recurring_rule.endRepeatMode');
     const until = get(value, 'recurring_rule.until');
-    let count = get(value, 'recurring_rule.count');
     const startDate = get(value, 'start');
-
+    let count = get(value, 'recurring_rule.count');
     let recurringErrors = {};
 
     if (until && startDate > until) {
@@ -115,10 +123,10 @@ const validateRecurringRules = ({getState, value, errors, messages}) => {
 };
 
 const validateMultiDayDuration = ({getState, value, errors, messages}) => {
-    const startDate = get(value, 'start');
-    const endDate = get(value, 'end');
+    let startDate = moment(value.start);
+    let endDate = moment(value.end);
 
-    if (!moment.isMoment(startDate) || !moment.isMoment(endDate)) {
+    if (!self.valdiateStartEndDateValues(value, startDate, endDate)) {
         return;
     }
 
@@ -138,7 +146,7 @@ const validateDates = ({getState, value, errors, messages}) => {
         return;
     }
 
-    const newErrors = {};
+    let newErrors = {};
     const modalProps = selectors.general.modalProps(getState());
 
     self.validateRequiredDates({
@@ -176,10 +184,27 @@ const validateDates = ({getState, value, errors, messages}) => {
         });
     }
 
+    const timeErrors = pick(newErrors, ['_startTime', '_endTime']);
+
+    delete newErrors._startTime;
+    delete newErrors._endTime;
+
     if (!isEqual(newErrors, {})) {
         errors.dates = newErrors;
     } else {
         delete errors.dates;
+    }
+
+    if (timeErrors._startTime) {
+        errors._startTime = timeErrors._startTime;
+    } else {
+        delete errors._startTime;
+    }
+
+    if (timeErrors._endTime) {
+        errors._endTime = timeErrors._endTime;
+    } else {
+        delete errors._endTime;
     }
 };
 
@@ -258,6 +283,22 @@ const validateLinks = ({dispatch, getState, field, value, profile, errors, messa
     }
 };
 
+const valdiateStartEndDateValues = (value, startDate, endDate) => {
+    if (!get(value, 'start') || !get(value, 'end') || !moment.isMoment(value.start) || !moment.isMoment(value.end)) {
+        return false;
+    }
+
+    if (moment.isMoment(value._startTime)) {
+        startDate.hour(value._startTime.hour()).minute(value._startTime.minute());
+    }
+
+    if (moment.isMoment(value._endTime)) {
+        endDate.hour(value._endTime.hour()).minute(value._endTime.minute());
+    }
+
+    return true;
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     validateRequiredDates,
@@ -268,6 +309,7 @@ const self = {
     validateFiles,
     validateLinks,
     validateMultiDayDuration,
+    valdiateStartEndDateValues,
 };
 
 export default self;

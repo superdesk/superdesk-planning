@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
+import {get} from 'lodash';
 import {Row, DateInput, TimeInput, Field} from '..';
 import './style.scss';
 import Button from '../../Button';
@@ -13,6 +14,7 @@ import {gettext} from '../../utils';
  */
 export const DateTimeInput = ({
     field,
+    timeField,
     label,
     value,
     onChange,
@@ -63,8 +65,8 @@ export const DateTimeInput = ({
         {!hideTime && <Field
             row={false}
             component={TimeInput}
-            field={`${field}.time`}
-            value={value}
+            field={timeField ? timeField : `${field}.time`}
+            value={timeField ? get(diff, timeField) : value}
             item={item}
             diff={diff}
             readOnly={readOnly}
@@ -99,6 +101,7 @@ DateTimeInput.propTypes = {
     onChange: PropTypes.func.isRequired,
     timeFormat: PropTypes.string.isRequired,
     dateFormat: PropTypes.string.isRequired,
+    timeField: PropTypes.string,
 
     hint: PropTypes.string,
     required: PropTypes.bool,

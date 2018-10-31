@@ -474,7 +474,7 @@ export class EditorComponent extends React.Component {
                 }
 
                 this.onChangeHandler(
-                    removeAutosaveFields(autosaveData, true),
+                    removeAutosaveFields(autosaveData, true, true),
                     null,
                     true,
                     false

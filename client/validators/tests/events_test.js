@@ -11,10 +11,13 @@ describe('eventValidators', () => {
     let getState = () => state;
 
     beforeEach(() => {
+        const startTime = moment('2094-10-15T14:01:11');
+        const endTime = moment('2094-10-15T16:01:11');
+
         event = {
             dates: {
-                start: moment('2094-10-15T14:01:11'),
-                end: moment('2094-10-15T16:01:11'),
+                start: startTime,
+                end: endTime,
                 recurring_rule: {
                     frequency: 'DAILY',
                     endRepeatMode: 'count',
@@ -29,10 +32,17 @@ describe('eventValidators', () => {
     });
 
     const testValidate = (func, field, response, messages = []) => {
+        let value = event[field];
+
+        if (field === 'dates') {
+            value._startTime = event.dates.start;
+            value._endTime = event.dates.end;
+        }
+
         func({
             getState: getState,
             field: field,
-            value: event[field],
+            value: value,
             errors: errors,
             messages: errorMessages,
         });
@@ -52,11 +62,11 @@ describe('eventValidators', () => {
                     dates: {
                         start: {
                             date: 'This field is required',
-                            time: 'This field is required',
                         },
                     },
+                    _startTime: 'This field is required',
                 },
-                ['START DATE/TIME are required fields']
+                ['START DATE is a required field', 'START TIME is a required field']
             );
         });
 
@@ -67,11 +77,11 @@ describe('eventValidators', () => {
                     dates: {
                         end: {
                             date: 'This field is required',
-                            time: 'This field is required',
                         },
                     },
+                    _endTime: 'This field is required',
                 },
-                ['END DATE/TIME are required fields']
+                ['END DATE is a required field', 'END TIME is a required field']
             );
         });
     });
@@ -80,7 +90,7 @@ describe('eventValidators', () => {
         it('fail if end time should is after start time', () => {
             event.dates.end = moment('2094-10-15T11:01:11');
             testValidate(eventValidators.validateDates, 'dates',
-                {dates: {end: {time: 'End time should be after start time'}}},
+                {_endTime: 'End time should be after start time'},
                 ['END TIME should be after START TIME']
             );
         });

@@ -27,7 +27,7 @@ export class Field extends React.Component {
         // If the initial value changes, then we assume the form input object has changed too
         // i.e. changed to a different Event instance
         // In that case, set the dirty flag back to false
-        if (get(nextProps.item, field) !== get(this.props.item, field)) {
+        if (get(nextProps.item, field) && nextProps.item[field] !== get(this.props.item, field)) {
             this.setState({dirty: false});
         } else if (
             get(nextProps.diff, field) !== get(this.props.diff, field) ||

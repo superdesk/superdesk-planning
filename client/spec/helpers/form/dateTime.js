@@ -2,10 +2,10 @@ import {get} from 'lodash';
 import {Input} from './input';
 
 export class DateTime {
-    constructor(form, name) {
+    constructor(form, name, timeField) {
         this.inputs = {
             date: new Input(form, `${name}.date`, 'input', false),
-            time: new Input(form, `${name}.time`, 'input', false),
+            time: new Input(form, timeField ? timeField : `${name}.time`, 'input', false),
         };
     }
 

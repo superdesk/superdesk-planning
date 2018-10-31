@@ -14,7 +14,10 @@ describe('event_autosave', () => {
             slugline: 'Event',
             name: 'Test',
             definition_short: 'Desc.',
-            dates: {start: {date: '12/12/2045'}},
+            dates: {
+                start: {date: '12/12/2045', time: '00:00'},
+                end: {time: '00:59'},
+            },
             occur_status: 'eocstat:eos1',
             calendars: ['Sport', 'Finance'],
             anpa_category: ['Domestic Sport', 'Finance'],
@@ -52,7 +55,6 @@ describe('event_autosave', () => {
 
         editor.openAllToggleBoxes();
         editor.inputValues(event);
-        editor.allDayButton.click();
         editor.expectValues(expectedEvent);
 
         // Wait for the Autosave to save the item
@@ -113,7 +115,10 @@ describe('event_autosave', () => {
         event = {
             slugline: 'Event',
             name: 'Test',
-            dates: {start: {date: '12/12/2045'}},
+            dates: {
+                start: {date: '12/12/2045', time: '00:00'},
+                end: {time: '00:59'},
+            },
             files: ['uploads/file1.test', 'uploads/file2.test'],
         };
 

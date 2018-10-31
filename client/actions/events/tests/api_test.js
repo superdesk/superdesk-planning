@@ -1,5 +1,6 @@
 import sinon from 'sinon';
 import moment from 'moment';
+import {omit} from 'lodash';
 
 import {getTimeZoneOffset, eventUtils} from '../../../utils';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
@@ -99,7 +100,10 @@ describe('actions.events.api', () => {
         it('returns the Event from the store instead of the API', (done) => (
             store.test(done, eventsApi.fetchById('e2'))
                 .then((event) => {
-                    expect(event).toEqual(eventUtils.modifyForClient(data.events[1]));
+                    const eventInStore = omit(eventUtils.modifyForClient(data.events[1]),
+                        ['_startTime', '_endTime']);
+
+                    expect(event).toEqual(eventInStore);
 
                     expect(services.api('events').getById.callCount).toBe(0);
 

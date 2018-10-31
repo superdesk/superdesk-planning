@@ -36,7 +36,13 @@ export class RescheduleEventComponent extends React.Component {
     }
 
     componentWillMount() {
-        this.setState({diff: {dates: cloneDeep(this.props.initialValues.dates)}});
+        this.setState({
+            diff: {
+                dates: cloneDeep(this.props.initialValues.dates),
+                _startTime: cloneDeep(this.props.initialValues.dates.start),
+                _endTime: cloneDeep(this.props.initialValues.dates.end),
+            },
+        });
     }
 
     onReasonChange(field, reason) {
