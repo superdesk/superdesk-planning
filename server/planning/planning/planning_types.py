@@ -204,7 +204,11 @@ planning_types_schema = {
 
     # postSchema controls the validation of fields when posting.
     'postSchema':
-        {'type': 'dict'}
+        {'type': 'dict'},
+
+    # list fields config
+    'list':
+        {'type': 'dict'},
 }
 
 

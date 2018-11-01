@@ -93,6 +93,7 @@ export class ListPanel extends React.Component {
             desks,
             showAddCoverage,
             hideItemActions,
+            listFields,
         } = this.props;
 
         return (
@@ -134,6 +135,7 @@ export class ListPanel extends React.Component {
                             desks: desks,
                             showAddCoverage: showAddCoverage,
                             hideItemActions: hideItemActions,
+                            listFields: listFields,
                         };
 
                         return <ListGroup key={group.date} {...listGroupProps} />;
@@ -172,4 +174,6 @@ ListPanel.propTypes = {
     loadingIndicator: PropTypes.bool,
     showAddCoverage: PropTypes.bool,
     hideItemActions: PropTypes.bool,
+    listFields: PropTypes.object,
+    calendars: PropTypes.array,
 };

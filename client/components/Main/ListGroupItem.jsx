@@ -68,6 +68,7 @@ export class ListGroupItem extends React.Component {
             desks,
             showAddCoverage,
             hideItemActions,
+            listFields,
         } = this.props;
         const itemType = getItemType(item);
 
@@ -85,6 +86,7 @@ export class ListGroupItem extends React.Component {
             privileges: privileges,
             activeFilter: activeFilter,
             onMultiSelectClick: onMultiSelectClick,
+            listFields: listFields,
         };
 
         let eventProps = {
@@ -218,4 +220,6 @@ ListGroupItem.propTypes = {
     itemActions: PropTypes.object,
     showAddCoverage: PropTypes.bool,
     hideItemActions: PropTypes.bool,
+    listField: PropTypes.object,
+    calendars: PropTypes.array,
 };

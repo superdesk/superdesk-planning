@@ -58,6 +58,7 @@ export class PlanningListComponent extends React.Component {
             itemActions,
             hideItemActions,
             showAddCoverage,
+            listFields,
         } = this.props;
 
         return (
@@ -87,6 +88,7 @@ export class PlanningListComponent extends React.Component {
                 hideItemActions={hideItemActions}
                 showAddCoverage={showAddCoverage}
                 calendars={calendars}
+                listFields={listFields}
             />
         );
     }
@@ -120,6 +122,7 @@ PlanningListComponent.propTypes = {
     hideItemActions: PropTypes.bool,
     showAddCoverage: PropTypes.bool,
     calendars: PropTypes.array,
+    listFields: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
@@ -138,6 +141,7 @@ const mapStateToProps = (state) => ({
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
     calendars: selectors.events.enabledCalendars(state),
+    listFields: selectors.forms.listFields(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
