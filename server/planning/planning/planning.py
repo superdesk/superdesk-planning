@@ -685,11 +685,30 @@ class PlanningService(superdesk.Service):
 
         return False
 
-    def get_expired_items(self, expiry_datetime):
+    def get_expired_items(self, expiry_datetime, spiked_planning_only=False):
         """Get the expired items
 
         Where planning_date is in the past
         """
+        nested_filter = {
+            'nested': {
+                'path': '_planning_schedule',
+                'filter': {
+                    'range': {
+                        '_planning_schedule.scheduled': {
+                            'gt': date_to_str(expiry_datetime)
+                        }
+                    }
+                }
+            }
+        }
+        range_filter = {
+            'range': {
+                'planning_date': {
+                    'gt': date_to_str(expiry_datetime)
+                }
+            }
+        }
         query = {
             'query': {
                 'bool': {
@@ -708,31 +727,28 @@ class PlanningService(superdesk.Service):
                                 'expired': True
                             }
                         },
-                        {
-                            'nested': {
-                                'path': '_planning_schedule',
-                                'filter': {
-                                    'range': {
-                                        '_planning_schedule.scheduled': {
-                                            'gt': date_to_str(expiry_datetime)
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            'range': {
-                                'planning_date': {
-                                    'gt': date_to_str(expiry_datetime)
-                                }
-                            }
-                        }
+                        nested_filter,
+                        range_filter
                     ]
                 }
-            },
-            'sort': [{'planning_date': 'asc'}],
-            'size': 200
+            }
         }
+
+        if spiked_planning_only:
+            query = {
+                'query': {
+                    'bool': {
+                        'must_not': [
+                            nested_filter,
+                            range_filter
+                        ],
+                        'must': [{'term': {'state': WORKFLOW_STATE.SPIKED}}]
+                    }
+                }
+            }
+
+        query['sort'] = [{'planning_date': 'asc'}]
+        query['size'] = 200
 
         total_received = 0
         total_items = -1

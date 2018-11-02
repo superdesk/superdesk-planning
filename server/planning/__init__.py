@@ -29,7 +29,7 @@ from superdesk.default_settings import celery_queue, CELERY_TASK_ROUTES as CTR, 
     CELERY_BEAT_SCHEDULE as CBS
 from celery.schedules import crontab
 
-from .commands import FlagExpiredItems
+from .commands import FlagExpiredItems, DeleteSpikedItems
 import planning.commands  # noqa
 import planning.feeding_services # noqa
 import planning.feed_parsers  # noqa
@@ -136,6 +136,12 @@ def init_app(app):
             'routing_key': 'expiry.planning'
         }
 
+    if not app.config.get('CELERY_TASK_ROUTES').get('planning.delete_spiked'):
+        app.config['CELERY_TASK_ROUTES']['planning.delete_spiked'] = {
+            'queue': celery_queue('delete'),
+            'routing_key': 'delete.planning'
+        }
+
     if not app.config.get('CELERY_BEAT_SCHEDULE'):
         app.config['CELERY_BEAT_SCHEDULE'] = CBS
 
@@ -143,6 +149,13 @@ def init_app(app):
             not app.config.get('CELERY_BEAT_SCHEDULE').get('planning:expiry'):
         app.config['CELERY_BEAT_SCHEDULE']['planning:expiry'] = {
             'task': 'planning.flag_expired',
+            'schedule': crontab(minute='0')  # Runs once every hour
+        }
+
+    if app.config.get('PLANNING_DELETE_SPIKED_MINUTES', 0) != 0 and \
+            not app.config.get('CELERY_BEAT_SCHEDULE').get('planning:delete'):
+        app.config['CELERY_BEAT_SCHEDULE']['planning:delete'] = {
+            'task': 'planning.delete_spiked',
             'schedule': crontab(minute='0')  # Runs once every hour
         }
 
@@ -174,3 +187,8 @@ def init_app(app):
 @celery.task(soft_time_limit=600)
 def flag_expired():
     FlagExpiredItems().run()
+
+
+@celery.task(soft_time_limit=600)
+def delete_spiked():
+    DeleteSpikedItems().run()
