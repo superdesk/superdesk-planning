@@ -205,6 +205,15 @@ const getCriteria = (
             },
         },
         {
+            condition: () => (Array.isArray(advancedSearch.place) &&
+            advancedSearch.place.length > 0),
+            do: () => {
+                const codes = advancedSearch.place.map((p) => p.qcode);
+
+                must.push({terms: {'place.qcode': codes}});
+            },
+        },
+        {
             condition: () => (get(advancedSearch, 'dates')),
             do: () => {
                 if (get(advancedSearch, 'dates.range')) {

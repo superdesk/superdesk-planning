@@ -182,6 +182,153 @@ DEFAULT_EDITOR = [{
         'news_coverage_status': {'enabled': True}
     },
     'schema': dict(CoverageSchema)
+}, {
+    'name': 'advanced_search',
+    'editor': {
+        'event': {
+            'slugline': {
+                'enabled': True,
+                'index': 1
+            },
+            'name': {
+                'enabled': True,
+                'index': 2
+            },
+            'anpa_category': {
+                'enabled': True,
+                'index': 3
+            },
+            'subject': {
+                'enabled': True,
+                'index': 4
+            },
+            'source': {
+                'enabled': True,
+                'index': 5
+            },
+            'location': {
+                'enabled': True,
+                'index': 6
+            },
+            'state': {
+                'enabled': True,
+                'index': 7
+            },
+            'pub_status': {
+                'enabled': True,
+                'index': 8
+            },
+            'spike_state': {
+                'enabled': True,
+                'index': 9
+            },
+            'start_date_time': {
+                'enabled': True,
+                'index': 10
+            },
+            'end_date_time': {
+                'enabled': True,
+                'index': 11
+            },
+            'date_filter': {
+                'enabled': True,
+                'index': 12
+            },
+        },
+        'planning': {
+            'slugline': {
+                'enabled': True,
+                'index': 1
+            },
+            'content_type': {
+                'enabled': True,
+                'index': 2
+            },
+            'no_coverage': {
+                'enabled': True,
+                'index': 3
+            },
+            'featured': {
+                'enabled': True,
+                'index': 4
+            },
+            'anpa_category': {
+                'enabled': True,
+                'index': 5
+            },
+            'subject': {
+                'enabled': True,
+                'index': 6
+            },
+            'urgency': {
+                'enabled': True,
+                'index': 7
+            },
+            'state': {
+                'enabled': True,
+                'index': 8
+            },
+            'pub_status': {
+                'enabled': True,
+                'index': 9
+            },
+            'spike_state': {
+                'enabled': True,
+                'index': 10
+            },
+            'start_date_time': {
+                'enabled': True,
+                'index': 11
+            },
+            'end_date_time': {
+                'enabled': True,
+                'index': 12
+            },
+            'date_filter': {
+                'enabled': True,
+                'index': 13
+            }
+        },
+        'combined': {
+            'slugline': {
+                'enabled': True,
+                'index': 1
+            },
+            'anpa_category': {
+                'enabled': True,
+                'index': 2
+            },
+            'subject': {
+                'enabled': True,
+                'index': 3
+            },
+            'state': {
+                'enabled': True,
+                'index': 4
+            },
+            'pub_status': {
+                'enabled': True,
+                'index': 5
+            },
+            'spike_state': {
+                'enabled': True,
+                'index': 6
+            },
+            'start_date_time': {
+                'enabled': True,
+                'index': 7
+            },
+            'end_date_time': {
+                'enabled': True,
+                'index': 8
+            },
+            'date_filter': {
+                'enabled': True,
+                'index': 9
+            }
+        }
+    },
+    'schema': {}
 }]
 
 logger = logging.getLogger(__name__)

@@ -35,7 +35,7 @@ class EventsPlanningService(superdesk.Service):
         'posted', 'state',
         'date_filter', 'spike_state',
         'start_of_week', 'page',
-        'max_results'
+        'max_results', 'place'
     }
 
     default_page_size = 100
@@ -515,7 +515,8 @@ class EventsPlanningService(superdesk.Service):
         """
         arguments = {
             'anpa_category': 'anpa_category.qcode',
-            'subject': 'subject.qcode'
+            'subject': 'subject.qcode',
+            'place': 'place.qcode'
         }
         filters = []
 
