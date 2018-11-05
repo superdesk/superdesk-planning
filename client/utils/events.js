@@ -737,6 +737,11 @@ const duplicateEvent = (event, occurStatus) => {
         duplicatedEvent.dates.end = duplicatedEvent.dates.end.add(daysBetween, 'days');
     }
 
+    // Duplicating canceled event clears the ed note
+    if (duplicatedEvent.state === WORKFLOW_STATE.CANCELLED) {
+        delete duplicatedEvent.ednote;
+    }
+
     duplicatedEvent.duplicate_from = getItemId(event);
     duplicatedEvent.occur_status = occurStatus;
     duplicatedEvent.state = WORKFLOW_STATE.DRAFT;

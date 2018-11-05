@@ -471,3 +471,70 @@ Feature: Duplicate Planning
             "expired": "__no_value__"
         }
         """
+
+    @auth
+    Scenario: Duplicating a canceled Planning item will clear the ednote
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "name": "Test Event",
+            "ednote" : "Ed note in event\n\n--------------------------------------------\nEvent Cancelled\nReason: \n",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "state" : "cancelled"
+        }]
+        """
+        Given "planning"
+        """
+        [{
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "Test Event",
+            "state" : "cancelled",
+            "event_item": "event1",
+            "planning_date": "2029-11-21T14:00:00.000Z",
+            "ednote" : "This is the ednote in planning\n\n-----------------------------------------\nEvent cancelled\n",
+            "coverages": [
+                {
+                    "planning": {
+                        "ednote": "test coverage, 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.0000",
+                        "g2_content_type": "text",
+                        "ednote" : "This is the ednote in planning\n\n-------------\nCoverage cancelled\nReason: bad\n"
+                    },
+                    "workflow_status": "cancelled",
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
+                }
+            ]
+        }]
+        """
+        When we post to "/planning/plan1/duplicate"
+        """
+        [{}]
+        """
+        Then we get OK response
+        When we get "/planning/#duplicate._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#duplicate._id#",
+            "guid": "#duplicate._id#",
+            "slugline": "Test Event",
+            "state": "draft",
+            "planning_date": "2029-11-21T14:00:00+0000",
+            "event_item": "event1",
+            "expired": "__no_value__",
+            "ednote": "__no_value__",
+            "coverages": [{"planning": {"ednote": "__no_value__"}}]
+        }
+        """
