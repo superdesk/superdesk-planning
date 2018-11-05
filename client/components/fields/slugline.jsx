@@ -1,10 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-export const slugline = ({item}) => (
-    item.slugline &&
-        <span className="sd-list-item__slugline">{item.slugline}</span>
-);
+import {get} from 'lodash';
+
+export const slugline = ({item}) => {
+    if (!get(item, 'slugline', '')) {
+        return null;
+    }
+
+    return (<span className="sd-list-item__slugline">{item.slugline}</span>);
+};
 
 slugline.propTypes = {
     item: PropTypes.shape({
