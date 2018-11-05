@@ -2,12 +2,12 @@ import {get} from 'lodash';
 import moment from 'moment-timezone';
 
 export const getDateFormat = (state) =>
-    get(state, 'config.model.dateformat') ||
-    get(state, 'config.view.dateformat');
+    get(state, 'config.view.dateformat') ||
+    get(state, 'config.model.dateformat');
 
 export const getTimeFormat = (state) =>
-    get(state, 'config.shortTimeFormat') ||
-    get(state, 'config.view.timeformat');
+    get(state, 'config.view.timeformat') ||
+    get(state, 'config.shortTimeFormat');
 
 export const getMaxRecurrentEvents = (state) =>
     get(state, 'deployConfig.max_recurrent_events', 200);
