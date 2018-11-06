@@ -201,19 +201,23 @@ const scheduleRefetch = () => (
  * @param {object} item - Agenda to be assigned
  * @return Promise
  */
-const assignToAgenda = (item, agenda) => (
+const assignToAgenda = (item, agenda, showNotification = true) => (
     (dispatch, getState, {notify}) => (
         dispatch(locks.lock(item, 'assign_agenda'))
             .then((lockedItem) => {
                 lockedItem.agendas = [...get(lockedItem, 'agendas', []), agenda._id];
                 return dispatch(main.saveAndUnlockItem(lockedItem)).then(() => {
-                    notify.success(gettext('Agenda assigned to the planning item.'));
+                    if (showNotification) {
+                        notify.success(gettext('Agenda assigned to the planning item.'));
+                    }
                     return Promise.resolve();
                 });
             }, (error) => {
-                notify.error(
-                    getErrorMessage(error, gettext('Could not obtain lock on the planning item.'))
-                );
+                if (showNotification) {
+                    notify.error(
+                        getErrorMessage(error, gettext('Could not obtain lock on the planning item.'))
+                    );
+                }
                 return Promise.reject(error);
             })
     )

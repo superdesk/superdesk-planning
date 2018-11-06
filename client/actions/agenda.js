@@ -173,8 +173,6 @@ const addEventToCurrentAgenda = (events, planningDate = null, openInEditor = fal
     (dispatch, getState, {notify}) => {
         let updatesAgendas = get(agendas, 'length', 0) > 0 ? agendas.map((a) => a._id) : [];
         let eventsList = events;
-        const chunkSize = 5;
-        let promise = Promise.resolve();
         let plannings = [];
 
         if (!agendas) {
@@ -189,29 +187,14 @@ const addEventToCurrentAgenda = (events, planningDate = null, openInEditor = fal
             eventsList = [events];
         }
 
-        for (let i = 0; i < Math.ceil(eventsList.length / chunkSize); i++) {
-            let eventsChunk = eventsList.slice(i * chunkSize, (i + 1) * chunkSize);
 
-            promise = promise.then(() => (
-                Promise.all(
-                    eventsChunk.map((event) => (
-                        dispatch(createPlanningFromEvent(event, planningDate, updatesAgendas))
-                    ))
-                )
-                    .then((data) => data.forEach((p) => plannings.push(p)))
-                    .then(() => {
-                        notify.pop();
-                        notify.success(
-                            gettext(`created ${plannings.length}/${eventsList.length} planning item(s)`)
-                        );
-                    })
-            ));
-        }
         // reload the plannings of the current calendar
-        return promise
+        return dispatch(main.bulkExecuteAction(eventsList, createPlanningFromEvent, planningDate, updatesAgendas))
+            .then((data) => data.forEach((p) => plannings.push(p)))
             .then(() => {
                 notify.pop();
                 notify.success(gettext(`created ${eventsList.length} planning item.`));
+
                 return openInEditor ?
                     dispatch(main.lockAndEdit(plannings[0])) :
                     Promise.resolve(plannings[0]);

@@ -1405,6 +1405,30 @@ const saveAndUnlockItem = (item) => (
     }
 );
 
+const bulkExecuteAction = (itemList, action, ...args) => (
+    (dispatch, getState, {notify}) => {
+        if (get(itemList, 'length', 0) === 0) {
+            return Promise.resolve();
+        }
+
+        const chunkSize = 5;
+        let promise = Promise.resolve();
+
+        for (let i = 0; i < Math.ceil(itemList.length / chunkSize); i++) {
+            let itemsChunk = itemList.slice(i * chunkSize, (i + 1) * chunkSize);
+
+            promise = promise.then(() => (Promise.all(
+                itemsChunk.map((item) => (
+                    dispatch(action(item, ...args))
+                ))
+            )
+            ));
+        }
+
+        return promise;
+    }
+);
+
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -1452,6 +1476,7 @@ const self = {
     spikeItem,
     spikeAfterUnlock,
     saveAndUnlockItem,
+    bulkExecuteAction,
 };
 
 export default self;

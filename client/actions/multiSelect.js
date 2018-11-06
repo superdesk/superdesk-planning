@@ -3,6 +3,7 @@ import {showModal} from './index';
 import {MULTISELECT, ITEM_TYPE, MODALS} from '../constants';
 import eventsUi from './events/ui';
 import planningUi from './planning/ui';
+import main from './main';
 import {getItemType, gettext} from '../utils';
 
 /**
@@ -105,6 +106,20 @@ const itemBulkUnSpikeModal = (items) => (
     }
 );
 
+const bulkAssignAgenda = (plannings, agenda) => (
+    (dispatch, getState, {notify}) =>
+        // reload the plannings of the current calendar
+        dispatch(main.bulkExecuteAction(plannings, planningUi.assignToAgenda, agenda, false))
+            .then((data) => {
+                notify.pop();
+                notify.success(gettext(`Assigned agenda to ${data.length} planning item(s).`));
+
+                dispatch(self.deSelectPlannings(null, true));
+                return Promise.resolve();
+            })
+
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     selectEvents,
@@ -113,6 +128,7 @@ const self = {
     deSelectPlannings,
     itemBulkSpikeModal,
     itemBulkUnSpikeModal,
+    bulkAssignAgenda,
 };
 
 export default self;

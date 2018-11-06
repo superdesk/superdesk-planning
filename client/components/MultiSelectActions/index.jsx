@@ -1,13 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import * as actions from '../actions';
-import * as selectors from '../selectors';
+import * as actions from '../../actions';
+import * as selectors from '../../selectors';
 import {every, get, some} from 'lodash';
-import {eventUtils, planningUtils, gettext} from '../utils';
-import {MAIN} from '../constants';
-import {SlidingToolBar} from './UI/SubNav';
-import {Button} from './UI';
+import {eventUtils, planningUtils, gettext} from '../../utils';
+import {MAIN} from '../../constants';
+import {SlidingToolBar} from '../UI/SubNav';
+import {Button} from '../UI';
+import {AssignAgendaButton} from './AssignAgendaButton';
 
 export class MultiSelectActionsComponent extends React.PureComponent {
     constructor(props) {
@@ -17,6 +18,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
         this.itemUnSpike = this.itemUnSpike.bind(this);
         this.createPlanning = this.createPlanning.bind(this);
         this.handleDeSelectAll = this.handleDeSelectAll.bind(this);
+        this.assignAgenda = this.assignAgenda.bind(this);
     }
 
     handleSelectAll() {
@@ -83,13 +85,18 @@ export class MultiSelectActionsComponent extends React.PureComponent {
             (plan) => planningUtils.canUnspikePlanning(plan, plan.event, privileges)
         );
 
+        const showAssignAgenda = every(
+            selectedPlannings,
+            (plan) => planningUtils.canAssignAgenda(plan, plan.event, privileges, lockedItems)
+        );
+
         const showExport = !some(selectedPlannings, 'flags.marked_for_not_publication');
 
         let tools = [];
 
         if (showExport) {
             tools.push(<Button
-                key={1}
+                key={2}
                 onClick={this.props.exportAsArticle}
                 color="primary"
                 text={gettext('Export as article')} />);
@@ -97,20 +104,29 @@ export class MultiSelectActionsComponent extends React.PureComponent {
 
         if (showSpike) {
             tools.push(<Button
-                key={2}
+                key={3}
                 onClick={this.itemSpike}
                 color="alert"
                 text={gettext('Spike')}
-                icon="icon-trash" />);
+                icon="icon-trash"
+                pullRight />);
         }
 
         if (showUnspike) {
             tools.push(<Button
-                key={3}
+                key={4}
                 onClick={this.itemUnSpike}
                 color="warning"
                 icon="icon-unspike"
-                text={gettext('Unspike')} />);
+                text={gettext('Unspike')}
+                pullRight />);
+        }
+
+        if (showAssignAgenda) {
+            tools.push(<AssignAgendaButton
+                key={1}
+                agendas={this.props.agendas}
+                onAgendaSelect={this.assignAgenda}/>);
         }
 
         return tools;
@@ -187,6 +203,10 @@ export class MultiSelectActionsComponent extends React.PureComponent {
         this.props.addEventToCurrentAgenda(this.getItemList());
     }
 
+    assignAgenda(agenda) {
+        this.props.bulkAssignAgenda(this.getItemList(), agenda);
+    }
+
     render() {
         const {
             activeFilter,
@@ -233,6 +253,8 @@ MultiSelectActionsComponent.propTypes = {
     addEventToCurrentAgenda: PropTypes.func,
     selectedPlanningIds: PropTypes.array,
     selectedEventIds: PropTypes.array,
+    agendas: PropTypes.array,
+    bulkAssignAgenda: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
@@ -246,6 +268,7 @@ const mapStateToProps = (state) => ({
     lockedItems: selectors.locks.getLockedItems(state),
     selectedEventIds: selectors.multiSelect.selectedEventIds(state),
     selectedPlanningIds: selectors.multiSelect.selectedPlanningIds(state),
+    agendas: selectors.general.enabledAgendas(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -257,6 +280,7 @@ const mapDispatchToProps = (dispatch) => ({
     spikeItems: (items) => dispatch(actions.multiSelect.itemBulkSpikeModal(items)),
     unspikeItems: (items) => dispatch(actions.multiSelect.itemBulkUnSpikeModal(items)),
     exportAsArticle: () => dispatch(actions.planning.api.exportAsArticle()),
+    bulkAssignAgenda: (items, agenda) => dispatch(actions.multiSelect.bulkAssignAgenda(items, agenda)),
 });
 
 

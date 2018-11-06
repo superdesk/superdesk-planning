@@ -870,6 +870,7 @@ const self = {
     defaultCoverageValues,
     modifyPlanningsBeingAdded,
     isFeaturedPlanningUpdatedAfterPosting,
+    canAssignAgenda,
 };
 
 export default self;
