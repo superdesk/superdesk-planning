@@ -155,10 +155,10 @@ export class EventScheduleInput extends React.Component {
         } else {
             // If allDay is disabled, then set the new dates to the initial values
             // since last save and time to empty
-            const dates = get(this.props, 'item.dates', get(this.props, 'diff.dates', {}));
+            const dates = get(this.props, 'diff.dates', get(this.props, 'item.dates', {}));
 
             newStart = get(dates, 'start') || moment().startOf('day');
-            newEnd = newStart.clone();
+            newEnd = (get(dates, 'end') || newStart.clone()).hour(0).minute(1);
         }
 
         this.props.onChange({
