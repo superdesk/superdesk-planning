@@ -33,6 +33,7 @@ from planning.planning_notifications import PlanningNotifications
 from superdesk.utc import utc_to_local
 from datetime import datetime
 from .planning_types import is_field_enabled
+from superdesk import Resource
 
 logger = logging.getLogger(__name__)
 
@@ -1070,6 +1071,13 @@ planning_schema = {
     # Name used to identify the planning item
     'name': {
         'type': 'string'
+    },
+
+    'files': {
+        'type': 'list',
+        'nullable': True,
+        'schema': Resource.rel('planning_files'),
+        'mapping': not_analyzed,
     },
 }  # end planning_schema
 

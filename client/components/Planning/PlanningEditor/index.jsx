@@ -25,6 +25,7 @@ import {
     ToggleInput,
     ColouredValueInput,
     Field,
+    FileInput,
     DateTimeInput,
 } from '../../UI/Form';
 import {ToggleBox} from '../../UI';
@@ -59,6 +60,9 @@ export class PlanningEditorComponent extends React.Component {
         this.onPlanningDateChange = this.onPlanningDateChange.bind(this);
         this.onAddCoverageToWorkflow = this.onAddCoverageToWorkflow.bind(this);
         this.onRemoveAssignment = this.onRemoveAssignment.bind(this);
+
+        this.onAddFiles = this.onAddFiles.bind(this);
+        this.onRemoveFile = this.onRemoveFile.bind(this);
     }
 
     componentWillMount() {
@@ -317,6 +321,30 @@ export class PlanningEditorComponent extends React.Component {
         }
     }
 
+    onAddFiles(fileList) {
+        const files = Array.from(fileList).map((f) => [f]);
+
+        this.props.uploadFiles(files)
+            .then((newFiles) => {
+                this.props.onChangeHandler('files',
+                    [
+                        ...get(this.props, 'diff.files', []),
+                        ...newFiles.map((f) => f._id),
+                    ]);
+            }, () => {
+                this.notifyValidationErrors('Failed to upload files');
+            });
+    }
+
+    onRemoveFile(file) {
+        const promise = !get(this.props, 'item.files', []).includes(file._id) ?
+            this.props.removeFile(file) : Promise.resolve();
+
+        promise.then(() =>
+            this.props.onChangeHandler('files', get(this.props, 'diff.files', []).filter((f) => f !== file._id))
+        );
+    }
+
     render() {
         const {
             item,
@@ -403,9 +431,16 @@ export class PlanningEditorComponent extends React.Component {
             onPopupClose,
         };
 
+        const getCountOfProperty = (propertyName) => {
+            const count = get(this.props, `diff.${propertyName}.length`, 0);
+
+            return count > 0 ? count : null;
+        };
+
         const detailsErrored = some(toggleDetails, (field) => !!get(errors, field));
         const onFocusPlanning = editorMenuUtils.onItemFocus(this.props.navigation, 'planning');
         const onFocusDetails = editorMenuUtils.onItemFocus(this.props.navigation, 'details');
+        const onFocusFiles = editorMenuUtils.onItemFocus(this.props.navigation, 'files');
         const associatedEvent = onFocusPlanning ? eventModal : event;
 
         return (
@@ -568,6 +603,30 @@ export class PlanningEditorComponent extends React.Component {
                             onFocus={onFocusDetails}
                         />}
                     </ToggleBox>
+
+                    <ToggleBox
+                        title={gettext('Attached Files')}
+                        isOpen={editorMenuUtils.isOpen(navigation, 'files')}
+                        onClose={editorMenuUtils.onItemClose(navigation, 'files')}
+                        onOpen={editorMenuUtils.onItemOpen(navigation, 'files')}
+                        scrollInView={true}
+                        hideUsingCSS={true} // hideUsingCSS so the file data is kept on hide/show
+                        invalid={!!errors.files && (dirty || submitFailed)}
+                        forceScroll={editorMenuUtils.forceScroll(navigation, 'files')}
+                        paddingTop={!!onFocusFiles}
+                        badgeValue={getCountOfProperty('files')} >
+                        <Field
+                            component={FileInput}
+                            field="files"
+                            createLink={createUploadLink}
+                            defaultValue={[]}
+                            {...fieldProps}
+                            onFocus={onFocusFiles}
+                            files={files}
+                            onAddFiles={this.onAddFiles}
+                            onRemoveFile={this.onRemoveFile}
+                        />
+                    </ToggleBox>
                 </ContentBlock>
 
                 {associatedEvent && (
@@ -677,6 +736,8 @@ PlanningEditorComponent.propTypes = {
     popupContainer: PropTypes.func,
     streetMapUrl: PropTypes.string,
     defaultDesk: PropTypes.object,
+    uploadFiles: PropTypes.func,
+    removeFile: PropTypes.func,
 };
 
 PlanningEditorComponent.defaultProps = {
@@ -724,6 +785,8 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(actions.planning.ui.removeAssignment(planning, coverage, index)),
     fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
     setCoverageDefaultDesk: (coverage) => dispatch(actions.users.setCoverageDefaultDesk(coverage)),
+    uploadFiles: (files) => dispatch(actions.events.api.uploadFiles({files: files})),
+    removeFile: (file) => dispatch(actions.events.api.removeFile(file)),
 });
 
 export const PlanningEditor = connect(

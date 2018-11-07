@@ -34,7 +34,7 @@ class JsonPlanningFormatter(Formatter):
 
     # fields to be removed from the planning item
     remove_fields = ('lock_time', 'lock_action', 'lock_session', 'lock_user', '_etag', 'version_creator',
-                     'original_creator', 'version_creator', 'internal_note', '_planning_schedule')
+                     'original_creator', 'version_creator', 'internal_note', '_planning_schedule', 'files')
 
     # fields to be removed from coverage
     remove_coverage_fields = ('original_creator', 'version_creator', 'assigned_to')

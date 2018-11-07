@@ -30,7 +30,7 @@ class JsonPlanningFeaturedFormatter(Formatter):
         self.can_export = False
 
     # fields to be removed from the planning item
-    remove_fields = ('last_posted_time', 'last_posted_by', '_etag', 'version_creator', 'original_creator')
+    remove_fields = ('last_posted_time', 'last_posted_by', '_etag', 'version_creator', 'original_creator', 'files')
 
     def can_format(self, format_type, article):
         return format_type == self.format_type and article.get('type') == 'planning_featured'
