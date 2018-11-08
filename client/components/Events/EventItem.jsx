@@ -1,15 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {Label, Location} from '../';
+import {Label} from '../';
 import {EVENTS, MAIN, ICON_COLORS} from '../../constants';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
 import {EventDateTime} from './';
 import {ItemActionsMenu} from '../index';
 import {
     eventUtils,
-    getItemWorkflowStateLabel,
-    getItemActionedStateLabel,
     onEventCapture,
     isItemPublic,
     isItemExpired,
@@ -19,6 +17,7 @@ import {gettext} from '../../utils/gettext';
 import {renderFields} from '../fields';
 
 const PRIMARY_FIELDS = ['slugline', 'internalnote', 'name'];
+const SECONDARY_FIELDS = ['state', 'actionedState', 'calendars', 'location'];
 
 
 export class EventItem extends React.Component {
@@ -101,10 +100,6 @@ export class EventItem extends React.Component {
 
         const hasPlanning = eventUtils.eventHasPlanning(item);
         const isItemLocked = eventUtils.isEventLocked(item, lockedItems);
-        const state = getItemWorkflowStateLabel(item);
-        const actionedState = getItemActionedStateLabel(item);
-        const hasLocation = !!get(item, 'location.name') ||
-            !!get(item, 'location.formatted_address');
         const showRelatedPlanningLink = activeFilter === MAIN.FILTERS.COMBINED && hasPlanning;
 
         let borderState = false;
@@ -116,7 +111,8 @@ export class EventItem extends React.Component {
 
 
         const isExpired = isItemExpired(item);
-        const isCalendarActive = (cal) => (get(calendars.find((c) => c.qcode === cal.qcode), 'is_active', false));
+
+        const secondaryFields = get(listFields, 'event.secondary_fields', SECONDARY_FIELDS);
 
         return (
             <Item
@@ -157,48 +153,36 @@ export class EventItem extends React.Component {
                                 isHollow={true}
                             />
                         )}
-                        <Label
-                            text={gettext(state.label)}
-                            iconType={state.iconType}
-                        />
-                        {!!actionedState && <Label
-                            onClick={(e) => {
-                                onEventCapture(e);
-                                onItemClick({
-                                    _id: item.reschedule_from,
-                                    type: 'event',
-                                });
-                            }}
-                            text={gettext(actionedState.label)}
-                            iconType={actionedState.iconType}
-                        />}
-                        <span className="sd-list-item__text-label">{gettext('Calendar:')}</span>
-                        {<span className="sd-overflow-ellipsis sd-list-item__text-strong sd-list-item--element-rm-10">
-                            {get(item, 'calendars.length', 0) > 0 && item.calendars.map((c, index, arr) =>
-                                <span key={c.qcode}
-                                    className={!isCalendarActive(c) ? 'sd-list-item__text--disabled' : ''}>
-                                    {c.name}{arr.length - 1 > index && ', '}
-                                </span>)
-                            }
-                            {get(item, 'calendars.length', 0) === 0 && <span>{gettext('No  calendar assigned')}</span>}
-                        </span>}
-                        {(showRelatedPlanningLink || hasLocation) &&
+
+                        {secondaryFields.includes('state') && renderFields('state', item) }
+                        {secondaryFields.includes('actionedState') &&
+                            renderFields('actionedState', item, {
+                                onClick: (e) => {
+                                    onEventCapture(e);
+                                    onItemClick({
+                                        _id: item.reschedule_from,
+                                        type: 'event',
+                                    });
+                                },
+                            })
+                        }
+                        {secondaryFields.includes('calendars') && renderFields('calendars', item, {calendars}) }
+
+
+                        {(showRelatedPlanningLink) &&
                             <span
-                                className="sd-overflow-ellipsis sd-list-item--element-grow sd-list-item__element-lm-10">
-                                {showRelatedPlanningLink &&
-                                <a
-                                    className="sd-line-input__input--related-item-link"
-                                    onClick={toggleRelatedPlanning}
-                                >
+                                className="sd-overflow-ellipsis sd-list-item__element-lm-10">
+                                <a className="sd-line-input__input--related-item-link"
+                                    onClick={toggleRelatedPlanning} >
                                     <i className="icon-calendar" />
                                     {this.props.relatedPlanningText}
-                                </a>}
-                                {hasLocation && <Location
-                                    name={get(item, 'location.name')}
-                                    address={get(item, 'location.formatted_address')}
-                                />}
+                                </a>
                             </span>
                         }
+
+                        {secondaryFields.includes('location') && renderFields('location', item)}
+                        {secondaryFields.includes('files') && renderFields('files', item)}
+
 
                     </Row>
                 </Column>
