@@ -54,6 +54,12 @@ class PlanningDuplicateService(BaseService):
 
     def _duplicate_planning(self, original):
         new_plan = deepcopy(original)
+        if new_plan.get('event_item'):
+            # if the event is cancelled or rescheduled then
+            # remove the link to the associated event
+            event = get_resource_service('events').find_one(req=None, _id=new_plan.get('event_item'))
+            if event and event.get(ITEM_STATE) in {WORKFLOW_STATE.CANCELLED, WORKFLOW_STATE.RESCHEDULED}:
+                del new_plan['event_item']
 
         if new_plan.get('expired') and new_plan.get('event_item'):
             # If the Planning item has expired and is associated with an Event
