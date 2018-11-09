@@ -1,6 +1,6 @@
 Feature: Duplicate Planning
 
-    @auth @notification @wip
+    @auth @notification
     Scenario: Duplicate a Planning item
         When we post to "planning" with success
         """
@@ -279,7 +279,7 @@ Feature: Duplicate Planning
         }
         """
 
-    @auth @notification @wip @newtest
+    @auth @notification
     Scenario: Duplicating a posted Planning item won't repost it
         When we post to "planning" with success
         """
@@ -532,9 +532,230 @@ Feature: Duplicate Planning
             "slugline": "Test Event",
             "state": "draft",
             "planning_date": "2029-11-21T14:00:00+0000",
-            "event_item": "event1",
+            "event_item": "__no_value__",
             "expired": "__no_value__",
             "ednote": "__no_value__",
             "coverages": [{"planning": {"ednote": "__no_value__"}}]
+        }
+        """
+
+    @auth
+    Scenario: Duplicating a rescheduled Planning item will clear the ednote
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "name": "Test Event",
+            "ednote" : "Ed note in event\n\n--------------------------------------------\nEvent Cancelled\nReason: \n",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "state" : "rescheduled"
+        }]
+        """
+        Given "planning"
+        """
+        [{
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "Test Event",
+            "state" : "rescheduled",
+            "event_item": "event1",
+            "planning_date": "2029-11-21T14:00:00.000Z",
+            "ednote" : "This is the ednote in planning\n\n-----------------------------------------\nEvent cancelled\n",
+            "coverages": [
+                {
+                    "planning": {
+                        "ednote": "test coverage, 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.0000",
+                        "g2_content_type": "text",
+                        "ednote" : "This is the ednote in planning\n\n-------------\nCoverage cancelled\nReason: bad\n"
+                    },
+                    "workflow_status": "rescheduled",
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
+                }
+            ]
+        }]
+        """
+        When we post to "/planning/plan1/duplicate"
+        """
+        [{}]
+        """
+        Then we get OK response
+        When we get "/planning/#duplicate._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#duplicate._id#",
+            "guid": "#duplicate._id#",
+            "slugline": "Test Event",
+            "state": "draft",
+            "planning_date": "2029-11-21T14:00:00+0000",
+            "event_item": "__no_value__",
+            "expired": "__no_value__",
+            "ednote": "__no_value__",
+            "coverages": [{"planning": {"ednote": "__no_value__"}}]
+        }
+        """
+
+    @auth @notification @vocabulary
+    Scenario: Duplicate a related Planning item with associated event state as cancelled
+        Given we have sessions "/sessions"
+        Given "events"
+        """
+        [
+            {
+                "guid": "123",
+                "name": "TestEvent",
+                "dates": {
+                    "start": "2029-11-21T12:00:00.000Z",
+                    "end": "2029-11-21T14:00:00.000Z",
+                    "tz": "Australia/Sydney"
+                },
+                "state": "draft",
+                "lock_user": "#CONTEXT_USER_ID#",
+                "lock_session": "#SESSION_ID#",
+                "lock_action": "cancel",
+                "lock_time": "#DATE#"
+            }
+        ]
+        """
+        When we post to "planning" with success
+        """
+        [{
+            "guid": "123",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "event_item": "123",
+            "planning_date": "2029-11-21T14:00:00.000Z"
+        }]
+        """
+        When we perform cancel on events "123"
+        Then we get OK response
+        When we get "/events"
+        Then we get a list with 1 items
+        """
+        {"_items": [{
+            "_id": "123",
+            "state": "cancelled",
+            "lock_user": null,
+            "lock_session": null,
+            "lock_action": null,
+            "lock_time": null
+        }]}
+        """
+        When we get "/planning/123"
+        Then we get existing resource
+        """
+        {
+            "_id": "123",
+            "state": "cancelled",
+            "event_item": "123"
+        }
+        """
+        When we post to "/planning/123/duplicate"
+        """
+        [{}]
+        """
+        Then we get OK response
+        When we get "/planning/#duplicate._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#duplicate._id#",
+            "state": "draft",
+            "event_item": "__no_value__"
+        }
+        """
+
+    @auth @notification @vocabulary
+    Scenario: Duplicate a related Planning item with associated event state as rescheduled
+        Given we have sessions "/sessions"
+        Given "events"
+        """
+        [
+            {
+                "guid": "123",
+                "name": "TestEvent",
+                "dates": {
+                    "start": "2029-11-21T12:00:00.000Z",
+                    "end": "2029-11-21T14:00:00.000Z",
+                    "tz": "Australia/Sydney"
+                },
+                "state": "draft",
+                "lock_user": "#CONTEXT_USER_ID#",
+                "lock_session": "#SESSION_ID#",
+                "lock_action": "reschedule",
+                "lock_time": "#DATE#"
+            }
+        ]
+        """
+        When we post to "planning" with success
+        """
+        [{
+            "guid": "123",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "event_item": "123",
+            "planning_date": "2029-11-21T14:00:00.000Z"
+        }]
+        """
+        When we perform reschedule on events "123"
+        """
+        {
+            "reason": "",
+            "dates": {
+                "start": "2029-11-22T12:00:00.000Z",
+                "end": "2029-11-22T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get a list with 2 items
+        """
+        {"_items": [{
+            "_id": "123",
+            "state": "rescheduled",
+            "lock_user": null,
+            "lock_session": null,
+            "lock_action": null,
+            "lock_time": null
+        }]}
+        """
+        When we get "/planning/123"
+        Then we get existing resource
+        """
+        {
+            "_id": "123",
+            "state": "rescheduled",
+            "event_item": "123"
+        }
+        """
+        When we post to "/planning/123/duplicate"
+        """
+        [{}]
+        """
+        Then we get OK response
+        When we get "/planning/#duplicate._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#duplicate._id#",
+            "state": "draft",
+            "event_item": "__no_value__"
         }
         """

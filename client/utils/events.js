@@ -738,7 +738,7 @@ const duplicateEvent = (event, occurStatus) => {
     }
 
     // Duplicating canceled event clears the ed note
-    if (duplicatedEvent.state === WORKFLOW_STATE.CANCELLED) {
+    if (duplicatedEvent.state === WORKFLOW_STATE.CANCELLED || duplicatedEvent.state === WORKFLOW_STATE.RESCHEDULED) {
         delete duplicatedEvent.ednote;
     }
 

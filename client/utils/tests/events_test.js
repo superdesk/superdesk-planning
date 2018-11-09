@@ -1,7 +1,8 @@
 import eventUtils from '../events';
 import moment from 'moment';
+import {cloneDeep} from 'lodash';
 import lockReducer from '../../reducers/locks';
-import {EVENTS} from '../../constants';
+import {EVENTS, WORKFLOW_STATE, TEMP_ID_PREFIX} from '../../constants';
 import {expectActions} from '../testUtils';
 
 describe('EventUtils', () => {
@@ -330,6 +331,43 @@ describe('EventUtils', () => {
                 'Cancel',
                 'Reschedule',
             ]);
+        });
+    });
+
+    describe('Duplicate Event', () => {
+        const event = {
+            _id: 'e1',
+            ednote: 'this is endnote',
+            dates: {
+                start: moment('2014-10-15T14:01:11+0000'),
+                end: moment('2014-10-15T15:01:11+0000'),
+            },
+        };
+
+        it('remove ednote for cancelled event', () => {
+            let evt = cloneDeep(event);
+
+            evt.state = WORKFLOW_STATE.CANCELLED;
+
+            const duplicateEvent = eventUtils.duplicateEvent(evt, 'foo');
+
+            expect(duplicateEvent.occur_status).toBe('foo');
+            expect(duplicateEvent._id.startsWith(TEMP_ID_PREFIX)).toBe(true);
+            expect(duplicateEvent.duplicate_from).toBe(event._id);
+            expect(duplicateEvent.hasOwnProperty('ednote')).toBe(false);
+        });
+
+        it('remove ednote for rescheduled event', () => {
+            let evt = cloneDeep(event);
+
+            evt.state = WORKFLOW_STATE.RESCHEDULED;
+
+            const duplicateEvent = eventUtils.duplicateEvent(evt, 'foo');
+
+            expect(duplicateEvent.occur_status).toBe('foo');
+            expect(duplicateEvent._id.startsWith(TEMP_ID_PREFIX)).toBe(true);
+            expect(duplicateEvent.duplicate_from).toBe(event._id);
+            expect(duplicateEvent.hasOwnProperty('ednote')).toBe(false);
         });
     });
 });
