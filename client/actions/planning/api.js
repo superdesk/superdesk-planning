@@ -1,4 +1,4 @@
-import {get, cloneDeep, pickBy, isEqual, has} from 'lodash';
+import {get, cloneDeep, pickBy, isEqual, has, every} from 'lodash';
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
 import moment from 'moment';
@@ -6,13 +6,13 @@ import {
     getErrorMessage,
     getTimeZoneOffset,
     sanitizeTextForQuery,
+    planningUtils,
     lockUtils,
     appendStatesQueryForAdvancedSearch,
     timeUtils,
     isExistingItem,
     isPublishedItemId,
 } from '../../utils';
-import planningUtils from '../../utils/planning';
 import {
     PLANNING,
     POST_STATE,
@@ -924,6 +924,35 @@ const fetchFeaturedPlanningItemById = (id) => (
     (dispatch, getState, {api}) => api.find('planning_featured', id).then((item) => item)
 );
 
+const fetchPlanningFiles = (planning) => (
+    (dispatch, getState, {api}) => {
+        if (!planningUtils.shouldFetchFilesForPlanning(planning)) {
+            return Promise.resolve();
+        }
+
+        const filesInStore = selectors.general.files(getState());
+
+        if (every(planning.files, (f) => f in filesInStore)) {
+            return Promise.resolve();
+        }
+
+        return api('planning_files').query(
+            {
+                where: {$and: [{_id: {$in: planning.files}}]},
+            }
+        )
+            .then((data) => {
+                if (get(data, '_items.length')) {
+                    dispatch({
+                        type: 'RECEIVE_FILES',
+                        payload: get(data, '_items'),
+                    });
+                }
+                return Promise.resolve();
+            });
+    }
+);
+
 
 /**
  * Action dispatcher to save the featured planning record through the API
@@ -1098,6 +1127,7 @@ const self = {
     unlockFeaturedPlanning,
     saveFeaturedPlanning,
     fetchFeaturedPlanningItemById,
+    fetchPlanningFiles,
 };
 
 export default self;

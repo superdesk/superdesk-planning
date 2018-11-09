@@ -15,6 +15,7 @@ import {
     editorMenuUtils,
     isExistingItem,
     eventUtils,
+    getItemId,
 } from '../../../utils';
 
 import {ContentBlock} from '../../UI/SidePanel';
@@ -65,11 +66,21 @@ export class PlanningEditorComponent extends React.Component {
         this.onRemoveFile = this.onRemoveFile.bind(this);
     }
 
+    componentWillUpdate(nextProps) {
+        if (getItemId(this.props.item) !== getItemId(nextProps.item)) {
+            this.props.fetchPlanningFiles(nextProps.item);
+        } else if (get(this.props, 'diff.files') !== get(nextProps, 'diff.files')) {
+            this.props.fetchPlanningFiles(nextProps.diff);
+        }
+    }
+
     componentWillMount() {
         if (this.props.addNewsItemToPlanning) {
             // In add-to-planning modal
             this.handleAddToPlanningLoading();
         }
+
+        this.props.fetchPlanningFiles(this.props.item);
 
         // If the planning item is associated with an event, get its files
         if (this.props.event) {
@@ -604,29 +615,31 @@ export class PlanningEditorComponent extends React.Component {
                         />}
                     </ToggleBox>
 
-                    <ToggleBox
-                        title={gettext('Attached Files')}
-                        isOpen={editorMenuUtils.isOpen(navigation, 'files')}
-                        onClose={editorMenuUtils.onItemClose(navigation, 'files')}
-                        onOpen={editorMenuUtils.onItemOpen(navigation, 'files')}
-                        scrollInView={true}
-                        hideUsingCSS={true} // hideUsingCSS so the file data is kept on hide/show
-                        invalid={!!errors.files && (dirty || submitFailed)}
-                        forceScroll={editorMenuUtils.forceScroll(navigation, 'files')}
-                        paddingTop={!!onFocusFiles}
-                        badgeValue={getCountOfProperty('files')} >
-                        <Field
-                            component={FileInput}
-                            field="files"
-                            createLink={createUploadLink}
-                            defaultValue={[]}
-                            {...fieldProps}
-                            onFocus={onFocusFiles}
-                            files={files}
-                            onAddFiles={this.onAddFiles}
-                            onRemoveFile={this.onRemoveFile}
-                        />
-                    </ToggleBox>
+                    {get(planningProfile, 'editor.files.enabled') &&
+                        <ToggleBox
+                            title={gettext('Attached Files')}
+                            isOpen={editorMenuUtils.isOpen(navigation, 'files')}
+                            onClose={editorMenuUtils.onItemClose(navigation, 'files')}
+                            onOpen={editorMenuUtils.onItemOpen(navigation, 'files')}
+                            scrollInView={true}
+                            hideUsingCSS={true} // hideUsingCSS so the file data is kept on hide/show
+                            invalid={!!errors.files && (dirty || submitFailed)}
+                            forceScroll={editorMenuUtils.forceScroll(navigation, 'files')}
+                            paddingTop={!!onFocusFiles}
+                            badgeValue={getCountOfProperty('files')} >
+                            <Field
+                                component={FileInput}
+                                field="files"
+                                createLink={createUploadLink}
+                                defaultValue={[]}
+                                {...fieldProps}
+                                onFocus={onFocusFiles}
+                                files={files}
+                                onAddFiles={this.onAddFiles}
+                                onRemoveFile={this.onRemoveFile}
+                            />
+                        </ToggleBox>
+                    }
                 </ContentBlock>
 
                 {associatedEvent && (
@@ -787,6 +800,7 @@ const mapDispatchToProps = (dispatch) => ({
     setCoverageDefaultDesk: (coverage) => dispatch(actions.users.setCoverageDefaultDesk(coverage)),
     uploadFiles: (files) => dispatch(actions.events.api.uploadFiles({files: files})),
     removeFile: (file) => dispatch(actions.events.api.removeFile(file)),
+    fetchPlanningFiles: (planning) => dispatch(actions.planning.api.fetchPlanningFiles(planning)),
 });
 
 export const PlanningEditor = connect(
