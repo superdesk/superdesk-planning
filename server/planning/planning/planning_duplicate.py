@@ -54,17 +54,18 @@ class PlanningDuplicateService(BaseService):
 
     def _duplicate_planning(self, original):
         new_plan = deepcopy(original)
-        if new_plan.get('event_item'):
-            # if the event is cancelled or rescheduled then
-            # remove the link to the associated event
+        if new_plan.get('event_item') and new_plan.get(ITEM_STATE) == WORKFLOW_STATE.CANCELLED:
+            # if the event is cancelled remove the link to the associated event
             event = get_resource_service('events').find_one(req=None, _id=new_plan.get('event_item'))
-            if event and event.get(ITEM_STATE) in {WORKFLOW_STATE.CANCELLED, WORKFLOW_STATE.RESCHEDULED}:
+            if event and event.get(ITEM_STATE) == WORKFLOW_STATE.CANCELLED:
                 del new_plan['event_item']
 
-        if new_plan.get('expired') and new_plan.get('event_item'):
+        if (new_plan.get('expired') and new_plan.get('event_item')) or \
+                new_plan.get(ITEM_STATE) == WORKFLOW_STATE.RESCHEDULED:
             # If the Planning item has expired and is associated with an Event
             # then we remove the link to the associated Event as the Event would have
-            # been expired also
+            # been expired also.
+            # If associated event is rescheduled then remove the associated event
             del new_plan['event_item']
 
         for f in ('_id', 'guid', 'lock_user', 'lock_time', 'original_creator', '_planning_schedule'
@@ -74,7 +75,7 @@ class PlanningDuplicateService(BaseService):
 
         # Duplicating a canceled planning item will clear the ednote
         clear_ednote = False
-        if new_plan[ITEM_STATE] == WORKFLOW_STATE.CANCELLED:
+        if new_plan[ITEM_STATE] in [WORKFLOW_STATE.CANCELLED, WORKFLOW_STATE.RESCHEDULED]:
             new_plan.pop('ednote', None)
             clear_ednote = True
 
