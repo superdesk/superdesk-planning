@@ -95,6 +95,35 @@ There is also a manage.py command so that you can manually run this task.
 python manage.py planning:flag_expired
 ```
 
+## Celery Task: Expire Items
+This is a Celery Task to delete spiked planning items, associated assignments and events after a configured amount of time.
+Settings are very similar to "planning:flag_expired" task
+
+In your settings.py, configure this task as follows using the variable PLANNING_DELETE_SPIKED_MINUTES:
+```
+CELERY_TASK_ROUTES['planning.delete_spiked'] = {
+    'queue': celery_queue(''),
+    'routing_key': 'delete.planning'
+}
+
+CELERY_BEAT_SCHEDULE['planning:delete'] = {
+    'task': 'planning.delete_spiked',
+    'schedule': crontab(minute='0')
+}
+
+PLANNING_DELETE_SPIKED_MINUTES = 4320 # default is 0
+```
+
+The above example config will run the Celery Task once every hour,
+deleting spiked items after 3 days from the scheduled date.
+
+If PLANNING_EXPIRY_MINUTES = 0, then no item will be deleted
+
+There is also a manage.py command so that you can manually run this task.
+```
+python manage.py planning:delete_spiked
+```
+
 ## Install for Production/Testing
 Installing Superdesk-Planning for production or test environments is as easy as running the following:
 ```

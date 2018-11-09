@@ -365,7 +365,8 @@ class EventsService(superdesk.Service):
             merged.update(updates)
             get_resource_service('events_post').validate_item(merged)
 
-        # Determine if we're to convert this single event to a recurring series of events
+        # Determine if we're to convert this single event to a recurring
+        #  of events
         if updates.get('dates', {}).get('recurring_rule', None) is not None:
             generated_events = self._convert_to_recurring_event(updates, original)
 
@@ -470,9 +471,9 @@ class EventsService(superdesk.Service):
         app.on_inserted_events(generated_events)
         return generated_events
 
-    def get_recurring_timeline(self, selected):
+    def get_recurring_timeline(self, selected, spiked=False):
         events_base_service = EventsBaseService('events', backend=superdesk.get_backend())
-        return events_base_service.get_recurring_timeline(selected, postponed=True)
+        return events_base_service.get_recurring_timeline(selected, postponed=True, spiked=spiked)
 
     @staticmethod
     def _link_to_planning(event):
@@ -501,7 +502,7 @@ class EventsService(superdesk.Service):
         )
         app.on_updated_planning(updates, {'_id': plan_id})
 
-    def get_expired_items(self, expiry_datetime):
+    def get_expired_items(self, expiry_datetime, spiked_events_only=False):
         """Get the expired items
 
         Where end date is in the past
@@ -512,6 +513,9 @@ class EventsService(superdesk.Service):
             'sort': [{'dates.start': 'asc'}],
             'size': get_max_recurrent_events()
         }
+
+        if spiked_events_only:
+            query['query'] = {'bool': {'must': [{'term': {'state': WORKFLOW_STATE.SPIKED}}]}}
 
         total_received = 0
         total_events = -1
