@@ -5,8 +5,13 @@ import {slugline} from './slugline';
 import {headline} from './headline';
 import {description} from './description';
 import {internalnote} from './internalnote';
+import {state} from './state';
+import {actionedState} from './actionedState';
+import {calendars} from './calendars';
+import {location} from './location';
+import {files} from './files';
 
-const registeredFields = {};
+let registeredFields = {};
 
 /**
  * Register field for rendering
@@ -22,12 +27,12 @@ export function registerField(id, component) {
  * @param {Array} fields
  * @param {Object} item
  */
-export function renderFields(fields, item) {
-    return fields.map((id) => {
+export function renderFields(fields, item, props) {
+    return (Array.isArray(fields) ? fields : [fields]).map((id) => {
         const Component = registeredFields[id];
 
         if (Component) {
-            return <Component key={id} item={item} />;
+            return <Component key={id} item={item} {...props} />;
         }
 
         return null;
@@ -40,3 +45,10 @@ registerField('slugline', slugline);
 registerField('headline', headline);
 registerField('description', description);
 registerField('internalnote', internalnote);
+registerField('state', state);
+
+// Event related fields
+registerField('actionedState', actionedState);
+registerField('calendars', calendars);
+registerField('location', location);
+registerField('files', files);
