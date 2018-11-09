@@ -300,6 +300,15 @@ const getCriteria = ({
                 must.push({term: {featured: true}});
             },
         },
+        {
+            condition: () => (Array.isArray(advancedSearch.place) &&
+            advancedSearch.place.length > 0),
+            do: () => {
+                const codes = advancedSearch.place.map((p) => p.qcode);
+
+                must.push({terms: {'place.qcode': codes}});
+            },
+        },
     ].forEach((action) => {
         if (action.condition()) {
             action.do();

@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {get} from 'lodash';
+import {get, sortBy} from 'lodash';
 import {gettext} from '../../utils';
 import {ContentBlock} from '../UI/SidePanel';
 import {MAIN, SPIKED_STATE} from '../../constants';
@@ -104,6 +104,8 @@ export class AdvancedSearch extends React.Component {
             onChange,
             workflowStateOptions,
             popupContainer,
+            searchProfile,
+            locators,
         } = this.props;
 
         // Change spikeState options based on workflow-state selection in the from
@@ -135,6 +137,7 @@ export class AdvancedSearch extends React.Component {
                         value: get(diff, 'advancedSearch.name', ''),
                     },
                     component: TextInput,
+                    ...get(searchProfile, 'name'),
                 },
                 slugline: {
                     props: {
@@ -143,6 +146,7 @@ export class AdvancedSearch extends React.Component {
                         value: get(diff, 'advancedSearch.slugline', ''),
                     },
                     component: TextInput,
+                    ...get(searchProfile, 'slugline'),
                 },
                 location: {
                     props: {
@@ -152,6 +156,7 @@ export class AdvancedSearch extends React.Component {
                         disableSearch: true,
                     },
                     component: GeoLookupInput,
+                    ...get(searchProfile, 'location'),
                 },
                 state: {
                     props: {
@@ -162,6 +167,7 @@ export class AdvancedSearch extends React.Component {
                         popupContainer: popupContainer,
                     },
                     component: SelectMetaTermsInput,
+                    ...get(searchProfile, 'state'),
                 },
                 anpa_category: {
                     props: {
@@ -172,6 +178,7 @@ export class AdvancedSearch extends React.Component {
                         popupContainer: popupContainer,
                     },
                     component: SelectMetaTermsInput,
+                    ...get(searchProfile, 'anpa_category'),
                 },
                 subject: {
                     props: {
@@ -182,6 +189,7 @@ export class AdvancedSearch extends React.Component {
                         popupContainer: popupContainer,
                     },
                     component: SelectMetaTermsInput,
+                    ...get(searchProfile, 'subject'),
                 },
                 source: {
                     props: {
@@ -192,6 +200,7 @@ export class AdvancedSearch extends React.Component {
                         valueKey: 'id',
                     },
                     component: SelectMetaTermsInput,
+                    ...get(searchProfile, 'source'),
                 },
                 urgency: {
                     props: {
@@ -202,6 +211,7 @@ export class AdvancedSearch extends React.Component {
                         iconName: 'urgency-label',
                     },
                     component: ColouredValueInput,
+                    ...get(searchProfile, 'urgency'),
                 },
                 noCoverage: {
                     props: {
@@ -211,6 +221,7 @@ export class AdvancedSearch extends React.Component {
                         labelLeft: true,
                     },
                     component: ToggleInput,
+                    ...get(searchProfile, 'no_coverage'),
                 },
                 featured: {
                     props: {
@@ -220,6 +231,7 @@ export class AdvancedSearch extends React.Component {
                         labelLeft: true,
                     },
                     component: ToggleInput,
+                    ...get(searchProfile, 'featured'),
                 },
                 contentType: {
                     props: {
@@ -231,6 +243,7 @@ export class AdvancedSearch extends React.Component {
                         clearable: true,
                     },
                     component: SelectInput,
+                    ...get(searchProfile, 'content_type'),
                 },
                 pubstatus: {
                     props: {
@@ -240,6 +253,7 @@ export class AdvancedSearch extends React.Component {
                         labelLeft: true,
                     },
                     component: ToggleInput,
+                    ...get(searchProfile, 'pub_status'),
                 },
                 startDateTime: {
                     props: {
@@ -252,6 +266,7 @@ export class AdvancedSearch extends React.Component {
                     },
                     component: DateTimeInput,
                     onChange: this.onDateChange,
+                    ...get(searchProfile, 'start_date_time'),
                 },
                 endDateTime: {
                     props: {
@@ -265,6 +280,7 @@ export class AdvancedSearch extends React.Component {
                     },
                     component: DateTimeInput,
                     onChange: this.onDateChange,
+                    ...get(searchProfile, 'end_date_time'),
                 },
                 spikeState: {
                     props: {
@@ -275,6 +291,7 @@ export class AdvancedSearch extends React.Component {
                         options: spikedStateOptions,
                     },
                     component: RadioButtonInput,
+                    ...get(searchProfile, 'spike_state'),
                 },
                 dateFilters: {
                     props: {
@@ -303,6 +320,19 @@ export class AdvancedSearch extends React.Component {
                     },
                     component: RadioButtonInput,
                     onChange: this.onDateChange,
+                    ...get(searchProfile, 'date_filter'),
+                },
+                place: {
+                    props: {
+                        field: 'advancedSearch.place',
+                        label: gettext('Place'),
+                        value: get(diff, 'advancedSearch.place', []),
+                        options: locators,
+                        popupContainer: popupContainer,
+                        groupField: 'group',
+                    },
+                    component: SelectMetaTermsInput,
+                    ...get(searchProfile, 'place'),
                 },
             };
 
@@ -311,28 +341,30 @@ export class AdvancedSearch extends React.Component {
             const searchForm = {
                 [MAIN.FILTERS.COMBINED]: [
                     fields.slugline, fields.anpa_category, fields.subject, fields.state,
-                    fields.pubstatus, fields.spikeState,
-                    fields.startDateTime, fields.endDateTime,
-                    fields.dateFilters,
+                    fields.pubstatus, fields.spikeState, fields.startDateTime,
+                    fields.endDateTime, fields.dateFilters, fields.place,
                 ],
                 [MAIN.FILTERS.EVENTS]: [
-                    fields.name, fields.slugline,
-                    fields.anpa_category, fields.subject, fields.source, fields.location, fields.state,
-                    fields.pubstatus, fields.spikeState,
-                    fields.startDateTime, fields.endDateTime,
-                    fields.dateFilters,
+                    fields.name, fields.slugline, fields.anpa_category, fields.subject,
+                    fields.source, fields.location, fields.state, fields.pubstatus,
+                    fields.spikeState, fields.startDateTime, fields.endDateTime,
+                    fields.dateFilters, fields.place,
                 ],
                 [MAIN.FILTERS.PLANNING]: [
                     fields.slugline, fields.contentType, fields.noCoverage, fields.featured,
                     fields.anpa_category, fields.subject, fields.urgency, fields.state,
                     fields.pubstatus, fields.spikeState,
-                    fields.startDateTime, fields.endDateTime, fields.dateFilters,
+                    fields.startDateTime, fields.endDateTime, fields.dateFilters, fields.place,
                 ],
             };
 
             if (activeFilter in searchForm) {
-                return searchForm[activeFilter]
+                return sortBy(searchForm[activeFilter], 'index')
                     .map((field, index) => {
+                        if (!get(field, 'enabled')) {
+                            return null;
+                        }
+
                         const props = {
                             ...field.props,
                             onChange: field.onChange || onChange,
@@ -365,6 +397,7 @@ AdvancedSearch.propTypes = {
     diff: PropTypes.object.isRequired,
     categories: PropTypes.array,
     subjects: PropTypes.array,
+    locators: PropTypes.array,
     urgencies: PropTypes.array,
     contentTypes: PropTypes.array,
     ingestProviders: PropTypes.array,

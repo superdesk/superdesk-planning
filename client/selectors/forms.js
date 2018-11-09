@@ -1,6 +1,6 @@
 import {createSelector} from 'reselect';
 import {get, filter} from 'lodash';
-import {ITEM_TYPE} from '../constants';
+import {ITEM_TYPE, MAIN} from '../constants';
 import {sessionId as getSessionId} from './general';
 import {isExistingItem} from '../utils';
 
@@ -20,10 +20,28 @@ const getcurrentItem = (itemId, itemType, events, plannings, isLoading, values, 
 };
 
 /** Profiles **/
+export const activeFilter = (state) => get(state, 'main.filter', MAIN.FILTERS.COMBINED);
 export const profiles = (state) => get(state, 'forms.profiles', {});
 export const coverageProfile = createSelector([profiles], (p) => get(p, 'coverage', {}));
 export const eventProfile = createSelector([profiles], (p) => get(p, 'event', {}));
 export const planningProfile = createSelector([profiles], (p) => get(p, 'planning', {}));
+export const searchProfile = createSelector(
+    [profiles, activeFilter],
+    (p, filter) => {
+        if (filter === MAIN.FILTERS.EVENTS) {
+            return get(p, 'advanced_search.editor.event', {});
+        }
+
+        if (filter === MAIN.FILTERS.PLANNING) {
+            return get(p, 'advanced_search.editor.planning', {});
+        }
+
+        if (filter === MAIN.FILTERS.COMBINED) {
+            return get(p, 'advanced_search.editor.combined', {});
+        }
+
+        return null;
+    });
 
 export const listFields = createSelector([profiles], (p) => {
     const fields = {};

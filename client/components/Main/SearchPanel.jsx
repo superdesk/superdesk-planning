@@ -67,6 +67,8 @@ export class SearchPanelComponent extends React.Component {
             isViewFiltered,
             workflowStateOptions,
             popupContainer,
+            searchProfile,
+            locators,
         } = this.props;
 
         const {
@@ -94,6 +96,8 @@ export class SearchPanelComponent extends React.Component {
             onChange: this.onChangeHandler,
             workflowStateOptions: workflowStateOptions || getWorkFlowStateAsOptions(activeFilter),
             popupContainer: popupContainer,
+            searchProfile: searchProfile,
+            locators: locators,
         };
 
         return (
@@ -155,6 +159,8 @@ const mapStateToProps = (state) => ({
     dateFormat: selectors.config.getDateFormat(state),
     timeFormat: selectors.config.getTimeFormat(state),
     isViewFiltered: selectors.main.isViewFiltered(state),
+    searchProfile: selectors.forms.searchProfile(state),
+    locators: selectors.vocabs.locators(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
