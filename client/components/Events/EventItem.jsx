@@ -166,7 +166,10 @@ export class EventItem extends React.Component {
                                 },
                             })
                         }
-                        {secondaryFields.includes('calendars') && renderFields('calendars', item, {calendars}) }
+                        {secondaryFields.includes('calendars') && renderFields('calendars', item, {
+                            calendars: calendars,
+                            grow: !get(item, 'location'),
+                        }) }
 
 
                         {(showRelatedPlanningLink) &&
