@@ -210,9 +210,10 @@ class PlanningService(superdesk.Service):
                     doc.setdefault('headline', event['name'])
 
     def _get_added_removed_agendas(self, updates, original):
-        added_agendas = updates.get('agendas') or []
-        existing_agendas = original.get('agendas') or []
-        removed_agendas = list(set(existing_agendas) - set(added_agendas))
+        updated_agendas = [str(a) for a in (updates.get('agendas') or [])]
+        existing_agendas = [str(a) for a in (original.get('agendas') or [])]
+        removed_agendas = list(set(existing_agendas) - set(updated_agendas))
+        added_agendas = list(set(updated_agendas) - set(existing_agendas))
         return added_agendas, removed_agendas
 
     def on_updated(self, updates, original):

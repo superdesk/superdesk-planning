@@ -663,6 +663,76 @@ describe('actions.events.notifications', () => {
         ).catch(done.fail));
     });
 
+    describe('onEventUpdated', () => {
+        beforeEach(() => {
+            restoreSinonStub(eventsNotifications.onEventUpdated);
+            sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
+            sinon.stub(main, 'setUnsetLoadingIndicator').callsFake(() => (Promise.resolve()));
+            sinon.stub(eventsUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
+            sinon.stub(eventsPlanningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(main.closePreviewAndEditorForItems);
+            restoreSinonStub(main.setUnsetLoadingIndicator);
+            restoreSinonStub(eventsUi.scheduleRefetch);
+            restoreSinonStub(eventsPlanningUi.scheduleRefetch);
+        });
+
+        it('onEventUpdated does not call scheduleRefetch if item is being edited', (done) => {
+            store.initialState.events.events['e1'] = {
+                lock_action: 'edit',
+                lock_user: 'ident1',
+                lock_session: 'session1',
+                _id: 'e1',
+                type: 'event',
+            };
+            store.initialState.forms.itemId = 'e1';
+
+            return store.test(done, eventsNotifications.onEventUpdated({}, {item: data.events[0]._id}))
+                .then(() => {
+                    expect(eventsUi.scheduleRefetch.callCount).toBe(0);
+                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(0);
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('onEventUpdated does calls scheduleRefetch if item is not being edited', (done) => (
+            store.test(done, eventsNotifications.onEventUpdated({}, {item: data.events[0]._id}))
+                .then(() => {
+                    expect(eventsUi.scheduleRefetch.callCount).toBe(1);
+                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
+                    done();
+                })
+                .catch(done.fail)
+        ));
+
+        it('onEventUpdated calls scheduleRefetch if item edited is a recurring event', (done) => {
+            store.initialState.events.events['e1'] = {
+                lock_action: 'edit',
+                lock_user: 'ident1',
+                lock_session: 'session1',
+                _id: 'e1',
+                type: 'event',
+                recurrence_id: 'rec1',
+            };
+            store.initialState.forms.itemId = 'e1';
+
+            return store.test(done, eventsNotifications.onEventUpdated({}, {
+                item: data.events[0]._id,
+                recurrence_id: 'rec1',
+            }))
+                .then(() => {
+                    expect(eventsUi.scheduleRefetch.callCount).toBe(1);
+                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
+                    expect(eventsUi.scheduleRefetch.args[0]).toEqual([[data.events[0]._id]]);
+                    done();
+                })
+                .catch(done.fail);
+        });
+    });
+
     it('calls scheduleRefetch for events.ui and eventsPlanning.ui', (done) => {
         sinon.stub(eventsUi, 'scheduleRefetch').returns(Promise.resolve());
         sinon.stub(eventsPlanningUi, 'scheduleRefetch').returns(Promise.resolve());

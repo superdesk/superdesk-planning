@@ -207,7 +207,7 @@ def update_post_item(updates, original):
                 original.get(ITEM_TYPE): original.get(config.ID_FIELD),
                 'pubstatus': pub_status
             }
-            item_post_service.post([doc])
+            return item_post_service.post([doc])
 
 
 def get_coverage_type_name(qcode):

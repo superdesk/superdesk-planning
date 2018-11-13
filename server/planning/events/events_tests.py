@@ -390,7 +390,9 @@ class EventPlanningSchedule(TestCase):
             'endRepeatMode': 'count'
         }
 
-        service.patch(events[0].get('_id'), {'dates': schedule})
+        service.patch(events[0].get('_id'), {
+            '_id': events[0].get('_id'),
+            'dates': schedule})
         events = list(service.get(req=None, lookup=None))
         self.assertPlanningSchedule(events, 3)
 

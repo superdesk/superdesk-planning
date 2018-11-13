@@ -824,3 +824,6 @@ export const isItemDifferent = (currentProps, nextProps) => {
         lockUtils.isItemLocked(original.item, original.lockedItems) !==
         lockUtils.isItemLocked(updates.item, updates.lockedItems);
 };
+
+export const isItemLockedForEditing = (item, session) =>
+    lockUtils.isItemLockedInThisSession(item, session) && get(item, 'lock_action') === 'edit';

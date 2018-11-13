@@ -173,7 +173,7 @@ Feature: Planning
             "extra": {
                 "item": "#planning._id#",
                 "user": "#CONTEXT_USER_ID#",
-                "added_agendas": ["#agenda1#", "#agenda2#"],
+                "added_agendas": ["#agenda2#"],
                 "removed_agendas": [],
                 "session": "__any_value__"
             }
@@ -191,7 +191,7 @@ Feature: Planning
             "extra": {
                 "item": "#planning._id#",
                 "user": "#CONTEXT_USER_ID#",
-                "added_agendas": ["#agenda1#", "#agenda2#"],
+                "added_agendas": [],
                 "removed_agendas": [],
                 "session": "__any_value__"
             }
