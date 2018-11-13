@@ -12,6 +12,7 @@ import {
     timeUtils,
     isExistingItem,
     isPublishedItemId,
+    isValidFileInput,
 } from '../../utils';
 import {
     PLANNING,
@@ -1092,6 +1093,47 @@ function exportAsArticle() {
     };
 }
 
+const uploadFiles = (planning) => (
+    (dispatch, getState, {upload}) => {
+        const clonedPlanning = cloneDeep(planning);
+
+        // If no files, do nothing
+        if (get(clonedPlanning, 'files.length', 0) === 0) {
+            return Promise.resolve([]);
+        }
+
+        // Calculate the files to upload
+        const filesToUpload = clonedPlanning.files.filter(
+            (f) => isValidFileInput(f)
+        );
+
+        if (filesToUpload.length < 1) {
+            return Promise.resolve([]);
+        }
+
+        return Promise.all(filesToUpload.map((file) => (
+            upload.start({
+                method: 'POST',
+                url: getState().config.server.url + '/planning_files/',
+                headers: {'Content-Type': 'multipart/form-data'},
+                data: {media: [file]},
+                arrayKey: '',
+            })
+        )))
+            .then((results) => {
+                const files = results.map((res) => res.data);
+
+                if (get(files, 'length', 0) > 0) {
+                    dispatch({
+                        type: 'RECEIVE_FILES',
+                        payload: files,
+                    });
+                }
+                return Promise.resolve(files);
+            }, (error) => Promise.reject(error));
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     spike,
@@ -1128,6 +1170,7 @@ const self = {
     saveFeaturedPlanning,
     fetchFeaturedPlanningItemById,
     fetchPlanningFiles,
+    uploadFiles,
 };
 
 export default self;

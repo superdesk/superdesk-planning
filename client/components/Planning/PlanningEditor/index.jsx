@@ -798,7 +798,7 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(actions.planning.ui.removeAssignment(planning, coverage, index)),
     fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
     setCoverageDefaultDesk: (coverage) => dispatch(actions.users.setCoverageDefaultDesk(coverage)),
-    uploadFiles: (files) => dispatch(actions.events.api.uploadFiles({files: files})),
+    uploadFiles: (files) => dispatch(actions.planning.api.uploadFiles({files: files})),
     removeFile: (file) => dispatch(actions.events.api.removeFile(file)),
     fetchPlanningFiles: (planning) => dispatch(actions.planning.api.fetchPlanningFiles(planning)),
 });
