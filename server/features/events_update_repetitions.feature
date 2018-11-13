@@ -574,7 +574,7 @@ Feature: Events Update Repetitions
                 "recurring_rule": {
                     "frequency": "DAILY",
                     "interval": 1,
-                    "until": "2029-11-23T01:00:00.000Z",
+                    "until": "2029-11-23T05:00:00.000Z",
                     "endRepeatMode": "until"
                 }
             }
@@ -595,7 +595,7 @@ Feature: Events Update Repetitions
                     "recurring_rule": {
                         "frequency": "DAILY",
                         "interval": 1,
-                        "until": "2029-11-23T01:00:00+0000",
+                        "until": "2029-11-23T05:00:00+0000",
                         "endRepeatMode": "until"
                     }
                 }
@@ -609,7 +609,7 @@ Feature: Events Update Repetitions
                     "recurring_rule": {
                         "frequency": "DAILY",
                         "interval": 1,
-                        "until": "2029-11-23T01:00:00+0000",
+                        "until": "2029-11-23T05:00:00+0000",
                         "endRepeatMode": "until"
                     }
                 }
@@ -964,7 +964,8 @@ Feature: Events Update Repetitions
         [{
             "slugline": "Friday Club",
             "headline": "Fourth Meeting",
-            "event_item": "#EVENT4._id#"
+            "event_item": "#EVENT4._id#",
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "/events/#EVENT5._id#/lock" with success

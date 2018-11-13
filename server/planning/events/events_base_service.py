@@ -153,7 +153,7 @@ class EventsBaseService(BaseService):
                     message='The lock must be for the `{}` action'.format(self.ACTION.lower().replace('_', ' '))
                 )
 
-        get_resource_service('events').validate_event(updates)
+        get_resource_service('events').validate_event(updates, original)
 
     @staticmethod
     def set_planning_schedule(event):

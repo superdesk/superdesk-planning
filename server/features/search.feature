@@ -33,7 +33,8 @@ Feature: Search Feature
             {
                 "item_class": "item class value",
                 "headline": "test headline",
-                "slugline": "test slugline"
+                "slugline": "test slugline",
+                "planning_date": "2016-01-02"
             }
         ]
         """
@@ -49,7 +50,8 @@ Feature: Search Feature
                 "guid": "planning_123",
                 "item_class": "item class value",
                 "headline": "test headline",
-                "slugline": "test slugline"
+                "slugline": "test slugline",
+                "planning_date": "2016-01-02"
             }
         ]
         """

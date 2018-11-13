@@ -43,7 +43,8 @@ Feature: Assignment content
         [
             {
                 "item_class": "item class value",
-                "slugline": "test slugline"
+                "slugline": "test slugline",
+                "planning_date": "2016-01-02"
             }
         ]
         """

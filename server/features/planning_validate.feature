@@ -100,7 +100,12 @@ Feature: Planning Validate
         """
         {
             "slugline": "Test slugger",
-            "calendars": [{"qcode": "cal1", "name": "Calendar 1"}]
+            "calendars": [{"qcode": "cal1", "name": "Calendar 1"}],
+            "dates": {
+                "start": "2029-11-21T01:00:00.000Z",
+                "end": "2029-11-21T04:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
         }
         """
         Then we get OK response
@@ -139,7 +144,12 @@ Feature: Planning Validate
         """
         {
             "slugline": "Test slugger",
-            "calendars": [{"qcode": "cal1", "name": "Calendar 1"}]
+            "calendars": [{"qcode": "cal1", "name": "Calendar 1"}],
+            "dates": {
+                "start": "2029-11-21T01:00:00.000Z",
+                "end": "2029-11-21T04:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
         }
         """
         Then we get OK response
@@ -191,7 +201,12 @@ Feature: Planning Validate
         {
             "slugline": "Test slugger",
             "calendars": [{"qcode": "cal1", "name": "Calendar 1"}],
-            "update_method": "all"
+            "update_method": "all",
+            "dates": {
+                "start": "2029-11-21T01:00:00.000Z",
+                "end": "2029-11-21T04:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
         }
         """
         Then we get OK response
@@ -231,7 +246,7 @@ Feature: Planning Validate
     Scenario: Planning post validation failure
         When we post to "planning"
         """
-        {"internal_note": "Cant post me...."}
+        {"internal_note": "Cant post me....", "planning_date": "2016-01-02"}
         """
         Then we get OK response
         When we post to "/planning/post"
@@ -250,7 +265,7 @@ Feature: Planning Validate
         """
         When we patch "/planning/#planning._id#"
         """
-        {"place": [{"qcode": "NSW"}]}
+        {"place": [{"qcode": "NSW"}], "planning_date": "2016-01-02"}
         """
         Then we get OK response
         When we post to "/planning/post"

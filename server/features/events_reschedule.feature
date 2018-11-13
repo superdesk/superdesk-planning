@@ -185,7 +185,8 @@ Feature: Events Reschedule
                 "label" : "Planned",
                 "name" : "coverage intended"
             }
-            }]
+            }],
+            "planning_date": "2016-01-02"
         }]
         """
         When we reset notifications
@@ -315,7 +316,8 @@ Feature: Events Reschedule
             "slugline": "Weekly Meetings",
             "headline": "Friday Club",
             "event_item": "#EVENT1._id#",
-            "state": "draft"
+            "state": "draft",
+            "planning_date": "2016-01-02"
         }]
         """
         Then we get OK response
@@ -925,13 +927,15 @@ Feature: Events Reschedule
                     },
                     "news_coverage_status": {"qcode": "ncostat:int"},
                     "workflow_status" : "draft"
-                }]
+                }],
+                "planning_date": "2016-01-02"
             },
             {
                 "guid": "plan2",
                 "slugline": "Weekly Meetings",
                 "headline": "Friday Club",
-                "event_item": "#EVENT3._id#"
+                "event_item": "#EVENT3._id#",
+                "planning_date": "2016-01-02"
             }
         ]
         """

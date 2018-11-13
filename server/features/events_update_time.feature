@@ -555,7 +555,8 @@ Feature: Events Update Time
         """
         [{
             "event_item": "#EVENT3._id#",
-            "slugline": "Friday Club"
+            "slugline": "Friday Club",
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "/events/#EVENT3._id#/lock" with success
@@ -674,7 +675,8 @@ Feature: Events Update Time
         """
         [{
             "event_item": "#EVENT3._id#",
-            "slugline": "Friday Club"
+            "slugline": "Friday Club",
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "/events/#EVENT3._id#/lock" with success
@@ -774,7 +776,8 @@ Feature: Events Update Time
         """
         [{
             "event_item": "#EVENT3._id#",
-            "slugline": "Friday Club"
+            "slugline": "Friday Club",
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "/events/#EVENT3._id#/lock" with success

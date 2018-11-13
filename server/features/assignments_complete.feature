@@ -37,7 +37,8 @@ Feature: Assignment Complete
         [{
             "item_class": "item class value",
             "headline": "test headline",
-            "slugline": "test slugline"
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
         }]
         """
         Then we get OK response
@@ -171,7 +172,8 @@ Feature: Assignment Complete
         [{
             "item_class": "item class value",
             "headline": "test headline",
-            "slugline": "test slugline"
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
         }]
         """
         Then we get OK response
@@ -228,7 +230,8 @@ Feature: Assignment Complete
         [{
             "item_class": "item class value",
             "headline": "test headline",
-            "slugline": "test slugline"
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
         }]
         """
         Then we get OK response
@@ -299,7 +302,8 @@ Feature: Assignment Complete
         [{
             "item_class": "item class value",
             "headline": "test headline",
-            "slugline": "test slugline"
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
         }]
         """
         Then we get OK response
@@ -358,7 +362,8 @@ Feature: Assignment Complete
     [{
         "item_class": "item class value",
         "headline": "test headline",
-        "slugline": "test slugline"
+        "slugline": "test slugline",
+        "planning_date": "2016-01-02"
     }]
     """
     Then we get OK response

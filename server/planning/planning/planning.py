@@ -95,7 +95,7 @@ class PlanningService(superdesk.Service):
             if 'guid' not in doc:
                 doc['guid'] = generate_guid(type=GUID_NEWSML)
             doc[config.ID_FIELD] = doc['guid']
-            self.validate_agendas(doc)
+            self.validate_planning(doc)
             set_original_creator(doc)
             self._set_planning_event_info(doc, planning_type)
             self._set_coverage(doc)
@@ -174,9 +174,13 @@ class PlanningService(superdesk.Service):
         if lock_user and str(lock_user) != str_user_id:
             raise SuperdeskApiError.forbiddenError('The item was locked by another user')
 
-        self.validate_agendas(updates, original)
+        self.validate_planning(updates, original)
 
-    def validate_agendas(self, updates, original=None):
+    def validate_planning(self, updates, original=None):
+        if (not original and not updates.get('planning_date')) or \
+                ('planning_date' in updates and updates['planning_date'] is None):
+            raise SuperdeskApiError(message="Planning item should have a date")
+
         # Validate if agendas being added are enabled agendas
         new_agendas = [agenda for agenda in updates.get('agendas', [])
                        if agenda not in (original or {}).get('agendas', [])]

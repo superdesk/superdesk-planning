@@ -51,7 +51,13 @@ Feature: Publish
         And we store "FILE" from patch
         When we patch "/events/#events._id#"
         """
-        {"files": ["#FILE._id#"]}
+        {
+            "files": ["#FILE._id#"],
+            "dates": {
+                "start": "2016-01-02",
+                "end": "2016-01-03"
+            }
+        }
         """
         Then we get updated response
         """

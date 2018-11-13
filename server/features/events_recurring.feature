@@ -231,7 +231,8 @@ Feature: Events Recurring
                         "name": "Coverage intended"
                     }
                 }
-            ]
+            ],
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "/products" with success
@@ -856,7 +857,8 @@ Feature: Events Recurring
             "_id": "plan1",
             "guid": "plan1",
             "slugline": "TestPlanning",
-            "state": "draft"
+            "state": "draft",
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "events"
@@ -929,4 +931,28 @@ Feature: Events Recurring
             },
             "planning_ids": "__no_value__"
         }
+        """
+
+        @auth
+        Scenario: Validate recurring rules
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2019-11-21T12:00:00.000Z",
+                "end": "2019-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "byday": "FR",
+                    "endRepeatMode": "count"
+                }
+            }
+        }]
+        """
+        Then we get error 400
+        """
+        {"_message": "Recurring event should have an end (until or count)"}
         """
