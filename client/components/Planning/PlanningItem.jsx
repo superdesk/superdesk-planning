@@ -8,14 +8,11 @@ import {Label} from '../';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
 import {Button as NavButton} from '../UI/Nav';
 import {EventDateTime} from '../Events';
-import {PlanningDateTime} from './';
-import {FeatureLabel} from './FeaturedPlanning/index';
 import {ItemActionsMenu} from '../index';
 import {PLANNING, EVENTS, MAIN, ICON_COLORS} from '../../constants';
 
 import {
     planningUtils,
-    getItemWorkflowStateLabel,
     onEventCapture,
     isItemPublic,
     getItemId,
@@ -23,10 +20,10 @@ import {
     isItemDifferent,
 } from '../../utils';
 import {gettext} from '../../utils/gettext';
-import {AgendaNameList} from '../Agendas';
 import {renderFields} from '../fields';
 
 const PRIMARY_FIELDS = ['slugline', 'internalnote', 'description'];
+const SECONDARY_FIELDS = ['state', 'featured', 'agendas', 'coverages'];
 
 export class PlanningItem extends React.Component {
     constructor(props) {
@@ -148,7 +145,6 @@ export class PlanningItem extends React.Component {
         }
 
         const isItemLocked = planningUtils.isPlanningLocked(item, lockedItems);
-        const state = getItemWorkflowStateLabel(item);
         const event = get(item, 'event');
 
         let borderState = false;
@@ -156,9 +152,8 @@ export class PlanningItem extends React.Component {
         if (isItemLocked)
             borderState = 'locked';
 
-        const agendaNames = this.getAgendaNames(this.props);
-
         const isExpired = isItemExpired(item);
+        const secondaryFields = get(listFields, 'planning.secondary_fields', SECONDARY_FIELDS);
 
         return (
             <Item
@@ -206,21 +201,19 @@ export class PlanningItem extends React.Component {
                                 isHollow={true}
                             />
                         )}
-                        <Label text={gettext(state.label)} iconType={state.iconType} />
-                        <FeatureLabel item={item} tooltipFlowDirection="right"/>
-                        <span className="sd-list-item__text-label">agenda:</span>
-                        <span className="sd-overflow-ellipsis sd-list-item__text-strong sd-list-item--element-grow">
-                            <AgendaNameList agendas={agendaNames}/>
-                        </span>
-                        <PlanningDateTime
-                            item={item}
-                            date={date}
-                            timeFormat={timeFormat}
-                            dateFormat={dateFormat}
-                            users={users}
-                            desks={desks}
-                            activeFilter={activeFilter}
-                        />
+                        {secondaryFields.includes('state') && renderFields('state', item) }
+                        {secondaryFields.includes('featured') &&
+                            renderFields('featured', item, {tooltipFlowDirection: 'right'})}
+                        {secondaryFields.includes('agendas') &&
+                            renderFields('agendas', item, {agendas: this.getAgendaNames(this.props)})}
+                        {secondaryFields.includes('coverages') && renderFields('coverages', item, {
+                            date,
+                            timeFormat,
+                            dateFormat,
+                            users,
+                            desks,
+                            activeFilter,
+                        })}
                     </Row>
                 </Column>
                 {showAddCoverage && !isItemLocked &&
