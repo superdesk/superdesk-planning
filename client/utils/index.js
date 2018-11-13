@@ -268,7 +268,7 @@ export const formatAddress = (nominatim) => {
             'islet',
         ];
         const areaField = areaHierarchy.find((area) =>
-            nominatim.address.hasOwnProperty(area)
+            get(nominatim, 'address', {}).hasOwnProperty(area)
         );
 
         address = {
