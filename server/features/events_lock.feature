@@ -101,7 +101,8 @@ Feature: Events Locking
         """
         [{
             "slugline": "TestPlan",
-            "event_item": "123"
+            "event_item": "123",
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "/planning/#planning._id#/lock"
@@ -235,7 +236,8 @@ Feature: Events Locking
             {
                 "item_class": "item class value",
                 "headline": "test headline",
-                "event_item": "#EVENT3._id#"
+                "event_item": "#EVENT3._id#",
+                "planning_date": "2016-01-02"
             }
         ]
         """

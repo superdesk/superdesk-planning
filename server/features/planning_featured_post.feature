@@ -9,7 +9,8 @@ Feature: Post Featured Planning
         [{
             "slugline": "TestPlan",
             "state": "draft",
-            "featured": "true"
+            "featured": "true",
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "/planning_featured"
@@ -43,7 +44,8 @@ Feature: Post Featured Planning
             "state": "draft",
             "featured": "true",
             "pubstatus": "usable",
-            "state": "scheduled"
+            "state": "scheduled",
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "/planning_featured"
@@ -101,7 +103,8 @@ Feature: Post Featured Planning
             "state": "draft",
             "featured": "true",
             "pubstatus": "usable",
-            "state": "scheduled"
+            "state": "scheduled",
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "/products" with success

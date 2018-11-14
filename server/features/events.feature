@@ -655,7 +655,8 @@ Feature: Events
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "#SESSION_ID#",
             "lock_action": "add_as_event",
-            "lock_time": "#DATE#"
+            "lock_time": "#DATE#",
+            "planning_date": "2016-01-02"
         }]
         """
         When we reset notifications
@@ -702,7 +703,8 @@ Feature: Events
             "lock_user": "ident2",
             "lock_session": "#SESSION_ID#",
             "lock_action": "add_as_event",
-            "lock_time": "#DATE#"
+            "lock_time": "#DATE#",
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "events"
@@ -951,7 +953,7 @@ Feature: Events
         """
         {"_message": "END TIME should be after START TIME", "_status": "ERR"}
         """
-    
+
     @auth
     Scenario: Duplicate ingested event
         Given "events"
@@ -986,3 +988,27 @@ Feature: Events
         }
         """
         Then we get OK response
+
+
+    @auth
+    @notification
+    Scenario: Validates dates
+        When we post to "/events"
+        """
+        [
+            {
+                "guid": "123",
+                "unique_id": "123",
+                "unique_name": "123 name",
+                "name": "event 123",
+                "slugline": "event-123",
+                "definition_short": "short value",
+                "definition_long": "long value",
+                "dates": { }
+            }
+        ]
+        """
+        Then we get error 400
+        """
+        {"_message": "Event START DATE and END DATE are mandatory."}
+        """

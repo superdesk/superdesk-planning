@@ -79,6 +79,7 @@ Feature: For posted planning item changes in assignment state post a planning it
             "slugline": "test slugline",
             "agendas": ["#agenda._id#"],
             "guid": "123",
+            "planning_date": "2016-01-02",
             "coverages": [
                 {
                     "workflow_status": "draft",

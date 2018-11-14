@@ -33,7 +33,14 @@ Feature: Export planning items
         Given "events"
         """
         [
-            {"name": "test", "dates": {}, "location": []}
+            {
+                "name": "test",
+                "dates": {
+                    "start": "2016-01-02",
+                    "end": "2016-01-03"
+                },
+                "location": []
+            }
         ]
         """
 
@@ -58,7 +65,8 @@ Feature: Export planning items
                             "g2_content_type": "photo"
                         }
                     }
-                ]
+                ],
+                "planning_date": "2016-01-02"
             }
         ]
         """

@@ -152,7 +152,8 @@ Feature: Agenda
             {
                 "item_class": "item class value",
                 "headline": "test headline",
-                "agendas": ["#agenda._id#"]
+                "agendas": ["#agenda._id#"],
+                "planning_date": "2016-01-02"
             }
         ]
         """

@@ -11,6 +11,7 @@ Feature: Cancel all coverage
           "slugline": "test slugline",
           "state": "scheduled",
           "pubstatus": "usable",
+          "planning_date": "2016-01-02",
           "coverages": [
             {
                 "planning": {
@@ -92,7 +93,8 @@ Feature: Cancel all coverage
                   "scheduled": "2029-11-21T14:00:00.000Z",
                   "g2_content_type": "text"
               }
-          }]
+          }],
+          "planning_date": "2016-01-02"
       }]
       """
       When we post to "/planning/post"
@@ -184,7 +186,8 @@ Feature: Cancel all coverage
                   },
                   "workflow_status": "draft"
               }
-          ]
+          ],
+          "planning_date": "2016-01-02"
       }]
       """
       When we post to "/planning/post"
@@ -346,7 +349,8 @@ Feature: Cancel all coverage
                   },
                   "workflow_status": "draft"
               }
-          ]
+          ],
+          "planning_date": "2016-01-02"
       }]
       """
       When we perform cancel on planning "123"
@@ -436,7 +440,8 @@ Feature: Cancel all coverage
                       "label": "Planned"
                   }
               }
-          ]
+          ],
+          "planning_date": "2016-01-02"
       }]
       """
       Then we get OK response
@@ -548,7 +553,8 @@ Feature: Cancel all coverage
                       "label": "Planned"
                   }
               }
-          ]
+          ],
+          "planning_date": "2016-01-02"
       }]
       """
       Then we get OK response
@@ -656,7 +662,8 @@ Feature: Cancel all coverage
         """
         [{
             "item_class": "item class value",
-            "slugline": "test slugline"
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
         }]
         """
         Then we get OK response
@@ -678,7 +685,8 @@ Feature: Cancel all coverage
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#"
                 }
-            }]
+            }],
+            "planning_date": "2016-01-02"
         }
         """
         Then we get OK response

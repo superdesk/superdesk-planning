@@ -5,7 +5,8 @@ Feature: Planning Item Locking
         Given "planning"
         """
         [{
-            "slugline": "TestPlan"
+            "slugline": "TestPlan",
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "/planning/#planning._id#/lock"
@@ -20,7 +21,7 @@ Feature: Planning Item Locking
         """
         When we patch "/planning/#planning._id#/"
         """
-        {"slugline": "TestPlan-2"}
+        {"slugline": "TestPlan-2", "planning_date": "2016-01-02"}
         """
         Then we get OK response
 
@@ -29,7 +30,8 @@ Feature: Planning Item Locking
         Given "planning"
         """
         [{
-            "slugline": "TestPlan"
+            "slugline": "TestPlan",
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "/planning/#planning._id#/lock"
@@ -45,7 +47,7 @@ Feature: Planning Item Locking
         When we switch user
         When we patch "/planning/#planning._id#/"
         """
-        {"slugline": "TestPlan-2"}
+        {"slugline": "TestPlan-2", "planning_date": "2016-01-02"}
         """
         Then we get error 400
 
@@ -54,7 +56,8 @@ Feature: Planning Item Locking
         Given "planning"
         """
         [{
-            "slugline": "TestPlan"
+            "slugline": "TestPlan",
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "/planning/#planning._id#/lock"
@@ -79,7 +82,8 @@ Feature: Planning Item Locking
     Given "planning"
       """
       [{
-          "slugline": "TestPlan"
+          "slugline": "TestPlan",
+          "planning_date": "2016-01-02"
       }]
       """
       When we post to "/planning/#planning._id#/lock"
@@ -109,7 +113,8 @@ Feature: Planning Item Locking
       Given "planning"
         """
         [{
-            "slugline": "TestPlan"
+            "slugline": "TestPlan",
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "/planning/#planning._id#/lock"
@@ -134,7 +139,7 @@ Feature: Planning Item Locking
         """
         When we patch "/planning/#planning._id#/"
         """
-        {"slugline": "TestPlan-2"}
+        {"slugline": "TestPlan-2", "planning_date": "2016-01-02"}
         """
         Then we get OK response
 
@@ -158,7 +163,8 @@ Feature: Planning Item Locking
       [{
           "_id": "plan1",
           "guid": "plan1",
-          "event_item": "#events._id#"
+          "event_item": "#events._id#",
+          "planning_date": "2016-01-02"
        }]
       """
       When we post to "/events/#events._id#/lock"
@@ -210,12 +216,14 @@ Feature: Planning Item Locking
             {
                 "_id": "plan1",
                 "guid": "plan1",
-                "event_item": "#events._id#"
+                "event_item": "#events._id#",
+                "planning_date": "2016-01-02"
             },
             {
                 "_id": "plan2",
                 "guid": "plan2",
-                "event_item": "#events._id#"
+                "event_item": "#events._id#",
+                "planning_date": "2016-01-02"
             }
       ]
       """
@@ -324,12 +332,14 @@ Feature: Planning Item Locking
             {
                 "_id": "plan1",
                 "guid": "plan1",
-                "event_item": "#EVENT1._id#"
+                "event_item": "#EVENT1._id#",
+                "planning_date": "2016-01-02"
             },
             {
                 "_id": "plan2",
                 "guid": "plan2",
-                "event_item": "#EVENT1._id#"
+                "event_item": "#EVENT1._id#",
+                "planning_date": "2016-01-02"
             }
         ]
         """
@@ -441,7 +451,8 @@ Feature: Planning Item Locking
           {
               "_id": "plan1",
               "guid": "plan1",
-              "event_item": "#EVENT1._id#"
+              "event_item": "#EVENT1._id#",
+              "planning_date": "2016-01-02"
           }
       ]
       """

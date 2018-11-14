@@ -14,7 +14,8 @@ Feature: Post Planning
             "headline": "test headline",
             "slugline": "test slugline",
             "agendas": ["#agenda._id#"],
-            "guid": "123"
+            "guid": "123",
+            "planning_date": "2016-01-02"
         }]
         """
         Then we get OK response
@@ -34,7 +35,8 @@ Feature: Post Planning
                         "g2_content_type" : "text"
                     }
                 }
-            ]
+            ],
+            "planning_date": "2016-01-02"
         }
         """
         Then we get OK response
@@ -131,7 +133,8 @@ Feature: Post Planning
     """
     {
         "headline": "test headline",
-        "slugline": "test slugline"
+        "slugline": "test slugline",
+        "planning_date": "2016-01-02"
     }
     """
     When we patch "/users/#CONTEXT_USER_ID#"

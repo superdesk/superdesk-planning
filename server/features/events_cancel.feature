@@ -165,14 +165,16 @@ Feature: Events Cancel
             "guid": "plan1",
             "slugline": "TestPlan 1",
             "event_item": "event1",
-            "state": "draft"
+            "state": "draft",
+            "planning_date": "2016-01-02"
         },
         {
             "_id": "plan2",
             "guid": "plan2",
             "slugline": "TestPlan 2",
             "event_item": "event1",
-            "state": "draft"
+            "state": "draft",
+            "planning_date": "2016-01-02"
         }]
         """
         When we perform cancel on events "event1"
@@ -309,7 +311,8 @@ Feature: Events Cancel
         [{
             "slugline": "Weekly Meetings",
             "headline": "Friday Club",
-            "event_item": "#EVENT3._id#"
+            "event_item": "#EVENT3._id#",
+            "planning_date": "2016-01-02"
         }]
         """
         Then we get OK response
@@ -409,7 +412,8 @@ Feature: Events Cancel
                         "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa"
                   }
-            }]
+            }],
+            "planning_date": "2016-01-02"
         }]
         """
         When we perform cancel on events "event1"

@@ -146,10 +146,12 @@ Feature: Events Spike
             "slugline": "TestPlan 1",
             "event_item": "#events._id#",
             "lock_user": "#CONTEXT_USER_ID#",
-            "lock_session": "123"
+            "lock_session": "123",
+            "planning_date": "2016-01-02"
         }, {
             "slugline": "TestPlan 2",
-            "event_item": "#events._id#"
+            "event_item": "#events._id#",
+            "planning_date": "2016-01-02"
         }]
         """
         When we get "/planning"
@@ -254,7 +256,8 @@ Feature: Events Spike
         [{
             "slugline": "Friday Club",
             "headline": "First Meeting",
-            "event_item": "#EVENT2._id#"
+            "event_item": "#EVENT2._id#",
+            "planning_date": "2016-01-02"
         }]
         """
         Then we get OK response
@@ -336,7 +339,8 @@ Feature: Events Spike
         [{
             "slugline": "Friday Club",
             "headline": "First Meeting",
-            "event_item": "#EVENT2._id#"
+            "event_item": "#EVENT2._id#",
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "/events/post"
@@ -412,7 +416,8 @@ Feature: Events Spike
             "_id": "plan1", "guid": "plan1",
             "slugline": "TestPlan 1",
             "event_item": "event2",
-            "state": "draft"
+            "state": "draft",
+            "planning_date": "2016-01-02"
         }]
         """
         When we spike events "event1"
@@ -484,14 +489,16 @@ Feature: Events Spike
         """
         [{
             "slugline": "Friday Club",
-            "event_item": "#EVENT3._id#"
+            "event_item": "#EVENT3._id#",
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "/planning" with success
         """
         [{
             "slugline": "Friday Club",
-            "event_item": "#EVENT4._id#"
+            "event_item": "#EVENT4._id#",
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "/events/#EVENT4._id#/lock" with success
@@ -517,7 +524,8 @@ Feature: Events Spike
         """
         [{
             "slugline": "Friday Club",
-            "event_item": "#EVENT6._id#"
+            "event_item": "#EVENT6._id#",
+            "planning_date": "2016-01-02"
         }]
         """
         When we post to "/events/#EVENT6._id#/lock" with success

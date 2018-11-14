@@ -24,8 +24,7 @@ from superdesk.users.services import current_user_has_privilege
 from .events_base_service import EventsBaseService
 from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, get_max_recurrent_events, \
     WORKFLOW_STATE, ITEM_STATE, remove_lock_information, format_address, update_post_item, \
-    post_required, POST_STATE, get_event_max_multi_day_duration, set_original_creator, list_uniq_with_order, \
-    set_ingested_event_state
+    post_required, POST_STATE, get_event_max_multi_day_duration, set_original_creator, set_ingested_event_state
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
@@ -189,40 +188,45 @@ class EventsService(superdesk.Service):
         if generated_events:
             docs.extend(generated_events)
 
-    def validate_event(self, event):
+    def validate_event(self, updates, original=None):
         """Validate the event
 
         @:param dict event: event created or updated
         """
-        self._validate_multiday_event_duration(event)
-        self._validate_dates(event)
+        self._validate_multiday_event_duration(updates)
+        self._validate_dates(updates, original)
 
-        if len(event.get('calendars', [])) > 0:
-            existing_calendars = get_resource_service('vocabularies').find_one(req=None, _id='event_calendars')
-            for calendar in event['calendars']:
-                cal = [x for x in existing_calendars.get('items', []) if x['qcode'] == calendar.get('qcode')]
-                if not cal:
-                    raise SuperdeskApiError(message="Calendar does not exist.")
-                if not cal[0].get('is_active'):
-                    raise SuperdeskApiError(message="Disabled calendar cannot be selected.")
+        # if len(updates.get('calendars', [])) > 0:
+        # existing_calendars = get_resource_service('vocabularies').find_one(req=None, _id='event_calendars')
+        # for calendar in updates['calendars']:
+        # cal = [x for x in existing_calendars.get('items', []) if x['qcode'] == calendar.get('qcode')]
+        # if not cal:
+        # raise SuperdeskApiError(message="Calendar does not exist.")
+        # if not cal[0].get('is_active'):
+        # raise SuperdeskApiError(message="Disabled calendar cannot be selected.")
 
-            # Remove duplicated calendars
-            uniq_qcodes = list_uniq_with_order([o['qcode'] for o in event['calendars']])
-            event['calendars'] = [cal for cal in existing_calendars.get('items', []) if cal['qcode'] in uniq_qcodes]
+        # Remove duplicated calendars
+        # uniq_qcodes = list_uniq_with_order([o['qcode'] for o in updates['calendars']])
+        # updates['calendars'] = [cal for cal in existing_calendars.get('items', []) if cal['qcode'] in uniq_qcodes]
 
-    def _validate_dates(self, event):
+    def _validate_dates(self, updates, original=None):
         """Validate the dates
 
         @:param dict event:
         """
+        event = updates if updates.get('dates') or not original else original
         start_date = event.get('dates', {}).get('start')
         end_date = event.get('dates', {}).get('end')
 
         if not start_date or not end_date:
-            return
+            raise SuperdeskApiError(message="Event START DATE and END DATE are mandatory.")
 
         if end_date < start_date:
             raise SuperdeskApiError(message="END TIME should be after START TIME")
+
+        if event.get('dates', {}).get('recurring_rule') and not event['dates']['recurring_rule'].get('until') and \
+                not event['dates']['recurring_rule'].get('count'):
+            raise SuperdeskApiError(message="Recurring event should have an end (until or count)")
 
     def _validate_multiday_event_duration(self, event):
         """Validate that the multiday event duration is not greater than PLANNING_MAX_MULTI_DAY_DURATION
@@ -323,7 +327,7 @@ class EventsService(superdesk.Service):
             raise SuperdeskApiError.forbiddenError('The item was locked by another user')
 
         # validate event
-        self.validate_event(updates)
+        self.validate_event(updates, original)
 
         # Run the specific methods based on if the original is a
         # single or a series of recurring events

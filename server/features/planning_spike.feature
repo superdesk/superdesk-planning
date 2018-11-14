@@ -4,7 +4,8 @@ Feature: Planning Spike
         When we post to "planning"
         """
         [{
-            "slugline": "TestPlan"
+            "slugline": "TestPlan",
+            "planning_date": "2016-01-02"
         }]
         """
         Then we get OK response
@@ -47,6 +48,7 @@ Feature: Planning Spike
         [{
             "slugline": "TestPlan",
             "state": "draft",
+            "planning_date": "2016-01-02",
             "coverages": [{
                 "coverage_id": "cov1",
                 "slugline": "TestCoverage 1",
@@ -123,7 +125,8 @@ Feature: Planning Spike
         [{
             "slugline": "TestPlan",
             "state": "spiked",
-            "revert_state": "draft"
+            "revert_state": "draft",
+            "planning_date": "2016-01-02"
         }]
         """
         When we unspike planning "#planning._id#"
@@ -162,7 +165,8 @@ Feature: Planning Spike
         Given "planning"
         """
         [{
-            "slugline": "TestPlan"
+            "slugline": "TestPlan",
+            "planning_date": "2016-01-02"
         }]
         """
         When we patch "/users/#CONTEXT_USER_ID#"
