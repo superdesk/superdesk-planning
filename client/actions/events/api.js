@@ -730,7 +730,7 @@ const query = (
  * It achieves this by performing a fetch using the params from
  * the store value `events.lastRequestParams`
  */
-const refetch = () => (
+const refetch = (skipEvents = []) => (
     (dispatch, getState) => {
         const prevParams = selectors.main.lastRequestParams(getState());
         const promises = [];
@@ -749,7 +749,7 @@ const refetch = () => (
             .then((responses) => {
                 let events = Array.prototype.concat.apply([], responses);
 
-                dispatch(self.receiveEvents(events));
+                dispatch(self.receiveEvents(events, skipEvents));
                 return Promise.resolve(events);
             }, (error) => (Promise.reject(error)));
     }
@@ -894,9 +894,10 @@ const getEvent = (eventId, saveToStore = true) => (
  * @param {Array} events - An array of Event items
  * @return object
  */
-const receiveEvents = (events) => ({
+const receiveEvents = (events, skipEvents = []) => ({
     type: EVENTS.ACTIONS.ADD_EVENTS,
-    payload: events,
+    payload: get(skipEvents, 'length', 0) > 0 ?
+        events.filter((e) => !skipEvents.includes(e._id)) : events,
     receivedAt: Date.now(),
 });
 

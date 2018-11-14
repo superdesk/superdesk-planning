@@ -452,4 +452,60 @@ describe('actions.planning.notifications', () => {
                 })
         ).catch(done.fail));
     });
+
+    describe('onPlanningUpdated', () => {
+        beforeEach(() => {
+            restoreSinonStub(planningNotifications.onPlanningUpdated);
+            restoreSinonStub(planningNotifications.onPlanningSpiked);
+            sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
+            sinon.stub(main, 'setUnsetLoadingIndicator').callsFake(() => (Promise.resolve()));
+            sinon.stub(planningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
+            sinon.stub(eventsPlanningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
+            sinon.stub(eventsPlanningUi, 'refetchPlanning').callsFake(() => (Promise.resolve()));
+            sinon.stub(featuredPlanning, 'removePlanningItemFromSelection').callsFake(
+                () => (Promise.resolve())
+            );
+            sinon.stub(featuredPlanning, 'addPlanningItemToSelection').callsFake(
+                () => (Promise.resolve())
+            );
+        });
+
+        afterEach(() => {
+            restoreSinonStub(main.closePreviewAndEditorForItems);
+            restoreSinonStub(main.setUnsetLoadingIndicator);
+            restoreSinonStub(planningUi.scheduleRefetch);
+            restoreSinonStub(eventsPlanningUi.scheduleRefetch);
+            restoreSinonStub(eventsPlanningUi.refetchPlanning);
+            restoreSinonStub(featuredPlanning.removePlanningItemFromSelection);
+            restoreSinonStub(featuredPlanning.addPlanningItemToSelection);
+        });
+
+        it('onPlanningUpdated does not call scheduleRefetch if item is being edited', (done) => {
+            store.initialState.planning.plannings['p1'] = {
+                lock_action: 'edit',
+                lock_user: 'ident1',
+                lock_session: 'session1',
+                _id: 'p1',
+                type: 'planning',
+            };
+            store.initialState.forms.itemId = 'p1';
+            return store.test(done, planningNotifications.onPlanningUpdated({}, {item: data.plannings[0]._id}))
+                .then(() => {
+                    expect(planningUi.scheduleRefetch.callCount).toBe(0);
+                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(0);
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('onPlanningUpdated does calls scheduleRefetch if item is not being edited', (done) => (
+            store.test(done, planningNotifications.onPlanningUpdated({}, {item: data.plannings[0]._id}))
+                .then(() => {
+                    expect(planningUi.scheduleRefetch.callCount).toBe(1);
+                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
+                    done();
+                })
+                .catch(done.fail)
+        ));
+    });
 });

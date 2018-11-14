@@ -4,7 +4,7 @@ import eventsApi from './api';
 import eventsUi from './ui';
 import main from '../main';
 import {get} from 'lodash';
-import {gettext, dispatchUtils, getErrorMessage} from '../../utils';
+import {gettext, dispatchUtils, getErrorMessage, isItemLockedForEditing} from '../../utils';
 import eventsPlanning from '../eventsPlanning';
 
 /**
@@ -269,23 +269,19 @@ const onRecurringEventCreated = (_e, data) => (
 const onEventUpdated = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
-            dispatch(eventsUi.scheduleRefetch())
-                .then((events) => {
-                    const selectedEvents = selectors.multiSelect.selectedEvents(getState());
-                    const currentPreviewId = selectors.main.previewId(getState());
-                    const currentEditId = selectors.forms.currentItemId(getState());
+            const storedEvent = selectors.events.storedEvents(getState())[data.item];
+            const currentEditId = selectors.forms.currentItemId(getState());
 
-                    const loadedFromRefetch = selectedEvents.indexOf(data.item) !== -1 &&
-                        !events.find((event) => event._id === data.item);
+            if (get(data, 'recurrence_id') || get(data, 'item') !== currentEditId
+                    || !isItemLockedForEditing(storedEvent, selectors.general.session(getState()))) {
+                dispatch(eventsUi.scheduleRefetch(get(data, 'recurrence_id') ? [data.item] : []))
+                    .then(() => (eventsPlanning.ui.scheduleRefetch()));
+            }
 
-                    dispatch(eventsPlanning.ui.scheduleRefetch()).then(() => {
-                        if (!loadedFromRefetch && (currentPreviewId === data.item || currentEditId === data.item)) {
-                            dispatch(eventsApi.fetchById(data.item, {force: true}));
-                        }
-                        dispatch(fetchItemHistoryOnRecurringNotitication(data));
-                    });
-                });
+            dispatch(fetchItemHistoryOnRecurringNotitication(data));
         }
+
+        return Promise.resolve();
     }
 );
 

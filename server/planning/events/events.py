@@ -79,7 +79,7 @@ class EventsService(superdesk.Service):
     @staticmethod
     def get_plannings_for_event(event):
         return get_resource_service('planning').find(where={
-            'event_item': event[config.ID_FIELD]
+            'event_item': event.get(config.ID_FIELD)
         })
 
     def _enhance_event_item(self, doc):
@@ -342,6 +342,13 @@ class EventsService(superdesk.Service):
         if updates.get('recurrence_id') and not original.get('recurrence_id'):
             get_resource_service('planning').on_event_converted_to_recurring(updates, original)
 
+        if not updates.get('duplicate_to'):
+            posted = update_post_item(updates, original)
+            if posted:
+                new_event = get_resource_service('events').find_one(req=None,
+                                                                    _id=original.get(config.ID_FIELD))
+                updates['_etag'] = new_event['_etag']
+
         if original.get('lock_user') and 'lock_user' in updates and updates.get('lock_user') is None:
             # when the event is unlocked by the patch.
             push_notification(
@@ -352,10 +359,12 @@ class EventsService(superdesk.Service):
                 recurrence_id=original.get('recurrence_id') or None
             )
 
-        if not updates.get('duplicate_to'):
-            update_post_item(updates, original)
-
         self.delete_event_files(updates, original)
+
+        if not updates.get('location') and original.get('location'):
+            updates['location'] = original['location']
+
+        self._enhance_event_item(updates)
 
     def _update_single_event(self, updates, original):
         """Updates the metadata of a single event.
@@ -422,10 +431,12 @@ class EventsService(superdesk.Service):
                 events_post_service.validate_item(merged)
 
         for e in events:
+            event_id = e[config.ID_FIELD]
             new_updates = deepcopy(updates)
             new_updates['skip_on_update'] = True
-            self.patch(e[config.ID_FIELD], new_updates)
-            app.on_updated_events(new_updates, {'_id': e[config.ID_FIELD]})
+            new_updates[config.ID_FIELD] = event_id
+            self.patch(event_id, new_updates)
+            app.on_updated_events(new_updates, {'_id': event_id})
 
         # And finally push a notification to connected clients
         push_notification(

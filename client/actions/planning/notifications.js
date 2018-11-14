@@ -1,7 +1,7 @@
 import {get} from 'lodash';
 import planning from './index';
 import assignments from '../assignments/index';
-import {gettext} from '../../utils';
+import {gettext, isItemLockedForEditing} from '../../utils';
 import * as selectors from '../../selectors';
 import {events, fetchAgendas} from '../index';
 import main from '../main';
@@ -44,30 +44,35 @@ const onPlanningCreated = (_e, data) => (
 const onPlanningUpdated = (_e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
-            dispatch(planning.ui.scheduleRefetch())
-                .then((results) => {
-                    const selectedItems = selectors.multiSelect.selectedPlannings(getState());
-                    const currentPreviewId = selectors.main.previewId(getState());
-                    const currentEditId = selectors.forms.currentItemId(getState());
+            const storedPlan = selectors.planning.storedPlannings(getState())[data.item];
+            const currentEditId = selectors.forms.currentItemId(getState());
 
-                    const loadedFromRefetch = selectedItems.indexOf(data.item) !== -1 &&
-                        !get(results, '[0]._items').find((plan) => plan._id === data.item);
+            if (get(data, 'item') !== currentEditId ||
+                    !isItemLockedForEditing(storedPlan, selectors.general.session(getState()))) {
+                dispatch(planning.ui.scheduleRefetch())
+                    .then((results) => {
+                        if (selectors.general.currentWorkspace(getState()) === WORKSPACE.ASSIGNMENTS) {
+                            const selectedItems = selectors.multiSelect.selectedPlannings(getState());
+                            const currentPreviewId = selectors.main.previewId(getState());
 
-                    if (!loadedFromRefetch && (
-                        selectors.general.currentWorkspace(getState()) === WORKSPACE.ASSIGNMENTS ||
-                        currentPreviewId === data.item || currentEditId === data.item)) {
-                        dispatch(planning.api.fetchById(data.item, {force: true}));
-                    }
+                            const loadedFromRefetch = selectedItems.indexOf(data.item) !== -1 &&
+                            !get(results, '[0]._items').find((plan) => plan._id === data.item);
 
-                    dispatch(eventsPlanning.ui.scheduleRefetch());
-                    if (get(data, 'added_agendas.length', 0) > 0 || get(data, 'removed_agendas.length', 0) > 0) {
-                        dispatch(fetchAgendas());
-                    }
-                    dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
-                    dispatch(udpateAssignment(data.item));
-                    dispatch(planning.featuredPlanning.onPlanningUpdatedNotification(data.item));
-                    dispatch(eventsPlanning.ui.refetchPlanning(data.item));
-                });
+                            if (!loadedFromRefetch && currentPreviewId === data.item) {
+                                dispatch(planning.api.fetchById(data.item, {force: true}));
+                            }
+                        }
+
+                        dispatch(eventsPlanning.ui.scheduleRefetch());
+                    });
+            }
+
+            if (get(data, 'added_agendas.length', 0) > 0 || get(data, 'removed_agendas.length', 0) > 0) {
+                dispatch(fetchAgendas());
+            }
+            dispatch(main.fetchItemHistory({_id: data.item, type: ITEM_TYPE.PLANNING}));
+            dispatch(udpateAssignment(data.item));
+            dispatch(planning.featuredPlanning.onPlanningUpdatedNotification(data.item));
         }
 
         return Promise.resolve();

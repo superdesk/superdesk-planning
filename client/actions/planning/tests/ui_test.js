@@ -166,9 +166,9 @@ describe('actions.planning.ui', () => {
         });
     });
 
-    describe('saveAndReloadCurrentAgenda', () => {
+    describe('save', () => {
         it('saves and reloads planning items', (done) => (
-            store.test(done, planningUi.saveAndReloadCurrentAgenda(data.plannings[1]))
+            store.test(done, planningUi.save(data.plannings[1]))
                 .then((item) => {
                     expect(item).toEqual(data.plannings[1]);
 
@@ -187,13 +187,21 @@ describe('actions.planning.ui', () => {
                 () => (Promise.reject(errorMessage))
             );
 
-            return store.test(done, planningUi.saveAndReloadCurrentAgenda(data.plannings[1]))
+            return store.test(done, planningUi.save(data.plannings[1]))
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     done();
                 })
                 .catch(done.fail);
+        });
+
+        it('calls saveFromAuthoring if in AUTHORING workspace', () => {
+            store.initialState.workspace.currentWorkspace = WORKSPACE.AUTHORING;
+            store.dispatch(planningUi.save(data.plannings[0]));
+
+            expect(planningUi.saveFromAuthoring.callCount).toBe(1);
+            expect(planningUi.saveFromAuthoring.args[0][0]).toEqual(data.plannings[0]);
         });
     });
 
@@ -365,26 +373,6 @@ describe('actions.planning.ui', () => {
 
         afterEach(() => {
             restoreSinonStub(locks.unlock);
-        });
-    });
-
-    describe('save', () => {
-        it('calls saveAndReloadCurrentAgenda if in the Planning UI', () => {
-            sinon.stub(planningUi, 'saveAndReloadCurrentAgenda').callsFake(() => (Promise.resolve()));
-            store.dispatch(planningUi.save(data.plannings[0]));
-
-            expect(planningUi.saveAndReloadCurrentAgenda.callCount).toBe(1);
-            expect(planningUi.saveAndReloadCurrentAgenda.args[0]).toEqual([data.plannings[0]]);
-
-            restoreSinonStub(planningUi.saveAndReloadCurrentAgenda);
-        });
-
-        it('calls saveFromAuthoring if in AUTHORING workspace', () => {
-            store.initialState.workspace.currentWorkspace = WORKSPACE.AUTHORING;
-            store.dispatch(planningUi.save(data.plannings[0]));
-
-            expect(planningUi.saveFromAuthoring.callCount).toBe(1);
-            expect(planningUi.saveFromAuthoring.args[0][0]).toEqual(data.plannings[0]);
         });
     });
 

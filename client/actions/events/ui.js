@@ -84,13 +84,13 @@ const unspike = (event) => (
 /**
  * Action Dispatcher to re-fetch the current list of events.
  */
-const refetch = () => (
+const refetch = (skipEvents = []) => (
     (dispatch, getState, {notify}) => {
         if (!selectors.main.isEventsView(getState())) {
             return Promise.resolve([]);
         }
 
-        return dispatch(eventsApi.refetch())
+        return dispatch(eventsApi.refetch(skipEvents))
             .then((events) => {
                 dispatch(self.setEventsList(events.map((e) => (e._id))));
                 return Promise.resolve(events);
@@ -111,10 +111,10 @@ const refetch = () => (
 let nextRefetch = {
     called: 0,
 };
-const scheduleRefetch = () => (
+const scheduleRefetch = (skipEvents = []) => (
     (dispatch) => (
         dispatch(
-            dispatchUtils.scheduleDispatch(self.refetch(), nextRefetch)
+            dispatchUtils.scheduleDispatch(self.refetch(skipEvents), nextRefetch)
         )
     )
 );

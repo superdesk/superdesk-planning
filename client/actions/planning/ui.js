@@ -61,30 +61,6 @@ const unspike = (item) => (
 );
 
 /**
- * Saves the supplied planning item and reload the
- * list of Agendas and their associated planning items.
- * If the planning item does not have an ._id, then add it to the
- * currently selected Agenda
- * If no Agenda is selected, or the currently selected Agenda is spiked,
- * then notify the end user and reject this action
- * @param {object} item - The planning item to save
- * @return Promise
- */
-const saveAndReloadCurrentAgenda = (item) => (
-    (dispatch, getState, {notify}) => (
-        dispatch(planningApi.saveAndReloadCurrentAgenda(item))
-            .then(
-                (item) => (
-                    dispatch(self.scheduleRefetch())
-                        .then(() => dispatch(planningApi.fetchById(item._id, {force: true})))
-                        .then((item) => (Promise.resolve(item)))
-                ),
-                (error) => Promise.reject(error)
-            )
-    )
-);
-
-/**
  * Clears the Planning List
  */
 const clearList = () => ({type: PLANNING.ACTIONS.CLEAR_LIST});
@@ -407,7 +383,7 @@ const save = (item) => (
         if (selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING) {
             return dispatch(self.saveFromAuthoring(item));
         } else {
-            return dispatch(self.saveAndReloadCurrentAgenda(item));
+            return dispatch(planningApi.saveAndReloadCurrentAgenda(item));
         }
     }
 );
@@ -558,7 +534,6 @@ const self = {
     openSpikeModal,
     openUnspikeModal,
     save,
-    saveAndReloadCurrentAgenda,
     _openActionModal,
     clearList,
     fetchToList,

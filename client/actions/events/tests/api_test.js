@@ -623,7 +623,7 @@ describe('actions.events.api', () => {
                     expect(eventsApi.query.args[0]).toEqual([{page: 1}, true]);
 
                     expect(eventsApi.receiveEvents.callCount).toBe(1);
-                    expect(eventsApi.receiveEvents.args[0]).toEqual([data.events]);
+                    expect(eventsApi.receiveEvents.args[0]).toEqual([data.events, []]);
 
                     done();
                 })

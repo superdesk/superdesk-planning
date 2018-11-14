@@ -208,24 +208,36 @@ const save = (item, withConfirmation = true, noSubsequentEditing = false) => (
             .then((savedItems) => {
                 const savedItem = Array.isArray(savedItems) ? savedItems[0] : savedItems;
 
-                if (!existingItem && selectors.general.currentWorkspace(getState()) !== WORKSPACE.AUTHORING) {
-                    if (createdFromModal) {
-                        dispatch(self.closeEditorModal());
+                if (selectors.general.currentWorkspace(getState()) !== WORKSPACE.AUTHORING) {
+                    if (!existingItem) {
+                        if (createdFromModal) {
+                            dispatch(self.closeEditorModal());
+                        }
+
+                        notify.success(
+                            gettext('{{ itemType }} created', {itemType: getItemTypeString(item)})
+                        );
+
+                        return dispatch(autosave.removeById(itemType, itemId))
+                            .then(() => {
+                                // Lock the newly created item for editing
+                                if (!noSubsequentEditing) {
+                                    return dispatch(self.lockAndEdit(savedItem));
+                                }
+
+                                return Promise.resolve();
+                            });
+                    } else {
+                        // Load it to store
+                        switch (getItemType(savedItem)) {
+                        case ITEM_TYPE.EVENT:
+                            dispatch(eventsApi.receiveEvents([eventUtils.modifyForClient(savedItem)]));
+                            break;
+                        case ITEM_TYPE.PLANNING:
+                            dispatch(planningApi.receivePlannings([planningUtils.modifyForClient(savedItem)]));
+                            break;
+                        }
                     }
-
-                    notify.success(
-                        gettext('{{ itemType }} created', {itemType: getItemTypeString(item)})
-                    );
-
-                    return dispatch(autosave.removeById(itemType, itemId))
-                        .then(() => {
-                            // Lock the newly created item for editing
-                            if (!noSubsequentEditing) {
-                                return dispatch(self.lockAndEdit(savedItem));
-                            }
-
-                            return Promise.resolve();
-                        });
                 }
 
                 if (!confirmation) {
