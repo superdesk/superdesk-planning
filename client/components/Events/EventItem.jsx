@@ -168,13 +168,13 @@ export class EventItem extends React.Component {
                         }
                         {secondaryFields.includes('calendars') && renderFields('calendars', item, {
                             calendars: calendars,
-                            grow: !get(item, 'location'),
+                            grow: !get(item, 'location') && !showRelatedPlanningLink,
                         }) }
 
 
                         {(showRelatedPlanningLink) &&
                             <span
-                                className="sd-overflow-ellipsis sd-list-item__element-lm-10">
+                                className="sd-overflow-ellipsis sd-list-item__element-lm-10 sd-list-item--element-grow">
                                 <a className="sd-line-input__input--related-item-link"
                                     onClick={toggleRelatedPlanning} >
                                     <i className="icon-calendar" />

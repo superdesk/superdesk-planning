@@ -10,6 +10,9 @@ import {actionedState} from './actionedState';
 import {calendars} from './calendars';
 import {location} from './location';
 import {files} from './files';
+import {FeatureLabel} from '../Planning/FeaturedPlanning/index';
+import {agendas} from './agendas';
+import {coverages} from './coverages';
 
 let registeredFields = {};
 
@@ -52,3 +55,6 @@ registerField('actionedState', actionedState);
 registerField('calendars', calendars);
 registerField('location', location);
 registerField('files', files);
+registerField('featured', FeatureLabel);
+registerField('agendas', agendas);
+registerField('coverages', coverages);
