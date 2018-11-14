@@ -11,8 +11,9 @@
 import os
 import xml.etree.ElementTree as ET
 from planning.tests import TestCase
+from superdesk.io import get_feeding_service
 from superdesk.io.commands.update_ingest import ingest_items
-from superdesk.io.registry import registered_feeding_services, registered_feed_parsers
+from superdesk.io.registry import registered_feed_parsers
 from superdesk import get_resource_service
 
 
@@ -86,7 +87,7 @@ class IngestTest(TestCase):
             # ingest event
             events = self.get_parsed_documents(registered_feed_parsers.get('ntb_event_xml'), xml)
             provider = get_resource_service('ingest_providers').find_one(req=None, _id=self.providers.get('ntbevent'))
-            self.ingest_items(events, provider, registered_feeding_services.get('event_file'))
+            self.ingest_items(events, provider, get_feeding_service('event_file'))
             ingested_event = get_resource_service('events').find_one(req=None, _id='NTB-123456')
             self.assertTrue(ingested_event['_id'], 'NTB-123456')
             self.assertTrue(ingested_event['name'], 'Original Content')
@@ -99,7 +100,7 @@ class IngestTest(TestCase):
             events[0]['dates']['start'] = '2016-09-06T10:00:00'
             events[0]['dates']['end'] = '2016-09-06T14:00:00'
             events[0]['name'] = 'Updated Content'
-            self.ingest_items(events, provider, registered_feeding_services.get('event_file'))
+            self.ingest_items(events, provider, get_feeding_service('event_file'))
             ingested_event = get_resource_service('events').find_one(req=None, _id='NTB-123456')
             self.assertTrue(ingested_event['_id'], 'NTB-123456')
             self.assertTrue(ingested_event['name'], 'Updated Content')

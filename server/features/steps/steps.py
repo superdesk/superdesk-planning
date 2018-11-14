@@ -17,7 +17,7 @@ from superdesk.tests.steps import (then, when, step_impl_then_get_existing, get_
                                    assert_200, unique_headers, get_prefixed_url,
                                    if_match, assert_404, apply_placeholders, get_res, set_placeholder,
                                    DATETIME_FORMAT, json_match, post_data)
-from superdesk.io import registered_feeding_services
+from superdesk.io import get_feeding_service
 from superdesk.io.commands.update_ingest import LAST_ITEM_UPDATE
 from superdesk.utc import utcnow
 from superdesk import get_resource_service, etree
@@ -256,8 +256,7 @@ def step_impl_fetch_from_provider_ingest(context, provider_name, guid):
         ingest_provider_service = get_resource_service('ingest_providers')
         provider = ingest_provider_service.find_one(name=provider_name, req=None)
 
-        provider_service = registered_feeding_services[provider['feeding_service']]
-        provider_service = provider_service.__class__()
+        provider_service = get_feeding_service(provider['feeding_service'])
         file_path = os.path.join(provider.get('config', {}).get('path', ''), guid)
         feeding_parser = provider_service.get_feed_parser(provider)
         if isinstance(feeding_parser, XMLFeedParser):
