@@ -328,6 +328,7 @@ describe('EventUtils', () => {
             );
 
             expectActions(itemActions, [
+                'Spike',
                 'Duplicate',
                 'Cancel',
                 'Reschedule',

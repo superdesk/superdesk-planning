@@ -249,3 +249,448 @@ Feature: Events Post
             "operation": "create"
         }]}
         """
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Unposting an event will delete associated assignment
+        Given we have sessions "/sessions"
+        Given "users"
+        """
+        [{"username": "foo", "email": "foo@bar.com", "sign_off": "abc"}]
+        """
+        Given the "validators"
+        """
+        [{
+            "schema": {},
+            "type": "text",
+            "act": "publish",
+            "_id": "publish_text"
+        },
+        {
+            "_id": "publish_composite",
+            "act": "publish",
+            "type": "composite",
+            "schema": {}
+        }]
+        """
+        And "desks"
+        """
+        [{"name": "Sports", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
+        When we post to "events"
+        """
+        {
+            "name": "TestEvent",
+            "slugline": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        When we post to "/planning"
+        """
+        {
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02",
+            "event_item": "#events._id#"
+        }
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {"coverages": [{
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "g2_content_type" : "text"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
+            },
+            "workflow_status": "active"
+        }]}
+        """
+        Then we get OK response
+        Then we store coverage id in "coverageId" from coverage 0
+        Then we store assignment id in "assignmentId" from coverage 0
+        When we get "/assignments"
+        Then we get list with 1 items
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        When we post to "assignments/link"
+        """
+        [{"assignment_id": "#assignmentId#", "item_id": "#archive._id#", "reassign": true}]
+        """
+        Then we get OK response
+        When we get "/archive/#archive._id#"
+        Then we get existing resource
+        """
+        {"assignment_id": "#assignmentId#"}
+        """
+        Then we get OK response
+        When we post to "/planning/post"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we get "events/#events._id#"
+        Then we get existing resource
+        """
+        { "state": "scheduled", "pubstatus": "usable" }
+        """
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        { "state": "scheduled", "pubstatus": "usable" }
+        """
+        When we post to "/events/#events._id#/lock"
+        """
+        { "lock_action": "edit" }
+        """
+        Then we get OK response
+        When we post to "/events/post"
+        """
+        {
+            "event": "#events._id#",
+            "etag": "#events._etag#",
+            "pubstatus": "cancelled"
+        }
+        """
+        Then we get OK response
+        When we get "events/#events._id#"
+        Then we get existing resource
+        """
+        { "state": "killed" }
+        """
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        { "state": "killed" }
+        """
+        When we get "/assignments"
+        Then we get list with 0 items
+
+        @auth
+    @notification
+    @vocabulary
+    Scenario: Unposting an event will unpost associated planning item
+        Given we have sessions "/sessions"
+        Given "users"
+        """
+        [{"username": "foo", "email": "foo@bar.com", "sign_off": "abc"}]
+        """
+        Given the "validators"
+        """
+        [{
+            "schema": {},
+            "type": "text",
+            "act": "publish",
+            "_id": "publish_text"
+        },
+        {
+            "_id": "publish_composite",
+            "act": "publish",
+            "type": "composite",
+            "schema": {}
+        }]
+        """
+        And "desks"
+        """
+        [{"name": "Sports", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
+        When we post to "events"
+        """
+        {
+            "name": "TestEvent",
+            "slugline": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        When we post to "/planning"
+        """
+        {
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02",
+            "event_item": "#events._id#"
+        }
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {"coverages": [{
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "g2_content_type" : "text"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
+            },
+            "workflow_status": "active"
+        }]}
+        """
+        Then we get OK response
+        Then we store coverage id in "coverageId" from coverage 0
+        Then we store assignment id in "assignmentId" from coverage 0
+        When we get "/assignments"
+        Then we get list with 1 items
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        When we post to "assignments/link"
+        """
+        [{"assignment_id": "#assignmentId#", "item_id": "#archive._id#", "reassign": true}]
+        """
+        Then we get OK response
+        When we get "/archive/#archive._id#"
+        Then we get existing resource
+        """
+        {"assignment_id": "#assignmentId#"}
+        """
+        Then we get OK response
+        When we post to "/planning/post"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we get "events/#events._id#"
+        Then we get existing resource
+        """
+        { "state": "scheduled", "pubstatus": "usable" }
+        """
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        { "state": "scheduled", "pubstatus": "usable" }
+        """
+        When we post to "/events/#events._id#/lock"
+        """
+        { "lock_action": "edit" }
+        """
+        Then we get OK response
+        When we post to "/events/post"
+        """
+        {
+            "event": "#events._id#",
+            "etag": "#events._etag#",
+            "pubstatus": "cancelled"
+        }
+        """
+        Then we get OK response
+        When we get "events/#events._id#"
+        Then we get existing resource
+        """
+        { "state": "killed" }
+        """
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        { "state": "killed" }
+        """
+
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Unposting an event will send notifications if assignment deletion fails
+        Given we have sessions "/sessions"
+        Given "users"
+        """
+        [{"username": "foo", "email": "foo@bar.com", "sign_off": "abc"}]
+        """
+        Given the "validators"
+        """
+        [{
+            "schema": {},
+            "type": "text",
+            "act": "publish",
+            "_id": "publish_text"
+        },
+        {
+            "_id": "publish_composite",
+            "act": "publish",
+            "type": "composite",
+            "schema": {}
+        }]
+        """
+        And "desks"
+        """
+        [{"name": "Sports", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
+        When we post to "events"
+        """
+        {
+            "name": "TestEvent",
+            "slugline": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        When we post to "/planning"
+        """
+        {
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02",
+            "event_item": "#events._id#"
+        }
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {"coverages": [{
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "g2_content_type" : "text"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
+            },
+            "workflow_status": "active"
+        }]}
+        """
+        Then we get OK response
+        Then we store coverage id in "coverageId" from coverage 0
+        Then we store assignment id in "assignmentId" from coverage 0
+        When we get "/assignments"
+        Then we get list with 1 items
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        When we post to "assignments/link"
+        """
+        [{"assignment_id": "#assignmentId#", "item_id": "#archive._id#", "reassign": true}]
+        """
+        Then we get OK response
+        When we get "/archive/#archive._id#"
+        Then we get existing resource
+        """
+        {"assignment_id": "#assignmentId#"}
+        """
+        Then we get OK response
+        When we post to "/planning/post"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we get "events/#events._id#"
+        Then we get existing resource
+        """
+        { "state": "scheduled", "pubstatus": "usable" }
+        """
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        { "state": "scheduled", "pubstatus": "usable" }
+        """
+        When we post to "/events/#events._id#/lock"
+        """
+        { "lock_action": "edit" }
+        """
+        Then we get OK response
+        When we patch "/archive/#archive._id#"
+        """
+        {"lock_user": "#users._id#"}
+        """
+        When we post to "/events/post"
+        """
+        {
+            "event": "#events._id#",
+            "etag": "#events._etag#",
+            "pubstatus": "cancelled"
+        }
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "assignments:remove:fail",
+            "extra": {
+                "items": [
+                  {
+                    "slugline": "test slugline",
+                    "type": "text"
+                  }
+                ],
+                "session": "#SESSION_ID#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
+        When we get "events/#events._id#"
+        Then we get existing resource
+        """
+        { "state": "killed" }
+        """
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        { "state": "killed" }
+        """
+        When we get "/assignments"
+        Then we get list with 1 items

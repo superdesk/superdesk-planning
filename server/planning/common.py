@@ -130,13 +130,13 @@ def get_local_end_of_day(day=None, timezone=None):
 def is_locked_in_this_session(item, user_id=None, session_id=None):
     if user_id is None:
         user = get_user(required=True)
-        user_id = user.get(config.ID_FIELD)
+        user_id = str(user.get(config.ID_FIELD))
 
     if session_id is None:
         session = get_auth()
-        session_id = session.get(config.ID_FIELD)
+        session_id = str(session.get(config.ID_FIELD))
 
-    return item.get(LOCK_USER) == user_id and item.get(LOCK_SESSION) == session_id
+    return str(item.get(LOCK_USER)) == user_id and str(item.get(LOCK_SESSION)) == session_id
 
 
 def format_address(location=None):
@@ -168,12 +168,13 @@ def get_street_map_url(current_app=None):
 
 
 def get_item_post_state(item, new_post_state):
-    if new_post_state == POST_STATE.CANCELLED:
-        return WORKFLOW_STATE.KILLED
+    if item.get('state') != WORKFLOW_STATE.CANCELLED:
+        if new_post_state == POST_STATE.CANCELLED:
+            return WORKFLOW_STATE.KILLED
 
-    if item.get('pubstatus') != POST_STATE.USABLE:
-        # posting for first time, default to 'schedule' state
-        return WORKFLOW_STATE.SCHEDULED
+        if item.get('pubstatus') != POST_STATE.USABLE:
+            # posting for first time, default to 'schedule' state
+            return WORKFLOW_STATE.SCHEDULED
 
     return item.get('state')
 

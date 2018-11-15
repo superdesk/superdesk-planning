@@ -23,6 +23,8 @@ const mapStateToProps = (state) => ({
     contentTypes: selectors.general.contentTypes(state),
     defaultDesk: selectors.general.defaultDesk(state),
     preferredCoverageDesks: get(selectors.general.preferredCoverageDesks(state), 'desks'),
+    associatedPlannings: selectors.events.getRelatedPlannings(state),
+    associatedEvent: selectors.events.planningEditAssociatedEvent(state),
 });
 
 const mapStateToPropsModal = (state) => ({
@@ -42,6 +44,8 @@ const mapStateToPropsModal = (state) => ({
     contentTypes: selectors.general.contentTypes(state),
     defaultDesk: selectors.general.defaultDesk(state),
     preferredCoverageDesks: get(selectors.general.preferredCoverageDesks(state), 'desks'),
+    associatedPlannings: selectors.events.getRelatedPlanningsForModalEvent(state),
+    associatedEvent: selectors.events.planningEditAssociatedEventModal(state),
 });
 
 

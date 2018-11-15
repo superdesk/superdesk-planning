@@ -187,11 +187,7 @@ const save = (item, withConfirmation = true, noSubsequentEditing = false) => (
 
         switch (itemType) {
         case ITEM_TYPE.EVENT:
-            confirmation = withConfirmation && get(item, 'recurrence_id');
-            promise = dispatch(confirmation ?
-                eventsUi.saveWithConfirmation(item) :
-                eventsApi.save(item)
-            );
+            promise = dispatch(eventsUi.save(item, confirmation));
             break;
         case ITEM_TYPE.PLANNING:
             confirmation = false;
@@ -207,6 +203,7 @@ const save = (item, withConfirmation = true, noSubsequentEditing = false) => (
         return promise
             .then((savedItems) => {
                 const savedItem = Array.isArray(savedItems) ? savedItems[0] : savedItems;
+                const savedItemItemType = getItemType(savedItem);
 
                 if (selectors.general.currentWorkspace(getState()) !== WORKSPACE.AUTHORING) {
                     if (!existingItem) {
@@ -229,7 +226,7 @@ const save = (item, withConfirmation = true, noSubsequentEditing = false) => (
                             });
                     } else {
                         // Load it to store
-                        switch (getItemType(savedItem)) {
+                        switch (savedItemItemType) {
                         case ITEM_TYPE.EVENT:
                             dispatch(eventsApi.receiveEvents([eventUtils.modifyForClient(savedItem)]));
                             break;
@@ -240,7 +237,7 @@ const save = (item, withConfirmation = true, noSubsequentEditing = false) => (
                     }
                 }
 
-                if (!confirmation) {
+                if (!confirmation && [ITEM_TYPE.EVENT, ITEM_TYPE.PLANNING].includes(savedItemItemType)) {
                     notify.success(
                         gettext('The {{ itemType }} has been saved', {itemType: getItemTypeString(item)})
                     );
@@ -267,7 +264,7 @@ const unpost = (item, withConfirmation = true) => (
 
         switch (itemType) {
         case ITEM_TYPE.EVENT:
-            confirmation = withConfirmation && get(item, 'recurrence_id');
+            confirmation = withConfirmation && (get(item, 'recurrence_id') || eventUtils.eventHasPlanning(item));
             promise = dispatch(confirmation ?
                 eventsUi.postWithConfirmation(item, false) :
                 eventsApi.unpost(item)
@@ -284,7 +281,7 @@ const unpost = (item, withConfirmation = true) => (
         return promise
             .then(
                 (rtn) => {
-                    if (!confirmation) {
+                    if (!confirmation || get(rtn, 'pubstatus', POST_STATE.CANCELLED)) {
                         notify.success(
                             gettext('The {{ itemType }} has been unposted', {itemType: getItemTypeString(item)})
                         );
@@ -454,7 +451,8 @@ const openActionModalFromEditor = (item, title, action) => (
                     dispatch(locks.unlock(updatedItem))
                         .then((unlockedItem) => {
                             dispatch(hideModal());
-                            return action(unlockedItem, itemLock, isOpenInEditor, isOpenInModal);
+                            return action(eventUtils.modifyForClient(unlockedItem),
+                                itemLock, isOpenInEditor, isOpenInModal);
                         })
                 );
 
@@ -493,7 +491,8 @@ const openActionModalFromEditor = (item, title, action) => (
                 }));
             } else {
                 promise = dispatch(locks.unlock(item))
-                    .then((unlockedItem) => action(unlockedItem, itemLock, isOpenInEditor, isOpenInModal));
+                    .then((unlockedItem) => action(eventUtils.modifyForClient(unlockedItem),
+                        itemLock, isOpenInEditor, isOpenInModal));
             }
         } else {
             promise = action(item, itemLock, isOpenInEditor, isOpenInModal);

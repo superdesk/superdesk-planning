@@ -388,11 +388,7 @@ Feature: Events Spike
             "dates": {"start": "2099-02-12", "end": "2099-03-12"},
             "state": "scheduled",
             "pubstatus": "usable"
-        }, {
-            "_id": "event2", "guid": "event2",
-            "name": "Planning Event",
-            "dates": {"start": "2099-02-12", "end": "2099-03-12"}
-        }, {
+        },{
             "_id": "event3", "guid": "event3",
             "name": "Reschedule From Event",
             "dates": {"start": "2099-02-12", "end": "2099-03-12"},
@@ -410,25 +406,10 @@ Feature: Events Spike
             "state": "spiked"
         }]
         """
-        Given "planning"
-        """
-        [{
-            "_id": "plan1", "guid": "plan1",
-            "slugline": "TestPlan 1",
-            "event_item": "event2",
-            "state": "draft",
-            "planning_date": "2016-01-02"
-        }]
-        """
         When we spike events "event1"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "400: Spike failed. Public Events cannot be spiked."}}
-        """
-        When we spike events "event2"
-        Then we get error 400
-        """
-        {"_issues": {"validator exception": "400: Spike failed. Event has an associated Planning item."}}
+        {"_issues": {"validator exception": "400: Spike failed. Posted Events cannot be spiked."}}
         """
         When we spike events "event3"
         Then we get error 400
@@ -681,4 +662,416 @@ Feature: Events Spike
                 }
             }
         }]}
+        """
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Spiking an event will spike associated planning item in draft state
+        Given we have sessions "/sessions"
+        Given "planning"
+        """
+        [{
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "TestEvent",
+            "state": "draft",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "add_as_event",
+            "lock_time": "#DATE#",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        When we reset notifications
+        When we post to "events"
+        """
+        {
+            "name": "TestEvent",
+            "slugline": "TestEvent",
+            "_planning_item": "plan1",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get OK response
+        When we spike events "#events._id#"
+        Then we get error 400
+        When we post to "/planning/#planning._id#/unlock"
+        """
+        {}
+        """
+        Then we get OK response
+        When we spike events "#events._id#"
+        Then we get OK response
+        When we get "events/#events._id#"
+        Then we get existing resource
+        """
+        { "state": "spiked" }
+        """
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        { "state": "spiked" }
+        """
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Spiking an event will spike only draft associated planning items
+        Given we have sessions "/sessions"
+        Given "events"
+        """
+        [{
+            "name": "TestEvent",
+            "slugline": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }]
+        """
+        Given "planning"
+        """
+        [{
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "TestEvent",
+            "state": "draft",
+            "planning_date": "2016-01-02",
+            "event_item": "#events._id#"
+        },
+        {
+            "_id": "plan2",
+            "guid": "plan2",
+            "slugline": "TestEvent",
+            "state": "spiked",
+            "planning_date": "2016-01-02",
+            "event_item": "#events._id#"
+        },
+        {
+            "_id": "plan3",
+            "guid": "plan3",
+            "slugline": "TestEvent",
+            "state": "postponed",
+            "planning_date": "2016-01-02",
+            "event_item": "#events._id#"
+        },
+        {
+            "_id": "plan4",
+            "guid": "plan4",
+            "slugline": "TestEvent",
+            "state": "rescheduled",
+            "planning_date": "2016-01-02",
+            "event_item": "#events._id#"
+        },
+        {
+            "_id": "plan5",
+            "guid": "plan5",
+            "slugline": "TestEvent",
+            "state": "cancelled",
+            "planning_date": "2016-01-02",
+            "event_item": "#events._id#"
+        },
+        {
+            "_id": "plan6",
+            "guid": "plan6",
+            "slugline": "TestEvent",
+            "state": "scheduled",
+            "planning_date": "2016-01-02",
+            "event_item": "#events._id#"
+        },
+        {
+            "_id": "plan7",
+            "guid": "plan7",
+            "slugline": "TestEvent",
+            "state": "killed",
+            "planning_date": "2016-01-02",
+            "event_item": "#events._id#"
+        }]
+        """
+        Then we get OK response
+        When we spike events "#events._id#"
+        Then we get OK response
+        When we get "events/#events._id#"
+        Then we get existing resource
+        """
+        { "state": "spiked" }
+        """
+        When we get "planning/"
+        Then we get list with 7 items
+        """
+        {"_items":
+        [{
+            "_id": "plan1",
+            "slugline": "TestEvent",
+            "state": "spiked"
+        },
+        {
+            "_id": "plan2",
+            "slugline": "TestEvent",
+            "state": "spiked"
+        },
+        {
+            "_id": "plan3",
+            "slugline": "TestEvent",
+            "state": "postponed"
+        },
+        {
+            "_id": "plan4",
+            "slugline": "TestEvent",
+            "state": "rescheduled"
+        },
+        {
+            "_id": "plan5",
+            "slugline": "TestEvent",
+            "state": "cancelled"
+        },
+        {
+            "_id": "plan6",
+            "slugline": "TestEvent",
+            "state": "scheduled"
+        },
+        {
+            "_id": "plan7",
+            "slugline": "TestEvent",
+            "state": "killed"
+        }
+        ]
+        }
+        """
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Spiking an event will delete associated assignment
+        Given we have sessions "/sessions"
+        Given "users"
+        """
+        [{"username": "foo", "email": "foo@bar.com", "sign_off": "abc"}]
+        """
+        Given the "validators"
+        """
+        [{
+            "schema": {},
+            "type": "text",
+            "act": "publish",
+            "_id": "publish_text"
+        },
+        {
+            "_id": "publish_composite",
+            "act": "publish",
+            "type": "composite",
+            "schema": {}
+        }]
+        """
+        And "desks"
+        """
+        [{"name": "Sports", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
+        When we post to "events"
+        """
+        {
+            "name": "TestEvent",
+            "slugline": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        When we post to "/planning"
+        """
+        {
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02",
+            "event_item": "#events._id#"
+        }
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {"coverages": [{
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "g2_content_type" : "text"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
+            },
+            "workflow_status": "active"
+        }]}
+        """
+        Then we get OK response
+        Then we store coverage id in "coverageId" from coverage 0
+        Then we store assignment id in "assignmentId" from coverage 0
+        When we get "/assignments"
+        Then we get list with 1 items
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        When we post to "assignments/link"
+        """
+        [{"assignment_id": "#assignmentId#", "item_id": "#archive._id#", "reassign": true}]
+        """
+        Then we get OK response
+        When we get "/archive/#archive._id#"
+        Then we get existing resource
+        """
+        {"assignment_id": "#assignmentId#"}
+        """
+        Then we get OK response
+        When we spike events "#events._id#"
+        Then we get OK response
+        When we get "events/#events._id#"
+        Then we get existing resource
+        """
+        { "state": "spiked" }
+        """
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        { "state": "spiked" }
+        """
+        When we get "/assignments"
+        Then we get list with 0 items
+
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Spiking an event will send notifications if assignment deletion fails
+        Given we have sessions "/sessions"
+        Given "users"
+        """
+        [{"username": "foo", "email": "foo@bar.com", "sign_off": "abc"}]
+        """
+        Given the "validators"
+        """
+        [{
+            "schema": {},
+            "type": "text",
+            "act": "publish",
+            "_id": "publish_text"
+        },
+        {
+            "_id": "publish_composite",
+            "act": "publish",
+            "type": "composite",
+            "schema": {}
+        }]
+        """
+        And "desks"
+        """
+        [{"name": "Sports", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
+        When we post to "events"
+        """
+        {
+            "name": "TestEvent",
+            "slugline": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        When we post to "/planning"
+        """
+        {
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02",
+            "event_item": "#events._id#"
+        }
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {"coverages": [{
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "g2_content_type" : "text"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
+            },
+            "workflow_status": "active"
+        }]}
+        """
+        Then we get OK response
+        Then we store coverage id in "coverageId" from coverage 0
+        Then we store assignment id in "assignmentId" from coverage 0
+        When we get "/assignments"
+        Then we get list with 1 items
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        When we post to "assignments/link"
+        """
+        [{"assignment_id": "#assignmentId#", "item_id": "#archive._id#", "reassign": true}]
+        """
+        Then we get OK response
+        When we get "/archive/#archive._id#"
+        Then we get existing resource
+        """
+        {"assignment_id": "#assignmentId#"}
+        """
+        Then we get OK response
+        When we patch "/archive/#archive._id#"
+        """
+        {"lock_user": "#users._id#"}
+        """
+        When we spike events "#events._id#"
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "assignments:remove:fail",
+            "extra": {
+                "items": [
+                  {
+                    "slugline": "test slugline",
+                    "type": "text"
+                  }
+                ],
+                "session": "#SESSION_ID#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
         """

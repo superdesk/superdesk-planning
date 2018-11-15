@@ -1,5 +1,5 @@
 import {showModal, main, locks} from '../index';
-import {EVENTS, MODALS, SPIKED_STATE, MAIN, ITEM_TYPE} from '../../constants';
+import {EVENTS, MODALS, SPIKED_STATE, MAIN, ITEM_TYPE, POST_STATE} from '../../constants';
 import eventsApi from './api';
 import planningApi from '../planning/api';
 import * as selectors from '../../selectors';
@@ -12,6 +12,7 @@ import {
     dispatchUtils,
     gettext,
     getItemInArrayById,
+    getPostedState,
 } from '../../utils';
 
 /**
@@ -150,16 +151,20 @@ const postponeEvent = (event) => (
 );
 
 const openSpikeModal = (event, post = false, modalProps = {}) => (
-    (dispatch) => dispatch(self._openActionModal(
-        event,
-        EVENTS.ITEM_ACTIONS.SPIKE.label,
-        null,
-        true,
-        post,
-        false,
-        true,
-        modalProps
-    ))
+    (dispatch) => (
+        dispatch(eventsApi.loadEventDataForAction(event, true, post, true, true)).then((eventWithData) => {
+            dispatch(self._openActionModal(
+                eventWithData,
+                EVENTS.ITEM_ACTIONS.SPIKE.label,
+                null,
+                true,
+                post,
+                false,
+                true,
+                modalProps
+            ));
+        }
+        ))
 );
 
 const openUnspikeModal = (event, post = false) => (
@@ -494,37 +499,44 @@ const postWithConfirmation = (event, post) => (
     (dispatch, getState) => {
         const events = selectors.events.storedEvents(getState());
         const originalEvent = get(events, event._id, {});
-        const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
 
         // If this is not from a recurring series, then simply post this event
-        if (!get(originalEvent, 'recurrence_id')) {
+        const hasPlannings = eventUtils.eventHasPlanning(event);
+
+        if (!get(originalEvent, 'recurrence_id') && !hasPlannings) {
             return dispatch(post ?
                 eventsApi.post(event) :
                 eventsApi.unpost(event)
             );
         }
 
-        return dispatch(eventsApi.query({
-            recurrenceId: originalEvent.recurrence_id,
-            maxResults: maxRecurringEvents,
-            onlyFuture: false,
-        }))
-            .then((relatedEvents) => (
-                dispatch(showModal({
-                    modalType: MODALS.ITEM_ACTIONS_MODAL,
-                    modalProps: {
-                        eventDetail: {
-                            ...event,
-                            _recurring: relatedEvents || [event],
-                            _events: [],
-                            _originalEvent: originalEvent,
-                            _post: post,
-                        },
-                        actionType: EVENTS.ITEM_ACTIONS.POST_EVENT.label,
-                    },
-                }))
-            ));
+        return dispatch(self.openEventPostModal(event, post));
     }
+);
+
+const openEventPostModal = (event, post, unpostAction, modalProps = {}) => (
+    (dispatch) => (
+        dispatch(eventsApi.loadEventDataForAction(event, true, post, true, true)).then((eventWithData) => {
+            if (!post && !eventWithData.recurrence_id && !eventUtils.eventHasPostedPlannings(eventWithData)) {
+                // Not a recurring event and has no posted planning items to confirm unpost
+                // Just unpost
+                if (!unpostAction) {
+                    return dispatch(eventsApi.unpost(eventWithData));
+                }
+
+                return dispatch(unpostAction(event));
+            }
+
+            return dispatch(showModal({
+                modalType: MODALS.ITEM_ACTIONS_MODAL,
+                modalProps: {
+                    eventDetail: eventWithData,
+                    actionType: modalProps.actionType ? modalProps.actionType : EVENTS.ITEM_ACTIONS.POST_EVENT.label,
+                    ...modalProps,
+                },
+            }));
+        })
+    )
 );
 
 
@@ -678,7 +690,7 @@ const assignToCalendar = (event, calendar) => (
         dispatch(locks.lock(event, 'assign_calendar'))
             .then((lockedItem) => {
                 lockedItem.calendars = [...get(lockedItem, 'calendars', []), calendar];
-                return get(event, 'recurrence_id') ? dispatch(self.saveWithConfirmation(lockedItem, true)) :
+                return get(event, 'recurrence_id') ? dispatch(self.save(lockedItem, true, true)) :
                     dispatch(main.saveAndUnlockItem(lockedItem)).then(() => {
                         notify.success(gettext('Calendar assigned to the event.'));
                         return Promise.resolve();
@@ -690,6 +702,20 @@ const assignToCalendar = (event, calendar) => (
                 return Promise.reject(error);
             })
     )
+);
+
+const save = (item, confirmation, unlockOnClose) => (
+    (dispatch) => {
+        if (confirmation && (get(item, 'recurrence_id') || getPostedState(item) === POST_STATE.CANCELLED)) {
+            // We are saving and unposting - may need to ask confirmation
+            return dispatch(self.openEventPostModal(item, item._post, eventsApi.save, {
+                actionType: 'save',
+                unlockOnClose: unlockOnClose,
+            }));
+        }
+
+        return dispatch(eventsApi.save(item));
+    }
 );
 
 // eslint-disable-next-line consistent-this
@@ -727,6 +753,8 @@ const self = {
     _openActionModalFromEditor,
     onEventEditUnlock,
     assignToCalendar,
+    openEventPostModal,
+    save,
 };
 
 export default self;

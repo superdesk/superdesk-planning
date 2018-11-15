@@ -31,7 +31,7 @@ from planning.item_lock import LockService, LOCK_USER, LOCK_ACTION
 from superdesk.users.services import current_user_has_privilege
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information, \
     get_local_end_of_day, is_locked_in_this_session, get_coverage_type_name, \
-    get_version_item_for_post, enqueue_planning_item, DEFAULT_ASSIGNMENT_PRIORITY
+    get_version_item_for_post, enqueue_planning_item, DEFAULT_ASSIGNMENT_PRIORITY, WORKFLOW_STATE
 from flask import request, json, current_app as app
 from planning.planning_notifications import PlanningNotifications
 from apps.content import push_content_notification
@@ -73,18 +73,24 @@ class AssignmentsService(superdesk.Service):
         self._enchance_assignment(doc)
 
     def _enchance_assignment(self, doc):
-        """Populate `item_ids` with ids for all linked Archive items for an Assignment
+        """Populate `item_ids` with ids for all linked Archive items for an Assignment"""
 
-        Using the `search` resource service, retrieve the list of Archive items linked to
-        the provided Assignment.
-        """
+        results = self.get_archive_items_for_assignment(doc)
+        if results.count() > 0:
+            doc['item_ids'] = [str(item.get(config.ID_FIELD)) for item in results]
+
+        self.set_type(doc, doc)
+
+    def get_archive_items_for_assignment(self, assignment):
+        """Using the `search` resource service, retrieve the list of Archive items linked to the provided Assignment."""
+
         query = {
             'query': {
                 'filtered': {
                     'filter': {
                         'bool': {
                             'must': {
-                                'term': {'assignment_id': str(doc[config.ID_FIELD])}
+                                'term': {'assignment_id': str(assignment[config.ID_FIELD])}
                             },
                         }
                     }
@@ -95,12 +101,7 @@ class AssignmentsService(superdesk.Service):
         req = ParsedRequest()
         repos = 'archive,published,archived'
         req.args = {'source': json.dumps(query), 'repo': repos}
-        items = list(get_resource_service('search').get(req=req, lookup=None))
-
-        if items:
-            doc['item_ids'] = [str(item.get(config.ID_FIELD)) for item in items]
-
-        self.set_type(doc, doc)
+        return get_resource_service('search').get(req=req, lookup=None)
 
     @staticmethod
     def set_type(updates, original):
@@ -178,8 +179,15 @@ class AssignmentsService(superdesk.Service):
             updates['version_creator'] = str(user.get(config.ID_FIELD)) if user else None
 
     def on_update(self, updates, original):
+        self.validate_assignment_action(original)
         self.set_assignment(updates, original)
         remove_lock_information(updates)
+
+    def validate_assignment_action(self, assignment):
+        if assignment.get('_to_delete'):
+            plan = get_resource_service('planning').find_one(req=None, _id=assignment.get('planning_item'))
+            state = 'unposted' if (plan or {}).get('state') == WORKFLOW_STATE.KILLED else (plan or {}).get('state')
+            raise SuperdeskApiError.forbiddenError('Action failed. Related planning item is {}'.format(state))
 
     def notify(self, event_name, updates, original):
         # No notifications for 'draft' assignments
@@ -696,23 +704,58 @@ class AssignmentsService(superdesk.Service):
             return False, 'User does not have sufficient permissions.'
         return True, ''
 
+    def is_associated_planning_or_event_locked(self, planning_item):
+        associated_event = planning_item.get('event_item')
+        if is_locked_in_this_session(planning_item):
+            return True
+
+        if not associated_event:
+            return False
+
+        event = get_resource_service('events').find_one(req=None, _id=associated_event)
+        if not planning_item.get('recurrence_id'):
+            return is_locked_in_this_session(event)
+        else:
+            lock_service = get_component(LockService)
+            try:
+                lock_service.validate_relationship_locks(event, 'events')
+            except SuperdeskApiError:
+                # Something along the relationship line is locked - allow remove
+                return True
+
     def on_delete(self, doc):
         """
         Validate that we have a lock on the Assignment and it's associated Planning item
         """
-        # Make sure the Assignment is locked by this user and session
-        if not is_locked_in_this_session(doc):
-            raise SuperdeskApiError.forbiddenError(
-                message='Lock is not obtained on the Assignment item'
-            )
 
         # Also make sure the Planning item is locked by this user and session
         planning_service = get_resource_service('planning')
         planning_item = planning_service.find_one(req=None, _id=doc.get('planning_item'))
-        if planning_item and not is_locked_in_this_session(planning_item):
+        planning_item_state = (planning_item or {}).get('state')
+
+        if planning_item_state != WORKFLOW_STATE.SPIKED:
+            if not self.is_associated_planning_or_event_locked(planning_item):
+                raise SuperdeskApiError.forbiddenError(
+                    message='Lock is not obtained on the associated Planning item or Event'
+                )
+
+        # Make sure the Assignment is locked by this user and session
+        assignment_locked = is_locked_in_this_session(doc)
+        if planning_item_state in [WORKFLOW_STATE.KILLED, WORKFLOW_STATE.SPIKED] and\
+                (not doc.get('lock_user') or assignment_locked):
+            assignment_locked = True
+
+        if not assignment_locked:
             raise SuperdeskApiError.forbiddenError(
-                message='Lock is not obtained on the associated Planning item'
+                message='Lock is not obtained on the Assignment item'
             )
+
+        # Make sure the content linked to assignment (if) is also not locked
+        # This is needed when the planing item is being unposted/spiked
+        archive_items = self.get_archive_items_for_assignment(doc)
+        for archive_item in archive_items:
+            if archive_item.get('lock_user') and not is_locked_in_this_session(archive_item):
+                    raise SuperdeskApiError.forbiddenError(message='Associated archive item is locked')
 
         # Make sure we cannot delete a completed Assignment
         # This should not be needed, as you cannot obtain a lock on an Assignment that is completed
@@ -803,7 +846,8 @@ class AssignmentsService(superdesk.Service):
             planning_item = planning_service.find_one(req=None, _id=planning_id)
             published_planning_item = published_service.get_last_published_item(planning_id)
 
-            if not planning_item or not published_planning_item:
+            if not planning_item or not published_planning_item \
+                    or planning_item.get('state') == WORKFLOW_STATE.KILLED:
                 return
 
             def _publish_planning(item):
@@ -899,6 +943,9 @@ assignments_schema = {
     # coverage details
     'planning': coverage_schema['planning'],
     'description_text': metadata_schema['description_text'],
+
+    # Field to mark assignment for deletion if a delete operation fails
+    '_to_delete': {'type': 'boolean'}
 }
 
 

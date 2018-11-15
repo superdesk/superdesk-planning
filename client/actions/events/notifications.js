@@ -3,6 +3,7 @@ import {WORKFLOW_STATE, EVENTS, ITEM_TYPE} from '../../constants';
 import eventsApi from './api';
 import eventsUi from './ui';
 import main from '../main';
+import planningApi from '../planning/api';
 import {get} from 'lodash';
 import {gettext, dispatchUtils, getErrorMessage, isItemLockedForEditing} from '../../utils';
 import eventsPlanning from '../eventsPlanning';
@@ -197,10 +198,12 @@ const onEventPostponed = (e, data) => (
 );
 
 const onEventPostChanged = (e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (get(data, 'item')) {
+            const posted = data.state === WORKFLOW_STATE.SCHEDULED;
+
             dispatch({
-                type: data.state === WORKFLOW_STATE.SCHEDULED ?
+                type: posted ?
                     EVENTS.ACTIONS.MARK_EVENT_POSTED :
                     EVENTS.ACTIONS.MARK_EVENT_UNPOSTED,
                 payload: {
@@ -214,6 +217,13 @@ const onEventPostChanged = (e, data) => (
                 },
             });
             dispatch(fetchItemHistoryOnRecurringNotitication(data));
+
+            // When unposted, planning item also gets unposted
+            const storedEvent = selectors.events.storedEvents(getState())[data.item];
+
+            if (!posted && get(storedEvent, 'planning_ids.length', 0) > 0) {
+                dispatch(planningApi.loadPlanningByEventId(data.item));
+            }
         }
 
         return Promise.resolve();

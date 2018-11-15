@@ -8,7 +8,7 @@ import {Location} from '../Location';
 
 import {onEventCapture, formatAddress} from '../../utils';
 
-export const LocationItem = ({location, streetMapUrl, active, onRemoveLocation}) => (
+export const LocationItem = ({location, streetMapUrl, active, onRemoveLocation, readOnly}) => (
     <Item noBg={!active} activated={active} className="sd-collapse-box sd-shadow--z2">
         <Border/>
         <Column grow={true} border={false}>
@@ -20,7 +20,7 @@ export const LocationItem = ({location, streetMapUrl, active, onRemoveLocation})
                     mapUrl={streetMapUrl}
                     multiLine={true} />
                 <ActionMenu className="pull-right">
-                    <Button
+                    {!readOnly && <Button
                         data-sd-tooltip={gettext('Remove Location')}
                         data-flow="left"
                         onClick={() => {
@@ -29,7 +29,7 @@ export const LocationItem = ({location, streetMapUrl, active, onRemoveLocation})
                         }}
                         icon="icon-trash"
                         pullRight
-                        empty />
+                        empty />}
                 </ActionMenu>
             </Row>
         </Column>
@@ -41,4 +41,5 @@ LocationItem.propTypes = {
     location: PropTypes.object,
     active: PropTypes.bool,
     onRemoveLocation: PropTypes.func,
+    readOnly: PropTypes.bool,
 };

@@ -1,6 +1,7 @@
 import eventsApi from '../api';
 import eventsUi from '../ui';
 import eventsPlanningUi from '../../eventsPlanning/ui';
+import planningApi from '../../planning/api';
 import main from '../../main';
 import sinon from 'sinon';
 import {registerNotifications} from '../../../utils';
@@ -265,6 +266,13 @@ describe('actions.events.notifications', () => {
     describe('onEventPostChanged', () => {
         beforeEach(() => {
             restoreSinonStub(eventsNotifications.onEventPostChanged);
+            sinon.stub(planningApi, 'loadPlanningByEventId').callsFake(
+                () => (Promise.resolve())
+            );
+        });
+
+        afterEach(() => {
+            restoreSinonStub(planningApi.loadPlanningByEventId);
         });
 
         it('dispatches `MARK_EVENT_POSTED`', (done) => (
@@ -350,7 +358,7 @@ describe('actions.events.notifications', () => {
                 }
             ))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(2);
+                    expect(store.dispatch.callCount).toBe(3);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'MARK_EVENT_UNPOSTED',
                         payload: {
@@ -388,7 +396,7 @@ describe('actions.events.notifications', () => {
                 }
             ))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(2);
+                    expect(store.dispatch.callCount).toBe(3);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'MARK_EVENT_UNPOSTED',
                         payload: {
@@ -407,6 +415,35 @@ describe('actions.events.notifications', () => {
                             pubstatus: 'cancelled',
                         },
                     }]);
+                    done();
+                })
+        ).catch(done.fail));
+
+        it('fetches associated plannings for an event', (done) => (
+            store.test(done, eventsNotifications.onEventPostChanged(
+                {},
+                {
+                    item: data.events[0]._id,
+                    state: 'killed',
+                    pubstatus: 'cancelled',
+                    etag: 'e123',
+                }
+            ))
+                .then(() => {
+                    expect(store.dispatch.callCount).toBe(3);
+                    expect(store.dispatch.args[0]).toEqual([{
+                        type: 'MARK_EVENT_UNPOSTED',
+                        payload: {
+                            item: data.events[0]._id,
+                            items: [{
+                                id: data.events[0]._id,
+                                etag: data.events[0]._etag,
+                            }],
+                            state: 'killed',
+                            pubstatus: 'cancelled',
+                        },
+                    }]);
+                    expect(planningApi.loadPlanningByEventId.callCount).toBe(1);
                     done();
                 })
         ).catch(done.fail));

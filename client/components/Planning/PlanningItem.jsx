@@ -10,15 +10,16 @@ import {Button as NavButton} from '../UI/Nav';
 import Icon from '../UI/IconMix';
 import {EventDateTime} from '../Events';
 import {ItemActionsMenu} from '../index';
-import {PLANNING, EVENTS, MAIN, ICON_COLORS} from '../../constants';
+import {PLANNING, EVENTS, MAIN, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
 
 import {
     planningUtils,
     onEventCapture,
-    isItemPublic,
+    isItemPosted,
     getItemId,
     isItemExpired,
     isItemDifferent,
+    getItemWorkflowState,
 } from '../../utils';
 import {gettext} from '../../utils/gettext';
 import {renderFields} from '../fields';
@@ -173,7 +174,8 @@ export class PlanningItem extends React.Component {
                     onCheckToggle={onMultiSelectClick.bind(null, item)}
                     color={!isExpired && ICON_COLORS.LIGHT_BLUE}
                 />
-                <PubStatus item={item} isPublic={isItemPublic(item)}/>
+                <PubStatus item={item} isPublic={isItemPosted(item) &&
+                    getItemWorkflowState(item) !== WORKFLOW_STATE.KILLED}/>
                 <Column
                     grow={true}
                     border={false}

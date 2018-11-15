@@ -1,9 +1,9 @@
 import * as selectors from '../../selectors';
 import assignments from './index';
 import main from '../main';
-import {get} from 'lodash';
+import {get, isEmpty} from 'lodash';
 import planning from '../planning';
-import {ASSIGNMENTS, WORKSPACE} from '../../constants';
+import {ASSIGNMENTS, WORKSPACE, PLANNING} from '../../constants';
 import {lockUtils, assignmentUtils, gettext, isExistingItem} from '../../utils';
 import {hideModal, showModal} from '../index';
 
@@ -126,6 +126,7 @@ const onAssignmentUpdated = (_e, data) => (
 const _updatePlannigRelatedToAssignment = (data) => (
     (dispatch, getState) => {
         const plans = selectors.planning.storedPlannings(getState());
+        const session = selectors.general.session(getState());
 
         if (!get(data, 'planning')) {
             return Promise.resolve();
@@ -140,8 +141,16 @@ const _updatePlannigRelatedToAssignment = (data) => (
         let coverages = get(planningItem, 'coverages') || [];
         let coverage = coverages.find((cov) => cov.coverage_id === data.coverage);
 
-        if (!coverage) {
+        if (!coverage || isEmpty(coverage.assigned_to)) {
             return Promise.resolve();
+        }
+
+        if (get(planningItem, 'lock_action') !== 'edit' && !!get(planningItem, 'lock_user') &&
+                !lockUtils.isItemLockedInThisSession(planningItem, session)) {
+            dispatch({
+                type: PLANNING.ACTIONS.UNLOCK_PLANNING,
+                payload: {plan: planningItem},
+            });
         }
 
         coverage.assigned_to.user = data.assigned_user;
@@ -277,6 +286,27 @@ const onAssignmentRemoved = (_e, data) => (
     }
 );
 
+const onAssignmentRemoveFailed = (_e, data) => (
+    (dispatch, getState, {notify}) => {
+        const currentUserId = selectors.general.currentUserId(getState());
+        const sessionId = selectors.general.sessionId(getState());
+
+        if (get(data, 'items.length', 0) > 0 &&
+                get(data, 'user') === currentUserId &&
+                get(data, 'session') === sessionId) {
+            const msg = data.items.map((i) => gettext('Delete of {{ type }} assignment \'{{ slugline }}\' failed',
+                {
+                    type: get(i, 'type'),
+                    slugline: get(i, 'slugline'),
+                })).join('\n');
+
+            notify.error(msg);
+        }
+
+        return Promise.resolve();
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     onAssignmentCreated,
@@ -284,6 +314,7 @@ const self = {
     onAssignmentLocked,
     onAssignmentUnlocked,
     onAssignmentRemoved,
+    onAssignmentRemoveFailed,
 };
 
 // Map of notification name and Action Event to execute
@@ -295,6 +326,7 @@ self.events = {
     'assignments:completed': () => (self.onAssignmentUpdated),
     'assignments:reverted': () => (self.onAssignmentUpdated),
     'assignments:removed': () => (self.onAssignmentRemoved),
+    'assignments:remove:fail': () => (self.onAssignmentRemoveFailed),
 };
 
 export default self;

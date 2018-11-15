@@ -25,6 +25,7 @@ import {
     generateTempId,
     isExistingItem,
     isItemExpired,
+    isItemPosted,
 } from './index';
 import moment from 'moment';
 import RRule from 'rrule';
@@ -113,7 +114,7 @@ const doesRecurringEventsOverlap = (startingDate, endingDate, recurringRule) => 
     return nextEvent.isBetween(startingDate, endingDate) || nextEvent.isSame(endingDate);
 };
 
-const getRelatedEventsForRecurringEvent = (recurringEvent, filter) => {
+const getRelatedEventsForRecurringEvent = (recurringEvent, filter, postedPlanningOnly) => {
     let eventsInSeries = get(recurringEvent, '_recurring', []);
     let events = [];
     let plannings = get(recurringEvent, '_plannings', []);
@@ -137,7 +138,8 @@ const getRelatedEventsForRecurringEvent = (recurringEvent, filter) => {
         const eventIds = map(events, '_id');
 
         plannings = plannings.filter(
-            (p) => (eventIds.indexOf(p.event_item) > -1 || p.event_item === recurringEvent._id)
+            (p) => ((eventIds.indexOf(p.event_item) > -1 || p.event_item === recurringEvent._id) &&
+                (!postedPlanningOnly || p.pubstatus === POST_STATE.USABLE))
         );
     }
 
@@ -154,7 +156,7 @@ const isEventIngested = (event) => (
 
 const canSpikeEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
-        !isItemPublic(event) &&
+        !isItemPosted(event) &&
         (
             getItemWorkflowState(event) === WORKFLOW_STATE.DRAFT ||
             isEventIngested(event) ||
@@ -164,7 +166,6 @@ const canSpikeEvent = (event, session, privileges, locks) => (
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isEventLockRestricted(event, session, locks) &&
         !get(event, 'reschedule_from') &&
-        !isEventInUse(event) &&
         (!isItemExpired(event) || privileges[PRIVILEGES.EDIT_EXPIRED])
 );
 
@@ -212,7 +213,7 @@ const canPostEvent = (event, session, privileges, locks) => (
         !!privileges[PRIVILEGES.POST_EVENT] &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isEventLockRestricted(event, session, locks) &&
-        !isItemCancelled(event) &&
+        (!isItemCancelled(event) || getItemWorkflowState(event) === WORKFLOW_STATE.KILLED) &&
         !isItemRescheduled(event)
 );
 
@@ -256,7 +257,7 @@ const canConvertToRecurringEvent = (event, session, privileges, locks) => (
 const canEditEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
         !isItemSpiked(event) &&
-        !isItemCancelled(event) &&
+        (!isItemCancelled(event) || getItemWorkflowState(event) === WORKFLOW_STATE.KILLED) &&
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT]) &&
@@ -905,6 +906,18 @@ const eventsDatesSame = (event1, event2, granularity = TIME_COMPARISON_GRANULARI
     return nonMomentFieldsEqual;
 };
 
+const eventHasPostedPlannings = (event) => {
+    let hasPosteditem = false;
+
+    get(event, '_relatedPlannings', []).forEach((p) => {
+        if (POST_STATE.USABLE === p.pubstatus) {
+            hasPosteditem = true;
+        }
+    });
+
+    return hasPosteditem;
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     isEventAllDay,
@@ -945,6 +958,7 @@ const self = {
     shouldFetchFilesForEvent,
     getRepeatSummaryForEvent,
     eventsDatesSame,
+    eventHasPostedPlannings,
 };
 
 export default self;

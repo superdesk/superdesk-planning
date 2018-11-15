@@ -511,7 +511,7 @@ const addCoverageToWorkflow = (original, updatedCoverage, index) => (
 
         return dispatch(planningApi.save(updates, original))
             .then((savedItem) => {
-                notify.success('Coverage added to workflow.');
+                notify.success(gettext('Coverage added to workflow.'));
                 return dispatch(self.updateItemOnSave(savedItem));
             });
     }
@@ -532,7 +532,7 @@ const removeAssignment = (original, updatedCoverage, index) => (
 
         return dispatch(planningApi.save(updates, original))
             .then((savedItem) => {
-                notify.success('Removed assignment from coverage.');
+                notify.success(gettext('Removed assignment from coverage.'));
                 return dispatch(self.updateItemOnSave(savedItem));
             });
     }

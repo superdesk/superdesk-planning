@@ -43,7 +43,7 @@ export const UpdateMethodSelection = ({
             </div>
         )}
 
-        { showMethodSelection && relatedEvents.length > 0 && (
+        { relatedEvents.length > 0 && (
             <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">
                 <strong>{gettext('This will also {{action}} the following events', {action})}</strong>
                 <RelatedEvents

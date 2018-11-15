@@ -83,6 +83,7 @@ export class EditorHeader extends React.Component {
             lockedItems,
             session,
             privileges,
+            associatedEvent,
         } = this.props;
 
         if (states.isExpired && !states.canEditExpired) {
@@ -96,15 +97,20 @@ export class EditorHeader extends React.Component {
         if (states.isLockedInContext) {
             switch (get(states, 'itemLock.action')) {
             case 'edit':
-                states.canPost = planningUtils.canPostPlanning(diff, null, session, privileges, lockedItems);
-                states.canUnpost = planningUtils.canUnpostPlanning(item, null, session, privileges, lockedItems);
-                states.canUpdate = planningUtils.canUpdatePlanning(item, null, session, privileges, lockedItems);
-                states.canEdit = planningUtils.canEditPlanning(item, null, session, privileges, lockedItems);
+                states.canPost = planningUtils.canPostPlanning(diff,
+                    associatedEvent, session, privileges, lockedItems);
+                states.canUnpost = planningUtils.canUnpostPlanning(item,
+                    associatedEvent, session, privileges, lockedItems);
+                states.canUpdate = planningUtils.canUpdatePlanning(item,
+                    associatedEvent, session, privileges, lockedItems);
+                states.canEdit = planningUtils.canEditPlanning(item,
+                    associatedEvent, session, privileges, lockedItems);
                 break;
             case 'add_to_planning':
-                states.canPost = planningUtils.canPostPlanning(diff, null, session, privileges, lockedItems);
-                states.canUpdate = planningUtils.canUpdatePlanning(item, null, session, privileges, lockedItems);
-                states.canEdit = planningUtils.canEditPlanning(item, null, session, privileges, lockedItems);
+                states.canPost = planningUtils.canPostPlanning(diff, associatedEvent, session, privileges, lockedItems);
+                states.canUpdate = planningUtils.canUpdatePlanning(item,
+                    associatedEvent, session, privileges, lockedItems);
+                states.canEdit = planningUtils.canEditPlanning(item, associatedEvent, session, privileges, lockedItems);
                 break;
             }
         }
@@ -324,6 +330,7 @@ export class EditorHeader extends React.Component {
             closeEditorAndOpenModal,
             flushAutosave,
             contentTypes,
+            associatedEvent,
         } = this.props;
 
         const states = this.getItemStates();
@@ -363,6 +370,7 @@ export class EditorHeader extends React.Component {
                         lockedItems={lockedItems}
                         flushAutosave={flushAutosave}
                         contentTypes={contentTypes}
+                        event={associatedEvent}
                     />
                 )}
             </Header>

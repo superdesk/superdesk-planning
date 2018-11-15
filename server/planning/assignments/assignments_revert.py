@@ -37,6 +37,7 @@ class AssignmentsRevertService(BaseService):
     def on_update(self, updates, original):
         coverage_type = original.get('planning', {}).get('g2_content_type')
         assignment_state = original.get('assigned_to').get('state')
+        get_resource_service('assignments').validate_assignment_action(original)
 
         if coverage_type == 'text':
             raise SuperdeskApiError.forbiddenError('Cannot revert text assignments.')

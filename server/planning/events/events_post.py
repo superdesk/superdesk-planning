@@ -37,8 +37,9 @@ class EventsPostResource(EventsResource):
 class EventsPostService(EventsBaseService):
     def create(self, docs):
         ids = []
+        events_service = get_resource_service('events')
         for doc in docs:
-            event = get_resource_service('events').find_one(req=None, _id=doc['event'])
+            event = events_service.find_one(req=None, _id=doc['event'])
 
             if not event:
                 abort(412)
@@ -164,7 +165,33 @@ class EventsPostService(EventsBaseService):
         else:
             logger.error('Failed to save planning version for event item id {}'.format(event['_id']))
 
+        plannings = get_resource_service('events').get_plannings_for_event(event)
+        if plannings.count() > 0:
+            self.post_related_plannings(plannings, new_post_state)
+
         return updated_event
+
+    def post_related_plannings(self, plannings, new_post_state):
+        # Check to see if we are un-posting, we need to unpost it's planning item
+        if new_post_state != POST_STATE.CANCELLED:
+            return
+
+        planning_post_service = get_resource_service('planning_post')
+        planning_spike_service = get_resource_service('planning_spike')
+        docs = []
+        for planning in plannings:
+            if not planning.get('pubstatus') and planning.get('state') == WORKFLOW_STATE.DRAFT:
+                planning_spike_service.patch(planning.get(config.ID_FIELD), planning)
+            elif planning['pubstatus'] != POST_STATE.CANCELLED:
+                docs.append({
+                    'planning': planning.get(config.ID_FIELD),
+                    'etag': planning.get('etag'),
+                    'pubstatus': POST_STATE.CANCELLED
+                })
+
+        # unpost all required planning items
+        if len(docs) > 0:
+            planning_post_service.post(docs)
 
     @staticmethod
     def _get_post_state(event, new_post_state):

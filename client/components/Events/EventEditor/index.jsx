@@ -98,15 +98,11 @@ export class EventEditorComponent extends React.Component {
     }
 
     getRelatedPlanningsForEvent() {
-        const {plannings, planningsModalEvent, item} = this.props;
+        const {plannings, item} = this.props;
         const itemId = getItemId(item);
 
         if (plannings.filter((p) => p.event_item === itemId).length > 0) {
             return plannings;
-        }
-
-        if (planningsModalEvent.filter((p) => p.event_item === itemId).length > 0) {
-            return planningsModalEvent;
         }
     }
 
@@ -478,7 +474,6 @@ EventEditorComponent.propTypes = {
     dirty: PropTypes.bool,
     errors: PropTypes.object,
     plannings: PropTypes.array,
-    planningsModalEvent: PropTypes.array,
     navigation: PropTypes.object,
     fetchEventFiles: PropTypes.func,
     customVocabularies: PropTypes.array,
@@ -508,8 +503,6 @@ const mapStateToProps = (state) => ({
     desks: selectors.general.desks(state),
     timeFormat: selectors.config.getTimeFormat(state),
     dateFormat: selectors.config.getDateFormat(state),
-    plannings: selectors.events.getRelatedPlannings(state),
-    planningsModalEvent: selectors.events.getRelatedPlanningsForModalEvent(state),
     customVocabularies: state.customVocabularies,
     files: selectors.general.files(state),
 });

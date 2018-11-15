@@ -31,6 +31,7 @@ class AssignmentsUnlinkService(Service):
 
         for doc in docs:
             assignment = assignments_service.find_one(req=None, _id=doc.pop('assignment_id'))
+            assignments_service.validate_assignment_action(assignment)
             item = production.find_one(req=None, _id=doc.pop('item_id'))
             # Boolean set to true if the unlink is as the result of spiking the content item
             spike = doc.pop('spike', False)

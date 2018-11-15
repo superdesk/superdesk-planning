@@ -334,6 +334,11 @@ describe('actions.events.api', () => {
     });
 
     describe('query', () => {
+        const mustNotTerms = [
+            {term: {state: WORKFLOW_STATE.SPIKED}},
+            {term: {state: WORKFLOW_STATE.KILLED}},
+        ];
+
         beforeEach(() => {
             restoreSinonStub(eventsApi.query);
         });
@@ -349,9 +354,7 @@ describe('actions.events.api', () => {
                             query: {
                                 bool: {
                                     must: [],
-                                    must_not: [
-                                        {term: {state: WORKFLOW_STATE.SPIKED}},
-                                    ],
+                                    must_not: mustNotTerms,
                                 },
                             },
                             filter: {range: {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}}},
@@ -376,9 +379,7 @@ describe('actions.events.api', () => {
                                     must: [
                                         {terms: {_id: ['e1', 'e2']}},
                                     ],
-                                    must_not: [
-                                        {term: {state: WORKFLOW_STATE.SPIKED}},
-                                    ],
+                                    must_not: mustNotTerms,
                                 },
                             },
                             filter: {},
@@ -403,9 +404,7 @@ describe('actions.events.api', () => {
                                     must: [
                                         {query_string: {query: 'Search Event*'}},
                                     ],
-                                    must_not: [
-                                        {term: {state: WORKFLOW_STATE.SPIKED}},
-                                    ],
+                                    must_not: mustNotTerms,
                                 },
                             },
                             filter: {range: {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}}},
@@ -429,9 +428,7 @@ describe('actions.events.api', () => {
                                     must: [
                                         {term: {recurrence_id: 'rec1'}},
                                     ],
-                                    must_not: [
-                                        {term: {state: WORKFLOW_STATE.SPIKED}},
-                                    ],
+                                    must_not: mustNotTerms,
                                 },
                             },
                             filter: {},
@@ -458,9 +455,7 @@ describe('actions.events.api', () => {
                                         must: [
                                             {terms: {'calendars.qcode': ['sport', 'finance']}},
                                         ],
-                                        must_not: [
-                                            {term: {state: WORKFLOW_STATE.SPIKED}},
-                                        ],
+                                        must_not: mustNotTerms,
                                     },
                                 },
                                 filter: {range: {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}}},
@@ -485,9 +480,7 @@ describe('actions.events.api', () => {
                                         must: [
                                             {term: {'calendars.qcode': 'sport'}},
                                         ],
-                                        must_not: [
-                                            {term: {state: WORKFLOW_STATE.SPIKED}},
-                                        ],
+                                        must_not: mustNotTerms,
                                     },
                                 },
                                 filter: {range: {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}}},
@@ -519,9 +512,7 @@ describe('actions.events.api', () => {
                                         must: [
                                             {terms: {ingest_provider: ['ingest123']}},
                                         ],
-                                        must_not: [
-                                            {term: {state: WORKFLOW_STATE.SPIKED}},
-                                        ],
+                                        must_not: mustNotTerms,
                                     },
                                 },
                                 filter: {range: {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}}},
@@ -556,9 +547,7 @@ describe('actions.events.api', () => {
                                         must: [
                                             {terms: {state: ['postponed', 'rescheduled']}},
                                         ],
-                                        must_not: [
-                                            {term: {state: WORKFLOW_STATE.SPIKED}},
-                                        ],
+                                        must_not: mustNotTerms,
                                     },
                                 },
                                 filter: {range: {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}}},
@@ -594,7 +583,7 @@ describe('actions.events.api', () => {
                                         must: [
                                             {terms: {state: ['postponed', 'rescheduled', 'spiked']}},
                                         ],
-                                        must_not: [],
+                                        must_not: [{term: {state: WORKFLOW_STATE.KILLED}}],
                                     },
                                 },
                                 filter: {range: {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}}},

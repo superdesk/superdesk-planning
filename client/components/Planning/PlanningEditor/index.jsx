@@ -359,7 +359,6 @@ export class PlanningEditorComponent extends React.Component {
             itemExists,
             diff,
             event,
-            eventModal,
             locators,
             categories,
             subjects,
@@ -449,7 +448,6 @@ export class PlanningEditorComponent extends React.Component {
         const onFocusPlanning = editorMenuUtils.onItemFocus(this.props.navigation, 'planning');
         const onFocusDetails = editorMenuUtils.onItemFocus(this.props.navigation, 'details');
         const onFocusFiles = editorMenuUtils.onItemFocus(this.props.navigation, 'files');
-        const associatedEvent = onFocusPlanning ? eventModal : event;
 
         return (
             <div ref={(node) => this.dom.top = node}>
@@ -639,16 +637,16 @@ export class PlanningEditorComponent extends React.Component {
                     }
                 </ContentBlock>
 
-                {associatedEvent && (
+                {event && (
                     <h3 className="side-panel__heading side-panel__heading--big">
                         {gettext('Associated Event')}
                     </h3>
                 )}
 
-                {associatedEvent && (
+                {event && (
                     <ContentBlock>
                         <EventMetadata
-                            event={associatedEvent}
+                            event={event}
                             dateFormat={dateFormat}
                             timeFormat={timeFormat}
                             lockedItems={lockedItems}
@@ -738,7 +736,6 @@ PlanningEditorComponent.propTypes = {
     startPartialSave: PropTypes.func,
     removeAssignment: PropTypes.func,
     navigation: PropTypes.object,
-    eventModal: PropTypes.object,
     customVocabularies: PropTypes.array,
     fetchEventFiles: PropTypes.func,
     createUploadLink: PropTypes.func,
@@ -771,8 +768,6 @@ const mapStateToProps = (state) => ({
     coverageProviders: selectors.vocabs.coverageProviders(state),
     priorities: selectors.getAssignmentPriorities(state),
     keywords: selectors.general.keywords(state),
-    event: selectors.events.planningEditAssociatedEvent(state),
-    eventModal: selectors.events.planningEditAssociatedEventModal(state),
     desk: selectors.general.currentDeskId(state),
     user: selectors.general.currentUserId(state),
     planningProfile: selectors.forms.planningProfile(state),

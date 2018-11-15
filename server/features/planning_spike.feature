@@ -22,27 +22,6 @@ Feature: Planning Spike
     @auth
     @notification
     Scenario: Spike a Planning item
-        Given "desks"
-        """
-        [{"_id": "desk_123", "name": "Politic Desk"}]
-        """
-        Given "assignments"
-        """
-        [{
-            "_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
-            "planning": {
-                "ednote": "test coverage, I want 250 words",
-                "headline": "test headline",
-                "slugline": "test slugline",
-                "g2_content_type": "text"
-            },
-            "assigned_to": {
-                "desk": "#desks._id#",
-                "user": "#CONTEXT_USER_ID#",
-                "state": "assigned"
-            }
-        }]
-        """
         Given "planning"
         """
         [{
@@ -55,16 +34,10 @@ Feature: Planning Spike
                 "planning": {
                     "internal_note": "Cover something please!"
                 },
-                "planning_item": "plan1",
-                "workflow_status": "active",
+                "workflow_status": "draft",
                 "news_coverage_status": {
                     "qcode": "ncostat:int",
                     "name": "Coverage intended"
-                },
-                "assigned_to": {
-                    "desk": "#desks._id#",
-                    "user": "#CONTEXT_USER_ID#",
-                    "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa"
                 }
             }]
 
@@ -80,15 +53,6 @@ Feature: Planning Spike
                 "item": "#planning._id#",
                 "user": "#CONTEXT_USER_ID#"
             }
-        },
-        {
-            "event": "activity",
-            "extra": {
-                "activity": {
-                "message" : "{{actioning_user}} has spiked a {{coverage_type}} coverage for \"{{slugline}}\"",
-                "user_name" : "test_user"
-                }
-            }
         }]
         """
         When we get "/planning/#planning._id#"
@@ -102,17 +66,12 @@ Feature: Planning Spike
         }
         """
         When we get "/planning_history?where=planning_id==%22#planning._id#%22"
-        Then we get list with 2 items
+        Then we get list with 1 items
         """
         {"_items": [{
             "planning_id": "#planning._id#",
             "operation": "spiked",
             "update": {"state" : "spiked", "revert_state": "draft"}
-            },
-            {
-            "planning_id": "#planning._id#",
-            "operation": "coverage_deleted",
-            "update": {"coverage_id": "cov1"}
             }
             ]}
         """
@@ -211,3 +170,241 @@ Feature: Planning Spike
         Then we get OK response
         When we unspike planning "#planning._id#"
         Then we get OK response
+
+    @auth
+    @notification
+    Scenario: Unspike fails if associated event is still spiked
+        Given "events"
+        """
+        [
+            {
+                "guid": "123",
+                "unique_id": "123",
+                "unique_name": "123 name",
+                "name": "event 123",
+                "slugline": "event-123",
+                "definition_short": "short value",
+                "definition_long": "long value",
+                "dates": {
+                    "start": "2016-01-02",
+                    "end": "2016-01-03"
+                },
+                "subject": [{"qcode": "test qcaode", "name": "test name"}],
+                "location": [{"qcode": "test qcaode", "name": "test name"}],
+                "state": "spiked"
+            }
+        ]
+        """
+        Given "planning"
+        """
+        [{
+            "slugline": "TestPlan",
+            "state": "spiked",
+            "revert_state": "draft",
+            "planning_date": "2016-01-02",
+            "event_item": "#events._id#"
+        }]
+        """
+        When we unspike planning "#planning._id#"
+        Then we get error 400
+        """
+        {
+            "_issues": {"validator exception": "400: Unspike failed. Associated event is spiked."}
+        }
+        """
+
+    @auth
+    @notification
+    Scenario: Spike will delete assignment in workflow
+        Given the "validators"
+        """
+        [{
+            "schema": {},
+            "type": "text",
+            "act": "publish",
+            "_id": "publish_text"
+        },
+        {
+            "_id": "publish_composite",
+            "act": "publish",
+            "type": "composite",
+            "schema": {}
+        }]
+        """
+        And "desks"
+        """
+        [{"name": "Sports", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {"coverages": [{
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "g2_content_type" : "text"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
+            },
+            "workflow_status": "active"
+        }]}
+        """
+        Then we get OK response
+        Then we store coverage id in "coverageId" from coverage 0
+        Then we store assignment id in "assignmentId" from coverage 0
+        When we get "/assignments"
+        Then we get list with 1 items
+        When we spike planning "#planning._id#"
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "planning:spiked",
+            "extra": {
+                "item": "#planning._id#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "slugline": "test slugline",
+            "state": "spiked",
+            "revert_state": "draft"
+        }
+        """
+        When we get "/assignments"
+        Then we get list with 0 items
+
+    @auth
+    @notification
+    Scenario: Spike will send notifications when delete of assignment fails
+        Given we have sessions "/sessions"
+        Given "users"
+        """
+        [{"username": "foo", "email": "foo@bar.com", "sign_off": "abc"}]
+        """
+        Given the "validators"
+        """
+        [{
+            "schema": {},
+            "type": "text",
+            "act": "publish",
+            "_id": "publish_text"
+        },
+        {
+            "_id": "publish_composite",
+            "act": "publish",
+            "type": "composite",
+            "schema": {}
+        }]
+        """
+        And "desks"
+        """
+        [{"name": "Sports", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {"coverages": [{
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "g2_content_type" : "text"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
+            },
+            "workflow_status": "active"
+        }]}
+        """
+        Then we get OK response
+        Then we store coverage id in "coverageId" from coverage 0
+        Then we store assignment id in "assignmentId" from coverage 0
+        When we get "/assignments"
+        Then we get list with 1 items
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        When we post to "assignments/link"
+        """
+        [{"assignment_id": "#assignmentId#", "item_id": "#archive._id#", "reassign": true}]
+        """
+        Then we get OK response
+        When we get "/archive/#archive._id#"
+        Then we get existing resource
+        """
+        {"assignment_id": "#assignmentId#"}
+        """
+        When we patch "/archive/#archive._id#"
+        """
+        {"lock_user": "#users._id#"}
+        """
+        Then we get OK response
+        When we spike planning "#planning._id#"
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "assignments:remove:fail",
+            "extra": {
+                "items": [
+                  {
+                    "slugline": "test slugline",
+                    "type": "text"
+                  }
+                ],
+                "session": "#SESSION_ID#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "slugline": "test slugline",
+            "state": "spiked",
+            "revert_state": "draft"
+        }
+        """
+        When we get "/assignments"
+        Then we get list with 1 items
