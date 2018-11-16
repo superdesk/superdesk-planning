@@ -24,6 +24,7 @@ from .planning_autosave import PlanningAutosaveResource
 from .planning_featured_lock import PlanningFeaturedLockResource, PlanningFeaturedLockService,\
     PlanningFeaturedUnlockResource, PlanningFeaturedUnlockService
 from .planning_featured import PlanningFeaturedResource, PlanningFeaturedService
+from .planning_files import PlanningFilesResource, PlanningFilesService
 from planning.autosave import AutosaveService
 
 
@@ -52,6 +53,9 @@ def init_app(app):
 
     planning_duplicate_service = PlanningDuplicateService('planning_duplicate', backend=superdesk.get_backend())
     PlanningDuplicateResource('planning_duplicate', app=app, service=planning_duplicate_service)
+
+    files_service = PlanningFilesService('planning_files', backend=superdesk.get_backend())
+    PlanningFilesResource('planning_files', app=app, service=files_service)
 
     planning_type_service = PlanningTypesService(PlanningTypesResource.endpoint_name,
                                                  backend=superdesk.get_backend())

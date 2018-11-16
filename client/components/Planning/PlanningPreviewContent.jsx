@@ -11,7 +11,7 @@ import {
     StateLabel,
 } from '../index';
 import {ToggleBox} from '../UI';
-import {ColouredValueInput} from '../UI/Form';
+import {ColouredValueInput, FileInput} from '../UI/Form';
 import {CoveragePreview} from '../Coverages';
 import {ContentBlock} from '../UI/SidePanel';
 import {EventMetadata} from '../Events';
@@ -25,6 +25,8 @@ export class PlanningPreviewContentComponent extends React.Component {
         if (this.props.event) {
             this.props.fetchEventFiles(this.props.event);
         }
+
+        this.props.fetchPlanningFiles(this.props.item);
     }
 
     render() {
@@ -165,6 +167,26 @@ export class PlanningPreviewContentComponent extends React.Component {
                         <span className="state-label not-for-publication">{gettext('Not for Publication')}</span>
                     </Row>
                 </ToggleBox>
+                {get(formProfile, 'planning.editor.files.enabled') &&
+                    <ToggleBox
+                        title={gettext('Attached Files')}
+                        isOpen={false}
+                        badgeValue={get(item, 'files.length', 0) > 0 ? item.files.length : null}>
+                        {get(item, 'files.length') > 0 ?
+                            <ul>
+                                {get(item, 'files', []).map((file, index) => (
+                                    <li key={index}>
+                                        <FileInput
+                                            value={file}
+                                            createLink={createUploadLink}
+                                            readOnly={true}
+                                            files={files} />
+                                    </li>
+                                ))}
+                            </ul> :
+                            <span className="sd-text__info">{gettext('No attached files added.')}</span>}
+                    </ToggleBox>
+                }
                 {!hideRelatedItems && event && (
                     <h3 className="side-panel__heading--big">
                         {gettext('Associated Event')}
@@ -221,6 +243,7 @@ PlanningPreviewContentComponent.propTypes = {
     inner: PropTypes.bool,
     noPadding: PropTypes.bool,
     fetchEventFiles: PropTypes.func,
+    fetchPlanningFiles: PropTypes.func,
     createUploadLink: PropTypes.func,
     hideRelatedItems: PropTypes.bool,
     files: PropTypes.object,
@@ -249,6 +272,7 @@ const mapStateToProps = (state, ownProps) => ({
 const mapDispatchToProps = (dispatch) => ({
     onEditEvent: (event) => dispatch(actions.main.lockAndEdit(event)),
     fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
+    fetchPlanningFiles: (planning) => dispatch(actions.planning.api.fetchPlanningFiles(planning)),
 });
 
 

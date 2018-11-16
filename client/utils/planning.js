@@ -831,6 +831,11 @@ const isFeaturedPlanningUpdatedAfterPosting = (item) => {
     return updatedDate.isAfter(postedDate);
 };
 
+const shouldFetchFilesForPlanning = (planning) => (
+    get(planning, 'files', []).filter((f) => typeof (f) === 'string'
+            || f instanceof String).length > 0
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     canSpikePlanning,
@@ -870,6 +875,7 @@ const self = {
     defaultCoverageValues,
     modifyPlanningsBeingAdded,
     isFeaturedPlanningUpdatedAfterPosting,
+    shouldFetchFilesForPlanning,
 };
 
 export default self;
