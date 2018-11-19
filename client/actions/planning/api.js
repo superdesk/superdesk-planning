@@ -1134,6 +1134,23 @@ const uploadFiles = (planning) => (
     }
 );
 
+const removeFile = (file) => (
+    (dispatch, getState, {api, notify}) => (
+        api('planning_files').remove(file)
+            .then(() => {
+                dispatch({
+                    type: 'REMOVE_FILE',
+                    payload: file._id,
+                });
+            }, (err) => {
+                notify.error(
+                    getErrorMessage(err, gettext('Failed to remove the file from planning.'))
+                );
+                return Promise.reject(err);
+            })
+    )
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     spike,
@@ -1171,6 +1188,7 @@ const self = {
     fetchFeaturedPlanningItemById,
     fetchPlanningFiles,
     uploadFiles,
+    removeFile,
 };
 
 export default self;
