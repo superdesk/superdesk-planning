@@ -70,9 +70,19 @@ PlanningCovergeCancelComponent.propTypes = {
 
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (plan) => {
-        let cancelDispatch = plan._cancelAllCoverage ?
-            actions.planning.ui.cancelAllCoverage :
-            actions.planning.ui.cancelPlanning;
+        let cancelDispatch, reasonPrefix;
+
+        if (plan._cancelAllCoverage) {
+            cancelDispatch = actions.planning.ui.cancelAllCoverage;
+            reasonPrefix = gettext('All coverages cancelled: ');
+        } else {
+            cancelDispatch = actions.planning.ui.cancelPlanning;
+            reasonPrefix = gettext('Planing cancelled: ');
+        }
+
+        if (get(plan, 'reason')) {
+            plan.reason = reasonPrefix + plan.reason;
+        }
 
         return dispatch(cancelDispatch(plan))
             .then((plan) => {

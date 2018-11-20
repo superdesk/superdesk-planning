@@ -89,6 +89,45 @@ describe('events', () => {
             expect(result.eventsInList).toEqual(['e1', 'e3', 'e2']);
         });
 
+        it('MARK_EVENT_POSTPONED', () => {
+            initialState.events = items;
+            const result = events(initialState, {
+                type: 'MARK_EVENT_POSTPONED',
+                payload: {
+                    event: items.e1,
+                    reason: 'reason for postponed',
+                },
+            });
+
+            expect(result.events.e1).toEqual({
+                ...items.e1,
+                state: 'postponed',
+                state_reason: 'reason for postponed',
+            });
+        });
+
+        it('MARK_EVENT_CANCELLED', () => {
+            initialState.events = items;
+            const result = events(initialState, {
+                type: 'MARK_EVENT_CANCELLED',
+                payload: {
+                    event_id: 'e1',
+                    reason: 'reason for cancellataion',
+                    cancelled_items: [],
+                    occur_status: 'cancelled',
+                    etag: '123',
+                },
+            });
+
+            expect(result.events.e1).toEqual({
+                ...items.e1,
+                state: 'cancelled',
+                state_reason: 'reason for cancellataion',
+                occur_status: 'cancelled',
+                _etag: '123',
+            });
+        });
+
         it('MARK_EVENT_POSTED', () => {
             initialState.events = items;
             const result = events(initialState, {
@@ -109,6 +148,7 @@ describe('events', () => {
                 state: 'scheduled',
                 pubstatus: 'usable',
                 _etag: 'e123',
+                state_reason: null,
             });
         });
 
@@ -133,6 +173,7 @@ describe('events', () => {
                 state: 'scheduled',
                 pubstatus: 'usable',
                 _etag: 'e123',
+                state_reason: null,
             });
 
             expect(result.events.e2).toEqual({
@@ -140,6 +181,7 @@ describe('events', () => {
                 state: 'scheduled',
                 pubstatus: 'usable',
                 _etag: 'e456',
+                state_reason: null,
             });
 
             expect(result.events.e3).toEqual({
@@ -147,6 +189,7 @@ describe('events', () => {
                 state: 'scheduled',
                 pubstatus: 'usable',
                 _etag: 'e789',
+                state_reason: null,
             });
         });
 
@@ -170,6 +213,7 @@ describe('events', () => {
                 state: 'killed',
                 pubstatus: 'cancelled',
                 _etag: 'e123',
+                state_reason: null,
             });
         });
 
@@ -194,6 +238,7 @@ describe('events', () => {
                 state: 'killed',
                 pubstatus: 'cancelled',
                 _etag: 'e123',
+                state_reason: null,
             });
 
             expect(result.events.e2).toEqual({
@@ -201,6 +246,7 @@ describe('events', () => {
                 state: 'killed',
                 pubstatus: 'cancelled',
                 _etag: 'e456',
+                state_reason: null,
             });
 
             expect(result.events.e3).toEqual({
@@ -208,6 +254,7 @@ describe('events', () => {
                 state: 'killed',
                 pubstatus: 'cancelled',
                 _etag: 'e789',
+                state_reason: null,
             });
         });
 

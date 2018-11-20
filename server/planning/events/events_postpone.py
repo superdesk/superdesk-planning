@@ -42,7 +42,7 @@ class EventsPostponeService(EventsBaseService):
     ACTION = 'postpone'
 
     def update_single_event(self, updates, original):
-        self._set_event_postponed(updates, original)
+        self._set_event_postponed(updates)
         self._postpone_event_plannings(updates, original)
 
     def update(self, id, updates, original):
@@ -91,21 +91,11 @@ class EventsPostponeService(EventsBaseService):
             )
 
     @staticmethod
-    def _set_event_postponed(updates, original):
+    def _set_event_postponed(updates):
         reason = updates.get('reason', None)
         remove_lock_information(updates)
         updates['state'] = WORKFLOW_STATE.POSTPONED
-
-        ednote = '''------------------------------------------------------------
-Event Postponed
-'''
-        if reason is not None:
-            ednote += 'Reason: {}\n'.format(reason)
-
-        if len(original.get('ednote') or '') > 0:
-            updates['ednote'] = original['ednote'] + '\n\n' + ednote
-        else:
-            updates['ednote'] = ednote
+        updates['state_reason'] = reason
 
     def update_recurring_events(self, updates, original, update_method):
         historic, past, future = self.get_recurring_timeline(original)
@@ -120,7 +110,7 @@ Event Postponed
         else:
             postponed_events = past + future
 
-        self._set_event_postponed(updates, original)
+        self._set_event_postponed(updates)
 
         for event in postponed_events:
             new_updates = deepcopy(updates)

@@ -393,7 +393,7 @@ Feature: Events Postpone
         {"_items":[{
             "_id": "event1",
             "state": "postponed",
-            "ednote": "An event with exciting things\n\n------------------------------------------------------------\nEvent Postponed\nReason: Not happening anymore!\n"
+            "state_reason": "Not happening anymore!"
         }]}
         """
         When we get "/planning"
@@ -402,11 +402,11 @@ Feature: Events Postpone
         {"_items": [{
             "_id": "plan1",
             "state": "postponed",
-            "ednote": "We're covering this Event\n\n------------------------------------------------------------\nEvent Postponed\nReason: Not happening anymore!\n",
+            "state_reason": "Not happening anymore!",
             "coverages": [{
                 "coverage_id": "cov1",
                 "planning": {
-                    "internal_note": "Cover something please!\n\n------------------------------------------------------------\nEvent has been postponed\nReason: Not happening anymore!\n"
+                    "workflow_status_reason": "Not happening anymore!"
                 }
             }]
         }]}
@@ -616,7 +616,7 @@ Feature: Events Postpone
         {"_items":[{
             "_id": "event1",
             "state": "postponed",
-            "ednote": "An event with exciting things\n\n------------------------------------------------------------\nEvent Postponed\nReason: Not happening anymore!\n",
+            "state_reason": "Not happening anymore!",
             "pubstatus": "usable"
 
         }]}

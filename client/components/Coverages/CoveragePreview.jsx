@@ -6,11 +6,14 @@ import moment from 'moment-timezone';
 import {get} from 'lodash';
 import {getCreator, getItemInArrayById, getDateTimeString, gettext, stringUtils} from '../../utils';
 import {StateLabel} from '../index';
-import {PLANNING} from '../../constants';
+import {PLANNING, WORKFLOW_STATE} from '../../constants';
 
 import {CoverageItem} from './';
+import {InternalNoteLabel} from '../index';
 
 export const CoveragePreview = ({
+    item,
+    index,
     coverage,
     users,
     desks,
@@ -52,6 +55,8 @@ export const CoveragePreview = ({
 
     const coverageListItem = (
         <CoverageItem
+            item={item}
+            index={index}
             coverage={coverage}
             users={users}
             desks={desks}
@@ -97,6 +102,17 @@ export const CoveragePreview = ({
 
     const coverageInDetail = (
         <div>
+            <PreviewRow>
+                <InternalNoteLabel
+                    item={item}
+                    prefix={`coverages[${index}].planning.`}
+                    noteField="workflow_status_reason"
+                    showTooltip={false}
+                    showText
+                    stateField = {coverage.workflow_status === WORKFLOW_STATE.CANCELLED ?
+                        `coverages[${index}].workflow_status` : 'state'}
+                    showHeaderText={false} />
+            </PreviewRow>
             {get(formProfile, 'editor.slugline.enabled') &&
                 <PreviewRow
                     label={gettext('Slugline')}
@@ -185,6 +201,8 @@ CoveragePreview.propTypes = {
     scrollInView: PropTypes.bool,
     onClick: PropTypes.func,
     inner: PropTypes.bool,
+    index: PropTypes.number,
+    item: PropTypes.object,
 };
 
 

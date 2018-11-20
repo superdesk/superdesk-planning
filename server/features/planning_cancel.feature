@@ -50,8 +50,7 @@ Feature: Cancel all coverage
           "headline": "test headline",
           "slugline": "test slugline",
           "state": "cancelled",
-          "pubstatus": "usable",
-          "ednote": "------------------------------------------------------------\nPlanning cancelled\n"
+          "pubstatus": "usable"
       }
       """
 
@@ -107,6 +106,9 @@ Feature: Cancel all coverage
       """
       Then we get OK response
       When we perform cancel on planning "123"
+      """
+      { "reason": "Just like that!" }
+      """
       Then we get OK response
       And we get notifications
       """
@@ -136,7 +138,19 @@ Feature: Cancel all coverage
           "slugline": "test slugline",
           "state": "cancelled",
           "pubstatus": "usable",
-          "ednote": "------------------------------------------------------------\nPlanning cancelled\n"
+          "state_reason": "Just like that!",
+          "coverages": [{
+            "planning": {
+              "ednote": "test coverage, 250 words",
+              "g2_content_type": "text",
+              "headline": "test headline",
+              "scheduled": "2029-11-21T14:00:00+0000",
+              "slugline": "test slugline",
+              "workflow_status_reason": "Just like that!"
+            },
+            "previous_status": "draft",
+            "workflow_status": "cancelled"
+          }]
       }
       """
 
@@ -227,14 +241,12 @@ Feature: Cancel all coverage
           "_id": "#planning._id#",
           "state": "cancelled",
           "pubstatus": "usable",
-          "ednote": "------------------------------------------------------------\nPlanning cancelled\n",
           "coverages": [
               {
                   "coverage_id": "__any_value__",
                   "planning": {
-                      "ednote": "test coverage, 250 words\n\n------------------------------------------------------------\nPlanning cancelled\n",
-                      "g2_content_type": "text",
-                      "internal_note" : "------------------------------------------------------------\nPlanning cancelled\n"
+                      "ednote": "test coverage, 250 words",
+                      "g2_content_type": "text"
                   },
                   "news_coverage_status": {
                       "name" : "coverage not intended",
@@ -387,6 +399,7 @@ Feature: Cancel all coverage
 
     @auth
     @notification
+    @vocabulary
     Scenario: Changes coverage status on cancel all coverage
       Given "vocabularies"
       """
@@ -449,7 +462,10 @@ Feature: Cancel all coverage
       Then we store coverage id in "secondcoverage" from coverage 1
       When we perform cancel on planning "123"
       """
-      { "cancel_all_coverage": true }
+      {
+        "reason": "Just like that!",
+        "cancel_all_coverage": true
+      }
       """
       Then we get OK response
       And we get notifications
@@ -473,12 +489,12 @@ Feature: Cancel all coverage
           "state": "scheduled",
           "pubstatus": "usable",
           "ednote": "something happened",
-          "coverages":       [
+          "coverages": [
               {
                   "planning": {
-                      "ednote": "test coverage, 250 words\n\n------------------------------------------------------------\nCoverage cancelled\n",
+                      "ednote": "test coverage, 250 words",
                       "g2_content_type": "text",
-                      "internal_note" : "------------------------------------------------------------\nCoverage cancelled\n"
+                      "workflow_status_reason": "Just like that!"
                   },
                   "news_coverage_status": {
                       "qcode" : "ncostat:notint"
@@ -486,9 +502,9 @@ Feature: Cancel all coverage
               },
               {
                   "planning": {
-                      "ednote": "test coverage2, 250 words\n\n------------------------------------------------------------\nCoverage cancelled\n",
+                      "ednote": "test coverage2, 250 words",
                       "g2_content_type": "text",
-                      "internal_note" : "------------------------------------------------------------\nCoverage cancelled\n"
+                      "workflow_status_reason": "Just like that!"
                   },
                   "news_coverage_status": {
                       "qcode" : "ncostat:notint"
@@ -598,9 +614,8 @@ Feature: Cancel all coverage
           "coverages":       [
               {
                   "planning": {
-                      "ednote": "test coverage, 250 words\n\n------------------------------------------------------------\nCoverage cancelled\n",
-                      "g2_content_type": "text",
-                      "internal_note" : "------------------------------------------------------------\nCoverage cancelled\n"
+                      "ednote": "test coverage, 250 words",
+                      "g2_content_type": "text"
                   },
                   "news_coverage_status": {
                       "qcode" : "ncostat:notint"
@@ -608,9 +623,8 @@ Feature: Cancel all coverage
               },
               {
                   "planning": {
-                      "ednote": "test coverage2, 250 words\n\n------------------------------------------------------------\nCoverage cancelled\n",
-                      "g2_content_type": "text",
-                      "internal_note" : "------------------------------------------------------------\nCoverage cancelled\n"
+                      "ednote": "test coverage2, 250 words",
+                      "g2_content_type": "text"
                   },
                   "news_coverage_status": {
                       "qcode" : "ncostat:notint"

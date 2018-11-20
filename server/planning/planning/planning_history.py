@@ -87,7 +87,7 @@ class PlanningHistoryService(HistoryService):
         if cov_plan_diff:
             diff['planning'] = cov_plan_diff
 
-        if original['news_coverage_status'] != updates['news_coverage_status']:
+        if original.get('news_coverage_status') != updates.get('news_coverage_status'):
             diff['news_coverage_status'] = updates['news_coverage_status']
 
         return diff

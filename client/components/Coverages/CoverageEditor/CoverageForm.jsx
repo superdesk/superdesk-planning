@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {getItemInArrayById, gettext, planningUtils} from '../../../utils';
+import {getItemInArrayById, gettext, planningUtils, getItemWorkflowState} from '../../../utils';
 import moment from 'moment';
+import {WORKFLOW_STATE} from '../../../constants';
 
 
 import {
@@ -13,6 +14,7 @@ import {
     SelectTagInput,
     Field,
 } from '../../UI/Form';
+import {InternalNoteLabel} from '../../';
 
 export class CoverageForm extends React.Component {
     constructor(props) {
@@ -64,6 +66,7 @@ export class CoverageForm extends React.Component {
         const {
             field,
             value,
+            index,
             onChange,
             newsCoverageStatus,
             dateFormat,
@@ -116,6 +119,15 @@ export class CoverageForm extends React.Component {
 
         return (
             <div>
+                <InternalNoteLabel
+                    item={diff}
+                    prefix={`coverages[${index}].planning.`}
+                    noteField="workflow_status_reason"
+                    showTooltip={false}
+                    showText
+                    stateField= {getItemWorkflowState(diff) === WORKFLOW_STATE.DRAFT ?
+                        `coverages[${index}].workflow_status` : 'state'}
+                    className="form__row" />
                 <Field
                     component={SelectInput}
                     field={`${field}.planning.g2_content_type`}

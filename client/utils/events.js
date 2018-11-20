@@ -730,7 +730,7 @@ const duplicateEvent = (event, occurStatus) => {
         k.startsWith('_')) ||
         ['guid', 'unique_name', 'unique_id', 'lock_user', 'lock_time', 'lock_session', 'lock_action',
             'pubstatus', 'recurrence_id', 'previous_recurrence_id', 'reschedule_from', 'reschedule_to',
-            'planning_ids', 'reason', 'expired'].indexOf(k) > -1));
+            'planning_ids', 'reason', 'expired', 'state_reason'].indexOf(k) > -1));
 
     duplicatedEvent._id = generateTempId();
     // Delete recurring rule
@@ -744,11 +744,6 @@ const duplicateEvent = (event, occurStatus) => {
         // Add the delta to both start and end (to handle multi-day events)
         duplicatedEvent.dates.start = duplicatedEvent.dates.start.add(daysBetween, 'days');
         duplicatedEvent.dates.end = duplicatedEvent.dates.end.add(daysBetween, 'days');
-    }
-
-    // Duplicating canceled event clears the ed note
-    if (duplicatedEvent.state === WORKFLOW_STATE.CANCELLED || duplicatedEvent.state === WORKFLOW_STATE.RESCHEDULED) {
-        delete duplicatedEvent.ednote;
     }
 
     duplicatedEvent.duplicate_from = getItemId(event);

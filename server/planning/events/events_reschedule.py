@@ -59,7 +59,7 @@ class EventsRescheduleService(EventsBaseService):
                 duplicated_event_id = self._duplicate_event(updates, original, events_service)
                 updates['reschedule_to'] = duplicated_event_id
 
-            self._mark_event_rescheduled(updates, original, reason, not event_in_use)
+            self._mark_event_rescheduled(updates, reason, not event_in_use)
 
             if not event_in_use:
                 updates['state'] = WORKFLOW_STATE.DRAFT
@@ -70,20 +70,9 @@ class EventsRescheduleService(EventsBaseService):
         self.set_planning_schedule(updates)
 
     @staticmethod
-    def _mark_event_rescheduled(updates, original, reason, keep_dates=False):
+    def _mark_event_rescheduled(updates, reason, keep_dates=False):
         updates['state'] = WORKFLOW_STATE.RESCHEDULED
-
-        ednote = '''------------------------------------------------------------
-Event Rescheduled
-'''
-
-        if reason is not None:
-            ednote += 'Reason: {}\n'.format(reason)
-
-        if len(original.get('ednote') or '') > 0:
-            updates['ednote'] = original['ednote'] + '\n\n' + ednote
-        else:
-            updates['ednote'] = ednote
+        updates['state_reason'] = reason
 
         # We don't want to update the schedule of this current event
         # As the duplicated Event will have the new schedule
@@ -109,7 +98,11 @@ Event Rescheduled
                 plan_updates
             )
             get_resource_service('planning_history').on_reschedule(updated_plan, plan)
-            planning_cancel_service.update(plan[config.ID_FIELD], {'cancel_all_coverage': True}, plan)
+            if len(plan.get('coverages', [])) > 0:
+                planning_cancel_service.update(plan[config.ID_FIELD], {
+                    'reason': reason,
+                    'cancel_all_coverage': True
+                }, plan)
 
     @staticmethod
     def _duplicate_event(updates, original, events_service):
@@ -124,6 +117,7 @@ Event Rescheduled
         new_event['_id'] = new_event['guid']
         new_event['reschedule_from'] = original[config.ID_FIELD]
         new_event['_reschedule_from_schedule'] = original['dates']['start']
+        new_event.pop('state_reason', None)
         set_original_creator(new_event)
         EventsRescheduleService.set_planning_schedule(new_event)
 
@@ -221,7 +215,7 @@ Event Rescheduled
                 # If this is the selected Event, then simply update the fields and
                 # Reschedule associated Planning items
                 if event[config.ID_FIELD] == original[config.ID_FIELD]:
-                    self._mark_event_rescheduled(updates, original, reason, True)
+                    self._mark_event_rescheduled(updates, reason, True)
                     updates['state'] = new_state
                     self._reschedule_event_plannings(event, reason, state=WORKFLOW_STATE.DRAFT)
 
@@ -230,7 +224,7 @@ Event Rescheduled
                         'reason': reason,
                         'skip_on_update': True
                     }
-                    self._mark_event_rescheduled(new_updates, event, reason)
+                    self._mark_event_rescheduled(new_updates, reason)
                     new_updates['state'] = new_state
 
                     # Update the 'start', 'end' and 'recurring_rule' fields of the Event
@@ -292,7 +286,7 @@ Event Rescheduled
             is_original = event[config.ID_FIELD] == original[config.ID_FIELD]
             if len(event_plans) > 0 or event.get('pubstatus', None) is not None:
                 if is_original:
-                    self._mark_event_rescheduled(updates, original, reason)
+                    self._mark_event_rescheduled(updates, reason)
                 else:
                     # This event has Planning items, so spike this event and
                     # all Planning items
@@ -300,7 +294,7 @@ Event Rescheduled
                         'skip_on_update': True,
                         'reason': reason
                     }
-                    self._mark_event_rescheduled(new_updates, original, reason)
+                    self._mark_event_rescheduled(new_updates, reason)
                     self.patch(event[config.ID_FIELD], new_updates)
 
                 if len(event_plans) > 0:

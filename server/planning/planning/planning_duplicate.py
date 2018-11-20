@@ -70,14 +70,8 @@ class PlanningDuplicateService(BaseService):
 
         for f in ('_id', 'guid', 'lock_user', 'lock_time', 'original_creator', '_planning_schedule'
                   'lock_session', 'lock_action', '_created', '_updated', '_etag', 'pubstatus', 'expired',
-                  'featured'):
+                  'featured', 'state_reason'):
             new_plan.pop(f, None)
-
-        # Duplicating a canceled planning item will clear the ednote
-        clear_ednote = False
-        if new_plan[ITEM_STATE] in [WORKFLOW_STATE.CANCELLED, WORKFLOW_STATE.RESCHEDULED]:
-            new_plan.pop('ednote', None)
-            clear_ednote = True
 
         new_plan[ITEM_STATE] = WORKFLOW_STATE.DRAFT
         new_plan['guid'] = generate_guid(type=GUID_NEWSML)
@@ -92,8 +86,7 @@ class PlanningDuplicateService(BaseService):
 
         for cov in new_plan.get('coverages') or []:
             cov.pop('assigned_to', None)
-            if clear_ednote:
-                cov.get('planning', {}).pop('ednote', None)
+            cov.get('planning', {}).pop('workflow_status_reason', None)
             cov.get('planning', {})['scheduled'] = new_plan.get('planning_date')
             cov['coverage_id'] = generate_guid(type=GUID_NEWSML)
             cov['workflow_status'] = WORKFLOW_STATE.DRAFT

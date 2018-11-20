@@ -473,14 +473,15 @@ Feature: Duplicate Planning
         """
 
     @auth
-    Scenario: Duplicating a canceled Planning item will clear the ednote
+    Scenario: Duplicating a canceled Planning item will clear the state_reason
         Given "events"
         """
         [{
             "_id": "event1",
             "guid": "event1",
             "name": "Test Event",
-            "ednote" : "Ed note in event\n\n--------------------------------------------\nEvent Cancelled\nReason: \n",
+            "ednote" : "Ed note in event",
+            "state_reason": "A reason why this is cancelled.",
             "dates": {
                 "start": "2029-11-21T12:00:00.000Z",
                 "end": "2029-11-21T14:00:00.000Z",
@@ -496,9 +497,10 @@ Feature: Duplicate Planning
             "guid": "plan1",
             "slugline": "Test Event",
             "state" : "cancelled",
+            "state_reason": "A reason why this is cancelled.",
             "event_item": "event1",
             "planning_date": "2029-11-21T14:00:00.000Z",
-            "ednote" : "This is the ednote in planning\n\n-----------------------------------------\nEvent cancelled\n",
+            "ednote" : "This is the ednote in planning",
             "coverages": [
                 {
                     "planning": {
@@ -507,7 +509,8 @@ Feature: Duplicate Planning
                         "slugline": "test slugline",
                         "scheduled": "2029-11-21T14:00:00.0000",
                         "g2_content_type": "text",
-                        "ednote" : "This is the ednote in planning\n\n-------------\nCoverage cancelled\nReason: bad\n"
+                        "ednote" : "This is the ednote in planning",
+                        "workflow_status_reason": "A reason why this is cancelled."
                     },
                     "workflow_status": "cancelled",
                     "assigned_to": {
@@ -534,20 +537,22 @@ Feature: Duplicate Planning
             "planning_date": "2029-11-21T14:00:00+0000",
             "event_item": "__no_value__",
             "expired": "__no_value__",
-            "ednote": "__no_value__",
-            "coverages": [{"planning": {"ednote": "__no_value__"}}]
+            "state_reason": "__no_value__",
+            "ednote": "This is the ednote in planning",
+            "coverages": [{"planning": {"ednote": "This is the ednote in planning", "workflow_status_reason": "__no_value__"}}]
         }
         """
 
     @auth
-    Scenario: Duplicating a rescheduled Planning item will clear the ednote
+    Scenario: Duplicating a rescheduled Planning item will clear the state_reason
         Given "events"
         """
         [{
             "_id": "event1",
             "guid": "event1",
             "name": "Test Event",
-            "ednote" : "Ed note in event\n\n--------------------------------------------\nEvent Cancelled\nReason: \n",
+            "ednote" : "Ed note in event",
+            "state_reason": "A reason why this is rescheduled.",
             "dates": {
                 "start": "2029-11-21T12:00:00.000Z",
                 "end": "2029-11-21T14:00:00.000Z",
@@ -565,7 +570,8 @@ Feature: Duplicate Planning
             "state" : "rescheduled",
             "event_item": "event1",
             "planning_date": "2029-11-21T14:00:00.000Z",
-            "ednote" : "This is the ednote in planning\n\n-----------------------------------------\nEvent cancelled\n",
+            "ednote" : "This is the ednote in planning",
+            "state_reason": "A reason why this is rescheduled.",
             "coverages": [
                 {
                     "planning": {
@@ -574,7 +580,8 @@ Feature: Duplicate Planning
                         "slugline": "test slugline",
                         "scheduled": "2029-11-21T14:00:00.0000",
                         "g2_content_type": "text",
-                        "ednote" : "This is the ednote in planning\n\n-------------\nCoverage cancelled\nReason: bad\n"
+                        "ednote" : "This is the ednote in planning",
+                        "workflow_status_reason": "A reason why this is rescheduled."
                     },
                     "workflow_status": "rescheduled",
                     "assigned_to": {
@@ -601,8 +608,9 @@ Feature: Duplicate Planning
             "planning_date": "2029-11-21T14:00:00+0000",
             "event_item": "__no_value__",
             "expired": "__no_value__",
-            "ednote": "__no_value__",
-            "coverages": [{"planning": {"ednote": "__no_value__"}}]
+            "ednote": "This is the ednote in planning",
+            "state_reason": "__no_value__",
+            "coverages": [{"planning": {"ednote": "This is the ednote in planning", "workflow_status_reason": "__no_value__"}}]
         }
         """
 

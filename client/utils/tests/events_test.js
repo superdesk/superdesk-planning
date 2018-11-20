@@ -338,7 +338,7 @@ describe('EventUtils', () => {
     describe('Duplicate Event', () => {
         const event = {
             _id: 'e1',
-            ednote: 'this is endnote',
+            state_reason: 'this is a reason',
             dates: {
                 start: moment('2014-10-15T14:01:11+0000'),
                 end: moment('2014-10-15T15:01:11+0000'),
@@ -354,7 +354,7 @@ describe('EventUtils', () => {
             restoreSinonStub(moment.tz.guess);
         });
 
-        it('remove ednote for cancelled event', () => {
+        it('remove state_reason for cancelled event', () => {
             let evt = cloneDeep(event);
 
             evt.state = WORKFLOW_STATE.CANCELLED;
@@ -364,11 +364,11 @@ describe('EventUtils', () => {
             expect(duplicateEvent.occur_status).toBe('foo');
             expect(duplicateEvent._id.startsWith(TEMP_ID_PREFIX)).toBe(true);
             expect(duplicateEvent.duplicate_from).toBe(event._id);
-            expect(duplicateEvent.hasOwnProperty('ednote')).toBe(false);
+            expect(duplicateEvent.hasOwnProperty('state_reason')).toBe(false);
             expect(duplicateEvent.dates.tz).toBe('Foo');
         });
 
-        it('remove ednote for rescheduled event', () => {
+        it('remove state_reason for rescheduled event', () => {
             let evt = cloneDeep(event);
 
             evt.state = WORKFLOW_STATE.RESCHEDULED;
@@ -378,7 +378,7 @@ describe('EventUtils', () => {
             expect(duplicateEvent.occur_status).toBe('foo');
             expect(duplicateEvent._id.startsWith(TEMP_ID_PREFIX)).toBe(true);
             expect(duplicateEvent.duplicate_from).toBe(event._id);
-            expect(duplicateEvent.hasOwnProperty('ednote')).toBe(false);
+            expect(duplicateEvent.hasOwnProperty('state_reason')).toBe(false);
             expect(duplicateEvent.dates.tz).toBe('Foo');
         });
     });

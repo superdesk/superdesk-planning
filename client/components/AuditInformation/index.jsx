@@ -1,10 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import classNames from 'classnames';
 import {connect} from 'react-redux';
 import * as selectors from '../../selectors';
 import {get} from 'lodash';
 import moment from 'moment';
 import {gettext} from '../../utils/gettext';
+import {InternalNoteLabel} from '../index';
+import './style.scss';
 
 export const AuditInformationComponent = ({
     createdBy,
@@ -15,6 +18,9 @@ export const AuditInformationComponent = ({
     postedAt,
     users,
     ingestProviders,
+    showStateInformation,
+    item,
+    withPadding,
 }) => {
     const getAuthor = (createdBy) => {
         let user, provider;
@@ -35,13 +41,12 @@ export const AuditInformationComponent = ({
     const postCreator = get(postedBy, 'display_name') ? postedBy : users.find((user) => user._id === postedBy);
     const postedDateTime = postedAt ? moment(postedAt).fromNow() : null;
 
-
     return (
-        <div className="TimeAndAuthor">
+        <div className={classNames('TimeAndAuthor', {'TimeAndAuthor--withPadding': withPadding})}>
             {createdDateTime && creator &&
                 <div className="sd-text__date-and-author">
                     <time>{gettext('Created') + ' ' + createdDateTime + ' ' + gettext('by') + ' '}</time>
-                    <span className="TimeAndAuthor__author sd-text__author">
+                    <span className="sd-text__author">
                         {creator.display_name || creator.name}
                     </span>
                 </div>
@@ -50,7 +55,7 @@ export const AuditInformationComponent = ({
             {modifiedDateTime && versionCreator &&
                 <div className="sd-text__date-and-author">
                     <time>{gettext('Updated') + ' ' + modifiedDateTime + ' ' + gettext('by') + ' '}</time>
-                    <span className="TimeAndAuthor__author sd-text__author">
+                    <span className="sd-text__author">
                         {versionCreator.display_name}
                     </span>
                 </div>
@@ -59,11 +64,18 @@ export const AuditInformationComponent = ({
             {postedDateTime && postCreator &&
                 <div className="sd-text__date-and-author">
                     <time>{gettext('Posted') + ' ' + modifiedDateTime + ' ' + gettext('by') + ' '}</time>
-                    <span className="TimeAndAuthor__author sd-text__author">
+                    <span className="sd-text__author">
                         {postCreator.display_name}
                     </span>
                 </div>
             }
+            {showStateInformation && <InternalNoteLabel
+                item={item}
+                noteField="state_reason"
+                showText
+                showTooltip={false}
+                stateField="state"
+            />}
         </div>
     );
 };
@@ -80,6 +92,9 @@ AuditInformationComponent.propTypes = {
     updatedAt: PropTypes.any,
     postedAt: PropTypes.any,
     postedBy: PropTypes.any,
+    showStateInformation: PropTypes.bool,
+    item: PropTypes.object,
+    withPadding: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => (

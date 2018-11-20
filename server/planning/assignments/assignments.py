@@ -31,7 +31,7 @@ from planning.item_lock import LockService, LOCK_USER, LOCK_ACTION
 from superdesk.users.services import current_user_has_privilege
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information, \
     get_local_end_of_day, is_locked_in_this_session, get_coverage_type_name, \
-    get_version_item_for_post, enqueue_planning_item
+    get_version_item_for_post, enqueue_planning_item, DEFAULT_ASSIGNMENT_PRIORITY
 from flask import request, json, current_app as app
 from planning.planning_notifications import PlanningNotifications
 from apps.content import push_content_notification
@@ -40,8 +40,6 @@ from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
 logger = logging.getLogger(__name__)
 planning_type = deepcopy(superdesk.Resource.rel('planning', type='string'))
 planning_type['mapping'] = not_analyzed
-
-DEFAULT_ASSIGNMENT_PRIORITY = 2
 
 
 class AssignmentsService(superdesk.Service):
@@ -454,6 +452,8 @@ class AssignmentsService(superdesk.Service):
             updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.CANCELLED
             updated_assignment['planning'] = coverage_to_copy.get('planning')
             updated_assignment['planning']['news_coverage_status'] = coverage_to_copy.get('news_coverage_status')
+            updated_assignment['planning']['workflow_status_reason'] = coverage_to_copy['planning']\
+                .get('workflow_status_reason')
 
             if original_assignment.get('assigned_to')['state'] in\
                     [ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS, ASSIGNMENT_WORKFLOW_STATE.SUBMITTED]:

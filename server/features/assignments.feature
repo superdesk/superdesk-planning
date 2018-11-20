@@ -75,7 +75,8 @@ Feature: Assignments
                         "user": "#CONTEXT_USER_ID#",
                         "coverage_provider": {
                             "qcode": "stringer",
-                            "name": "Stringer"}
+                            "name": "Stringer"
+                        }
                     },
                     "workflow_status": "draft"
                 }
@@ -97,19 +98,21 @@ Feature: Assignments
             "slugline": "test slugline",
             "coverages": [
                 {
-                    "coverage_id": "#firstcoverage#",
-                    "planning": {
-                        "ednote": "test coverage, I want 250 words",
-                        "headline": "test headline",
-                        "slugline": "test slugline"
-                    },
-                    "assigned_to": {
-                        "desk": "#desks._id#",
-                        "user": "#CONTEXT_USER_ID#",
-                        "assignment_id": "#firstassignment#",
-                        "coverage_provider": {"name": "Stringer"},
-                        "state": "draft"
-                    }
+                  "assigned_to": {
+                    "coverage_provider": {"name": "Stringer"},
+                    "desk": "#desks._id#",
+                    "priority": 2,
+                    "state": "draft",
+                    "user": "#CONTEXT_USER_ID#"
+                  },
+                  "coverage_id": "#firstcoverage#",
+                  "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "g2_content_type": "text",
+                    "headline": "test headline",
+                    "slugline": "test slugline"
+                  },
+                  "workflow_status": "draft"
                 }
             ]
         }

@@ -204,18 +204,8 @@ const eventsReducer = createReducer(initialState, {
         let events = cloneDeep(state.events);
         let event = events[payload.event._id];
 
-        let ednote = `------------------------------------------------------------
-Event Postponed
-`;
-
         if (get(payload, 'reason.length', 0) > 0) {
-            ednote += `Reason: ${payload.reason}\n`;
-        }
-
-        if (get(event, 'ednote.length', 0) > 0) {
-            event.ednote += `\n\n${ednote}`;
-        } else {
-            event.ednote = ednote;
+            event.state_reason = payload.reason;
         }
 
         event.state = WORKFLOW_STATE.POSTPONED;
@@ -339,6 +329,10 @@ const updateEventPubstatus = (events, eventId, etag, state, pubstatus) => {
     updatedEvent.state = state;
     updatedEvent.pubstatus = pubstatus;
     updatedEvent._etag = etag;
+
+    if (state === WORKFLOW_STATE.SCHEDULED || state === WORKFLOW_STATE.KILLED) {
+        updatedEvent.state_reason = null;
+    }
 };
 
 const markEventCancelled = (events, eventId, etag, reason, occurStatus) => {
@@ -346,18 +340,8 @@ const markEventCancelled = (events, eventId, etag, reason, occurStatus) => {
 
     let updatedEvent = events[eventId];
 
-    let ednote = `------------------------------------------------------------
-Event Cancelled
-`;
-
     if (get(reason, 'length', 0) > 0) {
-        ednote += `Reason: ${reason}\n`;
-    }
-
-    if (get(updatedEvent, 'ednote.length', 0) > 0) {
-        updatedEvent.ednote += `\n\n${ednote}`;
-    } else {
-        updatedEvent.ednote = ednote;
+        updatedEvent.state_reason = reason;
     }
 
     updatedEvent.state = WORKFLOW_STATE.CANCELLED;

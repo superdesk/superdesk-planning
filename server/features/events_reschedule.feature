@@ -80,7 +80,7 @@ Feature: Events Reschedule
                 "end": "2029-11-21T14:00:00+0000",
                 "tz": "Australia/Sydney"
             },
-            "ednote": "Something happening.\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Changed to the next day!\n"
+            "state_reason": "Changed to the next day!"
         }
         """
         When we get "/events_history"
@@ -233,11 +233,13 @@ Feature: Events Reschedule
         {
             "state": "rescheduled",
             "pubstatus": "usable",
-            "ednote" : "We planned this.\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Changing to the next day!\n",
+            "ednote" : "We planned this.",
+            "state_reason": "Changing to the next day!",
             "coverages": [{
                 "coverage_id": "cov1",
                 "planning": {
-                    "internal_note": "Please write words.\n\n------------------------------------------------------------\nEvent has been rescheduled\nReason: Changing to the next day!\n"
+                    "internal_note": "Please write words.",
+                    "workflow_status_reason": "Changing to the next day!"
                 }
             }]
         }
@@ -257,7 +259,8 @@ Feature: Events Reschedule
                     "qcode" : "ncostat:notint",
                     "name" : "coverage not intended"
                 },
-                "internal_note" : "Please write words.\n\n------------------------------------------------------------\nCoverage cancelled\n"
+                "internal_note" : "Please write words.",
+                "workflow_status_reason": "Changing to the next day!"
             }
         }
         """
@@ -356,7 +359,7 @@ Feature: Events Reschedule
                     "end": "2099-11-21T14:00:00+0000"
                 },
                 "recurrence_id": "#EVENT1.recurrence_id#",
-                "ednote": "------------------------------------------------------------\nEvent Rescheduled\nReason: Changed to the next day!\n"
+                "state_reason": "Changed to the next day!"
             },
             {
                 "_id": "#EVENT2._id#",
@@ -981,7 +984,9 @@ Feature: Events Reschedule
         """
         When we perform postpone on events "#EVENT1._id#"
         """
-        {"update_method": "all"}
+        {
+            "reason": "Postponed this event!",
+            "update_method": "all"}
         """
         Then we get OK response
         When we get "/events"
@@ -991,22 +996,22 @@ Feature: Events Reschedule
             {
                 "_id": "#EVENT1._id#",
                 "state": "postponed",
-                "ednote": "------------------------------------------------------------\nEvent Postponed\n"
+                "state_reason": "Postponed this event!"
             },
             {
                 "_id": "#EVENT2._id#",
                 "state": "postponed",
-                "ednote": "------------------------------------------------------------\nEvent Postponed\n"
+                "state_reason": "Postponed this event!"
             },
             {
                 "_id": "#EVENT3._id#",
                 "state": "postponed",
-                "ednote": "------------------------------------------------------------\nEvent Postponed\n"
+                "state_reason": "Postponed this event!"
             },
             {
                 "_id": "#EVENT4._id#",
                 "state": "postponed",
-                "ednote": "------------------------------------------------------------\nEvent Postponed\n"
+                "state_reason": "Postponed this event!"
             }
         ]}
         """
@@ -1018,11 +1023,11 @@ Feature: Events Reschedule
                 "_id": "#PLAN1._id#",
                 "event_item": "#EVENT2._id#",
                 "state": "postponed",
-                "ednote": "------------------------------------------------------------\nEvent Postponed\n",
+                "state_reason": "Postponed this event!",
                 "coverages": [{
                     "coverage_id": "__any_value__",
                     "planning": {
-                        "internal_note": "test coverage, 250 words\n\n------------------------------------------------------------\nEvent has been postponed\n",
+                        "workflow_status_reason": "Postponed this event!",
                         "headline": "test headline",
                         "slugline": "test slugline",
                         "scheduled": "2029-11-21T14:00:00+0000",
@@ -1035,7 +1040,7 @@ Feature: Events Reschedule
                 "_id": "#PLAN2._id#",
                 "event_item": "#EVENT3._id#",
                 "state": "postponed",
-                "ednote": "------------------------------------------------------------\nEvent Postponed\n"
+                "state_reason": "Postponed this event!"
             }
         ]}
         """
@@ -1082,7 +1087,7 @@ Feature: Events Reschedule
                     }
                 },
                 "state": "draft",
-                "ednote": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n"
+                "state_reason": "Event back on at original date and time"
             },
             {
                 "name": "Friday Club",
@@ -1099,7 +1104,7 @@ Feature: Events Reschedule
                     }
                 },
                 "state": "draft",
-                "ednote": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n"
+                "state_reason": "Event back on at original date and time"
             },
             {
                 "name": "Friday Club",
@@ -1116,7 +1121,7 @@ Feature: Events Reschedule
                     }
                 },
                 "state": "scheduled",
-                "ednote": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n"
+                "state_reason": "Event back on at original date and time"
             },
             {
                 "name": "Friday Club",
@@ -1133,7 +1138,7 @@ Feature: Events Reschedule
                     }
                 },
                 "state": "scheduled",
-                "ednote": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n"
+                "state_reason": "Event back on at original date and time"
             }
         ]}
         """
@@ -1145,11 +1150,11 @@ Feature: Events Reschedule
                 "_id": "#PLAN1._id#",
                 "event_item": "#EVENT2._id#",
                 "state": "draft",
-                "ednote": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n",
+                "state_reason": "Event back on at original date and time",
                 "coverages": [{
                     "coverage_id": "__any_value__",
                     "planning": {
-                        "internal_note": "test coverage, 250 words\n\n------------------------------------------------------------\nEvent has been postponed\n\n\n------------------------------------------------------------\nEvent has been rescheduled\nReason: Event back on at original date and time\n",
+                        "workflow_status_reason": "Event back on at original date and time",
                         "headline": "test headline",
                         "slugline": "test slugline",
                         "scheduled": "2029-11-21T14:00:00+0000",
@@ -1162,7 +1167,7 @@ Feature: Events Reschedule
                 "_id": "#PLAN2._id#",
                 "event_item": "#EVENT3._id#",
                 "state": "scheduled",
-                "ednote": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n"
+                "state_reason": "Event back on at original date and time"
             }
         ]}
         """
@@ -1376,7 +1381,8 @@ Feature: Events Reschedule
                 "end": "2029-11-21T14:00:00+0000",
                 "tz": "Australia/Sydney"
             },
-            "ednote": "Something happening.\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Changed to the next day!\n"
+            "ednote": "Something happening.",
+            "state_reason": "Changed to the next day!"
         }
         """
         When we get "publish_queue"
@@ -1441,7 +1447,9 @@ Feature: Events Reschedule
                 "end": "2029-11-22T14:00:00+0000",
                 "tz": "Australia/Sydney"
             },
-            "ednote": "Something happening.\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Changed to the next day!\n"
+            "ednote": "Something happening.",
+            "state_reason": "Changed to the next day!"
+
         }
         """
         When we get "/events_history"
@@ -1452,7 +1460,7 @@ Feature: Events Reschedule
                 "event_id": "event1",
                 "operation": "reschedule",
                 "update": {
-                  "ednote": "Something happening.\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Changed to the next day!\n",
+                  "state_reason": "Changed to the next day!",
                   "state": "draft"
                 }
             }

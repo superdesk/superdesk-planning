@@ -43,10 +43,13 @@ export class CancelEventComponent extends React.Component {
     }
 
     submit() {
+        const reason = this.state.reason ? (gettext('Event Cancelled: ') + this.state.reason) :
+            this.state.reason;
+
         return this.props.onSubmit({
             ...this.props.initialValues,
             update_method: this.state.eventUpdateMethod,
-            reason: this.state.reason,
+            reason: reason,
         });
     }
 

@@ -348,6 +348,7 @@ class EventsService(superdesk.Service):
                 new_event = get_resource_service('events').find_one(req=None,
                                                                     _id=original.get(config.ID_FIELD))
                 updates['_etag'] = new_event['_etag']
+                updates['state_reason'] = new_event['state_reason']
 
         if original.get('lock_user') and 'lock_user' in updates and updates.get('lock_user') is None:
             # when the event is unlocked by the patch.

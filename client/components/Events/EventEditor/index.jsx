@@ -23,7 +23,6 @@ import {GeoLookupInput} from '../../index';
 import {EventEditorHeader} from './EventEditorHeader';
 import {gettext, editorMenuUtils, getItemId} from '../../../utils';
 import CustomVocabulariesFields from '../../CustomVocabulariesFields';
-import '../style.scss';
 
 const toggleDetails = [
     'anpa_category',
@@ -208,7 +207,7 @@ export class EventEditorComponent extends React.Component {
         );
 
         return (
-            <div className="event-editor" ref={(node) => this.dom.top = node} >
+            <div ref={(node) => this.dom.top = node} >
                 <EventEditorHeader
                     item={diff}
                     users={users}

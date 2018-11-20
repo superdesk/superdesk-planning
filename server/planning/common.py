@@ -66,6 +66,8 @@ ASSIGNMENT_WORKFLOW_STATE = namedtuple('ASSIGNMENT_WORKFLOW_STATE',
                                        ['DRAFT', 'ASSIGNED', 'IN_PROGRESS',
                                         'COMPLETED', 'SUBMITTED', 'CANCELLED'])(*assignment_workflow_state)
 
+DEFAULT_ASSIGNMENT_PRIORITY = 2
+
 item_actions = ['cancel', 'postpone', 'reschedule', 'update_time', 'convert_recurring', 'planning_cancel',
                 'cancel_all_coverage', 'edit']
 ITEM_ACTIONS = namedtuple('ITEM_ACTIONS',

@@ -29,9 +29,12 @@ export class PostponeEventComponent extends React.Component {
     }
 
     submit() {
+        const reason = this.state.reason ? (gettext('Event Posponed: ') + this.state.reason) :
+            this.state.reason;
+
         return this.props.onSubmit({
             ...this.props.initialValues,
-            reason: this.state.reason,
+            reason: reason,
         }, get(this.props, 'modalProps'));
     }
 
