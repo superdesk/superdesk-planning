@@ -1412,31 +1412,6 @@ Feature: Assignments
         """
         Then we get OK response
         Then we store assignment id in "firstassignment" from coverage 0
-        When we get "/activity"
-        Then we get existing resource
-        """
-        {
-           "_items":[
-              {
-                 "name":"update",
-                 "recipients":[
-                    {
-                       "user_id":"#CONTEXT_USER_ID#",
-                       "read":false
-                    }
-                 ],
-                 "resource":"assignments",
-                 "user":"#CONTEXT_USER_ID#",
-                 "data":{
-                    "assignor":"to yourself",
-                    "coverage_type": "text"
-                 },
-                 "user_name":"test_user",
-                 "message":"You have been assigned \"{{coverage_type}}\" coverage \"{{slugline}}\" {{assignor}}"
-              }
-           ]
-        }
-        """
         Given empty "activity"
         When we patch "/assignments/#firstassignment#"
         """

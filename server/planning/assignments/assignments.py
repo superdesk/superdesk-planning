@@ -37,7 +37,6 @@ from planning.planning_notifications import PlanningNotifications
 from apps.content import push_content_notification
 from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
 
-
 logger = logging.getLogger(__name__)
 planning_type = deepcopy(superdesk.Resource.rel('planning', type='string'))
 planning_type['mapping'] = not_analyzed
@@ -361,19 +360,21 @@ class AssignmentsService(superdesk.Service):
                                                                   assignment_id=assignment_id,
                                                                   desk=desk_name)
             else:  # A new assignment
-                # notify the user the assignment has been made to
-                PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
-                                                          message='You have been assigned \"{{coverage_type}}\" '
-                                                                  'coverage \"{{slugline}}\" {{assignor}}',
-                                                          meta_message=meta_message,
-                                                          coverage_type=get_coverage_type_name(coverage_type),
-                                                          slugline=slugline,
-                                                          client_url=client_url,
-                                                          assignment_id=assignment_id,
-                                                          assignor='by ' + user.get('display_name', '')
-                                                          if str(user.get(config.ID_FIELD, None)) != assigned_to.get(
-                                                              'user', '') else 'to yourself',
-                                                          omit_user=True)
+                # Notify the user the assignment has been made to unless assigning to your self
+                if str(user.get(config.ID_FIELD, None)) != assigned_to.get('user', ''):
+                    PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
+                                                              message='You have been assigned \"{{coverage_type}}\" '
+                                                                      'coverage \"{{slugline}}\" {{assignor}}',
+                                                              meta_message=meta_message,
+                                                              coverage_type=get_coverage_type_name(coverage_type),
+                                                              slugline=slugline,
+                                                              client_url=client_url,
+                                                              assignment_id=assignment_id,
+                                                              assignor='by ' + user.get('display_name', '')
+                                                              if str(
+                                                                  user.get(config.ID_FIELD, None)) != assigned_to.get(
+                                                                  'user', '') else 'to yourself',
+                                                              omit_user=True)
         else:  # Assigned/Reassigned to a desk, notify all desk members
             # if it was assigned to a desk before, test if there has been a change of desk
             if original.get('assigned_to') and original.get('assigned_to').get('desk') != updates.get(
@@ -554,6 +555,20 @@ class AssignmentsService(superdesk.Service):
                         updated_assignment, assignment_update_data.get('assignment'))
                     # publish planning
                     self.publish_planning(assignment_update_data.get('assignment').get('planning_item'))
+
+                    assigned_to_user = get_resource_service('users').find_one(req=None,
+                                                                              _id=get_user().get(config.ID_FIELD, ''))
+                    assignee = assigned_to_user.get('display_name') if assigned_to_user else 'Unknown'
+                    target_user = assignment_update_data['assignment'].get('assigned_to', {}).get('assignor_desk')
+                    PlanningNotifications().notify_assignment(target_user=target_user,
+                                                              message='{{coverage_type}} coverage \"{{slugline}}\" '
+                                                                      'has been completed by {{assignee}}',
+                                                              assignee=assignee,
+                                                              coverage_type=get_coverage_type_name(
+                                                                  original.get('planning', {}).get('g2_content_type',
+                                                                                                   '')),
+                                                              slugline=original.get('slugline'),
+                                                              omit_user=True)
 
     def duplicate_assignment_on_create_archive_rewrite(self, items):
         """Duplicates the coverage/assignment for the archive rewrite

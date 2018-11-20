@@ -536,7 +536,7 @@ class PlanningService(superdesk.Service):
 
             # If there has been a change in the planning internal note then notify the assigned users/desk
             if planning_original.get('internal_note') != planning_updates.get('internal_note'):
-                message = '{{coverage_type}} coverage \"{{slugline}}\" planning internal note: {{internal_note}}'
+                message = '{{coverage_type}} coverage \"{{slugline}}\" {{internal_note}} internal note added'
                 PlanningNotifications().notify_assignment(
                     coverage_status=updates.get('workflow_status'),
                     target_desk=assigned_to.get('desk') if assigned_to.get('user') is None else None,
