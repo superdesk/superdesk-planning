@@ -1,9 +1,9 @@
 import {createSelector} from 'reselect';
 import {get, isEmpty, isBoolean} from 'lodash';
 import {MAIN, SPIKED_STATE} from '../constants';
-import {orderedEvents, storedEvents} from './events';
-import {orderedPlanningList, storedPlannings} from './planning';
-import {orderedEventsPlanning} from './eventsplanning';
+import {orderedEvents, storedEvents, eventsInList} from './events';
+import {orderedPlanningList, storedPlannings, plansInList} from './planning';
+import {orderedEventsPlanning, getEventsPlanningList} from './eventsplanning';
 import {ITEM_TYPE} from '../constants';
 import moment from 'moment';
 import {getStartOfWeek} from './config';
@@ -126,3 +126,35 @@ export const isViewFiltered = createSelector(
 );
 
 export const publishQueuePreviewItem = (state) => get(state, 'selected.preview', null);
+
+export const isAllListItemsLoaded = createSelector(
+    [
+        eventsInList,
+        eventsTotalItems,
+        plansInList,
+        planningTotalItems,
+        getEventsPlanningList,
+        combinedTotalItems,
+        activeFilter,
+    ],
+    (
+        eventsList,
+        totalEvents,
+        planningsList,
+        totalPlans,
+        eventPlanningList,
+        totalItems,
+        filter
+    ) => {
+        switch (filter) {
+        case MAIN.FILTERS.COMBINED:
+            return totalItems === get(eventPlanningList, 'length', 0);
+        case MAIN.FILTERS.EVENTS:
+            return totalEvents === get(eventsList, 'length', 0);
+        case MAIN.FILTERS.PLANNING:
+            return totalPlans === get(plansInList, 'length', 0);
+        }
+
+        return true;
+    }
+);

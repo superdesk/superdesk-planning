@@ -59,6 +59,7 @@ export class PlanningListComponent extends React.Component {
             hideItemActions,
             showAddCoverage,
             listFields,
+            isAllListItemsLoaded,
         } = this.props;
 
         return (
@@ -89,6 +90,7 @@ export class PlanningListComponent extends React.Component {
                 showAddCoverage={showAddCoverage}
                 calendars={calendars}
                 listFields={listFields}
+                isAllListItemsLoaded={isAllListItemsLoaded}
             />
         );
     }
@@ -123,6 +125,7 @@ PlanningListComponent.propTypes = {
     showAddCoverage: PropTypes.bool,
     calendars: PropTypes.array,
     listFields: PropTypes.object,
+    isAllListItemsLoaded: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -142,6 +145,7 @@ const mapStateToProps = (state) => ({
     desks: selectors.general.desks(state),
     calendars: selectors.events.enabledCalendars(state),
     listFields: selectors.forms.listFields(state),
+    isAllListItemsLoaded: selectors.main.isAllListItemsLoaded(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

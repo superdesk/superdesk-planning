@@ -44,6 +44,10 @@ time.Datetime {
     }
 }
 
+.sd-alert--align {
+    justify-content: center;
+}
+
 .sd-list-item-group {
     &--vertical-scroll {
         overflow-y: auto;
