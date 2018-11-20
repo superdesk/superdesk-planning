@@ -90,7 +90,10 @@ class AssignmentsCompleteService(BaseService):
         # Determine the display name of the assignee
         assigned_to_user = get_resource_service('users').find_one(req=None, _id=user)
         assignee = assigned_to_user.get('display_name') if assigned_to_user else 'Unknown'
-        PlanningNotifications().notify_assignment(target_user=str(original.get('assigned_to', {}).get('assignor_user')),
+        target_user = original.get('assigned_to', {}).get('assignor_user')
+        if target_user is None:
+            target_user = original.get('assigned_to', {}).get('assignor_desk')
+        PlanningNotifications().notify_assignment(target_user=target_user,
                                                   message='{{coverage_type}} coverage \"{{slugline}}\" has been '
                                                           'completed by {{assignee}}',
                                                   assignee=assignee,
