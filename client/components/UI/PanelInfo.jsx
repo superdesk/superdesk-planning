@@ -6,11 +6,11 @@ import PropTypes from 'prop-types';
  * @name PanelInfo
  * @description Information displayed in the middle of a panel
  */
-const PanelInfo = ({heading, description}) => (
+const PanelInfo = ({heading, description, showIcon}) => (
     <div className="panel-info">
-        <div className="panel-info__icon">
+        {showIcon && <div className="panel-info__icon">
             <i className="big-icon--comments" />
-        </div>
+        </div>}
         {heading &&
             <h3 className="panel-info__heading">{heading}</h3>
         }
@@ -23,6 +23,11 @@ const PanelInfo = ({heading, description}) => (
 PanelInfo.propTypes = {
     heading: PropTypes.string,
     description: PropTypes.string,
+    showIcon: PropTypes.boolean,
+};
+
+PanelInfo.defaultProps = {
+    showIcon: true,
 };
 
 export default PanelInfo;

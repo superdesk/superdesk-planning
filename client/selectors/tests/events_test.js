@@ -67,8 +67,9 @@ describe('selectors', () => {
                 '2017-01-14',
                 '2017-01-15',
                 '2017-01-16',
-                '2017-01-17',
             ]);
+
+            expect(Object.keys(events).includes('2017-01-17')).toBe(false);
 
             expect(events['2017-01-14'].events.length).toBe(1);
             expect(events['2017-01-14'].events[0]._id).toBe('event3');
@@ -78,8 +79,6 @@ describe('selectors', () => {
             expect(events['2017-01-16'].events.length).toBe(2);
             expect(events['2017-01-16'].events[0]._id).toBe('event3');
             expect(events['2017-01-16'].events[1]._id).toBe('event2');
-            expect(events['2017-01-17'].events.length).toBe(1);
-            expect(events['2017-01-17'].events[0]._id).toBe('event3');
         });
 
         it('for today 2017-01-15', () => {
@@ -150,16 +149,11 @@ describe('selectors', () => {
             setAdvancedSearchDates(state, '2017-01-16T13:59:59+0000', '2017-01-17T08:00:00+0000');
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
-            expect(Object.keys(events)).toEqual([
-                '2017-01-16',
-                '2017-01-17',
-            ]);
+            expect(Object.keys(events)).toEqual(['2017-01-16']);
 
             expect(events['2017-01-16'].events.length).toBe(2);
             expect(events['2017-01-16'].events[0]._id).toBe('event3');
             expect(events['2017-01-16'].events[1]._id).toBe('event2');
-            expect(events['2017-01-17'].events.length).toBe(1);
-            expect(events['2017-01-17'].events[0]._id).toBe('event3');
         });
 
         it('from 2017-01-17T06:00:00+0000', () => {

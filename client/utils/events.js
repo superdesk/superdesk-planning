@@ -606,10 +606,16 @@ const getEventActions = ({item, session, privileges, lockedItems, callBacks, wit
  * Groups the events by date
  */
 const getEventsByDate = (events, startDate, endDate) => {
-    if (!events) return [];
+    if (!get(events, 'length', 0)) return [];
     // check if search exists
     // order by date
     let sortedEvents = events.sort((a, b) => a.dates.start - b.dates.start);
+    let maxStartDate = sortedEvents[sortedEvents.length - 1].dates.start;
+
+    if (startDate.isAfter(maxStartDate, 'day')) {
+        maxStartDate = startDate;
+    }
+
     const days = {};
 
     function addEventToDate(event, date) {
@@ -656,7 +662,10 @@ const getEventsByDate = (events, startDate, endDate) => {
                 const newDate = moment(event.dates.start.format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
 
                 newDate.add(i, 'days');
-                addEventToDate(event, newDate);
+
+                if (maxStartDate.isSameOrAfter(newDate, 'day')) {
+                    addEventToDate(event, newDate);
+                }
             }
         }
 

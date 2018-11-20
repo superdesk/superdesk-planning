@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import {ListGroup} from '.';
 import {PanelInfo} from '../UI';
+import {Item, Column, Group} from '../UI/List';
 import {gettext} from '../../utils/gettext';
 import './style.scss';
 
@@ -94,6 +95,7 @@ export class ListPanel extends React.Component {
             showAddCoverage,
             hideItemActions,
             listFields,
+            isAllListItemsLoaded,
         } = this.props;
 
         return (
@@ -106,7 +108,7 @@ export class ListPanel extends React.Component {
                     description={gettext('Create new items or change your search filters')}
                 />}
                 {groups.length > 0 &&
-                <div className="sd-column-box__main-column__items"
+                <div key="groups" className="sd-column-box__main-column__items"
                     onScroll={this.handleScroll}
                     ref={(node) => this.dom.list = node}
                 >
@@ -140,8 +142,20 @@ export class ListPanel extends React.Component {
 
                         return <ListGroup key={group.date} {...listGroupProps} />;
                     })}
-                </div>
-                }
+                    {!isAllListItemsLoaded &&
+                        <div className="ListGroup">
+                            <Group>
+                                <Item noBg={true}>
+                                    <Column grow={true}>
+                                        <div className="sd-alert sd-alert--hollow sd-alert--primary sd-alert--align">
+                                            {gettext('loading more items...')}
+                                        </div>
+                                    </Column>
+                                </Item>
+                            </Group>
+                        </div>
+                    }
+                </div>}
             </div>
         );
     }
@@ -176,4 +190,5 @@ ListPanel.propTypes = {
     hideItemActions: PropTypes.bool,
     listFields: PropTypes.object,
     calendars: PropTypes.array,
+    isAllListItemsLoaded: PropTypes.bool,
 };
