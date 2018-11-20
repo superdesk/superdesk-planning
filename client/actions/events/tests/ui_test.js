@@ -423,12 +423,14 @@ describe('actions.events.ui', () => {
         beforeEach(() => {
             sinon.stub(main, 'lockAndEdit').callsFake((item) => Promise.resolve(item));
             sinon.stub(eventsApi, 'fetchEventFiles').callsFake((item) => Promise.resolve(item));
+            sinon.stub(moment.tz, 'guess').callsFake(() => 'Foo');
         });
 
         afterEach(() => {
             restoreSinonStub(main.lockAndEdit);
             restoreSinonStub(eventsApi.duplicate);
             restoreSinonStub(eventsApi.fetchEventFiles);
+            restoreSinonStub(moment.tz.guess);
         });
 
         it('duplicate updates past event date to current date ad also preserves files and links', (done) => {
@@ -448,6 +450,7 @@ describe('actions.events.ui', () => {
                         dates: {
                             start: newStartDate,
                             end: newEndDate,
+                            tz: 'Foo',
                         },
                         duplicate_from: 'e1',
                         state: 'draft',
@@ -463,40 +466,6 @@ describe('actions.events.ui', () => {
 
                     done();
                 }, done.fail);
-        });
-
-        xit('duplicate calls events.api.duplicate and notifies the user of success', (done) => {
-            sinon.stub(eventsApi, 'duplicate').callsFake((item) => Promise.resolve(item));
-            store.test(done, eventsUi.duplicate(data.events[0]))
-                .then((item) => {
-                    expect(item).toEqual(data.events[0]);
-
-                    expect(eventsApi.duplicate.callCount).toBe(1);
-                    expect(eventsApi.duplicate.args[0]).toEqual([data.events[0]]);
-
-                    expect(services.notify.error.callCount).toBe(0);
-                    expect(services.notify.success.callCount).toBe(1);
-                    expect(services.notify.success.args[0]).toEqual(['Event duplicated']);
-
-                    expect(main.lockAndEdit.callCount).toBe(1);
-                    expect(main.lockAndEdit.args[0]).toEqual([data.events[0]]);
-
-                    done();
-                });
-        });
-
-        xit('on duplicate error notify the user of the failure', (done) => {
-            sinon.stub(eventsApi, 'duplicate').callsFake(() => Promise.reject(errorMessage));
-            store.test(done, eventsUi.duplicate(data.events[0]))
-                .then(null, (error) => {
-                    expect(error).toEqual(errorMessage);
-
-                    expect(services.notify.success.callCount).toBe(0);
-                    expect(services.notify.error.callCount).toBe(1);
-                    expect(services.notify.error.args[0]).toEqual(['Failed!']);
-
-                    done();
-                });
         });
     });
 

@@ -746,6 +746,9 @@ const duplicateEvent = (event, occurStatus) => {
     duplicatedEvent.occur_status = occurStatus;
     duplicatedEvent.state = WORKFLOW_STATE.DRAFT;
 
+    // duplicated event should get the browser timezone
+    duplicatedEvent.dates.tz = moment.tz.guess();
+
     return duplicatedEvent;
 };
 
