@@ -64,7 +64,10 @@ SelectInput.propTypes = {
     field: PropTypes.string,
     id: PropTypes.string,
     label: PropTypes.string,
-    value: PropTypes.object,
+    value: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.object,
+    ]),
     onChange: PropTypes.func.isRequired,
 
     required: PropTypes.bool,
