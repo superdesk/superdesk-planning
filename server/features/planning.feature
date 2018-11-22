@@ -1613,7 +1613,7 @@ Feature: Planning
             "event": "activity",
             "extra": {
                 "activity": {
-                "message" : "{{coverage_type}} coverage \"{{slugline}}\" planning internal note: {{internal_note}}",
+                "message" : "{{coverage_type}} coverage \"{{slugline}}\" {{internal_note}} internal note added",
                 "user_name" : "test_user"
                 }
             }
