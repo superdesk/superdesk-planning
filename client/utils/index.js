@@ -227,6 +227,10 @@ export const createStore = (params = {}, app = planningApp) => {
 export const formatAddress = (nominatim) => {
     let address = nominatim.address;
 
+    if (!address) {
+        return;
+    }
+
     if (!get(address, 'line[0]')) {
         // Address from nominatim search
         const localityHierarchy = [
