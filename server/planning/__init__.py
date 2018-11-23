@@ -138,8 +138,8 @@ def init_app(app):
 
     if not app.config.get('CELERY_TASK_ROUTES').get('planning.delete_spiked'):
         app.config['CELERY_TASK_ROUTES']['planning.delete_spiked'] = {
-            'queue': celery_queue('delete'),
-            'routing_key': 'delete.planning'
+            'queue': celery_queue('expiry'),
+            'routing_key': 'expiry.delete'
         }
 
     if not app.config.get('CELERY_BEAT_SCHEDULE'):
