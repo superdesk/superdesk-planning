@@ -418,7 +418,9 @@ const duplicate = (event) => (
             qcode: 'eocstat:eos5',
             name: 'Planned, occurs certainly',
         };
-        const newEvent = eventUtils.duplicateEvent(event, plannedStatus);
+        const newEvent = eventUtils.modifyForClient(
+            eventUtils.duplicateEvent(event, plannedStatus)
+        );
 
         return dispatch(main.lockAndEdit(newEvent));
     }

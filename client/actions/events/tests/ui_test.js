@@ -462,6 +462,8 @@ describe('actions.events.ui', () => {
                         _id: jasmine.any(String),
                         files: ['file1_id'],
                         links: ['http://www.google.com'],
+                        _startTime: newStartDate,
+                        _endTime: newEndDate,
                     }]);
 
                     done();
