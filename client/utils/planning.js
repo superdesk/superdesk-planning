@@ -573,16 +573,13 @@ const getCoverageReadOnlyFields = (
         };
     }
 
-    const hasAssignment = !!get(coverage, 'assigned_to.assignment_id');
-    const isCancelled = get(newsCoverageStatus, 'qcode') ===
-        PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode;
-
     // State is either derived from the Assignment state or if the coverage is cancelled
     let state = null;
 
-    if (hasAssignment) {
+    if (get(coverage, 'assigned_to.assignment_id')) {
         state = get(coverage, 'assigned_to.state');
-    } else if (isCancelled) {
+    } else if (get(newsCoverageStatus, 'qcode') ===
+            PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode) {
         state = ASSIGNMENTS.WORKFLOW_STATE.CANCELLED;
     }
 
@@ -641,7 +638,7 @@ const getCoverageReadOnlyFields = (
             internal_note: readOnly,
             g2_content_type: readOnly,
             genre: readOnly,
-            newsCoverageStatus: readOnly || hasAssignment,
+            newsCoverageStatus: readOnly,
             scheduled: readOnly,
         };
     }
