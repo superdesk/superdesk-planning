@@ -11,6 +11,7 @@ import {CoverageFormHeader} from './CoverageFormHeader';
 import {planningUtils, gettext, editorMenuUtils} from '../../../utils';
 
 export const CoverageEditor = ({
+    diff,
     index,
     field,
     value,
@@ -121,6 +122,8 @@ export const CoverageEditor = ({
 
     const coverageItem = (
         <CoverageItem
+            item={diff}
+            index={index}
             coverage={value}
             users={users}
             desks={desks}
@@ -156,6 +159,8 @@ export const CoverageEditor = ({
         <CoverageForm
             field={field}
             value={value}
+            diff={diff}
+            index={index}
             onChange={onChange}
             newsCoverageStatus={newsCoverageStatus}
             dateFormat={dateFormat}

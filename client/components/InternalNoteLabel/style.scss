@@ -1,3 +1,5 @@
+@import '~superdesk-ui-framework/app/styles/variables/_colors.scss';
+
 .internal-note__label {
     vertical-align: middle;
     opacity: 0.6;
@@ -9,4 +11,12 @@
     &--margin-left {
         margin-left: 0.6rem;
     }
+}
+
+.icon--yellow2 {
+    color: $oldGold !important
+}
+
+.icon--highlight2 {
+    color: $deepPink !important
 }

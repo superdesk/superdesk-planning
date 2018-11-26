@@ -137,8 +137,13 @@ class EventsPostService(EventsBaseService):
 
     def post_event(self, event, new_post_state):
         # update the event with new state
-        updates = {'state': get_item_post_state(event, new_post_state), 'pubstatus': new_post_state}
+        new_item_state = get_item_post_state(event, new_post_state)
+        updates = {'state': new_item_state, 'pubstatus': new_post_state}
         event['pubstatus'] = new_post_state
+        # Remove previous workflow state reason
+        if event['state'] != new_item_state and new_item_state in [WORKFLOW_STATE.SCHEDULED, WORKFLOW_STATE.KILLED]:
+            updates['state_reason'] = None
+
         updated_event = get_resource_service('events').update(event['_id'], updates, event)
         event.update(updated_event)
 

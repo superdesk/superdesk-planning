@@ -327,6 +327,12 @@ events_schema = {
     'place': metadata_schema['place'],
     'ednote': metadata_schema['ednote'],
 
+    # Reason (if any) for the current state (cancelled, postponed, rescheduled)
+    'state_reason': {
+        'type': 'string',
+        'nullable': True
+    },
+
     # This is used if an Event is created from a Planning Item
     # So that we can link the Planning item to this Event upon creation
     '_planning_item': planning_type

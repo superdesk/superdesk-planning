@@ -111,23 +111,12 @@ class EventsCancelService(EventsBaseService):
         if not EventsCancelService.validate_states(original):
             raise SuperdeskApiError.badRequestError('Event not in valid state for cancellation')
 
-        reason = updates.get('reason', None)
         remove_lock_information(updates)
         updates.update({
             'state': WORKFLOW_STATE.CANCELLED,
-            'occur_status': occur_cancel_state
+            'occur_status': occur_cancel_state,
+            'state_reason': updates.get('reason')
         })
-
-        ednote = '''------------------------------------------------------------
-Event Cancelled
-'''
-        if reason is not None:
-            ednote += 'Reason: {}\n'.format(reason)
-
-        if len(original.get('ednote') or '') > 0:
-            updates['ednote'] = original['ednote'] + '\n\n' + ednote
-        else:
-            updates['ednote'] = ednote
 
     def update_recurring_events(self, updates, original, update_method):
         occur_cancel_state = self._get_cancel_state()

@@ -63,18 +63,6 @@ class PlanningCancelService(BaseService):
                                           if x['qcode'] == 'ncostat:notint'), None)
             coverage_cancel_state.pop('is_active', None)
 
-        # Formulate the right 'note' for the scenario
-        note = '''------------------------------------------------------------
-Planning cancelled
-'''
-        if event_cancellation:
-            note = '''------------------------------------------------------------
-Event cancelled
-'''
-        elif cancel_all_coverage:
-            note = '''------------------------------------------------------------
-Coverage cancelled
-'''
         ids = []
         updates['coverages'] = deepcopy(original.get('coverages'))
         coverages = updates.get('coverages') or []
@@ -82,28 +70,28 @@ Coverage cancelled
 
         planning_service = get_resource_service('planning')
         for coverage in coverages:
-            if coverage_cancel_state and coverage.get('news_coverage_status')['qcode'] !=\
-                    coverage_cancel_state['qcode']:
+            if coverage['workflow_status'] != WORKFLOW_STATE.CANCELLED:
                 ids.append(coverage.get('coverage_id'))
                 planning_service.cancel_coverage(coverage, coverage_cancel_state,
-                                                 coverage.get('workflow_status'), None,
-                                                 note, reason, event_cancellation)
+                                                 coverage.get('workflow_status'), None, reason,
+                                                 event_cancellation)
 
         if cancel_all_coverage:
-            item = self.backend.update(self.datasource, id, updates, original)
-            push_notification(
-                'coverage:cancelled',
-                planning_item=str(original[config.ID_FIELD]),
-                user=str(user),
-                session=str(session),
-                reason=reason,
-                coverage_state=coverage_cancel_state,
-                etag=item.get('_etag'),
-                ids=ids
-            )
+            if len(ids) > 0:
+                item = self.backend.update(self.datasource, id, updates, original)
+                push_notification(
+                    'coverage:cancelled',
+                    planning_item=str(original[config.ID_FIELD]),
+                    user=str(user),
+                    session=str(session),
+                    reason=reason,
+                    coverage_state=coverage_cancel_state,
+                    etag=item.get('_etag'),
+                    ids=ids
+                )
             return item
 
-        self._cancel_plan(updates, original, note, reason)
+        self._cancel_plan(updates, reason)
 
         item = self.backend.update(self.datasource, id, updates, original)
 
@@ -119,15 +107,8 @@ Coverage cancelled
 
         return item
 
-    def _cancel_plan(self, updates, original, ednote, reason):
-        if reason:
-            ednote += 'Reason: {}\n'.format(reason)
-
-        if len(original.get('ednote') or '') > 0:
-            updates['ednote'] = original['ednote'] + '\n\n' + ednote
-        else:
-            updates['ednote'] = ednote
-
+    def _cancel_plan(self, updates, reason):
+        updates['state_reason'] = reason
         updates[ITEM_STATE] = WORKFLOW_STATE.CANCELLED
 
     def on_updated(self, updates, original):

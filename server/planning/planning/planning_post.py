@@ -13,6 +13,7 @@ from superdesk import get_resource_service, logger
 from superdesk.resource import Resource
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
+from copy import deepcopy
 
 from eve.utils import config
 from planning.planning import PlanningResource
@@ -105,11 +106,22 @@ class PlanningPostService(BaseService):
 
         """
         # update the planning with new state
-        updates = {'state': get_item_post_state(plan, new_post_state), 'pubstatus': new_post_state}
-        plan['pubstatus'] = new_post_state
+        new_item_state = get_item_post_state(plan, new_post_state)
+
+        updates = deepcopy(plan)
+        updates['state'] = new_item_state
+        updates['pubstatus'] = new_post_state
+        if plan['state'] != new_item_state and new_item_state in [WORKFLOW_STATE.SCHEDULED, WORKFLOW_STATE.KILLED]:
+            updates['state_reason'] = None
+            for coverage in updates.get('coverages', []):
+                if coverage.get('workflow_status') != WORKFLOW_STATE.CANCELLED and \
+                        coverage.get('planning', {}).pop('workflow_status_reason', None):
+                        coverage['planning']['workflow_status_reason'] = None
+
         get_resource_service('planning').update(plan['_id'], updates, plan)
 
         # Set a version number
+        plan['pubstatus'] = new_post_state
         version, plan = get_version_item_for_post(plan)
         plan[ITEM_STATE] = updates.get(ITEM_STATE)
 

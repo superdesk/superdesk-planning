@@ -15,8 +15,11 @@ import {
     planningUtils,
 } from '../../utils';
 import {UserAvatar} from '../UserAvatar';
+import {WORKFLOW_STATE} from '../../constants';
 
 export const CoverageItem = ({
+    item,
+    index,
     coverage,
     users,
     desks,
@@ -75,13 +78,14 @@ export const CoverageItem = ({
                 </Row>
                 <Row>
                     {!userAssigned && !deskAssigned && (
-                        <span className="sd-list-item__text-label sd-list-item__text-label--normal">
+                        <span className="sd-list-item__text-label sd-list-item__text-label--normal
+                            sd-overflow-ellipsis sd-list-item--element-grow">
                             {gettext('Unassigned')}
                         </span>
                     )}
 
                     {deskAssigned && (
-                        <span>
+                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                             <span className="sd-list-item__text-label sd-list-item__text-label--normal">
                                 {gettext('Desk: ')}
                             </span>
@@ -89,9 +93,16 @@ export const CoverageItem = ({
                         </span>
                     )}
 
-                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                    <span className="grid">
+                        <InternalNoteLabel
+                            item={item}
+                            prefix={`coverages[${index}].planning.`}
+                            noteField="workflow_status_reason"
+                            showTooltip
+                            stateField = {coverage.workflow_status === WORKFLOW_STATE.CANCELLED ?
+                                `coverages[${index}].workflow_status` : 'state'}
+                            showHeaderText={false} />
                         <StateLabel
-                            className="pull-right"
                             item={coverageInWorkflow ? get(coverage, 'assigned_to', {}) : coverage }
                             fieldName={coverageInWorkflow ? 'state' : 'workflow_status'} />
                     </span>
@@ -128,6 +139,8 @@ CoverageItem.propTypes = {
     contentTypes: PropTypes.array,
     isPreview: PropTypes.bool,
     active: PropTypes.bool,
+    item: PropTypes.object,
+    index: PropTypes.number,
 };
 
 CoverageItem.defaultProps = {

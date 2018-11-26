@@ -64,6 +64,9 @@ export class EventPreviewContentComponent extends React.Component {
                             updatedBy={versionCreator}
                             createdAt={creationDate}
                             updatedAt={updatedDate}
+                            showStateInformation
+                            item={item}
+                            withPadding
                         />
                     </div>
                     <div className="side-panel__content-block-inner side-panel__content-block-inner--right">

@@ -8,8 +8,6 @@ import {ContentBlock, ContentBlockInner} from '../../UI/SidePanel';
 import {AuditInformation, StateLabel} from '../..';
 import {FeatureLabel} from '../FeaturedPlanning';
 
-import './style.scss';
-
 export const PlanningEditorHeader = ({item, users}) => {
     if (!isExistingItem(item)) {
         return null;
@@ -24,7 +22,6 @@ export const PlanningEditorHeader = ({item, users}) => {
 
     return (
         <ContentBlock
-            className="planning-editor__header"
             padSmall={true}
             flex={true}
         >
@@ -34,6 +31,8 @@ export const PlanningEditorHeader = ({item, users}) => {
                     updatedBy={versionCreator}
                     createdAt={creationDate}
                     updatedAt={updatedDate}
+                    showStateInformation
+                    item={item}
                 />
             </ContentBlockInner>
             <ContentBlockInner right={true}>

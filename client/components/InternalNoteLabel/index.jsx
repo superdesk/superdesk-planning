@@ -5,33 +5,46 @@ import classNames from 'classnames';
 
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
-import {gettext} from '../../utils';
+import {gettext, getItemWorkflowStateLabel} from '../../utils';
 
 import './style.scss';
 
-export const InternalNoteLabel = ({item, prefix, showTooltip, marginRight, marginLeft}) => {
-    const internalNote = get(item, `${prefix}internal_note`);
+export const InternalNoteLabel = ({
+    item,
+    noteField,
+    prefix,
+    showTooltip,
+    marginRight,
+    marginLeft,
+    showText,
+    stateField,
+    className,
+    showHeaderText,
+}) => {
+    const internalNote = get(item, `${prefix}${noteField}`);
+    const iconColor = stateField ? get(getItemWorkflowStateLabel(item, stateField), 'iconType') : 'red';
 
     if (get(internalNote, 'length', 0) < 1) {
         return null;
     }
 
     return !showTooltip ? (
-        <i className={classNames(
-            'internal-note__label',
-            'icon-info-sign',
-            'icon--red',
-            {
-                'internal-note__label--margin-right': marginRight,
-                'internal-note__label--margin-left': marginLeft,
-            }
-        )} />
+        <div className={className}>
+            <i className={classNames(
+                'internal-note__label',
+                'icon-info-sign',
+                `icon--${iconColor}`,
+                {
+                    'internal-note__label--margin-right': marginRight,
+                    'internal-note__label--margin-left': marginLeft,
+                }
+            )} />{showText && internalNote}</div>
     ) : (
         <OverlayTrigger
             overlay={
                 <Tooltip id="internal_note_popup">
-                    {gettext('Internal Note:')}
-                    <br/>
+                    {showHeaderText && gettext('Internal Note:')}
+                    {showHeaderText && <br/>}
                     {internalNote
                         .split('\n')
                         .map((item, key) => <span key={key}>{item}<br/></span>)
@@ -42,7 +55,7 @@ export const InternalNoteLabel = ({item, prefix, showTooltip, marginRight, margi
             <i className={classNames(
                 'internal-note__label',
                 'icon-info-sign',
-                'icon--red',
+                `icon--${iconColor}`,
                 {
                     'internal-note__label--margin-right': marginRight,
                     'internal-note__label--margin-left': marginLeft,
@@ -55,9 +68,15 @@ export const InternalNoteLabel = ({item, prefix, showTooltip, marginRight, margi
 InternalNoteLabel.propTypes = {
     item: PropTypes.object,
     prefix: PropTypes.string,
+    field: PropTypes.string,
+    className: PropTypes.string,
+    showHeaderText: PropTypes.bool,
     showTooltip: PropTypes.bool,
     marginRight: PropTypes.bool,
     marginLeft: PropTypes.bool,
+    noteField: PropTypes.string,
+    showText: PropTypes.bool,
+    stateField: PropTypes.string,
 };
 
 InternalNoteLabel.defaultProps = {
@@ -65,4 +84,6 @@ InternalNoteLabel.defaultProps = {
     showTooltip: true,
     marginRight: true,
     marginLeft: false,
+    noteField: 'internal_note',
+    showHeaderText: true,
 };

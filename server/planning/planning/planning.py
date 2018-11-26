@@ -26,7 +26,7 @@ from copy import deepcopy
 from eve.utils import config, ParsedRequest, date_to_str
 from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, get_coverage_cancellation_state,\
     remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name,\
-    set_original_creator, list_uniq_with_order, TEMP_ID_PREFIX
+    set_original_creator, list_uniq_with_order, TEMP_ID_PREFIX, DEFAULT_ASSIGNMENT_PRIORITY
 from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
@@ -468,7 +468,7 @@ class PlanningService(superdesk.Service):
                 'planning_item': planning_id,
                 'coverage_item': doc.get('coverage_id'),
                 'planning': doc.get('planning'),
-                'priority': assigned_to.get('priority'),
+                'priority': assigned_to.get('priority', DEFAULT_ASSIGNMENT_PRIORITY),
                 'description_text': planning.get('description_text')
             }
 
@@ -505,7 +505,7 @@ class PlanningService(superdesk.Service):
                     updates.get('news_coverage_status').get('qcode') == coverage_cancel_state.get('qcode') and \
                     original.get('news_coverage_status').get('qcode') != coverage_cancel_state.get('qcode'):
                 self.cancel_coverage(updates, coverage_cancel_state, original.get('workflow_status'),
-                                     original_assignment)
+                                     original_assignment, updates.get('planning').get('workflow_status_reason'))
                 return
 
             assignment = {}
@@ -554,28 +554,12 @@ class PlanningService(superdesk.Service):
                     original_assignment
                 )
 
-    def cancel_coverage(self, coverage, coverage_cancel_state, original_workflow_status, assignment=None, note=None,
+    def cancel_coverage(self, coverage, coverage_cancel_state, original_workflow_status, assignment=None,
                         reason=None, event_cancellation=False):
-        if reason:
-            note += 'Reason: {}\n'.format(reason)
-
-        if note:
-            if not coverage.get('planning'):
-                coverage['planning'] = {}
-
-            if len(coverage['planning'].get('internal_note') or '') > 0:
-                coverage['planning']['internal_note'] += '\n\n' + note
-            else:
-                coverage['planning']['internal_note'] = note
-
-            if len(coverage['planning'].get('ednote') or '') > 0:
-                coverage['planning']['ednote'] += '\n\n' + note
-            else:
-                coverage['planning']['ednote'] = note
-
         coverage['news_coverage_status'] = coverage_cancel_state
         coverage['previous_status'] = original_workflow_status
         coverage['workflow_status'] = WORKFLOW_STATE.CANCELLED
+        coverage['planning']['workflow_status_reason'] = reason
 
         # Cancel assignment if the coverage has an assignment
         if coverage.get('assigned_to'):
@@ -885,6 +869,10 @@ coverage_schema = {
             'subject': metadata_schema['subject'],
             'internal_note': {
                 'type': 'string'
+            },
+            'workflow_status_reason': {
+                'type': 'string',
+                'nullable': True
             }
         }  # end planning dict schema
     },  # end planning
@@ -908,8 +896,7 @@ coverage_schema = {
                 'state': not_analyzed
             }
         }
-    },
-
+    }
 }  # end coverage_schema
 
 planning_schema = {
@@ -1077,13 +1064,17 @@ planning_schema = {
     'name': {
         'type': 'string'
     },
-
     'files': {
         'type': 'list',
         'nullable': True,
         'schema': Resource.rel('planning_files'),
         'mapping': not_analyzed,
     },
+    # Reason (if any) for the current state (cancelled, postponed, rescheduled)
+    'state_reason': {
+        'type': 'string',
+        'nullable': True
+    }
 }  # end planning_schema
 
 

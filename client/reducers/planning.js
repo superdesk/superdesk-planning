@@ -257,65 +257,26 @@ const planningReducer = createReducer(initialState, {
 });
 
 const markPlaning = (plan, payload, action) => {
-    let ednote = `------------------------------------------------------------
-Planning ${action}
-`;
-
-    if (payload.event_cancellation) {
-        ednote = `------------------------------------------------------------
-Event ${action}
-`;
-    }
-
     if (get(payload, 'reason.length', 0) > 0) {
-        ednote += `Reason: ${payload.reason}\n`;
-    }
-
-    if (get(plan, 'ednote.length', 0) > 0) {
-        plan.ednote += `\n\n${ednote}`;
-    } else {
-        plan.ednote = ednote;
+        plan.state_reason = payload.reason;
     }
 };
 
 const markCoverage = (coverage, payload, action) => {
-    let note = `------------------------------------------------------------
-Planning has been ${action}
-`;
-
-    if (payload.event_cancellation) {
-        note = `------------------------------------------------------------
-Event has been ${action}
-`;
-    } else if (payload.ids) {
-        note = `------------------------------------------------------------
-Coverage ${action}
-`;
-    }
-
-    if (get(payload, 'reason.length', 0) > 0) {
-        note += `Reason: ${payload.reason}\n`;
-    }
-
-    if (get(coverage, 'planning.internal_note.length', 0) > 0) {
-        coverage.planning.internal_note += `\n\n${note}`;
-    } else {
-        coverage.planning.internal_note = note;
-    }
-
-    if (get(coverage, 'planning.ednote.length', 0) > 0) {
-        coverage.planning.ednote += `\n\n${note}`;
-    } else {
-        coverage.planning.ednote = note;
-    }
-
-    if ('coverage_state' in payload) {
-        coverage.news_coverage_status = payload.coverage_state;
-    }
-
     if (action === WORKFLOW_STATE.CANCELLED) {
         coverage.previous_status = coverage.workflow_status;
         coverage.workflow_status = WORKFLOW_STATE.CANCELLED;
+        if (!get(coverage, 'planning.workflow_status_reason')) {
+            coverage.planning.workflow_status_reason = payload.reason;
+        }
+    } else {
+        if (coverage.workflow_status !== WORKFLOW_STATE.CANCELLED && get(payload, 'reason.length', 0) > 0) {
+            coverage.planning.workflow_status_reason = payload.reason;
+        }
+
+        if ('coverage_state' in payload) {
+            coverage.news_coverage_status = payload.coverage_state;
+        }
     }
 };
 

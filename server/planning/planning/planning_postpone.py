@@ -40,7 +40,7 @@ class PlanningPostponeResource(PlanningResource):
 
 class PlanningPostponeService(BaseService):
     def update(self, id, updates, original):
-        self._postpone_plan(updates, original)
+        self._postpone_plan(updates)
         updates['coverages'] = deepcopy(original.get('coverages'))
         coverages = updates.get('coverages') or []
 
@@ -66,39 +66,13 @@ class PlanningPostponeService(BaseService):
 
         return item
 
-    def _postpone_plan(self, updates, original):
-        ednote = '''------------------------------------------------------------
-Event Postponed
-'''
-        if updates.get('reason', None) is not None:
-            ednote += 'Reason: {}\n'.format(updates['reason'])
-
-        if len(original.get('ednote') or '') > 0:
-            updates['ednote'] = original['ednote'] + '\n\n' + ednote
-        else:
-            updates['ednote'] = ednote
-
+    def _postpone_plan(self, updates):
+        updates['state_reason'] = updates.get('reason')
         updates[ITEM_STATE] = WORKFLOW_STATE.POSTPONED
 
     def _postpone_coverage(self, updates, coverage):
-        note = '''------------------------------------------------------------
-Event has been postponed
-'''
-        if updates.get('reason', None) is not None:
-            note += 'Reason: {}\n'.format(updates['reason'])
-
-        if not coverage.get('planning'):
-            coverage['planning'] = {}
-
-        if len(coverage['planning'].get('internal_note') or '') > 0:
-            coverage['planning']['internal_note'] += '\n\n' + note
-        else:
-            coverage['planning']['internal_note'] = note
-
-        if len(coverage['planning'].get('ednote') or '') > 0:
-            coverage['planning']['ednote'] += '\n\n' + note
-        else:
-            coverage['planning']['ednote'] = note
+        if coverage.get('workflow_status') != WORKFLOW_STATE.CANCELLED:
+            coverage['planning']['workflow_status_reason'] = updates.get('reason')
 
         assigned_to = coverage.get('assigned_to')
         if assigned_to:

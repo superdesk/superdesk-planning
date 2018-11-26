@@ -78,6 +78,9 @@ export class PlanningPreviewContentComponent extends React.Component {
                             updatedBy={versionCreator}
                             createdAt={creationDate}
                             updatedAt={updatedDate}
+                            showStateInformation
+                            item={item}
+                            withPadding
                         />
                     </div>
                     <div className="side-panel__content-block-inner side-panel__content-block-inner--right">
@@ -208,7 +211,9 @@ export class PlanningPreviewContentComponent extends React.Component {
                     (<h3 className="side-panel__heading--big">{gettext('Coverages')}</h3>)}
                 {hasCoverage &&
                     (item.coverages.map((c, index) => <CoveragePreview
-                        key={index}
+                        item={item}
+                        key={c.coverage_id}
+                        index={index}
                         coverage={c}
                         users= {users}
                         desks= {desks}

@@ -1239,9 +1239,9 @@ Feature: Planning
           "coverages":       [
               {
                   "planning": {
-                      "ednote": "test coverage, 250 words\n\n------------------------------------------------------------\nCoverage cancelled\n",
-                      "g2_content_type": "text",
-                      "internal_note" : "------------------------------------------------------------\nCoverage cancelled\n"
+                      "ednote": "test coverage, 250 words",
+                      "g2_content_type": "text"
+
                   },
                   "news_coverage_status": {
                       "qcode" : "ncostat:notint"
@@ -1249,9 +1249,8 @@ Feature: Planning
               },
               {
                   "planning": {
-                      "ednote": "test coverage2, 250 words\n\n------------------------------------------------------------\nCoverage cancelled\n",
-                      "g2_content_type": "text",
-                      "internal_note" : "------------------------------------------------------------\nCoverage cancelled\n"
+                      "ednote": "test coverage2, 250 words",
+                      "g2_content_type": "text"
                   },
                   "news_coverage_status": {
                       "qcode" : "ncostat:notint"
@@ -1982,7 +1981,7 @@ Feature: Planning
         """
 
     @auth
-    @notification @test
+    @notification
     Scenario: Validate planning date of a planning item
         When we post to "/planning"
         """

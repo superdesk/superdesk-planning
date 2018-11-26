@@ -64,16 +64,7 @@ class PlanningRescheduleService(BaseService):
         )
 
     def _reschedule_plan(self, updates, original, reason):
-        ednote = '''------------------------------------------------------------
-Event Rescheduled
-'''
-        if reason:
-            ednote += 'Reason: {}\n'.format(reason)
-
-        if len(original.get('ednote') or '') > 0:
-            updates['ednote'] = '{}\n\n{}'.format(original['ednote'], ednote)
-        else:
-            updates['ednote'] = ednote
+        updates['state_reason'] = reason
 
         if updates.get(ITEM_STATE) == WORKFLOW_STATE.DRAFT and original.get('pubstatus'):
             updates[ITEM_STATE] = WORKFLOW_STATE.SCHEDULED
@@ -81,24 +72,9 @@ Event Rescheduled
             updates[ITEM_STATE] = updates.get(ITEM_STATE) or WORKFLOW_STATE.RESCHEDULED
 
     def _reschedule_coverage(self, coverage, reason):
-        note = '''------------------------------------------------------------
-Event has been rescheduled
-'''
-        if reason:
-            note += 'Reason: {}\n'.format(reason)
-
-        if not coverage.get('planning'):
-            coverage['planning'] = {}
-
-        if len(coverage['planning'].get('internal_note') or '') > 0:
-            coverage['planning']['internal_note'] += '\n\n' + note
-        else:
-            coverage['planning']['internal_note'] = note
-
-        if len(coverage['planning'].get('ednote') or '') > 0:
-            coverage['planning']['ednote'] += '\n\n' + note
-        else:
-            coverage['planning']['ednote'] = note
+        if coverage.get('workflow_status') != WORKFLOW_STATE.CANCELLED:
+            coverage['planning']['workflow_status_reason'] = reason
+            coverage['workflow_status'] = WORKFLOW_STATE.CANCELLED
 
         assigned_to = coverage.get('assigned_to')
         if assigned_to:

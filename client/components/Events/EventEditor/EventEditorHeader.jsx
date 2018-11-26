@@ -5,8 +5,6 @@ import {getCreator, isExistingItem} from '../../../utils';
 import {ContentBlock, ContentBlockInner} from '../../UI/SidePanel';
 import {AuditInformation, StateLabel} from '../..';
 
-import './style.scss';
-
 export const EventEditorHeader = ({item, users}) => {
     if (!isExistingItem(item)) {
         return null;
@@ -21,7 +19,6 @@ export const EventEditorHeader = ({item, users}) => {
 
     return (
         <ContentBlock
-            className="event-editor__header"
             padSmall={true}
             flex={true}
         >
@@ -31,6 +28,8 @@ export const EventEditorHeader = ({item, users}) => {
                     updatedBy={versionCreator}
                     createdAt={creationDate}
                     updatedAt={updatedDate}
+                    showStateInformation
+                    item={item}
                 />
             </ContentBlockInner>
             <ContentBlockInner right={true}>

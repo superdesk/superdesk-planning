@@ -133,8 +133,7 @@ export class PlanningEditorComponent extends React.Component {
         newCoverage.news_coverage_status = {qcode: 'ncostat:int'};
         newCoverage.workflow_status = WORKFLOW_STATE.DRAFT;
         if (coverage.workflow_status === WORKFLOW_STATE.CANCELLED) {
-            newCoverage.planning.internal_note = '';
-            newCoverage.planning.ednote = '';
+            newCoverage.planning.workflow_status_reason = null;
         }
 
         newCoverage.coverage_id = generateTempId();
@@ -159,16 +158,12 @@ export class PlanningEditorComponent extends React.Component {
             let coverageToUpdate = coverages.find((c) => c.coverage_id === coverage.coverage_id);
 
             coverageToUpdate.news_coverage_status = PLANNING.NEWS_COVERAGE_CANCELLED_STATUS;
-            coverageToUpdate.planning = {
-                ...coverageToUpdate.planning,
-                internal_note: `------------------------------------------------------------
-        Coverage cancelled
-        `,
-                ednote: `------------------------------------------------------------
-        Coverage cancelled
-        `,
-            };
+            coverageToUpdate.planning.workflow_status_reason = gettext('Coverage cancelled');
             coverageToUpdate.workflow_status = WORKFLOW_STATE.CANCELLED;
+
+            if (get(coverageToUpdate, 'assigned_to.state')) {
+                coverageToUpdate.assigned_to.state = WORKFLOW_STATE.CANCELLED;
+            }
         }
 
         this.onChange('coverages', coverages);
@@ -455,7 +450,7 @@ export class PlanningEditorComponent extends React.Component {
         const associatedEvent = onFocusPlanning ? eventModal : event;
 
         return (
-            <div className="planning-editor" ref={(node) => this.dom.top = node}>
+            <div ref={(node) => this.dom.top = node}>
                 <PlanningEditorHeader
                     item={diff}
                     users={users}
