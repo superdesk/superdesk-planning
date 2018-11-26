@@ -207,7 +207,7 @@ export class CoverageForm extends React.Component {
                     defaultValue={planningUtils.defaultCoverageValues(newsCoverageStatus).news_coverage_status}
                     options={newsCoverageStatus}
                     {...fieldProps}
-                    readOnly={!!get(value, 'assigned_to.desk', readOnly)}
+                    readOnly={roFields.newsCoverageStatus}
                 />
 
                 <Field
