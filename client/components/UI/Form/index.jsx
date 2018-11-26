@@ -26,3 +26,4 @@ export {InputArray} from './InputArray';
 export {RadioButtonInput} from './RadioButtonInput';
 
 export {Field} from './Field';
+export {SelectInputWithFreeText} from './SelectInputWithFreeText';

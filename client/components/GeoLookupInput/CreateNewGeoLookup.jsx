@@ -4,7 +4,7 @@ import {omit, get} from 'lodash';
 import {formatAddress} from '../../utils';
 import {gettext} from '../../utils/gettext';
 import {ButtonList} from '../UI';
-import {Field, TextInput, SelectInput} from '../UI/Form';
+import {Field, TextInput, SelectInput, SelectInputWithFreeText} from '../UI/Form';
 import './style.scss';
 
 import {Popup, Content, Footer, Header} from '../UI/Popup';
@@ -35,7 +35,7 @@ export class CreateNewGeoLookup extends React.Component {
 
     onChange(field, value) {
         const values = {
-            ...omit(this.state, ['formInvalid', field]),
+            ...omit(this.state, ['formInvalid', field, 'city', 'state']),
             [field]: value,
         };
 
@@ -50,7 +50,7 @@ export class CreateNewGeoLookup extends React.Component {
             address: {
                 road: this.state.address,
                 locality: this.state.city,
-                state: get(this.state.state, 'name'),
+                state: get(this.state.state, 'name', this.state.state),
                 country: get(this.state.country, 'name'),
             },
         });
@@ -121,18 +121,16 @@ export class CreateNewGeoLookup extends React.Component {
                         label={gettext('City/Town')}
                         onChange={this.onChange}
                         value={this.state.city}
-                        required
                         noMargin
                     />
                     <Field
-                        component={SelectInput}
+                        component={SelectInputWithFreeText}
                         field="state"
                         label={gettext('State/Province/Region')}
                         onChange={this.onChange}
                         value={this.state.state}
                         options={this.props.regions}
                         labelField="name"
-                        required
                         noMargin
                         clearable
                     />

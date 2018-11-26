@@ -26,5 +26,5 @@ calendars.propTypes = {
         description_text: PropTypes.string,
     }).isRequired,
     calendars: PropTypes.array,
-    grow: PropTypes.string,
+    grow: PropTypes.bool,
 };
