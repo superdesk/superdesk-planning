@@ -15,7 +15,7 @@ export class CreateNewGeoLookup extends React.Component {
         this.state = {
             formInvalid: true,
             name: this.props.initialName,
-            address: '',
+            address: this.props.initialAddressIsName ? this.props.initialName : '',
             state: '',
             country: (this.props.defaultCountry || ''),
             city: '',
@@ -172,4 +172,5 @@ CreateNewGeoLookup.propTypes = {
     defaultCountry: PropTypes.object,
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
+    initialAddressIsName: PropTypes.bool,
 };

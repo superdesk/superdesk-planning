@@ -7,6 +7,7 @@ import Geolookup from 'react-geolookup';
 import DebounceInput from 'react-debounce-input';
 import * as Nominatim from 'nominatim-browser';
 import {formatAddress, gettext, getItemInArrayById} from '../../utils';
+import {KEYCODES} from '../../constants';
 import {get, has} from 'lodash';
 import {AddGeoLookupResultsPopUp} from './AddGeoLookupResultsPopUp';
 import {CreateNewGeoLookup} from './CreateNewGeoLookup';
@@ -110,6 +111,13 @@ export class GeoLookupInputComponent extends React.Component {
     }
 
     handleInputChange(event) {
+        if (this.props.allowFreeTextLocation && event.keyCode === KEYCODES.ENTER &&
+            get(this.state.unsavedInput, 'length', 0) > 1) {
+            this.props.onChange(this.props.field, {name: this.state.unsavedInput});
+            this.closeSuggestsPopUp();
+            return;
+        }
+
         this.dom.geolookup.onInputChange(event.target.value.replace(/(?:\r\n|\r|\n)/g, ' '));
 
         // Open pop-up to show external search option
@@ -252,6 +260,7 @@ export class GeoLookupInputComponent extends React.Component {
                     onFocus={onFocus}
                     field={field}
                     disabled={readOnly}
+                    onKeyDown={this.handleInputChange}
                 />
 
                 {this.state.openSuggestsPopUp && (
@@ -282,6 +291,7 @@ export class GeoLookupInputComponent extends React.Component {
                         regions={this.props.regions}
                         countries={this.props.countries}
                         defaultCountry={this.props.preferredCountry}
+                        initialAddressIsName={this.props.allowFreeTextLocation}
                         onPopupOpen={onPopupOpen}
                         onPopupClose={onPopupClose}
                     />
@@ -320,6 +330,7 @@ GeoLookupInputComponent.propTypes = {
     preferredCountry: PropTypes.object,
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
+    allowFreeTextLocation: PropTypes.string,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -329,6 +340,7 @@ const mapStateToProps = (state, ownProps) => ({
     regions: selectors.general.regions(state),
     countries: selectors.general.countries(state),
     preferredCountry: selectors.general.preferredCountry(state),
+    allowFreeTextLocation: selectors.config.allowFreeTextLocation(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
