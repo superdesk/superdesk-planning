@@ -237,7 +237,10 @@ class PlanningService(superdesk.Service):
         self.__generate_related_assignments([doc])
         updates['coverages'] = doc.get('coverages') or []
 
-        update_post_item(updates, original)
+        posted = update_post_item(updates, original)
+        if posted:
+            new_planning = self.find_one(req=None, _id=original.get(config.ID_FIELD))
+            updates['_etag'] = new_planning['_etag']
 
         # update planning_featured record if schedule has changed
         if original.get('featured'):
