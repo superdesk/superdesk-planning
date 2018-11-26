@@ -90,7 +90,7 @@ class JsonPlanningTestCase(TestCase):
         ],
         'item_class': 'plinat:newscoverage',
         'original_creator': '57bcfc5d1d41c82e8401dcc0',
-        'state': 'draft',
+        'state': 'posted',
         'slugline': 'SLUGLINE',
         'type': 'planning',
         'lock_session': None,
@@ -148,7 +148,7 @@ class JsonPlanningTestCase(TestCase):
         super().setUp()
         self.maxDiff = None
 
-    def test_formatter_active_coverage(self):
+    def test_formatter_completed_coverage(self):
         with self.app.app_context():
             agenda = {
                 '_id': 1,
@@ -164,12 +164,51 @@ class JsonPlanningTestCase(TestCase):
             formatter = JsonPlanningFormatter()
             output = formatter.format(self.item, {'name': 'Test Subscriber'})[0]
             output_item = json.loads(output[1])
-            print(output_item.get('coverages')[0].get('deliveries'))
             self.assertEqual(output_item.get('slugline'), 'SLUGLINE')
             self.assertEqual(output_item.get('agendas')[0].get('name'), 'Culture')
             self.assertEqual(output_item.get('coverages')[0].get('planning').get('slugline'), 'Raiders')
             self.assertEqual(output_item.get('coverages')[0].get('deliveries')[0]['item_id'],
                              'urn:newsml:localhost:2018-06-13T11:54:57.477423:c944042d-f93b-4304-9732-e7b5798ee8f9')
+            self.assertEqual(output_item.get('coverages')[0].get('workflow_status'), 'completed')
+
+    def test_formatter_assigned_coverage(self):
+        with self.app.app_context():
+            assignment = deepcopy(self.assignment)
+            assignment[0]['assigned_to']['state'] = 'assigned'
+            self.app.data.insert('assignments', assignment)
+            formatter = JsonPlanningFormatter()
+            output = formatter.format(self.item, {'name': 'Test Subscriber'})[0]
+            output_item = json.loads(output[1])
+            self.assertEqual(output_item.get('slugline'), 'SLUGLINE')
+            self.assertEqual(output_item.get('coverages')[0].get('planning').get('slugline'), 'Raiders')
+            self.assertEqual(output_item.get('coverages')[0].get('deliveries'), [])
+            self.assertEqual(output_item.get('coverages')[0].get('workflow_status'), 'assigned')
+
+    def test_formatter_in_progress_coverage(self):
+        with self.app.app_context():
+            assignment = deepcopy(self.assignment)
+            assignment[0]['assigned_to']['state'] = 'in_progress'
+            self.app.data.insert('assignments', assignment)
+            formatter = JsonPlanningFormatter()
+            output = formatter.format(self.item, {'name': 'Test Subscriber'})[0]
+            output_item = json.loads(output[1])
+            self.assertEqual(output_item.get('slugline'), 'SLUGLINE')
+            self.assertEqual(output_item.get('coverages')[0].get('planning').get('slugline'), 'Raiders')
+            self.assertEqual(output_item.get('coverages')[0].get('deliveries'), [])
+            self.assertEqual(output_item.get('coverages')[0].get('workflow_status'), 'active')
+
+    def test_formatter_submitted_coverage(self):
+        with self.app.app_context():
+            assignment = deepcopy(self.assignment)
+            assignment[0]['assigned_to']['state'] = 'submitted'
+            self.app.data.insert('assignments', assignment)
+            formatter = JsonPlanningFormatter()
+            output = formatter.format(self.item, {'name': 'Test Subscriber'})[0]
+            output_item = json.loads(output[1])
+            self.assertEqual(output_item.get('slugline'), 'SLUGLINE')
+            self.assertEqual(output_item.get('coverages')[0].get('planning').get('slugline'), 'Raiders')
+            self.assertEqual(output_item.get('coverages')[0].get('deliveries'), [])
+            self.assertEqual(output_item.get('coverages')[0].get('workflow_status'), 'active')
 
     def test_formatter_draft_coverage(self):
         with self.app.app_context():
@@ -189,6 +228,19 @@ class JsonPlanningTestCase(TestCase):
             output = formatter.format(item, {'name': 'Test Subscriber'})[0]
             output_item = json.loads(output[1])
             self.assertEqual(output_item.get('slugline'), 'SLUGLINE')
-            self.assertEqual(output_item.get('agendas')[0].get('name'), 'Culture')
             self.assertEqual(output_item.get('coverages')[0].get('planning').get('slugline'), 'Raiders')
             self.assertEqual(output_item.get('coverages')[0].get('deliveries'), [])
+            self.assertEqual(output_item.get('coverages')[0].get('workflow_status'), 'draft')
+
+    def test_formatter_cancel_coverage(self):
+        with self.app.app_context():
+            formatter = JsonPlanningFormatter()
+            item = deepcopy(self.item)
+            item['coverages'][0].pop('assigned_to', None)
+            item['coverages'][0]['workflow_status'] = 'cancelled'
+            output = formatter.format(item, {'name': 'Test Subscriber'})[0]
+            output_item = json.loads(output[1])
+            self.assertEqual(output_item.get('slugline'), 'SLUGLINE')
+            self.assertEqual(output_item.get('coverages')[0].get('planning').get('slugline'), 'Raiders')
+            self.assertEqual(output_item.get('coverages')[0].get('deliveries'), [])
+            self.assertEqual(output_item.get('coverages')[0].get('workflow_status'), 'cancelled')
