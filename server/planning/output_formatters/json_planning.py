@@ -53,9 +53,10 @@ class JsonPlanningFormatter(Formatter):
             assigned_to = coverage.pop('assigned_to', None) or {}
             coverage['coverage_provider'] = assigned_to.get('coverage_provider')
             deliveries, workflow_state = self._expand_delivery(assigned_to.get('assignment_id'))
-            coverage['deliveries'] = deliveries
-            coverage['workflow_status'] = self._get_coverage_workflow_state(workflow_state)
+            if workflow_state:
+                coverage['workflow_status'] = self._get_coverage_workflow_state(workflow_state)
 
+            coverage['deliveries'] = deliveries
             for f in self.remove_coverage_fields:
                 coverage.pop(f, None)
 
@@ -65,8 +66,6 @@ class JsonPlanningFormatter(Formatter):
 
     def _get_coverage_workflow_state(self, assignment_state):
         if assignment_state in {ASSIGNMENT_WORKFLOW_STATE.SUBMITTED, ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS}:
-            return ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
-        elif assignment_state == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED:
             return WORKFLOW_STATE.ACTIVE
         else:
             return assignment_state
@@ -95,11 +94,11 @@ class JsonPlanningFormatter(Formatter):
         :return:
         """
         if not assignment_id:
-            return [], WORKFLOW_STATE.DRAFT
+            return [], None
 
         assignment = superdesk.get_resource_service('assignments').find_one(req=None, _id=assignment_id)
         if not assignment:
-            return [], WORKFLOW_STATE.DRAFT
+            return [], None
 
         if assignment.get('assigned_to').get('state') != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
             return [], assignment.get('assigned_to').get('state')
