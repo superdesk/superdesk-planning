@@ -152,7 +152,7 @@ export const isAllListItemsLoaded = createSelector(
         case MAIN.FILTERS.EVENTS:
             return totalEvents === get(eventsList, 'length', 0);
         case MAIN.FILTERS.PLANNING:
-            return totalPlans === get(plansInList, 'length', 0);
+            return totalPlans === get(planningsList, 'length', 0);
         }
 
         return true;
