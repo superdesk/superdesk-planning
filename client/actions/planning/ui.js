@@ -11,6 +11,7 @@ import {
     gettext,
     getItemId,
     isExistingItem,
+    planningUtils,
 } from '../../utils';
 
 import * as selectors from '../../selectors';
@@ -506,7 +507,8 @@ const addCoverageToWorkflow = (original, updatedCoverage, index) => (
         set(coverage, 'assigned_to.state', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED);
         updates.coverages[index] = coverage;
 
-        return dispatch(planningApi.save(updates, original));
+        return dispatch(planningApi.save(updates, original))
+            .then((savedItem) => (dispatch(self.updateItemOnSave(savedItem))));
     }
 );
 
@@ -523,7 +525,17 @@ const removeAssignment = (original, updatedCoverage, index) => (
 
         updates.coverages[index] = coverage;
 
-        return dispatch(planningApi.save(updates, original));
+        return dispatch(planningApi.save(updates, original))
+            .then((savedItem) => (dispatch(self.updateItemOnSave(savedItem))));
+    }
+);
+
+const updateItemOnSave = (savedItem) => (
+    (dispatch) => {
+        const modifiedItem = planningUtils.modifyForClient(savedItem);
+
+        dispatch(planningApi.receivePlannings([modifiedItem]));
+        return Promise.resolve(modifiedItem);
     }
 );
 
@@ -556,6 +568,7 @@ const self = {
     _modifyPlanningFeatured,
     modifyPlanningFeatured,
     openFeaturedPlanningModal,
+    updateItemOnSave,
 };
 
 export default self;
