@@ -274,7 +274,8 @@ export class PlanningEditorComponent extends React.Component {
                         if (index >= 0) {
                             const diffCoverage = diffCoverages[index];
 
-                            if (diffCoverage && !isEqual(diffCoverage.assigned_to, coverage.assigned_to)) {
+                            if (diffCoverage && get(diffCoverage, 'assigned_to.state') !== WORKFLOW_STATE.DRAFT &&
+                                !isEqual(diffCoverage.assigned_to, coverage.assigned_to)) {
                                 this.onChange(`coverages[${index}].assigned_to`, coverage.assigned_to);
                             }
                         }

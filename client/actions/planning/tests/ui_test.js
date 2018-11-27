@@ -5,6 +5,7 @@ import {main, locks} from '../../';
 import sinon from 'sinon';
 import {MAIN, WORKSPACE} from '../../../constants';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
+import {planningUtils} from '../../../utils';
 
 describe('actions.planning.ui', () => {
     let store;
@@ -566,7 +567,8 @@ describe('actions.planning.ui', () => {
     });
 
     it('addCoverageToWorkflow', (done) => {
-        const coverage = data.plannings[0].coverages[0];
+        const modifiedPlanning = planningUtils.modifyForClient(data.plannings[0]);
+        const coverage = modifiedPlanning.coverages[0];
 
         store.test(done, planningUi.addCoverageToWorkflow(
             data.plannings[0],
@@ -598,8 +600,8 @@ describe('actions.planning.ui', () => {
                                     state: 'assigned',
                                 },
                             },
-                            data.plannings[0].coverages[1],
-                            data.plannings[0].coverages[2],
+                            modifiedPlanning.coverages[1],
+                            modifiedPlanning.coverages[2],
                         ],
                     },
                     data.plannings[0],
