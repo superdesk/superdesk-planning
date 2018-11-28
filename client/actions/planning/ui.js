@@ -499,10 +499,12 @@ const saveFromAuthoring = (plan) => (
  * @param {number} index - index of the Coverage in the coverages[] array
  */
 const addCoverageToWorkflow = (original, updatedCoverage, index) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         const updates = {coverages: cloneDeep(original.coverages)};
         const coverage = cloneDeep(updatedCoverage);
+        const newsCoverageStatus = selectors.general.newsCoverageStatus(getState());
 
+        set(coverage, 'news_coverage_status', newsCoverageStatus.find((s) => s.qcode === 'ncostat:int'));
         set(coverage, 'workflow_status', COVERAGES.WORKFLOW_STATE.ACTIVE);
         set(coverage, 'assigned_to.state', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED);
         updates.coverages[index] = coverage;

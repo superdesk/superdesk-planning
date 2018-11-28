@@ -568,7 +568,14 @@ describe('actions.planning.ui', () => {
 
     it('addCoverageToWorkflow', (done) => {
         const modifiedPlanning = planningUtils.modifyForClient(data.plannings[0]);
-        const coverage = modifiedPlanning.coverages[0];
+        const coverage = {
+            ...modifiedPlanning.coverages[0],
+            news_coverage_status: {
+                name: 'Coverage intended',
+                label: 'Planned',
+                qcode: 'ncostat:int',
+            },
+        };
 
         store.test(done, planningUi.addCoverageToWorkflow(
             data.plannings[0],
