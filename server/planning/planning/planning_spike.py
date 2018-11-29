@@ -63,8 +63,7 @@ class PlanningSpikeService(BaseService):
                                                           target_desk=assignment.get('assigned_to').get(
                                                               'desk') if not assignment.get('assigned_to').get(
                                                               'user') else None,
-                                                          message='{{actioning_user}} has spiked a {{coverage_type}} '
-                                                                  'coverage for \"{{slugline}}\"',
+                                                          message='assignment_spiked_msg',
                                                           slugline=slugline,
                                                           coverage_type=get_coverage_type_name(coverage_type),
                                                           actioning_user=user.get('display_name',

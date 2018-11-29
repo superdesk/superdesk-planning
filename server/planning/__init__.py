@@ -28,6 +28,8 @@ from .published_planning import PublishedPlanningResource, PublishedPlanningServ
 from superdesk.default_settings import celery_queue, CELERY_TASK_ROUTES as CTR, \
     CELERY_BEAT_SCHEDULE as CBS
 from celery.schedules import crontab
+import jinja2
+import os
 
 from .commands import FlagExpiredItems, DeleteSpikedItems
 import planning.commands  # noqa
@@ -182,6 +184,10 @@ def init_app(app):
                 vocabulary_service.patch(types.get(config.ID_FIELD), {
                     "items": (items + added_types)
                 })
+
+        custom_loaders = jinja2.ChoiceLoader(app.jinja_loader.loaders + [jinja2.FileSystemLoader(
+            os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'templates'))])
+        app.jinja_loader = custom_loaders
 
 
 @celery.task(soft_time_limit=600)

@@ -1,0 +1,1 @@
+{{coverage_type}} coverage "{{slugline}}" has been reassigned to {{assignee}} on desk ({{desk}}) by {{assignor}}

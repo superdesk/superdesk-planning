@@ -1,0 +1,1 @@
+{{coverage_type}} coverage "{{slugline}}" {{assign_type}} to desk {{desk}} by {{assignor}}

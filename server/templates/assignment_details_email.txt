@@ -1,0 +1,3 @@
+Planning Item: {{slugline}}
+Assignment ID: {{assignment_id}}
+{{client_url}}/#/workspace/assignments?assignment={{assignment_id}}

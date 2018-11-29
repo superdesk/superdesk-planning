@@ -1,0 +1,1 @@
+You have been assigned "{{coverage_type}}" coverage "{{slugline}}" {{assignor}}
