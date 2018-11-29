@@ -1,0 +1,1 @@
+{{actioning_user}} has {{action}} a {{coverage_type}} coverage for "{{slugline}}"

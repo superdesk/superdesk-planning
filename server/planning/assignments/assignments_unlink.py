@@ -57,8 +57,7 @@ class AssignmentsUnlinkService(Service):
 
             user = get_user()
             PlanningNotifications().notify_assignment(target_desk=item.get('task').get('desk'),
-                                                      message='{{actioning_user}} has {{action}} '
-                                                              'a {{coverage_type}} coverage for \"{{slugline}}\"',
+                                                      message='assignment_spiked_unlinked_msg',
                                                       actioning_user=user.get('display_name',
                                                                               user.get('username', 'Unknown')),
                                                       action='unlinked' if not spike else 'spiked',

@@ -1,0 +1,1 @@
+{{coverage_type}} coverage "{{slugline}}" has been reassigned to you on desk ({{desk}})

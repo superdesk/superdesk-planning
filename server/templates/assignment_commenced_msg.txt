@@ -1,0 +1,1 @@
+{{assignee}} has commenced work on {{coverage_type}} coverage "{{slugline}}"

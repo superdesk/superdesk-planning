@@ -1,0 +1,1 @@
+{{coverage_type}} coverage "{{slugline}}" has been completed by {{assignee}}

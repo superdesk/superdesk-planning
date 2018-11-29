@@ -346,7 +346,6 @@ class PlanningService(superdesk.Service):
                                                                                                       {}).get(
                         'internal_note', '') \
                             and coverage.get('news_coverage_status', {}).get('qcode') != 'ncostat:notint':
-                        message = '{{coverage_type}} coverage \"slugline\": {{internal_note}}'
                         target_user = coverage.get('assigned_to', original_coverage.get('assigned_to', {})).get('user',
                                                                                                                 None)
                         target_desk = coverage.get('assigned_to', original_coverage.get('assigned_to', {})).get('desk',
@@ -355,7 +354,7 @@ class PlanningService(superdesk.Service):
                             coverage_status=coverage.get('workflow_status'),
                             target_desk=target_desk if target_user is None else None,
                             target_user=target_user,
-                            message=message,
+                            message='assignment_internal_note_msg',
                             coverage_type=get_coverage_type_name(
                                 coverage.get('planning', {}).get('g2_content_type', '')),
                             slugline=coverage.get('planning', {}).get('slugline', ''),
@@ -363,7 +362,6 @@ class PlanningService(superdesk.Service):
                     # If the scheduled time for the coverage changes
                     if coverage.get('planning', {}).get('scheduled', datetime.min).strftime('%c') != \
                             original_coverage.get('planning', {}).get('scheduled', datetime.min).strftime('%c'):
-                        message = 'Due time has been amended to {{due}} for {{coverage_type}} coverage \"{{slugline}}\"'
                         target_user = coverage.get('assigned_to', original_coverage.get('assigned_to', {})).get('user',
                                                                                                                 None)
                         target_desk = coverage.get('assigned_to', original_coverage.get('assigned_to', {})).get('desk',
@@ -372,7 +370,7 @@ class PlanningService(superdesk.Service):
                             coverage_status=coverage.get('workflow_status'),
                             target_desk=target_desk if target_user is None else None,
                             target_user=target_user,
-                            message=message,
+                            message='assignment_due_time_msg',
                             due=utc_to_local(app.config['DEFAULT_TIMEZONE'],
                                              coverage.get('planning', {}).get('scheduled')).strftime('%c'),
                             coverage_type=get_coverage_type_name(
@@ -538,13 +536,13 @@ class PlanningService(superdesk.Service):
                 assignment['description_text'] = planning['description_text']
 
             # If there has been a change in the planning internal note then notify the assigned users/desk
-            if planning_original.get('internal_note') != planning_updates.get('internal_note'):
-                message = '{{coverage_type}} coverage \"{{slugline}}\" {{internal_note}} internal note added'
+            if planning_updates.get('internal_note') and planning_original.get('internal_note') != planning_updates.get(
+                    'internal_note'):
                 PlanningNotifications().notify_assignment(
                     coverage_status=updates.get('workflow_status'),
                     target_desk=assigned_to.get('desk') if assigned_to.get('user') is None else None,
                     target_user=assigned_to.get('user'),
-                    message=message,
+                    message='assignment_planning_internal_note_msg',
                     coverage_type=get_coverage_type_name(updates.get('planning', {}).get('g2_content_type', '')),
                     slugline=planning.get('slugline', ''),
                     internal_note=planning.get('internal_note', ''))
@@ -632,12 +630,11 @@ class PlanningService(superdesk.Service):
                 )
 
             assigned_to = assignment_item.get('assigned_to')
-            message = 'The {{coverage_type}} assignment {{slugline}} has been removed'
             PlanningNotifications().notify_assignment(
                 coverage_status=coverage_item.get('workflow_status'),
                 target_desk=assigned_to.get('desk') if assigned_to.get('user') is None else None,
                 target_user=assigned_to.get('user'),
-                message=message,
+                message='assignment_removed_msg',
                 coverage_type=get_coverage_type_name(coverage_item.get('planning', {}).get('g2_content_type', '')),
                 slugline=planning_item.get('slugline', ''))
 

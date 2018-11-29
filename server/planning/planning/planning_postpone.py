@@ -85,7 +85,6 @@ class PlanningPostponeService(BaseService):
                                                       target_desk=assignment.get('assigned_to').get(
                                                           'desk') if not assignment.get('assigned_to').get(
                                                           'user') else None,
-                                                      message='The event associated with {{coverage_type}} coverage '
-                                                              '\"{{slugline}}\" has been marked as postponed',
+                                                      message='assignment_postponed_msg',
                                                       slugline=slugline,
                                                       coverage_type=get_coverage_type_name(coverage_type))

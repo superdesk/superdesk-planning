@@ -12,13 +12,14 @@
 import logging
 from superdesk.activity import add_activity, ACTIVITY_UPDATE
 import superdesk
-from flask import current_app as app
-from jinja2 import Template
+from jinja2 import Template, TemplateNotFound
 from apps.archive.common import get_user
 from superdesk.errors import SuperdeskApiError
 from superdesk.celery_app import celery
 from planning.common import WORKFLOW_STATE
 from superdesk.emails import send_email
+from flask import current_app as app, render_template
+from flask_mail import Attachment
 
 try:
     from slackclient import SlackClient
@@ -43,7 +44,7 @@ class PlanningNotifications():
         excluded from the desk message
         :param target_desk: Target the users of this desk
         :param target_desk2: Target the union of the users of this desk and the target_desk
-        :param message: The message text template
+        :param message: The message text template or name of a text template
         :param meta_message: The template message with additional information
         :param data: The parameters for the message template
         :return:
@@ -52,8 +53,16 @@ class PlanningNotifications():
         if coverage_status == WORKFLOW_STATE.DRAFT:
             return
 
+        # Attempt to load the template file, if that fails, just use the message
+        try:
+            (source, filename, uptodate) = app.jinja_loader.get_source(environment=app.jinja_env,
+                                                                       template=message + '.txt')
+        except TemplateNotFound:
+            logger.warn('Failed to load the planning notification template {}.txt'.format(message))
+            return
+
         if target_desk is None and target_user is not None:
-            add_activity(ACTIVITY_UPDATE, can_push_notification=True, resource='assignments', msg=message,
+            add_activity(ACTIVITY_UPDATE, can_push_notification=True, resource='assignments', msg=source,
                          notify=[target_user], **data)
         elif target_desk is not None:
             desk = superdesk.get_resource_service('desks').find_one(req=None, _id=target_desk)
@@ -68,18 +77,20 @@ class PlanningNotifications():
             for member in members:
                 if target_user is not None and str(member.get('user', '')) == target_user:
                     continue
-                add_activity(ACTIVITY_UPDATE, can_push_notification=True, resource='assignments', msg=message,
+                add_activity(ACTIVITY_UPDATE, can_push_notification=True, resource='assignments', msg=source,
                              notify=[member.get('user')], **data)
 
         # determine if a Slack Bot has been configured
         if slack_client_installed and app.config.get('SLACK_BOT_TOKEN'):
             args = {'token': app.config.get('SLACK_BOT_TOKEN'), 'target_user': target_user, 'target_desk': target_desk,
-                    'target_desk2': target_desk2, 'message': _get_slack_message_string(message, data)}
+                    'target_desk2': target_desk2, 'message': _get_slack_message_string(source, data)}
             self._notify_slack.apply_async(kwargs=args)
 
         # send email notification to user
-        args = {'target_user': target_user, 'message': _get_email_message_string(message, meta_message, data)}
-        self._notify_email.apply_async(kwargs=args)
+        if target_user:
+            args = {'target_user': target_user, 'text_message': _get_email_message_string(source, meta_message, data),
+                    'html_message': _get_email_message_html(source, meta_message, data), 'data': data}
+            self._notify_email.apply_async(kwargs=args)
 
     def user_update(self, updates, original):
         """
@@ -122,8 +133,8 @@ class PlanningNotifications():
             _send_to_slack_desk_channel(sc, target_desk2, message)
 
     @celery.task(bind=True)
-    def _notify_email(self, target_user, message):
-        _send_user_email(target_user, message)
+    def _notify_email(self, target_user, text_message, html_message, data):
+        _send_user_email(target_user, text_message, html_message, data)
 
 
 def _get_slack_client(token):
@@ -167,7 +178,7 @@ def _get_slack_message_string(message, data):
 
 def _get_email_message_string(message, meta_message, data):
     """
-    Render the message to a string, the user that instigated the message is appended to the message
+    Render the message to a string
 
     :param message:
     :param meta_message:
@@ -175,17 +186,39 @@ def _get_email_message_string(message, meta_message, data):
     :return: The message with the data applied
     """
     template_string = Template(message).render(data)
-    template_meta_string = Template(meta_message).render(data)
+    template_meta_string = render_template(meta_message + '.txt', **data) if meta_message else ''
 
-    return template_string + '<br><br>' + template_meta_string
+    if template_meta_string:
+        return template_string + '\n\n' + template_meta_string
+    else:
+        return template_string
 
 
-def _send_user_email(user_id, message):
+def _get_email_message_html(message, meta_message, data):
+    """
+    Render the message to a html string
+
+    :param message:
+    :param meta_message:
+    :param data:
+    :return: The message with the data applied
+    """
+    template_string = Template(message).render(data)
+    template_meta_string = render_template(meta_message + '.html', **data) if meta_message else ''
+
+    if template_meta_string:
+        return template_string + '<br><br>' + template_meta_string
+    else:
+        return template_string
+
+
+def _send_user_email(user_id, text_message, html_message, data):
     """
     Send a notification to the user email
 
     :param user_id:
-    :param message:
+    :param text_message:
+    :param html_message:
     :return:
     """
     user = superdesk.get_resource_service('users').find_one(req=None, _id=user_id)
@@ -205,11 +238,21 @@ def _send_user_email(user_id, message):
 
     admins = app.config['ADMINS']
 
+    # Determine if there are any files attached to the event and send them as attachments
+    attachments = []
+    if data.get('event') and data.get('event', {}).get('files'):
+        for file_id in data.get('event', {}).get('files'):
+            event_file = superdesk.get_resource_service('events_files').find_one(req=None, _id=file_id)
+            media = app.media.get(event_file['media'], resource='events_files')
+            fp = media.read()
+            attachments.append(Attachment(filename=media.name, content_type=media.content_type, data=fp))
+
     send_email(subject='Superdesk assignment',
                sender=admins[0],
                recipients=[user_email],
-               text_body=message,
-               html_body=message)
+               text_body=text_message,
+               html_body=html_message,
+               attachments=attachments)
 
 
 def _send_to_slack_user(sc, user_id, message):

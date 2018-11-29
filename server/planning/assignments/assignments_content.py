@@ -148,8 +148,7 @@ class AssignmentsContentService(superdesk.Service):
             assignee = assigned_to_user.get('display_name') if assigned_to_user else 'Unknown'
             PlanningNotifications().notify_assignment(target_desk=item.get('task').get('desk'),
                                                       target_user=str(item.get('task').get('user')),
-                                                      message='{{assignee}} has commenced work on {{coverage_type}}'
-                                                              ' coverage \"{{slugline}}\"',
+                                                      message='assignment_commenced_msg',
                                                       assignee=assignee,
                                                       coverage_type=get_coverage_type_name(item.get('type', '')),
                                                       slugline=item.get('slugline'),

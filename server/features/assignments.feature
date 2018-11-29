@@ -1560,7 +1560,7 @@ Feature: Assignments
                        "read":false
                     }
                  ],
-                 "message":"{{coverage_type}} coverage \"{{slugline}}\" has been reassigned{{old_assignee}} to you on desk ({{desk}}) ",
+                 "message":"{{coverage_type}} coverage \"{{slugline}}\" has been reassigned {{old_assignee}} to you on desk ({{desk}})",
                  "data":{
                     "slugline":"test slugline",
                     "old_assignee":"",
@@ -1667,7 +1667,7 @@ Feature: Assignments
                           "read":false
                        }
                     ],
-            "message" : "{{coverage_type}} coverage \"{{slugline}}\" has been reassigned{{old_assignee}} to you on desk ({{desk}}) ",
+            "message" : "{{coverage_type}} coverage \"{{slugline}}\" has been reassigned {{old_assignee}} to you on desk ({{desk}})",
             "data" : {
                 "old_assignee" : " from test_user",
                 "coverage_type" : "text",

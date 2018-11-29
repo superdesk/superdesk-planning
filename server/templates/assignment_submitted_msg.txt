@@ -1,0 +1,1 @@
+{{coverage_type}} coverage "{{slugline}}" has been submitted to desk {{desk}} from {{from_desk}}
