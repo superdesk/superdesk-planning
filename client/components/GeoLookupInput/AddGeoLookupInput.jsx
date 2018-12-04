@@ -330,7 +330,7 @@ GeoLookupInputComponent.propTypes = {
     preferredCountry: PropTypes.object,
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
-    allowFreeTextLocation: PropTypes.string,
+    allowFreeTextLocation: PropTypes.bool,
 };
 
 const mapStateToProps = (state, ownProps) => ({
