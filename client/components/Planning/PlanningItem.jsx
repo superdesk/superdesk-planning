@@ -7,6 +7,7 @@ import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import {Label} from '../';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
 import {Button as NavButton} from '../UI/Nav';
+import Icon from '../UI/IconMix';
 import {EventDateTime} from '../Events';
 import {ItemActionsMenu} from '../index';
 import {PLANNING, EVENTS, MAIN, ICON_COLORS} from '../../constants';
@@ -184,7 +185,7 @@ export class PlanningItem extends React.Component {
 
                         {event &&
                             <span className="sd-no-wrap">
-                                <i className="icon-calendar-list sd-list-item__inline-icon"/>
+                                <Icon className="icon-event" color={ICON_COLORS.DARK_BLUE_GREY}/>
                                 <EventDateTime
                                     item={event}
                                     dateFormat={dateFormat}
