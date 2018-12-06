@@ -382,12 +382,13 @@ export const isPublishedItemId = (itemId) => itemId && itemId.startsWith(QUEUE_I
 
 export const getItemActionedStateLabel = (item) => {
     // Currently will cater for 'rescheduled from' scenario.
-    // If we need to use this for 'dpulicate from' or any other, we can extend it
+    // If we need to use this for 'duplicate from' or any other, we can extend it
 
     if (item.reschedule_from) {
         return {
-            label: gettext('Rescheduled From'),
-            iconType: 'highlight2',
+            label: gettext('Rescheduled Event'),
+            iconType: 'primary',
+            tooltip: {text: gettext('View original event'), flow: 'right'},
         };
     }
 };
