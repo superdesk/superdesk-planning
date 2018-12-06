@@ -502,9 +502,8 @@ class PlanningService(superdesk.Service):
 
             # Check if coverage was cancelled
             coverage_cancel_state = get_coverage_cancellation_state()
-            if updates.get('news_coverage_status') and \
-                    updates.get('news_coverage_status').get('qcode') == coverage_cancel_state.get('qcode') and \
-                    original.get('news_coverage_status').get('qcode') != coverage_cancel_state.get('qcode'):
+            if original.get('workflow_status') != updates.get('workflow_status') and updates.get(
+                    'workflow_status') == WORKFLOW_STATE.CANCELLED:
                 self.cancel_coverage(updates, coverage_cancel_state, original.get('workflow_status'),
                                      original_assignment, updates.get('planning').get('workflow_status_reason'))
                 return

@@ -578,9 +578,8 @@ const getCoverageReadOnlyFields = (
 
     if (get(coverage, 'assigned_to.assignment_id')) {
         state = get(coverage, 'assigned_to.state');
-    } else if (get(newsCoverageStatus, 'qcode') ===
-            PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode) {
-        state = ASSIGNMENTS.WORKFLOW_STATE.CANCELLED;
+    } else if (get(coverage, 'workflow_status') === WORKFLOW_STATE.CANCELLED) {
+        state = WORKFLOW_STATE.CANCELLED;
     }
 
     switch (state) {
@@ -796,6 +795,8 @@ const defaultCoverageValues = (
         newCoverage.assigned_to = {desk: preferredCoverageDesks[g2contentType]};
     } else if (g2contentType === PLANNING.G2_CONTENT_TYPE.TEXT && defaultDesk) {
         newCoverage.assigned_to = {desk: defaultDesk._id};
+    } else {
+        delete newCoverage.assigned_to;
     }
 
     return newCoverage;

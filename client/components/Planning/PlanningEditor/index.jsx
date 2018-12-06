@@ -9,7 +9,6 @@ import * as actions from '../../../actions';
 import {
     gettext,
     getItemInArrayById,
-    generateTempId,
     planningUtils,
     isSameItemId,
     editorMenuUtils,
@@ -127,24 +126,26 @@ export class PlanningEditorComponent extends React.Component {
     }
 
     onDuplicateCoverage(coverage, duplicateAs) {
-        let diffCoverages = cloneDeep(this.props.diff.coverages);
-        let newCoverage = cloneDeep(coverage);
+        const coveragePlanning = get(coverage, 'planning');
+        let newCoverage = planningUtils.defaultCoverageValues(
+            this.props.newsCoverageStatus.find((s) => s.qcode === 'ncostat:int'),
+            coveragePlanning,
+            duplicateAs || coveragePlanning.g2_content_type,
+            this.props.defaultDesk,
+            this.props.preferredCoverageDesks);
 
-        newCoverage.news_coverage_status = {qcode: 'ncostat:int'};
-        newCoverage.workflow_status = WORKFLOW_STATE.DRAFT;
         if (coverage.workflow_status === WORKFLOW_STATE.CANCELLED) {
             newCoverage.planning.workflow_status_reason = null;
         }
 
-        newCoverage.coverage_id = generateTempId();
-        delete newCoverage.assigned_to;
-
         if (duplicateAs) {
             newCoverage.planning.genre = null;
-            newCoverage.planning.g2_content_type = duplicateAs;
         }
 
+        let diffCoverages = cloneDeep(this.props.diff.coverages);
+
         diffCoverages.push(newCoverage);
+
         this.onChange('coverages', diffCoverages);
     }
 
