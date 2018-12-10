@@ -700,8 +700,6 @@ const modifyForClient = (event) => {
 
     if (get(event, 'location[0]')) {
         event.location = event.location[0];
-    } else {
-        delete event.location;
     }
 
     return event;
