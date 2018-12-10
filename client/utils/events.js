@@ -26,8 +26,10 @@ import {
     isExistingItem,
     isItemExpired,
     isItemPosted,
+    timeUtils,
 } from './index';
 import moment from 'moment';
+import momentTz from 'moment-timezone';
 import RRule from 'rrule';
 import {get, map, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy} from 'lodash';
 import {EventUpdateMethods} from '../components/Events';
@@ -365,26 +367,34 @@ const isEventRecurring = (item) => (
     get(item, 'recurrence_id', null) !== null
 );
 
-const getDateStringForEvent = (event, dateFormat, timeFormat, dateOnly = false) => {
+const getDateStringForEvent = (event, dateFormat, timeFormat, dateOnly = false, useLocal = true) => {
     // !! Note - expects event dates as instance of moment() !! //
     const start = get(event.dates, 'start');
     const end = get(event.dates, 'end');
+    const tz = get(event.dates, 'tz');
+    let dateString;
 
     if (!start || !end)
         return;
 
     if (start.isSame(end, 'day')) {
         if (dateOnly) {
-            return start.format(dateFormat);
+            dateString = start.format(dateFormat);
         } else {
-            return getDateTimeString(start, dateFormat, timeFormat) + ' - ' +
+            dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false) + ' - ' +
                 end.format(timeFormat);
         }
     } else if (dateOnly) {
-        return start.format(dateFormat) + ' - ' + end.format(dateFormat);
+        dateString = start.format(dateFormat) + ' - ' + end.format(dateFormat);
     } else {
-        return getDateTimeString(start, dateFormat, timeFormat) + ' - ' +
-                getDateTimeString(end, dateFormat, timeFormat);
+        dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false) + ' - ' +
+                getDateTimeString(end, dateFormat, timeFormat, ' @ ', false);
+    }
+
+    if (!useLocal) {
+        return tz ? `(${momentTz.tz(tz).format('z ')} ${dateString})` : null;
+    } else {
+        return momentTz.tz(timeUtils.localTimeZone()).format('z ') + dateString;
     }
 };
 
@@ -721,6 +731,21 @@ const modifyForServer = (event, removeNullLinks = false) => {
         }
     }
 
+    if (timeUtils.isEventInDifferentTimeZone(event)) {
+        if (get(event, 'dates.start') && moment.isMoment(event.dates.start)) {
+            event.dates.start = momentTz.tz(event.dates.start.format('YYYY-MM-DDTHH:mm:ss'), event.dates.tz);
+        }
+
+        if (get(event, 'dates.end') && moment.isMoment(event.dates.end)) {
+            event.dates.end = momentTz.tz(event.dates.end.format('YYYY-MM-DDTHH:mm:ss'), event.dates.tz);
+        }
+
+        if (get(event, 'dates.recurring_rule.until') && moment.isMoment(event.dates.recurring_rule.until)) {
+            event.dates.recurring_rule.until = momentTz.tz(
+                event.dates.recurring_rule.until.format('YYYY-MM-DDTHH:mm:ss'), event.dates.tz);
+        }
+    }
+
     return event;
 };
 
@@ -760,7 +785,7 @@ export const shouldLockEventForEdit = (item, privileges) => (
         (!isItemPublic(item) || !!privileges[PRIVILEGES.POST_EVENT])
 );
 
-const defaultEventValues = (occurStatuses, defaultCalendars, defaultPlaceList) => {
+const defaultEventValues = (occurStatuses, defaultCalendars, defaultPlaceList, defaultTimeZone) => {
     let newEvent = {
         _id: generateTempId(),
         type: ITEM_TYPE.EVENT,
@@ -768,7 +793,7 @@ const defaultEventValues = (occurStatuses, defaultCalendars, defaultPlaceList) =
         dates: {
             start: null,
             end: null,
-            tz: moment.tz.guess(),
+            tz: timeUtils.localTimeZone(),
         },
         calendars: defaultCalendars,
         _startTime: null,
@@ -822,8 +847,14 @@ const getRepeatSummaryForEvent = (schedule) => {
     };
 
     const getEnds = () => {
-        if (endRepeatMode === 'until') {
-            return gettext('until {{until}} ', {until: until ? until.format('D MMM YYYY') : ' '});
+        if (endRepeatMode === 'until' && moment.isMoment(until)) {
+            let untilText = gettext('until {{until}} ', {until: until ? until.format('D MMM YYYY') : ' '});
+            const remoteUntil = timeUtils.getDateInRemoteTimeZone(until, schedule.tz);
+
+            if (timeUtils.isEventInDifferentTimeZone({dates: schedule}) && until.date() !== remoteUntil.date()) {
+                untilText = untilText + `(${moment.tz(schedule.tz).format('z')}) ${remoteUntil.format('D MMM YYYY')}`;
+            }
+            return untilText;
         }
 
         if (endRepeatMode === 'count') {

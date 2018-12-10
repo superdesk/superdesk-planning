@@ -1,5 +1,6 @@
 import sinon from 'sinon';
 import {omit} from 'lodash';
+import moment from 'moment';
 import {autosave} from '../';
 import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
 import {eventUtils} from '../../utils';
@@ -172,6 +173,10 @@ describe('actions.autosave', () => {
                 ...data.event_autosave[0],
                 slugline: 'Newest Event Slugline',
                 name: 'Test Name',
+                dates: {
+                    ...data.event_autosave[0].dates,
+                    tz: moment.tz.guess(),
+                },
             }))
                 .then((updatedItem) => {
                     let expectedItem = {
@@ -181,6 +186,10 @@ describe('actions.autosave', () => {
                         lock_action: 'edit',
                         lock_user: store.initialState.session.identity._id,
                         lock_session: store.initialState.session.sessionId,
+                        dates: {
+                            ...data.event_autosave[0].dates,
+                            tz: moment.tz.guess(),
+                        },
                     };
 
                     delete expectedItem._etag;

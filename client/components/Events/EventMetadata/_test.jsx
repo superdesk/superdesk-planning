@@ -12,6 +12,7 @@ describe('<EventMetadata />', () => {
             dates: {
                 start: moment('2016-10-15T13:01:11+0000'),
                 end: moment('2016-10-15T13:02:11+0000'),
+                tz: moment.tz.guess(),
             },
             definition_short: 'definition_short 1',
             location: {

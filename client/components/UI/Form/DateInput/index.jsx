@@ -2,12 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import momentTz from 'moment-timezone';
-import {get} from 'lodash';
+
 import {LineInput, Label, Input} from '../';
 import {IconButton} from '../../';
 import {DateInputPopup} from './DateInputPopup';
 import {KEYCODES} from '../../constants';
-import {onEventCapture} from '../../utils';
+import {onEventCapture, isEventInDifferentTimeZone, localTimeZone} from '../../utils';
 import {gettext} from '../../../../utils/gettext';
 import './style.scss';
 
@@ -113,10 +113,7 @@ export class DateInput extends React.Component {
         }
 
         if (newMoment.isValid() && (!newMoment.isSame(value)) || !value) {
-            onChange(
-                field,
-                moment.tz(newMoment, get(this.props, 'timezone', momentTz.tz.guess()))
-            );
+            onChange(field, newMoment);
         }
     }
 
@@ -131,8 +128,20 @@ export class DateInput extends React.Component {
             onFocus,
             onPopupOpen,
             onPopupClose,
+            remoteTimeZone,
+            dateFormat,
             ...props
         } = this.props;
+
+        let remoteDateString;
+
+        if (moment.isMoment(value) && remoteTimeZone && isEventInDifferentTimeZone({dates: {tz: remoteTimeZone}})) {
+            const conversionTimeZone = value.tz() === remoteTimeZone ? localTimeZone() : remoteTimeZone;
+            const remoteDate = momentTz.tz(value, conversionTimeZone);
+
+            remoteDateString = `(${moment.tz(remoteTimeZone).format('z')} ${remoteDate.format(dateFormat)})`;
+        }
+
 
         return (
             <LineInput {...props} readOnly={readOnly}>
@@ -161,6 +170,8 @@ export class DateInput extends React.Component {
                     }
                     refNode={(ref) => this.dom.inputField = ref}
                 />
+                {remoteTimeZone && remoteDateString &&
+                    <span>{remoteDateString}</span>}
                 {this.state.openDatePicker && (
                     <DateInputPopup
                         value={value}
@@ -198,7 +209,7 @@ DateInput.propTypes = {
     noMargin: PropTypes.bool,
     popupContainer: PropTypes.func,
     onFocus: PropTypes.func,
-    timezone: PropTypes.string,
+    remoteTimeZone: PropTypes.string,
 };
 
 DateInput.defaultProps = {

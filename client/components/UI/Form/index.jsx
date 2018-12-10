@@ -21,6 +21,7 @@ export {ColouredValueInput} from './ColouredValueInput';
 export {TimeInput} from './TimeInput';
 export {DateInput} from './DateInput';
 export {DateTimeInput} from './DateTimeInput';
+export {TimeZoneInput} from './TimeZoneInput';
 
 export {InputArray} from './InputArray';
 export {RadioButtonInput} from './RadioButtonInput';

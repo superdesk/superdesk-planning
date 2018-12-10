@@ -615,13 +615,15 @@ export const getItemTypeString = (item) => {
     }
 };
 
-export const getDateTimeString = (date, dateFormat, timeFormat, separator = ' @ ') => (
+export const getDateTimeString = (date, dateFormat, timeFormat, separator = ' @ ', withTimezone = true) => {
     // !! Note - expects date as instance of moment() !! //
-    date.format(dateFormat) + separator + date.format(timeFormat)
-);
+    const dateStr = date.format(dateFormat) + separator + date.format(timeFormat);
+
+    return withTimezone ? (moment.tz(timeUtils.localTimeZone()).format('z ') + dateStr) : dateStr;
+};
 
 export const getDateTimeElasticFormat = (date) => (
-    getDateTimeString(moment(date).utc(), 'YYYY-MM-DD', 'HH:mm:ss+0000', 'T')
+    getDateTimeString(moment(date).utc(), 'YYYY-MM-DD', 'HH:mm:ss+0000', 'T', false)
 );
 
 export const isEmptyActions = (actions) => {

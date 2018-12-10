@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+
 import * as actions from '../../../actions';
 import '../style.scss';
 import {get, isEqual, cloneDeep} from 'lodash';
@@ -11,7 +12,7 @@ import * as selectors from '../../../selectors';
 import {Row} from '../../UI/Preview';
 import {Field} from '../../UI/Form';
 import {validateItem} from '../../../validators';
-import {updateFormValues, eventUtils} from '../../../utils';
+import {updateFormValues, eventUtils, timeUtils, gettext} from '../../../utils';
 
 export class ConvertToRecurringEventComponent extends React.Component {
     constructor(props) {
@@ -95,6 +96,7 @@ export class ConvertToRecurringEventComponent extends React.Component {
 
     render() {
         const {initialValues, dateFormat, timeFormat} = this.props;
+        const timeZone = get(initialValues, 'dates.tz');
 
         return (
             <div className="MetadataView">
@@ -121,6 +123,12 @@ export class ConvertToRecurringEventComponent extends React.Component {
                     forUpdating={true}
                 />
 
+                {timeUtils.isEventInDifferentTimeZone(initialValues) &&
+                    <div className="sd-alert sd-alert--hollow sd-alert--orange2 sd-alert--flex-direction">
+                        <strong>{gettext('This will create new events in the remote ({{timeZone}}) timezone',
+                            {timeZone})}</strong>
+                    </div>}
+
                 <Field
                     component={EventScheduleInput}
                     field="dates"
@@ -133,6 +141,7 @@ export class ConvertToRecurringEventComponent extends React.Component {
                     showErrors={true}
                     errors={this.state.errors}
                     popupContainer={this.getPopupContainer}
+                    showRemoteTimeZone
                 />
 
                 <div ref={(node) => this.dom.popupContainer = node} />
@@ -164,7 +173,16 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event) => dispatch(actions.main.save(event, false)),
+    onSubmit: (event) => {
+        if (timeUtils.isEventInDifferentTimeZone(event)) {
+            let newEvent = cloneDeep(event);
+
+            newEvent.dates.start = timeUtils.getDateInRemoteTimeZone(event.dates.start, event.dates.tz);
+            newEvent.dates.end = timeUtils.getDateInRemoteTimeZone(event.dates.end, event.dates.tz);
+
+            return dispatch(actions.main.save(newEvent, false));
+        }
+    },
 
     onHide: (event) => {
         if (event.lock_action === EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.lock_action) {

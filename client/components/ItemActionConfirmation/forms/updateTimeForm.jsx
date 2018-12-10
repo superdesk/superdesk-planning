@@ -156,7 +156,6 @@ export class UpdateTimeComponent extends React.Component {
 
                 <FormRow
                     flex={true}
-                    halfWidth={true}
                     noPadding={true}
                     invalid={!!get(this.state, 'errors._startTime')}
                 >
@@ -168,11 +167,13 @@ export class UpdateTimeComponent extends React.Component {
                         timeFormat={timeFormat}
                         noMargin={true}
                         popupContainer={this.getPopupContainer}
+                        remoteTimeZone={get(initialValues, 'dates.tz')}
+                        dateFormat={dateFormat}
                         {...fieldProps}
                     />
                 </FormRow>
 
-                <FormRow flex={true} halfWidth={true}>
+                <FormRow flex={true}>
                     <Label
                         text={gettext('To')}
                         row={true}
@@ -185,6 +186,8 @@ export class UpdateTimeComponent extends React.Component {
                         timeFormat={timeFormat}
                         noMargin={true}
                         popupContainer={this.getPopupContainer}
+                        remoteTimeZone={get(initialValues, 'dates.tz')}
+                        dateFormat={dateFormat}
                         {...fieldProps}
                     />
                 </FormRow>

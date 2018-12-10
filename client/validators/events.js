@@ -16,6 +16,11 @@ const validateRequiredDates = ({value, errors, messages}) => {
         messages.push(gettext('END DATE is a required field'));
     }
 
+    if (!get(value, 'tz')) {
+        set(errors, 'tz', gettext('This field is required'));
+        messages.push(gettext('TIMEZONE is a required field'));
+    }
+
     if (!get(value, '_startTime')) {
         set(errors, '_startTime', gettext('This field is required'));
         messages.push(gettext('START TIME is a required field'));

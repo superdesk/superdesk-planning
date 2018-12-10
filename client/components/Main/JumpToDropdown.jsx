@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import moment from 'moment';
+import momentTz from 'moment-timezone';
+import {get} from 'lodash';
 
-import {gettext} from '../../utils';
+import {gettext, timeUtils} from '../../utils';
 
 import {Dropdown as DropMenu} from '../UI/Dropdown';
 import {Button as NavButton} from '../UI/Nav';
@@ -25,9 +26,11 @@ export class JumpToDropdown extends React.Component {
     onChange(value) {
         // If the user has selected 'Today', then set the startFilter to null
         // Otherwise set the startFilter to the supplied day
-        moment(value).isSame(moment(), 'day') ?
+        const newMoment = momentTz.tz(value.clone(), get(this.props, 'defaultTimeZone', timeUtils.localTimeZone()));
+
+        moment(newMoment).isSame(moment(), 'day') ?
             this.props.setStartFilter(null) :
-            this.props.setStartFilter(value);
+            this.props.setStartFilter(newMoment);
     }
 
     render() {
@@ -52,7 +55,6 @@ export class JumpToDropdown extends React.Component {
                         close={this.togglePopup}
                         target="subnav-calendar__jump-to"
                         value={this.props.currentStartFilter}
-                        timezone={this.props.defaultTimeZone}
                     />
                 )}
             </DropMenu>

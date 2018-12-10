@@ -54,13 +54,14 @@ import {validateItem} from '../validators';
 const createNew = (itemType, item = null) => (
     (dispatch, getState) => {
         let newItem;
+        const defaultTimeZone = selectors.config.defaultTimeZone(getState());
         const defaultPlaceList = selectors.general.defaultPlaceList(getState());
 
         if (itemType === ITEM_TYPE.EVENT) {
             newItem = eventUtils.defaultEventValues(
                 selectors.vocabs.eventOccurStatuses(getState()),
                 selectors.events.defaultCalendarValue(getState()),
-                defaultPlaceList);
+                defaultPlaceList, defaultTimeZone);
             newItem._planning_item = get(item, '_planning_item');
         } else if (itemType === ITEM_TYPE.PLANNING) {
             newItem = planningUtils.defaultPlanningValues(selectors.planning.currentAgenda(getState()),

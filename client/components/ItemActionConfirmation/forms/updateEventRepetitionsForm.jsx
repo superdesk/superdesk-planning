@@ -1,10 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+
 import * as actions from '../../../actions';
 import {getDateFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
-import {gettext, updateFormValues, eventUtils} from '../../../utils';
+import {gettext, updateFormValues, eventUtils, timeUtils} from '../../../utils';
 import {Row} from '../../UI/Preview/';
 import {RepeatEventSummary} from '../../Events';
 import {RecurringRulesInput} from '../../Events/RecurringRulesInput/index';
@@ -134,7 +135,15 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event) => dispatch(actions.events.ui.updateRepetitions(event)),
+    onSubmit: (event) => {
+        let newEvent = cloneDeep(event);
+
+        if (get(event, 'dates.recurring_rule.until')) {
+            newEvent.dates.recurring_rule.until =
+                timeUtils.getDateInRemoteTimeZone(event.dates.recurring_rule.until, event.dates.tz).endOf('day');
+        }
+        return dispatch(actions.events.ui.updateRepetitions(newEvent));
+    },
     onHide: (event) => {
         if (event.lock_action === EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.lock_action) {
             dispatch(actions.events.api.unlock(event));

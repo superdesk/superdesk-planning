@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {RepeatEventSummary} from '../RepeatEventSummary';
 import {Row} from '../../UI/Preview';
-import {gettext, eventUtils} from '../../../utils';
+import {gettext, eventUtils, timeUtils} from '../../../utils';
 import {get} from 'lodash';
 import './style.scss';
 
@@ -12,15 +12,34 @@ export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPaddin
         return null;
 
     const doesRepeat = get(schedule, 'recurring_rule', null) !== null;
-    const eventDateText = eventUtils.getDateStringForEvent({dates: schedule}, dateFormat, timeFormat);
+    const event = {dates: schedule};
+    const eventDateText = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat);
+    const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(event);
+    let newDateString;
+
+    if (isRemoteTimeZone) {
+        const remoteSchedule = {
+            dates: {
+                ...schedule,
+                start: timeUtils.getDateInRemoteTimeZone(schedule.start, schedule.tz),
+                end: timeUtils.getDateInRemoteTimeZone(schedule.end, schedule.tz),
+            },
+        };
+
+        newDateString = eventUtils.getDateStringForEvent(remoteSchedule, dateFormat, timeFormat, false, false);
+    }
 
     return (
         <div>
             <Row
                 label={forUpdating ? gettext('Current Date') : gettext('Date')}
                 value={eventDateText || ''}
-                noPadding={noPadding}
+                noPadding={noPadding || isRemoteTimeZone}
             />
+            {isRemoteTimeZone && <Row
+                value={newDateString || ''}
+                noPadding={noPadding}
+            />}
 
             {doesRepeat && (
                 <Row noPadding={noPadding}>

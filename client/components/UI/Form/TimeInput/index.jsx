@@ -6,6 +6,7 @@ import {TimeInputPopup} from './TimeInputPopup';
 import {IconButton} from '../../';
 import {KEYCODES} from '../../constants';
 import {gettext} from '../../../../utils/gettext';
+import {isEventInDifferentTimeZone, localTimeZone} from '../../utils';
 import './style.scss';
 
 /**
@@ -106,7 +107,33 @@ export class TimeInput extends React.Component {
     }
 
     render() {
-        const {placeholder, field, label, value, readOnly, popupContainer, onFocus, ...props} = this.props;
+        const {
+            placeholder,
+            field,
+            label,
+            value,
+            readOnly,
+            popupContainer,
+            onFocus,
+            remoteTimeZone,
+            timeFormat,
+            dateFormat,
+            ...props
+        } = this.props;
+
+        let remoteDateString;
+
+        if (moment.isMoment(value) && remoteTimeZone && isEventInDifferentTimeZone({dates: {tz: remoteTimeZone}})) {
+            const conversionTimeZone = value.tz() === remoteTimeZone ? localTimeZone() : remoteTimeZone;
+            const remoteDate = moment.tz(value, conversionTimeZone);
+            let remoteTimeFormat = timeFormat;
+
+            if (remoteDate.date() !== value.date() && dateFormat) {
+                remoteTimeFormat = dateFormat + ' @ ' + remoteTimeFormat;
+            }
+
+            remoteDateString = `(${moment.tz(remoteTimeZone).format('z')} ${remoteDate.format(remoteTimeFormat)})`;
+        }
 
         return (
             <LineInput {...props} readOnly={readOnly}>
@@ -134,6 +161,8 @@ export class TimeInput extends React.Component {
                     }
                     refNode={(ref) => this.dom.inputField = ref}
                 />
+                {remoteTimeZone && remoteDateString &&
+                    <span>{remoteDateString}</span>}
                 {this.state.openTimePicker && (
                     <TimeInputPopup
                         value={value}

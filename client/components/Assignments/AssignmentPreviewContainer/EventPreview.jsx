@@ -40,13 +40,21 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
                 <Row
                     rowItem={true}
                     label={gettext('From')}
-                    value={<Datetime date={get(item, 'dates.start')} darkText={true} />}
+                    value={<Datetime
+                        date={get(item, 'dates.start')}
+                        darkText={true}
+                        ignoreAllDay
+                        tz={get(item, 'dates.tz')}/>}
                 />
 
                 <Row
                     rowItem={true}
                     label={gettext('To')}
-                    value={<Datetime date={get(item, 'dates.end')} darkText={true} />}
+                    value={<Datetime
+                        date={get(item, 'dates.end')}
+                        darkText={true}
+                        ignoreAllDay
+                        tz={get(item, 'dates.tz')}/>}
                 />
             </Row>
 

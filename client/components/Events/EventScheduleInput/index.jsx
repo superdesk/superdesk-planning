@@ -5,7 +5,7 @@ import moment from 'moment';
 
 import {eventUtils, gettext} from '../../../utils';
 
-import {Row, DateTimeInput, LineInput, ToggleInput, Field} from '../../UI/Form';
+import {Row, DateTimeInput, LineInput, ToggleInput, Field, TimeZoneInput} from '../../UI/Form';
 import {RecurringRulesInput} from '../RecurringRulesInput';
 
 export class EventScheduleInput extends React.Component {
@@ -42,6 +42,8 @@ export class EventScheduleInput extends React.Component {
         } else if (field === 'dates.recurring_rule.count' && !value) {
             // Count is an integer. So set it to null, not to ''
             this.props.onChange(field, null);
+        } else if (field === 'dates.recurring_rule.until' && moment.isMoment(value)) {
+            this.props.onChange(field, value.endOf('day'));
         } else {
             this.props.onChange(field, value);
         }
@@ -205,6 +207,8 @@ export class EventScheduleInput extends React.Component {
             showFirstEventLabel,
             onPopupOpen,
             onPopupClose,
+            showTimeZone,
+            showRemoteTimeZone,
         } = this.props;
         const {isAllDay} = this.state;
 
@@ -219,6 +223,7 @@ export class EventScheduleInput extends React.Component {
                 schema: {
                     'dates.start': {required: true},
                     'dates.end': {required: true},
+                    'dates.tz': {required: true},
                 },
             },
             errors: errors,
@@ -277,6 +282,7 @@ export class EventScheduleInput extends React.Component {
                     onPopupOpen={onPopupOpen}
                     onPopupClose={onPopupClose}
                     timeField="_startTime"
+                    remoteTimeZone={showRemoteTimeZone ? get(diff, 'dates.tz') : null}
                 />
 
                 <Field
@@ -294,6 +300,7 @@ export class EventScheduleInput extends React.Component {
                     onPopupOpen={onPopupOpen}
                     onPopupClose={onPopupClose}
                     timeField="_endTime"
+                    remoteTimeZone={showRemoteTimeZone ? get(diff, 'dates.tz') : null}
                 />
 
                 <Row flex={true} className="event-toggle" noPadding>
@@ -306,6 +313,14 @@ export class EventScheduleInput extends React.Component {
                         {...toggleProps}
                     />
                 </Row>
+
+                {showTimeZone && <Field
+                    field="dates.tz"
+                    label={gettext('Timezone')}
+                    component={TimeZoneInput}
+                    onChange={this.onChange}
+                    row={false}
+                    {...fieldProps} />}
 
                 <Row
                     enabled={!!get(errors, 'dates.range')}
