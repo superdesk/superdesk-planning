@@ -97,14 +97,15 @@ class EventsCancelService(EventsBaseService):
 
         plans = list(planning_service.find(where={'event_item': original[config.ID_FIELD]}))
         for plan in plans:
-            updated_plan = planning_cancel_service.patch(
-                plan[config.ID_FIELD],
-                {'reason': reason, 'event_cancellation': True}
-            )
-            app.on_updated_planning_cancel(
-                updated_plan,
-                plan
-            )
+            if plan.get('state') != WORKFLOW_STATE.CANCELLED:
+                updated_plan = planning_cancel_service.patch(
+                    plan[config.ID_FIELD],
+                    {'reason': reason, 'event_cancellation': True}
+                )
+                app.on_updated_planning_cancel(
+                    updated_plan,
+                    plan
+                )
 
     @staticmethod
     def _set_event_cancelled(updates, original, occur_cancel_state):

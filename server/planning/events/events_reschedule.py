@@ -93,16 +93,17 @@ class EventsRescheduleService(EventsBaseService):
             'state': state
         }
         for plan in plans:
-            updated_plan = planning_reschedule_service.patch(
-                plan[config.ID_FIELD],
-                plan_updates
-            )
-            get_resource_service('planning_history').on_reschedule(updated_plan, plan)
-            if len(plan.get('coverages', [])) > 0:
-                planning_cancel_service.update(plan[config.ID_FIELD], {
-                    'reason': reason,
-                    'cancel_all_coverage': True
-                }, plan)
+            if plan.get('state') != WORKFLOW_STATE.CANCELLED:
+                updated_plan = planning_reschedule_service.patch(
+                    plan[config.ID_FIELD],
+                    plan_updates
+                )
+                get_resource_service('planning_history').on_reschedule(updated_plan, plan)
+                if len(plan.get('coverages', [])) > 0:
+                    planning_cancel_service.update(plan[config.ID_FIELD], {
+                        'reason': reason,
+                        'cancel_all_coverage': True
+                    }, plan)
 
     @staticmethod
     def _duplicate_event(updates, original, events_service):

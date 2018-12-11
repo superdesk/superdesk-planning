@@ -499,7 +499,7 @@ const saveFromAuthoring = (plan) => (
  * @param {number} index - index of the Coverage in the coverages[] array
  */
 const addCoverageToWorkflow = (original, updatedCoverage, index) => (
-    (dispatch, getState) => {
+    (dispatch, getState, {notify}) => {
         const updates = {coverages: cloneDeep(original.coverages)};
         const coverage = cloneDeep(updatedCoverage);
         const newsCoverageStatus = selectors.general.newsCoverageStatus(getState());
@@ -510,7 +510,10 @@ const addCoverageToWorkflow = (original, updatedCoverage, index) => (
         updates.coverages[index] = coverage;
 
         return dispatch(planningApi.save(updates, original))
-            .then((savedItem) => (dispatch(self.updateItemOnSave(savedItem))));
+            .then((savedItem) => {
+                notify.success('Coverage added to workflow.');
+                return dispatch(self.updateItemOnSave(savedItem));
+            });
     }
 );
 
@@ -521,14 +524,17 @@ const addCoverageToWorkflow = (original, updatedCoverage, index) => (
  * @param {number} index - index of the Coverage in the coverages[] array
  */
 const removeAssignment = (original, updatedCoverage, index) => (
-    (dispatch) => {
+    (dispatch, getState, {notify}) => {
         const updates = {coverages: cloneDeep(original.coverages)};
         const coverage = cloneDeep(updatedCoverage);
 
         updates.coverages[index] = coverage;
 
         return dispatch(planningApi.save(updates, original))
-            .then((savedItem) => (dispatch(self.updateItemOnSave(savedItem))));
+            .then((savedItem) => {
+                notify.success('Removed assignment from coverage.');
+                return dispatch(self.updateItemOnSave(savedItem));
+            });
     }
 );
 
