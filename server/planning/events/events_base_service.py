@@ -134,6 +134,9 @@ class EventsBaseService(BaseService):
         if not original:
             raise SuperdeskApiError.notFoundError()
 
+        if original.get('state') == WORKFLOW_STATE.CANCELLED:
+            raise SuperdeskApiError.forbiddenError(message='Aborted. Event is already cancelled')
+
         if self.REQUIRE_LOCK:
             user_id = get_user_id()
             session_id = get_auth().get(config.ID_FIELD, None)

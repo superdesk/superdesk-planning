@@ -1121,7 +1121,7 @@ Feature: Events Reschedule
                     }
                 },
                 "state": "scheduled",
-                "state_reason": "Event back on at original date and time"
+                "state_reason": null
             },
             {
                 "name": "Friday Club",
@@ -1138,7 +1138,7 @@ Feature: Events Reschedule
                     }
                 },
                 "state": "scheduled",
-                "state_reason": "Event back on at original date and time"
+                "state_reason": null
             }
         ]}
         """

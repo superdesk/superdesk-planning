@@ -81,14 +81,15 @@ class EventsPostponeService(EventsBaseService):
 
         plans = list(planning_service.find(where={'event_item': original[config.ID_FIELD]}))
         for plan in plans:
-            updated_plan = planning_postpone_service.patch(
-                plan[config.ID_FIELD],
-                {'reason': reason}
-            )
-            app.on_updated_planning_postpone(
-                updated_plan,
-                plan
-            )
+            if plan.get('state') != WORKFLOW_STATE.CANCELLED:
+                updated_plan = planning_postpone_service.patch(
+                    plan[config.ID_FIELD],
+                    {'reason': reason}
+                )
+                app.on_updated_planning_postpone(
+                    updated_plan,
+                    plan
+                )
 
     @staticmethod
     def _set_event_postponed(updates):

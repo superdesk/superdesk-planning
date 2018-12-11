@@ -582,7 +582,7 @@ Feature: Events Cancel
         When we perform cancel on events "event1"
         Then we get error 400
         """
-        {"_issues": {"validator exception": "400: Event not in valid state for cancellation"}, "_status": "ERR"}
+        {"_issues": {"validator exception": "403: Aborted. Event is already cancelled"}, "_status": "ERR"}
         """
 
     @auth

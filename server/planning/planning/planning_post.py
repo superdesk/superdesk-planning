@@ -111,7 +111,7 @@ class PlanningPostService(BaseService):
         updates = deepcopy(plan)
         updates['state'] = new_item_state
         updates['pubstatus'] = new_post_state
-        if plan['state'] != new_item_state and new_item_state in [WORKFLOW_STATE.SCHEDULED, WORKFLOW_STATE.KILLED]:
+        if new_item_state in [WORKFLOW_STATE.SCHEDULED, WORKFLOW_STATE.KILLED]:
             updates['state_reason'] = None
             for coverage in updates.get('coverages', []):
                 if coverage.get('workflow_status') != WORKFLOW_STATE.CANCELLED and \

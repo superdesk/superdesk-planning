@@ -89,6 +89,17 @@ class PlanningService(superdesk.Service):
     def on_fetched_item(self, doc):
         self.__generate_related_assignments([doc])
 
+    def find_one(self, req, **lookup):
+        item = super().find_one(req, **lookup)
+        if item:
+            for coverage in item.get('coverages', []):
+                if coverage.get('planning', {}).get('scheduled') and \
+                        not isinstance(coverage['planning']['scheduled'], datetime):
+                    coverage['planning']['scheduled'] = datetime.strptime(coverage['planning']['scheduled'],
+                                                                          '%Y-%m-%dT%H:%M:%S%z')
+
+        return item
+
     def on_create(self, docs):
         """Set default metadata."""
         planning_type = get_resource_service('planning_types').find_one(req=None, name='planning')
@@ -183,10 +194,8 @@ class PlanningService(superdesk.Service):
             raise SuperdeskApiError(message="Planning item should have a date")
 
         # Validate if agendas being added are enabled agendas
-        new_agendas = [agenda for agenda in updates.get('agendas', [])
-                       if agenda not in (original or {}).get('agendas', [])]
         agenda_service = get_resource_service('agenda')
-        for agenda_id in new_agendas:
+        for agenda_id in updates.get('agendas', []):
             agenda = agenda_service.find_one(req=None, _id=str(agenda_id))
             if not agenda:
                 raise SuperdeskApiError.forbiddenError('Agenda \'{}\' does not exist'.format(agenda.get('name')))
