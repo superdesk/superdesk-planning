@@ -186,7 +186,7 @@ def init_app(app):
                 })
 
         custom_loaders = jinja2.ChoiceLoader(app.jinja_loader.loaders + [jinja2.FileSystemLoader(
-            os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'templates'))])
+            os.path.join(os.path.dirname(os.path.realpath(__file__)), 'templates'))])
         app.jinja_loader = custom_loaders
 
 
