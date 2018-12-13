@@ -170,6 +170,8 @@ class JsonPlanningTestCase(TestCase):
             self.assertEqual(output_item.get('coverages')[0].get('deliveries')[0]['item_id'],
                              'urn:newsml:localhost:2018-06-13T11:54:57.477423:c944042d-f93b-4304-9732-e7b5798ee8f9')
             self.assertEqual(output_item.get('coverages')[0].get('workflow_status'), 'completed')
+            self.assertEqual(output_item.get('internal_note'), 'An internal Note')
+            self.assertEqual(output_item.get('ednote'), 'An editorial Note')
 
     def test_formatter_assigned_coverage(self):
         with self.app.app_context():
