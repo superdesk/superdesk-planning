@@ -67,6 +67,7 @@ describe('form validations', () => {
         countField_convertToRecurringEventForm.simulate('change', {target: {value: '300'}});
         expect(wrapper.find('.sd-line-input--invalid').length > 0).toBe(true);
 
+        wrapper.unmount();
         wrapper = getWrapper(UpdateTimeForm);
         const endDateField_updateTimeForm = wrapper.find('[name="_endTime"]');
 
@@ -74,6 +75,7 @@ describe('form validations', () => {
         endDateField_updateTimeForm.simulate('change', {target: {value: '00:00'}});
         expect(wrapper.find('.sd-line-input--invalid').length > 0).toBe(true);
 
+        wrapper.unmount();
         wrapper = getWrapper(RescheduleEventForm);
         const endDateField_rescheduleEventForm = wrapper.find('[name="_endTime"]');
 

@@ -20,3 +20,7 @@
 .icon--highlight2 {
     color: $deepPink !important
 }
+
+.tooltip--text-left > .tooltip-inner {
+    text-align: left !important;
+}

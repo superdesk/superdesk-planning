@@ -362,7 +362,7 @@ class EventsService(superdesk.Service):
 
         self.delete_event_files(updates, original)
 
-        if not updates.get('location') and original.get('location'):
+        if 'location' not in updates and original.get('location'):
             updates['location'] = original['location']
 
         self._enhance_event_item(updates)
