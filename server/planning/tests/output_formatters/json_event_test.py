@@ -155,6 +155,8 @@ class JsonEventTestCase(TestCase):
         output_item = json.loads(output[1])
         self.assertEqual(output_item.get('name'), 'Name of the event')
         self.assertEqual(output_item.get('event_contact_info')[0].get('last_name'), 'Doe')
+        self.assertEqual(output_item.get('internal_note'), 'An internal Note')
+        self.assertEqual(output_item.get('ednote'), 'An editorial Note')
 
     def test_files_publishing(self):
         init_app(self.app)
