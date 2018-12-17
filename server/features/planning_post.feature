@@ -151,3 +151,202 @@ Feature: Post Planning
     """
     Then we get error 403
 
+
+
+    @auth
+    Scenario: Unpost planning item will delete associated assignment in workflow
+        Given we have sessions "/sessions"
+        Given the "validators"
+        """
+        [{
+            "schema": {},
+            "type": "text",
+            "act": "publish",
+            "_id": "publish_text"
+        },
+        {
+            "_id": "publish_composite",
+            "act": "publish",
+            "type": "composite",
+            "schema": {}
+        }]
+        """
+        And "desks"
+        """
+        [{"name": "Sports", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline",
+                    "g2_content_type" : "text"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "state": "assigned"
+                },
+                "workflow_status": "active"
+            }],
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#"
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "coverageId" from coverage 0
+        Then we store assignment id in "assignmentId" from coverage 0
+        When we post to "/planning/post"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we post to "/planning/post"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "cancelled"
+        }
+        """
+        Then we get OK response
+        When we get "/assignments/"
+        Then we get list with 0 items
+
+    @auth
+    @notification
+    Scenario: Unpost planning item will send notification if deletion of assignment fails
+        Given we have sessions "/sessions"
+        Given the "validators"
+        """
+        [{
+            "schema": {},
+            "type": "text",
+            "act": "publish",
+            "_id": "publish_text"
+        },
+        {
+            "_id": "publish_composite",
+            "act": "publish",
+            "type": "composite",
+            "schema": {}
+        }]
+        """
+        And "desks"
+        """
+        [{"name": "Sports", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline",
+                    "g2_content_type" : "text"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "state": "assigned"
+                },
+                "workflow_status": "active"
+            }],
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#"
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "coverageId" from coverage 0
+        Then we store assignment id in "assignmentId" from coverage 0
+        When we post to "/planning/post"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        When we post to "assignments/link"
+        """
+        [{"assignment_id": "#assignmentId#", "item_id": "#archive._id#", "reassign": true}]
+        """
+        Then we get OK response
+        When we get "/archive/#archive._id#"
+        Then we get existing resource
+        """
+        {"assignment_id": "#assignmentId#"}
+        """
+        When we patch "/archive/#archive._id#"
+        """
+        {"lock_user": "#users._id#"}
+        """
+        Then we get OK response
+        When we post to "/planning/post"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "cancelled"
+        }
+        """
+        Then we get OK response
+        When we get "/assignments/"
+        Then we get list with 1 items
+        And we get notifications
+        """
+        [{
+            "event": "assignments:remove:fail",
+            "extra": {
+                "items": [
+                  {
+                    "slugline": "test slugline",
+                    "type": "text"
+                  }
+                ],
+                "session": "#SESSION_ID#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """

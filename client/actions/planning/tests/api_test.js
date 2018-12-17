@@ -8,7 +8,7 @@ import {
 } from '../../../utils/testUtils';
 import {getTimeZoneOffset} from '../../../utils/index';
 import * as selectors from '../../../selectors';
-import {SPIKED_STATE} from '../../../constants/index';
+import {SPIKED_STATE, WORKFLOW_STATE} from '../../../constants/index';
 import {MAIN} from '../../../constants';
 
 describe('actions.planning.api', () => {
@@ -99,6 +99,8 @@ describe('actions.planning.api', () => {
     });
 
     describe('query', () => {
+        const mustNotTerms = [{term: {state: WORKFLOW_STATE.KILLED}}];
+
         beforeEach(() => {
             restoreSinonStub(planningApi.query);
         });
@@ -126,7 +128,7 @@ describe('actions.planning.api', () => {
                             },
                         }
                     );
-                    expect(source.query.bool.must_not).toEqual([]);
+                    expect(source.query.bool.must_not).toEqual(mustNotTerms);
                     expect(source.sort).toEqual(
                         [
                             {
@@ -175,7 +177,7 @@ describe('actions.planning.api', () => {
                         }
                     );
 
-                    expect(source.query.bool.must_not).toEqual([noAgenda]);
+                    expect(source.query.bool.must_not).toEqual([noAgenda, ...mustNotTerms]);
 
                     done();
                 })
@@ -211,7 +213,7 @@ describe('actions.planning.api', () => {
                         {term: {state: 'spiked'}},
                     ]);
 
-                    expect(source.query.bool.must_not).toEqual([]);
+                    expect(source.query.bool.must_not).toEqual(mustNotTerms);
                     done();
                 })
         ).catch(done.fail));
@@ -245,7 +247,7 @@ describe('actions.planning.api', () => {
                         {terms: {agendas: ['a1', 'a2']}},
                     ]);
 
-                    expect(source.query.bool.must_not).toEqual([{term: {state: 'spiked'}}]);
+                    expect(source.query.bool.must_not).toEqual([{term: {state: 'spiked'}}, ...mustNotTerms]);
 
                     done();
                 })
@@ -289,7 +291,7 @@ describe('actions.planning.api', () => {
                         {terms: {state: ['draft', 'postponed']}},
                     ]);
 
-                    expect(source.query.bool.must_not).toEqual([{term: {state: 'spiked'}}]);
+                    expect(source.query.bool.must_not).toEqual([{term: {state: 'spiked'}}, ...mustNotTerms]);
 
                     done();
                 })
@@ -333,7 +335,7 @@ describe('actions.planning.api', () => {
                         {terms: {state: ['draft', 'postponed', 'spiked']}},
                     ]);
 
-                    expect(source.query.bool.must_not).toEqual([]);
+                    expect(source.query.bool.must_not).toEqual(mustNotTerms);
 
                     done();
                 })
@@ -444,7 +446,7 @@ describe('actions.planning.api', () => {
                                     must: [
                                         {terms: {_id: ['e1']}},
                                     ],
-                                    must_not: [],
+                                    must_not: [{term: {state: WORKFLOW_STATE.KILLED}}],
                                 },
                             },
                             filter: {},

@@ -48,6 +48,7 @@ export const ASSIGNMENTS = {
         REMOVE: {
             label: gettext('Remove Assignment'),
             icon: 'icon-trash',
+            lock_action: 'remove_assignment',
         },
         PREVIEW_ARCHIVE: {
             label: gettext('Open Coverage'),

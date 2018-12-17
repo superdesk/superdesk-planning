@@ -40,6 +40,7 @@ class AssignmentsCompleteService(BaseService):
         coverage_type = original.get('planning', {}).get('g2_content_type')
         assignment_state = original.get('assigned_to').get('state')
         AssignmentsService.set_type(updates, original)
+        get_resource_service('assignments').validate_assignment_action(original)
 
         if coverage_type == 'text' and assignment_state != ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
             raise SuperdeskApiError.forbiddenError('Cannot complete. Assignment not in progress.')

@@ -293,6 +293,7 @@ export class EditorComponent extends React.Component {
             if (post) {
                 itemToUpdate.state = WORKFLOW_STATE.SCHEDULED;
                 itemToUpdate.pubstatus = POST_STATE.USABLE;
+                itemToUpdate._post = true;
             } else if (unpost) {
                 itemToUpdate.state = WORKFLOW_STATE.KILLED;
                 itemToUpdate.pubstatus = POST_STATE.CANCELLED;
@@ -567,7 +568,7 @@ export class EditorComponent extends React.Component {
         } else if (props.itemType === ITEM_TYPE.PLANNING) {
             return planningUtils.canEditPlanning(
                 props.item,
-                null,
+                props.associatedEvent,
                 props.session,
                 props.privileges,
                 props.lockedItems
@@ -646,6 +647,8 @@ export class EditorComponent extends React.Component {
                             onPopupClose={this.onPopupClose}
                             {...currentTab.tabProps}
                             inModalView={this.props.inModalView}
+                            plannings={this.props.associatedPlannings}
+                            event={this.props.associatedEvent}
                         />
                     )}
                 </div>
@@ -697,6 +700,8 @@ export class EditorComponent extends React.Component {
                     hideMinimize={this.props.hideMinimize}
                     hideExternalEdit={this.props.hideExternalEdit}
                     flushAutosave={this.flushAutosave}
+                    associatedEvent={this.props.associatedEvent}
+                    associatedPlannings={this.props.associatedPlannings}
                 />
                 {this.renderContent()}
 

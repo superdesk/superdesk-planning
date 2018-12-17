@@ -188,6 +188,9 @@ class EventsPlanningService(superdesk.Service):
         if posted:
             must.append({'term': {'pubstatus': 'usable'}})
 
+        if WORKFLOW_STATE.KILLED not in states:
+            must_not.append({'term': {'state': WORKFLOW_STATE.KILLED}})
+
     def _get_start_of_week(self, params):
         """Get the start of week from request args
 

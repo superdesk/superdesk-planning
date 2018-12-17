@@ -77,7 +77,8 @@ const getPostedHistoryElement = (index, historyItems, users) => {
     for (let i = index - 1; i >= 0; i--) {
         const item = historyItems[i];
 
-        if (item.operation !== HISTORY_OPERATIONS.POST) {
+        if (item.operation !== HISTORY_OPERATIONS.POST ||
+            [HISTORY_OPERATIONS.SPIKED, HISTORY_OPERATIONS.UNSPIKED].includes(historyItem.operation)) {
             continue;
         }
 

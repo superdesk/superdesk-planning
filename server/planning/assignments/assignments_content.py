@@ -143,8 +143,8 @@ class AssignmentsContentService(superdesk.Service):
 
             # Send notification that the work has commenced
             # Determine the display name of the assignee
-            assigned_to_user = superdesk.get_resource_service('users').find_one(req=None,
-                                                                                _id=str(item.get('task').get('user')))
+            assigned_to_user = get_resource_service('users').find_one(req=None,
+                                                                      _id=str(item.get('task').get('user')))
             assignee = assigned_to_user.get('display_name') if assigned_to_user else 'Unknown'
             PlanningNotifications().notify_assignment(target_desk=item.get('task').get('desk'),
                                                       target_user=str(item.get('task').get('user')),
@@ -161,16 +161,18 @@ class AssignmentsContentService(superdesk.Service):
 
     def _validate(self, doc):
         """Validate the doc for content creation"""
-        assignment = superdesk.get_resource_service('assignments').find_one(req=None,
-                                                                            _id=doc.get('assignment_id'))
+        assignment_service = get_resource_service('assignments')
+        assignment = assignment_service.find_one(req=None,
+                                                 _id=doc.get('assignment_id'))
         if not assignment:
             raise SuperdeskApiError.badRequestError('Assignment not found.')
 
+        assignment_service.validate_assignment_action(assignment)
         if assignment.get('assigned_to').get('state') != ASSIGNMENT_WORKFLOW_STATE.ASSIGNED:
             raise SuperdeskApiError.badRequestError('Assignment workflow started. Cannot create content.')
 
-        delivery = superdesk.get_resource_service('delivery').find_one(req=None,
-                                                                       assignment_id=assignment.get(config.ID_FIELD))
+        delivery = get_resource_service('delivery').find_one(req=None,
+                                                             assignment_id=assignment.get(config.ID_FIELD))
         if delivery:
             raise SuperdeskApiError.badRequestError('Content already exists for the assignment. '
                                                     'Cannot create content.')

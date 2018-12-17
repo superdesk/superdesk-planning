@@ -499,6 +499,8 @@ export const isItemPublic = (item = {}) =>
         item === POST_STATE.USABLE || item === POST_STATE.CANCELLED :
         item.pubstatus === POST_STATE.USABLE || item.pubstatus === POST_STATE.CANCELLED);
 
+export const isItemPosted = (item) => [POST_STATE.USABLE, POST_STATE.CANCELLED].includes(get(item, 'pubstatus'));
+
 export const isItemSpiked = (item) => item ?
     getItemWorkflowState(item) === WORKFLOW_STATE.SPIKED : false;
 
@@ -511,8 +513,8 @@ export const shouldLockItemForEdit = (item, lockedItems, privileges) =>
     isExistingItem(item) &&
         !lockUtils.getLock(item, lockedItems) &&
         !isItemSpiked(item) &&
-        !isItemCancelled(item) &&
         !isItemRescheduled(item) &&
+        !isItemCancelled(item) &&
         (!isItemExpired(item) || privileges[PRIVILEGES.EDIT_EXPIRED]) &&
         (
             (isEvent(item) && eventUtils.shouldLockEventForEdit(item, privileges)) ||
@@ -743,6 +745,10 @@ export const appendStatesQueryForAdvancedSearch = (advancedSearch, spikeState, m
 
     if (spikeState !== SPIKED_STATE.SPIKED && states.length > 0) {
         mustTerms.push({terms: {state: states}});
+    }
+
+    if (!states.includes(WORKFLOW_STATE.KILLED)) {
+        mustNotTerms.push({term: {state: WORKFLOW_STATE.KILLED}});
     }
 };
 

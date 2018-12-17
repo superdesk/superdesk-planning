@@ -65,6 +65,7 @@ class AssignmentsLockService(BaseService):
         return _update_returned_document(docs[0], updated_item)
 
     def validate(self, item, user_id):
+        get_resource_service('assignments').validate_assignment_action(item)
         # Validate workflow state
         if item.get('assigned_to').get('state') not in [ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
                                                         ASSIGNMENT_WORKFLOW_STATE.SUBMITTED,

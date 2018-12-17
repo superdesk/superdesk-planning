@@ -247,7 +247,8 @@ export class GeoLookupInputComponent extends React.Component {
                 {get(initialValue, 'name') && <LocationItem
                     location={initialValue}
                     streetMapUrl={streetMapUrl}
-                    onRemoveLocation={this.removeLocation} />}
+                    onRemoveLocation={this.removeLocation}
+                    readOnly={readOnly} />}
                 <DebounceInput
                     minLength={2}
                     debounceTimeout={500}

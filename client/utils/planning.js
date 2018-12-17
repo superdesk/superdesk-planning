@@ -29,6 +29,7 @@ import {
     isItemExpired,
     getItemId,
     generateTempId,
+    isItemPosted,
 } from './index';
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
@@ -40,10 +41,10 @@ const canPostPlanning = (planning, event, session, privileges, locks) => (
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !isPlanningLockRestricted(planning, session, locks) &&
         getPostedState(planning) !== POST_STATE.USABLE &&
-        (isNil(event) || getPostedState(event) === POST_STATE.USABLE) &&
+        (isNil(event) || getItemWorkflowState(event) !== WORKFLOW_STATE.KILLED) &&
         !isItemSpiked(planning) &&
         !isItemSpiked(event) &&
-        !isItemCancelled(planning) &&
+        (!isItemCancelled(planning) || getItemWorkflowState(planning) === WORKFLOW_STATE.KILLED) &&
         !isItemCancelled(event) &&
         !isItemRescheduled(planning) &&
         !isItemRescheduled(event) &&
@@ -63,10 +64,11 @@ const canEditPlanning = (planning, event, session, privileges, locks) => (
         !isPlanningLockRestricted(planning, session, locks) &&
         !isItemSpiked(planning) &&
         !isItemSpiked(event) &&
-        !isItemCancelled(planning) &&
+        (!isItemCancelled(planning) || getItemWorkflowState(planning) === WORKFLOW_STATE.KILLED) &&
         !(getPostedState(planning) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_PLANNING]) &&
         !isItemRescheduled(planning) &&
-        (!isItemExpired(planning) || privileges[PRIVILEGES.EDIT_EXPIRED])
+        (!isItemExpired(planning) || privileges[PRIVILEGES.EDIT_EXPIRED]) &&
+        (isNil(event) || getItemWorkflowState(event) !== WORKFLOW_STATE.KILLED)
 );
 
 const canAssignAgenda = (planning, event, privileges, locks) => (
@@ -81,7 +83,7 @@ const canAssignAgenda = (planning, event, privileges, locks) => (
 const canAddFeatured = (planning, event, session, privileges, locks) => (
     !get(planning, 'featured', false) &&
         canEditPlanning(planning, event, session, privileges, locks) &&
-        !!privileges[PRIVILEGES.FEATURED_STORIES]
+        !!privileges[PRIVILEGES.FEATURED_STORIES] && !isItemKilled(planning)
 );
 
 const canRemovedFeatured = (planning, event, session, privileges, locks) => (
@@ -98,12 +100,11 @@ const canUpdatePlanning = (planning, event, session, privileges, locks) => (
 );
 
 const canSpikePlanning = (plan, session, privileges, locks) => (
-    !isItemPublic(plan) &&
+    !isItemPosted(plan) &&
         getItemWorkflowState(plan) === WORKFLOW_STATE.DRAFT &&
         !!privileges[PRIVILEGES.SPIKE_PLANNING] &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !isPlanningLockRestricted(plan, session, locks) &&
-        !get(plan, 'coverages', []).find((c) => isCoverageInWorkflow(c)) &&
         (!isItemExpired(plan) || privileges[PRIVILEGES.EDIT_EXPIRED])
 );
 
@@ -143,7 +144,8 @@ const canAddAsEvent = (planning, event = null, session, privileges, locks) => (
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         isPlanAdHoc(planning) &&
         !isPlanningLocked(planning, locks) &&
-        !isItemSpiked(planning)
+        !isItemSpiked(planning) &&
+        getItemWorkflowState(planning) !== WORKFLOW_STATE.KILLED
 );
 
 const isCoverageCancelled = (coverage) =>
@@ -161,9 +163,10 @@ const canCancelAllCoverageForPlanning = (planning) => (
         .filter((c) => canCancelCoverage(c)).length > 0
 );
 
-const canAddCoverages = (planning, privileges) => (
+const canAddCoverages = (planning, event, privileges) => (
     !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isItemCancelled(planning) && !isItemRescheduled(planning)
+        (isNil(event) || !isItemCancelled(event)) &&
+        (!isItemCancelled(planning) || isItemKilled(planning)) && !isItemRescheduled(planning)
 );
 
 const isPlanningLocked = (plan, locks) =>
@@ -220,7 +223,7 @@ export const getPlanningItemActions = (plan, event = null, session, privileges, 
 
     const actionsValidator = {
         [PLANNING.ITEM_ACTIONS.ADD_COVERAGE.label]: () =>
-            canAddCoverages(plan, privileges),
+            canAddCoverages(plan, event, privileges),
         [PLANNING.ITEM_ACTIONS.SPIKE.label]: () =>
             canSpikePlanning(plan, session, privileges, locks),
         [PLANNING.ITEM_ACTIONS.UNSPIKE.label]: () =>

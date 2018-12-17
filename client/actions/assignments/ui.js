@@ -537,7 +537,7 @@ const canLinkItem = (item) => (
 );
 
 const openSelectTemplateModal = (assignment) => (
-    (dispatch, getState, {templates, session, desks}) => (
+    (dispatch, getState, {templates, session, desks, notify}) => (
         dispatch(self.lockAssignment(assignment, 'start_working'))
             .then((lockedAssignment) => {
                 const currentDesk = desks.getCurrentDesk();
@@ -568,7 +568,11 @@ const openSelectTemplateModal = (assignment) => (
                         dispatch(assignments.api.createFromTemplateAndShow(
                             assignment._id,
                             template.template_name
-                        ))
+                        )).catch((error) => {
+                            dispatch(self.unlockAssignment(assignment));
+                            notify.error(getErrorMessage(error, gettext('Failed to create an archive item.')));
+                            return Promise.reject(error);
+                        })
                     );
 
                     const onCancel = () => (
@@ -755,7 +759,7 @@ const unlockAssignmentAndPlanning = (assignment) => (
  */
 const showRemoveAssignmentModal = (assignment) => (
     (dispatch) => (
-        dispatch(self.lockAssignmentAndPlanning(assignment, 'remove_assignment'))
+        dispatch(self.lockAssignmentAndPlanning(assignment, ASSIGNMENTS.ITEM_ACTIONS.REMOVE.lock_action))
             .then((lockedAssignment) => {
                 dispatch(showModal({
                     modalType: MODALS.CONFIRMATION,

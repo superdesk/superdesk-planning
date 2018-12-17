@@ -438,6 +438,7 @@ describe('PlanningUtils', () => {
             PLANNING.ITEM_ACTIONS.SPIKE,
             PLANNING.ITEM_ACTIONS.UNSPIKE,
             PLANNING.ITEM_ACTIONS.DUPLICATE,
+            PLANNING.ITEM_ACTIONS.EDIT_PLANNING,
 
             PLANNING.ITEM_ACTIONS.CANCEL_PLANNING,
             PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE,
@@ -484,6 +485,7 @@ describe('PlanningUtils', () => {
                 'Add coverage',
                 'Spike planning',
                 'Duplicate',
+                'Edit',
             ]);
 
             planning.event_item = '1';
@@ -499,6 +501,7 @@ describe('PlanningUtils', () => {
                 'Add coverage',
                 'Spike planning',
                 'Duplicate',
+                'Edit',
                 'Cancel Event',
                 'Update Event Time',
                 'Reschedule Event',
@@ -516,6 +519,7 @@ describe('PlanningUtils', () => {
             expectActions(itemActions, [
                 'Add coverage',
                 'Duplicate',
+                'Edit',
             ]);
 
             planning.event_item = '1';
@@ -530,6 +534,7 @@ describe('PlanningUtils', () => {
             expectActions(itemActions, [
                 'Add coverage',
                 'Duplicate',
+                'Edit',
                 'Cancel Event',
                 'Reschedule Event',
             ]);
@@ -580,6 +585,53 @@ describe('PlanningUtils', () => {
 
             expectActions(itemActions, [
                 'Duplicate',
+            ]);
+        });
+
+        it('unposted event and unposted planning', () => {
+            planning.state = 'killed';
+            planning.event_item = '1';
+            event = {
+                state: 'killed',
+                planning_ids: ['1'],
+            };
+
+            let itemActions = planUtils.getPlanningItemActions(
+                planning, event, session, privileges, actions, locks
+            );
+
+            expectActions(itemActions, [
+                'Add coverage',
+                'Duplicate',
+                'Cancel Event',
+                'Update Event Time',
+                'Reschedule Event',
+                'Mark Event as Postponed',
+                'Convert to Recurring Event',
+            ]);
+        });
+
+        it('posted event and unposted planning', () => {
+            planning.state = 'killed';
+            planning.event_item = '1';
+            event = {
+                state: 'scheduled',
+                planning_ids: ['1'],
+            };
+
+            let itemActions = planUtils.getPlanningItemActions(
+                planning, event, session, privileges, actions, locks
+            );
+
+            expectActions(itemActions, [
+                'Add coverage',
+                'Duplicate',
+                'Edit',
+                'Cancel Event',
+                'Update Event Time',
+                'Reschedule Event',
+                'Mark Event as Postponed',
+                'Convert to Recurring Event',
             ]);
         });
     });

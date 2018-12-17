@@ -18,17 +18,25 @@ export class PostEventsComponent extends React.Component {
         this.state = {
             eventUpdateMethod: postAll ? EventUpdateMethods[2] : EventUpdateMethods[0],
             relatedEvents: [],
+            relatedPlannings: [],
         };
 
         this.onEventUpdateMethodChange = this.onEventUpdateMethodChange.bind(this);
     }
 
     componentWillMount() {
-        if (get(this.props, 'initialValues.recurrence_id')) {
-            const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
-                EventUpdateMethods[0]);
+        const isRecurring = get(this.props, 'initialValues.recurrence_id');
 
-            this.setState({relatedEvents: event._events});
+        this.posting = get(this.props.initialValues, '_post', true);
+
+        if (isRecurring || eventUtils.eventHasPlanning(this.props.initialValues)) {
+            const event = isRecurring ? eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
+                EventUpdateMethods[0], true) : this.props.initialValues;
+
+            this.setState({
+                relatedEvents: event._events,
+                relatedPlannings: this.posting ? [] : event._relatedPlannings,
+            });
         }
 
         // Enable save so that the user can update just this event.
@@ -37,11 +45,12 @@ export class PostEventsComponent extends React.Component {
 
     onEventUpdateMethodChange(field, option) {
         const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
-            option);
+            option, true);
 
         this.setState({
             eventUpdateMethod: option,
             relatedEvents: event._events,
+            relatedPlannings: this.posting ? [] : event._relatedPlannings,
         });
     }
 
@@ -102,6 +111,8 @@ export class PostEventsComponent extends React.Component {
                     updateMethodLabel={updateMethodLabel}
                     showSpace={false}
                     readOnly={submitting}
+                    relatedPlannings={this.state.relatedPlannings}
+                    relatedEvents={this.state.relatedEvents}
                     action={posting ? gettext('post') : gettext('unpost')} />
                 {postAll && (
                     <div className="sd-alert sd-alert--hollow

@@ -62,13 +62,16 @@ class PlanningService(superdesk.Service):
                                                                                   'coverage_item': {'$in': ids}
                                                                               }))
 
-        coverage_assignment = {assign.get('coverage_item'): assign for assign in assignments}
-
         for coverage_id, coverage in coverages.items():
             if not coverage.get('assigned_to'):
                 coverage['assigned_to'] = {}
-            if coverage_assignment.get(coverage_id):
-                assignment = coverage_assignment.get(coverage_id)
+            else:
+                try:
+                    assignment = [a for a in assignments if str(a.get('_id')) ==
+                                  str(coverage['assigned_to'].get('assignment_id'))][0]
+                except IndexError:
+                    continue
+
                 coverage['assigned_to']['assignment_id'] = assignment.get(config.ID_FIELD)
                 coverage['assigned_to']['desk'] = assignment.get('assigned_to', {}).get('desk')
                 coverage['assigned_to']['user'] = assignment.get('assigned_to', {}).get('user')
@@ -505,7 +508,7 @@ class PlanningService(superdesk.Service):
             original_assignment = assignment_service.find_one(req=None,
                                                               _id=assigned_to.get('assignment_id'))
 
-            if not original:
+            if not original_assignment:
                 raise SuperdeskApiError.badRequestError(
                     'Assignment related to the coverage does not exists.')
 
@@ -579,8 +582,6 @@ class PlanningService(superdesk.Service):
             if assignment:
                 assignment_service.cancel_assignment(assignment, coverage, event_cancellation)
 
-            coverage.pop('assigned_to', None)
-
     def duplicate_coverage_for_article_rewrite(self, planning_id, coverage_id, updates):
         planning = self.find_one(req=None, _id=planning_id)
 
@@ -637,6 +638,10 @@ class PlanningService(superdesk.Service):
                     'Coverage does not exist'
                 )
 
+            if not coverage_item.get('assigned_to'):
+                # Assignment was already removed (unposting a planning item scenario)
+                return planning_item
+
             assigned_to = assignment_item.get('assigned_to')
             PlanningNotifications().notify_assignment(
                 coverage_status=coverage_item.get('workflow_status'),
@@ -682,6 +687,38 @@ class PlanningService(superdesk.Service):
                 return True
 
         return False
+
+    def delete_assignments_for_coverages(self, coverages, notify=True):
+        failed_assignments = []
+        assignment_service = get_resource_service('assignments')
+        for coverage in coverages:
+            assign_id = coverage['assigned_to']['assignment_id']
+            assign_planning = coverage.get('planning')
+            try:
+                assignment_service.delete_action(lookup={'_id': assign_id})
+            except SuperdeskApiError:
+                logger.error('Failed to delete assignment {}'.format(assign_id))
+                failed_assignments.append({
+                    'slugline': assign_planning.get('slugline'),
+                    'type': assign_planning.get('g2_content_type')
+                })
+
+                # Mark the assignment to be deleted.
+                original_assigment = assignment_service.find_one(req=None,
+                                                                 _id=assign_id)
+                if original_assigment:
+                    assignment_service.system_update(ObjectId(assign_id), {'_to_delete': True},
+                                                     original_assigment)
+
+        if len(failed_assignments) > 0 and notify:
+            session_id = get_auth().get('_id')
+            user_id = get_user().get(config.ID_FIELD)
+            push_notification(
+                'assignments:remove:fail',
+                items=failed_assignments,
+                session=session_id,
+                user=user_id
+            )
 
     def get_expired_items(self, expiry_datetime, spiked_planning_only=False):
         """Get the expired items

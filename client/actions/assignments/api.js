@@ -215,12 +215,19 @@ const link = (assignment, newsItem, reassign) => (
  * @return Promise
  */
 const createFromTemplateAndShow = (assignmentId, templateName) => (
-    (dispatch, getState, {api, authoringWorkspace}) => (
+    (dispatch, getState, {api, authoringWorkspace, notify}) => (
         api('assignments_content').save({}, {
             assignment_id: assignmentId,
             template_name: templateName,
         })
-            .then((item) => authoringWorkspace.edit(item))
+            .then((item) => authoringWorkspace.edit(item),
+                (error) => {
+                    notify.error(
+                        getErrorMessage(error, 'Failed to lock the Assignment.')
+                    );
+                    return Promise.reject(error);
+                }
+            )
     )
 );
 

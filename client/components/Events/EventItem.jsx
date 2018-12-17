@@ -2,16 +2,17 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import {Label} from '../';
-import {EVENTS, MAIN, ICON_COLORS} from '../../constants';
+import {EVENTS, MAIN, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
 import {EventDateTime} from './';
 import {ItemActionsMenu} from '../index';
 import {
     eventUtils,
     onEventCapture,
-    isItemPublic,
+    isItemPosted,
     isItemExpired,
     isItemDifferent,
+    getItemWorkflowState,
 } from '../../utils';
 import {gettext} from '../../utils/gettext';
 import {renderFields} from '../fields';
@@ -131,7 +132,8 @@ export class EventItem extends React.Component {
                     onCheckToggle={onMultiSelectClick.bind(null, item)}
                     color={!isExpired && ICON_COLORS.DARK_BLUE_GREY}
                 />
-                <PubStatus item={item} isPublic={isItemPublic(item)}/>
+                <PubStatus item={item} isPublic={isItemPosted(item) &&
+                    getItemWorkflowState(item) !== WORKFLOW_STATE.KILLED}/>
                 <Column
                     grow={true}
                     border={false}>

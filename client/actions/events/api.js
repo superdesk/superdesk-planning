@@ -762,14 +762,17 @@ const refetch = (skipEvents = []) => (
  * @param {boolean} loadPlannings - If true, loads associated Planning items as well
  * @param {boolean} loadEvents - If true, also loads all Events in the series
  */
-const loadRecurringEventsAndPlanningItems = (event, loadPlannings = true, loadEvents = true) => (
-    (dispatch) => {
+const loadRecurringEventsAndPlanningItems = (event, loadPlannings = true,
+    loadEvents = true, loadEveryRecurringPlanning = false) => (
+    (dispatch, getState) => {
         if (get(event, 'recurrence_id') && loadEvents) {
+            const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
+
             return dispatch(self.loadEventsByRecurrenceId(
                 event.recurrence_id,
                 SPIKED_STATE.BOTH,
                 1,
-                200,
+                maxRecurringEvents,
                 false
             )).then((relatedEvents) => {
                 if (!loadPlannings) {
@@ -791,7 +794,16 @@ const loadRecurringEventsAndPlanningItems = (event, loadPlannings = true, loadEv
                     ), (error) => Promise.reject(error));
             }, (error) => Promise.reject(error));
         } else {
-            if (!loadPlannings || get(event, 'planning_ids.length', 0) < 1) {
+            // In csae of unenhanced event (unlockedItem), the locally stored event
+            // might have the planning_ids
+            let storedEvent;
+
+            if (loadPlannings && get(event, 'planning_ids.length', 0) === 0) {
+                storedEvent = selectors.events.storedEvents(getState())[event._id];
+            }
+
+            if (!loadPlannings || (get(event, 'planning_ids.length', 0) === 0 &&
+                    get(storedEvent, 'planning_ids.length', 0)) === 0) {
                 return Promise.resolve({
                     events: [],
                     plannings: [],
@@ -809,9 +821,10 @@ const loadRecurringEventsAndPlanningItems = (event, loadPlannings = true, loadEv
     }
 );
 
-const loadEventDataForAction = (event, loadPlanning = true, post = false, loadEvents = true) => (
+const loadEventDataForAction = (event, loadPlanning = true, post = false,
+    loadEvents = true, loadEveryRecurringPlanning = false) => (
     (dispatch) => (
-        dispatch(self.loadRecurringEventsAndPlanningItems(event, loadPlanning, loadEvents))
+        dispatch(self.loadRecurringEventsAndPlanningItems(event, loadPlanning, loadEvents, loadEveryRecurringPlanning))
             .then((relatedEvents) => (Promise.resolve({
                 ...event,
                 _recurring: relatedEvents.events,
@@ -819,9 +832,10 @@ const loadEventDataForAction = (event, loadPlanning = true, post = false, loadEv
                 _events: [],
                 _originalEvent: event,
                 _plannings: relatedEvents.plannings,
-                _relatedPlannings: relatedEvents.plannings.filter(
-                    (p) => p.event_item === event._id
-                ),
+                _relatedPlannings: loadEveryRecurringPlanning ? relatedEvents.plannings :
+                    relatedEvents.plannings.filter(
+                        (p) => p.event_item === event._id
+                    ),
             })
             ), (error) => Promise.reject(error)
             )

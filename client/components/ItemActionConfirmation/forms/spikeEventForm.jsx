@@ -17,18 +17,20 @@ export class SpikeEventComponent extends React.Component {
         this.state = {
             eventUpdateMethod: EventUpdateMethods[0],
             relatedEvents: [],
+            relatedPlannings: [],
         };
 
         this.onEventUpdateMethodChange = this.onEventUpdateMethodChange.bind(this);
     }
 
     componentWillMount() {
-        if (get(this.props, 'initialValues.recurrence_id')) {
-            const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
-                EventUpdateMethods[0]);
+        const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
+            EventUpdateMethods[0]);
 
-            this.setState({relatedEvents: event._events});
-        }
+        this.setState({
+            relatedEvents: event._events,
+            relatedPlannings: event._relatedPlannings.filter((p) => !p.pubstatus),
+        });
 
         // Enable save so that the user can action on this event.
         this.props.enableSaveInModal();
@@ -41,6 +43,7 @@ export class SpikeEventComponent extends React.Component {
         this.setState({
             eventUpdateMethod: option,
             relatedEvents: event._events,
+            relatedPlannings: event._relatedPlannings.filter((p) => !p.pubstatus),
         });
     }
 
@@ -96,7 +99,8 @@ export class SpikeEventComponent extends React.Component {
                     updateMethodLabel={gettext('Spike all recurring events or just this one?')}
                     showSpace={false}
                     readOnly={submitting}
-                    action="spike" />
+                    action="spike"
+                    relatedPlannings={this.state.relatedPlannings} />
 
                 {eventsInUse.length > 0 &&
                     <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">

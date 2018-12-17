@@ -30,6 +30,7 @@ class AssignmentsLinkService(Service):
 
         for doc in docs:
             assignment = assignments_service.find_one(req=None, _id=doc.pop('assignment_id'))
+            assignments_service.validate_assignment_action(assignment)
             item = production.find_one(req=None, _id=doc.pop('item_id'))
             reassign = doc.pop('reassign')
 

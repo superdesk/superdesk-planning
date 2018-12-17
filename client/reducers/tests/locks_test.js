@@ -365,21 +365,4 @@ describe('lock reducers', () => {
             assignment: {},
         });
     });
-
-    it('REMOVE_ASSIGNMENT', () => {
-        let result = locks(
-            getInitialLocks(),
-            {
-                type: 'REMOVE_ASSIGNMENT',
-                payload: {planning: lockTypes.planning.planning._id},
-            }
-        );
-
-        expect(result).toEqual({
-            event: lockItems.event,
-            planning: {},
-            recurring: lockItems.recurring,
-            assignment: lockItems.assignment,
-        });
-    });
 });

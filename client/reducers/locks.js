@@ -96,8 +96,4 @@ export default createReducer(initialLockState, {
     [EVENTS.ACTIONS.MARK_EVENT_POSTPONED]: (state, payload) => (
         removeLock(payload.event, cloneDeep(state), 'event')
     ),
-
-    [ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT]: (state, payload) => (
-        removeLock({_id: payload.planning}, cloneDeep(state), 'planning')
-    ),
 });
