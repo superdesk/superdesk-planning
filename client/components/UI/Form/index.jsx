@@ -15,6 +15,7 @@ export {SelectMetaTermsInput} from './SelectMetaTermsInput/index';
 export {SelectUserInput} from './SelectUserInput';
 export {SelectTagInput} from './SelectTagInput';
 export {Checkbox} from './Checkbox';
+export {CheckboxGroup} from './CheckboxGroup';
 export {ToggleInput} from './ToggleInput';
 export {ColouredValueInput} from './ColouredValueInput';
 
