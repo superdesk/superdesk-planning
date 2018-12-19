@@ -383,7 +383,7 @@ export class FeaturedPlanningModalComponent extends React.Component {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button
-                        text={gettext('Cancel')}
+                        text={this.state.dirty ? gettext('Cancel') : gettext('Close')}
                         onClick={this.onCloseModal}
                     />
                     {canPost &&
