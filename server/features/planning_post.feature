@@ -337,7 +337,7 @@ Feature: Post Planning
         And we get notifications
         """
         [{
-            "event": "assignments:remove:fail",
+            "event": "assignments:delete:fail",
             "extra": {
                 "items": [
                   {

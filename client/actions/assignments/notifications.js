@@ -7,6 +7,19 @@ import {ASSIGNMENTS, WORKSPACE, PLANNING} from '../../constants';
 import {lockUtils, assignmentUtils, gettext, isExistingItem} from '../../utils';
 import {hideModal, showModal} from '../index';
 
+const _notifyAssignmentEdited = (assignmentId) => (
+    (dispatch, getState, {notify}) => {
+        const currentAssignmentId = selectors.getCurrentAssignmentId(getState());
+
+        if (assignmentId === currentAssignmentId) {
+            notify.warning(gettext('The Assignment you were viewing was removed.'));
+            dispatch(assignments.ui.closePreview());
+        }
+
+        return Promise.resolve();
+    }
+);
+
 /**
  * WS Action when a new Assignment item is created
  * @param {object} _e - Event object
@@ -257,13 +270,7 @@ const onAssignmentUnlocked = (_e, data) => (
 const onAssignmentRemoved = (_e, data) => (
     (dispatch, getState, {notify}) => {
         if (get(data, 'assignment')) {
-            const currentAssignmentId = selectors.getCurrentAssignmentId(getState());
-            const currentSessionId = selectors.general.sessionId(getState());
-
-            if (data.assignment === currentAssignmentId && data.session !== currentSessionId) {
-                notify.warning(gettext('The Assignment you were viewing was removed.'));
-            }
-
+            dispatch(_notifyAssignmentEdited(data.assignment));
             dispatch({
                 type: ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT,
                 payload: data,
@@ -286,7 +293,7 @@ const onAssignmentRemoved = (_e, data) => (
     }
 );
 
-const onAssignmentRemoveFailed = (_e, data) => (
+const onAssignmentDeleteFailed = (_e, data) => (
     (dispatch, getState, {notify}) => {
         const currentUserId = selectors.general.currentUserId(getState());
         const sessionId = selectors.general.sessionId(getState());
@@ -307,6 +314,30 @@ const onAssignmentRemoveFailed = (_e, data) => (
     }
 );
 
+const onAssignmentDeleted = (_e, data) => (
+    (dispatch, getState, {notify}) => {
+        const currentWorkspace = selectors.general.currentWorkspace(getState());
+
+        if (get(data, 'items.length', 0) > 0 && currentWorkspace === WORKSPACE.ASSIGNMENTS) {
+            const msg = data.items.map((i) => gettext('{{ type }} assignment \'{{ slugline }}\' is deleted',
+                {
+                    type: get(i, 'type'),
+                    slugline: get(i, 'slugline'),
+                })).join('\n');
+
+            notify.warning(msg);
+            data.items.forEach((item) => {
+                dispatch(_notifyAssignmentEdited(item.id));
+            });
+
+            // Load all assignment groups as the assignment deleted can be in any state
+            dispatch(assignments.ui.reloadAssignments());
+        }
+
+        return Promise.resolve();
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     onAssignmentCreated,
@@ -314,7 +345,8 @@ const self = {
     onAssignmentLocked,
     onAssignmentUnlocked,
     onAssignmentRemoved,
-    onAssignmentRemoveFailed,
+    onAssignmentDeleteFailed,
+    onAssignmentDeleted,
 };
 
 // Map of notification name and Action Event to execute
@@ -326,7 +358,8 @@ self.events = {
     'assignments:completed': () => (self.onAssignmentUpdated),
     'assignments:reverted': () => (self.onAssignmentUpdated),
     'assignments:removed': () => (self.onAssignmentRemoved),
-    'assignments:remove:fail': () => (self.onAssignmentRemoveFailed),
+    'assignments:delete:fail': () => (self.onAssignmentDeleteFailed),
+    'assignments:delete': () => (self.onAssignmentDeleted),
 };
 
 export default self;

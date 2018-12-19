@@ -363,8 +363,8 @@ describe('actions.assignments.notification', () => {
                 {assignment: 'as1'}
             ))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(3);
-                    expect(store.dispatch.args[0]).toEqual([{
+                    expect(store.dispatch.callCount).toBe(4);
+                    expect(store.dispatch.args[1]).toEqual([{
                         type: 'REMOVE_ASSIGNMENT',
                         payload: {assignment: 'as1'},
                     }]);

@@ -104,7 +104,7 @@ class EventsSpikeService(EventsBaseService):
                     session_id = get_auth().get('_id')
                     user_id = get_user().get(config.ID_FIELD)
                     push_notification(
-                        'assignments:remove:fail',
+                        'assignments:delete:fail',
                         items=[{
                             'slugline': a.get('planning').get('slugline'),
                             'type': a.get('planning').get('g2_content_type')
