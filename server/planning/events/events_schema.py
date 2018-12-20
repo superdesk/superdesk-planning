@@ -175,6 +175,7 @@ events_schema = {
         }
     },
     'occur_status': {
+        'nullable': True,
         'type': 'dict',
         'schema': {
             'qcode': {'type': 'string'},
