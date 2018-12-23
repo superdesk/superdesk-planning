@@ -70,22 +70,20 @@ export class EventScheduleInput extends React.Component {
 
     changeStartTime(value) {
         const startDate = get(this.props, 'diff.dates.start');
+        const _startTime = get(this.props, 'diff._startTime');
         const defaultDurationOnChange = get(this.props.formProfile, 'editor.dates.default_duration_on_change', 1);
         const newStartDate = startDate ? startDate.hour(value.hour()).minute(value.minute()) : value;
 
-        const changes = {
-            'dates.start': newStartDate,
-            _startTime: newStartDate,
-        };
+        const changes = {'dates.start': newStartDate};
 
-        if (((startDate && this.state.isAllDay) || !startDate) &&
+        if (((_startTime && this.state.isAllDay) || !_startTime) &&
             defaultDurationOnChange > 0 &&
             !this.state.isMultiDay
         ) {
             changes['dates.end'] = newStartDate.clone().add(defaultDurationOnChange, 'h');
             changes['_endTime'] = changes['dates.end'].clone();
         }
-
+        changes['_startTime'] = newStartDate;
         this.props.onChange(changes, null);
     }
 
@@ -103,21 +101,19 @@ export class EventScheduleInput extends React.Component {
 
     changeEndTime(value) {
         const endDate = get(this.props, 'diff.dates.end');
+        const _endTime = get(this.props, 'diff._endTime');
         const defaultDurationOnChange = get(this.props.formProfile, 'editor.dates.default_duration_on_change', 1);
         const newEndDate = endDate ? endDate.hour(value.hour()).minute(value.minute()) : value;
-        const changes = {
-            'dates.end': newEndDate,
-            _endTime: newEndDate,
-        };
+        const changes = {'dates.end': newEndDate};
 
-        if (((endDate && this.state.isAllDay) || !endDate)
+        if (((_endTime && this.state.isAllDay) || !_endTime)
             && defaultDurationOnChange > 0 &&
             !this.state.isMultiDay
         ) {
             changes['dates.start'] = newEndDate.clone().subtract(defaultDurationOnChange, 'h');
             changes['_startTime'] = changes['dates.start'].clone();
         }
-
+        changes['_endTime'] = newEndDate;
         this.props.onChange(changes, null);
     }
 
