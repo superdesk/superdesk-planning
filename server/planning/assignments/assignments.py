@@ -705,7 +705,7 @@ class AssignmentsService(superdesk.Service):
         return True, ''
 
     def is_associated_planning_or_event_locked(self, planning_item):
-        associated_event = planning_item.get('event_item')
+        associated_event = (planning_item or {}).get('event_item')
         if is_locked_in_this_session(planning_item):
             return True
 
@@ -727,6 +727,9 @@ class AssignmentsService(superdesk.Service):
         """
         Validate that we have a lock on the Assignment and it's associated Planning item
         """
+        if doc.get('_to_delete') is True:
+            # Already marked for delete - no validation needed (could be the background job)
+            return
 
         # Also make sure the Planning item is locked by this user and session
         planning_service = get_resource_service('planning')
@@ -803,18 +806,20 @@ class AssignmentsService(superdesk.Service):
 
         # Finally send a notification to connected clients that the Assignment
         # has been removed
-        push_notification(
-            'assignments:removed',
-            item=archive_item[config.ID_FIELD] if archive_item else None,
-            assignment=assignment_id,
-            planning=doc.get('planning_item'),
-            coverage=doc.get('coverage_item'),
-            planning_etag=updated_planning.get(config.ETAG),
-            session=get_auth()['_id']
-        )
+        if updated_planning and updated_planning.get('state') not in [WORKFLOW_STATE.KILLED, WORKFLOW_STATE.SPIKED]:
+            push_notification(
+                'assignments:removed',
+                item=archive_item[config.ID_FIELD] if archive_item else None,
+                assignment=assignment_id,
+                planning=doc.get('planning_item'),
+                coverage=doc.get('coverage_item'),
+                planning_etag=updated_planning.get(config.ETAG),
+                session=get_auth().get('_id')
+            )
 
-        # publish planning
-        self.publish_planning(doc.get('planning_item'))
+        if not doc.get('_to_delete'):
+            # publish planning
+            self.publish_planning(doc.get('planning_item'))
 
     def is_assignment_draft(self, updates, original):
         return updates.get('assigned_to', original.get('assigned_to')).get('state') ==\

@@ -30,8 +30,9 @@ from superdesk.default_settings import celery_queue, CELERY_TASK_ROUTES as CTR, 
 from celery.schedules import crontab
 import jinja2
 import os
+from datetime import timedelta
 
-from .commands import FlagExpiredItems, DeleteSpikedItems
+from .commands import FlagExpiredItems, DeleteSpikedItems, DeleteMarkedAssignments
 import planning.commands  # noqa
 import planning.feeding_services # noqa
 import planning.feed_parsers  # noqa
@@ -144,6 +145,12 @@ def init_app(app):
             'routing_key': 'expiry.delete'
         }
 
+    if not app.config.get('CELERY_TASK_ROUTES').get('planning.delete_assignments'):
+        app.config['CELERY_TASK_ROUTES']['planning.delete_assignments'] = {
+            'queue': celery_queue('expiry'),
+            'routing_key': 'expiry.delete_assignments'
+        }
+
     if not app.config.get('CELERY_BEAT_SCHEDULE'):
         app.config['CELERY_BEAT_SCHEDULE'] = CBS
 
@@ -159,6 +166,12 @@ def init_app(app):
         app.config['CELERY_BEAT_SCHEDULE']['planning:delete'] = {
             'task': 'planning.delete_spiked',
             'schedule': crontab(minute='0')  # Runs once every hour
+        }
+
+    if not app.config['CELERY_BEAT_SCHEDULE'].get('planning:delete_assignments'):
+        app.config['CELERY_BEAT_SCHEDULE']['planning:delete_assignments'] = {
+            'task': 'planning.delete_assignments',
+            'schedule': timedelta(seconds=60)  # Runs once every minute
         }
 
     # Create 'type' required for planning module if not already preset
@@ -198,3 +211,8 @@ def flag_expired():
 @celery.task(soft_time_limit=600)
 def delete_spiked():
     DeleteSpikedItems().run()
+
+
+@celery.task(soft_time_limit=600)
+def delete_assignments():
+    DeleteMarkedAssignments().run()

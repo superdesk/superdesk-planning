@@ -629,42 +629,44 @@ class PlanningService(superdesk.Service):
         coverage_id = assignment_item.get('coverage_item')
         planning_item = self.find_one(req=None, _id=assignment_item.get('planning_item'))
 
-        if planning_item:
-            coverages = planning_item.get('coverages') or []
-            try:
-                coverage_item = next(c for c in coverages if c.get('coverage_id') == coverage_id)
-            except StopIteration:
-                raise SuperdeskApiError.badRequestError(
-                    'Coverage does not exist'
-                )
+        if not planning_item or assignment_item.get('_to_delete'):
+            return planning_item
 
-            if not coverage_item.get('assigned_to'):
-                # Assignment was already removed (unposting a planning item scenario)
-                return planning_item
-
-            assigned_to = assignment_item.get('assigned_to')
-            PlanningNotifications().notify_assignment(
-                coverage_status=coverage_item.get('workflow_status'),
-                target_desk=assigned_to.get('desk') if assigned_to.get('user') is None else None,
-                target_user=assigned_to.get('user'),
-                message='assignment_removed_msg',
-                coverage_type=get_coverage_type_name(coverage_item.get('planning', {}).get('g2_content_type', '')),
-                slugline=planning_item.get('slugline', ''))
-
-            coverage_item['assigned_to'] = None
-            coverage_item['workflow_status'] = WORKFLOW_STATE.DRAFT
-
-            updates = {'coverages': coverages}
-            if unlock_planning:
-                remove_lock_information(updates)
-
-            updated_planning = self.update(
-                planning_item[config.ID_FIELD],
-                updates,
-                planning_item
+        coverages = planning_item.get('coverages') or []
+        try:
+            coverage_item = next(c for c in coverages if c.get('coverage_id') == coverage_id)
+        except StopIteration:
+            raise SuperdeskApiError.badRequestError(
+                'Coverage does not exist'
             )
 
-            return updated_planning
+        if not coverage_item.get('assigned_to'):
+            # Assignment was already removed (unposting a planning item scenario)
+            return planning_item
+
+        assigned_to = assignment_item.get('assigned_to')
+        PlanningNotifications().notify_assignment(
+            coverage_status=coverage_item.get('workflow_status'),
+            target_desk=assigned_to.get('desk') if assigned_to.get('user') is None else None,
+            target_user=assigned_to.get('user'),
+            message='assignment_removed_msg',
+            coverage_type=get_coverage_type_name(coverage_item.get('planning', {}).get('g2_content_type', '')),
+            slugline=planning_item.get('slugline', ''))
+
+        coverage_item['assigned_to'] = None
+        coverage_item['workflow_status'] = WORKFLOW_STATE.DRAFT
+
+        updates = {'coverages': coverages}
+        if unlock_planning:
+            remove_lock_information(updates)
+
+        updated_planning = self.update(
+            planning_item[config.ID_FIELD],
+            updates,
+            planning_item
+        )
+
+        return updated_planning
 
     def is_coverage_planning_modified(self, updates, original):
         for key in updates.get('planning').keys():
@@ -690,12 +692,18 @@ class PlanningService(superdesk.Service):
 
     def delete_assignments_for_coverages(self, coverages, notify=True):
         failed_assignments = []
+        deleted_assignments = []
         assignment_service = get_resource_service('assignments')
         for coverage in coverages:
             assign_id = coverage['assigned_to']['assignment_id']
             assign_planning = coverage.get('planning')
             try:
                 assignment_service.delete_action(lookup={'_id': assign_id})
+                deleted_assignments.append({
+                    'id': assign_id,
+                    'slugline': assign_planning.get('slugline'),
+                    'type': assign_planning.get('g2_content_type')
+                })
             except SuperdeskApiError:
                 logger.error('Failed to delete assignment {}'.format(assign_id))
                 failed_assignments.append({
@@ -710,11 +718,19 @@ class PlanningService(superdesk.Service):
                     assignment_service.system_update(ObjectId(assign_id), {'_to_delete': True},
                                                      original_assigment)
 
-        if len(failed_assignments) > 0 and notify:
-            session_id = get_auth().get('_id')
-            user_id = get_user().get(config.ID_FIELD)
+        session_id = get_auth().get('_id')
+        user_id = get_user().get(config.ID_FIELD)
+        if len(deleted_assignments) > 0:
             push_notification(
-                'assignments:remove:fail',
+                'assignments:delete',
+                items=deleted_assignments,
+                session=session_id,
+                user=user_id
+            )
+
+        if len(failed_assignments) > 0 and notify:
+            push_notification(
+                'assignments:delete:fail',
                 items=failed_assignments,
                 session=session_id,
                 user=user_id
