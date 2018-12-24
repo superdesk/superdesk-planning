@@ -120,6 +120,7 @@ export class UpdateTimeComponent extends React.Component {
             showErrors: true,
             errors: this.state.errors,
             readOnly: submitting,
+            allowInvalidText: true,
         };
 
         return (
