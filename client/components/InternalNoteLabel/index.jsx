@@ -42,7 +42,7 @@ export const InternalNoteLabel = ({
     ) : (
         <OverlayTrigger
             overlay={
-                <Tooltip id="internal_note_popup">
+                <Tooltip id="internal_note_popup" className="tooltip--text-left">
                     {showHeaderText && gettext('Internal Note:')}
                     {showHeaderText && <br/>}
                     {internalNote

@@ -31,7 +31,7 @@ export const CoverageIcon = ({
     return (<OverlayTrigger
         placement="bottom"
         overlay={
-            <Tooltip id={coverage.coverage_id}>
+            <Tooltip id={coverage.coverage_id} className="tooltip--text-left">
                 {desk && <span>{gettext('Status: ') + state.label}<br /></span>}
                 {assignmentStr}
                 {user && <span><br />{gettext('User: ') + user.display_name}</span>}
