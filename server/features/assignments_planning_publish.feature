@@ -682,7 +682,8 @@ Feature: For posted planning item changes in assignment state post a planning it
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
-                        "slugline": "test slugline"
+                        "slugline": "test slugline",
+                        "g2_content_type" : "text"
                     },
                     "assigned_to": {
                         "desk": "#desks._id#",

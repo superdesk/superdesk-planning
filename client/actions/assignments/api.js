@@ -2,7 +2,7 @@ import * as selectors from '../../selectors';
 import {ASSIGNMENTS} from '../../constants';
 import planningUtils from '../../utils/planning';
 import {get, cloneDeep, has, pick} from 'lodash';
-import {lockUtils, getErrorMessage, isExistingItem} from '../../utils';
+import {lockUtils, getErrorMessage, isExistingItem, gettext} from '../../utils';
 import planning from '../planning';
 
 /**
@@ -414,6 +414,22 @@ const removeAssignment = (assignment) => (
     )
 );
 
+const unlink = (assignment) => (
+    (dispatch, getState, {api, notify}) => (
+        api('assignments_unlink').save({}, {
+            assignment_id: assignment._id,
+            item_id: get(assignment, 'item_ids[0]'),
+        })
+            .then(() => {
+                notify.success(gettext('Assignment reverted.'));
+                return dispatch(self.unlock(assignment));
+            }, (error) => {
+                notify.error(get(error, 'data._message') || gettext('Could not unlock the assignment.'));
+                throw error;
+            })
+    )
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     query,
@@ -432,6 +448,7 @@ const self = {
     removeAssignment,
     fetchAssignmentHistory,
     receiveAssignmentHistory,
+    unlink,
 };
 
 export default self;

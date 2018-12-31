@@ -468,14 +468,29 @@ const revert = (item) => (
     (dispatch, getState, {notify}) => (
         dispatch(self.lockAssignment(item, 'revert'))
             .then((lockedItem) => {
-                dispatch(assignments.api.revert(lockedItem))
-                    .then((lockedItem) => {
-                        notify.success(gettext('The assignment has been reverted.'));
-                        return Promise.resolve(lockedItem);
-                    }, (error) => {
-                        notify.error(getErrorMessage(error, gettext('Failed to revert the assignment.')));
-                        return Promise.reject(error);
-                    });
+                if (!assignmentUtils.isTextAssignment(item)) {
+                    return dispatch(assignments.api.revert(lockedItem))
+                        .then((lockedItem) => {
+                            notify.success(gettext('The assignment has been reverted.'));
+                            return Promise.resolve(lockedItem);
+                        }, (error) => {
+                            notify.error(getErrorMessage(error, gettext('Failed to revert the assignment.')));
+                            return Promise.reject(error);
+                        });
+                }
+
+                lockedItem.item_ids = get(item, 'item_ids', []);
+                dispatch(showModal({
+                    modalType: MODALS.CONFIRMATION,
+                    modalProps: {
+                        body: gettext('This will unlink the text item associated with the assignment. Are you sure ?'),
+                        action: () => dispatch(assignments.api.unlink(lockedItem)),
+                        onCancel: () => dispatch(self.unlockAssignment(lockedItem)),
+                        autoClose: true,
+                    },
+                }));
+
+                return Promise.resolve();
             }, (error) => Promise.reject(error))
     )
 );

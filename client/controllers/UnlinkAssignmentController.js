@@ -1,6 +1,5 @@
 import {get} from 'lodash';
 import {getErrorMessage} from '../utils';
-import {ASSIGNMENTS} from '../constants';
 
 UnlinkAssignmentController.$inject = [
     'data',
@@ -43,11 +42,6 @@ export function UnlinkAssignmentController(
 
             return api('assignments').getById(newsItem.assignment_id)
                 .then((assignment) => {
-                    if (assignment.assigned_to.state === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED) {
-                        notify.error('Assignment has already been completed, cannot unlink.');
-                        return Promise.reject();
-                    }
-
                     if (!lock.isLockedInCurrentSession(newsItem)) {
                         newsItem._editable = true;
                         return lock.lock(newsItem, false, 'unlink_assignment')

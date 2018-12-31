@@ -100,7 +100,7 @@ describe('can edit assignment', () => {
             expect(canReassign()).toBe(false);
             expect(canEditPriority()).toBe(false);
             expect(canConfirmAvailability()).toBe(false);
-            expect(canRevertAvailability()).toBe(false);
+            expect(canRevertAvailability()).toBe(true);
         });
 
         it('assignment workflow state is `submitted`', () => {
