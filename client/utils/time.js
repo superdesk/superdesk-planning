@@ -1,4 +1,6 @@
 import moment from 'moment';
+import momentTz from 'moment-timezone';
+import {get} from 'lodash';
 import {TIME_COMPARISON_GRANULARITY} from '../constants';
 
 /**
@@ -98,12 +100,22 @@ const getStartOfPreviousMonth = (date = null) => {
         current.subtract(1, 'M').date(1);
 };
 
+const isEventInDifferentTimeZone = (event) => get(event, 'dates.tz') !== self.localTimeZone();
+
+const localTimeZone = () => moment.tz.guess();
+
+const getDateInRemoteTimeZone = (date, tz = self.localTimeZone()) =>
+    moment.isMoment(date) && momentTz.tz(date.clone().utc(), tz);
+
 // eslint-disable-next-line consistent-this
 const self = {
     getStartOfNextWeek,
     getStartOfPreviousWeek,
     getStartOfNextMonth,
     getStartOfPreviousMonth,
+    isEventInDifferentTimeZone,
+    localTimeZone,
+    getDateInRemoteTimeZone,
 };
 
 export default self;

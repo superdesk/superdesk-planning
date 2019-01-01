@@ -38,6 +38,7 @@ describe('<RepeatEventSummary />', () => {
                     frequency: 'MONTHLY',
                     interval: 3,
                 },
+                tz: moment.tz.guess(),
             },
         };
         let wrapper = mountForm(recEvent);
@@ -57,6 +58,7 @@ describe('<RepeatEventSummary />', () => {
                     interval: 3,
                     until: moment('2020-07-01T00:00'),
                 },
+                tz: moment.tz.guess(),
             },
         };
         let wrapper = mountForm(recEvent);
@@ -76,6 +78,7 @@ describe('<RepeatEventSummary />', () => {
                     interval: 3,
                     count: '9',
                 },
+                tz: moment.tz.guess(),
             },
         };
         let wrapper = mountForm(recEvent);
@@ -94,6 +97,7 @@ describe('<RepeatEventSummary />', () => {
                     interval: 3,
                     byday: 'TH FR',
                 },
+                tz: moment.tz.guess(),
             },
         };
         let wrapper = mountForm(recEvent);

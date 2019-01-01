@@ -1,5 +1,7 @@
 import $ from 'jquery';
 import {get} from 'lodash';
+import moment from 'moment';
+
 export {gettext, gettextCatalog} from '../../utils/gettext';
 
 /**
@@ -60,3 +62,7 @@ export const isNotForPublication = (item) => get(item, 'flags.marked_for_not_pub
  * @description Converts first case of a string to upper case
  */
 export const firstCharUpperCase = (string) => string && string.replace(/\b\w/g, (l) => l.toUpperCase());
+
+export const isEventInDifferentTimeZone = (event) => get(event, 'dates.tz') !== moment.tz.guess();
+
+export const localTimeZone = () => moment.tz.guess();

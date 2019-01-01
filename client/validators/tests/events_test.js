@@ -24,6 +24,7 @@ describe('eventValidators', () => {
                     count: 6,
                     interval: 1,
                 },
+                tz: 'Australia/Sydney',
             },
         };
         errors = {};
@@ -82,6 +83,16 @@ describe('eventValidators', () => {
                     _endTime: 'This field is required',
                 },
                 ['END DATE is a required field', 'END TIME is a required field']
+            );
+        });
+
+        it('fails if timezone is not defined', () => {
+            event.dates.tz = null;
+            testValidate(eventValidators.validateDates, 'dates',
+                {
+                    dates: {tz: 'This field is required'},
+                },
+                ['TIMEZONE is a required field']
             );
         });
     });

@@ -8,7 +8,7 @@ import * as actions from '../../../actions';
 import {validateItem} from '../../../validators';
 import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
-import {gettext, eventUtils, getDateTimeString, updateFormValues} from '../../../utils';
+import {gettext, eventUtils, getDateTimeString, updateFormValues, timeUtils} from '../../../utils';
 import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY} from '../../../constants';
 
 import {EventScheduleSummary, EventScheduleInput} from '../../Events';
@@ -111,6 +111,7 @@ export class RescheduleEventComponent extends React.Component {
         const afterUntil = moment.isMoment(get(initialValues, 'dates.recurring_rule.until')) &&
             moment.isMoment(get(this.state, 'diff.dates.start')) &&
             this.state.diff.dates.start.isAfter(initialValues.dates.recurring_rule.until);
+        const timeZone = get(initialValues, 'dates.tz');
 
         return (
             <div className="MetadataView">
@@ -176,6 +177,12 @@ export class RescheduleEventComponent extends React.Component {
                     )}</strong>
                 </div>}
 
+                {timeUtils.isEventInDifferentTimeZone(initialValues) && eventUtils.isEventInUse(initialValues) &&
+                    <div className="sd-alert sd-alert--hollow sd-alert--orange2 sd-alert--flex-direction">
+                        <strong>{gettext('This will create the new event in the remote ({{timeZone}}) timezone',
+                            {timeZone})}</strong>
+                    </div>}
+
                 <Field
                     component={EventScheduleInput}
                     field="dates"
@@ -191,6 +198,7 @@ export class RescheduleEventComponent extends React.Component {
                     formProfile={formProfiles.events}
                     popupContainer={this.getPopupContainer}
                     showFirstEventLabel={false}
+                    showRemoteTimeZone
                 />
 
                 <Row label={reasonLabel}>
@@ -235,7 +243,14 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (event, modalProps) => {
-        const promise = dispatch(actions.events.ui.rescheduleEvent(event));
+        let modifiedEvent = cloneDeep(event);
+
+        if (timeUtils.isEventInDifferentTimeZone(event)) {
+            modifiedEvent.dates.start = timeUtils.getDateInRemoteTimeZone(event.dates.start, event.dates.tz);
+            modifiedEvent.dates.end = timeUtils.getDateInRemoteTimeZone(event.dates.end, event.dates.tz);
+        }
+
+        const promise = dispatch(actions.events.ui.rescheduleEvent(modifiedEvent));
 
         if (get(modalProps, 'onCloseModal')) {
             promise.then((updatedEvent) => modalProps.onCloseModal(updatedEvent));

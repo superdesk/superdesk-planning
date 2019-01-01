@@ -228,6 +228,7 @@ export class EventEditorComponent extends React.Component {
                         row={false}
                         {...fieldProps}
                         onFocus={onFocusEvent}
+                        showTimeZone={!itemExists}
                         {...popupProps}
                     />
 

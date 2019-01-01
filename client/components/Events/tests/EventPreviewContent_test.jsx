@@ -98,7 +98,7 @@ describe('<EventPreviewContent />', () => {
         verifyDataRow(dataRows.at(2), 'Description', 'description');
         verifyDataRow(dataRows.at(3), 'Occurrence Status', 'Planned, occurs certainly');
         verifyDataRow(dataRows.at(4), 'Date', dateString);
-        verifyDataRow(dataRows.at(5), 'Calendars', 'calender1');
+        verifyDataRow(dataRows.at(6), 'Calendars', 'calender1');
 
         let eventDetails = wrapper.find('.toggle-box').first();
 

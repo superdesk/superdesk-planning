@@ -4,25 +4,44 @@ import moment from 'moment';
 import {connect} from 'react-redux';
 import classNames from 'classnames';
 import {getDateFormat, getTimeFormat} from '../../selectors/config';
+import {timeUtils} from '../../utils';
 import './style.scss';
 
-function Datetime({date, withTime, withDate, withYear, dateFormat, timeFormat, darkText}) {
+function Datetime({date, withTime, withDate, withYear, dateFormat, timeFormat, darkText, tz}) {
     let format = withYear ? dateFormat : dateFormat.replace(/y/gi, '');
     let dateTimeFormat = [
         withDate ? format : null,
         withTime ? timeFormat : null,
     ].filter((d) => d).join('\u00a0'); // &nbsp;
+    const localTz = timeUtils.localTimeZone();
+    const isRemoteTimeZone = tz !== localTz;
+    const momentDate = moment(date);
+    const newDate = timeUtils.getDateInRemoteTimeZone(momentDate, tz || localTz);
+    const newDateString = isRemoteTimeZone ? `(${moment.tz(tz).format('z')}) ${newDate.format(dateTimeFormat)}` : '';
 
     return (
-        <time
-            title={date.toString()}
-            className={classNames(
-                'Datetime',
-                {'Datetime--dark-text': darkText}
-            )}
-        >
-            {moment(date).format(dateTimeFormat)}
-        </time>
+        <p>
+            <time
+                title={date.toString()}
+                className={classNames(
+                    'Datetime',
+                    {'Datetime--dark-text': darkText}
+                )}
+            >
+                {momentDate.format(dateTimeFormat)}
+            </time>
+            {isRemoteTimeZone &&
+                <time
+                    title={newDateString}
+                    className={classNames(
+                        'Datetime',
+                        {'Datetime--dark-text': darkText}
+                    )}
+                >
+                    <br/>
+                    {newDateString}
+                </time>}
+        </p>
     );
 }
 
@@ -37,6 +56,7 @@ Datetime.propTypes = {
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
     darkText: PropTypes.bool,
+    tz: PropTypes.string,
 };
 
 Datetime.defaultProps = {
