@@ -55,7 +55,8 @@ Feature: Assignment Unlink
             "coverages": [{
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
-                    "slugline": "test slugline"
+                    "slugline": "test slugline",
+                    "g2_content_type" : "text"
                 },
                 "assigned_to": {
                     "desk": "#desks._id#",
@@ -197,7 +198,7 @@ Feature: Assignment Unlink
         """
 
     @auth
-    Scenario: Assignment must not be completed
+    Scenario: Can unlink only text assignments
         When we post to "/planning"
         """
         [{
@@ -215,7 +216,8 @@ Feature: Assignment Unlink
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
-                    "slugline": "test slugline"
+                    "slugline": "test slugline",
+                    "g2_content_type": "video"
                 },
                 "assigned_to": {
                     "desk": "#desk._id#",
@@ -246,7 +248,7 @@ Feature: Assignment Unlink
         """
         Then we get error 400
         """
-        {"_message": "Assignment already completed."}
+        {"_message": "Cannot unlink media assignments."}
         """
 
     @auth
@@ -268,7 +270,8 @@ Feature: Assignment Unlink
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
-                    "slugline": "test slugline"
+                    "slugline": "test slugline",
+                    "g2_content_type" : "text"
                 },
                 "assigned_to": {
                     "desk": "#desk._id#",
@@ -323,7 +326,8 @@ Feature: Assignment Unlink
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
-                    "slugline": "test slugline"
+                    "slugline": "test slugline",
+                    "g2_content_type" : "text"
                 },
                 "assigned_to": {
                     "desk": "#desk._id#",
@@ -379,7 +383,8 @@ Feature: Assignment Unlink
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
-                    "slugline": "test slugline"
+                    "slugline": "test slugline",
+                    "g2_content_type" : "text"
                 },
                 "assigned_to": {
                     "desk": "#desk._id#",
@@ -419,7 +424,8 @@ Feature: Assignment Unlink
             "coverages": [{
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
-                    "slugline": "test slugline"
+                    "slugline": "test slugline",
+                    "g2_content_type" : "text"
                 },
                 "assigned_to": {
                     "desk": "#desks._id#",
@@ -483,7 +489,8 @@ Feature: Assignment Unlink
             "coverages": [{
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
-                    "slugline": "test slugline"
+                    "slugline": "test slugline",
+                    "g2_content_type" : "text"
                 },
                 "assigned_to": {
                     "desk": "#desks._id#",
@@ -547,7 +554,8 @@ Feature: Assignment Unlink
             "coverages": [{
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
-                    "slugline": "test slugline"
+                    "slugline": "test slugline",
+                    "g2_content_type" : "text"
                 },
                 "assigned_to": {
                     "desk": "#desks._id#",
@@ -615,7 +623,8 @@ Feature: Assignment Unlink
             "coverages": [{
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
-                    "slugline": "test slugline"
+                    "slugline": "test slugline",
+                    "g2_content_type" : "text"
                 },
                 "assigned_to": {
                     "desk": "#desks._id#",

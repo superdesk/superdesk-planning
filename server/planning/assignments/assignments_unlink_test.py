@@ -28,7 +28,8 @@ class AssignmentUnlinkTestCase(TestCase):
                     'state': 'assigned',
                     'user': user_id,
                     'desk': desk_id
-                }
+                },
+                'planning': {'g2_content_type': 'text'}
             }])
 
             get_resource_service('assignments_link').post([{

@@ -99,8 +99,7 @@ function configurePlanning(superdesk, $injector) {
             privileges: {archive: 1},
             additionalCondition: ['lock', 'archiveService', 'item', 'authoring',
                 function(lock, archiveService, item, authoring) {
-                    return item.assignment_id && get(item, 'assignment.state') !== 'completed' &&
-                        (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
+                    return item.assignment_id && (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
                         !archiveService.isPersonal(item) && (authoring.itemActions(item).edit ||
                         authoring.itemActions(item).correct || authoring.itemActions(item).deschedule);
                 }],

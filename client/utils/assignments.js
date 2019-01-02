@@ -53,7 +53,6 @@ const canConfirmAvailability = (assignment, session, privileges) => (
 const canRevertAssignment = (assignment, session, privileges) => (
     !!privileges[PRIVILEGES.ARCHIVE] &&
         self.isNotLockRestricted(assignment, session) &&
-        !self.isTextAssignment(assignment) &&
         get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED
 );
 

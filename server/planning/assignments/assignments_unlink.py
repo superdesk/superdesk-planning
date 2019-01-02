@@ -16,6 +16,7 @@ from apps.archive.common import get_user, get_auth
 from planning.planning_notifications import PlanningNotifications
 from superdesk.notification import push_notification
 from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
+from superdesk.metadata.item import ITEM_STATE, PUBLISH_STATES
 
 
 class AssignmentsUnlinkService(Service):
@@ -46,6 +47,12 @@ class AssignmentsUnlinkService(Service):
                 {'assignment_id': None},
                 item
             )
+
+            # Update published collection
+            if item.get(ITEM_STATE) in PUBLISH_STATES:
+                get_resource_service('published').update_published_items(
+                    item[config.ID_FIELD],
+                    'assignment_id', None)
 
             get_resource_service('delivery').delete_action(lookup={
                 'assignment_id': assignment[config.ID_FIELD],
@@ -100,6 +107,9 @@ class AssignmentsUnlinkService(Service):
         if not assignment:
             raise SuperdeskApiError.badRequestError('Assignment not found.')
 
+        if assignment.get('planning', {}).get('g2_content_type', '') != 'text':
+            raise SuperdeskApiError.badRequestError('Cannot unlink media assignments.')
+
         if assignment.get(LOCK_USER):
             if str(assignment.get(LOCK_USER)) != str(user_id):
                 raise SuperdeskApiError.forbiddenError(
@@ -110,9 +120,6 @@ class AssignmentsUnlinkService(Service):
                 raise SuperdeskApiError.forbiddenError(
                     'Assignment is locked by you in another session. Cannot unlink assignment and content.'
                 )
-
-        if assignment.get('assigned_to', {}).get('state') == ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
-            raise SuperdeskApiError.badRequestError('Assignment already completed.')
 
         item = get_resource_service('archive').find_one(
             req=None,

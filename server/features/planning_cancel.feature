@@ -693,7 +693,8 @@ Feature: Cancel all coverage
                 },
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
-                    "slugline": "test slugline"
+                    "slugline": "test slugline",
+                    "g2_content_type" : "text"
                 },
                 "assigned_to": {
                     "desk": "#desks._id#",
