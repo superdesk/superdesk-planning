@@ -142,6 +142,15 @@ CoverageArrayInput.propTypes = {
     diff: PropTypes.object,
     formProfile: PropTypes.object,
     useLocalNavigation: PropTypes.bool,
+    navigation: PropTypes.shape({
+        onItemOpen: PropTypes.func,
+    }),
+    defaultDesk: PropTypes.object,
+    popupContainer: PropTypes.func,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
+    setCoverageDefaultDesk: PropTypes.func,
+    preferredCoverageDesks: PropTypes.object,
 };
 
 CoverageArrayInput.defaultProps = {

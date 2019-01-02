@@ -236,6 +236,9 @@ CoverageEditor.propTypes = {
     openCoverageIndex: PropTypes.number,
     popupContainer: PropTypes.func,
     setCoverageDefaultDesk: PropTypes.func,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
+    openCoverageIds: PropTypes.arrayOf(PropTypes.string),
 };
 
 CoverageEditor.defaultProps = {

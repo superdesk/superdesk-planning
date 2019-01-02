@@ -756,4 +756,6 @@ EditorComponent.propTypes = {
     loadAutosave: PropTypes.func,
     defaultDesk: PropTypes.object,
     preferredCoverageDesks: PropTypes.object,
+    associatedPlannings: PropTypes.arrayOf(PropTypes.object),
+    associatedEvent: PropTypes.object,
 };

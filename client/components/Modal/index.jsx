@@ -44,7 +44,12 @@ export default function Modal({
 Modal.propTypes = {
     show: PropTypes.bool,
     handleHide: PropTypes.func,
-    children: PropTypes.array,
+    children: PropTypes.oneOfType([
+        PropTypes.element,
+        PropTypes.node,
+        PropTypes.arrayOf(PropTypes.element),
+        PropTypes.arrayOf(PropTypes.node),
+    ]),
     large: PropTypes.bool,
     fill: PropTypes.bool,
     fullscreen: PropTypes.bool,

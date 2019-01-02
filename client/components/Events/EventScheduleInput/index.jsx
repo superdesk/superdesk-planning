@@ -347,6 +347,10 @@ EventScheduleInput.propTypes = {
     formProfile: PropTypes.object,
     popupContainer: PropTypes.func,
     showFirstEventLabel: PropTypes.bool,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
+    showTimeZone: PropTypes.bool,
+    showRemoteTimeZone: PropTypes.bool,
 };
 
 EventScheduleInput.defaultProps = {
@@ -355,4 +359,6 @@ EventScheduleInput.defaultProps = {
     showRepeatSummary: true,
     showRepeatToggle: true,
     showFirstEventLabel: true,
+    showTimeZone: false,
+    showRemoteTimeZone: false,
 };

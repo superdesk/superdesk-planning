@@ -54,4 +54,11 @@ TimeZoneInput.propTypes = {
     readOnly: PropTypes.bool,
     onChange: PropTypes.func,
     noMargin: PropTypes.bool,
+    invalid: PropTypes.bool,
+    required: PropTypes.bool,
+};
+
+TimeZoneInput.defaultProps = {
+    invalid: false,
+    required: false,
 };

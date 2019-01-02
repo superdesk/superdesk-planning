@@ -26,7 +26,10 @@ export class EditorModalComponent extends React.Component {
             currentTab: UI.EDITOR.CONTENT_TAB_INDEX,
         };
 
-        this.dom = {menu: null};
+        this.dom = {
+            menu: null,
+            editor: null,
+        };
 
         this.onMenuItemClick = this.onMenuItemClick.bind(this);
         this.onEditorItemChange = this.onEditorItemChange.bind(this);
@@ -67,15 +70,15 @@ export class EditorModalComponent extends React.Component {
     }
 
     onCloseModal() {
-        if (this.refs.editor) {
-            this.refs.editor.getWrappedInstance().cancelFromHeader();
+        if (this.dom.editor) {
+            this.dom.editor.getWrappedInstance().cancelFromHeader();
         }
     }
 
     onMenuItemClick(menuItemName) {
         // Change tab to content
-        if (this.refs.editor && this.state.currentTab !== UI.EDITOR.CONTENT_TAB_INDEX) {
-            this.refs.editor.getWrappedInstance().setActiveTab(UI.EDITOR.CONTENT_TAB_INDEX);
+        if (this.dom.editor && this.state.currentTab !== UI.EDITOR.CONTENT_TAB_INDEX) {
+            this.dom.editor.getWrappedInstance().setActiveTab(UI.EDITOR.CONTENT_TAB_INDEX);
         }
 
         this.setState({
@@ -175,7 +178,7 @@ export class EditorModalComponent extends React.Component {
                                 onCancel={this.props.handleHide}
                                 hideMinimize
                                 hideExternalEdit
-                                ref="editor"
+                                ref={(node) => this.dom.editor = node}
                             />
                         </div>
                     </div>

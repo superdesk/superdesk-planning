@@ -103,6 +103,7 @@ Button.propTypes = {
     iconOnlyCircle: PropTypes.bool,
     children: PropTypes.node,
     pullRight: PropTypes.bool,
+    empty: PropTypes.bool,
 };
 
 Button.defaultProps = {
@@ -115,6 +116,7 @@ Button.defaultProps = {
     autoFocus: false,
     iconOnlyCircle: false,
     pullRight: false,
+    empty: false,
 };
 
 export default Button;

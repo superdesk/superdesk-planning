@@ -177,6 +177,8 @@ SelectMetaTermsInput.propTypes = {
     popupContainer: PropTypes.func,
     onFocus: PropTypes.func,
     groupField: PropTypes.string,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };
 
 SelectMetaTermsInput.defaultProps = {

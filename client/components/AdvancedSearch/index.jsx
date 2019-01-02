@@ -406,4 +406,5 @@ AdvancedSearch.propTypes = {
     onChange: PropTypes.func.isRequired,
     workflowStateOptions: PropTypes.array,
     popupContainer: PropTypes.func,
+    searchProfile: PropTypes.object,
 };

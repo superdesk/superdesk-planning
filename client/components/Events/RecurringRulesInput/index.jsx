@@ -163,6 +163,8 @@ RecurringRulesInput.propTypes = {
     popupContainer: PropTypes.func,
     hideFrequency: PropTypes.bool,
     onlyUpdateRepetitions: PropTypes.bool,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };
 
 RecurringRulesInput.defaultProps = {readOnly: false};

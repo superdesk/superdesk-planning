@@ -257,6 +257,9 @@ CoverageForm.propTypes = {
     addNewsItemToPlanning: PropTypes.object,
     popupContainer: PropTypes.func,
     onFieldFocus: PropTypes.func,
+    index: PropTypes.number,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };
 
 CoverageForm.defaultProps = {
