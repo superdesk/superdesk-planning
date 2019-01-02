@@ -745,11 +745,18 @@ PlanningEditorComponent.propTypes = {
     defaultDesk: PropTypes.object,
     uploadFiles: PropTypes.func,
     removeFile: PropTypes.func,
+    fetchPlanningFiles: PropTypes.func,
+    preferredCoverageDesks: PropTypes.object,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
+    setCoverageDefaultDesk: PropTypes.func,
+    inModalView: PropTypes.bool,
 };
 
 PlanningEditorComponent.defaultProps = {
     readOnly: false,
     navigation: {},
+    inModalView: false,
 };
 
 const mapStateToProps = (state) => ({

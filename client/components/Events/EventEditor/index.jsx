@@ -482,6 +482,8 @@ EventEditorComponent.propTypes = {
     uploadFiles: PropTypes.func,
     removeFile: PropTypes.func,
     popupContainer: PropTypes.func,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };
 
 EventEditorComponent.defaultProps = {

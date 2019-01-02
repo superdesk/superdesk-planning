@@ -65,7 +65,7 @@ describe('form validations', () => {
         countField_convertToRecurringEventForm.simulate('change', {target: {value: '3'}});
         expect(wrapper.find('.sd-line-input--invalid').length).toBe(2);
         countField_convertToRecurringEventForm.simulate('change', {target: {value: '300'}});
-        expect(wrapper.find('.sd-line-input--invalid').length > 0).toBe(true);
+        expect(wrapper.find('.sd-line-input--invalid').length).toBeGreaterThan(0);
 
         wrapper.unmount();
         wrapper = getWrapper(UpdateTimeForm);
@@ -73,7 +73,7 @@ describe('form validations', () => {
 
         expect(wrapper.find('.sd-line-input--invalid').length).toBe(0);
         endDateField_updateTimeForm.simulate('change', {target: {value: '00:00'}});
-        expect(wrapper.find('.sd-line-input--invalid').length > 0).toBe(true);
+        expect(wrapper.find('.sd-line-input--invalid').length).toBeGreaterThan(0);
 
         wrapper.unmount();
         wrapper = getWrapper(RescheduleEventForm);
@@ -81,7 +81,7 @@ describe('form validations', () => {
 
         expect(wrapper.find('.sd-line-input--invalid').length).toBe(0);
         endDateField_rescheduleEventForm.simulate('change', {target: {value: '00:00'}});
-        expect(wrapper.find('.sd-line-input--invalid').length > 0).toBe(true);
+        expect(wrapper.find('.sd-line-input--invalid').length).toBeGreaterThan(0);
 
         const recurrence_rule = {
             endRepeatMode: 'count',
@@ -104,6 +104,6 @@ describe('form validations', () => {
         const countField_updateEventRepetitionsForm = wrapper.find('[name="dates.recurring_rule.count"]');
 
         countField_updateEventRepetitionsForm.simulate('change', {target: {value: 300}});
-        expect(wrapper.find('.sd-line-input--invalid').length > 0).toBe(true);
+        expect(wrapper.find('.sd-line-input--invalid').length).toBeGreaterThan(0);
     });
 });

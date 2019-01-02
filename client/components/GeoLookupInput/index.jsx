@@ -52,6 +52,8 @@ GeoLookupInput.propTypes = {
     noMargin: PropTypes.bool,
     onFocus: PropTypes.func,
     popupContainer: PropTypes.func,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };
 
 GeoLookupInput.defaultProps = {

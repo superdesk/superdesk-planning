@@ -210,6 +210,8 @@ DateInput.propTypes = {
     popupContainer: PropTypes.func,
     onFocus: PropTypes.func,
     remoteTimeZone: PropTypes.string,
+    onPopupOpen: PropTypes.func,
+    onPopupClose: PropTypes.func,
 };
 
 DateInput.defaultProps = {

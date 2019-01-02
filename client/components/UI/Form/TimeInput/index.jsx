@@ -199,6 +199,8 @@ TimeInput.propTypes = {
     noMargin: PropTypes.bool,
     popupContainer: PropTypes.func,
     onFocus: PropTypes.func,
+    remoteTimeZone: PropTypes.string,
+    dateFormat: PropTypes.string,
 };
 
 TimeInput.defaultProps = {

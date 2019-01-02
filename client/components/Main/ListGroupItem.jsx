@@ -222,4 +222,5 @@ ListGroupItem.propTypes = {
     hideItemActions: PropTypes.bool,
     listField: PropTypes.object,
     calendars: PropTypes.array,
+    listFields: PropTypes.object,
 };

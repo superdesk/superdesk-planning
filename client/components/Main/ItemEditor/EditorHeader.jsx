@@ -411,4 +411,5 @@ EditorHeader.propTypes = {
     onAddCoverage: PropTypes.func,
     flushAutosave: PropTypes.func,
     contentTypes: PropTypes.array,
+    associatedEvent: PropTypes.object,
 };

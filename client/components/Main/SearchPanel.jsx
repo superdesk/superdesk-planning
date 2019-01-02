@@ -145,6 +145,8 @@ SearchPanelComponent.propTypes = {
     isViewFiltered: PropTypes.bool,
     workflowStateOptions: PropTypes.array,
     popupContainer: PropTypes.func,
+    searchProfile: PropTypes.object,
+    locators: PropTypes.arrayOf(PropTypes.object),
 };
 
 

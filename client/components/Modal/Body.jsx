@@ -21,7 +21,9 @@ export default function Body({children, noPadding, fullHeight, noScroll}) {
 Body.propTypes = {
     children: PropTypes.oneOfType([
         PropTypes.element,
+        PropTypes.node,
         PropTypes.arrayOf(PropTypes.element),
+        PropTypes.arrayOf(PropTypes.node),
     ]),
     noPadding: PropTypes.bool,
     noScroll: PropTypes.bool,
