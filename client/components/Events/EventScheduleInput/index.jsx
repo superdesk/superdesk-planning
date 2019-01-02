@@ -71,6 +71,11 @@ export class EventScheduleInput extends React.Component {
     }
 
     changeStartTime(value) {
+        if (!value) {
+            this.props.onChange('_startTime', null);
+            return;
+        }
+
         const startDate = get(this.props, 'diff.dates.start');
         const _startTime = get(this.props, 'diff._startTime');
         const defaultDurationOnChange = get(this.props.formProfile, 'editor.dates.default_duration_on_change', 1);
@@ -102,6 +107,11 @@ export class EventScheduleInput extends React.Component {
     }
 
     changeEndTime(value) {
+        if (!value) {
+            this.props.onChange('_endTime', null);
+            return;
+        }
+
         const endDate = get(this.props, 'diff.dates.end');
         const _endTime = get(this.props, 'diff._endTime');
         const defaultDurationOnChange = get(this.props.formProfile, 'editor.dates.default_duration_on_change', 1);
@@ -279,6 +289,7 @@ export class EventScheduleInput extends React.Component {
                     onPopupClose={onPopupClose}
                     timeField="_startTime"
                     remoteTimeZone={showRemoteTimeZone ? get(diff, 'dates.tz') : null}
+                    allowInvalidTime
                 />
 
                 <Field
@@ -297,6 +308,7 @@ export class EventScheduleInput extends React.Component {
                     onPopupClose={onPopupClose}
                     timeField="_endTime"
                     remoteTimeZone={showRemoteTimeZone ? get(diff, 'dates.tz') : null}
+                    allowInvalidTime
                 />
 
                 <Row flex={true} className="event-toggle" noPadding>
