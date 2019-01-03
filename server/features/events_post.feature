@@ -694,3 +694,79 @@ Feature: Events Post
         """
         When we get "/assignments"
         Then we get list with 1 items
+
+    @auth
+    @notification
+    Scenario: Posting event after planning item is posted
+        Given we have sessions "/sessions"
+        Given "planning"
+        """
+        [{
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "TestEvent",
+            "state": "draft",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "add_as_event",
+            "lock_time": "#DATE#",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        When we post to "/planning/post"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we reset notifications
+        When we post to "events"
+        """
+        {
+            "name": "TestEvent",
+            "slugline": "TestEvent",
+            "_planning_item": "plan1",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/planning/plan1"
+        Then we get existing resource
+        """
+        {"event_item": "#events._id#"}
+        """
+        When we post to "/events/post"
+        """
+        {
+            "event": "#events._id#",
+            "etag": "#events._etag#",
+            "pubstatus": "usable",
+            "update_method": "single"
+        }
+        """
+        Then we get OK response
+        When we get "published_planning"
+        Then we get list with 2 items
+        """
+        {
+            "_items": [
+                {
+                    "item_id": "#planning._id#"
+                },
+                {
+                    "item_id": "#events._id#",
+                    "published_item": {
+                        "plans": ["#planning._id#"]
+                    }
+                }
+            ]
+        }
+        """
+

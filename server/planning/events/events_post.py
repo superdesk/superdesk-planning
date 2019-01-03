@@ -155,7 +155,9 @@ class EventsPostService(EventsBaseService):
         updates['version'] = version
 
         get_resource_service('events_history')._save_history(event, updates, 'post')
+        plannings = list(get_resource_service('events').get_plannings_for_event(event))
 
+        event['plans'] = [p.get('_id') for p in plannings]
         version_id = get_resource_service('published_planning').post([{'item_id': event['_id'],
                                                                        'version': version, 'type': 'event',
                                                                        'published_item': event}])
