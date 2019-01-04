@@ -20,6 +20,7 @@ export const Item = (
         disabled,
         onMouseEnter,
         onMouseLeave,
+        refNode,
     }) => (
     <div className={classNames(
         className,
@@ -36,6 +37,7 @@ export const Item = (
     onClick={onClick}
     onMouseEnter={onMouseEnter}
     onMouseLeave={onMouseLeave}
+    ref={refNode}
     >
         {children}
     </div>
@@ -53,6 +55,7 @@ Item.propTypes = {
     disabled: PropTypes.bool,
     onMouseEnter: PropTypes.func,
     onMouseLeave: PropTypes.func,
+    refNode: PropTypes.func,
 };
 
 Item.defaultProps = {

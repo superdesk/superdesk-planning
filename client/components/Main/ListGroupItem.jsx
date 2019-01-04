@@ -17,20 +17,31 @@ export class ListGroupItem extends React.Component {
 
         this.handleSingleAndDoubleClick = this.handleSingleAndDoubleClick.bind(this);
         this.onSingleClick = this.onSingleClick.bind(this);
+
+        this.dom = {item: null};
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.active && !this.props.active) {
+            // The item just became active, scroll into view
+            if (this.dom.item) {
+                this.dom.item.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'nearest'});
+            }
+        }
     }
 
     // onSingleClick, onDoubleClick and handleSingleAndDoubleClick
     // are workarounds to achieve single and double click on the same component
-    onSingleClick(item) {
+    onSingleClick(index, item) {
         this.setState({clickedOnce: undefined});
-        this.props.onItemClick(item);
+        this.props.onItemClick(index, item);
     }
 
     onDoubleClick(item) {
         this.props.onDoubleClick(item);
     }
 
-    handleSingleAndDoubleClick(item) {
+    handleSingleAndDoubleClick(index, item) {
         if (!this._delayedClick) {
             this._delayedClick = debounce(this.onSingleClick, CLICK_DELAY);
         }
@@ -40,7 +51,7 @@ export class ListGroupItem extends React.Component {
             this.setState({clickedOnce: false});
             this.onDoubleClick(item);
         } else {
-            this._delayedClick(item);
+            this._delayedClick(index, item);
             this.setState({clickedOnce: true});
         }
     }
@@ -69,6 +80,12 @@ export class ListGroupItem extends React.Component {
             showAddCoverage,
             hideItemActions,
             listFields,
+            active,
+            index,
+            navigateDown,
+            navigateList,
+            onItemActivate,
+            previewItem,
         } = this.props;
         const itemType = getItemType(item);
 
@@ -78,7 +95,7 @@ export class ListGroupItem extends React.Component {
 
         let itemProps = {
             item: item,
-            onItemClick: clickHandler,
+            onItemClick: clickHandler.bind(null, index),
             lockedItems: lockedItems,
             dateFormat: dateFormat,
             timeFormat: timeFormat,
@@ -87,6 +104,10 @@ export class ListGroupItem extends React.Component {
             activeFilter: activeFilter,
             onMultiSelectClick: onMultiSelectClick,
             listFields: listFields,
+            active: active,
+            refNode: (node) => {
+                this.dom.item = node;
+            },
         };
 
         let eventProps = {
@@ -178,6 +199,10 @@ export class ListGroupItem extends React.Component {
                         planningProps={planningProps}
                         showRelatedPlannings={this.props.showRelatedPlannings}
                         relatedPlanningsInList={this.props.relatedPlanningsInList}
+                        navigateDown={navigateDown}
+                        navigateList={navigateList}
+                        onItemActivate={onItemActivate}
+                        previewItem={previewItem}
                     />
                 );
             }
@@ -203,7 +228,7 @@ ListGroupItem.propTypes = {
     onItemClick: PropTypes.func.isRequired,
     onDoubleClick: PropTypes.func,
     editItem: PropTypes.object,
-    previewItem: PropTypes.object,
+    previewItem: PropTypes.string,
     lockedItems: PropTypes.object.isRequired,
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
@@ -223,4 +248,9 @@ ListGroupItem.propTypes = {
     listField: PropTypes.object,
     calendars: PropTypes.array,
     listFields: PropTypes.object,
+    active: PropTypes.bool,
+    index: PropTypes.number,
+    navigateDown: PropTypes.bool,
+    navigateList: PropTypes.func,
+    onItemActivate: PropTypes.func,
 };

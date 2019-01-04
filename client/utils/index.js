@@ -826,13 +826,14 @@ export const isItemSameAsAutosave = (item, autosave, events, plannings) => {
  * @returns {boolean}
  */
 export const isItemDifferent = (currentProps, nextProps) => {
-    const original = pick(currentProps, ['item', 'lockedItems', 'multiSelected']);
-    const updates = pick(nextProps, ['item', 'lockedItems', 'multiSelected']);
+    const original = pick(currentProps, ['item', 'lockedItems', 'multiSelected', 'active']);
+    const updates = pick(nextProps, ['item', 'lockedItems', 'multiSelected', 'active']);
 
     return get(original, 'item._etag') !== get(updates, 'item._etag') ||
         get(original, 'item._updated') !== get(updates, 'item._updated') ||
         get(original, 'item.planning_ids') !== get(updates, 'item.planning_ids') ||
         get(original, 'multiSelected') !== get(updates, 'multiSelected') ||
+        get(original, 'active') !== get(updates, 'active') ||
         get(original, 'item.event') !== get(updates, 'item.event') ||
         lockUtils.isItemLocked(original.item, original.lockedItems) !==
         lockUtils.isItemLocked(updates.item, updates.lockedItems);

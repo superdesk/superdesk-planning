@@ -92,8 +92,20 @@ export class EventItem extends React.Component {
     }
 
     render() {
-        const {item, onItemClick, lockedItems, dateFormat, timeFormat,
-            activeFilter, toggleRelatedPlanning, onMultiSelectClick, calendars, listFields} = this.props;
+        const {
+            item,
+            onItemClick,
+            lockedItems,
+            dateFormat,
+            timeFormat,
+            activeFilter,
+            toggleRelatedPlanning,
+            onMultiSelectClick,
+            calendars,
+            listFields,
+            active,
+            refNode,
+        } = this.props;
 
         if (!item) {
             return null;
@@ -118,11 +130,12 @@ export class EventItem extends React.Component {
         return (
             <Item
                 shadow={1}
-                activated={this.props.multiSelected}
+                activated={this.props.multiSelected || active}
                 onClick={() => onItemClick(item)}
                 disabled={isExpired}
                 onMouseLeave={this.onItemHoverOff}
                 onMouseEnter={this.onItemHoverOn}
+                refNode={refNode}
             >
                 <Border state={borderState} />
                 <ItemType
@@ -212,6 +225,8 @@ EventItem.propTypes = {
     onMultiSelectClick: PropTypes.func,
     calendars: PropTypes.array,
     listFields: PropTypes.object,
+    refNode: PropTypes.func,
+    active: PropTypes.bool,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName]: PropTypes.func,
