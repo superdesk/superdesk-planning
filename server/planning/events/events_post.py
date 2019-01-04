@@ -158,20 +158,24 @@ class EventsPostService(EventsBaseService):
         plannings = list(get_resource_service('events').get_plannings_for_event(event))
 
         event['plans'] = [p.get('_id') for p in plannings]
+        self.publish_event(event, version)
+
+        if len(plannings) > 0:
+            self.post_related_plannings(plannings, new_post_state)
+
+        return updated_event
+
+    def publish_event(self, event, version):
+        """Enqueue the items for publish"""
         version_id = get_resource_service('published_planning').post([{'item_id': event['_id'],
-                                                                       'version': version, 'type': 'event',
+                                                                       'version': version,
+                                                                       'type': 'event',
                                                                        'published_item': event}])
         if version_id:
             # Asynchronously enqueue the item for publishing.
             enqueue_planning_item.apply_async(kwargs={'id': version_id[0]})
         else:
             logger.error('Failed to save planning version for event item id {}'.format(event['_id']))
-
-        plannings = get_resource_service('events').get_plannings_for_event(event)
-        if plannings.count() > 0:
-            self.post_related_plannings(plannings, new_post_state)
-
-        return updated_event
 
     def post_related_plannings(self, plannings, new_post_state):
         # Check to see if we are un-posting, we need to unpost it's planning item
