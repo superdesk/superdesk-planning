@@ -137,20 +137,24 @@ class PlanningPostService(BaseService):
 
         # Set a version number
         version, updates = get_version_item_for_post(updates)
+        self.publish_planning(updates, version)
+
+        # Save the version into the history
+        updates['version'] = version
+        get_resource_service('planning_history')._save_history(plan, updates, 'post')
+
+    def publish_planning(self, plan, version):
+        """Enqueue the planning item"""
         # Create an entry in the planning versions collection for this published version
         version_id = get_resource_service('published_planning').post([{'item_id': plan['_id'],
                                                                        'version': version,
                                                                        'type': 'planning',
-                                                                       'published_item': updates}])
+                                                                       'published_item': plan}])
         if version_id:
             # Asynchronously enqueue the item for publishing.
             enqueue_planning_item.apply_async(kwargs={'id': version_id[0]})
         else:
             logger.error('Failed to save planning version for planning item id {}'.format(plan['_id']))
-
-        # Save the version into the history
-        updates['version'] = version
-        get_resource_service('planning_history')._save_history(plan, updates, 'post')
 
     def _get_post_state(self, plan, new_post_state):
         if new_post_state == POST_STATE.CANCELLED:
