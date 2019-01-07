@@ -32,6 +32,25 @@ export default angular.module('superdesk-planning', [])
         })
     )
     .service('sdPlanningStore', svc.PlanningStoreService)
+    .config(['workspaceMenuProvider', (workspaceMenuProvider) => {
+        workspaceMenuProvider.item({
+            href: '/workspace/assignments',
+            icon: 'tasks',
+            label: gettext('Assignments'),
+            shortcut: 'ctrl+alt+a',
+            if: 'workspaceConfig.assignments',
+            order: 300,
+        });
+
+        workspaceMenuProvider.item({
+            href: '/planning',
+            icon: 'calendar',
+            label: gettext('Planning'),
+            group: 'planning',
+            if: 'workspaceConfig.planning && privileges.planning',
+            order: 1100,
+        });
+    }])
     .run(['$injector', 'sdPlanningStore', 'extensionPoints', ($injector, sdPlanningStore, extensionPoints) => {
         ng.register($injector);
 
