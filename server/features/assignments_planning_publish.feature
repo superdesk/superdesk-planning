@@ -735,6 +735,7 @@ Feature: For posted planning item changes in assignment state post a planning it
             "type": "text",
             "headline": "test headline",
             "slugline": "test slugline",
+            "state": "in_progress",
             "task": {
                 "desk": "#desks._id#",
                 "stage": "#desks.incoming_stage#"
@@ -802,6 +803,40 @@ Feature: For posted planning item changes in assignment state post a planning it
             ]
         }
         """
+        When we publish "123" with "publish" type and "published" state
+        Then we get OK response
+        When we transmit items
+        When we get "published_planning?sort=item_id,version"
+        Then we get list with 4 items
+        Then we store "PLANNING" with 4 item
+        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        Then we get list with 1 items
+        Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-4.txt"
+        """
+        {
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "guid": "#PLANNING.item_id#",
+            "agendas": [{"name": "TestAgenda", "is_enabled": true}],
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "completed",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type" : "text"
+                    },
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "deliveries": [{"item": "123"}],
+                    "coverage_provider": null
+                }
+            ]
+        }
+        """
         When we post to "assignments/unlink" with success
         """
         [{
@@ -829,11 +864,11 @@ Feature: For posted planning item changes in assignment state post a planning it
         """
         When we transmit items
         When we get "published_planning?sort=item_id,version"
-        Then we get list with 4 items
-        Then we store "PLANNING" with 4 item
+        Then we get list with 5 items
+        Then we store "PLANNING" with 5 item
         When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
         Then we get list with 1 items
-        Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-4.txt"
+        Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-5.txt"
         """
         {
             "state": "scheduled",
@@ -854,6 +889,64 @@ Feature: For posted planning item changes in assignment state post a planning it
                       "qcode": "ncostat:int"
                     },
                     "deliveries": [],
+                    "coverage_provider": null
+                }
+            ]
+        }
+        """
+        When we post to "assignments/link"
+        """
+        [{
+            "assignment_id": "#firstassignment#",
+            "item_id": "#archive._id#",
+            "reassign": false
+        }]
+        """
+        Then we get OK response
+        When we get "archive/#archive._id#"
+        Then we get existing resource
+        """
+        {"assignment_id": "#firstassignment#"}
+        """
+        When we get "/assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "state": "completed"
+            },
+            "coverage_item": "#firstcoverage#"
+        }
+        """
+        When we transmit items
+        When we get "published_planning?sort=item_id,version"
+        Then we get list with 6 items
+        Then we store "PLANNING" with 6 item
+        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        Then we get list with 1 items
+        Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-6.txt"
+        """
+        {
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "guid": "#PLANNING.item_id#",
+            "agendas": [{"name": "TestAgenda", "is_enabled": true}],
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "completed",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type" : "text"
+                    },
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "deliveries": [{"item": "123"}],
                     "coverage_provider": null
                 }
             ]
