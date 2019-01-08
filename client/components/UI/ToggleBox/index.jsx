@@ -34,6 +34,9 @@ export class ToggleBox extends React.Component {
         } else if (event.keyCode === KEYCODES.LEFT && this.state.isOpen) {
             onEventCapture(event);
             this.setState({isOpen: false});
+        } else if (event.keyCode === KEYCODES.ENTER) {
+            onEventCapture(event);
+            this.toggle();
         }
     }
 
