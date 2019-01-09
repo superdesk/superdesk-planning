@@ -5,6 +5,8 @@ import {ListGroup} from '.';
 import {PanelInfo} from '../UI';
 import {Item, Column, Group} from '../UI/List';
 import {gettext} from '../../utils/gettext';
+import {onEventCapture} from '../../utils';
+import {KEYCODES, MAIN} from '../../constants';
 import './style.scss';
 
 export class ListPanel extends React.Component {
@@ -13,12 +15,18 @@ export class ListPanel extends React.Component {
         this.state = {
             isNextPageLoading: false,
             scrollTop: 0,
+            activeItemIndex: -1, // Active item in the list
+            navigateDown: true, // Navigation direction
         };
 
         this.dom = {list: null};
 
         this.handleScroll = this.handleScroll.bind(this);
         this.unsetNextPageLoading = this.unsetNextPageLoading.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.onItemClick = this.onItemClick.bind(this);
+        this.navigateListWorker = this.navigateListWorker.bind(this);
+        this.onItemActivate = this.onItemActivate.bind(this);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -26,6 +34,7 @@ export class ListPanel extends React.Component {
             this.setState({
                 isNextPageLoading: false,
                 scrollTop: 0,
+                activeItemIndex: -1,
             });
         }
 
@@ -37,7 +46,104 @@ export class ListPanel extends React.Component {
             !this.state.isNextPageLoading
         ) {
             this.dom.list.scrollTop = 0;
+            this.setState({activeItemIndex: -1});
         }
+    }
+
+    isNestedItem(activeItemIndex) {
+        if (this.props.activeFilter === MAIN.FILTERS.COMBINED && activeItemIndex >= 0) {
+            // Check to see if item is event-with-planning, then it will handle keydown locally
+            const item = this.getItemFromGroups(activeItemIndex);
+
+            return get(item, 'planning_ids.length', 0) > 0;
+        }
+    }
+
+    handleKeyDown(event) {
+        if (this.isNestedItem(this.state.activeItemIndex)) {
+            return;
+        }
+
+        if (![KEYCODES.UP, KEYCODES.DOWN, KEYCODES.ENTER].includes(get(event, 'keyCode'))) {
+            return;
+        }
+
+        onEventCapture(event);
+
+        // If we have an item selected and 'enter' was pressed, lets preview it
+        if (get(event, 'keyCode') === KEYCODES.ENTER && this.state.activeItemIndex >= 0) {
+            const item = this.getItemFromGroups(this.state.activeItemIndex);
+
+            if (item) {
+                this.props.onItemClick(item);
+            }
+        }
+
+        this.navigateListWorker(get(event, 'keyCode') === KEYCODES.DOWN);
+    }
+
+    // Function to navigate active index on the list and preview if needed
+    navigateListWorker(increment = true) {
+        let newState;
+        // Set navigation details on state appropriately
+
+        if (increment && this.isActiveIndexInRange(this.state.activeItemIndex + 1)) {
+            newState = {
+                navigateDown: true,
+                activeItemIndex: this.state.activeItemIndex + 1,
+            };
+        } else if (this.isActiveIndexInRange(this.state.activeItemIndex - 1)) {
+            newState = {
+                activeItemIndex: this.state.activeItemIndex - 1,
+                navigateDown: false,
+            };
+        }
+
+        // Need to move up/down in the item list
+        if (newState) {
+            this.setState(newState);
+
+            // If preview is open, open the new item on preview
+            if (!this.isNestedItem(newState.activeItemIndex)) {
+                const item = this.getItemFromGroups(newState.activeItemIndex);
+
+                this.onItemActivate(item);
+            }
+        }
+
+        // Return boolean if list was navigated
+        return !!newState;
+    }
+
+    onItemClick(index, item) {
+        // Get the index to set the item as active
+        this.setState({activeItemIndex: index});
+        this.props.onItemClick(item);
+    }
+
+    getItemFromGroups(index) {
+        // Get the specific item from the global indices of the item
+        let currentItemsIndex = 0, groupItems, item;
+
+        for (let i = 0; i < get(this.props.groups, 'length', 0); i++) {
+            groupItems = get(this.props.groups[i], 'events');
+            if (index <= currentItemsIndex + groupItems.length - 1) {
+                item = this.props.groups[i].events[index - currentItemsIndex];
+                break;
+            }
+            currentItemsIndex = currentItemsIndex + groupItems.length;
+        }
+
+        return item;
+    }
+
+    isActiveIndexInRange(index) {
+        let count = 0;
+
+        get(this.props, 'groups', []).forEach((g) => {
+            count = count + get(g, 'events.length', 0);
+        });
+        return index >= 0 && index < count;
     }
 
     unsetNextPageLoading() {
@@ -69,10 +175,16 @@ export class ListPanel extends React.Component {
         }
     }
 
+    // Function to preview the item once activated
+    onItemActivate(item, force) {
+        if ((this.props.previewItem || force) && item && this.props.previewItem !== item._id) {
+            this.props.onItemClick(item);
+        }
+    }
+
     render() {
         const {
             groups,
-            onItemClick,
             onDoubleClick,
             onAddCoverageClick,
             lockedItems,
@@ -96,7 +208,11 @@ export class ListPanel extends React.Component {
             hideItemActions,
             listFields,
             isAllListItemsLoaded,
+            indexItems,
+            previewItem,
         } = this.props;
+
+        let indexFrom = 0;
 
         return (
             <div>
@@ -111,12 +227,20 @@ export class ListPanel extends React.Component {
                 <div key="groups" className="sd-column-box__main-column__items"
                     onScroll={this.handleScroll}
                     ref={(node) => this.dom.list = node}
-                >
-                    {groups.map((group) => {
-                        const listGroupProps = {
+                    onKeyDown={this.handleKeyDown}
+                    tabIndex="0" >
+                    {groups.map((group, index) => {
+                        const propsForNestedListItems = {
+                            navigateDown: this.state.navigateDown, // tells the direction of navigation
+                            navigateList: this.navigateListWorker, // transfer navigation control to 'this' component
+                            onItemActivate: this.onItemActivate, // prop to preview nested item on activation
+                            previewItem: previewItem, // prop to tell if item is being previewed currently
+                        };
+
+                        let listGroupProps = {
                             name: group.date,
                             items: group.events,
-                            onItemClick: onItemClick,
+                            onItemClick: this.onItemClick,
                             onDoubleClick: onDoubleClick,
                             onAddCoverageClick: onAddCoverageClick,
                             lockedItems: lockedItems,
@@ -138,7 +262,15 @@ export class ListPanel extends React.Component {
                             showAddCoverage: showAddCoverage,
                             hideItemActions: hideItemActions,
                             listFields: listFields,
+                            ...propsForNestedListItems,
                         };
+
+                        if (indexItems) {
+                            listGroupProps.activeItemIndex = this.state.activeItemIndex;
+                            listGroupProps.indexItems = true;
+                            listGroupProps.indexFrom = indexFrom;
+                            indexFrom = indexFrom + get(group, 'events.length', 0);
+                        }
 
                         return <ListGroup key={group.date} {...listGroupProps} />;
                     })}
@@ -169,7 +301,7 @@ ListPanel.propTypes = {
     onDoubleClick: PropTypes.func,
     lockedItems: PropTypes.object.isRequired,
     editItem: PropTypes.object,
-    previewItem: PropTypes.object,
+    previewItem: PropTypes.string,
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
     agendas: PropTypes.array.isRequired,
@@ -191,4 +323,8 @@ ListPanel.propTypes = {
     listFields: PropTypes.object,
     calendars: PropTypes.array,
     isAllListItemsLoaded: PropTypes.bool,
+    indexItems: PropTypes.array,
+    navigateDown: PropTypes.bool,
+    navigateList: PropTypes.func,
+    onItemActivate: PropTypes.func,
 };

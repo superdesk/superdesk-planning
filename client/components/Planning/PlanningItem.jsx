@@ -140,6 +140,8 @@ export class PlanningItem extends React.Component {
             desks,
             showAddCoverage,
             listFields,
+            active,
+            refNode,
         } = this.props;
 
         if (!item) {
@@ -160,11 +162,12 @@ export class PlanningItem extends React.Component {
         return (
             <Item
                 shadow={1}
-                activated={multiSelected}
+                activated={multiSelected || active}
                 onClick={() => onItemClick(item)}
                 disabled={isExpired}
                 onMouseLeave={this.onItemHoverOff}
                 onMouseEnter={this.onItemHoverOn}
+                refNode={refNode}
             >
                 <Border state={borderState} />
                 <ItemType
@@ -264,6 +267,8 @@ PlanningItem.propTypes = {
     hideItemActions: PropTypes.bool,
     showAddCoverage: PropTypes.bool,
     listFields: PropTypes.object,
+    refNode: PropTypes.func,
+    active: PropTypes.bool,
     [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,

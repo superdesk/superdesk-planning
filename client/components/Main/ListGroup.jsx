@@ -29,39 +29,56 @@ export const ListGroup = ({
     showAddCoverage,
     hideItemActions,
     listFields,
+    activeItemIndex,
+    indexItems,
+    indexFrom,
+    navigateDown,
+    navigateList,
+    onItemActivate,
+    previewItem,
 }) => (
     <div className="ListGroup">
         <Header title={moment(name).format('dddd LL')} />
         <Group spaceBetween={true}>
-            {items.map((item) => (
-                <ListGroupItem
-                    key={item._id}
-                    date={name}
-                    item={item}
-                    onItemClick={onItemClick}
-                    onDoubleClick={onDoubleClick}
-                    onAddCoverageClick={onAddCoverageClick.bind(null, item)}
-                    lockedItems={lockedItems}
-                    dateFormat={dateFormat}
-                    timeFormat={timeFormat}
-                    agendas={agendas}
-                    session={session}
-                    privileges={privileges}
-                    activeFilter={activeFilter}
-                    showRelatedPlannings={showRelatedPlannings}
-                    relatedPlanningsInList={relatedPlanningsInList}
-                    onMultiSelectClick={onMultiSelectClick}
-                    selectedEventIds={selectedEventIds}
-                    selectedPlanningIds={selectedPlanningIds}
-                    itemActions={itemActions}
-                    users={users}
-                    desks={desks}
-                    showAddCoverage={showAddCoverage}
-                    hideItemActions={hideItemActions}
-                    calendars={calendars}
-                    listFields={listFields}
-                />
-            ))}
+            {items.map((item, index) => {
+                let itemProps = {
+                    date: name,
+                    item: item,
+                    onItemClick: onItemClick,
+                    onDoubleClick: onDoubleClick,
+                    onAddCoverageClick: onAddCoverageClick.bind(null, item),
+                    lockedItems: lockedItems,
+                    dateFormat: dateFormat,
+                    timeFormat: timeFormat,
+                    agendas: agendas,
+                    session: session,
+                    privileges: privileges,
+                    activeFilter: activeFilter,
+                    showRelatedPlannings: showRelatedPlannings,
+                    relatedPlanningsInList: relatedPlanningsInList,
+                    onMultiSelectClick: onMultiSelectClick,
+                    selectedEventIds: selectedEventIds,
+                    selectedPlanningIds: selectedPlanningIds,
+                    itemActions: itemActions,
+                    users: users,
+                    desks: desks,
+                    showAddCoverage: showAddCoverage,
+                    hideItemActions: hideItemActions,
+                    calendars: calendars,
+                    listFields: listFields,
+                    navigateDown: navigateDown,
+                    navigateList: navigateList,
+                    onItemActivate: onItemActivate,
+                    previewItem: previewItem,
+                };
+
+                if (indexItems) {
+                    itemProps.index = indexFrom + index;
+                    itemProps.active = (activeItemIndex === itemProps.index);
+                }
+
+                return (<ListGroupItem key={item._id} {...itemProps} />);
+            })}
         </Group>
     </div>
 );
@@ -74,7 +91,7 @@ ListGroup.propTypes = {
     onItemClick: PropTypes.func.isRequired,
     onDoubleClick: PropTypes.func,
     editItem: PropTypes.object,
-    previewItem: PropTypes.object,
+    previewItem: PropTypes.string,
     lockedItems: PropTypes.object.isRequired,
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
@@ -93,4 +110,15 @@ ListGroup.propTypes = {
     showAddCoverage: PropTypes.bool,
     hideItemActions: PropTypes.bool,
     listFields: PropTypes.object,
+    activeItemIndex: PropTypes.number,
+    indexItems: PropTypes.bool,
+    indexFrom: PropTypes.number,
+    navigateDown: PropTypes.bool,
+    navigateList: PropTypes.func,
+    onItemActivate: PropTypes.func,
+};
+
+ListGroup.defaultProps = {
+    indexItems: false,
+    indexFrom: 0,
 };
