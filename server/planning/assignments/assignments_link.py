@@ -46,11 +46,6 @@ class AssignmentsLinkService(Service):
                 if user and str(user.get(config.ID_FIELD)) != (assignment.get('assigned_to') or {}).get('user'):
                     updates['assigned_to']['user'] = str(user.get(config.ID_FIELD))
 
-            if item.get(ITEM_STATE) in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED]:
-                assignments_complete.update(assignment[config.ID_FIELD], updates, assignment)
-            else:
-                assignments_service.patch(assignment[config.ID_FIELD], updates)
-
             # reference the item to the assignment
             production.system_update(
                 item[config.ID_FIELD],
@@ -58,18 +53,24 @@ class AssignmentsLinkService(Service):
                 item
             )
 
-            # if the item is publish then update those items as well
-            if item.get(ITEM_STATE) in PUBLISH_STATES:
-                get_resource_service('published').update_published_items(
-                    item[config.ID_FIELD],
-                    'assignment_id', assignment[config.ID_FIELD])
-
             get_resource_service('delivery').post([{
                 'item_id': item[config.ID_FIELD],
                 'assignment_id': assignment[config.ID_FIELD],
                 'planning_id': assignment['planning_item'],
                 'coverage_id': assignment['coverage_item']
             }])
+
+            if item.get(ITEM_STATE) in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED]:
+                assignments_complete.update(assignment[config.ID_FIELD], updates, assignment)
+            else:
+                assignments_service.patch(assignment[config.ID_FIELD], updates)
+
+            # if the item is publish then update those items as well
+            if item.get(ITEM_STATE) in PUBLISH_STATES:
+                get_resource_service('published').update_published_items(
+                    item[config.ID_FIELD],
+                    'assignment_id', assignment[config.ID_FIELD])
+
             item['assignment_id'] = assignment[config.ID_FIELD]
 
             # Save assignment history
