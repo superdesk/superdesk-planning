@@ -33,7 +33,7 @@ class JsonPlanningFormatter(Formatter):
         self.can_export = False
 
     # fields to be removed from the planning item
-    remove_fields = ('lock_time', 'lock_action', 'lock_session', 'lock_user', '_etag', 'version_creator',
+    remove_fields = ('lock_time', 'lock_action', 'lock_session', 'lock_user', '_etag',
                      'original_creator', 'version_creator', '_planning_schedule', 'files')
 
     # fields to be removed from coverage
@@ -77,7 +77,7 @@ class JsonPlanningFormatter(Formatter):
         :param item:
         :return: Array of expanded agendas
         """
-        remove_agenda_fields = {'_etag', '_type', 'original_creator', '_updated', '_created'}
+        remove_agenda_fields = {'_etag', '_type', 'original_creator', '_updated', '_created', 'is_enabled'}
         expanded = []
         for agenda in item.get('agendas', []):
             agenda_details = get_resource_service('agenda').find_one(req=None, _id=agenda)
