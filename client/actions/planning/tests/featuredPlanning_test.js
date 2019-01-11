@@ -1,6 +1,7 @@
 import planningApi from '../api';
 import featuredPlanning from '../featuredPlanning';
 import moment from 'moment';
+import momentTz from 'moment-timezone';
 import sinon from 'sinon';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import {FEATURED_PLANNING, MAIN, TIME_COMPARISON_GRANULARITY} from '../../../constants';
@@ -55,19 +56,17 @@ describe('actions.planning.api', () => {
     });
 
     describe('loadFeaturedPlanningsData', () => {
-        it('calls query with required parameters', (done) => (
-            store.test(done, featuredPlanning.loadFeaturedPlanningsData(date))
+        it('calls query with required parameters', (done) => {
+            store.initialState.config.defaultTimezone = 'Australia/Sydney';
+            date = momentTz.tz(moment(data.plannings[0].planning_date), 'Australia/Sydney');
+            return store.test(done, featuredPlanning.loadFeaturedPlanningsData(date))
                 .then(() => {
                     expect(planningApi.query.callCount).toBe(1);
                     expect(planningApi.query.args[0]).toEqual([
                         {
                             advancedSearch: {
                                 dates: {
-                                    start: moment(date).set({
-                                        [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
-                                        [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
-                                        [TIME_COMPARISON_GRANULARITY.SECOND]: 0,
-                                    }),
+                                    start: date,
                                     range: MAIN.DATE_RANGE.FOR_DATE,
                                 },
                                 featured: true,
@@ -77,10 +76,12 @@ describe('actions.planning.api', () => {
                             excludeRescheduledAndCancelled: true,
                         },
                         false,
+                        '+11:00',
                     ]);
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail);
+        });
 
         it('calls planning_featured end point to get the featured record for the day', (done) => (
             store.test(done, featuredPlanning.getFeaturedPlanningItem(date))

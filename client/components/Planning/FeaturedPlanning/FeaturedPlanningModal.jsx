@@ -256,7 +256,7 @@ export class FeaturedPlanningModalComponent extends React.Component {
     }
 
     isReadOnly() {
-        return this.props.currentSearchDate.isBefore(moment(), 'day');
+        return this.props.currentSearchDate.isBefore(moment().tz(this.props.defaultTimeZone), 'day');
     }
 
     onCloseModal() {
@@ -343,7 +343,7 @@ export class FeaturedPlanningModalComponent extends React.Component {
                     {<a className="close" onClick={this.onCloseModal}>
                         <i className="icon-close-small" />
                     </a>}
-                    <h3>{gettext('Featured Stories')}</h3>
+                    <h3>{gettext('Featured Stories based on timezone: {{tz}}', {tz: gettext(defaultTimeZone)})}</h3>
                 </Modal.Header>
                 <Modal.Body noPadding fullHeight noScroll>
                     <SubNav className="grid">
@@ -360,6 +360,7 @@ export class FeaturedPlanningModalComponent extends React.Component {
                                 defaultTimeZone={defaultTimeZone}
                                 dateFormat="dddd LL"
                                 noBorderNoPadding />
+
                         </div>
                         {this.props.loading && <div className="loading-indicator">{gettext('Loading')}</div>}
                         {itemUpdatedAfterPosting &&

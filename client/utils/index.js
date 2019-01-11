@@ -528,11 +528,11 @@ export const shouldUnLockItem = (item, session, currentWorkspace) =>
         (currentWorkspace !== WORKSPACE.AUTHORING && lockUtils.isItemLockedInThisSession(item, session)));
 
 /**
- * Get the timezone offset
- * @param {Array} coverages
+ * If date is provided get timezone offset from date else browser the timezone offset
+ * @param {moment} date
  * @returns {Array}
  */
-export const getTimeZoneOffset = () => (moment().format('Z'));
+export const getTimeZoneOffset = (date = null) => (moment.isMoment(date) ? date.format('Z') : moment().format('Z'));
 
 export const getPostedState = (item) => get(item, 'pubstatus', null);
 
