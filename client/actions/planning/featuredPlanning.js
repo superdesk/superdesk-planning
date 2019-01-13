@@ -8,12 +8,14 @@ import {
     gettext,
     getIdForFeauturedPlanning,
     planningUtils,
+    getTimeZoneOffset,
 } from '../../utils';
 
 import * as selectors from '../../selectors';
 import {MODALS, FEATURED_PLANNING, SPIKED_STATE, MAIN, TIME_COMPARISON_GRANULARITY} from '../../constants';
 import {get, findIndex} from 'lodash';
 import moment from 'moment';
+import momentTz from 'moment-timezone';
 
 
 /**
@@ -117,8 +119,9 @@ const receivePlannings = (plannings, append = false) => (
  * @return Promise
  */
 const loadFeaturedPlanningsData = (date) => (
-    (dispatch) => {
-        let startDate = date ? date : moment();
+    (dispatch, getState) => {
+        const timezone = selectors.config.defaultTimeZone(getState());
+        let startDate = momentTz.tz(date ? date : moment(), timezone);
         const params = {
             advancedSearch: {
                 dates: {
@@ -172,7 +175,11 @@ const fetchToList = (params = {}, append = false) => (
         const currentItemCount = Object.keys(selectors.featuredPlanning.storedPlannings(getState())).length;
 
         dispatch(self.requestFeaturedPlannings(params));
-        return dispatch(planningApi.query(params, false))
+        return dispatch(planningApi.query(
+            params,
+            false,
+            getTimeZoneOffset(momentTz.tz(moment(), selectors.config.defaultTimeZone(getState()))))
+        )
             .then((data) => {
                 dispatch(self.total(data.total));
                 dispatch(self.receivePlannings(data._items, append));
@@ -326,14 +333,16 @@ const onPlanningUpdatedNotification = (planningId) => (
             .then((item) => {
                 const currentSearchDate = selectors.featuredPlanning.currentSearchDate(getState());
                 const currentFeaturedPlannings = selectors.featuredPlanning.storedPlannings(getState());
+                const timezone = selectors.config.defaultTimeZone(getState());
                 const planningsForDate = get(planningUtils.getPlanningByDate([item], null,
-                    moment(currentSearchDate.format('YYYY-MM-DD')),
-                    moment(currentSearchDate).set({
+                    momentTz.tz(moment(currentSearchDate.format('YYYY-MM-DD')), timezone),
+                    momentTz.tz(moment(currentSearchDate).set({
                         [TIME_COMPARISON_GRANULARITY.HOUR]: 23,
                         [TIME_COMPARISON_GRANULARITY.MINUTE]: 59,
                         [TIME_COMPARISON_GRANULARITY.SECOND]: 0,
                         [TIME_COMPARISON_GRANULARITY.MILLISECOND]: 0,
-                    })),
+                    }), timezone),
+                    selectors.config.defaultTimeZone(getState())),
                 '[0].events', []).map((p) => p._id);
 
                 if (!(planningId in currentFeaturedPlannings) && !planningsForDate.includes(planningId)) {

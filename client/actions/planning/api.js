@@ -94,11 +94,13 @@ const getCriteria = ({
     excludeRescheduledAndCancelled = false,
     startOfWeek = 0,
     featured,
+    timezoneOffset = null,
 }) => {
     let query = {};
     let mustNot = [];
     let must = [];
     let filter = {};
+    let tzOffset = timezoneOffset || getTimeZoneOffset();
 
     [
         {
@@ -152,7 +154,7 @@ const getCriteria = ({
                         range: {
                             '_planning_schedule.scheduled': {
                                 gte: 'now/d',
-                                time_zone: getTimeZoneOffset(),
+                                time_zone: tzOffset,
                             },
                         },
                     },
@@ -165,7 +167,7 @@ const getCriteria = ({
                 let fieldName = '_planning_schedule.scheduled';
                 let range = {};
 
-                range[fieldName] = {time_zone: getTimeZoneOffset()};
+                range[fieldName] = {time_zone: tzOffset};
                 let rangeType = get(advancedSearch, 'dates.range');
 
                 if (rangeType === MAIN.DATE_RANGE.TODAY) {
@@ -348,11 +350,14 @@ const query = (
         excludeRescheduledAndCancelled = false,
         featured,
     },
-    storeTotal = true
+    storeTotal = true,
+    timeZoneOffset = null
 
 ) => (
     (dispatch, getState, {api}) => {
         const startOfWeek = selectors.config.getStartOfWeek(getState());
+        let tzOffset = timeZoneOffset || getTimeZoneOffset();
+        // eslint-disable-next-line object-shorthand
         let criteria = self.getCriteria({
             spikeState,
             agendas,
@@ -363,6 +368,7 @@ const query = (
             excludeRescheduledAndCancelled,
             startOfWeek,
             featured,
+            timezoneOffset: tzOffset,
         });
 
         const sortField = '_planning_schedule.scheduled';
@@ -374,7 +380,7 @@ const query = (
                     range: {
                         [sortField]: {
                             gte: 'now/d',
-                            time_zone: getTimeZoneOffset(),
+                            time_zone: tzOffset,
                         },
                     },
                 },

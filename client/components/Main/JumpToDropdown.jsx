@@ -17,18 +17,24 @@ export class JumpToDropdown extends React.Component {
 
         this.togglePopup = this.togglePopup.bind(this);
         this.onChange = this.onChange.bind(this);
+        this.getTimeZone = this.getTimeZone.bind(this);
     }
 
     togglePopup() {
         this.setState({popupOpened: !this.state.popupOpened});
     }
 
+    getTimeZone() {
+        return get(this.props, 'defaultTimeZone', timeUtils.localTimeZone());
+    }
+
     onChange(value) {
         // If the user has selected 'Today', then set the startFilter to null
         // Otherwise set the startFilter to the supplied day
-        const newMoment = momentTz.tz(value.clone(), get(this.props, 'defaultTimeZone', timeUtils.localTimeZone()));
+        const newMoment = momentTz.tz(value.clone(), this.getTimeZone());
+        const currentMoment = momentTz.tz(moment(), this.getTimeZone());
 
-        moment(newMoment).isSame(moment(), 'day') ?
+        moment(newMoment).isSame(currentMoment, 'day') ?
             this.props.setStartFilter(null) :
             this.props.setStartFilter(newMoment);
     }

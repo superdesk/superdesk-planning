@@ -646,10 +646,18 @@ const getCoverageReadOnlyFields = (
     }
 };
 
-const getPlanningByDate = (plansInList, events, startDate, endDate) => {
+const getPlanningByDate = (plansInList, events, startDate, endDate, timezone = null) => {
     if (!plansInList) return [];
 
     const days = {};
+    const getGroupDate = (date) => {
+        const groupDate = date.clone();
+
+        if (timezone) {
+            groupDate.tz(timezone);
+        }
+        return groupDate;
+    };
 
     plansInList.forEach((plan) => {
         const dates = {};
@@ -657,8 +665,7 @@ const getPlanningByDate = (plansInList, events, startDate, endDate) => {
 
         plan.event = get(events, get(plan, 'event_item'));
         plan.coverages.forEach((coverage) => {
-            groupDate = moment(get(coverage, 'planning.scheduled', plan.planning_date));
-
+            groupDate = getGroupDate(moment(get(coverage, 'planning.scheduled', plan.planning_date)).clone());
             if (!isDateInRange(groupDate, startDate, endDate)) {
                 return;
             }
@@ -669,7 +676,7 @@ const getPlanningByDate = (plansInList, events, startDate, endDate) => {
         });
 
         if (isEmpty(dates)) {
-            groupDate = moment(plan.planning_date);
+            groupDate = getGroupDate(moment(plan.planning_date).clone());
             if (isDateInRange(groupDate, startDate, endDate)) {
                 dates[groupDate.format('YYYY-MM-DD')] = groupDate;
             }
