@@ -174,14 +174,16 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (event) => {
+        let newEvent = null;
+
         if (timeUtils.isEventInDifferentTimeZone(event)) {
-            let newEvent = cloneDeep(event);
+            newEvent = cloneDeep(event);
 
             newEvent.dates.start = timeUtils.getDateInRemoteTimeZone(event.dates.start, event.dates.tz);
             newEvent.dates.end = timeUtils.getDateInRemoteTimeZone(event.dates.end, event.dates.tz);
-
-            return dispatch(actions.main.save(newEvent, false));
         }
+
+        return dispatch(actions.main.save(newEvent || event, false));
     },
 
     onHide: (event) => {
