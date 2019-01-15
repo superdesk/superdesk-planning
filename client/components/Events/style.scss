@@ -27,3 +27,12 @@
 .sd-line-input__input--related-item-link {
     margin-right: 0.6rem;
 }
+
+.recurring-rules {
+    .sd-line-input {
+        &--no-margin {
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+    }
+}

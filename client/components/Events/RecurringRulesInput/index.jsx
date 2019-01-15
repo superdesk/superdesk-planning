@@ -61,12 +61,12 @@ export class RecurringRulesInput extends React.Component {
         const interval = get(schedule, 'recurring_rule.interval');
 
         return (
-            <div>
+            <div className="recurring-rules">
                 <Row noPadding>
                     <div className="flex-grid">
                         {!onlyUpdateRepetitions && <Label row text={gettext('Every')} noMinWidth padding/>}
                         {!onlyUpdateRepetitions && <LineInput {...this.props} isSelect={true} readOnly={readOnly}
-                            noMargin={frequency === 'WEEKLY'}
+                            noMargin={true}
                             className="form__row form__row--max-width-35">
                             <Select
                                 field="dates.recurring_rule.interval"
@@ -95,7 +95,7 @@ export class RecurringRulesInput extends React.Component {
                             padding
                             marginLeft={!onlyUpdateRepetitions} />
                         <LineInput {...this.props} isSelect={true} readOnly={readOnly}
-                            noMargin={frequency === 'WEEKLY'}
+                            noMargin={true}
                             className="form__row form__row--max-width-80">
                             <Select
                                 field="dates.recurring_rule.endRepeatMode"
@@ -123,7 +123,7 @@ export class RecurringRulesInput extends React.Component {
                         {endRepeatMode === 'count' &&
                             <div className="form__row form__row--flex">
                                 <LineInput {...this.props} readOnly={readOnly}
-                                    noMargin={frequency === 'WEEKLY'}
+                                    noMargin={true}
                                     invalid={!!get(errors, 'count')}
                                     message={get(errors, 'count', '')} >
                                     <Input

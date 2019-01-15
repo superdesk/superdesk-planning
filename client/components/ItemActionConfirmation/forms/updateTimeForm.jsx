@@ -158,6 +158,7 @@ export class UpdateTimeComponent extends React.Component {
                 <FormRow
                     flex={true}
                     noPadding={true}
+                    halfWidth={true}
                     invalid={!!get(this.state, 'errors._startTime')}
                 >
                     <Label text={gettext('From')} row={true}/>
@@ -174,7 +175,7 @@ export class UpdateTimeComponent extends React.Component {
                     />
                 </FormRow>
 
-                <FormRow flex={true}>
+                <FormRow flex={true} halfWidth={true}>
                     <Label
                         text={gettext('To')}
                         row={true}
