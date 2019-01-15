@@ -25,5 +25,8 @@ export const ICON_COLORS = {
     DEFAULT: false,
 };
 
-export const TOOLTIPS = {postedState: gettext('Posted')};
+export const TOOLTIPS = {
+    postedState: gettext('Posted'),
+    notForPublication: gettext('Not For Publication'),
+};
 
