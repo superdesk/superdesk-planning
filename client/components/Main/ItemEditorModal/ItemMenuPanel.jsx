@@ -25,4 +25,6 @@ export const ItemMenuPanel = ({item, onMenuItemClick, activeItem}) => {
 
 ItemMenuPanel.propTypes = {
     item: PropTypes.object.isRequired,
+    onMenuItemClick: PropTypes.func,
+    activeItem: PropTypes.string,
 };

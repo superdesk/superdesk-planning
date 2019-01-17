@@ -32,6 +32,8 @@ export class ConvertToRecurringEventComponent extends React.Component {
         this.currentDate = cloneDeep(this.props.initialValues.dates);
         let diff = {dates: cloneDeep(this.props.initialValues.dates)};
 
+        diff._startTime = diff.dates.start;
+        diff._endTime = diff.dates.end;
         diff.dates.recurring_rule = {
             frequency: 'DAILY',
             interval: 1,

@@ -23,4 +23,6 @@ export const PreviewHeader = ({item, hideItemActions, showUnlock}) => {
 
 PreviewHeader.propTypes = {
     item: PropTypes.object.isRequired,
+    hideItemActions: PropTypes.bool,
+    showUnlock: PropTypes.bool,
 };
