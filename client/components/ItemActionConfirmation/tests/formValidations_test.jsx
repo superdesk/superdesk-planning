@@ -58,12 +58,12 @@ describe('form validations', () => {
         let wrapper = getWrapper(ConvertToRecurringEventForm);
         const endsField_convertToRecurringEventForm = wrapper.find('[name="dates.recurring_rule.endRepeatMode"]');
 
-        expect(wrapper.find('.sd-line-input--invalid').length).toBe(3);
+        expect(wrapper.find('.sd-line-input--invalid').length).toBe(1);
         endsField_convertToRecurringEventForm.simulate('change', {target: {value: 'count'}});
         const countField_convertToRecurringEventForm = wrapper.find('[name="dates.recurring_rule.count"]');
 
         countField_convertToRecurringEventForm.simulate('change', {target: {value: '3'}});
-        expect(wrapper.find('.sd-line-input--invalid').length).toBe(2);
+        expect(wrapper.find('.sd-line-input--invalid').length).toBe(0);
         countField_convertToRecurringEventForm.simulate('change', {target: {value: '300'}});
         expect(wrapper.find('.sd-line-input--invalid').length).toBeGreaterThan(0);
 
