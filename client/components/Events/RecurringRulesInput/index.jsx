@@ -25,6 +25,7 @@ export class RecurringRulesInput extends React.Component {
 
         this.onIntervalChange = this.onIntervalChange.bind(this);
         this.onEndRepeatModeChange = this.onEndRepeatModeChange.bind(this);
+        this.onFrequencyChange = this.onFrequencyChange.bind(this);
     }
 
     onIntervalChange(field, value) {
@@ -37,6 +38,16 @@ export class RecurringRulesInput extends React.Component {
             count: null,
             until: null,
             endRepeatMode: value,
+        });
+    }
+
+    onFrequencyChange(field, value) {
+        const recurringRule = get(this.props, 'schedule.recurring_rule') || {};
+
+        this.props.onChange('dates.recurring_rule', {
+            ...recurringRule,
+            frequency: value,
+            byday: value === 'WEEKLY' ? recurringRule.byday : null,
         });
     }
 
@@ -83,7 +94,7 @@ export class RecurringRulesInput extends React.Component {
                             <Select
                                 field="dates.recurring_rule.frequency"
                                 options={[...this.repeatChoices]}
-                                onChange={onChange}
+                                onChange={this.onFrequencyChange}
                                 value={frequency}
                                 readOnly={readOnly}
                             />
