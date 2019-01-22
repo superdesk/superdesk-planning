@@ -40,7 +40,7 @@ const validateDateRange = ({value, errors, messages}) => {
         return;
     }
 
-    if (endDate.isSameOrBefore(startDate)) {
+    if (endDate.isSameOrBefore(startDate, 'minutes')) {
         if (eventUtils.isEventSameDay(value.start, value.end)) {
             set(errors, '_endTime', gettext('End time should be after start time'));
             messages.push(gettext('END TIME should be after START TIME'));
