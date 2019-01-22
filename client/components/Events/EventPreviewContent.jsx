@@ -149,7 +149,7 @@ export class EventPreviewContentComponent extends React.Component {
                         label={gettext('ANPA Category')}
                         value={categoryText}
                     />
-                    {!customVocabularies.length && (
+                    {!!get(formProfile, 'editor.subject.enabled') && (
                         <Row
                             enabled={get(formProfile, 'planning.editor.subject.enabled')}
                             label={gettext('Subject')}

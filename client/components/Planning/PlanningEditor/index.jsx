@@ -568,7 +568,7 @@ export class PlanningEditorComponent extends React.Component {
                             {...popupProps}
                         />
 
-                        {!customVocabularies.length && <Field
+                        {get(planningProfile, 'editor.subject.enabled') && <Field
                             component={SelectMetaTermsInput}
                             field="subject"
                             label={gettext('Subject')}
@@ -584,6 +584,9 @@ export class PlanningEditorComponent extends React.Component {
                             customVocabularies={customVocabularies}
                             fieldProps={fieldProps}
                             onFocusDefails={onFocusDetails}
+                            formProfile={planningProfile}
+                            popupProps={popupProps}
+                            popupContainer={popupContainer}
                         />
 
                         <Field

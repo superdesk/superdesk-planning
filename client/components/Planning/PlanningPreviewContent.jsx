@@ -144,7 +144,7 @@ export class PlanningPreviewContentComponent extends React.Component {
                         label={gettext('ANPA Category')}
                         value={categoryText || ''}
                     />
-                    {!customVocabularies.length && (
+                    {!!get(formProfile, 'planning.editor.subject.enabled') && (
                         <Row
                             enabled={get(formProfile, 'planning.editor.subject.enabled')}
                             label={gettext('Subject')}
