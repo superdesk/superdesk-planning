@@ -323,7 +323,7 @@ ListPanel.propTypes = {
     listFields: PropTypes.object,
     calendars: PropTypes.array,
     isAllListItemsLoaded: PropTypes.bool,
-    indexItems: PropTypes.array,
+    indexItems: PropTypes.bool,
     navigateDown: PropTypes.bool,
     navigateList: PropTypes.func,
     onItemActivate: PropTypes.func,

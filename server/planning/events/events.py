@@ -431,11 +431,43 @@ class EventsService(superdesk.Service):
                 merged.update(updates)
                 events_post_service.validate_item(merged)
 
+        # If this update is from assignToCalendar action
+        # Then we only want to update the calendars of each Event
+        only_calendars = original.get('lock_action') == 'assign_calendar'
+        original_calendar_qcodes = [
+            calendar['qcode']
+            for calendar in original.get('calendars') or []
+        ]
+        # Get the list of calendars added
+        updated_calendars = [
+            calendar
+            for calendar in updates.get('calendars') or []
+            if calendar['qcode'] not in original_calendar_qcodes
+        ]
+
         for e in events:
             event_id = e[config.ID_FIELD]
+
             new_updates = deepcopy(updates)
             new_updates['skip_on_update'] = True
             new_updates[config.ID_FIELD] = event_id
+
+            if only_calendars:
+                # Get the original for this item, and add new calendars to it
+                # Skipping calendars already assigned to this item
+                original_event = self.find_one(req=None, _id=event_id)
+                original_qcodes = [
+                    calendar['qcode']
+                    for calendar in original_event.get('calendars') or []
+                ]
+
+                new_updates['calendars'] = deepcopy(original_event.get('calendars') or [])
+                new_updates['calendars'].extend([
+                    calendar
+                    for calendar in updated_calendars
+                    if calendar['qcode'] not in original_qcodes
+                ])
+
             self.patch(event_id, new_updates)
             app.on_updated_events(new_updates, {'_id': event_id})
 

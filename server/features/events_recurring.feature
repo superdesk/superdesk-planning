@@ -933,26 +933,321 @@ Feature: Events Recurring
         }
         """
 
-        @auth
-        Scenario: Validate recurring rules
+    @auth
+    Scenario: Validate recurring rules
+    When we post to "events"
+    """
+    [{
+        "name": "Friday Club",
+        "dates": {
+            "start": "2019-11-21T12:00:00.000Z",
+            "end": "2019-11-21T14:00:00.000Z",
+            "tz": "Australia/Sydney",
+            "recurring_rule": {
+                "frequency": "WEEKLY",
+                "interval": 1,
+                "byday": "FR",
+                "endRepeatMode": "count"
+            }
+        }
+    }]
+    """
+    Then we get error 400
+    """
+    {"_message": "Recurring event should have an end (until or count)"}
+    """
+
+    @auth
+    Scenario: Assign calendar to series
         When we post to "events"
         """
-        [{
-            "name": "Friday Club",
+        {
+            "name": "TestEvent",
+            "slugline": "TestEvent",
             "dates": {
-                "start": "2019-11-21T12:00:00.000Z",
-                "end": "2019-11-21T14:00:00.000Z",
+                "start": "2029-11-21T02:00:00.000Z",
+                "end": "2029-11-21T04:00:00.000Z",
                 "tz": "Australia/Sydney",
                 "recurring_rule": {
-                    "frequency": "WEEKLY",
+                    "frequency": "DAILY",
                     "interval": 1,
-                    "byday": "FR",
+                    "count": 3,
                     "endRepeatMode": "count"
                 }
             }
-        }]
+        }
         """
-        Then we get error 400
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        When we post to "/events/#EVENT1._id#/lock" with success
         """
-        {"_message": "Recurring event should have an end (until or count)"}
+        {"lock_action": "assign_calendar"}
+        """
+        And we patch "/events/#EVENT1._id#"
+        """
+        {
+            "calendars": [
+                {"qcode": "ann", "name": "Anniversaries", "is_active": true}
+            ],
+            "update_method": "all"
+        }
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 3 items
+        """
+        {"_items": [{
+            "_id": "#EVENT1._id#",
+            "calendars": [{"qcode": "ann", "name": "Anniversaries", "is_active": true}]
+        }, {
+            "_id": "#EVENT2._id#",
+            "calendars": [{"qcode": "ann", "name": "Anniversaries", "is_active": true}]
+        }, {
+            "_id": "#EVENT3._id#",
+            "calendars": [{"qcode": "ann", "name": "Anniversaries", "is_active": true}]
+        }]}
+        """
+        When we post to "/events/#EVENT1._id#/unlock" with success
+        """
+        {}
+        """
+        When we post to "/events/#EVENT2._id#/lock" with success
+        """
+        {"lock_action": "assign_calendar"}
+        """
+        And we patch "/events/#EVENT2._id#"
+        """
+        {
+            "calendars": [
+                {"qcode": "ann", "name": "Anniversaries", "is_active": true},
+                {"qcode": "Company Meetings", "name": "Company Meetings", "is_active": true}
+            ],
+            "update_method": "future"
+        }
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 3 items
+        """
+        {"_items": [{
+            "_id": "#EVENT1._id#",
+            "calendars": [{"qcode": "ann", "name": "Anniversaries", "is_active": true}]
+        }, {
+            "_id": "#EVENT2._id#",
+            "calendars": [
+                {"qcode": "ann", "name": "Anniversaries", "is_active": true},
+                {"qcode": "Company Meetings", "name": "Company Meetings", "is_active": true}
+            ]
+        }, {
+            "_id": "#EVENT3._id#",
+            "calendars": [
+                {"qcode": "ann", "name": "Anniversaries", "is_active": true},
+                {"qcode": "Company Meetings", "name": "Company Meetings", "is_active": true}
+            ]
+        }]}
+        """
+        When we patch "/events/#EVENT2._id#"
+        """
+        {
+            "calendars": [
+                {"qcode": "ann", "name": "Anniversaries", "is_active": true},
+                {"qcode": "Company Meetings", "name": "Company Meetings", "is_active": true},
+                {"qcode": "Awards", "name": "Awards", "is_active": true}
+            ],
+            "update_method": "single"
+        }
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 3 items
+        """
+        {"_items": [{
+            "_id": "#EVENT1._id#",
+            "calendars": [{"qcode": "ann", "name": "Anniversaries", "is_active": true}]
+        }, {
+            "_id": "#EVENT2._id#",
+            "calendars": [
+                {"qcode": "ann", "name": "Anniversaries", "is_active": true},
+                {"qcode": "Company Meetings", "name": "Company Meetings", "is_active": true},
+                {"qcode": "Awards", "name": "Awards", "is_active": true}
+            ]
+        }, {
+            "_id": "#EVENT3._id#",
+            "calendars": [
+                {"qcode": "ann", "name": "Anniversaries", "is_active": true},
+                {"qcode": "Company Meetings", "name": "Company Meetings", "is_active": true}
+            ]
+        }]}
+        """
+
+    @auth
+    Scenario: Assigning Calendars does not result in duplicate calendars
+        When we post to "events"
+        """
+        {
+            "name": "TestEvent",
+            "slugline": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T02:00:00.000Z",
+                "end": "2029-11-21T04:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 3,
+                    "endRepeatMode": "count"
+                }
+            }
+        }
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        When we post to "/events/#EVENT2._id#/lock" with success
+        """
+        {"lock_action": "assign_calendar"}
+        """
+        And we patch "/events/#EVENT2._id#"
+        """
+        {
+            "calendars": [
+                {"qcode": "ann", "name": "Anniversaries", "is_active": true}
+            ],
+            "update_method": "future"
+        }
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 3 items
+        """
+        {"_items": [{
+            "_id": "#EVENT1._id#",
+            "calendars": "__no_value__"
+        }, {
+            "_id": "#EVENT2._id#",
+            "calendars": [{"qcode": "ann", "name": "Anniversaries", "is_active": true}]
+        }, {
+            "_id": "#EVENT3._id#",
+            "calendars": [{"qcode": "ann", "name": "Anniversaries", "is_active": true}]
+        }]}
+        """
+        When we post to "/events/#EVENT2._id#/unlock" with success
+        """
+        {}
+        """
+        When we post to "/events/#EVENT1._id#/lock" with success
+        """
+        {"lock_action": "assign_calendar"}
+        """
+        And we patch "/events/#EVENT1._id#"
+        """
+        {
+            "calendars": [
+                {"qcode": "ann", "name": "Anniversaries", "is_active": true}
+            ],
+            "update_method": "all"
+        }
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 3 items
+        """
+        {"_items": [{
+            "_id": "#EVENT1._id#",
+            "calendars": [{"qcode": "ann", "name": "Anniversaries", "is_active": true}]
+        }, {
+            "_id": "#EVENT2._id#",
+            "calendars": [{"qcode": "ann", "name": "Anniversaries", "is_active": true}]
+        }, {
+            "_id": "#EVENT3._id#",
+            "calendars": [{"qcode": "ann", "name": "Anniversaries", "is_active": true}]
+        }]}
+        """
+
+    @auth
+    Scenario: Editing calendars overwrites all in series
+        When we post to "events"
+        """
+        {
+            "name": "TestEvent",
+            "slugline": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T02:00:00.000Z",
+                "end": "2029-11-21T04:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 3,
+                    "endRepeatMode": "count"
+                }
+            }
+        }
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        When we post to "/events/#EVENT2._id#/lock" with success
+        """
+        {"lock_action": "assign_calendar"}
+        """
+        And we patch "/events/#EVENT2._id#"
+        """
+        {
+            "calendars": [
+                {"qcode": "ann", "name": "Anniversaries", "is_active": true}
+            ],
+            "update_method": "future"
+        }
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 3 items
+        """
+        {"_items": [{
+            "_id": "#EVENT1._id#",
+            "calendars": "__no_value__"
+        }, {
+            "_id": "#EVENT2._id#",
+            "calendars": [{"qcode": "ann", "name": "Anniversaries", "is_active": true}]
+        }, {
+            "_id": "#EVENT3._id#",
+            "calendars": [{"qcode": "ann", "name": "Anniversaries", "is_active": true}]
+        }]}
+        """
+        When we post to "/events/#EVENT2._id#/unlock" with success
+        """
+        {}
+        """
+        When we post to "/events/#EVENT1._id#/lock" with success
+        """
+        {"lock_action": "edit"}
+        """
+        And we patch "/events/#EVENT1._id#"
+        """
+        {
+            "calendars": [
+                {"qcode": "Awards", "name": "Awards", "is_active": true}
+            ],
+            "update_method": "all"
+        }
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 3 items
+        """
+        {"_items": [{
+            "_id": "#EVENT1._id#",
+            "calendars": [{"qcode": "Awards", "name": "Awards", "is_active": true}]
+        }, {
+            "_id": "#EVENT2._id#",
+            "calendars": [{"qcode": "Awards", "name": "Awards", "is_active": true}]
+        }, {
+            "_id": "#EVENT3._id#",
+            "calendars": [{"qcode": "Awards", "name": "Awards", "is_active": true}]
+        }]}
         """

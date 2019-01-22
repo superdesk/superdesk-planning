@@ -18,6 +18,7 @@ import {
     UpdateEventRepetitionsForm,
     PostEventsForm,
     CreatePlanningForm,
+    AssignCalendarForm,
 } from './index';
 import {get} from 'lodash';
 import {EVENTS, PLANNING, ASSIGNMENTS} from '../../constants';
@@ -117,6 +118,13 @@ export class ItemActionConfirmationModal extends React.Component {
                 title: modalProps.title,
                 saveText: gettext('Create'),
                 form: CreatePlanningForm,
+            },
+            [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.label]: {
+                title: gettext('Assign "{{calendar}}" Calendar to Series', {
+                    calendar: get(propToForm, '_calendar.name') || '',
+                }),
+                saveText: gettext('Assign Calendar'),
+                form: AssignCalendarForm,
             },
             [PLANNING.ITEM_ACTIONS.SPIKE.label]: {
                 title: gettext('Spike Planning Item'),

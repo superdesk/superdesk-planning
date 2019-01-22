@@ -539,6 +539,19 @@ const openEventPostModal = (event, post, unpostAction, modalProps = {}) => (
     )
 );
 
+const openAssignCalendarModal = (event) => (
+    (dispatch) => dispatch(self._openActionModal(
+        event,
+        EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.label,
+        'assign_calendar',
+        false,
+        false,
+        false,
+        true,
+        {}
+    ))
+);
+
 
 /**
  * Action to load more events
@@ -679,10 +692,11 @@ const onEventEditUnlock = (event) => (
             Promise.resolve()
     )
 );
+
 /**
  * Action dispatcher that attempts to assign a calendar to an event
- * @param {object} item - The Event to asssign the agenda
- * @param {object} item - Calendar to be assigned
+ * @param {object} event - The Event to asssign the agenda
+ * @param {object} calendar - Calendar to be assigned
  * @return Promise
  */
 const assignToCalendar = (event, calendar) => (
@@ -690,11 +704,14 @@ const assignToCalendar = (event, calendar) => (
         dispatch(locks.lock(event, 'assign_calendar'))
             .then((lockedItem) => {
                 lockedItem.calendars = [...get(lockedItem, 'calendars', []), calendar];
-                return get(event, 'recurrence_id') ? dispatch(self.save(lockedItem, true, true)) :
-                    dispatch(main.saveAndUnlockItem(lockedItem)).then(() => {
-                        notify.success(gettext('Calendar assigned to the event.'));
-                        return Promise.resolve();
-                    });
+                lockedItem._calendar = calendar;
+                return get(event, 'recurrence_id') ?
+                    dispatch(self.openAssignCalendarModal(lockedItem)) :
+                    dispatch(main.saveAndUnlockItem(lockedItem))
+                        .then(() => {
+                            notify.success(gettext('Calendar assigned to the event.'));
+                            return Promise.resolve();
+                        });
             }, (error) => {
                 notify.error(
                     getErrorMessage(error, gettext('Could not obtain lock on the event.'))
@@ -755,6 +772,7 @@ const self = {
     assignToCalendar,
     openEventPostModal,
     save,
+    openAssignCalendarModal,
 };
 
 export default self;
