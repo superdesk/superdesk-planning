@@ -335,7 +335,7 @@ export class EventEditorComponent extends React.Component {
                             {...popupProps}
                         />
 
-                        {!customVocabularies.length && <Field
+                        {!!get(formProfile, 'editor.subject.enabled') && <Field
                             component={SelectMetaTermsInput}
                             field="subject"
                             label={gettext('Subject')}
@@ -350,7 +350,10 @@ export class EventEditorComponent extends React.Component {
                         <CustomVocabulariesFields
                             customVocabularies={customVocabularies}
                             fieldProps={fieldProps}
+                            popupProps={popupProps}
+                            popupContainer={this.props.popupContainer}
                             onFocusDefails={onFocusDetails}
+                            formProfile={formProfile}
                         />
 
                         <Field
