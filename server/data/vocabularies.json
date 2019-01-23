@@ -4,6 +4,7 @@
         "display_name": "Coverage content types",
         "type": "manageable",
         "unique_field": "qcode",
+        "selection_type": "do not show",
         "items": [
             {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"},
             {"is_active": true, "name": "Picture", "qcode": "picture", "content item type": "picture"},
@@ -20,6 +21,7 @@
         "display_name": "Event Occurence Status",
         "type": "manageable",
         "unique_field": "qcode",
+        "selection_type": "do not show",
         "items": [
             {"is_active": true, "qcode": "eocstat:eos0", "name": "Unplanned event",
                 "label": "Unplanned event"},
@@ -42,6 +44,7 @@
         "display_name": "News Coverage Status",
         "type": "manageable",
         "unique_field": "qcode",
+        "selection_type": "do not show",
         "items": [
             {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
             {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
@@ -56,6 +59,7 @@
         "_id": "subscriber_types",
         "display_name": "Subscriber Types",
         "type": "unmanageable",
+        "selection_type": "do not show",
         "items": [
             {"is_active": true, "name": "All", "qcode": "all",
                 "formats": [
@@ -96,6 +100,7 @@
         "display_name": "Event Calendars",
         "type": "manageable",
         "unique_field": "qcode",
+        "selection_type": "do not show",
         "items": [
             {"is_active": true, "name": "Sport", "qcode": "sport"},
             {"is_active": true, "name": "Finance", "qcode": "finance"},
@@ -107,6 +112,7 @@
         "display_name": "Assignment Priority",
         "type": "manageable",
         "unique_field": "qcode",
+        "selection_type": "do not show",
         "items": [
             {"is_active": true, "name": "High", "qcode": 1},
             {"is_active": true, "name": "Medium", "qcode": 2},
