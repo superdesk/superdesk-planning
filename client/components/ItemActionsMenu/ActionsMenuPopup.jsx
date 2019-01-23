@@ -38,7 +38,7 @@ export class ActionsMenuPopup extends React.PureComponent {
             >
                 <Content noPadding={true}>
                     <ul className="dropdown dropdown__menu more-activity-menu open">
-                        <li onClick={onEventCapture.bind(this)}>
+                        <li onClick={onEventCapture}>
                             <div className="dropdown__menu-label">
                                 {gettext('Actions')}
                                 <button
@@ -81,7 +81,7 @@ export class ActionsMenuPopup extends React.PureComponent {
             const submenuDirection = get(action, 'direction', 'left');
 
             return (
-                <li key={'submenu-' + key}>
+                <li key={'submenu-' + key} onScroll={onEventCapture}>
                     <div className="dropdown dropdown--noarrow">
                         <a className="dropdown__toggle" onClick={this.props.closeMenu.bind(this)}>
                             {action.icon && (<i className={action.icon}/>)}
