@@ -15,4 +15,5 @@ export {EditPriorityForm} from './forms/editPriorityForm';
 export {UpdateEventRepetitionsForm} from './forms/updateEventRepetitionsForm';
 export {PostEventsForm} from './forms/postEventsForm';
 export {CreatePlanningForm} from './forms/createPlanningForm';
+export {AssignCalendarForm} from './forms/assignCalendarForm';
 export {UpdateMethodSelection} from './UpdateMethodSelection';

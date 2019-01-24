@@ -284,8 +284,10 @@ const onEventUpdated = (_e, data) => (
 
             if (get(data, 'recurrence_id') || get(data, 'item') !== currentEditId
                     || !isItemLockedForEditing(storedEvent, selectors.general.session(getState()))) {
+                dispatch(main.setUnsetLoadingIndicator(true));
                 dispatch(eventsUi.scheduleRefetch(get(data, 'recurrence_id') ? [data.item] : []))
-                    .then(() => (eventsPlanning.ui.scheduleRefetch()));
+                    .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
+                    .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
             }
 
             dispatch(fetchItemHistoryOnRecurringNotitication(data));
