@@ -11,13 +11,12 @@
 import os
 import json
 
-from .populate_planning_types import PopulatePlanningTypesCommand
-
-from ..tests import TestCase
+from superdesk.tests import TestCase
 from superdesk import get_resource_service
+from apps.prepopulate.app_populate import AppPopulateCommand
 
 
-class PopulatePlanningTypesTest(TestCase):
+class AppPopulatePlanningTypesTest(TestCase):
 
     def setUp(self):
         super().setUp()
@@ -43,7 +42,7 @@ class PopulatePlanningTypesTest(TestCase):
             json.dump(self.json_data, file)
 
     def test_populate_types(self):
-        cmd = PopulatePlanningTypesCommand()
+        cmd = AppPopulateCommand()
         with self.app.app_context():
             service = get_resource_service("planning_types")
             cmd.run(self.filename)

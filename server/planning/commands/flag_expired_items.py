@@ -21,6 +21,15 @@ from bson.objectid import ObjectId
 
 
 class FlagExpiredItems(Command):
+    """
+    Flag expired `Events` and `Planning` items with `{'expired': True}`.
+
+    Example:
+    ::
+
+        $ python manage.py planning:flag_expired
+    """
+
     log_msg = ''
 
     def run(self):
