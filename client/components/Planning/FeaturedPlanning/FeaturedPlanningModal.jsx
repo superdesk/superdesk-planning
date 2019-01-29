@@ -234,6 +234,7 @@ export class FeaturedPlanningModalComponent extends React.Component {
                 [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
                 [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
             });
+            updates.tz = this.props.currentSearchDate.tz();
         }
 
         this.props.saveFeaturedPlanningForDate(updates);
