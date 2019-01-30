@@ -64,7 +64,7 @@ class EventsHistoryService(HistoryService):
             elif 'canceled' == update.get('state', ''):
                 history['operation'] = 'unpost'
         elif operation == 'create' and 'ingested' == update.get('state', ''):
-                history['operation'] = 'ingested'
+            history['operation'] = 'ingested'
         self.post([history])
 
     def on_update_repetitions(self, updates, event_id, operation):

@@ -101,9 +101,9 @@ class PlanningSearchService(superdesk.Service):
         return ElasticCursor(hits, docs)
 
     def _get_projected_fields(self, req):
-            """Get elastic projected fields."""
-            if app.data.elastic.should_project(req):
-                return app.data.elastic.get_projected_fields(req)
+        """Get elastic projected fields."""
+        if app.data.elastic.should_project(req):
+            return app.data.elastic.get_projected_fields(req)
 
     def _get_index(self, repos):
         """Get index id for all repos."""

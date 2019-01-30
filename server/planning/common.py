@@ -95,12 +95,12 @@ def get_max_recurrent_events(current_app=None):
 
 
 def remove_lock_information(item):
-        item.update({
-            LOCK_USER: None,
-            LOCK_SESSION: None,
-            LOCK_TIME: None,
-            LOCK_ACTION: None
-        })
+    item.update({
+        LOCK_USER: None,
+        LOCK_SESSION: None,
+        LOCK_TIME: None,
+        LOCK_ACTION: None
+    })
 
 
 def get_coverage_cancellation_state():
