@@ -20,6 +20,15 @@ from planning.common import WORKFLOW_STATE
 
 
 class DeleteSpikedItems(Command):
+    """
+    Delete expired spiked `Events` and `Planning` items.
+
+    Example:
+    ::
+
+        $ python manage.py planning:delete_spiked
+    """
+
     log_msg = ''
 
     def run(self):

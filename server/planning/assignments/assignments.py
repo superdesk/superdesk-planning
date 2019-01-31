@@ -684,7 +684,7 @@ class AssignmentsService(superdesk.Service):
         assignment = self._get_assignment_from_archive_item({}, item)
         if assignment and assignment.get('lock_user') and \
                 (assignment['lock_session'] != get_auth()['_id'] or assignment['lock_user'] != user_id):
-                raise SuperdeskApiError.badRequestError(message="Lock Failed: Related assignment is locked.")
+            raise SuperdeskApiError.badRequestError(message="Lock Failed: Related assignment is locked.")
 
     def sync_assignment_lock(self, item, user_id):
         assignment = self._get_assignment_from_archive_item({}, item)
@@ -758,7 +758,7 @@ class AssignmentsService(superdesk.Service):
         archive_items = self.get_archive_items_for_assignment(doc)
         for archive_item in archive_items:
             if archive_item.get('lock_user') and not is_locked_in_this_session(archive_item):
-                    raise SuperdeskApiError.forbiddenError(message='Associated archive item is locked')
+                raise SuperdeskApiError.forbiddenError(message='Associated archive item is locked')
 
         # Make sure we cannot delete a completed Assignment
         # This should not be needed, as you cannot obtain a lock on an Assignment that is completed
