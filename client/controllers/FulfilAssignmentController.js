@@ -47,6 +47,10 @@ export class FulFilAssignmentController {
         $scope.$on('$destroy', this.onDestroy);
         $scope.$on('item:unlock', this.onItemUnlock);
 
+        if (this.item.archive_item) { // use archive item for published
+            this.item = this.item.archive_item;
+        }
+
         if (get(this.item, 'slugline', '') === '') {
             this.notify.error(
                 this.gettext('[SLUGLINE] is a required field')
