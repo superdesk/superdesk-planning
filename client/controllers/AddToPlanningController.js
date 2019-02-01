@@ -1,22 +1,28 @@
 import * as actions from '../actions';
-import {currentItem, currentItemType} from '../selectors/forms';
+import {currentItem, currentItemType, planningProfile} from '../selectors/forms';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {Provider} from 'react-redux';
 import {ModalsContainer} from '../components';
 import {locks} from '../actions';
 import {planning} from '../actions';
-import {get} from 'lodash';
+import {get, isEmpty, isNumber} from 'lodash';
 import {registerNotifications, getErrorMessage, isExistingItem} from '../utils';
 import {WORKSPACE, MODALS, MAIN} from '../constants';
+import {GET_LABEL_MAP, DEFAULT_SCHEMA} from 'superdesk-core/scripts/apps/workspace/content/constants';
+
+const DEFAULT_PLANNING_SCHEMA = {
+    anpa_category: {required: true},
+    subject: {required: true},
+    slugline: {required: true},
+    urgency: {required: true},
+};
 
 export class AddToPlanningController {
     constructor(
         $element,
         $scope,
-        $location,
         sdPlanningStore,
-        $q,
         notify,
         gettext,
         api,
@@ -180,49 +186,41 @@ export class AddToPlanningController {
     loadArchiveItem() {
         return this.api.find('archive', this.item._id)
             .then((newsItem) => {
-                let failed = false;
-                let errMessages = [];
+                const errMessages = [];
+                const profile = planningProfile(this.store.getState());
+                const schema = get(profile, 'schema') || DEFAULT_PLANNING_SCHEMA;
+                const requiredError = (field) => this.gettext('[{{ field }}] is a required field')
+                    .replace('{{ field }}', field);
+                const labels = GET_LABEL_MAP(this.gettext);
 
                 if (get(newsItem, 'assignment_id')) {
-                    errMessages.push('Item already linked to a Planning item');
-                    failed = true;
+                    errMessages.push(this.gettext('Item already linked to a Planning item'));
                 }
 
-                if (get(newsItem, 'slugline', '') === '') {
-                    errMessages.push('[SLUGLINE] is a required field');
-                    failed = true;
-                }
+                Object.keys(schema)
+                    .filter((field) => DEFAULT_SCHEMA.hasOwnProperty(field)) // filter out planning only fields
+                    .filter((field) => get(schema[field], 'required') &&
+                        isEmpty(get(newsItem, field)) &&
+                        !isNumber(get(newsItem, field)))
+                    .forEach((field) => {
+                        errMessages.push(requiredError(labels[field] || field));
+                    });
 
-                if (get(newsItem, 'urgency', null) === null) {
-                    errMessages.push('[URGENCY] is a required field');
-                    failed = true;
-                }
-
-                if (get(newsItem, 'subject.length', 0) === 0) {
-                    errMessages.push('[SUBJECT] is a required field');
-                    failed = true;
-                }
-
-                if (get(newsItem, 'anpa_category.length', 0) === 0) {
-                    errMessages.push('[CATEGORY] is a required field');
-                    failed = true;
-                }
-
-                if (failed) {
+                if (errMessages.length) {
                     errMessages.forEach((err) => {
                         this.notify.error(err);
                     });
 
-                    this.$scope.reject();
-                    return Promise.reject();
+                    this.$scope.reject('foo');
+                    return Promise.reject('foo');
                 }
 
                 if (this.lock.isLocked(newsItem)) {
                     this.notify.error(
                         this.gettext('Item already locked.')
                     );
-                    this.$scope.reject();
-                    return Promise.reject();
+                    this.$scope.reject('bar');
+                    return Promise.reject('bar');
                 }
 
                 if (!this.lock.isLockedInCurrentSession(newsItem)) {
@@ -232,7 +230,7 @@ export class AddToPlanningController {
                             (lockedItem) => Promise.resolve(lockedItem),
                             (error) => {
                                 this.notify.error(
-                                    getErrorMessage(error, 'Failed to lock the item.')
+                                    getErrorMessage(error, this.gettext('Failed to lock the item.'))
                                 );
                                 this.$scope.reject(error);
                                 return Promise.reject(error);
@@ -243,7 +241,7 @@ export class AddToPlanningController {
                 return Promise.resolve(newsItem);
             }, (error) => {
                 this.notify.error(
-                    getErrorMessage(error, 'Failed to load the item.')
+                    getErrorMessage(error, this.gettext('Failed to load the item.'))
                 );
                 this.$scope.reject(error);
                 return Promise.reject(error);
@@ -254,9 +252,7 @@ export class AddToPlanningController {
 AddToPlanningController.$inject = [
     '$element',
     '$scope',
-    '$location',
     'sdPlanningStore',
-    '$q',
     'notify',
     'gettext',
     'api',

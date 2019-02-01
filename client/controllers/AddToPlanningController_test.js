@@ -50,18 +50,19 @@ describe('AddToPlanningController', () => {
         $provide.constant('userList', {getUser: sinon.spy()});
 
         $provide.constant('sdPlanningStore', {
-            initWorkspace: sinon.stub().callsFake((workspaceName, onLoadWorkspace) => onLoadWorkspace()),
+            initWorkspace: sinon.stub().callsFake((workspaceName, onLoadWorkspace) => onLoadWorkspace({
+                getState: () => ({}),
+            })),
         });
 
         $provide.constant('gettext', sinon.stub().callsFake((str) => str));
     }));
 
-    beforeEach(inject(($q, $rootScope) => {
+    beforeEach(inject(($rootScope) => {
         spyOn($rootScope, '$broadcast').and.callThrough();
     }));
 
     it('notifies the user if failed to load the item', inject((
-        $location,
         sdPlanningStore,
         $q,
         notify,
@@ -73,7 +74,7 @@ describe('AddToPlanningController', () => {
     ) => {
         api.find = sinon.stub().returns($q.reject({}));
         return new AddToPlanningController(null,
-            scope, $location, sdPlanningStore, $q, notify,
+            scope, sdPlanningStore, notify,
             gettext, api, lock, session, userList
         )
             .then(() => { /* no-op */ }, () => {
@@ -86,9 +87,7 @@ describe('AddToPlanningController', () => {
     }));
 
     it('notifies the user if the item fails data validation', inject((
-        $location,
         sdPlanningStore,
-        $q,
         notify,
         gettext,
         api,
@@ -102,22 +101,20 @@ describe('AddToPlanningController', () => {
         delete newsItem.anpa_category;
 
         return new AddToPlanningController(null,
-            scope, $location, sdPlanningStore, $q, notify,
+            scope, sdPlanningStore, notify,
             gettext, api, lock, session, userList
         )
             .then(() => { /* no-op */ }, () => {
                 expect(notify.error.callCount).toBe(4);
-                expect(notify.error.args[0]).toEqual(['[SLUGLINE] is a required field']);
-                expect(notify.error.args[1]).toEqual(['[URGENCY] is a required field']);
-                expect(notify.error.args[2]).toEqual(['[SUBJECT] is a required field']);
-                expect(notify.error.args[3]).toEqual(['[CATEGORY] is a required field']);
+                expect(notify.error.args).toContain(['[Slugline] is a required field']);
+                expect(notify.error.args).toContain(['[Urgency] is a required field']);
+                expect(notify.error.args).toContain(['[Subject] is a required field']);
+                expect(notify.error.args).toContain(['[ANPA Category] is a required field']);
             });
     }));
 
     it('notifies the user if the item is already linked to an assignment', inject((
-        $location,
         sdPlanningStore,
-        $q,
         notify,
         gettext,
         api,
@@ -127,10 +124,12 @@ describe('AddToPlanningController', () => {
     ) => {
         newsItem.assignment_id = 'as1';
         return new AddToPlanningController(null,
-            scope, $location, sdPlanningStore, $q, notify,
+            scope, sdPlanningStore, notify,
             gettext, api, lock, session, userList
         )
-            .then(() => { /* no-op */ }, () => {
+            .then(() => {
+                expect(true).toBe(false);
+            }, () => {
                 expect(notify.error.callCount).toBe(1);
                 expect(notify.error.args[0]).toEqual(['Item already linked to a Planning item']);
             });
@@ -138,9 +137,7 @@ describe('AddToPlanningController', () => {
 
     describe('locks the item', () => {
         it('if item not locked', inject((
-            $location,
             sdPlanningStore,
-            $q,
             notify,
             gettext,
             api,
@@ -149,7 +146,7 @@ describe('AddToPlanningController', () => {
             userList
         ) => (
             new AddToPlanningController(null,
-                scope, $location, sdPlanningStore, $q, notify,
+                scope, sdPlanningStore, notify,
                 gettext, api, lock, session, userList
             )
                 .then(() => {
