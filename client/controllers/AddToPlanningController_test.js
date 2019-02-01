@@ -109,7 +109,7 @@ describe('AddToPlanningController', () => {
                 expect(notify.error.args).toContain(['[Slugline] is a required field']);
                 expect(notify.error.args).toContain(['[Urgency] is a required field']);
                 expect(notify.error.args).toContain(['[Subject] is a required field']);
-                expect(notify.error.args).toContain(['[Category] is a required field']);
+                expect(notify.error.args).toContain(['[ANPA Category] is a required field']);
             });
     }));
 
