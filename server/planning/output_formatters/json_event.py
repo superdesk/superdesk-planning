@@ -39,6 +39,11 @@ class JsonEventFormatter(Formatter):
 
     def format(self, item, subscriber, codes=None):
         pub_seq_num = superdesk.get_resource_service('subscribers').generate_sequence_number(subscriber)
+        output_item = self._format_item(item)
+        return [(pub_seq_num, json.dumps(output_item, default=json_serialize_datetime_objectId))]
+
+    def _format_item(self, item):
+        """Format the item to json event"""
         output_item = deepcopy(item)
         output_item['event_contact_info'] = self._expand_contact_info(item)
         if item.get('files'):
@@ -50,7 +55,7 @@ class JsonEventFormatter(Formatter):
 
         for f in self.remove_fields:
             output_item.pop(f, None)
-        return [(pub_seq_num, json.dumps(output_item, default=json_serialize_datetime_objectId))]
+        return output_item
 
     def _publish_files(self, item):
         def publish_file(file_id):

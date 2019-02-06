@@ -20,6 +20,15 @@ from superdesk.notification import push_notification
 
 
 class DeleteMarkedAssignments(Command):
+    """
+    Delete `Assignments` that are marked for delete  `{'_to_delete': True}`.
+
+    Example:
+    ::
+
+        $ python manage.py planning:delete_assignments
+    """
+
     log_msg = ''
 
     def run(self):
