@@ -7,21 +7,32 @@
 # For the full copyright and license information, please see the
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
-
+import mock
 from datetime import timedelta
-from .republish_events_planning import RepublishEventsPlanning
+from .export_to_newsroom import ExportToNewsroom
 from superdesk import get_resource_service
 from superdesk.utc import utcnow
 from planning.tests import TestCase
 
 
-class RepublishEventsPlanningTest(TestCase):
+class MockTransmitter:
+    events = []
+    planning = []
+
+    def transmit(self, queue_item):
+        if queue_item.get('content_type') == 'event':
+            self.events.append(queue_item.get('item_id'))
+        else:
+            self.planning.append(queue_item.get('item_id'))
+
+
+class ExportToNewsroomTest(TestCase):
+
     def setUp(self):
         super().setUp()
 
         self.event_service = get_resource_service('events')
         self.planning_service = get_resource_service('planning')
-        self.planning_publish = get_resource_service('published_planning')
 
     def setUp_data(self):
         utc_now = utcnow()
@@ -203,23 +214,20 @@ class RepublishEventsPlanningTest(TestCase):
             },
         ]
 
-        self.event_service.post(events)
-        self.planning_service.post(planning)
+        self.event_service.create(events)
+        self.planning_service.create(planning)
 
-    def test_republish_events_planning(self):
+    @mock.patch('planning.commands.export_to_newsroom.NewsroomHTTPTransmitter')
+    def test_events_events_planning(self, mock_transmitter):
         with self.app.app_context():
             self.setUp_data()
-            self.assertEqual(self.planning_publish.get(req=None, lookup=None).count(), 0)
-            RepublishEventsPlanning().run()
-            invalid_ids = ['draft', 'rescheduled', 'cancelled', 'killed',
-                           'postponed-not-published', 'rescheduled-not-published',
-                           'cancelled-not-published']
-            published = self.planning_publish.get(req=None, lookup={'type': 'event'})
-            self.assertEqual(published.count(), 2)
-            for item in published:
-                self.assertNotIn(item.get('_id'), invalid_ids)
 
-            published = self.planning_publish.get(req=None, lookup={'type': 'planning'})
-            self.assertEqual(published.count(), 2)
-            for item in published:
-                self.assertNotIn(item.get('_id'), invalid_ids)
+            mock_transmitter.return_value = MockTransmitter()
+            ExportToNewsroom().run(assets_url='foo', resource_url='bar')
+            valid_ids = ['scheduled', 'postponed', 'rescheduled']
+
+            for item_id in mock_transmitter.return_value.events:
+                self.assertIn(item_id, valid_ids)
+
+            for item_id in mock_transmitter.return_value.planning:
+                self.assertIn(item_id, valid_ids)

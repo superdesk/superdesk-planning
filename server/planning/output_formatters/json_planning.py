@@ -46,6 +46,11 @@ class JsonPlanningFormatter(Formatter):
 
     def format(self, item, subscriber, codes=None):
         pub_seq_num = superdesk.get_resource_service('subscribers').generate_sequence_number(subscriber)
+        output_item = self._format_item(item)
+        return [(pub_seq_num, json.dumps(output_item, default=json_serialize_datetime_objectId))]
+
+    def _format_item(self, item):
+        """Format the item to json event"""
         output_item = deepcopy(item)
         for f in self.remove_fields:
             output_item.pop(f, None)
@@ -61,8 +66,7 @@ class JsonPlanningFormatter(Formatter):
                 coverage.pop(f, None)
 
         output_item['agendas'] = self._expand_agendas(item)
-
-        return [(pub_seq_num, json.dumps(output_item, default=json_serialize_datetime_objectId))]
+        return output_item
 
     def _get_coverage_workflow_state(self, assignment_state):
         if assignment_state in {ASSIGNMENT_WORKFLOW_STATE.SUBMITTED, ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS}:

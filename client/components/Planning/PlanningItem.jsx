@@ -190,7 +190,7 @@ export class PlanningItem extends React.Component {
 
                         {event &&
                             <span className="sd-no-wrap">
-                                <Icon className="icon-event" color={ICON_COLORS.DARK_BLUE_GREY}/>
+                                <Icon className="icon-event" color={ICON_COLORS.DARK_BLUE_GREY}/>&nbsp;
                                 <EventDateTime
                                     item={event}
                                     dateFormat={dateFormat}

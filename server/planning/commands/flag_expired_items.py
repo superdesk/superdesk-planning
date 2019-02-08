@@ -183,9 +183,12 @@ class FlagExpiredItems(Command):
             # Next go through all the coverage's scheduled dates
             # and compare to the latest scheduled date
             for planning_schedule in plan.get('_planning_schedule', []):
-                if (planning_schedule.get('scheduled') is not None) and \
-                        (latest_scheduled < planning_schedule.get('scheduled', latest_scheduled)):
-                    latest_scheduled = planning_schedule.get('scheduled')
+                scheduled = planning_schedule.get('scheduled')
+                if scheduled and isinstance(scheduled, str):
+                    scheduled = datetime.strptime(planning_schedule.get('scheduled'), '%Y-%m-%dT%H:%M:%S%z')
+
+                if scheduled and (latest_scheduled < scheduled):
+                    latest_scheduled = scheduled
 
         # Finally return the latest scheduled date among the Event, Planning and Coverages
         return latest_scheduled
