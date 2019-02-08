@@ -77,6 +77,7 @@ class PlanningCancelService(BaseService):
                                                  event_cancellation)
 
         if cancel_all_coverage:
+            item = None
             if len(ids) > 0:
                 item = self.backend.update(self.datasource, id, updates, original)
                 push_notification(
@@ -89,7 +90,7 @@ class PlanningCancelService(BaseService):
                     etag=item.get('_etag'),
                     ids=ids
                 )
-            return item
+            return item if item else self.find_one(req=None, _id=id)
 
         self._cancel_plan(updates, reason)
 
