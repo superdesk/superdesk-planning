@@ -60,6 +60,7 @@ export class AssignmentController {
         }
 
         this.store.dispatch(actions.main.closePublishQueuePreviewOnWorkspaceChange());
+        this.onDeskChange();
 
         return Promise.all([
             this.store.dispatch(actions.locks.loadAssignmentLocks()),
