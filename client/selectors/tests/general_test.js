@@ -26,7 +26,7 @@ describe('selectors', () => {
                 },
             },
             assignmentsInTodoList: [1, 2],
-            filterBy: 'All',
+            filterBy: 'Desk',
             searchQuery: 'test',
             orderByField: 'Updated',
             orderDirection: 'Desc',

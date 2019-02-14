@@ -53,7 +53,11 @@ class AssignmentsCompleteService(BaseService):
         user = get_user(required=True).get(config.ID_FIELD, '')
         session = get_auth().get(config.ID_FIELD, '')
 
-        updates['assigned_to'] = deepcopy(original).get('assigned_to')
+        original_assigned_to = deepcopy(original).get('assigned_to')
+        if not updates.get('assigned_to'):
+            updates['assigned_to'] = {}
+        original_assigned_to.update(updates['assigned_to'])
+        updates['assigned_to'] = original_assigned_to
 
         # If we are confirming availability, save the revert state for revert action
         coverage_type = original.get('planning', {}).get('g2_content_type')

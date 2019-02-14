@@ -98,25 +98,17 @@ export class FulFilAssignmentController {
         return this.loadArchiveItem()
             .then((newsItem) => {
                 this.newsItem = newsItem;
-
-                // set the current desk as the item desk.
-                this.store.dispatch({
-                    type: 'WORKSPACE_CHANGE',
-                    payload: {
-                        currentDeskId: get(this.item, 'task.desk'),
-                        currentStageId: get(this.item, 'task.stage'),
-                    },
-                });
                 registerNotifications(this.$scope, this.store);
-
                 return this.store.dispatch(
                     actions.assignments.ui.loadAssignments(
-                        'All',
+                        'Desk',
                         null,
                         'Created',
                         'Desc',
                         [ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED],
-                        this.newsItem.type
+                        this.newsItem.type,
+                        null,
+                        get(this.item, 'task.desk')
                     )
                 );
             });

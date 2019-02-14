@@ -6,7 +6,7 @@ import {gettext} from '../../utils';
 export const AgendaNameList = ({agendas}) => (
     <span>
         {get(agendas, 'length', 0) === 0 ? gettext('No Agenda Assigned.') :
-            sortBy(agendas, [(a) => a.name.toLowerCase()])
+            sortBy(agendas.filter((a) => a), [(a) => get(a, 'name', '').toLowerCase()])
                 .map((agenda, index, arr) => {
                     const className = !agenda.is_enabled ? 'sd-list-item__text--disabled' : '';
 

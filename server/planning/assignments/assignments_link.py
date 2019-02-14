@@ -46,6 +46,10 @@ class AssignmentsLinkService(Service):
                 if user and str(user.get(config.ID_FIELD)) != (assignment.get('assigned_to') or {}).get('user'):
                     updates['assigned_to']['user'] = str(user.get(config.ID_FIELD))
 
+                # if the item and assignment are not on the same desk then move the assignment to the item desk
+                if (assignment.get('assigned_to') or {}).get('desk') != str(item.get('task').get('desk')):
+                    updates['assigned_to']['desk'] = str(item.get('task').get('desk'))
+
             # reference the item to the assignment
             production.system_update(
                 item[config.ID_FIELD],

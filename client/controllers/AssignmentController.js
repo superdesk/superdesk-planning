@@ -1,9 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {Provider} from 'react-redux';
-import {get} from 'lodash';
+import {get, cloneDeep} from 'lodash';
 import {registerNotifications} from '../utils';
 import * as actions from '../actions';
+import * as selectors from '../selectors';
 import {AssignmentsApp} from '../apps';
 import {WORKSPACE} from '../constants';
 
@@ -60,6 +61,7 @@ export class AssignmentController {
         }
 
         this.store.dispatch(actions.main.closePublishQueuePreviewOnWorkspaceChange());
+        this.onDeskChange();
 
         return Promise.all([
             this.store.dispatch(actions.locks.loadAssignmentLocks()),
@@ -83,14 +85,18 @@ export class AssignmentController {
             return;
         }
 
-        // update the store with workspace
-        this.store.dispatch({
-            type: 'WORKSPACE_CHANGE',
-            payload: {
-                currentDeskId: get(this.desks, 'active.desk'),
-                currentStageId: get(this.desks, 'active.stage'),
-            },
-        });
+        const listSettings = cloneDeep(selectors.getAssignmentListSettings(this.store.getState()));
+
+        listSettings.selectedDeskId = get(this.desks, 'active.desk');
+        this.store.dispatch(actions.assignments.ui.changeListSettings(
+            listSettings.filterBy,
+            listSettings.searchQuery,
+            listSettings.orderByField,
+            listSettings.orderDirection,
+            listSettings.filterByType,
+            listSettings.filterByPriority,
+            listSettings.selectedDeskId
+        ));
 
         return this.store.dispatch(actions.assignments.ui.reloadAssignments())
             .then(() => this.store.dispatch(actions.assignments.ui.updatePreviewItemOnRouteUpdate()))
