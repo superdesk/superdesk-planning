@@ -9,10 +9,7 @@ const initialState = {
 const workspace = (state = initialState, action) => {
     switch (action.type) {
     case RESET_STORE:
-        return {
-            ...state,
-            currentWorkspace: null,
-        };
+        return {...initialState};
     case INIT_STORE:
         return {
             ...state,

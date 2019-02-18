@@ -8,7 +8,7 @@ import {get, cloneDeep} from 'lodash';
 
 /**
  * Action dispatcher to load the list of assignments for current list settings.
- * @param {string} filterBy - the filter by desk or user ('All', 'User')
+ * @param {string} filterBy - the filter by desk or user ('Desk', 'User')
  * @param {string} searchQuery - the text used for free text query
  * @param {string} orderByField - the field used to order the assignments ('Created', 'Updated')
  * @param {string} orderDirection - the direction of order ('Asc', 'Desc')
@@ -21,11 +21,14 @@ const loadAssignments = (
     orderByField,
     orderDirection,
     filterByState = null,
-    filterByType = null
+    filterByType = null,
+    filterByPriority = null,
+    selectedDeskId = null
 ) => (dispatch) => {
     dispatch(
         self.changeListSettings(filterBy, searchQuery,
-            orderByField, orderDirection, filterByType)
+            orderByField, orderDirection, filterByType,
+            filterByPriority, selectedDeskId)
     );
     return dispatch(queryAndSetAssignmentListGroups(filterByState));
 };
@@ -224,16 +227,17 @@ const changeLastAssignmentLoadedPage = (listGroup, pageNum = 1) => (
 
 /**
  * Action to change the filter&search for the list of Assignments
- * @param {string} filterBy - the filter by desk or user ('All', 'User')
+ * @param {string} filterBy - the filter by desk or user ('Desk', 'User')
  * @param {string} searchQuery - the text used for free text query
  * @param {string} orderByField - the field used to order the assignments ('Created', 'Updated')
  * @param {string} orderDirection - the direction of order ('Asc', 'Desc')
  * @param {string} filterByState - State of the assignment
  * @param {string} filterByType - Type of the assignment
+ * @param {string} selectedDeskId - Desk Id
  * @return object
  */
 const changeListSettings = (filterBy, searchQuery, orderByField,
-    orderDirection, filterByType = null) => ({
+    orderDirection, filterByType = null, filterByPriority = null, selectedDeskId = null) => ({
     type: ASSIGNMENTS.ACTIONS.CHANGE_LIST_SETTINGS,
     payload: {
         filterBy,
@@ -241,6 +245,8 @@ const changeListSettings = (filterBy, searchQuery, orderByField,
         orderByField,
         orderDirection,
         filterByType,
+        filterByPriority,
+        selectedDeskId,
     },
 });
 

@@ -17,6 +17,7 @@ export const preferredVocabularies = (state) => get(state, 'session.userPreferen
 export const currentDeskId = (state) => get(state, 'workspace.currentDeskId', null);
 export const desks = (state) => get(state, 'desks', []);
 export const templates = (state) => get(state, 'templates', []);
+export const userDesks = (state) => get(state, 'userDesks', []);
 
 
 export const modalType = (state) => get(state, 'modal.modalType');

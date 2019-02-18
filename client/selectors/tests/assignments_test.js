@@ -27,10 +27,11 @@ describe('selectors', () => {
             },
             assignmentsInTodoList: [1, 2],
             myAssignmentsTotal: 1,
-            filterBy: 'All',
+            filterBy: 'Desk',
             searchQuery: 'test',
             orderByField: 'Updated',
             orderDirection: 'Desc',
+            selectedDeskId: '1',
             lastAssignmentLoadedPage: 2,
             previewOpened: true,
             currentAssignmentId: 1,
@@ -109,7 +110,7 @@ describe('selectors', () => {
     it('getFilterBy', () => {
         const filterBy = selectors.getFilterBy(state);
 
-        expect(filterBy).toEqual('All');
+        expect(filterBy).toEqual('Desk');
     });
 
     it('getSearchQuery', () => {
@@ -134,13 +135,14 @@ describe('selectors', () => {
         const assignmentListSettings = selectors.getAssignmentListSettings(state);
 
         expect(assignmentListSettings).toEqual({
-            filterBy: 'All',
+            filterBy: 'Desk',
             searchQuery: 'test',
             orderByField: 'Updated',
             orderDirection: 'Desc',
             filterByState: null,
             filterByType: null,
             filterByPriority: null,
+            selectedDeskId: '1',
         });
     });
 

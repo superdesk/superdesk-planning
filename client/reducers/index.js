@@ -51,6 +51,7 @@ const planningApp = combineReducers({
     desks: returnState,
     urgency: returnState,
     customVocabularies: returnState,
+    userDesks: returnState,
 });
 
 export default planningApp;

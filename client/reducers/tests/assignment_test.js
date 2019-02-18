@@ -27,7 +27,7 @@ describe('assignment', () => {
                     },
                 },
             },
-            filterBy: 'All',
+            filterBy: 'Desk',
             previewOpened: false,
             assignmentsInInProgressList: [],
             inProgressListTotal: 0,
@@ -39,6 +39,7 @@ describe('assignment', () => {
             currentAssignmentId: null,
             archive: {},
             myAssignmentsTotal: 0,
+            selectedDeskId: '',
         };
 
         beforeEach(() => {
@@ -115,7 +116,7 @@ describe('assignment', () => {
                         },
                     },
                 },
-                filterBy: 'All',
+                filterBy: 'Desk',
                 previewOpened: false,
                 assignmentsInInProgressList: [],
                 inProgressListTotal: 0,
@@ -127,6 +128,7 @@ describe('assignment', () => {
                 currentAssignmentId: null,
                 archive: {},
                 myAssignmentsTotal: 0,
+                selectedDeskId: '',
             });
         });
     });
@@ -135,7 +137,7 @@ describe('assignment', () => {
         let initialState;
         let stateTest = {
             assignments: {},
-            filterBy: 'All',
+            filterBy: 'Desk',
             previewOpened: false,
             currentAssignmentId: null,
             assignmentsInInProgressList: [],
@@ -147,6 +149,7 @@ describe('assignment', () => {
             assignmentListSingleGroupView: null,
             archive: {},
             myAssignmentsTotal: 0,
+            selectedDeskId: '',
         };
 
         beforeEach(() => {
@@ -165,7 +168,7 @@ describe('assignment', () => {
 
             expect(result).toEqual({
                 assignments: {},
-                filterBy: 'All',
+                filterBy: 'Desk',
                 previewOpened: false,
                 assignmentsInInProgressList: [],
                 inProgressListTotal: 0,
@@ -177,6 +180,7 @@ describe('assignment', () => {
                 currentAssignmentId: null,
                 archive: {},
                 myAssignmentsTotal: 0,
+                selectedDeskId: '',
             });
         });
 
@@ -188,7 +192,7 @@ describe('assignment', () => {
 
             expect(result).toEqual({
                 assignments: {},
-                filterBy: 'All',
+                filterBy: 'Desk',
                 previewOpened: false,
                 assignmentsInInProgressList: [],
                 inProgressListTotal: 0,
@@ -200,6 +204,7 @@ describe('assignment', () => {
                 currentAssignmentId: null,
                 archive: {},
                 myAssignmentsTotal: 0,
+                selectedDeskId: '',
             });
         });
     });
@@ -216,20 +221,21 @@ describe('assignment', () => {
             completedListTotal: 0,
             assignmentListSingleGroupView: null,
             currentAssignmentId: null,
-            filterBy: 'All',
+            filterBy: 'Desk',
             searchQuery: 'test',
             orderByField: 'Updated',
             orderDirection: 'Desc',
             previewOpened: false,
             archive: {},
             myAssignmentsTotal: 0,
+            selectedDeskId: '',
         };
 
         beforeEach(() => {
             initialState = assignment(stateTest, {type: null});
         });
 
-        it('CHANGE_LIST_SETTINGS', () => {
+        it('CHANGE_LIST_SETTINGS MY ASSIGNMENTS', () => {
             const result = assignment(initialState, {
                 type: 'CHANGE_LIST_SETTINGS',
                 payload: {
@@ -256,6 +262,39 @@ describe('assignment', () => {
                 previewOpened: false,
                 archive: {},
                 myAssignmentsTotal: 0,
+                selectedDeskId: '',
+            });
+        });
+
+        it('CHANGE_LIST_SETTINGS DESK ASSIGNMENTS', () => {
+            const result = assignment(initialState, {
+                type: 'CHANGE_LIST_SETTINGS',
+                payload: {
+                    filterBy: 'Desk',
+                    orderByField: 'Created',
+                    orderDirection: 'Asc',
+                    selectedDeskId: '1',
+                },
+            });
+
+            expect(result).toEqual({
+                assignments: {},
+                assignmentsInInProgressList: [],
+                inProgressListTotal: 0,
+                assignmentsInTodoList: [],
+                todoListTotal: 0,
+                assignmentsInCompletedList: [],
+                completedListTotal: 0,
+                assignmentListSingleGroupView: null,
+                currentAssignmentId: null,
+                filterBy: 'Desk',
+                searchQuery: 'test',
+                orderByField: 'Created',
+                orderDirection: 'Asc',
+                previewOpened: false,
+                archive: {},
+                myAssignmentsTotal: 0,
+                selectedDeskId: '1',
             });
         });
     });
@@ -285,7 +324,7 @@ describe('assignment', () => {
                     },
                 },
             },
-            filterBy: 'All',
+            filterBy: 'Desk',
             previewOpened: false,
             assignmentsInInProgressList: [],
             inProgressListTotal: 0,
@@ -297,6 +336,7 @@ describe('assignment', () => {
             currentAssignmentId: null,
             archive: {},
             myAssignmentsTotal: 0,
+            selectedDeskId: '',
         };
 
         beforeEach(() => {
@@ -326,11 +366,12 @@ describe('assignment', () => {
                 todoListTotal: 4,
                 todoListLastLoadedPage: 1,
                 currentAssignmentId: null,
-                filterBy: 'All',
+                filterBy: 'Desk',
                 previewOpened: false,
                 assignmentListSingleGroupView: null,
                 archive: {},
                 myAssignmentsTotal: 0,
+                selectedDeskId: '',
             });
         });
 
@@ -353,11 +394,12 @@ describe('assignment', () => {
                 inProgressListTotal: 4,
                 inProgressListLastLoadedPage: 1,
                 currentAssignmentId: null,
-                filterBy: 'All',
+                filterBy: 'Desk',
                 previewOpened: false,
                 assignmentListSingleGroupView: null,
                 archive: {},
                 myAssignmentsTotal: 0,
+                selectedDeskId: '',
             });
         });
 
@@ -380,11 +422,12 @@ describe('assignment', () => {
                 completedListTotal: 4,
                 completedListLastLoadedPage: 1,
                 currentAssignmentId: null,
-                filterBy: 'All',
+                filterBy: 'Desk',
                 previewOpened: false,
                 assignmentListSingleGroupView: null,
                 archive: {},
                 myAssignmentsTotal: 0,
+                selectedDeskId: '',
             });
         });
 
@@ -407,11 +450,12 @@ describe('assignment', () => {
                 assignmentsInCompletedList: [],
                 completedListTotal: 0,
                 currentAssignmentId: null,
-                filterBy: 'All',
+                filterBy: 'Desk',
                 previewOpened: false,
                 assignmentListSingleGroupView: null,
                 archive: {},
                 myAssignmentsTotal: 0,
+                selectedDeskId: '',
             });
         });
 
@@ -435,11 +479,12 @@ describe('assignment', () => {
                 assignmentsInCompletedList: [],
                 completedListTotal: 0,
                 currentAssignmentId: null,
-                filterBy: 'All',
+                filterBy: 'Desk',
                 previewOpened: false,
                 assignmentListSingleGroupView: null,
                 archive: {},
                 myAssignmentsTotal: 0,
+                selectedDeskId: '',
             });
         });
 
@@ -463,11 +508,12 @@ describe('assignment', () => {
                 assignmentsInCompletedList: ['1', '2', '3'],
                 completedListTotal: 3,
                 currentAssignmentId: null,
-                filterBy: 'All',
+                filterBy: 'Desk',
                 previewOpened: false,
                 assignmentListSingleGroupView: null,
                 archive: {},
                 myAssignmentsTotal: 0,
+                selectedDeskId: '',
             });
         });
 
@@ -486,11 +532,12 @@ describe('assignment', () => {
                 assignmentsInCompletedList: [],
                 completedListTotal: 0,
                 currentAssignmentId: null,
-                filterBy: 'All',
+                filterBy: 'Desk',
                 previewOpened: false,
                 assignmentListSingleGroupView: 'TODO',
                 archive: {},
                 myAssignmentsTotal: 0,
+                selectedDeskId: '',
             });
         });
     });
@@ -512,7 +559,7 @@ describe('assignment', () => {
                 },
             },
             previewOpened: false,
-            filterBy: 'All',
+            filterBy: 'Desk',
             currentAssignmentId: null,
             assignmentsInInProgressList: [],
             inProgressListTotal: 0,
@@ -523,6 +570,7 @@ describe('assignment', () => {
             assignmentListSingleGroupView: null,
             archive: {},
             myAssignmentsTotal: 0,
+            selectedDeskId: '',
         };
 
         beforeEach(() => {
@@ -544,7 +592,7 @@ describe('assignment', () => {
                 previewOpened: true,
                 currentAssignmentId: 'as1',
                 readOnly: true,
-                filterBy: 'All',
+                filterBy: 'Desk',
                 assignmentsInInProgressList: [],
                 inProgressListTotal: 0,
                 assignmentsInTodoList: [],
@@ -554,6 +602,7 @@ describe('assignment', () => {
                 assignmentListSingleGroupView: null,
                 archive: {},
                 myAssignmentsTotal: 0,
+                selectedDeskId: '',
             });
         });
 
@@ -564,7 +613,7 @@ describe('assignment', () => {
                 assignments: {as1: initialState.assignments.as1},
                 previewOpened: false,
                 currentAssignmentId: null,
-                filterBy: 'All',
+                filterBy: 'Desk',
                 readOnly: true,
                 assignmentsInInProgressList: [],
                 inProgressListTotal: 0,
@@ -575,6 +624,7 @@ describe('assignment', () => {
                 assignmentListSingleGroupView: null,
                 archive: {},
                 myAssignmentsTotal: 0,
+                selectedDeskId: '',
             });
         });
 

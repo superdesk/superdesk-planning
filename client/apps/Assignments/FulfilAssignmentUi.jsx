@@ -35,12 +35,10 @@ export const FulfilAssignmentUi = ({previewOpen, newsItem}) => {
         showWorkqueue={false}
         marginBottom={false}
         widePreviewPanel={true}
-        splitView={previewOpen}
-        fullPreviewOpen={previewOpen}
-        fullPreview
+        editorOpen={previewOpen}
 
         ListPanel={assignmentListComponent}
-        PreviewPanel={assignmentPreviewComponent}
+        EditorPanel={assignmentPreviewComponent}
         SubNavPanel={assignmentsSubNavComponent}
     />);
 };

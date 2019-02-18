@@ -183,6 +183,7 @@ export class PlanningStoreService {
                 max_results: 200,
                 page: 1,
             }),
+            userDesks: this.desks.fetchCurrentUserDesks(),
         });
     }
 
@@ -234,6 +235,7 @@ export class PlanningStoreService {
                         !isEmpty(cv.service) &&
                         isEmpty(cv.field_type)
                     ),
+                    userDesks: data.userDesks,
                 };
 
                 // use custom cvs if any

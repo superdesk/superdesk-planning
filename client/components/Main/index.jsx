@@ -2,6 +2,7 @@ export {ActionsSubnavDropdown} from './ActionsSubnavDropdown';
 export {CreateNewSubnavDropdown} from './CreateNewSubnavDropdown';
 export {AgendaSubnavDropdown} from './AgendaSubnavDropdown';
 export {ToggleFiltersButton} from './ToggleFiltersButton';
+export {DesksSubnavDropdown} from './DesksSubNavDropDown';
 export {FiltersBar} from './FiltersBar';
 export {FiltersBox} from './FiltersBox';
 export {SearchPanel} from './SearchPanel';

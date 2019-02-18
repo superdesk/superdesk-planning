@@ -491,7 +491,7 @@ export const agendaInitialState = {
 
 export const assignmentInitialState = {
     assignments: {},
-    filterBy: 'All',
+    filterBy: 'Desk',
     previewOpened: false,
     assignmentsInInProgressList: [],
     assignmentsInTodoList: [],

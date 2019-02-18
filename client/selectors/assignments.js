@@ -4,7 +4,6 @@ import {storedPlannings} from './planning';
 import {currentDeskId, currentUserId, currentWorkspace} from './general';
 import {createSelector} from 'reselect';
 import {getItemsById} from '../utils';
-import {WORKSPACE} from '../constants';
 
 export const getStoredAssignments = (state) => get(state, 'assignment.assignments', {});
 export const getStoredArchiveItems = (state) => get(state, 'assignment.archive', {});
@@ -20,6 +19,7 @@ export const getOrderByField = (state) => get(state, 'assignment.orderByField', 
 export const getOrderDirection = (state) => get(state, 'assignment.orderDirection', 'Desc');
 export const getAssignmentFilterByState = (state) => get(state, 'assignment.filterByState', null);
 export const getAssignmentFilterByType = (state) => get(state, 'assignment.filterByType', null);
+export const getSelectedDeskId = (state) => get(state, 'assignment.selectedDeskId', '');
 export const getAssignmentFilterByPriority = (state) =>
     get(state, 'assignment.filterByPriority', null);
 export const getAssignmentTodoListPage = (state) => get(state,
@@ -36,6 +36,7 @@ export const getAssignmentListSettings = (state) => ({
     filterByState: getAssignmentFilterByState(state),
     filterByType: getAssignmentFilterByType(state),
     filterByPriority: getAssignmentFilterByPriority(state),
+    selectedDeskId: getSelectedDeskId(state),
 });
 export const getAssignmentsToDoListCount = (state) => (get(state, 'assignment.todoListTotal', 0));
 export const getAssignmentsInProgressListCount = (state) => (get(state,
@@ -82,11 +83,14 @@ export const getAssignmentSearch = createSelector(
         getAssignmentFilterByPriority],
     (listSettings, deskId,
         currentUserId, workspace, filterByType, filterByPriority) => {
+        let searchDeskId = null;
+
+        if (get(listSettings, 'filterBy') === 'Desk') {
+            searchDeskId = get(listSettings, 'selectedDeskId', null);
+        }
+
         const assignmentSearch = {
-            deskId: (
-                get(listSettings, 'filterBy') === 'All' ||
-                workspace === WORKSPACE.AUTHORING
-            ) ? deskId : null,
+            deskId: searchDeskId,
             userId: (get(listSettings, 'filterBy') === 'User') ? currentUserId : null,
             searchQuery: get(listSettings, 'searchQuery', ''),
             orderByField: get(listSettings, 'orderByField', 'Updated'),

@@ -875,3 +875,145 @@ Feature: Assignment link
             }
         }
         """
+
+    @auth @notification @wip
+    Scenario: Fulfil assignment with assignment and item on different desk
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        Then we get OK response
+        Then we store "SportsDeskId" with value "#desks._id#" to context
+        Then we store "SportsStageId" with value "#desks.incoming_stage#" to context
+        When we post to "desks"
+        """
+        [{"name": "Politics", "content_expiry": 60}]
+        """
+        Then we get OK response
+        Then we store "PoliticsDeskId" with value "#desks._id#" to context
+        Then we store "PoliticsStageId" with value "#desks.incoming_stage#" to context
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline"
+                },
+                "assigned_to": {
+                    "desk": "#PoliticsDeskId#",
+                    "user": "#CONTEXT_USER_ID#"
+                }
+            }]
+        }
+        """
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we get "assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        {
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#PoliticsDeskId#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
+            }
+        }
+        """
+        When we patch "/archive/#archive._id#"
+        """
+        {"slugline": "test"}
+        """
+        Then we get existing resource
+        """
+        {
+            "slugline": "test",
+            "task": {
+                "desk": "#SportsDeskId#",
+                "stage": "#SportsStageId#"
+            }
+        }
+        """
+        When we publish "#archive._id#" with "publish" type and "published" state
+        Then we get OK response
+        When we reset notifications
+        When we post to "assignments/link"
+        """
+        [{
+            "assignment_id": "#firstassignment#",
+            "item_id": "#archive._id#",
+            "reassign": true
+        }]
+        """
+        Then we get OK response
+        When we get "assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        {
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#SportsDeskId#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "completed"
+            }
+        }
+        """
+        And we get notifications
+        """
+        [{
+            "event": "assignments:completed",
+            "extra": {
+                "item": "#firstassignment#",
+                "assigned_desk": "#PoliticsDeskId#",
+                "planning": "#planning._id#",
+                "assignment_state": "completed"
+            }
+        }]
+        """
+        When we get "archive/#archive._id#"
+        Then we get OK response
+        And we get existing resource
+        """
+        { "assignment_id": "#firstassignment#"}
+        """
+        When we get "/published"
+        Then we get list with 1 items
+        """
+        {
+            "_items": [
+                {
+                    "assignment_id": "#firstassignment#",
+                    "_id": "#archive._id#",
+                    "state": "published"
+                }
+            ]
+        }
+        """

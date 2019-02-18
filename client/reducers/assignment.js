@@ -6,7 +6,8 @@ import {getItemId} from '../utils';
 
 const initialState = {
     assignments: {},
-    filterBy: 'All',
+    filterBy: 'Desk',
+    selectedDeskId: '',
     previewOpened: false,
     assignmentsInInProgressList: [],
     inProgressListTotal: 0,
