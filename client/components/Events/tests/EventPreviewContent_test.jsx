@@ -127,11 +127,9 @@ describe('<EventPreviewContent />', () => {
         files = wrapper.find('.toggle-box').at(1);
 
         const file = files.find(FileInput).first();
-        const fileLabel = file.find('label').first();
         const fileValue = file.find('a').first();
 
-        expect(fileLabel.text()).toBe('video/ogg (1kB)');
-        expect(fileValue.text()).toBe('file1.jpg');
+        expect(fileValue.text()).toBe('file1.jpg  (1kB)');
 
         let links = wrapper.find('.toggle-box').at(2);
 
