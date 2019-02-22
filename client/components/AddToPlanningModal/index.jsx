@@ -30,7 +30,7 @@ export class AddToPlanningComponent extends React.Component {
 
         const handleCancel = () => {
             handleHide();
-            $scope.reject();
+            $scope.resolve();
         };
 
         if (currentWorkspace !== 'AUTHORING') {

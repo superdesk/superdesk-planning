@@ -554,7 +554,7 @@ Feature: Assignment link
         }
         """
 
-    @auth @notification @wip
+    @auth @notification
     Scenario: If the item is scheduled then on fulfil assignment state will be inprogress
         When we post to "/archive"
         """

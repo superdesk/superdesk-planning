@@ -293,7 +293,6 @@ Feature: Events Unspike
 
     @auth
     @vocabulary
-    @wip
     Scenario: Unspiking restores original state
         When we post to "events"
         """

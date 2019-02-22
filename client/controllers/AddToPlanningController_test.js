@@ -43,6 +43,7 @@ describe('AddToPlanningController', () => {
             lock: sinon.stub().callsFake((item) => Promise.resolve(item)),
             unlock: sinon.stub().callsFake((item) => Promise.resolve(item)),
             isLockedInCurrentSession: sinon.stub().returns(false),
+            isLocked: () => false,
         });
 
         $provide.constant('session', {sessionId: 'session1'});
@@ -128,8 +129,6 @@ describe('AddToPlanningController', () => {
             gettext, api, lock, session, userList
         )
             .then(() => {
-                expect(true).toBe(false);
-            }, () => {
                 expect(notify.error.callCount).toBe(1);
                 expect(notify.error.args[0]).toEqual(['Item already linked to a Planning item']);
             });

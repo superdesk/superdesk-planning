@@ -23,7 +23,7 @@ export function FulFilAssignmentComponent({
 
     const handleCancel = () => {
         handleHide();
-        $scope.reject();
+        $scope.resolve();
     };
 
     if (currentWorkspace !== WORKSPACE.AUTHORING) {

@@ -535,21 +535,17 @@ const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, d
     }
 
     // Add assignment to coverage
+    newCoverage.assigned_to = {
+        desk: get(addNewsItemToPlanning, 'task.desk', desk),
+        user: get(addNewsItemToPlanning, 'version_creator'),
+    };
+
     if ([WORKFLOW_STATE.SCHEDULED, 'published'].includes(addNewsItemToPlanning.state)) {
         newCoverage.planning.scheduled = addNewsItemToPlanning.state === 'published' ?
             moment(addNewsItemToPlanning.versioncreated) :
             moment(get(addNewsItemToPlanning, 'schedule_settings.utc_publish_schedule'));
-
-        newCoverage.assigned_to = {
-            desk: addNewsItemToPlanning.task.desk,
-            user: get(addNewsItemToPlanning, 'version_creator'),
-        };
     } else {
         newCoverage.planning.scheduled = moment().endOf('day');
-        newCoverage.assigned_to = {
-            desk: desk,
-            user: get(addNewsItemToPlanning, 'version_creator'),
-        };
     }
 
     newCoverage.assigned_to.priority = ASSIGNMENTS.DEFAULT_PRIORITY;
