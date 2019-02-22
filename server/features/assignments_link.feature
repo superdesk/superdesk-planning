@@ -554,7 +554,7 @@ Feature: Assignment link
         }
         """
 
-    @auth @notification
+    @auth @notification @wip
     Scenario: If the item is scheduled then on fulfil assignment state will be inprogress
         When we post to "/archive"
         """
@@ -615,7 +615,9 @@ Feature: Assignment link
         """
         When we patch "/archive/#archive._id#"
         """
-        {"slugline": "test", "publish_schedule":"#DATE+2#"}
+        {
+            "slugline": "test", "publish_schedule":"#DATE+2#"
+        }
         """
         Then we get OK response
         When we post to "assignments/link"
@@ -644,6 +646,11 @@ Feature: Assignment link
         }
         """
         When we publish "#archive._id#" with "publish" type and "published" state
+        """
+        {
+            "publish_schedule":"#DATE+2#"
+        }
+        """
         Then we get OK response
         When we get "archive/#archive._id#"
         Then we get existing resource
@@ -876,7 +883,7 @@ Feature: Assignment link
         }
         """
 
-    @auth @notification @wip
+    @auth @notification
     Scenario: Fulfil assignment with assignment and item on different desk
         When we post to "/archive"
         """

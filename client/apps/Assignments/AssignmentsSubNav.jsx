@@ -17,20 +17,24 @@ export class AssignmentsSubNavComponent extends React.Component {
         this.changeSearchQuery = this.changeSearchQuery.bind(this);
         this.getTotalCountForListGroup = this.getTotalCountForListGroup.bind(this);
         this.changeFilter = this.changeFilter.bind(this);
-        this.selectDesk = this.selectDesk.bind(this);
+        this.selectAssignmentsFrom = this.selectAssignmentsFrom.bind(this);
     }
 
     componentWillMount() {
         this.props.fetchMyAssignmentsCount();
     }
 
-    selectDesk(deskId) {
+    selectAssignmentsFrom(deskId) {
         const {
             orderByField,
             orderDirection,
         } = this.props;
 
-        this.changeFilter('Desk', orderByField, orderDirection, deskId);
+        if (deskId) {
+            this.changeFilter('Desk', orderByField, orderDirection, deskId);
+        } else {
+            this.changeFilter('User', orderByField, orderDirection, deskId);
+        }
     }
 
     changeSearchQuery(searchQuery) {
@@ -132,7 +136,8 @@ export class AssignmentsSubNavComponent extends React.Component {
                     changeFilter={this.changeFilter}
                     selectedDeskId={selectedDeskId}
                     userDesks={workspace === WORKSPACE.AUTHORING ? userDesks : []}
-                    selectDesk={this.selectDesk}
+                    selectAssignmentsFrom={this.selectAssignmentsFrom}
+                    workspace={workspace}
                 />
             </div>
         );
