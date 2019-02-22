@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Row, LineInput, Label, Input, TextArea} from './';
+import {Row, LineInput, Input, TextArea} from './';
 import {IconButton} from '../';
 import {onEventCapture, gettext} from '../utils';
 import {get, isArrayLikeObject} from 'lodash';
@@ -63,13 +63,13 @@ export class FileInput extends React.Component {
         return readOnly ? (
             <Row key={index} noPadding>
                 {get(val, 'media') && (<LineInput noMargin={noMargin}>
-                    <Label text={`${val.media.content_type} (${Math.round(val.media.length / 1024)}kB)`} />
                     <a
                         href={createLink(val)}
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        {val.media.name}
+                        {val.media.name}&nbsp;
+                        ({Math.round(val.media.length / 1024)}kB)
                     </a>
                 </LineInput>)}
             </Row>
