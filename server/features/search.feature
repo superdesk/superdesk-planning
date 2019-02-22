@@ -105,7 +105,7 @@ Feature: Search Feature
         }
         """
 
-    @auth @wip
+    @auth
     Scenario: Search events and planning using slugline, subject
         Given "events"
             """

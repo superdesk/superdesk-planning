@@ -47,7 +47,7 @@ export class FulFilAssignmentController {
         $scope.$on('$destroy', this.onDestroy);
         $scope.$on('item:unlock', this.onItemUnlock);
 
-        if (this.item.archive_item) { // use archive item for published
+        if (get(this.item, 'archive_item')) { // use archive item for published
             this.item = this.item.archive_item;
         }
 
@@ -55,14 +55,14 @@ export class FulFilAssignmentController {
             this.notify.error(
                 this.gettext('[SLUGLINE] is a required field')
             );
-            this.$scope.reject();
+            this.$scope.resolve();
             return;
         }
 
         return sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, this.loadWorkspace)
             .then(
                 this.render,
-                this.$scope.reject
+                this.$scope.resolve
             );
     }
 
@@ -149,7 +149,7 @@ export class FulFilAssignmentController {
             this.store.dispatch(actions.resetStore());
 
             if (this.superdeskFlags.flags.authoring || !this.rendered) {
-                this.$scope.reject();
+                this.$scope.resolve();
                 return;
             }
 
@@ -164,7 +164,7 @@ export class FulFilAssignmentController {
                         body: this.gettext('The item was unlocked by "{{ username }}"', {username}),
                         action: () => {
                             this.newsItem.lock_session = null;
-                            this.$scope.reject();
+                            this.$scope.resolve();
                         },
                     },
                 })));
@@ -178,7 +178,7 @@ export class FulFilAssignmentController {
                     this.notify.error(
                         this.gettext('Item already linked to a Planning item')
                     );
-                    this.$scope.reject();
+                    this.$scope.resolve();
                     return Promise.reject();
                 }
 
@@ -186,7 +186,7 @@ export class FulFilAssignmentController {
                     this.notify.error(
                         this.gettext('Item already locked.')
                     );
-                    this.$scope.reject();
+                    this.$scope.resolve();
                     return Promise.reject();
                 }
 
@@ -201,7 +201,7 @@ export class FulFilAssignmentController {
                                         getErrorMessage(error, 'Failed to lock the item.')
                                     )
                                 );
-                                this.$scope.reject(error);
+                                this.$scope.resolve(error);
                                 return Promise.reject(error);
                             }
                         );
@@ -214,7 +214,7 @@ export class FulFilAssignmentController {
                         getErrorMessage(error, 'Failed to load the item.')
                     )
                 );
-                this.$scope.reject(error);
+                this.$scope.resolve(error);
                 return Promise.reject(error);
             });
     }

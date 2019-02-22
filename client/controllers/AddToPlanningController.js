@@ -56,10 +56,14 @@ export class AddToPlanningController {
         $scope.$on('$destroy', this.onDestroy);
         $scope.$on('item:unlock', this.onItemUnlock);
 
+        if (get(this.item, 'archive_item')) {
+            this.item = this.item.archive_item;
+        }
+
         return sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, this.loadWorkspace)
             .then(
                 this.render,
-                this.$scope.reject
+                this.$scope.resolve
             );
     }
 
@@ -161,7 +165,7 @@ export class AddToPlanningController {
             this.store.dispatch(actions.resetStore());
 
             if (this.superdeskFlags.flags.authoring || !this.rendered) {
-                this.$scope.reject();
+                this.$scope.resolve();
                 return;
             }
 
@@ -176,7 +180,7 @@ export class AddToPlanningController {
                         body: this.gettext('The item was unlocked by "{{ username }}"', {username}),
                         action: () => {
                             this.newsItem.lock_session = null;
-                            this.$scope.reject();
+                            this.$scope.resolve();
                         },
                     },
                 })));
@@ -211,7 +215,7 @@ export class AddToPlanningController {
                         this.notify.error(err);
                     });
 
-                    this.$scope.reject('foo');
+                    this.$scope.resolve('foo');
                     return Promise.reject('foo');
                 }
 
@@ -219,7 +223,7 @@ export class AddToPlanningController {
                     this.notify.error(
                         this.gettext('Item already locked.')
                     );
-                    this.$scope.reject('bar');
+                    this.$scope.resolve('bar');
                     return Promise.reject('bar');
                 }
 
@@ -232,7 +236,7 @@ export class AddToPlanningController {
                                 this.notify.error(
                                     getErrorMessage(error, this.gettext('Failed to lock the item.'))
                                 );
-                                this.$scope.reject(error);
+                                this.$scope.resolve(error);
                                 return Promise.reject(error);
                             }
                         );
@@ -243,7 +247,7 @@ export class AddToPlanningController {
                 this.notify.error(
                     getErrorMessage(error, this.gettext('Failed to load the item.'))
                 );
-                this.$scope.reject(error);
+                this.$scope.resolve(error);
                 return Promise.reject(error);
             });
     }
