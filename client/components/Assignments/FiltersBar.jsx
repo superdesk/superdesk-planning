@@ -1,12 +1,12 @@
-import React from 'react';
+import React, {Fragment} from 'react';
 import PropTypes from 'prop-types';
-import {get} from 'lodash';
 import {gettext} from '../../utils';
 
 import {SubNav, StretchBar} from '../UI/SubNav';
 import {Checkbox} from '../UI/Form';
 import OrderBar from '../OrderBar';
-import {DesksSubnavDropdown} from '../Main';
+import {DesksSubnavDropdown} from './DesksSubNavDropDown';
+import {WORKSPACE} from '../../constants';
 
 
 export const FiltersBar = ({
@@ -17,38 +17,42 @@ export const FiltersBar = ({
     myAssignmentsCount,
     userDesks,
     selectedDeskId,
-    selectDesk,
+    selectAssignmentsFrom,
+    workspace,
 }) => (
     <SubNav>
         <StretchBar>
-            {get(userDesks, 'length', 0) === 0 && <Checkbox
-                label={gettext('Desk Assignments')}
-                onChange={() => changeFilter('Desk', orderByField, orderDirection, selectedDeskId)}
-                value={'Desk'}
-                checkedValue={filterBy}
-                type="radio"
-                labelPosition="inside"
-            />}
-
-            {get(userDesks, 'length', 0) > 0 && <DesksSubnavDropdown
-                userDesks={userDesks}
-                selectedDeskId={selectedDeskId}
-                selectDesk={selectDesk}
-            />}
-
-            <div className="element-with-badge">
+            {workspace === WORKSPACE.ASSIGNMENTS &&
+            <Fragment>
                 <Checkbox
-                    label={gettext('My Assignments')}
-                    onChange={() => changeFilter('User', orderByField, orderDirection, selectedDeskId)}
-                    value={'User'}
+                    label={gettext('Desk Assignments')}
+                    onChange={() => changeFilter('Desk', orderByField, orderDirection, selectedDeskId)}
+                    value={'Desk'}
                     checkedValue={filterBy}
                     type="radio"
                     labelPosition="inside"
                 />
-                <span className="badge badge--highlight">
-                    {myAssignmentsCount}
-                </span>
-            </div>
+                <div className="element-with-badge">
+                    <Checkbox
+                        label={gettext('My Assignments')}
+                        onChange={() => changeFilter('User', orderByField, orderDirection, selectedDeskId)}
+                        value={'User'}
+                        checkedValue={filterBy}
+                        type="radio"
+                        labelPosition="inside"
+                    />
+                    <span className="badge badge--highlight">
+                        {myAssignmentsCount}
+                    </span>
+                </div>
+            </Fragment>
+            }
+
+            {workspace === WORKSPACE.AUTHORING && <DesksSubnavDropdown
+                userDesks={userDesks}
+                selectedDeskId={selectedDeskId}
+                selectAssignmentsFrom={selectAssignmentsFrom}
+            />}
         </StretchBar>
 
         <OrderBar
@@ -70,7 +74,8 @@ FiltersBar.propTypes = {
     changeFilter: PropTypes.func.isRequired,
     userDesks: PropTypes.array,
     selectedDeskId: PropTypes.string,
-    selectDesk: PropTypes.func,
+    selectAssignmentsFrom: PropTypes.func,
+    workspace: PropTypes.string,
 };
 
 FiltersBar.defaultProps = {
@@ -80,4 +85,5 @@ FiltersBar.defaultProps = {
     orderDirection: 'Asc',
     userDesks: [],
     selectedDeskId: '',
+    workspace: '',
 };
