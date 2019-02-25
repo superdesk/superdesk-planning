@@ -103,8 +103,8 @@ export class FulFilAssignmentController {
                     actions.assignments.ui.loadAssignments(
                         'Desk',
                         null,
-                        'Created',
-                        'Desc',
+                        'Scheduled',
+                        'Asc',
                         [ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED],
                         this.newsItem.type,
                         null,

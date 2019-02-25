@@ -13,10 +13,10 @@ export const getAssignmentsInInProgressList = (state) => get(state,
     'assignment.assignmentsInInProgressList', []);
 export const getAssignmentsInCompletedList = (state) => get(state,
     'assignment.assignmentsInCompletedList', []);
-export const getFilterBy = (state) => get(state, 'assignment.filterBy', 'ALL');
+export const getFilterBy = (state) => get(state, 'assignment.filterBy', 'Desk');
 export const getSearchQuery = (state) => get(state, 'assignment.searchQuery', null);
-export const getOrderByField = (state) => get(state, 'assignment.orderByField', 'Updated');
-export const getOrderDirection = (state) => get(state, 'assignment.orderDirection', 'Desc');
+export const getOrderByField = (state) => get(state, 'assignment.orderByField', 'Scheduled');
+export const getOrderDirection = (state) => get(state, 'assignment.orderDirection', 'Asc');
 export const getAssignmentFilterByState = (state) => get(state, 'assignment.filterByState', null);
 export const getAssignmentFilterByType = (state) => get(state, 'assignment.filterByType', null);
 export const getSelectedDeskId = (state) => get(state, 'assignment.selectedDeskId', '');
