@@ -110,6 +110,7 @@ export class AssignmentItem extends React.Component {
                 shadow={3}
                 activated={get(assignment, '_id') === currentAssignmentId}
                 onClick={this.handleSingleAndDoubleClick}
+                className="AssignmentItem"
             >
                 <Border state={borderState} />
                 <Column>
@@ -157,18 +158,20 @@ export class AssignmentItem extends React.Component {
                             </span>
                             <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                                 {planningSchedule ? (
-                                    <AbsoluteDate date={moment(planningSchedule).format()} />
+                                    <AbsoluteDate
+                                        date={moment(planningSchedule).format()}
+                                        className="sd-list-item__time__schedule" />
                                 ) : (
-                                    <time><span>{gettext('\'not scheduled yet\'')}</span></time>
+                                    <span>{gettext('\'not scheduled yet\'')}</span>
                                 )}
                             </span>
                         </span>
                     </Row>
                 </Column>
                 <Column border={false}>
-                    <span>
-                        {moment(assignment._updated).fromNow()}
-                    </span>
+                    <time>
+                        <span>{moment(assignment._updated).fromNow()}</span>
+                    </time>
                 </Column>
                 <Column border={false}>
                     <OverlayTrigger placement="left"

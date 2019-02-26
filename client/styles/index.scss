@@ -19,6 +19,14 @@
     }
 }
 
+.AssignmentItem {
+    .sd-list-item__time__schedule {
+        color: #005b7f !important;
+        font-weight: 500;
+        vertical-align: text-top;
+    }
+}
+
 .opened-articles ul > li {
     padding: 0 25px 0 5px;
     .item-label {

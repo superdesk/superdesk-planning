@@ -58,7 +58,7 @@ export const FiltersBar = ({
         <OrderBar
             orderByField={orderByField}
             orderDirection={orderDirection}
-            fields={['Created', 'Updated', 'Priority']}
+            fields={[gettext('Created'), gettext('Updated'), gettext('Priority'), gettext('Scheduled')]}
             onChange={
                 (orderByField, orderDirection) => changeFilter(filterBy, orderByField, orderDirection, selectedDeskId)
             }

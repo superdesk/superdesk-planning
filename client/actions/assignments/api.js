@@ -25,11 +25,12 @@ const query = ({
             Created: '_created',
             Updated: '_updated',
             Priority: 'priority',
+            Scheduled: 'planning.scheduled',
         };
 
         let query = {};
         let must = [];
-        let sort = '[("' + (get(filterByValues, orderByField, '_updated')) + '", '
+        let sort = '[("' + (get(filterByValues, orderByField, 'planning.scheduled')) + '", '
             + (orderDirection === 'Asc' ? 1 : -1) + ')]';
 
         if (deskId) {

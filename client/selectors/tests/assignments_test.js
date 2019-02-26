@@ -214,4 +214,19 @@ describe('selectors', () => {
 
         expect(view).toBe(null);
     });
+
+    it('get default assignment listSettings', () => {
+        const assignmentListSettings = selectors.getAssignmentListSettings({});
+
+        expect(assignmentListSettings).toEqual({
+            filterBy: 'Desk',
+            searchQuery: null,
+            orderByField: 'Scheduled',
+            orderDirection: 'Asc',
+            filterByState: null,
+            filterByType: null,
+            filterByPriority: null,
+            selectedDeskId: '',
+        });
+    });
 });
