@@ -10,7 +10,7 @@ import './style.scss';
  * @name Toggle
  * @description Toggle component used to togle check/uncheck status
  */
-export default function Toggle({value, onChange, readOnly, onFocus, className, field}) {
+export default function Toggle({value, onChange, readOnly, onFocus, className, field, title}) {
     const handleKeyDown = (event) => {
         if (event.keyCode === KEYCODES.ENTER) {
             onEventCapture(event);
@@ -36,6 +36,7 @@ export default function Toggle({value, onChange, readOnly, onFocus, className, f
             type="button"
             tabIndex={0}
             className={classes}
+            title={title}
             onClick={!readOnly && onChange ? onClick : null}
             onFocus={onFocus}
             onKeyDown= {!readOnly ? handleKeyDown : null}>
@@ -46,6 +47,7 @@ export default function Toggle({value, onChange, readOnly, onFocus, className, f
 
 Toggle.propTypes = {
     field: PropTypes.string,
+    title: PropTypes.string,
     value: PropTypes.bool,
     onChange: PropTypes.func,
     onFocus: PropTypes.func,
