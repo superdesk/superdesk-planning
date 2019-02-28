@@ -372,6 +372,8 @@ const getDateStringForEvent = (event, dateFormat, timeFormat, dateOnly = false, 
     const start = get(event.dates, 'start');
     const end = get(event.dates, 'end');
     const tz = get(event.dates, 'tz');
+    const localStart = timeUtils.getLocalDate(start, tz);
+
     let dateString;
 
     if (!start || !end)
@@ -392,9 +394,9 @@ const getDateStringForEvent = (event, dateFormat, timeFormat, dateOnly = false, 
     }
 
     if (!useLocal) {
-        return tz ? `(${momentTz.tz(tz).format('z ')} ${dateString})` : null;
+        return tz ? `(${timeUtils.getDateInRemoteTimeZone(start, tz).format('z ')} ${dateString})` : null;
     } else {
-        return momentTz.tz(timeUtils.localTimeZone()).format('z ') + dateString;
+        return localStart.format('z ') + dateString;
     }
 };
 

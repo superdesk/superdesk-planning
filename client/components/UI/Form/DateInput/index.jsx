@@ -7,7 +7,8 @@ import {LineInput, Label, Input} from '../';
 import {IconButton} from '../../';
 import {DateInputPopup} from './DateInputPopup';
 import {KEYCODES} from '../../constants';
-import {onEventCapture, isEventInDifferentTimeZone, localTimeZone} from '../../utils';
+import {onEventCapture} from '../../utils';
+import {timeUtils} from '../../../../utils';
 import {gettext} from '../../../../utils/gettext';
 import './style.scss';
 
@@ -135,9 +136,9 @@ export class DateInput extends React.Component {
 
         let remoteDateString;
 
-        if (moment.isMoment(value) && remoteTimeZone && isEventInDifferentTimeZone({dates: {tz: remoteTimeZone}})) {
-            const conversionTimeZone = value.tz() === remoteTimeZone ? localTimeZone() : remoteTimeZone;
-            const remoteDate = momentTz.tz(value, conversionTimeZone);
+        if (moment.isMoment(value) && remoteTimeZone &&
+            timeUtils.isEventInDifferentTimeZone({dates: {start: value, tz: remoteTimeZone}})) {
+            const remoteDate = momentTz.tz(value, remoteTimeZone);
 
             remoteDateString = `(${moment.tz(remoteTimeZone).format('z')} ${remoteDate.format(dateFormat)})`;
         }

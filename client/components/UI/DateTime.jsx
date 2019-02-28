@@ -9,7 +9,7 @@ import './style.scss';
  * @description DateTime component to display text formatted date and time
  */
 function DateTime({date, withTime, withDate, withYear, dateFormat, timeFormat, padLeft}) {
-    let format = withYear ? dateFormat : dateFormat.replace(/y/gi, '');
+    let format = withYear ? dateFormat : dateFormat.replace(/([\/\#.-]y+)|(y+[\/\#.-])/gi, '');
     let dateTimeFormat = [
         withDate ? format : null,
         withTime ? timeFormat : null,

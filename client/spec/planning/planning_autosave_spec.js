@@ -13,7 +13,7 @@ describe('planning_autosave', () => {
             slugline: 'Plan',
             name: 'Namer',
             planning_date: {
-                date: '12/12/2045',
+                date: '13/12/2045',
                 time: '12:13',
             },
             description_text: 'Desc. Text',

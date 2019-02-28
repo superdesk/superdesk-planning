@@ -100,12 +100,29 @@ const getStartOfPreviousMonth = (date = null) => {
         current.subtract(1, 'M').date(1);
 };
 
-const isEventInDifferentTimeZone = (event) => get(event, 'dates.tz') !== self.localTimeZone();
+const isEventInDifferentTimeZone = (event) => {
+    const dateInEventTimeZone = getDateInRemoteTimeZone(get(event, 'dates.start'), get(event, 'dates.tz'));
+    const dateInLocalTimeZone = getDateInRemoteTimeZone(get(event, 'dates.start'));
+
+    return dateInEventTimeZone.format('Z') !== dateInLocalTimeZone.format('Z');
+};
 
 const localTimeZone = () => moment.tz.guess();
 
-const getDateInRemoteTimeZone = (date, tz = self.localTimeZone()) =>
-    moment.isMoment(date) && momentTz.tz(date.clone().utc(), tz);
+const getDateInRemoteTimeZone = (date, tz = self.localTimeZone()) => {
+    const dateToCheck = moment.isMoment(date) ? date : moment(date);
+
+    return momentTz.tz(dateToCheck.clone().utc(), tz);
+};
+
+const getLocalDate = (date, tz) => {
+    const isRemoteTimeZone = self.isEventInDifferentTimeZone({dates: {start: date, tz: tz}});
+
+    return self.getDateInRemoteTimeZone(
+        date,
+        isRemoteTimeZone ? self.localTimeZone() : tz
+    );
+};
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -116,6 +133,7 @@ const self = {
     isEventInDifferentTimeZone,
     localTimeZone,
     getDateInRemoteTimeZone,
+    getLocalDate,
 };
 
 export default self;

@@ -1,6 +1,7 @@
 import React from 'react';
 import {mount} from 'enzyme';
 import {Provider} from 'react-redux';
+import moment from 'moment';
 import {EventPreviewContent} from '../EventPreviewContent';
 import {getTestActionStore} from '../../../utils/testUtils';
 import {createTestStore, eventUtils} from '../../../utils';
@@ -87,6 +88,14 @@ describe('<EventPreviewContent />', () => {
     const dateString = eventUtils.getDateStringForEvent(astore.initialState.events.events.e1,
         'DD/MM/YYYY', 'HH:mm');
 
+    beforeEach(() => {
+        moment.tz.setDefault(astore.initialState.config.defaultTimezone);
+    });
+
+    afterEach(() => {
+        moment.tz.setDefault();
+    });
+
     it('renders an event with all its details', () => {
         const wrapper = getWrapper();
 
@@ -98,7 +107,7 @@ describe('<EventPreviewContent />', () => {
         verifyDataRow(dataRows.at(2), 'Description', 'description');
         verifyDataRow(dataRows.at(3), 'Occurrence Status', 'Planned, occurs certainly');
         verifyDataRow(dataRows.at(4), 'Date', dateString);
-        verifyDataRow(dataRows.at(6), 'Calendars', 'calender1');
+        verifyDataRow(dataRows.at(5), 'Calendars', 'calender1');
 
         let eventDetails = wrapper.find('.toggle-box').first();
 

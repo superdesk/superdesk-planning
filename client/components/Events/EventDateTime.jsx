@@ -1,7 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import moment from 'moment-timezone';
-
 import {DateTime} from '../UI';
 import {eventUtils, timeUtils} from '../../utils';
 import {gettext} from '../../utils/gettext';
@@ -14,13 +12,17 @@ export const EventDateTime = ({item, timeFormat, dateFormat, ignoreAllDay}) => {
     const isAllDay = eventUtils.isEventAllDay(start, end);
     const withDate = !eventUtils.isEventSameDay(start, end);
     const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(item);
-    let newStart, newEnd, newStartWithDate, newEndWithDate;
+    const withYear = withDate && start.year() !== end.year();
+    const localStart = timeUtils.getLocalDate(start, item.dates.tz);
+    let remoteStart, remoteEnd, remoteStartWithDate, remoteEndWithDate, remoteStartWithYear, remoteEndWithYear;
 
     if (isRemoteTimeZone) {
-        newStart = timeUtils.getDateInRemoteTimeZone(start, item.dates.tz);
-        newEnd = timeUtils.getDateInRemoteTimeZone(end, item.dates.tz);
-        newStartWithDate = newStart.date() !== start.date();
-        newEndWithDate = (newEnd.date() !== end.date() || newStart.date() !== newEnd.date());
+        remoteStart = timeUtils.getDateInRemoteTimeZone(start, item.dates.tz);
+        remoteEnd = timeUtils.getDateInRemoteTimeZone(end, item.dates.tz);
+        remoteStartWithDate = remoteStart.date() !== start.date();
+        remoteEndWithDate = (remoteEnd.date() !== end.date() || remoteStart.date() !== remoteEnd.date());
+        remoteStartWithYear = remoteStartWithDate && remoteStart.year() !== remoteEnd.year();
+        remoteEndWithYear = remoteEndWithDate && remoteStart.year() !== remoteEnd.year();
     }
 
     return isAllDay && !ignoreAllDay ? (
@@ -29,9 +31,10 @@ export const EventDateTime = ({item, timeFormat, dateFormat, ignoreAllDay}) => {
         </span>
     ) : (
         <span className="EventDateTime sd-list-item__slugline sd-no-wrap">
-            <span className="EventDateTime__timezone">{moment.tz(timeUtils.localTimeZone()).format('z')}</span>
+            <span className="EventDateTime__timezone">{localStart.format('z')}</span>
             <DateTime
                 withDate={withDate}
+                withYear={withYear}
                 padLeft={false}
                 date={start}
                 dateFormat={dateFormat}
@@ -41,28 +44,30 @@ export const EventDateTime = ({item, timeFormat, dateFormat, ignoreAllDay}) => {
             <DateTime
                 withDate={withDate}
                 padLeft={false}
+                withYear={withYear}
                 date={end}
                 dateFormat={dateFormat}
                 timeFormat={timeFormat}
             />
             {isRemoteTimeZone && (<span>&nbsp;(
-                <span className="EventDateTime__timezone">&nbsp;{moment.tz(item.dates.tz).format('z')}</span>
+                <span className="EventDateTime__timezone">{remoteStart.format('z')}</span>
                 <DateTime
-                    withDate={newStartWithDate}
+                    withDate={remoteStartWithDate}
                     padLeft={false}
-                    date={newStart}
+                    withYear={remoteStartWithYear}
+                    date={remoteStart}
                     dateFormat={dateFormat}
                     timeFormat={timeFormat}
                 />
                 <span className="EventDateTime__divider">-</span>
                 <DateTime
-                    withDate={newEndWithDate}
+                    withDate={remoteEndWithDate}
                     padLeft={false}
-                    date={newEnd}
+                    withYear={remoteEndWithYear}
+                    date={remoteEnd}
                     dateFormat={dateFormat}
                     timeFormat={timeFormat}
-                />
-                <span className="EventDateTime__divider">)</span>
+                />)
             </span>)}
         </span>
     );

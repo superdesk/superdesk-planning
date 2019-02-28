@@ -8,7 +8,7 @@ import {TimeInputPopup} from './TimeInputPopup';
 import {IconButton} from '../../';
 import {KEYCODES} from '../../constants';
 import {gettext} from '../../../../utils/gettext';
-import {isEventInDifferentTimeZone, localTimeZone} from '../../utils';
+import {timeUtils} from '../../../../utils';
 import './style.scss';
 
 /**
@@ -179,9 +179,9 @@ export class TimeInput extends React.Component {
         let {invalid, errors, message} = this.props;
         let remoteDateString;
 
-        if (moment.isMoment(value) && remoteTimeZone && isEventInDifferentTimeZone({dates: {tz: remoteTimeZone}})) {
-            const conversionTimeZone = value.tz() === remoteTimeZone ? localTimeZone() : remoteTimeZone;
-            const remoteDate = moment.tz(value, conversionTimeZone);
+        if (moment.isMoment(value) && remoteTimeZone &&
+            timeUtils.isEventInDifferentTimeZone({dates: {start: value, tz: remoteTimeZone}})) {
+            const remoteDate = moment.tz(value, remoteTimeZone);
             let remoteTimeFormat = timeFormat;
 
             if (remoteDate.date() !== value.date() && dateFormat) {
