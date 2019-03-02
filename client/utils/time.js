@@ -110,12 +110,18 @@ const isEventInDifferentTimeZone = (event) => {
 const localTimeZone = () => moment.tz.guess();
 
 const getDateInRemoteTimeZone = (date, tz = self.localTimeZone()) => {
-    const dateToCheck = moment.isMoment(date) ? date : moment(date);
+    let dateToCheck;
+
+    if (!date) {
+        dateToCheck = moment();
+    } else {
+        dateToCheck = moment.isMoment(date) ? date : moment(date);
+    }
 
     return momentTz.tz(dateToCheck.clone().utc(), tz);
 };
 
-const getLocalDate = (date, tz) => {
+const getLocalDate = (date, tz, localTz) => {
     const isRemoteTimeZone = self.isEventInDifferentTimeZone({dates: {start: date, tz: tz}});
 
     return self.getDateInRemoteTimeZone(

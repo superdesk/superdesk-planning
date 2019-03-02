@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import moment from 'moment';
 
-import {eventUtils, gettext} from '../../../utils';
+import {eventUtils, gettext, timeUtils} from '../../../utils';
 
 import {Row, DateTimeInput, LineInput, ToggleInput, Field, TimeZoneInput} from '../../UI/Form';
 import {RecurringRulesInput} from '../RecurringRulesInput';
@@ -244,6 +244,7 @@ export class EventScheduleInput extends React.Component {
             labelLeftAuto: true,
             defaultValue: false,
         };
+        const isRemoteTimeZone = showRemoteTimeZone && timeUtils.isEventInDifferentTimeZone(diff);
 
         return (
             <div>
@@ -290,6 +291,7 @@ export class EventScheduleInput extends React.Component {
                     timeField="_startTime"
                     remoteTimeZone={showRemoteTimeZone ? get(diff, 'dates.tz') : null}
                     allowInvalidTime
+                    isLocalTimeZoneDifferent={isRemoteTimeZone}
                 />
 
                 <Field
@@ -309,6 +311,7 @@ export class EventScheduleInput extends React.Component {
                     timeField="_endTime"
                     remoteTimeZone={showRemoteTimeZone ? get(diff, 'dates.tz') : null}
                     allowInvalidTime
+                    isLocalTimeZoneDifferent={isRemoteTimeZone}
                 />
 
                 <Row flex={true} className="event-toggle" noPadding>

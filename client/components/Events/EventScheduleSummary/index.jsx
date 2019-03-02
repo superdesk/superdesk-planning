@@ -7,7 +7,7 @@ import {get} from 'lodash';
 import './style.scss';
 
 
-export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPadding, forUpdating}) => {
+export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPadding, forUpdating, useEventTimezone}) => {
     if (!schedule)
         return null;
 
@@ -15,7 +15,7 @@ export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPaddin
     const event = {dates: schedule};
     const eventDateText = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat);
     const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(event);
-    let newDateString;
+    let newDateString, currentDateText, remoteDateText, currentDateLabel;
 
     if (isRemoteTimeZone) {
         const remoteSchedule = {
@@ -29,15 +29,24 @@ export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPaddin
         newDateString = eventUtils.getDateStringForEvent(remoteSchedule, dateFormat, timeFormat, false, false);
     }
 
+    currentDateText = eventDateText;
+    remoteDateText = newDateString;
+    currentDateLabel = gettext('Current Date');
+    if (useEventTimezone && isRemoteTimeZone) {
+        currentDateText = newDateString.replace(/[\(\)]/g, '');
+        remoteDateText = eventDateText;
+        currentDateLabel = gettext('Current Date (Based on Event timezone)');
+    }
+
     return (
         <div>
             <Row
-                label={forUpdating ? gettext('Current Date') : gettext('Date')}
-                value={eventDateText || ''}
+                label={forUpdating ? currentDateLabel : gettext('Date')}
+                value={currentDateText || ''}
                 noPadding={noPadding || isRemoteTimeZone}
             />
             {isRemoteTimeZone && <Row
-                value={newDateString || ''}
+                value={remoteDateText || ''}
                 noPadding={noPadding}
             />}
 
@@ -61,10 +70,12 @@ EventScheduleSummary.propTypes = {
     timeFormat: PropTypes.string,
     noPadding: PropTypes.bool,
     forUpdating: PropTypes.bool,
+    useEventTimezone: PropTypes.bool,
 };
 
 EventScheduleSummary.defaultProps = {
     dateFormat: 'DD/MM/YYYY',
     timeFormat: 'HH:mm',
     noPadding: false,
+    useEventTimezone: false,
 };

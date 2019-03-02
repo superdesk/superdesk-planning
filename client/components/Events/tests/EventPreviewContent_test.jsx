@@ -1,10 +1,10 @@
 import React from 'react';
 import {mount} from 'enzyme';
 import {Provider} from 'react-redux';
-import moment from 'moment';
+import sinon from 'sinon';
 import {EventPreviewContent} from '../EventPreviewContent';
-import {getTestActionStore} from '../../../utils/testUtils';
-import {createTestStore, eventUtils} from '../../../utils';
+import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
+import {createTestStore, eventUtils, timeUtils} from '../../../utils';
 
 import {FileInput, LinkInput} from '../../UI/Form';
 
@@ -85,19 +85,18 @@ describe('<EventPreviewContent />', () => {
         expect(row.find('p').text()).toBe(value);
     };
 
-    const dateString = eventUtils.getDateStringForEvent(astore.initialState.events.events.e1,
-        'DD/MM/YYYY', 'HH:mm');
-
     beforeEach(() => {
-        moment.tz.setDefault(astore.initialState.config.defaultTimezone);
+        sinon.stub(timeUtils, 'localTimeZone').callsFake(() => astore.initialState.config.defaultTimezone);
     });
 
     afterEach(() => {
-        moment.tz.setDefault();
+        restoreSinonStub(timeUtils.localTimeZone);
     });
 
     it('renders an event with all its details', () => {
         const wrapper = getWrapper();
+        const dateString = eventUtils.getDateStringForEvent(astore.initialState.events.events.e1,
+            'DD/MM/YYYY', 'HH:mm');
 
         expect(wrapper.find('EventPreviewContentComponent').length).toBe(1);
         const dataRows = wrapper.find('.form__row');

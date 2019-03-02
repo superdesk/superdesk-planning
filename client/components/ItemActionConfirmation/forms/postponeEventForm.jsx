@@ -69,6 +69,8 @@ export class PostponeEventComponent extends React.Component {
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
                     noPadding={true}
+                    forUpdating={true}
+                    useEventTimezone={true}
                 />
 
                 <Row

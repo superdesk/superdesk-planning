@@ -615,12 +615,19 @@ export const getItemTypeString = (item) => {
     }
 };
 
-export const getDateTimeString = (date, dateFormat, timeFormat, separator = ' @ ', withTimezone = true) => {
+export const getDateTimeString = (
+    date,
+    dateFormat,
+    timeFormat,
+    separator = ' @ ',
+    withTimezone = true,
+    timezone = timeUtils.localTimeZone()
+) => {
     // !! Note - expects date as instance of moment() !! //
     const dateStr = date.format(dateFormat) + separator + date.format(timeFormat);
 
     return withTimezone ?
-        (timeUtils.getDateInRemoteTimeZone(date, timeUtils.localTimeZone()).format('z ') + dateStr) :
+        (timeUtils.getDateInRemoteTimeZone(date, timezone).format('z ') + dateStr) :
         dateStr;
 };
 

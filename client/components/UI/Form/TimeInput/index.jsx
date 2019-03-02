@@ -32,6 +32,8 @@ export class TimeInput extends React.Component {
         this.validateTimeText = this.validateTimeText.bind(this);
         this.toggleOpenTimePicker = this.toggleOpenTimePicker.bind(this);
         this.onChange = this.onChange.bind(this);
+        this.getValue = this.getValue.bind(this);
+        this.isValidInput = this.isValidInput.bind(this);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -40,7 +42,7 @@ export class TimeInput extends React.Component {
         }
 
         const val = nextProps.value && moment.isMoment(nextProps.value) ?
-            nextProps.value.format(this.props.timeFormat) : '';
+            this.getValue(nextProps.value).format(this.props.timeFormat) : '';
 
         this.setState({
             viewValue: val,
@@ -50,10 +52,19 @@ export class TimeInput extends React.Component {
         });
     }
 
+    getValue(value) {
+        const {isLocalTimeZoneDifferent, remoteTimeZone} = this.props;
+
+        if (isLocalTimeZoneDifferent) {
+            return timeUtils.getDateInRemoteTimeZone(value, remoteTimeZone);
+        }
+        return value;
+    }
+
     componentDidMount() {
         // After first render, set the value
         const value = this.props.value;
-        const viewValue = value && moment.isMoment(value) ? value.format(this.props.timeFormat) : '';
+        const viewValue = value && moment.isMoment(value) ? this.getValue(value).format(this.props.timeFormat) : '';
 
         this.setState({viewValue});
     }
@@ -67,10 +78,14 @@ export class TimeInput extends React.Component {
         }
     }
 
-    validateTimeText(field, val) {
+    isValidInput(val) {
         let regex = new RegExp('^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$', 'i');
 
-        if (!val.match(regex)) {
+        return val && val.match(regex);
+    }
+
+    validateTimeText(field, val) {
+        if (!this.isValidInput(val)) {
             this.setState({
                 invalid: true,
                 viewValue: val,
@@ -140,7 +155,7 @@ export class TimeInput extends React.Component {
     }
 
     onChange(newValue) {
-        const {value, onChange, field, timeFormat} = this.props;
+        const {value, onChange, field, timeFormat, remoteTimeZone, isLocalTimeZoneDifferent} = this.props;
 
         // Takes the time as a string (based on the configured time format)
         // Then parses it and calls parents onChange with new moment object
@@ -149,14 +164,23 @@ export class TimeInput extends React.Component {
             return;
         }
 
-        const newTime = moment(newValue, timeFormat);
-        let newMoment = value && moment.isMoment(value) ? moment(value) : moment();
+        const newTime = isLocalTimeZoneDifferent ?
+            moment.tz(newValue, timeFormat, remoteTimeZone) : moment(newValue, timeFormat);
+        let newMoment = value && moment.isMoment(value) ? this.getValue(value.clone()) : moment();
 
         newMoment.hour(newTime.hour());
         newMoment.minute(newTime.minute());
         newMoment.second(0);
 
-        if (!newMoment.isSame(value) || !value) {
+        if (!newMoment.isSame(this.getValue(value)) || !value) {
+            if (this.isValidInput(newValue) && this.state.invalid) {
+                this.setState({
+                    invalid: false,
+                    viewValue: newValue,
+                    previousValidValue: newValue,
+                    showLocalValidation: false,
+                });
+            }
             onChange(field, newMoment);
         }
     }
@@ -170,25 +194,24 @@ export class TimeInput extends React.Component {
             readOnly,
             popupContainer,
             onFocus,
-            remoteTimeZone,
             timeFormat,
             dateFormat,
+            isLocalTimeZoneDifferent,
             ...props
         } = this.props;
 
         let {invalid, errors, message} = this.props;
-        let remoteDateString;
+        let displayDateString;
 
-        if (moment.isMoment(value) && remoteTimeZone &&
-            timeUtils.isEventInDifferentTimeZone({dates: {start: value, tz: remoteTimeZone}})) {
-            const remoteDate = moment.tz(value, remoteTimeZone);
-            let remoteTimeFormat = timeFormat;
+        if (moment.isMoment(value) && isLocalTimeZoneDifferent && !this.state.invalid && !invalid) {
+            const displayDate = timeUtils.getDateInRemoteTimeZone(value, timeUtils.localTimeZone());
+            let displayFormat = timeFormat;
 
-            if (remoteDate.date() !== value.date() && dateFormat) {
-                remoteTimeFormat = dateFormat + ' @ ' + remoteTimeFormat;
+            if (dateFormat) {
+                displayFormat = dateFormat + ' @ ' + displayFormat;
             }
 
-            remoteDateString = `(${moment.tz(remoteTimeZone).format('z')} ${remoteDate.format(remoteTimeFormat)})`;
+            displayDateString = `(${displayDate.format('z')} ${displayDate.format(displayFormat)})`;
         }
 
         if (this.state.showLocalValidation) {
@@ -227,11 +250,10 @@ export class TimeInput extends React.Component {
                     }
                     refNode={(ref) => this.dom.inputField = ref}
                 />
-                {remoteTimeZone && remoteDateString &&
-                    <span>{remoteDateString}</span>}
+                {displayDateString && <span>{displayDateString}</span>}
                 {this.state.openTimePicker && (
                     <TimeInputPopup
-                        value={value}
+                        value={this.getValue(value)}
                         onChange={this.onChange}
                         close={this.toggleOpenTimePicker}
                         target="icon-time"
@@ -270,6 +292,7 @@ TimeInput.propTypes = {
     allowInvalidText: PropTypes.bool,
     canClear: PropTypes.bool,
     errors: PropTypes.object,
+    isLocalTimeZoneDifferent: PropTypes.bool,
 };
 
 TimeInput.defaultProps = {
@@ -278,4 +301,5 @@ TimeInput.defaultProps = {
     readOnly: false,
     boxed: false,
     noMargin: false,
+    isLocalTimeZoneDifferent: false,
 };

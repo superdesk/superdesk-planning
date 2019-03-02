@@ -850,11 +850,12 @@ const getRepeatSummaryForEvent = (schedule) => {
 
     const getEnds = () => {
         if (endRepeatMode === 'until' && moment.isMoment(until)) {
-            let untilText = gettext('until {{until}} ', {until: until ? until.format('D MMM YYYY') : ' '});
+            const localUntil = timeUtils.getDateInRemoteTimeZone(until, timeUtils.localTimeZone());
+            let untilText = gettext('until {{until}} ', {until: localUntil ? localUntil.format('z D MMM YYYY') : ' '});
             const remoteUntil = timeUtils.getDateInRemoteTimeZone(until, schedule.tz);
 
-            if (timeUtils.isEventInDifferentTimeZone({dates: schedule}) && until.date() !== remoteUntil.date()) {
-                untilText = untilText + `(${moment.tz(schedule.tz).format('z')}) ${remoteUntil.format('D MMM YYYY')}`;
+            if (timeUtils.isEventInDifferentTimeZone({dates: schedule})) {
+                untilText = untilText + `(${remoteUntil.format('z D MMM YYYY')})`;
             }
             return untilText;
         }

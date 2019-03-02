@@ -58,12 +58,32 @@ describe('<RepeatEventSummary />', () => {
                     interval: 3,
                     until: moment('2020-07-01T00:00'),
                 },
-                tz: moment.tz.guess(),
+                tz: 'Australia/Sydney',
             },
         };
         let wrapper = mountForm(recEvent);
 
-        expect(wrapper.find('p').text()).toBe('Every 3 day(s) until 1 Jul 2020 ');
+        expect(wrapper.find('p').text()).toBe('Every 3 day(s) until AEST 1 Jul 2020 ');
+    });
+
+    it('Event in different timezone shows appropriate repeat summary for a given frequency and until', () => {
+        const recEvent = {
+            ...event,
+            dates: {
+                start: moment('2016-10-15T14:30+0000'),
+                end: moment('2016-10-20T15:00+0000'),
+                recurring_rule: {
+                    endRepeatMode: 'until',
+                    frequency: 'DAILY',
+                    interval: 3,
+                    until: moment('2020-07-01T00:00'),
+                },
+                tz: 'Europe/London',
+            },
+        };
+        let wrapper = mountForm(recEvent);
+
+        expect(wrapper.find('p').text()).toBe('Every 3 day(s) until AEST 1 Jul 2020 (BST 30 Jun 2020)');
     });
 
     it('Shows appropriate repeat summary for a given frequency with intervals and for a number of occurrences', () => {
@@ -78,7 +98,7 @@ describe('<RepeatEventSummary />', () => {
                     interval: 3,
                     count: '9',
                 },
-                tz: moment.tz.guess(),
+                tz: 'Australia/Sydney',
             },
         };
         let wrapper = mountForm(recEvent);
@@ -97,7 +117,7 @@ describe('<RepeatEventSummary />', () => {
                     interval: 3,
                     byday: 'TH FR',
                 },
-                tz: moment.tz.guess(),
+                tz: 'Australia/Sydney',
             },
         };
         let wrapper = mountForm(recEvent);
