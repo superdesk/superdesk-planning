@@ -61,6 +61,7 @@ export class PlanningListComponent extends React.Component {
             listFields,
             isAllListItemsLoaded,
             previewId,
+            contentTypes,
         } = this.props;
 
         return (
@@ -93,6 +94,7 @@ export class PlanningListComponent extends React.Component {
                 listFields={listFields}
                 isAllListItemsLoaded={isAllListItemsLoaded}
                 previewItem={previewId}
+                contentTypes={contentTypes}
                 indexItems
             />
         );
@@ -130,6 +132,7 @@ PlanningListComponent.propTypes = {
     listFields: PropTypes.object,
     isAllListItemsLoaded: PropTypes.bool,
     previewId: PropTypes.string,
+    contentTypes: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({
@@ -151,6 +154,7 @@ const mapStateToProps = (state) => ({
     listFields: selectors.forms.listFields(state),
     isAllListItemsLoaded: selectors.main.isAllListItemsLoaded(state),
     previewId: selectors.main.previewId(state),
+    contentTypes: selectors.general.contentTypes(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

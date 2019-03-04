@@ -829,6 +829,17 @@ class AssignmentsService(superdesk.Service):
         return original.get('assigned_to').get('state') == ASSIGNMENT_WORKFLOW_STATE.DRAFT and\
             updates.get('assigned_to', {}).get('state') == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
 
+    def is_text_assignment(self, assignment):
+        text_assignment = False
+        content_types = get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
+        if content_types:
+            content_type = [t for t in (content_types.get('items') or [])
+                            if t.get('qcode') == assignment.get('planning', {}).get('g2_content_type')]
+            if len(content_type) > 0:
+                text_assignment = (content_type[0].get('content item type') or content_type[0].get('qcode')) == 'text'
+
+        return text_assignment
+
     def publish_planning(self, planning_id):
         """Publish the planning item if assignment state changes for following actions
 

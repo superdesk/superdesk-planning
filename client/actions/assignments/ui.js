@@ -474,7 +474,9 @@ const revert = (item) => (
     (dispatch, getState, {notify}) => (
         dispatch(self.lockAssignment(item, 'revert'))
             .then((lockedItem) => {
-                if (!assignmentUtils.isTextAssignment(item)) {
+                const contentTypes = selectors.general.contentTypes(getState());
+
+                if (!assignmentUtils.isTextAssignment(item, contentTypes)) {
                     return dispatch(assignments.api.revert(lockedItem))
                         .then((lockedItem) => {
                             notify.success(gettext('The assignment has been reverted.'));

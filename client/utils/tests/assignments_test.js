@@ -5,6 +5,7 @@ describe('can edit assignment', () => {
     let privileges;
     let assignment;
     let session;
+    let contetTypes;
 
     beforeEach(() => {
         privileges = {
@@ -27,10 +28,15 @@ describe('can edit assignment', () => {
             identity: {_id: 'ident1'},
             sessionId: 'session1',
         };
+
+        contetTypes = [{
+            name: 'Text',
+            qcode: 'text',
+        }];
     });
 
     const canStartWorking = () => utils.assignmentUtils.canStartWorking(
-        assignment, session, privileges
+        assignment, session, privileges, contetTypes
     );
     const canCompleteAssignment = () => utils.assignmentUtils.canCompleteAssignment(
         assignment, session, privileges
@@ -51,7 +57,7 @@ describe('can edit assignment', () => {
         assignment, session, privileges, PRIVILEGES.ARCHIVE
     );
     const canConfirmAvailability = () => utils.assignmentUtils.canConfirmAvailability(
-        assignment, session, privileges
+        assignment, session, privileges, contetTypes
     );
     const canRevertAvailability = () => utils.assignmentUtils.canRevertAssignment(
         assignment, session, privileges

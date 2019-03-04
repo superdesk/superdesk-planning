@@ -758,6 +758,9 @@ const getCoverageWorkflowIcon = (coverage) => {
     }
 };
 
+const getCoverageContentType = (coverage, contentTypes = []) => get(contentTypes.find(
+    (c) => get(c, 'qcode') === get(coverage, 'planning.g2_content_type')), 'content item type');
+
 const shouldLockPlanningForEdit = (item, privileges) => (
     !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         (!isItemPublic(item) || !!privileges[PRIVILEGES.POST_PLANNING])
@@ -799,7 +802,7 @@ const defaultCoverageValues = (
 
     if (get(preferredCoverageDesks, g2contentType)) {
         newCoverage.assigned_to = {desk: preferredCoverageDesks[g2contentType]};
-    } else if (g2contentType === PLANNING.G2_CONTENT_TYPE.TEXT && defaultDesk) {
+    } else if (g2contentType === 'text' && defaultDesk) {
         newCoverage.assigned_to = {desk: defaultDesk._id};
     } else {
         delete newCoverage.assigned_to;
@@ -880,6 +883,7 @@ const self = {
     modifyPlanningsBeingAdded,
     isFeaturedPlanningUpdatedAfterPosting,
     shouldFetchFilesForPlanning,
+    getCoverageContentType,
 };
 
 export default self;

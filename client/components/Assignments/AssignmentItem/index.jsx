@@ -75,6 +75,7 @@ export class AssignmentItem extends React.Component {
             removeAssignment,
             revertAssignment,
             hideItemActions,
+            contentTypes,
         } = this.props;
 
         const isItemLocked = get(lockedItems, 'assignment') && assignment._id in lockedItems.assignment;
@@ -94,6 +95,7 @@ export class AssignmentItem extends React.Component {
                 session,
                 privileges,
                 lockedItems,
+                contentTypes,
                 itemActionsCallBack) : [];
 
         const hasContent = assignmentUtils.assignmentHasContent(assignment);
@@ -126,7 +128,8 @@ export class AssignmentItem extends React.Component {
                             </Tooltip>
                         }
                     >
-                        <i className={planningUtils.getCoverageIcon(get(assignment, 'planning.g2_content_type'))} />
+                        <i className={planningUtils.getCoverageIcon(planningUtils.getCoverageContentType(
+                            assignment, contentTypes) || get(assignment, 'planning.g2_content_type'))} />
                     </OverlayTrigger>
                 </Column>
                 <Column grow={true} border={false}>
@@ -215,4 +218,5 @@ AssignmentItem.propTypes = {
     removeAssignment: PropTypes.func,
     revertAssignment: PropTypes.func,
     hideItemActions: PropTypes.bool,
+    contentTypes: PropTypes.array,
 };

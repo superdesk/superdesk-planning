@@ -142,7 +142,8 @@ export class PlanningHistory extends React.Component {
                         users={this.props.users}
                         desks={this.props.desks}
                         timeFormat={this.props.timeFormat}
-                        dateFormat={this.props.dateFormat} />)}
+                        dateFormat={this.props.dateFormat}
+                        contentTypes={this.props.contentTypes} />)}
             </ContentBlock>
         );
     }
@@ -162,4 +163,5 @@ PlanningHistory.propTypes = {
     dateFormat: PropTypes.string,
     fetchPlanningHistory: PropTypes.func,
     openItemPreview: PropTypes.func,
+    contentTypes: PropTypes.array,
 };

@@ -36,6 +36,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
             lockedItems,
             openArchivePreview,
             revertAssignment,
+            contentTypes,
         } = this.props;
 
         if (hideItemActions) {
@@ -57,6 +58,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
             session,
             privileges,
             lockedItems,
+            contentTypes,
             itemActionsCallBack);
     }
 
@@ -77,6 +79,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
             agendas,
             hideAvatar,
             currentWorkspace,
+            contentTypes,
         } = this.props;
 
         if (!assignment) {
@@ -99,6 +102,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
                     desks={desks}
                     hideAvatar={hideAvatar}
                     hideItemActions={currentWorkspace === WORKSPACE.AUTHORING}
+                    contentTypes={contentTypes}
                 />
 
                 {showFulfilAssignment && state === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
@@ -192,6 +196,7 @@ AssignmentPreviewContainerComponent.propTypes = {
     showFulfilAssignment: PropTypes.bool,
     fetchEventFiles: PropTypes.func,
     currentWorkspace: PropTypes.string,
+    contentTypes: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({
@@ -212,6 +217,7 @@ const mapStateToProps = (state) => ({
     lockedItems: selectors.locks.getLockedItems(state),
     agendas: selectors.general.agendas(state),
     currentWorkspace: selectors.general.currentWorkspace(state),
+    contentTypes: selectors.general.contentTypes(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

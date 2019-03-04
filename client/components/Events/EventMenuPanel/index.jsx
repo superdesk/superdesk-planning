@@ -23,6 +23,7 @@ export class EventMenuPanelComponent extends React.Component {
             users,
             desks,
             plannings,
+            contentTypes,
         } = this.props;
 
         return (
@@ -59,6 +60,7 @@ export class EventMenuPanelComponent extends React.Component {
                         timeFormat={timeFormat}
                         onClick={onMenuItemClick.bind(null, 'plannings[' + index + ']')}
                         active={activeItem === 'plannings[' + index + ']'}
+                        contentTypes={contentTypes}
                         noOpen
                         tabEnabled
                         scrollInView />)
@@ -77,6 +79,7 @@ EventMenuPanelComponent.propTypes = {
     plannings: PropTypes.array,
     users: PropTypes.array,
     desks: PropTypes.array,
+    contentTypes: PropTypes.array,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -85,6 +88,8 @@ const mapStateToProps = (state, ownProps) => ({
     dateFormat: selectors.config.getDateFormat(state),
     timeFormat: selectors.config.getTimeFormat(state),
     plannings: selectors.events.getRelatedPlanningsForModalEvent(state),
+    contentTypes: selectors.general.contentTypes(state),
+
 });
 
 export const EventMenuPanel = connect(mapStateToProps, null)(EventMenuPanelComponent);

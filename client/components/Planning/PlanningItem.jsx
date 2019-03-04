@@ -142,6 +142,7 @@ export class PlanningItem extends React.Component {
             listFields,
             active,
             refNode,
+            contentTypes,
         } = this.props;
 
         if (!item) {
@@ -219,6 +220,7 @@ export class PlanningItem extends React.Component {
                             users,
                             desks,
                             activeFilter,
+                            contentTypes,
                         })}
                     </Row>
                 </Column>
@@ -269,6 +271,7 @@ PlanningItem.propTypes = {
     listFields: PropTypes.object,
     refNode: PropTypes.func,
     active: PropTypes.bool,
+    contentTypes: PropTypes.array,
     [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,

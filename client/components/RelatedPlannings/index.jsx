@@ -24,6 +24,7 @@ export const RelatedPlanningsComponent = ({
     dateFormat,
     timeFormat,
     allowEditPlanning,
+    contentTypes,
 }) => (
     (<div>
         {expandable ?
@@ -40,6 +41,7 @@ export const RelatedPlanningsComponent = ({
                     desks={desks}
                     dateFormat={dateFormat}
                     timeFormat={timeFormat}
+                    contentTypes={contentTypes}
                     tabEnabled />
             ))
             :
@@ -112,6 +114,7 @@ RelatedPlanningsComponent.propTypes = {
     timeFormat: PropTypes.string,
     onEditPlanning: PropTypes.func,
     allowEditPlanning: PropTypes.bool,
+    contentTypes: PropTypes.array,
 };
 
 RelatedPlanningsComponent.defaultProps = {short: false};
@@ -119,6 +122,7 @@ RelatedPlanningsComponent.defaultProps = {short: false};
 const mapStateToProps = (state, ownProps) => ({
     plannings: ownProps.plannings.map((planning) => ({...planning})),
     lockedItems: selectors.locks.getLockedItems(state),
+    contentTypes: selectors.general.contentTypes(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

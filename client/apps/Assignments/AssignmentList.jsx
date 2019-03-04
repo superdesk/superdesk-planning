@@ -23,6 +23,7 @@ export const AssignmentListContainer = ({
     filterByType,
     filterByPriority,
     selectedDeskId,
+    contentTypes,
 }) => {
     const loadAssignmentsForGroup = (groupKey) =>
         loadAssignments(
@@ -41,6 +42,7 @@ export const AssignmentListContainer = ({
         loadMoreAssignments,
         setMaxHeight,
         hideItemActions,
+        contentTypes,
     };
 
     return (
@@ -83,6 +85,7 @@ AssignmentListContainer.propTypes = {
     orderDirection: PropTypes.string,
     hideItemActions: PropTypes.bool,
     selectedDeskId: PropTypes.string,
+    contentTypes: PropTypes.array,
 };
 
 AssignmentListContainer.defaultProps = {setMaxHeight: true};
@@ -96,6 +99,7 @@ const mapStateToProps = (state) => ({
     orderByField: selectors.getOrderByField(state),
     orderDirection: selectors.getOrderDirection(state),
     selectedDeskId: selectors.getSelectedDeskId(state),
+    contentTypes: selectors.general.contentTypes(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

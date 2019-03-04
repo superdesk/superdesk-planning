@@ -29,6 +29,7 @@ export const PlanningMetaData = (
         dateFormat,
         timeFormat,
         field,
+        contentTypes,
     }
 ) => {
     const isItemLocked = lockedItems ? planningUtils.isPlanningLocked(plan, lockedItems) : false;
@@ -78,7 +79,8 @@ export const PlanningMetaData = (
                                 users={users}
                                 desks={desks}
                                 dateFormat={dateFormat}
-                                timeFormat={timeFormat} />
+                                timeFormat={timeFormat}
+                                contentTypes={contentTypes} />
                         )}
                     </span>
                 </Row>
@@ -152,6 +154,7 @@ PlanningMetaData.propTypes = {
     dateFormat: PropTypes.string,
     timeFormat: PropTypes.string,
     field: PropTypes.string,
+    contentTypes: PropTypes.array,
 };
 
 

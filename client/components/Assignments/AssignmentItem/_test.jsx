@@ -28,6 +28,7 @@ describe('assignments', () => {
                 first_name: 'Foo',
                 last_name: 'Bar',
             };
+            let contentTypes = [{qcode: 'text'}];
 
 
             let [reassign, revertAssignment, editAssignmentPriority,
@@ -55,6 +56,7 @@ describe('assignments', () => {
                             inAssignments={true}
                             assignedUser={user}
                             isCurrentUser={false}
+                            contentTypes={contentTypes}
                         />
                     </Provider>
                 );

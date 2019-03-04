@@ -1,5 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {get} from 'lodash';
+
 import {onEventCapture, gettext, planningUtils} from '../../../utils';
 import {CoveragesMenuPopup} from './CoveragesMenuPopup';
 
@@ -18,7 +20,7 @@ export class CoverageAddButton extends React.Component {
             {
                 id: `coverage-menu-add-${c.qcode}`,
                 label: c.name,
-                icon: planningUtils.getCoverageIcon(c.qcode),
+                icon: planningUtils.getCoverageIcon(get(c, 'content item type') || c.qcode),
                 callback: nextProps.onAdd.bind(null, c.qcode, nextProps.defaultDesk, nextProps.preferredCoverageDesks),
             }
         ));

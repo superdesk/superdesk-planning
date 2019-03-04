@@ -71,7 +71,7 @@ class AssignmentGroupListComponent extends React.Component {
 
     rowRenderer(index) {
         const assignment = this.props.assignments[index];
-        const {users, session, currentAssignmentId, privileges} = this.props;
+        const {users, session, currentAssignmentId, privileges, contentTypes} = this.props;
         const assignedUser = users.find((user) => get(assignment, 'assigned_to.user') === user._id);
         const isCurrentUser = assignedUser && assignedUser._id === session.identity._id;
         const onDoubleClick = assignmentUtils.assignmentHasContent(assignment) ?
@@ -98,6 +98,7 @@ class AssignmentGroupListComponent extends React.Component {
                 priorities={this.props.priorities}
                 removeAssignment={this.props.removeAssignment}
                 revertAssignment={this.props.revertAssignment}
+                contentTypes={contentTypes}
             />
         );
     }
@@ -177,6 +178,7 @@ AssignmentGroupListComponent.propTypes = {
     openArchivePreview: PropTypes.func,
     revertAssignment: PropTypes.func,
     setMaxHeight: PropTypes.bool,
+    contentTypes: PropTypes.array,
 };
 
 AssignmentGroupListComponent.defaultProps = {setMaxHeight: true};
