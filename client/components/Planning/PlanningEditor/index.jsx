@@ -608,6 +608,7 @@ export class PlanningEditorComponent extends React.Component {
                             label={gettext('Not for Publication')}
                             labelLeft={true}
                             defaultValue={false}
+                            title={gettext('When active, the Planning item will not be publishable')}
                             {...fieldProps}
                             onFocus={onFocusDetails}
                         />}
