@@ -94,6 +94,12 @@ def get_max_recurrent_events(current_app=None):
     return int(app.config.get('MAX_RECURRENT_EVENTS', 200))
 
 
+def planning_auto_assign_to_workflow(current_app=None):
+    if current_app is not None:
+        return current_app.config.get('PLANNING_AUTO_ASSIGN_TO_WORKFLOW', False)
+    return app.config.get('PLANNING_AUTO_ASSIGN_TO_WORKFLOW', False)
+
+
 def remove_lock_information(item):
     item.update({
         LOCK_USER: None,

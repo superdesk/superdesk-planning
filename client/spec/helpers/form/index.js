@@ -29,6 +29,7 @@ const fieldToHelper = {
     planning_date: (form, field) => new DateTime(form, field),
     urgency: (form, field) => new UrgencyInput(form, field),
     'flags.marked_for_not_publication': (form, field) => new ToggleInput(form, field),
+    'flags.overide_auto_assign_to_workflow': (form, field) => new ToggleInput(form, field),
     coverages: (form, field) => new CoverageList(form, field),
     g2_content_type: (form, field) => new Select(form, field),
     news_coverage_status: (form, field) => new Select(form, field),
