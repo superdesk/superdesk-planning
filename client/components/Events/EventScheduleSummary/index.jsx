@@ -34,7 +34,7 @@ export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPaddin
     currentDateLabel = gettext('Current Date');
     if (useEventTimezone && isRemoteTimeZone) {
         currentDateText = newDateString.replace(/[\(\)]/g, '');
-        remoteDateText = eventDateText;
+        remoteDateText = `(${eventDateText})`;
         currentDateLabel = gettext('Current Date (Based on Event timezone)');
     }
 

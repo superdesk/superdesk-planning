@@ -1,7 +1,11 @@
 import React from 'react';
 import {mount} from 'enzyme';
-import {RepeatEventSummary} from './index';
 import moment from 'moment';
+import sinon from 'sinon';
+import {RepeatEventSummary} from './index';
+import {timeUtils} from '../../../utils';
+import {restoreSinonStub} from '../../../utils/testUtils';
+
 
 describe('<RepeatEventSummary />', () => {
     const event = {
@@ -27,6 +31,14 @@ describe('<RepeatEventSummary />', () => {
     const mountForm = (recEvent) => (mount(
         <RepeatEventSummary schedule={recEvent.dates} />
     ));
+
+    beforeEach(() => {
+        sinon.stub(timeUtils, 'localTimeZone').callsFake(() => 'Australia/Sydney');
+    });
+
+    afterEach(() => {
+        restoreSinonStub(timeUtils.localTimeZone);
+    });
 
     it('Shows appropriate repeat summary for a given frequency with intervals', () => {
         const recEvent = {
