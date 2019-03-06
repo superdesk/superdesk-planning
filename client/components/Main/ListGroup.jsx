@@ -36,6 +36,7 @@ export const ListGroup = ({
     navigateList,
     onItemActivate,
     previewItem,
+    contentTypes,
 }) => (
     <div className="ListGroup">
         <Header title={moment(name).format('dddd LL')} />
@@ -70,6 +71,7 @@ export const ListGroup = ({
                     navigateList: navigateList,
                     onItemActivate: onItemActivate,
                     previewItem: previewItem,
+                    contentTypes: contentTypes,
                 };
 
                 if (indexItems) {
@@ -116,6 +118,7 @@ ListGroup.propTypes = {
     navigateDown: PropTypes.bool,
     navigateList: PropTypes.func,
     onItemActivate: PropTypes.func,
+    contentTypes: PropTypes.array,
 };
 
 ListGroup.defaultProps = {

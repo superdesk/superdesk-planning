@@ -86,6 +86,11 @@ export const PLANNING = {
             icon: 'icon-revert',
             actionName: 'onRemoveFeatured',
         },
+        ADD_COVERAGE_FROM_LIST: {
+            label: gettext('Add coverage'),
+            icon: 'icon-plus-small',
+            actionName: 'onAddNewCoverageToPlanning',
+        },
     },
     NEWS_COVERAGE_CANCELLED_STATUS: {
         qcode: 'ncostat:notint',

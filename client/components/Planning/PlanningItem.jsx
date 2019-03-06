@@ -62,7 +62,7 @@ export class PlanningItem extends React.Component {
             return null;
         }
 
-        const {session, privileges, item, lockedItems, hideItemActions, agendas} = this.props;
+        const {session, privileges, item, lockedItems, hideItemActions, agendas, contentTypes} = this.props;
         const itemActionsCallBack = {
             [PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName]:
                 this.props[PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName],
@@ -79,6 +79,8 @@ export class PlanningItem extends React.Component {
                 this.props[PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName],
             [PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName]:
                 this.props[PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName],
+            [PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName]:
+                this.props[PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName],
             [PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName]:
                 this.props[PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName],
             [PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName]:
@@ -106,6 +108,7 @@ export class PlanningItem extends React.Component {
                 privileges: privileges,
                 lockedItems: lockedItems,
                 agendas: agendas,
+                contentTypes: contentTypes,
                 callBacks: itemActionsCallBack});
 
         if (get(itemActions, 'length', 0) === 0) {
@@ -269,6 +272,7 @@ PlanningItem.propTypes = {
     listFields: PropTypes.object,
     refNode: PropTypes.func,
     active: PropTypes.bool,
+    contentTypes: PropTypes.array,
     [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,

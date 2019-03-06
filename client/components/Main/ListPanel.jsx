@@ -210,6 +210,7 @@ export class ListPanel extends React.Component {
             isAllListItemsLoaded,
             indexItems,
             previewItem,
+            contentTypes,
         } = this.props;
 
         let indexFrom = 0;
@@ -247,6 +248,7 @@ export class ListPanel extends React.Component {
                             dateFormat: dateFormat,
                             timeFormat: timeFormat,
                             agendas: agendas,
+                            contentTypes: contentTypes,
                             session: session,
                             privileges: privileges,
                             calendars: calendars,
@@ -327,4 +329,5 @@ ListPanel.propTypes = {
     navigateDown: PropTypes.bool,
     navigateList: PropTypes.func,
     onItemActivate: PropTypes.func,
+    contentTypes: PropTypes.array,
 };
