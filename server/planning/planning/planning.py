@@ -343,16 +343,32 @@ class PlanningService(superdesk.Service):
                 coverage['coverage_id'] = generate_guid(type=GUID_NEWSML)
                 coverage['firstcreated'] = utcnow()
                 set_original_creator(coverage)
+                # If the coverage is created and assigned to a desk/user and the PLANNING_AUTO_ASSIGN_TO_WORKFLOW is
+                # True the coverage will be created in workflow unless the overide flag is set.
+                if app.config.get('PLANNING_AUTO_ASSIGN_TO_WORKFLOW', False) and \
+                        (coverage.get('assigned_to', {}).get('desk') or coverage.get('assigned_to', {}).get(
+                            'user')) and not updates.get('flags', {}).get('overide_auto_assign_to_workflow', False):
+                    coverage['workflow_status'] = WORKFLOW_STATE.ACTIVE
             else:
                 original_coverage = next((cov for cov in original.get('coverages') or []
                                           if cov['coverage_id'] == coverage_id), None)
                 if not original_coverage:
                     continue
 
+                # If PLANNING_AUTO_ASSIGN_TO_WORKFLOW is True and the overide flag has been set to false
+                # Set the workflow state of the item to active if not already
+                if app.config.get('PLANNING_AUTO_ASSIGN_TO_WORKFLOW', False) and \
+                        (coverage.get('assigned_to', {}).get('desk') or coverage.get('assigned_to', {}).get(
+                            'user')) and not updates.get('flags', {}).get('overide_auto_assign_to_workflow', False) \
+                        and original.get('flags', {}).get('overide_auto_assign_to_workflow', False) \
+                        and coverage['workflow_status'] == WORKFLOW_STATE.DRAFT:
+                    coverage['workflow_status'] = WORKFLOW_STATE.ACTIVE
+
                 if self.coverage_changed(coverage, original_coverage):
                     user = get_user()
                     coverage['version_creator'] = str(user.get(config.ID_FIELD)) if user else None
                     coverage['versioncreated'] = utcnow()
+
                     # If the internal note has changed send a notification, except if it's been cancelled
                     if coverage.get('planning', {}).get('internal_note', '') != original_coverage.get('planning',
                                                                                                       {}).get(
@@ -1095,7 +1111,11 @@ planning_schema = {
         'type': 'dict',
         'schema': {
             'marked_for_not_publication':
-                metadata_schema['flags']['schema']['marked_for_not_publication']
+                metadata_schema['flags']['schema']['marked_for_not_publication'],
+            # If the config is set to create coverage items in workflow this flag will override that and allow coverages
+            # created for this planning item to be created in draft
+            'overide_auto_assign_to_workflow': {
+                'type': 'boolean', 'default': False}
         }
     },
 
@@ -1136,6 +1156,7 @@ planning_schema = {
         'type': 'string',
         'nullable': True
     }
+
 }  # end planning_schema
 
 

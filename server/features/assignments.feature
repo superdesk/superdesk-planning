@@ -1858,3 +1858,194 @@ Feature: Assignments
             }
         ]}
         """
+
+    @auth
+    @vocabularies
+    Scenario: Coverage is created in workflow if auto assign to workflow config is set
+        When we set auto workflow on
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02",
+            "coverages": [
+                {
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type" : "text"
+                    },
+                    "assigned_to": {
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
+                        "coverage_provider": {
+                            "qcode": "stringer",
+                            "name": "Stringer"
+                        }
+                    },
+                    "workflow_status": "draft"
+                }
+            ]
+        }]
+        """
+        Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "item_class": "item class value",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                  "assigned_to": {
+                    "coverage_provider": {"name": "Stringer"},
+                    "desk": "#desks._id#",
+                    "priority": 2,
+                    "state": "assigned",
+                    "user": "#CONTEXT_USER_ID#"
+                  },
+                  "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "g2_content_type": "text",
+                    "headline": "test headline",
+                    "slugline": "test slugline"
+                  },
+                  "workflow_status": "active"
+                }
+            ]
+        }
+        """
+
+    @auth
+    @vocabularies
+    Scenario: Coverage is put in workflow if auto assign to workflow config is set
+        When we set auto workflow on
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type" : "text"
+                    },
+                    "assigned_to": {
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
+                        "coverage_provider": {
+                            "qcode": "stringer",
+                            "name": "Stringer"
+                        }
+                    },
+                    "workflow_status": "draft"
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "item_class": "item class value",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                  "assigned_to": {
+                    "coverage_provider": {"name": "Stringer"},
+                    "desk": "#desks._id#",
+                    "priority": 2,
+                    "state": "assigned",
+                    "user": "#CONTEXT_USER_ID#"
+                  },
+                  "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "g2_content_type": "text",
+                    "headline": "test headline",
+                    "slugline": "test slugline"
+                  },
+                  "workflow_status": "active"
+                }
+            ]
+        }
+        """
+
+    @auth
+    @vocabularies
+    Scenario: Coverage is created not in workflow if auto assign to workflow config is set but flag overides it
+        When we set auto workflow on
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02",
+            "coverages": [
+                {
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type" : "text"
+                    },
+                    "assigned_to": {
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
+                        "coverage_provider": {
+                            "qcode": "stringer",
+                            "name": "Stringer"
+                        }
+                    },
+                    "workflow_status": "draft"
+                }
+            ],
+            "flags" : {
+            "overide_auto_assign_to_workflow" : true}
+        }]
+        """
+        Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "item_class": "item class value",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                  "assigned_to": {
+                    "coverage_provider": {"name": "Stringer"},
+                    "desk": "#desks._id#",
+                    "priority": 2,
+                    "state": "draft",
+                    "user": "#CONTEXT_USER_ID#"
+                  },
+                  "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "g2_content_type": "text",
+                    "headline": "test headline",
+                    "slugline": "test slugline"
+                  },
+                  "workflow_status": "draft"
+                }
+            ]
+        }
+        """

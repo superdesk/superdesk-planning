@@ -71,6 +71,7 @@ export class CoverageArrayInput extends React.Component {
             diff,
             navigation,
             useLocalNavigation,
+            autoAssignToWorkflow,
             ...props
         } = this.props;
 
@@ -116,6 +117,7 @@ export class CoverageArrayInput extends React.Component {
                         diff={diff}
                         navigation={coverageNavigation}
                         openCoverageIds={this.state.openCoverageIds}
+                        autoAssignToWorkflow={autoAssignToWorkflow}
                         {...props}
                     />
                 </ContentBlock>
@@ -151,6 +153,7 @@ CoverageArrayInput.propTypes = {
     onPopupClose: PropTypes.func,
     setCoverageDefaultDesk: PropTypes.func,
     preferredCoverageDesks: PropTypes.object,
+    autoAssignToWorkflow: PropTypes.bool,
 };
 
 CoverageArrayInput.defaultProps = {

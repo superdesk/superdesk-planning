@@ -42,6 +42,7 @@ export const CoverageEditor = ({
     onPopupClose,
     setCoverageDefaultDesk,
     openCoverageIds,
+    autoAssignToWorkflow,
     ...props
 }) => {
     // Coverage item actions
@@ -77,7 +78,8 @@ export const CoverageEditor = ({
                 });
             }
 
-            if (planningUtils.isCoverageDraft(value) && planningUtils.isCoverageAssigned(value)) {
+            if (planningUtils.isCoverageDraft(value) && planningUtils.isCoverageAssigned(value)
+                && !autoAssignToWorkflow) {
                 itemActions.push({
                     id: 'addToWorkflow',
                     label: gettext('Add to workflow'),
@@ -239,6 +241,7 @@ CoverageEditor.propTypes = {
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
     openCoverageIds: PropTypes.arrayOf(PropTypes.string),
+    autoAssignToWorkflow: PropTypes.bool,
 };
 
 CoverageEditor.defaultProps = {

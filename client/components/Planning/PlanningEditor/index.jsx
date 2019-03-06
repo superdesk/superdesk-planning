@@ -394,6 +394,7 @@ export class PlanningEditorComponent extends React.Component {
             setCoverageDefaultDesk,
             preferredCoverageDesks,
             inModalView,
+            autoAssignToWorkflow,
         } = this.props;
 
         const agendaValues = cloneDeep(get(diff, 'agendas', [])
@@ -448,6 +449,8 @@ export class PlanningEditorComponent extends React.Component {
         const onFocusPlanning = editorMenuUtils.onItemFocus(this.props.navigation, 'planning');
         const onFocusDetails = editorMenuUtils.onItemFocus(this.props.navigation, 'details');
         const onFocusFiles = editorMenuUtils.onItemFocus(this.props.navigation, 'files');
+        // eslint-disable-next-line max-len
+        const forwardPlanningTitle = gettext('When active, assigned coverages for the Planning item will not be automatically added to workflow');
 
         return (
             <div ref={(node) => this.dom.top = node}>
@@ -612,6 +615,17 @@ export class PlanningEditorComponent extends React.Component {
                             {...fieldProps}
                             onFocus={onFocusDetails}
                         />}
+                        {autoAssignToWorkflow &&
+                        <Field
+                            component={ToggleInput}
+                            field="flags.overide_auto_assign_to_workflow"
+                            label={gettext('Forward Planning')}
+                            title={forwardPlanningTitle}
+                            labelLeft={true}
+                            defaultValue={false}
+                            {...fieldProps}
+                            onFocus={onFocusDetails}
+                        />}
                     </ToggleBox>
 
                     {get(planningProfile, 'editor.files.enabled') &&
@@ -697,6 +711,7 @@ export class PlanningEditorComponent extends React.Component {
                     setCoverageDefaultDesk={setCoverageDefaultDesk}
                     preferredCoverageDesks={preferredCoverageDesks}
                     useLocalNavigation={!inModalView}
+                    autoAssignToWorkflow={autoAssignToWorkflow}
                 />
             </div>
         );
@@ -755,6 +770,7 @@ PlanningEditorComponent.propTypes = {
     onPopupClose: PropTypes.func,
     setCoverageDefaultDesk: PropTypes.func,
     inModalView: PropTypes.bool,
+    autoAssignToWorkflow: PropTypes.bool,
 };
 
 PlanningEditorComponent.defaultProps = {
@@ -792,6 +808,7 @@ const mapStateToProps = (state) => ({
     streetMapUrl: selectors.config.getStreetMapUrl(state),
     defaultDesk: selectors.general.defaultDesk(state),
     preferredCoverageDesks: get(selectors.general.preferredCoverageDesks(state), 'desks'),
+    autoAssignToWorkflow: selectors.config.getAutoAssignToWorkflow(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

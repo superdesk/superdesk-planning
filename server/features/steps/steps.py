@@ -306,3 +306,8 @@ def step_impl_when_we_duplicate_event(context, event_id):
         context.text = json.dumps(duplicate_event)
         item = post_data(context, '/events')
         set_placeholder(context, 'DUPLICATE_EVENT_ID', item['_id'])
+
+
+@when('we set auto workflow on')
+def then_set_auto_workflow(context):
+    context.app.config['PLANNING_AUTO_ASSIGN_TO_WORKFLOW'] = True

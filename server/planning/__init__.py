@@ -14,7 +14,8 @@ import superdesk
 from eve.utils import config
 from .locations import LocationsResource, LocationsService
 from .agendas import AgendasResource, AgendasService
-from .common import get_max_recurrent_events, get_street_map_url, get_event_max_multi_day_duration
+from .common import get_max_recurrent_events, get_street_map_url, get_event_max_multi_day_duration,\
+    planning_auto_assign_to_workflow
 from apps.common.components.utils import register_component
 from .item_lock import LockService
 from .planning_notifications import PlanningNotifications
@@ -128,6 +129,7 @@ def init_app(app):
     app.client_config['max_recurrent_events'] = get_max_recurrent_events(app)
     app.client_config['street_map_url'] = get_street_map_url(app)
     app.client_config['max_multi_day_event_duration'] = get_event_max_multi_day_duration(app)
+    app.client_config['planning_auto_assign_to_workflow'] = planning_auto_assign_to_workflow(app)
 
     # Set up Celery task options
     if not app.config.get('CELERY_TASK_ROUTES'):
