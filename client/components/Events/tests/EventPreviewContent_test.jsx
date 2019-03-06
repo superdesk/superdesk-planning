@@ -1,9 +1,10 @@
 import React from 'react';
 import {mount} from 'enzyme';
 import {Provider} from 'react-redux';
+import sinon from 'sinon';
 import {EventPreviewContent} from '../EventPreviewContent';
-import {getTestActionStore} from '../../../utils/testUtils';
-import {createTestStore, eventUtils} from '../../../utils';
+import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
+import {createTestStore, eventUtils, timeUtils} from '../../../utils';
 
 import {FileInput, LinkInput} from '../../UI/Form';
 
@@ -84,11 +85,18 @@ describe('<EventPreviewContent />', () => {
         expect(row.find('p').text()).toBe(value);
     };
 
-    const dateString = eventUtils.getDateStringForEvent(astore.initialState.events.events.e1,
-        'DD/MM/YYYY', 'HH:mm');
+    beforeEach(() => {
+        sinon.stub(timeUtils, 'localTimeZone').callsFake(() => astore.initialState.config.defaultTimezone);
+    });
+
+    afterEach(() => {
+        restoreSinonStub(timeUtils.localTimeZone);
+    });
 
     it('renders an event with all its details', () => {
         const wrapper = getWrapper();
+        const dateString = eventUtils.getDateStringForEvent(astore.initialState.events.events.e1,
+            'DD/MM/YYYY', 'HH:mm');
 
         expect(wrapper.find('EventPreviewContentComponent').length).toBe(1);
         const dataRows = wrapper.find('.form__row');
@@ -98,7 +106,7 @@ describe('<EventPreviewContent />', () => {
         verifyDataRow(dataRows.at(2), 'Description', 'description');
         verifyDataRow(dataRows.at(3), 'Occurrence Status', 'Planned, occurs certainly');
         verifyDataRow(dataRows.at(4), 'Date', dateString);
-        verifyDataRow(dataRows.at(6), 'Calendars', 'calender1');
+        verifyDataRow(dataRows.at(5), 'Calendars', 'calender1');
 
         let eventDetails = wrapper.find('.toggle-box').first();
 

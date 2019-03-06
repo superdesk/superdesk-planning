@@ -18,22 +18,26 @@ describe('form validations', () => {
     let store;
     let astore;
     let data;
+    let timezone;
+    let startDate;
+    let endDate;
     const enableSaveInModal = sinon.spy(() => true);
     const disableSaveInModal = sinon.spy(() => true);
-    const startDate = moment().add(3, 'days')
-        .set({
-            [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
-            [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
-        });
-    const endDate = moment().add(3, 'days')
-        .set({
-            [TIME_COMPARISON_GRANULARITY.HOUR]: 23,
-            [TIME_COMPARISON_GRANULARITY.MINUTE]: 50,
-        });
 
     beforeEach(() => {
         astore = getTestActionStore();
         data = astore.data;
+        timezone = astore.data.events[1].dates.tz;
+        startDate = moment.tz(moment().add(3, 'days')
+            .set({
+                [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
+                [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
+            }), timezone);
+        endDate = moment.tz(moment().add(3, 'days')
+            .set({
+                [TIME_COMPARISON_GRANULARITY.HOUR]: 23,
+                [TIME_COMPARISON_GRANULARITY.MINUTE]: 50,
+            }), timezone);
         data.events[1].dates.start = startDate;
         data.events[1].dates.end = endDate;
 

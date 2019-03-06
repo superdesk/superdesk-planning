@@ -1,10 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import classNames from 'classnames';
+import moment from 'moment';
 import * as actions from '../../../actions';
 import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
-import {eventUtils, gettext} from '../../../utils';
+import {eventUtils, gettext, timeUtils} from '../../../utils';
 import {Label, TimeInput, Row as FormRow, LineInput, Field} from '../../UI/Form/';
 import {Row} from '../../UI/Preview/';
 import {EventUpdateMethods, EventScheduleSummary} from '../../Events';
@@ -31,7 +33,16 @@ export class UpdateTimeComponent extends React.Component {
 
     componentWillMount() {
         const diff = cloneDeep(this.props.initialValues);
+        const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(this.props.initialValues);
+        const tz = get(this.props.initialValues, 'dates.tz');
         let relatedEvents = [];
+
+        if (isRemoteTimeZone) {
+            diff.dates.start = timeUtils.getDateInRemoteTimeZone(diff.dates.start, tz);
+            diff.dates.end = timeUtils.getDateInRemoteTimeZone(diff.dates.end, tz);
+            diff._startTime = timeUtils.getDateInRemoteTimeZone(diff._startTime, tz);
+            diff._endTime = timeUtils.getDateInRemoteTimeZone(diff._endTime, tz);
+        }
 
         if (get(this.props, 'initialValues.recurrence_id')) {
             const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
@@ -55,11 +66,19 @@ export class UpdateTimeComponent extends React.Component {
         let errorMessages = [];
 
         if (field === '_startTime') {
-            diff.dates.start = value;
-            diff._startTime = value;
+            if (value && moment.isMoment(value) && value.isValid()) {
+                diff.dates.start.hour(value.hour()).minute(value.minute());
+                diff._startTime = diff.dates.start.clone();
+            } else {
+                diff._startTime = value;
+            }
         } else if (field === '_endTime') {
-            diff.dates.end = value;
-            diff._endTime = value;
+            if (value && moment.isMoment(value) && value.isValid()) {
+                diff.dates.end.hour(value.hour()).minute(value.minute());
+                diff._endTime = diff.dates.end.clone();
+            } else {
+                diff._endTime = value;
+            }
         } else if (field === 'update_method') {
             const event = eventUtils.getRelatedEventsForRecurringEvent(
                 this.props.initialValues,
@@ -111,6 +130,21 @@ export class UpdateTimeComponent extends React.Component {
             get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
         ));
         const numEvents = this.state.relatedEvents.length + 1 - eventsInUse.length;
+        const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(initialValues);
+        const tz = get(initialValues, 'dates.tz');
+        const classes = classNames({
+            'sd-line-input__time-input--max-with': !isRemoteTimeZone,
+            'sd-line-input__time-input-remote--max-with': isRemoteTimeZone,
+        });
+        let start, end;
+
+        start = get(this.state.diff.dates, 'start');
+        end = get(this.state.diff.dates, 'end');
+
+        if (isRemoteTimeZone) {
+            start = timeUtils.getDateInRemoteTimeZone(start, tz);
+            end = timeUtils.getDateInRemoteTimeZone(end, tz);
+        }
 
         const fieldProps = {
             row: false,
@@ -146,6 +180,7 @@ export class UpdateTimeComponent extends React.Component {
                     dateFormat={dateFormat}
                     noPadding={true}
                     forUpdating={true}
+                    useEventTimezone={true}
                 />
 
                 <Row
@@ -158,24 +193,24 @@ export class UpdateTimeComponent extends React.Component {
                 <FormRow
                     flex={true}
                     noPadding={true}
-                    halfWidth={true}
-                    invalid={!!get(this.state, 'errors._startTime')}
-                >
+                    invalid={!!get(this.state, 'errors._startTime')}>
                     <Label text={gettext('From')} row={true}/>
                     <Field
                         component={TimeInput}
                         field="_startTime"
-                        value={get(this.state, 'diff.dates.start')}
+                        value={start}
                         timeFormat={timeFormat}
                         noMargin={true}
                         popupContainer={this.getPopupContainer}
-                        remoteTimeZone={get(initialValues, 'dates.tz')}
+                        remoteTimeZone={tz}
+                        isLocalTimeZoneDifferent={isRemoteTimeZone}
                         dateFormat={dateFormat}
+                        className={classes}
                         {...fieldProps}
                     />
                 </FormRow>
 
-                <FormRow flex={true} halfWidth={true}>
+                <FormRow flex={true}>
                     <Label
                         text={gettext('To')}
                         row={true}
@@ -184,12 +219,14 @@ export class UpdateTimeComponent extends React.Component {
                     <Field
                         component={TimeInput}
                         field="_endTime"
-                        value={get(this.state, 'diff.dates.end')}
+                        value={end}
                         timeFormat={timeFormat}
                         noMargin={true}
                         popupContainer={this.getPopupContainer}
-                        remoteTimeZone={get(initialValues, 'dates.tz')}
+                        remoteTimeZone={tz}
+                        isLocalTimeZoneDifferent={isRemoteTimeZone}
                         dateFormat={dateFormat}
+                        className={classes}
                         {...fieldProps}
                     />
                 </FormRow>

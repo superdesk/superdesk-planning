@@ -33,7 +33,7 @@ export class TimeInputPopup extends React.Component {
         let hourIndex, minuteIndex = 0, inputDateTime = this.state.currentTime;
 
         if (value && moment.isMoment(value)) {
-            inputDateTime = moment(value);
+            inputDateTime = value.clone();
 
             // Round it to nearest 5 minutes mark if needed
             const diffMins = 5 - inputDateTime.minute() % 5;
@@ -67,7 +67,8 @@ export class TimeInputPopup extends React.Component {
             this.state.currentTime.add(addMinutes, 'm');
             onChange(this.state.currentTime.format('HH:mm'));
         } else {
-            onChange(this.state.selectedHourIndex + ':' + (this.state.selectedMinuteIndex * 5));
+            onChange(('0' + this.state.selectedHourIndex).slice(-2) +
+                ':' + ('0' + (this.state.selectedMinuteIndex * 5)).slice(-2));
         }
 
         // Close the timepicker

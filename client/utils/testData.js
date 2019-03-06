@@ -3,6 +3,7 @@ export const config = {
     iframely: {key: '123'},
     model: {dateformat: 'DD/MM/YYYY'},
     shortTimeFormat: 'HH:mm',
+    defaultTimezone: 'Australia/Sydney',
 };
 
 export const privileges = {
@@ -536,6 +537,7 @@ export const events = [
         dates: {
             start: '2016-10-15T13:01:11+0000',
             end: '2016-10-15T14:01:11+0000',
+            tz: 'Australia/Sydney',
         },
         planning_ids: ['p2'],
         _etag: 'e123',
@@ -548,6 +550,7 @@ export const events = [
         dates: {
             start: '2014-10-15T14:01:11+0000',
             end: '2014-10-15T15:01:11+0000',
+            tz: 'Australia/Sydney',
         },
         planning_ids: [],
     },
@@ -558,6 +561,7 @@ export const events = [
         dates: {
             start: '2015-10-15T14:01:11+0000',
             end: '2015-10-15T15:01:11+0000',
+            tz: 'Australia/Sydney',
         },
     },
 ];

@@ -73,6 +73,139 @@ Feature: Events Recurring
 
     @auth
     @notification
+    Scenario: Convert a single event to be a recurring event with invalid data
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2019-11-21T12:00:00.000Z",
+                "end": "2019-11-21T14:00:00.000Z"
+            }
+        }]
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "events:created",
+            "extra": {
+                "item": "#events._id#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
+        And we store "EVENT_ID" with value "#events._id#" to context
+        When we reset notifications
+        When we post to "/events/#events._id#/lock" with success
+        """
+        {"lock_action": "convert_recurring"}
+        """
+        And we patch "/events/#EVENT_ID#"
+        """
+        {
+            "name": "Weekly Friday Club",
+            "lock_action": "convert_recurring"
+        }
+        """
+        Then we get error 400
+        """
+        {
+            "_issues": {
+                "validator exception": "400: Event recurring rules are mandatory for convert to recurring action."
+                },
+            "_status": "ERR"
+        }
+        """
+
+    @auth
+    @notification
+    Scenario: Recurring event cannot be convert to recurring event
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2019-11-21T12:00:00.000Z",
+                "end": "2019-11-21T14:00:00.000Z"
+            }
+        }]
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "events:created",
+            "extra": {
+                "item": "#events._id#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
+        And we store "EVENT_ID" with value "#events._id#" to context
+        When we reset notifications
+        When we post to "/events/#events._id#/lock" with success
+        """
+        {"lock_action": "convert_recurring"}
+        """
+        And we patch "/events/#EVENT_ID#"
+        """
+        {
+            "name": "Weekly Friday Club",
+            "lock_action": "convert_recurring",
+            "dates": {
+                "start": "2019-11-21T12:00:00.000Z",
+                "end": "2019-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "byday": "FR",
+                    "count": 3,
+                    "endRepeatMode": "count"
+                }
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 3 items
+        And we store "EVENT2" with 2 item
+        When we post to "/events/#EVENT2._id#/lock" with success
+        """
+        {"lock_action": "convert_recurring"}
+        """
+        When we patch "/events/#EVENT2._id#"
+        """
+        {
+            "name": "Weekly Friday Club",
+            "lock_action": "convert_recurring",
+            "dates": {
+                "start": "2019-11-21T12:00:00.000Z",
+                "end": "2019-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "byday": "FR",
+                    "count": 3,
+                    "endRepeatMode": "count"
+                }
+            }
+        }
+        """
+        Then we get error 400
+        """
+        {
+            "_issues": {
+                "validator exception": "400: Event is already converted to recurring event."
+            },
+            "_status": "ERR"
+        }
+        """
+
+    @auth
+    @notification
     Scenario: Convert a single event to be a recurring event
         When we post to "events"
         """
@@ -99,7 +232,7 @@ Feature: Events Recurring
         When we reset notifications
         When we post to "/events/#events._id#/lock" with success
         """
-        {"lock_action": "edit"}
+        {"lock_action": "convert_recurring"}
         """
         And we patch "/events/#EVENT_ID#"
         """
@@ -167,7 +300,8 @@ Feature: Events Recurring
         {"_items": [
             {"operation": "create", "event_id": "__any_value__"},
             {"operation": "create", "event_id": "__any_value__"},
-            {"operation": "edited", "event_id": "#EVENT_ID#", "update": {
+            {"operation": "create", "event_id": "__any_value__"},
+            {"operation": "convert_recurring", "event_id": "#EVENT_ID#", "update": {
                 "name": "Weekly Friday Club",
                 "dates": {
                     "start": "2019-11-22T12:00:00+0000",

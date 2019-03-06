@@ -1,5 +1,8 @@
 import moment from 'moment';
+import sinon from 'sinon';
 import {timeUtils} from '../';
+import {restoreSinonStub} from '../testUtils';
+
 
 describe('utils.time', () => {
     it('getStartOfNextWeek', () => {
@@ -150,5 +153,35 @@ describe('utils.time', () => {
             '2018-03-01',
             '2018-04-01',
         ]);
+    });
+
+    describe('Event Timezone', () => {
+        it('Is Event in different timezone', () => {
+            const event = {
+                dates: {
+                    start: moment('2018-04-01T01:00:00+00:00'),
+                    end: moment('2018-04-01T20:00:00+00:00'),
+                    tz: 'Europe/London',
+                },
+            };
+
+            sinon.stub(timeUtils, 'localTimeZone').callsFake(() => 'Australia/Sydney');
+            expect(timeUtils.isEventInDifferentTimeZone(event), true);
+            restoreSinonStub(timeUtils.localTimeZone);
+        });
+
+        it('Is Event in same timezone', () => {
+            const event = {
+                dates: {
+                    start: moment('2018-04-01T01:00:00+00:00'),
+                    end: moment('2018-04-01T20:00:00+00:00'),
+                    tz: 'Europe/Oslo',
+                },
+            };
+
+            sinon.stub(timeUtils, 'localTimeZone').callsFake(() => 'Europe/Amsterdam');
+            expect(timeUtils.isEventInDifferentTimeZone(event), false);
+            restoreSinonStub(timeUtils.localTimeZone);
+        });
     });
 });

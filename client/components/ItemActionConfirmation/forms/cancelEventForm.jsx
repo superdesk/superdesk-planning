@@ -95,6 +95,8 @@ export class CancelEventComponent extends React.Component {
                     schedule={initialValues.dates}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
+                    forUpdating={true}
+                    useEventTimezone={true}
                 />
 
                 <Row

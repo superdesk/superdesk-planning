@@ -36,6 +36,7 @@ export const DateTimeInput = ({
     onPopupClose,
     remoteTimeZone,
     allowInvalidTime,
+    isLocalTimeZoneDifferent,
     ...props
 }) => (
     <Row flex={true} halfWidth={halfWidth} noPadding={!!invalid} className={{
@@ -63,6 +64,7 @@ export const DateTimeInput = ({
             onPopupOpen={onPopupOpen}
             onPopupClose={onPopupClose}
             remoteTimeZone={remoteTimeZone}
+            isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
         />
 
         {!hideTime && <Field
@@ -85,6 +87,7 @@ export const DateTimeInput = ({
             remoteTimeZone={remoteTimeZone}
             canClear={canClear}
             allowInvalidText={allowInvalidTime}
+            isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
         />}
         {canClear && <Button
             onClick={() => onChange(field, null)}
@@ -129,6 +132,7 @@ DateTimeInput.propTypes = {
     onPopupClose: PropTypes.func,
     remoteTimeZone: PropTypes.string,
     allowInvalidTime: PropTypes.bool,
+    isLocalTimeZoneDifferent: PropTypes.bool,
 };
 
 DateTimeInput.defaultProps = {

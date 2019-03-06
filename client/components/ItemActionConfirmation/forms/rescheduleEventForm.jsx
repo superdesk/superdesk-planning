@@ -36,11 +36,19 @@ export class RescheduleEventComponent extends React.Component {
     }
 
     componentWillMount() {
+        const dates = cloneDeep(this.props.initialValues.dates);
+        const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(this.props.initialValues || {});
+
+        if (isRemoteTimeZone) {
+            dates.start = timeUtils.getDateInRemoteTimeZone(dates.start, dates.tz);
+            dates.end = timeUtils.getDateInRemoteTimeZone(dates.end, dates.tz);
+        }
+
         this.setState({
             diff: {
-                dates: cloneDeep(this.props.initialValues.dates),
-                _startTime: cloneDeep(this.props.initialValues.dates.start),
-                _endTime: cloneDeep(this.props.initialValues.dates.end),
+                dates: dates,
+                _startTime: cloneDeep(dates.start),
+                _endTime: cloneDeep(dates.end),
             },
         });
     }
@@ -136,6 +144,7 @@ export class RescheduleEventComponent extends React.Component {
                     dateFormat={dateFormat}
                     noPadding={true}
                     forUpdating={true}
+                    useEventTimezone={true}
                 />
 
                 <Row
@@ -164,8 +173,22 @@ export class RescheduleEventComponent extends React.Component {
                         )}</strong>
                         <br />
                         {gettext('from {{from}} to {{to}}', {
-                            from: getDateTimeString(this.state.diff.dates.start, dateFormat, timeFormat),
-                            to: getDateTimeString(this.state.diff.dates.end, dateFormat, timeFormat),
+                            from: getDateTimeString(
+                                this.state.diff.dates.start,
+                                dateFormat,
+                                timeFormat,
+                                ' @ ',
+                                true,
+                                timeZone
+                            ),
+                            to: getDateTimeString(
+                                this.state.diff.dates.end,
+                                dateFormat,
+                                timeFormat,
+                                ' @ ',
+                                true,
+                                timeZone
+                            ),
                         })}
                     </div>
                 )}

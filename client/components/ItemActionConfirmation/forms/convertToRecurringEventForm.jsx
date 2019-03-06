@@ -29,8 +29,14 @@ export class ConvertToRecurringEventComponent extends React.Component {
     }
 
     componentWillMount() {
-        this.currentDate = cloneDeep(this.props.initialValues.dates);
         let diff = {dates: cloneDeep(this.props.initialValues.dates)};
+        const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(this.props.initialValues || {});
+
+        this.currentDate = cloneDeep(this.props.initialValues.dates);
+        if (isRemoteTimeZone) {
+            diff.dates.start = timeUtils.getDateInRemoteTimeZone(diff.dates.start, diff.dates.tz);
+            diff.dates.end = timeUtils.getDateInRemoteTimeZone(diff.dates.end, diff.dates.tz);
+        }
 
         diff._startTime = diff.dates.start;
         diff._endTime = diff.dates.end;
@@ -123,6 +129,7 @@ export class ConvertToRecurringEventComponent extends React.Component {
                     dateFormat={dateFormat}
                     noPadding={true}
                     forUpdating={true}
+                    useEventTimezone={true}
                 />
 
                 {timeUtils.isEventInDifferentTimeZone(initialValues) &&

@@ -9,9 +9,11 @@ import {DATE_FORMATS} from '../../constants';
 describe('<AbsoluteDate />', () => {
     // Decides day format for matcher toBe use
     function getDayFormat(date) {
+        let momentDate = moment.utc(date);
         let dayFormat;
 
-        if (moment.utc().format(DATE_FORMATS.COMPARE_FORMAT) === moment.utc(date).format(DATE_FORMATS.COMPARE_FORMAT)) {
+        momentDate.local();
+        if (moment().format(DATE_FORMATS.COMPARE_FORMAT) === momentDate.format(DATE_FORMATS.COMPARE_FORMAT)) {
             dayFormat = DATE_FORMATS.DISPLAY_TODAY_FORMAT;
         } else {
             dayFormat = DATE_FORMATS.DISPLAY_DAY_FORMAT;
@@ -57,7 +59,7 @@ describe('<AbsoluteDate />', () => {
     });
 
     it('renders a absolute date for Today date', () => {
-        const date = moment.utc().format();
+        const date = moment().format();
 
         expect(renderAbsoluteDateToText(date))
             .toBe(
