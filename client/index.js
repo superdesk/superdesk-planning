@@ -4,6 +4,9 @@ import {WORKSPACE} from './constants';
 import ng from 'superdesk-core/scripts/core/services/ng';
 import * as actions from './actions';
 import {PublishQueuePanel} from './apps';
+import {gettext} from 'core/utils';
+import {reactToAngular1} from 'superdesk-ui-framework';
+import PlanningDetailsWidget, {getItemPlanningInfo} from './components/PlanningDetailsWidget';
 
 
 export default angular.module('superdesk-planning', [])
@@ -31,6 +34,7 @@ export default angular.module('superdesk-planning', [])
             controller: ctrl.AssignmentPreviewController,
         })
     )
+    .component('sdPlanningDetailsWidget', reactToAngular1(PlanningDetailsWidget, ['item']))
     .service('sdPlanningStore', svc.PlanningStoreService)
     .config(['workspaceMenuProvider', (workspaceMenuProvider) => {
         workspaceMenuProvider.item({
@@ -50,6 +54,25 @@ export default angular.module('superdesk-planning', [])
             if: 'workspaceConfig.planning && privileges.planning',
             order: 1100,
         });
+    }])
+    .config(['authoringWidgetsProvider', (authoringWidgetsProvider) => {
+        authoringWidgetsProvider.widget('planning-details', {
+            label: gettext('Planning Details'),
+            icon: 'tasks',
+            side: 'right',
+            order: 80,
+            template: 'planning-details-widget.html',
+            display: {
+                authoring: true,
+            },
+            configurable: false,
+            badgeAsync: ['item', 'api', (item, api) =>
+                getItemPlanningInfo(item, api).then((planning) => planning.coverages.length)],
+            isWidgetVisible: (item) => [() => item.assignment_id != null],
+        });
+    }])
+    .run(['$templateCache', ($templateCache) => {
+        $templateCache.put('planning-details-widget.html', require('./views/planning-details-widget.html'));
     }])
     .run(['$injector', 'sdPlanningStore', 'extensionPoints', ($injector, sdPlanningStore, extensionPoints) => {
         ng.register($injector);
