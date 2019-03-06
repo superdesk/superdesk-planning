@@ -31,6 +31,11 @@ export const EditorItemActions = ({
                 itemActions[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.SPIKE.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.SPIKE.actionName].bind(null, item),
+            [EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName]:
+                (...args) => {
+                    flushAutosave();
+                    itemActions[EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName](...args);
+                },
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
                 () => {
                     flushAutosave();

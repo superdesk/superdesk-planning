@@ -15,7 +15,7 @@ const getActionDispatches = ({
         [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
             actions.addEventToCurrentAgenda,
         [EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName]:
-            actions.addEventToCurrentAgenda,
+            actions.events.ui.creatAndOpenPlanning,
         [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]:
             actions.events.ui.openUnspikeModal,
         [EVENTS.ITEM_ACTIONS.SPIKE.actionName]:

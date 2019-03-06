@@ -1,4 +1,4 @@
-import {showModal, main, locks} from '../index';
+import {showModal, main, locks, addEventToCurrentAgenda} from '../index';
 import {EVENTS, MODALS, SPIKED_STATE, MAIN, ITEM_TYPE, POST_STATE} from '../../constants';
 import eventsApi from './api';
 import planningApi from '../planning/api';
@@ -735,6 +735,24 @@ const save = (item, confirmation, unlockOnClose) => (
     }
 );
 
+const creatAndOpenPlanning = (item, planningDate = null, openPlanningItem = false, agendas = null) => (
+    (dispatch) => (
+        dispatch(main.openActionModalFromEditor(
+            item,
+            gettext('Save changes before creating a planning item ?'),
+            (unlockedItem, previousLock, openInEditor, openInModal) => (
+                dispatch(addEventToCurrentAgenda(unlockedItem, planningDate, openPlanningItem, agendas, openInModal))
+                    .then(() => {
+                        if (!openPlanningItem &&
+                                get(previousLock, 'action') === EVENTS.ITEM_ACTIONS.EDIT_EVENT.lock_action) {
+                            return dispatch(main.lockAndEdit(unlockedItem, openInModal));
+                        }
+                    })
+            )
+        ))
+    )
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     fetchEvents,
@@ -773,6 +791,7 @@ const self = {
     openEventPostModal,
     save,
     openAssignCalendarModal,
+    creatAndOpenPlanning,
 };
 
 export default self;

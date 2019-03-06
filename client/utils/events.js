@@ -204,8 +204,7 @@ const canCreateAndOpenPlanningFromEvent = (event, session, privileges, locks) =>
         !isEventLockRestricted(event, session, locks) &&
         !isItemCancelled(event) &&
         !isItemRescheduled(event) &&
-        !isItemPostponed(event) &&
-        !isEventLocked(event, locks)
+        !isItemPostponed(event)
 );
 
 const canPostEvent = (event, session, privileges, locks) => (

@@ -1,7 +1,7 @@
 import * as selectors from '../selectors';
 import {cloneDeep, pick, get, sortBy, findIndex} from 'lodash';
 import {AGENDA, MODALS, EVENTS} from '../constants';
-import {getErrorMessage, gettext} from '../utils';
+import {getErrorMessage, gettext, planningUtils} from '../utils';
 import {planning, showModal, main} from './index';
 
 const openAgenda = () => (
@@ -169,7 +169,8 @@ const askForAddEventToCurrentAgenda = (events) => (
  * @param {boolean} openInEditor - If true, opens the new Planning item in the Editor
  * @return Promise
  */
-const addEventToCurrentAgenda = (events, planningDate = null, openInEditor = false, agendas = null) => (
+const addEventToCurrentAgenda = (events, planningDate = null, openInEditor = false,
+    agendas = null, openInModal = false) => (
     (dispatch, getState, {notify}) => {
         let updatesAgendas = get(agendas, 'length', 0) > 0 ? agendas.map((a) => a._id) : [];
         let eventsList = events;
@@ -213,7 +214,7 @@ const addEventToCurrentAgenda = (events, planningDate = null, openInEditor = fal
                 notify.pop();
                 notify.success(gettext(`created ${eventsList.length} planning item.`));
                 return openInEditor ?
-                    dispatch(main.lockAndEdit(plannings[0])) :
+                    dispatch(main.lockAndEdit(planningUtils.modifyForClient(plannings[0]), openInModal)) :
                     Promise.resolve(plannings[0]);
             })
             .then(() => dispatch(fetchSelectedAgendaPlannings()));
