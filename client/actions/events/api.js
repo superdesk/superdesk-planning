@@ -18,6 +18,7 @@ import {
     isExistingItem,
     isValidFileInput,
     isPublishedItemId,
+    isTemporaryId,
 } from '../../utils';
 import moment from 'moment';
 
@@ -1256,7 +1257,7 @@ const _save = (eventUpdates) => (
     )
         .then((originalEvent) => {
             // clone the original because `save` will modify it
-            const original = cloneDeep(originalEvent);
+            const original = eventUtils.modifyForServer(cloneDeep(originalEvent), true);
 
             // clone the updates as we're going to modify it
             let updates = eventUtils.modifyForServer(cloneDeep(eventUpdates), true);
@@ -1270,6 +1271,10 @@ const _save = (eventUpdates) => (
                 !isEqual(updates[k], original[k])
             ));
 
+            if (get(original, 'lock_action') === EVENTS.ITEM_ACTIONS.EDIT_EVENT.lock_action &&
+                !isTemporaryId(original._id)) {
+                delete updates.dates;
+            }
             updates.update_method = get(updates, 'update_method.value') || EventUpdateMethods[0].value;
 
             return api('events').save(original, updates);

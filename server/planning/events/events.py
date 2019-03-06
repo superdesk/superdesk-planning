@@ -12,6 +12,17 @@
 
 import superdesk
 import logging
+import itertools
+import copy
+import pytz
+import re
+from eve.defaults import resolve_default_values
+from eve.methods.common import resolve_document_etag
+from eve.utils import config, date_to_str
+from flask import current_app as app
+from copy import deepcopy
+from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
+
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
@@ -24,18 +35,8 @@ from superdesk.users.services import current_user_has_privilege
 from .events_base_service import EventsBaseService
 from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, get_max_recurrent_events, \
     WORKFLOW_STATE, ITEM_STATE, remove_lock_information, format_address, update_post_item, \
-    post_required, POST_STATE, get_event_max_multi_day_duration, set_original_creator, set_ingested_event_state
-from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
-from eve.defaults import resolve_default_values
-from eve.methods.common import resolve_document_etag
-from eve.utils import config, date_to_str
-from flask import current_app as app
-import itertools
-import copy
-import pytz
-import re
-from copy import deepcopy
-
+    post_required, POST_STATE, get_event_max_multi_day_duration, set_original_creator, set_ingested_event_state, \
+    LOCK_ACTION
 from .events_schema import events_schema
 
 logger = logging.getLogger(__name__)
@@ -195,6 +196,7 @@ class EventsService(superdesk.Service):
         """
         self._validate_multiday_event_duration(updates)
         self._validate_dates(updates, original)
+        self._validate_convert_to_recurring(updates, original)
 
         # if len(updates.get('calendars', [])) > 0:
         # existing_calendars = get_resource_service('vocabularies').find_one(req=None, _id='event_calendars')
@@ -208,6 +210,22 @@ class EventsService(superdesk.Service):
         # Remove duplicated calendars
         # uniq_qcodes = list_uniq_with_order([o['qcode'] for o in updates['calendars']])
         # updates['calendars'] = [cal for cal in existing_calendars.get('items', []) if cal['qcode'] in uniq_qcodes]
+
+    def _validate_convert_to_recurring(self, updates, original):
+        """Validates if the convert to recurring action is valid.
+
+        :param updates:
+        :param original:
+        :return:
+        """
+        if not original:
+            return
+
+        if original.get(LOCK_ACTION) == 'convert_recurring' and \
+                updates.get('dates', {}).get('recurring_rule', None) is None:
+            raise SuperdeskApiError(message='Event recurring rules are mandatory for convert to recurring action.')
+        if original.get(LOCK_ACTION) == 'convert_recurring' and original.get('recurrence_id'):
+            raise SuperdeskApiError(message='Event is already converted to recurring event.')
 
     def _validate_dates(self, updates, original=None):
         """Validate the dates
@@ -324,6 +342,7 @@ class EventsService(superdesk.Service):
         str_user_id = str(user.get(config.ID_FIELD)) if user_id else None
 
         if lock_user and str(lock_user) != str_user_id:
+            print(lock_user, str_user_id)
             raise SuperdeskApiError.forbiddenError('The item was locked by another user')
 
         # validate event
@@ -381,7 +400,8 @@ class EventsService(superdesk.Service):
 
         # Determine if we're to convert this single event to a recurring
         #  of events
-        if updates.get('dates', {}).get('recurring_rule', None) is not None:
+        if original.get(LOCK_ACTION) == 'convert_recurring' and \
+           updates.get('dates', {}).get('recurring_rule', None) is not None:
             generated_events = self._convert_to_recurring_event(updates, original)
 
             # if the original event was "posted" then post all the generated events
@@ -481,7 +501,7 @@ class EventsService(superdesk.Service):
 
     def _convert_to_recurring_event(self, updates, original):
         """Convert a single event to a series of recurring events"""
-
+        self._validate_convert_to_recurring(updates, original)
         updates['recurrence_id'] = generate_guid(type=GUID_NEWSML)
 
         merged = copy.deepcopy(original)

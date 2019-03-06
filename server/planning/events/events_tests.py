@@ -1,12 +1,13 @@
-from planning.events.events import generate_recurring_dates
 from datetime import datetime, timedelta
 import pytz
 from copy import deepcopy
-from unittest.mock import Mock
+from mock import Mock, patch
 from superdesk import get_resource_service
 from superdesk.utc import utcnow
 from planning.tests import TestCase
 from planning.common import format_address
+from planning.item_lock import LockService
+from planning.events.events import generate_recurring_dates
 
 
 class EventTestCase(TestCase):
@@ -365,8 +366,10 @@ class EventPlanningSchedule(TestCase):
         update_repetitions.is_original_event = is_original_event_func
         update_repetitions.REQUIRE_LOCK = True
 
-    def test_planning_schedule_convert_to_recurring(self):
+    @patch('planning.events.events.get_user')
+    def test_planning_schedule_convert_to_recurring(self, get_user_mock):
         service = get_resource_service('events')
+        get_user_mock.return_value = {'_id': 'None'}
         event = {
             'name': 'Friday Club',
             'dates': {
@@ -379,7 +382,9 @@ class EventPlanningSchedule(TestCase):
         service.post([event])
         events = list(service.get(req=None, lookup=None))
         self.assertPlanningSchedule(events, 1)
-
+        lock_service = LockService(self.app)
+        locked_event = lock_service.lock(events[0], None, 'session', 'convert_recurring', 'events')
+        self.assertEqual(locked_event.get('lock_action'), 'convert_recurring')
         schedule = deepcopy(events[0].get('dates'))
         schedule['start'] = datetime(2099, 11, 21, 12, 00, 00, tzinfo=pytz.UTC)
         schedule['end'] = datetime(2099, 11, 21, 14, 00, 00, tzinfo=pytz.UTC)
