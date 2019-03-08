@@ -166,7 +166,8 @@ Feature: Assignment content
             "slugline": "test slugline",
             "type": "text",
             "headline": "Headline From Template",
-            "profile": "#content_types._id#"
+            "profile": "#content_types._id#",
+            "flags": {"marked_for_not_publication": false, "overide_auto_assign_to_workflow": "__no_value__"}
         }
         """
         And we get "ednote" does not exist
@@ -240,7 +241,8 @@ Feature: Assignment content
             "slugline": "test slugline",
             "type": "text",
             "headline": "test description",
-            "profile": "#content_types._id#"
+            "profile": "#content_types._id#",
+            "flags": {"marked_for_not_publication": false, "overide_auto_assign_to_workflow": "__no_value__"}
         }
         """
 
@@ -338,7 +340,7 @@ Feature: Assignment content
             "slugline": "test slugline",
             "type": "text",
             "headline": "Headline From Template",
-            "flags": {"marked_for_not_publication": true},
+            "flags": {"marked_for_not_publication": true, "overide_auto_assign_to_workflow": "__no_value__"},
             "place" : [
                 {
                     "state" : "",
