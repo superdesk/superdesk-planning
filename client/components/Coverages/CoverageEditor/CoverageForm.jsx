@@ -15,6 +15,7 @@ import {
     Field,
 } from '../../UI/Form';
 import {InternalNoteLabel} from '../../';
+import {ContactField} from '../../Contacts';
 
 export class CoverageForm extends React.Component {
     constructor(props) {
@@ -198,6 +199,17 @@ export class CoverageForm extends React.Component {
                     readOnly={roFields.internal_note}
                     {...fieldProps}
                 />
+
+                <Field
+                    component={ContactField}
+                    field={`${field}.planning.contact_info`}
+                    profileName="contact_info"
+                    label={gettext('Coverage Provider Contact')}
+                    defaultValue={[]}
+                    {...fieldProps}
+                    onPopupOpen={onPopupOpen}
+                    onPopupClose={onPopupClose}
+                    singleValue={true} />
 
                 <Field
                     component={SelectInput}

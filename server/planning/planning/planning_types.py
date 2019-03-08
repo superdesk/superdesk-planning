@@ -127,6 +127,7 @@ class CoverageSchema(BaseSchema):
     headline = schema.StringField()
     internal_note = schema.StringField()
     news_coverage_status = schema.ListField()
+    contact_info = schema.StringField()
 
 
 DEFAULT_EDITOR = [{
@@ -179,7 +180,8 @@ DEFAULT_EDITOR = [{
         'genre': {'enabled': True},
         'internal_note': {'enabled': True},
         'scheduled': {'enabled': True},
-        'news_coverage_status': {'enabled': True}
+        'news_coverage_status': {'enabled': True},
+        'contact_info': {'enabled': False}
     },
     'schema': dict(CoverageSchema)
 }, {

@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import {get} from 'lodash';
 import * as selectors from '../../selectors';
 import {ContactEditor, SelectSearchContactsField, ContactsPreviewList} from './index';
 import * as actions from '../../actions';
@@ -39,12 +40,17 @@ export class ContactFieldComponent extends React.Component {
     }
 
     removeContact(contact) {
-        const {value, field, onChange} = this.props;
+        if (this.props.singleValue) {
+            this.applyChanges(null);
+            return;
+        }
+
+        let value = this.getValueProp();
         const index = value.indexOf(contact._id);
 
         if (index >= 0) {
             value.splice(index, 1);
-            onChange(field, value);
+            this.applyChanges(value);
         }
     }
 
@@ -53,16 +59,39 @@ export class ContactFieldComponent extends React.Component {
         this.closeEditModal();
     }
 
+    applyChanges(newValue) {
+        const {field, singleValue, value, onChange} = this.props;
+
+        if (!singleValue) {
+            if (Array.isArray(newValue)) {
+                // When we remove contact, an array is given
+                onChange(field, newValue);
+            } else {
+                onChange(field, [...value, newValue]);
+            }
+        } else {
+            onChange(field, newValue);
+        }
+    }
+
     onChange(savedContact) {
-        const {field, value, addContact, onChange} = this.props;
+        const value = this.getValueProp();
 
         // Update the redux store
-        addContact(savedContact);
+        this.props.addContact(savedContact);
 
         // Append the value if the id is not in the list already
         if (!value.find((contactId) => contactId === savedContact._id)) {
-            onChange(field, [...value, savedContact._id]);
+            this.applyChanges(savedContact._id);
         }
+    }
+
+    getValueProp() {
+        if (this.props.singleValue) {
+            return get(this.props, 'value.length', 0) > 0 ? [this.props.value] : [];
+        }
+
+        return this.props.value;
     }
 
     render() {
@@ -84,7 +113,7 @@ export class ContactFieldComponent extends React.Component {
                     field={field}
                     label={label}
                     onChange={this.onChange}
-                    value={this.props.value}
+                    value={this.getValueProp()}
                     onAdd={privileges.contacts ? this.showEditModal : null}
                     onAddText={privileges.contacts ? gettext('Add Contact') : null}
                     onFocus={onFocus}
@@ -94,10 +123,9 @@ export class ContactFieldComponent extends React.Component {
                 />
 
                 <ContactsPreviewList
-                    contactIds={this.props.value}
+                    contactIds={this.getValueProp()}
                     onEditContact={privileges.contacts ? this.showEditModal : null}
                     onRemoveContact={privileges.contacts ? this.removeContact : null}
-
                     scrollInView={true}
                     scrollIntoViewOptions={{block: 'center'}}
                     tabEnabled={true}
@@ -134,6 +162,7 @@ ContactFieldComponent.propTypes = {
     addContact: PropTypes.func,
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
+    singleValue: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({

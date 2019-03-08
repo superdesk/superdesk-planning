@@ -6,6 +6,7 @@ import moment from 'moment-timezone';
 import {get} from 'lodash';
 import {getCreator, getItemInArrayById, getDateTimeString, gettext, stringUtils} from '../../utils';
 import {StateLabel} from '../index';
+import {ContactsPreviewList} from '../Contacts/index';
 import {PLANNING, WORKFLOW_STATE} from '../../constants';
 
 import {CoverageItem} from './';
@@ -159,6 +160,17 @@ export const CoveragePreview = ({
                     label={gettext('Genre')}
                     value={get(coverage, 'planning.genre.name')}
                 />
+            }
+
+            {get(formProfile, 'editor.contact_info.enabled') && coverage.planning.contact_info &&
+                <PreviewRow label={gettext('Coverage Provider Contact')}>
+                    <ContactsPreviewList
+                        contactIds={get(coverage, 'planning.contact_info.length', 0) > 0 ?
+                            [coverage.planning.contact_info] : []}
+                        scrollInView={true}
+                        scrollIntoViewOptions={{block: 'center'}}
+                    />
+                </PreviewRow>
             }
 
             <PreviewRow
