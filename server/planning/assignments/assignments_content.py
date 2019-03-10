@@ -67,7 +67,11 @@ def get_item_from_assignment(assignment, template=None):
             elif planning.get('headline'):
                 item['headline'] = planning['headline']
 
-            item.setdefault('flags', {}).update(planning.get('flags', {}))
+            if not item['flags']:
+                item['flags'] = {}
+
+            item['flags']['marked_for_not_publication'] = \
+                (planning.get('flags') or {}).get('marked_for_not_publication') or False
 
     if ednote:
         item['ednote'] = ednote
