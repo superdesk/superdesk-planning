@@ -439,7 +439,7 @@ const getPlanningActions = ({
     );
 };
 
-const modifyForClient = (plan) => {
+export const modifyForClient = (plan) => {
     if (get(plan, 'planning_date')) {
         plan.planning_date = moment(plan.planning_date);
     }
