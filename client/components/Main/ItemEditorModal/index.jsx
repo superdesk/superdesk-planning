@@ -57,6 +57,14 @@ export class EditorModalComponent extends React.Component {
         window.addEventListener('drop', this.onDragEvents);
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (get(nextProps, 'modalProps.item._id') &&
+            nextProps.modalProps.item._id !== get(this.props, 'modalProps.item._id')) {
+            this.setState({diff: nextProps.modalProps.item});
+            this.props.openEditorModal(nextProps.modalProps.item);
+        }
+    }
+
     componentWillUnmount() {
         window.removeEventListener('dragover', this.onDragEvents);
         window.removeEventListener('drop', this.onDragEvents);
