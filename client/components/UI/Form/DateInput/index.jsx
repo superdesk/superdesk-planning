@@ -81,13 +81,12 @@ export class DateInput extends React.Component {
     * @description validateDateText sets validate-state after text-input of dates
     */
     validateDateText(field, val) {
-        let regex = new RegExp('[0-9][0-9]/[0-9][0-9]/[0-9][0-9][0-9][0-9]', 'i');
-        const valMoment = moment(val, this.props.dateFormat);
+        const valMoment = moment(val, this.props.dateFormat, true);
 
-        if (val.match(regex) && valMoment.isValid()) {
+        if (valMoment.isValid()) {
             this.setState({
                 invalid: false,
-                viewValue: valMoment,
+                viewValue: valMoment.format(this.props.dateFormat),
                 previousValidValue: valMoment,
             });
             this.onChange(valMoment);
@@ -107,8 +106,11 @@ export class DateInput extends React.Component {
     */
     handleInputBlur() {
         if (this.state.invalid) {
+            const previousValidValue = this.state.previousValidValue;
+
             this.setState({
-                viewValue: this.state.previousValidValue.format(this.props.dateFormat),
+                viewValue: moment.isMoment(previousValidValue) && previousValidValue.isValid() ?
+                    previousValidValue.format(this.props.dateFormat) : '',
                 invalid: false,
             });
         }
@@ -145,6 +147,7 @@ export class DateInput extends React.Component {
             ...props
         } = this.props;
 
+        let {message, invalid} = this.props;
         const eventTimeZoneString = timeUtils.getDateInRemoteTimeZone(value, remoteTimeZone).format('z');
         let displayDateString;
 
@@ -154,9 +157,13 @@ export class DateInput extends React.Component {
             displayDateString = `(${displayDate.format('z')} ${displayDate.format(dateFormat)})`;
         }
 
+        if (!invalid && this.state.invalid) {
+            invalid = true;
+            message = gettext('Invalid Date');
+        }
 
         return (
-            <LineInput {...props} readOnly={readOnly}>
+            <LineInput {...props} readOnly={readOnly} message={message} invalid={invalid}>
                 <Label text={label} />
                 {!inputAsLabel && <IconButton
                     className="sd-line-input__icon-right"
