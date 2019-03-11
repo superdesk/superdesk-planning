@@ -248,6 +248,7 @@ export class ListPanel extends React.Component {
                             dateFormat: dateFormat,
                             timeFormat: timeFormat,
                             agendas: agendas,
+                            contentTypes: contentTypes,
                             session: session,
                             privileges: privileges,
                             calendars: calendars,

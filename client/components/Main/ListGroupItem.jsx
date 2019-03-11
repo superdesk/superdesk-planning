@@ -151,6 +151,7 @@ export class ListGroupItem extends React.Component {
             desks: desks,
             contentTypes: contentTypes,
             agendas: agendas,
+            contentTypes: contentTypes,
             date: date,
             onAddCoverageClick: onAddCoverageClick,
             multiSelected: indexOf(selectedPlanningIds, item._id) !== -1,
@@ -174,6 +175,8 @@ export class ListGroupItem extends React.Component {
                 itemActions[PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.actionName],
             [PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName]:
                 itemActions[PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName],
+            [PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName]:
+                itemActions[PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName],
             [PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName]:
                 itemActions[PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName],
             [PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName]:

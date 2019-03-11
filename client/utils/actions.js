@@ -62,6 +62,8 @@ const getActionDispatches = ({
             actions.planning.featuredPlanning.modifyPlanningFeatured,
         [PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName]:
             actions.planning.featuredPlanning.modifyPlanningFeatured,
+        [PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName]:
+            actions.planning.ui.addNewCoverageToPlanning,
     };
     const props = {};
     const addAction = (action) => {

@@ -71,7 +71,7 @@ const canEditPlanning = (planning, event, session, privileges, locks) => (
         (isNil(event) || getItemWorkflowState(event) !== WORKFLOW_STATE.KILLED)
 );
 
-const canAssignAgenda = (planning, event, privileges, locks) => (
+const canModifyPlanning = (planning, event, privileges, locks) => (
     !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !isPlanningLocked(planning, locks) &&
         !isItemSpiked(planning) &&
@@ -222,65 +222,68 @@ export const getPlanningItemActions = (plan, event = null, session, privileges, 
     let key = 1;
 
     const actionsValidator = {
-        [PLANNING.ITEM_ACTIONS.ADD_COVERAGE.label]: () =>
+        [PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName]: () =>
             canAddCoverages(plan, event, privileges),
-        [PLANNING.ITEM_ACTIONS.SPIKE.label]: () =>
+        [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: () =>
             canSpikePlanning(plan, session, privileges, locks),
-        [PLANNING.ITEM_ACTIONS.UNSPIKE.label]: () =>
+        [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: () =>
             canUnspikePlanning(plan, event, privileges),
-        [PLANNING.ITEM_ACTIONS.DUPLICATE.label]: () =>
+        [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: () =>
             canDuplicatePlanning(plan, event, session, privileges, locks),
-        [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label]: () =>
+        [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]: () =>
             canCancelPlanning(plan, event, session, privileges, locks),
-        [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label]: () =>
+        [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]: () =>
             canCancelAllCoverage(plan, event, session, privileges, locks),
-        [PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.label]: () =>
+        [PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName]: () =>
             canAddAsEvent(plan, event, session, privileges, locks),
-        [PLANNING.ITEM_ACTIONS.EDIT_PLANNING.label]: () =>
+        [PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName]: () =>
             canEditPlanning(plan, event, session, privileges, locks),
-        [PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.label]: () =>
+        [PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.actionName]: () =>
             canEditPlanning(plan, event, session, privileges, locks),
-        [PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.label]: () =>
-            canAssignAgenda(plan, event, privileges, locks),
-        [PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.label]: () =>
+        [PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName]: () =>
+            canModifyPlanning(plan, event, privileges, locks),
+        [PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName]: () =>
             canAddFeatured(plan, event, session, privileges, locks),
-        [PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.label]: () =>
+        [PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName]: () =>
             canRemovedFeatured(plan, event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: () =>
+        [PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName]: () =>
+            canModifyPlanning(plan, event, privileges, locks),
+        [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: () =>
             !isPlanAdHoc(plan) && eventUtils.canCancelEvent(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: () =>
+        [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: () =>
             !isPlanAdHoc(plan) && eventUtils.canUpdateEventTime(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label]: () =>
+        [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]: () =>
             !isPlanAdHoc(plan) && eventUtils.canRescheduleEvent(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label]: () =>
+        [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: () =>
             !isPlanAdHoc(plan) && eventUtils.canPostponeEvent(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: () =>
+        [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]: () =>
             !isPlanAdHoc(plan) &&
             eventUtils.canConvertToRecurringEvent(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.label]: () =>
+        [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]: () =>
             !isPlanAdHoc(plan) &&
             eventUtils.canUpdateEventRepetitions(event, session, privileges, locks),
+
     };
 
     actions.forEach((action) => {
-        if (actionsValidator[action.label] && !actionsValidator[action.label]()) {
+        if (actionsValidator[action.actionName] && !actionsValidator[action.actionName]()) {
             return;
         }
 
-        switch (action.label) {
-        case EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label:
-            action.label = 'Cancel Event';
+        switch (action.actionName) {
+        case EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName:
+            action.label = gettext('Cancel Event');
             break;
 
-        case EVENTS.ITEM_ACTIONS.UPDATE_TIME.label:
-            action.label = 'Update Event Time';
+        case EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName:
+            action.label = gettext('Update Event Time');
             break;
 
-        case EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label:
-            action.label = 'Reschedule Event';
+        case EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName:
+            action.label = gettext('Reschedule Event');
             break;
-        case EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label:
-            action.label = 'Mark Event as Postponed';
+        case EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName:
+            action.label = gettext('Mark Event as Postponed');
             break;
         }
 
@@ -324,6 +327,7 @@ const getPlanningActions = ({
         PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.actionName,
         PLANNING.ITEM_ACTIONS.DUPLICATE.actionName,
         PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName,
+        PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName,
         PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName,
         PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName,
         PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName,
@@ -351,18 +355,28 @@ const getPlanningActions = ({
             return;
         }
 
-        if (callBackName === PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName) {
+        if ([PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName, PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName]
+            .includes(callBackName)) {
             addCoverageCallBacks = contentTypes.map((c) => (
                 {
                     label: c.name,
                     icon: self.getCoverageIcon(c.qcode),
-                    callback: callBacks[callBackName].bind(null, c.qcode),
+                    callback: callBacks[callBackName].bind(null, c.qcode, item),
                 }
             ));
 
-            if (addCoverageCallBacks.length > 0) {
+            if (addCoverageCallBacks.length <= 0) {
+                return;
+            }
+
+            if (callBackName === PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName) {
                 actions.push({
                     ...PLANNING.ITEM_ACTIONS.ADD_COVERAGE,
+                    callback: addCoverageCallBacks,
+                });
+            } else if (callBackName === PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName) {
+                actions.push({
+                    ...PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST,
                     callback: addCoverageCallBacks,
                 });
             }

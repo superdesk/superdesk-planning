@@ -110,6 +110,13 @@ export class EditorComponent extends React.Component {
         }
     }
 
+    componentDidUpdate(prevProps) {
+        if (prevProps.item === null && this.props.item !== null && get(this.props.initialValues, '_addCoverage')) {
+            // If the new item has a coverage that should be added, add it
+            this.onAddCoverage(this.props.initialValues._addCoverage);
+        }
+    }
+
     onPopupOpen() {
         if (this.dom.scrollContainer) {
             this.dom.scrollContainer.style.overflow = 'hidden';

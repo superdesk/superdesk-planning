@@ -547,6 +547,13 @@ const updateItemOnSave = (savedItem) => (
     }
 );
 
+const addNewCoverageToPlanning = (coverageType, item) => (
+    (dispatch) => (dispatch(main.lockAndEdit({
+        ...item,
+        _addCoverage: coverageType,
+    })))
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     spike,
@@ -577,6 +584,7 @@ const self = {
     modifyPlanningFeatured,
     openFeaturedPlanningModal,
     updateItemOnSave,
+    addNewCoverageToPlanning,
 };
 
 export default self;

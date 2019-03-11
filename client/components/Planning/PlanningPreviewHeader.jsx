@@ -24,6 +24,7 @@ export class PlanningPreviewHeaderComponent extends React.Component {
             event,
             agendas,
             itemActionDispatches,
+            contentTypes,
         } = this.props;
         const lockedUser = lockUtils.getLockedUser(item, lockedItems, users);
         const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_MANAGEMENT];
@@ -41,6 +42,8 @@ export class PlanningPreviewHeaderComponent extends React.Component {
                 itemActionDispatches[PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName],
             [PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName]:
                 itemActionDispatches[PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName],
+            [PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName]:
+                itemActionDispatches[PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName],
             [PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName]:
                 itemActionDispatches[PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName],
             [PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName]:
@@ -66,6 +69,7 @@ export class PlanningPreviewHeaderComponent extends React.Component {
             privileges: privileges,
             lockedItems: lockedItems,
             agendas: agendas,
+            contentTypes: contentTypes,
             callBacks: itemActionsCallBack}) : null;
 
         return (
@@ -114,6 +118,7 @@ PlanningPreviewHeaderComponent.propTypes = {
     itemActionDispatches: PropTypes.object,
     showUnlock: PropTypes.bool,
     hideItemActions: PropTypes.bool,
+    contentTypes: PropTypes.array,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -125,6 +130,7 @@ const mapStateToProps = (state, ownProps) => ({
     users: selectors.general.users(state),
     lockedItems: selectors.locks.getLockedItems(state),
     agendas: selectors.general.agendas(state),
+    contentTypes: selectors.general.contentTypes(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
