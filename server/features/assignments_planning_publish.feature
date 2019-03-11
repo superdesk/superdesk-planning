@@ -99,8 +99,21 @@ Feature: For posted planning item changes in assignment state post a planning it
         Then we get OK response
         Then we store coverage id in "firstcoverage" from coverage 0
 
-    @auth @vocabularies
+    @auth @vocabularies @test
     Scenario: Publish Planning item on changes to assignment state.
+        Given "vocabularies"
+        """
+            [{
+              "_id": "g2_content_type",
+              "display_name": "Coverage content types",
+              "type": "manageable",
+              "unique_field": "qcode",
+              "selection_type": "do not show",
+              "items": [
+                  {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
+              ]
+            }]
+        """
         When we post to "/planning/post"
         """
         {
@@ -595,6 +608,19 @@ Feature: For posted planning item changes in assignment state post a planning it
 
     @auth @vocabularies
     Scenario: Publish Planning item on linking and unlinking
+        Given "vocabularies"
+        """
+            [{
+              "_id": "g2_content_type",
+              "display_name": "Coverage content types",
+              "type": "manageable",
+              "unique_field": "qcode",
+              "selection_type": "do not show",
+              "items": [
+                  {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
+              ]
+          }]
+        """
         When we post to "/planning/post"
         """
         {

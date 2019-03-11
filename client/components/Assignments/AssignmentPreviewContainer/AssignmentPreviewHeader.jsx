@@ -27,6 +27,7 @@ export const AssignmentPreviewHeader = ({
     desks,
     hideAvatar,
     hideItemActions,
+    contentTypes,
 }) => {
     const {
         assignedTo,
@@ -47,6 +48,8 @@ export const AssignmentPreviewHeader = ({
     } = assignmentUtils.getAssignmentInfo(assignment, users, desks);
 
     const planningSchedule = get(assignment, 'planning.scheduled');
+    const coverageIcon = planningUtils.getCoverageIcon(planningUtils.getCoverageContentType(
+        assignment, contentTypes) || get(assignment, 'planning.g2_content_type'));
 
     return (
         <div>
@@ -144,10 +147,8 @@ export const AssignmentPreviewHeader = ({
                                     data-flow="right"
                                 >
                                     <i
-                                        className={classNames(
-                                            'sd-list-item__inline-icon',
-                                            planningUtils.getCoverageIcon(get(planning, 'g2_content_type'))
-                                        )}
+                                        className={classNames('sd-list-item__inline-icon',
+                                            coverageIcon)}
                                     />
                                 </span>
                                 <PriorityLabel
@@ -178,4 +179,5 @@ AssignmentPreviewHeader.propTypes = {
     desks: PropTypes.array,
     hideAvatar: PropTypes.bool,
     hideItemActions: PropTypes.bool,
+    contentTypes: PropTypes.array,
 };

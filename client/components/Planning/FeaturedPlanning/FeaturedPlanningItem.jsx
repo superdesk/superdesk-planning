@@ -29,6 +29,7 @@ export const FeaturedPlanningItem = ({
     activated,
     onClick,
     withMargin,
+    contentTypes,
 }) => {
     if (!item) {
         return null;
@@ -89,7 +90,8 @@ export const FeaturedPlanningItem = ({
                         timeFormat={timeFormat}
                         dateFormat={dateFormat}
                         users={users}
-                        desks={desks} />
+                        desks={desks}
+                        contentTypes={contentTypes} />
                 </Row>
             </Column>
             {!readOnly && !selectedPlanningIds.includes(item._id) && <Column>
@@ -132,4 +134,5 @@ FeaturedPlanningItem.propTypes = {
     onClick: PropTypes.func,
     withMargin: PropTypes.bool,
     activated: PropTypes.bool,
+    contentTypes: PropTypes.array,
 };

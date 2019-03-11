@@ -37,14 +37,15 @@ class AssignmentsCompleteResource(AssignmentsResource):
 
 class AssignmentsCompleteService(BaseService):
     def on_update(self, updates, original):
-        coverage_type = original.get('planning', {}).get('g2_content_type')
         assignment_state = original.get('assigned_to').get('state')
         AssignmentsService.set_type(updates, original)
-        get_resource_service('assignments').validate_assignment_action(original)
+        assignments_service = get_resource_service('assignments')
+        assignments_service.validate_assignment_action(original)
+        text_assignment = assignments_service.is_text_assignment(original)
 
-        if coverage_type == 'text' and assignment_state != ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
+        if text_assignment and assignment_state != ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
             raise SuperdeskApiError.forbiddenError('Cannot complete. Assignment not in progress.')
-        elif coverage_type != 'text' and \
+        elif not text_assignment and \
                 assignment_state not in [ASSIGNMENT_WORKFLOW_STATE.ASSIGNED, ASSIGNMENT_WORKFLOW_STATE.SUBMITTED]:
             raise SuperdeskApiError.forbiddenError(
                 'Cannot confirm availability. Assignment should be assigned or submitted.')
@@ -59,9 +60,10 @@ class AssignmentsCompleteService(BaseService):
         original_assigned_to.update(updates['assigned_to'])
         updates['assigned_to'] = original_assigned_to
 
+        assignments_service = get_resource_service('assignments')
         # If we are confirming availability, save the revert state for revert action
-        coverage_type = original.get('planning', {}).get('g2_content_type')
-        if coverage_type != 'text':
+        text_assignment = assignments_service.is_text_assignment(original)
+        if not text_assignment:
             updates['assigned_to']['revert_state'] = updates['assigned_to']['state']
 
         updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED
@@ -71,10 +73,10 @@ class AssignmentsCompleteService(BaseService):
         item = self.backend.update(self.datasource, id, updates, original)
 
         # publish the planning item
-        get_resource_service('assignments').publish_planning(original['planning_item'])
+        assignments_service.publish_planning(original['planning_item'])
 
         # Save history if user initiates complete
-        if coverage_type == 'text':
+        if text_assignment:
             get_resource_service('assignments_history').on_item_complete(updates, original)
         else:
             get_resource_service('assignments_history').on_item_confirm_availability(updates, original)

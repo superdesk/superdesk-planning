@@ -19,6 +19,7 @@ export const CoverageIcon = ({
     desks,
     timeFormat,
     dateFormat,
+    contentTypes,
 }) => {
     const user = getItemInArrayById(users, get(coverage, 'assigned_to.user'));
     const desk = getItemInArrayById(desks, get(coverage, 'assigned_to.desk'));
@@ -45,7 +46,9 @@ export const CoverageIcon = ({
                 'icn-mix__sub-icn',
                 'icn-mix__sub-icn--gray')} />
             <i className={classNames(
-                planningUtils.getCoverageIcon(get(coverage, 'planning.g2_content_type')),
+                planningUtils.getCoverageIcon(
+                    planningUtils.getCoverageContentType(coverage, contentTypes) ||
+                        get(coverage, 'planning.g2_content_type')),
                 planningUtils.getCoverageIconColor(coverage),
                 'sd-list-item__inline-icon')}/>
         </span>
@@ -58,4 +61,5 @@ CoverageIcon.propTypes = {
     desks: PropTypes.array,
     timeFormat: PropTypes.string,
     dateFormat: PropTypes.string,
+    contentTypes: PropTypes.array,
 };

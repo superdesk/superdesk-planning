@@ -297,6 +297,7 @@ export class FeaturedPlanningModalComponent extends React.Component {
             defaultTimeZone,
             featuredPlanningItems,
             featuredPlanningItem,
+            contentTypes,
         } = this.props;
 
         const emptyMsg = this.state.unselectedPlanningIds.length === 0 &&
@@ -332,6 +333,7 @@ export class FeaturedPlanningModalComponent extends React.Component {
             users: users,
             onAddToSelectedFeaturedPlanning: this.onAddToSelectedPlanning,
             onRemoveFromSelectedFeaturedPlanning: this.onRemoveFromSelectedPlanning,
+            contentTypes: contentTypes,
         };
 
         if (!inUse) {
@@ -435,6 +437,7 @@ FeaturedPlanningModalComponent.propTypes = {
     openCancelModal: PropTypes.func,
     defaultTimeZone: PropTypes.string,
     notifyValidationErrors: PropTypes.func,
+    contentTypes: PropTypes.array,
 };
 
 FeaturedPlanningModalComponent.defaultProps = {featuredPlanningItem: {}};
@@ -455,6 +458,7 @@ const mapStateToProps = (state) => ({
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
     defaultTimeZone: selectors.config.defaultTimeZone(state),
+    contentTypes: selectors.general.contentTypes(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

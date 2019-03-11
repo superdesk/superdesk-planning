@@ -238,7 +238,7 @@ export class PlanningEditorComponent extends React.Component {
                 };
             }
 
-            if (field.match(/g2_content_type$/) && value === PLANNING.G2_CONTENT_TYPE.TEXT && this.props.defaultDesk) {
+            if (field.match(/g2_content_type$/) && value === 'text' && this.props.defaultDesk) {
                 const coverageStr = field.substr(0, field.indexOf('.'));
                 let existingCoverage = {...get(this.props, `diff.${coverageStr}`)};
 

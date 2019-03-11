@@ -66,7 +66,7 @@ export const CoverageItem = ({
             <Column grow={true} border={false}>
                 <Row paddingBottom>
                     <CoverageIcon coverage={coverage} dateFormat={dateFormat} timeFormat={timeFormat}
-                        users={users} desks={desks}/>
+                        users={users} desks={desks} contentTypes={contentTypes}/>
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         {displayContentType.join('')}
                     </span>
@@ -146,6 +146,5 @@ CoverageItem.propTypes = {
 CoverageItem.defaultProps = {
     dateFormat: 'DD/MM/YYYY',
     timeFormat: 'HH:mm',
-    contentTypes: [],
     isPreview: false,
 };

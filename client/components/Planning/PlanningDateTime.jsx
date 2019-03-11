@@ -9,7 +9,7 @@ import {planningUtils} from '../../utils/index';
 import {MAIN} from '../../constants';
 import {CoverageIcon} from '../Coverages/';
 
-export const PlanningDateTime = ({item, date, timeFormat, dateFormat, users, desks, activeFilter}) => {
+export const PlanningDateTime = ({item, date, timeFormat, dateFormat, users, desks, activeFilter, contentTypes}) => {
     const coverages = get(item, 'coverages', []);
     const coverageTypes = planningUtils.mapCoverageByDate(coverages);
     const hasAssociatedEvent = !!get(item, 'event_item');
@@ -39,7 +39,8 @@ export const PlanningDateTime = ({item, date, timeFormat, dateFormat, users, des
                     desks={desks}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
-                    coverage={coverage} />
+                    coverage={coverage}
+                    contentTypes={contentTypes} />
             )}
         </span>
     );
@@ -53,4 +54,5 @@ PlanningDateTime.propTypes = {
     users: PropTypes.array,
     desks: PropTypes.array,
     activeFilter: PropTypes.string,
+    contentTypes: PropTypes.array,
 };

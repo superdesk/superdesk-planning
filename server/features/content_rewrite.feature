@@ -94,7 +94,21 @@ Feature: Rewrite content
         """
 
     @auth
+    @vocabularies
     Scenario: Unlink a rewrite also unlinks the Assignment
+        Given "vocabularies"
+        """
+            [{
+              "_id": "g2_content_type",
+              "display_name": "Coverage content types",
+              "type": "manageable",
+              "unique_field": "qcode",
+              "selection_type": "do not show",
+              "items": [
+                  {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
+              ]
+          }]
+        """
         When we rewrite "#archive._id#"
         """
         {"desk_id": "#desks._id#"}

@@ -118,7 +118,7 @@ export class CoverageHistory extends React.Component {
     }
 
     render() {
-        const {historyData, users, desks, timeFormat, dateFormat} = this.props;
+        const {historyData, users, desks, timeFormat, dateFormat, contentTypes} = this.props;
         const coverage = get((historyData.items || []).find((item) =>
             [COVERAGES.HISTORY_OPERATIONS.CREATED, COVERAGES.HISTORY_OPERATIONS.CREATED_CONTENT].includes(
                 item.operation)), 'update');
@@ -136,7 +136,7 @@ export class CoverageHistory extends React.Component {
                 <Column grow={true} border={false}>
                     <Row paddingBottom>
                         <CoverageIcon coverage={historyData} dateFormat={dateFormat} timeFormat={timeFormat}
-                            users={users} desks={desks}/>
+                            users={users} desks={desks} contentTypes={contentTypes}/>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                             {stringUtils.firstCharUpperCase(
                                 get(historyData, 'planning.g2_content_type', '').replace('_', ' '))}
@@ -183,4 +183,5 @@ CoverageHistory.propTypes = {
     desks: PropTypes.array,
     timeFormat: PropTypes.string,
     dateFormat: PropTypes.string,
+    contentTypes: PropTypes.array,
 };

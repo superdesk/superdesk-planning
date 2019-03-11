@@ -10,6 +10,16 @@ class AssignmentUnlinkTestCase(TestCase):
             flask.g.user = {'_id': ObjectId()}
             user_id = ObjectId()
             desk_id = ObjectId()
+            self.app.data.insert('vocabularies', [{
+                "_id": "g2_content_type",
+                "display_name": "Coverage content types",
+                "type": "manageable",
+                "unique_field": "qcode",
+                "selection_type": "do not show",
+                "items": [
+                    {"name": "Text", "qcode": "text", "content item type": "text"}
+                ]
+            }])
             self.app.data.insert('archive', [{
                 '_id': 'item1',
                 'type': 'text',

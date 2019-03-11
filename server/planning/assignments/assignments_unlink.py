@@ -93,7 +93,8 @@ class AssignmentsUnlinkService(Service):
         return ids
 
     def _validate(self, doc):
-        assignment = get_resource_service('assignments').find_one(
+        assignments_service = get_resource_service('assignments')
+        assignment = assignments_service.find_one(
             req=None,
             _id=doc.get('assignment_id')
         )
@@ -107,7 +108,7 @@ class AssignmentsUnlinkService(Service):
         if not assignment:
             raise SuperdeskApiError.badRequestError('Assignment not found.')
 
-        if assignment.get('planning', {}).get('g2_content_type', '') != 'text':
+        if not assignments_service.is_text_assignment(assignment):
             raise SuperdeskApiError.badRequestError('Cannot unlink media assignments.')
 
         if assignment.get(LOCK_USER):

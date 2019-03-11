@@ -36,6 +36,7 @@ export const FeaturedPlanningList = ({
     withMargin,
     emptyMsg,
     showAuditInformation,
+    contentTypes,
 }) => {
     const getItem = (item) => (item ? (<FeaturedPlanningItem
         key={item._id}
@@ -52,6 +53,7 @@ export const FeaturedPlanningList = ({
         onRemoveFromSelectedFeaturedPlanning={onRemoveFromSelectedFeaturedPlanning}
         onClick={onClick}
         withMargin={withMargin}
+        contentTypes={contentTypes}
         activated={highlights.includes(item._id)} />) : null);
 
     const SortableItem = SortableElement(({item}) => (
@@ -154,6 +156,7 @@ FeaturedPlanningList.propTypes = {
     emptyMsg: PropTypes.string,
     item: PropTypes.object,
     showAuditInformation: PropTypes.bool,
+    contentTypes: PropTypes.array,
 };
 
 FeaturedPlanningList.defaultProps = {selectedPlanningIds: []};

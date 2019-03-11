@@ -39,7 +39,7 @@ export class HistoryTabComponent extends React.Component {
 
     render() {
         const itemType = getItemType(this.props.item);
-        const {historyItems, users, desks, agendas, timeFormat, dateFormat, openItemPreview} = this.props;
+        const {historyItems, users, desks, agendas, timeFormat, dateFormat, openItemPreview, contentTypes} = this.props;
         const itemProps = {
             historyItems: historyItems,
             users: users,
@@ -47,6 +47,7 @@ export class HistoryTabComponent extends React.Component {
             dateFormat: dateFormat,
             desks: desks,
             openItemPreview: openItemPreview,
+            contentTypes: contentTypes,
         };
 
         if (this.state.fetchingHistory) {
@@ -78,6 +79,7 @@ HistoryTabComponent.propTypes = {
     dateFormat: PropTypes.string,
     forEditor: PropTypes.bool,
     forEditorModal: PropTypes.bool,
+    contentTypes: PropTypes.array,
 };
 
 const getHistoryItems = (props) => {
@@ -99,6 +101,7 @@ const mapStateToProps = (state, ownProps) => ({
     agendas: selectors.general.agendas(state),
     timeFormat: selectors.config.getTimeFormat(state),
     dateFormat: selectors.config.getDateFormat(state),
+    contentTypes: selectors.general.contentTypes(state),
 });
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
