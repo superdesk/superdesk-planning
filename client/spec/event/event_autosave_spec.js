@@ -2,6 +2,7 @@ import {subNavBar} from '../helpers/subNavBar';
 import {editor} from '../helpers/editor';
 import {listPanel} from '../helpers/listPanel';
 import {workqueue} from '../helpers/workqueue';
+import {waitAndClick} from '../helpers/utils';
 
 import {nav} from 'superdesk-core/spec/helpers/utils';
 
@@ -103,7 +104,7 @@ describe('event_autosave', () => {
         editor.expectValues(expectedEvent);
 
         // Now save the Event
-        editor.createButton.click();
+        waitAndClick(editor.createButton);
         browser.wait(
             () => listPanel.getItemCount(),
             30000,

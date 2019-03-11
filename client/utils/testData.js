@@ -574,6 +574,7 @@ export const plannings = [
         planning_date: '2016-10-15T13:01:11+0000',
         headline: 'Some Plan 1',
         state: 'draft',
+        _etag: 'p123',
         coverages: [
             {
                 coverage_id: 'c1',
@@ -605,6 +606,7 @@ export const plannings = [
                     user: 'ident1',
                     desk: 'desk2',
                     assignment_id: 'as2',
+                    state: 'draft',
                 },
                 firstcreated: '2017-10-02T14:01:11+0000',
             },
@@ -858,8 +860,22 @@ export const initialState = {
             event: {},
             planning: {},
         },
-        itemId: null,
-        itemType: null,
+        editors: {
+            panel: {
+                itemId: null,
+                itemType: null,
+                action: null,
+                initialValues: null,
+                itemHistory: [],
+            },
+            modal: {
+                itemId: null,
+                itemType: null,
+                action: null,
+                initialValues: null,
+                itemHistory: [],
+            },
+        },
     },
     workspace: workspace,
     vocabularies: vocabularies,

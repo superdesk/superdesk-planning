@@ -35,6 +35,7 @@ const fieldToHelper = {
     news_coverage_status: (form, field) => new Select(form, field),
     scheduled: (form, field) => new DateTime(form, field),
     desk: (form, field) => new Select(form, field),
+    agendas: (form, field) => new SelectMetaTerms(form, field),
 };
 
 const getLabelHelper = (form, field, type = 'label') => (new Label(form, field, type));

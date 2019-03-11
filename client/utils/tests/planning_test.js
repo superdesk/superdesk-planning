@@ -465,6 +465,7 @@ describe('PlanningUtils', () => {
             };
             event = null;
             planning = {
+                _id: 'plan1',
                 state: 'draft',
                 coverages: [],
             };
@@ -482,7 +483,6 @@ describe('PlanningUtils', () => {
             );
 
             expectActions(itemActions, [
-                'Add coverage',
                 'Spike planning',
                 'Duplicate',
                 'Edit',
@@ -498,7 +498,6 @@ describe('PlanningUtils', () => {
             );
 
             expectActions(itemActions, [
-                'Add coverage',
                 'Spike planning',
                 'Duplicate',
                 'Edit',
@@ -517,7 +516,6 @@ describe('PlanningUtils', () => {
             );
 
             expectActions(itemActions, [
-                'Add coverage',
                 'Duplicate',
                 'Edit',
             ]);
@@ -532,7 +530,6 @@ describe('PlanningUtils', () => {
             );
 
             expectActions(itemActions, [
-                'Add coverage',
                 'Duplicate',
                 'Edit',
                 'Cancel Event',
@@ -597,7 +594,6 @@ describe('PlanningUtils', () => {
             );
 
             expectActions(itemActions, [
-                'Add coverage',
                 'Duplicate',
                 'Cancel Event',
                 'Update Event Time',
@@ -620,7 +616,6 @@ describe('PlanningUtils', () => {
             );
 
             expectActions(itemActions, [
-                'Add coverage',
                 'Duplicate',
                 'Edit',
                 'Cancel Event',
@@ -628,6 +623,30 @@ describe('PlanningUtils', () => {
                 'Reschedule Event',
                 'Mark Event as Postponed',
                 'Convert to Recurring Event',
+            ]);
+        });
+
+        it('add coverage', () => {
+            session = {
+                identity: {_id: 'ident1'},
+                sessionId: 'session1',
+            };
+            planning.lock_user = 'ident1';
+            planning.lock_session = 'session1';
+            locks.planning.plan1 = {
+                user: 'ident1',
+                session: 'session1',
+            };
+
+            let itemActions = planUtils.getPlanningItemActions(
+                planning, event, session, privileges, actions, locks
+            );
+
+            expectActions(itemActions, [
+                'Add coverage',
+                'Spike planning',
+                'Duplicate',
+                'Edit',
             ]);
         });
     });

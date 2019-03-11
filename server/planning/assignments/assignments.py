@@ -208,12 +208,17 @@ class AssignmentsService(superdesk.Service):
             'coverage': doc.get('coverage_item'),
             'planning': doc.get('planning_item'),
             'assigned_user': (doc.get('assigned_to') or {}).get('user'),
+            'assigned_date_user': (doc.get('assigned_to') or {}).get('assigned_date_user'),
+
             'assigned_desk': (doc.get('assigned_to') or {}).get('desk'),
+            'assigned_date_desk': (doc.get('assigned_to') or {}).get('assigned_date_desk'),
+
             'user': doc.get('version_creator', doc.get('original_creator')),
             'original_assigned_desk': (original.get('assigned_to') or {}).get('desk'),
             'original_assigned_user': (original.get('assigned_to') or {}).get('user'),
             'assignment_state': doc.get('assigned_to')['state'],
             'lock_user': lock_user,
+            'session': get_auth().get('_id')
         }
 
         if event_name == 'assignments:updated' and not updates.get('assigned_to')\

@@ -50,9 +50,9 @@ export class EventItem extends React.Component {
         const {session, privileges, item, lockedItems, calendars} = this.props;
         const callBacks = {
             [EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName].bind(null, item),
+                this.props[EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName].bind(null, item, true),
             [EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName].bind(null, item, true),
+                this.props[EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName].bind(null, item, false, true),
             [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:

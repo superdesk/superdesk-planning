@@ -2,7 +2,6 @@ import {
     MAIN,
     ITEM_TYPE,
     MODALS,
-    WORKSPACE,
     WORKFLOW_STATE,
     POST_STATE,
     PLANNING,
@@ -39,6 +38,8 @@ import {
     isPublishedItemId,
     isItemSpiked,
     isItemSameAsAutosave,
+    generateTempId,
+    modifyForClient,
 } from '../utils';
 import eventsPlanningUi from './eventsPlanning/ui';
 import {get, omit, isEmpty, isNil, isEqual} from 'lodash';
@@ -46,96 +47,95 @@ import {get, omit, isEmpty, isNil, isEqual} from 'lodash';
 import * as selectors from '../selectors';
 import {validateItem} from '../validators';
 
-/**
- * Open the Editor for creating a new item, creating an Autosave entry if item values are provided
- * @param {String} itemType - The type of item to create
- * @param {Object} item - Values to add to the default values for the item
- */
-const createNew = (itemType, item = null) => (
+const openForEdit = (item, updateUrl = true, modal = false) => (
     (dispatch, getState) => {
-        let newItem;
-        const defaultTimeZone = selectors.config.defaultTimeZone(getState());
-        const defaultPlaceList = selectors.general.defaultPlaceList(getState());
-
-        if (itemType === ITEM_TYPE.EVENT) {
-            newItem = eventUtils.defaultEventValues(
-                selectors.vocabs.eventOccurStatuses(getState()),
-                selectors.events.defaultCalendarValue(getState()),
-                defaultPlaceList, defaultTimeZone);
-            newItem._planning_item = get(item, '_planning_item');
-        } else if (itemType === ITEM_TYPE.PLANNING) {
-            newItem = planningUtils.defaultPlanningValues(selectors.planning.currentAgenda(getState()),
-                defaultPlaceList);
+        if (!isExistingItem(item)) {
+            return dispatch(
+                self.openEditorAction(item, 'create', updateUrl, modal)
+            );
         }
 
-        const promise = isNil(item) ?
-            Promise.resolve() :
-            dispatch(autosave.save({
-                ...newItem,
-                ...item,
-            }));
-
-        return promise.then(() => dispatch(self.lockAndEdit(newItem)));
-    }
-);
-
-const lockAndEdit = (item, modal = false) => (
-    (dispatch, getState, {notify}) => {
-        const currentItemId = selectors.forms.currentItemId(getState());
         const currentSession = selectors.general.session(getState());
         const lockedItems = selectors.locks.getLockedItems(getState());
         const privileges = selectors.general.privileges(getState());
         const shouldLockItem = shouldLockItemForEdit(item, lockedItems, privileges);
+        const lockedInThisSession = lockUtils.isItemLockedInThisSession(
+            item,
+            currentSession,
+            lockedItems
+        );
+        const lockAction = lockUtils.getLockAction(item, lockedItems);
+        const lockedForEditing = ['edit', 'add_to_planning'].indexOf(lockAction) >= 0;
 
-        // If the editor is in main page and this item is already opened and
-        // we either have a lock or the item should not get locked.
-        // Then simply return the item
-        if (currentItemId === item._id && !modal &&
-            (!shouldLockItem || lockUtils.isItemLockedInThisSession(item, currentSession))
-        ) {
-            return Promise.resolve(item);
-        }
+        const action = (shouldLockItem || (lockedInThisSession && lockedForEditing)) ?
+            'edit' :
+            'read';
 
-        // If the item being edited is currently opened in the Preview panel
-        // then close the preview panel
-        if (selectors.main.previewId(getState()) === item._id) {
-            dispatch(self.closePreview());
-        }
-
-        dispatch(setLoadingEditItem(modal));
-
-        // If it is an existing item and the item is not locked
-        // then lock the item, otherwise return the existing item
-        const promise = shouldLockItem ?
-            dispatch(locks.lock(item)) :
-            Promise.resolve(item);
-
-        return promise.then((lockedItem) => {
-            if (!modal) {
-                dispatch(self.openEditor(item));
-            } else {
-                // Open the modal to show the editor
-                dispatch(closeEditorAndOpenModal(item));
-            }
-
-            dispatch(unsetLoadingEditItem(modal));
-
-            return Promise.resolve(lockedItem);
-        }, (error) => {
-            notify.error(
-                getErrorMessage(error, gettext('Failed to lock the item'))
-            );
-
-            dispatch(unsetLoadingEditItem(modal));
-
-            return Promise.reject(error);
-        });
+        dispatch(
+            self.openEditorAction(item, action, updateUrl, modal)
+        );
     }
 );
 
-const unlockAndCancel = (item, modal = false) => (
+const openEditorAction = (item, action, updateUrl = true, modal = false) => (
+    (dispatch, getState, {$timeout, $location}) => {
+        const itemId = getItemId(item);
+        const itemType = getItemType(item);
+
+        // If the item being edited is currently opened in the Preview panel
+        // then close the preview panel
+        if (selectors.main.previewId(getState()) === itemId) {
+            dispatch(self.closePreview());
+        }
+
+        dispatch({
+            type: MAIN.ACTIONS.OPEN_FOR_EDIT,
+            payload: {item, action, modal},
+        });
+
+        if (modal) {
+            dispatch(showModal({
+                modalType: MODALS.EDIT_ITEM,
+                modalProps: {item},
+            }));
+
+            if (selectors.forms.currentItemId(getState()) === itemId) {
+                dispatch(self.closeEditor());
+            }
+        } else if (updateUrl) {
+            // Update the URL
+            $timeout(() => $location.search('edit', JSON.stringify({
+                id: itemId,
+                type: itemType,
+            })));
+        }
+    }
+);
+
+const changeEditorAction = (action, modal = false) => ({
+    type: MAIN.ACTIONS.CHANGE_EDITOR_ACTION,
+    payload: {action, modal},
+});
+
+/**
+ * Open the Editor for creating a new item, creating an Autosave entry if item values are provided
+ * @param {String} itemType - The type of item to create
+ * @param {Object} item - Values to add to the default values for the item
+ * @param {Boolean} updateUrl - If true updates the url params
+ * @param {Boolean} modal - If true, create this item in the modal editor
+ */
+const createNew = (itemType, item = null, updateUrl = true, modal = false) => (
+    self.openEditorAction({
+        _id: generateTempId(),
+        type: itemType,
+        ...item,
+    }, 'create', updateUrl, modal)
+);
+
+const unlockAndCancel = (item, ignoreSession = false) => (
     (dispatch, getState) => {
         const state = getState();
+        const itemId = getItemId(item);
         const itemType = getItemType(item);
         let promise = Promise.resolve();
 
@@ -144,43 +144,48 @@ const unlockAndCancel = (item, modal = false) => (
         if (shouldUnLockItem(
             item,
             selectors.general.session(state),
-            selectors.general.currentWorkspace(state))
-        ) {
+            selectors.general.currentWorkspace(state),
+            selectors.locks.getLockedItems(state),
+            ignoreSession
+        )) {
             promise = dispatch(locks.unlock(item));
+            if (isExistingItem(item)) {
+                promise.then(
+                    () => dispatch(autosave.removeById(itemType, itemId))
+                );
+            }
         } else if (!isExistingItem(item)) {
-            promise = dispatch(autosave.removeById(itemType, getItemId(item)));
+            promise = dispatch(autosave.removeById(itemType, itemId));
         }
 
         if (itemType === ITEM_TYPE.EVENT) {
             dispatch(eventsUi.onEventEditUnlock(item));
         }
 
-        if (!modal) {
-            dispatch(self.closeEditor());
-        } else {
-            dispatch(self.closeEditorModal());
+        if (selectors.forms.currentItemId(state) === itemId) {
+            dispatch(self.closeEditor(false));
+        } else if (selectors.forms.currentItemIdModal(state) === itemId) {
+            dispatch(self.closeEditor(true));
         }
 
         return promise;
     }
 );
 
-const save = (item, withConfirmation = true, noSubsequentEditing = false) => (
+const save = (original, updates, withConfirmation = true) => (
     (dispatch, getState, {notify}) => {
-        const itemId = getItemId(item);
-        const itemType = getItemType(item);
+        const itemId = getItemId(updates);
+        const itemType = getItemType(updates);
         const existingItem = !isTemporaryId(itemId);
-        const itemIdModal = selectors.forms.currentItemIdModal(getState());
-        const createdFromModal = !existingItem && itemId === itemIdModal;
 
         if (!existingItem) {
             // If this is a new item being created, then we do not need
             // the temporary ID generated, along with the lock information
-            delete item._id;
-            delete item.lock_action;
-            delete item.lock_user;
-            delete item.lock_session;
-            delete item.lock_time;
+            delete updates._id;
+            delete updates.lock_action;
+            delete updates.lock_user;
+            delete updates.lock_session;
+            delete updates.lock_time;
         }
 
         let promise;
@@ -188,68 +193,77 @@ const save = (item, withConfirmation = true, noSubsequentEditing = false) => (
 
         switch (itemType) {
         case ITEM_TYPE.EVENT:
-            promise = dispatch(eventsUi.save(item, confirmation));
+            promise = dispatch(eventsUi.save(original, updates, confirmation));
             break;
         case ITEM_TYPE.PLANNING:
             confirmation = false;
-            promise = dispatch(planningUi.save(item));
+            promise = dispatch(planningUi.save(original, updates));
             break;
         default:
             promise = Promise.reject(
-                gettext('Failed to save, could not find the item {{itemType}}!', {itemType: itemType})
+                gettext(
+                    'Failed to save, could not find the item {{itemType}}!',
+                    {itemType: itemType}
+                )
             );
             break;
         }
 
         return promise
             .then((savedItems) => {
-                const savedItem = Array.isArray(savedItems) ? savedItems[0] : savedItems;
-                const savedItemItemType = getItemType(savedItem);
-
-                if (selectors.general.currentWorkspace(getState()) !== WORKSPACE.AUTHORING) {
-                    if (!existingItem) {
-                        if (createdFromModal) {
-                            dispatch(self.closeEditorModal());
-                        }
-
-                        notify.success(
-                            gettext('{{ itemType }} created', {itemType: getItemTypeString(item)})
-                        );
-
-                        return dispatch(autosave.removeById(itemType, itemId))
-                            .then(() => {
-                                // Lock the newly created item for editing
-                                if (!noSubsequentEditing) {
-                                    return dispatch(self.lockAndEdit(savedItem));
-                                }
-
-                                return Promise.resolve();
-                            });
-                    } else {
-                        // Load it to store
-                        switch (savedItemItemType) {
-                        case ITEM_TYPE.EVENT:
-                            dispatch(eventsApi.receiveEvents([eventUtils.modifyForClient(savedItem)]));
-                            break;
-                        case ITEM_TYPE.PLANNING:
-                            dispatch(planningApi.receivePlannings([planningUtils.modifyForClient(savedItem)]));
-                            break;
-                        }
-                    }
+                // This occurs during an 'Ignore/Cancel/Save' from ModalEditor
+                // And the user clicks on 'Cancel'
+                if (!savedItems) {
+                    return Promise.resolve();
                 }
 
-                if (!confirmation && [ITEM_TYPE.EVENT, ITEM_TYPE.PLANNING].includes(savedItemItemType)) {
-                    notify.success(
-                        gettext('The {{ itemType }} has been saved', {itemType: getItemTypeString(item)})
+                let savedItem = Array.isArray(savedItems) ? savedItems[0] : savedItems;
+
+                if (!confirmation && [ITEM_TYPE.EVENT, ITEM_TYPE.PLANNING].indexOf(itemType) >= 0) {
+                    const typeString = getItemTypeString(savedItem);
+
+                    if (existingItem) {
+                        notify.success(
+                            gettext(
+                                'The {{ itemType }} has been saved',
+                                {itemType: typeString}
+                            )
+                        );
+                    } else {
+                        notify.success(
+                            gettext(
+                                '{{ itemType }} created',
+                                {itemType: typeString}
+                            )
+                        );
+                    }
+
+                    savedItem = modifyForClient(savedItem);
+                }
+
+                switch (itemType) {
+                case ITEM_TYPE.EVENT:
+                    dispatch(
+                        eventsApi.receiveEvents([savedItem])
                     );
+                    break;
+                case ITEM_TYPE.PLANNING:
+                    dispatch(
+                        planningApi.receivePlannings([savedItem])
+                    );
+                    break;
                 }
 
                 return Promise.resolve(savedItem);
             }, (error) => {
-                notifyError(
-                    notify,
-                    error,
-                    gettext('Failed to save the {{ itemType }}', {itemType: getItemTypeString(item)})
+                notify.error(
+                    getErrorMessage(
+                        error,
+                        gettext(
+                            'Failed to save the {{itemType}}!',
+                            {itemType: getItemTypeString(original)}
+                        )
+                    )
                 );
 
                 return Promise.reject(error);
@@ -257,34 +271,43 @@ const save = (item, withConfirmation = true, noSubsequentEditing = false) => (
     }
 );
 
-const unpost = (item, withConfirmation = true) => (
+const unpost = (original, updates = {}, withConfirmation = true) => (
     (dispatch, getState, {notify}) => {
-        const itemType = getItemType(item);
         let promise;
         let confirmation = withConfirmation;
 
-        switch (itemType) {
+        updates.pubstatus = POST_STATE.CANCELLED;
+
+        switch (getItemType(original)) {
         case ITEM_TYPE.EVENT:
-            confirmation = withConfirmation && (get(item, 'recurrence_id') || eventUtils.eventHasPlanning(item));
+            confirmation = withConfirmation &&
+                (get(original, 'recurrence_id') || eventUtils.eventHasPlanning(original));
             promise = dispatch(confirmation ?
-                eventsUi.postWithConfirmation(item, false) :
-                eventsApi.unpost(item)
+                eventsUi.postWithConfirmation(original, updates, false) :
+                eventsApi.unpost(original, updates)
             );
             break;
         case ITEM_TYPE.PLANNING:
             confirmation = false;
-            promise = dispatch(planningApi.unpost(item));
+            promise = dispatch(planningApi.unpost(original, updates));
             break;
         default:
-            promise = Promise.reject(gettext('Failed to unpost, could not find the item type!'));
+            promise = Promise.reject(
+                gettext('Failed to unpost, could not find the item type!')
+            );
         }
+
+        const typeString = getItemTypeString(original);
 
         return promise
             .then(
                 (rtn) => {
-                    if (!confirmation || get(rtn, 'pubstatus', POST_STATE.CANCELLED)) {
+                    if (!confirmation) {
                         notify.success(
-                            gettext('The {{ itemType }} has been unposted', {itemType: getItemTypeString(item)})
+                            gettext(
+                                'The {{ itemType }} has been unposted',
+                                {itemType: typeString}
+                            )
                         );
                     }
                     return Promise.resolve(rtn);
@@ -293,7 +316,10 @@ const unpost = (item, withConfirmation = true) => (
                     notifyError(
                         notify,
                         error,
-                        gettext('Failed to unpost the {{ itemType }}', {itemType: getItemTypeString(item)})
+                        gettext(
+                            'Failed to unpost the {{ itemType }}',
+                            {itemType: typeString}
+                        )
                     );
                     return Promise.reject(error);
                 }
@@ -301,35 +327,43 @@ const unpost = (item, withConfirmation = true) => (
     }
 );
 
-const post = (item, withConfirmation = true) => (
+const post = (original, updates = {}, withConfirmation = true) => (
     (dispatch, getState, {notify}) => {
-        const itemType = getItemType(item);
         let promise;
         let confirmation = withConfirmation;
 
-        switch (itemType) {
+        updates.pubstatus = POST_STATE.USABLE;
+
+        switch (getItemType(original)) {
         case ITEM_TYPE.EVENT:
-            confirmation = withConfirmation && get(item, 'recurrence_id');
+            confirmation = withConfirmation && get(original, 'recurrence_id');
             promise = dispatch(confirmation ?
-                eventsUi.postWithConfirmation(item, true) :
-                eventsApi.post(item)
+                eventsUi.postWithConfirmation(original, updates, true) :
+                eventsApi.post(original, updates)
             );
             break;
         case ITEM_TYPE.PLANNING:
             confirmation = false;
-            promise = dispatch(planningApi.post(item));
+            promise = dispatch(planningApi.post(original, updates));
             break;
         default:
-            promise = Promise.reject(gettext('Failed to post, could not find the item type!'));
+            promise = Promise.reject(
+                gettext('Failed to post, could not find the item type!')
+            );
             break;
         }
+
+        const typeString = getItemTypeString(original);
 
         return promise
             .then(
                 (rtn) => {
                     if (!confirmation) {
                         notify.success(
-                            gettext('The {{ itemType }} has been posted', {itemType: getItemTypeString(item)})
+                            gettext(
+                                'The {{ itemType }} has been posted',
+                                {itemType: typeString}
+                            )
                         );
                     }
 
@@ -339,7 +373,10 @@ const post = (item, withConfirmation = true) => (
                     notifyError(
                         notify,
                         error,
-                        gettext('Failed to post the {{ itemType }}', {itemType: getItemTypeString(item)})
+                        gettext(
+                            'Failed to post the {{ itemType }}',
+                            {itemType: typeString}
+                        )
                     );
                     return Promise.reject(error);
                 }
@@ -386,7 +423,11 @@ const saveAutosave = (item, withConfirmation = true, updateMethod) => (
             updatedItem.update_method = updateMethod;
         }
 
-        return dispatch(self.save(updatedItem, withConfirmation));
+        return dispatch(self.save(
+            item,
+            updatedItem,
+            withConfirmation
+        ));
     }
 );
 
@@ -409,13 +450,13 @@ const isItemValid = (diff) => (
     }
 );
 
-const openActionModalFromEditor = (item, title, action) => (
+const openActionModalFromEditor = (original, title, action) => (
     (dispatch, getState) => {
         const lockedItems = selectors.locks.getLockedItems(getState());
-        const itemLock = lockUtils.getLock(item, lockedItems);
+        const itemLock = lockUtils.getLock(original, lockedItems);
 
-        const itemId = getItemId(item);
-        const itemType = getItemType(item);
+        const itemId = getItemId(original);
+        const itemType = getItemType(original);
         const autosaveData = getAutosaveItem(
             selectors.forms.autosaves(getState()),
             itemType,
@@ -425,81 +466,92 @@ const openActionModalFromEditor = (item, title, action) => (
         const isOpenInEditor = selectors.forms.currentItemId(getState()) === itemId;
         const isOpenInModal = selectors.forms.currentItemIdModal(getState()) === itemId;
 
-        let promise;
-
-        if (itemLock) {
-            // If we have any dirty autosave data, then open the IgnoreCancelSave modal
-            if (autosaveData && !isItemSameAsAutosave(
-                item,
-                autosaveData,
-                selectors.events.storedEvents(getState()),
-                selectors.planning.storedPlannings(getState()))) {
-                // If the item is currently open in the ItemEditorModal
-                // then hide the modal for now (we will show the modal again later)
-                if (isOpenInModal) {
-                    dispatch(hideModal());
-                }
-
-                // Check if item has errors
-                const isOpenForEditing = isOpenInEditor || isOpenInModal;
-                const isKilled = isItemKilled(item);
-                const hasErrors = !dispatch(self.isItemValid({
-                    ...item,
-                    ...autosaveData,
-                }));
-
-                const unlockAndRunAction = (updatedItem) => (
-                    dispatch(locks.unlock(updatedItem))
-                        .then((unlockedItem) => {
-                            dispatch(hideModal());
-                            return action(eventUtils.modifyForClient(unlockedItem),
-                                itemLock, isOpenInEditor, isOpenInModal);
-                        })
-                );
-
-                promise = dispatch(self.openIgnoreCancelSaveModal({
-                    itemId: itemId,
-                    itemType: itemType,
-                    onCancel: () =>
-                        dispatch(hideModal()),
-                    onIgnore: unlockAndRunAction.bind(null, item),
-                    onGoTo: !isOpenForEditing ?
-                        () => {
-                            dispatch(hideModal());
-                            return dispatch(self.lockAndEdit(item));
-                        } :
-                        null,
-                    onSave: isOpenForEditing && (!isKilled && !hasErrors) ?
-                        (withConfirmation, updateMethod) =>
-                            dispatch(self.saveAutosave(item, withConfirmation, updateMethod))
-                                .then(unlockAndRunAction) :
-                        null,
-                    onSaveAndPost: isOpenForEditing && (isKilled && !hasErrors) ?
-                        (withConfirmation, updateMethod) =>
-                            dispatch(self.saveAutosave(
-                                {
-                                    ...item,
-                                    state: WORKFLOW_STATE.SCHEDULED,
-                                    pubstatus: POST_STATE.USABLE,
-                                },
-                                withConfirmation,
-                                updateMethod
-                            ))
-                                .then(unlockAndRunAction) :
-                        null,
-                    autoClose: false,
-                    title: title,
-                }));
-            } else {
-                promise = dispatch(locks.unlock(item))
-                    .then((unlockedItem) => action(eventUtils.modifyForClient(unlockedItem),
-                        itemLock, isOpenInEditor, isOpenInModal));
-            }
-        } else {
-            promise = action(item, itemLock, isOpenInEditor, isOpenInModal);
+        if (!itemLock) {
+            return action(original, itemLock, isOpenInEditor, isOpenInModal);
+        } else if (!autosaveData || isItemSameAsAutosave(
+            original,
+            autosaveData,
+            selectors.events.storedEvents(getState()),
+            selectors.planning.storedPlannings(getState())
+        )) {
+            return dispatch(locks.unlock(original))
+                .then((unlockedItem) => action(
+                    eventUtils.modifyForClient(unlockedItem),
+                    itemLock,
+                    isOpenInEditor,
+                    isOpenInModal
+                ));
         }
 
-        return promise;
+        // If the item is currently open in the ItemEditorModal
+        // then hide the modal for now (we will show the modal again later)
+        if (isOpenInModal) {
+            dispatch(hideModal());
+        }
+
+        // Check if item has errors
+        const isOpenForEditing = isOpenInEditor || isOpenInModal;
+        const isKilled = isItemKilled(original);
+        const hasErrors = !dispatch(self.isItemValid({
+            ...original,
+            ...autosaveData,
+        }));
+
+        const unlockAndRunAction = (updatedItem, removeAutosave = false) => (
+            dispatch(locks.unlock(updatedItem))
+                .then((unlockedItem) => {
+                    if (autosaveData && removeAutosave) {
+                        dispatch(autosave.remove(autosaveData));
+                    }
+
+                    dispatch(hideModal());
+                    return action(
+                        eventUtils.modifyForClient(unlockedItem),
+                        itemLock,
+                        isOpenInEditor,
+                        isOpenInModal
+                    );
+                })
+        );
+
+        const onGoTo = !isOpenForEditing ?
+            () => {
+                dispatch(hideModal());
+                return dispatch(self.openForEdit(original));
+            } :
+            null;
+
+        const onSave = isOpenForEditing && (!isKilled && !hasErrors) ?
+            (withConfirmation, updateMethod) =>
+                dispatch(self.saveAutosave(original, withConfirmation, updateMethod))
+                    .then(unlockAndRunAction) :
+            null;
+
+        const onSaveAndPost = isOpenForEditing && (isKilled && !hasErrors) ?
+            (withConfirmation, updateMethod) =>
+                dispatch(self.saveAutosave(
+                    {
+                        ...original,
+                        state: WORKFLOW_STATE.SCHEDULED,
+                        pubstatus: POST_STATE.USABLE,
+                    },
+                    withConfirmation,
+                    updateMethod
+                ))
+                    .then(unlockAndRunAction) :
+            null;
+
+        return dispatch(self.openIgnoreCancelSaveModal({
+            itemId: itemId,
+            itemType: itemType,
+            onCancel: () => dispatch(hideModal()),
+            onIgnore: unlockAndRunAction.bind(null, original, true),
+            onGoTo: onGoTo,
+            onSave: onSave,
+            onSaveAndPost: onSaveAndPost,
+            autoClose: false,
+            title: title,
+        }));
     }
 );
 
@@ -548,7 +600,7 @@ const openIgnoreCancelSaveModal = ({
         let promise = Promise.resolve(item);
 
         if (itemType === ITEM_TYPE.EVENT && eventUtils.isEventRecurring(item)) {
-            const originalEvent = get(storedItems, event._id, {});
+            const originalEvent = get(storedItems, itemId, {});
             const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
 
             promise = dispatch(eventsApi.query({
@@ -564,24 +616,23 @@ const openIgnoreCancelSaveModal = ({
                 }));
         }
 
-        return promise
-            .then((itemWithAssociatedData) => (
-                dispatch(showModal({
-                    modalType: MODALS.IGNORE_CANCEL_SAVE,
-                    modalProps: {
-                        item: itemWithAssociatedData,
-                        itemType: itemType,
-                        onCancel: onCancel,
-                        onIgnore: onIgnore,
-                        onSave: onSave,
-                        onGoTo: onGoTo,
-                        onSaveAndPost: onSaveAndPost,
-                        title: title,
-                        autosaveData: autosaveData,
-                        autoClose: autoClose,
-                    },
-                }))
-            ));
+        return promise.then((itemWithAssociatedData) => (
+            dispatch(showModal({
+                modalType: MODALS.IGNORE_CANCEL_SAVE,
+                modalProps: {
+                    item: itemWithAssociatedData,
+                    itemType: itemType,
+                    onCancel: onCancel,
+                    onIgnore: onIgnore,
+                    onSave: onSave,
+                    onGoTo: onGoTo,
+                    onSaveAndPost: onSaveAndPost,
+                    title: title,
+                    autosaveData: autosaveData,
+                    autoClose: autoClose,
+                },
+            }))
+        ));
     }
 );
 
@@ -834,69 +885,22 @@ const setUnsetLoadingIndicator = (value = false) => ({
     payload: value,
 });
 
-
-/**
- * Action to open the editor and update the URL
- * @param {object} item - The item to open. Must have _id and type attributes
- */
-const openEditor = (item, updateUrl = true) => (
-    (dispatch, getState, {$timeout, $location}) => {
-        dispatch({
-            type: MAIN.ACTIONS.OPEN_EDITOR,
-            payload: item,
-        });
-
-        // Update the URL
-        if (updateUrl) {
-            $timeout(() => $location.search('edit', JSON.stringify({id: getItemId(item), type: getItemType(item)})));
-        }
-    }
-);
-
-const closeEditorAndOpenModal = (item) => (
-    (dispatch, getState) => {
-        const currentItemId = selectors.forms.currentItemId(getState());
-
-        if (currentItemId === getItemId(item)) {
-            dispatch(self.closeEditor());
-        }
-
-        // Open the modal to show the editor
-        dispatch(showModal({
-            modalType: MODALS.EDIT_ITEM,
-            modalProps: {item},
-        }));
-    }
-);
-
-/**
- * Action to open the editor for modalView
- * @param {object} item - The item to open. Must have _id and type attributes
- */
-const openEditorModal = (item) => ({
-    type: MAIN.ACTIONS.OPEN_EDITOR_MODAL,
-    payload: item,
-});
-
 /**
  * Action to close the editor and update the URL
  */
-const closeEditor = () => (
+const closeEditor = (modal = false) => (
     (dispatch, getState, {$timeout, $location}) => {
-        dispatch({type: MAIN.ACTIONS.CLOSE_EDITOR});
+        dispatch({
+            type: MAIN.ACTIONS.CLOSE_EDITOR,
+            payload: modal,
+        });
 
-        // Update the URL
-        $timeout(() => $location.search('edit', null));
-    }
-);
-
-/**
- * Action to close the editor modal
- */
-const closeEditorModal = () => (
-    (dispatch) => {
-        dispatch({type: MAIN.ACTIONS.CLOSE_EDITOR_MODAL});
-        dispatch(hideModal());
+        if (!modal) {
+            // Update the URL
+            $timeout(() => $location.search('edit', null));
+        } else {
+            dispatch(hideModal(true));
+        }
     }
 );
 
@@ -949,14 +953,15 @@ const closePreview = () => (
  * If the itemId or itemType is not supplied then an empty object is returned
  * @param {string} itemId - The ID of the item to fetch
  * @param {string} itemType - The type of the item to fetch
+ * @param {boolean} force - Force using the API instead of Redux store
  */
-const fetchById = (itemId, itemType) => (
+const fetchById = (itemId, itemType, force = false) => (
     (dispatch) => {
         if (itemId !== null && !isTemporaryId(itemId)) {
             if (itemType === ITEM_TYPE.EVENT) {
-                return dispatch(eventsApi.fetchById(itemId));
+                return dispatch(eventsApi.fetchById(itemId, {force}));
             } else if (itemType === ITEM_TYPE.PLANNING) {
-                return dispatch(planningApi.fetchById(itemId));
+                return dispatch(planningApi.fetchById(itemId, {force}));
             }
         }
 
@@ -1062,22 +1067,25 @@ const openFromURLOrRedux = (action) => (
         }
 
         if (item.id && item.type) {
-            // Make sure the item is loaded into the redux store
-            // and store the entire item in the forms initialValues
-            return dispatch(self.fetchById(item.id, item.type))
-                .then((loadedItem) => {
-                    if (action === MAIN.PREVIEW) {
-                        return dispatch(self.openPreview(loadedItem || {
-                            _id: item.id,
-                            type: item.type,
-                        }));
-                    } else if (action === MAIN.EDIT) {
-                        return dispatch(self.openEditor(loadedItem || {
-                            _id: item.id,
-                            type: item.type,
-                        }));
-                    }
-                });
+            const baseItem = {
+                _id: item.id,
+                type: item.type,
+            };
+
+            if (action === MAIN.EDIT) {
+                dispatch(self.openForEdit(baseItem));
+
+                return Promise.resolve(baseItem);
+            } else if (action === MAIN.PREVIEW) {
+                // Make sure the item is loaded into the redux store
+                // and store the entire item in the forms initialValues
+                return dispatch(self.fetchById(item.id, item.type))
+                    .then((loadedItem) => {
+                        dispatch(self.openPreview(loadedItem || baseItem));
+
+                        return Promise.resolve(loadedItem || baseItem);
+                    });
+            }
         }
 
         // Remove the item from the URL
@@ -1090,22 +1098,6 @@ const setJumpInterval = (value) => ({
     type: MAIN.ACTIONS.SET_JUMP_INTERVAL,
     payload: value,
 });
-
-const setLoadingEditItem = (modal = false) => {
-    if (!modal) {
-        return {type: MAIN.ACTIONS.EDIT_LOADING_START};
-    } else {
-        return {type: MAIN.ACTIONS.EDIT_LOADING_START_MODAL};
-    }
-};
-
-const unsetLoadingEditItem = (modal = false) => {
-    if (!modal) {
-        return {type: MAIN.ACTIONS.EDIT_LOADING_COMPLETE};
-    } else {
-        return {type: MAIN.ACTIONS.EDIT_LOADING_COMPLETE_MODAL};
-    }
-};
 
 const jumpTo = (direction) => (
     (dispatch, getState) => {
@@ -1182,7 +1174,10 @@ const fetchItemHistory = (item) => (
             if (editId === item._id) {
                 dispatch({
                     type: MAIN.ACTIONS.RECEIVE_EDITOR_ITEM_HISTORY,
-                    payload: historyItems,
+                    payload: {
+                        items: historyItems,
+                        modal: false,
+                    },
                 });
             }
 
@@ -1195,8 +1190,11 @@ const fetchItemHistory = (item) => (
 
             if (editIdModal === item._id) {
                 dispatch({
-                    type: MAIN.ACTIONS.RECEIVE_EDITOR_MODAL_ITEM_HISTORY,
-                    payload: historyItems,
+                    type: MAIN.ACTIONS.RECEIVE_EDITOR_ITEM_HISTORY,
+                    payload: {
+                        items: historyItems,
+                        modal: true,
+                    },
                 });
             }
 
@@ -1207,14 +1205,15 @@ const fetchItemHistory = (item) => (
 
 /**
  * Action to reset the initial values in the editor
- * @param {object} item - planning or event item from store
+ * @param {Object} item - planning or event item from store
+ * @param {string} action - The action to take on the item
  */
-const reloadEditor = (item) => (
+const reloadEditor = (item, action) => (
     (dispatch, getState) => {
         if (item._id === selectors.forms.currentItemId(getState())) {
-            dispatch(self.openEditor(item, false));
+            dispatch(self.changeEditorAction(action, false));
         } else if (item._id === selectors.forms.currentItemIdModal(getState())) {
-            dispatch(self.openEditorModal(item));
+            dispatch(self.changeEditorAction(action, true));
         }
     }
 );
@@ -1231,6 +1230,16 @@ const onItemUnlocked = (data, item, itemType) => (
         const itemLock = lockUtils.getLock(item, locks);
         const sessionId = selectors.general.session(getState()).sessionId;
 
+        const editorItemId = selectors.forms.currentItemId(getState());
+        const editorModalItemId = selectors.forms.currentItemIdModal(getState());
+        const itemId = getItemId(item);
+
+        if (editorItemId === itemId) {
+            dispatch(self.changeEditorAction('read', false));
+        } else if (editorModalItemId === itemId) {
+            dispatch(self.closeEditor(true));
+        }
+
         // If this is the event item currently being edited, show popup notification
         if (itemLock !== null &&
             data.lock_session !== sessionId &&
@@ -1238,16 +1247,11 @@ const onItemUnlocked = (data, item, itemType) => (
         ) {
             const user = selectors.general.users(getState()).find((u) => u._id === data.user);
             const autoSaves = selectors.forms.autosaves(getState());
-            const modalType = selectors.general.modalType(getState());
-            let autoSaveInStore = get(autoSaves, `${itemType}['${data.item}']`);
+            const autoSaveInStore = get(autoSaves, `${itemType}['${data.item}']`);
 
             if (autoSaveInStore) {
                 // Delete the changes from the local redux
                 dispatch(autosave.removeLocalAutosave(autoSaveInStore));
-            }
-
-            if (modalType !== MODALS.ADD_TO_PLANNING) {
-                dispatch(hideModal());
             }
 
             dispatch(showModal({
@@ -1375,14 +1379,17 @@ const spikeAfterUnlock = (unlockedItem, previousLock, openInEditor, openInModal)
         const onCloseModal = (updatedItem) => {
             if (!isItemSpiked(updatedItem) && get(previousLock, 'action')) {
                 if (openInEditor || openInModal) {
-                    return dispatch(self.lockAndEdit(updatedItem, openInModal));
+                    return dispatch(
+                        self.openForEdit(updatedItem, true, openInModal)
+                    );
                 }
 
                 return dispatch(locks.lock(updatedItem, previousLock.action));
             }
         };
         const dispatchCall = getItemType(unlockedItem) === ITEM_TYPE.PLANNING ?
-            planningUi.openSpikeModal : eventsUi.openSpikeModal;
+            planningUi.openSpikeModal :
+            eventsUi.openSpikeModal;
 
         return dispatch(dispatchCall(
             unlockedItem,
@@ -1394,42 +1401,47 @@ const spikeAfterUnlock = (unlockedItem, previousLock, openInEditor, openInModal)
 
 /**
  * Action dispatcher that attempts to save and unlock an item
- * @param {object} item - The item to save and unlock
+ * @param {object} original - The item to save and unlock
+ * @param {object} updates - The item to save and unlock
  * @return Promise
  */
-const saveAndUnlockItem = (item) => (
+const saveAndUnlockItem = (original, updates) => (
     (dispatch, getState, {notify}) => {
-        const promise = getItemType(item) === ITEM_TYPE.PLANNING ? dispatch(planningUi.save(item)) :
-            dispatch(eventsUi.saveWithConfirmation(item));
+        const promise = getItemType(original) === ITEM_TYPE.PLANNING ?
+            dispatch(planningUi.save(original, updates)) :
+            dispatch(eventsUi.saveWithConfirmation(original, updates));
 
         return promise
-            .then((savedItem) =>
-                (dispatch(locks.unlock(get(savedItem, '[0]', savedItem), false))
+            .then((savedItem) => (
+                dispatch(locks.unlock(get(savedItem, '[0]', savedItem)))
                     .then((unlockedItem) => Promise.resolve(unlockedItem))
                     .catch(() => {
                         notify.error(gettext('Could not unlock the item.'));
                         return Promise.reject(savedItem);
-                    })),
-            (error) => {
+                    })
+            ), (error) => {
                 notify.error(gettext('Could not save the item.'));
                 return Promise.reject(error);
             });
     }
 );
 
+const notifyPreconditionFailed = (modal = false) => (
+    (dispatch, getState, {notify}) => {
+        // eslint-disable-next-line max-len
+        notify.error(gettext('Item has changed since it was opened. Please close and reopen the item to continue. Regrettably, your changes cannot be saved.'));
+        dispatch(self.changeEditorAction('read', modal));
+    }
+);
+
 
 // eslint-disable-next-line consistent-this
 const self = {
-    lockAndEdit,
     unlockAndCancel,
     save,
     unpost,
     post,
-    openEditor,
-    openEditorModal,
     closeEditor,
-    closeEditorModal,
-    closeEditorAndOpenModal,
     filter,
     _filter,
     openConfirmationModal,
@@ -1464,6 +1476,10 @@ const self = {
     spikeItem,
     spikeAfterUnlock,
     saveAndUnlockItem,
+    openForEdit,
+    openEditorAction,
+    changeEditorAction,
+    notifyPreconditionFailed,
 };
 
 export default self;

@@ -11,3 +11,5 @@ export const actionInProgress = (value) => ({
     type: 'ACTION_IN_PROGRESS',
     payload: value,
 });
+
+export const clearPrevious = () => ({type: 'MODAL_CLEAR_PREVIOUS'});

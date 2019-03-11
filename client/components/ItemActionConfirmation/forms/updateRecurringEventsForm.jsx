@@ -23,12 +23,17 @@ export class UpdateRecurringEventsComponent extends React.Component {
     }
 
     componentWillMount() {
-        const isRecurring = get(this.props, 'initialValues.recurrence_id');
+        const isRecurring = get(this.props, 'original.recurrence_id');
 
-        if (isRecurring || eventUtils.eventHasPlanning(this.props.initialValues)) {
-            this.posting = get(this.props.initialValues, '_post', true);
-            const event = isRecurring ? eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
-                EventUpdateMethods[0], true) : this.props.initialValues;
+        if (isRecurring || eventUtils.eventHasPlanning(this.props.original)) {
+            this.posting = get(this.props.original, '_post', true);
+            const event = isRecurring ?
+                eventUtils.getRelatedEventsForRecurringEvent(
+                    this.props.original,
+                    EventUpdateMethods[0],
+                    true
+                ) :
+                this.props.original;
 
             this.setState({
                 relatedEvents: event._events,
@@ -41,8 +46,11 @@ export class UpdateRecurringEventsComponent extends React.Component {
     }
 
     onEventUpdateMethodChange(field, option) {
-        const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
-            option, true);
+        const event = eventUtils.getRelatedEventsForRecurringEvent(
+            this.props.original,
+            option,
+            true
+        );
 
         this.setState({
             eventUpdateMethod: option,
@@ -52,15 +60,18 @@ export class UpdateRecurringEventsComponent extends React.Component {
     }
 
     submit() {
-        return this.props.onSubmit({
-            ...this.props.initialValues,
-            update_method: this.state.eventUpdateMethod,
-        });
+        return this.props.onSubmit(
+            this.props.original,
+            {
+                ...this.props.updates,
+                update_method: this.state.eventUpdateMethod,
+            }
+        );
     }
 
     render() {
-        const {initialValues, dateFormat, timeFormat, submitting} = this.props;
-        const isRecurring = !!initialValues.recurrence_id;
+        const {original, dateFormat, timeFormat, submitting} = this.props;
+        const isRecurring = !!original.recurrence_id;
         const eventsInUse = this.state.relatedEvents.filter((e) => (
             get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
         ));
@@ -69,22 +80,22 @@ export class UpdateRecurringEventsComponent extends React.Component {
         return (
             <div className="MetadataView">
                 <Row
-                    enabled={!!initialValues.slugline}
+                    enabled={!!original.slugline}
                     label={gettext('Slugline')}
-                    value={initialValues.slugline || ''}
+                    value={original.slugline || ''}
                     noPadding={true}
                     className="slugline"
                 />
 
                 <Row
                     label={gettext('Name')}
-                    value={initialValues.name || ''}
+                    value={original.name || ''}
                     noPadding={true}
                     className="strong"
                 />
 
                 <EventScheduleSummary
-                    schedule={initialValues.dates}
+                    schedule={original.dates}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
                     forUpdating={true}
@@ -113,12 +124,14 @@ export class UpdateRecurringEventsComponent extends React.Component {
 }
 
 UpdateRecurringEventsComponent.propTypes = {
-    initialValues: PropTypes.object.isRequired,
+    original: PropTypes.object.isRequired,
+    updates: PropTypes.object.isRequired,
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
     submitting: PropTypes.bool,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
+    resolve: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
@@ -127,17 +140,25 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-    onSubmit: (event) => (
-        dispatch(actions.main.save(event, false))
+    onSubmit: (original, updates) => (
+        dispatch(actions.main.save(original, updates, false))
             .then((savedItem) => {
                 if (ownProps.modalProps.unlockOnClose) {
                     dispatch(actions.events.api.unlock(savedItem));
+                }
+
+                if (ownProps.resolve) {
+                    ownProps.resolve(savedItem);
                 }
             })
     ),
     onHide: (event) => {
         if (ownProps.modalProps.unlockOnClose) {
             dispatch(actions.events.api.unlock(event));
+        }
+
+        if (ownProps.resolve) {
+            ownProps.resolve();
         }
     },
 });

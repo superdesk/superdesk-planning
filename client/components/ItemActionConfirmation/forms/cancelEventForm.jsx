@@ -30,8 +30,10 @@ export class CancelEventComponent extends React.Component {
     }
 
     componentWillMount() {
-        const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
-            EventUpdateMethods[0]);
+        const event = eventUtils.getRelatedEventsForRecurringEvent(
+            this.props.original,
+            EventUpdateMethods[0]
+        );
 
         this.setState({
             relatedEvents: event._events,
@@ -43,19 +45,24 @@ export class CancelEventComponent extends React.Component {
     }
 
     submit() {
-        const reason = this.state.reason ? (gettext('Event Cancelled: ') + this.state.reason) :
+        const reason = this.state.reason ?
+            (gettext('Event Cancelled: ') + this.state.reason) :
             this.state.reason;
 
-        return this.props.onSubmit({
-            ...this.props.initialValues,
-            update_method: this.state.eventUpdateMethod,
-            reason: reason,
-        });
+        return this.props.onSubmit(
+            this.props.original,
+            {
+                update_method: this.state.eventUpdateMethod,
+                reason: reason,
+            }
+        );
     }
 
     onEventUpdateMethodChange(field, option) {
-        const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
-            option);
+        const event = eventUtils.getRelatedEventsForRecurringEvent(
+            this.props.original,
+            option
+        );
 
         this.setState({
             eventUpdateMethod: option,
@@ -68,8 +75,8 @@ export class CancelEventComponent extends React.Component {
     }
 
     render() {
-        const {initialValues, dateFormat, timeFormat, submitting} = this.props;
-        const isRecurring = !!initialValues.recurrence_id;
+        const {original, dateFormat, timeFormat, submitting} = this.props;
+        const isRecurring = !!original.recurrence_id;
 
         const numEvents = this.state.relatedEvents.length + 1;
         const numPlannings = this.state.relatedPlannings.length;
@@ -77,22 +84,22 @@ export class CancelEventComponent extends React.Component {
         return (
             <div className="ItemActionConfirmation">
                 <Row
-                    enabled={!!initialValues.slugline}
+                    enabled={!!original.slugline}
                     label={gettext('Slugline')}
-                    value={initialValues.slugline}
+                    value={original.slugline}
                     noPadding={true}
                     className="slugline"
                 />
 
                 <Row
                     label={gettext('Name')}
-                    value={initialValues.name || ''}
+                    value={original.name || ''}
                     noPadding={true}
                     className="strong"
                 />
 
                 <EventScheduleSummary
-                    schedule={initialValues.dates}
+                    schedule={original.dates}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
                     forUpdating={true}
@@ -129,6 +136,7 @@ export class CancelEventComponent extends React.Component {
                         value={this.state.reason}
                         onChange={this.onReasonChange}
                         disabled={submitting}
+                        field="reason"
                     />
                 </Row>
             </div>
@@ -138,7 +146,7 @@ export class CancelEventComponent extends React.Component {
 
 CancelEventComponent.propTypes = {
     onSubmit: PropTypes.func.isRequired,
-    initialValues: PropTypes.object.isRequired,
+    original: PropTypes.object.isRequired,
     relatedEvents: PropTypes.array,
     relatedPlannings: PropTypes.array,
     timeFormat: PropTypes.string,
@@ -158,11 +166,13 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event) => dispatch(actions.events.ui.cancelEvent(event)),
-    onHide: (event, modalProps) => {
-        const promise = event.lock_action === EVENTS.ITEM_ACTIONS.CANCEL_EVENT.lock_action ?
-            dispatch(actions.events.api.unlock(event)) :
-            Promise.resolve(event);
+    onSubmit: (original, updates) => dispatch(
+        actions.events.ui.cancelEvent(original, updates)
+    ),
+    onHide: (original, modalProps) => {
+        const promise = original.lock_action === EVENTS.ITEM_ACTIONS.CANCEL_EVENT.lock_action ?
+            dispatch(actions.events.api.unlock(original)) :
+            Promise.resolve(original);
 
         if (get(modalProps, 'onCloseModal')) {
             promise.then((updatedEvent) => modalProps.onCloseModal(updatedEvent));

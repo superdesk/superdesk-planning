@@ -10,7 +10,7 @@ import {
     COVERAGES,
     ITEM_TYPE,
 } from '../constants/index';
-import {get, isNil, uniq, sortBy, isEmpty, cloneDeep, isArray, find} from 'lodash';
+import {get, set, isNil, uniq, sortBy, isEmpty, cloneDeep, isArray, find} from 'lodash';
 import {
     getItemWorkflowState,
     lockUtils,
@@ -164,8 +164,10 @@ const canCancelAllCoverageForPlanning = (planning) => (
         .filter((c) => canCancelCoverage(c)).length > 0
 );
 
-const canAddCoverages = (planning, event, privileges) => (
+const canAddCoverages = (planning, event, privileges, session, locks) => (
     !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        isPlanningLocked(planning, locks) &&
+        lockUtils.isItemLockedInThisSession(planning, session, locks) &&
         (isNil(event) || !isItemCancelled(event)) &&
         (!isItemCancelled(planning) || isItemKilled(planning)) && !isItemRescheduled(planning)
 );
@@ -179,7 +181,7 @@ const isPlanningLocked = (plan, locks) =>
 
 const isPlanningLockRestricted = (plan, session, locks) =>
     isPlanningLocked(plan, locks) &&
-        !lockUtils.isItemLockedInThisSession(plan, session);
+        !lockUtils.isItemLockedInThisSession(plan, session, locks);
 
 /**
  * Get the array of coverage content type and color base on the scheduled date
@@ -187,15 +189,11 @@ const isPlanningLockRestricted = (plan, session, locks) =>
  * @returns {Array}
  */
 export const mapCoverageByDate = (coverages = []) => (
-    coverages.map((c) => {
-        let coverage = {
-            ...c,
-            g2_content_type: c.planning.g2_content_type || '',
-            assigned_to: get(c, 'assigned_to'),
-        };
-
-        return coverage;
-    })
+    coverages.map((c) => ({
+        ...c,
+        g2_content_type: c.planning.g2_content_type || '',
+        assigned_to: get(c, 'assigned_to'),
+    }))
 );
 
 // ad hoc plan created directly from planning list and not from an event
@@ -224,7 +222,7 @@ export const getPlanningItemActions = (plan, event = null, session, privileges, 
 
     const actionsValidator = {
         [PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName]: () =>
-            canAddCoverages(plan, event, privileges),
+            canAddCoverages(plan, event, privileges, session, locks),
         [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: () =>
             canSpikePlanning(plan, session, privileges, locks),
         [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: () =>
@@ -401,8 +399,12 @@ const getPlanningActions = ({
             let action = find(PLANNING.ITEM_ACTIONS, (action) => action.actionName === callBackName);
 
             if (action) {
-                if ([PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.actionName,
-                    PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName].includes(callBackName)) {
+                if (callBackName === PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.actionName) {
+                    actions.push({
+                        ...action,
+                        callback: callBacks[callBackName].bind(null, item, false, true),
+                    });
+                } else if (callBackName === PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName) {
                     actions.push({
                         ...action,
                         callback: callBacks[callBackName].bind(null, item, true),
@@ -445,7 +447,20 @@ export const modifyForClient = (plan) => {
         plan.planning_date = moment(plan.planning_date);
     }
 
-    plan.coverages = plan.coverages || [];
+    const defaults = {
+        'flags.marked_for_not_publication': false,
+        'flags.overide_auto_assign_to_workflow': false,
+        agendas: [],
+        coverages: [],
+    };
+
+    Object.keys(defaults).forEach(
+        (field) => {
+            if (get(plan, field) === undefined) {
+                set(plan, field, defaults[field]);
+            }
+        }
+    );
 
     plan.coverages.forEach((coverage) => self.modifyCoverageForClient(coverage));
 
@@ -783,17 +798,19 @@ const shouldLockPlanningForEdit = (item, privileges) => (
 
 const defaultPlanningValues = (currentAgenda, defaultPlaceList) => {
     const newPlanning = {
-        _id: generateTempId(),
         type: ITEM_TYPE.PLANNING,
         planning_date: moment(),
         agendas: get(currentAgenda, 'is_enabled') ?
             [getItemId(currentAgenda)] : [],
+        state: 'draft',
+        item_class: 'plinat:newscoverage',
     };
 
     if (defaultPlaceList) {
         newPlanning.place = defaultPlaceList;
     }
-    return newPlanning;
+
+    return self.modifyForClient(newPlanning);
 };
 
 const defaultCoverageValues = (

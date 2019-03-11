@@ -76,7 +76,7 @@ export class PlanningEditorComponent extends React.Component {
     componentWillMount() {
         if (this.props.addNewsItemToPlanning) {
             // In add-to-planning modal
-            this.handleAddToPlanningLoading();
+            this.handleAddToPlanningLoading(this.props);
         }
 
         this.props.fetchPlanningFiles(this.props.item);
@@ -87,34 +87,40 @@ export class PlanningEditorComponent extends React.Component {
         }
     }
 
-    handleAddToPlanningLoading() {
-        if (this.props.itemExists && !planningUtils.isLockedForAddToPlanning(this.props.item)) {
+    handleAddToPlanningLoading(nextProps) {
+        if ((nextProps.itemExists && !planningUtils.isLockedForAddToPlanning(nextProps.item)) ||
+            (!nextProps.itemExists && get(nextProps, 'diff.coverages.length', 0) > 0)
+        ) {
             return;
         }
 
+        let updatedPlanning;
+
         // If we are creating a new planning item for 'add-to-planning'
-        if (!this.props.itemExists) {
-            let newPlanning = planningUtils.createNewPlanningFromNewsItem(
-                this.props.addNewsItemToPlanning,
-                this.props.newsCoverageStatus,
-                this.props.desk,
-                get(this.props, 'addNewsItemToPlanning.version_creator'),
-                this.props.contentTypes);
+        if (!nextProps.itemExists) {
+            // Should check here to determine if current item is populated already
+            updatedPlanning = planningUtils.createNewPlanningFromNewsItem(
+                nextProps.addNewsItemToPlanning,
+                nextProps.newsCoverageStatus,
+                nextProps.desk,
+                get(nextProps, 'addNewsItemToPlanning.version_creator'),
+                nextProps.contentTypes);
 
-            this.fillCurrentAgenda(newPlanning);
-            this.props.onChangeHandler(null, newPlanning);
+            this.fillCurrentAgenda(updatedPlanning);
         } else {
-            let dupItem = cloneDeep(this.props.item);
+            updatedPlanning = cloneDeep(nextProps.item);
 
-            dupItem.coverages.push(planningUtils.createCoverageFromNewsItem(
-                this.props.addNewsItemToPlanning,
-                this.props.newsCoverageStatus,
-                this.props.desk,
-                this.props.user,
-                this.props.contentTypes));
+            updatedPlanning.coverages.push(planningUtils.createCoverageFromNewsItem(
+                nextProps.addNewsItemToPlanning,
+                nextProps.newsCoverageStatus,
+                nextProps.desk,
+                nextProps.user,
+                nextProps.contentTypes));
+        }
 
-            // reset the object to trigger a save
-            this.props.onChangeHandler(null, dupItem);
+        if (updatedPlanning) {
+            updatedPlanning._newsItem = nextProps.addNewsItemToPlanning;
+            nextProps.onChangeHandler(null, updatedPlanning);
         }
     }
 
@@ -179,25 +185,19 @@ export class PlanningEditorComponent extends React.Component {
 
         // Let the ItemEditor component know we're about to perform a partial save
         // This is way the 'save' buttons are disabled while we perform our partial save
-        if (!this.props.startPartialSave(updates)) {
+        if (!this.props.itemManager.startPartialSave(updates)) {
             return;
         }
 
         let partialSaveAction;
 
         if (action === COVERAGES.PARTIAL_SAVE.ADD_TO_WORKFLOW) {
-            partialSaveAction = this.props.onAddCoverageToWorkflow;
+            partialSaveAction = this.props.itemManager.addCoverageToWorkflow;
         } else if (action === COVERAGES.PARTIAL_SAVE.REMOVE_ASSIGNMENT) {
-            partialSaveAction = this.props.removeAssignment;
+            partialSaveAction = this.props.itemManager.removeAssignment;
         }
 
-        partialSaveAction(this.props.item, coverage, index)
-            .then((updates) => {
-            // Make sure the coverage in our AutoSave is updated with the new workflow states
-            // Otherwise this will cause the form to stay dirty when the initialValues change
-                planningUtils.modifyCoverageForClient(updates.coverages[index]);
-                this.onChange(`coverages[${index}]`, updates.coverages[index], false);
-            });
+        partialSaveAction(this.props.item, coverage, index);
     }
 
     onAddCoverageToWorkflow(coverage, index) {
@@ -259,37 +259,52 @@ export class PlanningEditorComponent extends React.Component {
     componentWillReceiveProps(nextProps) {
         if (this.props.addNewsItemToPlanning && !isExistingItem(this.props.item) &&
             get(nextProps, 'diff.coverages.length', 0) === 0) {
-            this.handleAddToPlanningLoading();
+            this.handleAddToPlanningLoading(nextProps);
+            return;
+        } else if (!isSameItemId(nextProps.item, this.props.item)) {
             return;
         }
 
-        if (isSameItemId(nextProps.item, this.props.item)) {
-            // if the assignment associated with the planning item are modified
-            const storedCoverages = get(nextProps, 'item.coverages') || [];
-            const diffCoverages = get(nextProps, 'diff.coverages') || [];
-
-            if (get(storedCoverages, 'length', 0) > 0) {
-                storedCoverages.forEach((coverage) => {
-                    // Push notification updates from 'assignment' workflow changes
-                    if (!planningUtils.isCoverageDraft(coverage)) {
-                        const index = diffCoverages.findIndex((c) => c.coverage_id === coverage.coverage_id);
-
-                        if (index >= 0) {
-                            const diffCoverage = diffCoverages[index];
-
-                            if (diffCoverage && get(diffCoverage, 'assigned_to.state') !== WORKFLOW_STATE.DRAFT &&
-                                !isEqual(diffCoverage.assigned_to, coverage.assigned_to)) {
-                                this.onChange(`coverages[${index}].assigned_to`, coverage.assigned_to);
-                            }
-                        }
-                    }
-                });
-            }
-
-            if (eventUtils.shouldFetchFilesForEvent(nextProps.event)) {
-                this.props.fetchEventFiles(nextProps.event);
-            }
+        if (eventUtils.shouldFetchFilesForEvent(nextProps.event)) {
+            this.props.fetchEventFiles(nextProps.event);
         }
+
+        // if the assignment associated with the planning item are modified
+        const originalCoverages = get(this.props, 'original.coverages') || [];
+        const updatedCoverages = get(nextProps, 'original.coverages') || [];
+
+        if (get(originalCoverages, 'length', 0) < 0) {
+            return;
+        }
+
+        originalCoverages.forEach((original) => {
+            // Push notification updates from 'assignment' workflow changes
+            if (planningUtils.isCoverageDraft(original)) {
+                return;
+            }
+
+            const index = updatedCoverages.findIndex(
+                (c) => c.coverage_id === original.coverage_id
+            );
+
+            if (index < 0) {
+                return;
+            }
+
+            const updates = updatedCoverages[index];
+
+            if (!updates ||
+                get(updates, 'assigned_to.state') === WORKFLOW_STATE.DRAFT ||
+                isEqual(updates.assigned_to, original.assigned_to)
+            ) {
+                return;
+            }
+
+            this.props.itemManager.finalisePartialSave(
+                {[`coverages[${index}].assigned_to`]: updates.assigned_to},
+                true
+            );
+        });
     }
 
     componentDidMount() {
@@ -756,9 +771,6 @@ PlanningEditorComponent.propTypes = {
     defaultGenre: PropTypes.object,
     currentAgenda: PropTypes.object,
     lockedItems: PropTypes.object,
-    onAddCoverageToWorkflow: PropTypes.func,
-    startPartialSave: PropTypes.func,
-    removeAssignment: PropTypes.func,
     navigation: PropTypes.object,
     customVocabularies: PropTypes.array,
     fetchEventFiles: PropTypes.func,
@@ -777,6 +789,8 @@ PlanningEditorComponent.propTypes = {
     inModalView: PropTypes.bool,
     autoAssignToWorkflow: PropTypes.bool,
     longEventDurationThreshold: PropTypes.number,
+    itemManager: PropTypes.object,
+    original: PropTypes.object,
 };
 
 PlanningEditorComponent.defaultProps = {
@@ -819,10 +833,6 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onAddCoverageToWorkflow: (planning, coverage, index) =>
-        dispatch(actions.planning.ui.addCoverageToWorkflow(planning, coverage, index)),
-    removeAssignment: (planning, coverage, index) =>
-        dispatch(actions.planning.ui.removeAssignment(planning, coverage, index)),
     fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
     setCoverageDefaultDesk: (coverage) => dispatch(actions.users.setCoverageDefaultDesk(coverage)),
     uploadFiles: (files) => dispatch(actions.planning.api.uploadFiles({files: files})),

@@ -22,7 +22,7 @@ export class AssignCalendarComponent extends React.Component {
 
     componentWillMount() {
         const event = eventUtils.getRelatedEventsForRecurringEvent(
-            this.props.initialValues,
+            this.props.original,
             EventUpdateMethods[0],
             true
         );
@@ -35,7 +35,7 @@ export class AssignCalendarComponent extends React.Component {
 
     onEventUpdateMethodChange(field, option) {
         const event = eventUtils.getRelatedEventsForRecurringEvent(
-            this.props.initialValues,
+            this.props.original,
             option,
             true
         );
@@ -47,40 +47,39 @@ export class AssignCalendarComponent extends React.Component {
     }
 
     submit() {
-        const initialValues = this.props.initialValues;
-
         // Send the required fields and calendar only
-        return this.props.onSubmit({
-            _id: initialValues._id,
-            type: initialValues.type,
-            calendars: initialValues.calendars,
-            update_method: this.state.eventUpdateMethod,
-        });
+        return this.props.onSubmit(
+            this.props.original,
+            {
+                ...this.props.updates,
+                update_method: this.state.eventUpdateMethod,
+            }
+        );
     }
 
     render() {
-        const {initialValues, dateFormat, timeFormat, submitting} = this.props;
+        const {original, dateFormat, timeFormat, submitting} = this.props;
         const numEvents = this.state.relatedEvents.length + 1;
 
         return (
             <div className="MetadataView">
                 <Row
-                    enabled={!!initialValues.slugline}
+                    enabled={!!original.slugline}
                     label={gettext('Slugline')}
-                    value={initialValues.slugline || ''}
+                    value={original.slugline || ''}
                     noPadding={true}
                     className="slugline"
                 />
 
                 <Row
                     label={gettext('Name')}
-                    value={initialValues.name || ''}
+                    value={original.name || ''}
                     noPadding={true}
                     className="strong"
                 />
 
                 <EventScheduleSummary
-                    schedule={initialValues.dates}
+                    schedule={original.dates}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
                     noPadding={true}
@@ -107,7 +106,8 @@ export class AssignCalendarComponent extends React.Component {
 }
 
 AssignCalendarComponent.propTypes = {
-    initialValues: PropTypes.object.isRequired,
+    original: PropTypes.object.isRequired,
+    updates: PropTypes.object.isRequired,
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
     submitting: PropTypes.bool,
@@ -121,8 +121,8 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event) => (
-        dispatch(actions.main.save(event, false))
+    onSubmit: (original, updates) => (
+        dispatch(actions.main.save(original, updates, false))
             .then((savedItem) => dispatch(actions.events.api.unlock(savedItem)))
     ),
     onHide: (event) => {

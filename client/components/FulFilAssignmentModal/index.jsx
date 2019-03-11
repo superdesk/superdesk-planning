@@ -37,9 +37,11 @@ export function FulFilAssignmentComponent({
             fill={true}
         >
             <Modal.Header>
-                {!actionInProgress && <a className="close" onClick={handleCancel}>
-                    <i className="icon-close-small" />
-                </a>}
+                {actionInProgress ? null : (
+                    <a className="close" onClick={handleCancel}>
+                        <i className="icon-close-small" />
+                    </a>
+                )}
                 <h3>{gettext('Select an Assignment')}</h3>
             </Modal.Header>
 

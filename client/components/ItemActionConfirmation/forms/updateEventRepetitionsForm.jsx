@@ -30,7 +30,7 @@ export class UpdateEventRepetitionsComponent extends React.Component {
 
     componentWillMount() {
         this.setState({
-            diff: cloneDeep(this.props.initialValues),
+            diff: cloneDeep(this.props.original),
         });
     }
 
@@ -50,12 +50,15 @@ export class UpdateEventRepetitionsComponent extends React.Component {
 
         this.setState({
             diff: diff,
-            dirty: !isEqual(this.props.initialValues, diff),
+            dirty: !isEqual(this.props.original, diff),
             errors: errors,
         });
 
-        if (eventUtils.eventsDatesSame(diff, this.props.initialValues, TIME_COMPARISON_GRANULARITY.DAY) ||
-            !isEqual(errorMessages, [])) {
+        if (!isEqual(errorMessages, []) || eventUtils.eventsDatesSame(
+            diff,
+            this.props.original,
+            TIME_COMPARISON_GRANULARITY.DAY
+        )) {
             this.props.disableSaveInModal();
         } else {
             this.props.enableSaveInModal();
@@ -63,7 +66,10 @@ export class UpdateEventRepetitionsComponent extends React.Component {
     }
 
     submit() {
-        return this.props.onSubmit(this.state.diff);
+        return this.props.onSubmit(
+            this.props.original,
+            this.state.diff
+        );
     }
 
     getPopupContainer() {
@@ -71,29 +77,29 @@ export class UpdateEventRepetitionsComponent extends React.Component {
     }
 
     render() {
-        const {initialValues, dateFormat, submitting} = this.props;
+        const {original, dateFormat, submitting} = this.props;
         const {diff} = this.state;
 
         return (
             <div className="MetadataView">
                 <Row
-                    enabled={!!initialValues.slugline}
+                    enabled={!!original.slugline}
                     label={gettext('Slugline')}
-                    value={initialValues.slugline || ''}
+                    value={original.slugline || ''}
                     className="slugline"
                     noPadding={true}
                 />
 
                 <Row
                     label={gettext('Name')}
-                    value={initialValues.name || ''}
+                    value={original.name || ''}
                     className="strong"
                     noPadding={true}
                 />
 
                 <Row
                     label={gettext('Series Start Date')}
-                    value={initialValues._recurring[0].dates.start.format(dateFormat) || ''}
+                    value={original._recurring[0].dates.start.format(dateFormat) || ''}
                     className="strong"
                     noPadding={true}
                 />
@@ -119,7 +125,7 @@ export class UpdateEventRepetitionsComponent extends React.Component {
 }
 
 UpdateEventRepetitionsComponent.propTypes = {
-    initialValues: PropTypes.object.isRequired,
+    original: PropTypes.object.isRequired,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
     disableSaveInModal: PropTypes.func,
@@ -135,14 +141,20 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event) => {
-        let newEvent = cloneDeep(event);
+    onSubmit: (original, updates) => {
+        let newUpdates = cloneDeep(updates);
 
         if (get(event, 'dates.recurring_rule.until')) {
-            newEvent.dates.recurring_rule.until =
-                timeUtils.getDateInRemoteTimeZone(event.dates.recurring_rule.until, event.dates.tz).endOf('day');
+            newUpdates.dates.recurring_rule.until =
+                timeUtils.getDateInRemoteTimeZone(
+                    newUpdates.dates.recurring_rule.until,
+                    newUpdates.dates.tz
+                ).endOf('day');
         }
-        return dispatch(actions.events.ui.updateRepetitions(newEvent));
+
+        return dispatch(
+            actions.events.ui.updateRepetitions(original, newUpdates)
+        );
     },
     onHide: (event) => {
         if (event.lock_action === EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.lock_action) {

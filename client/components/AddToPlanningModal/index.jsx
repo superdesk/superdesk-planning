@@ -44,9 +44,11 @@ export class AddToPlanningComponent extends React.Component {
                 fill={true}
             >
                 <Modal.Header>
-                    {!actionInProgress && <a className="close" onClick={handleCancel}>
-                        <i className="icon-close-small" />
-                    </a>}
+                    {actionInProgress ? null : (
+                        <a className="close" onClick={handleCancel}>
+                            <i className="icon-close-small" />
+                        </a>
+                    )}
                     <h3>{gettext('Select an existing Planning Item or create a new one')}</h3>
                 </Modal.Header>
 
@@ -55,6 +57,7 @@ export class AddToPlanningComponent extends React.Component {
                         <AddToPlanningApp
                             addNewsItemToPlanning={newsItem}
                             popupContainer={() => this.dom.popupContainer}
+                            onCancel={handleCancel}
                         />
                     </div>
                 </Modal.Body>

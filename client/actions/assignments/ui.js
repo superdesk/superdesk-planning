@@ -401,13 +401,14 @@ const editPriority = (assignment) => (
 
 /**
  * Action for saving the assignment
- * @param {Object} item - Assignment to Save
+ * @param {Object} original - Original assignment to save
+ * @param {Object} updates - Updated values
  */
-const save = (item) => (
+const save = (original, updates) => (
     (dispatch, getState, {notify}) => (
-        dispatch(assignments.api.save(item))
+        dispatch(assignments.api.save(original, updates))
             .then((updatedItem) => {
-                notify.success(get(item, 'lock_action') === 'reassign' ?
+                notify.success(get(original, 'lock_action') === 'reassign' ?
                     gettext('The assignment was reassigned.') :
                     gettext('Assignment priority has been updated.')
                 );
@@ -624,7 +625,7 @@ const _openActionModal = (assignment, action, lockAction = null) => (
                 dispatch(showModal({
                     modalType: MODALS.ITEM_ACTIONS_MODAL,
                     modalProps: {
-                        assignment: lockedAssignment,
+                        original: lockedAssignment,
                         actionType: action,
                     },
                 }))

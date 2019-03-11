@@ -13,7 +13,7 @@ import '../style.scss';
 export class PostEventsComponent extends React.Component {
     constructor(props) {
         super(props);
-        const postAll = get(props.initialValues, '_post', true) && !isItemPublic(props.initialValues);
+        const postAll = get(props.original, '_post', true) && !isItemPublic(props.original);
 
         this.state = {
             eventUpdateMethod: postAll ? EventUpdateMethods[2] : EventUpdateMethods[0],
@@ -25,13 +25,18 @@ export class PostEventsComponent extends React.Component {
     }
 
     componentWillMount() {
-        const isRecurring = get(this.props, 'initialValues.recurrence_id');
+        const isRecurring = get(this.props, 'original.recurrence_id');
 
-        this.posting = get(this.props.initialValues, '_post', true);
+        this.posting = get(this.props.original, '_post', true);
 
-        if (isRecurring || eventUtils.eventHasPlanning(this.props.initialValues)) {
-            const event = isRecurring ? eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
-                EventUpdateMethods[0], true) : this.props.initialValues;
+        if (isRecurring || eventUtils.eventHasPlanning(this.props.original)) {
+            const event = isRecurring ?
+                eventUtils.getRelatedEventsForRecurringEvent(
+                    this.props.original,
+                    EventUpdateMethods[0],
+                    true
+                ) :
+                this.props.original;
 
             this.setState({
                 relatedEvents: event._events,
@@ -44,8 +49,11 @@ export class PostEventsComponent extends React.Component {
     }
 
     onEventUpdateMethodChange(field, option) {
-        const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
-            option, true);
+        const event = eventUtils.getRelatedEventsForRecurringEvent(
+            this.props.original,
+            option,
+            true
+        );
 
         this.setState({
             eventUpdateMethod: option,
@@ -55,20 +63,20 @@ export class PostEventsComponent extends React.Component {
     }
 
     submit() {
-        return this.props.onSubmit({
-            ...this.props.initialValues,
-            update_method: this.state.eventUpdateMethod,
-        });
+        return this.props.onSubmit(
+            this.props.original,
+            {update_method: this.state.eventUpdateMethod}
+        );
     }
 
     render() {
-        const {initialValues, dateFormat, timeFormat, submitting} = this.props;
-        const isRecurring = !!initialValues.recurrence_id;
-        const posting = get(initialValues, '_post', true);
+        const {original, dateFormat, timeFormat, submitting} = this.props;
+        const isRecurring = !!original.recurrence_id;
+        const posting = get(original, '_post', true);
         const updateMethodLabel = posting ?
             gettext('Post all recurring events or just this one?') :
             gettext('Unpost all recurring events or just this one?');
-        const postAll = posting && !isItemPublic(initialValues);
+        const postAll = posting && !isItemPublic(original);
         const eventsInUse = this.state.relatedEvents.filter((e) => (
             get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
         ));
@@ -77,22 +85,22 @@ export class PostEventsComponent extends React.Component {
         return (
             <div className="MetadataView">
                 <Row
-                    enabled={!!initialValues.slugline}
+                    enabled={!!original.slugline}
                     label={gettext('Slugline')}
-                    value={initialValues.slugline || ''}
+                    value={original.slugline || ''}
                     noPadding={true}
                     className="slugline"
                 />
 
                 <Row
                     label={gettext('Name')}
-                    value={initialValues.name || ''}
+                    value={original.name || ''}
                     noPadding={true}
                     className="strong"
                 />
 
                 <EventScheduleSummary
-                    schedule={initialValues.dates}
+                    schedule={original.dates}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
                 />
@@ -126,12 +134,13 @@ export class PostEventsComponent extends React.Component {
 }
 
 PostEventsComponent.propTypes = {
-    initialValues: PropTypes.object.isRequired,
+    original: PropTypes.object.isRequired,
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
     submitting: PropTypes.bool,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
+    resolve: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
@@ -139,11 +148,23 @@ const mapStateToProps = (state) => ({
     dateFormat: getDateFormat(state),
 });
 
-const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event) => dispatch(event._post ?
-        actions.main.post(event, false) :
-        actions.main.unpost(event, false)
-    ),
+const mapDispatchToProps = (dispatch, ownProps) => ({
+    onSubmit: (original, updates) => dispatch(original._post ?
+        actions.main.post(original, updates, false) :
+        actions.main.unpost(original, updates, false)
+    )
+        .then((updatedEvent) => {
+            if (ownProps.resolve) {
+                ownProps.resolve(updatedEvent);
+            }
+
+            return Promise.resolve(updatedEvent);
+        }),
+    onHide: () => {
+        if (ownProps.resolve) {
+            ownProps.resolve();
+        }
+    },
 });
 
 export const PostEventsForm = connect(

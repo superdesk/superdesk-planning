@@ -15,7 +15,16 @@ import eventsPlanning from '../eventsPlanning';
  * @param {object} data - Planning and User IDs
  */
 const onPlanningCreated = (_e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
+        // If this planning item was created by this user in AddToPlanning Modal
+        // Then ignore this notification
+        if (selectors.general.sessionId(getState()) === data.session && (
+            selectors.general.modalType(getState()) === MODALS.ADD_TO_PLANNING ||
+            selectors.general.previousModalType(getState()) === MODALS.ADD_TO_PLANNING
+        )) {
+            return;
+        }
+
         if (get(data, 'item')) {
             if (get(data, 'event_item', null) !== null) {
                 dispatch(events.api.markEventHasPlannings(
@@ -43,12 +52,26 @@ const onPlanningCreated = (_e, data) => (
  */
 const onPlanningUpdated = (_e, data) => (
     (dispatch, getState) => {
+        // If this planning item was update by this user in AddToPlanning Modal
+        // Then ignore this notification
+        if (selectors.general.sessionId(getState()) === data.session && (
+            selectors.general.modalType(getState()) === MODALS.ADD_TO_PLANNING ||
+            selectors.general.previousModalType(getState()) === MODALS.ADD_TO_PLANNING
+        )) {
+            return;
+        }
+
         if (get(data, 'item')) {
             const storedPlan = selectors.planning.storedPlannings(getState())[data.item];
             const currentEditId = selectors.forms.currentItemId(getState());
 
             if (get(data, 'item') !== currentEditId ||
-                    !isItemLockedForEditing(storedPlan, selectors.general.session(getState()))) {
+                !isItemLockedForEditing(
+                    storedPlan,
+                    selectors.general.session(getState()),
+                    selectors.locks.getLockedItems(getState())
+                )
+            ) {
                 dispatch(planning.ui.scheduleRefetch())
                     .then((results) => {
                         if (selectors.general.currentWorkspace(getState()) === WORKSPACE.ASSIGNMENTS) {
@@ -102,7 +125,7 @@ const onPlanningLocked = (e, data) => (
 
                     // reload the initialvalues of the editor if different session has made changes
                     if (data.lock_session !== sessionId) {
-                        dispatch(main.reloadEditor(plan));
+                        dispatch(main.reloadEditor(plan, 'read'));
                     }
 
                     return Promise.resolve(plan);
@@ -125,7 +148,6 @@ const onPlanningUnlocked = (_e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
             let planningItem = selectors.planning.storedPlannings(getState())[data.item];
-            const sessionId = selectors.general.session(getState()).sessionId;
 
             dispatch(main.onItemUnlocked(data, planningItem, ITEM_TYPE.PLANNING));
 
@@ -145,11 +167,6 @@ const onPlanningUnlocked = (_e, data) => (
                 type: PLANNING.ACTIONS.UNLOCK_PLANNING,
                 payload: {plan: planningItem},
             });
-
-            // reload the initial values of the editor if different session has made changes
-            if (data.lock_session !== sessionId) {
-                dispatch(main.reloadEditor(planningItem));
-            }
 
             return Promise.resolve();
         }

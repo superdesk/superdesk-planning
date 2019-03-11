@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import {get} from 'lodash';
+
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 import {gettext} from '../../../utils';
@@ -29,7 +31,10 @@ export class CreatePlanningComponent extends React.Component {
     }
 
     submit() {
-        return this.props.onSubmit(this.state.agendas, this.props.modalProps);
+        return this.props.onSubmit(
+            get(this.props, 'modalProps.events'),
+            this.state.agendas
+        );
     }
 
     render() {
@@ -63,9 +68,16 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (agendas, modalProps) =>
-        dispatch(actions.addEventToCurrentAgenda(modalProps.events, null, false, agendas))
-            .then(() => (dispatch(actions.multiSelect.deSelectEvents(null, true)))),
+    onSubmit: (events, agendas) =>
+        dispatch(actions.addEventToCurrentAgenda(
+            events,
+            null,
+            false,
+            agendas
+        ))
+            .then(() => (
+                dispatch(actions.multiSelect.deSelectEvents(null, true)))
+            ),
 });
 
 export const CreatePlanningForm = connect(

@@ -50,11 +50,14 @@ describe('<RelatedPlannings />', () => {
                 },
             },
             forms: {
-                itemId: 'event1',
-                itemType: 'event',
+                editors: {
+                    panel: {
+                        itemId: 'event1',
+                        itemType: 'event',
+                    },
+                },
             },
         };
-
 
         const store = createTestStore({initialState: initialState});
 

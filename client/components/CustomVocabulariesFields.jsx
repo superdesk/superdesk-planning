@@ -40,6 +40,6 @@ CustomVocabulariesFields.propTypes = {
     fieldsProps: PropTypes.object,
     onFocusDetails: PropTypes.func,
     formProfile: PropTypes.object.isRequired,
-    popupContainer: PropTypes.node,
+    popupContainer: PropTypes.func,
     popupProps: PropTypes.object,
 };

@@ -32,7 +32,6 @@ const onEventUnlocked = (_e, data) => (
         if (data && data.item) {
             const events = selectors.events.storedEvents(getState());
             let eventInStore = get(events, data.item, {});
-            const sessionId = selectors.general.session(getState()).sessionId;
 
             dispatch(main.onItemUnlocked(data, eventInStore, ITEM_TYPE.EVENT));
 
@@ -51,11 +50,6 @@ const onEventUnlocked = (_e, data) => (
                 type: EVENTS.ACTIONS.UNLOCK_EVENT,
                 payload: {event: eventInStore},
             });
-
-            // reload the initial values of the editor if different session has made changes
-            if (data.lock_session !== sessionId) {
-                dispatch(main.reloadEditor(eventInStore));
-            }
 
             return Promise.resolve(eventInStore);
         }
@@ -87,7 +81,7 @@ const onEventLocked = (_e, data) => (
 
                     // reload the initialvalues of the editor if different session has made changes
                     if (data.lock_session !== sessionId) {
-                        dispatch(main.reloadEditor(eventInStore));
+                        dispatch(main.reloadEditor(eventInStore, 'read'));
                     }
 
                     return Promise.resolve(evtInStore);
@@ -284,8 +278,14 @@ const onEventUpdated = (_e, data) => (
             const storedEvent = selectors.events.storedEvents(getState())[data.item];
             const currentEditId = selectors.forms.currentItemId(getState());
 
-            if (get(data, 'recurrence_id') || get(data, 'item') !== currentEditId
-                    || !isItemLockedForEditing(storedEvent, selectors.general.session(getState()))) {
+            if (get(data, 'recurrence_id') ||
+                get(data, 'item') !== currentEditId ||
+                !isItemLockedForEditing(
+                    storedEvent,
+                    selectors.general.session(getState()),
+                    selectors.locks.getLockedItems(getState())
+                )
+            ) {
                 dispatch(main.setUnsetLoadingIndicator(true));
                 dispatch(eventsUi.scheduleRefetch(get(data, 'recurrence_id') ? [data.item] : []))
                     .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))

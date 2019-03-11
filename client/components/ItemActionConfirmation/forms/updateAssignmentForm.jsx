@@ -30,7 +30,7 @@ export class UpdateAssignmentComponent extends React.Component {
     }
 
     componentWillMount() {
-        const diff = cloneDeep(this.props.initialValues);
+        const diff = cloneDeep(this.props.original);
 
         this.setState({diff});
     }
@@ -42,7 +42,7 @@ export class UpdateAssignmentComponent extends React.Component {
 
         this.setState({diff});
 
-        if (isEqual(diff, this.props.initialValues) || !this.state.valid) {
+        if (isEqual(diff, this.props.original) || !this.state.valid) {
             this.props.disableSaveInModal();
         } else {
             this.props.enableSaveInModal();
@@ -50,7 +50,10 @@ export class UpdateAssignmentComponent extends React.Component {
     }
 
     submit() {
-        return this.props.onSubmit(this.state.diff);
+        return this.props.onSubmit(
+            this.props.original,
+            this.state.diff
+        );
     }
 
     setValid(valid) {
@@ -62,15 +65,15 @@ export class UpdateAssignmentComponent extends React.Component {
     }
 
     render() {
-        const slugline = get(this.props, 'initialValues.planning.slugline') || '';
-        const scheduled = get(this.props, 'initialValues.planning.scheduled') || '';
+        const slugline = get(this.props, 'original.planning.slugline') || '';
+        const scheduled = get(this.props, 'original.planning.scheduled') || '';
 
-        const priorityQcode = get(this.props, 'initialValues.priority');
+        const priorityQcode = get(this.props, 'original.priority');
         const priority = getItemInArrayById(this.props.priorities, priorityQcode, 'qcode');
 
-        const canEditDesk = assignmentUtils.canEditDesk(this.props.initialValues);
+        const canEditDesk = assignmentUtils.canEditDesk(this.props.original);
 
-        const deskId = get(this.props, 'initialValues.assigned_to.desk') || null;
+        const deskId = get(this.props, 'original.assigned_to.desk') || null;
         const desk = deskId ?
             getItemInArrayById(this.props.desks, deskId) :
             {};
@@ -147,7 +150,7 @@ export class UpdateAssignmentComponent extends React.Component {
 }
 
 UpdateAssignmentComponent.propTypes = {
-    initialValues: PropTypes.object,
+    original: PropTypes.object,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
     disableSaveInModal: PropTypes.func,
@@ -165,10 +168,12 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (assignment) => dispatch(actions.assignments.ui.save(assignment))
-        .then(() => dispatch({
+    onSubmit: (original, updates) => dispatch(
+        actions.assignments.ui.save(original, updates)
+    )
+        .then((updatedAssignment) => dispatch({
             type: ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT,
-            payload: {assignment},
+            payload: {assignment: updatedAssignment},
         })),
 
     onHide: (assignment) => {

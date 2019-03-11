@@ -175,15 +175,17 @@ const scheduleRefetch = () => (
 /**
  * Action dispatcher that attempts to assign an agenda to a Planning item
  * @param {object} item - The Planning item to asssign the agenda
- * @param {object} item - Agenda to be assigned
+ * @param {object} agenda - Agenda to be assigned
  * @return Promise
  */
 const assignToAgenda = (item, agenda) => (
     (dispatch, getState, {notify}) => (
         dispatch(locks.lock(item, 'assign_agenda'))
-            .then((lockedItem) => {
-                lockedItem.agendas = [...get(lockedItem, 'agendas', []), agenda._id];
-                return dispatch(main.saveAndUnlockItem(lockedItem)).then(() => {
+            .then((original) => {
+                const updates = cloneDeep(original);
+
+                updates.agendas = [...get(original, 'agendas', []), agenda._id];
+                return dispatch(main.saveAndUnlockItem(original, updates)).then(() => {
                     notify.success(gettext('Agenda assigned to the planning item.'));
                     return Promise.resolve();
                 });
@@ -201,7 +203,9 @@ const duplicate = (plan) => (
         dispatch(planningApi.duplicate(plan))
             .then((newPlan) => {
                 notify.success(gettext('Planning duplicated'));
-                return dispatch(main.lockAndEdit(newPlan));
+                dispatch(main.openForEdit(newPlan));
+
+                return Promise.resolve(newPlan);
             }, (error) => {
                 notify.error(
                     getErrorMessage(error, 'Failed to duplicate the Planning')
@@ -212,9 +216,9 @@ const duplicate = (plan) => (
     )
 );
 
-const cancelPlanning = (plan) => (
+const cancelPlanning = (original, updates) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planningApi.cancel(plan))
+        dispatch(planningApi.cancel(original, updates))
             .then((plan) => {
                 notify.success(gettext('Planning Item has been cancelled'));
                 return Promise.resolve(plan);
@@ -227,12 +231,12 @@ const cancelPlanning = (plan) => (
     )
 );
 
-const cancelAllCoverage = (plan) => (
+const cancelAllCoverage = (original, updates) => (
     (dispatch, getState, {notify}) => {
         // delete _cancelAllCoverage used for UI purposes
-        delete plan._cancelAllCoverage;
+        delete original._cancelAllCoverage;
 
-        return dispatch(planningApi.cancelAllCoverage(plan))
+        return dispatch(planningApi.cancelAllCoverage(original, updates))
             .then((plan) => {
                 notify.success(gettext('All Coverage has been cancelled'));
                 return Promise.resolve(plan);
@@ -348,7 +352,8 @@ const openCancelAllCoverageModal = (plan, post = false) => (
     ))
 );
 
-const _openActionModal = (plan,
+const _openActionModal = (
+    plan,
     action,
     lockAction = null,
     post = false,
@@ -362,7 +367,7 @@ const _openActionModal = (plan,
                 return dispatch(showModal({
                     modalType: MODALS.ITEM_ACTIONS_MODAL,
                     modalProps: {
-                        planning: lockedPlanning,
+                        original: lockedPlanning,
                         actionType: action,
                         large: large,
                         ...modalProps,
@@ -379,12 +384,12 @@ const _openActionModal = (plan,
     )
 );
 
-const save = (item) => (
+const save = (original, updates) => (
     (dispatch, getState) => {
         if (selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING) {
-            return dispatch(self.saveFromAuthoring(item));
+            return dispatch(self.saveFromAuthoring(original, updates));
         } else {
-            return dispatch(planningApi.saveAndReloadCurrentAgenda(item));
+            return dispatch(planningApi.save(original, updates));
         }
     }
 );
@@ -404,7 +409,7 @@ const onAddCoverageClick = (item) => (
         const lockedItems = selectors.locks.getLockedItems(state);
         let promise;
 
-        // If a differet planning item is already open in editor, unlock that.
+        // If a different planning item is already open in editor, unlock that.
         const currentItem = selectors.forms.currentItem(state);
 
         if (currentItem && getItemId(item) !== getItemId(currentItem)) {
@@ -422,7 +427,7 @@ const onAddCoverageClick = (item) => (
         return promise.then((lockedItem) => {
             dispatch(planningApi.receivePlannings([lockedItem]));
             dispatch(main.closeEditor());
-            dispatch(main.openEditor(lockedItem));
+            dispatch(main.openForEdit(lockedItem));
             return Promise.resolve(lockedItem);
         }, (error) => {
             notify.error(
@@ -434,14 +439,15 @@ const onAddCoverageClick = (item) => (
     }
 );
 
-const saveFromAuthoring = (plan) => (
+const saveFromAuthoring = (original, updates) => (
     (dispatch, getState, {notify}) => {
         dispatch(actions.actionInProgress(true));
         let resolved = true;
 
-        return dispatch(planningApi.save(plan))
+        return dispatch(planningApi.save(original, updates))
             .then((newPlan) => {
-                const newsItem = get(selectors.general.modalProps(getState()), 'newsItem', null);
+                const newsItem = get(selectors.general.modalProps(getState()), 'newsItem') ||
+                    get(selectors.general.previousModalProps(getState()), 'newsItem');
                 const coverages = orderBy(newPlan.coverages, ['firstcreated'], ['desc']);
                 const coverage = coverages[0];
                 const reassign = false;
@@ -449,13 +455,6 @@ const saveFromAuthoring = (plan) => (
                 return dispatch(actions.assignments.api.link(coverage.assigned_to, newsItem, reassign))
                     .then(() => {
                         notify.success('Content linked to the planning item.');
-                        dispatch(actions.actionInProgress(false));
-
-                        // If a new planning item was created, close editor
-                        // As it is too early for scope.destroy() watcher to get hold of it
-                        if (!isExistingItem(plan)) {
-                            return dispatch(main.closeEditor(newPlan));
-                        }
 
                         return Promise.resolve(newPlan);
                     }, (error) => {
@@ -485,9 +484,6 @@ const saveFromAuthoring = (plan) => (
                         $scope.reject();
                     }
                 }
-
-                dispatch(actions.hideModal());
-                dispatch(actions.actionInProgress(false));
             });
     }
 );
@@ -509,7 +505,7 @@ const addCoverageToWorkflow = (original, updatedCoverage, index) => (
         set(coverage, 'assigned_to.state', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED);
         updates.coverages[index] = coverage;
 
-        return dispatch(planningApi.save(updates, original))
+        return dispatch(planningApi.save(original, updates))
             .then((savedItem) => {
                 notify.success(gettext('Coverage added to workflow.'));
                 return dispatch(self.updateItemOnSave(savedItem));
@@ -530,7 +526,7 @@ const removeAssignment = (original, updatedCoverage, index) => (
 
         updates.coverages[index] = coverage;
 
-        return dispatch(planningApi.save(updates, original))
+        return dispatch(planningApi.save(original, updates))
             .then((savedItem) => {
                 notify.success(gettext('Removed assignment from coverage.'));
                 return dispatch(self.updateItemOnSave(savedItem));
@@ -548,7 +544,7 @@ const updateItemOnSave = (savedItem) => (
 );
 
 const addNewCoverageToPlanning = (coverageType, item) => (
-    (dispatch) => (dispatch(main.lockAndEdit({
+    (dispatch) => (dispatch(main.openForEdit({
         ...item,
         _addCoverage: coverageType,
     })))

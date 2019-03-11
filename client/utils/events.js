@@ -22,14 +22,13 @@ import {
     isDateInRange,
     gettext,
     getItemId,
-    generateTempId,
     isExistingItem,
     isItemExpired,
     isItemPosted,
     timeUtils,
+    getItemInArrayById,
 } from './index';
 import moment from 'moment';
-import momentTz from 'moment-timezone';
 import RRule from 'rrule';
 import {get, map, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy} from 'lodash';
 import {EventUpdateMethods} from '../components/Events';
@@ -66,7 +65,7 @@ const isEventLocked = (event, locks) =>
 
 const isEventLockRestricted = (event, session, locks) =>
     isEventLocked(event, locks) &&
-    !lockUtils.isItemLockedInThisSession(event, session);
+    !lockUtils.isItemLockedInThisSession(event, session, locks);
 
 /**
  * Helper function to determine if a recurring event instances overlap
@@ -711,17 +710,20 @@ const getEventsByDate = (events, startDate, endDate) => {
 
 const modifyForClient = (event) => {
     if (get(event, 'dates.start')) {
-        event.dates.start = moment(event.dates.start);
-        event._startTime = moment(event.dates.start);
+        event.dates.start = timeUtils.getDateInRemoteTimeZone(event.dates.start, timeUtils.localTimeZone());
+        event._startTime = timeUtils.getDateInRemoteTimeZone(event.dates.start, timeUtils.localTimeZone());
     }
 
     if (get(event, 'dates.end')) {
-        event.dates.end = moment(event.dates.end);
-        event._endTime = moment(event.dates.end);
+        event.dates.end = timeUtils.getDateInRemoteTimeZone(event.dates.end, timeUtils.localTimeZone());
+        event._endTime = timeUtils.getDateInRemoteTimeZone(event.dates.end, timeUtils.localTimeZone());
     }
 
     if (get(event, 'dates.recurring_rule.until')) {
-        event.dates.recurring_rule.until = moment(event.dates.recurring_rule.until);
+        event.dates.recurring_rule.until = timeUtils.getDateInRemoteTimeZone(
+            event.dates.recurring_rule.until,
+            timeUtils.localTimeZone()
+        );
     }
 
     if (get(event, 'location[0]')) {
@@ -749,16 +751,18 @@ const modifyForServer = (event, removeNullLinks = false) => {
 
     if (timeUtils.isEventInDifferentTimeZone(event)) {
         if (get(event, 'dates.start') && moment.isMoment(event.dates.start)) {
-            event.dates.start = momentTz.tz(event.dates.start.format('YYYY-MM-DDTHH:mm:ss'), event.dates.tz);
+            event.dates.start = timeUtils.getDateInRemoteTimeZone(event.dates.start, event.dates.tz);
         }
 
         if (get(event, 'dates.end') && moment.isMoment(event.dates.end)) {
-            event.dates.end = momentTz.tz(event.dates.end.format('YYYY-MM-DDTHH:mm:ss'), event.dates.tz);
+            event.dates.end = timeUtils.getDateInRemoteTimeZone(event.dates.end, event.dates.tz);
         }
 
         if (get(event, 'dates.recurring_rule.until') && moment.isMoment(event.dates.recurring_rule.until)) {
-            event.dates.recurring_rule.until = momentTz.tz(
-                event.dates.recurring_rule.until.format('YYYY-MM-DDTHH:mm:ss'), event.dates.tz);
+            event.dates.recurring_rule.until = timeUtils.getDateInRemoteTimeZone(
+                event.dates.recurring_rule.until,
+                event.dates.tz
+            );
         }
     }
 
@@ -772,7 +776,6 @@ const duplicateEvent = (event, occurStatus) => {
             'pubstatus', 'recurrence_id', 'previous_recurrence_id', 'reschedule_from', 'reschedule_to',
             'planning_ids', 'reason', 'expired', 'state_reason', 'actioned_date'].indexOf(k) > -1));
 
-    duplicatedEvent._id = generateTempId();
     // Delete recurring rule
     if (duplicatedEvent.dates.recurring_rule) {
         delete duplicatedEvent.dates.recurring_rule;
@@ -801,17 +804,23 @@ export const shouldLockEventForEdit = (item, privileges) => (
         (!isItemPublic(item) || !!privileges[PRIVILEGES.POST_EVENT])
 );
 
-const defaultEventValues = (occurStatuses, defaultCalendars, defaultPlaceList, defaultTimeZone) => {
+const defaultEventValues = (occurStatuses, defaultCalendars, defaultPlaceList) => {
+    const occurStatus = getItemInArrayById(occurStatuses, 'eocstat:eos5', 'qcode') || {
+        label: 'Planned, occurs certainly',
+        qcode: 'eocstat:eos5',
+        name: 'Planned, occurs certainly',
+    };
+
     let newEvent = {
-        _id: generateTempId(),
         type: ITEM_TYPE.EVENT,
-        occur_status: get(occurStatuses, '[5]') || null, // eocstat:eos5: Planned, occurs certainly
+        occur_status: occurStatus,
         dates: {
             start: null,
             end: null,
             tz: timeUtils.localTimeZone(),
         },
         calendars: defaultCalendars,
+        state: 'draft',
         _startTime: null,
         _endTime: null,
     };

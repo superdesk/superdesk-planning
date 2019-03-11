@@ -211,11 +211,13 @@ const addEventToCurrentAgenda = (events, planningDate = null, openInEditor = fal
         // reload the plannings of the current calendar
         return promise
             .then(() => {
+                const firstPlanning = planningUtils.modifyForClient(plannings[0]);
+
                 notify.pop();
                 notify.success(gettext(`created ${eventsList.length} planning item.`));
                 return openInEditor ?
-                    dispatch(main.lockAndEdit(planningUtils.modifyForClient(plannings[0]), openInModal)) :
-                    Promise.resolve(plannings[0]);
+                    dispatch(main.openForEdit(firstPlanning, !openInModal, openInModal)) :
+                    Promise.resolve(firstPlanning);
             })
             .then(() => dispatch(fetchSelectedAgendaPlannings()));
     }
@@ -229,7 +231,7 @@ const addEventToCurrentAgenda = (events, planningDate = null, openInEditor = fal
  */
 const createPlanningFromEvent = (event, planningDate, agendas = []) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.save({
+        dispatch(planning.api.save({}, {
             event_item: event._id,
             slugline: event.slugline,
             planning_date: planningDate || event._sortDate || event.dates.start,

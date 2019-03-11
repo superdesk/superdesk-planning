@@ -1,4 +1,5 @@
 import {get} from 'lodash';
+import {protractor} from 'protractor';
 
 export const isFieldEmpty = (field) => field.getAttribute('value')
     .then((text) => Promise.resolve(get(text, 'length', 0) <= 0));
@@ -24,6 +25,14 @@ export const waitClickable = (domElement, timeout) => (
 export const waitPresent = (domElement, timeout = 7500) => (
     browser.wait(
         () => domElement.isPresent(),
+        timeout,
+        'Timeout while waiting for an element to be visible'
+    )
+);
+
+export const waitNotPresent = (domElement, timeout = 7500) => (
+    browser.wait(
+        () => protractor.ExpectedConditions.invisibilityOf(domElement),
         timeout,
         'Timeout while waiting for an element to be visible'
     )

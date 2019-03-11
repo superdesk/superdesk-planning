@@ -58,6 +58,7 @@ export class PlanningStoreService {
 
         this.onSessionChanged = this.onSessionChanged.bind(this);
         this.onDeskChanged = this.onDeskChanged.bind(this);
+        this._reloadVocabularies = this._reloadVocabularies.bind(this);
 
         this.store = null;
         this.loading = false;
@@ -160,6 +161,7 @@ export class PlanningStoreService {
                         search: this.search,
                         config: this.config,
                         preferencesService: this.preferencesService,
+                        $rootScope: this.$rootScope,
                     },
                 });
 

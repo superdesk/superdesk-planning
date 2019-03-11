@@ -33,9 +33,9 @@ const getActionDispatches = ({
         [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]:
             actions.events.ui.openRepetitionsModal,
         [EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName]:
-            actions.main.lockAndEdit,
+            actions.main.openForEdit,
         [EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName]:
-            actions.main.lockAndEdit,
+            actions.main.openForEdit,
         [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]:
             actions.events.ui.assignToCalendar,
 
@@ -53,9 +53,9 @@ const getActionDispatches = ({
         [PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName]:
             actions.events.ui.createEventFromPlanning,
         [PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName]:
-            actions.main.lockAndEdit,
+            actions.main.openForEdit,
         [PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.actionName]:
-            actions.main.lockAndEdit,
+            actions.main.openForEdit,
         [PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName]:
             actions.planning.ui.assignToAgenda,
         [PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName]:

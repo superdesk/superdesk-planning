@@ -13,7 +13,7 @@ import {
 
 import * as selectors from '../../selectors';
 import {MODALS, FEATURED_PLANNING, SPIKED_STATE, MAIN, TIME_COMPARISON_GRANULARITY} from '../../constants';
-import {get, findIndex} from 'lodash';
+import {get, findIndex, cloneDeep} from 'lodash';
 import moment from 'moment';
 import momentTz from 'moment-timezone';
 
@@ -227,10 +227,10 @@ const openFeaturedPlanningModal = () => (
  * @param {boolean} remove - if true removes the featured attribute else sets it
  * @return Promise
  */
-const modifyPlanningFeatured = (item, remove = false) => (
+const modifyPlanningFeatured = (original, remove = false) => (
     (dispatch) => (
         dispatch(main.openActionModalFromEditor(
-            item,
+            original,
             gettext('Save changes before adding to top stories ?'),
             (unlockedItem, previousLock, openInEditor, openInModal) => (
                 dispatch(self._modifyPlanningFeatured(unlockedItem, remove))
@@ -247,24 +247,27 @@ const modifyPlanningFeatured = (item, remove = false) => (
 
 /**
  * Toggles 'featured' attribute of a planning item
- * @param {item} params - planning item to modify
+ * @param {Object} item - planning item to modify
  * @param {boolean} remove - if true removes the featured attribute else sets it
  * @return Promise
  */
 const _modifyPlanningFeatured = (item, remove = false) => (
     (dispatch, getState, {api, notify}) => (
         dispatch(locks.lock(item, remove ? 'remove_featured' : 'add_featured'))
-            .then((lockedItem) => {
-                lockedItem.featured = !remove;
-                return dispatch(main.saveAndUnlockItem(lockedItem)).then((updatedItem) => {
-                    remove ? notify.success(gettext('Planning item removed as featured story')) :
-                        notify.success(gettext('Planning item added as featured story'));
-                    return Promise.resolve(updatedItem);
-                }, (error) => {
-                    remove ? notify.error(gettext('Failed to remove planning item as featured story')) :
-                        notify.error(gettext('Failed to add planning item added as featured story'));
-                    return Promise.reject(error);
-                });
+            .then((original) => {
+                const updates = cloneDeep(original);
+
+                updates.featured = !remove;
+                return dispatch(main.saveAndUnlockItem(original, updates))
+                    .then((updatedItem) => {
+                        remove ? notify.success(gettext('Planning item removed as featured story')) :
+                            notify.success(gettext('Planning item added as featured story'));
+                        return Promise.resolve(updatedItem);
+                    }, (error) => {
+                        remove ? notify.error(gettext('Failed to remove planning item as featured story')) :
+                            notify.error(gettext('Failed to add planning item added as featured story'));
+                        return Promise.reject(error);
+                    });
             })
     )
 );

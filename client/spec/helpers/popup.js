@@ -6,7 +6,7 @@ export class Popup {
     }
 
     static wait(className = 'popup') {
-        browser.wait(
+        return browser.wait(
             () => element(by.className(className)).isPresent(),
             7500,
             'Timeout while waiting for the Popup to be visible'
@@ -14,7 +14,7 @@ export class Popup {
     }
 
     static waitForClose(className = 'popup') {
-        browser.wait(
+        return browser.wait(
             () => isCount(element.all(by.className(className)), 0),
             7500,
             'Timeout while waiting for the Popup to close'

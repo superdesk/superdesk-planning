@@ -558,10 +558,18 @@ export const shouldLockItemForEdit = (item, lockedItems, privileges) =>
         )
 ;
 
-export const shouldUnLockItem = (item, session, currentWorkspace) =>
+export const shouldUnLockItem = (
+    item,
+    session,
+    currentWorkspace,
+    lockedItems,
+    ignoreSession = false
+) =>
     isExistingItem(item) &&
         ((currentWorkspace === WORKSPACE.AUTHORING && planningUtils.isLockedForAddToPlanning(item)) ||
-        (currentWorkspace !== WORKSPACE.AUTHORING && lockUtils.isItemLockedInThisSession(item, session)));
+        (currentWorkspace !== WORKSPACE.AUTHORING &&
+            lockUtils.isItemLockedInThisSession(item, session, lockedItems, ignoreSession))
+        );
 
 /**
  * If date is provided get timezone offset from date else browser the timezone offset
@@ -649,6 +657,32 @@ export const getItemTypeString = (item) => {
     default:
         return gettext('Item');
     }
+};
+
+export const modifyForClient = (item) => {
+    let newItem = cloneDeep(item);
+    const itemType = getItemType(item);
+
+    if (itemType === ITEM_TYPE.EVENT) {
+        newItem = eventUtils.modifyForClient(newItem);
+    } else if (itemType === ITEM_TYPE.PLANNING) {
+        newItem = planningUtils.modifyForClient(newItem);
+    }
+
+    return newItem;
+};
+
+export const modifyForServer = (item, args) => {
+    let newItem = cloneDeep(item);
+    const itemType = getItemType(item);
+
+    if (itemType === ITEM_TYPE.EVENT) {
+        newItem = eventUtils.modifyForServer(newItem, args);
+    } else if (itemType === ITEM_TYPE.PLANNING) {
+        newItem = planningUtils.modifyForServer(newItem, args);
+    }
+
+    return newItem;
 };
 
 export const getDateTimeString = (
@@ -843,11 +877,53 @@ export const itemsEqual = (nextItem, currentItem) => {
     const pickField = (value, key) => (
         !key.startsWith('_') &&
         !key.startsWith('lock_') &&
+        AUTOSAVE.IGNORE_FIELDS.indexOf(key) < 0 &&
         value !== null &&
-        value !== undefined
+        value !== undefined &&
+        value !== '' &&
+        (!Array.isArray(value) || value.length > 0)
     );
 
-    return isEqual(pickBy(nextItem, pickField), pickBy(currentItem, pickField));
+    const lhs = cloneDeep(nextItem);
+    const rhs = cloneDeep(currentItem);
+
+    const itemDates = [
+        'dates.start',
+        'dates.end',
+        'dates.recurring_rule.until',
+        'planning_date',
+    ];
+
+    const formatDate = (item, field) => {
+        const value = get(item, field);
+
+        if (!value || !moment.isMoment(value)) {
+            return;
+        }
+
+        set(item, field, value.format('YYYY-MM-DDTHH:mm'));
+    };
+
+    itemDates.forEach(
+        (field) => {
+            formatDate(lhs, field);
+            formatDate(rhs, field);
+        }
+    );
+
+    get(lhs, 'coverages', []).forEach(
+        (coverage) => {
+            formatDate(coverage, 'planning.scheduled');
+        }
+    );
+
+    get(rhs, 'coverages', []).forEach(
+        (coverage) => {
+            formatDate(coverage, 'planning.scheduled');
+        }
+    );
+
+    return isEqual(pickBy(lhs, pickField), pickBy(rhs, pickField));
 };
 
 /**
@@ -886,5 +962,7 @@ export const isItemDifferent = (currentProps, nextProps) => {
         lockUtils.isItemLocked(updates.item, updates.lockedItems);
 };
 
-export const isItemLockedForEditing = (item, session) =>
-    lockUtils.isItemLockedInThisSession(item, session) && get(item, 'lock_action') === 'edit';
+export const isItemLockedForEditing = (item, session, lockedItems) => (
+    lockUtils.isItemLockedInThisSession(item, session, lockedItems) &&
+    lockUtils.getLockAction(item, lockedItems) === 'edit'
+);

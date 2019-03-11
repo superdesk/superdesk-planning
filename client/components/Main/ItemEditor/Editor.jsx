@@ -1,62 +1,45 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import {get, isEqual, cloneDeep} from 'lodash';
 
-import {get, isEqual, cloneDeep, throttle, isNil} from 'lodash';
+import * as actions from '../../../actions';
+import {EventEditor} from '../../Events';
+import {PlanningEditor} from '../../Planning';
 
 import {
     gettext,
-    planningUtils,
     updateFormValues,
     isExistingItem,
     isItemKilled,
-    isTemporaryId,
-    getItemId,
-    removeAutosaveFields,
     itemsEqual,
-    isSameItemId,
     isItemReadOnly,
 } from '../../../utils';
-import {EventUpdateMethods} from '../../Events';
 
-import {ITEM_TYPE, POST_STATE, WORKFLOW_STATE, AUTOSAVE, UI} from '../../../constants';
+import {ITEM_TYPE, UI} from '../../../constants';
 
 import {Tabs as NavTabs} from '../../UI/Nav';
 import {SidePanel, Content} from '../../UI/SidePanel';
 
-import {EditorHeader, EditorContentTab} from './index';
+import {EditorHeader} from './index';
 import {HistoryTab} from '../index';
+
+import {ItemManager} from './ItemManager';
+import {AutoSave} from './AutoSave';
+
 
 export class EditorComponent extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            tab: UI.EDITOR.CONTENT_TAB_INDEX,
-            diff: {},
-            errors: {},
-            errorMessages: [],
-            dirty: false,
-            submitting: false,
-            submitFailed: false,
-            partialSave: false,
-            itemReady: false,
-        };
+
+        this.autoSave = new AutoSave(this);
+        this.itemManager = new ItemManager(this);
 
         this.tearDownRequired = false;
         this.onChangeHandler = this.onChangeHandler.bind(this);
         this.setActiveTab = this.setActiveTab.bind(this);
-        this.onSave = this.onSave.bind(this);
-        this.onPost = this.onPost.bind(this);
-        this.onSaveAndPost = this.onSaveAndPost.bind(this);
-        this.onUnpost = this.onUnpost.bind(this);
-        this.onSaveUnpost = this.onSaveUnpost.bind(this);
         this.onCancel = this.onCancel.bind(this);
-        this.resetForm = this.resetForm.bind(this);
-        this.createNew = this.createNew.bind(this);
-        this.onAddCoverage = this.onAddCoverage.bind(this);
-        this.startPartialSave = this.startPartialSave.bind(this);
         this.onMinimized = this.onMinimized.bind(this);
-        this.flushAutosave = this.flushAutosave.bind(this);
         this.cancelFromHeader = this.cancelFromHeader.bind(this);
         this.onPopupOpen = this.onPopupOpen.bind(this);
         this.onPopupClose = this.onPopupClose.bind(this);
@@ -64,7 +47,7 @@ export class EditorComponent extends React.Component {
         this.throttledSave = null;
 
         this.tabs = [
-            {label: gettext('Content'), render: EditorContentTab, enabled: true},
+            {label: gettext('Content'), render: null, enabled: true},
             {
                 label: gettext('History'),
                 render: HistoryTab,
@@ -87,32 +70,18 @@ export class EditorComponent extends React.Component {
         };
     }
 
-    componentDidMount() {
-        // If the editor is in main page and the item is located in the URL, on first mount copy the diff from the item.
-        // Otherwise all item changes will occur during the componentWillReceiveProps
-        if (!this.props.inModalView && this.props.itemId && this.props.itemType) {
-            this.loadItem(this.props);
-        }
-
-        if (this.props.inModalView) {
-            // Moved from editor on main document to modal mode
-            this.resetForm(this.props.item, false, () => {
-                this.loadAutosave(this.props);
-            });
-        }
+    componentWillMount() {
+        this.itemManager.componentWillMount();
+        this.autoSave.componentWillMount();
     }
 
     componentWillUnmount() {
+        this.itemManager.componentWillUnmount();
+        this.autoSave.componentWillUnmount();
+
         if (!this.tearDownRequired) {
             // problem of modal within modal, so setting this before unmount
             this.tearDownEditorState();
-        }
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.item === null && this.props.item !== null && get(this.props.initialValues, '_addCoverage')) {
-            // If the new item has a coverage that should be added, add it
-            this.onAddCoverage(this.props.initialValues._addCoverage);
         }
     }
 
@@ -128,146 +97,31 @@ export class EditorComponent extends React.Component {
         }
     }
 
-    loadItem(props) {
-        const {itemId, itemType} = props;
-
-        this.setState({itemReady: false}, () => {
-            this.props.loadItem(itemId, itemType)
-                .then((item) => {
-                    if (!item) {
-                        return this.loadAutosave(props);
-                    }
-
-                    return Promise.resolve();
-                })
-                .then(() => this.setState({itemReady: true}));
-        });
-    }
-
-    resetForm(item = null, dirty = false, callback) {
-        this.setState({
-            diff: item === null ? {} : cloneDeep(item),
-            dirty: dirty,
-            submitting: false,
-            errors: {},
-            errorMessages: [],
-            itemReady: true,
-        }, () => {
-            if (callback)
-                callback();
-        });
-
-        this.tabs[UI.EDITOR.CONTENT_TAB_INDEX].label = get(item, 'type') === ITEM_TYPE.EVENT ?
-            gettext('Event Details') :
-            gettext('Planning Details');
-    }
-
-    createNew(props) {
-        if (props.itemType === ITEM_TYPE.EVENT || props.itemType === ITEM_TYPE.PLANNING) {
-            this.resetForm(props.initialValues, !!get(props, 'initialValues.duplicate_from'), () => {
-                this.loadAutosave(props, props.initialValues);
-            });
-        } else {
-            this.resetForm();
-        }
-    }
-
-    onItemIDChanged(nextProps) {
-        this.setState({
-            itemReady: false,
-            tab: UI.EDITOR.CONTENT_TAB_INDEX,
-        }, () => {
-            if (isTemporaryId(nextProps.itemId)) {
-                // This happens when the editor is opened on an existing item and
-                // the user attempts to create a new item
-                this.createNew(nextProps);
-            } else if (nextProps.item === null) {
-                // This happens when the items have changed
-                this.loadItem(nextProps);
-            } else {
-                this.resetForm(nextProps.item, () => {
-                    this.loadAutosave(nextProps, nextProps.item);
-                });
-            }
-        });
-    }
-
-    // This happens when the Editor has finished loading an existing item or creating a duplicate
-    onFinishLoading(nextProps) {
-        this.resetForm(
-            nextProps.item,
-            !isExistingItem(nextProps.item) && nextProps.item.duplicate_from,
-            () => {
-                this.loadAutosave(nextProps, nextProps.item);
-            }
-        );
-    }
-
-    onItemChanged(nextProps) {
-        this.setState({itemReady: false}, () => {
-            // This happens when the item attributes have changed
-            if (this.state.partialSave) {
-                this.finalisePartialSave(nextProps);
-            } else {
-                this.resetForm(get(nextProps, 'item') || {}, false, () => {
-                    if (this.props.inModalView && this.props.onChange) {
-                        this.props.onChange(nextProps.item);
-                    }
-                });
-            }
-        });
-    }
-
     componentWillReceiveProps(nextProps) {
-        if (!nextProps.itemType || !nextProps.itemId) {
-            // If the editor has been closed, then set the itemReady state to false
-            this.flushAutosave();
-            this.setState({
-                itemReady: false,
-                tab: UI.EDITOR.CONTENT_TAB_INDEX,
-            });
-        } else if (nextProps.item !== null && this.props.item === null) {
-            // This happens when the Editor has finished loading an existing item or creating a duplicate
-            this.onFinishLoading(nextProps);
-        } else if (nextProps.itemId !== this.props.itemId) {
-            // If the item ID has changed
-            this.onItemIDChanged(nextProps);
-        } else if (!itemsEqual(get(nextProps, 'item'), get(this.props, 'item'))) {
-            // This happens when the item attributes have changed
-            this.onItemChanged(nextProps);
-        } else if (isSameItemId(nextProps.item, this.props.item) &&
-            this.isReadOnly(nextProps) && !this.isReadOnly(this.props)) {
-            this.resetForm(get(nextProps, 'item') || {});
-        }
+        this.itemManager.componentWillReceiveProps(nextProps);
 
-        this.tabs[UI.EDITOR.HISTORY_TAB_INDEX].enabled = !!nextProps.itemId;
+        if (nextProps.itemType !== this.props.itemType) {
+            this.updateTabLabels(nextProps);
+        }
     }
 
     onChangeHandler(field, value, updateDirtyFlag = true, saveAutosave = true) {
         // If field (name) is passed, it will replace that field
         // Else, entire object will be replaced
         const diff = field ? Object.assign({}, this.state.diff) : cloneDeep(value);
-        const errors = cloneDeep(this.state.errors);
-        const errorMessages = [];
+        const newState = {diff};
 
         if (field) {
             updateFormValues(diff, field, value);
         }
 
-        this.props.onValidate(
-            this.props.itemType,
-            this.props.initialValues,
-            diff,
-            this.props.formProfiles,
-            errors,
-            errorMessages,
-            !isTemporaryId(this.props.itemId)
-        );
-
-        const newState = {diff, errors, errorMessages};
+        this.itemManager.validate(this.props, newState, this.state);
 
         if (updateDirtyFlag) {
-            newState.dirty = !itemsEqual(diff, this.props.item || this.props.initialValues);
+            newState.dirty = this.isDirty(
+                this.state.initialValues,
+                diff
+            );
         }
 
         this.setState(newState);
@@ -277,168 +131,20 @@ export class EditorComponent extends React.Component {
         }
 
         if (saveAutosave) {
-            this.saveAutosave(this.props, diff);
+            this.autoSave.saveAutosave(this.props, diff);
         }
     }
 
-    _save({post, unpost, withConfirmation, updateMethod, noSubsequentEditing}) {
-        if (!isEqual(this.state.errorMessages, [])) {
-            this.setState({
-                submitFailed: true,
-            });
-            this.props.notifyValidationErrors(this.state.errorMessages);
-        } else {
-            this.setState({
-                submitting: true,
-                submitFailed: false,
-            });
-
-            // If we are posting or unposting, we are setting 'pubstatus' to 'usable' from client side
-            let itemToUpdate = cloneDeep(this.state.diff);
-
-            if (post) {
-                itemToUpdate.state = WORKFLOW_STATE.SCHEDULED;
-                itemToUpdate.pubstatus = POST_STATE.USABLE;
-                itemToUpdate._post = true;
-            } else if (unpost) {
-                itemToUpdate.state = WORKFLOW_STATE.KILLED;
-                itemToUpdate.pubstatus = POST_STATE.CANCELLED;
-            }
-
-            if (this.props.itemType === ITEM_TYPE.EVENT) {
-                itemToUpdate.update_method = updateMethod;
-            }
-
-            if (!isExistingItem(this.props.item)) {
-                this.cancelAutosave();
-            }
-
-            return this.props.onSave(itemToUpdate, withConfirmation, noSubsequentEditing)
-                .then(
-                    () => this.setState({
-                        submitting: false,
-                        dirty: false,
-                    }),
-                    () => this.setState({submitting: false}));
-        }
+    isDirty(initialValues, diff) {
+        return !itemsEqual(diff, initialValues);
     }
 
-    /**
-     * Initiate a partial save sequence
-     * This will perform validation on the data provided, then set the submit flags
-     * @param {object} updates - The updated item, with partial updates applied to the initialValues
-     * @return {boolean} Returns true if there are no validation errors, false otherwise
-     */
-    startPartialSave(updates) {
-        const errors = {};
-        const errorMessages = [];
+    updateTabLabels(nextProps) {
+        this.tabs[UI.EDITOR.CONTENT_TAB_INDEX].label = nextProps.itemType === ITEM_TYPE.EVENT ?
+            gettext('Event Details') :
+            gettext('Planning Details');
 
-        this.props.onValidate(
-            this.props.itemType,
-            updates,
-            this.props.formProfiles,
-            errors,
-            errorMessages,
-            !isTemporaryId(this.props.itemId)
-        );
-
-        if (isEqual(errorMessages, [])) {
-            this.setState({
-                partialSave: true,
-                submitting: true,
-                submitFailed: false,
-            });
-
-            return true;
-        }
-
-        this.setState({submitFailed: true});
-        this.props.notifyValidationErrors(errorMessages);
-
-        return false;
-    }
-
-    /**
-     * Restore the states after a partial save is completed (once the original item has been updated)
-     * The dirty flag will be recalculated if there are other fields there are still not saved
-     * @param {object} nextProps - The nextProps as passed in to componentWillReceiveProps
-     */
-    finalisePartialSave(nextProps) {
-        this.setState({
-            partialSave: false,
-            submitting: false,
-            itemReady: true,
-        });
-    }
-
-    onSave(withConfirmation = true, updateMethod = EventUpdateMethods[0], noSubsequentEditing = false) {
-        return this._save({
-            post: false,
-            unpost: false,
-            withConfirmation: withConfirmation,
-            updateMethod: updateMethod,
-            noSubsequentEditing: noSubsequentEditing,
-        });
-    }
-
-    onPost() {
-        this.setState({
-            submitting: true,
-            submitFailed: false,
-        });
-
-        return this.props.onPost(this.state.diff)
-            .then(
-                () => this.setState({
-                    submitting: false,
-                    dirty: false,
-                }),
-                () => this.setState({submitting: false})
-            );
-    }
-
-    onSaveAndPost(withConfirmation = true, updateMethod = EventUpdateMethods[0]) {
-        return this._save({
-            post: true,
-            unpost: false,
-            withConfirmation: withConfirmation,
-            updateMethod: updateMethod,
-        });
-    }
-
-    onUnpost() {
-        this.setState({
-            submitting: true,
-            submitFailed: false,
-        });
-
-        return this.props.onUnpost(this.state.diff)
-            .then(
-                () => this.setState({
-                    submitting: false,
-                    dirty: false,
-                }),
-                () => this.setState({submitting: false})
-            );
-    }
-
-    onSaveUnpost() {
-        return this._save({post: false, unpost: true});
-    }
-
-    onAddCoverage(g2ContentType) {
-        const {newsCoverageStatus, item, defaultDesk, preferredCoverageDesks,
-            associatedEvent, longEventDurationThreshold} = this.props;
-        const newCoverage = planningUtils.defaultCoverageValues(
-            newsCoverageStatus,
-            item,
-            associatedEvent,
-            longEventDurationThreshold,
-            g2ContentType,
-            defaultDesk,
-            preferredCoverageDesks);
-
-        this.onChangeHandler('coverages', [...get(this.state, 'diff.coverages', []), newCoverage]);
+        this.tabs[UI.EDITOR.HISTORY_TAB_INDEX].enabled = !!nextProps.itemId;
     }
 
     tearDownEditorState() {
@@ -450,102 +156,105 @@ export class EditorComponent extends React.Component {
         });
     }
 
-    saveAutosave(props, diff) {
-        const {addNewsItemToPlanning, saveAutosave} = props;
-
-        // Don't use Autosave if we're in the 'Add To Planning' modal
-        if (addNewsItemToPlanning || this.isReadOnly(props)) {
-            return;
-        }
-
-        if (!this.throttledSave) {
-            this.throttledSave = throttle(
-                saveAutosave,
-                AUTOSAVE.INTERVAL,
-                {leading: false, trailing: true}
-            );
-        }
-
-        this.throttledSave(diff);
-    }
-
-    loadAutosave(props, diff = null) {
-        const {itemType, itemId, loadAutosave, addNewsItemToPlanning} = props;
-
-        // Don't use Autosave if we're in the 'Add To Planning' modal
-        if (addNewsItemToPlanning || this.isReadOnly(props)) {
-            return Promise.resolve();
-        }
-
-        return loadAutosave(itemType, itemId)
-            .then((autosaveData) => {
-                if (isNil(autosaveData) && diff !== null) {
-                    return props.saveAutosave(diff);
-                }
-
-                this.onChangeHandler(
-                    removeAutosaveFields(autosaveData, true, true),
-                    null,
-                    true,
-                    false
-                );
-            });
-    }
-
-    flushAutosave() {
-        if (get(this, 'throttledSave.flush')) {
-            this.throttledSave.flush();
-        }
-    }
-
-    cancelAutosave() {
-        if (get(this, 'throttledSave.cancel')) {
-            this.throttledSave.cancel();
-        }
+    closeEditor() {
+        this.props.dispatch(
+            actions.main.closeEditor(
+                this.props.inModalView
+            )
+        );
     }
 
     cancelFromHeader() {
-        const {openCancelModal, item, initialValues, itemType} = this.props;
-        const {dirty, errorMessages} = this.state;
-
-        if (dirty) {
-            this.flushAutosave();
-            const hasErrors = !isEqual(errorMessages, []);
-            const isKilled = isItemKilled(item);
-
-            openCancelModal({
-                itemId: getItemId(initialValues),
-                itemType: itemType,
-                onIgnore: this.onCancel,
-                onSave: (isKilled || hasErrors) ?
-                    null :
-                    (withConfirmation, updateMethod) => this.onSave(withConfirmation, updateMethod, true)
-                        .finally(this.onCancel),
-                onSaveAndPost: (isKilled && !hasErrors) ?
-                    (withConfirmation, updateMethod) => this.onSaveAndPost(withConfirmation, updateMethod,
-                        true)
-                        .finally(this.onCancel) :
-                    null,
-            });
-        } else {
-            this.onCancel();
+        // If the Editor is open in read-only mode
+        // Then simply close the editor
+        if (this.props.itemAction === 'read') {
+            this.closeEditor();
+            return;
         }
+
+        this.autoSave.flushAutosave()
+            .then(() => {
+                const {
+                    openCancelModal,
+                    itemId,
+                    itemType,
+                    addNewsItemToPlanning,
+                    inModalView,
+                } = this.props;
+                const {dirty, errorMessages, initialValues} = this.state;
+
+                this.setState({submitting: true});
+
+                const updateStates = !addNewsItemToPlanning && !inModalView;
+
+                if (!dirty) {
+                    this.onCancel();
+                } else {
+                    const hasErrors = !isEqual(errorMessages, []);
+                    const isKilled = isItemKilled(initialValues);
+
+                    const onCancel = () => {
+                        if (updateStates) {
+                            this.setState({submitting: false});
+                        }
+                    };
+
+                    const onIgnore = () => {
+                        this.itemManager.unlockAndCancel();
+                    };
+
+                    const onSave = (isKilled || hasErrors) ? null :
+                        (withConfirmation, updateMethod) => (
+                            this.itemManager.save(
+                                withConfirmation,
+                                updateMethod,
+                                true,
+                                updateStates
+                            )
+                        );
+
+                    const onSaveAndPost = (!isKilled || hasErrors) ? null :
+                        (withConfirmation, updateMethod) => (
+                            this.itemManager.saveAndPost(
+                                withConfirmation,
+                                updateMethod,
+                                true,
+                                updateStates
+                            )
+                        );
+
+                    openCancelModal({
+                        itemId: itemId,
+                        itemType: itemType,
+                        onCancel: onCancel,
+                        onIgnore: onIgnore,
+                        onSave: onSave,
+                        onSaveAndPost: onSaveAndPost,
+                    });
+                }
+            });
     }
 
-    onCancel() {
-        if (!this.props.inModalView && (this.tearDownRequired || !isExistingItem(this.props.item))) {
-            this.tearDownEditorState();
+    onCancel(updateStates = true) {
+        if (updateStates) {
+            this.setState({submitting: false});
+
+            if (!this.props.inModalView &&
+                (this.tearDownRequired || !isExistingItem(this.state.initialValues))
+            ) {
+                this.tearDownEditorState();
+            }
         }
 
         if (this.dom.editorHeaderComponent) {
             this.dom.editorHeaderComponent.unregisterKeyBoardShortcuts();
         }
 
-        this.props.cancel(this.props.item || this.props.initialValues);
-
         if (this.props.onCancel) {
             this.props.onCancel();
         }
+
+        return this.itemManager.unlockAndCancel();
     }
 
     setActiveTab(tab) {
@@ -567,15 +276,37 @@ export class EditorComponent extends React.Component {
     }
 
     isReadOnly(props) {
-        return isItemReadOnly(props.item, props.session, props.privileges, props.lockedItems, props.associatedEvent);
+        return this.props.itemAction === 'read' || isItemReadOnly(
+            this.state.initialValues,
+            props.session,
+            props.privileges,
+            props.lockedItems,
+            props.associatedEvent
+        );
+    }
+
+    getCurrentTab() {
+        const currentTab = this.tabs[this.state.tab].enabled ? this.tabs[this.state.tab] :
+            this.tabs[UI.EDITOR.CONTENT_TAB_INDEX];
+
+        if (this.state.tab === UI.EDITOR.CONTENT_TAB_INDEX) {
+            switch (this.props.itemType) {
+            case ITEM_TYPE.EVENT:
+                currentTab.render = EventEditor;
+                break;
+            case ITEM_TYPE.PLANNING:
+                currentTab.render = PlanningEditor;
+                break;
+            }
+        }
+
+        return currentTab;
     }
 
     renderContent() {
-        const existingItem = isExistingItem(this.props.item);
+        const existingItem = isExistingItem(this.state.initialValues);
         const isReadOnly = this.isReadOnly(this.props);
-
-        const currentTab = this.tabs[this.state.tab].enabled ? this.tabs[this.state.tab] :
-            this.tabs[UI.EDITOR.CONTENT_TAB_INDEX];
+        const currentTab = this.getCurrentTab();
 
         return (
             <Content flex={true} className={this.props.contentClassName}>
@@ -599,11 +330,11 @@ export class EditorComponent extends React.Component {
                         this.containerScrollStyle = ref.style.overflow;
                     }
                 }} >
-                    {(!this.props.isLoadingItem && this.props.itemType) && (
+                    {(!this.state.loading && this.props.itemType) ? (
                         <currentTab.render
-                            item={this.props.item || {}}
-                            itemType={this.props.itemType}
-                            itemExists={isExistingItem(this.state.diff)}
+                            original={this.props.item || {}}
+                            item={this.state.initialValues || {}}
+                            itemExists={isExistingItem(this.state.initialValues)}
                             diff={this.state.diff}
                             onChangeHandler={this.onChangeHandler}
                             readOnly={isReadOnly}
@@ -611,7 +342,6 @@ export class EditorComponent extends React.Component {
                             submitFailed={this.state.submitFailed}
                             errors={this.state.errors}
                             dirty={this.state.dirty}
-                            startPartialSave={this.startPartialSave}
                             navigation={this.props.navigation}
                             notifyValidationErrors={this.props.notifyValidationErrors}
                             popupContainer={(this.props.inModalView || this.props.addNewsItemToPlanning) ?
@@ -623,7 +353,10 @@ export class EditorComponent extends React.Component {
                             inModalView={this.props.inModalView}
                             plannings={this.props.associatedPlannings}
                             event={this.props.associatedEvent}
+                            itemManager={this.itemManager}
                         />
+                    ) : (
+                        <div className="sd-loader" />
                     )}
                 </div>
             </Content>
@@ -638,18 +371,8 @@ export class EditorComponent extends React.Component {
         return (
             <SidePanel shadowRight={true} className={this.props.className}>
                 <EditorHeader
-                    item={this.props.item}
                     diff={this.state.diff}
-                    initialValues={this.props.item ?
-                        cloneDeep(this.props.item) :
-                        cloneDeep(this.props.initialValues)
-                    }
-                    onSave={this.onSave}
-                    onPost={this.onPost}
-                    onSaveAndPost={this.onSaveAndPost}
-                    onUnpost={this.onUnpost}
-                    onSaveUnpost={this.onSaveUnpost}
-                    onAddCoverage={this.onAddCoverage}
+                    initialValues={this.state.initialValues}
                     cancel={this.cancelFromHeader}
                     minimize={this.onMinimized}
                     submitting={this.state.submitting}
@@ -660,10 +383,8 @@ export class EditorComponent extends React.Component {
                     contentTypes={this.props.contentTypes}
                     lockedItems={this.props.lockedItems}
                     openCancelModal={this.props.openCancelModal}
-                    closeEditorAndOpenModal={this.props.closeEditorAndOpenModal}
+                    closeEditorAndOpenModal={this.itemManager.openInModal}
                     users={this.props.users}
-                    onUnlock={this.props.onUnlock}
-                    onLock={this.props.onLock}
                     itemActions={this.props.itemActions}
                     ref={(ref) => this.dom.editorHeaderComponent = ref}
                     itemType={this.props.itemType}
@@ -673,9 +394,12 @@ export class EditorComponent extends React.Component {
                     hideItemActions={this.props.hideItemActions}
                     hideMinimize={this.props.hideMinimize}
                     hideExternalEdit={this.props.hideExternalEdit}
-                    flushAutosave={this.flushAutosave}
                     associatedEvent={this.props.associatedEvent}
                     associatedPlannings={this.props.associatedPlannings}
+                    loading={this.state.loading}
+                    itemManager={this.itemManager}
+                    autoSave={this.autoSave}
+                    itemAction={this.props.itemAction}
                 />
                 {this.renderContent()}
 
@@ -691,27 +415,17 @@ EditorComponent.propTypes = {
     item: PropTypes.object,
     itemId: PropTypes.string,
     itemType: PropTypes.string,
-    cancel: PropTypes.func.isRequired,
+    itemAction: PropTypes.string,
     minimize: PropTypes.func.isRequired,
-    onSave: PropTypes.func.isRequired,
-    onPost: PropTypes.func.isRequired,
-    onUnpost: PropTypes.func.isRequired,
     session: PropTypes.object,
     privileges: PropTypes.object,
     lockedItems: PropTypes.object,
     openCancelModal: PropTypes.func.isRequired,
     users: PropTypes.array,
-    closeEditorAndOpenModal: PropTypes.func,
-    onUnlock: PropTypes.func,
-    onLock: PropTypes.func,
     addNewsItemToPlanning: PropTypes.object,
-    onValidate: PropTypes.func,
     formProfiles: PropTypes.object,
     occurStatuses: PropTypes.array,
     itemActions: PropTypes.object,
-    loadItem: PropTypes.func,
-    isLoadingItem: PropTypes.bool,
-    initialValues: PropTypes.object,
     showUnlock: PropTypes.bool,
     hideItemActions: PropTypes.bool,
     hideMinimize: PropTypes.bool,
@@ -726,11 +440,11 @@ EditorComponent.propTypes = {
     inModalView: PropTypes.bool,
     hideExternalEdit: PropTypes.bool,
     notifyValidationErrors: PropTypes.func,
-    saveAutosave: PropTypes.func,
-    loadAutosave: PropTypes.func,
     defaultDesk: PropTypes.object,
     preferredCoverageDesks: PropTypes.object,
     associatedPlannings: PropTypes.arrayOf(PropTypes.object),
     associatedEvent: PropTypes.object,
     longEventDurationThreshold: PropTypes.number,
+    dispatch: PropTypes.func,
+    currentWorkspace: PropTypes.string,
 };

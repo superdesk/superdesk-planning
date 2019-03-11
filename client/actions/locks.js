@@ -2,7 +2,7 @@ import {get} from 'lodash';
 import * as selectors from '../selectors';
 import {LOCKS, ITEM_TYPE, WORKSPACE, PLANNING, FEATURED_PLANNING} from '../constants';
 import {planning, events, assignments, autosave, main} from './index';
-import {lockUtils, getItemType, gettext} from '../utils';
+import {lockUtils, getItemType, gettext, isExistingItem} from '../utils';
 
 /**
  * Action Dispatcher to load all Event and Planning locks
@@ -67,8 +67,16 @@ const loadAssignmentLocks = () => (
  * and calls the appropriate unlock method on the item that is actually locked
  * @param {object} item - The Event or Planning item chain to unlock
  */
-const unlock = (item, removeAutosave = true) => (
+const unlock = (item) => (
     (dispatch, getState, {notify}) => {
+        if (!isExistingItem(item)) {
+            if (get(item, '_planning_item')) {
+                dispatch(planning.api.unlock({_id: item._planning_item}));
+            }
+
+            return dispatch(autosave.removeById(item.type, item._id));
+        }
+
         const locks = selectors.locks.getLockedItems(getState());
         const currentLock = lockUtils.getLock(item, locks);
 
@@ -90,18 +98,7 @@ const unlock = (item, removeAutosave = true) => (
             break;
         }
 
-        return promise.then((unlockedItem) => (
-            !removeAutosave ? Promise.resolve(unlockedItem) :
-                dispatch(autosave.removeById(
-                    currentLock.item_type,
-                    currentLock.item_id,
-                    currentLock.action === 'edit'
-                ))
-                    .then(
-                        () => Promise.resolve(unlockedItem),
-                        (err) => Promise.reject(err)
-                    )
-        ));
+        return promise;
     }
 );
 
@@ -133,13 +130,12 @@ const unlockThenLock = (item) => (
     (dispatch) => (
         dispatch(self.unlock(item))
             .then(
-                (unlockedItem) => {
-                    // when unlock is trigger on the that not locked.
-                    if (item._id !== unlockedItem._id) {
-                        return dispatch(main.lockAndEdit(item));
-                    }
-                    return dispatch(main.lockAndEdit(unlockedItem));
-                },
+                (unlockedItem) => (
+                    dispatch(main.openForEdit(item._id !== unlockedItem._id ?
+                        item :
+                        unlockedItem
+                    ))
+                ),
                 (error) => Promise.reject(error)
             )
     )

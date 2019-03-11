@@ -50,8 +50,12 @@ export class AddToPlanningController {
 
         this.store = null;
         this.newsItem = null;
-        this.item = get($scope, 'locals.data.item');
+        this.item = get($scope, 'locals.data.item', {});
         this.rendered = false;
+
+        if (get(this.item, 'archive_item')) {
+            this.item = this.item.archive_item;
+        }
 
         $scope.$on('$destroy', this.onDestroy);
         $scope.$on('item:unlock', this.onItemUnlock);

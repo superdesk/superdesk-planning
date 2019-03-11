@@ -8,12 +8,12 @@ import {newItemAutosaves} from './forms';
 
 import {lockUtils} from '../utils';
 
-export const getLockedItems = (state) => get(state, 'locks', {
+export const getLockedItems = (state) => get(state, 'locks') || {
     event: {},
     planning: {},
     recurring: {},
     assignment: {},
-});
+};
 
 /** Returns the list of currently locked planning items */
 export const getLockedPlannings = createSelector(

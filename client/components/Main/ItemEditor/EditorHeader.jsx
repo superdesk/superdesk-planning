@@ -42,19 +42,39 @@ export class EditorHeader extends React.Component {
 
     handleKeyDown(event) {
         if (event.ctrlKey && event.shiftKey) {
-            if (event.keyCode === KEYCODES.S && this.props.dirty) {
-                onEventCapture(event);
-                this.props.onSave();
+            const {
+                dirty,
+                submitting,
+                itemManager,
+                cancel,
+            } = this.props;
+
+            if (event.keyCode === KEYCODES.S) {
+                const enableAction = dirty && !submitting;
+                const states = this.getItemStates();
+
+                if (states.notExistingItem && enableAction) {
+                    onEventCapture(event);
+                    itemManager.save();
+                } else if (states.showSave && enableAction) {
+                    onEventCapture(event);
+                    itemManager.save();
+                } else if (states.showUpdate && enableAction) {
+                    onEventCapture(event);
+                    itemManager.saveAndPost();
+                }
             } else if (event.keyCode === KEYCODES.E) {
-                onEventCapture(event);
-                this.props.cancel();
+                if (!submitting) {
+                    onEventCapture(event);
+                    cancel();
+                }
             }
         }
     }
 
     getEventStates(states) {
         const {
-            item,
+            initialValues,
             lockedItems,
             session,
             privileges,
@@ -66,20 +86,23 @@ export class EditorHeader extends React.Component {
 
         states.showEdit = states.existingItem &&
             !states.isLockedInContext &&
-            eventUtils.canEditEvent(item, session, privileges, lockedItems);
+            eventUtils.canEditEvent(initialValues, session, privileges, lockedItems);
+
+        if (states.readOnly) {
+            return;
+        }
 
         if (states.isLockedInContext && get(states.itemLock, 'action') === 'edit') {
-            states.canPost = eventUtils.canPostEvent(item, session, privileges, lockedItems);
-            states.canUnpost = eventUtils.canUnpostEvent(item, session, privileges, lockedItems);
-            states.canUpdate = eventUtils.canUpdateEvent(item, session, privileges, lockedItems);
-            states.canEdit = eventUtils.canEditEvent(item, session, privileges, lockedItems);
+            states.canPost = eventUtils.canPostEvent(initialValues, session, privileges, lockedItems);
+            states.canUnpost = eventUtils.canUnpostEvent(initialValues, session, privileges, lockedItems);
+            states.canUpdate = eventUtils.canUpdateEvent(initialValues, session, privileges, lockedItems);
+            states.canEdit = eventUtils.canEditEvent(initialValues, session, privileges, lockedItems);
         }
     }
 
     getPlanningStates(states) {
         const {
-            item,
-            diff,
+            initialValues,
             lockedItems,
             session,
             privileges,
@@ -92,25 +115,41 @@ export class EditorHeader extends React.Component {
 
         states.showEdit = states.existingItem &&
             !states.isLockedInContext &&
-            planningUtils.canEditPlanning(item, null, session, privileges, lockedItems);
+            planningUtils.canEditPlanning(initialValues, null, session, privileges, lockedItems);
+
+        if (states.readOnly) {
+            return;
+        }
 
         if (states.isLockedInContext) {
             switch (get(states, 'itemLock.action')) {
             case 'edit':
-                states.canPost = planningUtils.canPostPlanning(diff,
+                states.canPost = planningUtils.canPostPlanning(initialValues,
                     associatedEvent, session, privileges, lockedItems);
-                states.canUnpost = planningUtils.canUnpostPlanning(item,
+                states.canUnpost = planningUtils.canUnpostPlanning(initialValues,
                     associatedEvent, session, privileges, lockedItems);
-                states.canUpdate = planningUtils.canUpdatePlanning(item,
+                states.canUpdate = planningUtils.canUpdatePlanning(initialValues,
                     associatedEvent, session, privileges, lockedItems);
-                states.canEdit = planningUtils.canEditPlanning(item,
+                states.canEdit = planningUtils.canEditPlanning(initialValues,
                     associatedEvent, session, privileges, lockedItems);
                 break;
             case 'add_to_planning':
-                states.canPost = planningUtils.canPostPlanning(diff, associatedEvent, session, privileges, lockedItems);
-                states.canUpdate = planningUtils.canUpdatePlanning(item,
+                states.canPost = planningUtils.canPostPlanning(
+                    initialValues,
+                    associatedEvent,
+                    session,
+                    privileges,
+                    lockedItems
+                );
+                states.canUpdate = planningUtils.canUpdatePlanning(initialValues,
                     associatedEvent, session, privileges, lockedItems);
-                states.canEdit = planningUtils.canEditPlanning(item, associatedEvent, session, privileges, lockedItems);
+                states.canEdit = planningUtils.canEditPlanning(
+                    initialValues,
+                    associatedEvent,
+                    session,
+                    privileges,
+                    lockedItems
+                );
                 break;
             }
         }
@@ -118,7 +157,7 @@ export class EditorHeader extends React.Component {
 
     getItemStates() {
         const {
-            item,
+            initialValues,
             itemType,
             lockedItems,
             addNewsItemToPlanning,
@@ -126,10 +165,12 @@ export class EditorHeader extends React.Component {
             users,
             session,
             privileges,
+            itemAction,
         } = this.props;
 
         // Set the default states
         const states = {
+            readOnly: itemAction === 'read',
             showCancel: true,
             canPost: false,
             canUnpost: false,
@@ -152,21 +193,21 @@ export class EditorHeader extends React.Component {
             canEditExpired: false,
         };
 
-        states.isExpired = isItemExpired(item);
+        states.isExpired = isItemExpired(initialValues);
         states.canEditExpired = privileges[PRIVILEGES.EDIT_EXPIRED];
-        states.itemLock = lockUtils.getLock(item, lockedItems);
+        states.itemLock = lockUtils.getLock(initialValues, lockedItems);
         states.isLockedInContext = addNewsItemToPlanning ?
-            planningUtils.isLockedForAddToPlanning(item) :
+            planningUtils.isLockedForAddToPlanning(initialValues) :
             !!states.itemLock;
 
-        states.lockedUser = lockUtils.getLockedUser(item, lockedItems, users);
-        states.isLockRestricted = lockUtils.isLockRestricted(item, session, lockedItems) ||
-                (!!item && !states.isLockedInContext);
+        states.lockedUser = lockUtils.getLockedUser(initialValues, lockedItems, users);
+        states.isLockRestricted = lockUtils.isLockRestricted(initialValues, session, lockedItems) ||
+                (!!initialValues && !states.isLockedInContext);
 
-        states.existingItem = isExistingItem(item);
-        states.notExistingItem = !isExistingItem(item);
+        states.existingItem = isExistingItem(initialValues);
+        states.notExistingItem = !isExistingItem(initialValues);
         states.isEvent = itemType === ITEM_TYPE.EVENT;
-        states.isPublic = isItemPublic(item);
+        states.isPublic = isItemPublic(initialValues);
 
         states.isEvent ?
             this.getEventStates(states) :
@@ -181,25 +222,29 @@ export class EditorHeader extends React.Component {
     }
 
     renderIcon(states) {
-        const {item, itemType, users, showUnlock, onUnlock, privileges} = this.props;
+        const {initialValues, itemType, users, showUnlock, itemManager, privileges} = this.props;
         const unlockPrivilege = states.isEvent ? !!privileges[PRIVILEGES.EVENT_MANAGEMENT] :
             !!privileges[PRIVILEGES.PLANNING_MANAGEMENT];
+        const lockAction = get(states, 'itemLock.action');
+        const showLockContainer = lockAction && (
+            states.isLockRestricted || !(lockAction === 'edit' || lockAction === 'add_to_planning')
+        );
 
         return (
             <StretchBar>
                 <ItemIcon
-                    item={item || {type: itemType}}
+                    item={initialValues || {type: itemType}}
                     doubleSize={true}
                     color={states.isEvent ? ICON_COLORS.WHITE : ICON_COLORS.LIGHT_BLUE}
                 />
 
-                {states.itemLock && (states.isLockRestricted || states.itemLock.action !== 'edit') && (
+                {!showLockContainer ? null : (
                     <LockContainer
                         lockedUser={states.lockedUser}
                         users={users}
                         showUnlock={unlockPrivilege && showUnlock}
                         withLoggedInfo={true}
-                        onUnlock={onUnlock.bind(null, item)}
+                        onUnlock={itemManager.unlockThenLock.bind(null, initialValues)}
                         small={false}
                         noMargin={true}
                     />
@@ -210,24 +255,35 @@ export class EditorHeader extends React.Component {
 
     renderButtons(states) {
         const {
-            item,
             submitting,
             dirty,
-            onSave,
-            onSaveAndPost,
-            onPost,
-            onSaveUnpost,
-            onUnpost,
-            onLock,
             cancel,
+            loading,
+            itemManager,
         } = this.props;
+
+        if (loading) {
+            return (
+                <StretchBar right={true}>
+                    <Button
+                        color={states.isEvent ? 'ui-dark' : null}
+                        disabled={submitting}
+                        onClick={cancel}
+                        text={gettext('Close')}
+                        tabIndex={0}
+                        enterKeyIsClick={true}
+                        id="close"
+                    />
+                </StretchBar>
+            );
+        }
 
         const notDirtyOrSubmitting = !dirty || submitting;
         const buttons = [{
             state: 'showCancel',
             props: {
                 color: states.isEvent ? 'ui-dark' : null,
-                disabled: submitting,
+                disabled: !states.readOnly && submitting,
                 onClick: cancel,
                 text: dirty ? gettext('Cancel') : gettext('Close'),
                 tabIndex: 0,
@@ -239,7 +295,7 @@ export class EditorHeader extends React.Component {
             props: {
                 color: 'success',
                 disabled: submitting,
-                onClick: dirty ? onSaveAndPost : onPost,
+                onClick: dirty ? itemManager.saveAndPost : itemManager.post,
                 text: dirty ? gettext('Save & Post') : gettext('Post'),
                 id: 'post',
             },
@@ -249,7 +305,7 @@ export class EditorHeader extends React.Component {
                 color: states.isEvent ? 'warning' : null,
                 hollow: !states.isEvent,
                 disabled: submitting,
-                onClick: dirty ? onSaveUnpost : onUnpost,
+                onClick: dirty ? itemManager.saveAndUnpost : itemManager.unpost,
                 text: dirty ? gettext('Save & Unpost') : gettext('Unpost'),
                 id: 'unpost',
             },
@@ -258,7 +314,7 @@ export class EditorHeader extends React.Component {
             props: {
                 color: 'primary',
                 disabled: notDirtyOrSubmitting,
-                onClick: onSave,
+                onClick: itemManager.save,
                 text: gettext('Save'),
                 enterKeyIsClick: true,
                 id: 'save',
@@ -268,7 +324,7 @@ export class EditorHeader extends React.Component {
             props: {
                 color: 'primary',
                 disabled: notDirtyOrSubmitting,
-                onClick: onSaveAndPost,
+                onClick: itemManager.saveAndPost,
                 text: gettext('Update'),
                 enterKeyIsClick: true,
             },
@@ -277,7 +333,7 @@ export class EditorHeader extends React.Component {
             props: {
                 color: 'primary',
                 disabled: notDirtyOrSubmitting,
-                onClick: onSave,
+                onClick: itemManager.save,
                 text: gettext('Create'),
                 enterKeyIsClick: true,
                 id: 'create',
@@ -287,7 +343,7 @@ export class EditorHeader extends React.Component {
             props: {
                 color: 'primary',
                 disabled: notDirtyOrSubmitting,
-                onClick: onSaveAndPost,
+                onClick: itemManager.saveAndPost,
                 text: gettext('Create & Post'),
                 enterKeyIsClick: true,
             },
@@ -295,7 +351,7 @@ export class EditorHeader extends React.Component {
             state: 'showEdit',
             props: {
                 color: 'primary',
-                onClick: onLock.bind(null, item),
+                onClick: itemManager.changeAction.bind(null, 'edit', null),
                 text: gettext('Edit'),
                 enterKeyIsClick: true,
             },
@@ -316,9 +372,7 @@ export class EditorHeader extends React.Component {
 
     render() {
         const {
-            item,
             initialValues,
-            onAddCoverage,
             minimize,
             session,
             privileges,
@@ -328,9 +382,11 @@ export class EditorHeader extends React.Component {
             hideMinimize,
             hideExternalEdit,
             closeEditorAndOpenModal,
-            flushAutosave,
             contentTypes,
             associatedEvent,
+            loading,
+            itemManager,
+            autoSave,
         } = this.props;
 
         const states = this.getItemStates();
@@ -344,7 +400,7 @@ export class EditorHeader extends React.Component {
                 {this.renderIcon(states)}
                 {this.renderButtons(states)}
 
-                {states.isBeingEdited && !hideMinimize && (
+                {!loading && states.isBeingEdited && !hideMinimize && (
                     <NavButton
                         onClick={minimize}
                         icon="big-icon--minimize"
@@ -352,25 +408,26 @@ export class EditorHeader extends React.Component {
                     />
                 )}
 
-                {states.isBeingEdited && !hideExternalEdit && (
+                {!loading && states.isBeingEdited && !hideExternalEdit && (
                     <NavButton
-                        onClick={closeEditorAndOpenModal.bind(null, initialValues)}
+                        onClick={closeEditorAndOpenModal}
                         icon="icon-external"
                         title={gettext('Edit in popup')}
                     />
                 )}
 
-                {!hideItemActions && (
+                {!loading && !hideItemActions && (
                     <EditorItemActions
-                        item={item}
-                        onAddCoverage={onAddCoverage}
+                        item={initialValues}
+                        onAddCoverage={itemManager.addCoverage}
                         itemActions={itemActions}
                         session={session}
                         privileges={privileges}
                         lockedItems={lockedItems}
-                        flushAutosave={flushAutosave}
                         contentTypes={contentTypes}
                         event={associatedEvent}
+                        itemManager={itemManager}
+                        autoSave={autoSave}
                     />
                 )}
             </Header>
@@ -379,14 +436,8 @@ export class EditorHeader extends React.Component {
 }
 
 EditorHeader.propTypes = {
-    item: PropTypes.object,
     diff: PropTypes.object,
     initialValues: PropTypes.object,
-    onSave: PropTypes.func.isRequired,
-    onPost: PropTypes.func.isRequired,
-    onSaveAndPost: PropTypes.func.isRequired,
-    onUnpost: PropTypes.func.isRequired,
-    onSaveUnpost: PropTypes.func.isRequired,
     cancel: PropTypes.func.isRequired,
     minimize: PropTypes.func.isRequired,
     submitting: PropTypes.bool.isRequired,
@@ -397,8 +448,6 @@ EditorHeader.propTypes = {
     lockedItems: PropTypes.object,
     openCancelModal: PropTypes.func.isRequired,
     users: PropTypes.array,
-    onUnlock: PropTypes.func,
-    onLock: PropTypes.func,
     itemActions: PropTypes.object,
     itemType: PropTypes.string,
     addNewsItemToPlanning: PropTypes.object,
@@ -408,8 +457,10 @@ EditorHeader.propTypes = {
     createAndPost: PropTypes.bool,
     closeEditorAndOpenModal: PropTypes.func,
     hideExternalEdit: PropTypes.bool,
-    onAddCoverage: PropTypes.func,
-    flushAutosave: PropTypes.func,
     contentTypes: PropTypes.array,
     associatedEvent: PropTypes.object,
+    itemManager: PropTypes.object,
+    autoSave: PropTypes.object,
+    loading: PropTypes.bool,
+    itemAction: PropTypes.string,
 };

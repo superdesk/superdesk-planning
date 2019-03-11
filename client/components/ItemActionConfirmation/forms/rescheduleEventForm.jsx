@@ -36,8 +36,8 @@ export class RescheduleEventComponent extends React.Component {
     }
 
     componentWillMount() {
-        const dates = cloneDeep(this.props.initialValues.dates);
-        const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(this.props.initialValues || {});
+        const dates = cloneDeep(this.props.original.dates);
+        const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(this.props.original || {});
 
         if (isRemoteTimeZone) {
             dates.start = timeUtils.getDateInRemoteTimeZone(dates.start, dates.tz);
@@ -59,7 +59,7 @@ export class RescheduleEventComponent extends React.Component {
 
     onDatesChange(field, val) {
         const diff = cloneDeep(get(this.state, 'diff') || {});
-        const initialValues = this.props.initialValues;
+        const original = this.props.original;
 
         if (field === 'dates.recurring_rule' && !val) {
             delete diff.dates.recurring_rule;
@@ -77,7 +77,7 @@ export class RescheduleEventComponent extends React.Component {
             errorMessages
         );
 
-        const multiDayChanged = eventUtils.isEventSameDay(initialValues.dates.start, initialValues.dates.end) &&
+        const multiDayChanged = eventUtils.isEventSameDay(original.dates.start, original.dates.end) &&
             !eventUtils.isEventSameDay(diff.dates.start, diff.dates.end);
 
         this.setState({
@@ -86,7 +86,7 @@ export class RescheduleEventComponent extends React.Component {
             multiDayChanged,
         });
 
-        if (eventUtils.eventsDatesSame(diff, initialValues, TIME_COMPARISON_GRANULARITY.MINUTE) ||
+        if (eventUtils.eventsDatesSame(diff, original, TIME_COMPARISON_GRANULARITY.MINUTE) ||
             (diff.dates.recurring_rule &&
             !diff.dates.recurring_rule.until && !diff.dates.recurring_rule.count) ||
             !isEqual(errorMessages, [])
@@ -101,11 +101,14 @@ export class RescheduleEventComponent extends React.Component {
         const reason = this.state.reason ? (gettext('Event Rescheduled: ') + this.state.reason) :
             this.state.reason;
 
-        return this.props.onSubmit({
-            ...this.props.initialValues,
-            ...this.state.diff,
-            reason: reason,
-        }, get(this.props, 'modalProps'));
+        return this.props.onSubmit(
+            this.props.original,
+            {
+                ...this.state.diff,
+                reason: reason,
+            },
+            get(this.props, 'modalProps.onCloseModal')
+        );
     }
 
     getPopupContainer() {
@@ -113,33 +116,33 @@ export class RescheduleEventComponent extends React.Component {
     }
 
     render() {
-        const {initialValues, dateFormat, timeFormat, formProfiles, submitting} = this.props;
+        const {original, dateFormat, timeFormat, formProfiles, submitting} = this.props;
         let reasonLabel = gettext('Reason for rescheduling this event:');
-        const numPlannings = get(initialValues, '_plannings.length');
-        const afterUntil = moment.isMoment(get(initialValues, 'dates.recurring_rule.until')) &&
+        const numPlannings = get(original, '_plannings.length');
+        const afterUntil = moment.isMoment(get(original, 'dates.recurring_rule.until')) &&
             moment.isMoment(get(this.state, 'diff.dates.start')) &&
-            this.state.diff.dates.start.isAfter(initialValues.dates.recurring_rule.until);
-        const timeZone = get(initialValues, 'dates.tz');
+            this.state.diff.dates.start.isAfter(original.dates.recurring_rule.until);
+        const timeZone = get(original, 'dates.tz');
 
         return (
             <div className="MetadataView">
                 <Row
-                    enabled={!!initialValues.slugline}
+                    enabled={!!original.slugline}
                     label={gettext('Slugline')}
-                    value={initialValues.slugline || ''}
+                    value={original.slugline || ''}
                     noPadding={true}
                     className="slugline"
                 />
 
                 <Row
                     label={gettext('Name')}
-                    value={initialValues.name || ''}
+                    value={original.name || ''}
                     noPadding={true}
                     className="strong"
                 />
 
                 <EventScheduleSummary
-                    schedule={this.props.initialValues.dates}
+                    schedule={this.props.original.dates}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
                     noPadding={true}
@@ -159,7 +162,7 @@ export class RescheduleEventComponent extends React.Component {
                         <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">
                             <strong>{gettext('This will mark as rescheduled the following planning items')}</strong>
                             <RelatedPlannings
-                                plannings={initialValues._plannings}
+                                plannings={original._plannings}
                                 openPlanningItem={false}
                                 short={true} />
                         </div>
@@ -200,7 +203,7 @@ export class RescheduleEventComponent extends React.Component {
                     )}</strong>
                 </div>}
 
-                {timeUtils.isEventInDifferentTimeZone(initialValues) && eventUtils.isEventInUse(initialValues) &&
+                {timeUtils.isEventInDifferentTimeZone(original) && eventUtils.isEventInUse(original) &&
                     <div className="sd-alert sd-alert--hollow sd-alert--orange2 sd-alert--flex-direction">
                         <strong>{gettext('This will create the new event in the remote ({{timeZone}}) timezone',
                             {timeZone})}</strong>
@@ -239,7 +242,7 @@ export class RescheduleEventComponent extends React.Component {
 }
 
 RescheduleEventComponent.propTypes = {
-    initialValues: PropTypes.object.isRequired,
+    original: PropTypes.object.isRequired,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
     disableSaveInModal: PropTypes.func,
@@ -265,18 +268,26 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event, modalProps) => {
-        let modifiedEvent = cloneDeep(event);
+    onSubmit: (original, updates, onCloseModal) => {
+        let newUpdates = cloneDeep(updates);
 
-        if (timeUtils.isEventInDifferentTimeZone(event)) {
-            modifiedEvent.dates.start = timeUtils.getDateInRemoteTimeZone(event.dates.start, event.dates.tz);
-            modifiedEvent.dates.end = timeUtils.getDateInRemoteTimeZone(event.dates.end, event.dates.tz);
+        if (timeUtils.isEventInDifferentTimeZone(updates)) {
+            newUpdates.dates.start = timeUtils.getDateInRemoteTimeZone(
+                updates.dates.start,
+                updates.dates.tz
+            );
+            newUpdates.dates.end = timeUtils.getDateInRemoteTimeZone(
+                updates.dates.end,
+                updates.dates.tz
+            );
         }
 
-        const promise = dispatch(actions.events.ui.rescheduleEvent(modifiedEvent));
+        const promise = dispatch(
+            actions.events.ui.rescheduleEvent(original, newUpdates)
+        );
 
-        if (get(modalProps, 'onCloseModal')) {
-            promise.then((updatedEvent) => modalProps.onCloseModal(updatedEvent));
+        if (onCloseModal) {
+            promise.then(onCloseModal);
         }
 
         return promise;

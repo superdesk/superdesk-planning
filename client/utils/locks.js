@@ -29,7 +29,7 @@ const getLock = (item, lockedItems) => {
     case ITEM_TYPE.PLANNING:
         return self.getPlanningLock(item, lockedItems);
     default:
-        if (itemId in lockedItems.assignment) {
+        if (get(lockedItems.assignment, itemId)) {
             return lockedItems.assignment[itemId];
         }
 
@@ -42,9 +42,9 @@ const getLock = (item, lockedItems) => {
 const getEventLock = (item, lockedItems) => {
     const itemId = getItemId(item);
 
-    if (get(item, 'recurrence_id') in lockedItems.recurring) {
+    if (get(lockedItems.recurring, get(item, 'recurrence_id'))) {
         return lockedItems.recurring[item.recurrence_id];
-    } else if (itemId in lockedItems.event) {
+    } else if (get(lockedItems.event, itemId)) {
         return lockedItems.event[itemId];
     }
 
@@ -54,21 +54,40 @@ const getEventLock = (item, lockedItems) => {
 const getPlanningLock = (item, lockedItems) => {
     const itemId = getItemId(item);
 
-    if (itemId in lockedItems.planning) {
+    if (get(lockedItems.planning, itemId)) {
         return lockedItems.planning[itemId];
-    } else if (get(item, 'recurrence_id') in lockedItems.recurring) {
+    } else if (get(lockedItems.recurring, get(item, 'recurrence_id'))) {
         return lockedItems.recurring[item.recurrence_id];
-    } else if (get(item, 'event_item') in lockedItems.event) {
+    } else if (get(lockedItems.event, get(item, 'event_item'))) {
         return lockedItems.event[item.event_item];
     }
 
     return null;
 };
 
-const isItemLockedInThisSession = (item, session) => (
-    get(item, 'lock_user') === get(session, 'identity._id') &&
-        get(item, 'lock_session') === get(session, 'sessionId')
+const getLockAction = (item, lockedItems) => (
+    get(self.getLock(item, lockedItems), 'action')
 );
+
+const isItemLockedInThisSession = (item, session, lockedItems = null, ignoreSession = false) => {
+    const userId = get(session, 'identity._id');
+    const sessionId = get(session, 'sessionId');
+
+    if (get(item, 'lock_user') === userId &&
+        (ignoreSession || get(item, 'lock_session') === sessionId)
+    ) {
+        return true;
+    } else if (lockedItems === null) {
+        return false;
+    }
+
+    const lock = self.getLock(item, lockedItems);
+
+    return !!lock &&
+        lock.user === userId &&
+        (ignoreSession || lock.session === sessionId) &&
+        lock.item_id === item._id;
+};
 
 const isLockRestricted = (item, session, lockedItems) => {
     switch (getItemType(item)) {
@@ -102,6 +121,7 @@ const self = {
     getLock,
     getEventLock,
     getPlanningLock,
+    getLockAction,
     isLockRestricted,
     isItemLockedInThisSession,
     isLockedByUser,

@@ -5,10 +5,10 @@ import {sessionId as getSessionId} from './general';
 import {isExistingItem} from '../utils';
 
 // Helper function
-const getcurrentItem = (itemId, itemType, events, plannings, isLoading, values, modal = false) => {
+const getcurrentItem = (itemId, itemType, events, plannings, values, modal = false) => {
     if (get(values, 'duplicate_from') && itemId === null) {
         return values;
-    } else if (itemId === null || isLoading) {
+    } else if (itemId === null) {
         return null;
     } else if (itemType === ITEM_TYPE.EVENT) {
         return get(events, itemId) || null;
@@ -73,30 +73,32 @@ export const newItemAutosaves = createSelector(
     })
 );
 
-/** Forms */
-export const currentItemId = (state) => get(state, 'forms.itemId', null);
-export const currentItemType = (state) => get(state, 'forms.itemType', null);
-export const isLoadingItem = (state) => get(state, 'forms.loadingEditItem', false);
-export const initialValues = (state) => get(state, 'forms.initialValues', null);
+/** Forms - Panel Editor */
+export const currentItemId = (state) => get(state, 'forms.editors.panel.itemId', null);
+export const currentItemType = (state) => get(state, 'forms.editors.panel.itemType', null);
+export const currentItemAction = (state) => get(state, 'forms.editors.panel.action', null);
+export const initialValues = (state) => get(state, 'forms.editors.panel.initialValues', null);
+export const editorItemHistory = (state) => get(state, 'forms.editors.panel.itemHistory', []);
 
 const storedEvents = (state) => get(state, 'events.events', {});
 const storedPlannings = (state) => get(state, 'planning.plannings', {});
 
 export const currentItem = createSelector(
-    [currentItemId, currentItemType, storedEvents, storedPlannings, isLoadingItem, initialValues],
-    (itemId, itemType, events, plannings, isLoading, values) => (
-        getcurrentItem(itemId, itemType, events, plannings, isLoading, values)
+    [currentItemId, currentItemType, storedEvents, storedPlannings, initialValues],
+    (itemId, itemType, events, plannings, values) => (
+        getcurrentItem(itemId, itemType, events, plannings, values)
     ));
 
-export const currentItemIdModal = (state) => get(state, 'forms.itemIdModal', null);
-export const currentItemTypeModal = (state) => get(state, 'forms.itemTypeModal', null);
-export const isLoadingItemModal = (state) => get(state, 'forms.loadingEditItemModal', false);
-export const initialValuesModal = (state) => get(state, 'forms.initialValuesModal', null);
-export const editorItemHistory = (state) => get(state, 'forms.itemHistory', []);
-export const editorModalItemHistory = (state) => get(state, 'forms.itemHistoryModal', []);
+
+/** Forms - Modal Editor */
+export const currentItemIdModal = (state) => get(state, 'forms.editors.modal.itemId', null);
+export const currentItemTypeModal = (state) => get(state, 'forms.editors.modal.itemType', null);
+export const currentItemActionModal = (state) => get(state, 'forms.editors.modal.action', null);
+export const initialValuesModal = (state) => get(state, 'forms.editors.modal.initialValues', null);
+export const editorModalItemHistory = (state) => get(state, 'forms.editors.modal.itemHistory', []);
 
 export const currentItemModal = createSelector(
-    [currentItemIdModal, currentItemTypeModal, storedEvents, storedPlannings, isLoadingItemModal, initialValuesModal],
-    (itemId, itemType, events, plannings, isLoading, values) => (
-        getcurrentItem(itemId, itemType, events, plannings, isLoading, values, true)
+    [currentItemIdModal, currentItemTypeModal, storedEvents, storedPlannings, initialValuesModal],
+    (itemId, itemType, events, plannings, values) => (
+        getcurrentItem(itemId, itemType, events, plannings, values, true)
     ));

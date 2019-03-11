@@ -7,7 +7,6 @@ import {
     convertEventDatesToMoment,
 } from '../../../utils/testUtils';
 import {getTimeZoneOffset} from '../../../utils/index';
-import * as selectors from '../../../selectors';
 import {SPIKED_STATE, WORKFLOW_STATE} from '../../../constants/index';
 import {MAIN} from '../../../constants';
 
@@ -548,7 +547,7 @@ describe('actions.planning.api', () => {
 
             sinon.stub(planningApi, 'fetchById');
 
-            return store.test(done, planningApi.save(planningItem))
+            return store.test(done, planningApi.save(null, planningItem))
                 .then((item) => {
                     expect(item).toEqual(jasmine.objectContaining({...planningItem}));
 
@@ -584,7 +583,7 @@ describe('actions.planning.api', () => {
 
             sinon.stub(planningApi, 'fetchById');
 
-            return store.test(done, planningApi.save(planningItem))
+            return store.test(done, planningApi.save(null, planningItem))
                 .then((item) => {
                     expect(item).toEqual(jasmine.objectContaining(planningItem));
 
@@ -623,7 +622,7 @@ describe('actions.planning.api', () => {
             return store.test(done, () => {
                 planningItem = cloneDeep(data.plannings[0]);
                 planningItem.slugline = 'New Slugger';
-                return store.dispatch(planningApi.save(planningItem));
+                return store.dispatch(planningApi.save(null, planningItem));
             })
                 .then((item) => {
                     expect(item).toEqual(planningItem);
@@ -646,7 +645,7 @@ describe('actions.planning.api', () => {
                 () => (Promise.reject('Failed!'))
             );
 
-            return store.test(done, planningApi.save({_id: 'p3'}))
+            return store.test(done, planningApi.save(null, {_id: 'p3'}))
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toBe('Failed!');
 
@@ -675,127 +674,6 @@ describe('actions.planning.api', () => {
 
                     expect(services.api('planning').getById.callCount).toBe(0);
                     expect(services.api('planning').save.callCount).toBe(1);
-                    done();
-                })
-                .catch(done.fail);
-        });
-    });
-
-    describe('saveAndReloadCurrentAgenda', () => {
-        beforeEach(() => {
-            restoreSinonStub(planningApi.save);
-        });
-
-        it('creates a new planning item and add to the Agenda', (done) => {
-            const newItem = {slugline: 'Planning3'};
-
-            sinon.stub(planningApi, 'save').callsFake(() => (Promise.resolve({
-                ...newItem,
-                agendas: ['a1'],
-                _id: 'p3',
-            })));
-
-            store.test(done, planningApi.saveAndReloadCurrentAgenda(newItem))
-                .then((item) => {
-                    expect(item).toEqual({
-                        ...newItem,
-                        agendas: ['a1'],
-                        _id: 'p3',
-                    });
-
-                    expect(planningApi.fetchById.callCount).toBe(0);
-
-                    expect(planningApi.save.callCount).toBe(1);
-                    expect(planningApi.save.args[0]).toEqual([newItem, {}]);
-
-                    done();
-                })
-                .catch(done.fail);
-        });
-
-        it('saves an existing item', (done) => {
-            restoreSinonStub(planningApi.fetchById);
-
-            sinon.stub(planningApi, 'fetchById').callsFake(() => (
-                Promise.resolve(data.plannings[0]))
-            );
-
-            sinon.stub(planningApi, 'save').callsFake(() => (
-                Promise.resolve(data.plannings[0]))
-            );
-
-            data.agendas[0].planning_items = ['p1', 'p2'];
-
-            return store.test(done, planningApi.saveAndReloadCurrentAgenda(
-                {
-                    ...data.plannings[0],
-                    headline: 'Some Planning 3',
-                }
-            ))
-                .then((item) => {
-                    expect(item).toEqual(data.plannings[0]);
-
-                    expect(planningApi.fetchById.callCount).toBe(1);
-                    expect(planningApi.fetchById.args[0]).toEqual(
-                        [data.plannings[0]._id]
-                    );
-
-                    expect(planningApi.save.callCount).toBe(1);
-                    expect(planningApi.save.args[0]).toEqual([
-                        {
-                            ...data.plannings[0],
-                            headline: 'Some Planning 3',
-                        },
-                        data.plannings[0],
-                    ]);
-
-                    done();
-                })
-                .catch(done.fail);
-        });
-
-        it('returns Promise.reject if no Agenda is selected', (done) => {
-            store.initialState.agenda.currentAgendaId = undefined;
-            errorMessage.data._message = 'No Agenda is currently selected.';
-            sinon.stub(selectors.planning, 'currentAgendaId').callsFake(() => (null));
-
-            return store.test(
-                done,
-                planningApi.saveAndReloadCurrentAgenda({slugline: 'Planning3'})
-            )
-                .then(() => { /* no-op */ }, (error) => {
-                    expect(error).toEqual(errorMessage);
-                    restoreSinonStub(selectors.planning.currentAgendaId);
-                    done();
-                })
-                .catch(done.fail);
-        });
-
-        it('if current Agenda is disabled', (done) => {
-            data.agendas[0].is_enabled = false;
-            const newItem = {slugline: 'Planning3'};
-
-            sinon.stub(planningApi, 'save').callsFake(() => (Promise.resolve({
-                ...newItem,
-                agendas: [],
-                _id: 'p4',
-            })));
-
-            store.test(
-                done,
-                planningApi.saveAndReloadCurrentAgenda(newItem)
-            )
-                .then((item) => {
-                    expect(item).toEqual({
-                        ...newItem,
-                        agendas: [],
-                        _id: 'p4',
-                    });
-
-
-                    expect(planningApi.save.callCount).toBe(1);
-                    expect(planningApi.save.args[0]).toEqual([newItem, {}]);
-
                     done();
                 })
                 .catch(done.fail);

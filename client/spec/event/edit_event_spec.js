@@ -36,7 +36,7 @@ describe('edit_event', () => {
         );
 
         // Check event created in list panel
-        const eventCreated = listPanel.getItemInGroupAtIndex('Tuesday December 12, 2045', 0);
+        const eventCreated = listPanel.getItemByIndex('Tuesday December 12, 2045', 0);
 
         expect(eventCreated.getText()).toContain('SLUGLINE OF THE EVENT');
     });
