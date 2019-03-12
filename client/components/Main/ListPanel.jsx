@@ -264,7 +264,6 @@ export class ListPanel extends React.Component {
                             showAddCoverage: showAddCoverage,
                             hideItemActions: hideItemActions,
                             listFields: listFields,
-                            contentTypes: contentTypes,
                             ...propsForNestedListItems,
                         };
 

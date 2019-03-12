@@ -63,10 +63,6 @@ const onAssignmentUpdated = (_e, data) => (
 
         dispatch(_updatePlannigRelatedToAssignment(data));
 
-        if (!currentDesk) {
-            return;
-        }
-
         // Updates my assignments count
         dispatch(
             assignments.ui.queryAndGetMyAssignments(
