@@ -4,7 +4,7 @@ import {WORKSPACE} from './constants';
 import ng from 'superdesk-core/scripts/core/services/ng';
 import * as actions from './actions';
 import {PublishQueuePanel} from './apps';
-import {gettext} from 'core/utils';
+import {gettext} from './utils';
 import {reactToAngular1} from 'superdesk-ui-framework';
 import PlanningDetailsWidget, {getItemPlanningInfo} from './components/PlanningDetailsWidget';
 
