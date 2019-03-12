@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import './style.scss';
 
-export const UserAvatar = ({user, small, large, withLoggedInfo, isLoggedIn, noMargin, initials, empty}) => (
-    ((user && user.display_name) || empty) ?
-        <figure className={classNames('avatar',
+export const UserAvatar = ({user, small, large, withLoggedInfo, isLoggedIn, noMargin, initials, empty, tooltip}) => {
+    if (((user && user.display_name) || empty)) {
+        const avatar = (<figure className={classNames('avatar',
             {
                 'avatar--large': large,
                 'avatar--small': small && !large,
@@ -15,13 +16,22 @@ export const UserAvatar = ({user, small, large, withLoggedInfo, isLoggedIn, noMa
                 'avatar-with-info': withLoggedInfo,
                 'user-logged': isLoggedIn,
                 'avatar--empty': empty,
-            })}
-        >
+            })} >
             {user && user.display_name && user.display_name.replace(/\W*(\w)\w*/g, '$1').toUpperCase()}
             { withLoggedInfo && <div className="logged-info" /> }
-        </figure> :
-        null
-);
+        </figure>);
+
+        if (tooltip) {
+            return (<OverlayTrigger placement="left" overlay={<Tooltip id="user_name">{tooltip}</Tooltip>}>
+                {avatar}
+            </OverlayTrigger>);
+        }
+
+        return avatar;
+    }
+
+    return null;
+};
 
 UserAvatar.propTypes = {
     user: PropTypes.object,
@@ -32,6 +42,7 @@ UserAvatar.propTypes = {
     noMargin: PropTypes.bool,
     initials: PropTypes.bool,
     empty: PropTypes.bool,
+    tooltip: PropTypes.string,
 };
 
 UserAvatar.defaultProps = {

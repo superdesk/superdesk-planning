@@ -177,20 +177,13 @@ export class AssignmentItem extends React.Component {
                     </time>
                 </Column>
                 <Column border={false}>
-                    <OverlayTrigger placement="left"
-                        overlay={
-                            <Tooltip id="assigned_user">
-                                {gettext('Assigned: {{ displayName }}', {displayName})}
-                            </Tooltip>
-                        }
-                    >
-                        <UserAvatar
-                            user={assignedUser || {display_name: '*'}}
-                            large={false}
-                            withLoggedInfo={isCurrentUser}
-                            isLoggedIn={isCurrentUser}
-                        />
-                    </OverlayTrigger>
+                    <UserAvatar
+                        user={assignedUser || {display_name: '*'}}
+                        large={false}
+                        withLoggedInfo={isCurrentUser}
+                        isLoggedIn={isCurrentUser}
+                        tooltip={assignedUser ?
+                            gettext('Assigned: {{ displayName }}', {displayName}) : gettext('Unassigned')} />
                 </Column>
                 <ActionMenu>
                     {itemActions.length > 0 && <ItemActionsMenu actions={itemActions} />}
