@@ -5,6 +5,7 @@ import {get} from 'lodash';
 import {gettext, stringUtils} from '../../../utils';
 
 import {InternalNoteLabel} from '../../';
+import {ContactsPreviewList} from '../../Contacts/index';
 import {Row} from '../../UI/Preview';
 
 // eslint-disable-next-line complexity
@@ -34,6 +35,14 @@ export const AssignmentPreview = ({
 
     return (
         <div>
+            <Row label={gettext('Coverage Provider Contact')}>
+                <ContactsPreviewList
+                    contactIds={get(planning, 'contact_info.length', 0) > 0 ? [planning.contact_info] : []}
+                    scrollInView={true}
+                    scrollIntoViewOptions={{block: 'center'}}
+                    tabEnabled={true}
+                />
+            </Row>
             <Row
                 enabled={get(coverageFormProfile, 'editor.slugline.enabled')}
                 label={gettext('Slugline')}

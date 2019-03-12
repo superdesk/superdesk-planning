@@ -65,6 +65,9 @@ class JsonPlanningFormatter(Formatter):
             for f in self.remove_coverage_fields:
                 coverage.pop(f, None)
 
+            # Remove contacts field in coverage
+            coverage.get('planning').pop('contact_info', None)
+
         output_item['agendas'] = self._expand_agendas(item)
         return output_item
 

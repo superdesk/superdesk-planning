@@ -146,7 +146,8 @@ export class CollapseBox extends React.Component {
                             {this.props.openItem}
                         </div>
                     </div>
-                ) || (
+                )}
+                {!this.state.isOpen && (
                     <div className={classNames(
                         'sd-collapse-box__header',
                         {

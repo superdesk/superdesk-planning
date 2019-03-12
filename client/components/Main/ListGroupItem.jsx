@@ -151,7 +151,6 @@ export class ListGroupItem extends React.Component {
             desks: desks,
             contentTypes: contentTypes,
             agendas: agendas,
-            contentTypes: contentTypes,
             date: date,
             onAddCoverageClick: onAddCoverageClick,
             multiSelected: indexOf(selectedPlanningIds, item._id) !== -1,
