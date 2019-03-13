@@ -3,3 +3,13 @@
 		background: #67afa1;
 	}	
 }
+
+.user-inactive {
+    position: absolute;
+    margin-top: 10px;
+    padding: 0 2px;
+
+    &--small {
+        font-size: 0.87rem
+    }
+}

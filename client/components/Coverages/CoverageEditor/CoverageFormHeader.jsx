@@ -113,6 +113,7 @@ export class CoverageFormHeader extends React.Component {
                         user={userAssigned}
                         noMargin={true}
                         large={true}
+                        showInactive
                     />
                 </Column>
                 <Column grow={true} border={false}>

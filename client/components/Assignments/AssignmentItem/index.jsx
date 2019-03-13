@@ -183,7 +183,8 @@ export class AssignmentItem extends React.Component {
                         withLoggedInfo={isCurrentUser}
                         isLoggedIn={isCurrentUser}
                         tooltip={assignedUser ?
-                            gettext('Assigned: {{ displayName }}', {displayName}) : gettext('Unassigned')} />
+                            gettext('Assigned: {{ displayName }}', {displayName}) : gettext('Unassigned')}
+                        showInactive />
                 </Column>
                 <ActionMenu>
                     {itemActions.length > 0 && <ItemActionsMenu actions={itemActions} />}
