@@ -740,4 +740,45 @@ describe('PlanningUtils', () => {
             expect(get(planning, 'coverages[0].planning.genre')).toBeNull(null);
         });
     });
+
+    describe('canRemoveCoverage', () => {
+        it('draft coverages can be removed', () => {
+            const planning = {state: 'draft'};
+            const coverage = {
+                _id: '123',
+                planning: {
+                    genre: {name: 'foo', qcode: 'bar'},
+                },
+                workflow_status: 'draft',
+            };
+
+            expect(planUtils.canRemoveCoverage(coverage, planning)).toBe(true);
+        });
+
+        it('cancelled coverages can be removed only if planning item is not cancelled', () => {
+            const planning = {state: 'draft'};
+            const coverage = {
+                _id: '123',
+                planning: {
+                    genre: {name: 'foo', qcode: 'bar'},
+                },
+                workflow_status: 'cancelled',
+            };
+
+            expect(planUtils.canRemoveCoverage(coverage, planning)).toBe(true);
+        });
+
+        it('no coverages can be removed if planning item is cancelled', () => {
+            const planning = {state: 'cancelled'};
+            const coverage = {
+                _id: '123',
+                planning: {
+                    genre: {name: 'foo', qcode: 'bar'},
+                },
+                workflow_status: 'draft',
+            };
+
+            expect(planUtils.canRemoveCoverage(coverage, planning)).toBe(false);
+        });
+    });
 });

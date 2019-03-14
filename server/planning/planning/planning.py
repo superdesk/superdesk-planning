@@ -328,7 +328,9 @@ class PlanningService(superdesk.Service):
 
             assignment = coverage.get('assigned_to', None)
             if not updated_coverage:
-                if assignment and assignment.get('state') != WORKFLOW_STATE.DRAFT:
+                if original.get('state') == WORKFLOW_STATE.CANCELLED:
+                    raise SuperdeskApiError.badRequestError('Cannot remove coverage of a cancelled planning item.')
+                if assignment and assignment.get('state') not in [WORKFLOW_STATE.DRAFT, WORKFLOW_STATE.CANCELLED]:
                     raise SuperdeskApiError.badRequestError('Assignment already exists. Coverage cannot be deleted.')
                 else:
                     updated_coverage = deepcopy(coverage)
@@ -477,8 +479,8 @@ class PlanningService(superdesk.Service):
             raise SuperdeskApiError.badRequestError('Planning item is required to create assignments.')
 
         # Coverage is draft if original was draft and updates is still maintaining that state
-        is_coverage_draft = updates.get('workflow_status',
-                                        original.get('workflow_status')) == WORKFLOW_STATE.DRAFT
+        coverage_status = updates.get('workflow_status', original.get('workflow_status'))
+        is_coverage_draft = coverage_status == WORKFLOW_STATE.DRAFT
 
         if not assigned_to.get('assignment_id') and (assigned_to.get('user') or assigned_to.get('desk')):
             # Creating a new assignment
@@ -509,8 +511,9 @@ class PlanningService(superdesk.Service):
             updates['assigned_to']['state'] = assign_state
         elif assigned_to.get('assignment_id'):
             if not updates.get('assigned_to'):
-                if not is_coverage_draft:
-                    raise SuperdeskApiError.badRequestError('Coverage not in draft state to remove assignment.')
+                if planning_original.get('state') == WORKFLOW_STATE.CANCELLED or coverage_status not in\
+                        [WORKFLOW_STATE.CANCELLED, WORKFLOW_STATE.DRAFT]:
+                    raise SuperdeskApiError.badRequestError('Coverage not in correct state to remove assignment.')
                 # Removing assignment
                 assignment_service.delete(lookup={'_id': assigned_to.get('assignment_id')})
                 assignment = {
