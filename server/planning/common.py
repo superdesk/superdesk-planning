@@ -173,7 +173,11 @@ def get_street_map_url(current_app=None):
     return app.config.get('STREET_MAP_URL', 'https://www.google.com.au/maps/?q=')
 
 
-def get_item_post_state(item, new_post_state):
+def get_item_post_state(item, new_post_state, repost=False):
+    if repost:
+        return item.get('state') if item.get('state') in[WORKFLOW_STATE.SCHEDULED, WORKFLOW_STATE.KILLED]\
+            else WORKFLOW_STATE.SCHEDULED
+
     if item.get('state') != WORKFLOW_STATE.CANCELLED:
         if new_post_state == POST_STATE.CANCELLED:
             return WORKFLOW_STATE.KILLED
