@@ -428,10 +428,13 @@ export class EditorComponent extends React.Component {
     }
 
     onAddCoverage(g2ContentType) {
-        const {newsCoverageStatus, item, defaultDesk, preferredCoverageDesks} = this.props;
+        const {newsCoverageStatus, item, defaultDesk, preferredCoverageDesks,
+            associatedEvent, longEventDurationThreshold} = this.props;
         const newCoverage = planningUtils.defaultCoverageValues(
             newsCoverageStatus,
             item,
+            associatedEvent,
+            longEventDurationThreshold,
             g2ContentType,
             defaultDesk,
             preferredCoverageDesks);
@@ -765,4 +768,5 @@ EditorComponent.propTypes = {
     preferredCoverageDesks: PropTypes.object,
     associatedPlannings: PropTypes.arrayOf(PropTypes.object),
     associatedEvent: PropTypes.object,
+    longEventDurationThreshold: PropTypes.number,
 };

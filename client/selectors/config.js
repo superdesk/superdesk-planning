@@ -22,6 +22,8 @@ export const getStreetMapUrl = (state) =>
 
 export const getAutoAssignToWorkflow = (state) => get(state, 'deployConfig.planning_auto_assign_to_workflow');
 
+export const getLongEventDurationThreshold = (state) => get(state, 'deployConfig.long_event_duration_threshold');
+
 export const getStartOfWeek = (state) =>
     parseInt(get(state, 'config.startingDay', 0), 10);
 

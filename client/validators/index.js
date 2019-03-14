@@ -109,7 +109,7 @@ export const validateCoverages = ({
                 const original = get(originalCoverage, keyName);
                 const value = get(coverage, keyName);
 
-                if (key === 'scheduled' && isEqual(original, value)) {
+                if (key === 'scheduled' && original !== undefined && isEqual(original, value)) {
                     // Only validate scheduled date if it has changed
                     return;
                 } else if (get(coverage, 'planning.g2_content_type') !== 'text' && key === 'genre') {
