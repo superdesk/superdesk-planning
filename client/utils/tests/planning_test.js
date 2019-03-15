@@ -781,4 +781,47 @@ describe('PlanningUtils', () => {
             expect(planUtils.canRemoveCoverage(coverage, planning)).toBe(false);
         });
     });
+
+    describe('defaultCoverageValues', () => {
+        it('set coverage time for adhock planning', () => {
+            const newsCoverageStatus = [{qcode: 'ncostat:int'}];
+            const planned = moment('2119-03-15T09:00:00+11:00');
+            const plan = {slugline: 'Test',
+                internal_note: 'Internal Note',
+                ednote: 'Ed note',
+                planning_date: planned};
+            let coverage = planUtils.defaultCoverageValues(newsCoverageStatus, plan, null, -1);
+
+            expect(get(coverage, 'planning.scheduled').format()).toBe(planned.add(1, 'hour').format());
+        });
+        it('set coverage time from event', () => {
+            const newsCoverageStatus = [{qcode: 'ncostat:int'}];
+            const planned = moment('2119-03-15T09:00:00+11:00');
+            const eventEnd = moment('2119-03-17T09:00:00+11:00');
+            const plan = {slugline: 'Test',
+                internal_note: 'Internal Note',
+                ednote: 'Ed note',
+                planning_date: planned,
+                event_item: 'xxx'};
+            const event = {dates: {end: eventEnd}};
+            let coverage = planUtils.defaultCoverageValues(newsCoverageStatus, plan, event, -1);
+
+            expect(get(coverage, 'planning.scheduled').format()).toBe(eventEnd.add(1, 'hour').format());
+        });
+        it('no coverage schedule date for long event', () => {
+            const newsCoverageStatus = [{qcode: 'ncostat:int'}];
+            const planned = moment('2119-03-15T09:00:00+11:00');
+            const eventStart = moment('2119-03-17T09:00:00+11:00');
+            const eventEnd = moment('2119-03-17T19:00:00+11:00');
+            const plan = {slugline: 'Test',
+                internal_note: 'Internal Note',
+                ednote: 'Ed note',
+                planning_date: planned,
+                event_item: 'xxx'};
+            const event = {dates: {end: eventEnd, start: eventStart}};
+            let coverage = planUtils.defaultCoverageValues(newsCoverageStatus, plan, event, 4);
+
+            expect(get(coverage, 'planning.scheduled', null)).toBeNull(null);
+        });
+    });
 });
