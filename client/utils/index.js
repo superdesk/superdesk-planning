@@ -39,6 +39,7 @@ export {default as historyUtils} from './history';
 export {lockUtils};
 export {planningUtils};
 export {timeUtils};
+import {gettext} from './gettext';
 
 // Polyfill Promise.finally function as this was introduced in Chrome 63+
 import promiseFinally from 'promise.prototype.finally';
