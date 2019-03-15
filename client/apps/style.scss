@@ -54,6 +54,11 @@
         overflow: auto !important;
         width: 100%;
         height: calc(100vh - (#{$nav-height} + #{$subnav-height} * 2 + 30px));
+
+        &--featured {
+            // 68px = for featured list header including overlapping margin of header and list
+            height: calc(100vh - (#{$nav-height} + #{$subnav-height} * 2 + 30px + 68px));
+        }
     }
     .loading-indicator{
         top: calc(#{$nav-height} + #{$subnav-height});

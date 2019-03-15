@@ -82,12 +82,12 @@ export const FeaturedPlanningList = ({
             'FeatureListGroup',
             {'FeatureListGroup--left-border': leftBorder})}>
             <div>
-                <div className="sd-column-box__main-column__items">
+                <div className="sd-column-box__main-column__items sd-column-box__main-column__items--featured">
                     <div className="ListGroup">
                         <Header
                             marginBottom
                             title={header || gettext('Available selections')} />
-                        <div className="grid grid--extra-margin">
+                        <div>
                             {showAuditInformation && item &&
                                     <div className="grid__item grid__item--col-6">
                                         <AuditInformation
