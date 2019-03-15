@@ -53,6 +53,7 @@ export default angular.module('superdesk-planning', [])
             group: 'planning',
             if: 'workspaceConfig.planning && privileges.planning',
             order: 1100,
+            shortcut: 'ctrl+alt+p',
         });
     }])
     .config(['authoringWidgetsProvider', (authoringWidgetsProvider) => {
