@@ -12,6 +12,8 @@ import {
 export default function CustomVocabulariesFields(
     {customVocabularies, fieldProps, onFocusDetails, formProfile, popupProps, popupContainer}
 ) {
+    const {errors} = fieldProps;
+
     return customVocabularies
         .filter((cv) => get(formProfile, `editor.${cv._id}.enabled`))
         .map((cv) => (
@@ -23,6 +25,7 @@ export default function CustomVocabulariesFields(
                 label={gettext(cv.display_name)}
                 options={cv.items.map((item) => Object.assign({scheme: cv._id}, item))}
                 defaultValue={[]}
+                error={get(errors, cv._id)}
                 {...fieldProps}
                 onFocus={onFocusDetails}
                 scheme={cv._id}
