@@ -28,6 +28,7 @@ export const CoverageIcon = ({
         moment(coverage.planning.scheduled).format(dateFormat + ' ' + timeFormat) : null;
     const state = getItemWorkflowStateLabel(get(coverage, 'assigned_to'));
     const genre = get(coverage, 'planning.genre.name', '');
+    const slugline = get(coverage, 'planning.slugline', '');
 
     return (<OverlayTrigger
         placement="bottom"
@@ -37,6 +38,7 @@ export const CoverageIcon = ({
                 {assignmentStr}
                 {user && <span><br />{gettext('User: ') + user.display_name}</span>}
                 {genre && <span><br />{gettext('Genre: ') + genre}</span>}
+                {slugline && <span><br />{gettext('Slugline: ') + slugline}</span>}
                 {scheduledStr && <span><br />{gettext('Due: ') + scheduledStr}</span>}
             </Tooltip>
         }>
