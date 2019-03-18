@@ -48,8 +48,8 @@ export const CoveragePreview = ({
         PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode ? PLANNING.NEWS_COVERAGE_CANCELLED_STATUS :
         newsCoverageStatus.find((s) => s.qcode === get(coverage, 'news_coverage_status.qcode', '')) || {};
 
-    const coverageDateText = !coverageDate ? 'Not scheduled yet' :
-        getDateTimeString(coverageDate, dateFormat, timeFormat);
+    const coverageDateText = !coverageDate ? gettext('Not scheduled yet') :
+        getDateTimeString(coverageDate, dateFormat, timeFormat, ' @ ', false);
     const assignmentPriority = get(coverage, 'assigned_to.priority');
     const keywordText = get(coverage, 'planning.keyword.length', 0) === 0 ? '' :
         coverage.planning.keyword.join(', ');

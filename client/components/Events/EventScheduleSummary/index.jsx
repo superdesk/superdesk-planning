@@ -13,8 +13,9 @@ export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPaddin
 
     const doesRepeat = get(schedule, 'recurring_rule', null) !== null;
     const event = {dates: schedule};
-    const eventDateText = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat);
     const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(event);
+    const eventDateText = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat,
+        false, true, isRemoteTimeZone);
     let newDateString, currentDateText, remoteDateText, currentDateLabel;
 
     if (isRemoteTimeZone) {

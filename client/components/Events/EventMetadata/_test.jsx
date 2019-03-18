@@ -34,7 +34,7 @@ describe('<EventMetadata />', () => {
             .simulate('click');
         const content = wrapper.find('.sd-collapse-box__content');
         const metaDataTexts = content.find('p');
-        const eventDateText = eventUtils.getDateStringForEvent(event, 'DD/MM/YYYY', 'HH:mm');
+        const eventDateText = eventUtils.getDateStringForEvent(event, 'DD/MM/YYYY', 'HH:mm', false, true, false);
 
         expect(metaDataTexts.length).toBe(4);
         expect(metaDataTexts.at(0).text()).toBe('name1');

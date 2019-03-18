@@ -35,7 +35,7 @@ export const EventMetadata = (
         files,
     }
 ) => {
-    const dateStr = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat, dateOnly);
+    const dateStr = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat, dateOnly, true, false);
     const isItemLocked = eventUtils.isEventLocked(event, lockedItems);
     const editEventComponent = onEditEvent ?
         (<button data-sd-tooltip="Edit Event"

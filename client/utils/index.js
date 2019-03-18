@@ -628,7 +628,9 @@ export const getDateTimeString = (
     const dateStr = date.format(dateFormat) + separator + date.format(timeFormat);
 
     return withTimezone ?
-        (timeUtils.getDateInRemoteTimeZone(date, timezone).format('z ') + dateStr) :
+        (`${timeUtils.getTimeZoneAbbreviation(
+            timeUtils.getDateInRemoteTimeZone(date, timezone).format('z')
+        )} ` + dateStr) :
         dateStr;
 };
 

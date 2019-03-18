@@ -130,6 +130,18 @@ const getLocalDate = (date, tz, localTz) => {
     );
 };
 
+/**
+ * if only offset is available then prefix timezone string with GMT. GMT+04
+ * @param timezone
+ * @returns {*}
+ */
+const getTimeZoneAbbreviation = (timezone) => {
+    if (timezone.match(/[+-]\d{0,4}/)) {
+        return `GMT${timezone}`;
+    }
+    return timezone;
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     getStartOfNextWeek,
@@ -140,6 +152,7 @@ const self = {
     localTimeZone,
     getDateInRemoteTimeZone,
     getLocalDate,
+    getTimeZoneAbbreviation,
 };
 
 export default self;

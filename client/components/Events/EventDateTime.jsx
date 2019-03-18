@@ -6,7 +6,7 @@ import {gettext} from '../../utils/gettext';
 
 import './style.scss';
 
-export const EventDateTime = ({item, timeFormat, dateFormat, ignoreAllDay}) => {
+export const EventDateTime = ({item, timeFormat, dateFormat, ignoreAllDay, displayLocalTimezone}) => {
     const start = item.dates.start;
     const end = item.dates.end;
     const isAllDay = eventUtils.isEventAllDay(start, end);
@@ -19,8 +19,8 @@ export const EventDateTime = ({item, timeFormat, dateFormat, ignoreAllDay}) => {
     if (isRemoteTimeZone) {
         remoteStart = timeUtils.getDateInRemoteTimeZone(start, item.dates.tz);
         remoteEnd = timeUtils.getDateInRemoteTimeZone(end, item.dates.tz);
-        remoteStartWithDate = remoteStart.date() !== start.date();
-        remoteEndWithDate = (remoteEnd.date() !== end.date() || remoteStart.date() !== remoteEnd.date());
+        remoteStartWithDate = remoteStart.date() !== start.date() || remoteStart.date() !== remoteEnd.date();
+        remoteEndWithDate = remoteStart.date() !== remoteEnd.date();
         remoteStartWithYear = remoteStartWithDate && remoteStart.year() !== remoteEnd.year();
         remoteEndWithYear = remoteEndWithDate && remoteStart.year() !== remoteEnd.year();
     }
@@ -31,7 +31,10 @@ export const EventDateTime = ({item, timeFormat, dateFormat, ignoreAllDay}) => {
         </span>
     ) : (
         <span className="EventDateTime sd-list-item__slugline sd-no-wrap">
-            <span className="EventDateTime__timezone">{localStart.format('z')}</span>
+            {displayLocalTimezone &&
+            <span className="EventDateTime__timezone">
+                {timeUtils.getTimeZoneAbbreviation(localStart.format('z'))}
+            </span>}
             <DateTime
                 withDate={withDate}
                 withYear={withYear}
@@ -50,7 +53,9 @@ export const EventDateTime = ({item, timeFormat, dateFormat, ignoreAllDay}) => {
                 timeFormat={timeFormat}
             />
             {isRemoteTimeZone && (<span>&nbsp;(
-                <span className="EventDateTime__timezone">{remoteStart.format('z')}</span>
+                <span className="EventDateTime__timezone">
+                    {timeUtils.getTimeZoneAbbreviation(remoteStart.format('z'))}
+                </span>
                 <DateTime
                     withDate={remoteStartWithDate}
                     padLeft={false}
@@ -78,4 +83,9 @@ EventDateTime.propTypes = {
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
     ignoreAllDay: PropTypes.bool,
+    displayLocalTimezone: PropTypes.bool,
+};
+
+EventDateTime.defaultProps = {
+    displayLocalTimezone: false,
 };
