@@ -360,7 +360,6 @@ class PlanningService(superdesk.Service):
                 if app.config.get('PLANNING_AUTO_ASSIGN_TO_WORKFLOW', False) and \
                         (coverage.get('assigned_to', {}).get('desk') or coverage.get('assigned_to', {}).get(
                             'user')) and not updates.get('flags', {}).get('overide_auto_assign_to_workflow', False) \
-                        and original.get('flags', {}).get('overide_auto_assign_to_workflow', False) \
                         and coverage['workflow_status'] == WORKFLOW_STATE.DRAFT:
                     coverage['workflow_status'] = WORKFLOW_STATE.ACTIVE
 
