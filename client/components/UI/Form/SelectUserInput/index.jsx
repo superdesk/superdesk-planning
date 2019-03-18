@@ -17,7 +17,7 @@ export class SelectUserInput extends React.Component {
         super(props);
 
         this.state = {
-            filteredUserList: this.props.users,
+            filteredUserList: this.getUsersToDisplay(this.props.users),
             searchText: '',
             openFilterList: false,
         };
@@ -26,6 +26,10 @@ export class SelectUserInput extends React.Component {
         this.closePopup = this.closePopup.bind(this);
         this.filterUserList = this.filterUserList.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.setState({filteredUserList: this.getUsersToDisplay(nextProps.users)});
     }
 
     openPopup() {
@@ -39,7 +43,7 @@ export class SelectUserInput extends React.Component {
     filterUserList(field, value) {
         if (!value) {
             this.setState({
-                filteredUserList: this.props.users,
+                filteredUserList: this.getUsersToDisplay(this.props.users),
                 searchText: '',
                 openFilterList: true,
             });
@@ -53,7 +57,7 @@ export class SelectUserInput extends React.Component {
         ));
 
         this.setState({
-            filteredUserList: newUserList,
+            filteredUserList: this.getUsersToDisplay(newUserList),
             searchText: value,
             openFilterList: true,
         });
@@ -67,9 +71,16 @@ export class SelectUserInput extends React.Component {
         });
     }
 
+    getUsersToDisplay(list = []) {
+        if (!this.props.hideInactiveDisabled) {
+            return list;
+        } else {
+            return list.filter((u) => u.is_active && u.is_enabled && !u.needs_activation);
+        }
+    }
+
     render() {
-        const {value, users, popupContainer, label, readOnly} = this.props;
-        const userList = this.state.searchText ? this.state.filteredUserList : users;
+        const {value, popupContainer, label, readOnly} = this.props;
 
         return (
             <div>
@@ -112,7 +123,7 @@ export class SelectUserInput extends React.Component {
                                 onClose={this.closePopup}
                                 target="sd-line-input__input"
                                 popupContainer={popupContainer}
-                                users={userList}
+                                users={this.state.filteredUserList}
                                 onChange={this.onUserChange}
                             />
                         )}
@@ -131,4 +142,7 @@ SelectUserInput.propTypes = {
     users: PropTypes.array,
     popupContainer: PropTypes.func,
     readOnly: PropTypes.bool,
+    hideInactiveDisabled: PropTypes.bool,
 };
+
+SelectUserInput.defaultProps = {hideInactiveDisabled: true};

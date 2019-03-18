@@ -77,6 +77,7 @@ export const AssignmentPreviewHeader = ({
                                         large={true}
                                         noMargin={true}
                                         initials={false}
+                                        showInactive
                                     />
                                 </Column>
                             )

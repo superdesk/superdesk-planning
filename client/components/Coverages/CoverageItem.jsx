@@ -53,6 +53,7 @@ export const CoverageItem = ({
                     <UserAvatar
                         user={userAssigned}
                         small={false}
+                        showInactive
                     />
                 ) : (
                     <UserAvatar
