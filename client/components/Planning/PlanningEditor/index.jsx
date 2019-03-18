@@ -130,6 +130,8 @@ export class PlanningEditorComponent extends React.Component {
         let newCoverage = planningUtils.defaultCoverageValues(
             this.props.newsCoverageStatus.find((s) => s.qcode === 'ncostat:int'),
             coveragePlanning,
+            this.props.event,
+            this.props.longEventDurationThreshold,
             duplicateAs || coveragePlanning.g2_content_type,
             this.props.defaultDesk,
             this.props.preferredCoverageDesks);
@@ -395,6 +397,7 @@ export class PlanningEditorComponent extends React.Component {
             preferredCoverageDesks,
             inModalView,
             autoAssignToWorkflow,
+            longEventDurationThreshold,
         } = this.props;
 
         const agendaValues = cloneDeep(get(diff, 'agendas', [])
@@ -712,6 +715,8 @@ export class PlanningEditorComponent extends React.Component {
                     preferredCoverageDesks={preferredCoverageDesks}
                     useLocalNavigation={!inModalView}
                     autoAssignToWorkflow={autoAssignToWorkflow}
+                    event={event}
+                    longEventDurationThreshold={longEventDurationThreshold}
                 />
             </div>
         );
@@ -771,6 +776,7 @@ PlanningEditorComponent.propTypes = {
     setCoverageDefaultDesk: PropTypes.func,
     inModalView: PropTypes.bool,
     autoAssignToWorkflow: PropTypes.bool,
+    longEventDurationThreshold: PropTypes.number,
 };
 
 PlanningEditorComponent.defaultProps = {
@@ -809,6 +815,7 @@ const mapStateToProps = (state) => ({
     defaultDesk: selectors.general.defaultDesk(state),
     preferredCoverageDesks: get(selectors.general.preferredCoverageDesks(state), 'desks'),
     autoAssignToWorkflow: selectors.config.getAutoAssignToWorkflow(state),
+    longEventDurationThreshold: selectors.config.getLongEventDurationThreshold(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

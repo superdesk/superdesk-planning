@@ -25,6 +25,7 @@ const mapStateToProps = (state) => ({
     preferredCoverageDesks: get(selectors.general.preferredCoverageDesks(state), 'desks'),
     associatedPlannings: selectors.events.getRelatedPlannings(state),
     associatedEvent: selectors.events.planningEditAssociatedEvent(state),
+    longEventDurationThreshold: selectors.config.getLongEventDurationThreshold(state),
 });
 
 const mapStateToPropsModal = (state) => ({
@@ -46,6 +47,7 @@ const mapStateToPropsModal = (state) => ({
     preferredCoverageDesks: get(selectors.general.preferredCoverageDesks(state), 'desks'),
     associatedPlannings: selectors.events.getRelatedPlanningsForModalEvent(state),
     associatedEvent: selectors.events.planningEditAssociatedEventModal(state),
+    longEventDurationThreshold: selectors.config.getLongEventDurationThreshold(state),
 });
 
 

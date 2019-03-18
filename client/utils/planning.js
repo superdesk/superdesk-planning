@@ -799,6 +799,8 @@ const defaultPlanningValues = (currentAgenda, defaultPlaceList) => {
 const defaultCoverageValues = (
     newsCoverageStatus,
     planningItem,
+    eventItem,
+    longEventDurationThreshold,
     g2contentType,
     defaultDesk,
     preferredCoverageDesks) => {
@@ -814,6 +816,37 @@ const defaultCoverageValues = (
         news_coverage_status: newsCoverageStatus[0],
         workflow_status: WORKFLOW_STATE.DRAFT,
     };
+
+    if (planningItem) {
+        let coverageTime = null;
+
+        if (!get(planningItem, 'event_item')) {
+            coverageTime = get(planningItem, 'planning_date', moment()).clone();
+        } else if (eventItem) {
+            coverageTime = get(eventItem, 'dates.end', moment()).clone();
+        }
+        if (coverageTime) {
+            coverageTime.add(1, 'hour');
+            coverageTime.minute() ? coverageTime.add(1, 'hour').startOf('hour') : coverageTime.startOf('hour');
+            if (moment().isAfter(coverageTime)) {
+                coverageTime = moment();
+                coverageTime.minute() ? coverageTime.add(1, 'hour').startOf('hour') : coverageTime.startOf('hour');
+            }
+            newCoverage.planning.scheduled = coverageTime;
+        }
+        if (eventItem && longEventDurationThreshold > -1) {
+            if (longEventDurationThreshold === 0) {
+                newCoverage.planning.scheduled = get(eventItem, 'dates.end', moment()).clone();
+            } else {
+                let duration = parseInt(moment.duration(get(eventItem, 'dates.end').diff(get(eventItem,
+                    'dates.start'))).asHours(), 10);
+
+                if (duration > longEventDurationThreshold) {
+                    delete newCoverage.planning.scheduled;
+                }
+            }
+        }
+    }
 
     if (get(preferredCoverageDesks, g2contentType)) {
         newCoverage.assigned_to = {desk: preferredCoverageDesks[g2contentType]};

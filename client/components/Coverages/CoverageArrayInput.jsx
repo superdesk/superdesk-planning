@@ -72,6 +72,8 @@ export class CoverageArrayInput extends React.Component {
             navigation,
             useLocalNavigation,
             autoAssignToWorkflow,
+            event,
+            longEventDurationThreshold,
             ...props
         } = this.props;
 
@@ -99,7 +101,10 @@ export class CoverageArrayInput extends React.Component {
                             preferredCoverageDesks,
                         }}
                         element={CoverageEditor}
-                        defaultElement={planningUtils.defaultCoverageValues.bind(null, newsCoverageStatus, diff)}
+                        defaultElement={planningUtils.defaultCoverageValues.bind(null, newsCoverageStatus,
+                            diff,
+                            event,
+                            longEventDurationThreshold)}
                         readOnly={readOnly}
                         maxCount={maxCoverageCount}
                         addOnly={addOnly}
@@ -154,6 +159,8 @@ CoverageArrayInput.propTypes = {
     setCoverageDefaultDesk: PropTypes.func,
     preferredCoverageDesks: PropTypes.object,
     autoAssignToWorkflow: PropTypes.bool,
+    event: PropTypes.object,
+    longEventDurationThreshold: PropTypes.number,
 };
 
 CoverageArrayInput.defaultProps = {

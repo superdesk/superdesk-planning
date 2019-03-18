@@ -100,6 +100,12 @@ def planning_auto_assign_to_workflow(current_app=None):
     return app.config.get('PLANNING_AUTO_ASSIGN_TO_WORKFLOW', False)
 
 
+def get_long_event_duration_threshold(current_app=None):
+    if current_app is not None:
+        return current_app.config.get('LONG_EVENT_DURATION_THRESHOLD', -1)
+    return app.config.get('LONG_EVENT_DURATION_THRESHOLD', -1)
+
+
 def remove_lock_information(item):
     item.update({
         LOCK_USER: None,
