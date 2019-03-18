@@ -546,9 +546,7 @@ describe('PlanningUtils', () => {
                 planning, event, session, privileges, actions, locks
             );
 
-            expectActions(itemActions, [
-                'Duplicate',
-            ]);
+            expectActions(itemActions, ['Duplicate', 'Edit']);
 
             planning.event_item = '1';
             event = {
@@ -559,9 +557,7 @@ describe('PlanningUtils', () => {
                 planning, event, session, privileges, actions, locks
             );
 
-            expectActions(itemActions, [
-                'Duplicate',
-            ]);
+            expectActions(itemActions, ['Duplicate', 'Edit']);
         });
 
         it('rescheduled event and planning', () => {

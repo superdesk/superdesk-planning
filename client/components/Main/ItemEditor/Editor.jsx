@@ -6,8 +6,6 @@ import {get, isEqual, cloneDeep, throttle, isNil} from 'lodash';
 
 import {
     gettext,
-    lockUtils,
-    eventUtils,
     planningUtils,
     updateFormValues,
     isExistingItem,
@@ -17,6 +15,7 @@ import {
     removeAutosaveFields,
     itemsEqual,
     isSameItemId,
+    isItemReadOnly,
 } from '../../../utils';
 import {EventUpdateMethods} from '../../Events';
 
@@ -564,43 +563,8 @@ export class EditorComponent extends React.Component {
         }
     }
 
-    canEdit(props) {
-        if (props.itemType === ITEM_TYPE.EVENT) {
-            return eventUtils.canEditEvent(
-                props.item,
-                props.session,
-                props.privileges,
-                props.lockedItems
-            );
-        } else if (props.itemType === ITEM_TYPE.PLANNING) {
-            return planningUtils.canEditPlanning(
-                props.item,
-                props.associatedEvent,
-                props.session,
-                props.privileges,
-                props.lockedItems
-            );
-        }
-
-        return false;
-    }
-
     isReadOnly(props) {
-        const existingItem = isExistingItem(props.item);
-        const itemLock = lockUtils.getLock(props.item, props.lockedItems);
-        const isLockRestricted = lockUtils.isLockRestricted(
-            props.item,
-            props.session,
-            props.lockedItems
-        );
-        const canEdit = this.canEdit(props);
-
-        return existingItem && (
-            !canEdit ||
-            !itemLock ||
-            isLockRestricted ||
-            get(itemLock, 'action') !== 'edit'
-        );
+        return isItemReadOnly(props.item, props.session, props.privileges, props.lockedItems, props.associatedEvent);
     }
 
     renderContent() {

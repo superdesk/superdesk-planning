@@ -1,5 +1,7 @@
 import * as utils from '../index';
 import sinon from 'sinon';
+import lockReducer from '../../reducers/locks';
+import {PRIVILEGES} from '../../constants';
 
 describe('Utils', () => {
     it('create a store', () => {
@@ -203,6 +205,51 @@ describe('Utils', () => {
     describe('gettext', () => {
         it('can return string', () => {
             expect(utils.gettext('foo')).toBe('foo');
+        });
+    });
+
+    describe('isItemReadOnly', () => {
+        let session, locks, lockedItems, privilages, item;
+
+        beforeEach(() => {
+            session = {
+                identity: {_id: 'ident1'},
+                sessionId: 'session1',
+            };
+
+            locks = {
+                events: {
+                    standalone: {
+                        _id: 'e9',
+                        lock_user: 'ident1',
+                        lock_session: 'session1',
+                        lock_action: 'edit',
+                        lock_time: '2099-10-15T14:30+0000',
+                    },
+                },
+            };
+
+            // Use the Lock Reducer to construct the list of locks
+            lockedItems = lockReducer({}, {
+                type: 'RECEIVE_LOCKS',
+                payload: {events: [locks.events.standalone]},
+            });
+
+            privilages = {[PRIVILEGES.EVENT_MANAGEMENT]: 1};
+
+            item = {
+                _id: 'e9',
+                state: 'cancelled',
+                lock_user: 'ident1',
+                lock_session: 'session1',
+                lock_action: 'edit',
+                lock_time: '2099-10-15T14:30+0000',
+            };
+        });
+
+
+        it('cancelled item is readOnly even if it has edit lock', () => {
+            expect(utils.isItemReadOnly(item, session, privilages, lockedItems)).toBe(true);
         });
     });
 });
