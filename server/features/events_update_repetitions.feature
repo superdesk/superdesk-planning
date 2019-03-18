@@ -1269,3 +1269,197 @@ Feature: Events Update Repetitions
         """
         {"_issues": {"validator exception": "403: The lock must be for the `update repetitions` action"}, "_status": "ERR"}
         """
+
+
+    @auth
+    @notification
+    Scenario: Event state in a recurring series remains same
+        Given we have sessions "/sessions"
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2029-11-22T01:00:00.000Z",
+                "end": "2029-11-22T04:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 4,
+                    "endRepeatMode": "count"
+                }
+            }
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        Then we store "EVENT4" with 4 item
+        When we get "/events"
+        Then we get list with 4 items
+        """
+        {"_items": [
+            {"_id": "#EVENT1._id#", "recurrence_id": "#EVENT1.recurrence_id#"},
+            {"_id": "#EVENT2._id#", "recurrence_id": "#EVENT1.recurrence_id#"},
+            {"_id": "#EVENT3._id#", "recurrence_id": "#EVENT1.recurrence_id#"},
+            {"_id": "#EVENT4._id#", "recurrence_id": "#EVENT1.recurrence_id#"}
+        ]}
+        """
+        When we post to "/events/post"
+        """
+            {"event": "#EVENT1._id#", "etag": "#EVENT1._etag#", "pubstatus": "usable", "update_method": "all"}
+        """
+        Then we get OK response
+        When we post to "/events/post"
+        """
+            {"event": "#EVENT2._id#", "etag": "#EVENT2._etag#", "pubstatus": "cancelled", "update_method": "single"}
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 4 items
+        """
+        {"_items": [
+            {"_id": "#EVENT1._id#", "recurrence_id": "#EVENT1.recurrence_id#", "state": "scheduled"},
+            {"_id": "#EVENT2._id#", "recurrence_id": "#EVENT1.recurrence_id#", "state": "killed"},
+            {"_id": "#EVENT3._id#", "recurrence_id": "#EVENT1.recurrence_id#", "state": "scheduled"},
+            {"_id": "#EVENT4._id#", "recurrence_id": "#EVENT1.recurrence_id#", "state": "scheduled"}
+        ]}
+        """
+        When we post to "/events/#EVENT2._id#/lock" with success
+        """
+        {"lock_action": "update_repetitions"}
+        """
+        When we reset notifications
+        And we perform update_repetitions on events "#EVENT2._id#"
+        """
+        {
+            "dates": {
+                "start": "2029-11-23T01:00:00.000Z",
+                "end": "2029-11-23T04:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 6,
+                    "endRepeatMode": "count"
+                }
+            }
+        }
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "events:unlock",
+            "extra": {
+                "item": "#EVENT2._id#",
+                "lock_session": "#SESSION_ID#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }, {
+            "event": "events:update_repetitions:recurring",
+            "extra": {
+                "item": "#EVENT2._id#",
+                "recurrence_id": "#EVENT2.recurrence_id#"
+            }
+        }]
+        """
+        When we get "/events"
+        Then we get list with 6 items
+        """
+        {"_items": [
+            {
+                "_id": "#EVENT1._id#",
+                "recurrence_id": "#EVENT1.recurrence_id#",
+                "state": "scheduled",
+                "dates": {
+                    "start": "2029-11-22T01:00:00+0000",
+                    "end": "2029-11-22T04:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "DAILY",
+                        "interval": 1,
+                        "count": 6,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }, {
+                "_id": "#EVENT2._id#",
+                "recurrence_id": "#EVENT1.recurrence_id#",
+                "dates": {
+                    "start": "2029-11-23T01:00:00+0000",
+                    "end": "2029-11-23T04:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "DAILY",
+                        "interval": 1,
+                        "count": 6,
+                        "endRepeatMode": "count"
+                    }
+                },
+                "state": "killed"
+            }, {
+                "_id": "#EVENT3._id#",
+                "recurrence_id": "#EVENT1.recurrence_id#",
+                "state": "scheduled",
+                "dates": {
+                    "start": "2029-11-24T01:00:00+0000",
+                    "end": "2029-11-24T04:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "DAILY",
+                        "interval": 1,
+                        "count": 6,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }, {
+                "_id": "#EVENT4._id#",
+                "recurrence_id": "#EVENT1.recurrence_id#",
+                "state": "scheduled",
+                "dates": {
+                    "start": "2029-11-25T01:00:00+0000",
+                    "end": "2029-11-25T04:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "DAILY",
+                        "interval": 1,
+                        "count": 6,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }, {
+                "_id": "__any_value__",
+                "recurrence_id": "#EVENT1.recurrence_id#",
+                "state": "scheduled",
+                "dates": {
+                    "start": "2029-11-26T01:00:00+0000",
+                    "end": "2029-11-26T04:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "DAILY",
+                        "interval": 1,
+                        "count": 6,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }, {
+                "_id": "__any_value__",
+                "recurrence_id": "#EVENT1.recurrence_id#",
+                "state": "scheduled",
+                "dates": {
+                    "start": "2029-11-27T01:00:00+0000",
+                    "end": "2029-11-27T04:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "DAILY",
+                        "interval": 1,
+                        "count": 6,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }
+        ]}
+        """

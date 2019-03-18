@@ -25,6 +25,8 @@ class EventsPostResource(EventsResource):
             'mapping': not_analyzed,
             'nullable': True
         },
+        # used to only repost an item when data changes from backend (update_repetitions)
+        'repost_on_update': {'type': 'boolean', 'required': False, 'default': False},
     }
 
     url = 'events/post'
@@ -79,7 +81,7 @@ class EventsPostService(EventsBaseService):
     def _post_single_event(self, doc, event):
         self.validate_post_state(doc['pubstatus'])
         self.validate_item(event)
-        updated_event = self.post_event(event, doc['pubstatus'])
+        updated_event = self.post_event(event, doc['pubstatus'], doc.get('repost_on_update'))
 
         event_type = 'events:posted' if doc['pubstatus'] == POST_STATE.USABLE else 'events:unposted'
         push_notification(
@@ -115,30 +117,37 @@ class EventsPostService(EventsBaseService):
         ids = []
         items = []
         for event in posted_events:
-            updated_event = self.post_event(event, doc['pubstatus'])
+            updated_event = self.post_event(event, doc['pubstatus'], doc.get('repost_on_update'))
             ids.append(event[config.ID_FIELD])
             items.append({
                 'id': event[config.ID_FIELD],
                 'etag': updated_event['_etag']
             })
 
-        event_type = 'events:posted:recurring' if doc['pubstatus'] == POST_STATE.USABLE \
-            else 'events:unposted:recurring'
+        # Do not send push-notification if reposting as each event's post state is different
+        # The original action's notifications should refetch items
+        if not doc.get('repost_on_update'):
+            event_type = 'events:posted:recurring' if doc['pubstatus'] == POST_STATE.USABLE \
+                else 'events:unposted:recurring'
 
-        push_notification(
-            event_type,
-            item=original[config.ID_FIELD],
-            items=items,
-            recurrence_id=str(original.get('recurrence_id')),
-            pubstatus=updated_event['pubstatus'],
-            state=updated_event['state']
-        )
+            push_notification(
+                event_type,
+                item=original[config.ID_FIELD],
+                items=items,
+                recurrence_id=str(original.get('recurrence_id')),
+                pubstatus=updated_event['pubstatus'],
+                state=updated_event['state']
+            )
 
         return ids
 
-    def post_event(self, event, new_post_state):
+    def post_event(self, event, new_post_state, repost):
         # update the event with new state
-        new_item_state = get_item_post_state(event, new_post_state)
+        if repost:
+            # same pubstatus or scheduled (for draft events)
+            new_post_state = event.get('pubstatus', POST_STATE.USABLE)
+
+        new_item_state = get_item_post_state(event, new_post_state, repost)
         updates = {'state': new_item_state, 'pubstatus': new_post_state}
         event['pubstatus'] = new_post_state
         # Remove previous workflow state reason

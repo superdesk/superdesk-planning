@@ -120,7 +120,7 @@ class EventsUpdateRepetitionsService(EventsBaseService):
         # if the original event was "posted" then post the new generated events
         if original.get('pubstatus') in [POST_STATE.CANCELLED, POST_STATE.USABLE]:
             post = {'event': original[config.ID_FIELD], 'etag': original['_etag'],
-                    'update_method': 'all', 'pubstatus': original.get('pubstatus')}
+                    'update_method': 'all', 'pubstatus': original.get('pubstatus'), 'repost_on_update': True}
             get_resource_service('events_post').post([post])
 
     def update(self, id, updates, original):
