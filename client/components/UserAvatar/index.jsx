@@ -28,35 +28,31 @@ export const UserAvatar = ({
         }
     }
     if ((user && user.display_name) || empty) {
-        const avatar = (<Fragment>
-            <figure className={classNames('avatar',
-                {
-                    'avatar--large': large,
-                    'avatar--small': small && !large,
-                    'avatar--no-margin': noMargin,
-                    initials: initials,
-                    planning__initials: initials,
-                    'avatar-with-info': withLoggedInfo,
-                    'user-logged': isLoggedIn,
-                    'avatar--empty': empty,
-                })}
-            >
-                {user && user.display_name && user.display_name.replace(/\W*(\w)\w*/g, '$1').toUpperCase()}
-                { withLoggedInfo && <div className="logged-info" /> }
-            </figure>
-            {inactiveText && <span className={
-                classNames('disabled-label user-inactive', {'user-inactive--small': !large})}>
-                {inactiveText}
-            </span>}
-        </Fragment>);
+        const avatar = (<figure className={classNames('avatar',
+            {
+                'avatar--large': large,
+                'avatar--small': small && !large,
+                'avatar--no-margin': noMargin,
+                initials: initials,
+                planning__initials: initials,
+                'avatar-with-info': withLoggedInfo,
+                'user-logged': isLoggedIn,
+                'avatar--empty': empty,
+            })}
+        >
+            {user && user.display_name && user.display_name.replace(/\W*(\w)\w*/g, '$1').toUpperCase()}
+            { withLoggedInfo && <div className="logged-info" /> }
+        </figure>);
 
-        if (tooltip) {
-            return (<OverlayTrigger placement="left" overlay={<Tooltip id="user_name">{tooltip}</Tooltip>}>
-                {avatar}
-            </OverlayTrigger>);
-        }
-
-        return avatar;
+        return (<Fragment>{tooltip && (<OverlayTrigger
+            placement="left"
+            overlay={<Tooltip id="user_name">{tooltip}</Tooltip>}>
+            {avatar}
+        </OverlayTrigger>) || avatar}
+        {inactiveText && <span className={
+            classNames('disabled-label user-inactive', {'user-inactive--small': !large})}>
+            {inactiveText}
+        </span>}</Fragment>);
     }
 
     return null;

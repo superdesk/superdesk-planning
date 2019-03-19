@@ -593,6 +593,7 @@ class PlanningService(superdesk.Service):
 
         # Cancel assignment if the coverage has an assignment
         if coverage.get('assigned_to'):
+            coverage['assigned_to']['state'] = WORKFLOW_STATE.CANCELLED
             assignment_service = get_resource_service('assignments')
             if not assignment:
                 assignment = assignment_service.find_one(req=None, _id=coverage['assigned_to'].get('assignment_id'))
