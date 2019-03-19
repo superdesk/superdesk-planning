@@ -252,13 +252,12 @@ const canConvertToRecurringEvent = (event, session, privileges, locks) => (
         !event.recurrence_id &&
         canEditEvent(event, session, privileges, locks) &&
         !isItemPostponed(event) &&
-        !isEventLockedForMetadataEdit(event)
+        !isEventLockedForMetadataEdit(event) && !isItemCancelled(event)
 );
 
 const canEditEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
         !isItemSpiked(event) &&
-        (!isItemCancelled(event) || getItemWorkflowState(event) === WORKFLOW_STATE.KILLED) &&
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT]) &&
@@ -276,7 +275,7 @@ const canUpdateEvent = (event, session, privileges, locks) => (
 const canUpdateEventTime = (event, session, privileges, locks) => (
     !isNil(event) &&
         canEditEvent(event, session, privileges, locks) &&
-        !isItemPostponed(event)
+        !isItemPostponed(event) && !isItemCancelled(event)
 );
 
 const canRescheduleEvent = (event, session, privileges, locks) => (

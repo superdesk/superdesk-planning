@@ -510,12 +510,47 @@ export const isPlanning = (item) => getItemType(item) === ITEM_TYPE.PLANNING;
 export const isAssignment = (item) => getItemType(item) === ITEM_TYPE.ASSIGNMENT;
 export const isItemExpired = (item) => get(item, 'expired') || false;
 
+export const isItemReadOnly = (item, session, privileges, lockedItems, associatedEvent) => {
+    const existingItem = isExistingItem(item);
+    const itemLock = lockUtils.getLock(item, lockedItems);
+    const isLockRestricted = lockUtils.isLockRestricted(
+        item,
+        session,
+        lockedItems
+    );
+    let canEdit = false, itemType = getItemType(item);
+
+    if (itemType === ITEM_TYPE.EVENT) {
+        canEdit = eventUtils.canEditEvent(
+            item,
+            session,
+            privileges,
+            lockedItems
+        );
+    } else if (itemType === ITEM_TYPE.PLANNING) {
+        canEdit = planningUtils.canEditPlanning(
+            item,
+            associatedEvent,
+            session,
+            privileges,
+            lockedItems
+        );
+    }
+
+    return existingItem && (
+        !canEdit ||
+        !itemLock ||
+        isLockRestricted ||
+        get(itemLock, 'action') !== 'edit' ||
+        isItemCancelled(item)
+    );
+};
+
 export const shouldLockItemForEdit = (item, lockedItems, privileges) =>
     isExistingItem(item) &&
         !lockUtils.getLock(item, lockedItems) &&
         !isItemSpiked(item) &&
         !isItemRescheduled(item) &&
-        !isItemCancelled(item) &&
         (!isItemExpired(item) || privileges[PRIVILEGES.EDIT_EXPIRED]) &&
         (
             (isEvent(item) && eventUtils.shouldLockEventForEdit(item, privileges)) ||

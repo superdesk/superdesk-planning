@@ -64,7 +64,6 @@ const canEditPlanning = (planning, event, session, privileges, locks) => (
         !isPlanningLockRestricted(planning, session, locks) &&
         !isItemSpiked(planning) &&
         !isItemSpiked(event) &&
-        (!isItemCancelled(planning) || getItemWorkflowState(planning) === WORKFLOW_STATE.KILLED) &&
         !(getPostedState(planning) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_PLANNING]) &&
         !isItemRescheduled(planning) &&
         (!isItemExpired(planning) || privileges[PRIVILEGES.EDIT_EXPIRED]) &&
@@ -83,7 +82,8 @@ const canModifyPlanning = (planning, event, privileges, locks) => (
 const canAddFeatured = (planning, event, session, privileges, locks) => (
     !get(planning, 'featured', false) &&
         canEditPlanning(planning, event, session, privileges, locks) &&
-        !!privileges[PRIVILEGES.FEATURED_STORIES] && !isItemKilled(planning)
+        !!privileges[PRIVILEGES.FEATURED_STORIES] && !isItemKilled(planning) &&
+        !isItemCancelled(planning)
 );
 
 const canRemovedFeatured = (planning, event, session, privileges, locks) => (

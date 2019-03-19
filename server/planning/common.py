@@ -181,16 +181,15 @@ def get_street_map_url(current_app=None):
 
 def get_item_post_state(item, new_post_state, repost=False):
     if repost:
-        return item.get('state') if item.get('state') in[WORKFLOW_STATE.SCHEDULED, WORKFLOW_STATE.KILLED]\
+        return item.get('state') if item.get('state') in [WORKFLOW_STATE.SCHEDULED, WORKFLOW_STATE.KILLED]\
             else WORKFLOW_STATE.SCHEDULED
 
-    if item.get('state') != WORKFLOW_STATE.CANCELLED:
-        if new_post_state == POST_STATE.CANCELLED:
-            return WORKFLOW_STATE.KILLED
+    if new_post_state == POST_STATE.CANCELLED:
+        return WORKFLOW_STATE.KILLED
 
-        if item.get('pubstatus') != POST_STATE.USABLE:
-            # posting for first time, default to 'schedule' state
-            return WORKFLOW_STATE.SCHEDULED
+    if item.get('pubstatus') != POST_STATE.USABLE:
+        # posting for first time, default to 'schedule' state
+        return WORKFLOW_STATE.SCHEDULED
 
     return item.get('state')
 

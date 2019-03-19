@@ -95,7 +95,10 @@ class EventsPostService(EventsBaseService):
         return [doc['event']]
 
     def _post_recurring_events(self, doc, original, update_method):
-        historic, past, future = self.get_recurring_timeline(original)
+        post_to_state = doc['pubstatus']
+        historic, past, future = self.get_recurring_timeline(original,
+                                                             cancelled=True if post_to_state == POST_STATE.CANCELLED
+                                                             else False)
 
         # Determine if the selected event is the first one, if so then
         # act as if we're changing future events
@@ -109,7 +112,7 @@ class EventsPostService(EventsBaseService):
 
         # First we want to validate that all events can be posted
         for event in posted_events:
-            self.validate_post_state(doc['pubstatus'])
+            self.validate_post_state(post_to_state)
             self.validate_item(event)
 
         # Next we perform the actual post
@@ -117,7 +120,7 @@ class EventsPostService(EventsBaseService):
         ids = []
         items = []
         for event in posted_events:
-            updated_event = self.post_event(event, doc['pubstatus'], doc.get('repost_on_update'))
+            updated_event = self.post_event(event, post_to_state, doc.get('repost_on_update'))
             ids.append(event[config.ID_FIELD])
             items.append({
                 'id': event[config.ID_FIELD],
