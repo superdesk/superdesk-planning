@@ -282,4 +282,32 @@ describe('validators', () => {
             name: 'Validate 2 failed',
         });
     });
+
+    define('custom field validation', () => {
+        const profile = {
+            schema: {
+                foo: {required: true},
+            },
+        };
+
+        it('can check required custom field', () => {
+            dispatch(validateItem({
+                profileName: 'test',
+                diff: {},
+                formProfiles: {test: profile},
+                errors: formData.errors,
+            }));
+
+            expect(formData.errors.foo).toBe('This field is required');
+
+            dispatch(validateItem({
+                profileName: 'test',
+                diff: {subject: [{name: 'foo', scheme: 'foo'}]},
+                formProfiles: {test: profile},
+                errors: formData.errors,
+            }));
+
+            expect(formData.errors.foo).toBe(null);
+        });
+    });
 });
