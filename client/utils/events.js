@@ -665,7 +665,7 @@ const getEventsByDate = (events, startDate, endDate) => {
     sortedEvents.forEach((event) => {
         // compute the number of days of the event
         if (!event.dates.start.isSame(event.dates.end, 'day')) {
-            let deltaDays = Math.max(event.dates.end.diff(event.dates.start, 'days'), 1);
+            let deltaDays = Math.max(Math.ceil(event.dates.end.diff(event.dates.start, 'days', true)), 1);
             // if the event happens during more that one day, add it to every day
             // add the event to the other days
 
@@ -675,7 +675,7 @@ const getEventsByDate = (events, startDate, endDate) => {
 
                 newDate.add(i, 'days');
 
-                if (maxStartDate.isSameOrAfter(newDate, 'day')) {
+                if (maxStartDate.isSameOrAfter(newDate, 'day') && newDate.isSameOrBefore(event.dates.end, 'day')) {
                     addEventToDate(event, newDate);
                 }
             }
@@ -716,6 +716,7 @@ const modifyForClient = (event) => {
 
     return event;
 };
+
 
 const modifyForServer = (event, removeNullLinks = false) => {
     event.location = event.location ?

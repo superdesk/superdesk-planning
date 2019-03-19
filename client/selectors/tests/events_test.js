@@ -81,6 +81,33 @@ describe('selectors', () => {
             expect(events['2017-01-16'].events[1]._id).toBe('event2');
         });
 
+        it('all events with max start date on 2017-01-17', () => {
+            const state = getState();
+
+            state.events.events.event2.dates.start = moment('2017-01-17T08:00:00', dateFormat);
+            state.events.events.event2.dates.end = moment('2017-01-17T14:00:00', dateFormat);
+            setAdvancedSearchDates(state, '2017-01-10T00:00:00');
+            const events = keyBy(selectors.events.orderedEvents(state), 'date');
+
+            expect(Object.keys(events)).toEqual([
+                '2017-01-14',
+                '2017-01-15',
+                '2017-01-16',
+                '2017-01-17',
+            ]);
+
+            expect(events['2017-01-14'].events.length).toBe(1);
+            expect(events['2017-01-14'].events[0]._id).toBe('event3');
+            expect(events['2017-01-15'].events.length).toBe(2);
+            expect(events['2017-01-15'].events[0]._id).toBe('event3');
+            expect(events['2017-01-15'].events[1]._id).toBe('event1');
+            expect(events['2017-01-16'].events.length).toBe(1);
+            expect(events['2017-01-16'].events[0]._id).toBe('event3');
+            expect(events['2017-01-17'].events.length).toBe(2);
+            expect(events['2017-01-17'].events[0]._id).toBe('event3');
+            expect(events['2017-01-17'].events[1]._id).toBe('event2');
+        });
+
         it('for today 2017-01-15', () => {
             const state = getState();
 
