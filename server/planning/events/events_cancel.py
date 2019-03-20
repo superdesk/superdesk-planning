@@ -12,7 +12,7 @@ from superdesk import get_resource_service
 from superdesk.notification import push_notification
 from eve.utils import config
 from apps.archive.common import get_user, get_auth
-from planning.common import UPDATE_FUTURE, WORKFLOW_STATE, remove_lock_information
+from planning.common import UPDATE_FUTURE, WORKFLOW_STATE, remove_lock_information, set_actioned_date_to_event
 from copy import deepcopy
 from .events import EventsResource, events_schema
 from .events_base_service import EventsBaseService
@@ -77,7 +77,8 @@ class EventsCancelService(EventsBaseService):
                 occur_status=updates.get('occur_status'),
                 etag=item.get('_etag'),
                 cancelled_items=cancelled_items,
-                reason=reason or ''
+                reason=reason or '',
+                actioned_date=updates.get('actioned_date')
             )
 
         return item
@@ -118,6 +119,7 @@ class EventsCancelService(EventsBaseService):
             'occur_status': occur_cancel_state,
             'state_reason': updates.get('reason')
         })
+        set_actioned_date_to_event(updates, original)
 
     def update_recurring_events(self, updates, original, update_method):
         occur_cancel_state = self._get_cancel_state()

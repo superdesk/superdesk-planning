@@ -1509,3 +1509,79 @@ Feature: Events Reschedule
         """
         {"_status": "ERR", "_issues": {"validator exception": "400: Event duration is greater than 7 days."}}
         """
+
+    @auth
+    @notification
+    Scenario: Multi day event duration is shortened in the actioned_date field
+        Given we have sessions "/sessions"
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "name": "TestEvent",
+            "ednote": "Something happening.",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-27T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "reschedule",
+            "lock_time": "#DATE#"
+        }]
+        """
+        When we perform reschedule on events "event1"
+        """
+        {
+            "reason": "Changed to another day!",
+            "dates": {
+                "start": "2029-11-28T12:00:00.000Z",
+                "end": "2029-11-28T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get OK response
+        Then we store "DUPLICATE" from last rescheduled item
+        When we get "/events/#DUPLICATE.id#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "state": "draft",
+            "reschedule_from": "event1",
+            "lock_user": "__no_value__",
+            "lock_session": "__no_value__",
+            "lock_action": "__no_value__",
+            "lock_time": "__no_value__",
+            "dates": {
+                "start": "2029-11-28T12:00:00+0000",
+                "end": "2029-11-28T14:00:00+0000",
+                "tz": "Australia/Sydney"
+            },
+            "actioned_date": "__no_value__"
+        }
+        """
+        When we get "/events/event1"
+        Then we get existing resource
+        """
+        {
+            "state": "rescheduled",
+            "reschedule_to": "#DUPLICATE.id#",
+            "lock_user": null,
+            "lock_session": null,
+            "lock_action": null,
+            "lock_time": null,
+            "dates": {
+                "start": "2029-11-21T12:00:00+0000",
+                "end": "2029-11-27T14:00:00+0000",
+                "tz": "Australia/Sydney"
+            },
+            "state_reason": "Changed to another day!",
+            "actioned_date": "2029-11-21T12:00:00+0000"
+        }
+        """

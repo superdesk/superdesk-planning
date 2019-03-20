@@ -12,7 +12,8 @@ from superdesk import get_resource_service
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from eve.utils import config
-from planning.common import UPDATE_FUTURE, WORKFLOW_STATE, ITEM_STATE, remove_lock_information, set_original_creator
+from planning.common import UPDATE_FUTURE, WORKFLOW_STATE, ITEM_STATE, remove_lock_information, \
+    set_original_creator, set_actioned_date_to_event
 from copy import deepcopy
 from .events import EventsResource, events_schema, generate_recurring_dates
 from flask import current_app as app
@@ -58,6 +59,9 @@ class EventsRescheduleService(EventsBaseService):
                 # and set the original's status to `rescheduled`
                 duplicated_event_id = self._duplicate_event(updates, original, events_service)
                 updates['reschedule_to'] = duplicated_event_id
+                set_actioned_date_to_event(updates, original)
+            else:
+                updates['actioned_date'] = None
 
             self._mark_event_rescheduled(updates, reason, not event_in_use)
 

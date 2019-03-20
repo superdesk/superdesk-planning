@@ -1109,7 +1109,7 @@ const updateEventTime = (event) => (
     )
 );
 
-const markEventCancelled = (eventId, etag, reason, occurStatus, cancelledItems) => ({
+const markEventCancelled = (eventId, etag, reason, occurStatus, cancelledItems, actionedDate) => ({
     type: EVENTS.ACTIONS.MARK_EVENT_CANCELLED,
     payload: {
         event_id: eventId,
@@ -1117,14 +1117,16 @@ const markEventCancelled = (eventId, etag, reason, occurStatus, cancelledItems) 
         reason: reason,
         occur_status: occurStatus,
         cancelled_items: cancelledItems,
+        actionedDate: actionedDate,
     },
 });
 
-const markEventPostponed = (event, reason) => ({
+const markEventPostponed = (event, reason, actionedDate) => ({
     type: EVENTS.ACTIONS.MARK_EVENT_POSTPONED,
     payload: {
         event: event,
         reason: reason,
+        actionedDate: actionedDate,
     },
 });
 

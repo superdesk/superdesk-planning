@@ -301,7 +301,7 @@ class EventsBaseService(BaseService):
         """Remove fields not required by new event"""
         for f in {'_id', 'guid', 'unique_name', 'unique_id', 'lock_user', 'lock_time',
                   'lock_session', 'lock_action', '_created', '_updated', '_etag', 'pubstatus',
-                  'reason', 'duplicate_to', 'duplicate_from', 'reschedule_to'}:
+                  'reason', 'duplicate_to', 'duplicate_from', 'reschedule_to', 'actioned_date'}:
             new_event.pop(f, None)
 
         if extra_fields:

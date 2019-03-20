@@ -12,11 +12,12 @@ from superdesk import get_resource_service
 from superdesk.notification import push_notification
 from eve.utils import config
 from apps.archive.common import get_user, get_auth
-from planning.common import UPDATE_FUTURE, WORKFLOW_STATE, remove_lock_information
+from planning.common import UPDATE_FUTURE, WORKFLOW_STATE, remove_lock_information, set_actioned_date_to_event
 from copy import deepcopy
 from .events import EventsResource, events_schema
 from .events_base_service import EventsBaseService
 from flask import current_app as app
+
 
 event_postpone_schema = deepcopy(events_schema)
 event_postpone_schema['reason'] = {
@@ -47,6 +48,8 @@ class EventsPostponeService(EventsBaseService):
 
     def update(self, id, updates, original):
         reason = updates.pop('reason', None)
+        set_actioned_date_to_event(updates, original)
+
         item = super().update(id, updates, original)
 
         # Because we require the original item being actioned against to be locked
@@ -61,7 +64,8 @@ class EventsPostponeService(EventsBaseService):
                 item=str(original[config.ID_FIELD]),
                 user=str(user),
                 session=str(session),
-                reason=reason
+                reason=reason,
+                actioned_date=updates.get('actioned_date')
             )
 
         return item

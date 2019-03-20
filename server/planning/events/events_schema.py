@@ -333,6 +333,12 @@ events_schema = {
         'type': 'string',
         'nullable': True
     },
+    # Datetime when a particular action (postpone, reschedule, cancel) took place
+    'actioned_date': {
+        'type': 'datetime',
+        'nullable': True
+    },
+
 
     # This is used if an Event is created from a Planning Item
     # So that we can link the Planning item to this Event upon creation

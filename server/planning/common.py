@@ -335,3 +335,14 @@ def set_ingested_event_state(updates, original):
     # don't change status to draft when event was duplicated
     if original.get(ITEM_STATE) == WORKFLOW_STATE.INGESTED and not updates.get('duplicate_to'):
         updates[ITEM_STATE] = WORKFLOW_STATE.DRAFT
+
+
+def set_actioned_date_to_event(updates, original):
+    # If event lasts more than a day, set actioned_date
+    if type(updates) is dict and ((original['dates']['end'] -
+                                  original['dates']['start']).total_seconds() / 60) >= (24 * 60):
+        now = utcnow()
+        if original['dates']['start'] < now and original['dates']['end'] > now:
+            updates['actioned_date'] = now
+        else:
+            updates['actioned_date'] = original['dates']['start']

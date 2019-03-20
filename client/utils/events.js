@@ -671,8 +671,10 @@ const getEventsByDate = (events, startDate, endDate) => {
 
     sortedEvents.forEach((event) => {
         // compute the number of days of the event
-        if (!event.dates.start.isSame(event.dates.end, 'day')) {
-            let deltaDays = Math.max(Math.ceil(event.dates.end.diff(event.dates.start, 'days', true)), 1);
+        let ending = event.actioned_date ? moment(event.actioned_date) : event.dates.end;
+
+        if (!event.dates.start.isSame(ending, 'day')) {
+            let deltaDays = Math.max(Math.ceil(ending.diff(event.dates.start, 'days', true)), 1);
             // if the event happens during more that one day, add it to every day
             // add the event to the other days
 
@@ -682,7 +684,7 @@ const getEventsByDate = (events, startDate, endDate) => {
 
                 newDate.add(i, 'days');
 
-                if (maxStartDate.isSameOrAfter(newDate, 'day') && newDate.isSameOrBefore(event.dates.end, 'day')) {
+                if (maxStartDate.isSameOrAfter(newDate, 'day') && newDate.isSameOrBefore(ending, 'day')) {
                     addEventToDate(event, newDate);
                 }
             }
@@ -763,7 +765,7 @@ const duplicateEvent = (event, occurStatus) => {
         k.startsWith('_')) ||
         ['guid', 'unique_name', 'unique_id', 'lock_user', 'lock_time', 'lock_session', 'lock_action',
             'pubstatus', 'recurrence_id', 'previous_recurrence_id', 'reschedule_from', 'reschedule_to',
-            'planning_ids', 'reason', 'expired', 'state_reason'].indexOf(k) > -1));
+            'planning_ids', 'reason', 'expired', 'state_reason', 'actioned_date'].indexOf(k) > -1));
 
     duplicatedEvent._id = generateTempId();
     // Delete recurring rule
