@@ -96,7 +96,7 @@ describe('<EventPreviewContent />', () => {
     it('renders an event with all its details', () => {
         const wrapper = getWrapper();
         const dateString = eventUtils.getDateStringForEvent(astore.initialState.events.events.e1,
-            'DD/MM/YYYY', 'HH:mm');
+            'DD/MM/YYYY', 'HH:mm', false, true, false);
 
         expect(wrapper.find('EventPreviewContentComponent').length).toBe(1);
         const dataRows = wrapper.find('.form__row');

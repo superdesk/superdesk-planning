@@ -33,8 +33,8 @@ export const CoverageItem = ({
     const userAssigned = getCreator(coverage, 'assigned_to.user', users);
     const deskAssigned = getItemInArrayById(desks, get(coverage, 'assigned_to.desk'));
     const coverageDate = get(coverage, 'planning.scheduled');
-    const coverageDateText = !coverageDate ? 'Not scheduled yet' :
-        getDateTimeString(coverageDate, dateFormat, timeFormat);
+    const coverageDateText = !coverageDate ? gettext('Not scheduled yet') :
+        getDateTimeString(coverageDate, dateFormat, timeFormat, ' @ ', false);
     const coverageInWorkflow = planningUtils.isCoverageInWorkflow(coverage);
     const displayContentType = [
         stringUtils.firstCharUpperCase(get(coverage, 'planning.g2_content_type', '').replace('_', ' ')),

@@ -4,7 +4,7 @@ import {connect} from 'react-redux';
 import {get} from 'lodash';
 
 import * as selectors from '../../../selectors';
-import {gettext, stringUtils} from '../../../utils';
+import {gettext, stringUtils, timeUtils} from '../../../utils';
 
 import {Datetime} from '../../';
 import {Location} from '../../Location';
@@ -21,6 +21,7 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
     const locationName = get(location, 'name');
     const formattedAddress = get(location, 'formatted_address', '');
     const contacts = get(item, 'event_contact_info') || [];
+    const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(item);
 
     return (
         <div>
@@ -44,6 +45,7 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
                         date={get(item, 'dates.start')}
                         darkText={true}
                         ignoreAllDay
+                        isRemoteTimeZone={isRemoteTimeZone}
                         tz={get(item, 'dates.tz')}/>}
                 />
 
@@ -54,6 +56,7 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
                         date={get(item, 'dates.end')}
                         darkText={true}
                         ignoreAllDay
+                        isRemoteTimeZone={isRemoteTimeZone}
                         tz={get(item, 'dates.tz')}/>}
                 />
             </Row>

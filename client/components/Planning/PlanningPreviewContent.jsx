@@ -111,7 +111,7 @@ export class PlanningPreviewContentComponent extends React.Component {
                 <Row
                     enabled={get(formProfile, 'planning.editor.planning_date.enabled')}
                     label={gettext('Planning Date')}
-                    value={getDateTimeString(item.planning_date, dateFormat, timeFormat) || ''}
+                    value={getDateTimeString(item.planning_date, dateFormat, timeFormat, ' @ ', false) || ''}
                 />
                 <Row
                     enabled={get(formProfile, 'planning.editor.description_text.enabled')}

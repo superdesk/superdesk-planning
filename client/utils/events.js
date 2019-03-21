@@ -365,14 +365,16 @@ const isEventRecurring = (item) => (
     get(item, 'recurrence_id', null) !== null
 );
 
-const getDateStringForEvent = (event, dateFormat, timeFormat, dateOnly = false, useLocal = true) => {
+const getDateStringForEvent = (
+    event, dateFormat, timeFormat, dateOnly = false,
+    useLocal = true, withTimezone = true
+) => {
     // !! Note - expects event dates as instance of moment() !! //
     const start = get(event.dates, 'start');
     const end = get(event.dates, 'end');
     const tz = get(event.dates, 'tz');
     const localStart = timeUtils.getLocalDate(start, tz);
-
-    let dateString;
+    let dateString, timezoneString = '';
 
     if (!start || !end)
         return;
@@ -391,10 +393,16 @@ const getDateStringForEvent = (event, dateFormat, timeFormat, dateOnly = false, 
                 getDateTimeString(end, dateFormat, timeFormat, ' @ ', false);
     }
 
+    if (withTimezone) {
+        timezoneString = !useLocal && tz ?
+            timeUtils.getDateInRemoteTimeZone(start, tz).format('z') : localStart.format('z');
+        timezoneString = `${timeUtils.getTimeZoneAbbreviation(timezoneString)} `;
+    }
+
     if (!useLocal) {
-        return tz ? `(${timeUtils.getDateInRemoteTimeZone(start, tz).format('z ')} ${dateString})` : null;
+        return tz ? `(${timezoneString}${dateString})` : null;
     } else {
-        return localStart.format('z ') + dateString;
+        return `${timezoneString}${dateString}`;
     }
 };
 
@@ -849,11 +857,17 @@ const getRepeatSummaryForEvent = (schedule) => {
     const getEnds = () => {
         if (endRepeatMode === 'until' && moment.isMoment(until)) {
             const localUntil = timeUtils.getDateInRemoteTimeZone(until, timeUtils.localTimeZone());
-            let untilText = gettext('until {{until}} ', {until: localUntil ? localUntil.format('z D MMM YYYY') : ' '});
-            const remoteUntil = timeUtils.getDateInRemoteTimeZone(until, schedule.tz);
+            let timezoneString = timeUtils.getTimeZoneAbbreviation(localUntil.format('z'));
+            let untilText = gettext(
+                'until {{until}} ',
+                {until: localUntil ? `${timezoneString} ${localUntil.format('D MMM YYYY')}` : ' '}
+            );
 
             if (timeUtils.isEventInDifferentTimeZone({dates: schedule})) {
-                untilText = untilText + `(${remoteUntil.format('z D MMM YYYY')})`;
+                const remoteUntil = timeUtils.getDateInRemoteTimeZone(until, schedule.tz);
+
+                timezoneString = timeUtils.getTimeZoneAbbreviation(remoteUntil.format('z'));
+                untilText = untilText + `(${timezoneString} ${remoteUntil.format('D MMM YYYY')})`;
             }
             return untilText;
         }

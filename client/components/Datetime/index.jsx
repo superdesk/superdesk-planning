@@ -7,14 +7,13 @@ import {getDateFormat, getTimeFormat} from '../../selectors/config';
 import {timeUtils} from '../../utils';
 import './style.scss';
 
-function Datetime({date, withTime, withDate, withYear, dateFormat, timeFormat, darkText, tz}) {
+function Datetime({date, withTime, withDate, withYear, dateFormat, timeFormat, darkText, tz, isRemoteTimeZone}) {
     let format = withYear ? dateFormat : dateFormat.replace(/y/gi, '');
     let dateTimeFormat = [
         withDate ? format : null,
         withTime ? timeFormat : null,
     ].filter((d) => d).join('\u00a0'); // &nbsp;
     const localTz = timeUtils.localTimeZone();
-    const isRemoteTimeZone = tz !== localTz;
     const momentDate = moment(date);
     const newDate = timeUtils.getDateInRemoteTimeZone(momentDate, tz || localTz);
     const newDateString = isRemoteTimeZone ? `(${moment.tz(tz).format('z')}) ${newDate.format(dateTimeFormat)}` : '';
@@ -57,6 +56,7 @@ Datetime.propTypes = {
     timeFormat: PropTypes.string.isRequired,
     darkText: PropTypes.bool,
     tz: PropTypes.string,
+    isRemoteTimeZone: PropTypes.bool,
 };
 
 Datetime.defaultProps = {
@@ -64,6 +64,7 @@ Datetime.defaultProps = {
     withDate: true,
     withYear: true,
     darkText: false,
+    isRemoteTimeZone: false,
 };
 
 const mapStateToProps = (state) => ({
