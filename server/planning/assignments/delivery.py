@@ -32,6 +32,10 @@ delivery_schema = {
     # item_id
     'item_id': {
         'type': 'string'
+    },
+
+    'item_state': {
+        'type': 'string'
     }
 }
 

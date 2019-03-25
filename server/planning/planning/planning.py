@@ -357,6 +357,12 @@ class PlanningService(superdesk.Service):
                 if not original_coverage:
                     continue
 
+                if (original_coverage.get('flags') or {}).get('no_content_linking') != \
+                        (coverage.get('flags') or {}).get('no_content_linking') and \
+                        coverage.get('workflow_status') != WORKFLOW_STATE.DRAFT:
+                    raise SuperdeskApiError.badRequestError(
+                        'Cannot edit content linking flag of a coverage already in workflow')
+
                 # If PLANNING_AUTO_ASSIGN_TO_WORKFLOW is True and the overide flag has been set to false
                 # Set the workflow state of the item to active if not already
                 if app.config.get('PLANNING_AUTO_ASSIGN_TO_WORKFLOW', False) and \
@@ -977,7 +983,13 @@ coverage_schema = {
                 'state': not_analyzed
             }
         }
-    }
+    },
+    'flags': {
+        'type': 'dict',
+        'schema': {
+            'no_content_linking': {'type': 'boolean', 'default': False}
+        }
+    },
 }  # end coverage_schema
 
 planning_schema = {

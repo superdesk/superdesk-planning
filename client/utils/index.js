@@ -377,7 +377,7 @@ export const isItemCancelled = (item) => getItemWorkflowState(item) === WORKFLOW
 export const isItemRescheduled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.RESCHEDULED;
 export const isItemKilled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.KILLED;
 export const isItemPostponed = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.POSTPONED;
-export const isExistingItem = (item) => !!get(item, '_id') && !item._id.startsWith(TEMP_ID_PREFIX);
+export const isExistingItem = (item, field = '_id') => !!get(item, field) && !item[field].startsWith(TEMP_ID_PREFIX);
 export const isTemporaryId = (itemId) => itemId && itemId.startsWith(TEMP_ID_PREFIX);
 export const isPublishedItemId = (itemId) => itemId && itemId.startsWith(QUEUE_ITEM_PREFIX);
 

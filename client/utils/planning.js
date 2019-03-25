@@ -599,6 +599,7 @@ const getCoverageReadOnlyFields = (
             genre: true,
             newsCoverageStatus: true,
             scheduled: readOnly || get(addNewsItemToPlanning, 'state') === 'published',
+            flags: false,
         };
     }
 
@@ -622,6 +623,7 @@ const getCoverageReadOnlyFields = (
             genre: readOnly,
             newsCoverageStatus: true,
             scheduled: readOnly,
+            flags: true,
         };
     case ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS:
     case ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED:
@@ -634,6 +636,7 @@ const getCoverageReadOnlyFields = (
             genre: true,
             newsCoverageStatus: true,
             scheduled: readOnly,
+            flags: true,
         };
     case ASSIGNMENTS.WORKFLOW_STATE.COMPLETED:
         return {
@@ -645,6 +648,7 @@ const getCoverageReadOnlyFields = (
             genre: true,
             newsCoverageStatus: true,
             scheduled: readOnly,
+            flags: true,
         };
     case ASSIGNMENTS.WORKFLOW_STATE.CANCELLED:
         return {
@@ -656,6 +660,7 @@ const getCoverageReadOnlyFields = (
             genre: true,
             newsCoverageStatus: true,
             scheduled: true,
+            flags: true,
         };
     case null:
     default:
@@ -668,6 +673,7 @@ const getCoverageReadOnlyFields = (
             genre: readOnly,
             newsCoverageStatus: readOnly,
             scheduled: readOnly,
+            flags: false,
         };
     }
 };

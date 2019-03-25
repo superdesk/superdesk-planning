@@ -13,6 +13,7 @@ import superdesk
 import superdesk.schema as schema
 from copy import deepcopy
 from superdesk.utils import ListCursor
+from planning.common import planning_link_updates_to_coverage
 
 
 def is_field_enabled(field, planning_type):
@@ -128,6 +129,7 @@ class CoverageSchema(BaseSchema):
     internal_note = schema.StringField()
     news_coverage_status = schema.ListField()
     contact_info = schema.StringField()
+    flags = schema.DictField()
 
 
 DEFAULT_EDITOR = [{
@@ -181,7 +183,8 @@ DEFAULT_EDITOR = [{
         'internal_note': {'enabled': True},
         'scheduled': {'enabled': True},
         'news_coverage_status': {'enabled': True},
-        'contact_info': {'enabled': False}
+        'contact_info': {'enabled': False},
+        'flags': {'enabled': True},
     },
     'schema': dict(CoverageSchema)
 }, {
@@ -402,6 +405,10 @@ class PlanningTypesService(superdesk.Service):
             else:
                 self.merge_planning_type(planning_type, default_planning_type)
                 merged_planning_types.append(planning_type)
+
+        if not planning_link_updates_to_coverage():
+            coverage_type = [t for t in merged_planning_types if t['name'] == 'coverage'][0]
+            coverage_type['editor']['flags']['enabled'] = False
 
         return ListCursor(merged_planning_types)
 

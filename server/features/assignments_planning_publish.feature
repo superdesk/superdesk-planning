@@ -99,7 +99,7 @@ Feature: For posted planning item changes in assignment state post a planning it
         Then we get OK response
         Then we store coverage id in "firstcoverage" from coverage 0
 
-    @auth @vocabularies @test
+    @auth @vocabularies
     Scenario: Publish Planning item on changes to assignment state.
         Given "vocabularies"
         """
@@ -168,7 +168,7 @@ Feature: For posted planning item changes in assignment state post a planning it
             "state": "scheduled",
             "pubstatus": "usable",
             "guid": "#PLANNING.item_id#",
-            "agendas": [{"name": "TestAgenda", "is_enabled": true}],
+            "agendas": [{"name": "TestAgenda"}],
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",
@@ -201,7 +201,8 @@ Feature: For posted planning item changes in assignment state post a planning it
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
-                        "slugline": "test slugline"
+                        "slugline": "test slugline",
+                        "g2_content_type" : "text"
                     },
                     "assigned_to": {
                         "desk": "#desks._id#",
@@ -226,11 +227,11 @@ Feature: For posted planning item changes in assignment state post a planning it
             "state": "scheduled",
             "pubstatus": "usable",
             "guid": "#PLANNING.item_id#",
-            "agendas": [{"name": "TestAgenda", "is_enabled": true}],
+            "agendas": [{"name": "TestAgenda"}],
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",
-                    "workflow_status": "active",
+                    "workflow_status": "assigned",
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -292,11 +293,11 @@ Feature: For posted planning item changes in assignment state post a planning it
             "state": "scheduled",
             "pubstatus": "usable",
             "guid": "#PLANNING.item_id#",
-            "agendas": [{"name": "TestAgenda", "is_enabled": true}],
+            "agendas": [{"name": "TestAgenda"}],
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",
-                    "workflow_status": "in_progress",
+                    "workflow_status": "active",
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -306,7 +307,6 @@ Feature: For posted planning item changes in assignment state post a planning it
                     "news_coverage_status": {
                       "qcode": "ncostat:int"
                     },
-                    "deliveries": [],
                     "coverage_provider": null
                 }
             ]
@@ -404,7 +404,7 @@ Feature: For posted planning item changes in assignment state post a planning it
             "state": "scheduled",
             "pubstatus": "usable",
             "guid": "#PLANNING.item_id#",
-            "agendas": [{"name": "TestAgenda", "is_enabled": true}],
+            "agendas": [{"name": "TestAgenda"}],
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",
@@ -481,7 +481,7 @@ Feature: For posted planning item changes in assignment state post a planning it
             "state": "scheduled",
             "pubstatus": "usable",
             "guid": "#PLANNING.item_id#",
-            "agendas": [{"name": "TestAgenda", "is_enabled": true}],
+            "agendas": [{"name": "TestAgenda"}],
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",
@@ -514,7 +514,8 @@ Feature: For posted planning item changes in assignment state post a planning it
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
-                        "slugline": "test slugline"
+                        "slugline": "test slugline",
+                        "g2_content_type" : "text"
                     },
                     "assigned_to": {
                         "desk": "#desks._id#",
@@ -539,11 +540,11 @@ Feature: For posted planning item changes in assignment state post a planning it
             "state": "scheduled",
             "pubstatus": "usable",
             "guid": "#PLANNING.item_id#",
-            "agendas": [{"name": "TestAgenda", "is_enabled": true}],
+            "agendas": [{"name": "TestAgenda"}],
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",
-                    "workflow_status": "active",
+                    "workflow_status": "assigned",
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -585,7 +586,7 @@ Feature: For posted planning item changes in assignment state post a planning it
             "state": "scheduled",
             "pubstatus": "usable",
             "guid": "#PLANNING.item_id#",
-            "agendas": [{"name": "TestAgenda", "is_enabled": true}],
+            "agendas": [{"name": "TestAgenda"}],
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",
@@ -675,7 +676,7 @@ Feature: For posted planning item changes in assignment state post a planning it
             "state": "scheduled",
             "pubstatus": "usable",
             "guid": "#PLANNING.item_id#",
-            "agendas": [{"name": "TestAgenda", "is_enabled": true}],
+            "agendas": [{"name": "TestAgenda"}],
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",
@@ -734,11 +735,11 @@ Feature: For posted planning item changes in assignment state post a planning it
             "state": "scheduled",
             "pubstatus": "usable",
             "guid": "#PLANNING.item_id#",
-            "agendas": [{"name": "TestAgenda", "is_enabled": true}],
+            "agendas": [{"name": "TestAgenda"}],
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",
-                    "workflow_status": "active",
+                    "workflow_status": "assigned",
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -809,11 +810,11 @@ Feature: For posted planning item changes in assignment state post a planning it
             "state": "scheduled",
             "pubstatus": "usable",
             "guid": "#PLANNING.item_id#",
-            "agendas": [{"name": "TestAgenda", "is_enabled": true}],
+            "agendas": [{"name": "TestAgenda"}],
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",
-                    "workflow_status": "in_progress",
+                    "workflow_status": "active",
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -843,7 +844,7 @@ Feature: For posted planning item changes in assignment state post a planning it
             "state": "scheduled",
             "pubstatus": "usable",
             "guid": "#PLANNING.item_id#",
-            "agendas": [{"name": "TestAgenda", "is_enabled": true}],
+            "agendas": [{"name": "TestAgenda"}],
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",
@@ -857,7 +858,7 @@ Feature: For posted planning item changes in assignment state post a planning it
                     "news_coverage_status": {
                       "qcode": "ncostat:int"
                     },
-                    "deliveries": [{"item": "123"}],
+                    "deliveries": [{"item_id": "123"}],
                     "coverage_provider": null
                 }
             ]
@@ -900,11 +901,11 @@ Feature: For posted planning item changes in assignment state post a planning it
             "state": "scheduled",
             "pubstatus": "usable",
             "guid": "#PLANNING.item_id#",
-            "agendas": [{"name": "TestAgenda", "is_enabled": true}],
+            "agendas": [{"name": "TestAgenda"}],
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",
-                    "workflow_status": "active",
+                    "workflow_status": "assigned",
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -958,7 +959,7 @@ Feature: For posted planning item changes in assignment state post a planning it
             "state": "scheduled",
             "pubstatus": "usable",
             "guid": "#PLANNING.item_id#",
-            "agendas": [{"name": "TestAgenda", "is_enabled": true}],
+            "agendas": [{"name": "TestAgenda"}],
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",
@@ -972,7 +973,7 @@ Feature: For posted planning item changes in assignment state post a planning it
                     "news_coverage_status": {
                       "qcode": "ncostat:int"
                     },
-                    "deliveries": [{"item": "123"}],
+                    "deliveries": [{"item_id": "123"}],
                     "coverage_provider": null
                 }
             ]
@@ -986,6 +987,7 @@ Feature: For posted planning item changes in assignment state post a planning it
         {
             "coverages": [
                 {
+                    "coverage_id": "#firstcoverage#",
                     "workflow_status": "active",
                     "news_coverage_status": {
                       "qcode": "ncostat:int"
@@ -1060,11 +1062,11 @@ Feature: For posted planning item changes in assignment state post a planning it
             "state": "scheduled",
             "pubstatus": "usable",
             "guid": "#PLANNING.item_id#",
-            "agendas": [{"name": "TestAgenda", "is_enabled": true}],
+            "agendas": [{"name": "TestAgenda"}],
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",
-                    "workflow_status": "active",
+                    "workflow_status": "assigned",
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
@@ -1114,7 +1116,7 @@ Feature: For posted planning item changes in assignment state post a planning it
             "state": "scheduled",
             "pubstatus": "usable",
             "guid": "#PLANNING.item_id#",
-            "agendas": [{"name": "TestAgenda", "is_enabled": true}],
+            "agendas": [{"name": "TestAgenda"}],
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",
@@ -1168,7 +1170,7 @@ Feature: For posted planning item changes in assignment state post a planning it
             "state": "scheduled",
             "pubstatus": "usable",
             "guid": "#PLANNING.item_id#",
-            "agendas": [{"name": "TestAgenda", "is_enabled": true}],
+            "agendas": [{"name": "TestAgenda"}],
             "coverages": [
                 {
                     "coverage_id": "#firstcoverage#",

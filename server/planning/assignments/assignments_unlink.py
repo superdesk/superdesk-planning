@@ -9,14 +9,14 @@ from copy import deepcopy
 from superdesk import Resource, Service, get_resource_service
 from superdesk.errors import SuperdeskApiError
 from eve.utils import config
-from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_coverage_type_name
+from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_coverage_type_name, get_related_items, \
+    update_assignment_on_link_unlink
 from apps.content import push_content_notification
 from planning.item_lock import LOCK_USER, LOCK_SESSION
 from apps.archive.common import get_user, get_auth
 from planning.planning_notifications import PlanningNotifications
 from superdesk.notification import push_notification
 from .assignments_history import ASSIGNMENT_HISTORY_ACTIONS
-from superdesk.metadata.item import ITEM_STATE, PUBLISH_STATES
 
 
 class AssignmentsUnlinkService(Service):
@@ -28,67 +28,69 @@ class AssignmentsUnlinkService(Service):
         ids = []
         production = get_resource_service('archive')
         assignments_service = get_resource_service('assignments')
-        items = []
+        updated_items = []
+        actioned_item = {}
+        published_updated_items = []
 
         for doc in docs:
-            assignment = assignments_service.find_one(req=None, _id=doc.pop('assignment_id'))
-            assignments_service.validate_assignment_action(assignment)
-            item = production.find_one(req=None, _id=doc.pop('item_id'))
             # Boolean set to true if the unlink is as the result of spiking the content item
             spike = doc.pop('spike', False)
-
-            # Set the state to 'assigned' if the item is 'submitted'
+            assignment = assignments_service.find_one(req=None, _id=doc.pop('assignment_id'))
+            assignments_service.validate_assignment_action(assignment)
+            actioned_item_id = doc.pop('item_id')
+            actioned_item = production.find_one(req=None, _id=actioned_item_id)
             updates = {'assigned_to': deepcopy(assignment.get('assigned_to'))}
-            updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
-            assignments_service.patch(assignment[config.ID_FIELD], updates)
 
-            production.system_update(
-                item[config.ID_FIELD],
-                {'assignment_id': None},
-                item
-            )
+            related_items = get_related_items(actioned_item, assignment)
+            for item in related_items:
+                # For all items, update news item for unlinking
+                update_assignment_on_link_unlink(None, item, published_updated_items)
+                ids.append(item[config.ID_FIELD])
+                updated_items.append(item)
 
-            # Update published collection
-            if item.get(ITEM_STATE) in PUBLISH_STATES:
-                get_resource_service('published').update_published_items(
-                    item[config.ID_FIELD],
-                    'assignment_id', None)
+            # Update assignment if no other archive item is linked to it
+            doc.update(actioned_item)
+            archive_items = assignments_service.get_archive_items_for_assignment(assignment)
+            other_linked_items = [a for a in archive_items if
+                                  str(a.get(config.ID_FIELD)) != str(actioned_item[config.ID_FIELD])]
+            if len(other_linked_items) <= 0:
+                # Set the state to 'assigned' if the item is 'submitted'
+                updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+                assignments_service.patch(assignment.get(config.ID_FIELD), updates)
 
-            get_resource_service('delivery').delete_action(lookup={
-                'assignment_id': assignment[config.ID_FIELD],
-                'item_id': item[config.ID_FIELD]
-            })
-
-            doc.update(item)
-            ids.append(doc[config.ID_FIELD])
-            items.append(item)
-
-            user = get_user()
-            PlanningNotifications().notify_assignment(target_desk=item.get('task').get('desk'),
-                                                      message='assignment_spiked_unlinked_msg',
-                                                      actioning_user=user.get('display_name',
-                                                                              user.get('username', 'Unknown')),
-                                                      action='unlinked' if not spike else 'spiked',
-                                                      coverage_type=get_coverage_type_name(item.get('type', '')),
-                                                      slugline=item.get('slugline'),
-                                                      omit_user=True)
-
-            push_content_notification(items)
-            push_notification(
-                'content:unlink',
-                item=str(item[config.ID_FIELD]),
-                assignment=str(assignment[config.ID_FIELD])
-            )
+            # Delete delivery records associated with all the items unlinked
+            item_ids = [i.get(config.ID_FIELD) for i in related_items]
+            get_resource_service('delivery').delete_action(lookup={'item_id': {'$in': item_ids}})
 
             # publishing planning item
             assignments_service.publish_planning(assignment['planning_item'])
 
-        assignment_history_service = get_resource_service('assignments_history')
-        if spike:
-            get_resource_service('assignments_history').on_item_content_unlink(updates, assignment,
-                                                                               ASSIGNMENT_HISTORY_ACTIONS.SPIKE_UNLINK)
-        else:
-            assignment_history_service.on_item_content_unlink(updates, assignment)
+            user = get_user()
+            PlanningNotifications().notify_assignment(target_desk=actioned_item.get('task').get('desk'),
+                                                      message='assignment_spiked_unlinked_msg',
+                                                      actioning_user=user.get('display_name',
+                                                                              user.get('username', 'Unknown')),
+                                                      action='unlinked' if not spike else 'spiked',
+                                                      coverage_type=get_coverage_type_name(
+                                                          actioned_item.get('type', '')),
+                                                      slugline=actioned_item.get('slugline'),
+                                                      omit_user=True)
+
+            push_content_notification(updated_items)
+            push_notification(
+                'content:unlink',
+                item=str(actioned_item_id),
+                assignment=str(assignment[config.ID_FIELD])
+            )
+
+            # Update assignment history with all items affected
+            updates['item_ids'] = ids
+            assignment_history_service = get_resource_service('assignments_history')
+            if spike:
+                get_resource_service('assignments_history')\
+                    .on_item_content_unlink(updates, assignment, ASSIGNMENT_HISTORY_ACTIONS.SPIKE_UNLINK)
+            else:
+                assignment_history_service.on_item_content_unlink(updates, assignment)
 
         return ids
 
@@ -153,12 +155,10 @@ class AssignmentsUnlinkService(Service):
                 'Assignment and Content are not linked.'
             )
 
-        delivery = get_resource_service('delivery').find_one(
-            req=None,
-            assignment_id=assignment[config.ID_FIELD]
-        )
-
-        if not delivery or delivery.get('item_id') != doc.get('item_id'):
+        deliveries = get_resource_service('delivery').get(req=None, lookup={
+            'assignment_id': assignment.get(config.ID_FIELD)})
+        delivery = [d for d in deliveries if d.get('item_id') == doc.get('item_id')]
+        if len(delivery) <= 0:
             raise SuperdeskApiError.badRequestError(
                 'Content doesnt exist for the assignment. Cannot unlink assignment and content.'
             )

@@ -13,6 +13,7 @@ import {
     DateTimeInput,
     SelectTagInput,
     Field,
+    ToggleInput,
 } from '../../UI/Form';
 import {InternalNoteLabel} from '../../';
 import {ContactField} from '../../Contacts';
@@ -237,6 +238,17 @@ export class CoverageForm extends React.Component {
                     popupContainer={popupContainer}
                     onPopupOpen={onPopupOpen}
                     onPopupClose={onPopupClose}
+                />
+
+                <Field
+                    component={ToggleInput}
+                    field={`${field}.flags.no_content_linking`}
+                    label={gettext('Do not link content updates')}
+                    labelLeft={true}
+                    defaultValue={false}
+                    {...fieldProps}
+                    readOnly={roFields.flags}
+                    profileName="flags"
                 />
             </div>
         );

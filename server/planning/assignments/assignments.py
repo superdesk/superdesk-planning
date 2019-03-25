@@ -30,8 +30,8 @@ from apps.common.components.utils import get_component
 from planning.item_lock import LockService, LOCK_USER, LOCK_ACTION
 from superdesk.users.services import current_user_has_privilege
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information, \
-    get_local_end_of_day, is_locked_in_this_session, get_coverage_type_name, \
-    get_version_item_for_post, enqueue_planning_item, DEFAULT_ASSIGNMENT_PRIORITY, WORKFLOW_STATE
+    is_locked_in_this_session, get_coverage_type_name, get_version_item_for_post, \
+    enqueue_planning_item, WORKFLOW_STATE
 from flask import request, json, current_app as app
 from planning.planning_notifications import PlanningNotifications
 from apps.content import push_content_notification
@@ -578,6 +578,13 @@ class AssignmentsService(superdesk.Service):
                     self._update_assignment_and_notify(updated_assignment, assignment_update_data['assignment'])
                     get_resource_service('assignments_history').on_item_complete(
                         updated_assignment, assignment_update_data.get('assignment'))
+
+                    # Update delivery record here
+                    delivery_service = get_resource_service('delivery')
+                    delivery = delivery_service.find_one(req=None, item_id=original[config.ID_FIELD])
+                    if delivery and delivery.get('item_state') != CONTENT_STATE.PUBLISHED:
+                        delivery_service.patch(delivery[config.ID_FIELD], {'item_state': CONTENT_STATE.PUBLISHED})
+
                     # publish planning
                     self.publish_planning(assignment_update_data.get('assignment').get('planning_item'))
 
@@ -594,7 +601,7 @@ class AssignmentsService(superdesk.Service):
                                                               slugline=original.get('slugline'),
                                                               omit_user=True)
 
-    def duplicate_assignment_on_create_archive_rewrite(self, items):
+    def create_delivery_for_content_update(self, items):
         """Duplicates the coverage/assignment for the archive rewrite
 
         If any errors occur at this point in time, the rewrite is still created
@@ -625,34 +632,27 @@ class AssignmentsService(superdesk.Service):
                     'Delivery record not found.'
                 )
 
-            # Duplicate the coverage, which will generate our new assignment for us
-            updated_plan, new_coverage = planning_service.duplicate_coverage_for_article_rewrite(
-                planning_id=delivery.get('planning_id'),
-                coverage_id=delivery.get('coverage_id'),
-                updates={
-                    'planning': {
-                        'g2_content_type': item.get('type'),
-                        'slugline': item.get('slugline'),
-                        'scheduled': get_local_end_of_day(),
-                    },
-                    'news_coverage_status': {
-                        'qcode': 'ncostat:int'
-                    },
-                    'assigned_to': {
-                        'user': (item.get('task') or {}).get('user'),
-                        'desk': (item.get('task') or {}).get('desk'),
-                        'state': ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
-                        'priority': DEFAULT_ASSIGNMENT_PRIORITY,
-                    }
-                }
-            )
+            planning = planning_service.find_one(req=None, _id=delivery.get('planning_id'))
+            if not planning:
+                raise SuperdeskApiError.badRequestError(
+                    'Planning does not exist'
+                )
 
-            new_assignment_id = new_coverage['assigned_to'].get('assignment_id')
-            assignment_link_service.post([{
-                'assignment_id': str(new_assignment_id),
-                'item_id': str(item[config.ID_FIELD]),
-                'reassign': True
-            }])
+            coverages = planning.get('coverages') or []
+            try:
+                coverage = next(c for c in coverages if c.get('coverage_id') == delivery.get('coverage_id'))
+            except StopIteration:
+                raise SuperdeskApiError.badRequestError(
+                    'Coverage does not exist'
+                )
+
+            # Link only if linking updates are enabled
+            if not (coverage.get('flags') or {}).get('no_content_linking'):
+                assignment_link_service.post([{
+                    'assignment_id': str(assignment[config.ID_FIELD]),
+                    'item_id': str(item[config.ID_FIELD]),
+                    'reassign': True
+                }])
 
     def unlink_assignment_on_delete_archive_rewrite(self):
         # Because this is in response to a Resource level DELETE, we need to get the
@@ -798,7 +798,7 @@ class AssignmentsService(superdesk.Service):
             )
 
             delivery_service.delete_action(lookup={
-                'assignment_id': assignment_id,
+                'assignment_id': ObjectId(assignment_id),
                 'item_id': archive_item[config.ID_FIELD]
             })
 

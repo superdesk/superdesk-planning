@@ -2117,3 +2117,121 @@ Feature: Planning
             "_issues": {"validator exception": "400: Cannot remove coverage of a cancelled planning item."}
         }
         """
+
+    @auth
+    @notification @test
+    Scenario: no_content_linking flag cannot be updated if coverage is active
+        Given "desks"
+        """
+        [{"name": "Sports", "content_expiry": 60}]
+        """
+        When we post to "planning" with success
+        """
+        [{
+          "guid": "123",
+          "headline": "test headline",
+          "slugline": "test slugline",
+          "state": "scheduled",
+          "pubstatus": "usable",
+          "planning_date": "2016-01-02",
+          "coverages": [
+            {
+                "planning": {
+                    "ednote": "test coverage, 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline",
+                    "scheduled": "2029-11-21T14:00:00.000Z",
+                    "g2_content_type": "text"
+                },
+                "workflow_status": "draft",
+                "news_coverage_status": {
+                    "qcode": "ncostat:int"
+                }
+            }
+          ]
+        }]
+        """
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+            {
+                "coverage_id": "#firstcoverage#",
+                "planning": {
+                    "ednote": "test coverage, 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline",
+                    "scheduled": "2029-11-21T14:00:00.000Z",
+                    "g2_content_type": "text"
+                },
+                "workflow_status": "draft",
+                "news_coverage_status": {
+                    "qcode": "ncostat:int"
+                },
+                "flags": { "no_content_linking": true}
+            }
+            ]
+        }
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+            {
+                "coverage_id": "#firstcoverage#",
+                "planning": {
+                    "ednote": "test coverage, 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline",
+                    "scheduled": "2029-11-21T14:00:00.000Z",
+                    "g2_content_type": "text"
+                },
+                "workflow_status": "draft",
+                "news_coverage_status": {
+                    "qcode": "ncostat:int"
+                },
+                "flags": { "no_content_linking": true},
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "state": "active"
+                }
+            }]
+        }
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+            {
+                "coverage_id": "#firstcoverage#",
+                "planning": {
+                    "ednote": "test coverage, 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline",
+                    "scheduled": "2029-11-21T14:00:00.000Z",
+                    "g2_content_type": "text"
+                },
+                "workflow_status": "active",
+                "news_coverage_status": {
+                    "qcode": "ncostat:int"
+                },
+                "flags": { "no_content_linking": false},
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "state": "active"
+                }
+            }]
+        }
+        """
+        Then we get error 400
+        """
+        {
+            "_issues": {"validator exception": "400: Cannot edit content linking flag of a coverage already in workflow"}
+        }
+        """

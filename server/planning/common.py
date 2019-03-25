@@ -14,15 +14,17 @@ import re
 from flask import current_app as app
 from datetime import datetime, time, timedelta
 from collections import namedtuple
-from eve.utils import config
 from superdesk.resource import not_analyzed, build_custom_hateoas
 from superdesk import get_resource_service, logger
-from superdesk.metadata.item import ITEM_TYPE
+from superdesk.metadata.item import ITEM_TYPE, CONTENT_STATE
 from superdesk.utc import utcnow
 from superdesk.celery_app import celery
 from apps.archive.common import get_user, get_auth
 from apps.publish.enqueue import get_enqueue_service
 from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
+from eve.utils import config, ParsedRequest
+from werkzeug.datastructures import MultiDict
+import json
 
 ITEM_STATE = 'state'
 ITEM_EXPIRY = 'expiry'
@@ -346,3 +348,68 @@ def set_actioned_date_to_event(updates, original):
             updates['actioned_date'] = now
         else:
             updates['actioned_date'] = original['dates']['start']
+
+
+def get_related_items(item, assignment=None):
+    req = ParsedRequest()
+    req.args = MultiDict()
+    must_not = [{'term': {'state': 'spiked'}}]
+    must = [{'term': {'event_id': item.get('event_id')}},
+            {'term': {'type': 'text'}}]
+
+    if assignment:
+        must.append({"term": {"assignment_id": str(assignment.get(config.ID_FIELD))}})
+
+    query = {
+        'query': {
+            'filtered': {
+                'filter': {
+                    'bool': {
+                        'must': must,
+                        'must_not': must_not
+                    }
+                }
+            }
+        }
+    }
+
+    req.args['source'] = json.dumps(query)
+    req.args['repo'] = 'archive,published'
+    items_list = get_resource_service('search').get(req, None)
+
+    archive_list = {}
+    for i in items_list:
+        # If item is published, get archive item or the item itself
+        if i.get(config.ID_FIELD) not in archive_list:
+            archive_list[i.get(config.ID_FIELD)] = i.get('archive_item') or i
+
+    # This is to ensure if elastic search is not updated, we add or remove the item
+    if item.get(config.ID_FIELD) not in archive_list:
+        return list(archive_list.values()) + [item]
+    else:
+        return list(archive_list.values())
+
+
+def update_assignment_on_link_unlink(assignment_id, item, published_updated):
+    published_states = [CONTENT_STATE.SCHEDULED,
+                        CONTENT_STATE.PUBLISHED,
+                        CONTENT_STATE.KILLED,
+                        CONTENT_STATE.RECALLED,
+                        CONTENT_STATE.CORRECTED]
+    if item.get('state') in published_states and item.get(config.ID_FIELD) not in published_updated:
+        # This will also update corrected, killed version of the published item
+        get_resource_service('published').update_published_items(
+            item[config.ID_FIELD],
+            'assignment_id', assignment_id)
+
+        published_updated.append(item.get(config.ID_FIELD))
+
+    get_resource_service('archive').system_update(
+        item[config.ID_FIELD],
+        {'assignment_id': assignment_id},
+        item
+    )
+
+
+def planning_link_updates_to_coverage():
+    return app.config.get('PLANNING_LINK_UPDATES_TO_COVERAGES', False)
