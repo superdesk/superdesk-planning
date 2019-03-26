@@ -215,6 +215,7 @@ export class EventScheduleInput extends React.Component {
             onPopupClose,
             showTimeZone,
             showRemoteTimeZone,
+            refNode,
         } = this.props;
         const {isAllDay} = this.state;
 
@@ -292,6 +293,7 @@ export class EventScheduleInput extends React.Component {
                     remoteTimeZone={showRemoteTimeZone ? get(diff, 'dates.tz') : null}
                     allowInvalidTime
                     isLocalTimeZoneDifferent={isRemoteTimeZone}
+                    refNode={refNode}
                 />
 
                 <Field
@@ -366,6 +368,7 @@ EventScheduleInput.propTypes = {
     onPopupClose: PropTypes.func,
     showTimeZone: PropTypes.bool,
     showRemoteTimeZone: PropTypes.bool,
+    refNode: PropTypes.func,
 };
 
 EventScheduleInput.defaultProps = {

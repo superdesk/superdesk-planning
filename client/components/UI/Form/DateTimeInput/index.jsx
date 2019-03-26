@@ -37,6 +37,7 @@ export const DateTimeInput = ({
     remoteTimeZone,
     allowInvalidTime,
     isLocalTimeZoneDifferent,
+    refNode,
     ...props
 }) => (
     <Row flex={true} halfWidth={halfWidth} noPadding={!!invalid} className={{
@@ -65,6 +66,7 @@ export const DateTimeInput = ({
             onPopupClose={onPopupClose}
             remoteTimeZone={remoteTimeZone}
             isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
+            refNode={refNode}
         />
 
         {!hideTime && <Field
@@ -133,6 +135,7 @@ DateTimeInput.propTypes = {
     remoteTimeZone: PropTypes.string,
     allowInvalidTime: PropTypes.bool,
     isLocalTimeZoneDifferent: PropTypes.bool,
+    refNode: PropTypes.func,
 };
 
 DateTimeInput.defaultProps = {

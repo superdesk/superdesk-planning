@@ -230,13 +230,15 @@ export class EventEditorComponent extends React.Component {
                         onFocus={onFocusEvent}
                         showTimeZone={!itemExists}
                         {...popupProps}
+                        refNode={!itemExists ? (node) => this.dom.initialFocus = node : undefined}
                     />
 
                     <Field
                         component={TextInput}
                         field="slugline"
                         label={gettext('Slugline')}
-                        refNode={(node) => this.dom.initialFocus = node}
+                        refNode={itemExists && get(formProfile, 'editor.slugline.enabled') ?
+                            (node) => this.dom.initialFocus = node : undefined}
                         {...fieldProps}
                         onFocus={onFocusEvent}
                     />
@@ -245,7 +247,7 @@ export class EventEditorComponent extends React.Component {
                         component={TextInput}
                         field="name"
                         label={gettext('Event name')}
-                        refNode={get(formProfile, 'editor.slugline.enabled') ? undefined :
+                        refNode={get(formProfile, 'editor.slugline.enabled') || !itemExists ? undefined :
                             (node) => this.dom.initialFocus = node}
                         {...fieldProps}
                         onFocus={onFocusEvent}
