@@ -198,9 +198,12 @@ class EventsPostService(EventsBaseService):
         planning_spike_service = get_resource_service('planning_spike')
         docs = []
         for planning in plannings:
-            if not planning.get('pubstatus') and planning.get('state') == WORKFLOW_STATE.DRAFT:
+            if not planning.get('pubstatus'):
+                continue
+
+            if planning.get('state') == WORKFLOW_STATE.DRAFT:
                 planning_spike_service.patch(planning.get(config.ID_FIELD), planning)
-            elif planning['pubstatus'] != POST_STATE.CANCELLED:
+            elif planning.get('pubstatus') != POST_STATE.CANCELLED:
                 docs.append({
                     'planning': planning.get(config.ID_FIELD),
                     'etag': planning.get('etag'),
