@@ -35,9 +35,10 @@ class PlanningSpikeResource(PlanningResource):
 
 class PlanningSpikeService(BaseService):
     def update(self, id, updates, original):
-        if original.get('state') != WORKFLOW_STATE.DRAFT:
+        if original.get('pubstatus') or original.get('state') not in\
+                [WORKFLOW_STATE.DRAFT, WORKFLOW_STATE.POSTPONED, WORKFLOW_STATE.CANCELLED]:
             raise SuperdeskApiError.badRequestError(
-                message="Spike failed. Only draft Planning Items can be spiked."
+                message="Spike failed. Planning item in invalid state for spiking."
             )
 
         user = get_user(required=True)
