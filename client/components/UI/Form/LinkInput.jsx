@@ -27,8 +27,9 @@ export class LinkInput extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.value !== this.props.value) {
-            this.setTitle(nextProps.value);
+        if (nextProps.value !== this.props.value ||
+            get(nextProps, `errors.${nextProps.field}`) !== get(this.props, `errors.${this.props.field}`)) {
+            this.setTitle(nextProps.value, nextProps);
         }
     }
 
@@ -64,17 +65,43 @@ export class LinkInput extends React.Component {
         return `${protocol}//${hostname}${resource}`;
     }
 
-    setTitle(link) {
+    setTitle(link, props = this.props) {
         if (!link) {
             return;
         }
 
-        if (!this.props.iframelyKey) {
-            this.setState({title: 'www.' + this.extractHostname(link)});
+        const hostName = this.extractHostname(link);
+
+        if (!props.iframelyKey) {
+            this.setState({title: 'www.' + hostName});
             return;
         }
 
-        let url = 'https://iframe.ly/api/iframely?url=' + link + '&api_key=' + this.props.iframelyKey;
+        const urlRegExp = new RegExp(
+            '^' +
+            // host & domain names, may end with dot
+            // can be replaced by a shortest alternative
+            // (?![-_])(?:[-\\w\\u00a1-\\uffff]{0,63}[^-_]\\.)+
+            '(?:' +
+            '(?:' +
+              '[a-z0-9\\u00a1-\\uffff]' +
+              '[a-z0-9\\u00a1-\\uffff_-]{0,62}' +
+            ')?' +
+            '[a-z0-9\\u00a1-\\uffff]\\.' +
+            ')+' +
+            // TLD identifier name, may end with dot
+            '(?:[a-z\\u00a1-\\uffff]{2,}\\.?)' +
+            // ")" +
+                '(?:[/?#]\\S*)?' +
+            '$', 'i'
+        );
+
+
+        if (get(props, `errors.${props.field}.length`, 0) > 0 || !hostName.match(urlRegExp)) {
+            return;
+        }
+
+        let url = 'https://iframe.ly/api/iframely?url=' + link + '&api_key=' + props.iframelyKey;
 
         fetch(url).then((response) => {
             // Need to do HTTP response status check manually for whatwg-fetch
@@ -117,7 +144,12 @@ export class LinkInput extends React.Component {
             </Row>
         ) : (
             <Row className="link-input">
-                <LineInput {...props} readOnly={readOnly} noMargin={noMargin}>
+                <LineInput
+                    {...props}
+                    readOnly={readOnly}
+                    noMargin={noMargin}
+                    invalid={get(props, `errors.${field}.length`, 0) > 0}
+                    message={get(props, `errors.${field}`)}>
                     <Label text={label} />
 
                     <TextArea
