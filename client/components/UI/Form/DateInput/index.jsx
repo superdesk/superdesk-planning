@@ -189,7 +189,12 @@ export class DateInput extends React.Component {
                         }
                     }
                     }
-                    refNode={(ref) => this.dom.inputField = ref}
+                    refNode={(ref) => {
+                        this.dom.inputField = ref;
+                        if (this.props.refNode) {
+                            this.props.refNode(ref);
+                        }
+                    }}
                 />}
                 {displayDateString && <span>{displayDateString}</span>}
                 {this.state.openDatePicker && (
@@ -234,6 +239,7 @@ DateInput.propTypes = {
     onPopupClose: PropTypes.func,
     isLocalTimeZoneDifferent: PropTypes.bool,
     inputAsLabel: PropTypes.bool,
+    refNode: PropTypes.func,
 };
 
 DateInput.defaultProps = {
