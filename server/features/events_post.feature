@@ -392,7 +392,7 @@ Feature: Events Post
         When we get "/assignments"
         Then we get list with 0 items
 
-        @auth
+    @auth
     @notification
     @vocabulary
     Scenario: Unposting an event will unpost associated planning item
@@ -770,3 +770,231 @@ Feature: Events Post
         }
         """
 
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Unposting an event will spike planning items which in draft state
+        When we post to "events"
+        """
+        {
+            "name": "TestEvent",
+            "slugline": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        When we post to "/planning"
+        """
+        {
+            "item_class": "item class value",
+            "headline": "test headline1",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02",
+            "event_item": "#events._id#"
+        }
+        """
+        Then we get OK response
+        Then we get OK response
+        When we post to "/events/post"
+        """
+        {
+            "event": "#events._id#",
+            "etag": "#events._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we get "events/#events._id#"
+        Then we get existing resource
+        """
+        { "state": "scheduled", "pubstatus": "usable" }
+        """
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        { "state": "draft" }
+        """
+        When we post to "/events/post"
+        """
+        {
+            "event": "#events._id#",
+            "etag": "#events._etag#",
+            "pubstatus": "cancelled"
+        }
+        """
+        Then we get OK response
+        When we get "events/#events._id#"
+        Then we get existing resource
+        """
+        { "state": "killed" }
+        """
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        { "state": "spiked" }
+        """
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Unposting an event will spike never posted planning items which in postpone state
+        When we post to "events"
+        """
+        {
+            "name": "TestEvent",
+            "slugline": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        When we post to "/planning"
+        """
+        {
+            "item_class": "item class value",
+            "headline": "test headline1",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02",
+            "event_item": "#events._id#"
+        }
+        """
+        Then we get OK response
+        Then we get OK response
+        When we post to "/events/post"
+        """
+        {
+            "event": "#events._id#",
+            "etag": "#events._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we get "events/#events._id#"
+        Then we get existing resource
+        """
+        { "state": "scheduled", "pubstatus": "usable" }
+        """
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        { "state": "draft" }
+        """
+        When we post to "/events/#events._id#/lock" with success
+        """
+        {"lock_action": "postpone"}
+        """
+        When we perform postpone on events "#events._id#"
+        """
+        {"reason": "Not happening anymore!"}
+        """
+        Then we get OK response
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        { "state": "postponed" }
+        """
+        When we post to "/events/post"
+        """
+        {
+            "event": "#events._id#",
+            "etag": "#events._etag#",
+            "pubstatus": "cancelled"
+        }
+        """
+        Then we get OK response
+        When we get "events/#events._id#"
+        Then we get existing resource
+        """
+        { "state": "killed" }
+        """
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        { "state": "spiked" }
+        """
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Unposting an event will spike never posted planning items which in cancel state
+        When we post to "events"
+        """
+        {
+            "name": "TestEvent",
+            "slugline": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        When we post to "/planning"
+        """
+        {
+            "item_class": "item class value",
+            "headline": "test headline1",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02",
+            "event_item": "#events._id#"
+        }
+        """
+        Then we get OK response
+        Then we get OK response
+        When we post to "/events/post"
+        """
+        {
+            "event": "#events._id#",
+            "etag": "#events._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we get "events/#events._id#"
+        Then we get existing resource
+        """
+        { "state": "scheduled", "pubstatus": "usable" }
+        """
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        { "state": "draft" }
+        """
+        When we post to "/events/#events._id#/lock" with success
+        """
+        {"lock_action": "cancel"}
+        """
+        When we perform cancel on events "#events._id#"
+        """
+        {"reason": "Not happening anymore!"}
+        """
+        Then we get OK response
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        { "state": "cancelled" }
+        """
+        When we post to "/events/post"
+        """
+        {
+            "event": "#events._id#",
+            "etag": "#events._etag#",
+            "pubstatus": "cancelled"
+        }
+        """
+        Then we get OK response
+        When we get "events/#events._id#"
+        Then we get existing resource
+        """
+        { "state": "killed" }
+        """
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        { "state": "spiked" }
+        """

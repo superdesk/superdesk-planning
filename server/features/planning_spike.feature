@@ -408,3 +408,81 @@ Feature: Planning Spike
         """
         When we get "/assignments"
         Then we get list with 1 items
+
+    @auth
+    @notification
+    Scenario: Spike will succeed for never posted planning items in draft, cancelled, postponed state
+        Given "planning"
+        """
+        [{
+            "slugline": "TestPlan",
+            "state": "draft",
+            "planning_date": "2016-01-02"
+        },
+        {
+            "slugline": "TestPlan",
+            "state": "postponed",
+            "planning_date": "2016-01-02"
+        },
+        {
+            "slugline": "TestPlan",
+            "state": "cancelled",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        When we spike planning "#planning._id#"
+        Then we get OK response
+        When we get "planning"
+        Then we get list with 3 items
+        """
+        {"_items": [{ "state": "spiked" }, { "state": "spiked" }, { "state": "spiked" }]}
+        """
+
+    @auth
+    @notification
+    Scenario: Spike will fail if planing item has ever been posted
+        Given "planning"
+        """
+        [{
+            "guid": "plan1",
+            "slugline": "TestPlan",
+            "state": "scheduled",
+            "planning_date": "2016-01-02",
+            "pubstatus": "usable"
+        },
+        {
+            "guid": "plan2",
+            "slugline": "TestPlan",
+            "state": "postponed",
+            "planning_date": "2016-01-02",
+            "pubstatus": "usable"
+        },
+        {
+            "guid": "plan3",
+            "slugline": "TestPlan",
+            "state": "cancelled",
+            "planning_date": "2016-01-02",
+            "pubstatus": "usable"
+        }]
+        """
+        When we spike planning "plan1"
+        Then we get error  400
+        """
+        {
+            "_issues": {"validator exception": "400: Spike failed. Planning item in invalid state for spiking."}
+        }
+        """
+        When we spike planning "plan2"
+        Then we get error  400
+        """
+        {
+            "_issues": {"validator exception": "400: Spike failed. Planning item in invalid state for spiking."}
+        }
+        """
+        When we spike planning "plan3"
+        Then we get error  400
+        """
+        {
+            "_issues": {"validator exception": "400: Spike failed. Planning item in invalid state for spiking."}
+        }
+        """
