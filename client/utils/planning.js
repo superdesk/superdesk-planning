@@ -827,7 +827,14 @@ const defaultCoverageValues = (
         }
         if (coverageTime) {
             coverageTime.add(1, 'hour');
-            coverageTime.minute() ? coverageTime.add(1, 'hour').startOf('hour') : coverageTime.startOf('hour');
+
+            // Only round up to the hour if we didn't derive coverage time from an Event
+            if (!eventItem) {
+                coverageTime.minute() ?
+                    coverageTime.add(1, 'hour').startOf('hour') :
+                    coverageTime.startOf('hour');
+            }
+
             if (moment().isAfter(coverageTime)) {
                 coverageTime = moment();
                 coverageTime.minute() ? coverageTime.add(1, 'hour').startOf('hour') : coverageTime.startOf('hour');
