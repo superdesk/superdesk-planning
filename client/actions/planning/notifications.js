@@ -339,7 +339,7 @@ const onPlanningFeaturedUnLocked = (_e, data) => (
 
                 // Close modal and send notification unlocked popup
                 dispatch(planning.featuredPlanning.unsetFeaturePlanningInUse(false));
-                dispatch(hideModal());
+                dispatch(hideModal(true));
                 dispatch(showModal({
                     modalType: MODALS.NOTIFICATION_MODAL,
                     modalProps: {

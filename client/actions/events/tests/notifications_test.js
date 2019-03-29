@@ -538,7 +538,10 @@ describe('actions.events.notifications', () => {
                     ' by "firstname2 lastname2"';
 
                     expect(store.dispatch.args[1][0].type).toEqual('AUTOSAVE_REMOVE');
-                    expect(store.dispatch.args[2]).toEqual([{type: 'HIDE_MODAL'}]);
+                    expect(store.dispatch.args[2]).toEqual([{
+                        type: 'HIDE_MODAL',
+                        payload: {clearPreviousState: false},
+                    }]);
                     expect(store.dispatch.args[3]).toEqual([{
                         type: 'SHOW_MODAL',
                         modalType: 'NOTIFICATION_MODAL',
