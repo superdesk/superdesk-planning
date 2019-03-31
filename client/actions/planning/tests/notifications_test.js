@@ -480,7 +480,7 @@ describe('actions.planning.notifications', () => {
             restoreSinonStub(featuredPlanning.addPlanningItemToSelection);
         });
 
-        it('onPlanningUpdated does not call scheduleRefetch if item is being edited', (done) => {
+        it('onPlanningUpdated does call scheduleRefetch if item is being edited', (done) => {
             store.initialState.planning.plannings['p1'] = {
                 lock_action: 'edit',
                 lock_user: 'ident1',
@@ -499,8 +499,8 @@ describe('actions.planning.notifications', () => {
 
             return store.test(done, planningNotifications.onPlanningUpdated({}, {item: data.plannings[0]._id}))
                 .then(() => {
-                    expect(planningUi.scheduleRefetch.callCount).toBe(0);
-                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(0);
+                    expect(planningUi.scheduleRefetch.callCount).toBe(1);
+                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
                     done();
                 })
                 .catch(done.fail);

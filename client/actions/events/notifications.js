@@ -5,7 +5,7 @@ import eventsUi from './ui';
 import main from '../main';
 import planningApi from '../planning/api';
 import {get} from 'lodash';
-import {gettext, dispatchUtils, getErrorMessage, isItemLockedForEditing} from '../../utils';
+import {gettext, dispatchUtils, getErrorMessage} from '../../utils';
 import eventsPlanning from '../eventsPlanning';
 
 /**
@@ -275,22 +275,10 @@ const onRecurringEventCreated = (_e, data) => (
 const onEventUpdated = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
-            const storedEvent = selectors.events.storedEvents(getState())[data.item];
-            const currentEditId = selectors.forms.currentItemId(getState());
-
-            if (get(data, 'recurrence_id') ||
-                get(data, 'item') !== currentEditId ||
-                !isItemLockedForEditing(
-                    storedEvent,
-                    selectors.general.session(getState()),
-                    selectors.locks.getLockedItems(getState())
-                )
-            ) {
-                dispatch(main.setUnsetLoadingIndicator(true));
-                dispatch(eventsUi.scheduleRefetch(get(data, 'recurrence_id') ? [data.item] : []))
-                    .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
-                    .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
-            }
+            dispatch(main.setUnsetLoadingIndicator(true));
+            dispatch(eventsUi.scheduleRefetch(get(data, 'recurrence_id') ? [data.item] : []))
+                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
+                .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
 
             dispatch(fetchItemHistoryOnRecurringNotitication(data));
         }

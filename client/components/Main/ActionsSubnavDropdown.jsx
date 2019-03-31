@@ -10,6 +10,13 @@ export const ActionsSubnavDropdown = (props) => {
         action: props.openAgendas,
     }];
 
+    if (props.privileges[PRIVILEGES.EVENTS_PLANNING_FILTERS_MANAGEMENT]) {
+        items.push({
+            label: gettext('Manage Event & Planning Filters'),
+            action: props.openEventsPlanningFiltersModal,
+        });
+    }
+
     if (props.privileges[PRIVILEGES.FEATURED_STORIES]) {
         items.push({
             label: gettext('Featured stories'),
@@ -31,5 +38,6 @@ export const ActionsSubnavDropdown = (props) => {
 ActionsSubnavDropdown.propTypes = {
     openFeaturedPlanningModal: PropTypes.func,
     openAgendas: PropTypes.func,
+    openEventsPlanningFiltersModal: PropTypes.func,
     privileges: PropTypes.object,
 };

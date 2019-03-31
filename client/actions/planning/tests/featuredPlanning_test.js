@@ -6,6 +6,7 @@ import sinon from 'sinon';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import {FEATURED_PLANNING, MAIN, TIME_COMPARISON_GRANULARITY} from '../../../constants';
 
+
 describe('actions.planning.api', () => {
     let store;
     let services;

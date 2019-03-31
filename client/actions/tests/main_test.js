@@ -65,7 +65,7 @@ describe('actions.main', () => {
             sinon.stub(eventsUi, 'clearList');
             sinon.stub(planningUi, 'clearList');
             sinon.stub(eventsPlanningUi, 'clearList');
-            sinon.stub(eventsPlanningUi, 'fetch').returns(Promise.resolve());
+            sinon.stub(eventsPlanningUi, 'selectFilter').returns(Promise.resolve());
         });
 
         afterEach(() => {
@@ -73,7 +73,7 @@ describe('actions.main', () => {
             restoreSinonStub(eventsUi.clearList);
             restoreSinonStub(planningUi.clearList);
             restoreSinonStub(eventsPlanningUi.clearList);
-            restoreSinonStub(eventsPlanningUi.fetch);
+            restoreSinonStub(eventsPlanningUi.selectFilter);
         });
 
         it('filter combined', (done) => (
@@ -85,12 +85,12 @@ describe('actions.main', () => {
                     }]);
                     expect(store.dispatch.callCount).toBe(7);
                     expect(services.$timeout.callCount).toBe(1);
-                    expect(services.$location.search.callCount).toBe(4);
+                    expect(services.$location.search.callCount).toBe(5);
                     expect(services.$location.search.args).toEqual(
-                        [[], [], [], ['filter', 'COMBINED']]
+                        [[], [], [], ['filter', 'COMBINED'], []]
                     );
 
-                    expect(eventsPlanningUi.fetch.callCount).toBe(1);
+                    expect(eventsPlanningUi.selectFilter.callCount).toBe(1);
                     expect(planningUi.clearList.callCount).toBe(1);
                     expect(eventsUi.clearList.callCount).toBe(1);
                     done();
@@ -385,7 +385,15 @@ describe('actions.main', () => {
             store.test(done, main.clearSearch())
                 .then(() => {
                     expect(eventsPlanningUi.fetch.callCount).toBe(1);
-                    expect(eventsPlanningUi.fetch.args[0]).toEqual([{}]);
+                    expect(eventsPlanningUi.fetch.args[0]).toEqual([{
+                        advancedSearch: {},
+                        page: 1,
+                        calendars: [],
+                        agendas: [],
+                        fulltext: '',
+                        spikeState: 'draft',
+                        eventsPlanningFilter: 'ALL_EVENTS_PLANNING',
+                    }]);
                     done();
                 })
                 .catch(done.fail);

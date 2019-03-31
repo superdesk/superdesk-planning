@@ -14,6 +14,8 @@ describe('eventsplanning', () => {
             expect(initialState).toEqual({
                 eventsAndPlanningInList: [],
                 relatedPlannings: {},
+                filters: [],
+                currentFilter: null,
             });
         });
 
@@ -71,6 +73,77 @@ describe('eventsplanning', () => {
             );
 
             expect(result.relatedPlannings.e1).toEqual(['p1', 'p2']);
+        });
+
+        it('set current selected filter', () => {
+            const result = eventsPlanning(
+                initialState,
+                {
+                    type: EVENTS_PLANNING.ACTIONS.SELECT_EVENTS_PLANNING_FILTER,
+                    payload: 'foo',
+                }
+            );
+
+            expect(result.currentFilter).toEqual('foo');
+        });
+
+        it('receive filters', () => {
+            const result = eventsPlanning(
+                initialState,
+                {
+                    type: EVENTS_PLANNING.ACTIONS.RECEIVE_EVENTS_PLANNING_FILTERS,
+                    payload: [
+                        {_id: 1, name: 'sports'},
+                        {_id: 2, name: 'finance'},
+                    ],
+                }
+            );
+
+            expect(result.filters).toEqual(
+                [
+                    {_id: 2, name: 'finance'},
+                    {_id: 1, name: 'sports'},
+                ]
+            );
+        });
+
+        it('add filter or update filter', () => {
+            initialState.filters = [{_id: 1, name: 'sports'}];
+
+            let result = eventsPlanning(
+                initialState,
+                {
+                    type: EVENTS_PLANNING.ACTIONS.ADD_OR_REPLACE_EVENTS_PLANNING_FILTER,
+                    payload: {_id: 2, name: 'finance'},
+                }
+            );
+
+            expect(result.filters).toEqual(
+                [
+                    {_id: 2, name: 'finance'},
+                    {_id: 1, name: 'sports'},
+                ]
+            );
+
+            initialState.filters = [
+                {_id: 2, name: 'finance'},
+                {_id: 1, name: 'sports'},
+            ];
+
+            result = eventsPlanning(
+                initialState,
+                {
+                    type: EVENTS_PLANNING.ACTIONS.ADD_OR_REPLACE_EVENTS_PLANNING_FILTER,
+                    payload: {_id: 1, name: 'abc'},
+                }
+            );
+
+            expect(result.filters).toEqual(
+                [
+                    {_id: 1, name: 'abc'},
+                    {_id: 2, name: 'finance'},
+                ]
+            );
         });
     });
 });

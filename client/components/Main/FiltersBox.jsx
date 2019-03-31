@@ -4,7 +4,7 @@ import {gettext} from '../../utils';
 
 import {Spacer} from '../UI/SubNav';
 import {Checkbox, CheckboxGroup} from '../UI/Form';
-import {AgendaSubnavDropdown} from './';
+import {AgendaSubnavDropdown, EventsPlanningFiltersSubnavDropdown} from './';
 import {CalendarSubnavDropdown} from '../Events';
 import {StretchBar} from '../UI/SubNav';
 
@@ -22,6 +22,9 @@ export const FiltersBox = ({
     disabledCalendars,
     selectCalendar,
     currentCalendarId,
+    selectEventsPlanningFilter,
+    currentEventsPlanningFilterId,
+    eventsPlanningFilters,
 }) => {
     const filters = !showFilters ? [] :
         [
@@ -53,10 +56,16 @@ export const FiltersBox = ({
                         labelPosition="inside"
                     />
                 ))}
-                {showFilters && (activeFilter === MAIN.FILTERS.PLANNING || activeFilter === MAIN.FILTERS.EVENTS) && (
-                    <Spacer />
-                )}
+                {showFilters && <Spacer />}
             </CheckboxGroup>
+
+            {activeFilter === MAIN.FILTERS.COMBINED &&
+                <EventsPlanningFiltersSubnavDropdown
+                    filters={eventsPlanningFilters}
+                    selectFilter={selectEventsPlanningFilter}
+                    currentFilterId={currentEventsPlanningFilterId}
+                />
+            }
 
             {(activeFilter === MAIN.FILTERS.PLANNING) && (
                 <AgendaSubnavDropdown
@@ -90,6 +99,9 @@ FiltersBox.propTypes = {
     disabledCalendars: PropTypes.array,
     selectCalendar: PropTypes.func,
     currentCalendarId: PropTypes.string,
+    selectEventsPlanningFilter: PropTypes.func,
+    currentEventsPlanningFilterId: PropTypes.string,
+    eventsPlanningFilters: PropTypes.array,
 };
 
 FiltersBox.defaultProps = {showFilters: true};

@@ -24,6 +24,7 @@ import {default as lockUtils} from './locks';
 import {default as planningUtils} from './planning';
 import {default as eventUtils} from './events';
 import {default as timeUtils} from './time';
+import {default as eventPlanningUtils} from './eventsplanning';
 
 
 export {default as dispatchUtils} from './dispatch';
@@ -39,6 +40,7 @@ export {default as historyUtils} from './history';
 export {lockUtils};
 export {planningUtils};
 export {timeUtils};
+export {eventPlanningUtils};
 import {gettext} from './gettext';
 
 // Polyfill Promise.finally function as this was introduced in Chrome 63+

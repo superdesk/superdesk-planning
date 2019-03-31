@@ -751,8 +751,10 @@ const _filter = (filterType, params = {}) => (
         } else if (filterType === MAIN.FILTERS.COMBINED) {
             dispatch(eventsUi.clearList());
             dispatch(planningUi.clearList());
+            let eventsPlanningFilter = $location.search().eventsPlanningFilter ||
+                get(lastParams, 'eventsPlanningFilter', null);
 
-            promise = dispatch(eventsPlanningUi.fetch(params));
+            promise = dispatch(eventsPlanningUi.selectFilter(eventsPlanningFilter, params));
         }
 
         return promise

@@ -21,6 +21,7 @@ import {MODALS, ITEM_TYPE} from '../constants';
 import SortItemsModal from './SortItemsModal';
 import {ManageAgendasModal} from './Agendas/ManageAgendasModal';
 import {SelectDeskTemplate} from './Assignments';
+import {ManageFiltersModal} from './EventsPlanningFilters';
 
 const modals = {
     [MODALS.CONFIRMATION]: ConfirmationModal,
@@ -36,6 +37,7 @@ const modals = {
     [MODALS.FEATURED_STORIES]: FeaturedPlanningModal,
     [MODALS.UNLOCK_FEATURED_STORIES]: UnlockFeaturedPlanning,
     [MODALS.SELECT_DESK_TEMPLATE]: SelectDeskTemplate,
+    [MODALS.MANAGE_EVENTS_PLANNING_FILTERS]: ManageFiltersModal,
 };
 
 export function Modals({modalType, modalProps, handleHide}) {

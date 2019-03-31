@@ -1,7 +1,7 @@
 import {get} from 'lodash';
 import planning from './index';
 import assignments from '../assignments/index';
-import {gettext, isItemLockedForEditing} from '../../utils';
+import {gettext} from '../../utils';
 import * as selectors from '../../selectors';
 import {events, fetchAgendas} from '../index';
 import main from '../main';
@@ -62,33 +62,22 @@ const onPlanningUpdated = (_e, data) => (
         }
 
         if (get(data, 'item')) {
-            const storedPlan = selectors.planning.storedPlannings(getState())[data.item];
-            const currentEditId = selectors.forms.currentItemId(getState());
+            dispatch(planning.ui.scheduleRefetch())
+                .then((results) => {
+                    if (selectors.general.currentWorkspace(getState()) === WORKSPACE.ASSIGNMENTS) {
+                        const selectedItems = selectors.multiSelect.selectedPlannings(getState());
+                        const currentPreviewId = selectors.main.previewId(getState());
 
-            if (get(data, 'item') !== currentEditId ||
-                !isItemLockedForEditing(
-                    storedPlan,
-                    selectors.general.session(getState()),
-                    selectors.locks.getLockedItems(getState())
-                )
-            ) {
-                dispatch(planning.ui.scheduleRefetch())
-                    .then((results) => {
-                        if (selectors.general.currentWorkspace(getState()) === WORKSPACE.ASSIGNMENTS) {
-                            const selectedItems = selectors.multiSelect.selectedPlannings(getState());
-                            const currentPreviewId = selectors.main.previewId(getState());
+                        const loadedFromRefetch = selectedItems.indexOf(data.item) !== -1 &&
+                        !get(results, '[0]._items').find((plan) => plan._id === data.item);
 
-                            const loadedFromRefetch = selectedItems.indexOf(data.item) !== -1 &&
-                            !get(results, '[0]._items').find((plan) => plan._id === data.item);
-
-                            if (!loadedFromRefetch && currentPreviewId === data.item) {
-                                dispatch(planning.api.fetchById(data.item, {force: true}));
-                            }
+                        if (!loadedFromRefetch && currentPreviewId === data.item) {
+                            dispatch(planning.api.fetchById(data.item, {force: true}));
                         }
+                    }
 
-                        dispatch(eventsPlanning.ui.scheduleRefetch());
-                    });
-            }
+                    dispatch(eventsPlanning.ui.scheduleRefetch());
+                });
 
             if (get(data, 'added_agendas.length', 0) > 0 || get(data, 'removed_agendas.length', 0) > 0) {
                 dispatch(fetchAgendas());
