@@ -126,7 +126,8 @@ const eventsReducer = createReducer(initialState, {
             payload.event_id,
             payload.etag,
             payload.reason,
-            payload.occur_status
+            payload.occur_status,
+            payload.actionedDate
         );
 
         // Now mark all associated Events that are also cancelled
@@ -136,7 +137,8 @@ const eventsReducer = createReducer(initialState, {
                 event._id,
                 event._etag,
                 payload.reason,
-                payload.occur_status
+                payload.occur_status,
+                payload.actionedDate
             )
         );
 
@@ -206,6 +208,10 @@ const eventsReducer = createReducer(initialState, {
 
         if (get(payload, 'reason.length', 0) > 0) {
             event.state_reason = payload.reason;
+        }
+
+        if (get(payload, 'actionedDate')) {
+            event.actioned_date = payload.actionedDate;
         }
 
         event.state = WORKFLOW_STATE.POSTPONED;
@@ -335,7 +341,7 @@ const updateEventPubstatus = (events, eventId, etag, state, pubstatus) => {
     }
 };
 
-const markEventCancelled = (events, eventId, etag, reason, occurStatus) => {
+const markEventCancelled = (events, eventId, etag, reason, occurStatus, actionedDate) => {
     if (!(eventId in events)) return;
 
     let updatedEvent = events[eventId];
@@ -347,6 +353,10 @@ const markEventCancelled = (events, eventId, etag, reason, occurStatus) => {
     updatedEvent.state = WORKFLOW_STATE.CANCELLED;
     updatedEvent.occur_status = occurStatus;
     updatedEvent._etag = etag;
+
+    if (actionedDate) {
+        updatedEvent.actioned_date = actionedDate;
+    }
 };
 
 export default eventsReducer;

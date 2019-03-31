@@ -156,6 +156,7 @@ class EventsPostService(EventsBaseService):
         # Remove previous workflow state reason
         if new_item_state in [WORKFLOW_STATE.SCHEDULED, WORKFLOW_STATE.KILLED]:
             updates['state_reason'] = None
+            updates['actioned_date'] = None
 
         updated_event = get_resource_service('events').update(event['_id'], updates, event)
         event.update(updated_event)

@@ -732,3 +732,42 @@ Feature: Events Cancel
         """
         When we get "publish_queue"
         Then we get list with 1 items
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Multi day event duration is shortened in the actioned_date field
+        Given we have sessions "/sessions"
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "name": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-27T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "state": "draft",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "cancel",
+            "lock_time": "#DATE#"
+        }]
+        """
+        When we perform cancel on events "event1"
+        Then we get OK response
+        When we get "/events"
+        Then we get a list with 1 items
+        """
+        {"_items": [{
+            "_id": "event1",
+            "state": "cancelled",
+            "lock_user": null,
+            "lock_session": null,
+            "lock_action": null,
+            "lock_time": null,
+            "actioned_date": "2029-11-21T12:00:00+0000"
+        }]}
+        """

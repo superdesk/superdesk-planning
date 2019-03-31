@@ -160,7 +160,8 @@ const onEventCancelled = (e, data) => (
                 data.etag,
                 data.reason,
                 data.occur_status,
-                get(data, 'cancelled_items') || []
+                get(data, 'cancelled_items') || [],
+                data.actioned_date
             ));
             dispatch(fetchItemHistoryOnRecurringNotitication(data));
         }
@@ -189,7 +190,8 @@ const onEventPostponed = (e, data) => (
             if (data.item in events) {
                 dispatch(eventsApi.markEventPostponed(
                     events[data.item],
-                    data.reason
+                    data.reason,
+                    data.actioned_date
                 ));
             }
             dispatch(fetchItemHistoryOnRecurringNotitication(data));

@@ -1,7 +1,7 @@
 import sinon from 'sinon';
 import eventUtils from '../events';
 import moment from 'moment';
-import {cloneDeep} from 'lodash';
+import {cloneDeep, get} from 'lodash';
 import lockReducer from '../../reducers/locks';
 import {EVENTS, WORKFLOW_STATE, TEMP_ID_PREFIX} from '../../constants';
 import {expectActions, restoreSinonStub} from '../testUtils';
@@ -381,6 +381,65 @@ describe('EventUtils', () => {
             expect(duplicateEvent.duplicate_from).toBe(event._id);
             expect(duplicateEvent.hasOwnProperty('state_reason')).toBe(false);
             expect(duplicateEvent.dates.tz).toBe('Foo');
+        });
+    });
+
+    describe('getEventsByDate', () => {
+        const eventPresentInGroup = (group, event) => ((get(group, 'events', []).filter(
+            (e) => e._id === event._id)).length > 0);
+        const dummyEvent = {
+            _id: 'dummyE1',
+            dates: {
+                start: moment('2014-10-20T14:01:11+0000'),
+                end: moment('2014-10-20T15:01:11+0000'),
+                tz: 'Australia/Sydney',
+            },
+        };
+
+        it('Shows multiple tiles for a multi day event', () => {
+            const event = {
+                _id: 'e1',
+                dates: {
+                    start: moment('2014-10-15T14:01:11+0000'),
+                    end: moment('2014-10-20T15:01:11+0000'),
+                    tz: 'Australia/Sydney',
+                },
+            };
+
+            const eventsDateGroup = eventUtils.getEventsByDate([event, dummyEvent],
+                moment('2014-10-10T14:01:11+0000'), moment('2014-10-25T14:01:11+0000'));
+            const keys = Object.keys(eventsDateGroup);
+
+            expect(keys.length > 1).toBe(true);
+            keys.forEach((k) => {
+                expect(eventPresentInGroup(eventsDateGroup[k], event)).toBe(true);
+            });
+        });
+
+        it('Restricts number of tiles based on actioned_date attribute', () => {
+            const event = {
+                _id: 'e1',
+                dates: {
+                    start: moment('2014-10-15T14:01:11+0000'),
+                    end: moment('2014-10-20T15:01:11+0000'),
+                    tz: 'Australia/Sydney',
+                },
+                actioned_date: moment('2014-10-16T15:01:11+0000'),
+            };
+
+            const eventsDateGroup = eventUtils.getEventsByDate([event, dummyEvent],
+                moment('2014-10-10T14:01:11+0000'), moment('2014-10-25T14:01:11+0000'));
+
+            const eventPresentInGroup = (group, event) => ((get(group, 'events', []).filter(
+                (e) => e._id === event._id)).length > 0);
+
+            Object.keys((eventsDateGroup)).forEach((k) => {
+                if (event.actioned_date.isSameOrAfter(moment(eventsDateGroup[k].date), 'day')) {
+                    expect(eventPresentInGroup(eventsDateGroup[k], event)).toBe(true);
+                } else {
+                    expect(eventPresentInGroup(eventsDateGroup[k], event)).toBe(false);
+                }
+            });
         });
     });
 });
