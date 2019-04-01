@@ -1,3 +1,5 @@
+import {get} from 'lodash';
+
 const initialState = {
     modalType: null,
     modalProps: undefined,
@@ -14,6 +16,10 @@ const modal = (state = initialState, action) => {
             previousState: state,
         };
     case 'HIDE_MODAL':
+        if (get(action, 'payload.clearPreviousState')) {
+            return initialState;
+        }
+
         return state.previousState || initialState;
     case 'ACTION_IN_PROGRESS':
         return {

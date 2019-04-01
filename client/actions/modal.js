@@ -3,7 +3,10 @@ export const showModal = ({modalType, modalProps = {}}) => ({
     modalType: modalType,
     modalProps: modalProps,
 });
-export const hideModal = () => ({type: 'HIDE_MODAL'});
+export const hideModal = (clearPreviousState = false) => ({
+    type: 'HIDE_MODAL',
+    payload: {clearPreviousState},
+});
 export const actionInProgress = (value) => ({
     type: 'ACTION_IN_PROGRESS',
     payload: value,

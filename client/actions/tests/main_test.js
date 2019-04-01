@@ -738,7 +738,10 @@ describe('actions.main', () => {
 
             return store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
                 .then(() => {
-                    expect(store.dispatch.args[0]).toEqual([{type: 'HIDE_MODAL'}]);
+                    expect(store.dispatch.args[0]).toEqual([{
+                        type: 'HIDE_MODAL',
+                        payload: {clearPreviousState: false},
+                    }]);
                     expect(main.openIgnoreCancelSaveModal.callCount).toBe(1);
                     expect(main.openIgnoreCancelSaveModal.args[0]).toEqual([{
                         itemId: data.events[0]._id,
