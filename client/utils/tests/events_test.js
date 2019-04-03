@@ -3,7 +3,7 @@ import eventUtils from '../events';
 import moment from 'moment';
 import {cloneDeep, get} from 'lodash';
 import lockReducer from '../../reducers/locks';
-import {EVENTS, WORKFLOW_STATE, TEMP_ID_PREFIX} from '../../constants';
+import {EVENTS, WORKFLOW_STATE, TEMP_ID_PREFIX, POST_STATE} from '../../constants';
 import {expectActions, restoreSinonStub} from '../testUtils';
 
 describe('EventUtils', () => {
@@ -257,18 +257,7 @@ describe('EventUtils', () => {
     });
 
     describe('getEventItemActions', () => {
-        const actions = [
-            EVENTS.ITEM_ACTIONS.SPIKE,
-            EVENTS.ITEM_ACTIONS.UNSPIKE,
-            EVENTS.ITEM_ACTIONS.DUPLICATE,
-            EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
-            EVENTS.ITEM_ACTIONS.UPDATE_TIME,
-            EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
-            EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
-            EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
-            EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
-        ];
-
+        let actions;
         let locks;
         let session;
         let event;
@@ -289,15 +278,36 @@ describe('EventUtils', () => {
                 planning_planning_management: 1,
                 planning_event_management: 1,
                 planning_event_spike: 1,
+                planning_event_post: 1,
+                planning_edit_expired: 1,
             };
+
+            actions = [
+                EVENTS.ITEM_ACTIONS.SPIKE,
+                EVENTS.ITEM_ACTIONS.UNSPIKE,
+                EVENTS.ITEM_ACTIONS.DUPLICATE,
+                EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
+                EVENTS.ITEM_ACTIONS.UPDATE_TIME,
+                EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
+                EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
+                EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
+                EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
+                EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING,
+                EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS,
+                EVENTS.ITEM_ACTIONS.EDIT_EVENT,
+                EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL,
+                EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR,
+            ];
         });
 
-        it('draft event with no planning items (not in use)', () => {
-            const itemActions = eventUtils.getEventItemActions(
+        const getActions = () => (
+            eventUtils.getEventItemActions(
                 event, session, privileges, actions, locks
-            );
+            )
+        );
 
-            expectActions(itemActions, [
+        it('draft event with no planning items (not in use)', () => {
+            expectActions(getActions(), [
                 'Spike',
                 'Duplicate',
                 'Cancel',
@@ -306,33 +316,93 @@ describe('EventUtils', () => {
                 'Mark as Postponed',
                 'Convert to Recurring Event',
                 'Create Planning Item',
+                'Create and Open Planning Item',
+                'Edit',
+                'Edit in popup',
+                'Assign to calendar',
             ]);
         });
 
         it('postponed event', () => {
             event.state = 'postponed';
-            let itemActions = eventUtils.getEventItemActions(
-                event, session, privileges, actions, locks
-            );
-
-            expectActions(itemActions, [
+            expectActions(getActions(), [
                 'Spike',
                 'Duplicate',
                 'Cancel',
                 'Reschedule',
+                'Edit',
+                'Edit in popup',
+                'Assign to calendar',
             ]);
 
             event.planning_ids = ['1']; // Event in use
-            itemActions = eventUtils.getEventItemActions(
-                event, session, privileges, actions, locks
-            );
-
-            expectActions(itemActions, [
+            expectActions(getActions(), [
                 'Spike',
                 'Duplicate',
                 'Cancel',
                 'Reschedule',
+                'Edit',
+                'Edit in popup',
+                'Assign to calendar',
             ]);
+        });
+
+        it('assign to calendar', () => {
+            actions = [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR];
+
+            // Event must be defined
+            event = null;
+            expectActions(getActions(), []);
+            event = undefined;
+            expectActions(getActions(), []);
+
+            // Base condition where assign to calendar is available
+            event = {
+                _id: 'e1',
+                state: WORKFLOW_STATE.DRAFT,
+            };
+            expectActions(getActions(), ['Assign to calendar']);
+
+            // Must not be spiked
+            event.state = WORKFLOW_STATE.SPIKED;
+            expectActions(getActions(), []);
+            event.state = WORKFLOW_STATE.DRAFT;
+
+            // Event must not be locked
+            locks.event.e1 = {};
+            expectActions(getActions(), []);
+            delete locks.event.e1;
+
+            // Event series must not be locked
+            locks.recurring.er1 = {};
+            event.recurrence_id = 'er1';
+            expectActions(getActions(), []);
+            delete locks.recurring.er1;
+
+            // Must have the privilege
+            privileges.planning_event_management = 0;
+            expectActions(getActions(), []);
+            privileges.planning_event_management = 1;
+
+            // If the item is posted, must have event_post privilege
+            event.pubstatus = POST_STATE.USABLE;
+            privileges.planning_event_post = 0;
+            expectActions(getActions(), []);
+            privileges.planning_event_post = 1;
+            expectActions(getActions(), ['Assign to calendar']);
+            delete event.pubstatus;
+
+            // If the Event is rescheduled
+            event.state = WORKFLOW_STATE.RESCHEDULED;
+            expectActions(getActions(), []);
+            event.state = WORKFLOW_STATE.DRAFT;
+
+            // If the Event is expired
+            event.expired = true;
+            privileges.planning_edit_expired = 0;
+            expectActions(getActions(), []);
+            privileges.planning_edit_expired = 1;
+            expectActions(getActions(), ['Assign to calendar']);
         });
     });
 
