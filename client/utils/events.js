@@ -305,6 +305,11 @@ const canUpdateEventRepetitions = (event, session, privileges, locks) => (
         canRescheduleEvent(event, session, privileges, locks)
 );
 
+const canAssignEventToCalendar = (event, session, privileges, locks) => (
+    canEditEvent(event, session, privileges, locks) &&
+        !isEventLocked(event, locks)
+);
+
 const getEventItemActions = (event, session, privileges, actions, locks) => {
     let itemActions = [];
     let key = 1;
@@ -337,7 +342,7 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
         [EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.label]: () =>
             canEditEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.label]: () =>
-            canEditEvent(event, session, privileges, locks),
+            canAssignEventToCalendar(event, session, privileges, locks),
     };
 
     actions.forEach((action) => {
