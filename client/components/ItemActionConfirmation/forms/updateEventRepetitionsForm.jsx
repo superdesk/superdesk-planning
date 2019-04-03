@@ -68,7 +68,8 @@ export class UpdateEventRepetitionsComponent extends React.Component {
     submit() {
         return this.props.onSubmit(
             this.props.original,
-            this.state.diff
+            this.state.diff,
+            get(this.props, 'modalProps') || {}
         );
     }
 
@@ -133,6 +134,8 @@ UpdateEventRepetitionsComponent.propTypes = {
     onValidate: PropTypes.func,
     formProfiles: PropTypes.object,
     submitting: PropTypes.bool,
+    onHide: PropTypes.func,
+    modalProps: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
@@ -141,7 +144,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (original, updates) => {
+    onSubmit: (original, updates, modalProps) => {
         let newUpdates = cloneDeep(updates);
 
         if (get(event, 'dates.recurring_rule.until')) {
@@ -152,14 +155,26 @@ const mapDispatchToProps = (dispatch) => ({
                 ).endOf('day');
         }
 
-        return dispatch(
+        const promise = dispatch(
             actions.events.ui.updateRepetitions(original, newUpdates)
         );
-    },
-    onHide: (event) => {
-        if (event.lock_action === EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.lock_action) {
-            dispatch(actions.events.api.unlock(event));
+
+        if (get(modalProps, 'onCloseModal')) {
+            promise.then((updatedEvent) => modalProps.onCloseModal(updatedEvent));
         }
+
+        return promise;
+    },
+    onHide: (event, modalProps) => {
+        const promise = event.lock_action === EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.lock_action ?
+            dispatch(actions.events.api.unlock(event)) :
+            Promise.resolve(event);
+
+        if (get(modalProps, 'onCloseModal')) {
+            promise.then((updatedEvent) => modalProps.onCloseModal(updatedEvent));
+        }
+
+        return promise;
     },
     onValidate: (item, profile, errors, errorMessages) => dispatch(validateItem({
         profileName: ITEM_TYPE.EVENT,

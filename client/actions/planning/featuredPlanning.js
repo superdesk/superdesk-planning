@@ -178,8 +178,13 @@ const fetchToList = (params = {}, append = false) => (
         return dispatch(planningApi.query(
             params,
             false,
-            getTimeZoneOffset(momentTz.tz(moment(), selectors.config.defaultTimeZone(getState()))))
-        )
+            getTimeZoneOffset(
+                momentTz.tz(
+                    get(params, 'advancedSearch.dates.start') || moment(),
+                    selectors.config.defaultTimeZone(getState())
+                )
+            )
+        ))
             .then((data) => {
                 dispatch(self.total(data.total));
                 dispatch(self.receivePlannings(data._items, append));
