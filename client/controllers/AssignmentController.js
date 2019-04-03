@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {Provider} from 'react-redux';
-import {get, cloneDeep} from 'lodash';
+import {cloneDeep} from 'lodash';
 import {registerNotifications} from '../utils';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
@@ -87,7 +87,8 @@ export class AssignmentController {
 
         const listSettings = cloneDeep(selectors.getAssignmentListSettings(this.store.getState()));
 
-        listSettings.selectedDeskId = get(this.desks, 'active.desk');
+        listSettings.selectedDeskId = this.desks.getCurrentDeskId();
+        listSettings.filterBy = listSettings.selectedDeskId ? 'Desk' : 'User';
         this.store.dispatch(actions.assignments.ui.changeListSettings(
             listSettings.filterBy,
             listSettings.searchQuery,

@@ -114,7 +114,12 @@ export class AssignmentsSubNavComponent extends React.Component {
             selectedDeskId,
             workspace,
             userDesks,
+            currentDeskId,
         } = this.props;
+
+        // Show the Desk selection if we're in Fulfil Assignment or Custom Workspace
+        const showDeskSelection = workspace === WORKSPACE.AUTHORING ||
+            (workspace === WORKSPACE.ASSIGNMENTS && !currentDeskId);
 
         return (
             <div>
@@ -135,9 +140,9 @@ export class AssignmentsSubNavComponent extends React.Component {
                     orderDirection={orderDirection}
                     changeFilter={this.changeFilter}
                     selectedDeskId={selectedDeskId}
-                    userDesks={workspace === WORKSPACE.AUTHORING ? userDesks : []}
+                    userDesks={showDeskSelection ? userDesks : []}
                     selectAssignmentsFrom={this.selectAssignmentsFrom}
-                    workspace={workspace}
+                    showDeskSelection={showDeskSelection}
                 />
             </div>
         );
@@ -165,11 +170,13 @@ AssignmentsSubNavComponent.propTypes = {
     withArchiveItem: PropTypes.bool,
     userDesks: PropTypes.array,
     workspace: PropTypes.string,
+    currentDeskId: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({
     filterBy: selectors.getFilterBy(state),
     selectedDeskId: selectors.getSelectedDeskId(state),
+    currentDeskId: selectors.general.currentDeskId(state),
     myAssignmentsCount: selectors.getMyAssignmentsCount(state),
     orderByField: selectors.getOrderByField(state),
     orderDirection: selectors.getOrderDirection(state),

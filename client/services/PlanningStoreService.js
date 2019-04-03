@@ -218,8 +218,8 @@ export class PlanningStoreService {
                     desks: this.desks.desks._items,
                     templates: data.all_templates._items,
                     workspace: {
-                        currentDeskId: this.desks.getCurrentDeskId(),
-                        currentStageId: this.desks.getCurrentStageId(),
+                        currentDeskId: get(this.desks, 'active.desk'),
+                        currentStageId: get(this.desks, 'active.stage'),
                     },
                     session: {
                         sessionId: this.session.sessionId,
