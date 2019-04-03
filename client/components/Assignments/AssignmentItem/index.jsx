@@ -76,6 +76,7 @@ export class AssignmentItem extends React.Component {
             revertAssignment,
             hideItemActions,
             contentTypes,
+            assignedDesk,
         } = this.props;
 
         const isItemLocked = get(lockedItems, 'assignment') && assignment._id in lockedItems.assignment;
@@ -106,6 +107,7 @@ export class AssignmentItem extends React.Component {
         const borderState = isItemLocked ? 'locked' : false;
 
         const planningSchedule = get(assignment, 'planning.scheduled');
+        const assignedDeskName = get(assignedDesk, 'name') || '-';
 
         return (
             <Item
@@ -169,6 +171,12 @@ export class AssignmentItem extends React.Component {
                                 )}
                             </span>
                         </span>
+                        <div className="sd-list-item--element-grow sd-list-item__element-lm-10">
+                            <span className="sd-list-item__text-label">desk:</span>
+                            <span className="sd-overflow-ellipsis sd-list-item__text-strong">
+                                <span>{assignedDeskName}</span>
+                            </span>
+                        </div>
                     </Row>
                 </Column>
                 <Column border={false}>
@@ -213,4 +221,5 @@ AssignmentItem.propTypes = {
     revertAssignment: PropTypes.func,
     hideItemActions: PropTypes.bool,
     contentTypes: PropTypes.array,
+    assignedDesk: PropTypes.object,
 };

@@ -70,13 +70,23 @@ class AssignmentGroupListComponent extends React.Component {
     }
 
     rowRenderer(index) {
+        const {
+            users,
+            session,
+            currentAssignmentId,
+            privileges,
+            contentTypes,
+            desks,
+        } = this.props;
+
         const assignment = this.props.assignments[index];
-        const {users, session, currentAssignmentId, privileges, contentTypes} = this.props;
         const assignedUser = users.find((user) => get(assignment, 'assigned_to.user') === user._id);
         const isCurrentUser = assignedUser && assignedUser._id === session.identity._id;
         const onDoubleClick = assignmentUtils.assignmentHasContent(assignment) ?
             this.props.openArchivePreview.bind(null, assignment) :
             null;
+
+        const assignedDesk = desks.find((desk) => get(assignment, 'assigned_to.desk') === desk._id);
 
         return (
             <AssignmentItem
@@ -99,6 +109,7 @@ class AssignmentGroupListComponent extends React.Component {
                 removeAssignment={this.props.removeAssignment}
                 revertAssignment={this.props.revertAssignment}
                 contentTypes={contentTypes}
+                assignedDesk={assignedDesk}
             />
         );
     }
@@ -179,6 +190,7 @@ AssignmentGroupListComponent.propTypes = {
     revertAssignment: PropTypes.func,
     setMaxHeight: PropTypes.bool,
     contentTypes: PropTypes.array,
+    desks: PropTypes.array,
 };
 
 AssignmentGroupListComponent.defaultProps = {setMaxHeight: true};
@@ -224,6 +236,7 @@ const mapStateToProps = (state, ownProps) => {
         privileges: selectors.general.privileges(state),
         assignmentListSingleGroupView: selectors.getAssignmentListSingleGroupView(state),
         priorities: selectors.getAssignmentPriorities(state),
+        desks: selectors.general.desks(state),
     };
 };
 
