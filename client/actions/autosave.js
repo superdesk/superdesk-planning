@@ -4,15 +4,14 @@ import moment from 'moment';
 
 import * as selectors from '../selectors';
 import {
-    getAutosaveItem,
     getItemType,
     getItemId,
     getErrorMessage,
     gettext,
     isTemporaryId,
-    eventUtils,
-    planningUtils,
     removeAutosaveFields,
+    modifyForClient,
+    modifyForServer,
 } from '../utils';
 
 /**
@@ -56,37 +55,31 @@ const fetchAll = () => (
  * If the Autosave is in the Redux store return that, otherwise send an API request
  * @param {string} itemType - The type of the item to retrieve (ITEM_TYPE.EVENT/ITEM_TYPE.PLANNING)
  * @param {string} itemId - The item ID to retrieve the Autosave entry for
- * @param {boolean} tryServer - If true will try to fetch from the server
  */
-const fetchById = (itemType, itemId, tryServer = true) => (
-    (dispatch, getState, {api}) => {
-        // Attempt to retrieve the item from the local Redux store
-        const autosaveItem = getAutosaveItem(
-            selectors.forms.autosaves(getState()),
-            itemType,
-            itemId
-        );
-
-        if (autosaveItem || !tryServer) {
-            return Promise.resolve(autosaveItem || null);
-        }
-
-        // Otherwise send an API request
-        return api(`${itemType}_autosave`).getById(itemId)
-            .then((item) => {
-                if (itemType === ITEM_TYPE.EVENT) {
-                    return Promise.resolve(
-                        eventUtils.modifyForClient(cloneDeep(item), true)
-                    );
-                } else if (itemType === ITEM_TYPE.PLANNING) {
-                    return Promise.resolve(
-                        planningUtils.modifyForClient(cloneDeep(item))
-                    );
+const fetchById = (itemType, itemId) => (
+    (dispatch, getState, {api, notify}) => (
+        api(`${itemType}_autosave`).getById(itemId)
+            .then((item) => (
+                Promise.resolve(modifyForClient(item))
+            ), (error) => {
+                // If fetch failed because the item doesn't exist
+                // Then silently ignore this error and return null
+                if (get(error, 'status') === 404) {
+                    return Promise.resolve(null);
                 }
 
-                return Promise.resolve(item);
-            });
-    }
+                // Otherwise a different error was returned
+                // Notify the user of the error
+                notify.error(
+                    getErrorMessage(
+                        error,
+                        gettext('Failed to get the autosave entry')
+                    )
+                );
+
+                return Promise.reject(error);
+            })
+    )
 );
 
 /**
@@ -102,30 +95,13 @@ const receive = (itemType, autosaves) => ({
     },
 });
 
-/**
- * Action to save the dirty values for an item
- * This will first push the changes to the local Redux store, then send an API request to the server
- * And finally update the etag on response
- * @param {object} updates - The updated item
- */
-const save = (updates) => (
+const save = (original, updates) => (
     (dispatch, getState, {api, notify}) => {
         const itemId = getItemId(updates);
         const itemType = getItemType(updates);
+        let updateFields = removeAutosaveFields(updates);
 
-        const original = getAutosaveItem(
-            selectors.forms.autosaves(getState()),
-            itemType,
-            itemId
-        );
-
-        const updateFields = removeAutosaveFields(updates);
-
-        if (itemType === ITEM_TYPE.EVENT) {
-            eventUtils.modifyForServer(updateFields, false);
-        } else if (itemType === ITEM_TYPE.PLANNING) {
-            planningUtils.modifyForServer(updateFields);
-        }
+        updateFields = modifyForServer(updateFields, false);
 
         // Only set the lock information when creating a new Autosave item
         if (!original) {
@@ -139,16 +115,21 @@ const save = (updates) => (
             original || {},
             updateFields
         )
-            .then((updatedAutosave) => {
+            .then((autosaveItem) => {
+                const item = modifyForClient(autosaveItem);
+
                 dispatch({
                     type: AUTOSAVE.ACTIONS.RECEIVE,
-                    payload: updatedAutosave,
+                    payload: item,
                 });
 
-                return Promise.resolve(updatedAutosave);
+                return Promise.resolve(item);
             }, (error) => {
                 notify.error(
-                    getErrorMessage(error, gettext('Failed to save the autosave item.'))
+                    getErrorMessage(
+                        error,
+                        gettext('Failed to save autosave item.')
+                    )
                 );
 
                 return Promise.reject(error);
@@ -188,9 +169,8 @@ const remove = (autosave) => (
  * The Autosave must be in the local Redux store to be removed
  * @param {string} itemType - The type of item to remove (ITEM_TYPE.EVENT/ITEM_TYPE.PLANNING)
  * @param {string} itemId - The ID of the item to remove the autosave for
- * @param {boolean} tryServer - If true will try to fetch from the server
  */
-const removeById = (itemType, itemId, tryServer = true) => (
+const removeById = (itemType, itemId) => (
     (dispatch, getState, {notify, api}) => (
         api(`${itemType}_autosave`).getById(itemId)
             .then((autosaveItem) => {

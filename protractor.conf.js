@@ -1,5 +1,3 @@
-
-
 var path = require('path');
 require('ts-node/register/transpile-only');
 
@@ -68,6 +66,9 @@ var config = {
         }
         jasmine.getEnv().addReporter(new CustomReporter());
     },
+
+    // Enable this to make the tests synchronous
+    // SELENIUM_PROMISE_MANAGER: false,
 };
 
 exports.config = config;

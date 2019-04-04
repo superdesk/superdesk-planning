@@ -499,11 +499,11 @@ describe('actions.events.notifications', () => {
         beforeEach(() => {
             store.initialState.events.events.e1.lock_user = 'ident1';
             store.initialState.events.events.e1.lock_session = 'session1';
-            sinon.stub(main, 'reloadEditor').callsFake(() => Promise.resolve());
+            sinon.stub(main, 'changeEditorAction').callsFake(() => Promise.resolve());
         });
 
         afterEach(() => {
-            restoreSinonStub(main.reloadEditor);
+            restoreSinonStub(main.changeEditorAction);
         });
 
         it('dispatches notification modal if the Event unlocked is being edited', (done) => {
@@ -525,6 +525,7 @@ describe('actions.events.notifications', () => {
                     type: 'event',
                 },
             };
+            store.initialState.forms.editors.panel.itemId = 'e1';
             store.test(done, eventsNotifications.onEventUnlocked(
                 {},
                 {
@@ -537,11 +538,7 @@ describe('actions.events.notifications', () => {
                     const modalStr = 'The event you were editing was unlocked' +
                     ' by "firstname2 lastname2"';
 
-                    expect(store.dispatch.args[1][0].type).toEqual('AUTOSAVE_REMOVE');
-                    expect(store.dispatch.args[2]).toEqual([{
-                        type: 'HIDE_MODAL',
-                        payload: {clearPreviousState: false},
-                    }]);
+                    expect(store.dispatch.args[2][0].type).toEqual('AUTOSAVE_REMOVE');
                     expect(store.dispatch.args[3]).toEqual([{
                         type: 'SHOW_MODAL',
                         modalType: 'NOTIFICATION_MODAL',
@@ -551,7 +548,7 @@ describe('actions.events.notifications', () => {
                         },
                     }]);
                     expect(store.dispatch.args[4][0].type).toEqual(EVENTS.ACTIONS.UNLOCK_EVENT);
-                    expect(main.reloadEditor.callCount).toBe(1);
+                    expect(main.changeEditorAction.args[0]).toEqual(['read', false]);
                     done();
                 })
                 .catch(done.fail);
@@ -727,7 +724,14 @@ describe('actions.events.notifications', () => {
                 _id: 'e1',
                 type: 'event',
             };
-            store.initialState.forms.itemId = 'e1';
+            store.initialState.forms.editors.panel.itemId = 'e1';
+            store.initialState.locks.event.e1 = {
+                action: 'edit',
+                user: 'ident1',
+                session: 'session1',
+                item_id: 'e1',
+                item_type: 'event',
+            };
 
             return store.test(done, eventsNotifications.onEventUpdated({}, {item: data.events[0]._id}))
                 .then(() => {
@@ -757,7 +761,7 @@ describe('actions.events.notifications', () => {
                 type: 'event',
                 recurrence_id: 'rec1',
             };
-            store.initialState.forms.itemId = 'e1';
+            store.initialState.forms.editors.panel.itemId = 'e1';
 
             return store.test(done, eventsNotifications.onEventUpdated({}, {
                 item: data.events[0]._id,

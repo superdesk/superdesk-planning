@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get, some} from 'lodash';
+import {get, some, isEqual} from 'lodash';
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
 import {ContentBlock} from '../../UI/SidePanel';
@@ -47,14 +47,14 @@ export class EventEditorComponent extends React.Component {
     }
 
     componentWillMount() {
-        this.props.fetchEventFiles(this.props.item);
+        this.props.fetchEventFiles({...this.props.item, ...this.props.diff});
     }
 
     componentWillUpdate(nextProps) {
         if (getItemId(this.props.item) !== getItemId(nextProps.item)) {
-            this.props.fetchEventFiles(nextProps.item);
+            this.props.fetchEventFiles({...nextProps.item, ...nextProps.diff});
         } else if (get(this.props, 'diff.files') !== get(nextProps, 'diff.files')) {
-            this.props.fetchEventFiles(nextProps.diff);
+            this.props.fetchEventFiles({...nextProps.item, ...nextProps.diff});
         }
     }
 
@@ -94,6 +94,19 @@ export class EventEditorComponent extends React.Component {
 
         if (this.dom.top) {
             this.dom.top.scrollTop = 150;
+        }
+    }
+
+    componentWillReceiveProps(nextProps) {
+        // If 'Create Planning Item' was actioned while open in the editor
+        // Then force update the initial values with the new list of ids
+        if (!isEqual(
+            get(this.props, 'original.planning_ids'),
+            get(nextProps, 'original.planning_ids'))
+        ) {
+            this.props.itemManager.forceUpdateInitialValues({
+                planning_ids: get(nextProps, 'original.planning_ids'),
+            });
         }
     }
 
@@ -205,7 +218,7 @@ export class EventEditorComponent extends React.Component {
         return (
             <div ref={(node) => this.dom.top = node} >
                 <EventEditorHeader
-                    item={diff}
+                    item={item}
                     users={users}
                 />
 
@@ -489,6 +502,8 @@ EventEditorComponent.propTypes = {
     popupContainer: PropTypes.func,
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
+    itemManager: PropTypes.object,
+    original: PropTypes.object,
 };
 
 EventEditorComponent.defaultProps = {

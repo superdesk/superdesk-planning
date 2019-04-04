@@ -2,7 +2,7 @@ import eventsApi from '../api';
 import eventsUi from '../ui';
 import planningApi from '../../planning/api';
 import {main} from '../../';
-import {MAIN, EVENTS} from '../../../constants';
+import {MAIN, EVENTS, ITEM_TYPE} from '../../../constants';
 import {omit} from 'lodash';
 import sinon from 'sinon';
 import moment from 'moment';
@@ -88,6 +88,7 @@ describe('actions.events.ui', () => {
                 expect(eventsUi._openActionModal.callCount).toBe(1);
                 expect(eventsUi._openActionModal.args[0]).toEqual([
                     data.events[1],
+                    {},
                     'Spike',
                     null,
                     true,
@@ -168,6 +169,7 @@ describe('actions.events.ui', () => {
                 expect(eventsUi._openActionModal.callCount).toBe(1);
                 expect(eventsUi._openActionModal.args[0]).toEqual([
                     data.events[1],
+                    {},
                     'Update Repetitions',
                     'update_repetitions',
                 ]);
@@ -184,6 +186,7 @@ describe('actions.events.ui', () => {
         it('openActionModal locks event, calls loadEventDataForAction then shows modal', (done) => (
             store.test(done, eventsUi._openActionModal(
                 data.events[1],
+                {},
                 'Cancel Event',
                 'cancel',
                 true,
@@ -205,7 +208,8 @@ describe('actions.events.ui', () => {
                     type: 'SHOW_MODAL',
                     modalType: 'ITEM_ACTIONS_MODAL',
                     modalProps: {
-                        eventDetail: data.events[1],
+                        original: data.events[1],
+                        updates: {},
                         actionType: 'Cancel Event',
                         large: false,
                     },
@@ -421,65 +425,64 @@ describe('actions.events.ui', () => {
 
     describe('duplicate', () => {
         beforeEach(() => {
-            sinon.stub(main, 'lockAndEdit').callsFake((item) => Promise.resolve(item));
+            sinon.stub(main, 'createNew');
             sinon.stub(eventsApi, 'fetchEventFiles').callsFake((item) => Promise.resolve(item));
-            sinon.stub(moment.tz, 'guess').callsFake(() => 'Foo');
+            sinon.stub(moment.tz, 'guess').callsFake(() => 'Australia/Sydney');
         });
 
         afterEach(() => {
-            restoreSinonStub(main.lockAndEdit);
+            restoreSinonStub(main.createNew);
             restoreSinonStub(eventsApi.duplicate);
             restoreSinonStub(eventsApi.fetchEventFiles);
             restoreSinonStub(moment.tz.guess);
         });
 
-        it('duplicate updates past event date to current date ad also preserves files and links', (done) => {
+        it('duplicate updates past event date to current date and preserves files and links', () => {
             data.events[0].dates.start = moment(data.events[0].dates.start);
             data.events[0].dates.end = moment(data.events[0].dates.end);
             data.events[0].files = ['file1_id'];
             data.events[0].links = ['http://www.google.com'];
-            store.test(done, eventsUi.duplicate(data.events[0]))
-                .then(() => {
-                    const daysBetween = moment().diff(data.events[0].dates.start, 'days');
-                    const newStartDate = data.events[0].dates.start.add(daysBetween, 'days');
-                    const newEndDate = data.events[0].dates.end.add(daysBetween, 'days');
 
-                    expect(main.lockAndEdit.callCount).toBe(1);
-                    expect(main.lockAndEdit.args[0]).toEqual([{
-                        ...omit(data.events[0], ['_id', '_etag', 'planning_ids']),
-                        dates: {
-                            start: newStartDate,
-                            end: newEndDate,
-                            tz: 'Foo',
-                        },
-                        duplicate_from: 'e1',
-                        state: 'draft',
-                        occur_status: {
-                            name: 'Planned, occurs certainly',
-                            label: 'Confirmed',
-                            qcode: 'eocstat:eos5',
-                        },
-                        _id: jasmine.any(String),
-                        files: ['file1_id'],
-                        links: ['http://www.google.com'],
-                        _startTime: newStartDate,
-                        _endTime: newEndDate,
-                    }]);
+            store.test(null, eventsUi.duplicate(data.events[0]));
 
-                    done();
-                }, done.fail);
+            const daysBetween = moment().diff(data.events[0].dates.start, 'days');
+            const newStartDate = data.events[0].dates.start.add(daysBetween, 'days');
+            const newEndDate = data.events[0].dates.end.add(daysBetween, 'days');
+
+            expect(main.createNew.callCount).toBe(1);
+            expect(main.createNew.args[0]).toEqual([ITEM_TYPE.EVENT, {
+                ...omit(data.events[0], ['_id', '_etag', 'planning_ids']),
+                dates: {
+                    start: newStartDate,
+                    end: newEndDate,
+                    tz: 'Australia/Sydney',
+                },
+                duplicate_from: 'e1',
+                state: 'draft',
+                occur_status: {
+                    name: 'Planned, occurs certainly',
+                    label: 'Confirmed',
+                    qcode: 'eocstat:eos5',
+                },
+                files: ['file1_id'],
+                links: ['http://www.google.com'],
+                _startTime: newStartDate,
+                _endTime: newEndDate,
+            }]);
         });
     });
 
     describe('rescheduleEvent', () => {
         beforeEach(() => {
-            sinon.stub(main, 'lockAndEdit').callsFake((item) => Promise.resolve(item));
+            // sinon.stub(main, 'lockAndEdit').callsFake((item) => Promise.resolve(item));
+            sinon.stub(main, 'openForEdit');
             sinon.stub(eventsApi, 'fetchById').callsFake(() => Promise.resolve(data.events[1]));
         });
 
         afterEach(() => {
             restoreSinonStub(eventsApi.rescheduleEvent);
-            restoreSinonStub(main.lockAndEdit);
+            // restoreSinonStub(main.lockAndEdit);
+            restoreSinonStub(main.openForEdit);
             restoreSinonStub(eventsApi.fetchById);
         });
 
@@ -492,8 +495,8 @@ describe('actions.events.ui', () => {
 
                     expect(eventsApi.fetchById.callCount).toBe(0);
 
-                    expect(main.lockAndEdit.callCount).toBe(1);
-                    expect(main.lockAndEdit.args[0]).toEqual([data.events[0]]);
+                    expect(main.openForEdit.callCount).toBe(1);
+                    expect(main.openForEdit.args[0]).toEqual([data.events[0]]);
 
                     expect(services.notify.error.callCount).toBe(0);
                     expect(services.notify.success.callCount).toBe(1);
@@ -518,8 +521,8 @@ describe('actions.events.ui', () => {
                     expect(eventsApi.fetchById.callCount).toBe(1);
                     expect(eventsApi.fetchById.args[0]).toEqual(['e2']);
 
-                    expect(main.lockAndEdit.callCount).toBe(1);
-                    expect(main.lockAndEdit.args[0]).toEqual([data.events[1]]);
+                    expect(main.openForEdit.callCount).toBe(1);
+                    expect(main.openForEdit.args[0]).toEqual([data.events[1]]);
 
                     expect(services.notify.error.callCount).toBe(0);
                     expect(services.notify.success.callCount).toBe(1);
@@ -582,12 +585,15 @@ describe('actions.events.ui', () => {
 
         it('updateRepetitions calls events.api.updateRepetitions and notifies the user of success', (done) => {
             sinon.stub(eventsApi, 'updateRepetitions').callsFake((item) => Promise.resolve(item));
-            store.test(done, eventsUi.updateRepetitions(data.events[0]))
+            store.test(done, eventsUi.updateRepetitions(data.events[0], {dates: {}}))
                 .then((item) => {
                     expect(item).toEqual(data.events[0]);
 
                     expect(eventsApi.updateRepetitions.callCount).toBe(1);
-                    expect(eventsApi.updateRepetitions.args[0]).toEqual([data.events[0]]);
+                    expect(eventsApi.updateRepetitions.args[0]).toEqual([
+                        data.events[0],
+                        {dates: {}},
+                    ]);
 
                     expect(services.notify.error.callCount).toBe(0);
                     expect(services.notify.success.callCount).toBe(1);

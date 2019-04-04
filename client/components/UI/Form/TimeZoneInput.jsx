@@ -50,6 +50,7 @@ TimeZoneInput.propTypes = {
     value: PropTypes.oneOfType([
         PropTypes.array,
         PropTypes.object,
+        PropTypes.string,
     ]),
     readOnly: PropTypes.bool,
     onChange: PropTypes.func,

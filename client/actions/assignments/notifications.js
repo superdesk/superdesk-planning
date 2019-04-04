@@ -1,9 +1,9 @@
 import * as selectors from '../../selectors';
 import assignments from './index';
 import main from '../main';
-import {get, isEmpty} from 'lodash';
+import {get, isEmpty, cloneDeep} from 'lodash';
 import planning from '../planning';
-import {ASSIGNMENTS, WORKSPACE, PLANNING} from '../../constants';
+import {ASSIGNMENTS, WORKSPACE, PLANNING, MODALS} from '../../constants';
 import {lockUtils, assignmentUtils, gettext, isExistingItem} from '../../utils';
 import {hideModal, showModal} from '../index';
 
@@ -27,6 +27,15 @@ const _notifyAssignmentEdited = (assignmentId) => (
  */
 const onAssignmentCreated = (_e, data) => (
     (dispatch, getState) => {
+        // If this planning item was updated by this user in AddToPlanning Modal
+        // Then ignore this notification
+        if (selectors.general.sessionId(getState()) === data.session && (
+            selectors.general.modalType(getState()) === MODALS.ADD_TO_PLANNING ||
+            selectors.general.previousModalType(getState()) === MODALS.ADD_TO_PLANNING
+        )) {
+            return;
+        }
+
         const currentDesk = selectors.general.currentDeskId(getState());
 
         let querySearchSettings = selectors.getAssignmentSearch(getState());
@@ -58,6 +67,15 @@ const onAssignmentCreated = (_e, data) => (
  */
 const onAssignmentUpdated = (_e, data) => (
     (dispatch, getState) => {
+        // If this planning item was updated by this user in AddToPlanning Modal
+        // Then ignore this notification
+        if (selectors.general.sessionId(getState()) === data.session && (
+            selectors.general.modalType(getState()) === MODALS.ADD_TO_PLANNING ||
+            selectors.general.previousModalType(getState()) === MODALS.ADD_TO_PLANNING
+        )) {
+            return;
+        }
+
         const currentDesk = selectors.general.currentDeskId(getState());
         let querySearchSettings = selectors.getAssignmentSearch(getState());
 
@@ -141,7 +159,7 @@ const _updatePlannigRelatedToAssignment = (data) => (
             return Promise.resolve();
         }
 
-        let planningItem = {...get(plans, data.planning)};
+        let planningItem = cloneDeep(get(plans, data.planning, {}));
 
         if (!isExistingItem(planningItem)) {
             return Promise.resolve();
@@ -155,7 +173,11 @@ const _updatePlannigRelatedToAssignment = (data) => (
         }
 
         if (get(planningItem, 'lock_action') !== 'edit' && !!get(planningItem, 'lock_user') &&
-                !lockUtils.isItemLockedInThisSession(planningItem, session)) {
+                !lockUtils.isItemLockedInThisSession(
+                    planningItem,
+                    session,
+                    selectors.locks.getLockedItems(getState())
+                )) {
             dispatch({
                 type: PLANNING.ACTIONS.UNLOCK_PLANNING,
                 payload: {plan: planningItem},
@@ -163,7 +185,11 @@ const _updatePlannigRelatedToAssignment = (data) => (
         }
 
         coverage.assigned_to.user = data.assigned_user;
+        coverage.assigned_to.assigned_date_user = data.assigned_date_user;
+
         coverage.assigned_to.desk = data.assigned_desk;
+        coverage.assigned_to.assigned_date_desk = data.assigned_date_desk;
+
         coverage.assigned_to.state = data.assignment_state;
 
         if (get(data, 'priority')) {

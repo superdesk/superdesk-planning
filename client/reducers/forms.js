@@ -1,6 +1,6 @@
 import {AUTOSAVE, ITEM_TYPE, MAIN} from '../constants';
 import {createReducer} from './createReducer';
-import {eventUtils, planningUtils, getItemId, getItemType, isTemporaryId} from '../utils';
+import {eventUtils, planningUtils, getItemId, getItemType} from '../utils';
 import {get, set, cloneDeep} from 'lodash';
 
 const initialState = {
@@ -9,111 +9,68 @@ const initialState = {
         event: {},
         planning: {},
     },
-    itemId: null,
-    itemType: null,
-    initialValues: null,
-    loadingEditItem: false,
-    itemIdModal: null,
-    itemTypeModal: null,
-    initialValuesModal: null,
-    loadingEditItemModal: false,
-    itemHistory: [],
-    itemHistoryModal: [],
+    editors: {
+        panel: {
+            itemId: null,
+            itemType: null,
+            action: null,
+            initialValues: null,
+            itemHistory: [],
+        },
+        modal: {
+            itemId: null,
+            itemType: null,
+            action: null,
+            initialValues: null,
+            itemHistory: [],
+        },
+    },
 };
 
-const newStateOnEditorOpen = (state, payload, modal = false) => {
-    const itemId = getItemId(payload) || null;
-    const itemType = getItemType(payload) || null;
-
-    // If this is a new item, then set initialValues to the default for
-    // the item type
-    let initialValues;
-
-    if (!isTemporaryId(itemId) || get(payload, 'duplicate_from')) {
-        initialValues = payload;
-    } else if (itemType === ITEM_TYPE.EVENT) {
-        initialValues = {
-            ...eventUtils.defaultEventValues(),
-            _id: payload._id,
-            _planning_item: payload._planning_item,
-            occur_status: payload.occur_status,
-            dates: payload.dates,
-            calendars: payload.calendars,
-            place: payload.place,
-        };
-    } else if (itemType === ITEM_TYPE.PLANNING) {
-        initialValues = {
-            ...planningUtils.defaultPlanningValues(),
-            _id: payload._id,
-            agendas: payload.agendas,
-            planning_date: payload.planning_date,
-            place: payload.place,
-        };
-    }
+const updateEditor = (state, modal, updates) => {
+    const newState = cloneDeep(state);
 
     if (modal) {
-        return {
-            ...state,
-            itemIdModal: itemId,
-            itemTypeModal: itemType,
-            initialValuesModal: initialValues,
+        newState.editors.modal = {
+            ...newState.editors.modal,
+            ...updates,
         };
     } else {
-        return {
-            ...state,
-            itemId: itemId,
-            itemType: itemType,
-            initialValues: initialValues,
+        newState.editors.panel = {
+            ...newState.editors.panel,
+            ...updates,
         };
     }
+
+    return newState;
 };
 
 const formsReducer = createReducer(initialState, {
-    [MAIN.ACTIONS.OPEN_EDITOR]: (state, payload) => (newStateOnEditorOpen(state, payload)),
+    [MAIN.ACTIONS.OPEN_FOR_EDIT]: (state, payload) => (
+        updateEditor(state, payload.modal, {
+            itemId: getItemId(payload.item) || null,
+            itemType: getItemType(payload.item) || null,
+            itemHistory: [],
+            action: payload.action,
+            initialValues: payload.item,
+        })
+    ),
 
-    [MAIN.ACTIONS.OPEN_EDITOR_MODAL]: (state, payload) => (newStateOnEditorOpen(state, payload, true)),
+    [MAIN.ACTIONS.CHANGE_EDITOR_ACTION]: (state, payload) => (
+        updateEditor(state, payload.modal, {
+            action: payload.action,
+        })
+    ),
 
-    [MAIN.ACTIONS.CLOSE_EDITOR]: (state) => ({
-        ...state,
-        itemId: null,
-        itemType: null,
-        initialValues: null,
-        itemHistory: [],
-        itemHistoryModal: [],
-    }),
-
-    [MAIN.ACTIONS.CLOSE_EDITOR_MODAL]: (state) => ({
-        ...state,
-        itemIdModal: null,
-        itemTypeModal: null,
-        initialValuesModal: null,
-    }),
-
-    [MAIN.ACTIONS.SET_EDIT_ITEM]: (state, payload) => ({
-        ...state,
-        itemId: payload.itemId,
-        itemType: payload.itemType,
-    }),
-
-    [MAIN.ACTIONS.EDIT_LOADING_START]: (state) => ({
-        ...state,
-        loadingEditItem: true,
-    }),
-
-    [MAIN.ACTIONS.EDIT_LOADING_COMPLETE]: (state) => ({
-        ...state,
-        loadingEditItem: false,
-    }),
-
-    [MAIN.ACTIONS.EDIT_LOADING_START_MODAL]: (state) => ({
-        ...state,
-        loadingEditItemModal: true,
-    }),
-
-    [MAIN.ACTIONS.EDIT_LOADING_COMPLETE_MODAL]: (state) => ({
-        ...state,
-        loadingEditItemModal: false,
-    }),
+    [MAIN.ACTIONS.CLOSE_EDITOR]: (state, payload) => (
+        updateEditor(state, payload, {
+            itemId: null,
+            itemType: null,
+            itemHistory: [],
+            action: null,
+            initialValues: null,
+        })
+    ),
 
     [AUTOSAVE.ACTIONS.RECEIVE]: (state, payload) => {
         const newState = cloneDeep(state);
@@ -167,15 +124,11 @@ const formsReducer = createReducer(initialState, {
         return newState;
     },
 
-    [MAIN.ACTIONS.RECEIVE_EDITOR_ITEM_HISTORY]: (state, payload) => ({
-        ...state,
-        itemHistory: payload,
-    }),
-
-    [MAIN.ACTIONS.RECEIVE_EDITOR_MODAL_ITEM_HISTORY]: (state, payload) => ({
-        ...state,
-        itemHistoryModal: payload,
-    }),
+    [MAIN.ACTIONS.RECEIVE_EDITOR_ITEM_HISTORY]: (state, payload) => (
+        updateEditor(state, payload.modal, {
+            itemHistory: payload.items,
+        })
+    ),
 });
 
 export default formsReducer;

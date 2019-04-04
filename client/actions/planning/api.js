@@ -1,4 +1,4 @@
-import {get, cloneDeep, pickBy, isEqual, has, every} from 'lodash';
+import {get, cloneDeep, pickBy, has, every} from 'lodash';
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
 import moment from 'moment';
@@ -61,23 +61,23 @@ const unspike = (items) => (
     }
 );
 
-const cancel = (item) => (
+const cancel = (original, updates) => (
     (dispatch, getState, {api}) => (
         api.update(
             'planning_cancel',
-            item,
-            {reason: get(item, 'reason', undefined)}
+            original,
+            {reason: get(updates, 'reason', undefined)}
         )
     )
 );
 
-const cancelAllCoverage = (item) => (
+const cancelAllCoverage = (original, updates) => (
     (dispatch, getState, {api}) => (
         api.update(
             'planning_cancel',
-            item,
+            original,
             {
-                reason: get(item, 'reason', undefined),
+                reason: get(updates, 'reason', undefined),
                 cancel_all_coverage: true,
             }
         )
@@ -701,114 +701,73 @@ const getPlanning = (planId, saveToStore = true) => (
 /**
  * Saves a Planning Item
  * If the item does not contain an _id, then it creates a new planning item instead
- * @param {object} item - The Planning item to save
  * @param {object} original - If supplied, will use this as the original Planning item
+ * @param {object} planUpdates - The Planning item to save
  * @return Promise
  */
-const save = (item, original = undefined) => (
+const save = (original, planUpdates) => (
     (dispatch, getState, {api}) => {
-        // remove all properties starting with _ or lock_,
-        let updates = pickBy(cloneDeep(item), (v, k) => (!k.startsWith('_') && !k.startsWith('lock_')));
+        let promise;
 
-        // remove nested original creator
-        delete updates.original_creator;
-
-        // remove revert_state
-        delete updates.revert_state;
-
-        if (updates.agendas) {
-            updates.agendas = updates.agendas.map((agenda) => agenda._id || agenda);
+        if (original) {
+            promise = Promise.resolve(original);
+        } else if (isExistingItem(planUpdates)) {
+            promise = dispatch(self.fetchById(planUpdates._id));
+        } else {
+            promise = Promise.resolve({});
         }
 
-        planningUtils.modifyForServer(updates);
+        return promise.then((originalPlan) => {
+            // Clone the original because `save` will modify it
+            const originalItem = cloneDeep(originalPlan);
 
-        // Find the original (if it exists) either from the store or the API
-        return new Promise((resolve, reject) => {
-            if (original !== undefined && !isEqual(original, {})) {
-                return resolve(original);
-            } else if (isExistingItem(item)) {
-                return dispatch(self.fetchById(item._id))
-                    .then(
-                        (planning) => resolve(planning),
-                        (error) => reject(error)
-                    );
-            } else if (get(updates, 'coverages.length', 0) > 0) {
-                // If the new Planning item has coverages then we need to create
-                // the planning first before saving the coverages
-                // As assignments are created and require a Planning ID
-                // const coverages = cloneDeep(item.coverages)
-                // item.coverages = []
-                let modifiedUpdates = cloneDeep(updates);
+            // remove all properties starting with _ or lock_,
+            let updates = pickBy(
+                cloneDeep(planUpdates),
+                (v, k) => (!k.startsWith('_') && !k.startsWith('lock_'))
+            );
 
-                if (updates.pubstatus === POST_STATE.USABLE) {
-                    // We are create&posting from add-to-planning
-                    delete modifiedUpdates.pubstatus;
-                    delete modifiedUpdates.state;
-                }
+            // remove nested original creator
+            delete updates.original_creator;
 
-                return api('planning').save({}, {
+            // remove revert_state
+            delete updates.revert_state;
+
+            if (updates.agendas) {
+                updates.agendas = updates.agendas.map((agenda) => agenda._id || agenda);
+            }
+
+            planningUtils.modifyForServer(updates);
+
+            if (isExistingItem(originalPlan) || get(updates, 'coverages.length', 0) < 1) {
+                return api('planning').save(originalItem, updates);
+            }
+
+            // If the new Planning item has coverages then we need to create
+            // the planning first before saving the coverages
+            // As assignments are created and require a Planning ID
+            let modifiedUpdates = cloneDeep(updates);
+
+            if (updates.pubstatus === POST_STATE.USABLE) {
+                // We are create&posting from add-to-planning
+                delete modifiedUpdates.pubstatus;
+                delete modifiedUpdates.state;
+            }
+
+            return api('planning').save(
+                {},
+                {
                     ...modifiedUpdates,
                     coverages: [],
-                }, {add_to_planning: selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING})
-                    .then(
-                        (newItem) => resolve(newItem),
-                        (error) => reject(error)
-                    );
-            } else {
-                return resolve({});
-            }
-        })
-            .then((originalItem) => (
-                api('planning').save(cloneDeep(originalItem), updates)
-                    .then(
-                        (planning) => (Promise.resolve(planning)),
-                        (error) => (Promise.reject(error))
-                    )
-            ), (error) => Promise.reject(error));
+                },
+                {add_to_planning: selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING}
+            )
+                .then(
+                    (originalItem) => api('planning').save(originalItem, updates),
+                    (error) => Promise.reject(error)
+                );
+        });
     }
-);
-
-/**
- * Saves the supplied planning item and reload the
- * list of Agendas and their associated planning items.
- * If the planning item does not have an ._id, then add it to the
- * currently selected Agenda
- * If no Agenda is selected, or the currently selected Agenda is spiked,
- * then notify the end user and reject this action
- * @param {object} item - The planning item to save
- * @return Promise
- */
-const saveAndReloadCurrentAgenda = (item) => (
-    (dispatch, getState) => (
-        new Promise((resolve, reject) => {
-            if (isExistingItem(item)) {
-                return dispatch(self.fetchById(item._id))
-                    .then(
-                        (item) => (resolve(item)),
-                        (error) => (reject(error))
-                    );
-            } else {
-                return resolve({});
-            }
-        })
-            .then((originalItem) => {
-                if (isEqual(originalItem, {})) {
-                    const currentAgendaId = selectors.planning.currentAgendaId(getState());
-                    const errorMessage = {data: {}};
-
-                    if (!currentAgendaId) {
-                        errorMessage.data._message = 'No Agenda is currently selected.';
-                        return Promise.reject(errorMessage);
-                    }
-                }
-
-                return dispatch(self.save(item, originalItem))
-                    .then(
-                        (item) => (Promise.resolve(item)),
-                        (error) => (Promise.reject(error))
-                    );
-            })
-    )
 );
 
 const duplicate = (plan) => (
@@ -825,16 +784,17 @@ const duplicate = (plan) => (
 
 /**
  * Set a Planning item as Posted
- * @param {string} plan - Planning item
+ * @param {Object} original - Planning item
+ * @param {Object} updates - Planning item
  */
-const post = (plan) => (
+const post = (original, updates) => (
     (dispatch, getState, {api}) => (
         api.save('planning_post', {
-            planning: plan._id,
-            etag: plan._etag,
-            pubstatus: POST_STATE.USABLE,
+            planning: original._id,
+            etag: original._etag,
+            pubstatus: get(updates, 'pubstatus', POST_STATE.USABLE),
         }).then(
-            () => dispatch(self.fetchById(plan._id, {force: true})),
+            () => dispatch(self.fetchById(original._id, {force: true})),
             (error) => Promise.reject(error)
         )
     )
@@ -842,16 +802,17 @@ const post = (plan) => (
 
 /**
  * Set a Planning item as not Posted
- * @param {string} plan - Planning item ID
+ * @param {Object} original - Planning item ID
+ * @param {Object} updates - Planning item ID
  */
-const unpost = (plan) => (
+const unpost = (original, updates) => (
     (dispatch, getState, {api}) => (
         api.save('planning_post', {
-            planning: plan._id,
-            etag: plan._etag,
-            pubstatus: POST_STATE.CANCELLED,
+            planning: original._id,
+            etag: original._etag,
+            pubstatus: get(updates, 'pubstatus', POST_STATE.CANCELLED),
         }).then(
-            () => dispatch(self.fetchById(plan._id, {force: true})),
+            () => dispatch(self.fetchById(original._id, {force: true})),
             (error) => Promise.reject(error)
         )
     )
@@ -885,13 +846,18 @@ const unlock = (item) => (
 
 /**
  * Action dispatcher that attempts to lock a Planning item through the API
- * @param {object} item - The Planning item to lock
+ * @param {object} planning - The Planning item to lock
+ * @param {String} lockAction - The lock action
  * @return Promise
  */
 const lock = (planning, lockAction = 'edit') => (
     (dispatch, getState, {api}) => {
         if (lockAction === null ||
-            lockUtils.isItemLockedInThisSession(planning, selectors.general.session(getState()))
+            lockUtils.isItemLockedInThisSession(
+                planning,
+                selectors.general.session(getState()),
+                selectors.locks.getLockedItems(getState())
+            )
         ) {
             return Promise.resolve(planning);
         }
@@ -1165,7 +1131,6 @@ const self = {
     fetch,
     receivePlannings,
     save,
-    saveAndReloadCurrentAgenda,
     fetchById,
     fetchPlanningsEvents,
     unlock,

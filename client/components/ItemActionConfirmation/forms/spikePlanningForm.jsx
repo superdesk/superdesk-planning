@@ -17,32 +17,30 @@ export class SpikePlanningComponent extends React.Component {
 
 
     submit() {
-        return this.props.onSubmit({
-            ...this.props.initialValues,
-        });
+        return this.props.onSubmit(this.props.original);
     }
 
     render() {
-        const {initialValues, dateFormat, timeFormat} = this.props;
+        const {original, dateFormat, timeFormat} = this.props;
 
         return (
             <div className="MetadataView">
                 <Row
                     label={gettext('Slugline')}
-                    value={initialValues.slugline || ''}
+                    value={original.slugline || ''}
                     className="slugline"
                     noPadding={true} />
 
                 <Row
-                    enabled={!!initialValues.name}
+                    enabled={!!original.name}
                     label={gettext('Name')}
-                    value={initialValues.name || ''}
+                    value={original.name || ''}
                     className="strong"
                     noPadding={true} />
 
                 <Row
                     label={gettext('Planning Date')}
-                    value={getDateTimeString(initialValues.planning_date, dateFormat, timeFormat) || ''}
+                    value={getDateTimeString(original.planning_date, dateFormat, timeFormat) || ''}
                     noPadding={true} />
             </div>
         );
@@ -50,7 +48,7 @@ export class SpikePlanningComponent extends React.Component {
 }
 
 SpikePlanningComponent.propTypes = {
-    initialValues: PropTypes.object.isRequired,
+    original: PropTypes.object.isRequired,
     dateFormat: PropTypes.string,
     timeFormat: PropTypes.string,
     onSubmit: PropTypes.func,

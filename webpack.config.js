@@ -29,7 +29,7 @@ module.exports = {
                 exclude: /node_modules\/(?!(superdesk-core)\/).*/,
                 loader: 'ts-loader',
                 options: {
-                    transpileOnly: false
+                    transpileOnly: true
                 }
             },
             {

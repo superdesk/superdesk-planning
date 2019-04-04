@@ -29,21 +29,21 @@ export class PlanningCovergeCancelComponent extends React.Component {
     }
 
     submit() {
-        return this.props.onSubmit({
-            ...this.props.initialValues,
-            reason: this.state.reason,
-        });
+        return this.props.onSubmit(
+            this.props.original,
+            {reason: this.state.reason}
+        );
     }
 
     render() {
-        const {initialValues, submitting} = this.props;
-        let planning = initialValues;
-        const labelText = initialValues._cancelAllCoverage ? gettext('Reason for cancelling all coverage:') :
+        const {original, submitting} = this.props;
+        const labelText = original._cancelAllCoverage ?
+            gettext('Reason for cancelling all coverage:') :
             gettext('Reason for cancelling the planning item:');
 
         return (
             <div className="MetadataView">
-                <Row value={planning.slugline} className="strong" />
+                <Row value={original.slugline} className="strong" />
                 <Row label={labelText}>
                     <TextAreaInput
                         value={this.state.reason}
@@ -58,7 +58,7 @@ export class PlanningCovergeCancelComponent extends React.Component {
 
 PlanningCovergeCancelComponent.propTypes = {
     onSubmit: PropTypes.func,
-    initialValues: PropTypes.object.isRequired,
+    original: PropTypes.object.isRequired,
 
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
@@ -69,29 +69,29 @@ PlanningCovergeCancelComponent.propTypes = {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (plan) => {
+    onSubmit: (original, updates) => {
         let cancelDispatch, reasonPrefix;
 
-        if (plan._cancelAllCoverage) {
+        if (original._cancelAllCoverage) {
             cancelDispatch = actions.planning.ui.cancelAllCoverage;
             reasonPrefix = gettext('All coverages cancelled: ');
         } else {
             cancelDispatch = actions.planning.ui.cancelPlanning;
-            reasonPrefix = gettext('Planing cancelled: ');
+            reasonPrefix = gettext('Planning cancelled: ');
         }
 
-        if (get(plan, 'reason')) {
-            plan.reason = reasonPrefix + plan.reason;
+        if (get(updates, 'reason')) {
+            updates.reason = reasonPrefix + updates.reason;
         }
 
-        return dispatch(cancelDispatch(plan))
-            .then((plan) => {
-                if (get(plan, 'lock_action') === PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.lock_action ||
-                    isItemCancelled(plan)) {
-                    return dispatch(actions.planning.api.unlock(plan));
+        return dispatch(cancelDispatch(original, updates))
+            .then((updatedPlan) => {
+                if (get(original, 'lock_action') === PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.lock_action ||
+                    isItemCancelled(updatedPlan)) {
+                    return dispatch(actions.planning.api.unlock(updatedPlan));
                 }
 
-                return Promise.resolve(plan);
+                return Promise.resolve(updatedPlan);
             });
     },
 

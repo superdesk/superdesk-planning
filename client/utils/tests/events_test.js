@@ -3,7 +3,7 @@ import eventUtils from '../events';
 import moment from 'moment';
 import {cloneDeep, get} from 'lodash';
 import lockReducer from '../../reducers/locks';
-import {EVENTS, WORKFLOW_STATE, TEMP_ID_PREFIX, POST_STATE} from '../../constants';
+import {EVENTS, WORKFLOW_STATE, POST_STATE} from '../../constants';
 import {expectActions, restoreSinonStub} from '../testUtils';
 
 describe('EventUtils', () => {
@@ -433,7 +433,6 @@ describe('EventUtils', () => {
             const duplicateEvent = eventUtils.duplicateEvent(evt, 'foo');
 
             expect(duplicateEvent.occur_status).toBe('foo');
-            expect(duplicateEvent._id.startsWith(TEMP_ID_PREFIX)).toBe(true);
             expect(duplicateEvent.duplicate_from).toBe(event._id);
             expect(duplicateEvent.hasOwnProperty('state_reason')).toBe(false);
             expect(duplicateEvent.dates.tz).toBe('Foo');
@@ -447,7 +446,6 @@ describe('EventUtils', () => {
             const duplicateEvent = eventUtils.duplicateEvent(evt, 'foo');
 
             expect(duplicateEvent.occur_status).toBe('foo');
-            expect(duplicateEvent._id.startsWith(TEMP_ID_PREFIX)).toBe(true);
             expect(duplicateEvent.duplicate_from).toBe(event._id);
             expect(duplicateEvent.hasOwnProperty('state_reason')).toBe(false);
             expect(duplicateEvent.dates.tz).toBe('Foo');

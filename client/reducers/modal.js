@@ -26,6 +26,11 @@ const modal = (state = initialState, action) => {
             ...state,
             actionInProgress: action.payload,
         };
+    case 'MODAL_CLEAR_PREVIOUS':
+        return {
+            ...state,
+            previousState: undefined,
+        };
     default:
         return state;
     }

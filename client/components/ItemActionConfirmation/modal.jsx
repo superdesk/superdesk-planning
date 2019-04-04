@@ -47,12 +47,14 @@ export class ItemActionConfirmationModal extends React.Component {
         let title;
         let form;
         let saveText = gettext('Save');
-        let propToForm = modalProps.eventDetail;
-        const isRecurring = get(modalProps, 'eventDetail.recurrence_id');
+        let original = modalProps.original || {};
+        let updates = modalProps.updates || {};
+        const resolve = modalProps.resolve || null;
+        const isRecurring = get(modalProps, 'original.recurrence_id');
 
         const getSaveAndPostTitle = () => {
-            const post = get(modalProps, 'eventDetail._post', false);
-            const save = get(modalProps, 'eventDetail._save', true);
+            const post = get(modalProps, 'original._post', false);
+            const save = get(modalProps, 'original._save', true);
 
             if (save && post)
                 return gettext('Save & Post Event');
@@ -108,10 +110,10 @@ export class ItemActionConfirmationModal extends React.Component {
             },
             [EVENTS.ITEM_ACTIONS.POST_EVENT.label]: {
                 title: gettext('{{action}} {{event}}', {
-                    action: get(propToForm, '_post', true) ? gettext('Post') : gettext('Unpost'),
+                    action: get(original, '_post', true) ? gettext('Post') : gettext('Unpost'),
                     event: isRecurring ? gettext('Recurring Event(s)') : gettext('an Event'),
                 }),
-                saveText: get(propToForm, '_post', true) ? gettext('Post') : gettext('Unpost'),
+                saveText: get(original, '_post', true) ? gettext('Post') : gettext('Unpost'),
                 form: PostEventsForm,
             },
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.label]: {
@@ -121,51 +123,47 @@ export class ItemActionConfirmationModal extends React.Component {
             },
             [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.label]: {
                 title: gettext('Assign "{{calendar}}" Calendar to Series', {
-                    calendar: get(propToForm, '_calendar.name') || '',
+                    calendar: get(updates, '_calendar.name') || '',
                 }),
                 saveText: gettext('Assign Calendar'),
                 form: AssignCalendarForm,
             },
             [PLANNING.ITEM_ACTIONS.SPIKE.label]: {
                 title: gettext('Spike Planning Item'),
-                propToForm: {...modalProps.planning},
                 saveText: gettext('Spike'),
                 form: SpikePlanningForm,
             },
             [PLANNING.ITEM_ACTIONS.UNSPIKE.label]: {
                 title: gettext('Unspike Planning Item'),
-                propToForm: {...modalProps.planning},
                 saveText: gettext('Unspike'),
                 form: UnspikePlanningForm,
             },
             [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label]: {
                 title: get(PLANNING, 'ITEM_ACTIONS.CANCEL_PLANNING.label'),
-                propToForm: {...modalProps.planning},
                 form: CancelPlanningCoveragesForm,
             },
             [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label]: {
                 title: get(PLANNING, 'ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label'),
-                propToForm: {
-                    ...modalProps.planning,
+                original: {
+                    ...modalProps.original,
                     _cancelAllCoverage: true,
                 },
                 form: CancelPlanningCoveragesForm,
             },
             [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: {
                 title: ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label,
-                propToForm: {...modalProps.assignment},
                 form: UpdateAssignmentForm,
             },
             [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label]: {
                 title: ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label,
                 form: EditPriorityForm,
-                propToForm: {...modalProps.assignment},
             },
         };
 
         title = get(modalFormsMapper[modalProps.actionType], 'title', getSaveAndPostTitle());
         form = get(modalFormsMapper[modalProps.actionType], 'form', UpdateRecurringEventsForm);
-        propToForm = get(modalFormsMapper[modalProps.actionType], 'propToForm', propToForm);
+        original = get(modalFormsMapper[modalProps.actionType], 'original', original);
+        updates = get(modalFormsMapper[modalProps.actionType], 'updates', updates);
         saveText = get(modalFormsMapper[modalProps.actionType], 'saveText', saveText);
 
         return (
@@ -173,7 +171,8 @@ export class ItemActionConfirmationModal extends React.Component {
                 title={title}
                 onHide={handleHide}
                 form={form}
-                initialValues={propToForm}
+                original={original}
+                updates={updates}
                 saveButtonText={saveText}
                 cancelButtonText={gettext('Cancel')}
                 large={get(modalProps, 'large', false)}
@@ -182,6 +181,7 @@ export class ItemActionConfirmationModal extends React.Component {
                 enableSaveInModal={this.enableSaveInModal}
                 disableSaveInModal={this.disableSaveInModal}
                 modalProps={modalProps}
+                resolve={resolve}
             />
         );
     }
@@ -191,6 +191,8 @@ ItemActionConfirmationModal.propTypes = {
     handleHide: PropTypes.func.isRequired,
     modalProps: PropTypes.shape({
         eventDetail: PropTypes.object,
+        original: PropTypes.object,
+        updates: PropTypes.object,
         planning: PropTypes.object,
         actionType: PropTypes.string,
         large: PropTypes.bool,

@@ -151,8 +151,9 @@ describe('can edit assignment', () => {
     });
 
     describe('locks', () => {
-        it('locked by another use', () => {
+        it('locked by another user', () => {
             assignment.lock_user = 'ident2';
+            assignment.lock_session = 'session2';
             expect(canStartWorking()).toBe(false);
             expect(canCompleteAssignment()).toBe(false);
         });

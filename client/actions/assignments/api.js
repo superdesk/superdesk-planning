@@ -146,46 +146,50 @@ const receivedAssignments = (assignments) => ({
 
 /**
  * Action to save assignment
- * @param {Object} item - assignment to save
  * @param {Object} original - original assignment
+ * @param {Object} assignmentUpdates - update values for the assignment
  * @return object
  */
-const save = (item, original = undefined) => (
-    (dispatch, getState, {api}) => (
-        // Find the original (if it exists) either from the store or the API
-        new Promise((resolve, reject) => {
-            if (original !== undefined) {
-                return resolve(original);
-            } else if (isExistingItem(item)) {
-                return dispatch(self.fetchAssignmentById(item._id))
-                    .then(
-                        (item) => (resolve(item)),
-                        (error) => (reject(error))
-                    );
+const save = (original, assignmentUpdates) => (
+    (dispatch, getState, {api}) => {
+        let promise;
+
+        if (original) {
+            promise = Promise.resolve(original);
+        } else if (!isExistingItem(original)) {
+            promise = Promise.resolve({});
+        } else {
+            promise = dispatch(
+                self.fetchAssignmentById(original._id)
+            );
+        }
+
+        return promise.then((originalItem) => {
+            let updates;
+
+            if (original.lock_action === 'reassign') {
+                updates = pick(assignmentUpdates, 'assigned_to');
+                updates.assigned_to = pick(
+                    assignmentUpdates.assigned_to,
+                    ['desk', 'user', 'coverage_provider']
+                );
             } else {
-                return resolve({});
-            }
-        })
-            .then((originalItem) => {
-                let updates = {};
-
-                if (item.lock_action === 'reassign') {
-                    updates = pick(item, 'assigned_to');
-                    updates.assigned_to = pick(item.assigned_to, ['desk', 'user', 'coverage_provider']);
-                } else {
                 // Edit priority
-                    updates = pick(item, 'priority');
-                }
+                updates = pick(assignmentUpdates, 'priority');
+            }
 
-                return api('assignments').save(cloneDeep(originalItem), updates)
-                    .then((updated) => {
+            return api('assignments').save(cloneDeep(originalItem), updates)
+                .then(
+                    (updated) => {
                         planningUtils.modifyCoverageForClient(updated);
                         dispatch(self.receivedAssignments([updated]));
+
                         return Promise.resolve(updated);
-                    }, (error) => (Promise.reject(error))
-                    );
-            }, (error) => (Promise.reject(error)))
-    )
+                    },
+                    (error) => Promise.reject(error)
+                );
+        }, (error) => (Promise.reject(error)));
+    }
 );
 
 /**
@@ -264,7 +268,11 @@ const revert = (item) => (
  */
 const lock = (assignment, action = 'edit') => (
     (dispatch, getState, {api, notify}) => {
-        if (lockUtils.isItemLockedInThisSession(assignment, selectors.general.session(getState()))) {
+        if (lockUtils.isItemLockedInThisSession(
+            assignment,
+            selectors.general.session(getState()),
+            selectors.locks.getLockedItems(getState())
+        )) {
             return Promise.resolve(assignment);
         }
 

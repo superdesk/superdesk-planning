@@ -29,7 +29,7 @@ export const usersDefaultAgenda = createSelector(
 
 export const defaultAgendaFilter = createSelector(
     [usersDefaultAgenda],
-    (agenda) => agenda || {name: AGENDA.FILTER.AGENDA.FILTER.ALL_PLANNING}
+    (agenda) => agenda || {name: AGENDA.FILTER.ALL_PLANNING}
 );
 
 export const currentAgendaId = createSelector([usersDefaultAgenda, selectedAgendaId],
@@ -82,7 +82,7 @@ export const getPlanningFilterParams = createSelector(
             agendas = [agendaId];
         }
 
-        const params = {
+        return {
             noAgendaAssigned: agendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED,
             agendas: agendas,
             advancedSearch: get(currentSearch, 'advancedSearch', {}),
@@ -91,15 +91,23 @@ export const getPlanningFilterParams = createSelector(
             excludeRescheduledAndCancelled: get(currentSearch, 'excludeRescheduledAndCancelled', false),
             page: 1,
         };
-
-        return params;
     }
 );
 
+const getLockedItems = (state) => get(state, 'locks', {
+    event: {},
+    planning: {},
+    recurring: {},
+    assignment: {},
+});
+
 export const isCurrentPlanningLockedInThisSession = createSelector(
-    [currentPlanning, session],
-    (currentPlanning, session) => (
-        currentPlanning && lockUtils.isItemLockedInThisSession(currentPlanning, session)
+    [currentPlanning, session, getLockedItems],
+    (currentPlanning, session, locks) => (
+        currentPlanning && lockUtils.isItemLockedInThisSession(
+            currentPlanning,
+            session,
+            locks
+        )
     )
 );
-

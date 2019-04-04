@@ -1,7 +1,8 @@
 import {forEach, set} from 'lodash';
 import {Popup} from './popup';
+import {ActionMenu} from './actionMenu';
 import {getInputHelper} from './form';
-import {waitAndClick, waitPresent} from './utils';
+import {waitAndClick, waitPresent, waitNotPresent} from './utils';
 
 class Editor {
     constructor() {
@@ -19,7 +20,6 @@ class Editor {
         this.countField = this.editor.element(by.xpath('//input[@name="count"]'));
         this.untilDateField = this.editor.element(by.xpath('//input[@name="dates.recurring_rule.until"]'));
 
-
         this.createButton = this.editor.element(by.id('create'));
         this.closeButton = this.editor.element(by.id('close'));
         this.postButton = this.editor.element(by.id('post'));
@@ -32,6 +32,8 @@ class Editor {
         this.createCoverageButton = this.editor.element(by.xpath('//button[@title="Create new coverage"]'));
         this.textCoverageOption = this.editor.element(by.xpath('//button[@id="coverage-menu-add-text"]'));
         this.editAssignmentButton = this.editor.element(by.xpath('//button[@id="editAssignment"]'));
+
+        this.actionMenu = new ActionMenu(this.editor);
     }
 
     isItemPosted() {
@@ -59,6 +61,10 @@ class Editor {
             event,
             (value, field) => getInputHelper(this.editor, field).setValue(value)
         );
+
+        return browser.actions()
+            .sendKeys(protractor.Key.TAB)
+            .perform();
     }
 
     expectValues(event) {
@@ -92,6 +98,14 @@ class Editor {
 
         return waitAndClick(menu.element(by.id('addToWorkflow'))).
             then(() => set(plan, 'coverages[0].assigned_to.state', 'ASSIGNED'));
+    }
+
+    waitTillOpen(button = null) {
+        return waitPresent(button || this.closeButton);
+    }
+
+    waitTillClose() {
+        return waitNotPresent(this.closeButton);
     }
 }
 

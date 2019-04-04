@@ -20,7 +20,7 @@ coverages.propTypes = {
     item: PropTypes.shape({
         description_text: PropTypes.string,
     }).isRequired,
-    date: PropTypes.object,
+    date: PropTypes.string,
     timeFormat: PropTypes.string,
     dateFormat: PropTypes.string,
     users: PropTypes.array,

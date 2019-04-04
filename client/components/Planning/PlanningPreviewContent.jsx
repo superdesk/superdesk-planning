@@ -275,7 +275,7 @@ const mapStateToProps = (state, ownProps) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onEditEvent: (event) => dispatch(actions.main.lockAndEdit(event)),
+    onEditEvent: (event) => dispatch(actions.main.openForEdit(event)),
     fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
     fetchPlanningFiles: (planning) => dispatch(actions.planning.api.fetchPlanningFiles(planning)),
 });

@@ -22,6 +22,8 @@ export const userDesks = (state) => get(state, 'userDesks', []);
 
 export const modalType = (state) => get(state, 'modal.modalType');
 export const modalProps = (state) => get(state, 'modal.modalProps');
+export const previousModalType = (state) => get(state, 'modal.previousState.modalType');
+export const previousModalProps = (state) => get(state, 'modal.previousState.modalProps') || {};
 export const modalActionInProgress = (state) => !!get(state, 'modal.actionInProgress', false);
 
 export const agendas = (state) => get(state, 'agenda.agendas', []);

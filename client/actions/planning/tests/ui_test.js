@@ -24,7 +24,6 @@ describe('actions.planning.ui', () => {
         sinon.stub(planningApi, 'fetch').callsFake(() => (Promise.resolve()));
         sinon.stub(planningApi, 'refetch').callsFake(() => (Promise.resolve()));
         sinon.stub(planningApi, 'save').callsFake((item) => (Promise.resolve(item)));
-        sinon.stub(planningApi, 'saveAndReloadCurrentAgenda').callsFake((item) => Promise.resolve(item));
         sinon.stub(planningApi, 'lock').callsFake((item) => (Promise.resolve(item)));
         sinon.stub(planningApi, 'unlock').callsFake(() => (Promise.resolve(data.plannings[0])));
         sinon.stub(planningUi, 'requestPlannings').callsFake(() => (Promise.resolve()));
@@ -39,7 +38,7 @@ describe('actions.planning.ui', () => {
         sinon.stub(planningUi, 'saveFromAuthoring').callsFake(() => (Promise.resolve()));
 
         sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
-        sinon.stub(main, 'openEditor').callsFake((item) => (Promise.resolve(item)));
+        sinon.stub(main, 'openForEdit');
         sinon.stub(locks, 'lock').callsFake((item) => (Promise.resolve(item)));
     });
 
@@ -49,7 +48,6 @@ describe('actions.planning.ui', () => {
         restoreSinonStub(planningApi.fetch);
         restoreSinonStub(planningApi.refetch);
         restoreSinonStub(planningApi.save);
-        restoreSinonStub(planningApi.saveAndReloadCurrentAgenda);
         restoreSinonStub(planningApi.lock);
         restoreSinonStub(planningApi.unlock);
 
@@ -64,7 +62,7 @@ describe('actions.planning.ui', () => {
         restoreSinonStub(planningUi.loadMore);
 
         restoreSinonStub(main.closePreviewAndEditorForItems);
-        restoreSinonStub(main.openEditor);
+        restoreSinonStub(main.openForEdit);
         restoreSinonStub(locks.lock);
     });
 
@@ -169,26 +167,31 @@ describe('actions.planning.ui', () => {
 
     describe('save', () => {
         it('saves and reloads planning items', (done) => (
-            store.test(done, planningUi.save(data.plannings[1]))
+            store.test(done, planningUi.save(
+                data.plannings[1],
+                {slugline: 'New Slugger'}
+            ))
                 .then((item) => {
                     expect(item).toEqual(data.plannings[1]);
 
-                    expect(planningApi.saveAndReloadCurrentAgenda.callCount).toBe(1);
-                    expect(planningApi.saveAndReloadCurrentAgenda.args[0]).toEqual([
+                    expect(planningApi.save.callCount).toBe(1);
+                    expect(planningApi.save.args[0]).toEqual([
                         data.plannings[1],
+                        {slugline: 'New Slugger'},
                     ]);
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail))
+        );
 
         it('on save fail notifies the end user', (done) => {
-            restoreSinonStub(planningApi.saveAndReloadCurrentAgenda);
-            sinon.stub(planningApi, 'saveAndReloadCurrentAgenda').callsFake(
+            restoreSinonStub(planningApi.save);
+            sinon.stub(planningApi, 'save').callsFake(
                 () => (Promise.reject(errorMessage))
             );
 
-            return store.test(done, planningUi.save(data.plannings[1]))
+            return store.test(done, planningUi.save(data.plannings[1], {}))
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
 
@@ -354,8 +357,8 @@ describe('actions.planning.ui', () => {
         });
 
         it('unlocks current planning opens the new planning', (done) => {
-            store.initialState.forms.itemId = data.plannings[1]._id;
-            store.initialState.forms.itemType = 'planning';
+            store.initialState.forms.editors.panel.itemId = 'p2';
+            store.initialState.forms.editors.panel.itemType = 'planning';
             store.test(done, planningUi.onAddCoverageClick(
                 store.initialState.planning.plannings.p1
             ))
@@ -365,8 +368,8 @@ describe('actions.planning.ui', () => {
                         store.initialState.planning.plannings.p2,
                     ]);
 
-                    expect(main.openEditor.callCount).toBe(1);
-                    expect(main.openEditor.args[0]).toEqual([store.initialState.planning.plannings.p1]);
+                    expect(main.openForEdit.callCount).toBe(1);
+                    expect(main.openForEdit.args[0]).toEqual([store.initialState.planning.plannings.p1]);
                     done();
                 })
                 .catch(done.fail);
@@ -406,9 +409,16 @@ describe('actions.planning.ui', () => {
         });
 
         it('calls save', () => {
-            store.dispatch(planningUi.saveFromAuthoring(data.plannings[0], {post: false, unpost: false}));
+            store.dispatch(planningUi.saveFromAuthoring(
+                data.plannings[0],
+                {...data.plannings[0], slugline: 'New Slugger'}
+            ));
+
             expect(planningApi.save.callCount).toBe(1);
-            expect(planningApi.save.args[0]).toEqual([data.plannings[0]]);
+            expect(planningApi.save.args[0]).toEqual([
+                data.plannings[0],
+                {...data.plannings[0], slugline: 'New Slugger'},
+            ]);
         });
 
         it('notifies user if save fails', (done) => {
@@ -434,7 +444,7 @@ describe('actions.planning.ui', () => {
                 () => (Promise.reject(errorMessage))
             );
 
-            store.test(done, planningUi.saveFromAuthoring(data.plannings[0], {post: false, unpost: false}))
+            store.test(done, planningUi.saveFromAuthoring(data.plannings[0]))
                 .then(() => { /* no-op */ }, () => {
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
@@ -448,10 +458,16 @@ describe('actions.planning.ui', () => {
         });
 
         it('calls link and notifies user of success', (done) => (
-            store.test(done, planningUi.saveFromAuthoring(data.plannings[0], {post: false, unpost: false}))
+            store.test(done, planningUi.saveFromAuthoring(
+                data.plannings[0],
+                {...data.plannings[0], slugline: 'New Slugger'}
+            ))
                 .then(() => {
                     expect(planningApi.save.callCount).toBe(1);
-                    expect(planningApi.save.args[0]).toEqual([data.plannings[0]]);
+                    expect(planningApi.save.args[0]).toEqual([
+                        data.plannings[0],
+                        {...data.plannings[0], slugline: 'New Slugger'},
+                    ]);
 
                     expect(assignmentApi.link.callCount).toBe(1);
                     expect(assignmentApi.link.args[0]).toEqual([
@@ -459,6 +475,7 @@ describe('actions.planning.ui', () => {
                             user: 'ident1',
                             desk: 'desk2',
                             assignment_id: 'as2',
+                            state: 'draft',
                         },
                         {
                             _id: 'news1',
@@ -484,12 +501,7 @@ describe('actions.planning.ui', () => {
     });
 
     describe('duplicate', () => {
-        beforeEach(() => {
-            sinon.stub(main, 'lockAndEdit').callsFake((item) => Promise.resolve(item));
-        });
-
         afterEach(() => {
-            restoreSinonStub(main.lockAndEdit);
             restoreSinonStub(planningApi.duplicate);
         });
 
@@ -506,8 +518,8 @@ describe('actions.planning.ui', () => {
                     expect(services.notify.success.callCount).toBe(1);
                     expect(services.notify.success.args[0]).toEqual(['Planning duplicated']);
 
-                    expect(main.lockAndEdit.callCount).toBe(1);
-                    expect(main.lockAndEdit.args[0]).toEqual([data.plannings[0]]);
+                    expect(main.openForEdit.callCount).toBe(1);
+                    expect(main.openForEdit.args[0]).toEqual([data.plannings[0]]);
 
                     done();
                 })
@@ -532,7 +544,9 @@ describe('actions.planning.ui', () => {
 
     describe('assignToAgenda', () => {
         beforeEach(() => {
-            sinon.stub(planningUi, 'save').callsFake((item) => Promise.resolve(item));
+            sinon.stub(planningUi, 'save').callsFake(
+                (item, updates) => Promise.resolve({...item, ...updates})
+            );
             sinon.stub(locks, 'unlock').callsFake((item) => (Promise.resolve(item)));
         });
 
@@ -550,7 +564,10 @@ describe('actions.planning.ui', () => {
             return store.test(done, planningUi.assignToAgenda(data.plannings[0], data.agendas[0]))
                 .then(() => {
                     expect(planningUi.save.callCount).toBe(1);
-                    expect(planningUi.save.args[0]).toEqual([planningWithAgenda]);
+                    expect(planningUi.save.args[0]).toEqual([
+                        data.plannings[0],
+                        planningWithAgenda,
+                    ]);
 
                     expect(services.notify.error.callCount).toBe(0);
                     expect(services.notify.success.callCount).toBe(1);
@@ -558,7 +575,7 @@ describe('actions.planning.ui', () => {
                         ['Agenda assigned to the planning item.']);
 
                     expect(locks.unlock.callCount).toBe(1);
-                    expect(locks.unlock.args[0]).toEqual([planningWithAgenda, false]);
+                    expect(locks.unlock.args[0]).toEqual([planningWithAgenda]);
 
                     done();
                 })
@@ -592,6 +609,7 @@ describe('actions.planning.ui', () => {
             .then(() => {
                 expect(planningApi.save.callCount).toBe(1);
                 expect(planningApi.save.args[0]).toEqual([
+                    data.plannings[0],
                     {
                         coverages: [
                             {
@@ -611,7 +629,6 @@ describe('actions.planning.ui', () => {
                             modifiedPlanning.coverages[2],
                         ],
                     },
-                    data.plannings[0],
                 ]);
 
                 done();

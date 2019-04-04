@@ -916,10 +916,20 @@ const receiveEvents = (events, skipEvents = []) => ({
     receivedAt: Date.now(),
 });
 
+/**
+ * Action to lock an Event
+ * @param {Object} event - Event to be unlocked
+ * @param {String} action - The lock action
+ * @return Promise
+ */
 const lock = (event, action = 'edit') => (
     (dispatch, getState, {api, notify}) => {
         if (action === null ||
-            lockUtils.isItemLockedInThisSession(event, selectors.general.session(getState()))
+            lockUtils.isItemLockedInThisSession(
+                event,
+                selectors.general.session(getState()),
+                selectors.locks.getLockedItems(getState())
+            )
         ) {
             return Promise.resolve(event);
         }
@@ -1045,65 +1055,94 @@ const fetchById = (eventId, {force = false, saveToStore = true, loadPlanning = t
     }
 );
 
-const cancelEvent = (event) => (
+const cancelEvent = (original, updates) => (
     (dispatch, getState, {api}) => (
         api.update(
             'events_cancel',
-            event,
+            original,
             {
-                update_method: get(event, 'update_method.value', EventUpdateMethods[0].value),
-                reason: get(event, 'reason', undefined),
+                update_method: get(updates, 'update_method.value', EventUpdateMethods[0].value),
+                reason: get(updates, 'reason', undefined),
             }
         )
     )
 );
 
-const rescheduleEvent = (event) => (
+const rescheduleEvent = (original, updates) => (
     (dispatch, getState, {api}) => (
         api.update(
             'events_reschedule',
-            event,
+            original,
             {
-                update_method: get(event, 'update_method.value', EventUpdateMethods[0].value),
-                dates: event.dates,
-                reason: get(event, 'reason', null),
+                update_method: get(updates, 'update_method.value', EventUpdateMethods[0].value),
+                dates: updates.dates,
+                reason: get(updates, 'reason', null),
             }
         )
     )
 );
 
-const postponeEvent = (event) => (
+const postponeEvent = (original, updates) => (
     (dispatch, getState, {api}) => (
         api.update(
             'events_postpone',
-            event,
+            original,
             {
-                update_method: get(event, 'update_method.value', EventUpdateMethods[0].value),
-                reason: get(event, 'reason', undefined),
+                update_method: get(updates, 'update_method.value', EventUpdateMethods[0].value),
+                reason: get(updates, 'reason', undefined),
             }
         )
     )
 );
 
-const post = (event) => (
+/**
+ * Set event.pubstatus usable and post event.
+ *
+ * @param {Object} original - The original event item
+ * @param {Object} updates - The updates to the item
+ */
+const post = (original, updates) => (
     (dispatch, getState, {api}) => (
         api.save('events_post', {
-            event: event._id,
-            etag: event._etag,
-            pubstatus: POST_STATE.USABLE,
-            update_method: get(event, 'update_method.value', EventUpdateMethods[0].value),
-        })
+            event: original._id,
+            etag: original._etag,
+            pubstatus: get(updates, 'pubstatus', POST_STATE.USABLE),
+            update_method: get(updates, 'update_method.value', EventUpdateMethods[0].value),
+        }).then(
+            () => dispatch(self.fetchById(original._id, {force: true})),
+            (error) => Promise.reject(error)
+        )
     )
 );
 
-const updateEventTime = (event) => (
+/**
+ * Set event.pubstatus canceled and post event.
+ *
+ * @param {Object} original - The original event item
+ * @param {Object} updates - The updates to the item
+ */
+const unpost = (original, updates) => (
+    (dispatch, getState, {api}) => (
+        api.save('events_post', {
+            event: original._id,
+            etag: original._etag,
+            pubstatus: get(updates, 'pubstatus', POST_STATE.CANCELLED),
+            update_method: get(updates, 'update_method.value', EventUpdateMethods[0].value),
+        }).then(
+            () => dispatch(self.fetchById(original._id, {force: true})),
+            (error) => Promise.reject(error)
+        )
+    )
+);
+
+const updateEventTime = (original, updates) => (
     (dispatch, getState, {api}) => (
         api.update(
             'events_update_time',
-            event,
+            original,
             {
-                update_method: get(event, 'update_method.value', EventUpdateMethods[0].value),
-                dates: event.dates,
+                update_method: get(updates, 'update_method.value', EventUpdateMethods[0].value),
+                dates: updates.dates,
             }
         )
     )
@@ -1155,22 +1194,6 @@ const fetchEventHistory = (eventId) => (
             .then((data) => (Promise.resolve(data._items))
             )
     ));
-
-/**
- * Set event.pubstatus canceled and post event.
- *
- * @param {Object} event
- */
-const unpost = (event) => (
-    (dispatch, getState, {api, notify}) => (
-        api.save('events_post', {
-            event: event._id,
-            etag: event._etag,
-            pubstatus: POST_STATE.CANCELLED,
-            update_method: get(event, 'update_method.value', EventUpdateMethods[0].value),
-        })
-    )
-);
 
 const uploadFiles = (event) => (
     (dispatch, getState, {upload}) => {
@@ -1251,60 +1274,69 @@ const _saveLocation = (event) => (
     }
 );
 
-const _save = (eventUpdates) => (
-    (dispatch, getState, {api}) => (
-        !isExistingItem(eventUpdates) ?
-            Promise.resolve({}) :
-            dispatch(self.fetchById(eventUpdates._id, {saveToStore: false, loadPlanning: false}))
-    )
-        .then((originalEvent) => {
-            // clone the original because `save` will modify it
-            const original = eventUtils.modifyForServer(cloneDeep(originalEvent), true);
+const _save = (original, eventUpdates) => (
+    (dispatch, getState, {api}) => {
+        let promise;
+
+        if (original) {
+            promise = Promise.resolve(original);
+        } else if (isExistingItem(eventUpdates)) {
+            promise = dispatch(
+                self.fetchById(eventUpdates._id, {saveToStore: false, loadPlanning: false})
+            );
+        } else {
+            promise = Promise.resolve({});
+        }
+
+        return promise.then((originalEvent) => {
+            const originalItem = eventUtils.modifyForServer(cloneDeep(originalEvent), true);
 
             // clone the updates as we're going to modify it
-            let updates = eventUtils.modifyForServer(cloneDeep(eventUpdates), true);
+            let updates = eventUtils.modifyForServer(
+                cloneDeep(eventUpdates),
+                true
+            );
 
-            original.location = original.location ? [original.location] : null;
+            originalItem.location = originalItem.location ? [originalItem.location] : null;
 
             // remove all properties starting with _
             // and updates that are the same as original
             updates = pickBy(updates, (v, k) => (
                 (k === '_planning_item' || !k.startsWith('_')) &&
-                !isEqual(updates[k], original[k])
+                !isEqual(updates[k], originalItem[k])
             ));
 
-            if (get(original, 'lock_action') === EVENTS.ITEM_ACTIONS.EDIT_EVENT.lock_action &&
-                !isTemporaryId(original._id)) {
+            if (get(originalItem, 'lock_action') === EVENTS.ITEM_ACTIONS.EDIT_EVENT.lock_action &&
+                !isTemporaryId(originalItem._id)
+            ) {
                 delete updates.dates;
             }
-            updates.update_method = get(updates, 'update_method.value') || EventUpdateMethods[0].value;
+            updates.update_method = get(updates, 'update_method.value') ||
+                EventUpdateMethods[0].value;
 
-            return api('events').save(original, updates);
+            return api('events').save(originalItem, updates);
         })
-        .then((data) => {
-            if (get(data, '_planning_item')) {
-                // If event was created by a planning item, unlock the planning item
-                dispatch(planningApi.unlock({_id: data._planning_item}));
-            }
-
-            return Promise.resolve(get(data, '_items') || [data]);
-        }, (error) => Promise.reject(error))
+            .then(
+                (data) => Promise.resolve(get(data, '_items') || [data]),
+                (error) => Promise.reject(error)
+            );
+    }
 );
 
-const save = (event) => (
-    (dispatch, getState, {notify}) => (
+const save = (original, updates) => (
+    (dispatch) => (
         // Returns the modified unsaved event with the locations changes
-        dispatch(self._saveLocation(event))
-            .then((modifiedEvent) => dispatch(self._save(modifiedEvent)))
+        dispatch(self._saveLocation(updates))
+            .then((modifiedUpdates) => dispatch(self._save(original, modifiedUpdates)))
     )
 );
 
-const updateRepetitions = (event) => (
+const updateRepetitions = (original, updates) => (
     (dispatch, getState, {api}) => (
         api.update(
             'events_update_repetitions',
-            event,
-            {dates: event.dates}
+            original,
+            {dates: updates.dates}
         )
     )
 );

@@ -159,7 +159,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     openPreview: (item) => dispatch(actions.main.openPreview(item)),
-    edit: (item) => dispatch(actions.main.lockAndEdit(item)),
+    edit: (item) => dispatch(actions.main.openForEdit(item)),
     onAddCoverageClick: (item) => dispatch(actions.planning.ui.onAddCoverageClick(item)),
     multiSelectEvent: (eventId, deselect = false) => dispatch(deselect ?
         actions.multiSelect.deSelectEvents(eventId) :

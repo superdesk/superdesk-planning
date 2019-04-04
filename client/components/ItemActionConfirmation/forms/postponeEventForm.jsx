@@ -29,13 +29,14 @@ export class PostponeEventComponent extends React.Component {
     }
 
     submit() {
-        const reason = this.state.reason ? (gettext('Event Posponed: ') + this.state.reason) :
+        const reason = this.state.reason ? (gettext('Event Postponed: ') + this.state.reason) :
             this.state.reason;
 
-        return this.props.onSubmit({
-            ...this.props.initialValues,
-            reason: reason,
-        }, get(this.props, 'modalProps'));
+        return this.props.onSubmit(
+            this.props.original,
+            {reason: reason},
+            get(this.props, 'modalProps.onCloseModal')
+        );
     }
 
     onReasonChange(field, reason) {
@@ -43,29 +44,29 @@ export class PostponeEventComponent extends React.Component {
     }
 
     render() {
-        const {initialValues, dateFormat, timeFormat, submitting} = this.props;
+        const {original, dateFormat, timeFormat, submitting} = this.props;
         let reasonLabel = gettext('Reason for Event postponement:');
-        const numPlannings = initialValues._plannings.length;
+        const numPlannings = original._plannings.length;
 
         return (
             <div className="ItemActionConfirmation">
                 <Row
-                    enabled={!!initialValues.slugline}
+                    enabled={!!original.slugline}
                     label={gettext('Slugline')}
-                    value={initialValues.slugline}
+                    value={original.slugline}
                     noPadding={true}
                     className="slugline"
                 />
 
                 <Row
                     label={gettext('Name')}
-                    value={initialValues.name || ''}
+                    value={original.name || ''}
                     noPadding={true}
                     className="strong"
                 />
 
                 <EventScheduleSummary
-                    schedule={initialValues.dates}
+                    schedule={original.dates}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
                     noPadding={true}
@@ -84,7 +85,7 @@ export class PostponeEventComponent extends React.Component {
                     <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">
                         <strong>{gettext('This will also postpone the following planning items')}</strong>
                         <RelatedPlannings
-                            plannings={initialValues._plannings}
+                            plannings={original._plannings}
                             openPlanningItem={false}
                             short={true} />
                     </div>
@@ -104,7 +105,7 @@ export class PostponeEventComponent extends React.Component {
 
 PostponeEventComponent.propTypes = {
     onSubmit: PropTypes.func.isRequired,
-    initialValues: PropTypes.object.isRequired,
+    original: PropTypes.object.isRequired,
     relatedPlannings: PropTypes.array,
     timeFormat: PropTypes.string,
     dateFormat: PropTypes.string,
@@ -124,11 +125,13 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
-    onSubmit: (event, modalProps) => {
-        const promise = dispatch(actions.events.ui.postponeEvent(event));
+    onSubmit: (original, updates, onCloseModal) => {
+        const promise = dispatch(
+            actions.events.ui.postponeEvent(original, updates)
+        );
 
-        if (get(modalProps, 'onCloseModal')) {
-            promise.then((updatedEvent) => modalProps.onCloseModal(updatedEvent));
+        if (onCloseModal) {
+            promise.then(onCloseModal);
         }
 
         return promise;

@@ -21,9 +21,13 @@ export class PageContent extends React.Component {
         const {
             marginBottom,
             SubNavPanel,
+            subNavProps,
             FilterPanel,
+            filterProps,
             ListPanel,
+            listProps,
             PreviewPanel,
+            previewProps,
             EditorPanel,
             editorOpen,
             fullPreviewOpen,
@@ -33,6 +37,7 @@ export class PageContent extends React.Component {
             widePreviewPanel,
             splitView,
             fullPreview,
+            editorProps,
         } = this.props;
 
         const mountEditorInMainPage = EditorPanel && !fullPreviewOpen;
@@ -74,6 +79,7 @@ export class PageContent extends React.Component {
                         <SubNavPanel
                             filtersOpen={this.state.filtersOpen}
                             toggleFilterPanel={this.toggleFilterPanel}
+                            {...subNavProps}
                         />
                     )}
 
@@ -82,6 +88,7 @@ export class PageContent extends React.Component {
                             <div className="sd-filters-panel">
                                 <FilterPanel
                                     toggleFilterPanel={this.toggleFilterPanel}
+                                    {...filterProps}
                                 />
                             </div>
                         )}
@@ -91,6 +98,7 @@ export class PageContent extends React.Component {
                                 <ListPanel
                                     previewOpen={previewOpen}
                                     toggleFilterPanel={this.toggleFilterPanel}
+                                    {...listProps}
                                 />
                             </div>
                         )}
@@ -106,12 +114,15 @@ export class PageContent extends React.Component {
                     <div className={slideInClassName}>
                         <EditorPanel
                             toggleFilterPanel={this.toggleFilterPanel}
+                            {...editorProps}
                         />
                     </div>
                 )}
                 {fullPreview && PreviewPanel && (
                     <div className={slideInClassName}>
-                        <PreviewPanel />
+                        <PreviewPanel
+                            {...previewProps}
+                        />
                     </div>
                 )}
                 {showModals && <ModalsContainer />}
@@ -126,10 +137,15 @@ PageContent.propTypes = {
     editorOpen: PropTypes.bool,
     previewOpen: PropTypes.bool,
     SubNavPanel: PropTypes.func,
+    subNavProps: PropTypes.object,
     EditorPanel: PropTypes.func,
+    editorProps: PropTypes.object,
     FilterPanel: PropTypes.func,
+    filterProps: PropTypes.object,
     ListPanel: PropTypes.func,
+    listProps: PropTypes.object,
     PreviewPanel: PropTypes.func,
+    previewProps: PropTypes.object,
     widePreviewPanel: PropTypes.bool,
     showModals: PropTypes.bool,
     showWorkqueue: PropTypes.bool,

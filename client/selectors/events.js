@@ -77,13 +77,13 @@ const getRelatedPlanningsForEvent = (itemId, events, plannings, agendas) => {
     }
 };
 
-export const editId = (state) => get(state, 'forms.itemId', null);
+export const editId = (state) => get(state, 'forms.editors.panel.itemId', null);
 export const getRelatedPlannings = createSelector(
     [editId, storedEvents, storedPlannings, agendas],
     (itemId, events, plannings, agendas) => getRelatedPlanningsForEvent(itemId, events, plannings, agendas)
 );
 
-export const editIdModal = (state) => get(state, 'forms.itemIdModal', null);
+export const editIdModal = (state) => get(state, 'forms.editors.modal.itemId', null);
 export const getRelatedPlanningsForModalEvent = createSelector(
     [editIdModal, storedEvents, storedPlannings, agendas],
     (itemId, events, plannings, agendas) => getRelatedPlanningsForEvent(itemId, events, plannings, agendas)

@@ -2,7 +2,7 @@ import sinon from 'sinon';
 import moment from 'moment';
 import {omit} from 'lodash';
 
-import {getTimeZoneOffset, eventUtils} from '../../../utils';
+import {getTimeZoneOffset, eventUtils, timeUtils} from '../../../utils';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import {WORKFLOW_STATE, SPIKED_STATE, MAIN} from '../../../constants';
 
@@ -38,6 +38,10 @@ describe('actions.events.api', () => {
         sinon.stub(planningApi, 'loadPlanningByRecurrenceId').callsFake(
             () => (Promise.resolve(data.plannings))
         );
+
+        sinon.stub(timeUtils, 'localTimeZone').callsFake(
+            () => store.initialState.config.defaultTimezone
+        );
     });
 
     afterEach(() => {
@@ -48,6 +52,7 @@ describe('actions.events.api', () => {
         restoreSinonStub(planningApi.fetch);
         restoreSinonStub(planningApi.loadPlanningByEventId);
         restoreSinonStub(planningApi.loadPlanningByRecurrenceId);
+        restoreSinonStub(timeUtils.localTimeZone);
     });
 
     it('silentlyFetchEventsById', (done) => {
@@ -725,16 +730,26 @@ describe('actions.events.api', () => {
 
     describe('rescheduleEvent', () => {
         it('can reschedule an event', (done) => {
-            data.events[1].reason = 'Changing the day';
-            store.test(done, eventsApi.rescheduleEvent(data.events[1]))
+            store.test(done, eventsApi.rescheduleEvent(data.events[1], {
+                dates: {
+                    start: '2014-10-16T14:01:11+0000',
+                    end: '2014-10-16T15:01:11+0000',
+                    tz: 'Australia/Sydney',
+                },
+                reason: 'Changing the day',
+            }))
                 .then(() => {
                     expect(services.api.update.callCount).toBe(1);
                     expect(services.api.update.args[0]).toEqual([
                         'events_reschedule',
                         data.events[1],
                         {
+                            dates: {
+                                start: '2014-10-16T14:01:11+0000',
+                                end: '2014-10-16T15:01:11+0000',
+                                tz: 'Australia/Sydney',
+                            },
                             update_method: 'single',
-                            dates: data.events[1].dates,
                             reason: 'Changing the day',
                         },
                     ]);
@@ -745,17 +760,27 @@ describe('actions.events.api', () => {
         });
 
         it('can send `future` when rescheduling', (done) => {
-            data.events[1].reason = 'Changing the day';
-            data.events[1].update_method = {value: 'future'};
-            store.test(done, eventsApi.rescheduleEvent(data.events[1]))
+            store.test(done, eventsApi.rescheduleEvent(data.events[1], {
+                dates: {
+                    start: '2014-10-16T14:01:11+0000',
+                    end: '2014-10-16T15:01:11+0000',
+                    tz: 'Australia/Sydney',
+                },
+                reason: 'Changing the day',
+                update_method: {value: 'future'},
+            }))
                 .then(() => {
                     expect(services.api.update.callCount).toBe(1);
                     expect(services.api.update.args[0]).toEqual([
                         'events_reschedule',
                         data.events[1],
                         {
+                            dates: {
+                                start: '2014-10-16T14:01:11+0000',
+                                end: '2014-10-16T15:01:11+0000',
+                                tz: 'Australia/Sydney',
+                            },
                             update_method: 'future',
-                            dates: data.events[1].dates,
                             reason: 'Changing the day',
                         },
                     ]);
@@ -767,7 +792,13 @@ describe('actions.events.api', () => {
 
         it('returns Promise.reject if `events_reschedule` fails', (done) => {
             services.api.update = sinon.spy(() => (Promise.reject(errorMessage)));
-            store.test(done, eventsApi.rescheduleEvent(data.events[1]))
+            store.test(done, eventsApi.rescheduleEvent(data.events[1], {
+                dates: {
+                    start: '2014-10-16T14:01:11+0000',
+                    end: '2014-10-16T15:01:11+0000',
+                    tz: 'Australia/Sydney',
+                },
+            }))
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
@@ -1033,13 +1064,13 @@ describe('actions.events.api', () => {
     });
 
     it('updateRepetitions', (done) => (
-        store.test(done, eventsApi.updateRepetitions(data.events[0]))
+        store.test(done, eventsApi.updateRepetitions(data.events[0], {dates: {}}))
             .then(() => {
                 expect(services.api.update.callCount).toBe(1);
                 expect(services.api.update.args[0]).toEqual([
                     'events_update_repetitions',
                     data.events[0],
-                    {dates: data.events[0].dates},
+                    {dates: {}},
                 ]);
 
                 done();
@@ -1078,12 +1109,15 @@ describe('actions.events.api', () => {
         it('runs _save with location information', (done) => {
             sinon.stub(eventsApi, '_saveLocation').callsFake((item) => Promise.resolve(item));
             sinon.stub(eventsApi, '_save').callsFake((item) => Promise.resolve(item));
-            store.test(done, eventsApi.save(data.events[0]))
+            store.test(done, eventsApi.save(data.events[0], {name: 'New Event'}))
                 .then((item) => {
                     expect(item).toEqual(data.events[0]);
                     expect(eventsApi._saveLocation.callCount).toBe(1);
                     expect(eventsApi._save.callCount).toBe(1);
-                    expect(eventsApi._save.args[0]).toEqual([data.events[0]]);
+                    expect(eventsApi._save.args[0]).toEqual([
+                        data.events[0],
+                        {name: 'New Event'},
+                    ]);
 
                     done();
                 })
@@ -1091,7 +1125,7 @@ describe('actions.events.api', () => {
         });
 
         it('_save calls api.save', (done) => (
-            store.test(done, eventsApi._save({
+            store.test(done, eventsApi._save(null, {
                 _id: data.events[0]._id,
                 name: 'New Name',
                 slugline: 'New Slugline',
@@ -1120,10 +1154,11 @@ describe('actions.events.api', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail)
+        ));
 
         it('doesnt call event.api.fetchById if it is a new Event', (done) => (
-            store.test(done, eventsApi._save({name: 'New Event', slugline: 'New Slugline'}))
+            store.test(done, eventsApi._save(null, {name: 'New Event', slugline: 'New Slugline'}))
                 .then(() => {
                     expect(eventsApi.fetchById.callCount).toBe(0);
 

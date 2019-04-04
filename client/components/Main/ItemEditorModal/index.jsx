@@ -1,10 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
 import {get, union} from 'lodash';
 import classNames from 'classnames';
 
-import {main} from '../../../actions';
 import {ITEM_TYPE, UI} from '../../../constants';
 
 import {ItemMenuPanel} from './ItemMenuPanel';
@@ -14,7 +12,7 @@ import {EditorModal} from '../index';
 import {gettext, onEventCapture, getItemType, isExistingItem} from '../../../utils';
 import './style.scss';
 
-export class EditorModalComponent extends React.Component {
+export class EditorModalPanel extends React.Component {
     constructor(props) {
         super(props);
 
@@ -50,19 +48,8 @@ export class EditorModalComponent extends React.Component {
     }
 
     componentDidMount() {
-        // Open the editor
-        this.props.openEditorModal(get(this.props, 'modalProps.item'));
-
         window.addEventListener('dragover', this.onDragEvents);
         window.addEventListener('drop', this.onDragEvents);
-    }
-
-    componentWillReceiveProps(nextProps) {
-        if (get(nextProps, 'modalProps.item._id') &&
-            nextProps.modalProps.item._id !== get(this.props, 'modalProps.item._id')) {
-            this.setState({diff: nextProps.modalProps.item});
-            this.props.openEditorModal(nextProps.modalProps.item);
-        }
     }
 
     componentWillUnmount() {
@@ -183,7 +170,6 @@ export class EditorModalComponent extends React.Component {
                             <EditorModal
                                 navigation={navigation}
                                 onChange={this.onEditorItemChange}
-                                onCancel={this.props.handleHide}
                                 hideMinimize
                                 hideExternalEdit
                                 ref={(node) => this.dom.editor = node}
@@ -197,12 +183,7 @@ export class EditorModalComponent extends React.Component {
     }
 }
 
-EditorModalComponent.propTypes = {
+EditorModalPanel.propTypes = {
     handleHide: PropTypes.func.isRequired,
     modalProps: PropTypes.object,
-    openEditorModal: PropTypes.func,
 };
-
-const mapDispatchToProps = (dispatch) => ({openEditorModal: (item) => (dispatch(main.openEditorModal(item)))});
-
-export const EditorModalPanel = connect(null, mapDispatchToProps)(EditorModalComponent);

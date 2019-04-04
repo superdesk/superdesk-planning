@@ -41,11 +41,9 @@ export class ConfirmationModal extends React.Component {
 
         if (response && response.finally) {
             response.finally(() => {
-                this.setState({submitting: false});
                 handleHide(modalProps.itemType);
             });
         } else {
-            this.setState({submitting: false});
             handleHide(modalProps.itemType);
         }
     }

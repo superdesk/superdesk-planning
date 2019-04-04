@@ -46,7 +46,10 @@ export class ModalWithForm extends React.Component {
         // If the form Component has an 'onHide' property,
         // then call that now
         if ('onHide' in form.props) {
-            form.props.onHide(this.props.initialValues, get(this.props, 'modalProps' || {}));
+            form.props.onHide(
+                this.props.original,
+                get(this.props, 'modalProps') || {}
+            );
         }
 
         this.props.onHide();
@@ -62,6 +65,8 @@ export class ModalWithForm extends React.Component {
             white,
             title,
             initialValues,
+            original,
+            updates,
             enableSaveInModal,
             disableSaveInModal,
             cancelButtonText,
@@ -69,6 +74,7 @@ export class ModalWithForm extends React.Component {
             saveButtonText,
             form,
             modalProps,
+            resolve,
         } = this.props;
 
         const Form = form;
@@ -91,11 +97,14 @@ export class ModalWithForm extends React.Component {
                 <Modal.Body>
                     <Form
                         initialValues={initialValues}
+                        original={original}
+                        updates={updates}
                         enableSaveInModal={enableSaveInModal}
                         disableSaveInModal={disableSaveInModal}
                         submitting={this.state.submitting}
                         ref={(node) => this.dom.form = node}
                         modalProps={modalProps}
+                        resolve={resolve}
                     />
                 </Modal.Body>
                 <Modal.Footer>
@@ -119,6 +128,8 @@ export class ModalWithForm extends React.Component {
 ModalWithForm.propTypes = {
     form: PropTypes.func.isRequired,
     initialValues: PropTypes.object,
+    original: PropTypes.object,
+    updates: PropTypes.object,
     title: PropTypes.string,
     show: PropTypes.bool,
     enableSaveInModal: PropTypes.func,
@@ -132,6 +143,7 @@ ModalWithForm.propTypes = {
     fullscreen: PropTypes.bool,
     white: PropTypes.bool,
     modalProps: PropTypes.object,
+    resolve: PropTypes.func,
 };
 
 ModalWithForm.defaultProps = {

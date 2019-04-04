@@ -18,7 +18,6 @@ export class PlanningPreviewHeaderComponent extends React.Component {
             lockedItems,
             session,
             onUnlock,
-            lockedInThisSession,
             showUnlock,
             hideItemActions,
             event,
@@ -28,6 +27,7 @@ export class PlanningPreviewHeaderComponent extends React.Component {
         } = this.props;
         const lockedUser = lockUtils.getLockedUser(item, lockedItems, users);
         const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_MANAGEMENT];
+        const lockRestricted = planningUtils.isPlanningLockRestricted(item, session, lockedItems);
 
         const itemActionsCallBack = {
             [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
@@ -80,8 +80,8 @@ export class PlanningPreviewHeaderComponent extends React.Component {
                     doubleSize={true}
                 />
 
-                <div className="side-panel__top-tools-left">
-                    {!lockedInThisSession && lockedUser &&
+                {!lockRestricted ? null : (
+                    <div className="side-panel__top-tools-left">
                         <LockContainer
                             lockedUser={lockedUser}
                             users={users}
@@ -91,8 +91,8 @@ export class PlanningPreviewHeaderComponent extends React.Component {
                             small={false}
                             noMargin={true}
                         />
-                    }
-                </div>
+                    </div>
+                )}
 
                 <div className="side-panel__top-tools-right">
                     {get(itemActions, 'length', 0) > 0 &&
@@ -113,7 +113,6 @@ PlanningPreviewHeaderComponent.propTypes = {
     lockedItems: PropTypes.object,
     duplicateEvent: PropTypes.func,
     onUnlock: PropTypes.func,
-    lockedInThisSession: PropTypes.bool,
     event: PropTypes.object,
     itemActionDispatches: PropTypes.object,
     showUnlock: PropTypes.bool,
@@ -121,10 +120,9 @@ PlanningPreviewHeaderComponent.propTypes = {
     contentTypes: PropTypes.array,
 };
 
-const mapStateToProps = (state, ownProps) => ({
+const mapStateToProps = (state) => ({
     item: selectors.planning.currentPlanning(state),
     event: selectors.events.planningWithEventDetails(state),
-    lockedInThisSession: selectors.planning.isCurrentPlanningLockedInThisSession(state),
     session: selectors.general.session(state),
     privileges: selectors.general.privileges(state),
     users: selectors.general.users(state),

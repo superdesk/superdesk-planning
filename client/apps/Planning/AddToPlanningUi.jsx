@@ -1,4 +1,3 @@
-/* eslint-disable react/no-multi-comp */
 import React from 'react';
 import PropTypes from 'prop-types';
 
@@ -18,69 +17,58 @@ export const AddToPlanningUi = ({
     editorOpen,
     previewOpen,
     popupContainer,
-}) => {
-    const editorComponent = (props) => (
-        <Editor
-            {...props}
-            addNewsItemToPlanning={addNewsItemToPlanning}
-            showUnlock={false}
-            createAndPost
-            hideMinimize
-            hideItemActions
-            hideExternalEdit
-        />
-    );
-
-    const subNavComponent = (props) => (
-        <PlanningSubNav
-            {...props}
-            showFilters={false}
-            withArchiveItem
-            archiveItem={addNewsItemToPlanning}
-            createPlanningOnly
-        />
-    );
-
-    const searchPanelComponent = (props) => (
-        <SearchPanel
-            {...props}
-            workflowStateOptions={getWorkFlowStateAsOptions(MAIN.FILTERS.PLANNING).filter(
-                (option) => ![WORKFLOW_STATE.RESCHEDULED, WORKFLOW_STATE.CANCELLED].includes(option.qcode))}
-            popupContainer={popupContainer}
-        />
-    );
-
-    const planningListComponent = (props) => (
-        <PlanningList
-            {...props}
-            hideItemActions
-            showAddCoverage
-            showUnlock={false}
-        />
-    );
-
-    const previewPanelComponent = (props) => (
-        <PreviewPanel
-            {...props}
-            hideItemActions
-            hideEditIcon
-            showUnlock={false}
-        />
-    );
-
-    return (<PageContent
-        editorOpen={editorOpen}
-        previewOpen={previewOpen}
-        marginBottom={false}
-        SubNavPanel={subNavComponent}
-        FilterPanel={searchPanelComponent}
-        ListPanel={planningListComponent}
+    onCancel,
+}) => (
+    <PageContent
         showModals={false}
         showWorkqueue={false}
-        PreviewPanel={previewPanelComponent}
-        EditorPanel={editorComponent}
-    />);
-};
+        marginBottom={false}
+
+        SubNavPanel={PlanningSubNav}
+        subNavProps={{
+            showFilters: false,
+            withArchiveItem: true,
+            archiveItem: addNewsItemToPlanning,
+            createPlanningOnly: true,
+        }}
+
+        ListPanel={PlanningList}
+        listProps={{
+            hideItemActions: true,
+            showAddCoverage: true,
+            showUnlock: false,
+        }}
+
+        previewOpen={previewOpen}
+        PreviewPanel={PreviewPanel}
+        previewProps={{
+            hideItemActions: true,
+            hideEditIcon: true,
+            showUnlock: false,
+        }}
+
+        editorOpen={editorOpen}
+        EditorPanel={Editor}
+        editorProps={{
+            addNewsItemToPlanning: addNewsItemToPlanning,
+            onCancel: onCancel,
+            showUnlock: false,
+            createAndPost: true,
+            hideMinimize: true,
+            hideItemActions: true,
+            hideExternalEdit: true,
+        }}
+
+        FilterPanel={SearchPanel}
+        filterProps={{
+            popupContainer: popupContainer,
+            workflowStateOptions: getWorkFlowStateAsOptions(MAIN.FILTERS.PLANNING)
+                .filter((option) => (
+                    ![WORKFLOW_STATE.RESCHEDULED, WORKFLOW_STATE.CANCELLED].includes(option.qcode)
+                )),
+        }}
+    />
+);
 
 AddToPlanningUi.propTypes = {
     marginBottom: PropTypes.bool,
@@ -90,4 +78,5 @@ AddToPlanningUi.propTypes = {
     editorOpen: PropTypes.bool,
     previewOpen: PropTypes.bool,
     popupContainer: PropTypes.func,
+    onCancel: PropTypes.func,
 };

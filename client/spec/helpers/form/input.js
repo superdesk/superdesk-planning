@@ -1,5 +1,4 @@
 import {get} from 'lodash';
-import {isFieldEmpty} from '../utils';
 
 export class Input {
     constructor(form, name, type = 'input', byRow = true) {
@@ -18,19 +17,24 @@ export class Input {
 
     setValue(value, clearByDeleteKey = false) {
         if (clearByDeleteKey) {
-            this.getValue().then((value) => {
+            return this.getValue().then((value) => {
                 for (var i = 0; i < get(value, 'length', 0); i++) {
                     this.input.sendKeys('\b');
                 }
-            });
-        } else {
-            this.input.clear();
+            })
+                .then(() => (
+                    this.input.sendKeys(value)
+                ));
         }
-        browser.wait(
-            () => isFieldEmpty(this.input),
-            20000,
-            `Timeout while waiting for input '${this.name}' to be cleared`
-        );
-        return this.input.sendKeys(value);
+
+        return this.input
+            .click()
+            .sendKeys(
+                protractor.Key.HOME,
+                protractor.Key.SHIFT,
+                protractor.Key.END,
+                protractor.Key.BACK_SPACE
+            )
+            .sendKeys(value);
     }
 }

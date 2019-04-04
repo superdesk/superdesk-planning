@@ -166,7 +166,7 @@ describe('utils.time', () => {
             };
 
             sinon.stub(timeUtils, 'localTimeZone').callsFake(() => 'Australia/Sydney');
-            expect(timeUtils.isEventInDifferentTimeZone(event), true);
+            expect(timeUtils.isEventInDifferentTimeZone(event)).toBeTruthy();
             restoreSinonStub(timeUtils.localTimeZone);
         });
 
@@ -180,7 +180,7 @@ describe('utils.time', () => {
             };
 
             sinon.stub(timeUtils, 'localTimeZone').callsFake(() => 'Europe/Amsterdam');
-            expect(timeUtils.isEventInDifferentTimeZone(event), false);
+            expect(timeUtils.isEventInDifferentTimeZone(event)).toBeFalsy();
             restoreSinonStub(timeUtils.localTimeZone);
         });
     });

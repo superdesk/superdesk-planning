@@ -4,7 +4,7 @@ import moment from 'moment';
 import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
 import {removeAutosaveFields} from '../../utils';
 import {main} from '../';
-import {AGENDA, MAIN} from '../../constants';
+import {AGENDA, MAIN, POST_STATE} from '../../constants';
 import eventsUi from '../events/ui';
 import eventsApi from '../events/api';
 import planningUi from '../planning/ui';
@@ -16,7 +16,7 @@ describe('actions.main', () => {
     let store;
     let services;
     let data;
-    const errorMessage = {data: {_message: 'Failed!'}};
+    // const errorMessage = {data: {_message: 'Failed!'}};
 
     beforeEach(() => {
         store = getTestActionStore();
@@ -24,32 +24,39 @@ describe('actions.main', () => {
         data = store.data;
     });
 
-    it('openEditor', () => {
-        store.test(null, main.openEditor(data.events[0]));
-        expect(store.dispatch.callCount).toBe(1);
-        expect(store.dispatch.args[0]).toEqual([{
-            type: 'MAIN_OPEN_EDITOR',
-            payload: data.events[0],
-        }]);
+    describe('closeEditor', () => {
+        it('closes panel editor', () => {
+            store.test(null, main.closeEditor());
 
-        expect(services.$location.search.callCount).toBe(1);
-        expect(services.$location.search.args[0]).toEqual([
-            'edit',
-            JSON.stringify({id: 'e1', type: 'event'}),
-        ]);
-    });
+            expect(store.dispatch.callCount).toBe(1);
+            expect(store.dispatch.args[0]).toEqual([{
+                type: 'MAIN_CLOSE_EDITOR',
+                payload: false,
+            }]);
 
-    it('closeEditor', () => {
-        store.test(null, main.closeEditor());
+            expect(services.$location.search.callCount).toBe(1);
+            expect(services.$location.search.args[0]).toEqual([
+                'edit',
+                null,
+            ]);
+        });
 
-        expect(store.dispatch.callCount).toBe(1);
-        expect(store.dispatch.args[0]).toEqual([{type: 'MAIN_CLOSE_EDITOR'}]);
+        it('closes modal editor', () => {
+            store.test(null, main.closeEditor(true));
 
-        expect(services.$location.search.callCount).toBe(1);
-        expect(services.$location.search.args[0]).toEqual([
-            'edit',
-            null,
-        ]);
+            expect(store.dispatch.callCount).toBe(2);
+            expect(store.dispatch.args[0]).toEqual([{
+                type: 'MAIN_CLOSE_EDITOR',
+                payload: true,
+            }]);
+
+            expect(store.dispatch.args[1]).toEqual([{
+                type: 'HIDE_MODAL',
+                payload: {clearPreviousState: true},
+            }]);
+
+            expect(services.$location.search.callCount).toBe(0);
+        });
     });
 
     describe('filter', () => {
@@ -134,6 +141,59 @@ describe('actions.main', () => {
         ).catch(done.fail));
     });
 
+    describe('post', () => {
+        beforeEach(() => {
+            sinon.stub(eventsApi, 'post').returns(Promise.resolve(data.events[0]));
+            sinon.stub(planningApi, 'post').returns(Promise.resolve(data.plannings[0]));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(eventsApi.post);
+            restoreSinonStub(planningApi.post);
+        });
+
+        it('calls events.ui.post', (done) => (
+            store.test(done, main.post(data.events[0], {}, false))
+                .then(() => {
+                    expect(eventsApi.post.callCount).toBe(1);
+                    expect(eventsApi.post.args[0]).toEqual([
+                        data.events[0],
+                        {pubstatus: POST_STATE.USABLE},
+                    ]);
+
+                    done();
+                })
+                .catch(done.fail)
+        ));
+
+        it('calls planning.ui.post', (done) => (
+            store.test(done, main.post(data.plannings[0]))
+                .then(() => {
+                    expect(planningApi.post.callCount).toBe(1);
+                    expect(planningApi.post.args[0]).toEqual([
+                        data.plannings[0],
+                        {pubstatus: POST_STATE.USABLE},
+                    ]);
+
+                    done();
+                })
+                .catch(done.fail)
+        ));
+
+        it('raises an error on post if the item type was not found', (done) => (
+            store.test(done, main.post({}))
+                .then(null, () => {
+                    expect(services.notify.error.callCount).toBe(1);
+                    expect(services.notify.error.args[0]).toEqual([
+                        'Failed to post, could not find the item type!',
+                    ]);
+
+                    done();
+                })
+                .catch(done.fail)
+        ));
+    });
+
     describe('unpost', () => {
         beforeEach(() => {
             sinon.stub(eventsApi, 'unpost').returns(Promise.resolve(data.events[0]));
@@ -146,26 +206,34 @@ describe('actions.main', () => {
         });
 
         it('calls events.ui.unpost', (done) => (
-            store.test(done, main.unpost(data.events[0], false))
+            store.test(done, main.unpost(data.events[0], {}, false))
                 .then(() => {
                     expect(eventsApi.unpost.callCount).toBe(1);
-                    expect(eventsApi.unpost.args[0]).toEqual([data.events[0]]);
+                    expect(eventsApi.unpost.args[0]).toEqual([
+                        data.events[0],
+                        {pubstatus: POST_STATE.CANCELLED},
+                    ]);
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail)
+        ));
 
         it('calls planning.ui.unpost', (done) => (
             store.test(done, main.unpost(data.plannings[0]))
                 .then(() => {
                     expect(planningApi.unpost.callCount).toBe(1);
-                    expect(planningApi.unpost.args[0]).toEqual([data.plannings[0]]);
+                    expect(planningApi.unpost.args[0]).toEqual([
+                        data.plannings[0],
+                        {pubstatus: POST_STATE.CANCELLED},
+                    ]);
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail)
+        ));
 
-        it('raises an error if the item type was not found', (done) => (
+        it('raises an error on unpost if the item type was not found', (done) => (
             store.test(done, main.unpost({}))
                 .then(null, () => {
                     expect(services.notify.error.callCount).toBe(1);
@@ -175,85 +243,8 @@ describe('actions.main', () => {
 
                     done();
                 })
-        ).catch(done.fail));
-    });
-
-    describe('lockAndEdit', () => {
-        beforeEach(() => {
-            sinon.spy(main, 'openEditor');
-            sinon.spy(main, 'closePreview');
-            sinon.stub(locks, 'lock').callsFake((item) => Promise.resolve(item));
-        });
-
-        afterEach(() => {
-            restoreSinonStub(main.openEditor);
-            restoreSinonStub(main.closePreview);
-            restoreSinonStub(locks.lock);
-        });
-
-        it('calls main.openEditor when called with a new item', (done) => (
-            store.test(done, main.lockAndEdit({test: 'data'}))
-                .then((item) => {
-                    expect(item).toEqual({test: 'data'});
-
-                    expect(locks.lock.callCount).toBe(0);
-                    expect(main.openEditor.callCount).toBe(1);
-                    expect(main.openEditor.args[0]).toEqual([{test: 'data'}]);
-
-                    done();
-                })
-        ).catch(done.fail));
-
-        it('calls locks.lock then main.openEditor when called with an existing item', (done) => (
-            store.test(done, main.lockAndEdit(data.events[0]))
-                .then((item) => {
-                    expect(item).toEqual(data.events[0]);
-
-                    expect(locks.lock.callCount).toBe(1);
-                    expect(locks.lock.args[0]).toEqual([data.events[0]]);
-
-                    expect(main.closePreview.callCount).toBe(0);
-
-                    expect(main.openEditor.callCount).toBe(1);
-                    expect(main.openEditor.args[0]).toEqual([data.events[0]]);
-
-                    done();
-                })
-        ).catch(done.fail));
-
-        it('closes the preview panel if item being edited is open for preview', (done) => {
-            store.init();
-            store.initialState.main.previewId = data.events[1]._id;
-            store.initialState.main.previewType = data.events[1].type;
-            store.test(done, main.lockAndEdit(data.events[1]))
-                .then((item) => {
-                    expect(item).toEqual(data.events[1]);
-
-                    expect(locks.lock.callCount).toBe(1);
-                    expect(locks.lock.args[0]).toEqual([data.events[1]]);
-
-                    expect(main.closePreview.callCount).toBe(1);
-
-                    expect(main.openEditor.callCount).toBe(1);
-                    expect(main.openEditor.args[0]).toEqual([data.events[1]]);
-
-                    done();
-                })
-                .catch(done.fail);
-        });
-
-        it('notifies the user if locking failed', (done) => {
-            restoreSinonStub(locks.lock);
-            sinon.stub(locks, 'lock').returns(Promise.reject(errorMessage));
-            store.test(done, main.lockAndEdit(data.events[2]))
-                .then(null, (error) => {
-                    expect(error).toEqual(errorMessage);
-                    expect(services.notify.error.callCount).toBe(1);
-                    expect(services.notify.error.args[0]).toEqual(['Failed!']);
-                    done();
-                })
-                .catch(done.fail);
-        });
+                .catch(done.fail)
+        ));
     });
 
     describe('loadmore', () => {
@@ -421,7 +412,7 @@ describe('actions.main', () => {
                     expect(store.dispatch.args[0]).toEqual([{type: 'MAIN_PREVIEW_LOADING_START'}]);
 
                     expect(eventsApi.fetchById.callCount).toBe(1);
-                    expect(eventsApi.fetchById.args[0]).toEqual(['e1']);
+                    expect(eventsApi.fetchById.args[0]).toEqual(['e1', {force: false}]);
 
                     expect(store.dispatch.args[3]).toEqual([{type: 'MAIN_PREVIEW_LOADING_COMPLETE'}]);
 
@@ -438,7 +429,7 @@ describe('actions.main', () => {
                     expect(store.dispatch.args[0]).toEqual([{type: 'MAIN_EDIT_LOADING_START'}]);
 
                     expect(eventsApi.fetchById.callCount).toBe(1);
-                    expect(eventsApi.fetchById.args[0]).toEqual(['e1']);
+                    expect(eventsApi.fetchById.args[0]).toEqual(['e1', {force: false}]);
 
                     expect(store.dispatch.args[3]).toEqual([{type: 'MAIN_EDIT_LOADING_COMPLETE'}]);
 
@@ -455,7 +446,7 @@ describe('actions.main', () => {
                     expect(store.dispatch.args[0]).toEqual([{type: 'MAIN_PREVIEW_LOADING_START'}]);
 
                     expect(planningApi.fetchById.callCount).toBe(1);
-                    expect(planningApi.fetchById.args[0]).toEqual(['p1']);
+                    expect(planningApi.fetchById.args[0]).toEqual(['p1', {force: false}]);
 
                     expect(store.dispatch.args[3]).toEqual([{type: 'MAIN_PREVIEW_LOADING_COMPLETE'}]);
 
@@ -472,7 +463,7 @@ describe('actions.main', () => {
                     expect(store.dispatch.args[0]).toEqual([{type: 'MAIN_EDIT_LOADING_START'}]);
 
                     expect(planningApi.fetchById.callCount).toBe(1);
-                    expect(planningApi.fetchById.args[0]).toEqual(['p1']);
+                    expect(planningApi.fetchById.args[0]).toEqual(['p1', {force: false}]);
 
                     expect(store.dispatch.args[3]).toEqual([{type: 'MAIN_EDIT_LOADING_COMPLETE'}]);
 
@@ -512,12 +503,12 @@ describe('actions.main', () => {
     describe('openFromURLOrRedux', () => {
         beforeEach(() => {
             sinon.stub(main, 'openPreview');
-            sinon.stub(main, 'openEditor');
+            sinon.stub(main, 'openForEdit');
         });
 
         afterEach(() => {
             restoreSinonStub(main.openPreview);
-            restoreSinonStub(main.openEditor);
+            restoreSinonStub(main.openForEdit);
         });
 
         it('loads the preview item from the URL', (done) => {
@@ -564,14 +555,10 @@ describe('actions.main', () => {
             services.$location.search('edit', JSON.stringify({id: 'e1', type: 'event'}));
             store.test(done, main.openFromURLOrRedux('edit'))
                 .then(() => {
-                    expect(main.openEditor.callCount).toBe(1);
-                    expect(main.openEditor.args[0]).toEqual([{
-                        ...data.events[0],
-                        dates: {
-                            ...data.events[0].dates,
-                            start: moment(data.events[0].dates.start),
-                            end: moment(data.events[0].dates.end),
-                        },
+                    expect(main.openForEdit.callCount).toBe(1);
+                    expect(main.openForEdit.args[0]).toEqual([{
+                        _id: 'e1',
+                        type: 'event',
                     }]);
 
                     done();
@@ -580,18 +567,14 @@ describe('actions.main', () => {
 
         it('loads the edit item from the Redux store', (done) => {
             store.init();
-            store.initialState.forms.itemId = 'e1';
-            store.initialState.forms.itemType = 'event';
+            store.initialState.forms.editors.panel.itemId = 'e1';
+            store.initialState.forms.editors.panel.itemType = 'event';
             store.test(done, main.openFromURLOrRedux('edit'))
                 .then(() => {
-                    expect(main.openEditor.callCount).toBe(1);
-                    expect(main.openEditor.args[0]).toEqual([{
-                        ...data.events[0],
-                        dates: {
-                            ...data.events[0].dates,
-                            start: moment(data.events[0].dates.start),
-                            end: moment(data.events[0].dates.end),
-                        },
+                    expect(main.openForEdit.callCount).toBe(1);
+                    expect(main.openForEdit.args[0]).toEqual([{
+                        _id: 'e1',
+                        type: 'event',
                     }]);
 
                     done();
@@ -605,14 +588,16 @@ describe('actions.main', () => {
         beforeEach(() => {
             actionCallback = sinon.stub().returns(Promise.resolve());
             sinon.stub(locks, 'unlock').callsFake((item) => Promise.resolve(item));
-            sinon.stub(main, 'lockAndEdit').callsFake((item) => Promise.resolve(item));
+            // sinon.stub(main, 'lockAndEdit').callsFake((item) => Promise.resolve(item));
+            sinon.stub(main, 'openForEdit');
             sinon.stub(main, 'saveAutosave').callsFake((item) => Promise.resolve(item));
             sinon.stub(main, 'openIgnoreCancelSaveModal').callsFake((item) => Promise.resolve(item));
         });
 
         afterEach(() => {
             restoreSinonStub(locks.unlock);
-            restoreSinonStub(main.lockAndEdit);
+            // restoreSinonStub(main.lockAndEdit);
+            restoreSinonStub(main.openForEdit);
             restoreSinonStub(main.saveAutosave);
             restoreSinonStub(main.openIgnoreCancelSaveModal);
         });
@@ -693,7 +678,7 @@ describe('actions.main', () => {
                 },
             };
 
-            store.initialState.forms.itemId = data.events[0]._id;
+            store.initialState.forms.editors.panel.itemId = data.events[0]._id;
 
             return store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
                 .then(() => {
@@ -733,8 +718,8 @@ describe('actions.main', () => {
                 },
             };
 
-            store.initialState.forms.itemId = null;
-            store.initialState.forms.itemIdModal = data.events[0]._id;
+            store.initialState.forms.editors.panel.itemId = null;
+            store.initialState.forms.editors.modal.itemId = data.events[0]._id;
 
             return store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
                 .then(() => {
@@ -778,8 +763,8 @@ describe('actions.main', () => {
                 },
             };
 
-            store.initialState.forms.itemId = null;
-            store.initialState.forms.itemIdModal = null;
+            store.initialState.forms.editors.panel.itemId = null;
+            store.initialState.forms.editors.modal.itemId = null;
 
             return store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
                 .then(() => {
@@ -804,7 +789,7 @@ describe('actions.main', () => {
 
     describe('saveAutosave', () => {
         beforeEach(() => {
-            sinon.stub(main, 'save').callsFake((item) => Promise.resolve(item));
+            sinon.stub(main, 'save').callsFake((original, updates) => Promise.resolve({...original, ...updates}));
         });
 
         afterEach(() => {
@@ -819,7 +804,8 @@ describe('actions.main', () => {
 
                     done();
                 })
-        ).catch(done.fail));
+                .catch(done.fail))
+        );
 
         it('Autosaves a Planning item', (done) => {
             store.init();
@@ -839,6 +825,7 @@ describe('actions.main', () => {
 
                     expect(main.save.callCount).toBe(1);
                     expect(main.save.args[0]).toEqual([
+                        data.plannings[0],
                         {
                             ...data.plannings[0],
                             slugline: 'New Slugline',
@@ -870,6 +857,7 @@ describe('actions.main', () => {
 
                     expect(main.save.callCount).toBe(1);
                     expect(main.save.args[0]).toEqual([
+                        data.events[0],
                         {
                             ...data.events[0],
                             slugline: 'New Slugline',
@@ -960,13 +948,19 @@ describe('actions.main', () => {
         });
 
         it('saves and unlocks planning item', (done) =>
-            store.test(done, main.saveAndUnlockItem(data.plannings[0]))
+            store.test(done, main.saveAndUnlockItem(data.plannings[0], {
+                ...data.plannings[0],
+                slugline: 'New Slugger',
+            }))
                 .then(() => {
                     expect(planningUi.save.callCount).toBe(1);
-                    expect(planningUi.save.args[0]).toEqual([data.plannings[0]]);
+                    expect(planningUi.save.args[0]).toEqual([
+                        data.plannings[0],
+                        {...data.plannings[0], slugline: 'New Slugger'},
+                    ]);
 
                     expect(locks.unlock.callCount).toBe(1);
-                    expect(locks.unlock.args[0]).toEqual([data.plannings[0], false]);
+                    expect(locks.unlock.args[0]).toEqual([data.plannings[0]]);
 
                     done();
                 })
@@ -974,13 +968,16 @@ describe('actions.main', () => {
         );
 
         it('saves and unlocks event', (done) =>
-            store.test(done, main.saveAndUnlockItem(data.events[0]))
+            store.test(done, main.saveAndUnlockItem(data.events[0], {slugline: 'New Slugger'}))
                 .then(() => {
                     expect(eventsUi.saveWithConfirmation.callCount).toBe(1);
-                    expect(eventsUi.saveWithConfirmation.args[0]).toEqual([data.events[0]]);
+                    expect(eventsUi.saveWithConfirmation.args[0]).toEqual([
+                        data.events[0],
+                        {slugline: 'New Slugger'},
+                    ]);
 
                     expect(locks.unlock.callCount).toBe(1);
-                    expect(locks.unlock.args[0]).toEqual([data.events[0], false]);
+                    expect(locks.unlock.args[0]).toEqual([data.events[0]]);
 
                     done();
                 })

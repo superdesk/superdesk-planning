@@ -3,7 +3,7 @@ import {omit} from 'lodash';
 import moment from 'moment';
 import {autosave} from '../';
 import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
-import {eventUtils} from '../../utils';
+import {eventUtils, modifyForClient, modifyForServer} from '../../utils';
 
 describe('actions.autosave', () => {
     let store;
@@ -120,21 +120,11 @@ describe('actions.autosave', () => {
                     done();
                 }, done.fail);
         });
-
-        it('fetchById without trying the server', (done) => (
-            store.test(done, autosave.fetchById('event', 'e1', false))
-                .then((autosaveItem) => {
-                    expect(autosaveItem).toEqual(data.event_autosave[0]);
-                    expect(services.api('event_autosave').getById.callCount).toBe(0);
-
-                    done();
-                }, done.fail)
-        ));
     });
 
     describe('save', () => {
         it('creates a new autosave item', (done) => (
-            store.test(done, autosave.save({
+            store.test(done, autosave.save(null, {
                 ...data.events[1],
                 _id: 'tempId-e4',
             }))
@@ -149,19 +139,21 @@ describe('actions.autosave', () => {
 
                     delete expectedItem.planning_ids;
 
-                    const autosaveItem = jasmine.objectContaining(expectedItem);
-
-                    expect(updatedItem).toEqual(autosaveItem);
+                    expect(updatedItem).toEqual(jasmine.objectContaining(
+                        modifyForClient(expectedItem)
+                    ));
 
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'AUTOSAVE_RECEIVE',
-                        payload: autosaveItem,
+                        payload: jasmine.objectContaining(
+                            modifyForClient(expectedItem)
+                        ),
                     }]);
 
                     expect(services.api('event_autosave').save.callCount).toBe(1);
                     expect(services.api('event_autosave').save.args[0]).toEqual([
                         {},
-                        autosaveItem,
+                        jasmine.objectContaining(modifyForServer(expectedItem)),
                     ]);
 
                     done();
@@ -169,7 +161,7 @@ describe('actions.autosave', () => {
         ));
 
         it('updates an existing autosave item', (done) => (
-            store.test(done, autosave.save({
+            store.test(done, autosave.save(data.event_autosave[0], {
                 ...data.event_autosave[0],
                 slugline: 'Newest Event Slugline',
                 name: 'Test Name',
@@ -215,7 +207,7 @@ describe('actions.autosave', () => {
 
         it('notifies the user if saving fails', (done) => {
             services.api('event_autosave').save = sinon.spy(() => Promise.reject(errorMessage));
-            store.test(done, autosave.save(data.event_autosave[0]))
+            store.test(done, autosave.save(data.event_autosave[0], data.event_autosave[0]))
                 .then(done.fail, (error) => {
                     expect(error).toEqual(errorMessage);
 

@@ -29,10 +29,10 @@ export class ConvertToRecurringEventComponent extends React.Component {
     }
 
     componentWillMount() {
-        let diff = {dates: cloneDeep(this.props.initialValues.dates)};
-        const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(this.props.initialValues || {});
+        let diff = {dates: cloneDeep(this.props.original.dates)};
+        const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(this.props.original || {});
 
-        this.currentDate = cloneDeep(this.props.initialValues.dates);
+        this.currentDate = cloneDeep(this.props.original.dates);
         if (isRemoteTimeZone) {
             diff.dates.start = timeUtils.getDateInRemoteTimeZone(diff.dates.start, diff.dates.tz);
             diff.dates.end = timeUtils.getDateInRemoteTimeZone(diff.dates.end, diff.dates.tz);
@@ -61,7 +61,7 @@ export class ConvertToRecurringEventComponent extends React.Component {
 
         const errorsMessages = this.validateAndSetState(diff);
 
-        if (eventUtils.eventsDatesSame(diff, this.props.initialValues, TIME_COMPARISON_GRANULARITY.MINUTE) ||
+        if (eventUtils.eventsDatesSame(diff, this.props.original, TIME_COMPARISON_GRANULARITY.MINUTE) ||
             (!diff.dates.recurring_rule) ||
             !isEqual(errorsMessages, [])
         ) {
@@ -74,7 +74,6 @@ export class ConvertToRecurringEventComponent extends React.Component {
     validateAndSetState(diff) {
         let errors = cloneDeep(this.state.errors);
         let errorsMessages = [];
-
 
         this.props.onValidate(
             diff,
@@ -92,10 +91,13 @@ export class ConvertToRecurringEventComponent extends React.Component {
     }
 
     submit() {
-        return this.props.onSubmit({
-            ...this.props.initialValues,
-            ...this.state.diff,
-        });
+        return this.props.onSubmit(
+            this.props.original,
+            {
+                ...this.props.original,
+                ...this.state.diff,
+            }
+        );
     }
 
     getPopupContainer() {
@@ -103,22 +105,22 @@ export class ConvertToRecurringEventComponent extends React.Component {
     }
 
     render() {
-        const {initialValues, dateFormat, timeFormat} = this.props;
-        const timeZone = get(initialValues, 'dates.tz');
+        const {original, dateFormat, timeFormat} = this.props;
+        const timeZone = get(original, 'dates.tz');
 
         return (
             <div className="MetadataView">
                 <Row
-                    enabled={!!initialValues.slugline}
+                    enabled={!!original.slugline}
                     label={gettext('Slugline')}
-                    value={initialValues.slugline || ''}
+                    value={original.slugline || ''}
                     noPadding={true}
                     className="slugline"
                 />
 
                 <Row
                     label={gettext('Name')}
-                    value={initialValues.name || ''}
+                    value={original.name || ''}
                     noPadding={true}
                     className="strong"
                 />
@@ -132,7 +134,7 @@ export class ConvertToRecurringEventComponent extends React.Component {
                     useEventTimezone={true}
                 />
 
-                {timeUtils.isEventInDifferentTimeZone(initialValues) &&
+                {timeUtils.isEventInDifferentTimeZone(original) &&
                     <div className="sd-alert sd-alert--hollow sd-alert--orange2 sd-alert--flex-direction">
                         <strong>{gettext('This will create new events in the remote ({{timeZone}}) timezone',
                             {timeZone})}</strong>
@@ -160,7 +162,7 @@ export class ConvertToRecurringEventComponent extends React.Component {
 }
 
 ConvertToRecurringEventComponent.propTypes = {
-    initialValues: PropTypes.object.isRequired,
+    original: PropTypes.object.isRequired,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
     disableSaveInModal: PropTypes.func,
@@ -182,17 +184,21 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event) => {
-        let newEvent = null;
+    onSubmit: (original, updates) => {
+        let newUpdates = cloneDeep(updates);
 
-        if (timeUtils.isEventInDifferentTimeZone(event)) {
-            newEvent = cloneDeep(event);
-
-            newEvent.dates.start = timeUtils.getDateInRemoteTimeZone(event.dates.start, event.dates.tz);
-            newEvent.dates.end = timeUtils.getDateInRemoteTimeZone(event.dates.end, event.dates.tz);
+        if (timeUtils.isEventInDifferentTimeZone(updates)) {
+            newUpdates.dates.start = timeUtils.getDateInRemoteTimeZone(
+                updates.dates.start,
+                updates.dates.tz
+            );
+            newUpdates.dates.end = timeUtils.getDateInRemoteTimeZone(
+                updates.dates.end,
+                updates.dates.tz
+            );
         }
 
-        return dispatch(actions.main.save(newEvent || event, false));
+        return dispatch(actions.main.save(original, newUpdates, false));
     },
 
     onHide: (event) => {

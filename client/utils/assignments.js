@@ -213,7 +213,7 @@ const isAssignmentLocked = (assignment, locks) =>
 
 const isAssignmentLockRestricted = (assignment, session, locks) =>
     isAssignmentLocked(assignment, locks) &&
-        !lockUtils.isItemLockedInThisSession(assignment, session);
+        !lockUtils.isItemLockedInThisSession(assignment, session, locks);
 
 const getAssignmentInfo = (assignment, users, desks) => {
     const assignedTo = get(assignment, 'assigned_to');
@@ -278,6 +278,7 @@ const self = {
     isTextAssignment,
     canConfirmAvailability,
     canRevertAssignment,
+    isAssignmentLocked,
 };
 
 export default self;

@@ -32,9 +32,9 @@ export class UpdateTimeComponent extends React.Component {
     }
 
     componentWillMount() {
-        const diff = cloneDeep(this.props.initialValues);
-        const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(this.props.initialValues);
-        const tz = get(this.props.initialValues, 'dates.tz');
+        const diff = cloneDeep(this.props.original);
+        const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(this.props.original);
+        const tz = get(this.props.original, 'dates.tz');
         let relatedEvents = [];
 
         if (isRemoteTimeZone) {
@@ -44,9 +44,11 @@ export class UpdateTimeComponent extends React.Component {
             diff._endTime = timeUtils.getDateInRemoteTimeZone(diff._endTime, tz);
         }
 
-        if (get(this.props, 'initialValues.recurrence_id')) {
-            const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
-                EventUpdateMethods[0]);
+        if (get(this.props, 'original.recurrence_id')) {
+            const event = eventUtils.getRelatedEventsForRecurringEvent(
+                this.props.original,
+                EventUpdateMethods[0]
+            );
 
             relatedEvents = event._events;
         }
@@ -81,7 +83,7 @@ export class UpdateTimeComponent extends React.Component {
             }
         } else if (field === 'update_method') {
             const event = eventUtils.getRelatedEventsForRecurringEvent(
-                this.props.initialValues,
+                this.props.original,
                 value
             );
 
@@ -100,12 +102,12 @@ export class UpdateTimeComponent extends React.Component {
 
         this.setState({
             diff: diff,
-            dirty: !isEqual(this.props.initialValues, diff),
+            dirty: !isEqual(this.props.original, diff),
             errors: errors,
             relatedEvents: relatedEvents,
         });
 
-        if ((eventUtils.eventsDatesSame(diff, this.props.initialValues, TIME_COMPARISON_GRANULARITY.MINUTE) &&
+        if ((eventUtils.eventsDatesSame(diff, this.props.original, TIME_COMPARISON_GRANULARITY.MINUTE) &&
                 diff.update_method.value === EventUpdateMethods[0].value) ||
             !isEqual(errorMessages, [])
         ) {
@@ -116,7 +118,11 @@ export class UpdateTimeComponent extends React.Component {
     }
 
     submit() {
-        return this.props.onSubmit(this.state.diff, get(this.props, 'modalProps') || {});
+        return this.props.onSubmit(
+            this.props.original,
+            this.state.diff,
+            get(this.props, 'modalProps') || {}
+        );
     }
 
     getPopupContainer() {
@@ -124,14 +130,14 @@ export class UpdateTimeComponent extends React.Component {
     }
 
     render() {
-        const {initialValues, dateFormat, timeFormat, submitting} = this.props;
-        const isRecurring = !!initialValues.recurrence_id;
+        const {original, dateFormat, timeFormat, submitting} = this.props;
+        const isRecurring = !!original.recurrence_id;
         const eventsInUse = this.state.relatedEvents.filter((e) => (
             get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
         ));
         const numEvents = this.state.relatedEvents.length + 1 - eventsInUse.length;
-        const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(initialValues);
-        const tz = get(initialValues, 'dates.tz');
+        const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(original);
+        const tz = get(original, 'dates.tz');
         const classes = classNames({
             'sd-line-input__time-input--max-with': !isRemoteTimeZone,
             'sd-line-input__time-input-remote--max-with': isRemoteTimeZone,
@@ -148,7 +154,7 @@ export class UpdateTimeComponent extends React.Component {
 
         const fieldProps = {
             row: false,
-            item: this.props.initialValues,
+            item: this.props.original,
             diff: this.state.diff,
             onChange: this.onChange,
             showErrors: true,
@@ -160,22 +166,22 @@ export class UpdateTimeComponent extends React.Component {
         return (
             <div className="MetadataView">
                 <Row
-                    enabled={!!initialValues.slugline}
+                    enabled={!!original.slugline}
                     label={gettext('Slugline')}
-                    value={initialValues.slugline || ''}
+                    value={original.slugline || ''}
                     className="slugline"
                     noPadding={true}
                 />
 
                 <Row
                     label={gettext('Name')}
-                    value={initialValues.name || ''}
+                    value={original.name || ''}
                     className="strong"
                     noPadding={true}
                 />
 
                 <EventScheduleSummary
-                    schedule={initialValues.dates}
+                    schedule={original.dates}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
                     noPadding={true}
@@ -254,7 +260,7 @@ export class UpdateTimeComponent extends React.Component {
 }
 
 UpdateTimeComponent.propTypes = {
-    initialValues: PropTypes.object.isRequired,
+    original: PropTypes.object.isRequired,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
     disableSaveInModal: PropTypes.func,
@@ -273,8 +279,10 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event, modalProps) => {
-        const promise = dispatch(actions.events.ui.updateEventTime(event));
+    onSubmit: (original, updates, modalProps) => {
+        const promise = dispatch(
+            actions.events.ui.updateEventTime(original, updates)
+        );
 
         if (get(modalProps, 'onCloseModal')) {
             promise.then((updatedEvent) => modalProps.onCloseModal(updatedEvent));

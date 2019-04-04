@@ -41,7 +41,7 @@ export class FulFilAssignmentController {
 
         this.store = null;
         this.newsItem = null;
-        this.item = get($scope, 'locals.data.item');
+        this.item = get($scope, 'locals.data.item', {});
         this.rendered = false;
 
         $scope.$on('$destroy', this.onDestroy);

@@ -132,7 +132,7 @@ const mapDispatchToProps = (dispatch) => ({
             type: 'planning',
         }))
     ),
-    onEditPlanning: (plan) => (dispatch(actions.main.lockAndEdit(plan))),
+    onEditPlanning: (plan) => (dispatch(actions.main.openForEdit(plan))),
 });
 
 export const RelatedPlannings = connect(mapStateToProps, mapDispatchToProps)(RelatedPlanningsComponent);

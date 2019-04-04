@@ -244,11 +244,11 @@ describe('actions.planning.notifications', () => {
             store.initialState.planning.currentPlanningId = 'p1';
             store.initialState.planning.plannings.p1.lock_user = 'ident1';
             store.initialState.planning.plannings.p1.lock_session = 'session1';
-            sinon.stub(main, 'reloadEditor').callsFake(() => Promise.resolve());
+            sinon.stub(main, 'changeEditorAction').callsFake(() => Promise.resolve());
         });
 
         afterEach(() => {
-            restoreSinonStub(main.reloadEditor);
+            restoreSinonStub(main.changeEditorAction);
         });
 
         it('dispatches notification modal if item unlocked is being edited', (done) => {
@@ -270,6 +270,7 @@ describe('actions.planning.notifications', () => {
                     type: 'event',
                 },
             };
+            store.initialState.forms.editors.panel.itemId = 'p1';
             store.test(done, planningNotifications.onPlanningUnlocked({},
                 {
                     item: 'p1',
@@ -279,11 +280,7 @@ describe('actions.planning.notifications', () => {
                     const modalStr = 'The planning you were editing was unlocked' +
                     ' by "firstname2 lastname2"';
 
-                    expect(store.dispatch.args[1][0].type).toEqual('AUTOSAVE_REMOVE');
-                    expect(store.dispatch.args[2]).toEqual([{
-                        type: 'HIDE_MODAL',
-                        payload: {clearPreviousState: false},
-                    }]);
+                    expect(store.dispatch.args[2][0].type).toEqual('AUTOSAVE_REMOVE');
                     expect(store.dispatch.args[3]).toEqual([{
                         type: 'SHOW_MODAL',
                         modalType: 'NOTIFICATION_MODAL',
@@ -293,7 +290,7 @@ describe('actions.planning.notifications', () => {
                         },
                     }]);
                     expect(store.dispatch.args[4][0].type).toEqual(PLANNING.ACTIONS.UNLOCK_PLANNING);
-                    expect(main.reloadEditor.callCount).toBe(1);
+                    expect(main.changeEditorAction.args[0]).toEqual(['read', false]);
                     done();
                 })
                 .catch(done.fail);
@@ -491,7 +488,15 @@ describe('actions.planning.notifications', () => {
                 _id: 'p1',
                 type: 'planning',
             };
-            store.initialState.forms.itemId = 'p1';
+            store.initialState.forms.editors.panel.itemId = 'p1';
+            store.initialState.locks.planning.p1 = {
+                action: 'edit',
+                user: 'ident1',
+                session: 'session1',
+                item_id: 'p1',
+                item_type: 'planning',
+            };
+
             return store.test(done, planningNotifications.onPlanningUpdated({}, {item: data.plannings[0]._id}))
                 .then(() => {
                     expect(planningUi.scheduleRefetch.callCount).toBe(0);

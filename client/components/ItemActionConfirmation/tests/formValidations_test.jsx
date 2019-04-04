@@ -50,7 +50,7 @@ describe('form validations', () => {
         mount(
             <Provider store={store}>
                 {React.createElement(component, {
-                    initialValues: data.events[1],
+                    original: data.events[1],
                     enableSaveInModal: enableSaveInModal,
                     disableSaveInModal: disableSaveInModal,
                 })}

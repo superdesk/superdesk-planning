@@ -24,8 +24,10 @@ export class SpikeEventComponent extends React.Component {
     }
 
     componentWillMount() {
-        const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
-            EventUpdateMethods[0]);
+        const event = eventUtils.getRelatedEventsForRecurringEvent(
+            this.props.original,
+            EventUpdateMethods[0]
+        );
 
         this.setState({
             relatedEvents: event._events,
@@ -37,8 +39,10 @@ export class SpikeEventComponent extends React.Component {
     }
 
     onEventUpdateMethodChange(field, option) {
-        const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
-            option);
+        const event = eventUtils.getRelatedEventsForRecurringEvent(
+            this.props.original,
+            option
+        );
 
         this.setState({
             eventUpdateMethod: option,
@@ -49,14 +53,14 @@ export class SpikeEventComponent extends React.Component {
 
     submit() {
         return this.props.onSubmit({
-            ...this.props.initialValues,
+            ...this.props.original,
             update_method: this.state.eventUpdateMethod,
         });
     }
 
     render() {
-        const {initialValues, dateFormat, timeFormat, submitting} = this.props;
-        const isRecurring = !!initialValues.recurrence_id;
+        const {original, dateFormat, timeFormat, submitting} = this.props;
+        const isRecurring = !!original.recurrence_id;
         const eventsInUse = this.state.relatedEvents.filter((e) => (
             get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
         ));
@@ -65,22 +69,22 @@ export class SpikeEventComponent extends React.Component {
         return (
             <div className="MetadataView">
                 <Row
-                    enabled={!!initialValues.slugline}
+                    enabled={!!original.slugline}
                     label={gettext('Slugline')}
-                    value={initialValues.slugline || ''}
+                    value={original.slugline || ''}
                     className="slugline"
                     noPadding={true}
                 />
 
                 <Row
                     label={gettext('Name')}
-                    value={initialValues.name || ''}
+                    value={original.name || ''}
                     className="strong"
                     noPadding={true}
                 />
 
                 <EventScheduleSummary
-                    schedule={initialValues.dates}
+                    schedule={original.dates}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
                 />
@@ -117,7 +121,7 @@ export class SpikeEventComponent extends React.Component {
 }
 
 SpikeEventComponent.propTypes = {
-    initialValues: PropTypes.object.isRequired,
+    original: PropTypes.object.isRequired,
     dateFormat: PropTypes.string,
     timeFormat: PropTypes.string,
     submitting: PropTypes.bool,

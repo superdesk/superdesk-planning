@@ -120,9 +120,9 @@ const scheduleRefetch = (skipEvents = []) => (
     )
 );
 
-const cancelEvent = (event) => (
+const cancelEvent = (original, updates) => (
     (dispatch, getState, {notify}) => (
-        dispatch(eventsApi.cancelEvent(event))
+        dispatch(eventsApi.cancelEvent(original, updates))
             .then(() => {
                 notify.success(gettext('Event has been cancelled'));
                 return Promise.resolve();
@@ -135,9 +135,9 @@ const cancelEvent = (event) => (
     )
 );
 
-const postponeEvent = (event) => (
+const postponeEvent = (original, updates) => (
     (dispatch, getState, {notify}) => (
-        dispatch(eventsApi.postponeEvent(event))
+        dispatch(eventsApi.postponeEvent(original, updates))
             .then((updatedEvent) => {
                 notify.success(gettext('Event has been postponed'));
                 return Promise.resolve(updatedEvent);
@@ -152,9 +152,16 @@ const postponeEvent = (event) => (
 
 const openSpikeModal = (event, post = false, modalProps = {}) => (
     (dispatch) => (
-        dispatch(eventsApi.loadEventDataForAction(event, true, post, true, true)).then((eventWithData) => {
+        dispatch(eventsApi.loadEventDataForAction(
+            event,
+            true,
+            post,
+            true,
+            true
+        )).then((eventWithData) => {
             dispatch(self._openActionModal(
                 eventWithData,
+                {},
                 EVENTS.ITEM_ACTIONS.SPIKE.label,
                 null,
                 true,
@@ -163,13 +170,14 @@ const openSpikeModal = (event, post = false, modalProps = {}) => (
                 true,
                 modalProps
             ));
-        }
-        ))
+        })
+    )
 );
 
 const openUnspikeModal = (event, post = false) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
+        {},
         EVENTS.ITEM_ACTIONS.UNSPIKE.label,
         null,
         true,
@@ -191,6 +199,7 @@ const openUpdateTimeModal = (event, post = false, fromEditor = true) => {
     } else {
         return self._openActionModal(
             event,
+            {},
             EVENTS.ITEM_ACTIONS.UPDATE_TIME.label,
             null,
             true,
@@ -214,6 +223,7 @@ const openCancelModal = (event, post = false, fromEditor = true) => {
     } else {
         return self._openActionModal(
             event,
+            {},
             EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label,
             null,
             true,
@@ -236,6 +246,7 @@ const openPostponeModal = (event, post = false, fromEditor = true) => {
     } else {
         return self._openActionModal(
             event,
+            {},
             EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label,
             null,
             true,
@@ -258,6 +269,7 @@ const openRescheduleModal = (event, post = false, fromEditor = true) => {
     } else {
         return self._openActionModal(
             event,
+            {},
             EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label,
             null,
             true,
@@ -269,6 +281,7 @@ const openRescheduleModal = (event, post = false, fromEditor = true) => {
 const convertToRecurringEvent = (event, post) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
+        {},
         EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label,
         EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.lock_action,
         false,
@@ -280,14 +293,15 @@ const convertToRecurringEvent = (event, post) => (
 const openRepetitionsModal = (event) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
+        {},
         EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.label,
         EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.lock_action
     ))
 );
 
-const rescheduleEvent = (event) => (
+const rescheduleEvent = (original, updates) => (
     (dispatch, getState, {notify}) => (
-        dispatch(eventsApi.rescheduleEvent(event))
+        dispatch(eventsApi.rescheduleEvent(original, updates))
             .then((updatedEvent) => {
                 notify.success(gettext('Event has been rescheduled'));
 
@@ -296,7 +310,11 @@ const rescheduleEvent = (event) => (
                 if (isItemRescheduled(updatedEvent) && duplicatedEvent) {
                     return dispatch(eventsApi.fetchById(duplicatedEvent))
                         .then(
-                            (newEvent) => dispatch(main.lockAndEdit(newEvent)),
+                            (newEvent) => {
+                                dispatch(main.openForEdit(newEvent));
+
+                                return Promise.resolve(newEvent);
+                            },
                             (error) => {
                                 notify.error(
                                     getErrorMessage(error, gettext('Failed to load duplicated Event.'))
@@ -307,7 +325,9 @@ const rescheduleEvent = (event) => (
                         );
                 }
 
-                return dispatch(main.lockAndEdit(updatedEvent));
+                dispatch(main.openForEdit(updatedEvent));
+
+                return Promise.resolve(updatedEvent);
             }, (error) => {
                 notify.error(
                     getErrorMessage(error, gettext('Failed to reschedule the Event!'))
@@ -333,9 +353,10 @@ const _openActionModalFromEditor = ({
         dispatch(main.openActionModalFromEditor(
             event,
             title,
-            (updatedEvent, previousLock, openInEditor, openInModal) => (
+            (original, previousLock, openInEditor, openInModal) => (
                 dispatch(self._openActionModal(
-                    updatedEvent,
+                    original,
+                    {},
                     action.label,
                     action.lock_action,
                     loadPlannings,
@@ -352,8 +373,8 @@ const _openActionModalFromEditor = ({
 
                             if (get(previousLock, 'action')) {
                                 promise.then((refetchedEvent) => (
-                                    (openInModal || openInModal) ?
-                                        dispatch(main.lockAndEdit(refetchedEvent, openInModal)) :
+                                    (openInEditor || openInModal) ?
+                                        dispatch(main.openForEdit(refetchedEvent, openInModal)) :
                                         dispatch(locks.lock(refetchedEvent, previousLock.action))
                                 ));
                             }
@@ -369,7 +390,8 @@ const _openActionModalFromEditor = ({
 );
 
 const _openActionModal = (
-    event,
+    original,
+    updates,
     action,
     lockAction = null,
     loadPlannings = false,
@@ -379,14 +401,15 @@ const _openActionModal = (
     modalProps = {}
 ) => (
     (dispatch, getState, {notify}) => (
-        dispatch(eventsApi.lock(event, lockAction))
+        dispatch(eventsApi.lock(original, lockAction))
             .then((lockedEvent) => (
                 dispatch(eventsApi.loadEventDataForAction(lockedEvent, loadPlannings, post, loadEvents))
                     .then((eventDetail) => (
                         dispatch(showModal({
                             modalType: MODALS.ITEM_ACTIONS_MODAL,
                             modalProps: {
-                                eventDetail: eventDetail,
+                                original: eventDetail,
+                                updates: updates,
                                 actionType: action,
                                 large: large,
                                 ...modalProps,
@@ -427,13 +450,13 @@ const duplicate = (event) => (
             eventUtils.duplicateEvent(event, plannedStatus)
         );
 
-        return dispatch(main.lockAndEdit(newEvent));
+        return dispatch(main.createNew(ITEM_TYPE.EVENT, newEvent));
     }
 );
 
-const updateEventTime = (event) => (
+const updateEventTime = (original, updates) => (
     (dispatch, getState, {notify}) => (
-        dispatch(eventsApi.updateEventTime(event))
+        dispatch(eventsApi.updateEventTime(original, updates))
             .then((updatedEvent) => {
                 notify.success(gettext('Event time has been updated'));
                 return Promise.resolve(updatedEvent);
@@ -446,9 +469,9 @@ const updateEventTime = (event) => (
     )
 );
 
-const updateRepetitions = (event) => (
+const updateRepetitions = (original, updates) => (
     (dispatch, getState, {notify}) => (
-        dispatch(eventsApi.updateRepetitions(event))
+        dispatch(eventsApi.updateRepetitions(original, updates))
             .then((updatedEvent) => {
                 notify.success(gettext('Event repetitions updated'));
                 return Promise.resolve(updatedEvent);
@@ -461,19 +484,17 @@ const updateRepetitions = (event) => (
     )
 );
 
-const saveWithConfirmation = (event, unlockOnClose) => (
+const saveWithConfirmation = (original, updates, unlockOnClose) => (
     (dispatch, getState) => {
-        const events = selectors.events.storedEvents(getState());
-        const originalEvent = get(events, event._id, {});
         const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
 
         // If this is not from a recurring series, then simply post this event
-        if (!get(originalEvent, 'recurrence_id')) {
-            return dispatch(eventsApi.save(event));
+        if (!get(original, 'recurrence_id')) {
+            return dispatch(eventsApi.save(original, updates));
         }
 
         return dispatch(eventsApi.query({
-            recurrenceId: originalEvent.recurrence_id,
+            recurrenceId: original.recurrence_id,
             maxResults: maxRecurringEvents,
             onlyFuture: false,
         }))
@@ -481,12 +502,13 @@ const saveWithConfirmation = (event, unlockOnClose) => (
                 dispatch(showModal({
                     modalType: MODALS.ITEM_ACTIONS_MODAL,
                     modalProps: {
-                        eventDetail: {
-                            ...event,
-                            _recurring: relatedEvents || [event],
+                        original: {
+                            ...original,
+                            _recurring: relatedEvents || [original],
                             _events: [],
-                            _originalEvent: originalEvent,
+                            _originalEvent: original,
                         },
+                        updates: updates,
                         actionType: 'save',
                         unlockOnClose: unlockOnClose,
                     },
@@ -495,53 +517,66 @@ const saveWithConfirmation = (event, unlockOnClose) => (
     }
 );
 
-const postWithConfirmation = (event, post) => (
-    (dispatch, getState) => {
-        const events = selectors.events.storedEvents(getState());
-        const originalEvent = get(events, event._id, {});
-
+const postWithConfirmation = (original, updates, post) => (
+    (dispatch) => {
         // If this is not from a recurring series, then simply post this event
-        const hasPlannings = eventUtils.eventHasPlanning(event);
+        const hasPlannings = eventUtils.eventHasPlanning(original);
 
-        if (!get(originalEvent, 'recurrence_id') && !hasPlannings) {
+        if (!get(original, 'recurrence_id') && !hasPlannings) {
             return dispatch(post ?
-                eventsApi.post(event) :
-                eventsApi.unpost(event)
+                eventsApi.post(original, updates) :
+                eventsApi.unpost(original, updates)
             );
         }
 
-        return dispatch(self.openEventPostModal(event, post));
+        return dispatch(self.openEventPostModal(original, updates, post));
     }
 );
 
-const openEventPostModal = (event, post, unpostAction, modalProps = {}) => (
+const openEventPostModal = (original, updates, post, unpostAction, modalProps = {}) => (
     (dispatch) => (
-        dispatch(eventsApi.loadEventDataForAction(event, true, post, true, true)).then((eventWithData) => {
-            if (!post && !eventWithData.recurrence_id && !eventUtils.eventHasPostedPlannings(eventWithData)) {
+        dispatch(eventsApi.loadEventDataForAction(
+            original,
+            true,
+            post,
+            true,
+            true
+        )).then((eventWithData) => {
+            if (!post &&
+                !eventWithData.recurrence_id &&
+                !eventUtils.eventHasPostedPlannings(eventWithData)
+            ) {
                 // Not a recurring event and has no posted planning items to confirm unpost
                 // Just unpost
-                if (!unpostAction) {
-                    return dispatch(eventsApi.unpost(eventWithData));
-                }
-
-                return dispatch(unpostAction(event));
+                return dispatch(!unpostAction ?
+                    eventsApi.unpost(original, updates) :
+                    unpostAction(original, updates)
+                );
             }
 
-            return dispatch(showModal({
-                modalType: MODALS.ITEM_ACTIONS_MODAL,
-                modalProps: {
-                    eventDetail: eventWithData,
-                    actionType: modalProps.actionType ? modalProps.actionType : EVENTS.ITEM_ACTIONS.POST_EVENT.label,
-                    ...modalProps,
-                },
-            }));
+            return new Promise((resolve, reject) => {
+                dispatch(showModal({
+                    modalType: MODALS.ITEM_ACTIONS_MODAL,
+                    modalProps: {
+                        resolve: resolve,
+                        reject: reject,
+                        original: eventWithData,
+                        updates: updates,
+                        actionType: modalProps.actionType ?
+                            modalProps.actionType :
+                            EVENTS.ITEM_ACTIONS.POST_EVENT.label,
+                        ...modalProps,
+                    },
+                }));
+            });
         })
     )
 );
 
-const openAssignCalendarModal = (event) => (
+const openAssignCalendarModal = (original, updates) => (
     (dispatch) => dispatch(self._openActionModal(
-        event,
+        original,
+        updates,
         EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.label,
         'assign_calendar',
         false,
@@ -551,7 +586,6 @@ const openAssignCalendarModal = (event) => (
         {}
     ))
 );
-
 
 /**
  * Action to load more events
@@ -658,8 +692,10 @@ const createEventFromPlanning = (plan) => (
             newEvent.slugline = plan.slugline;
         }
 
-        return dispatch(planningApi.lock(plan, 'add_as_event'))
-            .then(() => dispatch(main.createNew(ITEM_TYPE.EVENT, newEvent)));
+        return Promise.all([
+            dispatch(planningApi.lock(plan, 'add_as_event')),
+            dispatch(main.createNew(ITEM_TYPE.EVENT, newEvent)),
+        ]);
     }
 );
 
@@ -700,38 +736,71 @@ const onEventEditUnlock = (event) => (
  * @return Promise
  */
 const assignToCalendar = (event, calendar) => (
-    (dispatch, getState, {notify}) => (
-        dispatch(locks.lock(event, 'assign_calendar'))
-            .then((lockedItem) => {
-                lockedItem.calendars = [...get(lockedItem, 'calendars', []), calendar];
-                lockedItem._calendar = calendar;
-                return get(event, 'recurrence_id') ?
-                    dispatch(self.openAssignCalendarModal(lockedItem)) :
-                    dispatch(main.saveAndUnlockItem(lockedItem))
-                        .then(() => {
-                            notify.success(gettext('Calendar assigned to the event.'));
-                            return Promise.resolve();
-                        });
-            }, (error) => {
-                notify.error(
-                    getErrorMessage(error, gettext('Could not obtain lock on the event.'))
-                );
-                return Promise.reject(error);
-            })
-    )
-);
+    (dispatch, getState, {notify}) => {
+        const updates = {
+            _id: event._id,
+            type: event.type,
+            calendars: [...get(event, 'calendars', []), calendar],
+            _calendar: calendar,
+        };
 
-const save = (item, confirmation, unlockOnClose) => (
-    (dispatch) => {
-        if (confirmation && (get(item, 'recurrence_id') || getPostedState(item) === POST_STATE.CANCELLED)) {
-            // We are saving and unposting - may need to ask confirmation
-            return dispatch(self.openEventPostModal(item, item._post, eventsApi.save, {
-                actionType: 'save',
-                unlockOnClose: unlockOnClose,
-            }));
+        // If this is a recurring event, then open the modal
+        // so the user can select which Events to assign this calendar to
+        if (get(event, 'recurrence_id')) {
+            return dispatch(self.openAssignCalendarModal(event, updates));
         }
 
-        return dispatch(eventsApi.save(item));
+        // Otherwise lock, save and unlock this Event
+        // with the new list of calendars
+        return dispatch(locks.lock(event, 'assign_calendar'))
+            .then((original) => (
+                dispatch(main.saveAndUnlockItem(original, updates))
+                    .then(() => {
+                        notify.success(
+                            gettext('Calendar assigned to the event')
+                        );
+                        return Promise.resolve();
+                    }, (error) => {
+                        notify.error(
+                            getErrorMessage(
+                                error,
+                                gettext('Failed to add Calendar to the Event')
+                            )
+                        );
+
+                        return Promise.reject(error);
+                    })
+            ), (error) => {
+                notify.error(
+                    getErrorMessage(
+                        error,
+                        gettext('Could not obtain lock on the event.')
+                    )
+                );
+                return Promise.reject(error);
+            });
+    }
+);
+
+const save = (original, updates, confirmation, unlockOnClose) => (
+    (dispatch) => {
+        if (confirmation &&
+            (get(original, 'recurrence_id') || getPostedState(updates) === POST_STATE.CANCELLED)
+        ) {
+            // We are saving and unposting - may need to ask confirmation
+            return dispatch(self.openEventPostModal(
+                original,
+                updates,
+                updates._post,
+                eventsApi.save,
+                {
+                    actionType: 'save',
+                    unlockOnClose: unlockOnClose,
+                }
+            ));
+        }
+
+        return dispatch(eventsApi.save(original, updates));
     }
 );
 
@@ -745,7 +814,7 @@ const creatAndOpenPlanning = (item, planningDate = null, openPlanningItem = fals
                     .then(() => {
                         if (!openPlanningItem &&
                                 get(previousLock, 'action') === EVENTS.ITEM_ACTIONS.EDIT_EVENT.lock_action) {
-                            return dispatch(main.lockAndEdit(unlockedItem, openInModal));
+                            return dispatch(main.openForEdit(unlockedItem, !openInModal, openInModal));
                         }
                     })
             )

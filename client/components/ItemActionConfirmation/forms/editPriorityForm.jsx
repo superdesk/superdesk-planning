@@ -19,7 +19,7 @@ export class EditPriorityComponent extends React.Component {
     }
 
     componentWillMount() {
-        const priorityQcode = get(this.props, 'initialValues.priority');
+        const priorityQcode = get(this.props, 'original.priority');
         const priority = priorityQcode ?
             getItemInArrayById(this.props.priorities, priorityQcode, 'qcode') :
             null;
@@ -30,7 +30,10 @@ export class EditPriorityComponent extends React.Component {
     onChange(field, value) {
         this.setState({priority: value});
 
-        if (isEqual(get(value, 'qcode') || null, get(this.props, 'initialValues.priority') || null)) {
+        if (isEqual(
+            get(value, 'qcode') || null,
+            get(this.props, 'original.priority') || null)
+        ) {
             this.props.disableSaveInModal();
         } else {
             this.props.enableSaveInModal();
@@ -38,27 +41,30 @@ export class EditPriorityComponent extends React.Component {
     }
 
     submit() {
-        return this.props.onSubmit({
-            ...this.props.initialValues,
-            priority: get(this.state.priority, 'qcode') || null,
-        });
+        return this.props.onSubmit(
+            this.props.original,
+            {
+                ...this.props.original,
+                priority: get(this.state.priority, 'qcode') || null,
+            }
+        );
     }
 
     render() {
-        const slugline = get(this.props, 'initialValues.planning.slugline') || '';
-        const scheduled = get(this.props, 'initialValues.planning.scheduled') || '';
+        const slugline = get(this.props, 'original.planning.slugline') || '';
+        const scheduled = get(this.props, 'original.planning.scheduled') || '';
 
-        const deskId = get(this.props, 'initialValues.assigned_to.desk') || null;
+        const deskId = get(this.props, 'original.assigned_to.desk') || null;
         const desk = deskId ?
             getItemInArrayById(this.props.desks, deskId) :
             {};
 
-        const userId = get(this.props, 'initialValues.assigned_to.user') || null;
+        const userId = get(this.props, 'original.assigned_to.user') || null;
         const user = userId ?
             getItemInArrayById(this.props.users, userId) :
             {};
 
-        const provider = get(this.props, 'initialValues.assigned_to.coverage_provider') || {};
+        const provider = get(this.props, 'original.assigned_to.coverage_provider') || {};
 
         const infoProps = {
             labelLeft: true,
@@ -131,7 +137,7 @@ export class EditPriorityComponent extends React.Component {
 }
 
 EditPriorityComponent.propTypes = {
-    initialValues: PropTypes.object,
+    original: PropTypes.object,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
     disableSaveInModal: PropTypes.func,
@@ -147,10 +153,12 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (assignment) => dispatch(actions.assignments.ui.save(assignment))
-        .then(() => dispatch({
+    onSubmit: (original, updates) => dispatch(
+        actions.assignments.ui.save(original, updates)
+    )
+        .then((updatedAssignment) => dispatch({
             type: ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT,
-            payload: {assignment},
+            payload: {assignment: updatedAssignment},
         })),
 
     onHide: (assignment) => {

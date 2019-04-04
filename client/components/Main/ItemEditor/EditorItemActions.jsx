@@ -8,14 +8,14 @@ import {ItemActionsMenu} from '../../index';
 
 export const EditorItemActions = ({
     item,
-    onAddCoverage,
     event,
     session,
     privileges,
     lockedItems,
     itemActions,
-    flushAutosave,
     contentTypes,
+    itemManager,
+    autoSave,
 }) => {
     const itemType = getItemType(item);
     const withMultiPlanningDate = true;
@@ -32,30 +32,43 @@ export const EditorItemActions = ({
             [EVENTS.ITEM_ACTIONS.SPIKE.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.SPIKE.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName]:
-                (...args) => {
-                    flushAutosave();
-                    itemActions[EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName](...args);
-                },
+                (...args) => (
+                    autoSave.flushAutosave()
+                        .then(() => (
+                            itemActions[
+                                EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName
+                            ](...args)
+                        ))
+                ),
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
-                () => {
-                    flushAutosave();
-                    itemActions[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName](item);
-                },
+                () => (
+                    autoSave.flushAutosave()
+                        .then(() => (
+                            itemActions[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName](item)
+                        ))
+
+                ),
             [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
-                () => {
-                    flushAutosave();
-                    itemActions[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName](item);
-                },
+                () => (
+                    autoSave.flushAutosave()
+                        .then(() => (
+                            itemActions[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName](item)
+                        ))
+                ),
             [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]:
-                () => {
-                    flushAutosave();
-                    itemActions[EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName](item);
-                },
+                () => (
+                    autoSave.flushAutosave()
+                        .then(() => (
+                            itemActions[EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName](item)
+                        ))
+                ),
             [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]:
-                () => {
-                    flushAutosave();
-                    itemActions[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName](item);
-                },
+                () => (
+                    autoSave.flushAutosave()
+                        .then(() => (
+                            itemActions[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName](item)
+                        ))
+                ),
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName].bind(null, item),
         };
@@ -71,7 +84,7 @@ export const EditorItemActions = ({
 
     if (itemType === ITEM_TYPE.PLANNING) {
         callBacks = {
-            [PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName]: onAddCoverage,
+            [PLANNING.ITEM_ACTIONS.ADD_COVERAGE.actionName]: itemManager.addCoverage,
             [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: itemActions[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
             [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: itemActions[PLANNING.ITEM_ACTIONS.UNSPIKE.actionName],
             [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: itemActions[PLANNING.ITEM_ACTIONS.SPIKE.actionName],
@@ -80,15 +93,19 @@ export const EditorItemActions = ({
             [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
                 itemActions[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
             [PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName]:
-                (item, remove) => {
-                    flushAutosave();
-                    itemActions[PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName](item, remove);
-                },
+                (item, remove) => (
+                    autoSave.flushAutosave()
+                        .then(() => (
+                            itemActions[PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.actionName](item, remove)
+                        ))
+                ),
             [PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName]:
-                (item, remove) => {
-                    flushAutosave();
-                    itemActions[PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName](item, remove);
-                },
+                (item, remove) => (
+                    autoSave.flushAutosave()
+                        .then(() => (
+                            itemActions[PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName](item, remove)
+                        ))
+                ),
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
@@ -126,7 +143,7 @@ EditorItemActions.propTypes = {
     privileges: PropTypes.object,
     lockedItems: PropTypes.object,
     itemActions: PropTypes.object,
-    onAddCoverage: PropTypes.func,
     contentTypes: PropTypes.array,
-    flushAutosave: PropTypes.func,
+    itemManager: PropTypes.object,
+    autoSave: PropTypes.object,
 };

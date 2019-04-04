@@ -23,7 +23,7 @@ const PanelInfo = ({heading, description, showIcon}) => (
 PanelInfo.propTypes = {
     heading: PropTypes.string,
     description: PropTypes.string,
-    showIcon: PropTypes.boolean,
+    showIcon: PropTypes.bool,
 };
 
 PanelInfo.defaultProps = {
