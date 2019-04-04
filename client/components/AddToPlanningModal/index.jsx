@@ -9,8 +9,6 @@ import {AddToPlanningApp} from '../../apps';
 import * as selectors from '../../selectors';
 import {gettext} from '../../utils';
 
-import './style.scss';
-
 export class AddToPlanningComponent extends React.Component {
     constructor(props) {
         super(props);
@@ -51,7 +49,7 @@ export class AddToPlanningComponent extends React.Component {
                 </Modal.Header>
 
                 <Modal.Body noPadding fullHeight noScroll>
-                    <div className="AddToPlanning">
+                    <div className="planning-app__modal AddToPlanning">
                         <AddToPlanningApp
                             addNewsItemToPlanning={newsItem}
                             popupContainer={() => this.dom.popupContainer}

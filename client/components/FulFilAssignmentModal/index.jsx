@@ -10,7 +10,6 @@ import {FulfilAssignmentApp} from '../../apps';
 import * as selectors from '../../selectors';
 import {WORKSPACE} from '../../constants';
 import {gettext} from '../../utils';
-import './style.scss';
 
 
 export function FulFilAssignmentComponent({
@@ -45,7 +44,7 @@ export function FulFilAssignmentComponent({
 
             <Modal.Body noPadding fullHeight noScroll
             >
-                <div className="FulfilAssignment">
+                <div className="planning-app__modal FulfilAssignment">
                     <FulfilAssignmentApp newsItem={newsItem}/>
                 </div>
             </Modal.Body>
