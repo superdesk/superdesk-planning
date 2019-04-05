@@ -34,6 +34,14 @@ export default angular.module('superdesk-planning', [])
             controller: ctrl.AssignmentPreviewController,
         })
     )
+    .directive('sdLocationsManagement',
+        () => ({
+            scope: {},
+            bindToController: true,
+            controllerAs: 'vm',
+            controller: ctrl.LocationsController,
+        })
+    )
     .component('sdPlanningDetailsWidget', reactToAngular1(PlanningDetailsWidget, ['item']))
     .service('sdPlanningStore', svc.PlanningStoreService)
     .config(['workspaceMenuProvider', (workspaceMenuProvider) => {
@@ -74,6 +82,7 @@ export default angular.module('superdesk-planning', [])
     }])
     .run(['$templateCache', ($templateCache) => {
         $templateCache.put('planning-details-widget.html', require('./views/planning-details-widget.html'));
+        $templateCache.put('locations.html', require('./views/locations.html'));
     }])
     .run(['$injector', 'sdPlanningStore', 'extensionPoints', ($injector, sdPlanningStore, extensionPoints) => {
         ng.register($injector);

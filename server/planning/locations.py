@@ -13,6 +13,7 @@ import logging
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from .common import set_original_creator
+from eve.utils import config
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,22 @@ class LocationsService(superdesk.Service):
         for doc in docs:
             doc['guid'] = generate_guid(type=GUID_NEWSML)
             set_original_creator(doc)
+
+    def delete(self, lookup):
+        """If the document to be deleted is reference in an event then flag it as inactive otherwise just delete it.
+
+        :param doc:
+        :return:
+        """
+        if lookup:
+            location = superdesk.get_resource_service('locations').find_one(req=None, _id=lookup.get(config.ID_FIELD))
+            if location:
+                events = superdesk.get_resource_service('events').find(
+                    where={'location.qcode': str(location.get('guid'))})
+                if events.count():
+                    superdesk.get_resource_service('locations').patch(location[config.ID_FIELD], {'is_active': False})
+                    return
+        super().delete(lookup)
 
 
 locations_schema = {
@@ -159,6 +176,9 @@ locations_schema = {
             'type': 'string'
         }
     },
+    # Flag indicates if the location is active and should be shown in the UI
+    'is_active': {'type': 'boolean',
+                  'default': True}
 }
 
 
@@ -178,5 +198,5 @@ class LocationsResource(superdesk.Resource):
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
     public_methods = ['GET']
     privileges = {'POST': 'planning',
-                  'PATCH': 'planning',
-                  'DELETE': 'planning'}
+                  'PATCH': 'planning_locations_management',
+                  'DELETE': 'planning_locations_management'}

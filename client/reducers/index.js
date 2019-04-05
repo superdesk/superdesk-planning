@@ -17,6 +17,7 @@ import selected from './publishQueuePreview';
 import featuredPlanning from './featuredPlanning';
 import files from './files';
 import contacts from './contacts';
+import locations from './locations';
 
 const returnState = (state) => state || {};
 
@@ -52,6 +53,7 @@ const planningApp = combineReducers({
     urgency: returnState,
     customVocabularies: returnState,
     userDesks: returnState,
+    locations: locations,
 });
 
 export default planningApp;
