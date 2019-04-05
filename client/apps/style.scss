@@ -127,3 +127,45 @@ a:hover {
       text-decoration: none;
    }
 }
+
+// Overrides to show the AddToPlanning/FulfilAssignment apps in a modal container
+.planning-app__modal {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: auto;
+
+    .sd-column-box__main-column__listpanel {
+        .sd-column-box__main-column__items {
+            padding-bottom: 2.6rem !important;
+            // 96px = modal header + footer height
+            // 80px = top + bottom space around for modal type .modal--fill
+            height: calc(100vh - (#{$nav-height} + #{$subnav-height} * 2 + 96px + 80px));
+        }
+    }
+
+    .sd-page-content--slide-in {
+        height: 100%;
+
+        .sd-page-content__content-block--main {
+            width: calc(100vw - 8.0rem) !important;
+        }
+        &--open {
+            .sd-page-content__content-block--main {
+                width: calc(100vw - 60.8rem) !important;
+            }
+        }
+    }
+}
+
+.AddToPlanning {
+    .sd-list-item {
+        margin: 1rem;
+    }
+}
+
+.FulfilAssignment {
+    .archive-item {
+        margin: 1rem;
+    }
+}
