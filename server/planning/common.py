@@ -333,7 +333,9 @@ def set_ingested_event_state(updates, original):
         return
 
     # don't change status to draft when event was duplicated
-    if original.get(ITEM_STATE) == WORKFLOW_STATE.INGESTED and not updates.get('duplicate_to'):
+    if ((original.get(ITEM_STATE) == WORKFLOW_STATE.INGESTED
+         and not updates.get('duplicate_to')
+         and not updates.get(ITEM_STATE))):
         updates[ITEM_STATE] = WORKFLOW_STATE.DRAFT
 
 

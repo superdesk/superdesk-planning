@@ -316,3 +316,86 @@ Feature: Publish
 
         When we transmit items
         Then versioned file exists "/tmp/123-#PUBLISHQUEUE.item_version#-None.txt"
+
+    @auth
+    Scenario: Patch state of ingested event (SDNTB-568 regression test)
+        When we post to "/products" with success
+        """
+        {
+            "name":"prod-1","codes":"abc,xyz", "product_type": "both"
+        }
+        """
+        And we post to "/subscribers" with success
+        """
+        {
+            "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
+            "products": ["#products._id#"],
+            "codes": "xyz, abc",
+            "destinations": [{"name":"events", "format": "ntb_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
+        }
+        """
+        Given "contacts"
+        """
+        [{"first_name": "Albert", "last_name": "Foo"}]
+        """
+        When we post to "/events" with success
+        """
+        {
+            "guid": "123",
+            "unique_id": "123",
+            "unique_name": "123 name",
+            "name": "event 123",
+            "slugline": "event-123",
+            "definition_short": "short value",
+            "definition_long": "long value",
+            "relationships":{
+                "broader": "broader value",
+                "narrower": "narrower value",
+                "related": "related value"
+            },
+            "dates": {
+                "start": "2016-01-02",
+                "end": "2016-01-03"
+            },
+            "state": "ingested",
+            "subject": [{"qcode": "test qcaode", "name": "test name"}],
+            "location": [{"qcode": "test qcaode", "name": "test name"}],
+            "event_contact_info": ["#contacts._id#"]
+        }
+        """
+        Then we get OK response
+        When we get "/events/#events._id#"
+        Then we get existing resource
+        """
+        {"state": "ingested"}
+        """
+        When we patch "/events/#events._id#"
+        """
+        {
+            "state": "scheduled"
+        }
+        """
+        Then we get updated response
+        """
+        {
+            "guid": "123",
+            "name": "event 123",
+            "slugline": "event-123",
+            "definition_short": "short value",
+            "definition_long": "long value",
+            "relationships":{
+                "broader": "broader value",
+                "narrower": "narrower value",
+                "related": "related value"
+            },
+            "dates": {
+                "end": "2016-01-03T00:00:00+0000",
+                "start": "2016-01-02T00:00:00+0000"
+            },
+            "state": "scheduled",
+            "subject": [{"qcode": "test qcaode", "name": "test name"}],
+            "location": [{"qcode": "test qcaode", "name": "test name"}],
+            "event_contact_info": ["#contacts._id#"]
+        }
+        """
+
