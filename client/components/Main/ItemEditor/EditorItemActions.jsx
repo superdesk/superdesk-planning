@@ -71,6 +71,13 @@ export const EditorItemActions = ({
                 ),
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName].bind(null, item),
+            [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]:
+                () => (
+                    autoSave.flushAutosave()
+                        .then(() => (
+                            itemActions[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName](item)
+                        ))
+                ),
         };
         actions = eventUtils.getEventActions({
             item,

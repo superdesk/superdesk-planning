@@ -290,14 +290,22 @@ const convertToRecurringEvent = (event, post) => (
     ))
 );
 
-const openRepetitionsModal = (event) => (
-    (dispatch) => dispatch(self._openActionModal(
-        event,
-        {},
-        EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.label,
-        EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.lock_action
-    ))
-);
+const openRepetitionsModal = (event, fromEditor = true) => {
+    if (fromEditor) {
+        return self._openActionModalFromEditor({
+            event: event,
+            action: EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS,
+            title: gettext('Save changes before updating Event Repetitions?'),
+        });
+    } else {
+        return self._openActionModal(
+            event,
+            {},
+            EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.label,
+            EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.lock_action
+        );
+    }
+};
 
 const rescheduleEvent = (original, updates) => (
     (dispatch, getState, {notify}) => (

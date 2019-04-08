@@ -163,20 +163,16 @@ describe('actions.events.ui', () => {
         }]);
     });
 
-    it('openRepetitionsModal calls `_openActionModal`', (done) => (
-        store.test(done, eventsUi.openRepetitionsModal(data.events[1]))
-            .then(() => {
-                expect(eventsUi._openActionModal.callCount).toBe(1);
-                expect(eventsUi._openActionModal.args[0]).toEqual([
-                    data.events[1],
-                    {},
-                    'Update Repetitions',
-                    'update_repetitions',
-                ]);
+    it('openRepetitionsModal calls `_openActionModalFromEditor`', () => {
+        eventsUi.openRepetitionsModal(data.events[1]);
 
-                done();
-            })
-    ).catch(done.fail));
+        expect(eventsUi._openActionModalFromEditor.callCount).toBe(1);
+        expect(eventsUi._openActionModalFromEditor.args[0]).toEqual([{
+            event: data.events[1],
+            action: EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS,
+            title: 'Save changes before updating Event Repetitions?',
+        }]);
+    });
 
     describe('openActionModal', () => {
         beforeEach(() => {
@@ -448,13 +444,14 @@ describe('actions.events.ui', () => {
             const daysBetween = moment().diff(data.events[0].dates.start, 'days');
             const newStartDate = data.events[0].dates.start.add(daysBetween, 'days');
             const newEndDate = data.events[0].dates.end.add(daysBetween, 'days');
+            const args = main.createNew.args[0];
 
             expect(main.createNew.callCount).toBe(1);
-            expect(main.createNew.args[0]).toEqual([ITEM_TYPE.EVENT, {
+            expect(args).toEqual([ITEM_TYPE.EVENT, {
                 ...omit(data.events[0], ['_id', '_etag', 'planning_ids']),
                 dates: {
-                    start: newStartDate,
-                    end: newEndDate,
+                    start: jasmine.any(moment),
+                    end: jasmine.any(moment),
                     tz: 'Australia/Sydney',
                 },
                 duplicate_from: 'e1',
@@ -466,9 +463,14 @@ describe('actions.events.ui', () => {
                 },
                 files: ['file1_id'],
                 links: ['http://www.google.com'],
-                _startTime: newStartDate,
-                _endTime: newEndDate,
+                _startTime: jasmine.any(moment),
+                _endTime: jasmine.any(moment),
             }]);
+
+            expect(args[1].dates.start.format()).toEqual(newStartDate.format());
+            expect(args[1].dates.end.format()).toEqual(newEndDate.format());
+            expect(args[1]._startTime.format()).toEqual(newStartDate.format());
+            expect(args[1]._endTime.format()).toEqual(newEndDate.format());
         });
     });
 
