@@ -184,6 +184,12 @@ export const CoveragePreview = ({
                     value={coverageDateText}
                 />
             }
+
+            {get(formProfile, 'editor.flags') && get(coverage, 'flags.no_content_linking') &&
+                <PreviewRow>
+                    <span className="state-label not-for-publication">{gettext('Do not link content updates')}</span>
+                </PreviewRow>
+            }
         </div>
     );
 

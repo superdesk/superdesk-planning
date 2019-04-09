@@ -46,6 +46,10 @@ def before_scenario(context, scenario):
         'INSTALLED_APPS': INSTALLED_APPS,
         'ELASTICSEARCH_FORCE_REFRESH': True,
     }
+
+    if 'link_updates' in scenario.tags:
+        config['PLANNING_LINK_UPDATES_TO_COVERAGES'] = True
+
     setup_before_scenario(context, scenario, config, app_factory=get_app)
 
     if scenario.status != 'skipped' and 'events_ingest' in scenario.tags:

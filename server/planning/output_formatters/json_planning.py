@@ -37,7 +37,7 @@ class JsonPlanningFormatter(Formatter):
                      'original_creator', 'version_creator', '_planning_schedule', 'files')
 
     # fields to be removed from coverage
-    remove_coverage_fields = ('original_creator', 'version_creator', 'assigned_to')
+    remove_coverage_fields = ('original_creator', 'version_creator', 'assigned_to', 'flags')
 
     def can_format(self, format_type, article):
         if article.get('flags', {}).get('marked_for_not_publication', False):
@@ -107,7 +107,8 @@ class JsonPlanningFormatter(Formatter):
         if not assignment:
             return [], None
 
-        if assignment.get('assigned_to').get('state') != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+        if assignment.get('assigned_to').get('state') not in [ASSIGNMENT_WORKFLOW_STATE.COMPLETED,
+                                                              ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS]:
             return [], assignment.get('assigned_to').get('state')
 
         delivery_service = get_resource_service('delivery')

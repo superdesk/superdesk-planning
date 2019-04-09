@@ -247,7 +247,7 @@ def then_get_transmitted_item(context, path):
         data = json.load(json_file)
         json_file.close()
     context_data = json.loads(apply_placeholders(context, context.text))
-    json_match(context_data, data)
+    assert json_match(context_data, data)
 
 
 @when('we fetch events from "{provider_name}" ingest "{guid}"')

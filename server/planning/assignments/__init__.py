@@ -79,8 +79,13 @@ def init_app(app):
     app.on_item_locked += assignments_publish_service.sync_assignment_lock
     app.on_item_unlocked += assignments_publish_service.sync_assignment_unlock
 
-    # Remove Assignment and Coverage upon deleting an Archive Rewrite
-    app.on_deleted_resource_archive_rewrite += assignments_publish_service.unlink_assignment_on_delete_archive_rewrite
+    # Track updates for an assignment if it's news story was updated
+    if app.config.get('PLANNING_LINK_UPDATES_TO_COVERAGES', False):
+        app.on_inserted_archive_rewrite += assignments_publish_service.create_delivery_for_content_update
+
+        # Remove Assignment and Coverage upon deleting an Archive Rewrite
+        app.on_deleted_resource_archive_rewrite +=\
+            assignments_publish_service.unlink_assignment_on_delete_archive_rewrite
 
     # Enhance the archive/published item resources with assigned desk/user information
     app.on_fetched_resource_archive += assignments_publish_service.on_fetched_resource_archive
