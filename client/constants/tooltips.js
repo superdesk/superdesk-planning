@@ -12,4 +12,6 @@ export const TOOLTIPS = {
     editModal: gettext('Edit in popup'),
     minimize: gettext('Minimise'),
     actions: gettext('Actions'),
+    editFilter: gettext('Edit Filter'),
+    deleteFilter: gettext('Delete Filter'),
 };

@@ -1,6 +1,7 @@
 export {ActionsSubnavDropdown} from './ActionsSubnavDropdown';
 export {CreateNewSubnavDropdown} from './CreateNewSubnavDropdown';
 export {AgendaSubnavDropdown} from './AgendaSubnavDropdown';
+export {EventsPlanningFiltersSubnavDropdown} from './EventsPlanningFiltersSubnavDropdown';
 export {ToggleFiltersButton} from './ToggleFiltersButton';
 export {FiltersBar} from './FiltersBar';
 export {FiltersBox} from './FiltersBox';

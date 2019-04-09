@@ -2,10 +2,12 @@ import {get, isEmpty} from 'lodash';
 import eventsAndPlanningApi from './api';
 import eventsApi from '../events/api';
 import planningApi from '../planning/api';
-import {EVENTS_PLANNING, MAIN, ITEM_TYPE} from '../../constants';
+import {EVENTS_PLANNING, MAIN, ITEM_TYPE, MODALS} from '../../constants';
 import * as selectors from '../../selectors';
-import {getItemType, dispatchUtils} from '../../utils';
+import {getItemType, dispatchUtils, getErrorMessage} from '../../utils';
 import main from '../main';
+import {gettext} from '../../utils';
+import {showModal} from '../index';
 
 /**
  * Action to fetch events and planning based on the params
@@ -59,7 +61,7 @@ const loadMore = () => (
     }
 );
 
-const refetch = () => (
+const refetch = (updateFilter = false) => (
     (dispatch, getState) => {
         var previewId = selectors.main.previewId(getState());
         var previewType = selectors.main.previewType(getState());
@@ -71,7 +73,7 @@ const refetch = () => (
             dispatch(main.fetchItemHistory({_id: previewId, type: ITEM_TYPE.PLANNING}));
         }
 
-        return dispatch(eventsAndPlanningApi.refetch())
+        return dispatch(eventsAndPlanningApi.refetch(1, [], updateFilter))
             .then((results) => {
                 dispatch(self.receiveEventsPlanning(results));
                 dispatch(self.setInList(results));
@@ -106,16 +108,16 @@ const refetchPlanning = (planningId) => (
 let nextRefetch = {
     called: 0,
 };
-const scheduleRefetch = () => (
+const scheduleRefetch = (updateFilter = false) => (
     (dispatch) => (
         dispatch(
-            dispatchUtils.scheduleDispatch(self.refetch(), nextRefetch)
+            dispatchUtils.scheduleDispatch(self.refetch(updateFilter), nextRefetch)
         )
     )
 );
 
 const receiveEventsPlanning = (items = []) => (
-    (dispatch, getState) => {
+    (dispatch) => {
         const events = [];
         const plannings = [];
 
@@ -172,6 +174,145 @@ const _showRelatedPlannings = (event) => ({
     payload: event,
 });
 
+/**
+ * Saves the combined view filter
+ * @param filter
+ */
+const saveFilter = (filter) => (
+    (dispatch, getState, {notify}) => (
+        dispatch(eventsAndPlanningApi.saveFilter(filter))
+            .then((result) => {
+                notify.success(
+                    gettext(
+                        'The Events and Planning view filter is {{action}}.',
+                        {action: filter._id ? gettext('updated') : gettext('created')}
+                    )
+                );
+
+                return result;
+            }, (error) => {
+                let errorMessage = get(error, 'data._issues.name.unique') ?
+                    gettext('The Events and Planning view filter with this name already exists') :
+                    getErrorMessage(error, gettext('Failed to create/update Events and Planning view filter'));
+
+                notify.error(errorMessage);
+                return Promise.reject(error);
+            })
+    )
+);
+
+
+/**
+ * delete the combined view filter
+ * @param filter
+ */
+const deleteFilter = (filter) => (
+    (dispatch, getState, {notify, api}) => (
+        api('events_planning_filters').remove(filter)
+            .then(() => {
+                notify.success(gettext('The Events and Planning view filter is deleted.'));
+            }, (error) => {
+                notify.error(
+                    getErrorMessage(
+                        error,
+                        gettext('There was an error, could not delete Events and Planning view filter.')
+                    )
+                );
+                return Promise.reject(error);
+            })
+    )
+);
+
+
+/**
+ * Fetch all filters defined and adds to redux store.
+ * @param {object} params - params to query
+ */
+const fetchFilters = (params = null) => (
+    (dispatch, getState, {api, notify}) => (
+        api('events_planning_filters').getAll(params)
+            .then((items) => {
+                dispatch(self.receiveFilters(items));
+                return items;
+            }, (error) => {
+                notify.success(gettext('Failed to fetch all filters'));
+                return Promise.reject(error);
+            })
+    )
+);
+
+
+/**
+ * fetches an filter by ID
+ * @param {string} _id - The ID of the filter to fetch
+ */
+const fetchFilterById = (_id) => (
+    (dispatch, getState, {api, notify}) => (
+        api('events_planning_filters').getById(_id)
+            .then((filter) => {
+                dispatch(self.addOrReplaceFilter(filter));
+                return Promise.resolve(filter);
+            }, (error) => {
+                notify.error(getErrorMessage(error, 'Failed to fetch an Events and Planning Filter!'));
+            })
+    )
+);
+
+const addOrReplaceFilter = (filter) => ({
+    type: EVENTS_PLANNING.ACTIONS.ADD_OR_REPLACE_EVENTS_PLANNING_FILTER,
+    payload: filter,
+});
+
+
+const receiveFilters = (items = []) => ({
+    type: EVENTS_PLANNING.ACTIONS.RECEIVE_EVENTS_PLANNING_FILTERS,
+    payload: items,
+});
+
+const openFilters = () => (
+    (dispatch) => (
+        dispatch(showModal({
+            modalType: MODALS.MANAGE_EVENTS_PLANNING_FILTERS,
+        }))
+    )
+);
+
+const selectFilter = (filterId, params = {}) => (
+    (dispatch, getState, {$timeout, $location}) => {
+        const filters = selectors.eventsPlanning.combinedViewFilters(getState());
+        let selectedFilterID = filterId;
+
+        if (selectedFilterID !== null &&
+            selectedFilterID !== EVENTS_PLANNING.FILTER.ALL_EVENTS_PLANNING &&
+            !filters.find((f) => f._id === selectedFilterID)) {
+            return dispatch(selectFilter(EVENTS_PLANNING.FILTER.ALL_EVENTS_PLANNING));
+        }
+
+        if (selectedFilterID === null) {
+            selectedFilterID = selectors.eventsPlanning.currentFilter(getState());
+        }
+
+        // store filter
+        dispatch(self.storeFilter(selectedFilterID));
+
+        // update the url (deep linking)
+        $timeout(() => ($location.search('eventsPlanningFilter', selectedFilterID)));
+        const queryParams = {
+            ...selectors.eventsPlanning.getEventsPlanningViewParams(getState()),
+            ...params,
+        };
+
+        // reload the list
+        return dispatch(self.fetch(queryParams));
+    }
+);
+
+
+const storeFilter = (filterId) => ({
+    type: EVENTS_PLANNING.ACTIONS.SELECT_EVENTS_PLANNING_FILTER,
+    payload: filterId,
+});
+
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -187,6 +328,15 @@ const self = {
     receiveEventsPlanning,
     scheduleRefetch,
     refetchPlanning,
+    saveFilter,
+    deleteFilter,
+    addOrReplaceFilter,
+    receiveFilters,
+    fetchFilters,
+    fetchFilterById,
+    openFilters,
+    selectFilter,
+    storeFilter,
 };
 
 export default self;

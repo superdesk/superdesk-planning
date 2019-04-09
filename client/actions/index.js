@@ -34,6 +34,7 @@ const notifications = {
     ...agendaNotifications,
     ...planning.notifications.events,
     ...events.notifications.events,
+    ...eventsPlanning.notifications.events,
     ...assignments.notifications.events,
     ...otherNotifications.events,
 };

@@ -9,12 +9,14 @@ describe('actions.eventsplanning.ui', () => {
     let store;
     let services;
     let data;
+    let api;
     let payload = Array.from(Array(MAIN.PAGE_SIZE).keys());
 
     beforeEach(() => {
         store = getTestActionStore();
         services = store.services;
         data = store.data;
+        api = store.spies.api;
 
         sinon.stub(eventsPlanningApi, 'query').callsFake(
             () => Promise.resolve(payload)
@@ -41,7 +43,8 @@ describe('actions.eventsplanning.ui', () => {
                 expect(store.dispatch.args[0][0]).toEqual(
                     {
                         type: MAIN.ACTIONS.REQUEST,
-                        payload: {COMBINED: {}}}
+                        payload: {COMBINED: {}},
+                    }
                 );
 
                 expect(store.dispatch.args[3][0]).toEqual(
@@ -243,5 +246,168 @@ describe('actions.eventsplanning.ui', () => {
                 done();
             })
             .catch(done.fail);
+    });
+
+    describe('filters', () => {
+        beforeEach(() => {
+            sinon.stub(eventsPlanningUi, 'fetch').callsFake(() => Promise.resolve([]));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(eventsPlanningUi.fetch);
+            // restoreSinonStub(eventsPlanningApi.saveFilter);
+        });
+
+        it('select filter', (done) => {
+            store.initialState.eventsPlanning.filters = data.events_planning_filters;
+            store.test(done, eventsPlanningUi.selectFilter('finance', {}))
+                .then(() => {
+                    expect(eventsPlanningUi.fetch.callCount).toBe(1);
+                    expect(store.dispatch.callCount).toBe(2);
+                    expect(store.dispatch.args[0][0]).toEqual(
+                        {
+                            type: EVENTS_PLANNING.ACTIONS.SELECT_EVENTS_PLANNING_FILTER,
+                            payload: 'finance',
+                        }
+                    );
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('selected filter does not exist', (done) => {
+            store.initialState.eventsPlanning.filters = data.events_planning_filters;
+            store.test(done, eventsPlanningUi.selectFilter('foo', {}))
+                .then(() => {
+                    expect(eventsPlanningUi.fetch.callCount).toBe(1);
+                    expect(store.dispatch.callCount).toBe(3);
+                    expect(store.dispatch.args[1][0]).toEqual(
+                        {
+                            type: EVENTS_PLANNING.ACTIONS.SELECT_EVENTS_PLANNING_FILTER,
+                            payload: EVENTS_PLANNING.FILTER.ALL_EVENTS_PLANNING,
+                        }
+                    );
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('fetch all filters', (done) => {
+            store.test(done, eventsPlanningUi.fetchFilters())
+                .then(() => {
+                    expect(api.events_planning_filters.getAll.callCount).toBe(1);
+                    expect(store.dispatch.callCount).toBe(1);
+                    expect(store.dispatch.args[0][0]).toEqual(
+                        {
+                            type: EVENTS_PLANNING.ACTIONS.RECEIVE_EVENTS_PLANNING_FILTERS,
+                            payload: data.events_planning_filters,
+                        }
+                    );
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('fetch by id', (done) => {
+            store.test(done, eventsPlanningUi.fetchFilterById('finance'))
+                .then(() => {
+                    expect(api.events_planning_filters.getById.callCount).toBe(1);
+                    expect(store.dispatch.callCount).toBe(1);
+                    expect(store.dispatch.args[0][0]).toEqual(
+                        {
+                            type: EVENTS_PLANNING.ACTIONS.ADD_OR_REPLACE_EVENTS_PLANNING_FILTER,
+                            payload: data.events_planning_filters[0],
+                        }
+                    );
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('new filter', (done) => {
+            const newFilter = {
+                name: 'foo',
+                calendars: [{name: 'finance', qcode: 'finance'}],
+            };
+
+            store.test(done, eventsPlanningUi.saveFilter(newFilter))
+                .then(() => {
+                    expect(api.events_planning_filters.save.callCount).toBe(1);
+                    expect(store.dispatch.callCount).toBe(1);
+                    expect(services.notify.success.callCount).toBe(1);
+                    expect(services.notify.success.args[0][0]).toEqual(
+                        'The Events and Planning view filter is created.'
+                    );
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('update filter', (done) => {
+            const newFilter = {
+                _id: 'foo',
+                name: 'foo',
+                calendars: [{name: 'finance', qcode: 'finance'}],
+            };
+
+            store.initialState.eventsPlanning.filters = [
+                {
+                    _id: 'foo',
+                    name: 'foo2',
+                    calendars: [{name: 'finance', qcode: 'finance'}],
+                },
+            ];
+            store.test(done, eventsPlanningUi.saveFilter(newFilter))
+                .then(() => {
+                    expect(api.events_planning_filters.save.callCount).toBe(1);
+                    expect(store.dispatch.callCount).toBe(1);
+                    expect(services.notify.success.callCount).toBe(1);
+                    expect(services.notify.success.args[0][0]).toEqual(
+                        'The Events and Planning view filter is updated.'
+                    );
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('save filter failed', (done) => {
+            const newFilter = {
+                name: 'foo',
+                calendars: [{name: 'finance', qcode: 'finance'}],
+            };
+
+            api.events_planning_filters.save = sinon.spy(() => (Promise.reject()));
+            store.test(done, eventsPlanningUi.saveFilter(newFilter))
+                .then(() => { /* no-op */ }, () => {
+                    expect(api.events_planning_filters.save.callCount).toBe(1);
+                    expect(store.dispatch.callCount).toBe(1);
+                    expect(services.notify.error.callCount).toBe(1);
+                    expect(services.notify.error.args[0][0]).toEqual(
+                        'Failed to create/update Events and Planning view filter'
+                    );
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('delete filter', (done) => {
+            const filter = {
+                _id: 'finance',
+                name: 'finance',
+                calendars: [{name: 'finance', qcode: 'finance'}],
+            };
+
+            store.test(done, eventsPlanningUi.deleteFilter(filter))
+                .then(() => {
+                    expect(api.events_planning_filters.remove.callCount).toBe(1);
+                    expect(store.dispatch.callCount).toBe(0);
+                    expect(services.notify.success.callCount).toBe(1);
+                    expect(services.notify.success.args[0][0]).toEqual(
+                        'The Events and Planning view filter is deleted.'
+                    );
+                    done();
+                })
+                .catch(done.fail);
+        });
     });
 });

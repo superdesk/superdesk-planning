@@ -18,6 +18,13 @@ export const getTestActionStore = () => {
                     save: sinon.spy((ori, item) => (store.spies.api._save('plannings', ori, item))),
                     getById: sinon.spy((id) => store.spies.api._getById('plannings', id)),
                 },
+                events_planning_filters: {
+                    query: sinon.spy(() => (store.spies.api._query('events_planning_filters'))),
+                    save: sinon.spy((ori, item) => (store.spies.api._save('events_planning_filters', ori, item))),
+                    getById: sinon.spy((id) => store.spies.api._getById('events_planning_filters', id)),
+                    getAll: sinon.spy((params) => (store.spies.api._getAll('events_planning_filters', params))),
+                    remove: sinon.spy((item) => (store.spies.api._remove('events_planning_filters', item))),
+                },
                 agenda: {
                     query: sinon.spy(() => (store.spies.api._query('agendas'))),
                     save: sinon.spy((ori, item) => (store.spies.api._save('agendas', ori, item))),
@@ -61,6 +68,7 @@ export const getTestActionStore = () => {
                 save: sinon.spy(() => (Promise.resolve())),
 
                 _query: (resource) => (Promise.resolve({_items: store.data[resource]})),
+                _getAll: (resource) => (Promise.resolve(store.data[resource])),
                 _save: (resource, ori, item) => (Promise.resolve({
                     _id: resource[0] + '3',
                     ...ori,

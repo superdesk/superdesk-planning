@@ -22,6 +22,9 @@ export const FiltersBar = (props) => (
             disabledCalendars={props.disabledCalendars}
             selectCalendar={props.selectCalendar}
             currentCalendarId={props.currentCalendarId}
+            eventsPlanningFilters={props.eventsPlanningFilters}
+            selectEventsPlanningFilter={props.selectEventsPlanningFilter}
+            currentEventsPlanningFilterId={props.currentEventsPlanningFilterId}
         />
         <CalendarNavigation />
     </SubNav>
@@ -45,4 +48,7 @@ FiltersBar.propTypes = {
     disabledCalendars: PropTypes.array,
     selectCalendar: PropTypes.func,
     currentCalendarId: PropTypes.string,
+    selectEventsPlanningFilter: PropTypes.func,
+    currentEventsPlanningFilterId: PropTypes.string,
+    eventsPlanningFilters: PropTypes.array,
 };

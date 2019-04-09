@@ -35,7 +35,9 @@ class EventsPlanningService(superdesk.Service):
         'posted', 'state',
         'date_filter', 'spike_state',
         'start_of_week', 'page',
-        'max_results', 'place'
+        'max_results', 'place',
+        'calendars', 'agendas',
+        'tz_offset'
     }
 
     default_page_size = 100
@@ -92,7 +94,7 @@ class EventsPlanningService(superdesk.Service):
 
         :param request: object representing the HTTP request
         """
-        filters, must, must_not = self._get_query(request, None)
+        filters, must, must_not = self._get_query(request)
         page = request.page or 1
         max_results = self._get_page_size(request)
         req = ParsedRequest()
@@ -126,19 +128,44 @@ class EventsPlanningService(superdesk.Service):
                 desc = "Multiple values received for parameter ({})"
                 raise SuperdeskApiError.badRequestError(message=desc.format(param_name))
 
-    def _get_query(self, request, lookup):
+    def _get_query(self, request):
         """Returns elasticsearch query based on the parameters.
 
         :param request: object representing the HTTP request
-        :param lookup:
         """
         must_not, must = [], []
         filters = self._get_date_filters(request)
         must.extend(self._map_args_to_term_filter(request))
         must.extend(self._map_args_to_query_string(request))
         must.extend(self._get_query_string_for_slugline(request))
+        filter_query = self._get_query_for_not_common_fields(request)
+        if filter_query:
+            must.append(filter_query)
         self._set_states_query(request, must, must_not)
         return filters, must, must_not
+
+    def _get_query_for_not_common_fields(self, request):
+        """Returns forms a OR query to retrieve documents from events and planning using the calendars and agendas.
+
+        :param request: object representing the HTTP request
+        """
+        or_filters = []
+        fields = {
+            'calendars': 'calendars.qcode',
+            'agendas': 'agendas'
+        }
+        for key, value in fields.items():
+            terms_filter = self._get_terms_filter_for_arguments(request, key, value)
+            if terms_filter:
+                or_filters.append(terms_filter)
+        if or_filters:
+            return {
+                'or': {
+                    'filters': or_filters
+                }
+            }
+
+        return None
 
     def _get_sort(self):
         """Get the sort"""
@@ -157,8 +184,8 @@ class EventsPlanningService(superdesk.Service):
         """Get the elastic query for workflow state
 
         :param request: object representing the HTTP request
-        :param list must: list of must query fitlers
-        :param list must_not: list of must not query fitlers for
+        :param list must: list of must query filters
+        :param list must_not: list of must not query filters for
         """
         params = request.args if request and request.args else MultiDict()
         states = params.get('state')
@@ -229,6 +256,11 @@ class EventsPlanningService(superdesk.Service):
             }
         }
 
+    def _get_timezone_offset(self, params):
+        if params.get('tz_offset') is not None:
+            return params.get('tz_offset')
+        return get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow())
+
     def _parse_date_params(self, params):
         """Parse the date params from the request
 
@@ -264,7 +296,7 @@ class EventsPlanningService(superdesk.Service):
                 'range': {
                     'dates.end': {
                         'gte': 'now/d',
-                        'time_zone': get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow())
+                        'time_zone': self._get_timezone_offset(params)
                     }
                 }
             }
@@ -279,7 +311,7 @@ class EventsPlanningService(superdesk.Service):
                     'dates.start': {
                         'gte': start,
                         'lt': end,
-                        'time_zone': get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow())
+                        'time_zone': self._get_timezone_offset(params)
 
                     }
                 }
@@ -289,7 +321,7 @@ class EventsPlanningService(superdesk.Service):
                     'dates.end': {
                         'gte': start,
                         'lt': end,
-                        'time_zone': get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow())
+                        'time_zone': self._get_timezone_offset(params)
                     }
                 }
             })
@@ -301,7 +333,7 @@ class EventsPlanningService(superdesk.Service):
                             'range': {
                                 'dates.start': {
                                     'lt': start,
-                                    'time_zone': get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow())
+                                    'time_zone': self._get_timezone_offset(params)
                                 },
                             },
                         },
@@ -309,7 +341,7 @@ class EventsPlanningService(superdesk.Service):
                             'range': {
                                 'dates.end': {
                                     'gt': end,
-                                    'time_zone': get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow())
+                                    'time_zone': self._get_timezone_offset(params)
                                 },
                             },
                         },
@@ -345,7 +377,7 @@ class EventsPlanningService(superdesk.Service):
                         'range': {
                             'dates.start': {
                                 'gte': start_date,
-                                'time_zone': get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow())
+                                'time_zone': self._get_timezone_offset(params)
                             },
                         },
                     },
@@ -353,7 +385,7 @@ class EventsPlanningService(superdesk.Service):
                         'range': {
                             'dates.end': {
                                 'gte': start_date,
-                                'time_zone': get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow())
+                                'time_zone': self._get_timezone_offset(params)
                             },
                         },
                     }
@@ -364,7 +396,7 @@ class EventsPlanningService(superdesk.Service):
                         'range': {
                             'dates.end': {
                                 'lte': end_date,
-                                'time_zone': get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow())
+                                'time_zone': self._get_timezone_offset(params)
                             },
                         },
                     },
@@ -372,7 +404,7 @@ class EventsPlanningService(superdesk.Service):
                         'range': {
                             'dates.start': {
                                 'lte': end_date,
-                                'time_zone': get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow())
+                                'time_zone': self._get_timezone_offset(params)
                             },
                         },
                     }
@@ -380,15 +412,25 @@ class EventsPlanningService(superdesk.Service):
             else:
                 date_filters.extend([
                     {
-                        'range': {
-                            'dates.start': {
-                                'gte': start_date,
-                                'time_zone': get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow())
-                            },
-                            'dates.end': {
-                                'lte': end_date,
-                                'time_zone': get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow())
-                            },
+                        'and': {
+                            'filters': [
+                                {
+                                    'range': {
+                                        'dates.start': {
+                                            'gte': start_date,
+                                            'time_zone': self._get_timezone_offset(params)
+                                        }
+                                    }
+                                },
+                                {
+                                    'range': {
+                                        'dates.end': {
+                                            'lte': end_date,
+                                            'time_zone': self._get_timezone_offset(params)
+                                        }
+                                    }
+                                }
+                            ]
                         },
                     },
                     {
@@ -398,7 +440,7 @@ class EventsPlanningService(superdesk.Service):
                                     'range': {
                                         'dates.start': {
                                             'lt': start_date,
-                                            'time_zone': get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow())
+                                            'time_zone': self._get_timezone_offset(params)
                                         },
                                     },
                                 },
@@ -406,7 +448,7 @@ class EventsPlanningService(superdesk.Service):
                                     'range': {
                                         'dates.end': {
                                             'gt': end_date,
-                                            'time_zone': get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow())
+                                            'time_zone': self._get_timezone_offset(params)
                                         },
                                     },
                                 },
@@ -421,7 +463,7 @@ class EventsPlanningService(superdesk.Service):
                                         'dates.start': {
                                             'gte': start_date,
                                             'lte': end_date,
-                                            'time_zone': get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow())
+                                            'time_zone': self._get_timezone_offset(params)
                                         },
                                     },
                                 },
@@ -430,7 +472,7 @@ class EventsPlanningService(superdesk.Service):
                                         'dates.end': {
                                             'gte': start_date,
                                             'lte': end_date,
-                                            'time_zone': get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow())
+                                            'time_zone': self._get_timezone_offset(params)
                                         },
                                     },
                                 },
@@ -460,7 +502,7 @@ class EventsPlanningService(superdesk.Service):
                         'range': {
                             '_planning_schedule.scheduled': {
                                 'gte': 'now/d',
-                                'time_zone': get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow())
+                                'time_zone': self._get_timezone_offset(params)
                             }
                         }
                     }
@@ -471,7 +513,7 @@ class EventsPlanningService(superdesk.Service):
         date_filters = {
             'range': {
                 '_planning_schedule.scheduled': {
-                    'time_zone': get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow())
+                    'time_zone': self._get_timezone_offset(params)
                 }
             }
         }

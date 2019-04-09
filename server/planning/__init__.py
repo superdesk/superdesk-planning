@@ -118,6 +118,14 @@ def init_app(app):
         'default': None
     })
 
+    superdesk.register_default_user_preference('planning:events_planning_filter', {
+        'type': 'dict',
+        'label': 'Default Events Planning Filter',
+        'category': 'planning',
+        'filter': {},
+        'default': None
+    })
+
     superdesk.register_default_user_preference('planning:default_coverage_desks', {
         'type': 'dict',
         'label': 'Default desk for coverage types',

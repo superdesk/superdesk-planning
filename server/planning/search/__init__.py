@@ -11,6 +11,7 @@
 import superdesk
 from .planning_search import PlanningSearchResource, PlanningSearchService
 from .eventsplanning_search import EventsPlanningResource, EventsPlanningService
+from .eventsplanning_filters import EventPlanningFiltersResource, EventPlanningFiltersService
 
 
 def init_app(app):
@@ -23,3 +24,14 @@ def init_app(app):
                                 EventsPlanningResource,
                                 EventsPlanningService,
                                 _app=app)
+
+    superdesk.register_resource(EventPlanningFiltersResource.endpoint_name,
+                                EventPlanningFiltersResource,
+                                EventPlanningFiltersService,
+                                _app=app)
+
+    superdesk.privilege(
+        name='planning_eventsplanning_filters_management',
+        label='Planning - Events & Planning View Filters Management',
+        description='Create/Update/Delete Events & Planning View Filters'
+    )

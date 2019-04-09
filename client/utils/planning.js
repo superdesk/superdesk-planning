@@ -921,6 +921,12 @@ const shouldFetchFilesForPlanning = (planning) => (
             || f instanceof String).length > 0
 );
 
+const getAgendaNames = (item = {}, agendas = []) => (
+    get(item, 'agendas', [])
+        .map((agendaId) => agendas.find((agenda) => agenda._id === get(agendaId, '_id', agendaId)))
+        .filter((agenda) => agenda)
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     canSpikePlanning,
@@ -962,6 +968,7 @@ const self = {
     isFeaturedPlanningUpdatedAfterPosting,
     shouldFetchFilesForPlanning,
     getCoverageContentType,
+    getAgendaNames,
 };
 
 export default self;

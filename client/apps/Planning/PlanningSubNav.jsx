@@ -15,6 +15,7 @@ export const PlanningSubNavComponent = ({
     addPlanning,
     openAgendas,
     openFeaturedPlanningModal,
+    openEventsPlanningFiltersModal,
     fullText,
     search,
     activeFilter,
@@ -36,6 +37,9 @@ export const PlanningSubNavComponent = ({
     currentStartFilter,
     setStartFilter,
     privileges,
+    selectEventsPlanningFilter,
+    currentEventsPlanningFilterId,
+    eventsPlanningFilters,
 }) => (
     <div>
         {withArchiveItem && <ArchiveItem item={archiveItem} />}
@@ -44,6 +48,7 @@ export const PlanningSubNavComponent = ({
             addPlanning={addPlanning}
             openAgendas={openAgendas}
             openFeaturedPlanningModal={openFeaturedPlanningModal}
+            openEventsPlanningFiltersModal={openEventsPlanningFiltersModal}
             value={fullText}
             search={search}
             activeFilter={activeFilter}
@@ -68,6 +73,9 @@ export const PlanningSubNavComponent = ({
             disabledCalendars={disabledCalendars}
             selectCalendar={selectCalendar}
             currentCalendarId={currentCalendarId}
+            selectEventsPlanningFilter={selectEventsPlanningFilter}
+            currentEventsPlanningFilterId={currentEventsPlanningFilterId}
+            eventsPlanningFilters={eventsPlanningFilters}
         />
     </div>
 );
@@ -78,6 +86,7 @@ PlanningSubNavComponent.propTypes = {
     addEvent: PropTypes.func,
     addPlanning: PropTypes.func,
     openAgendas: PropTypes.func,
+    openEventsPlanningFiltersModal: PropTypes.func,
     fullText: PropTypes.string,
     search: PropTypes.func.isRequired,
     activeFilter: PropTypes.string.isRequired,
@@ -100,6 +109,9 @@ PlanningSubNavComponent.propTypes = {
     setStartFilter: PropTypes.func,
     privileges: PropTypes.object,
     openFeaturedPlanningModal: PropTypes.func,
+    selectEventsPlanningFilter: PropTypes.func,
+    currentEventsPlanningFilterId: PropTypes.string,
+    eventsPlanningFilters: PropTypes.array,
 };
 
 PlanningSubNavComponent.defaultProps = {showFilters: true};
@@ -116,6 +128,8 @@ const mapStateToProps = (state) => ({
     currentCalendarId: selectors.events.currentCalendarId(state),
     currentStartFilter: selectors.main.currentStartFilter(state),
     privileges: selectors.general.privileges(state),
+    eventsPlanningFilters: selectors.eventsPlanning.combinedViewFilters(state),
+    currentEventsPlanningFilterId: selectors.eventsPlanning.currentFilter(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -129,6 +143,8 @@ const mapDispatchToProps = (dispatch) => ({
     selectCalendar: (calendarId) => dispatch(actions.events.ui.selectCalendar(calendarId)),
     setStartFilter: (start) => dispatch(actions.main.setStartFilter(start)),
     openFeaturedPlanningModal: () => dispatch(actions.planning.featuredPlanning.openFeaturedPlanningModal()),
+    openEventsPlanningFiltersModal: () => dispatch(actions.eventsPlanning.ui.openFilters()),
+    selectEventsPlanningFilter: (filterId) => dispatch(actions.eventsPlanning.ui.selectFilter(filterId)),
 });
 
 export const PlanningSubNav = connect(mapStateToProps, mapDispatchToProps)(PlanningSubNavComponent);

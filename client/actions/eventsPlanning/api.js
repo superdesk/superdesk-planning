@@ -1,6 +1,6 @@
-import {get} from 'lodash';
-import {MAIN, SPIKED_STATE} from '../../constants';
-import {planningUtils, eventUtils, getDateTimeElasticFormat} from '../../utils';
+import {get, pickBy, isEqual} from 'lodash';
+import {EVENTS_PLANNING, MAIN, SPIKED_STATE} from '../../constants';
+import {planningUtils, eventUtils, getDateTimeElasticFormat, getTimeZoneOffset} from '../../utils';
 import * as selectors from '../../selectors';
 import main from '../main';
 
@@ -15,6 +15,8 @@ const query = (
         spikeState = SPIKED_STATE.NOT_SPIKED,
         page = 1,
         maxResults = MAIN.PAGE_SIZE,
+        calendars = [],
+        agendas = [],
     },
     storeTotal = false
 ) => (
@@ -38,6 +40,9 @@ const query = (
             end_date: get(advancedSearch, 'dates.end') ?
                 getDateTimeElasticFormat(get(advancedSearch, 'dates.end')) : null,
             start_of_week: selectors.config.getStartOfWeek(getState()),
+            calendars: get(calendars, 'length', 0) > 0 ? JSON.stringify((calendars || []).map((c) => c.qcode)) : null,
+            agendas: get(agendas, 'length', 0) > 0 ? JSON.stringify((agendas || []).map((a) => a._id)) : null,
+            tz_offset: getTimeZoneOffset(),
             page: page,
             max_results: maxResults,
         };
@@ -71,7 +76,7 @@ const query = (
  * It achieves this by performing a fetch using the params from
  * the store value `planning.lastRequestParams`
  */
-const refetch = (page = 1, items = []) => (
+const refetch = (page = 1, items = [], updateFilter = false) => (
     (dispatch, getState) => {
         const prevParams = selectors.main.lastRequestParams(getState());
         let currentPage = page;
@@ -79,6 +84,19 @@ const refetch = (page = 1, items = []) => (
             ...prevParams,
             currentPage,
         };
+
+        if (updateFilter) {
+            const filterId = selectors.eventsPlanning.currentFilter(getState());
+            const filters = selectors.eventsPlanning.combinedViewFilters(getState());
+            const filter = filterId !== EVENTS_PLANNING.FILTER.ALL_EVENTS_PLANNING ?
+                filters.find((f) => f._id === filterId) : {};
+
+            params = {
+                ...params,
+                agendas: get(filter, 'agendas', []),
+                calendars: get(filter, 'calendars', []),
+            };
+        }
 
         return dispatch(self.query(params, true))
             .then((result) => {
@@ -93,10 +111,36 @@ const refetch = (page = 1, items = []) => (
     }
 );
 
+/**
+ * Saves the combined view filter
+ * @param filter
+ */
+const saveFilter = (filter) => (
+    (dispatch, getState, {api}) => {
+        let original = {};
+
+        if (filter._id) {
+            // existing filter
+            const filters = selectors.eventsPlanning.combinedViewFilters(getState());
+
+            original = filters.find((f) => f._id === filter._id);
+        }
+
+        // remove all properties starting with _
+        // and updates that are the same as original
+        let diff = pickBy(filter, (v, k) => (
+            !k.startsWith('_') && !isEqual(filter[k], original[k])
+        ));
+
+        return api('events_planning_filters').save(original, diff);
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     query,
     refetch,
+    saveFilter,
 };
 
 export default self;

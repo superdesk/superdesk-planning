@@ -522,6 +522,8 @@ export const planningInitialState = {
 export const eventsPlanningInitialState = {
     eventsAndPlanningInList: [],
     relatedPlannings: {},
+    filters: [],
+    currentFilter: null,
 };
 
 export const templates = {templates: []};
@@ -848,6 +850,15 @@ export const contacts = {
     }],
 };
 
+export const eventsPlanningFilters = [
+    {
+        _id: 'finance',
+        name: 'finance',
+        agendas: [{name: 'finance', _id: 'finance'}],
+        calendars: [{name: 'finance', qcode: 'finance'}],
+    },
+];
+
 export const initialState = {
     config: config,
     privileges: privileges,
@@ -926,4 +937,5 @@ export const items = {
     planning_autosave: [],
     published_planning: publishedPlanning,
     events_planning_search: events.concat(plannings),
+    events_planning_filters: eventsPlanningFilters,
 };

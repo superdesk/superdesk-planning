@@ -46,7 +46,10 @@ export class PlanningItem extends React.Component {
     shouldComponentUpdate(nextProps, nextState) {
         return isItemDifferent(this.props, nextProps) ||
             this.state.hover !== nextState.hover ||
-            !isEqual(this.getAgendaNames(this.props), this.getAgendaNames(nextProps));
+            !isEqual(
+                planningUtils.getAgendaNames(this.props.item, this.props.agendas),
+                planningUtils.getAgendaNames(nextProps.item, nextProps.agendas)
+            );
     }
 
     onItemHoverOn() {
@@ -122,12 +125,6 @@ export class PlanningItem extends React.Component {
         );
     }
 
-    getAgendaNames(props) {
-        return get(props.item, 'agendas', [])
-            .map((agendaId) => props.agendas.find((agenda) => agenda._id === agendaId))
-            .filter((agenda) => agenda);
-    }
-
     render() {
         const {
             item,
@@ -146,6 +143,7 @@ export class PlanningItem extends React.Component {
             active,
             refNode,
             contentTypes,
+            agendas,
         } = this.props;
 
         if (!item) {
@@ -215,7 +213,7 @@ export class PlanningItem extends React.Component {
                         {secondaryFields.includes('featured') &&
                             renderFields('featured', item, {tooltipFlowDirection: 'right'})}
                         {secondaryFields.includes('agendas') &&
-                            renderFields('agendas', item, {agendas: this.getAgendaNames(this.props)})}
+                            renderFields('agendas', item, {agendas: planningUtils.getAgendaNames(item, agendas)})}
                         {secondaryFields.includes('coverages') && renderFields('coverages', item, {
                             date,
                             timeFormat,

@@ -71,6 +71,7 @@ export class PlanningController {
             this.store.dispatch(actions.users.fetchAndRegisterUserPreferences()),
             this.store.dispatch(actions.events.api.fetchCalendars()),
             this.store.dispatch(actions.autosave.fetchAll()),
+            this.store.dispatch(actions.eventsPlanning.ui.fetchFilters()),
         ])
             .then(() => (
                 // Load the current items that are currently open for Preview/Editing
