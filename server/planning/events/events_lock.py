@@ -28,7 +28,7 @@ class EventsLockResource(Resource):
     endpoint_name = 'events_lock'
     url = 'events/<{0}:item_id>/lock'.format(item_url)
     schema = {'lock_action': {'type': 'string'}}
-    datasource = {'source': 'planning'}
+    datasource = {'source': 'events'}
     resource_methods = ['GET', 'POST']
     resource_title = endpoint_name
     privileges = {'POST': 'planning_event_management'}
@@ -37,26 +37,28 @@ class EventsLockResource(Resource):
 class EventsLockService(BaseService):
 
     def create(self, docs, **kwargs):
+        item_id = request.view_args['item_id']
+        lock_action = docs[0].get('lock_action', 'edit')
+        return self.lock_item(item_id, lock_action, docs[0])
+
+    def lock_item(self, item_id, action, doc):
         user_id = get_user(required=True)['_id']
         session_id = get_auth()['_id']
-
-        lock_action = docs[0].get('lock_action', 'edit')
+        lock_action = action
         lock_service = get_component(LockService)
-
-        item_id = request.view_args['item_id']
         item = get_resource_service('events').find_one(req=None, _id=item_id)
 
         lock_service.validate_relationship_locks(item, 'events')
         updated_item = lock_service.lock(item, user_id, session_id, lock_action, 'events')
 
-        return update_returned_document(docs[0], updated_item, CUSTOM_HATEOAS_EVENTS)
+        return update_returned_document(doc, updated_item, CUSTOM_HATEOAS_EVENTS)
 
 
 class EventsUnlockResource(Resource):
     endpoint_name = 'events_unlock'
     url = 'events/<{0}:item_id>/unlock'.format(item_url)
     schema = {'lock_user': {'type': 'string'}}
-    datasource = {'source': 'planning'}
+    datasource = {'source': 'events'}
     resource_methods = ['GET', 'POST']
     resource_title = endpoint_name
 
@@ -64,13 +66,14 @@ class EventsUnlockResource(Resource):
 class EventsUnlockService(BaseService):
 
     def create(self, docs, **kwargs):
+        item_id = request.view_args['item_id']
+        return self.unlock_item(item_id, docs[0])
+
+    def unlock_item(self, item_id, doc):
         user_id = get_user(required=True)['_id']
         session_id = get_auth()['_id']
         lock_service = get_component(LockService)
-
-        # If the event is a recurrent event, unlock all other events in this series
-        item_id = request.view_args['item_id']
         resource_service = get_resource_service('events')
         item = resource_service.find_one(req=None, _id=item_id)
         updated_item = lock_service.unlock(item, user_id, session_id, 'events')
-        return update_returned_document(docs[0], updated_item, CUSTOM_HATEOAS_EVENTS)
+        return update_returned_document(doc, updated_item, CUSTOM_HATEOAS_EVENTS)
