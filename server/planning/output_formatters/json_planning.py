@@ -17,6 +17,7 @@ from copy import deepcopy
 from superdesk import get_resource_service
 from bson.objectid import ObjectId
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, WORKFLOW_STATE
+from superdesk.metadata.item import CONTENT_STATE
 
 
 class JsonPlanningFormatter(Formatter):
@@ -114,7 +115,16 @@ class JsonPlanningFormatter(Formatter):
         delivery_service = get_resource_service('delivery')
         remove_fields = ('coverage_id', 'planning_id', '_created', '_updated', 'assignment_id', '_etag')
         deliveries = list(delivery_service.get(req=None, lookup={'assignment_id': ObjectId(assignment_id)}))
+
+        # Check to see if in this delivery chain, whether the item has been published at least once
+        item_never_published = True
         for delivery in deliveries:
             for f in remove_fields:
                 delivery.pop(f, None)
+            if delivery.get('item_state') == CONTENT_STATE.PUBLISHED:
+                item_never_published = False
+
+        if item_never_published:
+            deliveries = []
+
         return deliveries, assignment.get('assigned_to').get('state')
