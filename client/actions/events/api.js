@@ -19,6 +19,7 @@ import {
     isValidFileInput,
     isPublishedItemId,
     isTemporaryId,
+    gettext,
 } from '../../utils';
 import moment from 'moment';
 
@@ -939,8 +940,14 @@ const lock = (event, action = 'edit') => (
                 (item) => {
                     // On lock, file object in the event is lost, so, replace it from original event
                     item.files = event.files;
+                    eventUtils.modifyForClient(item);
 
-                    return Promise.resolve(eventUtils.modifyForClient(item));
+                    dispatch({
+                        type: EVENTS.ACTIONS.LOCK_EVENT,
+                        payload: {event: item},
+                    });
+
+                    return Promise.resolve(item);
                 }, (error) => {
                     const msg = get(error, 'data._message') || 'Could not lock the event.';
 
@@ -954,7 +961,14 @@ const unlock = (event) => (
     (dispatch, getState, {api, notify}) => (
         api('events_unlock', event).save({})
             .then(
-                (item) => Promise.resolve(item),
+                (item) => {
+                    dispatch({
+                        type: EVENTS.ACTIONS.UNLOCK_EVENT,
+                        payload: {event: item},
+                    });
+
+                    return Promise.resolve(item);
+                },
                 (error) => {
                     notify.error(
                         getErrorMessage(error, 'Could not unlock the event')

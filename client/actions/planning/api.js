@@ -840,6 +840,11 @@ const unlock = (item) => (
         .then((item) => {
             planningUtils.modifyForClient(item);
 
+            dispatch({
+                type: PLANNING.ACTIONS.UNLOCK_PLANNING,
+                payload: {plan: item},
+            });
+
             return Promise.resolve(item);
         }, (error) => Promise.reject(error))
 );
@@ -862,14 +867,14 @@ const lock = (planning, lockAction = 'edit') => (
             return Promise.resolve(planning);
         }
 
-        return api.save(
-            'planning_lock',
-            {},
-            {lock_action: lockAction},
-            {_id: planning._id}
-        )
+        return api('planning_lock', planning).save({}, {lock_action: lockAction})
             .then((item) => {
                 planningUtils.modifyForClient(item);
+
+                dispatch({
+                    type: PLANNING.ACTIONS.LOCK_PLANNING,
+                    payload: {plan: item},
+                });
 
                 return Promise.resolve(item);
             }, (error) => Promise.reject(error));
