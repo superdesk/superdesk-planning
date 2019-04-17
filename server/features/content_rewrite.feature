@@ -50,7 +50,7 @@ Feature: Rewrite content
         """
         When we post to "/archive" with success
         """
-        [{"guid": "123", "type": "text", "headline": "test", "state": "fetched",
+        [{"type": "text", "headline": "test", "state": "fetched",
         "task": {"desk": "#desks._id#", "stage": "#desks.incoming_stage#", "user": "#CONTEXT_USER_ID#"},
         "subject":[{"qcode": "17004000", "name": "Statistics"}],
         "slugline": "test",
@@ -91,7 +91,7 @@ Feature: Rewrite content
         Then we get existing resource
         """
         {"_items" : [
-            {"_id": "123", "guid": "123", "headline": "test", "_current_version": 2, "state": "published",
+            {"_id": "#archive._id#", "headline": "test", "_current_version": 2, "state": "published",
             "task": {"desk": "#desks._id#", "stage": "#desks.incoming_stage#", "user": "#CONTEXT_USER_ID#"}
         }]}
         """
@@ -102,7 +102,7 @@ Feature: Rewrite content
         {
         "_items": [
           {"state": "pending", "content_type": "text",
-          "subscriber_id": "#wire#", "item_id": "123", "item_version": 2,
+          "subscriber_id": "#wire#", "item_id": "#archive._id#", "item_version": 2,
           "ingest_provider": "__none__",
           "destination": {
             "delivery_type": "email"
@@ -130,9 +130,9 @@ Feature: Rewrite content
         When we post to "/planning"
         """
         [{
+            "guid": "123",
             "headline": "test headline",
             "slugline": "test slugline",
-            "guid": "123",
             "planning_date": "2016-10-12",
             "coverages": [
                 {
@@ -299,7 +299,7 @@ Feature: Rewrite content
         When we get "/published"
         Then we get existing resource
         """
-        {"_items" : [{"_id": "123", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#"}]}
+        {"_items" : [{"_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#"}]}
         """
         When we publish "#REWRITE_ID#" with "publish" type and "published" state
         Then we get OK response
@@ -308,8 +308,8 @@ Feature: Rewrite content
         """
         {
         "_items": [
-            { "_id": "123", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#" },
-            {"_id": "#REWRITE_ID#", "rewrite_of": "123", "assignment_id": "#firstassignment#"}
+            { "_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#" },
+            {"_id": "#REWRITE_ID#", "rewrite_of": "#archive._id#", "assignment_id": "#firstassignment#"}
         ]}
         """
         When we transmit items
@@ -346,9 +346,9 @@ Feature: Rewrite content
         When we post to "/planning"
         """
         [{
+            "guid": "123",
             "headline": "test headline",
             "slugline": "test slugline",
-            "guid": "123",
             "planning_date": "2016-10-12",
             "coverages": [
                 {
@@ -504,7 +504,7 @@ Feature: Rewrite content
         When we get "/published"
         Then we get existing resource
         """
-        {"_items" : [{"_id": "123", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#"}]}
+        {"_items" : [{"_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#"}]}
         """
         When we publish "#REWRITE_ID#" with "publish" type and "published" state
         Then we get OK response
@@ -513,8 +513,8 @@ Feature: Rewrite content
         """
         {
         "_items": [
-            { "_id": "123", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#" },
-            {"_id": "#REWRITE_ID#", "rewrite_of": "123", "assignment_id": "__no_value__"}
+            { "_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#" },
+            {"_id": "#REWRITE_ID#", "rewrite_of": "#archive._id#", "assignment_id": "__no_value__"}
         ]}
         """
         When we transmit items
@@ -548,9 +548,9 @@ Feature: Rewrite content
         When we post to "/planning"
         """
         [{
+            "guid": "123",
             "headline": "test headline",
             "slugline": "test slugline",
-            "guid": "123",
             "planning_date": "2016-10-12",
             "coverages": [
                 {
@@ -719,7 +719,7 @@ Feature: Rewrite content
                     "scheduled": "2029-10-12T14:00:00+0000"
                 },
                 "news_coverage_status": {"qcode": "ncostat:int"},
-                "workflow_status": "active",
+                "workflow_status": "completed",
                 "deliveries": [
                     {"item_state": "published", "item_id": "#archive._id#"},
                     {"item_state": "in_progress", "item_id": "#REWRITE_ID#"}
@@ -730,7 +730,7 @@ Feature: Rewrite content
         When we get "/published"
         Then we get existing resource
         """
-        {"_items" : [{"_id": "123", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#"}]}
+        {"_items" : [{"_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#"}]}
         """
         When we publish "#REWRITE_ID#" with "publish" type and "published" state
         Then we get OK response
@@ -739,8 +739,8 @@ Feature: Rewrite content
         """
         {
         "_items": [
-            { "_id": "123", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#" },
-            {"_id": "#REWRITE_ID#", "rewrite_of": "123", "assignment_id": "#firstassignment#"}
+            { "_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#" },
+            {"_id": "#REWRITE_ID#", "rewrite_of": "#archive._id#", "assignment_id": "#firstassignment#"}
         ]}
         """
         When we transmit items
@@ -802,7 +802,7 @@ Feature: Rewrite content
                     "scheduled": "2029-10-12T14:00:00+0000"
                 },
                 "news_coverage_status": {"qcode": "ncostat:int"},
-                "workflow_status": "active",
+                "workflow_status": "completed",
                 "deliveries": [
                     {"item_state": "published", "item_id": "#archive._id#"},
                     {"item_state": "published", "item_id": "#rewrite1#"},
@@ -826,8 +826,8 @@ Feature: Rewrite content
         """
         {
         "_items": [
-            { "_id": "123", "rewritten_by": "#rewrite1#", "assignment_id": "#firstassignment#" },
-            {"_id": "#rewrite1#", "rewrite_of": "123", "assignment_id": "#firstassignment#"}
+            { "_id": "#archive._id#", "rewritten_by": "#rewrite1#", "assignment_id": "#firstassignment#" },
+            {"_id": "#rewrite1#", "rewrite_of": "#archive._id#", "assignment_id": "#firstassignment#"}
         ]}
         """
         When we transmit items
@@ -848,7 +848,7 @@ Feature: Rewrite content
                     "scheduled": "2029-10-12T14:00:00+0000"
                 },
                 "news_coverage_status": {"qcode": "ncostat:int"},
-                "workflow_status": "active",
+                "workflow_status": "completed",
                 "deliveries": [
                     {"item_state": "published", "item_id": "#archive._id#"},
                     {"item_state": "published", "item_id": "#rewrite1#"}
@@ -1200,10 +1200,7 @@ Feature: Rewrite content
                 },
                 "news_coverage_status": {"qcode": "ncostat:int"},
                 "workflow_status": "active",
-                "deliveries": [{
-                  "item_id": "#archive._id#",
-                  "item_state": "fetched"
-                }]
+                "deliveries": []
             }]
         }
         """
@@ -1219,7 +1216,7 @@ Feature: Rewrite content
         When we get "/published"
         Then we get list with 2 items
         """
-        {"_items" : [{"_id": "123", "assignment_id": "#firstassignment#"},
+        {"_items" : [{"_id": "#archive1#", "assignment_id": "#firstassignment#"},
         {"_id": "#archive._id#", "assignment_id": "#secondassignment#"}]}
         """
         When we get "published_planning?sort=item_id,version"
@@ -1397,7 +1394,7 @@ Feature: Rewrite content
                     "scheduled": "2029-10-12T16:00:00+0000"
                 },
                 "news_coverage_status": {"qcode": "ncostat:int"},
-                "workflow_status": "active",
+                "workflow_status": "completed",
                 "deliveries": [{
                   "item_id": "#archive._id#",
                   "item_state": "published"
@@ -1416,7 +1413,7 @@ Feature: Rewrite content
         """
         {
         "_items": [
-            {"_id": "123", "assignment_id": "#firstassignment#"},
+            {"_id": "#archive1#", "assignment_id": "#firstassignment#"},
             {"_id": "#archive._id#", "assignment_id": "#secondassignment#"},
             {"_id": "#REWRITE_ID#", "rewrite_of": "#archive._id#", "assignment_id": "#secondassignment#"}
         ]}
@@ -1687,7 +1684,7 @@ Feature: Rewrite content
         When we get "/published"
         Then we get existing resource
         """
-        {"_items" : [{"_id": "123", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#"}]}
+        {"_items" : [{"_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#"}]}
         """
         When we publish "#REWRITE_ID#" with "publish" type and "published" state
         Then we get OK response
@@ -1696,8 +1693,8 @@ Feature: Rewrite content
         """
         {
         "_items": [
-            { "_id": "123", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#" },
-            {"_id": "#REWRITE_ID#", "rewrite_of": "123", "assignment_id": "#firstassignment#"}
+            { "_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#" },
+            {"_id": "#REWRITE_ID#", "rewrite_of": "#archive._id#", "assignment_id": "#firstassignment#"}
         ]}
         """
         When we transmit items
@@ -1738,8 +1735,8 @@ Feature: Rewrite content
         """
         {
         "_items": [
-            { "_id": "123", "rewritten_by": "#REWRITE_ID#", "assignment_id": null },
-            {"_id": "#REWRITE_ID#", "rewrite_of": "123", "assignment_id": null}
+            { "_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": null },
+            {"_id": "#REWRITE_ID#", "rewrite_of": "#archive._id#", "assignment_id": null}
         ]}
         """
         When we transmit items
@@ -1940,7 +1937,7 @@ Feature: Rewrite content
         When we get "/published"
         Then we get existing resource
         """
-        {"_items" : [{"_id": "123", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#"}]}
+        {"_items" : [{"_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#"}]}
         """
         When we publish "#REWRITE_ID#" with "publish" type and "published" state
         Then we get OK response
@@ -1949,8 +1946,8 @@ Feature: Rewrite content
         """
         {
         "_items": [
-            { "_id": "123", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#" },
-            {"_id": "#REWRITE_ID#", "rewrite_of": "123", "assignment_id": "__no_value__"}
+            { "_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#" },
+            {"_id": "#REWRITE_ID#", "rewrite_of": "#archive._id#", "assignment_id": "__no_value__"}
         ]}
         """
         When we transmit items
@@ -2136,7 +2133,7 @@ Feature: Rewrite content
         And we store "event1" with value "#archive.event_id#" to context
         When we post to "/archive"
         """
-        [{"guid": "456", "type": "text", "headline": "test", "state": "in_progress", "priority": 2,
+        [{"type": "text", "headline": "test", "state": "in_progress", "priority": 2,
          "subject":[{"qcode": "01000000", "name": "arts, culture and entertainment"}],
          "task": {"desk": "#desks._id#", "stage": "#desks.incoming_stage#", "user": "#CONTEXT_USER_ID#"}}]
         """
@@ -2158,6 +2155,15 @@ Feature: Rewrite content
             "type": "text",
             "state": "in_progress",
             "assignment_id": "#firstassignment#"
+        }
+        """
+        When we get "/archive/#archive1#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#archive1#",
+            "event_id": "#event1#",
+            "rewritten_by": "#archive._id#"
         }
         """
         When we get "published_planning?sort=item_id,version"
@@ -2200,6 +2206,281 @@ Feature: Rewrite content
                 "deliveries": [
                     {"item_state": "published", "item_id": "#archive1#"},
                     {"item_state": "published", "item_id": "#archive._id#"}
+                ]
+            }]
+        }
+        """
+
+    @auth
+    @vocabularies
+    @link_updates
+    Scenario: Delivery has proper sequence_no populated
+        When we post to "/planning"
+        """
+        [{
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "guid": "123",
+            "planning_date": "2016-10-12",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "slugline": "test slugline",
+                        "g2_content_type" : "text"
+                    }
+                }
+            ]
+        }]
+        """
+        Then we get Ok response
+        When we patch "/planning/#planning._id#"
+        """
+        {"coverages": [{
+            "planning": {
+                "g2_content_type": "text",
+                "ednote": "test coverage, I want 250 words",
+                "slugline": "test slugline",
+                "scheduled": "2029-10-12T14:00:00.000"
+            },
+            "news_coverage_status": {"qcode": "ncostat:int"},
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
+            },
+            "workflow_status": "active"
+        }]}
+        """
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        Then we store coverage id in "firstcoverage" from coverage 0
+        When we post to "/planning/post"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we get "published_planning?sort=item_id,version"
+        Then we get list with 1 items
+        Then we store "PLANNING" with first item
+        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        Then we get list with 1 items
+        """
+        {
+            "_items": [
+                {
+                    "item_id": "#planning._id#",
+                    "type": "planning",
+                    "published_item": {
+                        "_id": "#planning._id#",
+                        "coverages": [{
+                            "planning": {
+                                "g2_content_type": "text",
+                                "ednote": "test coverage, I want 250 words",
+                                "slugline": "test slugline",
+                                "scheduled": "2029-10-12T14:00:00+0000"
+                            },
+                            "news_coverage_status": {"qcode": "ncostat:int"},
+                            "assigned_to": {
+                                "desk": "#desks._id#",
+                                "user": "#CONTEXT_USER_ID#",
+                                "state": "assigned"
+                            },
+                            "workflow_status": "active"
+                        }]
+                    }
+                }
+            ]
+        }
+        """
+        When we transmit items
+        Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-1.txt"
+        """
+        {
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "guid": "#PLANNING.item_id#",
+            "coverages": [{
+                "planning": {
+                    "g2_content_type": "text",
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline",
+                    "scheduled": "2029-10-12T14:00:00+0000"
+                },
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "workflow_status": "assigned"
+            }]
+        }
+        """
+        When we post to "assignments/link" with success
+        """
+        [{
+            "assignment_id": "#firstassignment#",
+            "item_id": "#archive._id#",
+            "reassign": true
+        }]
+        """
+        When we get "/assignments"
+        Then we get array of _items by _id
+        """
+        {
+            "#firstassignment#": {"assigned_to": {"state": "completed"}}
+        }
+        """
+        When we transmit items
+        When we get "published_planning?sort=item_id,version"
+        Then we get list with 2 items
+        Then we store "PLANNING" with 2 item
+        Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-2.txt"
+        """
+        {
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "guid": "#PLANNING.item_id#",
+            "coverages": [{
+                "planning": {
+                    "g2_content_type": "text",
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline",
+                    "scheduled": "2029-10-12T14:00:00+0000"
+                },
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "workflow_status": "completed",
+                "deliveries": [{
+                    "item_state": "published",
+                    "item_id": "#archive._id#",
+                    "sequence_no": 0
+                }]
+            }]
+        }
+        """
+        When we rewrite "#archive._id#"
+        """
+        {"desk_id": "#desks._id#"}
+        """
+        Then we get OK response
+        When we get "/archive/#REWRITE_ID#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#REWRITE_ID#",
+            "assignment_id": "#firstassignment#"
+        }
+        """
+        When we transmit items
+        When we get "published_planning?sort=item_id,version"
+        Then we get list with 3 items
+        Then we store "PLANNING" with 3 item
+        Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-3.txt"
+        """
+        {
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "guid": "#PLANNING.item_id#",
+            "coverages": [{
+                "planning": {
+                    "g2_content_type": "text",
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline",
+                    "scheduled": "2029-10-12T14:00:00+0000"
+                },
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "workflow_status": "completed",
+                "deliveries": [
+                    {"item_state": "published", "item_id": "#archive._id#", "sequence_no": 0},
+                    {"item_state": "in_progress", "item_id": "#REWRITE_ID#", "sequence_no": 1}
+                ]
+            }]
+        }
+        """
+        When we get "/published"
+        Then we get existing resource
+        """
+        {"_items" : [{"_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#"}]}
+        """
+        When we publish "#REWRITE_ID#" with "publish" type and "published" state
+        Then we get OK response
+        When we get "/published"
+        Then we get list with 2 items
+        """
+        {
+        "_items": [
+            { "_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#" },
+            {"_id": "#REWRITE_ID#", "rewrite_of": "#archive._id#", "assignment_id": "#firstassignment#"}
+        ]}
+        """
+        When we transmit items
+        When we get "published_planning?sort=item_id,version"
+        Then we get list with 4 items
+        Then we store "PLANNING" with 4 item
+        Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-4.txt"
+        """
+        {
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "guid": "#PLANNING.item_id#",
+            "coverages": [{
+                "planning": {
+                    "g2_content_type": "text",
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline",
+                    "scheduled": "2029-10-12T14:00:00+0000"
+                },
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "workflow_status": "completed",
+                "deliveries": [
+                    {"item_state": "published", "item_id": "#archive._id#", "sequence_no": 0},
+                    {"item_state": "published", "item_id": "#REWRITE_ID#", "sequence_no": 1}
+                ]
+            }]
+        }
+        """
+        And we store "rewrite1" with value "#REWRITE_ID#" to context
+        When we rewrite "#rewrite1#"
+        """
+        {"desk_id": "#desks._id#"}
+        """
+        Then we get OK response
+        When we get "/archive/#REWRITE_ID#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#REWRITE_ID#",
+            "assignment_id": "#firstassignment#",
+            "rewrite_of": "#rewrite1#"
+        }
+        """
+        When we transmit items
+        When we get "published_planning?sort=item_id,version"
+        Then we get list with 5 items
+        Then we store "PLANNING" with 5 item
+        Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-5.txt"
+        """
+        {
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "guid": "#PLANNING.item_id#",
+            "coverages": [{
+                "planning": {
+                    "g2_content_type": "text",
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline",
+                    "scheduled": "2029-10-12T14:00:00+0000"
+                },
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "workflow_status": "completed",
+                "deliveries": [
+                    {"item_state": "published", "item_id": "#archive._id#", "sequence_no": 0},
+                    {"item_state": "published", "item_id": "#rewrite1#", "sequence_no": 1},
+                    {"item_state": "in_progress", "item_id": "#REWRITE_ID#", "sequence_no": 2}
                 ]
             }]
         }

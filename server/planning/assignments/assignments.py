@@ -583,7 +583,11 @@ class AssignmentsService(superdesk.Service):
                     delivery_service = get_resource_service('delivery')
                     delivery = delivery_service.find_one(req=None, item_id=original[config.ID_FIELD])
                     if delivery and delivery.get('item_state') != CONTENT_STATE.PUBLISHED:
-                        delivery_service.patch(delivery[config.ID_FIELD], {'item_state': CONTENT_STATE.PUBLISHED})
+                        delivery_service.patch(delivery[config.ID_FIELD], {
+                            'item_state': CONTENT_STATE.PUBLISHED,
+                            'sequence_no': original.get('rewrite_sequence', 0),
+                            'publish_time': updates.get('firstpublished')
+                        })
 
                     # publish planning
                     self.publish_planning(assignment_update_data.get('assignment').get('planning_item'))

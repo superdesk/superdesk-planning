@@ -52,7 +52,9 @@ class AssignmentsLinkService(Service):
                         'assignment_id': assignment.get(config.ID_FIELD),
                         'planning_id': assignment['planning_item'],
                         'coverage_id': assignment['coverage_item'],
-                        'item_state': item.get('state')
+                        'item_state': item.get('state'),
+                        'sequence_no': item.get('rewrite_sequence', 0),
+                        'publish_time': item.get('firstpublished')
                     })
 
                     # Update archive/published collection with assignment linking
@@ -66,8 +68,8 @@ class AssignmentsLinkService(Service):
             get_resource_service('delivery').post(deliveries)
 
         # Update assignments, assignment history and publish planning
-        # set the state to in progress if item in published state
-        # set the state to in progress if item in published state
+        # set the state to in progress if no item in the updates chain has ever been published
+        already_completed = assignment['assigned_to']['state'] == ASSIGNMENT_WORKFLOW_STATE.COMPLETED
         updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED if \
             actioned_item.get(ITEM_STATE) in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED] else \
             ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
@@ -83,10 +85,12 @@ class AssignmentsLinkService(Service):
             if (assignment.get('assigned_to') or {}).get('desk') != str(actioned_item.get('task').get('desk')):
                 updates['assigned_to']['desk'] = str(actioned_item.get('task').get('desk'))
 
-        if actioned_item.get(ITEM_STATE) in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED]:
-            assignments_complete.update(assignment[config.ID_FIELD], updates, assignment)
-        else:
-            assignments_service.patch(assignment[config.ID_FIELD], updates)
+        # If assignment is already complete, no need to update it again
+        if not already_completed:
+            if actioned_item.get(ITEM_STATE) in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED]:
+                assignments_complete.update(assignment[config.ID_FIELD], updates, assignment)
+            else:
+                assignments_service.patch(assignment[config.ID_FIELD], updates)
 
         actioned_item['assignment_id'] = assignment[config.ID_FIELD]
         doc.update(actioned_item)
@@ -97,7 +101,8 @@ class AssignmentsLinkService(Service):
             updates['assigned_to']['item_ids'] = ids
             assignment_history_service = get_resource_service('assignments_history')
             assignment_history_service.on_item_content_link(updates, assignment)
-            if actioned_item.get(ITEM_STATE) not in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED]:
+            if actioned_item.get(ITEM_STATE) not in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED] or \
+                    already_completed:
                 # publishing planning item
                 assignments_service.publish_planning(assignment['planning_item'])
 

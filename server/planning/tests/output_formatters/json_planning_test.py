@@ -141,7 +141,8 @@ class JsonPlanningTestCase(TestCase):
         'coverage_id': 'urn:newsml:localhost:2018-06-13T11:05:42.447915:030c31c3-baaf-4f98-8401-fac332a2ef1c',
         '_updated': '2018-06-13T01:54:57.000Z',
         'item_id': 'urn:newsml:localhost:2018-06-13T11:54:57.477423:c944042d-f93b-4304-9732-e7b5798ee8f9',
-        'planning_id': 'urn:newsml:localhost:2018-06-13T11:05:42.040242:8d810c01-2c0e-403a-bd0d-b4e2d001b163'
+        'planning_id': 'urn:newsml:localhost:2018-06-13T11:05:42.040242:8d810c01-2c0e-403a-bd0d-b4e2d001b163',
+        'item_state': 'published'
     }]
 
     def setUp(self):

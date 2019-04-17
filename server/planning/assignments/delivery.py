@@ -36,6 +36,14 @@ delivery_schema = {
 
     'item_state': {
         'type': 'string'
+    },
+
+    'sequence_no': {
+        'type': 'number'
+    },
+
+    'publish_time': {
+        'type': 'datetime'
     }
 }
 
