@@ -1,4 +1,4 @@
-Feature: Export planning items with default template
+Feature: Export events with default template
 
     @auth
     Scenario: Export planning items as an article
@@ -20,16 +20,6 @@ Feature: Export planning items with default template
         ]
         """
 
-        Given "vocabularies"
-        """
-        [
-            {"_id": "g2_content_type", "items": [
-                {"is_active": true, "name": "Text", "qcode": "text"},
-                {"is_active": true, "name": "Photo", "qcode": "photo"}
-            ]}
-        ]
-        """
-
         Given "events"
         """
         [
@@ -44,35 +34,9 @@ Feature: Export planning items with default template
         ]
         """
 
-        Given "planning"
-        """
-        [
-            {
-                "headline": "Planning 1",
-                "slugline": "planning-1",
-                "description_text": "desc",
-                "event_item": "#events._id#",
-                "coverages": [
-                    {
-                        "coverage_id": "123",
-                        "planning": {
-                            "g2_content_type": "text"
-                        }
-                    },
-                    {
-                        "coverage_id": "456",
-                        "planning": {
-                            "g2_content_type": "photo"
-                        }
-                    }
-                ],
-                "planning_date": "2016-01-02"
-            }
-        ]
-        """
         When we post to "planning_article_export"
         """
-        {"items": ["#planning._id#"], "desk": "#desks._id#"}
+        {"items": ["#events._id#"], "desk": "#desks._id#", "type": "event"}
         """
         Then we get new resource
         """
@@ -84,7 +48,7 @@ Feature: Export planning items with default template
         """
         And we get text in "body_html"
         """
-        Planned coverage: Text, Photo
+        test
         """
         When we get "archive"
         Then we get list with 1 items
@@ -113,10 +77,10 @@ Feature: Export planning items with default template
         [
             {
                 "name": "conf_template",
-                "label": "Default Planning Template",
-                "type": "planning",
+                "label": "Default Event Template",
+                "type": "event",
                 "data": {
-                    "body_html": "test_planning_export_template.html"
+                    "body_html": "test_event_export_template.html"
                 }
             }
         ]
@@ -129,16 +93,6 @@ Feature: Export planning items with default template
         ]
         """
 
-        Given "vocabularies"
-        """
-        [
-            {"_id": "g2_content_type", "items": [
-                {"is_active": true, "name": "Text", "qcode": "text"},
-                {"is_active": true, "name": "Photo", "qcode": "photo"}
-            ]}
-        ]
-        """
-
         Given "events"
         """
         [
@@ -148,41 +102,15 @@ Feature: Export planning items with default template
                     "start": "2016-01-02",
                     "end": "2016-01-03"
                 },
-                "location": []
+                "location": [],
+                "ednote": "Ed. note 1"
             }
         ]
         """
 
-        Given "planning"
-        """
-        [
-            {
-                "headline": "Planning 1",
-                "slugline": "planning-1",
-                "description_text": "desc",
-                "event_item": "#events._id#",
-                "ednote": "Ed. note 1",
-                "coverages": [
-                    {
-                        "coverage_id": "123",
-                        "planning": {
-                            "g2_content_type": "text"
-                        }
-                    },
-                    {
-                        "coverage_id": "456",
-                        "planning": {
-                            "g2_content_type": "photo"
-                        }
-                    }
-                ],
-                "planning_date": "2016-01-02"
-            }
-        ]
-        """
         When we post to "planning_article_export"
         """
-        {"items": ["#planning._id#"], "desk": "#desks._id#", "template": "#planning_export_templates.name#"}
+        {"items": ["#events._id#"], "desk": "#desks._id#", "template": "#planning_export_templates.name#", "type": "event"}
         """
         Then we get new resource
         """
