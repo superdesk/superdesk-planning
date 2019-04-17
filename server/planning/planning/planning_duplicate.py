@@ -9,13 +9,15 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 import logging
+from eve.utils import config
 from superdesk import get_resource_service
 from superdesk.resource import Resource
 from superdesk.services import BaseService
 from superdesk.metadata.utils import item_url, generate_guid
 from superdesk.metadata.item import GUID_NEWSML
+from superdesk.utc import utcnow, utc_to_local
 from flask import request
-from planning.common import ITEM_STATE, WORKFLOW_STATE, get_local_end_of_day
+from planning.common import ITEM_STATE, WORKFLOW_STATE
 from copy import deepcopy
 
 
@@ -76,13 +78,10 @@ class PlanningDuplicateService(BaseService):
         new_plan[ITEM_STATE] = WORKFLOW_STATE.DRAFT
         new_plan['guid'] = generate_guid(type=GUID_NEWSML)
 
-        planning_datetime = new_plan.get('planning_date')
-        current_date = get_local_end_of_day().date()
-        if planning_datetime.date() < current_date:
-            new_plan['planning_date'] = planning_datetime.replace(
-                day=current_date.day,
-                month=current_date.month,
-                year=current_date.year)
+        planning_datetime = utc_to_local(config.DEFAULT_TIMEZONE, new_plan.get('planning_date'))
+        local_datetime = utc_to_local(config.DEFAULT_TIMEZONE, utcnow())
+        if planning_datetime.date() < local_datetime.date():
+            new_plan['planning_date'] = new_plan['planning_date'] + (local_datetime.date() - planning_datetime.date())
 
         for cov in new_plan.get('coverages') or []:
             cov.pop('assigned_to', None)
