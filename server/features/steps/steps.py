@@ -8,6 +8,8 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 import os
+import pytz
+from datetime import time
 from flask import json
 from datetime import datetime, timedelta
 from copy import deepcopy
@@ -19,11 +21,19 @@ from superdesk.tests.steps import (then, when, step_impl_then_get_existing, get_
                                    DATETIME_FORMAT, json_match, post_data)
 from superdesk.io import get_feeding_service
 from superdesk.io.commands.update_ingest import LAST_ITEM_UPDATE
-from superdesk.utc import utcnow
+from superdesk.utc import utcnow, utc_to_local
 from superdesk import get_resource_service, etree
 from superdesk.io.feed_parsers import XMLFeedParser
-from planning.common import get_local_end_of_day
 from wooper.assertions import assert_equal
+
+
+def get_local_end_of_day(context, day=None, timezone=None):
+    tz = pytz.timezone(timezone or context.app.config['DEFAULT_TIMEZONE'])
+    day = day or utc_to_local(tz.zone, utcnow())
+
+    return tz.localize(
+        datetime.combine(day, time(23, 59, 59)), is_dst=None
+    ).astimezone(pytz.utc)
 
 
 @then('we get a list with {total_count} items')
@@ -180,7 +190,7 @@ def then_assignment_scheduled_for_end_of_day(context, index):
     response = get_json_data(context.response)
     assert len(response.get('coverages')), 'Coverages are not defined'
     coverage = response.get('coverages')[index]
-    eod = get_local_end_of_day().strftime(DATETIME_FORMAT)
+    eod = get_local_end_of_day(context).strftime(DATETIME_FORMAT)
     assert coverage['planning']['scheduled'] == eod, 'Coverage is not schedule to end of day'
 
 
@@ -210,7 +220,7 @@ def then_item_has_current_date(context):
     response = get_json_data(context.response)
     assert "planning_date" in response, 'planning_date field not defined'
     response_date_time = datetime.strptime(response["planning_date"], DATETIME_FORMAT)
-    assert response_date_time.date() == get_local_end_of_day().date(), 'Planning Item has not got current date'
+    assert response_date_time.date() == get_local_end_of_day(context).date(), 'Planning Item has not got current date'
 
 
 @then('coverage {index} has current date')
@@ -220,7 +230,8 @@ def then_coverage_has_current_date(context, index):
     assert len(response.get('coverages')), 'Coverages are not defined'
     coverage = response.get('coverages')[index]
     response_date_time = datetime.strptime(coverage['planning']['scheduled'], DATETIME_FORMAT)
-    assert response_date_time.date() == get_local_end_of_day().date(), 'Coverage is not schedule for current date'
+    assert response_date_time.date() == get_local_end_of_day(context).date(), \
+        'Coverage is not schedule for current date'
 
 
 @then('versioned file exists "{path}"')
