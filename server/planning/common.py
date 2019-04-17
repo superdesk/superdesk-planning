@@ -8,11 +8,9 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-import tzlocal
-import pytz
 import re
 from flask import current_app as app
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 from collections import namedtuple
 from superdesk.resource import not_analyzed, build_custom_hateoas
 from superdesk import get_resource_service, logger
@@ -130,15 +128,6 @@ def get_coverage_cancellation_state():
         coverage_cancel_state.pop('is_active', None)
 
     return coverage_cancel_state
-
-
-def get_local_end_of_day(day=None, timezone=None):
-    tz = pytz.timezone(timezone or tzlocal.get_localzone().zone)
-    day = day or datetime.now(tz).date()
-
-    return tz.localize(
-        datetime.combine(day, time(23, 59, 59)), is_dst=None
-    ).astimezone(pytz.utc)
 
 
 def is_locked_in_this_session(item, user_id=None, session_id=None):
