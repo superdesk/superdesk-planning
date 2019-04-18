@@ -152,7 +152,6 @@ export class ConvertToRecurringEventComponent extends React.Component {
                     showErrors={true}
                     errors={this.state.errors}
                     popupContainer={this.getPopupContainer}
-                    showRemoteTimeZone
                 />
 
                 <div ref={(node) => this.dom.popupContainer = node} />

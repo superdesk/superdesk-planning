@@ -32,7 +32,6 @@ export class TimeInput extends React.Component {
         this.validateTimeText = this.validateTimeText.bind(this);
         this.toggleOpenTimePicker = this.toggleOpenTimePicker.bind(this);
         this.onChange = this.onChange.bind(this);
-        this.getValue = this.getValue.bind(this);
         this.isValidInput = this.isValidInput.bind(this);
     }
 
@@ -42,7 +41,7 @@ export class TimeInput extends React.Component {
         }
 
         const val = nextProps.value && moment.isMoment(nextProps.value) ?
-            this.getValue(nextProps.value).format(this.props.timeFormat) : '';
+            nextProps.value.format(this.props.timeFormat) : '';
 
         this.setState({
             viewValue: val,
@@ -52,19 +51,11 @@ export class TimeInput extends React.Component {
         });
     }
 
-    getValue(value) {
-        const {isLocalTimeZoneDifferent, remoteTimeZone} = this.props;
-
-        if (isLocalTimeZoneDifferent) {
-            return timeUtils.getDateInRemoteTimeZone(value, remoteTimeZone);
-        }
-        return value;
-    }
-
     componentDidMount() {
         // After first render, set the value
         const value = this.props.value;
-        const viewValue = value && moment.isMoment(value) ? this.getValue(value).format(this.props.timeFormat) : '';
+        const viewValue = value && moment.isMoment(value) ?
+            value.format(this.props.timeFormat) : '';
 
         this.setState({viewValue});
     }
@@ -155,7 +146,7 @@ export class TimeInput extends React.Component {
     }
 
     onChange(newValue) {
-        const {value, onChange, field, timeFormat, remoteTimeZone, isLocalTimeZoneDifferent} = this.props;
+        const {value, onChange, field, timeFormat, remoteTimeZone} = this.props;
 
         // Takes the time as a string (based on the configured time format)
         // Then parses it and calls parents onChange with new moment object
@@ -164,15 +155,26 @@ export class TimeInput extends React.Component {
             return;
         }
 
-        const newTime = isLocalTimeZoneDifferent ?
-            moment.tz(newValue, timeFormat, remoteTimeZone) : moment(newValue, timeFormat);
-        let newMoment = value && moment.isMoment(value) ? this.getValue(value.clone()) : moment();
+        let newTime;
+        let newMoment;
+
+        if (remoteTimeZone) {
+            newTime = moment.tz(newValue, timeFormat, true, remoteTimeZone);
+            newMoment = value && moment.isMoment(value) ?
+                value.clone() :
+                moment.tz(remoteTimeZone);
+        } else {
+            newTime = moment(newValue, timeFormat, true);
+            newMoment = value && moment.isMoment(value) ?
+                value.clone() :
+                moment();
+        }
 
         newMoment.hour(newTime.hour());
         newMoment.minute(newTime.minute());
         newMoment.second(0);
 
-        if (!newMoment.isSame(this.getValue(value)) || !value) {
+        if (!newMoment.isSame(value) || !value) {
             if (this.isValidInput(newValue) && this.state.invalid) {
                 this.setState({
                     invalid: false,
@@ -253,7 +255,7 @@ export class TimeInput extends React.Component {
                 {displayDateString && <span>{displayDateString}</span>}
                 {this.state.openTimePicker && (
                     <TimeInputPopup
-                        value={this.getValue(value)}
+                        value={value}
                         onChange={this.onChange}
                         close={this.toggleOpenTimePicker}
                         target="icon-time"

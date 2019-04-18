@@ -23,6 +23,10 @@ time.Datetime {
     &--is-select {
         cursor: pointer !important;
     }
+
+    &--half-width {
+        width: 50%;
+    }
 }
 
 .sd-list-item {

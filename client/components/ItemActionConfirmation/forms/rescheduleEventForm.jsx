@@ -224,7 +224,6 @@ export class RescheduleEventComponent extends React.Component {
                     formProfile={formProfiles.events}
                     popupContainer={this.getPopupContainer}
                     showFirstEventLabel={false}
-                    showRemoteTimeZone
                 />
 
                 <Row label={reasonLabel}>
