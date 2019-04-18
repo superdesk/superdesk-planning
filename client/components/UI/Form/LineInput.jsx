@@ -24,6 +24,7 @@ export const LineInput = ({
     className,
     borderBottom,
     onClick,
+    halfWidth,
 }) => (
     <div className={classNames(
         'sd-line-input',
@@ -39,6 +40,7 @@ export const LineInput = ({
             'sd-line-input--label-left': labelLeft,
             'sd-line-input--label-left-auto': labelLeftAuto,
             'sd-line-input--no-border-bottom': !borderBottom,
+            'sd-line-input--half-width': halfWidth,
         },
         className
     )}
@@ -64,6 +66,7 @@ export const LineInputProps = {
     message: PropTypes.string,
     borderBottom: PropTypes.bool,
     onClick: PropTypes.func,
+    halfWidth: PropTypes.bool,
 };
 
 export const LineInputDefaultProps = {
@@ -78,6 +81,7 @@ export const LineInputDefaultProps = {
     labelLeft: false,
     labelLeftAuto: false,
     borderBottom: true,
+    halfWidth: false,
 };
 
 LineInput.propTypes = {

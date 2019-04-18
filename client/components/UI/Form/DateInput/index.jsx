@@ -30,13 +30,12 @@ export class DateInput extends React.Component {
         this.handleInputBlur = this.handleInputBlur.bind(this);
         this.toggleOpenDatePicker = this.toggleOpenDatePicker.bind(this);
         this.onChange = this.onChange.bind(this);
-        this.getValue = this.getValue.bind(this);
     }
 
     componentWillReceiveProps(nextProps) {
         const {value, dateFormat} = this.props;
         const val = nextProps.value && moment.isMoment(nextProps.value) ?
-            this.getValue(nextProps.value).format(dateFormat) : '';
+            nextProps.value.format(dateFormat) : '';
 
         this.setState({
             viewValue: val,
@@ -44,19 +43,11 @@ export class DateInput extends React.Component {
         });
     }
 
-    getValue(value) {
-        const {isLocalTimeZoneDifferent, remoteTimeZone} = this.props;
-
-        if (isLocalTimeZoneDifferent) {
-            return timeUtils.getDateInRemoteTimeZone(value, remoteTimeZone);
-        }
-        return value;
-    }
-
     componentDidMount() {
         // After first render, set value
         const {value, dateFormat} = this.props;
-        const viewValue = value && moment.isMoment(value) ? this.getValue(value).format(dateFormat) : '';
+        const viewValue = value && moment.isMoment(value) ?
+            value.format(dateFormat) : '';
 
         this.setState({viewValue});
     }
@@ -81,7 +72,9 @@ export class DateInput extends React.Component {
     * @description validateDateText sets validate-state after text-input of dates
     */
     validateDateText(field, val) {
-        const valMoment = moment(val, this.props.dateFormat, true);
+        const valMoment = this.props.remoteTimeZone ?
+            moment.tz(val, this.props.dateFormat, true, this.props.remoteTimeZone) :
+            moment(val, this.props.dateFormat, true);
 
         if (valMoment.isValid()) {
             this.setState({
@@ -117,14 +110,14 @@ export class DateInput extends React.Component {
     }
 
     onChange(newValue) {
-        const {value, onChange, field} = this.props;
+        const {value, onChange, field, remoteTimeZone} = this.props;
         let newMoment = newValue;
 
         if (!moment.isMoment(newMoment)) {
-            newMoment = this.getValue(moment(newValue));
+            newMoment = moment.tz(newValue, remoteTimeZone);
         }
 
-        if (newMoment.isValid() && (!newMoment.isSame(this.getValue(value))) || !value) {
+        if (newMoment.isValid() && (!newMoment.isSame(value) || !value)) {
             onChange(field, newMoment);
         }
     }
@@ -199,13 +192,14 @@ export class DateInput extends React.Component {
                 {displayDateString && <span>{displayDateString}</span>}
                 {this.state.openDatePicker && (
                     <DateInputPopup
-                        value={this.getValue(value)}
+                        value={value}
                         onChange={this.onChange}
                         close={this.toggleOpenDatePicker}
                         target="icon-calendar"
                         popupContainer={popupContainer}
                         onPopupOpen={onPopupOpen}
                         onPopupClose={onPopupClose}
+                        remoteTimeZone={remoteTimeZone}
                     />
                 )}
             </LineInput>
