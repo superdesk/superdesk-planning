@@ -49,6 +49,8 @@ def before_scenario(context, scenario):
 
     if 'link_updates' in scenario.tags:
         config['PLANNING_LINK_UPDATES_TO_COVERAGES'] = True
+    else:
+        config['PLANNING_LINK_UPDATES_TO_COVERAGES'] = False
 
     setup_before_scenario(context, scenario, config, app_factory=get_app)
 

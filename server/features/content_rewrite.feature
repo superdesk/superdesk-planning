@@ -48,6 +48,20 @@ Feature: Rewrite content
               ]
         }]
         """
+        When we post to "/products" with success
+        """
+        {
+        "name":"prod-1","codes":"abc,xyz", "product_type": "both"
+        }
+        """
+        And we post to "/subscribers" with "wire" and success
+        """
+        {
+        "name":"Channel 2","media_type":"media", "subscriber_type": "wire", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
+        "products": ["#products._id#"],
+        "destinations":[{"name":"Test","format": "nitf", "delivery_type":"email","config":{"recipients":"test@test.com"}}]
+        }
+        """
         When we post to "/archive" with success
         """
         [{"type": "text", "headline": "test", "state": "fetched",
@@ -55,6 +69,7 @@ Feature: Rewrite content
         "subject":[{"qcode": "17004000", "name": "Statistics"}],
         "slugline": "test",
         "body_html": "Test Document body",
+        "target_subscribers": [{"_id": "#subscribers._id#"}],
         "dateline": {
           "located" : {
               "country" : "Afghanistan",
@@ -70,20 +85,6 @@ Feature: Rewrite content
           "text" : "MAZAR-E SHARIF, Dec 30  -",
           "source": "AAP"}
         }]
-        """
-        When we post to "/products" with success
-        """
-        {
-        "name":"prod-1","codes":"abc,xyz", "product_type": "both"
-        }
-        """
-        And we post to "/subscribers" with "wire" and success
-        """
-        {
-        "name":"Channel 2","media_type":"media", "subscriber_type": "wire", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
-        "products": ["#products._id#"],
-        "destinations":[{"name":"Test","format": "nitf", "delivery_type":"email","config":{"recipients":"test@test.com"}}]
-        }
         """
         And we publish "#archive._id#" with "publish" type and "published" state
         Then we get OK response
@@ -130,7 +131,6 @@ Feature: Rewrite content
         When we post to "/planning"
         """
         [{
-            "guid": "123",
             "headline": "test headline",
             "slugline": "test slugline",
             "planning_date": "2016-10-12",
@@ -346,7 +346,6 @@ Feature: Rewrite content
         When we post to "/planning"
         """
         [{
-            "guid": "123",
             "headline": "test headline",
             "slugline": "test slugline",
             "planning_date": "2016-10-12",
@@ -508,14 +507,15 @@ Feature: Rewrite content
         """
         When we publish "#REWRITE_ID#" with "publish" type and "published" state
         Then we get OK response
-        When we get "/published"
-        Then we get list with 2 items
+        When we get "/published/#archive._id#"
+        Then we get existing resource
         """
-        {
-        "_items": [
-            { "_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#" },
-            {"_id": "#REWRITE_ID#", "rewrite_of": "#archive._id#", "assignment_id": "__no_value__"}
-        ]}
+        { "_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#" }
+        """
+        When we get "/published/#REWRITE_ID#"
+        Then we get existing resource
+        """
+        {"_id": "#REWRITE_ID#", "rewrite_of": "#archive._id#", "assignment_id": "__no_value__"}
         """
         When we transmit items
         When we get "published_planning?sort=item_id,version"
@@ -548,7 +548,6 @@ Feature: Rewrite content
         When we post to "/planning"
         """
         [{
-            "guid": "123",
             "headline": "test headline",
             "slugline": "test slugline",
             "planning_date": "2016-10-12",
@@ -866,7 +865,6 @@ Feature: Rewrite content
         [{
             "headline": "test headline",
             "slugline": "test slugline",
-            "guid": "123",
             "planning_date": "2016-10-12",
             "coverages": [{
                 "planning": {
@@ -1093,7 +1091,7 @@ Feature: Rewrite content
         And we store "archive1" with value "#archive._id#" to context
         When we post to "/archive" with success
         """
-        [{"guid": "2-123", "type": "text", "headline": "test", "state": "fetched",
+        [{"type": "text", "headline": "test", "state": "fetched",
         "task": {"desk": "#desks._id#", "stage": "#desks.incoming_stage#", "user": "#CONTEXT_USER_ID#"},
         "subject":[{"qcode": "17004000", "name": "Statistics"}],
         "slugline": "test",
@@ -1517,7 +1515,6 @@ Feature: Rewrite content
         [{
             "headline": "test headline",
             "slugline": "test slugline",
-            "guid": "123",
             "planning_date": "2016-10-12",
             "coverages": [
                 {
@@ -1771,7 +1768,6 @@ Feature: Rewrite content
         [{
             "headline": "test headline",
             "slugline": "test slugline",
-            "guid": "123",
             "planning_date": "2016-10-12",
             "coverages": [
                 {
@@ -1929,7 +1925,8 @@ Feature: Rewrite content
             "_id": "#REWRITE_ID#",
             "event_id": "#archive.event_id#",
             "type": "text",
-            "state": "in_progress"
+            "state": "in_progress",
+            "assignment_id": "__no_value__"
         }
         """
         When we get "published_planning?sort=item_id,version"
@@ -1941,14 +1938,15 @@ Feature: Rewrite content
         """
         When we publish "#REWRITE_ID#" with "publish" type and "published" state
         Then we get OK response
-        When we get "/published"
-        Then we get list with 2 items
+        When we get "/published/#archive._id#"
+        Then we get existing resource
         """
-        {
-        "_items": [
-            { "_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#" },
-            {"_id": "#REWRITE_ID#", "rewrite_of": "#archive._id#", "assignment_id": "__no_value__"}
-        ]}
+        { "_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#" }
+        """
+        When we get "/published/#REWRITE_ID#"
+        Then we get existing resource
+        """
+        {"_id": "#REWRITE_ID#", "rewrite_of": "#archive._id#", "assignment_id": "__no_value__"}
         """
         When we transmit items
         When we get "published_planning?sort=item_id,version"
@@ -1983,7 +1981,6 @@ Feature: Rewrite content
         [{
             "headline": "test headline",
             "slugline": "test slugline",
-            "guid": "123",
             "planning_date": "2016-10-12",
             "coverages": [
                 {
@@ -2220,7 +2217,6 @@ Feature: Rewrite content
         [{
             "headline": "test headline",
             "slugline": "test slugline",
-            "guid": "123",
             "planning_date": "2016-10-12",
             "coverages": [
                 {

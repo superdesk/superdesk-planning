@@ -253,6 +253,7 @@ def then_versioned_file_exists(context, path):
 @then('we get transmitted item "{path}"')
 def then_get_transmitted_item(context, path):
     path = apply_placeholders(context, path)
+    path = path.replace(':', '-')
     assert os.path.isfile(path), '{} is not a file'.format(path)
     with open(path, 'r') as json_file:
         data = json.load(json_file)
