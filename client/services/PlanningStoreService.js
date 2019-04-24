@@ -172,10 +172,7 @@ export class PlanningStoreService {
     fetchData() {
         return this.$q.all({
             voc: this.vocabularies.getAllActiveVocabularies(),
-            ingest: this.api('ingest_providers').query({
-                max_results: 200,
-                page: 1,
-            }),
+            ingest: this.api('ingest_providers').getAll(),
             privileges: this.privileges.loaded,
             metadata: this.metadata.initialize(),
             users: this.userList.getAll(),
@@ -206,7 +203,7 @@ export class PlanningStoreService {
                         get(data, 'voc', []).map((cv) => cv.items)
                     ),
                     ingest: {
-                        providers: get(data, 'ingest._items', [])
+                        providers: get(data, 'ingest', [])
                             .filter((p) => get(p, 'content_types', []).indexOf(ITEM_TYPE.EVENT) !== -1)
                             .map((provider) => ({
                                 name: provider.name,
