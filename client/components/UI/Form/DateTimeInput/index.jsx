@@ -67,6 +67,7 @@ export const DateTimeInput = ({
             remoteTimeZone={remoteTimeZone}
             isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
             refNode={refNode}
+            halfWidth={!hideTime}
         />
 
         {!hideTime && <Field
@@ -90,6 +91,7 @@ export const DateTimeInput = ({
             canClear={canClear}
             allowInvalidText={allowInvalidTime}
             isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
+            halfWidth={!hideTime}
         />}
         {canClear && <Button
             onClick={() => onChange(field, null)}

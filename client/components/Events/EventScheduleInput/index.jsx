@@ -44,9 +44,37 @@ export class EventScheduleInput extends React.Component {
             this.props.onChange(field, null);
         } else if (field === 'dates.recurring_rule.until' && moment.isMoment(value)) {
             this.props.onChange(field, value.endOf('day'));
+        } else if (field === 'dates.tz') {
+            this.changeTimezone(value);
         } else {
             this.props.onChange(field, value);
         }
+    }
+
+    changeTimezone(value) {
+        const dtFormat = 'DD/MM/YYYY HH:mm';
+        const dates = get(this.props, 'diff.dates', {});
+        const _startTime = get(this.props, 'diff._startTime');
+        const _endTime = get(this.props, 'diff._endTime');
+
+        let changes = {'dates.tz': value};
+
+        const addChange = (field, fieldValue) => {
+            if (!fieldValue) {
+                return;
+            }
+
+            changes[field] = value ?
+                moment.tz(fieldValue.format(dtFormat), dtFormat, value) :
+                moment(fieldValue);
+        };
+
+        addChange('dates.start', dates.start);
+        addChange('_startTime', _startTime);
+        addChange('dates.end', dates.end);
+        addChange('_endTime', _endTime);
+
+        this.props.onChange(changes, null);
     }
 
     changeStartDate(value) {
@@ -59,6 +87,10 @@ export class EventScheduleInput extends React.Component {
             value
                 .hour(0)
                 .minute(0);
+        } else {
+            value
+                .hour(startDate.hour())
+                .minute(startDate.minute());
         }
 
         if (!endDate || endDate.isBefore(value)) {
@@ -148,14 +180,16 @@ export class EventScheduleInput extends React.Component {
     }
 
     handleAllDayChange(field, value) {
+        const dates = get(this.props, 'diff.dates', get(this.props, 'item.dates', {}));
         let newStart, newEnd, startTime = null, endTime = null;
+
+        newStart = (dates.start || (dates.tz ? moment.tz(dates.tz) : moment()))
+            .clone()
+            .startOf('day');
 
         if (value) {
             // If allDay is enabled, then set the event to all day
-            newStart = (get(this.props, 'diff.dates.start') || moment())
-                .clone()
-                .startOf('day');
-            newEnd = (get(this.props, 'diff.dates.end') || moment())
+            newEnd = (dates.end || (dates.tz ? moment.tz(dates.tz) : moment()))
                 .clone()
                 .endOf('day');
             startTime = newStart.clone();
@@ -163,9 +197,6 @@ export class EventScheduleInput extends React.Component {
         } else {
             // If allDay is disabled, then set the new dates to the initial values
             // since last save and time to empty
-            const dates = get(this.props, 'diff.dates', get(this.props, 'item.dates', {}));
-
-            newStart = get(dates, 'start') || moment().startOf('day');
             newEnd = (get(dates, 'end') || newStart.clone()).hour(0).minute(1);
         }
 
@@ -214,7 +245,6 @@ export class EventScheduleInput extends React.Component {
             onPopupOpen,
             onPopupClose,
             showTimeZone,
-            showRemoteTimeZone,
             refNode,
         } = this.props;
         const {isAllDay} = this.state;
@@ -245,7 +275,7 @@ export class EventScheduleInput extends React.Component {
             labelLeftAuto: true,
             defaultValue: false,
         };
-        const isRemoteTimeZone = showRemoteTimeZone && timeUtils.isEventInDifferentTimeZone(diff);
+        const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(diff);
 
         return (
             <div>
@@ -290,7 +320,7 @@ export class EventScheduleInput extends React.Component {
                     onPopupOpen={onPopupOpen}
                     onPopupClose={onPopupClose}
                     timeField="_startTime"
-                    remoteTimeZone={showRemoteTimeZone ? get(diff, 'dates.tz') : null}
+                    remoteTimeZone={get(diff, 'dates.tz')}
                     allowInvalidTime
                     isLocalTimeZoneDifferent={isRemoteTimeZone}
                     refNode={refNode}
@@ -311,7 +341,7 @@ export class EventScheduleInput extends React.Component {
                     onPopupOpen={onPopupOpen}
                     onPopupClose={onPopupClose}
                     timeField="_endTime"
-                    remoteTimeZone={showRemoteTimeZone ? get(diff, 'dates.tz') : null}
+                    remoteTimeZone={get(diff, 'dates.tz')}
                     allowInvalidTime
                     isLocalTimeZoneDifferent={isRemoteTimeZone}
                 />
@@ -367,7 +397,6 @@ EventScheduleInput.propTypes = {
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
     showTimeZone: PropTypes.bool,
-    showRemoteTimeZone: PropTypes.bool,
     refNode: PropTypes.func,
 };
 
@@ -378,5 +407,4 @@ EventScheduleInput.defaultProps = {
     showRepeatToggle: true,
     showFirstEventLabel: true,
     showTimeZone: false,
-    showRemoteTimeZone: false,
 };

@@ -19,7 +19,9 @@ import './style.scss';
 export class DateInputPopup extends React.Component {
     constructor(props) {
         super(props);
-        const currentDate = moment();
+        const currentDate = props.remoteTimeZone ?
+            moment.tz(props.remoteTimeZone) :
+            moment();
 
         this.state = {
             mode: 'day',
@@ -262,4 +264,5 @@ DateInputPopup.propTypes = {
     popupContainer: PropTypes.func,
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
+    remoteTimeZone: PropTypes.string,
 };
