@@ -2,10 +2,41 @@ import assignment from '../assignment';
 import moment from 'moment';
 
 describe('assignment', () => {
+    let initialState;
+    let stateTest;
+
+    beforeEach(() => {
+        stateTest = {
+            archive: {},
+            assignmentListSingleGroupView: null,
+            assignments: {},
+            assignmentsInCompletedList: [],
+            assignmentsInInProgressList: [],
+            assignmentsInTodoList: [],
+            baseQuery: {must: []},
+            completedListLastLoadedPage: null,
+            completedListTotal: 0,
+            currentAssignmentId: null,
+            filterBy: 'Desk',
+            filterByPriority: null,
+            filterByType: null,
+            inProgressListLastLoadedPage: null,
+            inProgressListTotal: 0,
+            myAssignmentsTotal: 0,
+            orderByField: 'Scheduled',
+            orderDirection: 'Asc',
+            previewOpened: false,
+            readOnly: false,
+            searchQuery: null,
+            selectedDeskId: '',
+            todoListLastLoadedPage: null,
+            todoListTotal: 0,
+        };
+    });
+
     describe('load reducers', () => {
-        let initialState;
-        let stateTest = {
-            assignments: {
+        beforeEach(() => {
+            stateTest.assignments = {
                 as1: {
                     _id: 'as1',
                     _created: '2017-07-13T13:55:41+0000',
@@ -26,21 +57,8 @@ describe('assignment', () => {
                         desk: 'desk2',
                     },
                 },
-            },
-            filterBy: 'Desk',
-            previewOpened: false,
-            assignmentsInInProgressList: [],
-            inProgressListTotal: 0,
-            assignmentsInTodoList: [],
-            todoListTotal: 0,
-            assignmentsInCompletedList: [],
-            completedListTotal: 0,
-            assignmentListSingleGroupView: null,
-            currentAssignmentId: null,
-            archive: {},
-            myAssignmentsTotal: 0,
-            selectedDeskId: '',
-        };
+            };
+        });
 
         beforeEach(() => {
             initialState = assignment(stateTest, {type: null});
@@ -81,6 +99,7 @@ describe('assignment', () => {
             });
 
             expect(result).toEqual({
+                ...stateTest,
                 assignments: {
                     as1: {
                         _id: 'as1',
@@ -116,120 +135,19 @@ describe('assignment', () => {
                         },
                     },
                 },
-                filterBy: 'Desk',
-                previewOpened: false,
-                assignmentsInInProgressList: [],
-                inProgressListTotal: 0,
-                assignmentsInTodoList: [],
-                todoListTotal: 0,
-                assignmentsInCompletedList: [],
-                completedListTotal: 0,
-                assignmentListSingleGroupView: null,
-                currentAssignmentId: null,
-                archive: {},
-                myAssignmentsTotal: 0,
-                selectedDeskId: '',
-            });
-        });
-    });
-
-    describe('select reducers', () => {
-        let initialState;
-        let stateTest = {
-            assignments: {},
-            filterBy: 'Desk',
-            previewOpened: false,
-            currentAssignmentId: null,
-            assignmentsInInProgressList: [],
-            inProgressListTotal: 0,
-            assignmentsInTodoList: [],
-            todoListTotal: 0,
-            assignmentsInCompletedList: [],
-            completedListTotal: 0,
-            assignmentListSingleGroupView: null,
-            archive: {},
-            myAssignmentsTotal: 0,
-            selectedDeskId: '',
-        };
-
-        beforeEach(() => {
-            initialState = assignment(stateTest, {type: null});
-        });
-
-        it('initialState select', () => {
-            expect(initialState).toEqual(stateTest);
-        });
-
-        it('SELECT_ASSIGNMENTS', () => {
-            const result = assignment(initialState, {
-                type: 'SELECT_ASSIGNMENTS',
-                payload: ['assignment2', 'assignment3'],
-            });
-
-            expect(result).toEqual({
-                assignments: {},
-                filterBy: 'Desk',
-                previewOpened: false,
-                assignmentsInInProgressList: [],
-                inProgressListTotal: 0,
-                assignmentsInTodoList: [],
-                todoListTotal: 0,
-                assignmentsInCompletedList: [],
-                completedListTotal: 0,
-                assignmentListSingleGroupView: null,
-                currentAssignmentId: null,
-                archive: {},
-                myAssignmentsTotal: 0,
-                selectedDeskId: '',
-            });
-        });
-
-        it('DESELECT_ASSIGNMENT', () => {
-            const result = assignment(initialState, {
-                type: 'DESELECT_ASSIGNMENT',
-                payload: 'assignment2',
-            });
-
-            expect(result).toEqual({
-                assignments: {},
-                filterBy: 'Desk',
-                previewOpened: false,
-                assignmentsInInProgressList: [],
-                inProgressListTotal: 0,
-                assignmentsInTodoList: [],
-                todoListTotal: 0,
-                assignmentsInCompletedList: [],
-                completedListTotal: 0,
-                assignmentListSingleGroupView: null,
-                currentAssignmentId: null,
-                archive: {},
-                myAssignmentsTotal: 0,
-                selectedDeskId: '',
             });
         });
     });
 
     describe('list setting reducers', () => {
-        let initialState;
-        let stateTest = {
-            assignments: {},
-            assignmentsInInProgressList: [],
-            inProgressListTotal: 0,
-            assignmentsInTodoList: [],
-            todoListTotal: 0,
-            assignmentsInCompletedList: [],
-            completedListTotal: 0,
-            assignmentListSingleGroupView: null,
-            currentAssignmentId: null,
-            filterBy: 'Desk',
-            searchQuery: 'test',
-            orderByField: 'Updated',
-            orderDirection: 'Desc',
-            previewOpened: false,
-            archive: {},
-            myAssignmentsTotal: 0,
-            selectedDeskId: '',
-        };
+        beforeEach(() => {
+            stateTest = {
+                ...stateTest,
+                searchQuery: 'test',
+                orderByField: 'Updated',
+                orderDirection: 'Desc',
+            };
+        });
 
         beforeEach(() => {
             initialState = assignment(stateTest, {type: null});
@@ -246,23 +164,10 @@ describe('assignment', () => {
             });
 
             expect(result).toEqual({
-                assignments: {},
-                assignmentsInInProgressList: [],
-                inProgressListTotal: 0,
-                assignmentsInTodoList: [],
-                todoListTotal: 0,
-                assignmentsInCompletedList: [],
-                completedListTotal: 0,
-                assignmentListSingleGroupView: null,
-                currentAssignmentId: null,
+                ...stateTest,
                 filterBy: 'User',
-                searchQuery: 'test',
                 orderByField: 'Created',
                 orderDirection: 'Asc',
-                previewOpened: false,
-                archive: {},
-                myAssignmentsTotal: 0,
-                selectedDeskId: '',
             });
         });
 
@@ -278,31 +183,17 @@ describe('assignment', () => {
             });
 
             expect(result).toEqual({
-                assignments: {},
-                assignmentsInInProgressList: [],
-                inProgressListTotal: 0,
-                assignmentsInTodoList: [],
-                todoListTotal: 0,
-                assignmentsInCompletedList: [],
-                completedListTotal: 0,
-                assignmentListSingleGroupView: null,
-                currentAssignmentId: null,
-                filterBy: 'Desk',
-                searchQuery: 'test',
+                ...stateTest,
                 orderByField: 'Created',
                 orderDirection: 'Asc',
-                previewOpened: false,
-                archive: {},
-                myAssignmentsTotal: 0,
                 selectedDeskId: '1',
             });
         });
     });
 
     describe('list group reducers', () => {
-        let initialState;
-        let stateTest = {
-            assignments: {
+        beforeEach(() => {
+            stateTest.assignments = {
                 as1: {
                     _id: 'as1',
                     _created: '2017-07-13T13:55:41+0000',
@@ -323,21 +214,8 @@ describe('assignment', () => {
                         desk: 'desk2',
                     },
                 },
-            },
-            filterBy: 'Desk',
-            previewOpened: false,
-            assignmentsInInProgressList: [],
-            inProgressListTotal: 0,
-            assignmentsInTodoList: [],
-            todoListTotal: 0,
-            assignmentsInCompletedList: [],
-            completedListTotal: 0,
-            assignmentListSingleGroupView: null,
-            currentAssignmentId: null,
-            archive: {},
-            myAssignmentsTotal: 0,
-            selectedDeskId: '',
-        };
+            };
+        });
 
         beforeEach(() => {
             initialState = assignment(stateTest, {type: null});
@@ -357,21 +235,10 @@ describe('assignment', () => {
             });
 
             expect(result).toEqual({
-                assignments: stateTest.assignments,
-                assignmentsInInProgressList: [],
-                inProgressListTotal: 0,
+                ...stateTest,
                 assignmentsInTodoList: ['1', '2'],
-                assignmentsInCompletedList: [],
-                completedListTotal: 0,
                 todoListTotal: 4,
                 todoListLastLoadedPage: 1,
-                currentAssignmentId: null,
-                filterBy: 'Desk',
-                previewOpened: false,
-                assignmentListSingleGroupView: null,
-                archive: {},
-                myAssignmentsTotal: 0,
-                selectedDeskId: '',
             });
         });
 
@@ -385,21 +252,10 @@ describe('assignment', () => {
             });
 
             expect(result).toEqual({
-                assignments: stateTest.assignments,
+                ...stateTest,
                 assignmentsInInProgressList: ['1', '2'],
-                assignmentsInTodoList: [],
-                todoListTotal: 0,
-                assignmentsInCompletedList: [],
-                completedListTotal: 0,
                 inProgressListTotal: 4,
                 inProgressListLastLoadedPage: 1,
-                currentAssignmentId: null,
-                filterBy: 'Desk',
-                previewOpened: false,
-                assignmentListSingleGroupView: null,
-                archive: {},
-                myAssignmentsTotal: 0,
-                selectedDeskId: '',
             });
         });
 
@@ -413,21 +269,10 @@ describe('assignment', () => {
             });
 
             expect(result).toEqual({
-                assignments: stateTest.assignments,
-                assignmentsInInProgressList: [],
-                inProgressListTotal: 0,
-                assignmentsInTodoList: [],
-                todoListTotal: 0,
+                ...stateTest,
                 assignmentsInCompletedList: ['1', '2'],
                 completedListTotal: 4,
                 completedListLastLoadedPage: 1,
-                currentAssignmentId: null,
-                filterBy: 'Desk',
-                previewOpened: false,
-                assignmentListSingleGroupView: null,
-                archive: {},
-                myAssignmentsTotal: 0,
-                selectedDeskId: '',
             });
         });
 
@@ -442,20 +287,9 @@ describe('assignment', () => {
             });
 
             expect(result).toEqual({
-                assignments: initialState.assignments,
-                assignmentsInInProgressList: [],
-                inProgressListTotal: 0,
+                ...stateTest,
                 assignmentsInTodoList: ['1', '2', '3'],
                 todoListTotal: 3,
-                assignmentsInCompletedList: [],
-                completedListTotal: 0,
-                currentAssignmentId: null,
-                filterBy: 'Desk',
-                previewOpened: false,
-                assignmentListSingleGroupView: null,
-                archive: {},
-                myAssignmentsTotal: 0,
-                selectedDeskId: '',
             });
         });
 
@@ -471,20 +305,9 @@ describe('assignment', () => {
             });
 
             expect(result).toEqual({
-                assignments: initialState.assignments,
+                ...stateTest,
                 assignmentsInInProgressList: ['1', '2', '3'],
                 inProgressListTotal: 3,
-                assignmentsInTodoList: [],
-                todoListTotal: 0,
-                assignmentsInCompletedList: [],
-                completedListTotal: 0,
-                currentAssignmentId: null,
-                filterBy: 'Desk',
-                previewOpened: false,
-                assignmentListSingleGroupView: null,
-                archive: {},
-                myAssignmentsTotal: 0,
-                selectedDeskId: '',
             });
         });
 
@@ -500,20 +323,9 @@ describe('assignment', () => {
             });
 
             expect(result).toEqual({
-                assignments: initialState.assignments,
-                assignmentsInInProgressList: [],
-                inProgressListTotal: 0,
-                assignmentsInTodoList: [],
-                todoListTotal: 0,
+                ...stateTest,
                 assignmentsInCompletedList: ['1', '2', '3'],
                 completedListTotal: 3,
-                currentAssignmentId: null,
-                filterBy: 'Desk',
-                previewOpened: false,
-                assignmentListSingleGroupView: null,
-                archive: {},
-                myAssignmentsTotal: 0,
-                selectedDeskId: '',
             });
         });
 
@@ -524,28 +336,15 @@ describe('assignment', () => {
             });
 
             expect(result).toEqual({
-                assignments: stateTest.assignments,
-                assignmentsInInProgressList: [],
-                inProgressListTotal: 0,
-                assignmentsInTodoList: [],
-                todoListTotal: 0,
-                assignmentsInCompletedList: [],
-                completedListTotal: 0,
-                currentAssignmentId: null,
-                filterBy: 'Desk',
-                previewOpened: false,
+                ...stateTest,
                 assignmentListSingleGroupView: 'TODO',
-                archive: {},
-                myAssignmentsTotal: 0,
-                selectedDeskId: '',
             });
         });
     });
 
     describe('preview&edit assignment reducers', () => {
-        let initialState;
-        let stateTest = {
-            assignments: {
+        beforeEach(() => {
+            stateTest.assignments = {
                 as1: {
                     _id: 'as1',
                     _created: '2017-07-13T15:55:41+0000',
@@ -557,21 +356,8 @@ describe('assignment', () => {
                         },
                     },
                 },
-            },
-            previewOpened: false,
-            filterBy: 'Desk',
-            currentAssignmentId: null,
-            assignmentsInInProgressList: [],
-            inProgressListTotal: 0,
-            assignmentsInTodoList: [],
-            todoListTotal: 0,
-            assignmentsInCompletedList: [],
-            completedListTotal: 0,
-            assignmentListSingleGroupView: null,
-            archive: {},
-            myAssignmentsTotal: 0,
-            selectedDeskId: '',
-        };
+            };
+        });
 
         beforeEach(() => {
             initialState = assignment(stateTest, {type: null});
@@ -588,21 +374,10 @@ describe('assignment', () => {
             });
 
             expect(result).toEqual({
-                assignments: {as1: initialState.assignments.as1},
+                ...stateTest,
                 previewOpened: true,
                 currentAssignmentId: 'as1',
                 readOnly: true,
-                filterBy: 'Desk',
-                assignmentsInInProgressList: [],
-                inProgressListTotal: 0,
-                assignmentsInTodoList: [],
-                todoListTotal: 0,
-                assignmentsInCompletedList: [],
-                completedListTotal: 0,
-                assignmentListSingleGroupView: null,
-                archive: {},
-                myAssignmentsTotal: 0,
-                selectedDeskId: '',
             });
         });
 
@@ -610,21 +385,8 @@ describe('assignment', () => {
             const result = assignment(initialState, {type: 'CLOSE_PREVIEW_ASSIGNMENT'});
 
             expect(result).toEqual({
-                assignments: {as1: initialState.assignments.as1},
-                previewOpened: false,
-                currentAssignmentId: null,
-                filterBy: 'Desk',
+                ...stateTest,
                 readOnly: true,
-                assignmentsInInProgressList: [],
-                inProgressListTotal: 0,
-                assignmentsInTodoList: [],
-                todoListTotal: 0,
-                assignmentsInCompletedList: [],
-                completedListTotal: 0,
-                assignmentListSingleGroupView: null,
-                archive: {},
-                myAssignmentsTotal: 0,
-                selectedDeskId: '',
             });
         });
 

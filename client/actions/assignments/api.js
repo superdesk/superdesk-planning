@@ -5,6 +5,12 @@ import {get, cloneDeep, has, pick} from 'lodash';
 import {lockUtils, getErrorMessage, isExistingItem, gettext} from '../../utils';
 import planning from '../planning';
 
+const setBaseQuery = ({must = []}) => ({
+    type: ASSIGNMENTS.ACTIONS.SET_BASE_QUERY,
+    payload: {must},
+});
+
+
 /**
  * Action Dispatcher for query the api for events
  * @return arrow function
@@ -27,6 +33,8 @@ const query = ({
             Priority: 'priority',
             Scheduled: 'planning.scheduled',
         };
+
+        const baseQuery = selectors.getBaseAssignmentQuery(getState());
 
         let query = {};
         let must = [];
@@ -67,7 +75,7 @@ const query = ({
             must.push({query_string: {query: searchQuery}});
         }
 
-        query.bool = {must};
+        query.bool = {must: must.concat(baseQuery.must)};
 
         return api('assignments').query({
             page: page,
@@ -458,6 +466,7 @@ const self = {
     fetchAssignmentHistory,
     receiveAssignmentHistory,
     unlink,
+    setBaseQuery,
 };
 
 export default self;

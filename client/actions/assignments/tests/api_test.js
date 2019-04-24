@@ -227,6 +227,60 @@ describe('actions.assignments.api', () => {
                 })
                 .catch(done.fail);
         });
+
+        it('appends baseQuery to constructed query', (done) => {
+            const source = JSON.stringify({
+                query: {
+                    bool: {
+                        must: [
+                            {term: {priority: 2}},
+                            {term: {'assigned_to.state': 'assigned'}},
+                            {
+                                query_string: {
+                                    query: 'planning.slugling.phrase(\'slugline\')',
+                                    lenient: false,
+                                },
+                            },
+                        ],
+                    },
+                },
+            });
+
+            store.initialState.assignment.baseQuery = {
+                must: [
+                    {term: {'assigned_to.state': 'assigned'}},
+                    {
+                        query_string: {
+                            query: 'planning.slugling.phrase(\'slugline\')',
+                            lenient: false,
+                        },
+                    },
+                ],
+            };
+
+
+            let params = {
+                searchQuery: null,
+                priority: ASSIGNMENTS.DEFAULT_PRIORITY,
+                orderByField: 'Priority',
+                orderDirection: 'Asc',
+            };
+
+            store.test(done, assignmentsApi.query(params))
+                .then(() => {
+                    expect(services.api('assignments').query.callCount).toBe(1);
+                    params = services.api('assignments').query.args[0][0];
+
+                    expect(params).toEqual({
+                        page: 1,
+                        sort: '[("priority", 1)]',
+                        source: source,
+                    });
+
+                    done();
+                })
+                .catch(done.fail);
+        });
     });
 
     describe('queryLockedAssignments', () => {

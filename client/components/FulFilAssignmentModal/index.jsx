@@ -18,16 +18,27 @@ export function FulFilAssignmentComponent({
     currentWorkspace,
     actionInProgress,
 }) {
-    const {newsItem, $scope} = modalProps;
-
-    const handleCancel = () => {
-        handleHide();
-        $scope.resolve();
-    };
-
     if (currentWorkspace !== WORKSPACE.AUTHORING) {
         return null;
     }
+
+    const {newsItem, onCancel, onIgnore, showIgnore, ignoreText} = modalProps;
+
+    const handleCancel = () => {
+        handleHide();
+
+        if (onCancel) {
+            onCancel();
+        }
+    };
+
+    const handleIgnore = !showIgnore ? null : () => {
+        handleHide();
+
+        if (onIgnore) {
+            onIgnore();
+        }
+    };
 
     return (
         <Modal
@@ -57,6 +68,13 @@ export function FulFilAssignmentComponent({
                     disabled={actionInProgress}
                     onClick={handleCancel}
                 />
+                {!handleIgnore ? null : (
+                    <Button
+                        text={ignoreText || gettext('Ignore')}
+                        disabled={actionInProgress}
+                        onClick={handleIgnore}
+                    />
+                )}
             </Modal.Footer>
         </Modal>
     );
@@ -66,7 +84,10 @@ FulFilAssignmentComponent.propTypes = {
     handleHide: PropTypes.func.isRequired,
     modalProps: PropTypes.shape({
         newsItem: PropTypes.object,
-        $scope: PropTypes.object,
+        onCancel: PropTypes.func,
+        onIgnore: PropTypes.func,
+        showIgnore: PropTypes.bool,
+        ignoreText: PropTypes.string,
     }),
     currentWorkspace: PropTypes.string,
     actionInProgress: PropTypes.bool,

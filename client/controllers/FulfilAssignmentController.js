@@ -84,7 +84,8 @@ export class FulFilAssignmentController {
             modalProps: {
                 newsItem: this.newsItem,
                 fullscreen: true,
-                $scope: this.$scope,
+                $scope: this.$scope, // Required by actions dispatches
+                onCancel: this.$scope.resolve,
             },
         }));
 

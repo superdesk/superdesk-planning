@@ -145,6 +145,8 @@ export const getTestActionStore = () => {
             return action;
         }),
 
+        subscribe: sinon.stub(),
+
         services: {
             notify: {
                 error: sinon.spy(),
@@ -209,6 +211,21 @@ export const getTestActionStore = () => {
 
             vocabularies: {
                 getVocabularies: () => Promise.resolve(testData.allVocabularies),
+            },
+
+            modal: {
+                createCustomModal: sinon.spy(() => Promise.resolve({
+                    openModal: store.services.modal.openModal,
+                    closeModal: store.services.modal.closeModal,
+                })),
+                openModal: sinon.stub(),
+                closeModal: sinon.stub(),
+            },
+
+            sdPlanningStore: {
+                initWorkspace: sinon.spy(
+                    (workspaceName, onLoadWorkspace) => onLoadWorkspace(store)
+                ),
             },
         },
 
