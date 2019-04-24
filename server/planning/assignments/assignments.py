@@ -46,7 +46,7 @@ class AssignmentsService(superdesk.Service):
     """Service class for the Assignments model."""
 
     def on_fetched_resource_archive(self, docs):
-        self._enhance_archive_items(docs[config.ITEMS])
+        self._enhance_archive_items(docs.get(config.ITEMS, []))
 
     def on_fetched_item_archive(self, doc):
         if doc.get('assignment_id'):
@@ -574,10 +574,11 @@ class AssignmentsService(superdesk.Service):
             if assignment_update_data.get('assignment'):
                 updated_assignment = self._get_empty_updates_for_assignment(assignment_update_data['assignment'])
                 if updates.get(ITEM_STATE, original.get(ITEM_STATE, '')) != CONTENT_STATE.SCHEDULED:
-                    updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED
-                    self._update_assignment_and_notify(updated_assignment, assignment_update_data['assignment'])
-                    get_resource_service('assignments_history').on_item_complete(
-                        updated_assignment, assignment_update_data.get('assignment'))
+                    if updated_assignment.get('assigned_to')['state'] != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+                        updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED
+                        self._update_assignment_and_notify(updated_assignment, assignment_update_data['assignment'])
+                        get_resource_service('assignments_history').on_item_complete(
+                            updated_assignment, assignment_update_data.get('assignment'))
 
                     # Update delivery record here
                     delivery_service = get_resource_service('delivery')
