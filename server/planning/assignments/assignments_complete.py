@@ -106,6 +106,8 @@ class AssignmentsCompleteService(BaseService):
                                                   coverage_type=get_coverage_type_name(
                                                       original.get('planning', {}).get('g2_content_type', '')),
                                                   slugline=original.get('planning', {}).get('slugline'),
-                                                  omit_user=True)
+                                                  omit_user=True,
+                                                  assignment_id=original[config.ID_FIELD],
+                                                  is_link=True)
 
         return item
