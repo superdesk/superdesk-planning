@@ -45,6 +45,12 @@ def get_item(_id):
     item = superdesk.get_resource_service('planning').find_one(None, _id=_id) or {}
     if item.get('event_item'):
         item['event'] = superdesk.get_resource_service('events').find_one(None, _id=item['event_item'])
+        if item['event'] and item['event'].get('event_contact_info'):
+            item['contacts'] = []
+            for contact_id in item['event']['event_contact_info']:
+                contact = superdesk.get_resource_service('contacts').find_one(None, _id=contact_id)
+                if contact and contact.get('public'):
+                    item['contacts'].append(contact)
     return item
 
 
