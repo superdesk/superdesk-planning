@@ -730,6 +730,10 @@ const modifyForClient = (event) => {
         event.location = event.location[0];
     }
 
+    if (get(event, 'unique_id') && typeof event.unique_id === 'string') {
+        event.unique_id = parseInt(event.unique_id, 10);
+    }
+
     return event;
 };
 

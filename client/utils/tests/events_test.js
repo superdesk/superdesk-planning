@@ -510,4 +510,96 @@ describe('EventUtils', () => {
             });
         });
     });
+
+    describe('modifyForClient', () => {
+        beforeEach(() => {
+            sinon.stub(moment.tz, 'guess').callsFake(() => 'Australia/Sydney');
+        });
+
+        afterEach(() => {
+            restoreSinonStub(moment.tz.guess);
+        });
+
+        it('modifies and returns the same variable that was supplied', () => {
+            const event = {name: 'test event'};
+
+            expect(eventUtils.modifyForClient(event)).toBe(event);
+        });
+
+        it('converts dates and times to moment instances', () => {
+            const event = {
+                dates: {
+                    start: '2014-08-15T04:00:00+0000',
+                    end: '2014-08-15T07:00:00+0000',
+                    tz: 'Australia/Sydney',
+                    recurring_rule: {until: '2014-08-18T04:00:00+0000'},
+                },
+            };
+
+            expect(eventUtils.modifyForClient(cloneDeep(event))).toEqual({
+                dates: {
+                    start: moment.tz('2014-08-15T04:00:00+0000', 'Australia/Sydney'),
+                    end: moment.tz('2014-08-15T07:00:00+0000', 'Australia/Sydney'),
+                    tz: 'Australia/Sydney',
+                    recurring_rule: {until: moment.tz('2014-08-18T04:00:00+0000', 'Australia/Sydney')},
+                },
+                _startTime: moment.tz('2014-08-15T04:00:00+0000', 'Australia/Sydney'),
+                _endTime: moment.tz('2014-08-15T07:00:00+0000', 'Australia/Sydney'),
+            });
+        });
+
+        it('converts dates and times to local timezone', () => {
+            const event = {
+                dates: {
+                    start: '2014-08-15T04:00:00+0000',
+                    end: '2014-08-15T07:00:00+0000',
+                    tz: 'Australia/Perth',
+                    recurring_rule: {until: '2014-08-18T04:00:00+0000'},
+                },
+            };
+
+            expect(eventUtils.modifyForClient(cloneDeep(event))).toEqual({
+                dates: {
+                    start: moment.tz('2014-08-15T04:00:00+0000', 'Australia/Sydney'),
+                    end: moment.tz('2014-08-15T07:00:00+0000', 'Australia/Sydney'),
+                    tz: 'Australia/Perth',
+                    recurring_rule: {until: moment.tz('2014-08-18T04:00:00+0000', 'Australia/Sydney')},
+                },
+                _startTime: moment.tz('2014-08-15T04:00:00+0000', 'Australia/Sydney'),
+                _endTime: moment.tz('2014-08-15T07:00:00+0000', 'Australia/Sydney'),
+            });
+        });
+
+        it('converts location array to object', () => {
+            const event = {};
+
+            expect(eventUtils.modifyForClient(cloneDeep(event))).toEqual({});
+
+            event.location = {formatted_address: '123 testing lane'};
+            expect(eventUtils.modifyForClient(cloneDeep(event))).toEqual({
+                location: {formatted_address: '123 testing lane'},
+            });
+
+            event.location = [{formatted_address: '123 testing lane'}];
+            expect(eventUtils.modifyForClient(cloneDeep(event))).toEqual({
+                location: {formatted_address: '123 testing lane'},
+            });
+        });
+
+        it('converts unique_id to an integer', () => {
+            const event = {};
+
+            expect(eventUtils.modifyForClient(cloneDeep(event))).toEqual({});
+
+            event.unique_id = 12345;
+            expect(eventUtils.modifyForClient(cloneDeep(event))).toEqual({
+                unique_id: 12345,
+            });
+
+            event.unique_id = '12345';
+            expect(eventUtils.modifyForClient(cloneDeep(event))).toEqual({
+                unique_id: 12345,
+            });
+        });
+    });
 });
