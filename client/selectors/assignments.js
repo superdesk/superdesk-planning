@@ -54,6 +54,7 @@ export const getUrgencies = (state) => get(state, 'vocabularies.urgency', []);
 export const getAssignmentHistory = (state) => get(state, 'assignment.assignmentHistoryItems');
 
 export const getMyAssignmentsCount = (state) => (get(state, 'assignment.myAssignmentsTotal', 0));
+export const getBaseAssignmentQuery = (state) => get(state, 'assignment.baseQuery', {must: []});
 
 export const getTodoAssignments = createSelector(
     [getAssignmentsInTodoList, getStoredAssignments],

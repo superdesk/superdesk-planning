@@ -5,20 +5,30 @@ import {createReducer} from './createReducer';
 import {getItemId} from '../utils';
 
 const initialState = {
-    assignments: {},
-    filterBy: 'Desk',
-    selectedDeskId: '',
-    previewOpened: false,
-    assignmentsInInProgressList: [],
-    inProgressListTotal: 0,
-    assignmentsInTodoList: [],
-    todoListTotal: 0,
-    assignmentsInCompletedList: [],
-    completedListTotal: 0,
-    assignmentListSingleGroupView: null,
-    currentAssignmentId: null,
     archive: {},
+    assignmentListSingleGroupView: null,
+    assignments: {},
+    assignmentsInCompletedList: [],
+    assignmentsInInProgressList: [],
+    assignmentsInTodoList: [],
+    baseQuery: {must: []},
+    completedListLastLoadedPage: null,
+    completedListTotal: 0,
+    currentAssignmentId: null,
+    filterBy: 'Desk',
+    filterByPriority: null,
+    filterByType: null,
+    inProgressListLastLoadedPage: null,
+    inProgressListTotal: 0,
     myAssignmentsTotal: 0,
+    orderByField: 'Scheduled',
+    orderDirection: 'Asc',
+    previewOpened: false,
+    readOnly: false,
+    searchQuery: null,
+    selectedDeskId: '',
+    todoListLastLoadedPage: null,
+    todoListTotal: 0,
 };
 
 const modifyAssignmentBeingAdded = (payload) => {
@@ -217,6 +227,11 @@ const assignmentReducer = createReducer(initialState, {
     [ASSIGNMENTS.ACTIONS.RECEIVE_ASSIGNMENT_HISTORY]: (state, payload) => ({
         ...state,
         assignmentHistoryItems: payload,
+    }),
+
+    [ASSIGNMENTS.ACTIONS.SET_BASE_QUERY]: (state, payload) => ({
+        ...state,
+        baseQuery: payload,
     }),
 });
 

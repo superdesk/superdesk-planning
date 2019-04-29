@@ -36,6 +36,7 @@ export default angular.module('superdesk-planning', [])
     )
     .component('sdPlanningDetailsWidget', reactToAngular1(PlanningDetailsWidget, ['item']))
     .service('sdPlanningStore', svc.PlanningStoreService)
+    .service('assignments', svc.AssignmentsService)
     .config(['workspaceMenuProvider', (workspaceMenuProvider) => {
         workspaceMenuProvider.item({
             href: '/workspace/assignments',
@@ -75,24 +76,32 @@ export default angular.module('superdesk-planning', [])
     .run(['$templateCache', ($templateCache) => {
         $templateCache.put('planning-details-widget.html', require('./views/planning-details-widget.html'));
     }])
-    .run(['$injector', 'sdPlanningStore', 'extensionPoints', ($injector, sdPlanningStore, extensionPoints) => {
-        ng.register($injector);
+    .run([
+        '$injector', 'sdPlanningStore', 'extensionPoints', 'functionPoints', 'assignments',
+        ($injector, sdPlanningStore, extensionPoints, functionPoints, assignments) => {
+            ng.register($injector);
 
-        //
-        const callback = (extension, scope) => (
-            sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, (store) => {
-                store.dispatch(actions.fetchAgendas());
-                extension.props.store = store;
-                scope.$watch('selected.preview', (newValue) => {
-                    extension.props.store.dispatch(actions.main.onQueueItemChange(newValue));
+            //
+            const callback = (extension, scope) => (
+                sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, (store) => {
+                    store.dispatch(actions.fetchAgendas());
+                    extension.props.store = store;
+                    scope.$watch('selected.preview', (newValue) => {
+                        extension.props.store.dispatch(actions.main.onQueueItemChange(newValue));
+                    });
+                })
+            );
+
+            ng.waitForServicesToBeAvailable()
+                .then(() => {
+                    extensionPoints.register('publish_queue:preview',
+                        PublishQueuePanel, {}, ['selected'],
+                        callback);
                 });
-            })
-        );
 
-        ng.waitForServicesToBeAvailable()
-            .then(() => {
-                extensionPoints.register('publish_queue:preview',
-                    PublishQueuePanel, {}, ['selected'],
-                    callback);
-            });
-    }]);
+            functionPoints.register(
+                'authoring:publish',
+                assignments.onPublishFromAuthoring
+            );
+        },
+    ]);
