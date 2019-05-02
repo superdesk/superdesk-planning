@@ -106,6 +106,11 @@ export const EVENTS = {
             actionName: 'onEventAssignCalendar',
             lock_action: 'assign_calendar',
         },
+        SAVE_AS_TEMPLATE: {
+            label: gettext('Save event as a template'),
+            icon: 'icon-new-doc',
+            actionName: 'onCreateEventTemplate',
+        },
     },
     FILTER: {
         NO_CALENDAR_ASSIGNED: 'NO_CALENDAR_ASSIGNED',

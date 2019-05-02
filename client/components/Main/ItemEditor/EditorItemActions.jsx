@@ -78,6 +78,13 @@ export const EditorItemActions = ({
                             itemActions[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName](item)
                         ))
                 ),
+            [EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.actionName]:
+                () => (
+                    autoSave.flushAutosave()
+                        .then(() => {
+                            console.log('...');
+                        })
+                ),
         };
         actions = eventUtils.getEventActions({
             item,

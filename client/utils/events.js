@@ -565,6 +565,7 @@ const getEventActions = ({item, session, privileges, lockedItems, callBacks, wit
         EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName,
         EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName,
         EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName,
+        EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.actionName,
     ];
 
     if (isExpired && !privileges[PRIVILEGES.EDIT_EXPIRED]) {
