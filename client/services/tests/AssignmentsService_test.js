@@ -1,9 +1,10 @@
 import sinon from 'sinon';
 
-import {getTestActionStore} from '../../utils/testUtils';
+import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
 import * as testData from '../../utils/testData';
 
 import {AssignmentsService} from '../AssignmentsService';
+import * as actions from '../../actions';
 
 describe('assignments service', () => {
     let store;
@@ -21,6 +22,12 @@ describe('assignments service', () => {
             services.modal,
             services.sdPlanningStore
         );
+
+        sinon.stub(actions.assignments.ui, 'preview').returns({type: 'PREVIEW'});
+    });
+
+    afterEach(() => {
+        restoreSinonStub(actions.assignments.ui.preview);
     });
 
     describe('onPublishFromAuthoring', () => {
@@ -84,7 +91,7 @@ describe('assignments service', () => {
                 expect(services.modal.createCustomModal.callCount).toBe(1);
                 expect(services.modal.openModal.callCount).toBe(1);
 
-                expect(store.dispatch.callCount).toBe(4);
+                expect(store.dispatch.callCount).toBe(5);
                 expect(store.dispatch.args[1]).toEqual([{
                     type: 'CHANGE_LIST_VIEW_MODE',
                     payload: 'TODO',
@@ -101,7 +108,13 @@ describe('assignments service', () => {
                         ],
                     },
                 }]);
-                expect(store.dispatch.args[3]).toEqual([{
+
+                expect(actions.assignments.ui.preview.callCount).toBe(1);
+                expect(actions.assignments.ui.preview.args[0]).toEqual([
+                    testData.assignments[0],
+                ]);
+
+                expect(store.dispatch.args[4]).toEqual([{
                     type: 'SHOW_MODAL',
                     modalType: 'FULFIL_ASSIGNMENT',
                     modalProps: jasmine.objectContaining({

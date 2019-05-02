@@ -103,6 +103,7 @@ export class AssignmentsService {
                         store.dispatch(actions.assignments.api.setBaseQuery(
                             this.getAssignmentQuery(get(item, 'slugline'))
                         ));
+                        store.dispatch(actions.assignments.ui.preview(assignments[0]));
 
                         const onCancel = () => {
                             closeModal();
@@ -130,8 +131,10 @@ export class AssignmentsService {
                                 $scope: $scope, // Required by actions dispatches
                                 onCancel: onCancel,
                                 onIgnore: onIgnore,
+                                showCancel: false,
                                 showIgnore: true,
                                 ignoreText: gettext('Don\'t Fulfil Assignment'),
+                                title: gettext('Select an Assignment'),
                             },
                         }));
                     });

@@ -1,3 +1,5 @@
+import {get} from 'lodash';
+
 import * as ctrl from './controllers';
 import * as svc from './services';
 import {WORKSPACE} from './constants';
@@ -77,11 +79,10 @@ export default angular.module('superdesk-planning', [])
         $templateCache.put('planning-details-widget.html', require('./views/planning-details-widget.html'));
     }])
     .run([
-        '$injector', 'sdPlanningStore', 'extensionPoints', 'functionPoints', 'assignments',
-        ($injector, sdPlanningStore, extensionPoints, functionPoints, assignments) => {
+        '$injector', 'sdPlanningStore', 'extensionPoints', 'functionPoints', 'assignments', 'deployConfig',
+        ($injector, sdPlanningStore, extensionPoints, functionPoints, assignments, deployConfig) => {
             ng.register($injector);
 
-            //
             const callback = (extension, scope) => (
                 sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, (store) => {
                     store.dispatch(actions.fetchAgendas());
@@ -99,9 +100,13 @@ export default angular.module('superdesk-planning', [])
                         callback);
                 });
 
-            functionPoints.register(
-                'authoring:publish',
-                assignments.onPublishFromAuthoring
-            );
+            deployConfig.promise.then(() => {
+                if (get(deployConfig, 'config.planning_check_for_assignment_on_publish', false)) {
+                    functionPoints.register(
+                        'authoring:publish',
+                        assignments.onPublishFromAuthoring
+                    );
+                }
+            });
         },
     ]);
