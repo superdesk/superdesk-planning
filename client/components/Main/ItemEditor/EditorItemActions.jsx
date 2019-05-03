@@ -1,5 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import PropTypes, { func } from 'prop-types';
 
 import {ITEM_TYPE, EVENTS, PLANNING} from '../../../constants';
 import {getItemType, eventUtils, planningUtils} from '../../../utils';
@@ -81,8 +81,14 @@ export const EditorItemActions = ({
             [EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.actionName]:
                 () => (
                     autoSave.flushAutosave()
-                        .then(() => {
-                            console.log('...');
+                        .then(() => {                            
+                            if (itemManager.editor.state.dirty) {
+                                alert(gettext('Save changes before saving as a template.'));
+                            } else {
+                                const name = prompt('Template name');
+                                // name, item
+                                // send to server
+                            }
                         })
                 ),
         };
