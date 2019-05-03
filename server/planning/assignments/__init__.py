@@ -87,6 +87,9 @@ def init_app(app):
         app.on_deleted_resource_archive_rewrite +=\
             assignments_publish_service.unlink_assignment_on_delete_archive_rewrite
 
+    app.client_config['planning_check_for_assignment_on_publish'] = \
+        app.config.get('PLANNING_CHECK_FOR_ASSIGNMENT_ON_PUBLISH', False)
+
     # Enhance the archive/published item resources with assigned desk/user information
     app.on_fetched_resource_archive += assignments_publish_service.on_fetched_resource_archive
     app.on_fetched_item_archive += assignments_publish_service.on_fetched_item_archive
