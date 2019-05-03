@@ -597,14 +597,15 @@ class AssignmentsService(superdesk.Service):
                                                                               _id=get_user().get(config.ID_FIELD, ''))
                     assignee = assigned_to_user.get('display_name') if assigned_to_user else 'Unknown'
                     target_user = assignment_update_data['assignment'].get('assigned_to', {}).get('assignor_desk')
-                    PlanningNotifications().notify_assignment(target_user=target_user,
-                                                              message='assignment_complete_msg',
-                                                              assignee=assignee,
-                                                              coverage_type=get_coverage_type_name(
-                                                                  original.get('planning', {}).get('g2_content_type',
-                                                                                                   '')),
-                                                              slugline=original.get('slugline'),
-                                                              omit_user=True)
+                    if not original.get('rewrite_of'):
+                        PlanningNotifications().notify_assignment(target_user=target_user,
+                                                                  message='assignment_complete_msg',
+                                                                  assignee=assignee,
+                                                                  coverage_type=get_coverage_type_name(
+                                                                      original.get('planning', {}).get(
+                                                                          'g2_content_type', '')),
+                                                                  slugline=original.get('slugline'),
+                                                                  omit_user=True)
 
     def create_delivery_for_content_update(self, items):
         """Duplicates the coverage/assignment for the archive rewrite
