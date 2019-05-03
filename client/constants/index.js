@@ -15,6 +15,7 @@ export {COVERAGES} from './coverages';
 export {MULTISELECT} from './multiselect';
 export {CONTACTS} from './contacts';
 export {FEATURED_PLANNING} from './featuredPlanning';
+export {LOCATIONS} from './locations';
 
 export {EVENTS} from './events';
 

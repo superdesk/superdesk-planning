@@ -4,7 +4,6 @@ import './client/styles/index.scss';
 // scripts
 import planningModule from './client';
 import * as ctrl from './client/controllers';
-import {get} from 'lodash';
 
 
 configurePlanning.$inject = ['superdeskProvider', '$injector'];
@@ -24,6 +23,18 @@ function configurePlanning(superdesk, $injector) {
             template: require('./client/views/assignment.html'),
             topTemplateUrl: 'scripts/apps/dashboard/views/workspace-topnav.html',
             sideTemplateUrl: 'scripts/apps/workspace/views/workspace-sidenav.html',
+        })
+        .activity('/locations', {
+            label: gettext('Manage Locations'),
+            description: gettext('Manage Locations'),
+            priority: 200,
+            category: superdesk.MENU_MAIN,
+            adminTools: true,
+            templateUrl: 'locations.html',
+            sideTemplateUrl: 'scripts/apps/workspace/views/workspace-sidenav.html',
+            privileges: {
+                planning_locations_management: 1,
+            },
         })
         .activity('planning.addto', {
             label: gettext('Add to Planning'),

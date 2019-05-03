@@ -93,6 +93,12 @@ def init_app(app):
         description='Ability to create an Event or Planning item in the past'
     )
 
+    superdesk.privilege(
+        name='planning_locations_management',
+        label='Planning - Manage locations',
+        decsription='Ability to create, edit and delete locations'
+    )
+
     app.on_update_users += PlanningNotifications().user_update
 
     superdesk.register_default_user_preference('slack:notification', {
