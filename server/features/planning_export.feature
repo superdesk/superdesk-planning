@@ -116,7 +116,7 @@ Feature: Export planning items with default template
                 "label": "Default Planning Template",
                 "type": "planning",
                 "data": {
-                    "body_html": "test_planning_export_template.html"
+                    "body_html_template": "test_planning_export_template.html"
                 }
             }
         ]

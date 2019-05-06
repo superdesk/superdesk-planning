@@ -80,7 +80,7 @@ Feature: Export events with default template
                 "label": "Default Event Template",
                 "type": "event",
                 "data": {
-                    "body_html": "test_event_export_template.html"
+                    "body_html_template": "test_event_export_template.html"
                 }
             }
         ]

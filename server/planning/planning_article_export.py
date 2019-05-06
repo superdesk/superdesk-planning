@@ -101,7 +101,7 @@ def generate_text_item(items, template_name, resource_type):
     article = {}
     for key, value in template.items():
         if value.endswith(".html"):
-            article[key] = render_template(value, items=items)
+            article[key.replace('_template', '')] = render_template(value, items=items)
         else:
             article[key] = render_template_string(value, items=items)
 
