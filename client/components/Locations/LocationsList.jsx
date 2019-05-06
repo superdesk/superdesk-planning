@@ -5,6 +5,7 @@ import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {List} from '../UI';
 import {formatAddress, getMapUrl, gettext} from '../../utils';
+import {get} from 'lodash';
 
 export class LocationsListComponent extends React.Component {
     constructor(props) {
@@ -44,12 +45,12 @@ export class LocationsListComponent extends React.Component {
                                     title={gettext('Show on map')}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    href={getMapUrl(this.props.streetMapUrl, location.name,
-                                        formatAddress(location).formattedAddress)}>
+                                    href={getMapUrl(this.props.streetMapUrl, get(location, 'name'),
+                                        get(formatAddress(location), 'formattedAddress'))}>
                                     <i className="icon-map-marker icon--gray"/>
                                 </a>
-                                <span className="sd-list-item__strong">{location.name}</span>
-                                {formatAddress(location).formattedAddress}
+                                <span className="sd-list-item__strong">{get(location, 'name')}</span>
+                                {get(formatAddress(location), 'formattedAddress')}
                             </List.Row>
                         </List.Column>
                         <List.ActionMenu>
