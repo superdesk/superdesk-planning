@@ -1,12 +1,13 @@
 import React from 'react';
-import PropTypes, { func } from 'prop-types';
+import PropTypes from 'prop-types';
+import {connectServices} from 'superdesk-core/scripts/core/helpers/ReactRenderAsync';
 
 import {ITEM_TYPE, EVENTS, PLANNING} from '../../../constants';
 import {getItemType, eventUtils, planningUtils} from '../../../utils';
 
 import {ItemActionsMenu} from '../../index';
 
-export const EditorItemActions = ({
+const EditorItemActionsComponent = ({
     item,
     event,
     session,
@@ -16,6 +17,7 @@ export const EditorItemActions = ({
     contentTypes,
     itemManager,
     autoSave,
+    modal,
 }) => {
     const itemType = getItemType(item);
     const withMultiPlanningDate = true;
@@ -81,13 +83,18 @@ export const EditorItemActions = ({
             [EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.actionName]:
                 () => (
                     autoSave.flushAutosave()
-                        .then(() => {                            
+                        .then(() => {
                             if (itemManager.editor.state.dirty) {
-                                alert(gettext('Save changes before saving as a template.'));
+                                modal.alert({
+                                    headerText: gettext('Warning'),
+                                    bodyText: gettext('Save changes before saving as a template.'),
+                                });
                             } else {
-                                const name = prompt('Template name');
-                                // name, item
-                                // send to server
+                                modal.prompt(gettext('Template name')).then((templateName) => {
+                                    console.log('item', item);
+                                    // send to server
+                                    debugger;
+                                });
                             }
                         })
                 ),
@@ -156,7 +163,7 @@ export const EditorItemActions = ({
     />);
 };
 
-EditorItemActions.propTypes = {
+EditorItemActionsComponent.propTypes = {
     item: PropTypes.object,
     event: PropTypes.object,
     session: PropTypes.object,
@@ -166,4 +173,10 @@ EditorItemActions.propTypes = {
     contentTypes: PropTypes.array,
     itemManager: PropTypes.object,
     autoSave: PropTypes.object,
+    modal: PropTypes.object,
 };
+
+export const EditorItemActions = connectServices(
+    EditorItemActionsComponent,
+    ['modal']
+);
