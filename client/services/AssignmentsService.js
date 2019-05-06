@@ -134,7 +134,7 @@ export class AssignmentsService {
                                 showCancel: false,
                                 showIgnore: true,
                                 ignoreText: gettext('Don\'t Fulfil Assignment'),
-                                title: gettext('Select an Assignment'),
+                                title: gettext('Fulfil Assignment with this item?'),
                             },
                         }));
                     });
