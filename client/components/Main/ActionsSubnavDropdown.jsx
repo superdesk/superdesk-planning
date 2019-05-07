@@ -3,12 +3,23 @@ import PropTypes from 'prop-types';
 import {gettext} from '../../utils';
 import {Dropdown} from '../UI/SubNav';
 import {PRIVILEGES} from '../../constants';
+import {connect} from 'react-redux';
+import {showModal} from '../../actions/modal';
+import {MODALS} from '../../constants/modals';
 
-export const ActionsSubnavDropdown = (props) => {
-    let items = [{
-        label: gettext('Manage agendas'),
-        action: props.openAgendas,
-    }];
+const ActionsSubnavDropdownComponent = (props) => {
+    let items = [
+        {
+            label: gettext('Manage agendas'),
+            action: props.openAgendas,
+        },
+        {
+            label: gettext('Manage event templates'),
+            action: () => props.dispatch(showModal({
+                modalType: MODALS.MANAGE_EVENT_TEMPLATES,
+            })),
+        },
+    ];
 
     if (props.privileges[PRIVILEGES.EVENTS_PLANNING_FILTERS_MANAGEMENT]) {
         items.push({
@@ -35,9 +46,12 @@ export const ActionsSubnavDropdown = (props) => {
     );
 };
 
-ActionsSubnavDropdown.propTypes = {
+ActionsSubnavDropdownComponent.propTypes = {
     openFeaturedPlanningModal: PropTypes.func,
     openAgendas: PropTypes.func,
     openEventsPlanningFiltersModal: PropTypes.func,
     privileges: PropTypes.object,
+    dispatch: PropTypes.func,
 };
+
+export const ActionsSubnavDropdown = connect()(ActionsSubnavDropdownComponent);

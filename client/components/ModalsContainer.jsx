@@ -22,6 +22,7 @@ import SortItemsModal from './SortItemsModal';
 import {ManageAgendasModal} from './Agendas/ManageAgendasModal';
 import {SelectDeskTemplate} from './Assignments';
 import {ManageFiltersModal} from './EventsPlanningFilters';
+import {ManageEventTemplatesModal} from './Events/ManageEventTemplatesModal';
 
 const modals = {
     [MODALS.CONFIRMATION]: ConfirmationModal,
@@ -38,6 +39,7 @@ const modals = {
     [MODALS.UNLOCK_FEATURED_STORIES]: UnlockFeaturedPlanning,
     [MODALS.SELECT_DESK_TEMPLATE]: SelectDeskTemplate,
     [MODALS.MANAGE_EVENTS_PLANNING_FILTERS]: ManageFiltersModal,
+    [MODALS.MANAGE_EVENT_TEMPLATES]: ManageEventTemplatesModal,
 };
 
 export function Modals({modalType, modalProps, handleHide}) {
