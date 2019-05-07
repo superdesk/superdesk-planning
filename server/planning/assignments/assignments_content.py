@@ -14,7 +14,7 @@ from eve.utils import config
 from apps.archive.common import insert_into_versions
 from apps.auth import get_user_id
 from apps.templates.content_templates import get_item_from_template
-from planning.planning import get_desk_template
+from planning.planning_article_export import get_desk_template
 from superdesk.errors import SuperdeskApiError
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_coverage_type_name
 from superdesk.utc import utcnow

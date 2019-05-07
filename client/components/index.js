@@ -36,6 +36,7 @@ export {InternalNoteLabel} from './InternalNoteLabel';
 export {Location} from './Location';
 export {IgnoreCancelSaveModal} from './IgnoreCancelSaveModal';
 export {PublishQueuePreview} from './PublishQueuePreview';
+export {ExportAsArticleModal} from './ExportAsArticleModal';
 
 // This must go last, as it imports Modals from above modules
 export {ModalsContainer} from './ModalsContainer';

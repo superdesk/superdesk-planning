@@ -13,6 +13,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
     constructor(props) {
         super(props);
 
+        this.exportArticle = this.exportArticle.bind(this);
         this.itemSpike = this.itemSpike.bind(this);
         this.itemUnSpike = this.itemUnSpike.bind(this);
         this.createPlanning = this.createPlanning.bind(this);
@@ -90,7 +91,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
         if (showExport) {
             tools.push(<Button
                 key={1}
-                onClick={this.props.exportAsArticle}
+                onClick={this.exportArticle}
                 color="primary"
                 text={gettext('Export as article')} />);
         }
@@ -141,9 +142,15 @@ export class MultiSelectActionsComponent extends React.PureComponent {
 
         let tools = [];
 
+        tools.push(<Button
+            key={1}
+            onClick={this.exportArticle}
+            color="primary"
+            text={gettext('Export as article')} />);
+
         if (showCreatePlan) {
             tools.push(<Button
-                key={1}
+                key={2}
                 onClick={this.createPlanning}
                 color="primary"
                 text={gettext('Create planning')} />);
@@ -151,7 +158,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
 
         if (showSpike) {
             tools.push(<Button
-                key={2}
+                key={3}
                 onClick={this.itemSpike}
                 color="alert"
                 text={gettext('Spike')}
@@ -160,7 +167,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
 
         if (showUnspike) {
             tools.push(<Button
-                key={3}
+                key={4}
                 onClick={this.itemUnSpike}
                 color="warning"
                 text={gettext('Unspike')}
@@ -185,6 +192,10 @@ export class MultiSelectActionsComponent extends React.PureComponent {
 
     createPlanning() {
         this.props.addEventToCurrentAgenda(this.getItemList());
+    }
+
+    exportArticle() {
+        this.props.exportAsArticle(this.getItemList());
     }
 
     render() {
@@ -256,7 +267,7 @@ const mapDispatchToProps = (dispatch) => ({
     addEventToCurrentAgenda: (events) => dispatch(actions.askForAddEventToCurrentAgenda(events)),
     spikeItems: (items) => dispatch(actions.multiSelect.itemBulkSpikeModal(items)),
     unspikeItems: (items) => dispatch(actions.multiSelect.itemBulkUnSpikeModal(items)),
-    exportAsArticle: () => dispatch(actions.planning.api.exportAsArticle()),
+    exportAsArticle: (items) => dispatch(actions.multiSelect.exportAsArticle(items)),
 });
 
 

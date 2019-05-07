@@ -54,6 +54,7 @@ const planningApp = combineReducers({
     customVocabularies: returnState,
     userDesks: returnState,
     locations: locations,
+    exportTemplates: returnState,
 });
 
 export default planningApp;

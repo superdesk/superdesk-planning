@@ -183,6 +183,10 @@ export class PlanningStoreService {
                 page: 1,
             }),
             userDesks: this.desks.fetchCurrentUserDesks(),
+            exportTemplates: this.api('planning_export_templates').query({
+                max_results: 200,
+                page: 1,
+            }),
         });
     }
 
@@ -235,6 +239,7 @@ export class PlanningStoreService {
                         isEmpty(cv.field_type)
                     ),
                     userDesks: data.userDesks,
+                    exportTemplates: get(data.exportTemplates, '_items', []),
                 };
 
                 // use custom cvs if any

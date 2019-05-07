@@ -19,7 +19,6 @@ from .planning_cancel import PlanningCancelService, PlanningCancelResource
 from .planning_reschedule import PlanningRescheduleService, PlanningRescheduleResource
 from .planning_postpone import PlanningPostponeService, PlanningPostponeResource
 from .planning_types import PlanningTypesService, PlanningTypesResource
-from .planning_export import PlanningExportResource, PlanningExportService, get_desk_template # noqa
 from .planning_autosave import PlanningAutosaveResource
 from .planning_featured_lock import PlanningFeaturedLockResource, PlanningFeaturedLockService,\
     PlanningFeaturedUnlockResource, PlanningFeaturedUnlockService
@@ -100,14 +99,6 @@ def init_app(app):
 
     planning_featured_service = PlanningFeaturedService('planning_featured', backend=superdesk.get_backend())
     PlanningFeaturedResource('planning_featured', app=app, service=planning_featured_service)
-
-    superdesk.register_resource(
-        'planning_export',
-        PlanningExportResource,
-        PlanningExportService,
-        privilege='planning',
-        _app=app
-    )
 
     planning_autosave_service = AutosaveService('planning_autosave', superdesk.get_backend())
     PlanningAutosaveResource('planning_autosave', app=app, service=planning_autosave_service)
