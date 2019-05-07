@@ -9,24 +9,8 @@ import {ITEM_TYPE} from '../../constants/index';
 import {connectServices} from 'superdesk-core/scripts/core/helpers/ReactRenderAsync';
 
 class CreateNewSubnavDropdownFn extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            eventTemplates: null,
-        };
-    }
-
-    componentDidMount() {
-        setTimeout(() => {
-            // this.props.api
-            this.setState({
-                eventTemplates: [{name: 'test', data: {slugline: 'test2'}}],
-            });
-        }, 2000);
-    }
     render() {
-        if (this.state.eventTemplates == null) {
+        if (this.props.eventTemplates == null) {
             return null;
         }
 
@@ -52,7 +36,7 @@ class CreateNewSubnavDropdownFn extends React.Component {
                 id: 'create_event',
             });
 
-            this.state.eventTemplates.forEach((template) => {
+            this.props.eventTemplates.forEach((template) => {
                 items.push({
                     label: template.name,
                     icon: 'icon-plus-sign icon--blue',
@@ -82,9 +66,16 @@ CreateNewSubnavDropdownFn.propTypes = {
     privileges: PropTypes.object,
     dispatch: PropTypes.func,
     api: PropTypes.func,
+    eventTemplates: PropTypes.array,
 };
 
-export const CreateNewSubnavDropdown = connect()(
+function mapStateToProps(state) {
+    return {
+        eventTemplates: state.events.eventTemplates,
+    };
+}
+
+export const CreateNewSubnavDropdown = connect(mapStateToProps)(
     connectServices(
         CreateNewSubnavDropdownFn,
         ['api']
