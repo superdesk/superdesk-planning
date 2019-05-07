@@ -8,15 +8,6 @@ import {List} from '../../components/UI';
 import {Form} from '../../components/UI';
 import {TOOLTIPS} from '../../constants';
 
-const eventTemplates = [];
-
-for (var i = 0; i < 100; i++) {
-    eventTemplates.push({
-        name: `Event template ${i}`,
-        id: i,
-    });
-}
-
 class EventTemplateEdit extends React.Component {
     constructor(props) {
         super(props);
@@ -64,13 +55,18 @@ class EventTemplateEdit extends React.Component {
     }
 }
 
+EventTemplateEdit.propTypes = {
+    template: PropTypes.object,
+    exitEditMode: PropTypes.func,
+};
+
 class EventTemplatesList extends React.Component {
     render() {
         return (
             <ColumnBox.Box>
                 <ColumnBox.MainColumn padded={true} verticalScroll={true} fullHeight>
                     {
-                        eventTemplates.map((eventTemplate, i) => (
+                        this.props.eventTemplates.map((eventTemplate, i) => (
                             <List.Item shadow={1} key={i}>
                                 <List.Column grow={true} border={false}>
                                     <List.Row>
@@ -84,7 +80,7 @@ class EventTemplatesList extends React.Component {
                                 <List.Column border={false}>
                                     <List.Row>
                                         <button
-                                            onClick={() => this.editTemplate(i)}
+                                            onClick={() => this.props.editTemplate(i)}
                                             className="dropdown__toggle"
                                             data-sd-tooltip={gettext(TOOLTIPS.edit)}
                                             data-flow="left"
@@ -102,9 +98,9 @@ class EventTemplatesList extends React.Component {
     }
 }
 
-EventTemplateEdit.propTypes = {
-    template: PropTypes.object,
-    exitEditMode: PropTypes.func,
+EventTemplatesList.propTypes = {
+    eventTemplates: PropTypes.array,
+    editTemplate: PropTypes.func,
 };
 
 
@@ -145,10 +141,10 @@ class ManageFiltersComponent extends React.Component {
                 <Modal.Body noPadding={true} noScroll fullHeight>
                     {
                         this.state.templateInEditMode == null
-                            ? <EventTemplatesList />
+                            ? <EventTemplatesList eventTemplates={this.props.eventTemplates} editTemplate={this.editTemplate} />
                             : (
                                 <EventTemplateEdit
-                                    template={eventTemplates[this.state.templateInEditMode]}
+                                    template={this.props.eventTemplates[this.state.templateInEditMode]}
                                     exitEditMode={this.exitEditMode}
                                 />
                             )
@@ -161,6 +157,13 @@ class ManageFiltersComponent extends React.Component {
 
 ManageFiltersComponent.propTypes = {
     handleHide: PropTypes.func,
+    eventTemplates: PropTypes.array,
 };
 
-export const ManageEventTemplatesModal = connect()(ManageFiltersComponent);
+function mapStateToProps(state) {
+    return {
+        eventTemplates: state.events.eventTemplates,
+    };
+}
+
+export const ManageEventTemplatesModal = connect(mapStateToProps)(ManageFiltersComponent);

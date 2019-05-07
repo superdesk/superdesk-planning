@@ -9,6 +9,21 @@ import main from '../main';
 import {gettext} from '../../utils';
 import {showModal} from '../index';
 
+const getEventTemplates = () => new Promise((resolve) => {
+    setTimeout(() => {
+        const eventTemplates = [];
+
+        for (var i = 0; i < 100; i++) {
+            eventTemplates.push({
+                name: `Event template ${i}`,
+                id: i,
+            });
+        }
+
+        resolve(eventTemplates);
+    }, 2000);
+});
+
 /**
  * Action to fetch events and planning based on the params
  * @param {object} params - Params Object
@@ -18,14 +33,19 @@ const fetch = (params = {}) => (
     (dispatch, getState, {$location, $timeout}) => {
         dispatch(self.requestEventsPlanning(params));
 
-        return dispatch(eventsAndPlanningApi.query(params, true))
-            .then((results) => {
-                dispatch(self.receiveEventsPlanning(results));
-                dispatch(self.setInList(results));
-                // update the url (deep linking)
-                $timeout(() => $location.search('searchParams', JSON.stringify(params)));
-                return results;
-            });
+        return Promise.all([
+            dispatch(eventsAndPlanningApi.query(params, true)),
+            getEventTemplates(),
+        ]).then((res) => {
+            const [results, eventTemplates] = res;
+
+            dispatch(self.receiveEventsPlanning(results));
+            dispatch(self.setInList(results));
+            dispatch({type: 'RECEIVE_EVENT_TEMPLATES', payload: eventTemplates});
+            // update the url (deep linking)
+            $timeout(() => $location.search('searchParams', JSON.stringify(params)));
+            return results;
+        });
     }
 );
 
