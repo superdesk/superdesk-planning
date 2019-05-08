@@ -16,7 +16,7 @@ const getEventTemplates = () => new Promise((resolve) => {
         for (var i = 0; i < 100; i++) {
             eventTemplates.push({
                 name: `Event template ${i}`,
-                id: i,
+                _id: i,
             });
         }
 

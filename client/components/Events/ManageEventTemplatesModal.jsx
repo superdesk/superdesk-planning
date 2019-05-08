@@ -8,25 +8,20 @@ import {List} from '../../components/UI';
 import {Form} from '../../components/UI';
 import {TOOLTIPS} from '../../constants';
 import {connectServices} from 'superdesk-core/scripts/core/helpers/ReactRenderAsync';
+import {cloneDeep} from 'lodash';
 
 class EventTemplateEdit extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            name: props.template.name,
-        };
+        this.state = cloneDeep(this.props.template);
 
         this.handleFieldChange = this.handleFieldChange.bind(this);
-        this.save = this.save.bind(this);
     }
     handleFieldChange(field, nextValue) {
         this.setState({
             [field]: nextValue,
         });
-    }
-    save() {
-        this.props.exitEditMode();
     }
     render() {
         return (
@@ -45,7 +40,7 @@ class EventTemplateEdit extends React.Component {
                 </Form.Row>
 
                 <button
-                    onClick={this.save}
+                    onClick={() => this.props.onEditComplete(this.state)}
                     disabled={this.props.template.name === this.state.name}
                     className="btn btn--primary"
                 >
@@ -58,7 +53,7 @@ class EventTemplateEdit extends React.Component {
 
 EventTemplateEdit.propTypes = {
     template: PropTypes.object,
-    exitEditMode: PropTypes.func,
+    onEditComplete: PropTypes.func,
 };
 
 class EventTemplatesList extends React.Component {
@@ -114,7 +109,6 @@ EventTemplatesList.propTypes = {
     deleteTemplate: PropTypes.func,
 };
 
-
 class ManageFiltersComponent extends React.Component {
     constructor(props) {
         super(props);
@@ -124,7 +118,7 @@ class ManageFiltersComponent extends React.Component {
 
         this.editTemplate = this.editTemplate.bind(this);
         this.deleteTemplate = this.deleteTemplate.bind(this);
-        this.exitEditMode = this.exitEditMode.bind(this);
+        this.onEditComplete = this.onEditComplete.bind(this);
     }
 
     editTemplate(id) {
@@ -133,18 +127,31 @@ class ManageFiltersComponent extends React.Component {
         });
     }
 
-    deleteTemplate(id) {
-        this.props.modal.confirm(gettext('Confirm delete')).then(() => {
-            // TODO: delete on server
-            this.setState({
-                templateInEditMode: id,
-            });
+    onEditComplete(templateEdited) {
+        const eventTemplatesNext = this.props.eventTemplates.map((template) => {
+            if (template._id === templateEdited._id) {
+                return templateEdited;
+            } else {
+                return template;
+            }
+        });
+
+        // TODO: update on server
+
+        this.props.dispatch({type: 'RECEIVE_EVENT_TEMPLATES', payload: eventTemplatesNext});
+
+        this.setState({
+            templateInEditMode: null,
         });
     }
 
-    exitEditMode() {
-        this.setState({
-            templateInEditMode: null,
+    deleteTemplate(id) {
+        this.props.modal.confirm(gettext('Confirm delete')).then(() => {
+            // TODO: delete on server
+
+            const eventTemplatesNext = this.props.eventTemplates.filter(({_id}) => _id !== id);
+
+            this.props.dispatch({type: 'RECEIVE_EVENT_TEMPLATES', payload: eventTemplatesNext});
         });
     }
 
@@ -172,7 +179,7 @@ class ManageFiltersComponent extends React.Component {
                             : (
                                 <EventTemplateEdit
                                     template={this.props.eventTemplates[this.state.templateInEditMode]}
-                                    exitEditMode={this.exitEditMode}
+                                    onEditComplete={this.onEditComplete}
                                 />
                             )
                     }
@@ -186,6 +193,7 @@ ManageFiltersComponent.propTypes = {
     handleHide: PropTypes.func,
     eventTemplates: PropTypes.array,
     modal: PropTypes.object,
+    dispatch: PropTypes.func,
 };
 
 function mapStateToProps(state) {
