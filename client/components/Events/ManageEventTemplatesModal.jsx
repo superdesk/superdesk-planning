@@ -152,14 +152,14 @@ class ManageFiltersComponent extends React.Component {
         const {handleHide} = this.props;
 
         return (
-            <Modal xLarge={false} show={true} onHide={handleHide} fullheight>
+            <Modal xLarge={false} show={true} onHide={handleHide}>
                 <Modal.Header>
                     <a className="close" onClick={handleHide}>
                         <i className="icon-close-small" />
                     </a>
                     <h3 className="modal__heading">{gettext('Manage Event Templates')}</h3>
                 </Modal.Header>
-                <Modal.Body noPadding={true} noScroll fullHeight>
+                <Modal.Body noPadding={true}>
                     {
                         this.state.templateInEditMode == null
                             ? (
