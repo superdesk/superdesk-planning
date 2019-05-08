@@ -54,7 +54,10 @@ class CreateNewSubnavDropdownFn extends React.Component {
                 alignRight={true}
                 disableSelection={createPlanningOnly}
                 defaultAction={addPlanning}
-                tooltip={createPlanningOnly ? gettext('Create new planning item') : gettext('Create new item')} />
+                tooltip={createPlanningOnly ? gettext('Create new planning item') : gettext('Create new item')}
+                scrollable
+                searchable
+            />
         );
     }
 }
