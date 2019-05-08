@@ -21,7 +21,8 @@ from planning.planning_notifications import PlanningNotifications
 planning_postpone_schema = deepcopy(planning_schema)
 planning_postpone_schema['reason'] = {
     'type': 'string',
-    'nullable': True
+    'nullable': True,
+    'planning_reason': True
 }
 
 

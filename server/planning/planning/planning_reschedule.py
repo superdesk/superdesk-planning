@@ -22,7 +22,8 @@ from planning.planning_notifications import PlanningNotifications
 planning_reschedule_schema = deepcopy(planning_schema)
 planning_reschedule_schema['reason'] = {
     'type': 'string',
-    'nullable': True
+    'nullable': True,
+    'planning_reason': True
 }
 
 

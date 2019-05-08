@@ -25,7 +25,7 @@ from .events_base_service import EventsBaseService
 event_reschedule_schema = deepcopy(events_schema)
 event_reschedule_schema['reason'] = {
     'type': 'string',
-    'nullable': True
+    'nullable': True,
 }
 
 

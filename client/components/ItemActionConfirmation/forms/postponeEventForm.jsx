@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get} from 'lodash';
+import {get, cloneDeep, isEmpty} from 'lodash';
 
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
@@ -14,18 +14,24 @@ import {TextAreaInput} from '../../UI/Form';
 import {RelatedPlannings} from '../../';
 
 import '../style.scss';
+import {formProfile} from '../../../validators';
+
 
 export class PostponeEventComponent extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {reason: ''};
+        this.state = {
+            reason: '',
+            errors: {},
+        };
 
         this.onReasonChange = this.onReasonChange.bind(this);
     }
 
     componentWillMount() {
         // Enable save so that the user can action on this event.
-        this.props.enableSaveInModal();
+        get(this.props, 'formProfile.schema.reason.required', false) ?
+            this.props.disableSaveInModal() : this.props.enableSaveInModal();
     }
 
     submit() {
@@ -40,7 +46,32 @@ export class PostponeEventComponent extends React.Component {
     }
 
     onReasonChange(field, reason) {
-        this.setState({reason});
+        const errors = cloneDeep(this.state.errors);
+        let errorMessages = [];
+
+        if (this.props.formProfile) {
+            formProfile(
+                {
+                    field: field,
+                    value: reason,
+                    profile: this.props.formProfile,
+                    errors: errors,
+                    messages: errorMessages,
+                }
+            );
+
+            if (get(errorMessages, 'length', 0) > 0 ||
+                (get(this.props.formProfile, 'schema.reason.required', false) && isEmpty(reason))) {
+                this.props.disableSaveInModal();
+            } else {
+                this.props.enableSaveInModal();
+            }
+        }
+
+        this.setState({
+            reason,
+            errors,
+        });
     }
 
     render() {
@@ -91,11 +122,17 @@ export class PostponeEventComponent extends React.Component {
                     </div>
                 )}
 
-                <Row label={reasonLabel}>
+                <Row>
                     <TextAreaInput
+                        label={reasonLabel}
                         value={this.state.reason}
                         onChange={this.onReasonChange}
                         disabled={submitting}
+                        showErrors={true}
+                        errors={this.state.errors}
+                        formProfile={this.props.formProfile}
+                        required={get(this.props.formProfile, 'schema.reason.required', false)}
+                        initialFocus={true}
                     />
                 </Row>
             </div>
@@ -110,17 +147,22 @@ PostponeEventComponent.propTypes = {
     timeFormat: PropTypes.string,
     dateFormat: PropTypes.string,
     enableSaveInModal: PropTypes.func,
+    disableSaveInModal: PropTypes.func,
 
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
     onHide: PropTypes.func,
+
+    onValidate: PropTypes.func,
     submitting: PropTypes.bool,
     modalProps: PropTypes.object,
+    formProfile: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
     timeFormat: selectors.config.getTimeFormat(state),
     dateFormat: selectors.config.getDateFormat(state),
+    formProfile: selectors.forms.eventPostponeProfile(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -21,7 +21,7 @@ from apps.auth import get_user_id
 from apps.archive.common import get_auth
 
 from planning.common import UPDATE_SINGLE, WORKFLOW_STATE, get_max_recurrent_events, update_post_item, \
-    set_ingested_event_state
+    set_ingested_event_state, is_valid_event_planning_reason
 from planning.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION
 
 
@@ -133,6 +133,9 @@ class EventsBaseService(BaseService):
         """
         if not original:
             raise SuperdeskApiError.notFoundError()
+
+        if not is_valid_event_planning_reason(updates, original):
+            raise SuperdeskApiError.badRequestError(message='Reason is required field.')
 
         if original.get('state') == WORKFLOW_STATE.CANCELLED:
             raise SuperdeskApiError.forbiddenError(message='Aborted. Event is already cancelled')
