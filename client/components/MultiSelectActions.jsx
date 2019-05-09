@@ -93,7 +93,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
                 key={1}
                 onClick={this.exportArticle}
                 color="primary"
-                text={gettext('Export as article')} />);
+                text={gettext('Export')} />);
         }
 
         if (showSpike) {
@@ -146,7 +146,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
             key={1}
             onClick={this.exportArticle}
             color="primary"
-            text={gettext('Export as article')} />);
+            text={gettext('Export')} />);
 
         if (showCreatePlan) {
             tools.push(<Button

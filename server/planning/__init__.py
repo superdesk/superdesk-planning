@@ -40,6 +40,7 @@ import planning.commands  # noqa
 import planning.feeding_services # noqa
 import planning.feed_parsers  # noqa
 import planning.output_formatters  # noqa
+from planning.planning_download import init_app as init_planning_download_app
 
 
 def init_app(app):
@@ -66,6 +67,7 @@ def init_app(app):
     init_assignments_app(app)
     init_search_app(app)
     init_validator_app(app)
+    init_planning_download_app(app)
 
     superdesk.register_resource(
         'planning_article_export',

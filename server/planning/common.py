@@ -446,3 +446,13 @@ def is_valid_event_planning_reason(updates, original):
     if reason_mapping.get('required') and not updates.get('reason'):
         return False
     return True
+
+
+def get_contacts_from_item(item):
+    contact_ids = item.get('event_contact_info') or []
+    if (item.get('event') or {}).get('event_contact_info'):
+        contact_ids = item['event']['event_contact_info']
+    contact_ids = [str(c) for c in contact_ids]
+    query = {"query": {"bool": {"must": [{"terms": {"_id": contact_ids}}, {"term": {"public": "true"}}]}}}
+    contacts = get_resource_service('contacts').search(query)
+    return list(contacts)
