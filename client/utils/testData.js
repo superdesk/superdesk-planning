@@ -800,6 +800,7 @@ export const archive = [
         slugline: 'test slugline',
         headline: 'test headline',
         urgency: 2,
+        type: 'text',
     },
 ];
 
