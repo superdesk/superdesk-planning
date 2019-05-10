@@ -147,6 +147,7 @@ class AssignmentLinkTestCase(TestCase):
 
     def test_previous_unlinked_content_gets_linked_when_update_is_linked(self):
         with self.app.app_context():
+            self.app.config.update({'PLANNING_LINK_UPDATES_TO_COVERAGES': True})
             self.app.data.insert('archive', [{
                 '_id': 'item1',
                 'type': 'text',
