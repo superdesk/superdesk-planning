@@ -316,7 +316,8 @@ class AssignmentsService(superdesk.Service):
                                                               client_url=client_url,
                                                               assignment_id=assignment_id,
                                                               assignment=assignment,
-                                                              event=event_item)
+                                                              event=event_item,
+                                                              is_link=True)
                 else:
                     # if it was assigned to a desk before, test if there has been a change of desk
                     if original.get('assigned_to') and original.get('assigned_to').get('desk') != updates.get(
@@ -345,7 +346,8 @@ class AssignmentsService(superdesk.Service):
                                                                   assignor=user.get('display_name'),
                                                                   assignment=assignment,
                                                                   event=event_item,
-                                                                  omit_user=True)
+                                                                  omit_user=True,
+                                                                  is_link=True)
                     else:
                         # it is being reassigned by someone else so notify both the new assignee and the old
                         PlanningNotifications().notify_assignment(target_user=original.get('assigned_to').get('user'),
@@ -363,7 +365,8 @@ class AssignmentsService(superdesk.Service):
                                                                   assignor=user.get('display_name'),
                                                                   assignment=assignment,
                                                                   event=event_item,
-                                                                  omit_user=True)
+                                                                  omit_user=True,
+                                                                  is_link=True)
                         # notify the assignee
                         assigned_from = original.get('assigned_to')
                         assigned_from_user = get_resource_service('users').find_one(req=None,
@@ -380,7 +383,8 @@ class AssignmentsService(superdesk.Service):
                                                                   assignment_id=assignment_id,
                                                                   desk=desk_name,
                                                                   event=event_item,
-                                                                  assignment=assignment)
+                                                                  assignment=assignment,
+                                                                  is_link=True)
             else:  # A new assignment
                 # Notify the user the assignment has been made to unless assigning to your self
                 if str(user.get(config.ID_FIELD, None)) != assigned_to.get('user', ''):
@@ -397,7 +401,8 @@ class AssignmentsService(superdesk.Service):
                                                                   'user', '') else 'to yourself',
                                                               assignment=assignment,
                                                               event=event_item,
-                                                              omit_user=True)
+                                                              omit_user=True,
+                                                              is_link=True)
         else:  # Assigned/Reassigned to a desk, notify all desk members
             # if it was assigned to a desk before, test if there has been a change of desk
             if original.get('assigned_to') and original.get('assigned_to').get('desk') != updates.get(
@@ -418,7 +423,8 @@ class AssignmentsService(superdesk.Service):
                                                           assignment_id=assignment_id,
                                                           from_desk=desk_from_name,
                                                           assignment=assignment,
-                                                          event=event_item)
+                                                          event=event_item,
+                                                          is_link=True)
             else:
                 assign_type = 'reassigned' if original.get('assigned_to') else 'assigned'
                 PlanningNotifications().notify_assignment(target_desk=assigned_to.get('desk'),
@@ -433,7 +439,8 @@ class AssignmentsService(superdesk.Service):
                                                           assignor=user.get('display_name'),
                                                           assignment=assignment,
                                                           event=event_item,
-                                                          omit_user=True)
+                                                          omit_user=True,
+                                                          is_link=True)
 
     def send_assignment_cancellation_notification(self, assignment, original_state, event_cancellation=False):
         """Set the assignment information and send notification
@@ -467,7 +474,8 @@ class AssignmentsService(superdesk.Service):
                                                       'user') else 'You',
                                                   omit_user=True,
                                                   slugline=slugline,
-                                                  desk=desk.get('name'))
+                                                  desk=desk.get('name'),
+                                                  assignment_id=assignment.get(config.ID_FIELD))
 
     def cancel_assignment(self, original_assignment, coverage, event_cancellation=False):
         coverage_to_copy = deepcopy(coverage)
@@ -568,17 +576,15 @@ class AssignmentsService(superdesk.Service):
                                                                             assignment_update_data.get('assignment'),
                                                                             ASSIGNMENT_HISTORY_ACTIONS.SUBMITTED)
         elif operation == ITEM_PUBLISH:
-            assignment_update_data = \
-                self._get_assignment_data_on_archive_update(updates, original)
-
-            if assignment_update_data.get('assignment'):
-                updated_assignment = self._get_empty_updates_for_assignment(assignment_update_data['assignment'])
+            assignment = self._get_assignment_data_on_archive_update(updates, original).get('assignment')
+            if assignment:
+                updated_assignment = self._get_empty_updates_for_assignment(assignment)
                 if updates.get(ITEM_STATE, original.get(ITEM_STATE, '')) != CONTENT_STATE.SCHEDULED:
                     if updated_assignment.get('assigned_to')['state'] != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
                         updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED
-                        self._update_assignment_and_notify(updated_assignment, assignment_update_data['assignment'])
+                        self._update_assignment_and_notify(updated_assignment, assignment)
                         get_resource_service('assignments_history').on_item_complete(
-                            updated_assignment, assignment_update_data.get('assignment'))
+                            updated_assignment, assignment)
 
                     # Update delivery record here
                     delivery_service = get_resource_service('delivery')
@@ -591,12 +597,13 @@ class AssignmentsService(superdesk.Service):
                         })
 
                     # publish planning
-                    self.publish_planning(assignment_update_data.get('assignment').get('planning_item'))
+                    self.publish_planning(assignment.get('planning_item'))
 
                     assigned_to_user = get_resource_service('users').find_one(req=None,
                                                                               _id=get_user().get(config.ID_FIELD, ''))
                     assignee = assigned_to_user.get('display_name') if assigned_to_user else 'Unknown'
-                    target_user = assignment_update_data['assignment'].get('assigned_to', {}).get('assignor_desk')
+                    target_user = assignment.get('assigned_to', {}).get('assignor_desk')
+
                     if not original.get('rewrite_of'):
                         PlanningNotifications().notify_assignment(target_user=target_user,
                                                                   message='assignment_complete_msg',
@@ -605,7 +612,10 @@ class AssignmentsService(superdesk.Service):
                                                                       original.get('planning', {}).get(
                                                                           'g2_content_type', '')),
                                                                   slugline=original.get('slugline'),
-                                                                  omit_user=True)
+                                                                  omit_user=True,
+                                                                  assignment_id=assignment['_id'],
+                                                                  is_link=True
+                                                                  )
 
     def create_delivery_for_content_update(self, items):
         """Duplicates the coverage/assignment for the archive rewrite

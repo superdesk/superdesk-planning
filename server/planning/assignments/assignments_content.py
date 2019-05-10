@@ -156,7 +156,9 @@ class AssignmentsContentService(superdesk.Service):
                                                       assignee=assignee,
                                                       coverage_type=get_coverage_type_name(item.get('type', '')),
                                                       slugline=item.get('slugline'),
-                                                      omit_user=True)
+                                                      omit_user=True,
+                                                      assignment_id=assignment[config.ID_FIELD],
+                                                      is_link=True)
             # Save history
             get_resource_service('assignments_history').on_item_start_working(updates, assignment)
             # publishing planning item

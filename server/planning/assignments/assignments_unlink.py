@@ -74,7 +74,9 @@ class AssignmentsUnlinkService(Service):
                                                       coverage_type=get_coverage_type_name(
                                                           actioned_item.get('type', '')),
                                                       slugline=actioned_item.get('slugline'),
-                                                      omit_user=True)
+                                                      omit_user=True,
+                                                      assignment_id=assignment[config.ID_FIELD],
+                                                      is_link=True)
 
             push_content_notification(updated_items)
             push_notification(
