@@ -342,6 +342,10 @@ def set_actioned_date_to_event(updates, original):
 
 
 def get_related_items(item, assignment=None):
+    # If linking updates is not configured, return just this item
+    if not planning_link_updates_to_coverage():
+        return [item]
+
     req = ParsedRequest()
     req.args = MultiDict()
     must_not = [{'term': {'state': 'spiked'}}]
