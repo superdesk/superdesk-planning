@@ -10,16 +10,18 @@ import {ModalsContainer} from '../components';
 import * as actions from '../actions';
 
 export class AssignmentsService {
-    constructor(api, notify, modal, sdPlanningStore) {
+    constructor(api, notify, modal, sdPlanningStore, deployConfig, desks) {
         this.api = api;
         this.notify = notify;
         this.modal = modal;
         this.sdPlanningStore = sdPlanningStore;
+        this.deployConfig = deployConfig;
+        this.desks = desks;
 
         this.onPublishFromAuthoring = this.onPublishFromAuthoring.bind(this);
     }
 
-    getAssignmentQuery(slugline) {
+    getAssignmentQuery(slugline, contentType) {
         return {
             must: [
                 {term: {'assigned_to.state': 'assigned'}},
@@ -27,6 +29,7 @@ export class AssignmentsService {
                     query: `planning.slugline.phrase('${slugline}')`,
                     lenient: false,
                 }},
+                {term: {'planning.g2_content_type': contentType}},
             ],
         };
     }
@@ -38,10 +41,17 @@ export class AssignmentsService {
             return Promise.resolve();
         }
 
+        const fulfilFromDesks = get(this.deployConfig, 'config.planning_fulfil_on_publish_for_desks', []);
+        const currentDesk = get(this.desks, 'active.desk');
+
+        if (fulfilFromDesks.length > 0 && fulfilFromDesks.indexOf(currentDesk) < 0) {
+            return Promise.resolve();
+        }
+
         // Otherwise attempt to get an open Assignment (state==assigned)
         // based on the slugline of the archive item
         return new Promise((resolve, reject) => {
-            this.getBySlugline(get(item, 'slugline'))
+            this.getBySlugline(get(item, 'slugline'), get(item, 'type'))
                 .then((assignments) => {
                     // If no Assignments were found, then there is nothing to do
                     if (!Array.isArray(assignments) || assignments.length === 0) {
@@ -60,11 +70,11 @@ export class AssignmentsService {
         });
     }
 
-    getBySlugline(slugline) {
+    getBySlugline(slugline, contentType) {
         return this.api('assignments').query({
             source: JSON.stringify({
                 query: {
-                    bool: this.getAssignmentQuery(slugline),
+                    bool: this.getAssignmentQuery(slugline, contentType),
                 },
             }),
         })
@@ -101,7 +111,7 @@ export class AssignmentsService {
                             actions.assignments.ui.changeAssignmentListSingleGroupView('TODO')
                         );
                         store.dispatch(actions.assignments.api.setBaseQuery(
-                            this.getAssignmentQuery(get(item, 'slugline'))
+                            this.getAssignmentQuery(get(item, 'slugline'), get(item, 'type'))
                         ));
                         store.dispatch(actions.assignments.ui.preview(assignments[0]));
 
@@ -142,4 +152,4 @@ export class AssignmentsService {
     }
 }
 
-AssignmentsService.$inject = ['api', 'notify', 'modal', 'sdPlanningStore'];
+AssignmentsService.$inject = ['api', 'notify', 'modal', 'sdPlanningStore', 'deployConfig', 'desks'];

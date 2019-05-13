@@ -20,7 +20,9 @@ describe('assignments service', () => {
             services.api,
             services.notify,
             services.modal,
-            services.sdPlanningStore
+            services.sdPlanningStore,
+            {config: {planning_fulfil_on_publish_for_desks: ['desk1']}},
+            {active: {desk: 'desk1'}}
         );
 
         sinon.stub(actions.assignments.ui, 'preview').returns({type: 'PREVIEW'});
@@ -62,6 +64,7 @@ describe('assignments service', () => {
                                             query: 'planning.slugline.phrase(\'test slugline\')',
                                             lenient: false,
                                         }},
+                                        {term: {'planning.g2_content_type': 'text'}},
                                     ],
                                 },
                             },
@@ -105,6 +108,7 @@ describe('assignments service', () => {
                                 query: 'planning.slugline.phrase(\'test slugline\')',
                                 lenient: false,
                             }},
+                            {term: {'planning.g2_content_type': 'text'}},
                         ],
                     },
                 }]);
@@ -127,6 +131,82 @@ describe('assignments service', () => {
 
                 done();
             }, 0);
+        });
+
+        describe('setting for planning_fulfil_on_publish_for_desks', () => {
+            it('doesnt show modal if current desk is not configured for it', (done) => {
+                assignmentService.desks.active.desk = 'desk2';
+
+                assignmentService.onPublishFromAuthoring({
+                    ...testData.archive[0],
+                    assignment_id: testData.assignments[0]._id,
+                })
+                    .then(() => {
+                        expect(services.api('assignments').query.callCount).toBe(0);
+                        expect(services.sdPlanningStore.initWorkspace.callCount).toBe(0);
+                        expect(services.modal.createCustomModal.callCount).toBe(0);
+
+                        done();
+                    })
+                    .catch(done.fail);
+            });
+
+            it('shows the modal if config is empty', (done) => {
+                assignmentService.desks.active.desk = 'desk2';
+                assignmentService.deployConfig.config.planning_fulfil_on_publish_for_desks = [];
+
+                services.api('assignments').query = sinon.spy(
+                    () => Promise.resolve({_items: [testData.assignments[0]]})
+                );
+
+                assignmentService.onPublishFromAuthoring(testData.archive[0])
+                    .catch(done.fail);
+
+                // Use a setTimeout as the promise is resolved/rejected in the modal
+                setTimeout(() => {
+                    expect(services.api('assignments').query.callCount).toBe(1);
+                    expect(services.sdPlanningStore.initWorkspace.callCount).toBe(1);
+                    expect(services.modal.createCustomModal.callCount).toBe(1);
+                    expect(services.modal.openModal.callCount).toBe(1);
+
+                    expect(store.dispatch.callCount).toBe(5);
+                    expect(store.dispatch.args[1]).toEqual([{
+                        type: 'CHANGE_LIST_VIEW_MODE',
+                        payload: 'TODO',
+                    }]);
+                    expect(store.dispatch.args[2]).toEqual([{
+                        type: 'SET_BASE_ASSIGNMENT_QUERY',
+                        payload: {
+                            must: [
+                                {term: {'assigned_to.state': 'assigned'}},
+                                {query_string: {
+                                    query: 'planning.slugline.phrase(\'test slugline\')',
+                                    lenient: false,
+                                }},
+                                {term: {'planning.g2_content_type': 'text'}},
+                            ],
+                        },
+                    }]);
+
+                    expect(actions.assignments.ui.preview.callCount).toBe(1);
+                    expect(actions.assignments.ui.preview.args[0]).toEqual([
+                        testData.assignments[0],
+                    ]);
+
+                    expect(store.dispatch.args[4]).toEqual([{
+                        type: 'SHOW_MODAL',
+                        modalType: 'FULFIL_ASSIGNMENT',
+                        modalProps: jasmine.objectContaining({
+                            newsItem: testData.archive[0],
+                            fullscreen: true,
+                            showIgnore: true,
+                            ignoreText: 'Don\'t Fulfil Assignment',
+                        }),
+                    }]);
+
+                    done();
+                }, 0);
+            });
         });
     });
 });
