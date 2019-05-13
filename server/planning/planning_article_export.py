@@ -1,13 +1,11 @@
-
 import superdesk
-
 from flask import render_template_string, current_app, render_template
-
 from superdesk.errors import SuperdeskApiError
 from apps.auth import get_user_id
 from apps.templates.content_templates import get_item_from_template
 from apps.archive.common import insert_into_versions
 from copy import deepcopy
+from planning.common import WORKFLOW_STATE, format_address, get_contacts_from_item
 
 
 class PlanningArticleExportResource(superdesk.Resource):
@@ -16,7 +14,7 @@ class PlanningArticleExportResource(superdesk.Resource):
             'type': 'list',
             'required': True,
         },
-        'desk': superdesk.Resource.rel('desks', required=True),
+        'desk': superdesk.Resource.rel('desks', nullable=True),
         'template': {'type': 'string'},
         'type': {
             'type': 'string',
@@ -62,15 +60,7 @@ def generate_text_item(items, template_name, resource_type):
                 elif (c.get('assigned_to') or {}).get('user'):
                     users.append(c['assigned_to']['user'])
 
-            contact_ids = item.get('event_contact_info') or []
-            if (item.get('event') or {}).get('event_contact_info'):
-                contact_ids = item['event']['event_contact_info']
-            contacts = superdesk.get_resource_service('contacts').find(where={
-                '_id': {'$in': contact_ids}
-            })
-            for contact in contacts:
-                if contact.get('public'):
-                    item['contacts'].append(contact)
+            item['contacts'] = get_contacts_from_item(item)
 
         if resource_type == 'planning':
             populate_assignees_contacts(deepcopy(item), item, users)
@@ -123,16 +113,16 @@ class PlanningArticleExportService(superdesk.Service):
         for doc in docs:
             item_type = doc.pop('type')
             item_list = get_items(doc.pop('items', []), item_type)
-            desk = superdesk.get_resource_service('desks').find_one(req=None, _id=doc.pop('desk'))
+            desk = superdesk.get_resource_service('desks').find_one(req=None, _id=doc.pop('desk')) or {}
             content_template = get_desk_template(desk)
             item = get_item_from_template(content_template)
             item[current_app.config['VERSION']] = 1
             item.setdefault('type', 'text')
             item.setdefault('slugline', 'Planning' if item_type == 'planning' else 'Event')
             item['task'] = {
-                'desk': desk['_id'],
+                'desk': desk.get('_id'),
                 'user': get_user_id(),
-                'stage': desk['working_stage'],
+                'stage': desk.get('working_stage'),
             }
             item_from_template = generate_text_item(item_list, doc.pop('template', None), item_type)
             item.update(item_from_template)
@@ -141,3 +131,51 @@ class PlanningArticleExportService(superdesk.Service):
             doc.update(item)
             ids.append(doc['_id'])
         return ids
+
+    def export_events_to_text(self, items, format='utf-8'):
+        rendered_item_list = []
+        for item in items:
+            state = item['state'] if item.get('state') in [WORKFLOW_STATE.CANCELLED, WORKFLOW_STATE.RESCHEDULED,
+                                                           WORKFLOW_STATE.POSTPONED] else None
+            location = item['location'][0] if len(item.get('location') or []) > 0 else None
+            if location:
+                format_address(location)
+                location = location.get('name') if not location.get('formatted_address') else \
+                    '{0}, {1}'.format(location.get('name'), location['formatted_address'])
+
+            contacts = []
+            for contact in get_contacts_from_item(item):
+                contact_info = ['{0} {1}'.format(contact.get('first_name'), contact.get('last_name'))]
+                phone = None
+                if (contact.get('job_title')):
+                    contact_info[0] = contact_info[0] + ' ({})'.format(contact['job_title'])
+                if (len(contact.get('contact_email') or [])) > 0:
+                    contact_info.append(contact['contact_email'][0])
+
+                if (len(contact.get('contact_phone') or [])) > 0:
+                    phone = next((p for p in contact['contact_phone'] if p.get('public')), None)
+                elif len(contact.get('mobile') or []) > 0:
+                    phone = next((m for m in contact['mobile'] if m.get('public')), None)
+
+                if phone:
+                    contact_info.append(phone.get('number'))
+
+                contacts.append(", ".join(contact_info))
+
+            date_time_format = "%a %d %b %Y, %H:%M"
+            schedule = "{0}-{1}" .format(item['dates']['start'].strftime(date_time_format),
+                                         item['dates']['end'].strftime("%H:%M"))
+            if ((item['dates']['end'] - item['dates']['start']).total_seconds() / 60) >= (24 * 60):
+                schedule = "{0} to {1}".format(item['dates']['start'].strftime(date_time_format),
+                                               item['dates']['end'].strftime(date_time_format))
+
+            rendered_item_list.append(
+                render_template("events_download_format.txt",
+                                item=item,
+                                state=state,
+                                location=location,
+                                contacts=contacts,
+                                schedule=schedule))
+
+        if len(rendered_item_list) > 0:
+            return str.encode("\r\n\r\n".join(rendered_item_list), format)

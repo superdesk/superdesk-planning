@@ -28,7 +28,7 @@ export class ExportAsArticleModal extends React.Component {
         this.setState({[field]: value});
     }
 
-    onSubmit() {
+    onSubmit(e, download) {
         const {
             desk,
             template,
@@ -36,7 +36,7 @@ export class ExportAsArticleModal extends React.Component {
         } = this.state;
 
         this.props.modalProps.action(items, get(desk, '_id'), get(template, 'name'),
-            get(this.props, 'modalProps.type'));
+            get(this.props, 'modalProps.type'), download);
         this.props.handleHide();
     }
 
@@ -49,6 +49,7 @@ export class ExportAsArticleModal extends React.Component {
             items,
             desks,
             templates,
+            download,
         } = this.props.modalProps;
 
         return (
@@ -85,7 +86,9 @@ export class ExportAsArticleModal extends React.Component {
                     <Button type="button"
                         onClick={this.props.handleHide}>{gettext('Cancel')}</Button>
                     <Button type="submit" className="btn--primary" disabled={!this.state.template || !this.state.desk}
-                        onClick={this.onSubmit}>{gettext('Done')}</Button>
+                        onClick={this.onSubmit}>{gettext('Export')}</Button>
+                    {download && <Button type="submit" className="btn--primary"onClick={this.onSubmit.bind(null, true)}>
+                        {gettext('Download')}</Button>}
                 </Modal.Footer>
             </Modal>
         );
@@ -102,5 +105,6 @@ ExportAsArticleModal.propTypes = {
         defaultTemplate: PropTypes.object,
         onSortChange: PropTypes.func,
         action: PropTypes.func,
+        download: PropTypes.bool,
     }),
 };

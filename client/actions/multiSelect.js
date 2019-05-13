@@ -153,44 +153,58 @@ const exportAsArticle = (items = []) => (
 
         const templates = isPlanning ? selectors.general.getPlanningExportTemplates(getState()) :
             selectors.general.getEventExportTemplates(getState());
-        const exportArticlesDispatch = (items, desk, template, type) => api.save('planning_article_export', {
-            desk: desk || getState().workspace.currentDeskId,
-            items: items.map((item) => item.id),
-            template: template,
-            type: type,
-        })
-            .then((item) => {
-                notify.success(gettext('Article was created.'), 5000, {
-                    button: {
-                        label: gettext('Open'),
-                        onClick: () => {
-                            $location.url('/workspace/monitoring');
-                            superdesk.intent('edit', 'item', item);
-                        },
-                    },
-                });
+        const exportArticlesDispatch = (items, desk, template, type, download) => {
+            const itemIds = items.map((item) => item.id);
 
-                // this must go after notify, otherwise there is no notification displayed
-                if (type === ITEM_TYPE.PLANNING) {
-                    dispatch(self.deSelectPlannings(null, true));
-                } else {
-                    dispatch(self.deSelectEvents(null, true));
-                }
-            }, () => {
-                notify.error(gettext('There was an error when exporting.'));
-            });
+            if (download) {
+                window.open(`${getState().config.server.url}/planning_download/events/${itemIds.join(',')}`, '_blank');
+                dispatch(self.deSelectEvents(null, true));
+                return Promise.resolve();
+            } else {
+                return api.save('planning_article_export', {
+                    desk: desk === 'personal-workspace' ? null : desk,
+                    items: itemIds,
+                    template: template,
+                    type: type,
+                    copy_to_clipboard: download,
+                })
+                    .then((item) => {
+                        notify.success(gettext('Article was created.'), 5000, {
+                            button: {
+                                label: gettext('Open'),
+                                onClick: () => {
+                                    $location.url('/workspace/monitoring');
+                                    superdesk.intent('edit', 'item', item);
+                                },
+                            },
+                        });
+
+                        // this must go after notify, otherwise there is no notification displayed
+                        if (type === ITEM_TYPE.PLANNING) {
+                            dispatch(self.deSelectPlannings(null, true));
+                        } else {
+                            dispatch(self.deSelectEvents(null, true));
+                        }
+                    }, () => {
+                        notify.error(gettext('There was an error when exporting.'));
+                    });
+            }
+        };
+        const personalWorkspace = {_id: 'personal-workspace', name: 'Personal Workspace'};
 
         return dispatch(showModal({
             modalType: MODALS.EXPORT_AS_ARTICLE,
             modalProps: {
                 items: sortableItems,
                 action: exportArticlesDispatch,
-                desks: selectors.general.userDesks(getState()),
+                desks: [...selectors.general.userDesks(getState()), personalWorkspace],
                 templates: templates,
                 defaultTemplate: templates.find((t) =>
                     (isPlanning && t.name === 'default_planning') || (!isPlanning && t.name === 'default_event')),
-                defaultDesk: getItemInArrayById(selectors.general.userDesks(getState()), desks.getCurrentDeskId()),
-                type: getItemType(items[0]),
+                defaultDesk: getItemInArrayById(selectors.general.userDesks(getState()), desks.getCurrentDeskId())
+                    || personalWorkspace,
+                type: itemType,
+                download: itemType === ITEM_TYPE.EVENT,
             },
         }));
     }
