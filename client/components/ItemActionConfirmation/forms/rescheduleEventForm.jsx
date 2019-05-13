@@ -1,11 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get, isEqual, cloneDeep, omit} from 'lodash';
+import {get, isEqual, cloneDeep, omit, isEmpty} from 'lodash';
 import moment from 'moment';
 
 import * as actions from '../../../actions';
-import {validateItem} from '../../../validators';
+import {formProfile, validateItem} from '../../../validators';
 import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
 import {gettext, eventUtils, getDateTimeString, updateFormValues, timeUtils} from '../../../utils';
@@ -26,11 +26,14 @@ export class RescheduleEventComponent extends React.Component {
             reason: '',
             errors: {},
             multiDayChanged: false,
+            reasonInvalid: false,
+            datesInvalid: false,
         };
 
         this.onReasonChange = this.onReasonChange.bind(this);
         this.onDatesChange = this.onDatesChange.bind(this);
         this.getPopupContainer = this.getPopupContainer.bind(this);
+        this.enableDisableSave = this.enableDisableSave.bind(this);
 
         this.dom = {popupContainer: null};
     }
@@ -44,22 +47,65 @@ export class RescheduleEventComponent extends React.Component {
             dates.end = timeUtils.getDateInRemoteTimeZone(dates.end, dates.tz);
         }
 
+        let reasonInvalid = false;
+
+        if (get(this.props.rescheduleProfile, 'schema.reason.required', false)) {
+            reasonInvalid = true;
+        }
+
         this.setState({
             diff: {
                 dates: dates,
                 _startTime: cloneDeep(dates.start),
                 _endTime: cloneDeep(dates.end),
             },
+            reasonInvalid: reasonInvalid,
         });
     }
 
     onReasonChange(field, reason) {
-        this.setState({reason});
+        const errors = cloneDeep(this.state.errors);
+        let errorMessages = [];
+        let reasonInvalid = false;
+
+        if (this.props.rescheduleProfile) {
+            formProfile(
+                {
+                    field: field,
+                    value: reason,
+                    profile: this.props.rescheduleProfile,
+                    errors: errors,
+                    messages: errorMessages,
+                }
+            );
+
+            if (get(errorMessages, 'length', 0) > 0 ||
+                (get(this.props.rescheduleProfile, 'schema.reason.required', false) && isEmpty(reason))) {
+                reasonInvalid = true;
+            } else {
+                reasonInvalid = false;
+            }
+        }
+
+        this.setState({
+            reason,
+            errors,
+            reasonInvalid,
+        }, this.enableDisableSave);
+    }
+
+    enableDisableSave() {
+        if (this.state.reasonInvalid || this.state.datesInvalid) {
+            this.props.disableSaveInModal();
+        } else {
+            this.props.enableSaveInModal();
+        }
     }
 
     onDatesChange(field, val) {
         const diff = cloneDeep(get(this.state, 'diff') || {});
         const original = this.props.original;
+        let datesInvalid = false;
 
         if (field === 'dates.recurring_rule' && !val) {
             delete diff.dates.recurring_rule;
@@ -80,21 +126,22 @@ export class RescheduleEventComponent extends React.Component {
         const multiDayChanged = eventUtils.isEventSameDay(original.dates.start, original.dates.end) &&
             !eventUtils.isEventSameDay(diff.dates.start, diff.dates.end);
 
-        this.setState({
-            diff,
-            errors,
-            multiDayChanged,
-        });
-
         if (eventUtils.eventsDatesSame(diff, original, TIME_COMPARISON_GRANULARITY.MINUTE) ||
             (diff.dates.recurring_rule &&
             !diff.dates.recurring_rule.until && !diff.dates.recurring_rule.count) ||
             !isEqual(errorMessages, [])
         ) {
-            this.props.disableSaveInModal();
+            datesInvalid = true;
         } else {
-            this.props.enableSaveInModal();
+            datesInvalid = false;
         }
+
+        this.setState({
+            diff,
+            errors,
+            multiDayChanged,
+            datesInvalid,
+        }, this.enableDisableSave);
     }
 
     submit() {
@@ -226,11 +273,16 @@ export class RescheduleEventComponent extends React.Component {
                     showFirstEventLabel={false}
                 />
 
-                <Row label={reasonLabel}>
+                <Row>
                     <TextAreaInput
+                        label={reasonLabel}
                         value={this.state.reason}
                         onChange={this.onReasonChange}
                         disabled={submitting}
+                        showErrors={true}
+                        errors={this.state.errors}
+                        formProfile={this.props.rescheduleProfile || {}}
+                        required={get(this.props.rescheduleProfile, 'schema.reason.required', false)}
                     />
                 </Row>
 
@@ -254,6 +306,7 @@ RescheduleEventComponent.propTypes = {
 
     onValidate: PropTypes.func,
     formProfiles: PropTypes.object,
+    rescheduleProfile: PropTypes.object,
 
     submitting: PropTypes.bool,
     modalProps: PropTypes.object,
@@ -264,6 +317,7 @@ const mapStateToProps = (state) => ({
     timeFormat: getTimeFormat(state),
     dateFormat: getDateFormat(state),
     formProfiles: selectors.forms.profiles(state),
+    rescheduleProfile: selectors.forms.eventRescheduleProfile(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -968,3 +968,5 @@ export const isItemLockedForEditing = (item, session, lockedItems) => (
     lockUtils.isItemLockedInThisSession(item, session, lockedItems) &&
     lockUtils.getLockAction(item, lockedItems) === 'edit'
 );
+
+export const getProfileName = (itemType, lockAction = null) => lockAction ? `${itemType}_${lockAction}` : itemType;

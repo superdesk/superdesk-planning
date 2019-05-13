@@ -404,3 +404,41 @@ def update_assignment_on_link_unlink(assignment_id, item, published_updated):
 
 def planning_link_updates_to_coverage():
     return app.config.get('PLANNING_LINK_UPDATES_TO_COVERAGES', False)
+
+
+def is_valid_event_planning_reason(updates, original):
+    """Custom validation for reason field.
+
+    This method is called from item action endpoints to validate the reason is required or not.
+    It looks for the reason field schema in the planning_types resource based on the item_type and lock_action.
+    To turn on the reason field validation for event_postpone endpoint add following to the planning_types collection
+    {
+        "_id": "event_postpone",
+        "name": "event_postpone",
+        "schema": {
+            "reason": { "required": True }
+        }
+    }
+
+    :param dict updates: updates for the endpoint
+    :param dict original: original document
+    """
+    if not original:
+        return True
+
+    lock_action = original.get(LOCK_ACTION)
+    item_type = original.get(ITEM_TYPE)
+
+    # get the validator based on the item_type and lock_action
+    validator = get_resource_service('planning_types').find_one(
+        req=None,
+        name='{}_{}'.format(item_type, lock_action)
+    ) or {}
+
+    if not validator.get('schema'):
+        return True
+
+    reason_mapping = validator.get('schema').get('reason') or {}
+    if reason_mapping.get('required') and not updates.get('reason'):
+        return False
+    return True

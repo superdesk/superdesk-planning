@@ -22,7 +22,7 @@ from superdesk.errors import SuperdeskApiError
 event_cancel_schema = deepcopy(events_schema)
 event_cancel_schema['reason'] = {
     'type': 'string',
-    'nullable': True
+    'nullable': True,
 }
 
 

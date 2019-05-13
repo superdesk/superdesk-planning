@@ -22,7 +22,7 @@ from flask import current_app as app
 event_postpone_schema = deepcopy(events_schema)
 event_postpone_schema['reason'] = {
     'type': 'string',
-    'nullable': True
+    'nullable': True,
 }
 
 

@@ -11,17 +11,19 @@
 from superdesk import get_resource_service
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
+from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
 from eve.utils import config
 from copy import deepcopy
 from .planning import PlanningResource, planning_schema
-from planning.common import WORKFLOW_STATE, ITEM_STATE, update_post_item, ITEM_ACTIONS
+from planning.common import WORKFLOW_STATE, ITEM_STATE, update_post_item, ITEM_ACTIONS, \
+    is_valid_event_planning_reason
 
 
 planning_cancel_schema = deepcopy(planning_schema)
 planning_cancel_schema['reason'] = {
     'type': 'string',
-    'nullable': True
+    'nullable': True,
 }
 planning_cancel_schema['event_cancellation'] = {
     'type': 'boolean',
@@ -46,6 +48,11 @@ class PlanningCancelResource(PlanningResource):
 
 
 class PlanningCancelService(BaseService):
+
+    def on_update(self, updates, original):
+        if not is_valid_event_planning_reason(updates, original):
+            raise SuperdeskApiError.badRequestError(message='Reason is required field.')
+
     def update(self, id, updates, original):
         user = get_user(required=True).get(config.ID_FIELD, '')
         session = get_auth().get(config.ID_FIELD, '')
