@@ -737,10 +737,19 @@ const modifyForClient = (event) => {
     return event;
 };
 
+const modifyLocationForServer = (event) => {
+    if (!('location' in event) || Array.isArray(event.location)) {
+        return;
+    }
+
+    event.location = event.location ?
+        [event.location] :
+        null;
+};
+
 
 const modifyForServer = (event, removeNullLinks = false) => {
-    event.location = event.location ?
-        [event.location] : null;
+    modifyLocationForServer(event);
 
     // remove links if it contains only null values
     if (removeNullLinks && get(event, 'links.length', 0) > 0) {
