@@ -27,10 +27,11 @@ export function registerField(id, component) {
 
 /**
  * Render list of fields for given item
- * @param {Array} fields
+ * @param {Array|String} fields
  * @param {Object} item
+ * @param {Object} props
  */
-export function renderFields(fields, item, props) {
+export function renderFields(fields, item, props = {}) {
     return (Array.isArray(fields) ? fields : [fields]).map((id) => {
         const Component = registeredFields[id];
 

@@ -603,6 +603,29 @@ const loadPlanningById = (id, spikeState = SPIKED_STATE.BOTH, saveToStore = true
         }, (error) => (Promise.reject(error)))
 );
 
+const loadPlanningByIds = (ids, saveToStore = true) => (
+    (dispatch, getState, {api}) => (
+        api('planning').query({
+            source: JSON.stringify({
+                query: {terms: {_id: ids}},
+            }),
+        })
+            .then((data) => {
+                let items = get(data, '_items', []);
+
+                items.forEach((item) => {
+                    planningUtils.modifyForClient((item));
+                });
+
+                if (saveToStore) {
+                    dispatch(self.receivePlannings(items));
+                }
+
+                return Promise.resolve(items);
+            }, (error) => Promise.reject(error))
+    )
+);
+
 /**
  * Action dispatcher to load Planning items by Event ID from the API, and place them
  * in the local store. This does not update the list of visible Planning items
@@ -1060,6 +1083,7 @@ const self = {
     unlock,
     lock,
     loadPlanningById,
+    loadPlanningByIds,
     fetchPlanningHistory,
     receivePlanningHistory,
     loadPlanningByEventId,

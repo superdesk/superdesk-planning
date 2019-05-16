@@ -119,7 +119,7 @@ const receivePlannings = (plannings, append = false) => (
  * @return Promise
  */
 const loadFeaturedPlanningsData = (date) => (
-    (dispatch, getState) => {
+    (dispatch, getState, {notify}) => {
         const timezone = selectors.config.defaultTimeZone(getState());
         let startDate = momentTz.tz(date ? date : moment(), timezone);
         const params = {
@@ -138,7 +138,20 @@ const loadFeaturedPlanningsData = (date) => (
         dispatch({type: FEATURED_PLANNING.ACTIONS.LOADING_START});
         dispatch(self.requestFeaturedPlannings(params));
         return dispatch(self.getFeaturedPlanningItem(startDate))
-            .finally(() => dispatch(self.fetchToList(params)))
+            .then(
+                (featuredItem) => dispatch(self.fetchToList(params, false, featuredItem)),
+                (error) => {
+                    if (get(error, 'status') === 404) {
+                        return dispatch(self.fetchToList(params, false, null));
+                    }
+
+                    notify.error(
+                        getErrorMessage(error, gettext('Failed to fetch featured stories!'))
+                    );
+
+                    return Promise.reject(error);
+                }
+            )
             .finally(() => dispatch({type: FEATURED_PLANNING.ACTIONS.LOADING_COMPLETE}));
     }
 );
@@ -168,9 +181,10 @@ const getFeaturedPlanningItem = (date) => (
  * until the total number of items are received
  * @param {object} params - search parameters for the request
  * @param {boolean} append - if true updates list else sets entire list
+ * @param {Object} featuredItem - The featured planning item to load items for
  * @return Promise
  */
-const fetchToList = (params = {}, append = false) => (
+const fetchToList = (params = {}, append = false, featuredItem = null) => (
     (dispatch, getState) => {
         const currentItemCount = Object.keys(selectors.featuredPlanning.storedPlannings(getState())).length;
 
@@ -192,6 +206,19 @@ const fetchToList = (params = {}, append = false) => (
                     params.page += 1;
                     return dispatch(self.fetchToList(params, true));
                 }
+
+                const itemIds = get(featuredItem, 'items', [])
+                    .filter((itemId) => (
+                        !data._items.find((item) => item._id === itemId)
+                    ));
+
+                dispatch(planningApi.loadPlanningByIds(itemIds, false))
+                    .then((items) => {
+                        dispatch({
+                            type: FEATURED_PLANNING.ACTIONS.SET_REMOVE_LIST,
+                            payload: items,
+                        });
+                    });
 
                 return Promise.resolve();
             });
@@ -280,7 +307,7 @@ const _modifyPlanningFeatured = (item, remove = false) => (
 
 /**
  * Saves featured stories record for a givendate
- * @param {item} params - record to save
+ * @param {Object} item - record to save
  * @return Promise
  */
 const saveFeaturedPlanningForDate = (item) => (
@@ -295,6 +322,11 @@ const saveFeaturedPlanningForDate = (item) => (
             dispatch({
                 type: FEATURED_PLANNING.ACTIONS.RECEIVE_FEATURED_PLANNING_ITEM,
                 payload: item,
+            });
+
+            dispatch({
+                type: FEATURED_PLANNING.ACTIONS.SET_REMOVE_LIST,
+                payload: [],
             });
         },
         (error) => {
