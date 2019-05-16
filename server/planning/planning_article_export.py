@@ -6,6 +6,8 @@ from apps.templates.content_templates import get_item_from_template
 from apps.archive.common import insert_into_versions
 from copy import deepcopy
 from planning.common import WORKFLOW_STATE, format_address, get_contacts_from_item
+from eve.utils import config
+from superdesk.utc import utc_to_local
 
 
 class PlanningArticleExportResource(superdesk.Resource):
@@ -59,6 +61,8 @@ def generate_text_item(items, template_name, resource_type):
                     item['assignees'].append(c['assigned_to']['coverage_provider']['name'])
                 elif (c.get('assigned_to') or {}).get('user'):
                     users.append(c['assigned_to']['user'])
+                elif (c.get('assigned_to') or {}).get('desk'):
+                    item['assignees'].append('Desk')
 
             item['contacts'] = get_contacts_from_item(item)
 
@@ -71,9 +75,23 @@ def generate_text_item(items, template_name, resource_type):
         users = superdesk.get_resource_service('users').find(where={
             '_id': {'$in': users}
         })
-        users = [u.get('display_name') for u in users]
+        users = ["{0}, {1}".format(u.get('last_name'), u.get('first_name')) for u in users]
 
         item['assignees'].extend(users)
+        item['place'] = item.get('place') or (item.get('event') or {}).get('place')
+        item['place'] = [p.get('name') for p in item['place']] if item.get('place') else None
+
+        item['description_text'] = item.get('description_text') or (item.get('event') or {}).get('definition_short')
+        item['slugline'] = item.get('slugline') or (item.get('event') or {}).get('name')
+
+        # Handle dates and remote time-zones
+        if item.get('dates') or (item.get('event') or {}).get('dates'):
+            dates = item.get('dates') or item.get('event').get('dates')
+            item['schedule'] = utc_to_local(config.DEFAULT_TIMEZONE, dates.get('start'))
+            if dates.get('tz') != config.DEFAULT_TIMEZONE:
+                item['schedule'] = "({}) {}".format(item['schedule'].tzname(), item['schedule'].strftime('%H%M'))
+            else:
+                item['schedule'] = item['schedule'].strftime('%H%M')
 
     if resource_type == 'planning':
         labels = {}
