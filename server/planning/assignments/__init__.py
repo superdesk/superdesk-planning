@@ -90,8 +90,11 @@ def init_app(app):
     app.client_config['planning_check_for_assignment_on_publish'] = \
         app.config.get('PLANNING_CHECK_FOR_ASSIGNMENT_ON_PUBLISH', False)
 
-    app.client_config['planning_fulfil_on_publish_for_desks'] = \
-        app.config.get('PLANNING_FULFIL_ON_PUBLISH_FOR_DESKS', '').split(',')
+    if len(app.config.get('PLANNING_FULFIL_ON_PUBLISH_FOR_DESKS', '')) == 0:
+        app.client_config['planning_fulfil_on_publish_for_desks'] = []
+    else:
+        app.client_config['planning_fulfil_on_publish_for_desks'] = \
+            app.config.get('PLANNING_FULFIL_ON_PUBLISH_FOR_DESKS', '').split(',')
 
     # Enhance the archive/published item resources with assigned desk/user information
     app.on_fetched_resource_archive += assignments_publish_service.on_fetched_resource_archive
