@@ -7,7 +7,7 @@ from apps.archive.common import insert_into_versions
 from copy import deepcopy
 from planning.common import WORKFLOW_STATE, format_address, get_contacts_from_item
 from eve.utils import config
-from superdesk.utc import utc_to_local
+from superdesk.utc import utc_to_local, get_timezone_offset, utcnow
 
 
 class PlanningArticleExportResource(superdesk.Resource):
@@ -88,8 +88,9 @@ def generate_text_item(items, template_name, resource_type):
         if item.get('dates') or (item.get('event') or {}).get('dates'):
             dates = item.get('dates') or item.get('event').get('dates')
             item['schedule'] = utc_to_local(config.DEFAULT_TIMEZONE, dates.get('start'))
-            if dates.get('tz') != config.DEFAULT_TIMEZONE:
-                item['schedule'] = "({}) {}".format(item['schedule'].tzname(), item['schedule'].strftime('%H%M'))
+            if get_timezone_offset(config.DEFAULT_TIMEZONE, utcnow()) !=\
+                    get_timezone_offset(dates.get('tz'), utcnow()):
+                item['schedule'] = "{} ({})".format(item['schedule'].strftime('%H%M'), item['schedule'].tzname())
             else:
                 item['schedule'] = item['schedule'].strftime('%H%M')
 
