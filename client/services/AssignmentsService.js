@@ -26,7 +26,7 @@ export class AssignmentsService {
             must: [
                 {term: {'assigned_to.state': 'assigned'}},
                 {query_string: {
-                    query: `planning.slugline.phrase('${slugline}')`,
+                    query: `planning.slugline.phrase:("${slugline}")`,
                     lenient: false,
                 }},
                 {term: {'planning.g2_content_type': contentType}},

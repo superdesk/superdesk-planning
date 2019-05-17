@@ -61,7 +61,7 @@ describe('assignments service', () => {
                                     must: [
                                         {term: {'assigned_to.state': 'assigned'}},
                                         {query_string: {
-                                            query: 'planning.slugline.phrase(\'test slugline\')',
+                                            query: 'planning.slugline.phrase:("test slugline")',
                                             lenient: false,
                                         }},
                                         {term: {'planning.g2_content_type': 'text'}},
@@ -105,7 +105,7 @@ describe('assignments service', () => {
                         must: [
                             {term: {'assigned_to.state': 'assigned'}},
                             {query_string: {
-                                query: 'planning.slugline.phrase(\'test slugline\')',
+                                query: 'planning.slugline.phrase:("test slugline")',
                                 lenient: false,
                             }},
                             {term: {'planning.g2_content_type': 'text'}},
@@ -180,7 +180,7 @@ describe('assignments service', () => {
                             must: [
                                 {term: {'assigned_to.state': 'assigned'}},
                                 {query_string: {
-                                    query: 'planning.slugline.phrase(\'test slugline\')',
+                                    query: 'planning.slugline.phrase:("test slugline")',
                                     lenient: false,
                                 }},
                                 {term: {'planning.g2_content_type': 'text'}},
