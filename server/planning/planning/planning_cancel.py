@@ -123,6 +123,3 @@ class PlanningCancelService(BaseService):
         lock_action = original.get('lock_action')
         if lock_action in [ITEM_ACTIONS.EDIT, ITEM_ACTIONS.PLANNING_CANCEL, ITEM_ACTIONS.CANCEL_ALL_COVERAGE]:
             update_post_item(updates, original)
-
-        planning_featured_service = get_resource_service('planning_featured')
-        planning_featured_service.remove_planning_item(original)

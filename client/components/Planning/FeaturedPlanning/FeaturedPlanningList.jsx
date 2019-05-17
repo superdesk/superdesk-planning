@@ -2,7 +2,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import classNames from 'classnames';
 import {FeaturedPlanningItem} from './FeaturedPlanningItem';
 import {Header, Group} from '../../UI/List';
 import {PanelInfo} from '../../UI';
@@ -24,7 +23,6 @@ export const FeaturedPlanningList = ({
     loadingIndicator,
     desks,
     users,
-    leftBorder,
     onAddToSelectedFeaturedPlanning,
     onRemoveFromSelectedFeaturedPlanning,
     sortable,
@@ -37,24 +35,29 @@ export const FeaturedPlanningList = ({
     emptyMsg,
     showAuditInformation,
     contentTypes,
+    disabled,
 }) => {
-    const getItem = (item) => (item ? (<FeaturedPlanningItem
-        key={item._id}
-        item={item}
-        date={currentSearchDate}
-        readOnly={readOnly}
-        lockedItems={lockedItems}
-        dateFormat={dateFormat}
-        timeFormat={timeFormat}
-        selectedPlanningIds={selectedPlanningIds}
-        desks={desks}
-        users={users}
-        onAddToSelectedFeaturedPlanning={onAddToSelectedFeaturedPlanning}
-        onRemoveFromSelectedFeaturedPlanning={onRemoveFromSelectedFeaturedPlanning}
-        onClick={onClick}
-        withMargin={withMargin}
-        contentTypes={contentTypes}
-        activated={highlights.includes(item._id)} />) : null);
+    const getItem = (item) => (
+        <FeaturedPlanningItem
+            key={item._id}
+            item={item}
+            date={currentSearchDate}
+            readOnly={readOnly}
+            lockedItems={lockedItems}
+            dateFormat={dateFormat}
+            timeFormat={timeFormat}
+            selectedPlanningIds={selectedPlanningIds}
+            desks={desks}
+            users={users}
+            onAddToSelectedFeaturedPlanning={onAddToSelectedFeaturedPlanning}
+            onRemoveFromSelectedFeaturedPlanning={onRemoveFromSelectedFeaturedPlanning}
+            onClick={onClick}
+            withMargin={withMargin}
+            contentTypes={contentTypes}
+            activated={highlights.includes(item._id)}
+            disabled={disabled}
+        />
+    );
 
     const SortableItem = SortableElement(({item}) => (
         <li>{getItem(item)}</li>
@@ -76,54 +79,44 @@ export const FeaturedPlanningList = ({
     const postedDate = get(item, 'last_posted_time');
 
     return (
-        <div className={classNames('sd-page-content__content-block',
-            'grid__item grid__item--col-6',
-            'sd-column-box__main-column sd-column-box__main-column__listpanel',
-            'FeatureListGroup',
-            {'FeatureListGroup--left-border': leftBorder})}>
+        <div className="ListGroup">
+            <Header
+                marginBottom
+                title={header || gettext('Available selections')} />
             <div>
-                <div className="sd-column-box__main-column__items sd-column-box__main-column__items--featured">
-                    <div className="ListGroup">
-                        <Header
-                            marginBottom
-                            title={header || gettext('Available selections')} />
-                        <div>
-                            {showAuditInformation && item &&
-                                    <div className="grid__item grid__item--col-6">
-                                        <AuditInformation
-                                            createdBy={createdBy}
-                                            updatedBy={updatedBy}
-                                            postedBy={postedBy}
-                                            createdAt={creationDate}
-                                            updatedAt={updatedDate}
-                                            postedAt={postedDate}
-                                        />
-                                    </div> }
-                            {!planningUtils.isFeaturedPlanningUpdatedAfterPosting(item) && get(item, 'posted') &&
-                                    <div className="grid__item grid__item--col-6">
-                                        <div className="pull-right">
-                                            <StateLabel
-                                                item={{pubstatus: POST_STATE.USABLE}}
-                                                verbose={true}
-                                                noState />
-                                        </div>
-                                    </div>}
-                        </div>
-                        {(get(items, 'length', 0) === 0 && !loadingIndicator) ?
-                            (<PanelInfo heading={emptyMsg} />) :
-                            (<Group spaceBetween={true}>
-                                {!sortable ?
-                                    items.map((item) => (getItem(item))) :
-                                    <SortableList
-                                        items={items}
-                                        onSortEnd={onSortEnd}
-                                        onSortStart={onSortStart}
-                                        distance={5}
-                                        helperClass="FeatureListDraggableItem" />}
-                            </Group>)}
-                    </div>
-                </div>
+                {showAuditInformation && item &&
+                        <div className="grid__item grid__item--col-6">
+                            <AuditInformation
+                                createdBy={createdBy}
+                                updatedBy={updatedBy}
+                                postedBy={postedBy}
+                                createdAt={creationDate}
+                                updatedAt={updatedDate}
+                                postedAt={postedDate}
+                            />
+                        </div> }
+                {!planningUtils.isFeaturedPlanningUpdatedAfterPosting(item) && get(item, 'posted') &&
+                        <div className="grid__item grid__item--col-6">
+                            <div className="pull-right">
+                                <StateLabel
+                                    item={{pubstatus: POST_STATE.USABLE}}
+                                    verbose={true}
+                                    noState />
+                            </div>
+                        </div>}
             </div>
+            {(get(items, 'length', 0) === 0 && !loadingIndicator) ?
+                (<PanelInfo heading={emptyMsg} />) :
+                (<Group spaceBetween={true}>
+                    {!sortable ?
+                        items.map((item) => (getItem(item))) :
+                        <SortableList
+                            items={items}
+                            onSortEnd={onSortEnd}
+                            onSortStart={onSortStart}
+                            distance={5}
+                            helperClass="FeatureListDraggableItem" />}
+                </Group>)}
         </div>
     );
 };
@@ -134,7 +127,6 @@ FeaturedPlanningList.propTypes = {
     currentSearchDate: PropTypes.object,
     featuredPlannings: PropTypes.array,
     selectedPlanningIds: PropTypes.array,
-    leftBorder: PropTypes.bool,
     onAddToSelectedFeaturedPlanning: PropTypes.func,
     onRemoveFromSelectedFeaturedPlanning: PropTypes.func,
     onSortStart: PropTypes.func,
@@ -157,6 +149,7 @@ FeaturedPlanningList.propTypes = {
     item: PropTypes.object,
     showAuditInformation: PropTypes.bool,
     contentTypes: PropTypes.array,
+    disabled: PropTypes.bool,
 };
 
 FeaturedPlanningList.defaultProps = {selectedPlanningIds: []};

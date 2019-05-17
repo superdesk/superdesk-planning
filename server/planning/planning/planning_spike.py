@@ -93,9 +93,6 @@ class PlanningSpikeService(BaseService):
                                                       omit_user=True)
 
     def on_updated(self, updates, original):
-        planning_featured_service = get_resource_service('planning_featured')
-        planning_featured_service.remove_planning_item(original)
-
         if original.get('lock_user') and 'lock_user' in updates and updates.get('lock_user') is None:
             push_notification(
                 'planning:unlock',
