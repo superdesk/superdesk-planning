@@ -190,6 +190,7 @@ describe('actions.events.api', () => {
                         page: 1,
                         maxResults: 25,
                         onlyFuture: false,
+                        includeKilled: true,
                     }]);
 
                     expect(eventsApi.receiveEvents.callCount).toBe(1);
