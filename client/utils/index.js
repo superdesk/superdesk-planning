@@ -807,7 +807,8 @@ export const getWorkFlowStateAsOptions = (activeFilter = null) => {
     return workflowStateOptions;
 };
 
-export const appendStatesQueryForAdvancedSearch = (advancedSearch, spikeState, mustNotTerms, mustTerms) => {
+export const appendStatesQueryForAdvancedSearch = (advancedSearch, spikeState,
+    mustNotTerms, mustTerms, includeKilled) => {
     let states = (advancedSearch.state || []).map((s) => s.qcode);
 
     switch (spikeState) {
@@ -832,8 +833,10 @@ export const appendStatesQueryForAdvancedSearch = (advancedSearch, spikeState, m
         mustTerms.push({terms: {state: states}});
     }
 
-    if (!states.includes(WORKFLOW_STATE.KILLED)) {
-        mustNotTerms.push({term: {state: WORKFLOW_STATE.KILLED}});
+    if (!includeKilled) {
+        if (!states.includes(WORKFLOW_STATE.KILLED)) {
+            mustNotTerms.push({term: {state: WORKFLOW_STATE.KILLED}});
+        }
     }
 };
 

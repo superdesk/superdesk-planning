@@ -100,7 +100,8 @@ export class UpdateEventRepetitionsComponent extends React.Component {
 
                 <Row
                     label={gettext('Series Start Date')}
-                    value={original._recurring[0].dates.start.format(dateFormat) || ''}
+                    value={get(original, '_recurring[0].dates.start')
+                    && original._recurring[0].dates.start.format(dateFormat) || ''}
                     className="strong"
                     noPadding={true}
                 />
