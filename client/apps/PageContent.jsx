@@ -105,7 +105,9 @@ export class PageContent extends React.Component {
 
                         {!fullPreview && PreviewPanel && (
                             <div className={previewClassName}>
-                                <PreviewPanel />
+                                <PreviewPanel
+                                    {...previewProps}
+                                />
                             </div>
                         )}
                     </div>
