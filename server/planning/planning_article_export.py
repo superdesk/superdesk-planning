@@ -42,6 +42,33 @@ def get_items(ids, resource_type):
     return [get_item(_id, resource) for _id in ids]
 
 
+def group_items_by_agenda(items):
+    """
+    Returns an array with all agendas for the provided items.
+    Each agenda will have an attribute 'items'.
+    An extra agenda with id: 'unassigned' is returned
+        containing items without any agenda.
+    """
+    if len(items) == 0:
+        return []
+
+    agendas = [{ '_id': 'unassigned', 'name': 'No Agenda Assigned', 'items': [] }]
+    for item in items:
+        item_agendas = item.get('agendas', [])
+        if len(item_agendas) == 0:
+            item_agendas = ['unassigned']
+        for agenda_id in item_agendas:
+            agenda_in_array = [a for a in agendas if a['_id'] == agenda_id]
+            if len(agenda_in_array) > 0:
+                agenda_in_array[0]['items'].append(item)
+            else:
+                agenda = superdesk.get_resource_service('agenda').find_one(req=None, _id=str(agenda_id))
+                if agenda is not None:
+                    agenda['items'] = [item]
+                    agendas.append(agenda)
+    return agendas
+
+
 def generate_text_item(items, template_name, resource_type):
     template = superdesk.get_resource_service('planning_export_templates').get_template(template_name, resource_type)
     if not template:
@@ -89,11 +116,13 @@ def generate_text_item(items, template_name, resource_type):
                                  if (coverage.get('planning') or {}).get('g2_content_type')]
 
     article = {}
+    agendas = group_items_by_agenda(items)
+
     for key, value in template.items():
         if value.endswith(".html"):
-            article[key.replace('_template', '')] = render_template(value, items=items)
+            article[key.replace('_template', '')] = render_template(value, items=items, agendas=agendas)
         else:
-            article[key] = render_template_string(value, items=items)
+            article[key] = render_template_string(value, items=items, agendas=agendas)
 
     return article
 
