@@ -45,6 +45,7 @@ def get_items(ids, resource_type):
 def group_items_by_agenda(items):
     """
     Returns an array with all agendas for the provided items.
+
     Each agenda will have an attribute 'items'.
     An extra agenda with id: 'unassigned' is returned
         containing items without any agenda.
@@ -52,7 +53,7 @@ def group_items_by_agenda(items):
     if len(items) == 0:
         return []
 
-    agendas = [{ '_id': 'unassigned', 'name': 'No Agenda Assigned', 'items': [] }]
+    agendas = [ { '_id': 'unassigned', 'name': 'No Agenda Assigned', 'items': [] } ]
     for item in items:
         item_agendas = item.get('agendas', [])
         if len(item_agendas) == 0:
