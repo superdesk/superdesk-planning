@@ -373,6 +373,19 @@ export class ItemManager {
     }
 
     post() {
+        const newState = {};
+
+        this.validate(this.props, newState, this.state);
+        if (!isEqual(this.state.errorMessages, [])) {
+            return this.setState({
+                submitting: false,
+                submitFailed: true,
+            })
+                .then(() => {
+                    this.props.notifyValidationErrors(this.state.errorMessages);
+                    return Promise.reject();
+                });
+        }
         return this.setState({
             submitting: true,
             submitFailed: false,
