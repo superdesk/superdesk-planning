@@ -310,6 +310,10 @@ export class PlanningEditorComponent extends React.Component {
     componentDidMount() {
         if (!get(this.props, 'navigation.scrollToViewItem')) {
             this.dom.slugline.focus();
+            var tempValue = get(this.dom.slugline, 'value', '');
+
+            this.dom.slugline.value = '';
+            this.dom.slugline.value = tempValue;
         }
     }
 

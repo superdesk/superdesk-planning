@@ -61,6 +61,10 @@ export class EventEditorComponent extends React.Component {
     componentDidMount() {
         if (!get(this.props, 'navigation.scrollToViewItem') && this.dom.initialFocus) {
             this.dom.initialFocus.focus();
+            var tempValue = get(this.dom.initialFocus, 'value', '');
+
+            this.dom.initialFocus.value = '';
+            this.dom.initialFocus.value = tempValue;
         }
 
         // scroll to contacts
