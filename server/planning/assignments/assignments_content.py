@@ -16,7 +16,7 @@ from apps.auth import get_user_id
 from apps.templates.content_templates import get_item_from_template
 from planning.planning_article_export import get_desk_template
 from superdesk.errors import SuperdeskApiError
-from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_coverage_type_name
+from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_coverage_type_name, get_next_assignment_status
 from superdesk.utc import utcnow
 from planning.planning_notifications import PlanningNotifications
 from superdesk import get_resource_service
@@ -136,7 +136,7 @@ class AssignmentsContentService(superdesk.Service):
             updates = {'assigned_to': deepcopy(assignment.get('assigned_to'))}
             updates['assigned_to']['user'] = str(item.get('task').get('user'))
             updates['assigned_to']['desk'] = str(item.get('task').get('desk'))
-            updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
+            updates['assigned_to']['state'] = get_next_assignment_status(updates, ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS)
             updates['assigned_to']['assignor_user'] = str(item.get('task').get('user'))
             updates['assigned_to']['assigned_date_user'] = utcnow()
 

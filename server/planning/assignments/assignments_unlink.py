@@ -54,7 +54,6 @@ class AssignmentsUnlinkService(Service):
             other_linked_items = [a for a in archive_items if
                                   str(a.get(config.ID_FIELD)) != str(actioned_item[config.ID_FIELD])]
             if len(other_linked_items) <= 0:
-                # Set the state to 'assigned' if the item is 'submitted'
                 updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
                 assignments_service.patch(assignment.get(config.ID_FIELD), updates)
 

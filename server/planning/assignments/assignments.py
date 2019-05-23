@@ -31,7 +31,7 @@ from planning.item_lock import LockService, LOCK_USER, LOCK_ACTION
 from superdesk.users.services import current_user_has_privilege
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information, \
     is_locked_in_this_session, get_coverage_type_name, get_version_item_for_post, \
-    enqueue_planning_item, WORKFLOW_STATE
+    enqueue_planning_item, WORKFLOW_STATE, get_next_assignment_status
 from flask import request, json, current_app as app
 from planning.planning_notifications import PlanningNotifications
 from apps.content import push_content_notification
@@ -165,8 +165,9 @@ class AssignmentsService(superdesk.Service):
 
         if not original.get(config.ID_FIELD):
             updates['original_creator'] = str(user.get(config.ID_FIELD)) if user else None
-            updates['assigned_to'][ITEM_STATE] = updates['assigned_to'].get(ITEM_STATE) or \
-                ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+            updates['assigned_to'][
+                ITEM_STATE] = get_next_assignment_status(updates, updates['assigned_to'].get(ITEM_STATE) or
+                                                         ASSIGNMENT_WORKFLOW_STATE.ASSIGNED)
         else:
             # In case user was removed
             if not assigned_to.get('user'):
@@ -174,7 +175,8 @@ class AssignmentsService(superdesk.Service):
             else:
                 # Moving from submitted to assigned after user assigned after desk submission
                 if original.get('assigned_to')['state'] == ASSIGNMENT_WORKFLOW_STATE.SUBMITTED:
-                    updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
+                    updates['assigned_to']['state'] = get_next_assignment_status(updates,
+                                                                                 ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS)
 
             updates['version_creator'] = str(user.get(config.ID_FIELD)) if user else None
 
@@ -482,7 +484,8 @@ class AssignmentsService(superdesk.Service):
         if original_assignment:
             updated_assignment = {'assigned_to': {}}
             updated_assignment['assigned_to'].update(original_assignment.get('assigned_to'))
-            updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.CANCELLED
+            updated_assignment.get('assigned_to')['state'] = \
+                get_next_assignment_status(updated_assignment, ASSIGNMENT_WORKFLOW_STATE.CANCELLED)
             updated_assignment['planning'] = coverage_to_copy.get('planning')
             updated_assignment['planning']['news_coverage_status'] = coverage_to_copy.get('news_coverage_status')
             updated_assignment['planning']['workflow_status_reason'] = coverage_to_copy['planning']\
@@ -552,7 +555,8 @@ class AssignmentsService(superdesk.Service):
             # re-assign the user to the lock user
             updated_assignment = self._set_user_for_assignment(assignment_update_data.get('assignment'),
                                                                assignment_update_data.get('item_user_id'))
-            updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
+            updated_assignment.get('assigned_to')['state'] = \
+                get_next_assignment_status(updated_assignment, ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS)
             self._update_assignment_and_notify(updated_assignment, assignment_update_data.get('assignment'))
             get_resource_service('assignments_history').on_item_updated(updated_assignment,
                                                                         assignment_update_data.get('assignment'))
@@ -569,7 +573,8 @@ class AssignmentsService(superdesk.Service):
                                                                    assignment_update_data.get('item_user_id'))
                 updated_assignment.get('assigned_to')['desk'] = assignment_update_data.get('item_desk_id')
                 updated_assignment.get('assigned_to')['assignor_user'] = assignment_update_data.get('item_user_id')
-                updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.SUBMITTED
+                updated_assignment.get('assigned_to')['state'] = \
+                    get_next_assignment_status(updated_assignment, ASSIGNMENT_WORKFLOW_STATE.SUBMITTED)
 
                 self._update_assignment_and_notify(updated_assignment, assignment_update_data['assignment'])
                 get_resource_service('assignments_history').on_item_updated(updated_assignment,
@@ -581,7 +586,8 @@ class AssignmentsService(superdesk.Service):
                 updated_assignment = self._get_empty_updates_for_assignment(assignment)
                 if updates.get(ITEM_STATE, original.get(ITEM_STATE, '')) != CONTENT_STATE.SCHEDULED:
                     if updated_assignment.get('assigned_to')['state'] != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
-                        updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED
+                        updated_assignment.get('assigned_to')['state'] = \
+                            get_next_assignment_status(updated_assignment, ASSIGNMENT_WORKFLOW_STATE.COMPLETED)
                         self._update_assignment_and_notify(updated_assignment, assignment)
                         get_resource_service('assignments_history').on_item_complete(
                             updated_assignment, assignment)
