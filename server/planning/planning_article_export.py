@@ -53,7 +53,7 @@ def group_items_by_agenda(items):
     if len(items) == 0:
         return []
 
-    agendas = [ { '_id': 'unassigned', 'name': 'No Agenda Assigned', 'items': [] } ]
+    agendas = [{'_id': 'unassigned', 'name': 'No Agenda Assigned', 'items': []}]
     for item in items:
         item_agendas = item.get('agendas', [])
         if len(item_agendas) == 0:
