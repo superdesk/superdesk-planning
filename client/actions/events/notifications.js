@@ -242,6 +242,7 @@ const onRecurringEventCreated = (_e, data) => (
                 eventsApi.query({
                     recurrenceId: data.item,
                     onlyFuture: false,
+                    includeKilled: true,
                 }),
                 (events) => get(events, 'length', 0) > 0,
                 5,
