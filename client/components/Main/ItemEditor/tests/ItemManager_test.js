@@ -8,7 +8,7 @@ import planningApi from '../../../../actions/planning/api';
 import planningUi from '../../../../actions/planning/ui';
 
 import {EventUpdateMethods} from '../../../Events';
-import {getItemInArrayById, itemsEqual, timeUtils, updateFormValues} from '../../../../utils';
+import {getItemInArrayById, itemsEqual, timeUtils, updateFormValues, removeAutosaveFields} from '../../../../utils';
 import {restoreSinonStub, waitFor} from '../../../../utils/testUtils';
 import * as testData from '../../../../utils/testData';
 
@@ -1146,6 +1146,10 @@ describe('components.Main.ItemManager', () => {
                         ...states.notLoading,
                     });
 
+                    expect(editor.autoSave.saveAutosave.callCount).toBe(1);
+                    expect(editor.autoSave.saveAutosave.args[0][1]).toEqual(item);
+                    expect(editor.autoSave.flushAutosave.callCount).toBe(2);
+
                     done();
                 })
                 .catch(done.fail);
@@ -1205,6 +1209,33 @@ describe('components.Main.ItemManager', () => {
                 })
                 .catch(done.fail);
         });
+
+        it('post calls autoSave.save and then autoSave.flush', (done) => {
+            sinon.stub(main, 'post').returns(Promise.resolve({
+                ...cloneDeep(testData.events[0]),
+                _etag: 'e789',
+                state: 'scheduled',
+                pubstatus: 'usable',
+            }));
+
+            editor.setState({initialValues: testData.events[0]});
+            manager.post()
+                .then(() => {
+                    expect(editor.autoSave.saveAutosave.callCount).toBe(1);
+                    expect(editor.autoSave.saveAutosave.args[0][1]).toEqual(
+                        removeAutosaveFields({
+                            ...cloneDeep(testData.events[0]),
+                            _etag: 'e789',
+                            state: 'scheduled',
+                            pubstatus: 'usable',
+                        })
+                    );
+                    expect(editor.autoSave.flushAutosave.callCount).toBe(2);
+
+                    done();
+                })
+                .catch(done.fail);
+        });
     });
 
     describe('unpost', () => {
@@ -1241,6 +1272,33 @@ describe('components.Main.ItemManager', () => {
             manager.unpost()
                 .then(() => {
                     expectState({submitting: false});
+
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('unpost calls autoSave.save and then autoSave.flush', (done) => {
+            sinon.stub(main, 'unpost').returns(Promise.resolve({
+                ...cloneDeep(testData.events[0]),
+                _etag: 'e789',
+                state: 'killed',
+                pubstatus: 'cancelled',
+            }));
+
+            editor.setState({initialValues: testData.events[0]});
+            manager.unpost()
+                .then(() => {
+                    expect(editor.autoSave.saveAutosave.callCount).toBe(1);
+                    expect(editor.autoSave.saveAutosave.args[0][1]).toEqual(
+                        removeAutosaveFields({
+                            ...cloneDeep(testData.events[0]),
+                            _etag: 'e789',
+                            state: 'killed',
+                            pubstatus: 'cancelled',
+                        })
+                    );
+                    expect(editor.autoSave.flushAutosave.callCount).toBe(2);
 
                     done();
                 })
