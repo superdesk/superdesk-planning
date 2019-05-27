@@ -456,3 +456,13 @@ def get_contacts_from_item(item):
     query = {"query": {"bool": {"must": [{"terms": {"_id": contact_ids}}, {"term": {"public": "true"}}]}}}
     contacts = get_resource_service('contacts').search(query)
     return list(contacts)
+
+
+def get_next_assignment_status(assignment, next_state):
+    current_state = ((assignment or {}).get('assigned_to') or {}).get('state')
+    if current_state == ASSIGNMENT_WORKFLOW_STATE.CANCELLED:
+        return ASSIGNMENT_WORKFLOW_STATE.CANCELLED
+    elif current_state == ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+        return ASSIGNMENT_WORKFLOW_STATE.COMPLETED
+    else:
+        return next_state

@@ -11,7 +11,7 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.item import ITEM_STATE, CONTENT_STATE
 from eve.utils import config
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_related_items, \
-    update_assignment_on_link_unlink
+    update_assignment_on_link_unlink, get_next_assignment_status
 from apps.archive.common import get_user, is_assigned_to_a_desk
 from apps.content import push_content_notification
 from superdesk.notification import push_notification
@@ -30,7 +30,6 @@ class AssignmentsLinkService(Service):
         ids = []
         production = get_resource_service('archive')
         assignments_service = get_resource_service('assignments')
-        assignments_complete = get_resource_service('assignments_complete')
         items = []
         deliveries = []
         published_updated_items = []
@@ -41,8 +40,6 @@ class AssignmentsLinkService(Service):
             item_id = doc.pop('item_id')
             actioned_item = production.find_one(req=None, _id=item_id)
             related_items = get_related_items(actioned_item)
-            reassign = doc.pop('reassign')
-            updates = {'assigned_to': deepcopy(assignment.get('assigned_to'))}
 
             for item in related_items:
                 if not item.get('assignment_id'):
@@ -67,31 +64,9 @@ class AssignmentsLinkService(Service):
         if len(deliveries) > 0:
             get_resource_service('delivery').post(deliveries)
 
-        # Update assignments, assignment history and publish planning
-        # set the state to in progress if no item in the updates chain has ever been published
+        updates = {'assigned_to': deepcopy(assignment.get('assigned_to'))}
         already_completed = assignment['assigned_to']['state'] == ASSIGNMENT_WORKFLOW_STATE.COMPLETED
-        updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED if \
-            actioned_item.get(ITEM_STATE) in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED] else \
-            ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
-
-        # on fulfiling the assignment the user is assigned the assignment, for add to planning it is not
-        if reassign:
-            user = get_user()
-            if user and str(user.get(config.ID_FIELD)) != \
-                    (assignment.get('assigned_to') or {}).get('user'):
-                updates['assigned_to']['user'] = str(user.get(config.ID_FIELD))
-
-            # if the item & assignment are'nt on the same desk, move the assignment to the item desk
-            if (assignment.get('assigned_to') or {}).get('desk') != str(actioned_item.get('task').get('desk')):
-                updates['assigned_to']['desk'] = str(actioned_item.get('task').get('desk'))
-
-        # If assignment is already complete, no need to update it again
-        if not already_completed:
-            if actioned_item.get(ITEM_STATE) in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED]:
-                assignments_complete.update(assignment[config.ID_FIELD], updates, assignment)
-            else:
-                assignments_service.patch(assignment[config.ID_FIELD], updates)
-
+        self.update_assignment(updates, assignment, actioned_item, doc.pop('reassign', None), already_completed)
         actioned_item['assignment_id'] = assignment[config.ID_FIELD]
         doc.update(actioned_item)
 
@@ -151,6 +126,37 @@ class AssignmentsLinkService(Service):
                 raise SuperdeskApiError.badRequestError(
                     'Content already exists for the assignment. Cannot link assignment and content.'
                 )
+
+    def update_assignment(self, updates, assignment, actioned_item, reassign, already_completed):
+        # Update assignments, assignment history and publish planning
+        # set the state to in progress if no item in the updates chain has ever been published
+        updated = False
+        if not already_completed:
+            new_state = ASSIGNMENT_WORKFLOW_STATE.COMPLETED if \
+                actioned_item.get(ITEM_STATE) in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED] else \
+                ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
+            updates['assigned_to']['state'] = get_next_assignment_status(updates, new_state)
+            updated = True
+
+        # on fulfiling the assignment the user is assigned the assignment, for add to planning it is not
+        if reassign:
+            user = get_user()
+            if user and str(user.get(config.ID_FIELD)) != \
+                    (assignment.get('assigned_to') or {}).get('user'):
+                updates['assigned_to']['user'] = str(user.get(config.ID_FIELD))
+                updated = True
+
+            # if the item & assignment are'nt on the same desk, move the assignment to the item desk
+            if (assignment.get('assigned_to') or {}).get('desk') != str(actioned_item.get('task').get('desk')):
+                updates['assigned_to']['desk'] = str(actioned_item.get('task').get('desk'))
+                updated = True
+
+        # If assignment is already complete, no need to update it again
+        if not already_completed and updates['assigned_to']['state'] == ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+            get_resource_service('assignments_complete').update(assignment[config.ID_FIELD], updates, assignment)
+
+        if updated:
+            get_resource_service('assignments').patch(assignment[config.ID_FIELD], updates)
 
 
 class AssignmentsLinkResource(Resource):

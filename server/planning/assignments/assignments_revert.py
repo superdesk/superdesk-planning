@@ -46,8 +46,7 @@ class AssignmentsRevertService(BaseService):
             raise SuperdeskApiError.forbiddenError('Cannot revert an assignment which is not yet confirmed.')
 
         updates['assigned_to'] = deepcopy(original).get('assigned_to')
-        updates['assigned_to']['state'] = updates['assigned_to'].get(
-            'revert_state', ASSIGNMENT_WORKFLOW_STATE.ASSIGNED)
+        updates['assigned_to']['state'] = updates['assigned_to'].get('revert_state', ASSIGNMENT_WORKFLOW_STATE.ASSIGNED)
         updates['assigned_to']['revert_state'] = None
 
         remove_lock_information(updates)
