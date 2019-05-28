@@ -106,8 +106,7 @@ def generate_text_item(items, template_name, resource_type):
         users = ["{0}, {1}".format(u.get('last_name'), u.get('first_name')) for u in users]
 
         item['assignees'].extend(users)
-        item['place'] = item.get('place') or (item.get('event') or {}).get('place')
-        item['place'] = [p.get('name') for p in item['place']] if item.get('place') else None
+        set_item_place(item)
 
         item['description_text'] = item.get('description_text') or (item.get('event') or {}).get('definition_short')
         item['slugline'] = item.get('slugline') or (item.get('event') or {}).get('name')
@@ -153,6 +152,11 @@ def get_desk_template(desk):
         return superdesk.get_resource_service('content_templates').find_one(req=None, _id=default_content_template)
 
     return {}
+
+
+def set_item_place(item):
+    item['place'] = item.get('place') or (item.get('event') or {}).get('place')
+    item['place'] = [p.get('name') for p in item['place']] if item.get('place') else None
 
 
 class PlanningArticleExportService(superdesk.Service):
@@ -218,6 +222,7 @@ class PlanningArticleExportService(superdesk.Service):
                 schedule = "{0} to {1}".format(item['dates']['start'].strftime(date_time_format),
                                                item['dates']['end'].strftime(date_time_format))
 
+            set_item_place(item)
             rendered_item_list.append(
                 render_template("events_download_format.txt",
                                 item=item,
