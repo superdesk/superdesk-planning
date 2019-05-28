@@ -109,6 +109,12 @@ export class EventPreviewContentComponent extends React.Component {
                 />
 
                 <Row
+                    enabled={get(formProfile, 'editor.place.enabled')}
+                    label={gettext('Place')}
+                    value={placeText}
+                />
+
+                <Row
                     enabled={get(formProfile, 'editor.location.enabled')}
                     label={gettext('Location')}
                 >
@@ -139,11 +145,6 @@ export class EventPreviewContentComponent extends React.Component {
                 </Row>
 
                 <ToggleBox title={gettext('Details')} isOpen={false}>
-                    <Row
-                        enabled={get(formProfile, 'editor.place.enabled')}
-                        label={gettext('Place')}
-                        value={placeText}
-                    />
                     <Row
                         enabled={get(formProfile, 'editor.anpa_category.enabled')}
                         label={gettext('ANPA Category')}

@@ -316,7 +316,7 @@ export class SelectFieldPopup extends React.Component {
                     </div>
                     <ul className="Select__popup__list" ref={(node) => this.dom.list = node}>
                         {Object.keys(groupsList).map((g) => (
-                            <li key={g} className="Select__popup__item">
+                            <li key={g}>
                                 <div className="Select__popup__group">{g}</div>
                                 {renderList(groupsList[g], g)}
                             </li>))

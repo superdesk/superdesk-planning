@@ -107,6 +107,7 @@ describe('<EventPreviewContent />', () => {
         verifyDataRow(dataRows.at(3), 'Occurrence Status', 'Planned, occurs certainly');
         verifyDataRow(dataRows.at(4), 'Date', dateString);
         verifyDataRow(dataRows.at(5), 'Calendars', 'calender1');
+        verifyDataRow(dataRows.at(6), 'Place', 'ACT');
 
         let eventDetails = wrapper.find('.toggle-box').first();
 
@@ -116,11 +117,10 @@ describe('<EventPreviewContent />', () => {
             .find('.toggle-box__content')
             .find('.form__row');
 
-        verifyDataRow(eventDetailRows.at(0), 'Place', 'ACT');
-        verifyDataRow(eventDetailRows.at(1), 'ANPA Category', 'cat1');
-        verifyDataRow(eventDetailRows.at(2), 'Subject', 'sub1');
-        verifyDataRow(eventDetailRows.at(3), 'Long Description', 'long description');
-        verifyDataRow(eventDetailRows.at(4), 'Internal Note', 'internal note');
+        verifyDataRow(eventDetailRows.at(0), 'ANPA Category', 'cat1');
+        verifyDataRow(eventDetailRows.at(1), 'Subject', 'sub1');
+        verifyDataRow(eventDetailRows.at(2), 'Long Description', 'long description');
+        verifyDataRow(eventDetailRows.at(3), 'Internal Note', 'internal note');
 
         let contacts = wrapper.find('.contact-info');
 
