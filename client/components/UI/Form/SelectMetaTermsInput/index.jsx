@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {SelectFieldPopup} from './SelectFieldPopup';
-import {differenceBy, get, cloneDeep} from 'lodash';
+import {differenceBy, cloneDeep} from 'lodash';
 
 import {LineInput, Label} from '../';
 import {TermsList} from '../../';
@@ -120,14 +120,12 @@ export class SelectMetaTermsInput extends React.Component {
                 <Label text={label} />
 
                 <div className="sd-line-input__input">
-                    {get(selected, 'length', 0) > 0 && (
-                        <TermsList
-                            terms={selected}
-                            displayField={labelKey}
-                            onClick={this.removeValue}
-                            readOnly={readOnly}
-                        />
-                    )}
+                    <TermsList
+                        terms={selected}
+                        displayField={labelKey}
+                        onClick={this.removeValue}
+                        readOnly={readOnly}
+                    />
                 </div>
 
                 { this.state.openSelectPopup &&

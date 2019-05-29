@@ -10,7 +10,7 @@ import './style.scss';
  * @name TimeZoneInput
  * @description Component to choose timezone
  */
-export const TimeZoneInput = ({field, label, value, onChange, invalid, required, ...props}) => {
+export const TimeZoneInput = ({field, label, value, onChange, invalid, required, halfWidth, ...props}) => {
     const onChangeHandler = (field, val) => {
         if (val.length > 1) {
             onChange(field, get(val.find((v) => get(v, 'qcode') !== value), 'qcode'));
@@ -25,7 +25,7 @@ export const TimeZoneInput = ({field, label, value, onChange, invalid, required,
     }));
 
     return (
-        <Row flex={true} className={{
+        <Row flex={true} halfWidth={halfWidth} className={{
             'date-time-input__row': true,
             'date-time-input__row--required': required,
             'date-time-input__row--invalid': invalid,
@@ -57,6 +57,7 @@ TimeZoneInput.propTypes = {
     noMargin: PropTypes.bool,
     invalid: PropTypes.bool,
     required: PropTypes.bool,
+    halfWidth: PropTypes.bool,
 };
 
 TimeZoneInput.defaultProps = {

@@ -279,16 +279,6 @@ export class EventEditorComponent extends React.Component {
                     />
 
                     <Field
-                        component={SelectInput}
-                        field="occur_status"
-                        label={gettext('Occurrence Status')}
-                        defaultValue={null}
-                        options={occurStatuses}
-                        {...fieldProps}
-                        onFocus={onFocusEvent}
-                    />
-
-                    <Field
                         component={SelectMetaTermsInput}
                         field="calendars"
                         label={gettext('Calendars')}
@@ -320,6 +310,16 @@ export class EventEditorComponent extends React.Component {
                         onFocus={onFocusContacts}
                         paddingTop={!!onFocusContacts}
                         {...popupProps} />
+
+                    <Field
+                        component={SelectInput}
+                        field="occur_status"
+                        label={gettext('Occurrence Status')}
+                        defaultValue={null}
+                        options={occurStatuses}
+                        {...fieldProps}
+                        onFocus={onFocusEvent}
+                    />
 
                     <ToggleBox
                         title={gettext('Details')}
