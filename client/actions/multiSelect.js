@@ -153,7 +153,7 @@ const exportAsArticle = (items = []) => (
 
         const templates = isPlanning ? selectors.general.getPlanningExportTemplates(getState()) :
             selectors.general.getEventExportTemplates(getState());
-        const exportArticlesDispatch = (items, desk, template, type, download) => {
+        const exportArticlesDispatch = (items, desk, template, type, download, articleTemplate) => {
             const itemIds = items.map((item) => item.id);
 
             if (download) {
@@ -167,6 +167,7 @@ const exportAsArticle = (items = []) => (
                     template: template,
                     type: type,
                     copy_to_clipboard: download,
+                    article_template: articleTemplate,
                 })
                     .then((item) => {
                         notify.success(gettext('Article was created.'), 5000, {
@@ -191,6 +192,9 @@ const exportAsArticle = (items = []) => (
             }
         };
         const personalWorkspace = {_id: 'personal-workspace', name: 'Personal Workspace'};
+        const articleTemplates = getState().templates;
+        const defaultDesk = getItemInArrayById(selectors.general.userDesks(getState()), desks.getCurrentDeskId())
+            || personalWorkspace;
 
         return dispatch(showModal({
             modalType: MODALS.EXPORT_AS_ARTICLE,
@@ -201,10 +205,12 @@ const exportAsArticle = (items = []) => (
                 templates: templates,
                 defaultTemplate: templates.find((t) =>
                     (isPlanning && t.name === 'default_planning') || (!isPlanning && t.name === 'default_event')),
-                defaultDesk: getItemInArrayById(selectors.general.userDesks(getState()), desks.getCurrentDeskId())
-                    || personalWorkspace,
+                defaultDesk: defaultDesk,
                 type: itemType,
                 download: itemType === ITEM_TYPE.EVENT,
+                articleTemplates: articleTemplates,
+                defaultArticleTemplate: articleTemplates.find((t) =>
+                    t._id === get(defaultDesk, 'default_content_template')) || articleTemplates[0],
             },
         }));
     }

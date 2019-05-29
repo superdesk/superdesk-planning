@@ -17,6 +17,8 @@ export class ExportAsArticleModal extends React.Component {
             template: this.props.modalProps.defaultTemplate,
             desk: this.props.modalProps.defaultDesk,
             items: this.props.modalProps.items,
+            articleTemplate: this.props.modalProps.defaultArticleTemplate,
+            articleTemplates: this.props.modalProps.articleTemplates,
         };
 
         this.onChange = this.onChange.bind(this);
@@ -25,7 +27,19 @@ export class ExportAsArticleModal extends React.Component {
     }
 
     onChange(field, value) {
-        this.setState({[field]: value});
+        const newObj = {[field]: value};
+
+        if (field === 'desk') { // on desk change filter article-templates based on desk selected
+            const {
+                articleTemplates,
+            } = this.props.modalProps;
+
+            newObj.articleTemplates = articleTemplates.filter((t) =>
+                t.template_desks.includes(value._id));
+            newObj.articleTemplate = articleTemplates.find((t) =>
+                t._id === get(value, 'default_content_template')) || articleTemplates[0];
+        }
+        this.setState((prevState) => ({...prevState, ...newObj}));
     }
 
     onSubmit(e, download) {
@@ -33,10 +47,11 @@ export class ExportAsArticleModal extends React.Component {
             desk,
             template,
             items,
+            articleTemplate,
         } = this.state;
 
         this.props.modalProps.action(items, get(desk, '_id'), get(template, 'name'),
-            get(this.props, 'modalProps.type'), download);
+            get(this.props, 'modalProps.type'), download, get(articleTemplate, '_id'));
         this.props.handleHide();
     }
 
@@ -52,6 +67,13 @@ export class ExportAsArticleModal extends React.Component {
             download,
         } = this.props.modalProps;
 
+        const {
+            desk,
+            template,
+            articleTemplate,
+            articleTemplates,
+        } = this.state;
+
         return (
             <Modal show={true}>
                 <Modal.Header>
@@ -65,7 +87,7 @@ export class ExportAsArticleModal extends React.Component {
                         <SelectInput
                             field="desk"
                             label={gettext('Desk')}
-                            value={this.state.desk}
+                            value={desk}
                             onChange={this.onChange}
                             options={desks}
                             labelField="name"
@@ -73,9 +95,19 @@ export class ExportAsArticleModal extends React.Component {
                     </Row>
                     <Row>
                         <SelectInput
+                            field="articleTemplate"
+                            label={gettext('Select Article Template')}
+                            value={articleTemplate}
+                            onChange={this.onChange}
+                            options={articleTemplates}
+                            labelField="template_name"
+                            keyField="_id" />
+                    </Row>
+                    <Row>
+                        <SelectInput
                             field="template"
                             label={gettext('Template')}
-                            value={this.state.template}
+                            value={template}
                             onChange={this.onChange}
                             options={templates}
                             labelField="label"
@@ -85,7 +117,7 @@ export class ExportAsArticleModal extends React.Component {
                 <Modal.Footer>
                     <Button type="button"
                         onClick={this.props.handleHide}>{gettext('Cancel')}</Button>
-                    <Button type="submit" className="btn--primary" disabled={!this.state.template || !this.state.desk}
+                    <Button type="submit" className="btn--primary" disabled={!template || !desk}
                         onClick={this.onSubmit}>{gettext('Export')}</Button>
                     {download && <Button type="submit" className="btn--primary"onClick={this.onSubmit.bind(null, true)}>
                         {gettext('Download')}</Button>}
@@ -106,5 +138,7 @@ ExportAsArticleModal.propTypes = {
         onSortChange: PropTypes.func,
         action: PropTypes.func,
         download: PropTypes.bool,
+        articleTemplates: PropTypes.array,
+        defaultArticleTemplate: PropTypes.object,
     }),
 };

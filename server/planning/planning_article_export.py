@@ -21,7 +21,8 @@ class PlanningArticleExportResource(superdesk.Resource):
         'type': {
             'type': 'string',
             'default': 'planning',
-        }
+        },
+        'article_template': superdesk.Resource.rel('content_templates', nullable=True)
     }
 
     item_methods = []
@@ -167,7 +168,13 @@ class PlanningArticleExportService(superdesk.Service):
             item_type = doc.pop('type')
             item_list = get_items(doc.pop('items', []), item_type)
             desk = superdesk.get_resource_service('desks').find_one(req=None, _id=doc.pop('desk')) or {}
-            content_template = get_desk_template(desk)
+            article_template = doc.pop('article_template', None)
+            if article_template:
+                content_template = superdesk.get_resource_service('content_templates').find_one(
+                    req=None, _id=article_template) or {}
+            else:
+                content_template = get_desk_template(desk)
+
             item = get_item_from_template(content_template)
             item[current_app.config['VERSION']] = 1
             item.setdefault('type', 'text')
