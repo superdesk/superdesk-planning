@@ -263,14 +263,15 @@ class AssignmentsService(superdesk.Service):
         if self.is_assignment_draft(updates, original):
             return
 
+        assigned_to = updates.get('assigned_to', {})
+        assignment_id = (updates.get('_id') or assigned_to.get('assignment_id', 'Unknown'))
         if not original:
             original = {}
+        else:
+            assignment_id = original.get('_id')
 
         if not force and not self.is_assignment_modified(updates, original):
             return
-
-        assigned_to = updates.get('assigned_to', {})
-        assignment_id = assigned_to.get('assignment_id', 'Unknown')
 
         user = get_user()
 
