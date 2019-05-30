@@ -124,6 +124,11 @@ export class PlanningPreviewContentComponent extends React.Component {
                     value={stringUtils.convertNewlineToBreak(item.internal_note || '-')}
                 />
                 <Row
+                    enabled={get(formProfile, 'planning.editor.place.enabled')}
+                    label={gettext('Place')}
+                    value={placeText || ''}
+                />
+                <Row
                     enabled={get(formProfile, 'planning.editor.agendas.enabled')}
                     label={gettext('Agenda')}
                     value={<AgendaNameList agendas={agendaList}/>}
@@ -133,11 +138,6 @@ export class PlanningPreviewContentComponent extends React.Component {
                         enabled={get(formProfile, 'planning.editor.ednote.enabled')}
                         label={gettext('Ed Note')}
                         value={stringUtils.convertNewlineToBreak(item.ednote || '-')}
-                    />
-                    <Row
-                        enabled={get(formProfile, 'planning.editor.place.enabled')}
-                        label={gettext('Place')}
-                        value={placeText || ''}
                     />
                     <Row
                         enabled={get(formProfile, 'planning.editor.anpa_category.enabled')}

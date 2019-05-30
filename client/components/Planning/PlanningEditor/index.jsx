@@ -539,6 +539,19 @@ export class PlanningEditorComponent extends React.Component {
 
                     <Field
                         component={SelectMetaTermsInput}
+                        field="place"
+                        label={gettext('Place')}
+                        options={locators}
+                        defaultValue={[]}
+                        groupField="group"
+                        {...fieldProps}
+                        onFocus={onFocusDetails}
+                        popupContainer={popupContainer}
+                        {...popupProps}
+                    />
+
+                    <Field
+                        component={SelectMetaTermsInput}
                         field="agendas"
                         label={gettext('Agenda')}
                         options={enabledAgendas}
@@ -566,19 +579,6 @@ export class PlanningEditorComponent extends React.Component {
                             label={gettext('Ed Note')}
                             {...fieldProps}
                             onFocus={onFocusDetails}
-                        />
-
-                        <Field
-                            component={SelectMetaTermsInput}
-                            field="place"
-                            label={gettext('Place')}
-                            options={locators}
-                            defaultValue={[]}
-                            groupField="group"
-                            {...fieldProps}
-                            onFocus={onFocusDetails}
-                            popupContainer={popupContainer}
-                            {...popupProps}
                         />
 
                         <Field

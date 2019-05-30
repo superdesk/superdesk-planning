@@ -82,9 +82,11 @@ export class SelectMetaTermsInput extends React.Component {
             groupField,
             onPopupOpen,
             onPopupClose,
+            maxLength,
             ...props
         } = this.props;
         const options = this.removeValuesFromOptions();
+        const disabled = options.length === 0 || (maxLength && Array.isArray(value) && value.length >= maxLength);
         let selected = value;
 
         if (scheme) {
@@ -107,9 +109,9 @@ export class SelectMetaTermsInput extends React.Component {
                         className={classNames(
                             'dropdown__toggle',
                             'sd-line-input__plus-btn',
-                            {'sd-line-input__plus-btn--disabled': options.length === 0}
+                            {'sd-line-input__plus-btn--disabled': disabled}
                         )}
-                        onClick={options.length > 0 ? this.toggleOpenSelectPopup : null}
+                        onClick={!disabled ? this.toggleOpenSelectPopup : null}
                         onFocus={onFocus}
                         ref={(ref) => {
                             this.addBtn = ref;
@@ -177,6 +179,7 @@ SelectMetaTermsInput.propTypes = {
     groupField: PropTypes.string,
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
+    maxLength: PropTypes.number,
 };
 
 SelectMetaTermsInput.defaultProps = {

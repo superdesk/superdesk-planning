@@ -291,6 +291,18 @@ export class EventEditorComponent extends React.Component {
                     />
 
                     <Field
+                        component={SelectMetaTermsInput}
+                        field="place"
+                        label={gettext('Place')}
+                        options={locators}
+                        defaultValue={[]}
+                        {...fieldProps}
+                        onFocus={onFocusDetails}
+                        popupContainer={this.props.popupContainer}
+                        {...popupProps}
+                    />
+
+                    <Field
                         component={GeoLookupInput}
                         field="location"
                         label={gettext('Location')}
@@ -330,18 +342,6 @@ export class EventEditorComponent extends React.Component {
                         invalid={detailsErrored && (dirty || submitFailed)}
                         forceScroll={editorMenuUtils.forceScroll(navigation, 'details')}
                         paddingTop={!!onFocusDetails} >
-                        <Field
-                            component={SelectMetaTermsInput}
-                            field="place"
-                            label={gettext('Place')}
-                            options={locators}
-                            defaultValue={[]}
-                            {...fieldProps}
-                            onFocus={onFocusDetails}
-                            popupContainer={this.props.popupContainer}
-                            {...popupProps}
-                        />
-
                         <Field
                             component={SelectMetaTermsInput}
                             field="anpa_category"
