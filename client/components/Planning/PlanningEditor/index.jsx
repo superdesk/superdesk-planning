@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get, cloneDeep, remove as _remove, some, isEqual, isEmpty} from 'lodash';
+import {get, cloneDeep, remove as _remove, some, isEqual, isEmpty, omit} from 'lodash';
 
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
@@ -279,31 +279,21 @@ export class PlanningEditorComponent extends React.Component {
 
         originalCoverages.forEach((original) => {
             // Push notification updates from 'assignment' workflow changes
-            if (planningUtils.isCoverageDraft(original)) {
+            const index = updatedCoverages.findIndex((c) => c.coverage_id === original.coverage_id);
+            const updates = index >= 0 ? updatedCoverages[index] : null;
+
+            if (!updates) {
                 return;
             }
 
-            const index = updatedCoverages.findIndex(
-                (c) => c.coverage_id === original.coverage_id
-            );
-
-            if (index < 0) {
-                return;
-            }
-
-            const updates = updatedCoverages[index];
-
-            if (!updates ||
-                get(updates, 'assigned_to.state') === WORKFLOW_STATE.DRAFT ||
+            if (isEqual(omit(updates, 'assigned_to'), omit(original, 'assigned_to')) &&
                 isEqual(updates.assigned_to, original.assigned_to)
             ) {
+                // If assignment and coverage has not changed
                 return;
             }
 
-            this.props.itemManager.finalisePartialSave(
-                {[`coverages[${index}].assigned_to`]: updates.assigned_to},
-                true
-            );
+            this.props.itemManager.finalisePartialSave({[`coverages[${index}]`]: updates}, false);
         });
     }
 
