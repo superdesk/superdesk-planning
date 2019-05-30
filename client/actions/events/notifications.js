@@ -196,24 +196,11 @@ const onEventPostponed = (e, data) => (
 const onEventPostChanged = (e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
+            dispatch(eventsUi.scheduleRefetch()); // Will update only 'events only' view
+            dispatch(eventsPlanning.ui.scheduleRefetch()); // Will update only 'combined' view
             const posted = data.state === WORKFLOW_STATE.SCHEDULED;
 
-            dispatch({
-                type: posted ?
-                    EVENTS.ACTIONS.MARK_EVENT_POSTED :
-                    EVENTS.ACTIONS.MARK_EVENT_UNPOSTED,
-                payload: {
-                    item: data.item,
-                    items: get(data, 'items', [{
-                        id: data.item,
-                        etag: data.etag,
-                    }]),
-                    state: data.state,
-                    pubstatus: data.pubstatus,
-                },
-            });
             dispatch(fetchItemHistoryOnRecurringNotitication(data));
-
             // When unposted, planning item also gets unposted
             const storedEvent = selectors.events.storedEvents(getState())[data.item];
 
@@ -221,7 +208,6 @@ const onEventPostChanged = (e, data) => (
                 dispatch(planningApi.loadPlanningByEventId(data.item));
             }
         }
-
         return Promise.resolve();
     }
 );
