@@ -84,7 +84,7 @@ export const ContactMetaData = ({
     );
 
     return (
-        <div className="contact-metadata">
+        <div className="contact-metadata list-item-view">
             <CollapseBox
                 collapsedItem={contactListView}
                 openItem={contactInDetail}

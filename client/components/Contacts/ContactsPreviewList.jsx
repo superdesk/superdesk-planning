@@ -7,6 +7,7 @@ import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 
 import {ContactMetaData} from './';
+import './style.scss';
 
 class ContactsPreviewListComponent extends React.Component {
     constructor(props) {
@@ -77,7 +78,7 @@ class ContactsPreviewListComponent extends React.Component {
         const {fetchingContacts} = this.state;
 
         return (
-            <div>
+            <div className="contacts-list__holder">
                 {contactIds.map((contactId) => (
                     <ContactMetaData
                         key={contactId}
