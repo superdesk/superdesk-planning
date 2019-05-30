@@ -24,22 +24,18 @@ export class ExportAsArticleModal extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.onSortChange = this.onSortChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
+        this.filterArticleTemplates = this.filterArticleTemplates.bind(this);
+    }
+
+    componentDidMount() {
+        this.filterArticleTemplates(this.state.desk);
     }
 
     onChange(field, value) {
-        const newObj = {[field]: value};
-
         if (field === 'desk') { // on desk change filter article-templates based on desk selected
-            const {
-                articleTemplates,
-            } = this.props.modalProps;
-
-            newObj.articleTemplates = articleTemplates.filter((t) =>
-                t.template_desks.includes(value._id));
-            newObj.articleTemplate = articleTemplates.find((t) =>
-                t._id === get(value, 'default_content_template')) || articleTemplates[0];
+            this.filterArticleTemplates(value);
         }
-        this.setState((prevState) => ({...prevState, ...newObj}));
+        this.setState({[field]: value});
     }
 
     onSubmit(e, download) {
@@ -57,6 +53,18 @@ export class ExportAsArticleModal extends React.Component {
 
     onSortChange(items) {
         this.setState({items: items});
+    }
+
+    filterArticleTemplates(desk) {
+        const newObj = {};
+
+        newObj.articleTemplates = this.props.modalProps.articleTemplates.filter((t) =>
+            Object.keys(t).length > 0 && t.template_desks && t.template_desks.includes(desk._id));
+        newObj.articleTemplate = newObj.articleTemplates.find((t) =>
+            Object.keys(t).length > 0 && t._id === get(desk, 'default_content_template'))
+            || newObj.articleTemplates[0];
+
+        this.setState((prevState) => ({...prevState, ...newObj}));
     }
 
     render() {
