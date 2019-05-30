@@ -22,6 +22,10 @@ from .events_postpone import EventsPostponeService, EventsPostponeResource
 from .events_update_time import EventsUpdateTimeService, EventsUpdateTimeResource
 from .events_update_repetitions import EventsUpdateRepetitionsService, EventsUpdateRepetitionsResource
 from .event_autosave import EventAutosaveResource
+from .events_template import (
+    EventsTemplateResource, EventsTemplateService,
+    RecentEventsTemplateResource, RecentEventsTemplateService
+)
 from planning.autosave import AutosaveService
 
 
@@ -101,6 +105,26 @@ def init_app(app):
 
     event_autosave_service = AutosaveService('event_autosave', superdesk.get_backend())
     EventAutosaveResource('event_autosave', app=app, service=event_autosave_service)
+
+    events_template_service = EventsTemplateService(
+        EventsTemplateResource.endpoint_name,
+        backend=superdesk.get_backend()
+    )
+    EventsTemplateResource(
+        EventsTemplateResource.endpoint_name,
+        app=app,
+        service=events_template_service
+    )
+
+    recent_events_template_service = RecentEventsTemplateService(
+        RecentEventsTemplateResource.endpoint_name,
+        backend=superdesk.get_backend()
+    )
+    EventsTemplateResource(
+        RecentEventsTemplateResource.endpoint_name,
+        app=app,
+        service=recent_events_template_service
+    )
 
     app.on_updated_events += events_history_service.on_item_updated
     app.on_inserted_events += events_history_service.on_item_created

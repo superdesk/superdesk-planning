@@ -342,5 +342,8 @@ events_schema = {
 
     # This is used if an Event is created from a Planning Item
     # So that we can link the Planning item to this Event upon creation
-    '_planning_item': planning_type
+    '_planning_item': planning_type,
+
+    # This is used when event creation was based on `events_template`
+    'template': Resource.rel('events_template', embeddable=False)
 }  # end events_schema
