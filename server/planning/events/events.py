@@ -197,6 +197,7 @@ class EventsService(superdesk.Service):
         self._validate_multiday_event_duration(updates)
         self._validate_dates(updates, original)
         self._validate_convert_to_recurring(updates, original)
+        self._validate_template(updates, original)
 
         # if len(updates.get('calendars', [])) > 0:
         # existing_calendars = get_resource_service('vocabularies').find_one(req=None, _id='event_calendars')
@@ -261,6 +262,26 @@ class EventsService(superdesk.Service):
         event_duration = event.get('dates').get('end') - event.get('dates').get('start')
         if event_duration.days > max_duration:
             raise SuperdeskApiError(message="Event duration is greater than {} days.".format(max_duration))
+
+    @staticmethod
+    def _validate_template(updates, original):
+        """Ensures that event template can't be changed
+
+        :param updates: updates to event that should be saved
+        :type updates: dict
+        :param original: original event before update
+        :type original: dict
+        :return:
+        """
+        if not original:
+            return
+
+        # we can't change `template` id
+        if 'template' in updates and updates['template'] != original['template']:
+            raise SuperdeskApiError.badRequestError(
+                message="Request is not valid",
+                payload={"template": "This value can't be changed."}
+            )
 
     def on_created(self, docs):
         """Send WebSocket Notifications for created Events
@@ -635,13 +656,14 @@ class EventsResource(superdesk.Resource):
         'search_backend': 'elastic',
         'default_sort': [('dates.start', 1)],
     }
-    item_methods = ['GET', 'PATCH', 'PUT']
+    item_methods = ['GET', 'PATCH']
     public_methods = ['GET']
     mongo_indexes = {
         'recurrence_id_1': ([('recurrence_id', 1)], {'background': True}),
         'state': ([('state', 1)], {'background': True}),
         'dates_start_1': ([('dates.start', 1)], {'background': True}),
         'dates_end_1': ([('dates.end', 1)], {'background': True}),
+        'template': [('template', 1)],
     }
     privileges = {'POST': 'planning_event_management',
                   'PATCH': 'planning_event_management'}
