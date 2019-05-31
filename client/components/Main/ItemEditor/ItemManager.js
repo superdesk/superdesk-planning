@@ -698,7 +698,7 @@ export class ItemManager {
             }
         );
 
-        return this.setState({initialValues});
+        return this.setState({initialValues}).then(() => this.editor.onChangeHandler(diff, null, false));
     }
 
     lock(item) {
