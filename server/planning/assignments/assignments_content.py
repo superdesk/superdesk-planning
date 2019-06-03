@@ -11,8 +11,8 @@
 import superdesk
 from copy import deepcopy
 from eve.utils import config
-from apps.archive.common import insert_into_versions
-from apps.auth import get_user_id
+from apps.archive.common import insert_into_versions, BYLINE
+from apps.auth import get_user_id, get_user
 from apps.templates.content_templates import get_item_from_template
 from planning.planning_article_export import get_desk_template
 from superdesk.errors import SuperdeskApiError
@@ -49,6 +49,10 @@ def get_item_from_assignment(assignment, template=None):
 
     if slugline:
         item['slugline'] = slugline
+
+    user = get_user()
+    if user and user.get(BYLINE):
+        item[BYLINE] = user[BYLINE]
 
     ednote = planning_data.get('ednote')
 
