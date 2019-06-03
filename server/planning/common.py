@@ -22,6 +22,7 @@ from apps.publish.enqueue import get_enqueue_service
 from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
 from eve.utils import config, ParsedRequest
 from werkzeug.datastructures import MultiDict
+from superdesk.etree import parse_html
 import json
 
 ITEM_STATE = 'state'
@@ -466,3 +467,15 @@ def get_next_assignment_status(assignment, next_state):
         return ASSIGNMENT_WORKFLOW_STATE.COMPLETED
     else:
         return next_state
+
+
+def get_first_paragraph_text(input_string):
+    try:
+        elem = parse_html(input_string, content='html')
+    except ValueError as e:
+        logger.warning(e)
+    else:
+        # all non-empty paragraphs: ignores <p><br></p> sections
+        for p in elem.iterfind('.//p'):
+            if p.text:
+                return p.text
