@@ -15,6 +15,7 @@ describe('assignments service', () => {
     beforeEach(() => {
         store = getTestActionStore();
         services = store.services;
+        services.api.find = () => (Promise.resolve(testData.archive[0]));
 
         assignmentService = new AssignmentsService(
             services.api,
@@ -34,10 +35,13 @@ describe('assignments service', () => {
 
     describe('onPublishFromAuthoring', () => {
         it('returns if item is already linked to an assignment', (done) => {
-            assignmentService.onPublishFromAuthoring({
+            const itemWithAssignment = {
                 ...testData.archive[0],
                 assignment_id: testData.assignments[0]._id,
-            })
+            };
+
+            services.api.find = () => (Promise.resolve(itemWithAssignment));
+            assignmentService.onPublishFromAuthoring(itemWithAssignment)
                 .then(() => {
                     expect(services.api('assignments').query.callCount).toBe(0);
                     expect(services.sdPlanningStore.initWorkspace.callCount).toBe(0);
