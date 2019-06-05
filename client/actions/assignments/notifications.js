@@ -298,6 +298,12 @@ const onAssignmentRemoved = (_e, data) => (
                 payload: data,
             });
 
+            // Though assignment is removed, this is to remove the orphan lock in the store
+            dispatch({
+                type: ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT,
+                payload: {assignment: {_id: data.assignment}},
+            });
+
             // Updates my assignment count
             dispatch(
                 assignments.ui.queryAndGetMyAssignments(
