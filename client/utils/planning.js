@@ -517,14 +517,13 @@ const createNewPlanningFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus
     let newPlanning = {
         type: ITEM_TYPE.PLANNING,
         slugline: addNewsItemToPlanning.slugline,
+        headline: get(addNewsItemToPlanning, 'headline'),
         planning_date: moment(),
         ednote: get(addNewsItemToPlanning, 'ednote'),
         subject: get(addNewsItemToPlanning, 'subject'),
         anpa_category: get(addNewsItemToPlanning, 'anpa_category'),
         urgency: get(addNewsItemToPlanning, 'urgency'),
-        description_text: stripHtmlRaw(
-            get(addNewsItemToPlanning, 'abstract', get(addNewsItemToPlanning, 'headline', ''))
-        ),
+        description_text: stripHtmlRaw(get(addNewsItemToPlanning, 'abstract', '')),
         coverages: [newCoverage],
     };
 
