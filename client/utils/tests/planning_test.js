@@ -264,7 +264,8 @@ describe('PlanningUtils', () => {
                     g2_content_type: 'picture',
                     slugline: 'slug',
                     ednote: 'edit my note',
-                    scheduled: moment().endOf('day'),
+                    scheduled: moment().add(1, 'hour')
+                        .startOf('hour'),
                 },
                 news_coverage_status: {qcode: 'ncostat:int'},
                 workflow_status: 'active',
@@ -298,7 +299,43 @@ describe('PlanningUtils', () => {
                     g2_content_type: 'text',
                     slugline: 'slug',
                     ednote: 'edit my note',
-                    scheduled: moment('2017-10-15T14:01:11'),
+                    scheduled: moment().add(1, 'hour')
+                        .startOf('hour'),
+                },
+                news_coverage_status: {qcode: 'ncostat:int'},
+                workflow_status: 'active',
+                assigned_to: {
+                    desk: 'desk2',
+                    user: 'ident2',
+                    priority: ASSIGNMENTS.DEFAULT_PRIORITY,
+                },
+            });
+        });
+
+        it('coverage time is always rounded off to nearest hour even if published news item has past date', () => {
+            const newsItem = {
+                slugline: 'slug',
+                ednote: 'edit my note',
+                type: 'text',
+                state: 'published',
+                versioncreated: '2017-10-15T14:01:11',
+                version_creator: 'ident2',
+                task: {
+                    desk: 'desk2',
+                    user: 'ident2',
+                },
+            };
+
+            const coverage = planUtils.createCoverageFromNewsItem(
+                newsItem, newsCoverageStatus, desk, user, contentTypes);
+
+            expect(omit(coverage, 'coverage_id')).toEqual({
+                planning: {
+                    g2_content_type: 'text',
+                    slugline: 'slug',
+                    ednote: 'edit my note',
+                    scheduled: moment().add(1, 'hour')
+                        .startOf('hour'),
                 },
                 news_coverage_status: {qcode: 'ncostat:int'},
                 workflow_status: 'active',
@@ -366,7 +403,61 @@ describe('PlanningUtils', () => {
                         g2_content_type: 'text',
                         slugline: 'slugger',
                         ednote: 'Edit my note!',
-                        scheduled: moment('2019-10-15T10:01:11'),
+                        scheduled: moment().add(1, 'hour')
+                            .startOf('hour'),
+                    },
+                    news_coverage_status: {qcode: 'ncostat:int'},
+                    workflow_status: 'active',
+                    assigned_to: {
+                        desk: 'desk1',
+                        user: 'ident1',
+                        priority: ASSIGNMENTS.DEFAULT_PRIORITY,
+                    },
+                }],
+            }));
+        });
+
+        it('coverage time is always rounded off to nearest hour even if unpublished news item has past date', () => {
+            const newsItem = {
+                _id: 'news1',
+                slugline: 'slugger',
+                ednote: 'Edit my note!',
+                type: 'text',
+                subject: 'sub',
+                anpa_category: 'cat',
+                urgency: 3,
+                abstract: '<p>some abstractions</p>',
+                state: 'published',
+                versioncreated: '2019-10-15T10:01:11',
+                version_creator: 'ident1',
+                task: {
+                    desk: 'desk1',
+                    user: 'ident1',
+                    priority: ASSIGNMENTS.DEFAULT_PRIORITY,
+                },
+                place: [{name: 'Australia'}],
+            };
+
+            const plan = planUtils.createNewPlanningFromNewsItem(
+                newsItem, newsCoverageStatus, desk, user, contentTypes);
+
+            expect(plan).toEqual(jasmine.objectContaining({
+                type: 'planning',
+                slugline: 'slugger',
+                ednote: 'Edit my note!',
+                subject: 'sub',
+                anpa_category: 'cat',
+                urgency: 3,
+                description_text: 'some abstractions',
+                place: [{name: 'Australia'}],
+                coverages: [{
+                    coverage_id: jasmine.any(String),
+                    planning: {
+                        g2_content_type: 'text',
+                        slugline: 'slugger',
+                        ednote: 'Edit my note!',
+                        scheduled: moment().add(1, 'hour')
+                            .startOf('hour'),
                     },
                     news_coverage_status: {qcode: 'ncostat:int'},
                     workflow_status: 'active',
@@ -418,7 +509,8 @@ describe('PlanningUtils', () => {
                         g2_content_type: 'text',
                         slugline: 'slugger',
                         ednote: 'Edit my note!',
-                        scheduled: moment('2019-10-15T10:01:11'),
+                        scheduled: moment().add(1, 'hour')
+                            .startOf('hour'),
                     },
                     news_coverage_status: {qcode: 'ncostat:int'},
                     workflow_status: 'active',
