@@ -552,6 +552,8 @@ const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, d
         g2_content_type: get(contentType, 'qcode', PLANNING.G2_CONTENT_TYPE.TEXT),
         slugline: get(addNewsItemToPlanning, 'slugline', ''),
         ednote: get(addNewsItemToPlanning, 'ednote', ''),
+        scheduled: moment().add(1, 'hour')
+            .startOf('hour'),
     };
 
     if (get(addNewsItemToPlanning, 'genre')) {
@@ -568,14 +570,6 @@ const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, d
         desk: get(addNewsItemToPlanning, 'task.desk', desk),
         user: get(addNewsItemToPlanning, 'version_creator'),
     };
-
-    if ([WORKFLOW_STATE.SCHEDULED, 'published'].includes(addNewsItemToPlanning.state)) {
-        newCoverage.planning.scheduled = addNewsItemToPlanning.state === 'published' ?
-            moment(addNewsItemToPlanning.versioncreated) :
-            moment(get(addNewsItemToPlanning, 'schedule_settings.utc_publish_schedule'));
-    } else {
-        newCoverage.planning.scheduled = moment().endOf('day');
-    }
 
     newCoverage.assigned_to.priority = ASSIGNMENTS.DEFAULT_PRIORITY;
     return newCoverage;
