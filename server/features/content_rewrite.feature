@@ -1030,7 +1030,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "completed"
                             },
                             "workflow_status": "active"
                         },
@@ -1144,7 +1144,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "completed"
                             },
                             "workflow_status": "active"
                         },
@@ -1159,7 +1159,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "in_progress"
                             },
                             "workflow_status": "active"
                         }]
@@ -1241,7 +1241,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "completed"
                             },
                             "workflow_status": "active"
                         },
@@ -1256,7 +1256,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "completed"
                             },
                             "workflow_status": "active"
                         }]
@@ -1339,7 +1339,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "completed"
                             },
                             "workflow_status": "active"
                         },
@@ -1354,7 +1354,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "completed"
                             },
                             "workflow_status": "active"
                         }]
@@ -1440,7 +1440,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "completed"
                             },
                             "workflow_status": "active"
                         },
@@ -1455,7 +1455,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "completed"
                             },
                             "workflow_status": "active"
                         }]

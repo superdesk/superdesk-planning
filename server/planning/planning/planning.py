@@ -95,6 +95,7 @@ class PlanningService(superdesk.Service):
     def find_one(self, req, **lookup):
         item = super().find_one(req, **lookup)
         if item:
+            self.__generate_related_assignments([item])
             for coverage in item.get('coverages', []):
                 if coverage.get('planning', {}).get('scheduled') and \
                         not isinstance(coverage['planning']['scheduled'], datetime):

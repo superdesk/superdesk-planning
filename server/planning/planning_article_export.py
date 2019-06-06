@@ -4,10 +4,12 @@ from superdesk.errors import SuperdeskApiError
 from apps.auth import get_user_id
 from apps.templates.content_templates import get_item_from_template
 from apps.archive.common import insert_into_versions
-from copy import deepcopy
-from planning.common import WORKFLOW_STATE, format_address, get_contacts_from_item
+from planning.common import WORKFLOW_STATE, format_address, get_contacts_from_item, ASSIGNMENT_WORKFLOW_STATE,\
+    get_first_paragraph_text
 from eve.utils import config
 from superdesk.utc import utc_to_local, get_timezone_offset, utcnow
+from superdesk import get_resource_service
+from bson import ObjectId
 
 
 class PlanningArticleExportResource(superdesk.Resource):
@@ -31,11 +33,11 @@ class PlanningArticleExportResource(superdesk.Resource):
 
 
 def get_item(_id, resource):
-    item = superdesk.get_resource_service(resource).find_one(None, _id=_id) or {}
+    item = get_resource_service(resource).find_one(None, _id=_id) or {}
     if item.get('event_item'):
-        item['event'] = superdesk.get_resource_service('events').find_one(None, _id=item['event_item'])
+        item['event'] = get_resource_service('events').find_one(None, _id=item['event_item'])
     elif resource == 'events':
-        item['plannings'] = superdesk.get_resource_service('events').get_plannings_for_event(item)
+        item['plannings'] = get_resource_service('events').get_plannings_for_event(item)
 
     return item
 
@@ -66,7 +68,7 @@ def group_items_by_agenda(items):
             if len(agenda_in_array) > 0:
                 agenda_in_array[0]['items'].append(item)
             else:
-                agenda = superdesk.get_resource_service('agenda').find_one(req=None, _id=str(agenda_id))
+                agenda = get_resource_service('agenda').find_one(req=None, _id=str(agenda_id))
                 if agenda is not None:
                     agenda['items'] = [item]
                     agendas.append(agenda)
@@ -74,39 +76,89 @@ def group_items_by_agenda(items):
 
 
 def generate_text_item(items, template_name, resource_type):
-    template = superdesk.get_resource_service('planning_export_templates').get_template(template_name, resource_type)
+    template = get_resource_service('planning_export_templates').get_template(template_name, resource_type)
+    archive_service = get_resource_service('archive')
     if not template:
         raise SuperdeskApiError.badRequestError('Invalid template selected')
 
     for item in items:
         # Create list of assignee with preference to coverage_provider, if not, assigned user
+        item['published_archive_items'] = []
         item['assignees'] = []
+        item['text_assignees'] = []
         item['contacts'] = []
+        text_users = []
+        text_desks = []
         users = []
+        desks = []
 
-        def populate_assignees_contacts(planning, item, users):
+        def enhance_coverage(planning, item, users):
             for c in (planning.get('coverages') or []):
-                if (c.get('assigned_to') or {}).get('coverage_provider'):
-                    item['assignees'].append(c['assigned_to']['coverage_provider']['name'])
-                elif (c.get('assigned_to') or {}).get('user'):
-                    users.append(c['assigned_to']['user'])
-                elif (c.get('assigned_to') or {}).get('desk'):
-                    item['assignees'].append('Desk')
+                is_text = c.get('planning', {}).get('g2_content_type', '') == 'text'
+                completed = (c.get('assigned_to') or {}).get('state') == ASSIGNMENT_WORKFLOW_STATE.COMPLETED
+                assigned_to = c.get('assigned_to') or {}
+                user = None
+                desk = None
+                if assigned_to.get('coverage_provider'):
+                    item['assignees'].append(assigned_to['coverage_provider']['name'])
+                    if is_text and not completed:
+                        item['text_assignees'].append(assigned_to['coverage_provider']['name'])
+                elif assigned_to.get('user'):
+                    user = assigned_to['user']
+                    users.append(user)
+                elif assigned_to.get('desk'):
+                    desk = assigned_to.get('desk')
+                    desks.append(desk)
+
+                # Get abstract from related text item if coverage is 'complete'
+                if is_text:
+                    if completed:
+                        results = list(archive_service.get_from_mongo(req=None,
+                                                                      lookup={
+                                                                          'assignment_id': ObjectId(
+                                                                              c['assigned_to']['assignment_id']),
+                                                                          'state': {'$in': ['published', 'corrected']},
+                                                                          'pubstatus': 'usable',
+                                                                          'rewrite_of': None
+                                                                      }))
+                        if len(results) > 0:
+                            item['published_archive_items'].append({
+                                'archive_text': get_first_paragraph_text(results[0].get('abstract')) or '',
+                                'archive_slugline': results[0].get('slugline') or ''
+                            })
+                    elif c.get('news_coverage_status', {}).get('qcode') == 'ncostat:int':
+                        if user:
+                            text_users.append(user)
+                        else:
+                            text_desks.append(desk)
 
             item['contacts'] = get_contacts_from_item(item)
 
         if resource_type == 'planning':
-            populate_assignees_contacts(deepcopy(item), item, users)
+            enhance_coverage(item, item, users)
         else:
             for p in (item.get('plannings') or []):
-                populate_assignees_contacts(p, item, users)
+                enhance_coverage(p, item, users)
 
-        users = superdesk.get_resource_service('users').find(where={
+        users = get_resource_service('users').find(where={
             '_id': {'$in': users}
         })
-        users = ["{0}, {1}".format(u.get('last_name'), u.get('first_name')) for u in users]
 
-        item['assignees'].extend(users)
+        desks = get_resource_service('desks').find(where={
+            '_id': {'$in': desks}
+        })
+
+        for u in users:
+            name = "{0} {1}".format(u.get('last_name'), u.get('first_name'))
+            item['assignees'].append(name)
+            if str(u['_id']) in text_users:
+                item['text_assignees'].append(name)
+
+        for d in desks:
+            item['assignees'].append(d['name'])
+            if str(d['_id']) in text_desks:
+                item['text_assignees'].append(d['name'])
+
         set_item_place(item)
 
         item['description_text'] = item.get('description_text') or (item.get('event') or {}).get('definition_short')
@@ -124,7 +176,7 @@ def generate_text_item(items, template_name, resource_type):
 
     if resource_type == 'planning':
         labels = {}
-        cv = superdesk.get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
+        cv = get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
         if cv:
             labels = {_type['qcode']: _type['name'] for _type in cv['items']}
 
@@ -150,7 +202,7 @@ def generate_text_item(items, template_name, resource_type):
 def get_desk_template(desk):
     default_content_template = desk.get('default_content_template')
     if default_content_template:
-        return superdesk.get_resource_service('content_templates').find_one(req=None, _id=default_content_template)
+        return get_resource_service('content_templates').find_one(req=None, _id=default_content_template)
 
     return {}
 
@@ -163,11 +215,11 @@ def set_item_place(item):
 class PlanningArticleExportService(superdesk.Service):
     def create(self, docs):
         ids = []
-        production = superdesk.get_resource_service('archive')
+        production = get_resource_service('archive')
         for doc in docs:
             item_type = doc.pop('type')
             item_list = get_items(doc.pop('items', []), item_type)
-            desk = superdesk.get_resource_service('desks').find_one(req=None, _id=doc.pop('desk')) or {}
+            desk = get_resource_service('desks').find_one(req=None, _id=doc.pop('desk')) or {}
             article_template = doc.pop('article_template', None)
             if article_template:
                 content_template = superdesk.get_resource_service('content_templates').find_one(
