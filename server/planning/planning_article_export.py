@@ -61,7 +61,7 @@ def group_items_by_agenda(items):
     agendas = [{'_id': 'unassigned', 'name': 'No Agenda Assigned', 'items': []}]
     for item in items:
         item_agendas = item.get('agendas', [])
-        item_agendas = [a for a in item_agendas if a['is_enabled']] # filter disabled
+        item_agendas = [a for a in item_agendas if a['is_enabled']]  # filter disabled
         if len(item_agendas) == 0:
             item_agendas = ['unassigned']
         for agenda_id in item_agendas:
