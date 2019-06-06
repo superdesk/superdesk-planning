@@ -61,7 +61,6 @@ def group_items_by_agenda(items):
     agendas = [{'_id': 'unassigned', 'name': 'No Agenda Assigned', 'items': []}]
     for item in items:
         item_agendas = item.get('agendas', [])
-        item_agendas = [a for a in item_agendas if a['is_enabled']]  # filter disabled
         if len(item_agendas) == 0:
             item_agendas = ['unassigned']
         for agenda_id in item_agendas:
@@ -70,7 +69,7 @@ def group_items_by_agenda(items):
                 agenda_in_array[0]['items'].append(item)
             else:
                 agenda = get_resource_service('agenda').find_one(req=None, _id=str(agenda_id))
-                if agenda is not None:
+                if agenda is not None and agenda['is_enabled']:
                     agenda['items'] = [item]
                     agendas.append(agenda)
     return agendas
