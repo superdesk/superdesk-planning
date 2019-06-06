@@ -36,31 +36,35 @@ export class CoverageForm extends React.Component {
 
     onScheduleChanged(f, v) {
         const {value, onChange} = this.props;
+        let finalValue = v, fieldStr, relatedFieldStr;
 
+        // We will be updating scheduled and _scheduledTime together
+        // relatedFieldStr will be '_scheduledTime' if date gets changed and vice versa
+        // Update time only if date is already set
         if (f.endsWith('.date')) {
+            fieldStr = f.slice(0, -5);
+            relatedFieldStr = fieldStr.replace('scheduled', '_scheduledTime');
             // If there is no current scheduled date, then set the time value to end of the day
             if (!get(value, 'planning.scheduled')) {
-                onChange(
-                    f.slice(0, -5),
-                    v.endOf('day')
-                );
-            } else {
-                onChange(f.slice(0, -5), v);
+                finalValue = v.add(1, 'hour').startOf('hour');
+                relatedFieldStr = null;
             }
-        } else if (f.endsWith('.time')) {
+        } else if (f.endsWith('._scheduledTime')) {
             // If there is no current scheduled date, then set the date to today
+            relatedFieldStr = f.slice(0, -4).replace('_', '');
+            fieldStr = f;
             if (!get(value, 'planning.scheduled')) {
-                onChange(
-                    f.slice(0, -5),
-                    moment()
-                        .hour(v.hour())
-                        .minute(v.minute())
-                );
-            } else {
-                onChange(f.slice(0, -5), v);
+                finalValue = moment().hour(v.hour())
+                    .minute(v.minute());
             }
         } else {
             onChange(f, v);
+            return;
+        }
+
+        onChange(fieldStr, finalValue);
+        if (relatedFieldStr) {
+            onChange(relatedFieldStr, finalValue);
         }
     }
 
@@ -238,6 +242,7 @@ export class CoverageForm extends React.Component {
                     popupContainer={popupContainer}
                     onPopupOpen={onPopupOpen}
                     onPopupClose={onPopupClose}
+                    timeField={`${field}.planning._scheduledTime`}
                 />
 
                 <Field

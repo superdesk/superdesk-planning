@@ -868,11 +868,26 @@ export const removeAutosaveFields = (item, stripLockFields = false, keepTime = f
         fieldsToIgnore.push('lock_user', 'lock_action', 'lock_session', 'lock_time');
     }
 
-    return pickBy(cloneDeep(item), (value, key) =>
+    let modifiedItem = removeAutosaveNestedFields(item, keepTime);
+
+    return pickBy(modifiedItem, (value, key) =>
         key.startsWith('_') ?
             (includes(fieldsToKeep, key) && value) :
             !includes(fieldsToIgnore, key)
     );
+};
+
+const removeAutosaveNestedFields = (item, keepTime = false) => {
+    let modifiedItem = cloneDeep(item);
+
+    if (getItemType(item) == ITEM_TYPE.PLANNING && !keepTime) {
+        modifiedItem.coverages = get(modifiedItem, 'coverages', []).map((c) => {
+            delete c.planning._scheduledTime;
+            return c;
+        });
+    }
+
+    return modifiedItem;
 };
 
 export const isValidFileInput = (f, includeObjectType = false) =>
