@@ -35,39 +35,47 @@ export class AssignmentsService {
     }
 
     onPublishFromAuthoring(item) {
-        // If the archive item is already linked to an Assignment
-        // then return now (nothing needs to be done)
-        if (get(item, 'assignment_id')) {
-            return Promise.resolve();
-        }
+        // Get the complete item from a new query
+        return this.api.find('archive', item._id)
+            .then((archiveTtem) => {
+                // If the archive item is already linked to an Assignment
+                // then return now (nothing needs to be done)
+                if (get(archiveTtem, 'assignment_id')) {
+                    return Promise.resolve();
+                }
 
-        const fulfilFromDesks = get(this.deployConfig, 'config.planning_fulfil_on_publish_for_desks', []);
-        const currentDesk = get(this.desks, 'active.desk');
+                const fulfilFromDesks = get(this.deployConfig, 'config.planning_fulfil_on_publish_for_desks', []);
+                const currentDesk = get(this.desks, 'active.desk');
 
-        if (fulfilFromDesks.length > 0 && fulfilFromDesks.indexOf(currentDesk) < 0) {
-            return Promise.resolve();
-        }
+                if (fulfilFromDesks.length > 0 && fulfilFromDesks.indexOf(currentDesk) < 0) {
+                    return Promise.resolve();
+                }
 
-        // Otherwise attempt to get an open Assignment (state==assigned)
-        // based on the slugline of the archive item
-        return new Promise((resolve, reject) => {
-            this.getBySlugline(get(item, 'slugline'), get(item, 'type'))
-                .then((assignments) => {
-                    // If no Assignments were found, then there is nothing to do
-                    if (!Array.isArray(assignments) || assignments.length === 0) {
-                        return resolve();
-                    }
+                // Otherwise attempt to get an open Assignment (state==assigned)
+                // based on the slugline of the archive item
+                return new Promise((resolve, reject) => {
+                    this.getBySlugline(get(archiveTtem, 'slugline'), get(archiveTtem, 'type'))
+                        .then((assignments) => {
+                            // If no Assignments were found, then there is nothing to do
+                            if (!Array.isArray(assignments) || assignments.length === 0) {
+                                return resolve();
+                            }
 
-                    // Show the LinkToAssignment modal for further user decisions
-                    return this.showLinkAssignmentModal(item, assignments, resolve, reject);
-                })
-                .catch(() => {
-                    // If the API call failed, allow the publishing to continue
-                    this.notify.warning(gettext('Failed to find an Assignment to link to!'));
+                            // Show the LinkToAssignment modal for further user decisions
+                            return this.showLinkAssignmentModal(archiveTtem, assignments, resolve, reject);
+                        })
+                        .catch(() => {
+                            // If the API call failed, allow the publishing to continue
+                            this.notify.warning(gettext('Failed to find an Assignment to link to!'));
 
-                    resolve();
+                            resolve();
+                        });
                 });
-        });
+            })
+            .catch(() => {
+                this.notify.warning(gettext('Failed to fetch item from archive'));
+                return Promise.resolve();
+            });
     }
 
     getBySlugline(slugline, contentType) {
