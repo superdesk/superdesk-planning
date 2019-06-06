@@ -172,10 +172,14 @@ const validateCoverageScheduleDate = ({
     messages,
 }) => {
     if (get(profile, 'schema.scheduled.required') && !value) {
-        set(errors, `${field}.date`, gettext('Required'));
-        set(errors, `${field}.time`, gettext('Required'));
-        messages.push(gettext('COVERAGE SCHEDULED DATE is required'));
-        messages.push(gettext('COVERAGE SCHEDULED TIME is required'));
+        if (!field.endsWith('_scheduledTime')) {
+            set(errors, `${field}.date`, gettext('Required'));
+            messages.push(gettext('COVERAGE SCHEDULED DATE is required'));
+        } else {
+            set(errors, field, gettext('Required'));
+            messages.push(gettext('COVERAGE SCHEDULED TIME is required'));
+        }
+
         return;
     }
 
@@ -260,6 +264,7 @@ export const validators = {
         internal_note: [formProfile],
         keyword: [formProfile],
         scheduled: [validateCoverageScheduleDate],
+        _scheduledTime: [validateCoverageScheduleDate],
         slugline: [formProfile],
     },
     assignment: {

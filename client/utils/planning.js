@@ -476,6 +476,8 @@ const modifyForServer = (plan) => {
         } else if (!isArray(coverage.planning.genre)) {
             coverage.planning.genre = [coverage.planning.genre];
         }
+
+        delete coverage.planning._scheduledTime;
     });
 
     return plan;
@@ -503,6 +505,7 @@ const modifyCoverageForClient = (coverage) => {
     // Convert scheduled into a moment instance
     if (get(coverage, 'planning.scheduled')) {
         coverage.planning.scheduled = moment(coverage.planning.scheduled);
+        coverage.planning._scheduledTime = moment(coverage.planning.scheduled);
     } else {
         delete coverage.planning.scheduled;
     }
@@ -833,6 +836,8 @@ const defaultCoverageValues = (
         workflow_status: WORKFLOW_STATE.DRAFT,
     };
 
+    newCoverage.planning._scheduledTime = newCoverage.planning.scheduled;
+
     if (planningItem) {
         let coverageTime = null;
 
@@ -866,6 +871,7 @@ const defaultCoverageValues = (
 
                 if (duration > longEventDurationThreshold) {
                     delete newCoverage.planning.scheduled;
+                    delete newCoverage.planning._scheduledTime;
                 }
             }
         }
