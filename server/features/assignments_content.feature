@@ -188,7 +188,7 @@ Feature: Assignment content
 
     @auth
     @vocabularies
-    Scenario: Create content with headline derived from the Assignment
+    Scenario: Create content with headline and abstract derived from the Assignment
         When we patch "/planning/#planning._id#"
         """
         {
@@ -240,7 +240,8 @@ Feature: Assignment content
             },
             "slugline": "test slugline",
             "type": "text",
-            "headline": "test description",
+            "headline": "Headline From Template",
+            "abstract": "<p>test description</p>",
             "profile": "#content_types._id#",
             "flags": {"marked_for_not_publication": false, "overide_auto_assign_to_workflow": "__no_value__"}
         }

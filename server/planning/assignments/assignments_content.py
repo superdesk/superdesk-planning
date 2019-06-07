@@ -64,11 +64,11 @@ def get_item_from_assignment(assignment, template=None):
             for field in FIELDS_TO_COPY:
                 if planning.get(field):
                     item[field] = deepcopy(planning[field])
-            # when creating planning item from news item, we use headline for description_text
-            # so we are doing the opposite here
+
             if assignment.get('description_text'):
-                item['headline'] = planning['description_text']
-            elif planning.get('headline'):
+                item['abstract'] = "<p>{}</p>".format(assignment['description_text'])
+
+            if planning.get('headline'):
                 item['headline'] = planning['headline']
 
             if not item['flags']:
