@@ -69,7 +69,7 @@ def group_items_by_agenda(items):
                 agenda_in_array[0]['items'].append(item)
             else:
                 agenda = get_resource_service('agenda').find_one(req=None, _id=str(agenda_id))
-                if agenda is not None:
+                if agenda is not None and agenda['is_enabled']:
                     agenda['items'] = [item]
                     agendas.append(agenda)
     return agendas
