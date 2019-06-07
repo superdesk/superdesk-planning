@@ -842,6 +842,7 @@ class AssignmentsService(superdesk.Service):
                 planning=doc.get('planning_item'),
                 coverage=doc.get('coverage_item'),
                 planning_etag=updated_planning.get(config.ETAG),
+                event_item=updated_planning.get('event_item'),
                 session=get_auth().get('_id')
             )
 

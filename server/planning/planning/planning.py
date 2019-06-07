@@ -665,7 +665,7 @@ class PlanningService(superdesk.Service):
             coverage_type=get_coverage_type_name(coverage_item.get('planning', {}).get('g2_content_type', '')),
             slugline=planning_item.get('slugline', ''))
 
-        coverage_item['assigned_to'] = None
+        del coverage_item['assigned_to']
         coverage_item['workflow_status'] = WORKFLOW_STATE.DRAFT
 
         updates = {'coverages': coverages}
@@ -677,6 +677,9 @@ class PlanningService(superdesk.Service):
             updates,
             planning_item
         )
+
+        if planning_item.get('event_item'):
+            updated_planning['event_item'] = planning_item['event_item']
 
         return updated_planning
 
