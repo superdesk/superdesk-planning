@@ -11,7 +11,7 @@ from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.item import ITEM_STATE, CONTENT_STATE
 from eve.utils import config
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_related_items, \
-    update_assignment_on_link_unlink, get_next_assignment_status
+    update_assignment_on_link_unlink, get_next_assignment_status, get_delivery_publish_time
 from apps.archive.common import get_user, is_assigned_to_a_desk
 from apps.content import push_content_notification
 from superdesk.notification import push_notification
@@ -51,7 +51,7 @@ class AssignmentsLinkService(Service):
                         'coverage_id': assignment['coverage_item'],
                         'item_state': item.get('state'),
                         'sequence_no': item.get('rewrite_sequence', 0),
-                        'publish_time': item.get('firstpublished')
+                        'publish_time': get_delivery_publish_time(item)
                     })
 
                     # Update archive/published collection with assignment linking
