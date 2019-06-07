@@ -479,3 +479,8 @@ def get_first_paragraph_text(input_string):
         for p in elem.iterfind('.//p'):
             if p.text:
                 return p.text
+
+
+def get_delivery_publish_time(updates, original={}):
+    schdl_stngs = (updates.get('schedule_settings') or original.get('schedule_settings', {}))
+    return schdl_stngs.get('utc_publish_schedule') or updates.get('firstpublished') or original.get('firstpublished')
