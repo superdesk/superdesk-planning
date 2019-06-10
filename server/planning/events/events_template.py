@@ -141,7 +141,10 @@ class EventsTemplateResource(Resource):
             embeddable=False,
             required=True
         ),
-        **_event_fields
+        'data': {
+            'type': 'dict',
+            'schema': _event_fields
+        }
     }
 
 
@@ -175,12 +178,13 @@ class EventsTemplateService(BaseService):
 
     def _fill_event_template(self, doc):
         event = self._get_event(doc['based_on_event'])
+        doc['data'] = {}
 
         for field in ('slugline', 'name', 'definition_short', 'definition_long',
                       'internal_note', 'ednote', 'links', 'files', 'calendars',
                       'location', 'event_contact_info', 'subject', 'occur_status'):
             if field in event and event[field]:
-                doc[field] = event[field]
+                doc['data'][field] = event[field]
 
 
 class RecentEventsTemplateResource(Resource):
