@@ -1,9 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
 import {connectServices} from 'superdesk-core/scripts/core/helpers/ReactRenderAsync';
 
 import {ITEM_TYPE, EVENTS, PLANNING} from '../../../constants';
 import {getItemType, eventUtils, planningUtils} from '../../../utils';
+import eventsPlanning from '../../../actions/eventsPlanning';
 
 import {ItemActionsMenu} from '../../index';
 
@@ -18,6 +20,7 @@ const EditorItemActionsComponent = ({
     itemManager,
     autoSave,
     modal,
+    dispatch,
 }) => {
     const itemType = getItemType(item);
     const withMultiPlanningDate = true;
@@ -91,9 +94,7 @@ const EditorItemActionsComponent = ({
                                 });
                             } else {
                                 modal.prompt(gettext('Template name')).then((templateName) => {
-                                    console.log('item', item);
-                                    // send to server
-                                    debugger;
+                                    dispatch(eventsPlanning.ui.saveEventTemplate(templateName, item._id));
                                 });
                             }
                         })
@@ -174,9 +175,10 @@ EditorItemActionsComponent.propTypes = {
     itemManager: PropTypes.object,
     autoSave: PropTypes.object,
     modal: PropTypes.object,
+    dispatch: PropTypes.func,
 };
 
-export const EditorItemActions = connectServices(
+export const EditorItemActions = connect()(connectServices(
     EditorItemActionsComponent,
     ['modal']
-);
+));

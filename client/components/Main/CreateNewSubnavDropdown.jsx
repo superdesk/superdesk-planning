@@ -38,10 +38,10 @@ class CreateNewSubnavDropdownFn extends React.Component {
 
             this.props.eventTemplates.forEach((template) => {
                 items.push({
-                    label: template.name,
+                    label: template.template_name,
                     icon: 'icon-plus-sign icon--blue',
                     action: () => dispatch(actions.main.createNew(ITEM_TYPE.EVENT, template.data)),
-                    id: template.name,
+                    id: template._id,
                 });
             });
         }
