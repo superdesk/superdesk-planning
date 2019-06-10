@@ -251,5 +251,11 @@ class RecentEventsTemplateService(BaseService):
         )
         # keep `templates_ids` ordering
         templates.sort(key=lambda template: templates_ids.index(template['_id']))
+        # query not used templates
+        templates += app.data.mongo.pymongo(resource='events_template').db['events_template'].find({
+            '_id': {
+                '$nin': templates_ids
+            }
+        })
 
         return ListCursor(templates)
