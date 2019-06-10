@@ -58,93 +58,95 @@ Feature: Events Template
             {
                 "based_on_event": "5cefd99cfe985e0a311bb677",
                 "template_name": "Formula one",
-                "calendars": [
-                    {
-                        "is_active": true,
-                        "name": "Entertainment",
-                        "qcode": "entertainment"
-                    },
-                    {
-                        "is_active": true,
-                        "name": "Finance",
-                        "qcode": "finance"
-                    }
-                ],
-                "definition_long": "THIS IS LONG DESC",
-                "definition_short": "Grand prix formula 1 Prague",
-                "ednote": "THIS IS ED NOTE",
-                "event_contact_info": [
-                    "5cefd99cfe985e0a311bb688"
-                ],
-                "files": [
-                    "5cefd99cfe985e0a311bb677"
-                ],
-                "internal_note": "THIS IS INT NOTE",
-                "links": [
-                    "http://example.com",
-                    "http://somedomain.cz"
-                ],
-                "location": [
-                    {
-                        "address": {
-                            "boundingbox": [
-                                "49.9419006",
-                                "50.1774301",
-                                "14.2244355",
-                                "14.7067869"
-                            ],
-                            "country": "Czechia",
-                            "line": [
-                                ""
-                            ],
-                            "locality": "Prague",
-                            "title": null,
-                            "type": "city"
+                "data": {
+                    "calendars": [
+                        {
+                            "is_active": true,
+                            "name": "Entertainment",
+                            "qcode": "entertainment"
                         },
-                        "formatted_address": "Prague Czechia",
-                        "location": {
-                            "lat": 50.0874654,
-                            "lon": 14.4212535
-                        },
-                        "name": "Praha",
-                        "qcode": "urn:newsml:localhost:5000:2019-06-04T11:55:43.146372:16d4043c-826e-4c25-a743-5f747baedde7"
-                    }
-                ],
-                "name": "Grand prix F1",
-                "occur_status": {
-                    "label": "Planned, occurence planned only",
-                    "name": "Planned, occurence planned only",
-                    "qcode": "eocstat:eos1"
-                },
-                "slugline": "Grand prix",
-                "subject": [
-                    {
-                        "name": "Innenriks",
-                        "qcode": "Innenriks",
-                        "scheme": "category",
-                        "service": {
-                            "e": 1,
-                            "i": 1,
-                            "j": 1,
-                            "m": 1,
-                            "n": 1,
-                            "s": 1,
-                            "t": 1
+                        {
+                            "is_active": true,
+                            "name": "Finance",
+                            "qcode": "finance"
                         }
+                    ],
+                    "definition_long": "THIS IS LONG DESC",
+                    "definition_short": "Grand prix formula 1 Prague",
+                    "ednote": "THIS IS ED NOTE",
+                    "event_contact_info": [
+                        "5cefd99cfe985e0a311bb688"
+                    ],
+                    "files": [
+                        "5cefd99cfe985e0a311bb677"
+                    ],
+                    "internal_note": "THIS IS INT NOTE",
+                    "links": [
+                        "http://example.com",
+                        "http://somedomain.cz"
+                    ],
+                    "location": [
+                        {
+                            "address": {
+                                "boundingbox": [
+                                    "49.9419006",
+                                    "50.1774301",
+                                    "14.2244355",
+                                    "14.7067869"
+                                ],
+                                "country": "Czechia",
+                                "line": [
+                                    ""
+                                ],
+                                "locality": "Prague",
+                                "title": null,
+                                "type": "city"
+                            },
+                            "formatted_address": "Prague Czechia",
+                            "location": {
+                                "lat": 50.0874654,
+                                "lon": 14.4212535
+                            },
+                            "name": "Praha",
+                            "qcode": "urn:newsml:localhost:5000:2019-06-04T11:55:43.146372:16d4043c-826e-4c25-a743-5f747baedde7"
+                        }
+                    ],
+                    "name": "Grand prix F1",
+                    "occur_status": {
+                        "label": "Planned, occurence planned only",
+                        "name": "Planned, occurence planned only",
+                        "qcode": "eocstat:eos1"
                     },
-                    {
-                        "name": "Kultur og underholdning",
-                        "parent": null,
-                        "qcode": "01000000",
-                        "scheme": "subject_custom"
-                    },
-                    {
-                        "name": "Kriminalitet og rettsvesen",
-                        "parent": null,
-                        "qcode": "02000000",
-                        "scheme": "subject_custom"
-                    }
-                ]
+                    "slugline": "Grand prix",
+                    "subject": [
+                        {
+                            "name": "Innenriks",
+                            "qcode": "Innenriks",
+                            "scheme": "category",
+                            "service": {
+                                "e": 1,
+                                "i": 1,
+                                "j": 1,
+                                "m": 1,
+                                "n": 1,
+                                "s": 1,
+                                "t": 1
+                            }
+                        },
+                        {
+                            "name": "Kultur og underholdning",
+                            "parent": null,
+                            "qcode": "01000000",
+                            "scheme": "subject_custom"
+                        },
+                        {
+                            "name": "Kriminalitet og rettsvesen",
+                            "parent": null,
+                            "qcode": "02000000",
+                            "scheme": "subject_custom"
+                        }
+                    ]
+                }
             }
         ]
         """
@@ -157,19 +159,21 @@ Feature: Events Template
             },
             "_issues": {
                 "based_on_event": "value '5cefd99cfe985e0a311bb677' must exist in resource 'events', field '_id'.",
-                "calendars": "field is read-only",
-                "definition_long": "field is read-only",
-                "definition_short": "field is read-only",
-                "ednote": "field is read-only",
-                "event_contact_info": "field is read-only",
-                "files": "field is read-only",
-                "internal_note": "field is read-only",
-                "links": "field is read-only",
-                "location": "field is read-only",
-                "name": "field is read-only",
-                "occur_status": "field is read-only",
-                "slugline": "field is read-only",
-                "subject": "field is read-only"
+                "data": {
+                    "calendars": "field is read-only",
+                    "definition_long": "field is read-only",
+                    "definition_short": "field is read-only",
+                    "ednote": "field is read-only",
+                    "event_contact_info": "field is read-only",
+                    "files": "field is read-only",
+                    "internal_note": "field is read-only",
+                    "links": "field is read-only",
+                    "location": "field is read-only",
+                    "name": "field is read-only",
+                    "occur_status": "field is read-only",
+                    "slugline": "field is read-only",
+                    "subject": "field is read-only"
+                }
             },
             "_status": "ERR"
         }
@@ -538,94 +542,96 @@ Feature: Events Template
         """
         {
             "based_on_event": "#events._id#",
-            "calendars": [
-                {
-                    "is_active": true,
-                    "name": "Entertainment",
-                    "qcode": "entertainment"
-                },
-                {
-                    "is_active": true,
-                    "name": "Finance",
-                    "qcode": "finance"
-                }
-            ],
-            "definition_long": "THIS IS LONG DESC",
-            "definition_short": "Grand prix formula 1 Prague",
-            "ednote": "THIS IS ED NOTE",
-            "event_contact_info": [
-                "5cefd99cfe985e0a311bb688"
-            ],
-            "files": [
-                "5cefd99cfe985e0a311bb677"
-            ],
-            "internal_note": "THIS IS INT NOTE",
-            "links": [
-                "http://example.com",
-                "http://somedomain.cz"
-            ],
-            "location": [
-                {
-                    "address": {
-                        "boundingbox": [
-                            "49.9419006",
-                            "50.1774301",
-                            "14.2244355",
-                            "14.7067869"
-                        ],
-                        "country": "Czechia",
-                        "line": [
-                            ""
-                        ],
-                        "locality": "Prague",
-                        "title": null,
-                        "type": "city"
+            "template_name": "Formula one",
+            "data": {
+                "calendars": [
+                    {
+                        "is_active": true,
+                        "name": "Entertainment",
+                        "qcode": "entertainment"
                     },
-                    "formatted_address": "Prague Czechia",
-                    "location": {
-                        "lat": 50.0874654,
-                        "lon": 14.4212535
-                    },
-                    "name": "Praha",
-                    "qcode": "urn:newsml:localhost:5000:2019-06-04T11:55:43.146372:16d4043c-826e-4c25-a743-5f747baedde7"
-                }
-            ],
-            "name": "Grand prix F1",
-            "occur_status": {
-                "label": "Planned, occurence planned only",
-                "name": "Planned, occurence planned only",
-                "qcode": "eocstat:eos1"
-            },
-            "slugline": "Grand prix",
-            "subject": [
-                {
-                    "name": "Innenriks",
-                    "qcode": "Innenriks",
-                    "scheme": "category",
-                    "service": {
-                        "e": 1,
-                        "i": 1,
-                        "j": 1,
-                        "m": 1,
-                        "n": 1,
-                        "s": 1,
-                        "t": 1
+                    {
+                        "is_active": true,
+                        "name": "Finance",
+                        "qcode": "finance"
                     }
+                ],
+                "definition_long": "THIS IS LONG DESC",
+                "definition_short": "Grand prix formula 1 Prague",
+                "ednote": "THIS IS ED NOTE",
+                "event_contact_info": [
+                    "5cefd99cfe985e0a311bb688"
+                ],
+                "files": [
+                    "5cefd99cfe985e0a311bb677"
+                ],
+                "internal_note": "THIS IS INT NOTE",
+                "links": [
+                    "http://example.com",
+                    "http://somedomain.cz"
+                ],
+                "location": [
+                    {
+                        "address": {
+                            "boundingbox": [
+                                "49.9419006",
+                                "50.1774301",
+                                "14.2244355",
+                                "14.7067869"
+                            ],
+                            "country": "Czechia",
+                            "line": [
+                                ""
+                            ],
+                            "locality": "Prague",
+                            "title": null,
+                            "type": "city"
+                        },
+                        "formatted_address": "Prague Czechia",
+                        "location": {
+                            "lat": 50.0874654,
+                            "lon": 14.4212535
+                        },
+                        "name": "Praha",
+                        "qcode": "urn:newsml:localhost:5000:2019-06-04T11:55:43.146372:16d4043c-826e-4c25-a743-5f747baedde7"
+                    }
+                ],
+                "name": "Grand prix F1",
+                "occur_status": {
+                    "label": "Planned, occurence planned only",
+                    "name": "Planned, occurence planned only",
+                    "qcode": "eocstat:eos1"
                 },
-                {
-                    "name": "Kultur og underholdning",
-                    "parent": null,
-                    "qcode": "01000000",
-                    "scheme": "subject_custom"
-                },
-                {
-                    "name": "Kriminalitet og rettsvesen",
-                    "parent": null,
-                    "qcode": "02000000",
-                    "scheme": "subject_custom"
-                }
-            ],
-            "template_name": "Formula one"
+                "slugline": "Grand prix",
+                "subject": [
+                    {
+                        "name": "Innenriks",
+                        "qcode": "Innenriks",
+                        "scheme": "category",
+                        "service": {
+                            "e": 1,
+                            "i": 1,
+                            "j": 1,
+                            "m": 1,
+                            "n": 1,
+                            "s": 1,
+                            "t": 1
+                        }
+                    },
+                    {
+                        "name": "Kultur og underholdning",
+                        "parent": null,
+                        "qcode": "01000000",
+                        "scheme": "subject_custom"
+                    },
+                    {
+                        "name": "Kriminalitet og rettsvesen",
+                        "parent": null,
+                        "qcode": "02000000",
+                        "scheme": "subject_custom"
+                    }
+                ]
+            }
         }
         """
 
@@ -703,29 +709,33 @@ Feature: Events Template
         When we patch "/events_template/#events_template._id#"
         """
         {
-            "name": "Rally",
-            "slugline": "Go kart new",
-            "definition_short": "Go kart Prague new",
-            "definition_long": "THIS IS LONG DESC new",
-            "internal_note": "THIS IS INT NOTE new",
-            "ednote": "THIS IS ED NOTE new",
-            "links": [
-                "http://example.cz",
-                "http://somedomain.com"
-            ]
+            "data": {
+                "name": "Rally",
+                "slugline": "Go kart new",
+                "definition_short": "Go kart Prague new",
+                "definition_long": "THIS IS LONG DESC new",
+                "internal_note": "THIS IS INT NOTE new",
+                "ednote": "THIS IS ED NOTE new",
+                "links": [
+                    "http://example.cz",
+                    "http://somedomain.com"
+                ]
+            }
         }
         """
         Then we get error 400
         """
         {
             "_issues": {
-                "name": "field is read-only",
-                "slugline": "field is read-only",
-                "definition_short": "field is read-only",
-                "definition_long": "field is read-only",
-                "internal_note": "field is read-only",
-                "links": "field is read-only",
-                "ednote": "field is read-only"
+                "data": {
+                    "name": "field is read-only",
+                    "slugline": "field is read-only",
+                    "definition_short": "field is read-only",
+                    "definition_long": "field is read-only",
+                    "internal_note": "field is read-only",
+                    "links": "field is read-only",
+                    "ednote": "field is read-only"
+                }
             },
             "_status": "ERR"
         }
@@ -767,28 +777,40 @@ Feature: Events Template
         ]
         """
         Then we get response code 201
-        When we put to "/events_template/#events_template._id#"
+        When we patch "/events_template/#events_template._id#"
         """
         {
             "based_on_event": "5cefd99cfe985e0a311bb777",
             "template_name": "Formula TWO",
-            "slugline": "Go kart",
-            "name": "Go kart",
-            "definition_short": "Go kart Prague",
-            "definition_long": "THIS IS LONG DESC",
-            "internal_note": "THIS IS INT NOTE",
-            "ednote": "THIS IS ED NOTE",
-            "links": [
-                "http://example.com",
-                "http://somedomain.cz"
-            ]
+            "data": {
+                "slugline": "Go kart",
+                "name": "Go kart",
+                "definition_short": "Go kart Prague",
+                "definition_long": "THIS IS LONG DESC",
+                "internal_note": "THIS IS INT NOTE",
+                "ednote": "THIS IS ED NOTE",
+                "links": [
+                    "http://example.com",
+                    "http://somedomain.cz"
+                ]
+            }
         }
         """
-        Then we get response code 200
-        And we get new resource
+        Then we get error 400
         """
         {
-            "template_name": "Formula TWO"
+            "_issues": {
+                "data": {
+                    "definition_long": "field is read-only",
+                    "definition_short": "field is read-only",
+                    "ednote": "field is read-only",
+                    "internal_note": "field is read-only",
+                    "links": "field is read-only",
+                    "name": "field is read-only",
+                    "slugline": "field is read-only"
+                }
+            },
+            "_status": "ERR"
         }
         """
         When we patch "/events_template/#events_template._id#"
