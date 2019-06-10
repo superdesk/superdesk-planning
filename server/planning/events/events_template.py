@@ -216,6 +216,7 @@ class RecentEventsTemplateService(BaseService):
         if req is None:
             req = ParsedRequest()
 
+        limit = req.args.get('limit', type=int)
         pipeline = [
             {
                 '$match': {
@@ -233,11 +234,11 @@ class RecentEventsTemplateService(BaseService):
                 '$sort': {
                     "_created": -1
                 }
-            },
-            {
-                '$limit': req.args.get('limit', 5, type=int)
             }
         ]
+        if limit:
+            pipeline.append({'$limit': limit})
+
         templates_ids = [
             _['_id'] for _ in app.data.mongo.pymongo(resource='events').db['events'].aggregate(pipeline)
         ]
