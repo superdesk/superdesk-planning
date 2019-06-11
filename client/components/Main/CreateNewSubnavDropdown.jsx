@@ -6,7 +6,6 @@ import {PRIVILEGES} from '../../constants';
 import {connect} from 'react-redux';
 import * as actions from '../../actions';
 import {ITEM_TYPE} from '../../constants/index';
-import {connectServices} from 'superdesk-core/scripts/core/helpers/ReactRenderAsync';
 
 class CreateNewSubnavDropdownFn extends React.Component {
     render() {
@@ -16,8 +15,6 @@ class CreateNewSubnavDropdownFn extends React.Component {
 
         const {addEvent, addPlanning, createPlanningOnly, privileges, dispatch} = this.props;
         const items = [];
-
-        // need a list of templates here
 
         if (privileges[PRIVILEGES.PLANNING_MANAGEMENT]) {
             items.push({
@@ -68,7 +65,6 @@ CreateNewSubnavDropdownFn.propTypes = {
     createPlanningOnly: PropTypes.bool,
     privileges: PropTypes.object,
     dispatch: PropTypes.func,
-    api: PropTypes.func,
     eventTemplates: PropTypes.array,
 };
 
@@ -78,9 +74,4 @@ function mapStateToProps(state) {
     };
 }
 
-export const CreateNewSubnavDropdown = connect(mapStateToProps)(
-    connectServices(
-        CreateNewSubnavDropdownFn,
-        ['api']
-    )
-);
+export const CreateNewSubnavDropdown = connect(mapStateToProps)(CreateNewSubnavDropdownFn);

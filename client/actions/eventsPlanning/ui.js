@@ -321,6 +321,20 @@ const fetchEventTemplates = () => (dispatch, getState, {api}) => {
         });
 };
 
+const updateEventTemplate = (template, updates) => (dispatch, getState, {api}) => {
+    api.update('events_template', template, updates)
+        .then(() => {
+            dispatch(fetchEventTemplates());
+        });
+};
+
+const removeEventTemplate = (template) => (dispatch, getState, {api}) => {
+    api.remove(template, {}, 'events_template')
+        .then(() => {
+            dispatch(fetchEventTemplates());
+        });
+};
+
 const saveEventTemplate = (tamplateName, eventId) => (dispatch, getState, {api}) => {
     api('events_template').save({
         template_name: tamplateName,
@@ -357,6 +371,8 @@ const self = {
     storeFilter,
     fetchEventTemplates,
     saveEventTemplate,
+    updateEventTemplate,
+    removeEventTemplate,
 };
 
 export default self;

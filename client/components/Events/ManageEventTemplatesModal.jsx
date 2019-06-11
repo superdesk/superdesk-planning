@@ -9,6 +9,7 @@ import {Form} from '../../components/UI';
 import {TOOLTIPS} from '../../constants';
 import {connectServices} from 'superdesk-core/scripts/core/helpers/ReactRenderAsync';
 import {cloneDeep} from 'lodash';
+import eventsPlanning from '../../actions/eventsPlanning';
 
 class EventTemplateEdit extends React.Component {
     constructor(props) {
@@ -28,10 +29,10 @@ class EventTemplateEdit extends React.Component {
             <div style={{padding: 20}}>
                 <Form.Row>
                     <Form.TextInput
-                        field="name"
+                        field="template_name"
                         label={gettext('Template name')}
                         required={true}
-                        value={this.state.name}
+                        value={this.state.template_name}
                         onChange={this.handleFieldChange}
                         invalid={false}
                         message={null}
@@ -41,7 +42,7 @@ class EventTemplateEdit extends React.Component {
 
                 <button
                     onClick={() => this.props.onEditComplete(this.state)}
-                    disabled={this.props.template.name === this.state.name}
+                    disabled={this.props.template.template_name === this.state.template_name}
                     className="btn btn--primary"
                 >
                     {gettext('Save')}
@@ -62,40 +63,42 @@ class EventTemplatesList extends React.Component {
             <ColumnBox.Box>
                 <ColumnBox.MainColumn padded={true} verticalScroll={true} fullHeight>
                     {
-                        this.props.eventTemplates.map((eventTemplate, i) => (
-                            <List.Item shadow={1} key={i}>
-                                <List.Column grow={true} border={false}>
-                                    <List.Row>
-                                        <span
-                                            className="sd-overflow-ellipsis sd-list-item--element-grow"
-                                        >
-                                            {eventTemplate.name}
-                                        </span>
-                                    </List.Row>
-                                </List.Column>
-                                <List.Column border={false}>
-                                    <List.Row>
-                                        <button
-                                            onClick={() => this.props.editTemplate(i)}
-                                            className="dropdown__toggle"
-                                            title={TOOLTIPS.edit}
-                                            data-flow="left"
-                                        >
-                                            <i className="icon-pencil"/>
-                                        </button>
+                        this.props.eventTemplates.length < 1
+                            ? gettext('There are no saved templates')
+                            : this.props.eventTemplates.map((eventTemplate, i) => (
+                                <List.Item shadow={1} key={i}>
+                                    <List.Column grow={true} border={false}>
+                                        <List.Row>
+                                            <span
+                                                className="sd-overflow-ellipsis sd-list-item--element-grow"
+                                            >
+                                                {eventTemplate.template_name}
+                                            </span>
+                                        </List.Row>
+                                    </List.Column>
+                                    <List.Column border={false}>
+                                        <List.Row>
+                                            <button
+                                                onClick={() => this.props.editTemplate(eventTemplate._id)}
+                                                className="dropdown__toggle"
+                                                title={TOOLTIPS.edit}
+                                                data-flow="left"
+                                            >
+                                                <i className="icon-pencil"/>
+                                            </button>
 
-                                        <button
-                                            onClick={() => this.props.deleteTemplate(i)}
-                                            className="dropdown__toggle"
-                                            title={TOOLTIPS.delete}
-                                            data-flow="left"
-                                        >
-                                            <i className="icon-trash"/>
-                                        </button>
-                                    </List.Row>
-                                </List.Column>
-                            </List.Item>
-                        ))
+                                            <button
+                                                onClick={() => this.props.deleteTemplate(eventTemplate._id)}
+                                                className="dropdown__toggle"
+                                                title={TOOLTIPS.delete}
+                                                data-flow="left"
+                                            >
+                                                <i className="icon-trash"/>
+                                            </button>
+                                        </List.Row>
+                                    </List.Column>
+                                </List.Item>
+                            ))
                     }
                 </ColumnBox.MainColumn>
             </ColumnBox.Box>
@@ -109,7 +112,7 @@ EventTemplatesList.propTypes = {
     deleteTemplate: PropTypes.func,
 };
 
-class ManageFiltersComponent extends React.Component {
+class ManageEventTemplatesModalComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -128,17 +131,10 @@ class ManageFiltersComponent extends React.Component {
     }
 
     onEditComplete(templateEdited) {
-        const eventTemplatesNext = this.props.eventTemplates.map((template) => {
-            if (template._id === templateEdited._id) {
-                return templateEdited;
-            } else {
-                return template;
-            }
-        });
-
-        // TODO: update on server
-
-        this.props.dispatch({type: 'RECEIVE_EVENT_TEMPLATES', payload: eventTemplatesNext});
+        this.props.dispatch(eventsPlanning.ui.updateEventTemplate(
+            this.props.eventTemplates.find(({_id}) => _id === this.state.templateInEditMode),
+            {template_name: templateEdited.template_name}
+        ));
 
         this.setState({
             templateInEditMode: null,
@@ -147,11 +143,9 @@ class ManageFiltersComponent extends React.Component {
 
     deleteTemplate(id) {
         this.props.modal.confirm(gettext('Confirm delete')).then(() => {
-            // TODO: delete on server
-
-            const eventTemplatesNext = this.props.eventTemplates.filter(({_id}) => _id !== id);
-
-            this.props.dispatch({type: 'RECEIVE_EVENT_TEMPLATES', payload: eventTemplatesNext});
+            this.props.dispatch(eventsPlanning.ui.removeEventTemplate(
+                this.props.eventTemplates.find(({_id}) => _id === id)
+            ));
         });
     }
 
@@ -178,7 +172,9 @@ class ManageFiltersComponent extends React.Component {
                             )
                             : (
                                 <EventTemplateEdit
-                                    template={this.props.eventTemplates[this.state.templateInEditMode]}
+                                    template={this.props.eventTemplates.find(
+                                        ({_id}) => _id === this.state.templateInEditMode)
+                                    }
                                     onEditComplete={this.onEditComplete}
                                 />
                             )
@@ -189,7 +185,7 @@ class ManageFiltersComponent extends React.Component {
     }
 }
 
-ManageFiltersComponent.propTypes = {
+ManageEventTemplatesModalComponent.propTypes = {
     handleHide: PropTypes.func,
     eventTemplates: PropTypes.array,
     modal: PropTypes.object,
@@ -203,7 +199,7 @@ function mapStateToProps(state) {
 }
 
 export const ManageEventTemplatesModal = connect(mapStateToProps)(connectServices(
-    ManageFiltersComponent,
+    ManageEventTemplatesModalComponent,
     ['modal']
 ));
 
