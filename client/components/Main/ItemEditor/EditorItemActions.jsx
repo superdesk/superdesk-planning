@@ -21,6 +21,7 @@ const EditorItemActionsComponent = ({
     autoSave,
     modal,
     dispatch,
+    api,
 }) => {
     const itemType = getItemType(item);
     const withMultiPlanningDate = true;
@@ -94,7 +95,31 @@ const EditorItemActionsComponent = ({
                                 });
                             } else {
                                 modal.prompt(gettext('Template name')).then((templateName) => {
-                                    dispatch(eventsPlanning.ui.saveEventTemplate(templateName, item._id));
+                                    api('events_template').query({
+                                        where: {
+                                            template_name: {
+                                                $regex: templateName,
+                                                $options: 'i',
+                                            },
+                                        },
+                                    })
+                                        .then((res) => {
+                                            const doSave = () =>
+                                                dispatch(eventsPlanning.ui.saveEventTemplate(templateName, item._id));
+
+                                            const templateAlreadyExists = res._meta.total !== 0;
+
+                                            if (templateAlreadyExists) {
+                                                modal.confirm(gettext(
+                                                    'Template already exists. Do you want to overwrite it?'
+                                                ))
+                                                    .then(() => {
+                                                        api.remove(res._items[0], {}, 'events_template').then(doSave);
+                                                    });
+                                            } else {
+                                                doSave();
+                                            }
+                                        });
                                 });
                             }
                         })
@@ -176,9 +201,10 @@ EditorItemActionsComponent.propTypes = {
     autoSave: PropTypes.object,
     modal: PropTypes.object,
     dispatch: PropTypes.func,
+    api: PropTypes.any,
 };
 
 export const EditorItemActions = connect()(connectServices(
     EditorItemActionsComponent,
-    ['modal']
+    ['modal', 'api']
 ));
