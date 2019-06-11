@@ -16,7 +16,8 @@ from apps.archive.common import get_user, get_auth
 from eve.utils import config
 from copy import deepcopy
 from .assignments import AssignmentsResource, assignments_schema, AssignmentsService
-from planning.common import ASSIGNMENT_WORKFLOW_STATE, remove_lock_information, get_coverage_type_name
+from planning.common import ASSIGNMENT_WORKFLOW_STATE, remove_lock_information, get_coverage_type_name,\
+    get_next_assignment_status
 from planning.planning_notifications import PlanningNotifications
 
 
@@ -66,7 +67,7 @@ class AssignmentsCompleteService(BaseService):
         if not text_assignment:
             updates['assigned_to']['revert_state'] = updates['assigned_to']['state']
 
-        updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED
+        updates['assigned_to']['state'] = get_next_assignment_status(updates, ASSIGNMENT_WORKFLOW_STATE.COMPLETED)
 
         remove_lock_information(updates)
 
@@ -106,6 +107,8 @@ class AssignmentsCompleteService(BaseService):
                                                   coverage_type=get_coverage_type_name(
                                                       original.get('planning', {}).get('g2_content_type', '')),
                                                   slugline=original.get('planning', {}).get('slugline'),
-                                                  omit_user=True)
+                                                  omit_user=True,
+                                                  assignment_id=original[config.ID_FIELD],
+                                                  is_link=True)
 
         return item

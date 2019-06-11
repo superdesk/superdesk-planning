@@ -5,16 +5,19 @@ import moment from 'moment';
 import classNames from 'classnames';
 import {arrayMove} from 'react-sortable-hoc';
 import {get, difference, xor, isEqual, some} from 'lodash';
+
+import * as actions from '../../../actions';
+import * as selectors from '../../../selectors';
+import {MODALS, TIME_COMPARISON_GRANULARITY} from '../../../constants';
+import {gettext, onEventCapture, isExistingItem, isItemPublic, planningUtils} from '../../../utils';
+
 import {Modal} from '../../index';
 import {Button} from '../../UI';
 import {SubNav, SlidingToolBar} from '../../UI/SubNav';
 import {JumpToDropdown} from '../../Main';
 import {FeaturedPlanningList} from './FeaturedPlanningList';
 import {FeaturedPlanningSelectedList} from './FeaturedPlanningSelectedList';
-import * as actions from '../../../actions';
-import * as selectors from '../../../selectors';
-import {MODALS, TIME_COMPARISON_GRANULARITY} from '../../../constants';
-import {gettext, onEventCapture, isExistingItem, isItemPublic, planningUtils} from '../../../utils';
+import {FeaturedPlanningListGroup} from './FeaturedPlanningListGroup';
 
 export class FeaturedPlanningModalComponent extends React.Component {
     constructor(props) {
@@ -23,8 +26,10 @@ export class FeaturedPlanningModalComponent extends React.Component {
         this.state = {
             unselectedPlanningIds: [],
             selectedPlanningIds: [],
+            planningsToRemove: [],
             notifications: [],
             highlights: [],
+            dirty: false,
         };
 
         this.onAddToSelectedPlanning = this.onAddToSelectedPlanning.bind(this);
@@ -48,7 +53,7 @@ export class FeaturedPlanningModalComponent extends React.Component {
         if (!this.props.unsavedItems) {
             this.props.loadFeaturedPlanningsData(this.props.currentSearchDate);
         } else {
-            // Loadng from ignore-cancel-save
+            // Loading from ignore-cancel-save
             this.setState({
                 unselectedPlanningIds: difference(this.props.featuredPlanningItems.map((i) => i._id),
                     this.props.unsavedItems),
@@ -107,10 +112,19 @@ export class FeaturedPlanningModalComponent extends React.Component {
                 this.setState({
                     unselectedPlanningIds: unselectedPlanningIds,
                     selectedPlanningIds: selectedPlanningIds,
-                    dirty: xor(get(this.props, 'featuredPlanningItem.items', []), selectedPlanningIds).length > 0,
+                    dirty: get(nextProps, 'removeList.length', 0) > 0 || (
+                        xor(
+                            get(this.props, 'featuredPlanningItem.items', []),
+                            selectedPlanningIds
+                        ).length > 0
+                    ),
                     notifications: notifications,
                     highlights: highlights,
                 });
+            }
+
+            if (get(nextProps, 'removeList.length', 0) > 0) {
+                this.setState({dirty: true});
             }
         }
     }
@@ -118,13 +132,17 @@ export class FeaturedPlanningModalComponent extends React.Component {
     getNewState(props) {
         const existingItem = isExistingItem(props.featuredPlanningItem);
         const planingIds = props.featuredPlanningItems.map((i) => i._id);
-        const selectedPlanningIds = existingItem || this.isReadOnly() ?
-            get(props, 'featuredPlanningItem.items', []) : planingIds;
+        const selectedPlanningIds = (existingItem || this.isReadOnly()) ?
+            get(props, 'featuredPlanningItem.items', []) :
+            planingIds;
 
         return {
             unselectedPlanningIds: difference(planingIds, selectedPlanningIds),
             selectedPlanningIds: selectedPlanningIds,
-            dirty: !existingItem && selectedPlanningIds.length > 0 && !this.isReadOnly(),
+            dirty: get(props, 'removeList.length', 0) > 0 || (
+                !existingItem && selectedPlanningIds.length > 0 &&
+                !this.isReadOnly()
+            ),
             highlights: [],
         };
     }
@@ -147,7 +165,6 @@ export class FeaturedPlanningModalComponent extends React.Component {
         });
     }
 
-
     onRemoveFromSelectedPlanning(item, event) {
         onEventCapture(event);
         const newSelectedIds = this.state.selectedPlanningIds.filter((p) => p !== item._id);
@@ -163,26 +180,36 @@ export class FeaturedPlanningModalComponent extends React.Component {
         });
     }
 
-
     getUnSelectedPlannings() {
         return get(this.props, 'featuredPlanningItems', []).filter(
             (p) => this.state.unselectedPlanningIds.includes(p._id));
     }
 
     getSelectedPlannings() {
-        return this.state.selectedPlanningIds.map((id) =>
-            get(this.props, 'featuredPlanningItems', []).find((p) => p._id === id));
+        return this.state.selectedPlanningIds
+            .map((id) =>
+                get(this.props, 'featuredPlanningItems', [])
+                    .find((p) => p._id === id)
+            )
+            .filter((p) => p); // Filter out null values
     }
 
     getListGroupProps(selected = true) {
         return selected ? this.getSelectedPlannings() : this.getUnSelectedPlannings();
     }
 
+    getIdsForSave() {
+        // Filter out the items that do not satisfy as a selection for feature planning
+        const removeIds = this.props.removeList.map((item) => item._id);
+
+        return this.state.selectedPlanningIds.filter((itemId) => !removeIds.includes(itemId));
+    }
+
     onSave(tearDown) {
         if (get(this.props, 'featuredPlanningItem.posted')) {
             this.props.saveDirtyData(this.state.selectedPlanningIds);
             this.props.openCancelModal({
-                bodyText: gettext('Save changes without re-posting ?'),
+                bodyText: gettext('Save changes without re-posting?'),
                 onSave: this.save.bind(null, false),
                 autoClose: true,
                 showIgnore: false,
@@ -195,7 +222,7 @@ export class FeaturedPlanningModalComponent extends React.Component {
 
     save(tearDown) {
         let updates = {
-            items: this.state.selectedPlanningIds,
+            items: this.getIdsForSave(),
             tz: this.props.currentSearchDate.tz(),
         };
 
@@ -207,10 +234,16 @@ export class FeaturedPlanningModalComponent extends React.Component {
             });
         }
 
-        this.props.saveFeaturedPlanningForDate(updates);
-        if (tearDown) {
-            this.props.unsetFeaturePlanningInUse();
-        }
+        this.props.saveFeaturedPlanningForDate(updates)
+            .then(() => {
+                if (tearDown) {
+                    this.props.unsetFeaturePlanningInUse();
+                }
+
+                this.onDateChange(
+                    moment(get(this.props, 'featuredPlanningItem.date'))
+                );
+            });
     }
 
     onPost() {
@@ -224,7 +257,7 @@ export class FeaturedPlanningModalComponent extends React.Component {
         }
 
         const updates = {
-            items: this.state.selectedPlanningIds,
+            items: this.getIdsForSave(),
             posted: true,
         };
 
@@ -237,7 +270,12 @@ export class FeaturedPlanningModalComponent extends React.Component {
             updates.tz = this.props.currentSearchDate.tz();
         }
 
-        this.props.saveFeaturedPlanningForDate(updates);
+        this.props.saveFeaturedPlanningForDate(updates)
+            .then(() => {
+                this.onDateChange(
+                    moment(get(this.props, 'featuredPlanningItem.date'))
+                );
+            });
     }
 
     // set cursor to move during whole drag
@@ -267,7 +305,7 @@ export class FeaturedPlanningModalComponent extends React.Component {
             this.props.saveDirtyData(this.state.selectedPlanningIds);
             this.props.openCancelModal({
                 bodyText: gettext(
-                    'There are unsaved changes. Are you sure you want to exit Manging Featured Stories ?'),
+                    'There are unsaved changes. Are you sure you want to exit Manging Featured Stories?'),
                 onIgnore: this.props.unsetFeaturePlanningInUse,
                 onSave: this.onSave.bind(null, true),
                 autoClose: true,
@@ -298,6 +336,7 @@ export class FeaturedPlanningModalComponent extends React.Component {
             featuredPlanningItems,
             featuredPlanningItem,
             contentTypes,
+            removeList,
         } = this.props;
 
         const emptyMsg = this.state.unselectedPlanningIds.length === 0 &&
@@ -367,22 +406,45 @@ export class FeaturedPlanningModalComponent extends React.Component {
                         </div>
                         {this.props.loading && <div className="loading-indicator">{gettext('Loading')}</div>}
                         {itemUpdatedAfterPosting &&
-                            <div className={classNames('sd-alert sd-alert--alert sd-alert--hollow sd-alert--no-padding',
-                                'sd-alert__icon', 'grid__item--col-1')}>
-                                {gettext('This list contains unposted changes! ')}
+                            <div className={classNames(
+                                'sd-alert',
+                                'sd-alert--alert',
+                                'sd-alert--hollow',
+                                'sd-alert--no-padding',
+                                'sd-alert__icon',
+                                'grid__item--col-1'
+                            )}>
+                                {gettext('This list contains unposted changes!')}
                             </div>}
                     </SubNav>
                     <div className="grid">
-                        <FeaturedPlanningList
-                            { ...listProps }
-                            items={this.getListGroupProps(false)}
-                            emptyMsg={emptyMsg} />
-                        <FeaturedPlanningSelectedList { ...listProps }
-                            item={featuredPlanningItem}
-                            items={this.getListGroupProps()}
-                            leftBorder
-                            onSortEnd={this.onSelectedItemsSortEnd}
-                            onSortStart={this.onSortStart} />
+                        <FeaturedPlanningListGroup>
+                            <FeaturedPlanningList
+                                {...listProps}
+                                items={this.getListGroupProps(false)}
+                                emptyMsg={emptyMsg}
+                            />
+                        </FeaturedPlanningListGroup>
+                        <FeaturedPlanningListGroup leftBorder={true}>
+                            <FeaturedPlanningSelectedList
+                                {...listProps}
+                                item={featuredPlanningItem}
+                                items={this.getListGroupProps()}
+                                onSortEnd={this.onSelectedItemsSortEnd}
+                                onSortStart={this.onSortStart}
+                            />
+
+                            {get(removeList, 'length', 0) > 0 && (
+                                <FeaturedPlanningList
+                                    {...listProps}
+                                    header={gettext('Selections automatically removed')}
+                                    readOnly={true}
+                                    items={removeList}
+                                    emptyMsg={emptyMsg}
+                                    disabled={true}
+                                />
+                            )}
+                        </FeaturedPlanningListGroup>
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
@@ -438,6 +500,7 @@ FeaturedPlanningModalComponent.propTypes = {
     defaultTimeZone: PropTypes.string,
     notifyValidationErrors: PropTypes.func,
     contentTypes: PropTypes.array,
+    removeList: PropTypes.array,
 };
 
 FeaturedPlanningModalComponent.defaultProps = {featuredPlanningItem: {}};
@@ -459,6 +522,7 @@ const mapStateToProps = (state) => ({
     desks: selectors.general.desks(state),
     defaultTimeZone: selectors.config.defaultTimeZone(state),
     contentTypes: selectors.general.contentTypes(state),
+    removeList: selectors.featuredPlanning.featuredPlaningToRemove(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -467,8 +531,8 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(actions.planning.featuredPlanning.loadFeaturedPlanningsData(date)),
     getFeaturedPlanningItemForDate: (date) =>
         dispatch(actions.planning.featuredPlanning.getFeaturedPlanningItemForDate(date)),
-    setFeaturePlanningInUse: (date) => dispatch(actions.planning.featuredPlanning.setFeaturePlanningInUse()),
-    unsetFeaturePlanningInUse: (date) => dispatch(actions.planning.featuredPlanning.unsetFeaturePlanningInUse()),
+    setFeaturePlanningInUse: () => dispatch(actions.planning.featuredPlanning.setFeaturePlanningInUse()),
+    unsetFeaturePlanningInUse: () => dispatch(actions.planning.featuredPlanning.unsetFeaturePlanningInUse()),
     saveFeaturedPlanningForDate: (item) =>
         dispatch(actions.planning.featuredPlanning.saveFeaturedPlanningForDate(item)),
     openCancelModal: (modalProps) => (

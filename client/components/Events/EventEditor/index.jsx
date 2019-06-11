@@ -61,6 +61,10 @@ export class EventEditorComponent extends React.Component {
     componentDidMount() {
         if (!get(this.props, 'navigation.scrollToViewItem') && this.dom.initialFocus) {
             this.dom.initialFocus.focus();
+            var tempValue = get(this.dom.initialFocus, 'value', '');
+
+            this.dom.initialFocus.value = '';
+            this.dom.initialFocus.value = tempValue;
         }
 
         // scroll to contacts
@@ -275,16 +279,6 @@ export class EventEditorComponent extends React.Component {
                     />
 
                     <Field
-                        component={SelectInput}
-                        field="occur_status"
-                        label={gettext('Occurrence Status')}
-                        defaultValue={null}
-                        options={occurStatuses}
-                        {...fieldProps}
-                        onFocus={onFocusEvent}
-                    />
-
-                    <Field
                         component={SelectMetaTermsInput}
                         field="calendars"
                         label={gettext('Calendars')}
@@ -292,6 +286,18 @@ export class EventEditorComponent extends React.Component {
                         defaultValue={[]}
                         {...fieldProps}
                         onFocus={onFocusEvent}
+                        popupContainer={this.props.popupContainer}
+                        {...popupProps}
+                    />
+
+                    <Field
+                        component={SelectMetaTermsInput}
+                        field="place"
+                        label={gettext('Place')}
+                        options={locators}
+                        defaultValue={[]}
+                        {...fieldProps}
+                        onFocus={onFocusDetails}
                         popupContainer={this.props.popupContainer}
                         {...popupProps}
                     />
@@ -317,6 +323,16 @@ export class EventEditorComponent extends React.Component {
                         paddingTop={!!onFocusContacts}
                         {...popupProps} />
 
+                    <Field
+                        component={SelectInput}
+                        field="occur_status"
+                        label={gettext('Occurrence Status')}
+                        defaultValue={null}
+                        options={occurStatuses}
+                        {...fieldProps}
+                        onFocus={onFocusEvent}
+                    />
+
                     <ToggleBox
                         title={gettext('Details')}
                         isOpen={editorMenuUtils.isOpen(navigation, 'details')}
@@ -326,18 +342,6 @@ export class EventEditorComponent extends React.Component {
                         invalid={detailsErrored && (dirty || submitFailed)}
                         forceScroll={editorMenuUtils.forceScroll(navigation, 'details')}
                         paddingTop={!!onFocusDetails} >
-                        <Field
-                            component={SelectMetaTermsInput}
-                            field="place"
-                            label={gettext('Place')}
-                            options={locators}
-                            defaultValue={[]}
-                            {...fieldProps}
-                            onFocus={onFocusDetails}
-                            popupContainer={this.props.popupContainer}
-                            {...popupProps}
-                        />
-
                         <Field
                             component={SelectMetaTermsInput}
                             field="anpa_category"

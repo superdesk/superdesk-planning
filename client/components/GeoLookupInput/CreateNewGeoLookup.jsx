@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {omit, get} from 'lodash';
+import {omit, get, isObject} from 'lodash';
 import {formatAddress} from '../../utils';
 import {gettext} from '../../utils/gettext';
 import {ButtonList} from '../UI';
@@ -128,9 +128,10 @@ export class CreateNewGeoLookup extends React.Component {
                         field="state"
                         label={gettext('State/Province/Region')}
                         onChange={this.onChange}
-                        value={this.state.state}
+                        value={get(this, 'state.state')}
                         options={this.props.regions}
                         labelField="name"
+                        textInput={!isObject(get(this, 'state.state')) && get(this, 'state.state', '').length > 0}
                         noMargin
                         clearable
                     />

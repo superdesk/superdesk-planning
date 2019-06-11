@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get} from 'lodash';
+import {get, cloneDeep, isEmpty} from 'lodash';
 
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
@@ -12,8 +12,9 @@ import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {Row} from '../../UI/Preview';
 import {TextAreaInput} from '../../UI/Form';
-
+import {formProfile} from '../../../validators';
 import '../style.scss';
+
 
 export class CancelEventComponent extends React.Component {
     constructor(props) {
@@ -23,6 +24,7 @@ export class CancelEventComponent extends React.Component {
             reason: '',
             relatedEvents: [],
             relatedPlannings: [],
+            errors: {},
         };
 
         this.onEventUpdateMethodChange = this.onEventUpdateMethodChange.bind(this);
@@ -41,7 +43,8 @@ export class CancelEventComponent extends React.Component {
         });
 
         // Enable save so that the user can action on this event.
-        this.props.enableSaveInModal();
+        get(this.props, 'formProfile.schema.reason.required', false) ?
+            this.props.disableSaveInModal() : this.props.enableSaveInModal();
     }
 
     submit() {
@@ -71,7 +74,32 @@ export class CancelEventComponent extends React.Component {
     }
 
     onReasonChange(field, reason) {
-        this.setState({reason});
+        const errors = cloneDeep(this.state.errors);
+        let errorMessages = [];
+
+        if (this.props.formProfile) {
+            formProfile(
+                {
+                    field: field,
+                    value: reason,
+                    profile: this.props.formProfile,
+                    errors: errors,
+                    messages: errorMessages,
+                }
+            );
+
+            if (get(errorMessages, 'length', 0) > 0 ||
+                (get(this.props.formProfile, 'schema.reason.required', false) && isEmpty(reason))) {
+                this.props.disableSaveInModal();
+            } else {
+                this.props.enableSaveInModal();
+            }
+        }
+
+        this.setState({
+            reason,
+            errors,
+        });
     }
 
     render() {
@@ -131,12 +159,18 @@ export class CancelEventComponent extends React.Component {
                     action="cancel"
                 />
 
-                <Row label={gettext('Reason for Event cancellation:')}>
+                <Row>
                     <TextAreaInput
+                        label={gettext('Reason for Event cancellation:')}
                         value={this.state.reason}
                         onChange={this.onReasonChange}
                         disabled={submitting}
                         field="reason"
+                        showErrors={true}
+                        errors={this.state.errors}
+                        formProfile={this.props.formProfile}
+                        required={get(this.props.formProfile, 'schema.reason.required', false)}
+                        initialFocus={true}
                     />
                 </Row>
             </div>
@@ -152,17 +186,20 @@ CancelEventComponent.propTypes = {
     timeFormat: PropTypes.string,
     dateFormat: PropTypes.string,
     enableSaveInModal: PropTypes.func,
+    disableSaveInModal: PropTypes.func,
 
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
     onHide: PropTypes.func,
     submitting: PropTypes.bool,
     modalProps: PropTypes.object,
+    formProfile: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
     timeFormat: selectors.config.getTimeFormat(state),
     dateFormat: selectors.config.getDateFormat(state),
+    formProfile: selectors.forms.eventCancelProfile(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

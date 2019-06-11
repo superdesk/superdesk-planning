@@ -22,6 +22,7 @@ from apps.publish.enqueue import get_enqueue_service
 from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
 from eve.utils import config, ParsedRequest
 from werkzeug.datastructures import MultiDict
+from superdesk.etree import parse_html
 import json
 
 ITEM_STATE = 'state'
@@ -342,6 +343,10 @@ def set_actioned_date_to_event(updates, original):
 
 
 def get_related_items(item, assignment=None):
+    # If linking updates is not configured, return just this item
+    if not planning_link_updates_to_coverage():
+        return [item]
+
     req = ParsedRequest()
     req.args = MultiDict()
     must_not = [{'term': {'state': 'spiked'}}]
@@ -404,3 +409,73 @@ def update_assignment_on_link_unlink(assignment_id, item, published_updated):
 
 def planning_link_updates_to_coverage():
     return app.config.get('PLANNING_LINK_UPDATES_TO_COVERAGES', False)
+
+
+def is_valid_event_planning_reason(updates, original):
+    """Custom validation for reason field.
+
+    This method is called from item action endpoints to validate the reason is required or not.
+    It looks for the reason field schema in the planning_types resource based on the item_type and lock_action.
+    To turn on the reason field validation for event_postpone endpoint add following to the planning_types collection
+    {
+        "_id": "event_postpone",
+        "name": "event_postpone",
+        "schema": {
+            "reason": { "required": True }
+        }
+    }
+
+    :param dict updates: updates for the endpoint
+    :param dict original: original document
+    """
+    if not original:
+        return True
+
+    lock_action = original.get(LOCK_ACTION)
+    item_type = original.get(ITEM_TYPE)
+
+    # get the validator based on the item_type and lock_action
+    validator = get_resource_service('planning_types').find_one(
+        req=None,
+        name='{}_{}'.format(item_type, lock_action)
+    ) or {}
+
+    if not validator.get('schema'):
+        return True
+
+    reason_mapping = validator.get('schema').get('reason') or {}
+    if reason_mapping.get('required') and not updates.get('reason'):
+        return False
+    return True
+
+
+def get_contacts_from_item(item):
+    contact_ids = item.get('event_contact_info') or []
+    if (item.get('event') or {}).get('event_contact_info'):
+        contact_ids = item['event']['event_contact_info']
+    contact_ids = [str(c) for c in contact_ids]
+    query = {"query": {"bool": {"must": [{"terms": {"_id": contact_ids}}, {"term": {"public": "true"}}]}}}
+    contacts = get_resource_service('contacts').search(query)
+    return list(contacts)
+
+
+def get_next_assignment_status(assignment, next_state):
+    current_state = ((assignment or {}).get('assigned_to') or {}).get('state')
+    if current_state == ASSIGNMENT_WORKFLOW_STATE.CANCELLED:
+        return ASSIGNMENT_WORKFLOW_STATE.CANCELLED
+    elif current_state == ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+        return ASSIGNMENT_WORKFLOW_STATE.COMPLETED
+    else:
+        return next_state
+
+
+def get_first_paragraph_text(input_string):
+    try:
+        elem = parse_html(input_string, content='html')
+    except ValueError as e:
+        logger.warning(e)
+    else:
+        # all non-empty paragraphs: ignores <p><br></p> sections
+        for p in elem.iterfind('.//p'):
+            if p.text:
+                return p.text

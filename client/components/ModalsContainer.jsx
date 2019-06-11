@@ -18,17 +18,16 @@ import {UnlockFeaturedPlanning} from './Planning/FeaturedPlanning/UnlockFeatured
 import {EditorModalPanel} from './Main';
 import {MODALS, ITEM_TYPE} from '../constants';
 
-import SortItemsModal from './SortItemsModal';
 import {ManageAgendasModal} from './Agendas/ManageAgendasModal';
 import {SelectDeskTemplate} from './Assignments';
 import {ManageFiltersModal} from './EventsPlanningFilters';
 import {ManageEventTemplatesModal} from './Events/ManageEventTemplatesModal';
+import {ExportAsArticleModal} from './ExportAsArticleModal';
 
 const modals = {
     [MODALS.CONFIRMATION]: ConfirmationModal,
     [MODALS.NOTIFICATION_MODAL]: NotificationModal,
     [MODALS.ITEM_ACTIONS_MODAL]: ItemActionConfirmationModal,
-    [MODALS.SORT_SELECTED]: SortItemsModal,
     [MODALS.ADD_TO_PLANNING]: AddToPlanningModal,
     [MODALS.FULFIL_ASSIGNMENT]: FulFilAssignmentModal,
     [MODALS.SELECT_ITEM_MODAL]: SelectItemModal,
@@ -40,6 +39,7 @@ const modals = {
     [MODALS.SELECT_DESK_TEMPLATE]: SelectDeskTemplate,
     [MODALS.MANAGE_EVENTS_PLANNING_FILTERS]: ManageFiltersModal,
     [MODALS.MANAGE_EVENT_TEMPLATES]: ManageEventTemplatesModal,
+    [MODALS.EXPORT_AS_ARTICLE]: ExportAsArticleModal,
 };
 
 export function Modals({modalType, modalProps, handleHide}) {

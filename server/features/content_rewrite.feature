@@ -1030,7 +1030,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "completed"
                             },
                             "workflow_status": "active"
                         },
@@ -1144,7 +1144,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "completed"
                             },
                             "workflow_status": "active"
                         },
@@ -1159,7 +1159,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "in_progress"
                             },
                             "workflow_status": "active"
                         }]
@@ -1241,7 +1241,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "completed"
                             },
                             "workflow_status": "active"
                         },
@@ -1256,7 +1256,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "completed"
                             },
                             "workflow_status": "active"
                         }]
@@ -1339,7 +1339,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "completed"
                             },
                             "workflow_status": "active"
                         },
@@ -1354,7 +1354,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "completed"
                             },
                             "workflow_status": "active"
                         }]
@@ -1440,7 +1440,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "completed"
                             },
                             "workflow_status": "active"
                         },
@@ -1455,7 +1455,7 @@ Feature: Rewrite content
                             "assigned_to": {
                                 "desk": "#desks._id#",
                                 "user": "#CONTEXT_USER_ID#",
-                                "state": "active"
+                                "state": "completed"
                             },
                             "workflow_status": "active"
                         }]
@@ -2477,6 +2477,457 @@ Feature: Rewrite content
                     {"item_state": "published", "item_id": "#archive._id#", "sequence_no": 0},
                     {"item_state": "published", "item_id": "#rewrite1#", "sequence_no": 1},
                     {"item_state": "in_progress", "item_id": "#REWRITE_ID#", "sequence_no": 2}
+                ]
+            }]
+        }
+        """
+
+    @auth
+    @vocabularies
+    Scenario: Only single content update gets linked if config PLANNING_LINK_UPDATES_TO_COVERAGES is off
+        When we post to "/planning"
+        """
+        [{
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-10-12",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "slugline": "test slugline",
+                        "g2_content_type" : "text"
+                    }
+                }
+            ]
+        }]
+        """
+        Then we get Ok response
+        When we patch "/planning/#planning._id#"
+        """
+        {"coverages": [{
+            "planning": {
+                "g2_content_type": "text",
+                "ednote": "test coverage, I want 250 words",
+                "slugline": "test slugline",
+                "scheduled": "2029-10-12T14:00:00.000"
+            },
+            "news_coverage_status": {"qcode": "ncostat:int"},
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
+            },
+            "workflow_status": "active"
+        }]}
+        """
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        Then we store coverage id in "firstcoverage" from coverage 0
+        When we post to "/planning/post"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we get "published_planning?sort=item_id,version"
+        Then we get list with 1 items
+        Then we store "PLANNING" with first item
+        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        Then we get list with 1 items
+        """
+        {
+            "_items": [
+                {
+                    "item_id": "#planning._id#",
+                    "type": "planning",
+                    "published_item": {
+                        "_id": "#planning._id#",
+                        "coverages": [{
+                            "planning": {
+                                "g2_content_type": "text",
+                                "ednote": "test coverage, I want 250 words",
+                                "slugline": "test slugline",
+                                "scheduled": "2029-10-12T14:00:00+0000"
+                            },
+                            "news_coverage_status": {"qcode": "ncostat:int"},
+                            "assigned_to": {
+                                "desk": "#desks._id#",
+                                "user": "#CONTEXT_USER_ID#",
+                                "state": "assigned"
+                            },
+                            "workflow_status": "active"
+                        }]
+                    }
+                }
+            ]
+        }
+        """
+        When we transmit items
+        Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-1.txt"
+        """
+        {
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "guid": "#PLANNING.item_id#",
+            "coverages": [{
+                "planning": {
+                    "g2_content_type": "text",
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline",
+                    "scheduled": "2029-10-12T14:00:00+0000"
+                },
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "workflow_status": "assigned"
+            }]
+        }
+        """
+        When we rewrite "#archive._id#"
+        """
+        {"desk_id": "#desks._id#"}
+        """
+        Then we get OK response
+        When we get "/archive/#archive._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#archive._id#",
+            "event_id": "#archive.event_id#",
+            "type": "text",
+            "assignment_id": "__no_value__"
+        }
+        """
+        When we get "/archive/#REWRITE_ID#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#REWRITE_ID#",
+            "event_id": "#archive.event_id#",
+            "type": "text",
+            "state": "in_progress",
+            "assignment_id": "__no_value__"
+        }
+        """
+        When we get "/published"
+        Then we get existing resource
+        """
+        {"_items" : [{"_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "__no_value__"}]}
+        """
+        When we post to "assignments/link" with success
+        """
+        [{
+            "assignment_id": "#firstassignment#",
+            "item_id": "#REWRITE_ID#",
+            "reassign": true
+        }]
+        """
+        When we get "/assignments"
+        Then we get array of _items by _id
+        """
+        {
+            "#firstassignment#": {"assigned_to": {"state": "in_progress"}}
+        }
+        """
+        When we transmit items
+        When we get "published_planning?sort=item_id,version"
+        Then we get list with 2 items
+        Then we store "PLANNING" with 2 item
+        Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-2.txt"
+        """
+        {
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "guid": "#PLANNING.item_id#",
+            "coverages": [{
+                "planning": {
+                    "g2_content_type": "text",
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline",
+                    "scheduled": "2029-10-12T14:00:00+0000"
+                },
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "workflow_status": "active"
+            }]
+        }
+        """
+        When we publish "#REWRITE_ID#" with "publish" type and "published" state
+        Then we get OK response
+        When we get "/published/#archive._id#"
+        Then we get existing resource
+        """
+        { "_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "__no_value__" }
+        """
+        When we get "/published/#REWRITE_ID#"
+        Then we get existing resource
+        """
+        { "_id": "#REWRITE_ID#", "rewrite_of": "#archive._id#", "assignment_id": "#firstassignment#" }
+        """
+        When we transmit items
+        When we get "published_planning?sort=item_id,version"
+        Then we get list with 3 items
+        Then we store "PLANNING" with 3 item
+        Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-3.txt"
+        """
+        {
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "guid": "#PLANNING.item_id#",
+            "coverages": [{
+                "planning": {
+                    "g2_content_type": "text",
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline",
+                    "scheduled": "2029-10-12T14:00:00+0000"
+                },
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "workflow_status": "completed",
+                "deliveries": [
+                    {"item_state": "published", "item_id": "#REWRITE_ID#", "sequence_no": 1}
+                ]
+
+            }]
+        }
+        """
+
+    @auth
+    @vocabularies
+    @link_updates
+    Scenario: Completed Assignment moves desks with story updates and remains in completed status
+        When we post to "/planning"
+        """
+        [{
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-10-12",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "slugline": "test slugline",
+                        "g2_content_type" : "text"
+                    }
+                }
+            ]
+        }]
+        """
+        Then we get Ok response
+        When we patch "/planning/#planning._id#"
+        """
+        {"coverages": [{
+            "planning": {
+                "g2_content_type": "text",
+                "ednote": "test coverage, I want 250 words",
+                "slugline": "test slugline",
+                "scheduled": "2029-10-12T14:00:00.000"
+            },
+            "news_coverage_status": {"qcode": "ncostat:int"},
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
+            },
+            "workflow_status": "active"
+        }]}
+        """
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        Then we store coverage id in "firstcoverage" from coverage 0
+        When we post to "/planning/post"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we get "published_planning?sort=item_id,version"
+        Then we get list with 1 items
+        Then we store "PLANNING" with first item
+        When we get "published_planning?where={\"item_id\": \"#PLANNING.item_id#\", \"version\": #PLANNING.version#}"
+        Then we get list with 1 items
+        """
+        {
+            "_items": [
+                {
+                    "item_id": "#planning._id#",
+                    "type": "planning",
+                    "published_item": {
+                        "_id": "#planning._id#",
+                        "coverages": [{
+                            "planning": {
+                                "g2_content_type": "text",
+                                "ednote": "test coverage, I want 250 words",
+                                "slugline": "test slugline",
+                                "scheduled": "2029-10-12T14:00:00+0000"
+                            },
+                            "news_coverage_status": {"qcode": "ncostat:int"},
+                            "assigned_to": {
+                                "desk": "#desks._id#",
+                                "user": "#CONTEXT_USER_ID#",
+                                "state": "assigned"
+                            },
+                            "workflow_status": "active"
+                        }]
+                    }
+                }
+            ]
+        }
+        """
+        When we transmit items
+        Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-1.txt"
+        """
+        {
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "guid": "#PLANNING.item_id#",
+            "coverages": [{
+                "planning": {
+                    "g2_content_type": "text",
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline",
+                    "scheduled": "2029-10-12T14:00:00+0000"
+                },
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "workflow_status": "assigned"
+            }]
+        }
+        """
+        When we post to "assignments/link" with success
+        """
+        [{
+            "assignment_id": "#firstassignment#",
+            "item_id": "#archive._id#",
+            "reassign": true
+        }]
+        """
+        When we get "/assignments"
+        Then we get array of _items by _id
+        """
+        {
+            "#firstassignment#": {"assigned_to": {"state": "completed"}}
+        }
+        """
+        When we get "/archive/#archive._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#archive._id#",
+            "assignment_id": "#firstassignment#"
+        }
+        """
+        When we transmit items
+        When we get "published_planning?sort=item_id,version"
+        Then we get list with 2 items
+        Then we store "PLANNING" with 2 item
+        Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-2.txt"
+        """
+        {
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "guid": "#PLANNING.item_id#",
+            "coverages": [{
+                "planning": {
+                    "g2_content_type": "text",
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline",
+                    "scheduled": "2029-10-12T14:00:00+0000"
+                },
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "workflow_status": "completed",
+                "deliveries": [{"item_state": "published", "item_id": "#archive._id#"}]
+            }]
+        }
+        """
+        When we post to "desks"
+        """
+            [{
+                "name": "Politics",
+                "members": [{"user": "#CONTEXT_USER_ID#"}]
+            }]
+        """
+        When we get "/desks/#desks._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#desks._id#",
+            "name": "Politics"
+        }
+        """
+        When we rewrite "#archive._id#"
+        """
+        {"desk_id": "#desks._id#"}
+        """
+        Then we get OK response
+        When we get "/archive/#REWRITE_ID#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#REWRITE_ID#",
+            "event_id": "#archive.event_id#",
+            "type": "text",
+            "state": "in_progress",
+            "assignment_id": "#firstassignment#"
+        }
+        """
+        When we get "/assignments"
+        Then we get array of _items by _id
+        """
+        {
+            "#firstassignment#": {"assigned_to": {"state": "completed", "desk": "#desks._id#"}}
+        }
+        """
+        When we get "published_planning?sort=item_id,version"
+        Then we get list with 3 items
+        When we get "/published"
+        Then we get existing resource
+        """
+        {"_items" : [{"_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#"}]}
+        """
+        When we publish "#REWRITE_ID#" with "publish" type and "published" state
+        Then we get OK response
+        When we get "/published"
+        Then we get list with 2 items
+        """
+        {
+        "_items": [
+            { "_id": "#archive._id#", "rewritten_by": "#REWRITE_ID#", "assignment_id": "#firstassignment#" },
+            {"_id": "#REWRITE_ID#", "rewrite_of": "#archive._id#", "assignment_id": "#firstassignment#"}
+        ]}
+        """
+        When we transmit items
+        When we get "published_planning?sort=item_id,version"
+        Then we get list with 4 items
+        Then we store "PLANNING" with 4 item
+        Then we get transmitted item "/tmp/#PLANNING.item_id#-#PLANNING.version#-4.txt"
+        """
+        {
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "guid": "#PLANNING.item_id#",
+            "coverages": [{
+                "planning": {
+                    "g2_content_type": "text",
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline",
+                    "scheduled": "2029-10-12T14:00:00+0000"
+                },
+                "news_coverage_status": {"qcode": "ncostat:int"},
+                "workflow_status": "completed",
+                "deliveries": [
+                    {"item_state": "published", "item_id": "#archive._id#"},
+                    {"item_state": "published", "item_id": "#REWRITE_ID#"}
                 ]
             }]
         }

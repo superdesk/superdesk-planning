@@ -104,27 +104,6 @@ class PlanningFeaturedService(superdesk.Service):
         local_date = utc_to_local(app.config['DEFAULT_TIMEZONE'], date)
         return local_date.strftime(ID_DATE_FORMAT)
 
-    def remove_planning_item_for_date(self, date, planning):
-        if not date:
-            return
-
-        id = self.get_id_for_date(date)
-        item = self.find_one(req=None, _id=id)
-        if item:
-            items = item.get('items', [])
-            if planning.get(config.ID_FIELD) in items:
-                items.remove(planning.get(config.ID_FIELD))
-                updates = {'items': items}
-                self.patch(id, updates)
-
-    def remove_planning_item(self, planning):
-        featured_items = list(self.find(where={'items': planning.get(config.ID_FIELD)}))
-        for featured_item in featured_items:
-            items = featured_item.get('items', [])
-            items.remove(planning.get(config.ID_FIELD))
-            updates = {'items': items}
-            self.patch(featured_item.get(config.ID_FIELD), updates)
-
 
 planning_featured_schema = {
     # Identifiers

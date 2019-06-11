@@ -88,7 +88,7 @@ class PlanningHistoryService(HistoryService):
             diff['planning'] = cov_plan_diff
 
         if original.get('news_coverage_status') != updates.get('news_coverage_status'):
-            diff['news_coverage_status'] = updates['news_coverage_status']
+            diff['news_coverage_status'] = updates.get('news_coverage_status')
 
         return diff
 
@@ -126,8 +126,8 @@ class PlanningHistoryService(HistoryService):
             if len(diff.keys()) > 1:
                 self._save_history(item, diff, 'coverage_edited')
 
-            if cov['workflow_status'] == WORKFLOW_STATE.CANCELLED and \
-                    original_coverage['workflow_status'] != WORKFLOW_STATE.CANCELLED:
+            if cov.get('workflow_status') == WORKFLOW_STATE.CANCELLED and \
+                    original_coverage.get('workflow_status') != WORKFLOW_STATE.CANCELLED:
                 operation = 'coverage_cancelled'
                 diff = {
                     'coverage_id': cov.get('coverage_id'),

@@ -10,61 +10,79 @@ import {ModalsContainer} from '../components';
 import * as actions from '../actions';
 
 export class AssignmentsService {
-    constructor(api, notify, modal, sdPlanningStore) {
+    constructor(api, notify, modal, sdPlanningStore, deployConfig, desks) {
         this.api = api;
         this.notify = notify;
         this.modal = modal;
         this.sdPlanningStore = sdPlanningStore;
+        this.deployConfig = deployConfig;
+        this.desks = desks;
 
         this.onPublishFromAuthoring = this.onPublishFromAuthoring.bind(this);
     }
 
-    getAssignmentQuery(slugline) {
+    getAssignmentQuery(slugline, contentType) {
         return {
             must: [
                 {term: {'assigned_to.state': 'assigned'}},
                 {query_string: {
-                    query: `planning.slugline.phrase('${slugline}')`,
+                    query: `planning.slugline.phrase:("${slugline}")`,
                     lenient: false,
                 }},
+                {term: {'planning.g2_content_type': contentType}},
             ],
         };
     }
 
     onPublishFromAuthoring(item) {
-        // If the archive item is already linked to an Assignment
-        // then return now (nothing needs to be done)
-        if (get(item, 'assignment_id')) {
-            return Promise.resolve();
-        }
+        // Get the complete item from a new query
+        return this.api.find('archive', item._id)
+            .then((archiveTtem) => {
+                // If the archive item is already linked to an Assignment
+                // then return now (nothing needs to be done)
+                if (get(archiveTtem, 'assignment_id')) {
+                    return Promise.resolve();
+                }
 
-        // Otherwise attempt to get an open Assignment (state==assigned)
-        // based on the slugline of the archive item
-        return new Promise((resolve, reject) => {
-            this.getBySlugline(get(item, 'slugline'))
-                .then((assignments) => {
-                    // If no Assignments were found, then there is nothing to do
-                    if (!Array.isArray(assignments) || assignments.length === 0) {
-                        return resolve();
-                    }
+                const fulfilFromDesks = get(this.deployConfig, 'config.planning_fulfil_on_publish_for_desks', []);
+                const currentDesk = get(this.desks, 'active.desk');
 
-                    // Show the LinkToAssignment modal for further user decisions
-                    return this.showLinkAssignmentModal(item, assignments, resolve, reject);
-                })
-                .catch(() => {
-                    // If the API call failed, allow the publishing to continue
-                    this.notify.warning(gettext('Failed to find an Assignment to link to!'));
+                if (fulfilFromDesks.length > 0 && fulfilFromDesks.indexOf(currentDesk) < 0) {
+                    return Promise.resolve();
+                }
 
-                    resolve();
+                // Otherwise attempt to get an open Assignment (state==assigned)
+                // based on the slugline of the archive item
+                return new Promise((resolve, reject) => {
+                    this.getBySlugline(get(archiveTtem, 'slugline'), get(archiveTtem, 'type'))
+                        .then((assignments) => {
+                            // If no Assignments were found, then there is nothing to do
+                            if (!Array.isArray(assignments) || assignments.length === 0) {
+                                return resolve();
+                            }
+
+                            // Show the LinkToAssignment modal for further user decisions
+                            return this.showLinkAssignmentModal(archiveTtem, assignments, resolve, reject);
+                        })
+                        .catch(() => {
+                            // If the API call failed, allow the publishing to continue
+                            this.notify.warning(gettext('Failed to find an Assignment to link to!'));
+
+                            resolve();
+                        });
                 });
-        });
+            })
+            .catch(() => {
+                this.notify.warning(gettext('Failed to fetch item from archive'));
+                return Promise.resolve();
+            });
     }
 
-    getBySlugline(slugline) {
+    getBySlugline(slugline, contentType) {
         return this.api('assignments').query({
             source: JSON.stringify({
                 query: {
-                    bool: this.getAssignmentQuery(slugline),
+                    bool: this.getAssignmentQuery(slugline, contentType),
                 },
             }),
         })
@@ -101,8 +119,9 @@ export class AssignmentsService {
                             actions.assignments.ui.changeAssignmentListSingleGroupView('TODO')
                         );
                         store.dispatch(actions.assignments.api.setBaseQuery(
-                            this.getAssignmentQuery(get(item, 'slugline'))
+                            this.getAssignmentQuery(get(item, 'slugline'), get(item, 'type'))
                         ));
+                        store.dispatch(actions.assignments.ui.preview(assignments[0]));
 
                         const onCancel = () => {
                             closeModal();
@@ -130,8 +149,10 @@ export class AssignmentsService {
                                 $scope: $scope, // Required by actions dispatches
                                 onCancel: onCancel,
                                 onIgnore: onIgnore,
+                                showCancel: false,
                                 showIgnore: true,
                                 ignoreText: gettext('Don\'t Fulfil Assignment'),
+                                title: gettext('Fulfil Assignment with this item?'),
                             },
                         }));
                     });
@@ -139,4 +160,4 @@ export class AssignmentsService {
     }
 }
 
-AssignmentsService.$inject = ['api', 'notify', 'modal', 'sdPlanningStore'];
+AssignmentsService.$inject = ['api', 'notify', 'modal', 'sdPlanningStore', 'deployConfig', 'desks'];

@@ -25,6 +25,13 @@ export const profiles = (state) => get(state, 'forms.profiles', {});
 export const coverageProfile = createSelector([profiles], (p) => get(p, 'coverage', {}));
 export const eventProfile = createSelector([profiles], (p) => get(p, 'event', {}));
 export const planningProfile = createSelector([profiles], (p) => get(p, 'planning', {}));
+export const eventPostponeProfile = createSelector([profiles], (p) => get(p, 'event_postpone', {}));
+export const eventRescheduleProfile = createSelector([profiles], (p) => get(p, 'event_reschedule', {}));
+export const eventCancelProfile = createSelector([profiles], (p) => get(p, 'event_cancel', {}));
+export const planningCancelProfile = createSelector([profiles], (p) => get(p, 'planning_planning_cancel', {}));
+export const planningCancelAllCoveragesProfile = createSelector(
+    [profiles], (p) => get(p, 'planning_cancel_all_coverage', {})
+);
 export const searchProfile = createSelector(
     [profiles, activeFilter],
     (p, filter) => {

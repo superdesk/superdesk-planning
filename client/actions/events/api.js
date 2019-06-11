@@ -51,6 +51,7 @@ const loadEventsByRecurrenceId = (
             page: page,
             maxResults: maxResults,
             onlyFuture: false,
+            includeKilled: true,
         }))
             .then((items) => {
                 if (loadToStore) {
@@ -122,6 +123,7 @@ const getCriteria = (
         onlyFuture = true,
         must = [],
         startOfWeek = 0,
+        includeKilled = false,
     }
 ) => {
     let query = {};
@@ -620,7 +622,7 @@ const getCriteria = (
     }
 
     // Handle 'state' and 'spiked' requirements
-    appendStatesQueryForAdvancedSearch(advancedSearch, spikeState, mustNot, must);
+    appendStatesQueryForAdvancedSearch(advancedSearch, spikeState, mustNot, must, includeKilled);
 
     query.bool = {
         must: must,
@@ -658,6 +660,8 @@ const query = (
         onlyFuture = true,
         page = 1,
         maxResults = MAIN.PAGE_SIZE,
+        includeKilled = false,
+
     },
     storeTotal = false
 ) => (
@@ -700,6 +704,7 @@ const query = (
                 onlyFuture,
                 must,
                 startOfWeek,
+                includeKilled,
             });
 
         // Query the API and sort by date

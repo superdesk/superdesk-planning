@@ -57,7 +57,7 @@ export class ItemManager {
         return this.editor.state;
     }
 
-    setState(state, cb = null) {
+    setState(state, cb = null, saveAutosave = false) {
         let promise = Promise.resolve();
 
         if (this.editor && this.editor.setState && this.mounted) {
@@ -68,6 +68,14 @@ export class ItemManager {
 
         if (this.props.onChange && state.diff) {
             promise.then(() => this.props.onChange(state.diff));
+        }
+
+        if (saveAutosave) {
+            promise.then(() => {
+                this.autoSave.saveAutosave(this.props, this.state.diff);
+
+                return this.autoSave.flushAutosave();
+            });
         }
 
         if (cb) {
@@ -373,6 +381,19 @@ export class ItemManager {
     }
 
     post() {
+        const newState = {};
+
+        this.validate(this.props, newState, this.state);
+        if (!isEqual(this.state.errorMessages, [])) {
+            return this.setState({
+                submitting: false,
+                submitFailed: true,
+            })
+                .then(() => {
+                    this.props.notifyValidationErrors(this.state.errorMessages);
+                    return Promise.reject();
+                });
+        }
         return this.setState({
             submitting: true,
             submitFailed: false,
@@ -395,7 +416,7 @@ export class ItemManager {
                             true,
                             true
                         ),
-                    }),
+                    }, null, true),
                 (error) => {
                     if (get(error, 'status') === 412) {
                         // If etag error, then notify user and change editor to read-only
@@ -432,7 +453,7 @@ export class ItemManager {
                             true,
                             true
                         ),
-                    }),
+                    }, null, true),
                 (error) => {
                     if (get(error, 'status') === 412) {
                         // If etag error, then notify user and change editor to read-only
@@ -613,7 +634,7 @@ export class ItemManager {
                         errorMessages: [],
                         itemReady: true,
                         loading: false,
-                    });
+                    }, null, true);
                 }
             }, (error) => {
                 if (get(error, 'status') === 412) {
@@ -677,7 +698,7 @@ export class ItemManager {
             }
         );
 
-        return this.setState({initialValues});
+        return this.setState({initialValues}).then(() => this.editor.onChangeHandler(diff, null, false));
     }
 
     lock(item) {

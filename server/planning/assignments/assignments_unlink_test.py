@@ -80,6 +80,7 @@ class AssignmentUnlinkTestCase(TestCase):
 
     def test_unlinks_all_content_updates(self):
         with self.app.app_context():
+            self.app.config.update({'PLANNING_LINK_UPDATES_TO_COVERAGES': True})
             flask.g.user = {'_id': ObjectId()}
             user_id = ObjectId()
             desk_id = ObjectId()
@@ -151,6 +152,7 @@ class AssignmentUnlinkTestCase(TestCase):
 
     def test_unlinks_properly_on_unlinking_any_update_in_chain(self):
         with self.app.app_context():
+            self.app.config.update({'PLANNING_LINK_UPDATES_TO_COVERAGES': True})
             flask.g.user = {'_id': ObjectId()}
             user_id = ObjectId()
             desk_id = ObjectId()

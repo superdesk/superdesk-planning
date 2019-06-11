@@ -18,7 +18,6 @@ import {
     PLANNING,
     POST_STATE,
     SPIKED_STATE,
-    MODALS,
     MAIN,
     WORKFLOW_STATE,
     WORKSPACE,
@@ -604,6 +603,29 @@ const loadPlanningById = (id, spikeState = SPIKED_STATE.BOTH, saveToStore = true
         }, (error) => (Promise.reject(error)))
 );
 
+const loadPlanningByIds = (ids, saveToStore = true) => (
+    (dispatch, getState, {api}) => (
+        api('planning').query({
+            source: JSON.stringify({
+                query: {terms: {_id: ids}},
+            }),
+        })
+            .then((data) => {
+                let items = get(data, '_items', []);
+
+                items.forEach((item) => {
+                    planningUtils.modifyForClient((item));
+                });
+
+                if (saveToStore) {
+                    dispatch(self.receivePlannings(items));
+                }
+
+                return Promise.resolve(items);
+            }, (error) => Promise.reject(error))
+    )
+);
+
 /**
  * Action dispatcher to load Planning items by Event ID from the API, and place them
  * in the local store. This does not update the list of visible Planning items
@@ -990,86 +1012,6 @@ const markPlanningPostponed = (plan, reason) => ({
     },
 });
 
-/**
- * Export selected planning items as a new article
- *
- * First opens a modal where user can sort those and
- * then it sends it to server.
- */
-function exportAsArticle() {
-    return (dispatch, getState, {api, notify, gettext, superdesk, $interpolate, $location}) => {
-        const state = getState();
-        const sortableItems = [];
-        const label = (item) => item.headline || item.slugline || item.description_text;
-        const locks = selectors.locks.getLockedItems(state);
-
-        selectors.multiSelect.selectedPlannings(getState()).forEach((item) => {
-            const isLocked = planningUtils.isPlanningLocked(item, locks);
-            const isNotForPublication = get(item, 'flags.marked_for_not_publication');
-
-            if (isLocked || isNotForPublication) {
-                return;
-            }
-
-            sortableItems.push({
-                id: item._id,
-                label: label(item),
-            });
-        });
-
-        if (sortableItems.length < state.multiSelect.selectedPlanningIds.length) {
-            const count = state.multiSelect.selectedPlanningIds.length - sortableItems.length;
-
-            if (count === 1) {
-                notify.warning(gettext('1 item was not included in the export.'));
-            } else {
-                const message = gettext('{{ count }} items were not included in the export.');
-
-                notify.warning($interpolate(message)({count}));
-            }
-        }
-
-        if (!sortableItems.length) { // nothing to sort, stop
-            return;
-        }
-
-        if (sortableItems.length === 1) { // 1 item to sort - skip it
-            return handleSorted(sortableItems);
-        }
-
-        return dispatch(actions.showModal({
-            modalType: MODALS.SORT_SELECTED,
-            modalProps: {
-                items: sortableItems,
-                action: handleSorted,
-            },
-        }));
-
-        function handleSorted(sorted) {
-            return api.save('planning_export', {
-                desk: state.workspace.currentDeskId,
-                items: sorted.map((item) => item.id),
-            })
-                .then((item) => {
-                    notify.success(gettext('Article was created.'), 5000, {
-                        button: {
-                            label: gettext('Open'),
-                            onClick: () => {
-                                $location.url('/workspace/monitoring');
-                                superdesk.intent('edit', 'item', item);
-                            },
-                        },
-                    });
-
-                    // this must go after notify, otherwise there is no notification displayed
-                    dispatch(actions.planning.ui.deselectAll());
-                }, () => {
-                    notify.error(gettext('There was an error when exporting.'));
-                });
-        }
-    };
-}
-
 const uploadFiles = (planning) => (
     (dispatch, getState, {upload}) => {
         const clonedPlanning = cloneDeep(planning);
@@ -1141,6 +1083,7 @@ const self = {
     unlock,
     lock,
     loadPlanningById,
+    loadPlanningByIds,
     fetchPlanningHistory,
     receivePlanningHistory,
     loadPlanningByEventId,
@@ -1151,7 +1094,6 @@ const self = {
     markPlanningCancelled,
     markCoverageCancelled,
     markPlanningPostponed,
-    exportAsArticle,
     queryLockedPlanning,
     getPlanning,
     loadPlanningByRecurrenceId,

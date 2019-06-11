@@ -33,7 +33,7 @@ const fieldToHelper = {
     coverages: (form, field) => new CoverageList(form, field),
     g2_content_type: (form, field) => new Select(form, field),
     news_coverage_status: (form, field) => new Select(form, field),
-    scheduled: (form, field) => new DateTime(form, field),
+    scheduled: (form, field) => new DateTime(form, field, field.replace('scheduled', '_scheduledTime')),
     desk: (form, field) => new Select(form, field),
     agendas: (form, field) => new SelectMetaTerms(form, field),
 };

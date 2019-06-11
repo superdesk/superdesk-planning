@@ -476,6 +476,8 @@ const modifyForServer = (plan) => {
         } else if (!isArray(coverage.planning.genre)) {
             coverage.planning.genre = [coverage.planning.genre];
         }
+
+        delete coverage.planning._scheduledTime;
     });
 
     return plan;
@@ -503,6 +505,7 @@ const modifyCoverageForClient = (coverage) => {
     // Convert scheduled into a moment instance
     if (get(coverage, 'planning.scheduled')) {
         coverage.planning.scheduled = moment(coverage.planning.scheduled);
+        coverage.planning._scheduledTime = moment(coverage.planning.scheduled);
     } else {
         delete coverage.planning.scheduled;
     }
@@ -517,14 +520,13 @@ const createNewPlanningFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus
     let newPlanning = {
         type: ITEM_TYPE.PLANNING,
         slugline: addNewsItemToPlanning.slugline,
+        headline: get(addNewsItemToPlanning, 'headline'),
         planning_date: moment(),
         ednote: get(addNewsItemToPlanning, 'ednote'),
         subject: get(addNewsItemToPlanning, 'subject'),
         anpa_category: get(addNewsItemToPlanning, 'anpa_category'),
         urgency: get(addNewsItemToPlanning, 'urgency'),
-        description_text: stripHtmlRaw(
-            get(addNewsItemToPlanning, 'abstract', get(addNewsItemToPlanning, 'headline', ''))
-        ),
+        description_text: stripHtmlRaw(get(addNewsItemToPlanning, 'abstract', '')),
         coverages: [newCoverage],
     };
 
@@ -553,6 +555,8 @@ const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, d
         g2_content_type: get(contentType, 'qcode', PLANNING.G2_CONTENT_TYPE.TEXT),
         slugline: get(addNewsItemToPlanning, 'slugline', ''),
         ednote: get(addNewsItemToPlanning, 'ednote', ''),
+        scheduled: moment().add(1, 'hour')
+            .startOf('hour'),
     };
 
     if (get(addNewsItemToPlanning, 'genre')) {
@@ -569,14 +573,6 @@ const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, d
         desk: get(addNewsItemToPlanning, 'task.desk', desk),
         user: get(addNewsItemToPlanning, 'version_creator'),
     };
-
-    if ([WORKFLOW_STATE.SCHEDULED, 'published'].includes(addNewsItemToPlanning.state)) {
-        newCoverage.planning.scheduled = addNewsItemToPlanning.state === 'published' ?
-            moment(addNewsItemToPlanning.versioncreated) :
-            moment(get(addNewsItemToPlanning, 'schedule_settings.utc_publish_schedule'));
-    } else {
-        newCoverage.planning.scheduled = moment().endOf('day');
-    }
 
     newCoverage.assigned_to.priority = ASSIGNMENTS.DEFAULT_PRIORITY;
     return newCoverage;
@@ -840,6 +836,8 @@ const defaultCoverageValues = (
         workflow_status: WORKFLOW_STATE.DRAFT,
     };
 
+    newCoverage.planning._scheduledTime = newCoverage.planning.scheduled;
+
     if (planningItem) {
         let coverageTime = null;
 
@@ -873,6 +871,7 @@ const defaultCoverageValues = (
 
                 if (duration > longEventDurationThreshold) {
                     delete newCoverage.planning.scheduled;
+                    delete newCoverage.planning._scheduledTime;
                 }
             }
         }

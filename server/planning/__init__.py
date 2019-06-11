@@ -14,6 +14,8 @@ import superdesk
 from eve.utils import config
 from .locations import LocationsResource, LocationsService
 from .agendas import AgendasResource, AgendasService
+from .planning_export_templates import PlanningExportTemplatesResource, PlanningExportTemplatesService
+from .planning_article_export import PlanningArticleExportResource, PlanningArticleExportService
 from .common import get_max_recurrent_events, get_street_map_url, get_event_max_multi_day_duration,\
     planning_auto_assign_to_workflow, get_long_event_duration_threshold
 from apps.common.components.utils import register_component
@@ -38,6 +40,7 @@ import planning.commands  # noqa
 import planning.feeding_services # noqa
 import planning.feed_parsers  # noqa
 import planning.output_formatters  # noqa
+from planning.planning_download import init_app as init_planning_download_app
 
 
 def init_app(app):
@@ -51,6 +54,12 @@ def init_app(app):
     locations_search_service = LocationsService('locations', backend=superdesk.get_backend())
     LocationsResource('locations', app=app, service=locations_search_service)
 
+    export_template_service = PlanningExportTemplatesService(PlanningExportTemplatesResource.endpoint_name,
+                                                             backend=superdesk.get_backend())
+    PlanningExportTemplatesResource(PlanningExportTemplatesResource.endpoint_name,
+                                    app=app,
+                                    service=export_template_service)
+
     register_component(LockService(app))
 
     init_events_app(app)
@@ -58,6 +67,15 @@ def init_app(app):
     init_assignments_app(app)
     init_search_app(app)
     init_validator_app(app)
+    init_planning_download_app(app)
+
+    superdesk.register_resource(
+        'planning_article_export',
+        PlanningArticleExportResource,
+        PlanningArticleExportService,
+        privilege='planning',
+        _app=app
+    )
 
     endpoint_name = 'published_planning'
     planning_published_service = PublishedPlanningService(endpoint_name, backend=superdesk.get_backend())
@@ -91,6 +109,12 @@ def init_app(app):
         name='planning_create_past',
         label='Planning - Create Event/Planning in the past',
         description='Ability to create an Event or Planning item in the past'
+    )
+
+    superdesk.privilege(
+        name='planning_locations_management',
+        label='Planning - Manage locations',
+        decsription='Ability to create, edit and delete locations'
     )
 
     app.on_update_users += PlanningNotifications().user_update

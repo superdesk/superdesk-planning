@@ -9,7 +9,7 @@ import {get} from 'lodash';
  * @description Displays a list of terms: subject, categories
  */
 const TermsList = ({terms, displayField, onClick, readOnly}) => (
-    <div className={classNames(
+    (get(terms, 'length', 0) > 0 && <div className={classNames(
         'terms-list',
         {'terms-list--disabled': readOnly}
     )}>
@@ -21,7 +21,7 @@ const TermsList = ({terms, displayField, onClick, readOnly}) => (
                 </li>
             ))}
         </ul>
-    </div>
+    </div>) || null
 );
 
 TermsList.propTypes = {
@@ -31,6 +31,6 @@ TermsList.propTypes = {
     readOnly: PropTypes.bool,
 };
 
-TermsList.defaultProps = {readOnly: false};
+TermsList.defaultProps = {terms: []};
 
 export default TermsList;

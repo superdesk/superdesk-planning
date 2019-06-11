@@ -1585,3 +1585,127 @@ Feature: Events Reschedule
             "actioned_date": "2029-11-21T12:00:00+0000"
         }
         """
+
+
+    @auth
+    @notification
+    Scenario: Reason for postpone can be configured as required field for single event
+        Given we have sessions "/sessions"
+        And "planning_types"
+        """
+        [
+            {
+                "_id": "event_reschedule",
+                "name": "event_reschedule",
+                "schema": {
+                    "reason": {
+                        "required": true
+                    }
+                }
+            }
+        ]
+        """
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "name": "TestEvent",
+            "ednote": "Something happening.",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "reschedule",
+            "lock_time": "#DATE#"
+        }]
+        """
+        When we perform reschedule on events "event1"
+        """
+        {
+            "reason": "",
+            "dates": {
+                "start": "2029-11-22T12:00:00.000Z",
+                "end": "2029-11-22T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get error 400
+        When we perform reschedule on events "event1"
+        """
+        {
+            "reason": "Changed to the next day!",
+            "dates": {
+                "start": "2029-11-22T12:00:00.000Z",
+                "end": "2029-11-22T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get OK response
+        Then we store "DUPLICATE" from last rescheduled item
+        And we get notifications
+        """
+        [{
+            "event": "events:reschedule",
+            "extra": {
+                "item": "event1",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
+        When we get "/events/#DUPLICATE.id#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "state": "draft",
+            "reschedule_from": "event1",
+            "lock_user": "__no_value__",
+            "lock_session": "__no_value__",
+            "lock_action": "__no_value__",
+            "lock_time": "__no_value__",
+            "dates": {
+                "start": "2029-11-22T12:00:00+0000",
+                "end": "2029-11-22T14:00:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        When we get "/events/event1"
+        Then we get existing resource
+        """
+        {
+            "state": "rescheduled",
+            "reschedule_to": "#DUPLICATE.id#",
+            "lock_user": null,
+            "lock_session": null,
+            "lock_action": null,
+            "lock_time": null,
+            "dates": {
+                "start": "2029-11-21T12:00:00+0000",
+                "end": "2029-11-21T14:00:00+0000",
+                "tz": "Australia/Sydney"
+            },
+            "state_reason": "Changed to the next day!"
+        }
+        """
+        When we get "/events_history"
+        Then we get list with 3 items
+        """
+        {"_items": [
+            {"operation": "reschedule", "event_id": "event1", "update": {
+                "reschedule_to": "#DUPLICATE.id#"
+            }},
+            {"operation": "reschedule_from", "event_id": "#DUPLICATE.id#", "update": {
+                "reschedule_from": "event1"
+            }},
+            {"operation": "post", "event_id": "event1"}
+        ]}
+        """

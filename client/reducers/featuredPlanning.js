@@ -11,6 +11,7 @@ const initialState = {
     item: null,
     plannings: {},
     planningsInList: [],
+    removeList: [],
     featureLockUser: null,
     featureLockSession: null,
     inUse: false,
@@ -127,7 +128,10 @@ const featuredPlanningReducer = createReducer(initialState, {
         unsavedItems: payload,
     }),
 
-
+    [FEATURED_PLANNING.ACTIONS.SET_REMOVE_LIST]: (state, payload) => ({
+        ...state,
+        removeList: payload,
+    }),
 });
 
 export default featuredPlanningReducer;

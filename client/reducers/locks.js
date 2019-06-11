@@ -70,6 +70,13 @@ export default createReducer(initialLockState, {
         removeLock(payload.assignment, cloneDeep(state), 'assignment')
     ),
 
+    [ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT]: (state, payload) => (
+        removeLock({
+            _id: payload.planning,
+            event_item: payload.event_item,
+        }, cloneDeep(state), 'planning')
+    ),
+
     [LOCKS.ACTIONS.RECEIVE]: (state, payload) => {
         const locks = {
             event: {},

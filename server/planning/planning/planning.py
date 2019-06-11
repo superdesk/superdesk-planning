@@ -95,6 +95,7 @@ class PlanningService(superdesk.Service):
     def find_one(self, req, **lookup):
         item = super().find_one(req, **lookup)
         if item:
+            self.__generate_related_assignments([item])
             for coverage in item.get('coverages', []):
                 if coverage.get('planning', {}).get('scheduled') and \
                         not isinstance(coverage['planning']['scheduled'], datetime):
@@ -253,20 +254,6 @@ class PlanningService(superdesk.Service):
         if posted:
             new_planning = self.find_one(req=None, _id=original.get(config.ID_FIELD))
             updates['_etag'] = new_planning['_etag']
-
-        # update planning_featured record if schedule has changed
-        if original.get('featured'):
-            removed_schedules = []
-            for schdl in original.get('_planning_schedule', []):
-                other_schedules_on_day = [s for s in updates.get('_planning_schedule', [])
-                                          if schdl.get('scheduled').date() == s.get('scheduled').date()]
-                if len(other_schedules_on_day) == 0 and schdl.get('scheduled') not in removed_schedules:
-                    removed_schedules.append(schdl.get('scheduled'))
-
-            planning_featured_service = get_resource_service('planning_featured')
-            for removed_date in removed_schedules:
-                # get the planning_featured record for that day
-                planning_featured_service.remove_planning_item_for_date(removed_date, original)
 
     def can_edit(self, item, user_id):
         # Check privileges
@@ -678,7 +665,7 @@ class PlanningService(superdesk.Service):
             coverage_type=get_coverage_type_name(coverage_item.get('planning', {}).get('g2_content_type', '')),
             slugline=planning_item.get('slugline', ''))
 
-        coverage_item['assigned_to'] = None
+        del coverage_item['assigned_to']
         coverage_item['workflow_status'] = WORKFLOW_STATE.DRAFT
 
         updates = {'coverages': coverages}
@@ -690,6 +677,9 @@ class PlanningService(superdesk.Service):
             updates,
             planning_item
         )
+
+        if planning_item.get('event_item'):
+            updated_planning['event_item'] = planning_item['event_item']
 
         return updated_planning
 

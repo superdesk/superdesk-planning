@@ -24,6 +24,9 @@ export class TextArea extends React.Component {
         if (this.props.autoHeight) {
             this.delayedResize();
         }
+        if (this.props.initialFocus) {
+            this.dom.input.focus();
+        }
     }
 
     componentWillReceiveProps(nextProps) {
@@ -79,7 +82,7 @@ export class TextArea extends React.Component {
             // Remove these variables from the props variable
             // So they are not passed down to the textarea dom node
             // eslint-disable-next-line no-unused-vars
-            onChange, autoHeightTimeout, nativeOnChange, multiLine,
+            onChange, autoHeightTimeout, nativeOnChange, multiLine, initialFocus,
 
             ...props
         } = this.props;
@@ -118,6 +121,7 @@ TextArea.propTypes = {
     paddingRight60: PropTypes.bool,
     multiLine: PropTypes.bool,
     className: PropTypes.string,
+    initialFocus: PropTypes.bool,
 };
 
 TextArea.defaultProps = {
@@ -127,4 +131,5 @@ TextArea.defaultProps = {
     nativeOnChange: false,
     paddingRight60: false,
     multiLine: true,
+    initialFocus: false,
 };

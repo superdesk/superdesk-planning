@@ -807,7 +807,8 @@ export const getWorkFlowStateAsOptions = (activeFilter = null) => {
     return workflowStateOptions;
 };
 
-export const appendStatesQueryForAdvancedSearch = (advancedSearch, spikeState, mustNotTerms, mustTerms) => {
+export const appendStatesQueryForAdvancedSearch = (advancedSearch, spikeState,
+    mustNotTerms, mustTerms, includeKilled) => {
     let states = (advancedSearch.state || []).map((s) => s.qcode);
 
     switch (spikeState) {
@@ -832,8 +833,10 @@ export const appendStatesQueryForAdvancedSearch = (advancedSearch, spikeState, m
         mustTerms.push({terms: {state: states}});
     }
 
-    if (!states.includes(WORKFLOW_STATE.KILLED)) {
-        mustNotTerms.push({term: {state: WORKFLOW_STATE.KILLED}});
+    if (!includeKilled) {
+        if (!states.includes(WORKFLOW_STATE.KILLED)) {
+            mustNotTerms.push({term: {state: WORKFLOW_STATE.KILLED}});
+        }
     }
 };
 
@@ -865,11 +868,26 @@ export const removeAutosaveFields = (item, stripLockFields = false, keepTime = f
         fieldsToIgnore.push('lock_user', 'lock_action', 'lock_session', 'lock_time');
     }
 
-    return pickBy(cloneDeep(item), (value, key) =>
+    let modifiedItem = removeAutosaveNestedFields(item, keepTime);
+
+    return pickBy(modifiedItem, (value, key) =>
         key.startsWith('_') ?
             (includes(fieldsToKeep, key) && value) :
             !includes(fieldsToIgnore, key)
     );
+};
+
+const removeAutosaveNestedFields = (item, keepTime = false) => {
+    let modifiedItem = cloneDeep(item);
+
+    if (getItemType(item) == ITEM_TYPE.PLANNING && !keepTime) {
+        modifiedItem.coverages = get(modifiedItem, 'coverages', []).map((c) => {
+            delete c.planning._scheduledTime;
+            return c;
+        });
+    }
+
+    return modifiedItem;
 };
 
 export const isValidFileInput = (f, includeObjectType = false) =>
@@ -968,3 +986,5 @@ export const isItemLockedForEditing = (item, session, lockedItems) => (
     lockUtils.isItemLockedInThisSession(item, session, lockedItems) &&
     lockUtils.getLockAction(item, lockedItems) === 'edit'
 );
+
+export const getProfileName = (itemType, lockAction = null) => lockAction ? `${itemType}_${lockAction}` : itemType;

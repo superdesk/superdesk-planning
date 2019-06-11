@@ -107,6 +107,7 @@ export class EditorHeader extends React.Component {
             session,
             privileges,
             associatedEvent,
+            addNewsItemToPlanning,
         } = this.props;
 
         if (states.isExpired && !states.canEditExpired) {
@@ -115,7 +116,8 @@ export class EditorHeader extends React.Component {
 
         states.showEdit = states.existingItem &&
             !states.isLockedInContext &&
-            planningUtils.canEditPlanning(initialValues, null, session, privileges, lockedItems);
+            planningUtils.canEditPlanning(initialValues, null, session, privileges, lockedItems) &&
+            !addNewsItemToPlanning;
 
         if (states.readOnly) {
             return;

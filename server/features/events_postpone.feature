@@ -659,3 +659,132 @@ Feature: Events Postpone
             "actioned_date": "2029-11-21T12:00:00+0000"
         }]}
         """
+
+    @auth
+    @vocabulary
+    Scenario: Reason for postpone can be configured as required field for single event
+        Given "planning_types"
+        """
+        [
+            {
+                "_id": "event_postpone",
+                "name": "event_postpone",
+                "schema": {
+                    "reason": {
+                        "required": true
+                    }
+                }
+            }
+        ]
+        """
+        Given we have sessions "/sessions"
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "name": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "state": "draft",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "postpone",
+            "lock_time": "#DATE#"
+        }]
+        """
+        When we perform postpone on events "event1"
+        Then we get error 400
+        when we perform postpone on events "event1"
+        """
+        {"reason": "postpone event"}
+        """
+        When we get "/events"
+        Then we get a list with 1 items
+        """
+        {"_items": [{
+            "_id": "event1",
+            "state": "postponed",
+            "lock_user": null,
+            "lock_session": null
+        }]}
+        """
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Reason for postpone can be configured as required field for recurring event
+        Given "planning_types"
+        """
+        [
+            {
+                "_id": "event_postpone",
+                "name": "event_postpone",
+                "schema": {
+                    "reason": {
+                        "required": true
+                    }
+                }
+            }
+        ]
+        """
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2099-11-21T12:00:00.000Z",
+                "end": "2099-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 4,
+                    "endRepeatMode": "count"
+                }
+            },
+            "state": "draft"
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        Then we store "EVENT4" with 4 item
+        When we post to "planning"
+        """
+        [{
+            "slugline": "Weekly Meetings",
+            "headline": "Friday Club",
+            "event_item": "#EVENT3._id#",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we post to "/events/#EVENT3._id#/lock" with success
+        """
+        {"lock_action": "postpone"}
+        """
+        When we perform postpone on events "#EVENT3._id#"
+        """
+        {"update_method": "all"}
+        """
+        Then we get error 400
+        When we perform postpone on events "#EVENT3._id#"
+        """
+        {"update_method": "all", "reason": "test"}
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 4 items
+        """
+        {"_items": [
+            { "_id": "#EVENT1._id#", "state": "postponed" },
+            { "_id": "#EVENT2._id#", "state": "postponed" },
+            { "_id": "#EVENT3._id#", "state": "postponed" },
+            { "_id": "#EVENT4._id#", "state": "postponed" }
+        ]}
+        """

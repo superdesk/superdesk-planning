@@ -4,14 +4,16 @@ import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import {Item, Border, ItemType, PubStatus, Column, Row} from '../../UI/List';
 import {Button as NavButton} from '../../UI/Nav';
 import {PlanningDateTime} from '../';
-import {ICON_COLORS} from '../../../constants';
+import {ICON_COLORS, WORKFLOW_STATE} from '../../../constants';
+import {renderFields} from '../../fields';
 
 import {
     planningUtils,
-    isItemPublic,
     getItemId,
     isItemExpired,
     gettext,
+    isItemPosted,
+    getItemWorkflowState,
 } from '../../../utils';
 
 export const FeaturedPlanningItem = ({
@@ -30,6 +32,7 @@ export const FeaturedPlanningItem = ({
     onClick,
     withMargin,
     contentTypes,
+    disabled,
 }) => {
     if (!item) {
         return null;
@@ -39,13 +42,14 @@ export const FeaturedPlanningItem = ({
     const isExpired = isItemExpired(item);
     let borderState = false;
 
-    if (isItemLocked)
+    if (isItemLocked) {
         borderState = 'locked';
+    }
 
     return (
         <Item
             shadow={1}
-            disabled={isExpired}
+            disabled={isExpired || disabled}
             activated={activated}
             onClick={onClick.bind(null, item._id)}
             margin={withMargin}
@@ -73,7 +77,10 @@ export const FeaturedPlanningItem = ({
                 item={item}
                 color={!isExpired && ICON_COLORS.LIGHT_BLUE}
             />
-            <PubStatus item={item} isPublic={isItemPublic(item)}/>
+            <PubStatus
+                item={item}
+                isPublic={isItemPosted(item) && getItemWorkflowState(item) !== WORKFLOW_STATE.KILLED}
+            />
             <Column
                 grow={true}
                 border={false}
@@ -84,6 +91,8 @@ export const FeaturedPlanningItem = ({
                             <span className="sd-list-item__slugline">{item.slugline}</span>
                         }
                     </span>
+                    {renderFields('state', item)}
+                    {renderFields('featured', item, {tooltipFlowDirection: 'right'})}
                     <PlanningDateTime
                         item={item}
                         date={date.format('YYYY-MM-DD')}
@@ -91,7 +100,8 @@ export const FeaturedPlanningItem = ({
                         dateFormat={dateFormat}
                         users={users}
                         desks={desks}
-                        contentTypes={contentTypes} />
+                        contentTypes={contentTypes}
+                    />
                 </Row>
             </Column>
             {!readOnly && !selectedPlanningIds.includes(item._id) && <Column>
@@ -135,4 +145,5 @@ FeaturedPlanningItem.propTypes = {
     withMargin: PropTypes.bool,
     activated: PropTypes.bool,
     contentTypes: PropTypes.array,
+    disabled: PropTypes.bool,
 };

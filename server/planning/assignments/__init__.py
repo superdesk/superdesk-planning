@@ -87,6 +87,15 @@ def init_app(app):
         app.on_deleted_resource_archive_rewrite +=\
             assignments_publish_service.unlink_assignment_on_delete_archive_rewrite
 
+    app.client_config['planning_check_for_assignment_on_publish'] = \
+        app.config.get('PLANNING_CHECK_FOR_ASSIGNMENT_ON_PUBLISH', False)
+
+    if len(app.config.get('PLANNING_FULFIL_ON_PUBLISH_FOR_DESKS', '')) == 0:
+        app.client_config['planning_fulfil_on_publish_for_desks'] = []
+    else:
+        app.client_config['planning_fulfil_on_publish_for_desks'] = \
+            app.config.get('PLANNING_FULFIL_ON_PUBLISH_FOR_DESKS', '').split(',')
+
     # Enhance the archive/published item resources with assigned desk/user information
     app.on_fetched_resource_archive += assignments_publish_service.on_fetched_resource_archive
     app.on_fetched_item_archive += assignments_publish_service.on_fetched_item_archive

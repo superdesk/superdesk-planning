@@ -11,6 +11,7 @@ export const featureLockSession = (state) => get(state, 'featuredPlanning.featur
 export const inUse = (state) => get(state, 'featuredPlanning.inUse', null);
 export const storedPlannings = (state) => get(state, 'featuredPlanning.plannings', {});
 export const featuredPlanIdsInList = (state) => get(state, 'featuredPlanning.planningsInList', null);
+export const featuredPlaningToRemove = (state) => get(state, 'featuredPlanning.removeList', []);
 export const featuredPlanningItem = (state) => get(state, 'featuredPlanning.item', null);
 export const previousFilter = (state) => get(state, 'featuredPlanning.previousFilter', false);
 export const currentSearchDate = (state) =>

@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {get} from 'lodash';
 
 import {SelectInput, Checkbox, Input, LineInput, Label, Row} from './index';
 
@@ -14,7 +15,7 @@ export class SelectInputWithFreeText extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {enterFreeText: false};
+        this.state = {enterFreeText: get(props, 'textInput', false)};
 
         this.onFreeTextToggle = this.onFreeTextToggle.bind(this);
     }
@@ -23,6 +24,9 @@ export class SelectInputWithFreeText extends React.Component {
         this.setState({enterFreeText: !this.state.enterFreeText});
     }
 
+    componentWillReceiveProps(nextProps) {
+        this.setState({enterFreeText: get(nextProps, 'textInput', false)});
+    }
 
     render() {
         const {
@@ -48,7 +52,7 @@ export class SelectInputWithFreeText extends React.Component {
                 {this.state.enterFreeText &&
                     <LineInput {...props}>
                         <Label text={label} />
-                        <Input placeholder={label} onChange={onChange} field={field} />
+                        <Input placeholder={label} onChange={onChange} field={field} value={get(value, 'name', value)}/>
                     </LineInput>
                 }
                 <LineInput {...props}>
@@ -67,7 +71,11 @@ SelectInputWithFreeText.propTypes = {
     field: PropTypes.string,
     label: PropTypes.string,
     onChange: PropTypes.func,
-    value: PropTypes.string,
+    value: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.object,
+    ]),
     options: PropTypes.array,
     labelField: PropTypes.string,
+    textInput: PropTypes.bool,
 };

@@ -38,6 +38,18 @@ class BaseSchema(schema.Schema):
     slugline = schema.StringField()
 
 
+class StringRequiredForAction(schema.SchemaField):
+    def __repr__(self):
+        return 'string'
+
+    def __init__(self, required=False, dependencies=None):
+        """Initialize"""
+        super().__init__()
+        self.schema['type'] = 'string'
+        self.schema['required'] = required
+        self.schema['dependencies'] = dependencies
+
+
 class EventSchema(BaseSchema):
     """
     The event schema is used for validation of the event edit form
@@ -334,6 +346,26 @@ DEFAULT_EDITOR = [{
         }
     },
     'schema': {}
+}, {
+    'name': 'event_postpone',
+    'schema': {},
+    'editor': {},
+}, {
+    'name': 'event_reschedule',
+    'schema': {},
+    'editor': {},
+}, {
+    'name': 'event_cancel',
+    'schema': {},
+    'editor': {},
+}, {
+    'name': 'planning_planning_cancel',
+    'schema': {},
+    'editor': {},
+}, {
+    'name': 'planning_cancel_all_coverage',
+    'schema': {},
+    'editor': {},
 }]
 
 logger = logging.getLogger(__name__)
@@ -414,7 +446,8 @@ class PlanningTypesService(superdesk.Service):
 
     def merge_planning_type(self, planning_type, default_planning_type):
         # Update schema fields with database schema fields
-        updated_planning_type = deepcopy(default_planning_type)
+        default_type = {'schema': {}, 'editor': {}}
+        updated_planning_type = deepcopy(default_planning_type or default_type)
         updated_planning_type['schema'].update(planning_type.get('schema', {}))
         updated_planning_type['editor'].update(planning_type.get('editor', {}))
 

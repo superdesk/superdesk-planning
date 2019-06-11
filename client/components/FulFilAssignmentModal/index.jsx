@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import {get} from 'lodash';
 
 import {Button} from '../UI';
 
@@ -22,7 +23,8 @@ export function FulFilAssignmentComponent({
         return null;
     }
 
-    const {newsItem, onCancel, onIgnore, showIgnore, ignoreText} = modalProps;
+    const {newsItem, onCancel, onIgnore, showIgnore, ignoreText, title} = modalProps;
+    const showCancel = get(modalProps, 'showCancel', true);
 
     const handleCancel = () => {
         handleHide();
@@ -52,7 +54,7 @@ export function FulFilAssignmentComponent({
                         <i className="icon-close-small" />
                     </a>
                 )}
-                <h3>{gettext('Select an Assignment')}</h3>
+                <h3>{title || gettext('Select an Assignment')}</h3>
             </Modal.Header>
 
             <Modal.Body noPadding fullHeight noScroll
@@ -63,11 +65,13 @@ export function FulFilAssignmentComponent({
             </Modal.Body>
 
             <Modal.Footer>
-                <Button
-                    text={gettext('Cancel')}
-                    disabled={actionInProgress}
-                    onClick={handleCancel}
-                />
+                {!showCancel ? null : (
+                    <Button
+                        text={gettext('Cancel')}
+                        disabled={actionInProgress}
+                        onClick={handleCancel}
+                    />
+                )}
                 {!handleIgnore ? null : (
                     <Button
                         text={ignoreText || gettext('Ignore')}
@@ -86,8 +90,10 @@ FulFilAssignmentComponent.propTypes = {
         newsItem: PropTypes.object,
         onCancel: PropTypes.func,
         onIgnore: PropTypes.func,
+        showCancel: PropTypes.bool,
         showIgnore: PropTypes.bool,
         ignoreText: PropTypes.string,
+        title: PropTypes.string,
     }),
     currentWorkspace: PropTypes.string,
     actionInProgress: PropTypes.bool,

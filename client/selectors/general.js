@@ -1,6 +1,7 @@
 import {get, keyBy} from 'lodash';
 import {createSelector} from 'reselect';
 import {getEnabledAgendas, getDisabledAgendas, getItemInArrayById} from '../utils';
+import {ITEM_TYPE} from '../constants/index';
 
 export const currentWorkspace = (state) => get(state, 'workspace.currentWorkspace', null);
 export const ingestProviders = (state) => get(state, 'ingest.providers');
@@ -61,3 +62,7 @@ export const currentUserId = createSelector(
 export const files = (state) => get(state, 'files.files');
 export const contacts = (state) => get(state, 'contacts.contacts') || [];
 export const contactsById = (state) => keyBy(get(state, 'contacts.contacts') || [], '_id');
+export const getPlanningExportTemplates = (state) => get(state, 'exportTemplates', []).filter(
+    (e) => e.type === ITEM_TYPE.PLANNING);
+export const getEventExportTemplates = (state) => get(state, 'exportTemplates', []).filter(
+    (e) => e.type === ITEM_TYPE.EVENT);

@@ -59,6 +59,7 @@ export class PlanningStoreService {
         this.onSessionChanged = this.onSessionChanged.bind(this);
         this.onDeskChanged = this.onDeskChanged.bind(this);
         this._reloadVocabularies = this._reloadVocabularies.bind(this);
+        this.onNotificationClick = this.onNotificationClick.bind(this);
 
         this.store = null;
         this.loading = false;
@@ -66,6 +67,7 @@ export class PlanningStoreService {
         $rootScope.$watch(() => this.session.sessionId, this.onSessionChanged);
         $rootScope.$watch(() => this.desks.active, this.onDeskChanged);
         $rootScope.$on('vocabularies:updated', this._reloadVocabularies);
+        $rootScope.$on('notification:click', this.onNotificationClick);
     }
 
     initWorkspace(workspaceName, onLoadWorkspace = null) {
@@ -183,6 +185,10 @@ export class PlanningStoreService {
                 page: 1,
             }),
             userDesks: this.desks.fetchCurrentUserDesks(),
+            exportTemplates: this.api('planning_export_templates').query({
+                max_results: 200,
+                page: 1,
+            }),
         });
     }
 
@@ -235,6 +241,7 @@ export class PlanningStoreService {
                         isEmpty(cv.field_type)
                     ),
                     userDesks: data.userDesks,
+                    exportTemplates: get(data.exportTemplates, '_items', []),
                 };
 
                 // use custom cvs if any
@@ -248,6 +255,13 @@ export class PlanningStoreService {
 
                 return Promise.resolve(initialState);
             });
+    }
+
+    onNotificationClick(event, data) {
+        // If the notification has an assignment related to it, open that item
+        if (get(data, 'notification.data.assignment_id')) {
+            this.$location.path('/workspace/assignments').search('assignment', data.notification.data.assignment_id);
+        }
     }
 
     _reloadVocabularies() {

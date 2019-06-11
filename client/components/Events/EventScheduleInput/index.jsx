@@ -346,7 +346,7 @@ export class EventScheduleInput extends React.Component {
                     isLocalTimeZoneDifferent={isRemoteTimeZone}
                 />
 
-                <Row flex={true} className="event-toggle" noPadding>
+                <Row flex={true} noPadding>
                     <Field
                         onChange={this.handleAllDayChange}
                         field="dates.all_day"
@@ -355,15 +355,15 @@ export class EventScheduleInput extends React.Component {
 
                         {...toggleProps}
                     />
+                    {showTimeZone && <Field
+                        field="dates.tz"
+                        label={gettext('Timezone')}
+                        component={TimeZoneInput}
+                        onChange={this.onChange}
+                        row={false}
+                        {...fieldProps}
+                        halfWidth />}
                 </Row>
-
-                {showTimeZone && <Field
-                    field="dates.tz"
-                    label={gettext('Timezone')}
-                    component={TimeZoneInput}
-                    onChange={this.onChange}
-                    row={false}
-                    {...fieldProps} />}
 
                 <Row
                     enabled={!!get(errors, 'dates.range')}

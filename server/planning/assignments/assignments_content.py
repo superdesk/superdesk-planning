@@ -11,12 +11,12 @@
 import superdesk
 from copy import deepcopy
 from eve.utils import config
-from apps.archive.common import insert_into_versions
-from apps.auth import get_user_id
+from apps.archive.common import insert_into_versions, BYLINE
+from apps.auth import get_user_id, get_user
 from apps.templates.content_templates import get_item_from_template
-from planning.planning import get_desk_template
+from planning.planning_article_export import get_desk_template
 from superdesk.errors import SuperdeskApiError
-from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_coverage_type_name
+from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_coverage_type_name, get_next_assignment_status
 from superdesk.utc import utcnow
 from planning.planning_notifications import PlanningNotifications
 from superdesk import get_resource_service
@@ -50,6 +50,10 @@ def get_item_from_assignment(assignment, template=None):
     if slugline:
         item['slugline'] = slugline
 
+    user = get_user()
+    if user and user.get(BYLINE):
+        item[BYLINE] = user[BYLINE]
+
     ednote = planning_data.get('ednote')
 
     planning_item = assignment.get('planning_item')
@@ -60,11 +64,11 @@ def get_item_from_assignment(assignment, template=None):
             for field in FIELDS_TO_COPY:
                 if planning.get(field):
                     item[field] = deepcopy(planning[field])
-            # when creating planning item from news item, we use headline for description_text
-            # so we are doing the opposite here
+
             if assignment.get('description_text'):
-                item['headline'] = planning['description_text']
-            elif planning.get('headline'):
+                item['abstract'] = "<p>{}</p>".format(assignment['description_text'])
+
+            if planning.get('headline'):
                 item['headline'] = planning['headline']
 
             if not item['flags']:
@@ -136,7 +140,7 @@ class AssignmentsContentService(superdesk.Service):
             updates = {'assigned_to': deepcopy(assignment.get('assigned_to'))}
             updates['assigned_to']['user'] = str(item.get('task').get('user'))
             updates['assigned_to']['desk'] = str(item.get('task').get('desk'))
-            updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
+            updates['assigned_to']['state'] = get_next_assignment_status(updates, ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS)
             updates['assigned_to']['assignor_user'] = str(item.get('task').get('user'))
             updates['assigned_to']['assigned_date_user'] = utcnow()
 
@@ -156,7 +160,9 @@ class AssignmentsContentService(superdesk.Service):
                                                       assignee=assignee,
                                                       coverage_type=get_coverage_type_name(item.get('type', '')),
                                                       slugline=item.get('slugline'),
-                                                      omit_user=True)
+                                                      omit_user=True,
+                                                      assignment_id=assignment[config.ID_FIELD],
+                                                      is_link=True)
             # Save history
             get_resource_service('assignments_history').on_item_start_working(updates, assignment)
             # publishing planning item
