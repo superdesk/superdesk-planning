@@ -108,6 +108,7 @@ export class AssignmentItem extends React.Component {
 
         const planningSchedule = get(assignment, 'planning.scheduled');
         const assignedDeskName = get(assignedDesk, 'name') || '-';
+        const genre = get(assignment, 'planning.genre.name');
 
         return (
             <Item
@@ -171,12 +172,18 @@ export class AssignmentItem extends React.Component {
                                 )}
                             </span>
                         </span>
-                        <div className="sd-list-item--element-grow sd-list-item__element-lm-10">
-                            <span className="sd-list-item__text-label">desk:</span>
+                        <div className="sd-list-item__element-lm-10">
+                            <span className="sd-list-item__text-label">{gettext('Desk:')}</span>
                             <span className="sd-overflow-ellipsis sd-list-item__text-strong">
                                 <span>{assignedDeskName}</span>
                             </span>
                         </div>
+                        {genre && (<div className="sd-list-item__element-lm-10">
+                            <span className="sd-list-item__text-label">{gettext('Genre:')}</span>
+                            <span className="sd-overflow-ellipsis sd-list-item__text-strong">
+                                <span>{genre}</span>
+                            </span>
+                        </div>)}
                     </Row>
                 </Column>
                 <Column border={false}>
