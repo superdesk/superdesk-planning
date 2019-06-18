@@ -40,6 +40,7 @@ export class EventEditorComponent extends React.Component {
             initialFocus: null,
             top: null,
             contacts: null,
+            uploading: false,
         };
 
         this.onAddFiles = this.onAddFiles.bind(this);
@@ -126,6 +127,7 @@ export class EventEditorComponent extends React.Component {
     onAddFiles(fileList) {
         const files = Array.from(fileList).map((f) => [f]);
 
+        this.dom.uploading = true;
         this.props.uploadFiles(files)
             .then((newFiles) => {
                 this.props.onChangeHandler('files',
@@ -133,8 +135,10 @@ export class EventEditorComponent extends React.Component {
                         ...get(this.props, 'diff.files', []),
                         ...newFiles.map((f) => f._id),
                     ]);
+                this.dom.uploading = false;
             }, () => {
                 this.notifyValidationErrors('Failed to upload files');
+                this.dom.uploading = false;
             });
     }
 
@@ -219,8 +223,8 @@ export class EventEditorComponent extends React.Component {
             />
         );
 
-        return (
-            <div ref={(node) => this.dom.top = node} >
+        return this.dom.uploading ? (<div className="sd-loader"/>) :
+            (<div ref={(node) => this.dom.top = node} >
                 <EventEditorHeader
                     item={item}
                     users={users}
@@ -469,8 +473,7 @@ export class EventEditorComponent extends React.Component {
                         />
                     )}
                 </ContentBlock>
-            </div>
-        );
+            </div>);
     }
 }
 
