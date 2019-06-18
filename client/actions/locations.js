@@ -1,5 +1,5 @@
 import {formatAddress, getErrorMessage, gettext} from '../utils';
-import {get} from 'lodash';
+import {get, isEmpty} from 'lodash';
 import {MODALS, LOCATIONS} from '../constants';
 import {showModal} from './index';
 import * as selectors from '../selectors';
@@ -46,6 +46,27 @@ const updateLocation = (original, updated) => (
     }
 );
 
+const setSearch = () =>
+    (
+        (dispatch, getState) => {
+            dispatch({
+                type: LOCATIONS.ACTIONS.SET_SEARCH,
+                payload: '',
+            }),
+            dispatch(self.searchLocations(selectors.locations.getLocationSearchQuery(getState())));
+        });
+
+
+const setBrowse = () =>
+    (
+        (dispatch, getState) => {
+            dispatch({
+                type: LOCATIONS.ACTIONS.SET_BROWSE,
+                payload: '',
+            }),
+            dispatch(self.searchLocations(selectors.locations.getLocationSearchQuery(getState())));
+        });
+
 const createLocation = () => ({
     type: LOCATIONS.ACTIONS.CREATE_LOCATION,
     payload: '',
@@ -57,7 +78,7 @@ const deleteLocationConfirmation = (location) => (
         dispatch(showModal({
             modalType: MODALS.CONFIRMATION,
             modalProps: {
-                body: gettext('Do you want to delete the location \"{{name}}\"?', {name: location.name}),
+                body: gettext('Do you want to delete the location "{{name}}"?', {name: location.name}),
                 action: () => dispatch(deleteLocation(location)),
                 autoClose: true,
             },
@@ -203,8 +224,25 @@ const getLocation = (searchText, unique = false, page = 1) => (
                         },
                     },
                 });
+        }
+        if (!get(getState(), 'locations.searchTypeSearch', true)) {
+            return api('locations').query(
+                {
+                    source: {
+                        query: {
+                            range: {
+                                unique_name: {
+                                    gte: searchText,
+                                },
+                            },
+                        },
+                    },
+                    max_results: 200,
+                    sort: '[(\'unique_name\', 1)]',
+                    page: page,
+                });
         } else {
-            const terms = searchText.split(' ');
+            const terms = (!isEmpty(searchText)) ? searchText.split(' ') : '*';
             const queryString = (terms.length > 1 ? terms.join('* AND ') : terms[0]) + '*';
 
             return api('locations')
@@ -225,7 +263,7 @@ const getLocation = (searchText, unique = false, page = 1) => (
                             },
                         },
                     },
-                    max_results: 50,
+                    max_results: 200,
                     sort: '[(\'unique_name\', 1)]',
                     page: page,
                 });
@@ -248,6 +286,8 @@ const self = {
     deleteLocationConfirmation,
     clearEdits,
     createLocation,
+    setSearch,
+    setBrowse,
 };
 
 export default self;

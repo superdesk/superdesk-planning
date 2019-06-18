@@ -14,6 +14,7 @@ class SearchBox extends React.Component {
         this.state = {inputValue: this.props.value};
         this.onChangeHandler = this.onChangeHandler.bind(this);
         this.onKeyPressHandler = this.onKeyPressHandler.bind(this);
+        this.resetSearch = this.resetSearch.bind(this);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -38,7 +39,15 @@ class SearchBox extends React.Component {
         }
     }
 
+    resetSearch() {
+        this.setState({
+            inputValue: '',
+        });
+        this.props.search();
+    }
     render() {
+        const {allowRemove} = this.props;
+
         return (
             <div className="sd-searchbar sd-searchbar--focused">
                 <label htmlFor="search-input" className="sd-searchbar__icon" />
@@ -50,6 +59,14 @@ class SearchBox extends React.Component {
                     onChange={this.onChangeHandler}
                     onKeyPress={this.onKeyPressHandler}
                 />
+                {allowRemove && this.state.inputValue && (
+                    <button
+                        type="button"
+                        className="search-close visible"
+                        onClick={this.resetSearch}>
+                        <i className="icon-remove-sign" />
+                    </button>
+                )}
                 <button className="sd-searchbar__search-btn"
                     onClick={() => this.props.search(this.state.inputValue)}>
                     <i className="big-icon--chevron-right" />
@@ -64,6 +81,11 @@ SearchBox.propTypes = {
     value: PropTypes.string.isRequired,
     search: PropTypes.func.isRequired,
     activeFilter: PropTypes.string.isRequired,
+    allowRemove: PropTypes.bool,
+};
+
+SearchBox.defaultProps = {
+    allowRemove: false,
 };
 
 export default SearchBox;

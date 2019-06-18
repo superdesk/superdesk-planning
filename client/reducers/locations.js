@@ -43,6 +43,10 @@ const locations = (state = initialState, action) => {
         return {...state, editLocationId: '', editOpen: false};
     case LOCATIONS.ACTIONS.CREATE_LOCATION:
         return {...state, editOpen: true};
+    case LOCATIONS.ACTIONS.SET_BROWSE:
+        return {...state, searchTypeSearch: false};
+    case LOCATIONS.ACTIONS.SET_SEARCH:
+        return {...state, searchTypeSearch: true};
     default:
         return state;
     }

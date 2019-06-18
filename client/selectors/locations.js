@@ -7,3 +7,4 @@ export const getEditLocation = (state) => get(state, 'locations.locations',
 export const loadingLocations = (state) => !!get(state, 'locations.loading', false);
 export const getEditLocationOpen = (state) => !!get(state, 'locations.editOpen', false);
 export const getLocationPageNum = (state) => get(state, 'locations.pageNum');
+export const getSearchType = (state) => get(state, 'locations.searchTypeSearch', true);
