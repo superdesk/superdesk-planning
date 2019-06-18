@@ -50,6 +50,7 @@ export class PlanningEditorComponent extends React.Component {
             slugline: null,
             top: null,
             details: null,
+            uploading: false,
         };
 
         this.state = {openCoverageIds: []};
@@ -343,6 +344,7 @@ export class PlanningEditorComponent extends React.Component {
     onAddFiles(fileList) {
         const files = Array.from(fileList).map((f) => [f]);
 
+        this.dom.uploading = true;
         this.props.uploadFiles(files)
             .then((newFiles) => {
                 this.props.onChangeHandler('files',
@@ -350,8 +352,10 @@ export class PlanningEditorComponent extends React.Component {
                         ...get(this.props, 'diff.files', []),
                         ...newFiles.map((f) => f._id),
                     ]);
+                this.dom.uploading = false;
             }, () => {
                 this.notifyValidationErrors('Failed to upload files');
+                this.dom.uploading = false;
             });
     }
 
@@ -465,269 +469,270 @@ export class PlanningEditorComponent extends React.Component {
         const forwardPlanningTitle = gettext('When active, assigned coverages for the Planning item will not be automatically added to workflow');
 
         return (
-            <div ref={(node) => this.dom.top = node}>
-                <PlanningEditorHeader
-                    item={diff}
-                    users={users}
-                />
-
-                <ContentBlock>
-                    <Field
-                        component={TextInput}
-                        field="slugline"
-                        label={gettext('Slugline')}
-                        refNode={(node) => this.dom.slugline = node}
-                        {...fieldProps}
-                        onFocus={onFocusPlanning}
+            this.dom.uploading ? (<div className="sd-loader"/>) :
+                (<div ref={(node) => this.dom.top = node}>
+                    <PlanningEditorHeader
+                        item={diff}
+                        users={users}
                     />
 
-                    <Field
-                        component={TextInput}
-                        field="headline"
-                        label={gettext('Headline')}
-                        {...fieldProps}
-                        onFocus={onFocusPlanning}
-                    />
+                    <ContentBlock>
+                        <Field
+                            component={TextInput}
+                            field="slugline"
+                            label={gettext('Slugline')}
+                            refNode={(node) => this.dom.slugline = node}
+                            {...fieldProps}
+                            onFocus={onFocusPlanning}
+                        />
 
-                    <Field
-                        component={TextInput}
-                        field="name"
-                        label={gettext('Name')}
-                        {...fieldProps}
-                        onFocus={onFocusPlanning}
-                    />
+                        <Field
+                            component={TextInput}
+                            field="headline"
+                            label={gettext('Headline')}
+                            {...fieldProps}
+                            onFocus={onFocusPlanning}
+                        />
 
-                    <Field
-                        component={DateTimeInput}
-                        field="planning_date"
-                        label={gettext('Planning Date')}
-                        timeFormat={timeFormat}
-                        dateFormat={dateFormat}
-                        defaultValue={null}
-                        row={false}
-                        {...fieldProps}
-                        onChange={this.onPlanningDateChange}
-                        onFocus={onFocusPlanning}
-                        {...popupProps}
-                    />
+                        <Field
+                            component={TextInput}
+                            field="name"
+                            label={gettext('Name')}
+                            {...fieldProps}
+                            onFocus={onFocusPlanning}
+                        />
 
-                    <Field
-                        component={TextAreaInput}
-                        field="description_text"
-                        label={gettext('Description')}
-                        {...fieldProps}
-                        onFocus={onFocusPlanning}
-                    />
+                        <Field
+                            component={DateTimeInput}
+                            field="planning_date"
+                            label={gettext('Planning Date')}
+                            timeFormat={timeFormat}
+                            dateFormat={dateFormat}
+                            defaultValue={null}
+                            row={false}
+                            {...fieldProps}
+                            onChange={this.onPlanningDateChange}
+                            onFocus={onFocusPlanning}
+                            {...popupProps}
+                        />
 
-                    <Field
-                        component={TextAreaInput}
-                        field="internal_note"
-                        label={gettext('Internal Note')}
-                        {...fieldProps}
-                        onFocus={onFocusPlanning}
-                    />
-
-                    <Field
-                        component={SelectMetaTermsInput}
-                        field="place"
-                        label={gettext('Place')}
-                        options={locators}
-                        defaultValue={[]}
-                        groupField="group"
-                        {...fieldProps}
-                        onFocus={onFocusDetails}
-                        popupContainer={popupContainer}
-                        {...popupProps}
-                    />
-
-                    <Field
-                        component={SelectMetaTermsInput}
-                        field="agendas"
-                        label={gettext('Agenda')}
-                        options={enabledAgendas}
-                        valueKey="_id"
-                        value={agendaValues}
-                        {...fieldProps}
-                        onFocus={onFocusPlanning}
-                        popupContainer={popupContainer}
-                        {...popupProps}
-                    />
-
-                    <ToggleBox
-                        title={gettext('Details')}
-                        isOpen={editorMenuUtils.isOpen(navigation, 'details')}
-                        onClose={editorMenuUtils.onItemClose(navigation, 'details')}
-                        onOpen={editorMenuUtils.onItemOpen(navigation, 'details')}
-                        forceScroll={editorMenuUtils.forceScroll(navigation, 'details')}
-                        scrollInView={true}
-                        invalid={detailsErrored && (dirty || submitFailed)}
-                        paddingTop={!!onFocusDetails}
-                    >
                         <Field
                             component={TextAreaInput}
-                            field="ednote"
-                            label={gettext('Ed Note')}
+                            field="description_text"
+                            label={gettext('Description')}
                             {...fieldProps}
-                            onFocus={onFocusDetails}
+                            onFocus={onFocusPlanning}
+                        />
+
+                        <Field
+                            component={TextAreaInput}
+                            field="internal_note"
+                            label={gettext('Internal Note')}
+                            {...fieldProps}
+                            onFocus={onFocusPlanning}
                         />
 
                         <Field
                             component={SelectMetaTermsInput}
-                            field="anpa_category"
-                            label={gettext('ANPA Category')}
-                            options={categories}
+                            field="place"
+                            label={gettext('Place')}
+                            options={locators}
                             defaultValue={[]}
+                            groupField="group"
                             {...fieldProps}
                             onFocus={onFocusDetails}
                             popupContainer={popupContainer}
                             {...popupProps}
                         />
 
-                        {get(planningProfile, 'editor.subject.enabled') && <Field
+                        <Field
                             component={SelectMetaTermsInput}
-                            field="subject"
-                            label={gettext('Subject')}
-                            options={subjects}
-                            defaultValue={[]}
+                            field="agendas"
+                            label={gettext('Agenda')}
+                            options={enabledAgendas}
+                            valueKey="_id"
+                            value={agendaValues}
                             {...fieldProps}
-                            onFocus={onFocusDetails}
+                            onFocus={onFocusPlanning}
                             popupContainer={popupContainer}
-                            {...popupProps}
-                        />}
-
-                        <CustomVocabulariesFields
-                            customVocabularies={customVocabularies}
-                            fieldProps={fieldProps}
-                            onFocusDefails={onFocusDetails}
-                            formProfile={planningProfile}
-                            popupProps={popupProps}
-                            popupContainer={popupContainer}
-                        />
-
-                        <Field
-                            component={ColouredValueInput}
-                            field="urgency"
-                            label={gettext('Urgency')}
-                            value={urgency}
-                            options={urgencies}
-                            iconName="urgency-label"
-                            defaultValue={null}
-                            {...fieldProps}
-                            onFocus={onFocusDetails}
                             {...popupProps}
                         />
 
-                        {!get(item, 'pubstatus') && <Field
-                            component={ToggleInput}
-                            field="flags.marked_for_not_publication"
-                            label={gettext('Not for Publication')}
-                            labelLeft={true}
-                            defaultValue={false}
-                            title={gettext('When active, the Planning item will not be publishable')}
-                            {...fieldProps}
-                            onFocus={onFocusDetails}
-                        />}
-                        {autoAssignToWorkflow &&
-                        <Field
-                            component={ToggleInput}
-                            field="flags.overide_auto_assign_to_workflow"
-                            label={gettext('Forward Planning')}
-                            title={forwardPlanningTitle}
-                            labelLeft={true}
-                            defaultValue={false}
-                            {...fieldProps}
-                            onFocus={onFocusDetails}
-                        />}
-                    </ToggleBox>
-
-                    {get(planningProfile, 'editor.files.enabled') &&
                         <ToggleBox
-                            title={gettext('Attached Files')}
-                            isOpen={editorMenuUtils.isOpen(navigation, 'files')}
-                            onClose={editorMenuUtils.onItemClose(navigation, 'files')}
-                            onOpen={editorMenuUtils.onItemOpen(navigation, 'files')}
+                            title={gettext('Details')}
+                            isOpen={editorMenuUtils.isOpen(navigation, 'details')}
+                            onClose={editorMenuUtils.onItemClose(navigation, 'details')}
+                            onOpen={editorMenuUtils.onItemOpen(navigation, 'details')}
+                            forceScroll={editorMenuUtils.forceScroll(navigation, 'details')}
                             scrollInView={true}
-                            hideUsingCSS={true} // hideUsingCSS so the file data is kept on hide/show
-                            invalid={!!errors.files && (dirty || submitFailed)}
-                            forceScroll={editorMenuUtils.forceScroll(navigation, 'files')}
-                            paddingTop={!!onFocusFiles}
-                            badgeValue={getCountOfProperty('files')} >
+                            invalid={detailsErrored && (dirty || submitFailed)}
+                            paddingTop={!!onFocusDetails}
+                        >
                             <Field
-                                component={FileInput}
-                                field="files"
-                                createLink={createUploadLink}
+                                component={TextAreaInput}
+                                field="ednote"
+                                label={gettext('Ed Note')}
+                                {...fieldProps}
+                                onFocus={onFocusDetails}
+                            />
+
+                            <Field
+                                component={SelectMetaTermsInput}
+                                field="anpa_category"
+                                label={gettext('ANPA Category')}
+                                options={categories}
                                 defaultValue={[]}
                                 {...fieldProps}
-                                onFocus={onFocusFiles}
-                                files={files}
-                                onAddFiles={this.onAddFiles}
-                                onRemoveFile={this.onRemoveFile}
+                                onFocus={onFocusDetails}
+                                popupContainer={popupContainer}
+                                {...popupProps}
                             />
+
+                            {get(planningProfile, 'editor.subject.enabled') && <Field
+                                component={SelectMetaTermsInput}
+                                field="subject"
+                                label={gettext('Subject')}
+                                options={subjects}
+                                defaultValue={[]}
+                                {...fieldProps}
+                                onFocus={onFocusDetails}
+                                popupContainer={popupContainer}
+                                {...popupProps}
+                            />}
+
+                            <CustomVocabulariesFields
+                                customVocabularies={customVocabularies}
+                                fieldProps={fieldProps}
+                                onFocusDefails={onFocusDetails}
+                                formProfile={planningProfile}
+                                popupProps={popupProps}
+                                popupContainer={popupContainer}
+                            />
+
+                            <Field
+                                component={ColouredValueInput}
+                                field="urgency"
+                                label={gettext('Urgency')}
+                                value={urgency}
+                                options={urgencies}
+                                iconName="urgency-label"
+                                defaultValue={null}
+                                {...fieldProps}
+                                onFocus={onFocusDetails}
+                                {...popupProps}
+                            />
+
+                            {!get(item, 'pubstatus') && <Field
+                                component={ToggleInput}
+                                field="flags.marked_for_not_publication"
+                                label={gettext('Not for Publication')}
+                                labelLeft={true}
+                                defaultValue={false}
+                                title={gettext('When active, the Planning item will not be publishable')}
+                                {...fieldProps}
+                                onFocus={onFocusDetails}
+                            />}
+                            {autoAssignToWorkflow &&
+                            <Field
+                                component={ToggleInput}
+                                field="flags.overide_auto_assign_to_workflow"
+                                label={gettext('Forward Planning')}
+                                title={forwardPlanningTitle}
+                                labelLeft={true}
+                                defaultValue={false}
+                                {...fieldProps}
+                                onFocus={onFocusDetails}
+                            />}
                         </ToggleBox>
-                    }
-                </ContentBlock>
 
-                {event && (
-                    <h3 className="side-panel__heading side-panel__heading--big">
-                        {gettext('Associated Event')}
-                    </h3>
-                )}
-
-                {event && (
-                    <ContentBlock>
-                        <EventMetadata
-                            event={event}
-                            dateFormat={dateFormat}
-                            timeFormat={timeFormat}
-                            lockedItems={lockedItems}
-                            navigation={navigation}
-                            createUploadLink={createUploadLink}
-                            files={files}
-                            streetMapUrl={streetMapUrl}
-                            tabEnabled
-                        />
+                        {get(planningProfile, 'editor.files.enabled') &&
+                            <ToggleBox
+                                title={gettext('Attached Files')}
+                                isOpen={editorMenuUtils.isOpen(navigation, 'files')}
+                                onClose={editorMenuUtils.onItemClose(navigation, 'files')}
+                                onOpen={editorMenuUtils.onItemOpen(navigation, 'files')}
+                                scrollInView={true}
+                                hideUsingCSS={true} // hideUsingCSS so the file data is kept on hide/show
+                                invalid={!!errors.files && (dirty || submitFailed)}
+                                forceScroll={editorMenuUtils.forceScroll(navigation, 'files')}
+                                paddingTop={!!onFocusFiles}
+                                badgeValue={getCountOfProperty('files')} >
+                                <Field
+                                    component={FileInput}
+                                    field="files"
+                                    createLink={createUploadLink}
+                                    defaultValue={[]}
+                                    {...fieldProps}
+                                    onFocus={onFocusFiles}
+                                    files={files}
+                                    onAddFiles={this.onAddFiles}
+                                    onRemoveFile={this.onRemoveFile}
+                                />
+                            </ToggleBox>
+                        }
                     </ContentBlock>
-                )}
 
-                <Field
-                    component={CoverageArrayInput}
-                    row={false}
-                    field="coverages"
-                    defaultDesk={defaultDesk}
-                    users={users}
-                    desks={desks}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
-                    newsCoverageStatus={newsCoverageStatus}
-                    contentTypes={contentTypes}
-                    genres={genres}
-                    coverageProviders={coverageProviders}
-                    priorities={priorities}
-                    keywords={keywords}
-                    onDuplicateCoverage={this.onDuplicateCoverage}
-                    onCancelCoverage={this.onCancelCoverage}
-                    onAddCoverageToWorkflow={this.onAddCoverageToWorkflow}
-                    onRemoveAssignment={this.onRemoveAssignment}
-                    readOnly={readOnly}
-                    maxCoverageCount={maxCoverageCount}
-                    addOnly={!!addNewsItemToPlanning}
-                    addNewsItemToPlanning={addNewsItemToPlanning}
-                    originalCount={get(item, 'coverages', []).length}
-                    defaultValue={[]}
-                    defaultGenre={this.props.defaultGenre}
-                    {...fieldProps}
-                    formProfile={coverageProfile}
-                    navigation={navigation}
-                    popupContainer={popupContainer}
-                    {...popupProps}
-                    setCoverageDefaultDesk={setCoverageDefaultDesk}
-                    preferredCoverageDesks={preferredCoverageDesks}
-                    useLocalNavigation={!inModalView}
-                    autoAssignToWorkflow={autoAssignToWorkflow}
-                    event={event}
-                    longEventDurationThreshold={longEventDurationThreshold}
-                />
-            </div>
+                    {event && (
+                        <h3 className="side-panel__heading side-panel__heading--big">
+                            {gettext('Associated Event')}
+                        </h3>
+                    )}
+
+                    {event && (
+                        <ContentBlock>
+                            <EventMetadata
+                                event={event}
+                                dateFormat={dateFormat}
+                                timeFormat={timeFormat}
+                                lockedItems={lockedItems}
+                                navigation={navigation}
+                                createUploadLink={createUploadLink}
+                                files={files}
+                                streetMapUrl={streetMapUrl}
+                                tabEnabled
+                            />
+                        </ContentBlock>
+                    )}
+
+                    <Field
+                        component={CoverageArrayInput}
+                        row={false}
+                        field="coverages"
+                        defaultDesk={defaultDesk}
+                        users={users}
+                        desks={desks}
+                        timeFormat={timeFormat}
+                        dateFormat={dateFormat}
+                        newsCoverageStatus={newsCoverageStatus}
+                        contentTypes={contentTypes}
+                        genres={genres}
+                        coverageProviders={coverageProviders}
+                        priorities={priorities}
+                        keywords={keywords}
+                        onDuplicateCoverage={this.onDuplicateCoverage}
+                        onCancelCoverage={this.onCancelCoverage}
+                        onAddCoverageToWorkflow={this.onAddCoverageToWorkflow}
+                        onRemoveAssignment={this.onRemoveAssignment}
+                        readOnly={readOnly}
+                        maxCoverageCount={maxCoverageCount}
+                        addOnly={!!addNewsItemToPlanning}
+                        addNewsItemToPlanning={addNewsItemToPlanning}
+                        originalCount={get(item, 'coverages', []).length}
+                        defaultValue={[]}
+                        defaultGenre={this.props.defaultGenre}
+                        {...fieldProps}
+                        formProfile={coverageProfile}
+                        navigation={navigation}
+                        popupContainer={popupContainer}
+                        {...popupProps}
+                        setCoverageDefaultDesk={setCoverageDefaultDesk}
+                        preferredCoverageDesks={preferredCoverageDesks}
+                        useLocalNavigation={!inModalView}
+                        autoAssignToWorkflow={autoAssignToWorkflow}
+                        event={event}
+                        longEventDurationThreshold={longEventDurationThreshold}
+                    />
+                </div>)
         );
     }
 }
