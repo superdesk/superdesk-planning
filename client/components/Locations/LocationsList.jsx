@@ -38,8 +38,9 @@ export class LocationsListComponent extends React.Component {
         return (
             <div className="sd-column-box__main-column__items" onScroll={this.handleScroll}>
                 {this.props.locations.map((location, index) => (
-                    <List.Item shadow={1} key={location._id}>
-                        <List.Column grow={true} border={false}>
+                    <List.Item shadow={1} key={location._id} onClick={this.props.editLocation.bind(null, location)}
+                        activated={location._id === get(this.props.currentLocation, '_id')}>
+                        <List.Column grow={false} border={true}>
                             <List.Row>
                                 <a
                                     title={gettext('Show on map')}
@@ -47,17 +48,41 @@ export class LocationsListComponent extends React.Component {
                                     rel="noopener noreferrer"
                                     href={getMapUrl(this.props.streetMapUrl, get(location, 'name'),
                                         get(formatAddress(location), 'formattedAddress'))}>
-                                    <i className="icon-map-marker icon--gray"/>
+                                    <i className="sd-list-item__location"/>
                                 </a>
-                                <span className="sd-list-item__strong">{get(location, 'name')}</span>
-                                {get(formatAddress(location), 'formattedAddress')}
+                            </List.Row>
+                        </List.Column>
+                        <List.Column grow={true} border={false}>
+                            <List.Row>
+                                <span className="sd-list-item__strong">
+                                    {get(location, 'name')}
+                                </span>
+                                <span className="sd-list-item__text-label">{gettext('Address')}:</span>
+                                <span
+                                    className="sd-list-item__normal">{get(formatAddress(location), 'address.line[0]')}
+                                </span>
+                                <span className="sd-list-item__text-label">{gettext('City/Town')}:</span>
+                                <span
+                                    className="sd-list-item__normal">{get(formatAddress(location), 'address.area')}
+                                </span>
+                                <span className="sd-list-item__text-label">{gettext('State/Province/Region')}:</span>
+                                <span
+                                    className="sd-list-item__normal">{get(formatAddress(location), 'address.locality')}
+                                </span>
+                                <span className="sd-list-item__text-label">{gettext('Post Code')}:</span>
+                                <span
+                                    className="sd-list-item__normal">{get(formatAddress(location),
+                                        'address.postal_code')}
+                                </span>
+                                <span className="sd-list-item__text-label">{gettext('Country')}:</span>
+                                <span
+                                    className="sd-list-item__normal">{get(formatAddress(location), 'address.country')}
+                                </span>
                             </List.Row>
                         </List.Column>
                         <List.ActionMenu>
                             <button onClick={this.props.deleteLocation.bind(null, location)}>
                                 <i className="icon-trash"/></button>
-                            <button onClick={this.props.editLocation.bind(null, location)}>
-                                <i className="icon-pencil"/></button>
                         </List.ActionMenu>
                     </List.Item>
                 ))}
@@ -73,12 +98,14 @@ LocationsListComponent.propTypes = {
     isLoading: PropTypes.bool,
     deleteLocation: PropTypes.func,
     streetMapUrl: PropTypes.string,
+    currentLocation: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
     locations: selectors.locations.locations(state),
     isLoading: selectors.locations.loadingLocations(state),
     streetMapUrl: selectors.config.getStreetMapUrl(state),
+    currentLocation: selectors.locations.getEditLocation(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
