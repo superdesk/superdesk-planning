@@ -150,7 +150,7 @@ export const CoveragePreview = ({
                 <PreviewRow
                     label={gettext('Type')}
                     value={!coverage.planning.g2_content_type ? '' :
-                        stringUtils.firstCharUpperCase(!coverage.planning.g2_content_type)
+                        stringUtils.firstCharUpperCase(coverage.planning.g2_content_type)
                     }
                 />
             }
