@@ -63,7 +63,7 @@ default_export_templates = [{
         'body_html': '''
 {% for item in items %}
 <p><b>{{ item.name }}</b>{% if item.get('location') %}{{ ', ' + item.location[0].name }}
-{% endif %}{{ ', ' + item.dates.start.strftime('%H%M - ') }}{{ item.get('assignees')|join(', ') }}</p>
+{% endif %}, {{ item.schedule }}{% if item.assignees|length %} - {{ item.assignees|join(', ') }}{% endif %}</p>
 <p>---</p>
 {% endfor %}
 '''
