@@ -275,6 +275,8 @@ class PlanningArticleExportService(superdesk.Service):
                 contacts.append(", ".join(contact_info))
 
             date_time_format = "%a %d %b %Y, %H:%M"
+            item['dates']['start'] = utc_to_local(config.DEFAULT_TIMEZONE, item['dates']['start'])
+            item['dates']['end'] = utc_to_local(config.DEFAULT_TIMEZONE, item['dates']['end'])
             schedule = "{0}-{1}" .format(item['dates']['start'].strftime(date_time_format),
                                          item['dates']['end'].strftime("%H:%M"))
             if ((item['dates']['end'] - item['dates']['start']).total_seconds() / 60) >= (24 * 60):

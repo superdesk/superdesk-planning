@@ -196,5 +196,7 @@ ItemActionConfirmationModal.propTypes = {
         planning: PropTypes.object,
         actionType: PropTypes.string,
         large: PropTypes.bool,
+        title: PropTypes.string,
+        resolve: PropTypes.func,
     }),
 };
