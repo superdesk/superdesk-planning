@@ -31,7 +31,7 @@ from planning.item_lock import LockService, LOCK_USER, LOCK_ACTION
 from superdesk.users.services import current_user_has_privilege
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information, \
     is_locked_in_this_session, get_coverage_type_name, get_version_item_for_post, \
-    enqueue_planning_item, WORKFLOW_STATE, get_next_assignment_status
+    enqueue_planning_item, WORKFLOW_STATE, get_next_assignment_status, get_delivery_publish_time
 from flask import request, json, current_app as app
 from planning.planning_notifications import PlanningNotifications
 from apps.content import push_content_notification
@@ -600,7 +600,7 @@ class AssignmentsService(superdesk.Service):
                         delivery_service.patch(delivery[config.ID_FIELD], {
                             'item_state': CONTENT_STATE.PUBLISHED,
                             'sequence_no': original.get('rewrite_sequence', 0),
-                            'publish_time': updates.get('firstpublished')
+                            'publish_time': get_delivery_publish_time(updates, original)
                         })
 
                     # publish planning
