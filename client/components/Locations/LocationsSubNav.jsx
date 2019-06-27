@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {SubNav} from '../UI/SubNav';
+import {SubNav, Dropdown} from '../UI/SubNav';
 import {SearchBox, Button} from '../UI';
 import {connect} from 'react-redux';
 import * as selectors from '../../selectors';
@@ -12,22 +12,31 @@ export class LocationsSubNavComponent extends React.Component {
     constructor(props) {
         super(props);
         this.executeSearch = this.props.executeSearch.bind(this);
-        this.searchQuery = this.props.searchQuery;
         this.createLocation = this.props.createLocation.bind(this);
+        this.state = {
+            searchQuery: this.props.searchQuery || '',
+        };
     }
 
     componentWillMount() {
-        this.props.executeSearch(this.props.searchQuery);
+        this.props.executeSearch(this.state.searchQuery);
     }
 
     render() {
         return (
             <SubNav>
                 <SearchBox
-                    label={gettext('Search Locations')}
-                    value={this.searchQuery}
+                    label={gettext('Search/Browse Locations')}
+                    value={this.state.searchQuery}
                     search={this.executeSearch}
                     activeFilter=""
+                    allowRemove={true}
+                />
+                <Dropdown
+                    buttonLabel={this.props.searchType ? gettext('Search') : gettext('Browse')}
+                    items={[{label: 'Search', action: this.props.search},
+                        {label: 'Browse', action: this.props.browse}]}
+                    tooltip={gettext('Select either Search or Browse the locations')}
                 />
                 {!this.props.editOpen &&
                 <Button
@@ -36,7 +45,7 @@ export class LocationsSubNavComponent extends React.Component {
                     onClick={this.createLocation}
                     empty={true}
                     title={gettext('Create a new location')}>
-                    <span className="circle" />
+                    <span className="circle"/>
                 </Button>}
             </SubNav>
         );
@@ -49,17 +58,23 @@ LocationsSubNavComponent.propTypes = {
     executeSearch: PropTypes.func,
     createLocation: PropTypes.func,
     editOpen: PropTypes.bool,
+    search: PropTypes.func,
+    browse: PropTypes.func,
+    searchType: PropTypes.bool,
 };
 
 
 const mapStateToProps = (state) => ({
     searchQuery: selectors.locations.getLocationSearchQuery(state),
     editOpen: selectors.locations.getEditLocationOpen(state),
+    searchType: selectors.locations.getSearchType(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
     executeSearch: (text) => dispatch(actions.locations.searchLocations(text)),
     createLocation: () => dispatch(actions.locations.createLocation()),
+    search: () => dispatch(actions.locations.setSearch()),
+    browse: () => dispatch(actions.locations.setBrowse()),
 });
 
 export const LocationsSubNav = connect(mapStateToProps, mapDispatchToProps)(LocationsSubNavComponent);

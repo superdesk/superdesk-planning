@@ -588,7 +588,7 @@ const getCoverageReadOnlyFields = (
         // if newsItem is published, schedule is readOnly
         return {
             slugline: true,
-            ednote: true,
+            ednote: false,
             keyword: true,
             internal_note: readOnly || false,
             g2_content_type: true,
