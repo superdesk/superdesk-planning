@@ -9,10 +9,6 @@ import {ITEM_TYPE} from '../../constants/index';
 
 class CreateNewSubnavDropdownFn extends React.Component {
     render() {
-        if (this.props.eventTemplates == null) {
-            return null;
-        }
-
         const {addEvent, addPlanning, createPlanningOnly, privileges, dispatch} = this.props;
         const items = [];
 
