@@ -40,15 +40,24 @@ class EventTemplateEdit extends React.Component {
                     />
                 </Form.Row>
 
-                <button
-                    onClick={() => this.props.onEditComplete(this.state)}
-                    disabled={
-                        this.state.template_name.trim().length < 1
-                        || this.props.template.template_name === this.state.template_name}
-                    className="btn btn--primary"
-                >
-                    {gettext('Save')}
-                </button>
+                <div style={{display: 'flex', justifyContent: 'flex-end'}}>
+                    <button
+                        onClick={this.props.onEditCancel}
+                        className="btn"
+                    >
+                        {gettext('Cancel')}
+                    </button>
+
+                    <button
+                        onClick={() => this.props.onEditComplete(this.state)}
+                        disabled={
+                            this.state.template_name.trim().length < 1
+                            || this.props.template.template_name === this.state.template_name}
+                        className="btn btn--primary"
+                    >
+                        {gettext('Save')}
+                    </button>
+                </div>
             </div>
         );
     }
@@ -57,6 +66,7 @@ class EventTemplateEdit extends React.Component {
 EventTemplateEdit.propTypes = {
     template: PropTypes.object,
     onEditComplete: PropTypes.func,
+    onEditCancel: PropTypes.func,
 };
 
 class EventTemplatesList extends React.Component {
@@ -124,6 +134,7 @@ class ManageEventTemplatesModalComponent extends React.Component {
         this.editTemplate = this.editTemplate.bind(this);
         this.deleteTemplate = this.deleteTemplate.bind(this);
         this.onEditComplete = this.onEditComplete.bind(this);
+        this.onEditCancel = this.onEditCancel.bind(this);
     }
 
     editTemplate(id) {
@@ -138,6 +149,12 @@ class ManageEventTemplatesModalComponent extends React.Component {
             {template_name: templateEdited.template_name}
         ));
 
+        this.setState({
+            templateInEditMode: null,
+        });
+    }
+
+    onEditCancel() {
         this.setState({
             templateInEditMode: null,
         });
@@ -178,6 +195,7 @@ class ManageEventTemplatesModalComponent extends React.Component {
                                         ({_id}) => _id === this.state.templateInEditMode)
                                     }
                                     onEditComplete={this.onEditComplete}
+                                    onEditCancel={this.onEditCancel}
                                 />
                             )
                     }
