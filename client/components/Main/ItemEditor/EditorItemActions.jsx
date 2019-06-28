@@ -6,23 +6,26 @@ import {connectServices} from 'superdesk-core/scripts/core/helpers/ReactRenderAs
 import {ITEM_TYPE, EVENTS, PLANNING} from '../../../constants';
 import {getItemType, eventUtils, planningUtils} from '../../../utils';
 import eventsPlanning from '../../../actions/eventsPlanning';
+import * as allActions from '../../../actions';
 
 import {ItemActionsMenu} from '../../index';
 
-const EditorItemActionsComponent = ({
-    item,
-    event,
-    session,
-    privileges,
-    lockedItems,
-    itemActions,
-    contentTypes,
-    itemManager,
-    autoSave,
-    modal,
-    dispatch,
-    api,
-}) => {
+const EditorItemActionsComponent = (props) => {
+    const {
+        item,
+        event,
+        session,
+        privileges,
+        lockedItems,
+        itemActions,
+        contentTypes,
+        itemManager,
+        autoSave,
+        modal,
+        dispatch,
+        api,
+    } = props;
+
     const itemType = getItemType(item);
     const withMultiPlanningDate = true;
     let actions = [], callBacks;
@@ -85,45 +88,39 @@ const EditorItemActionsComponent = ({
                         ))
                 ),
             [EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.actionName]:
-                () => (
-                    autoSave.flushAutosave()
-                        .then(() => {
-                            if (itemManager.editor.state.dirty) {
-                                modal.alert({
-                                    headerText: gettext('Warning'),
-                                    bodyText: gettext('Save changes before saving as a template.'),
-                                });
-                            } else {
-                                modal.prompt(gettext('Template name')).then((templateName) => {
-                                    api('events_template').query({
-                                        where: {
-                                            template_name: {
-                                                $regex: templateName,
-                                                $options: 'i',
-                                            },
-                                        },
-                                    })
-                                        .then((res) => {
-                                            const doSave = () =>
-                                                dispatch(eventsPlanning.ui.saveEventTemplate(templateName, item._id));
+                () => {
+                    const message = gettext('Save changes before creating a template?');
 
-                                            const templateAlreadyExists = res._meta.total !== 0;
+                    dispatch(allActions.main.openActionModalFromEditor(item, message, (updatedItem) => {
+                        modal.prompt(gettext('Template name')).then((templateName) => {
+                            api('events_template').query({
+                                where: {
+                                    template_name: {
+                                        $regex: templateName,
+                                        $options: 'i',
+                                    },
+                                },
+                            })
+                                .then((res) => {
+                                    const doSave = () =>
+                                        dispatch(eventsPlanning.ui.saveEventTemplate(templateName, updatedItem._id));
 
-                                            if (templateAlreadyExists) {
-                                                modal.confirm(gettext(
-                                                    'Template already exists. Do you want to overwrite it?'
-                                                ))
-                                                    .then(() => {
-                                                        api.remove(res._items[0], {}, 'events_template').then(doSave);
-                                                    });
-                                            } else {
-                                                doSave();
-                                            }
-                                        });
+                                    const templateAlreadyExists = res._meta.total !== 0;
+
+                                    if (templateAlreadyExists) {
+                                        modal.confirm(gettext(
+                                            'Template already exists. Do you want to overwrite it?'
+                                        ))
+                                            .then(() => {
+                                                api.remove(res._items[0], {}, 'events_template').then(doSave);
+                                            });
+                                    } else {
+                                        doSave();
+                                    }
                                 });
-                            }
-                        })
-                ),
+                        });
+                    }));
+                },
         };
         actions = eventUtils.getEventActions({
             item,
