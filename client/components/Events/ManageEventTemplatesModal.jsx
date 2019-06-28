@@ -42,7 +42,9 @@ class EventTemplateEdit extends React.Component {
 
                 <button
                     onClick={() => this.props.onEditComplete(this.state)}
-                    disabled={this.props.template.template_name === this.state.template_name}
+                    disabled={
+                        this.state.template_name.trim().length < 1
+                        || this.props.template.template_name === this.state.template_name}
                     className="btn btn--primary"
                 >
                     {gettext('Save')}
