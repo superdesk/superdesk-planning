@@ -1,5 +1,6 @@
 import path from 'path';
 import {map} from 'lodash';
+import {waitPresent} from '../utils';
 
 export class FileInput {
     constructor(form) {
@@ -15,20 +16,23 @@ export class FileInput {
     setValue(values) {
         // Return a promise once all the files have been set
         return Promise.all(
-            map(values, (filePath) => this.addFile(filePath))
+            [map(values, (filePath) => this.addFile(filePath)),
+                waitPresent(this.row)]
         );
     }
 
     addFile(filePath) {
-        const absolutePath = path.resolve(__dirname, filePath);
+        return waitPresent(this.row).then(() => {
+            const absolutePath = path.resolve(__dirname, filePath);
 
-        // Make the file input element visible so that protractor can
-        // set the file location
-        browser.executeScript(
-            'arguments[0].className.replace("file-input--hidden", "");',
-            this.element.getWebElement()
-        );
+            // Make the file input element visible so that protractor can
+            // set the file location
+            browser.executeScript(
+                'arguments[0].className.replace("file-input--hidden", "");',
+                this.element.getWebElement()
+            );
 
-        return this.element.sendKeys(absolutePath);
+            return this.element.sendKeys(absolutePath);
+        });
     }
 }

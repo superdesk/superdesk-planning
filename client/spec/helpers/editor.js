@@ -59,8 +59,14 @@ class Editor {
     inputValues(event) {
         forEach(
             event,
-            (value, field) => getInputHelper(this.editor, field).setValue(value)
-        );
+            (value, field) => {
+                getInputHelper(this.editor, field).setValue(value);
+                // After uploading a file, editor reloads
+                // So, open the toggle boxes back
+                if (field === 'files') {
+                    this.openAllToggleBoxes();
+                }
+            });
 
         return browser.actions()
             .sendKeys(protractor.Key.TAB)
