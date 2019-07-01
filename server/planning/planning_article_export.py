@@ -54,6 +54,8 @@ def group_items_by_agenda(items):
     Each agenda will have an attribute 'items'.
     An extra agenda with id: 'unassigned' is returned
         containing items without any agenda.
+    Each item.agenda will be converted from an id to
+        the actual agenda object
     """
     if len(items) == 0:
         return []
@@ -72,6 +74,17 @@ def group_items_by_agenda(items):
                 if agenda is not None and agenda['is_enabled']:
                     agenda['items'] = [item]
                     agendas.append(agenda)
+
+    # replace each agenda id with the actual object
+    for item in items:
+        item_agendas_ids = item.get('agendas', [])
+        item_agendas = []
+        for agenda_id in item_agendas_ids:
+            agenda_in_array = [a for a in agendas if a['_id'] == agenda_id]
+            if len(agenda_in_array) > 0:
+                item_agendas.append(agenda_in_array[0])
+        item['agendas'] = item_agendas
+
     return agendas
 
 
