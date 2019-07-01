@@ -56,6 +56,10 @@ export class CoverageForm extends React.Component {
             if (!get(value, 'planning.scheduled')) {
                 finalValue = moment().hour(v.hour())
                     .minute(v.minute());
+            } else {
+                // Set the date from the original date
+                finalValue = value.planning.scheduled.clone().hour(v.hour())
+                    .minute(v.minute());
             }
         } else {
             onChange(f, v);
