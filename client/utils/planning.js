@@ -559,9 +559,14 @@ const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, d
             .startOf('hour'),
     };
 
+    if ([WORKFLOW_STATE.SCHEDULED, 'published'].includes(addNewsItemToPlanning.state)) {
+        newCoverage.planning.scheduled = addNewsItemToPlanning.state === 'published' ?
+            moment(addNewsItemToPlanning.firstpublished) :
+            moment(get(addNewsItemToPlanning, 'schedule_settings.utc_publish_schedule'));
+    }
+
     if (get(addNewsItemToPlanning, 'genre')) {
         newCoverage.planning.genre = addNewsItemToPlanning.genre;
-        self.modifyCoverageForClient(newCoverage);
     }
 
     if (get(addNewsItemToPlanning, 'keywords.length', 0) > 0) {
@@ -573,6 +578,8 @@ const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, d
         desk: get(addNewsItemToPlanning, 'task.desk', desk),
         user: get(addNewsItemToPlanning, 'version_creator'),
     };
+
+    self.modifyCoverageForClient(newCoverage);
 
     newCoverage.assigned_to.priority = ASSIGNMENTS.DEFAULT_PRIORITY;
     return newCoverage;
