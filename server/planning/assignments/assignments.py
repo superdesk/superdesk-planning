@@ -710,19 +710,22 @@ class AssignmentsService(superdesk.Service):
 
     def validate_assignment_lock(self, item, user_id):
         assignment = self._get_assignment_from_archive_item({}, item)
-        if assignment and assignment.get('lock_user') and \
+        if assignment and assignment.get('lock_user') and assignment.get('lock_action') != 'content_edit' and\
                 (assignment['lock_session'] != get_auth()['_id'] or assignment['lock_user'] != user_id):
             raise SuperdeskApiError.badRequestError(message="Lock Failed: Related assignment is locked.")
 
     def sync_assignment_lock(self, item, user_id):
+        # If more than one archive item is associated with the assignment
+        # No need to lock assignment in case of a rewrite document
         assignment = self._get_assignment_from_archive_item({}, item)
-        if assignment:
+        if assignment and (not item.get('rewrite_of') or get_resource_service('archive').find(
+                where={'assignment_id': assignment[config.ID_FIELD]}).count() <= 1):
             lock_service = get_component(LockService)
             lock_service.lock(assignment, user_id, get_auth()['_id'], 'content_edit', 'assignments')
 
     def sync_assignment_unlock(self, item, user_id):
         assignment = self._get_assignment_from_archive_item({}, item)
-        if assignment and assignment.get(LOCK_USER):
+        if assignment and assignment.get(LOCK_USER) and assignment.get(LOCK_ACTION) == 'content_edit':
             lock_service = get_component(LockService)
             lock_service.unlock(assignment, user_id, get_auth()['_id'], 'assignments')
 
