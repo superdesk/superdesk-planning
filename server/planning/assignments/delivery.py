@@ -39,7 +39,8 @@ delivery_schema = {
     },
 
     'sequence_no': {
-        'type': 'number'
+        'type': 'number',
+        'default': 0
     },
 
     'publish_time': {

@@ -599,7 +599,7 @@ class AssignmentsService(superdesk.Service):
                     if delivery and delivery.get('item_state') != CONTENT_STATE.PUBLISHED:
                         delivery_service.patch(delivery[config.ID_FIELD], {
                             'item_state': CONTENT_STATE.PUBLISHED,
-                            'sequence_no': original.get('rewrite_sequence', 0),
+                            'sequence_no': original.get('rewrite_sequence') or 0,
                             'publish_time': get_delivery_publish_time(updates, original)
                         })
 

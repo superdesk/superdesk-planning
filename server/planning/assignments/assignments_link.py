@@ -50,7 +50,7 @@ class AssignmentsLinkService(Service):
                         'planning_id': assignment['planning_item'],
                         'coverage_id': assignment['coverage_item'],
                         'item_state': item.get('state'),
-                        'sequence_no': item.get('rewrite_sequence', 0),
+                        'sequence_no': item.get('rewrite_sequence') or 0,
                         'publish_time': get_delivery_publish_time(item)
                     })
 
