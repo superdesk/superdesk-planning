@@ -88,6 +88,36 @@ def group_items_by_agenda(items):
     return agendas
 
 
+def inject_internal_converages(items):
+    items_injected = []
+
+    coverage_labels = {}
+    cv = get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
+    if cv:
+        coverage_labels= {_type['qcode']: _type['name'] for _type in cv['items']}
+
+    for item in items:
+        if item.get('coverages'):
+            item['internal_coverages'] = []
+            for coverage in item.get('coverages'):
+                user = None
+                assigned_to = coverage.get('assigned_to') or {}
+
+                if assigned_to.get('coverage_provider'):
+                    user = assigned_to['coverage_provider']
+                elif assigned_to.get('user'):
+                    user = get_resource_service('users').find_one(req=None, _id=assigned_to.get('user'))
+
+                if user is not None:
+                    coverage_type = coverage.get('planning').get('g2_content_type')
+                    label = coverage_labels.get(coverage_type, coverage_type)
+                    item['internal_coverages'].append({ "user": user, "type": label })
+
+        items_injected.append(item)
+
+    return items_injected
+
+
 def generate_text_item(items, template_name, resource_type):
     template = get_resource_service('planning_export_templates').get_template(template_name, resource_type)
     archive_service = get_resource_service('archive')
@@ -187,7 +217,11 @@ def generate_text_item(items, template_name, resource_type):
             else:
                 item['schedule'] = item['schedule'].strftime('%H%M')
 
+    agendas = []
     if resource_type == 'planning':
+        agendas = group_items_by_agenda(items)
+        items = inject_internal_converages(items)
+
         labels = {}
         cv = get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
         if cv:
@@ -201,7 +235,6 @@ def generate_text_item(items, template_name, resource_type):
                                  if (coverage.get('planning') or {}).get('g2_content_type')]
 
     article = {}
-    agendas = group_items_by_agenda(items)
 
     for key, value in template.items():
         if value.endswith(".html"):
