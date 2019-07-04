@@ -106,7 +106,7 @@ const itemBulkUnSpikeModal = (items) => (
     }
 );
 
-const exportAsArticle = (items = []) => (
+const exportAsArticle = (items = [], download) => (
     (dispatch, getState, {api, notify, gettext, superdesk, $location, $interpolate, desks}) => {
         if (get(items, 'length', 0) <= 0) {
             return Promise.resolve;
@@ -155,9 +155,16 @@ const exportAsArticle = (items = []) => (
             selectors.general.getEventExportTemplates(getState());
         const exportArticlesDispatch = (items, desk, template, type, download, articleTemplate) => {
             const itemIds = items.map((item) => item.id);
+            const url = selectors.config.getServerUrl(getState());
 
             if (download) {
-                window.open(`${getState().config.server.url}/planning_download/events/${itemIds.join(',')}`, '_blank');
+                let queryString = `${url}/planning_download/events/${itemIds.join(',')}`;
+
+                if (template) {
+                    queryString = `${queryString}?template=${template}`;
+                }
+
+                window.open(queryString, '_blank');
                 dispatch(self.deSelectEvents(null, true));
                 return Promise.resolve();
             } else {
@@ -166,7 +173,6 @@ const exportAsArticle = (items = []) => (
                     items: itemIds,
                     template: template,
                     type: type,
-                    copy_to_clipboard: download,
                     article_template: articleTemplate,
                 })
                     .then((item) => {
@@ -202,12 +208,12 @@ const exportAsArticle = (items = []) => (
                 items: sortableItems,
                 action: exportArticlesDispatch,
                 desks: [...selectors.general.userDesks(getState()), personalWorkspace],
-                templates: templates,
+                templates: templates.filter((t) => download ? t.download : !t.download),
                 defaultTemplate: templates.find((t) =>
                     (isPlanning && t.name === 'default_planning') || (!isPlanning && t.name === 'default_event')),
                 defaultDesk: defaultDesk,
                 type: itemType,
-                download: itemType === ITEM_TYPE.EVENT,
+                download: download,
                 articleTemplates: articleTemplates,
                 defaultArticleTemplate: articleTemplates.find((t) =>
                     t._id === get(defaultDesk, 'default_content_template')) || articleTemplates[0],

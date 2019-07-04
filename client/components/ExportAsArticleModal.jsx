@@ -38,7 +38,7 @@ export class ExportAsArticleModal extends React.Component {
         this.setState({[field]: value});
     }
 
-    onSubmit(e, download) {
+    onSubmit() {
         const {
             desk,
             template,
@@ -47,7 +47,7 @@ export class ExportAsArticleModal extends React.Component {
         } = this.state;
 
         this.props.modalProps.action(items, get(desk, '_id'), get(template, 'name'),
-            get(this.props, 'modalProps.type'), download, get(articleTemplate, '_id'));
+            get(this.props, 'modalProps.type'), get(this.props, 'modalProps.download'), get(articleTemplate, '_id'));
         this.props.handleHide();
     }
 
@@ -91,7 +91,7 @@ export class ExportAsArticleModal extends React.Component {
                     <Row>
                         <SortItems items={items} onSortChange={this.onSortChange}/>
                     </Row>
-                    <Row>
+                    {!download && [<Row key={0}>
                         <SelectInput
                             field="desk"
                             label={gettext('Desk')}
@@ -100,8 +100,8 @@ export class ExportAsArticleModal extends React.Component {
                             options={desks}
                             labelField="name"
                             keyField="_id" />
-                    </Row>
-                    <Row>
+                    </Row>,
+                    <Row key={1}>
                         <SelectInput
                             field="articleTemplate"
                             label={gettext('Select Article Template')}
@@ -109,25 +109,27 @@ export class ExportAsArticleModal extends React.Component {
                             onChange={this.onChange}
                             options={articleTemplates}
                             labelField="template_name"
-                            keyField="_id" />
-                    </Row>
+                            keyField="_id"
+                            clearable />
+                    </Row>]}
                     <Row>
                         <SelectInput
                             field="template"
-                            label={gettext('Template')}
+                            label={gettext('Custom Layout')}
                             value={template}
                             onChange={this.onChange}
                             options={templates}
                             labelField="label"
-                            keyField="name" />
+                            keyField="name"
+                            clearable />
                     </Row>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button type="button"
                         onClick={this.props.handleHide}>{gettext('Cancel')}</Button>
-                    <Button type="submit" className="btn--primary" disabled={!template || !desk}
-                        onClick={this.onSubmit}>{gettext('Export')}</Button>
-                    {download && <Button type="submit" className="btn--primary"onClick={this.onSubmit.bind(null, true)}>
+                    {!download && <Button type="submit" className="btn--primary" disabled={!desk}
+                        onClick={this.onSubmit}>{gettext('Export')}</Button>}
+                    {download && <Button type="submit" className="btn--primary"onClick={this.onSubmit}>
                         {gettext('Download')}</Button>}
                 </Modal.Footer>
             </Modal>
