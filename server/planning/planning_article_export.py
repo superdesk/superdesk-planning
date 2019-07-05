@@ -89,8 +89,6 @@ def group_items_by_agenda(items):
 
 
 def inject_internal_converages(items):
-    items_injected = []
-
     coverage_labels = {}
     cv = get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
     if cv:
@@ -112,10 +110,6 @@ def inject_internal_converages(items):
                     coverage_type = coverage.get('planning').get('g2_content_type')
                     label = coverage_labels.get(coverage_type, coverage_type)
                     item['internal_coverages'].append({ "user": user, "type": label })
-
-        items_injected.append(item)
-
-    return items_injected
 
 
 def generate_text_item(items, template_name, resource_type):
@@ -220,7 +214,7 @@ def generate_text_item(items, template_name, resource_type):
     agendas = []
     if resource_type == 'planning':
         agendas = group_items_by_agenda(items)
-        items = inject_internal_converages(items)
+        inject_internal_converages(items)
 
         labels = {}
         cv = get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
