@@ -458,7 +458,11 @@ const duplicate = (event) => (
             eventUtils.duplicateEvent(event, plannedStatus)
         );
 
-        return dispatch(main.createNew(ITEM_TYPE.EVENT, newEvent));
+        return dispatch(main.createNew(
+            ITEM_TYPE.EVENT,
+            newEvent,
+            true,
+            selectors.forms.currentItemIdModal(getState())));
     }
 );
 
