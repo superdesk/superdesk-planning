@@ -40,9 +40,9 @@ export class EventEditorComponent extends React.Component {
             initialFocus: null,
             top: null,
             contacts: null,
-            uploading: false,
         };
 
+        this.state = {uploading: false};
         this.onAddFiles = this.onAddFiles.bind(this);
         this.onRemoveFile = this.onRemoveFile.bind(this);
     }
@@ -127,7 +127,7 @@ export class EventEditorComponent extends React.Component {
     onAddFiles(fileList) {
         const files = Array.from(fileList).map((f) => [f]);
 
-        this.dom.uploading = true;
+        this.setState({uploading: true});
         this.props.uploadFiles(files)
             .then((newFiles) => {
                 this.props.onChangeHandler('files',
@@ -135,10 +135,10 @@ export class EventEditorComponent extends React.Component {
                         ...get(this.props, 'diff.files', []),
                         ...newFiles.map((f) => f._id),
                     ]);
-                this.dom.uploading = false;
+                this.setState({uploading: false});
             }, () => {
                 this.notifyValidationErrors('Failed to upload files');
-                this.dom.uploading = false;
+                this.setState({uploading: false});
             });
     }
 
@@ -223,8 +223,8 @@ export class EventEditorComponent extends React.Component {
             />
         );
 
-        return this.dom.uploading ? (<div className="sd-loader"/>) :
-            (<div ref={(node) => this.dom.top = node} >
+        return (
+            <div ref={(node) => this.dom.top = node} >
                 <EventEditorHeader
                     item={item}
                     users={users}
@@ -416,17 +416,19 @@ export class EventEditorComponent extends React.Component {
                         forceScroll={editorMenuUtils.forceScroll(navigation, 'files')}
                         paddingTop={!!onFocusFiles}
                         badgeValue={getCountOfProperty('files')} >
-                        <Field
-                            component={FileInput}
-                            field="files"
-                            createLink={createUploadLink}
-                            defaultValue={[]}
-                            {...fieldProps}
-                            onFocus={onFocusFiles}
-                            files={files}
-                            onAddFiles={this.onAddFiles}
-                            onRemoveFile={this.onRemoveFile}
-                        />
+                        <div className={this.state.uploading ? 'sd-loader' : ''}>
+                            { !this.state.uploading && <Field
+                                component={FileInput}
+                                field="files"
+                                createLink={createUploadLink}
+                                defaultValue={[]}
+                                {...fieldProps}
+                                onFocus={onFocusFiles}
+                                files={files}
+                                onAddFiles={this.onAddFiles}
+                                onRemoveFile={this.onRemoveFile}
+                            />}
+                        </div>
                     </ToggleBox>
 
                     <ToggleBox
@@ -473,7 +475,8 @@ export class EventEditorComponent extends React.Component {
                         />
                     )}
                 </ContentBlock>
-            </div>);
+            </div>
+        );
     }
 }
 
