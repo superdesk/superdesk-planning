@@ -447,7 +447,8 @@ describe('actions.events.ui', () => {
             const args = main.createNew.args[0];
 
             expect(main.createNew.callCount).toBe(1);
-            expect(args).toEqual([ITEM_TYPE.EVENT, {
+            expect(args[0]).toEqual(ITEM_TYPE.EVENT);
+            expect(args[1]).toEqual({
                 ...omit(data.events[0], ['_id', '_etag', 'planning_ids']),
                 dates: {
                     start: jasmine.any(moment),
@@ -465,7 +466,7 @@ describe('actions.events.ui', () => {
                 links: ['http://www.google.com'],
                 _startTime: jasmine.any(moment),
                 _endTime: jasmine.any(moment),
-            }]);
+            });
 
             expect(args[1].dates.start.format()).toEqual(newStartDate.format());
             expect(args[1].dates.end.format()).toEqual(newEndDate.format());

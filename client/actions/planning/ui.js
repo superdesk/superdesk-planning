@@ -203,7 +203,10 @@ const duplicate = (plan) => (
         dispatch(planningApi.duplicate(plan))
             .then((newPlan) => {
                 notify.success(gettext('Planning duplicated'));
-                dispatch(main.openForEdit(newPlan));
+                dispatch(main.openForEdit(
+                    newPlan,
+                    true,
+                    selectors.forms.currentItemIdModal(getState())));
 
                 return Promise.resolve(newPlan);
             }, (error) => {

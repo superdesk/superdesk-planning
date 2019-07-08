@@ -519,7 +519,7 @@ describe('actions.planning.ui', () => {
                     expect(services.notify.success.args[0]).toEqual(['Planning duplicated']);
 
                     expect(main.openForEdit.callCount).toBe(1);
-                    expect(main.openForEdit.args[0]).toEqual([data.plannings[0]]);
+                    expect(main.openForEdit.args[0][0]).toEqual(data.plannings[0]);
 
                     done();
                 })
