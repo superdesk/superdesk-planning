@@ -3,7 +3,7 @@ nose-timer
 pep8
 flake8
 flake8-docstrings
-pydocstyle
+pydocstyle<4.0
 wooper
 requests
 requests-mock
