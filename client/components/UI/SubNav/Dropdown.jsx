@@ -26,9 +26,9 @@ export class Dropdown extends React.Component {
         defer(() => {
             this.setState({open: !this.state.open}, () => {
                 if (this.state.open) {
-                    document.addEventListener('click', this.close);
+                    document.addEventListener('mousedown', this.close);
                 } else {
-                    document.removeEventListener('click', this.close);
+                    document.removeEventListener('mousedown', this.close);
                 }
             });
             this.inToggle = false;
@@ -43,7 +43,7 @@ export class Dropdown extends React.Component {
 
     componentWillUnmount() {
         if (this.state.open) {
-            document.removeEventListener('click', this.close);
+            document.removeEventListener('mousedown', this.close);
         }
     }
 
@@ -117,7 +117,7 @@ export class Dropdown extends React.Component {
                         } else {
                             return (
                                 <li key={index}>
-                                    <button id={item.id} onClick={() => item.action()}>
+                                    <button id={item.id} onMouseDown={() => item.action()}>
                                         {item.icon && (
                                             <i className={classNames(
                                                 {'icon--gray': item.disabled},
