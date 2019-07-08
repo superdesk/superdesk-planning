@@ -14,8 +14,10 @@ from eve.utils import config, ParsedRequest
 from superdesk import Resource, get_resource_service
 from superdesk.services import BaseService
 from superdesk.metadata.item import metadata_schema
+from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
 from superdesk.utils import ListCursor
+from apps.archive.common import get_user
 
 logger = logging.getLogger(__name__)
 
@@ -157,14 +159,47 @@ class EventsTemplateService(BaseService):
         for doc in docs:
             self._fill_event_template(doc)
 
+    def on_created(self, docs):
+        user = get_user()
+        for doc in docs:
+            push_notification(
+                'events-template:created',
+                item=str(doc.get(config.ID_FIELD)),
+                user=str(user.get(config.ID_FIELD))
+            )
+
     def on_update(self, updates, original):
-        self._validate_base_on_event(updates, original)
+        self._validate_based_on_event(updates, original)
+
+    def on_updated(self, updates, original):
+        user = get_user()
+        push_notification(
+            'events-template:updated',
+            item=str(original[config.ID_FIELD]),
+            user=str(user.get(config.ID_FIELD))
+        )
 
     def on_replace(self, doc, original):
-        self._validate_base_on_event(doc, original)
+        self._validate_based_on_event(doc, original)
+
+    def on_replaced(self, document, original):
+        user = get_user()
+        push_notification(
+            'events-template:replaced',
+            item=str(original[config.ID_FIELD]),
+            user=str(user.get(config.ID_FIELD))
+        )
+
+    def on_deleted(self, doc):
+        user = get_user()
+        push_notification(
+            'events-template:deleted',
+            item=str(doc[config.ID_FIELD]),
+            user=str(user.get(config.ID_FIELD))
+        )
 
     @staticmethod
-    def _validate_base_on_event(updates, original):
+    def _validate_based_on_event(updates, original):
         # we can't change `based_on_event` id
         if 'based_on_event' in updates and updates['based_on_event'] != original['based_on_event']:
             raise SuperdeskApiError.badRequestError(
