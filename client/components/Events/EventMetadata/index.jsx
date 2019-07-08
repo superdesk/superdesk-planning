@@ -33,11 +33,12 @@ export const EventMetadata = (
         showBorder,
         createUploadLink,
         files,
+        hideEditIcon,
     }
 ) => {
     const dateStr = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat, dateOnly, true, false);
     const isItemLocked = eventUtils.isEventLocked(event, lockedItems);
-    const editEventComponent = onEditEvent ?
+    const editEventComponent = onEditEvent && !hideEditIcon ?
         (<button data-sd-tooltip="Edit Event"
             data-flow="left"
             onClick={(event) => {
@@ -244,6 +245,7 @@ EventMetadata.propTypes = {
     showBorder: PropTypes.bool,
     createUploadLink: PropTypes.func,
     files: PropTypes.object,
+    hideEditIcon: PropTypes.bool,
 };
 
 

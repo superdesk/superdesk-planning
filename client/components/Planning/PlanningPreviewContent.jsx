@@ -48,6 +48,7 @@ export class PlanningPreviewContentComponent extends React.Component {
             noPadding,
             createUploadLink,
             hideRelatedItems,
+            hideEditIcon,
             files,
         } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
@@ -205,6 +206,7 @@ export class PlanningPreviewContentComponent extends React.Component {
                         lockedItems={lockedItems}
                         createUploadLink={createUploadLink}
                         files={files}
+                        hideEditIcon={hideEditIcon}
                     />
                 )}
                 {hasCoverage &&
@@ -252,6 +254,7 @@ PlanningPreviewContentComponent.propTypes = {
     createUploadLink: PropTypes.func,
     hideRelatedItems: PropTypes.bool,
     files: PropTypes.object,
+    hideEditIcon: PropTypes.bool,
 };
 
 const mapStateToProps = (state, ownProps) => ({

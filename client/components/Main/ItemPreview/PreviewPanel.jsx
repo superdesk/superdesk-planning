@@ -141,7 +141,10 @@ export class PreviewPanelComponent extends React.Component {
                             hideItemActions={this.props.hideItemActions}
                             showUnlock={this.props.showUnlock}/>
                         }
-                        <RenderTab item={this.props.item} hideRelatedItems={this.props.hideRelatedItems}/>
+                        <RenderTab
+                            item={this.props.item}
+                            hideRelatedItems={this.props.hideRelatedItems}
+                            hideEditIcon={this.props.hideEditIcon} />
                     </Content>
                 )}
             </SidePanel>
