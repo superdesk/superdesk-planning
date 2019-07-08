@@ -92,7 +92,7 @@ def inject_internal_converages(items):
     coverage_labels = {}
     cv = get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
     if cv:
-        coverage_labels= {_type['qcode']: _type['name'] for _type in cv['items']}
+        coverage_labels = {_type['qcode']: _type['name'] for _type in cv['items']}
 
     for item in items:
         if item.get('coverages'):
@@ -109,7 +109,7 @@ def inject_internal_converages(items):
                 if user is not None:
                     coverage_type = coverage.get('planning').get('g2_content_type')
                     label = coverage_labels.get(coverage_type, coverage_type)
-                    item['internal_coverages'].append({ "user": user, "type": label })
+                    item['internal_coverages'].append({"user": user, "type": label})
 
 
 def generate_text_item(items, template_name, resource_type):
