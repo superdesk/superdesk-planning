@@ -54,6 +54,8 @@ def group_items_by_agenda(items):
     Each agenda will have an attribute 'items'.
     An extra agenda with id: 'unassigned' is returned
         containing items without any agenda.
+    Each item.agenda will be converted from an id to
+        the actual agenda object
     """
     if len(items) == 0:
         return []
@@ -72,7 +74,42 @@ def group_items_by_agenda(items):
                 if agenda is not None and agenda['is_enabled']:
                     agenda['items'] = [item]
                     agendas.append(agenda)
+
+    # replace each agenda id with the actual object
+    for item in items:
+        item_agendas_ids = item.get('agendas', [])
+        item_agendas = []
+        for agenda_id in item_agendas_ids:
+            agenda_in_array = [a for a in agendas if a['_id'] == agenda_id]
+            if len(agenda_in_array) > 0:
+                item_agendas.append(agenda_in_array[0])
+        item['agendas'] = item_agendas
+
     return agendas
+
+
+def inject_internal_converages(items):
+    coverage_labels = {}
+    cv = get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
+    if cv:
+        coverage_labels = {_type['qcode']: _type['name'] for _type in cv['items']}
+
+    for item in items:
+        if item.get('coverages'):
+            item['internal_coverages'] = []
+            for coverage in item.get('coverages'):
+                user = None
+                assigned_to = coverage.get('assigned_to') or {}
+
+                if assigned_to.get('coverage_provider'):
+                    user = assigned_to['coverage_provider']
+                elif assigned_to.get('user'):
+                    user = get_resource_service('users').find_one(req=None, _id=assigned_to.get('user'))
+
+                if user is not None:
+                    coverage_type = coverage.get('planning').get('g2_content_type')
+                    label = coverage_labels.get(coverage_type, coverage_type)
+                    item['internal_coverages'].append({"user": user, "type": label})
 
 
 def generate_text_item(items, template_name, resource_type):
@@ -174,7 +211,11 @@ def generate_text_item(items, template_name, resource_type):
             else:
                 item['schedule'] = item['schedule'].strftime('%H%M')
 
+    agendas = []
     if resource_type == 'planning':
+        agendas = group_items_by_agenda(items)
+        inject_internal_converages(items)
+
         labels = {}
         cv = get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
         if cv:
@@ -188,7 +229,6 @@ def generate_text_item(items, template_name, resource_type):
                                  if (coverage.get('planning') or {}).get('g2_content_type')]
 
     article = {}
-    agendas = group_items_by_agenda(items)
 
     for key, value in template.items():
         if value.endswith(".html"):
