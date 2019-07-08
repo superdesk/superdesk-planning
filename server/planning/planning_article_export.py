@@ -113,7 +113,7 @@ def inject_internal_converages(items):
 
 
 def generate_text_item(items, template_name, resource_type):
-    template = get_resource_service('planning_export_templates').get_template(template_name, resource_type)
+    template = get_resource_service('planning_export_templates').get_export_template(template_name, resource_type)
     archive_service = get_resource_service('archive')
     if not template:
         raise SuperdeskApiError.badRequestError('Invalid template selected')
@@ -284,18 +284,18 @@ class PlanningArticleExportService(superdesk.Service):
             ids.append(doc['_id'])
         return ids
 
-    def export_events_to_text(self, items, format='utf-8'):
-        rendered_item_list = []
+    def export_events_to_text(self, items, format='utf-8', template=None):
         for item in items:
-            state = item['state'] if item.get('state') in [WORKFLOW_STATE.CANCELLED, WORKFLOW_STATE.RESCHEDULED,
-                                                           WORKFLOW_STATE.POSTPONED] else None
+            item['formatted_state'] = item['state'] if item.get('state') in [WORKFLOW_STATE.CANCELLED,
+                                                                             WORKFLOW_STATE.RESCHEDULED,
+                                                                             WORKFLOW_STATE.POSTPONED] else None
             location = item['location'][0] if len(item.get('location') or []) > 0 else None
             if location:
                 format_address(location)
-                location = location.get('name') if not location.get('formatted_address') else \
+                item['formatted_location'] = location.get('name') if not location.get('formatted_address') else \
                     '{0}, {1}'.format(location.get('name'), location['formatted_address'])
 
-            contacts = []
+            item['contacts'] = []
             for contact in get_contacts_from_item(item):
                 contact_info = ['{0} {1}'.format(contact.get('first_name'), contact.get('last_name'))]
                 phone = None
@@ -312,25 +312,17 @@ class PlanningArticleExportService(superdesk.Service):
                 if phone:
                     contact_info.append(phone.get('number'))
 
-                contacts.append(", ".join(contact_info))
+                item['contacts'].append(", ".join(contact_info))
 
             date_time_format = "%a %d %b %Y, %H:%M"
             item['dates']['start'] = utc_to_local(config.DEFAULT_TIMEZONE, item['dates']['start'])
             item['dates']['end'] = utc_to_local(config.DEFAULT_TIMEZONE, item['dates']['end'])
-            schedule = "{0}-{1}" .format(item['dates']['start'].strftime(date_time_format),
-                                         item['dates']['end'].strftime("%H:%M"))
+            item['schedule'] = "{0}-{1}" .format(item['dates']['start'].strftime(date_time_format),
+                                                 item['dates']['end'].strftime("%H:%M"))
             if ((item['dates']['end'] - item['dates']['start']).total_seconds() / 60) >= (24 * 60):
-                schedule = "{0} to {1}".format(item['dates']['start'].strftime(date_time_format),
-                                               item['dates']['end'].strftime(date_time_format))
+                item['schedule'] = "{0} to {1}".format(item['dates']['start'].strftime(date_time_format),
+                                                       item['dates']['end'].strftime(date_time_format))
 
             set_item_place(item)
-            rendered_item_list.append(
-                render_template("events_download_format.txt",
-                                item=item,
-                                state=state,
-                                location=location,
-                                contacts=contacts,
-                                schedule=schedule))
 
-        if len(rendered_item_list) > 0:
-            return str.encode("\r\n\r\n".join(rendered_item_list), format)
+        return str.encode(render_template(template, items=items), format)
