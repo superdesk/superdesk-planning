@@ -9,7 +9,7 @@ package_data = {
 
 setup(
     name="superdesk-planning",
-    version="0.1",
+    version="1.6.0",
     package_dir={'': 'server'},
     packages=find_packages('server'),
     package_data=package_data,
