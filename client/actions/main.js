@@ -1028,7 +1028,7 @@ const openFromLockActions = () => (
     (dispatch, getState) => {
         const sessionLastLock = selectors.locks.getLastSessionLock(getState());
 
-        if (sessionLastLock) {
+        if (get(sessionLastLock, 'action')) {
             const action = Object.values(Object.assign({},
                 PLANNING.ITEM_ACTIONS,
                 EVENTS.ITEM_ACTIONS)).filter((a) => a.lock_action == sessionLastLock.action);
