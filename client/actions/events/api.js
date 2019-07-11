@@ -1433,7 +1433,7 @@ const receiveCalendars = (calendars) => ({
 const fetchEventTemplates = () => (dispatch, getState, {api}) => {
     api('recent_events_template').query()
         .then((res) => {
-            dispatch({type: 'RECEIVE_EVENT_TEMPLATES', payload: res._items});
+            dispatch({type: EVENTS.ACTIONS.RECEIVE_EVENT_TEMPLATES, payload: res._items});
         });
 };
 
