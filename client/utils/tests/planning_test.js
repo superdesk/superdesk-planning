@@ -277,7 +277,7 @@ describe('PlanningUtils', () => {
             });
         });
 
-        it('creates text coverage from published news item with past date', () => {
+        it('creates text coverage from published news item with past date rounded up', () => {
             const newsItem = {
                 slugline: 'slug',
                 ednote: 'edit my note',
@@ -300,7 +300,8 @@ describe('PlanningUtils', () => {
                     g2_content_type: 'text',
                     slugline: 'slug',
                     ednote: 'edit my note',
-                    scheduled: moment('2017-10-15T16:00:00'),
+                    scheduled: moment(newsItem.firstpublished).add(1, 'hour')
+                        .startOf('hour'),
                 },
                 news_coverage_status: {qcode: 'ncostat:int'},
                 workflow_status: 'active',
@@ -335,7 +336,8 @@ describe('PlanningUtils', () => {
                     g2_content_type: 'text',
                     slugline: 'slug',
                     ednote: 'edit my note',
-                    scheduled: moment('2017-10-15T16:00:00'),
+                    scheduled: moment(newsItem.firstpublished).add(1, 'hour')
+                        .startOf('hour'),
                 },
                 news_coverage_status: {qcode: 'ncostat:int'},
                 workflow_status: 'active',
@@ -371,7 +373,8 @@ describe('PlanningUtils', () => {
                     g2_content_type: 'text',
                     slugline: 'slug',
                     ednote: 'edit my note',
-                    scheduled: moment('2017-10-15T20:00:00'),
+                    scheduled: moment(newsItem.schedule_settings.utc_publish_schedule).add(1, 'hour')
+                        .startOf('hour'),
                 },
                 news_coverage_status: {qcode: 'ncostat:int'},
                 workflow_status: 'active',
