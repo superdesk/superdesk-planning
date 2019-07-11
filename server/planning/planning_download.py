@@ -15,7 +15,7 @@ import superdesk
 from werkzeug.utils import secure_filename
 from superdesk.errors import SuperdeskApiError
 
-from flask import send_file
+from flask import send_file, request
 from superdesk.utc import utcnow
 from .planning_article_export import get_items
 
@@ -28,7 +28,12 @@ logger = logging.getLogger(__name__)
 def planning_download_file(_ids):
     export_service = superdesk.get_resource_service('planning_article_export')
     items = get_items(_ids.split(','), 'events')
-    exported_text = export_service.export_events_to_text(items)
+    template = superdesk.get_resource_service('planning_export_templates').get_download_template(
+        request.args.get('template'), request.args.get('type', 'event'))
+    if not template:
+        raise superdesk.errors.SuperdeskApiError.badRequestError('Template not available')
+
+    exported_text = export_service.export_events_to_text(items, template=template)
     if exported_text:
         try:
             temp_file = io.BytesIO()

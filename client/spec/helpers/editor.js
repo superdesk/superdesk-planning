@@ -59,8 +59,9 @@ class Editor {
     inputValues(event) {
         forEach(
             event,
-            (value, field) => getInputHelper(this.editor, field).setValue(value)
-        );
+            (value, field) => {
+                getInputHelper(this.editor, field).setValue(value);
+            });
 
         return browser.actions()
             .sendKeys(protractor.Key.TAB)

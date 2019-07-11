@@ -54,6 +54,8 @@ def group_items_by_agenda(items):
     Each agenda will have an attribute 'items'.
     An extra agenda with id: 'unassigned' is returned
         containing items without any agenda.
+    Each item.agenda will be converted from an id to
+        the actual agenda object
     """
     if len(items) == 0:
         return []
@@ -72,11 +74,46 @@ def group_items_by_agenda(items):
                 if agenda is not None and agenda['is_enabled']:
                     agenda['items'] = [item]
                     agendas.append(agenda)
+
+    # replace each agenda id with the actual object
+    for item in items:
+        item_agendas_ids = item.get('agendas', [])
+        item_agendas = []
+        for agenda_id in item_agendas_ids:
+            agenda_in_array = [a for a in agendas if a['_id'] == agenda_id]
+            if len(agenda_in_array) > 0:
+                item_agendas.append(agenda_in_array[0])
+        item['agendas'] = item_agendas
+
     return agendas
 
 
+def inject_internal_converages(items):
+    coverage_labels = {}
+    cv = get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
+    if cv:
+        coverage_labels = {_type['qcode']: _type['name'] for _type in cv['items']}
+
+    for item in items:
+        if item.get('coverages'):
+            item['internal_coverages'] = []
+            for coverage in item.get('coverages'):
+                user = None
+                assigned_to = coverage.get('assigned_to') or {}
+
+                if assigned_to.get('coverage_provider'):
+                    user = assigned_to['coverage_provider']
+                elif assigned_to.get('user'):
+                    user = get_resource_service('users').find_one(req=None, _id=assigned_to.get('user'))
+
+                if user is not None:
+                    coverage_type = coverage.get('planning').get('g2_content_type')
+                    label = coverage_labels.get(coverage_type, coverage_type)
+                    item['internal_coverages'].append({"user": user, "type": label})
+
+
 def generate_text_item(items, template_name, resource_type):
-    template = get_resource_service('planning_export_templates').get_template(template_name, resource_type)
+    template = get_resource_service('planning_export_templates').get_export_template(template_name, resource_type)
     archive_service = get_resource_service('archive')
     if not template:
         raise SuperdeskApiError.badRequestError('Invalid template selected')
@@ -174,7 +211,11 @@ def generate_text_item(items, template_name, resource_type):
             else:
                 item['schedule'] = item['schedule'].strftime('%H%M')
 
+    agendas = []
     if resource_type == 'planning':
+        agendas = group_items_by_agenda(items)
+        inject_internal_converages(items)
+
         labels = {}
         cv = get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
         if cv:
@@ -188,7 +229,6 @@ def generate_text_item(items, template_name, resource_type):
                                  if (coverage.get('planning') or {}).get('g2_content_type')]
 
     article = {}
-    agendas = group_items_by_agenda(items)
 
     for key, value in template.items():
         if value.endswith(".html"):
@@ -244,18 +284,18 @@ class PlanningArticleExportService(superdesk.Service):
             ids.append(doc['_id'])
         return ids
 
-    def export_events_to_text(self, items, format='utf-8'):
-        rendered_item_list = []
+    def export_events_to_text(self, items, format='utf-8', template=None):
         for item in items:
-            state = item['state'] if item.get('state') in [WORKFLOW_STATE.CANCELLED, WORKFLOW_STATE.RESCHEDULED,
-                                                           WORKFLOW_STATE.POSTPONED] else None
+            item['formatted_state'] = item['state'] if item.get('state') in [WORKFLOW_STATE.CANCELLED,
+                                                                             WORKFLOW_STATE.RESCHEDULED,
+                                                                             WORKFLOW_STATE.POSTPONED] else None
             location = item['location'][0] if len(item.get('location') or []) > 0 else None
             if location:
                 format_address(location)
-                location = location.get('name') if not location.get('formatted_address') else \
+                item['formatted_location'] = location.get('name') if not location.get('formatted_address') else \
                     '{0}, {1}'.format(location.get('name'), location['formatted_address'])
 
-            contacts = []
+            item['contacts'] = []
             for contact in get_contacts_from_item(item):
                 contact_info = ['{0} {1}'.format(contact.get('first_name'), contact.get('last_name'))]
                 phone = None
@@ -272,23 +312,17 @@ class PlanningArticleExportService(superdesk.Service):
                 if phone:
                     contact_info.append(phone.get('number'))
 
-                contacts.append(", ".join(contact_info))
+                item['contacts'].append(", ".join(contact_info))
 
             date_time_format = "%a %d %b %Y, %H:%M"
-            schedule = "{0}-{1}" .format(item['dates']['start'].strftime(date_time_format),
-                                         item['dates']['end'].strftime("%H:%M"))
+            item['dates']['start'] = utc_to_local(config.DEFAULT_TIMEZONE, item['dates']['start'])
+            item['dates']['end'] = utc_to_local(config.DEFAULT_TIMEZONE, item['dates']['end'])
+            item['schedule'] = "{0}-{1}" .format(item['dates']['start'].strftime(date_time_format),
+                                                 item['dates']['end'].strftime("%H:%M"))
             if ((item['dates']['end'] - item['dates']['start']).total_seconds() / 60) >= (24 * 60):
-                schedule = "{0} to {1}".format(item['dates']['start'].strftime(date_time_format),
-                                               item['dates']['end'].strftime(date_time_format))
+                item['schedule'] = "{0} to {1}".format(item['dates']['start'].strftime(date_time_format),
+                                                       item['dates']['end'].strftime(date_time_format))
 
             set_item_place(item)
-            rendered_item_list.append(
-                render_template("events_download_format.txt",
-                                item=item,
-                                state=state,
-                                location=location,
-                                contacts=contacts,
-                                schedule=schedule))
 
-        if len(rendered_item_list) > 0:
-            return str.encode("\r\n\r\n".join(rendered_item_list), format)
+        return str.encode(render_template(template, items=items), format)

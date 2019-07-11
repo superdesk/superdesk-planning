@@ -140,13 +140,17 @@ export class MultiSelectActionsComponent extends React.PureComponent {
             (event) => eventUtils.canCreatePlanningFromEvent(event, session, privileges, lockedItems)
         );
 
-        let tools = [];
-
-        tools.push(<Button
-            key={1}
-            onClick={this.exportArticle}
-            color="primary"
-            text={gettext('Export')} />);
+        let tools = [
+            (<Button
+                key={0}
+                onClick={this.exportArticle}
+                color="primary"
+                text={gettext('Export')} />),
+            (<Button
+                key={1}
+                onClick={this.exportArticle.bind(null, true)}
+                color="primary"
+                text={gettext('Download')} />)];
 
         if (showCreatePlan) {
             tools.push(<Button
@@ -194,8 +198,8 @@ export class MultiSelectActionsComponent extends React.PureComponent {
         this.props.addEventToCurrentAgenda(this.getItemList());
     }
 
-    exportArticle() {
-        this.props.exportAsArticle(this.getItemList());
+    exportArticle(download) {
+        this.props.exportAsArticle(this.getItemList(), download === true);
     }
 
     render() {
@@ -267,7 +271,7 @@ const mapDispatchToProps = (dispatch) => ({
     addEventToCurrentAgenda: (events) => dispatch(actions.askForAddEventToCurrentAgenda(events)),
     spikeItems: (items) => dispatch(actions.multiSelect.itemBulkSpikeModal(items)),
     unspikeItems: (items) => dispatch(actions.multiSelect.itemBulkUnSpikeModal(items)),
-    exportAsArticle: (items) => dispatch(actions.multiSelect.exportAsArticle(items)),
+    exportAsArticle: (items, download) => dispatch(actions.multiSelect.exportAsArticle(items, download)),
 });
 
 

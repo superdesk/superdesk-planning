@@ -203,7 +203,15 @@ const duplicate = (plan) => (
         dispatch(planningApi.duplicate(plan))
             .then((newPlan) => {
                 notify.success(gettext('Planning duplicated'));
-                dispatch(main.openForEdit(newPlan));
+                const openInModal = selectors.forms.currentItemIdModal(getState());
+
+                if (get(plan, 'event_item')) {
+                    dispatch(main.unlockAndCancel(plan)).then(() => {
+                        dispatch(main.openForEdit(newPlan, true, openInModal));
+                    });
+                } else {
+                    dispatch(main.openForEdit(newPlan, true, openInModal));
+                }
 
                 return Promise.resolve(newPlan);
             }, (error) => {

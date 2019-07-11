@@ -25,7 +25,7 @@ export class CoverageArrayInput extends React.Component {
         }
 
         if (get(nextProps, 'value.length', 0) > get(this.props, 'value.length', 0) &&
-            !nextProps.readOnly) {
+            (!nextProps.readOnly || nextProps.addNewsItemToPlanning)) {
             const coverageId = nextProps.value[nextProps.value.length - 1].coverage_id;
             // A coverage was just added, mark it to be opened in the editor
 
@@ -161,6 +161,7 @@ CoverageArrayInput.propTypes = {
     autoAssignToWorkflow: PropTypes.bool,
     event: PropTypes.object,
     longEventDurationThreshold: PropTypes.number,
+    addNewsItemToPlanning: PropTypes.bool,
 };
 
 CoverageArrayInput.defaultProps = {

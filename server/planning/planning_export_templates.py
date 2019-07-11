@@ -28,6 +28,10 @@ class PlanningExportTemplatesResource(superdesk.Resource):
         },
         'data': {'type': 'dict'},
         'label': {'type': 'string'},
+        'download': {
+            'type': 'boolean',
+            'default': False
+        },
     }
     resource_methods = ['GET']
 
@@ -63,7 +67,7 @@ default_export_templates = [{
         'body_html': '''
 {% for item in items %}
 <p><b>{{ item.name }}</b>{% if item.get('location') %}{{ ', ' + item.location[0].name }}
-{% endif %}{{ ', ' + item.dates.start.strftime('%H%M - ') }}{{ item.get('assignees')|join(', ') }}</p>
+{% endif %}, {{ item.schedule }}{% if item.assignees|length %} - {{ item.assignees|join(', ') }}{% endif %}</p>
 <p>---</p>
 {% endfor %}
 '''
@@ -74,14 +78,17 @@ default_export_templates = [{
 class PlanningExportTemplatesService(superdesk.Service):
     def get(self, req, lookup):
         export_templates = list(super().get(req, lookup))
-        export_templates.extend(default_export_templates)
-
         return ListCursor(export_templates)
 
-    def get_template(self, name, type):
-        template = self.find_one(req=None, name=name)
-        if template:
-            return template.get('data')
+    def get_export_template(self, name, type):
+        if name:
+            return (self.find_one(req=None, name=name) or {}).get('data')
 
         template = next((t for t in default_export_templates if t['type'] == type), {})
         return template.get('data') if template else None
+
+    def get_download_template(self, name, type):
+        if name:
+            return ((self.find_one(req=None, name=name) or {}).get('data') or {}).get('template_file')
+
+        return 'event_download_default.html' if type == 'event' else None

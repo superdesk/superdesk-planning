@@ -1260,12 +1260,17 @@ const uploadFiles = (event) => (
  * @param {object} event - The event the location is associated with
  * @return arrow function
  */
-const _saveLocation = (event) => (
+const _saveLocation = (event, original) => (
     (dispatch) => {
         const location = get(event, 'location');
 
         if (!location || !location.name) {
-            delete event.location;
+            if (get(original, 'location')) {
+                event.location = null;
+            } else {
+                delete event.location;
+            }
+
             return Promise.resolve(event);
         } else if (location.existingLocation) {
             event.location = {
@@ -1345,7 +1350,7 @@ const _save = (original, eventUpdates) => (
 const save = (original, updates) => (
     (dispatch) => (
         // Returns the modified unsaved event with the locations changes
-        dispatch(self._saveLocation(updates))
+        dispatch(self._saveLocation(updates, original))
             .then((modifiedUpdates) => dispatch(self._save(original, modifiedUpdates)))
     )
 );

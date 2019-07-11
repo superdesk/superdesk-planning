@@ -52,7 +52,7 @@ export class PlanningEditorComponent extends React.Component {
             details: null,
         };
 
-        this.state = {openCoverageIds: []};
+        this.state = {openCoverageIds: [], uploading: false};
 
         this.onChange = this.onChange.bind(this);
         this.onDuplicateCoverage = this.onDuplicateCoverage.bind(this);
@@ -343,6 +343,7 @@ export class PlanningEditorComponent extends React.Component {
     onAddFiles(fileList) {
         const files = Array.from(fileList).map((f) => [f]);
 
+        this.setState({uploading: true});
         this.props.uploadFiles(files)
             .then((newFiles) => {
                 this.props.onChangeHandler('files',
@@ -350,8 +351,10 @@ export class PlanningEditorComponent extends React.Component {
                         ...get(this.props, 'diff.files', []),
                         ...newFiles.map((f) => f._id),
                     ]);
+                this.setState({uploading: false});
             }, () => {
                 this.notifyValidationErrors('Failed to upload files');
+                this.setState({uploading: false});
             });
     }
 
@@ -641,18 +644,19 @@ export class PlanningEditorComponent extends React.Component {
                     </ToggleBox>
 
                     {get(planningProfile, 'editor.files.enabled') &&
-                        <ToggleBox
-                            title={gettext('Attached Files')}
-                            isOpen={editorMenuUtils.isOpen(navigation, 'files')}
-                            onClose={editorMenuUtils.onItemClose(navigation, 'files')}
-                            onOpen={editorMenuUtils.onItemOpen(navigation, 'files')}
-                            scrollInView={true}
-                            hideUsingCSS={true} // hideUsingCSS so the file data is kept on hide/show
-                            invalid={!!errors.files && (dirty || submitFailed)}
-                            forceScroll={editorMenuUtils.forceScroll(navigation, 'files')}
-                            paddingTop={!!onFocusFiles}
-                            badgeValue={getCountOfProperty('files')} >
-                            <Field
+                    <ToggleBox
+                        title={gettext('Attached Files')}
+                        isOpen={editorMenuUtils.isOpen(navigation, 'files')}
+                        onClose={editorMenuUtils.onItemClose(navigation, 'files')}
+                        onOpen={editorMenuUtils.onItemOpen(navigation, 'files')}
+                        scrollInView={true}
+                        hideUsingCSS={true} // hideUsingCSS so the file data is kept on hide/show
+                        invalid={!!errors.files && (dirty || submitFailed)}
+                        forceScroll={editorMenuUtils.forceScroll(navigation, 'files')}
+                        paddingTop={!!onFocusFiles}
+                        badgeValue={getCountOfProperty('files')}>
+                        <div className={this.state.uploading ? 'sd-loader' : ''}>
+                            { !this.state.uploading && <Field
                                 component={FileInput}
                                 field="files"
                                 createLink={createUploadLink}
@@ -662,8 +666,9 @@ export class PlanningEditorComponent extends React.Component {
                                 files={files}
                                 onAddFiles={this.onAddFiles}
                                 onRemoveFile={this.onRemoveFile}
-                            />
-                        </ToggleBox>
+                            />}
+                        </div>
+                    </ToggleBox>
                     }
                 </ContentBlock>
 

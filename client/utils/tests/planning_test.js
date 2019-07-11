@@ -259,7 +259,7 @@ describe('PlanningUtils', () => {
             const coverage = planUtils.createCoverageFromNewsItem(
                 newsItem, newsCoverageStatus, desk, user, contentTypes);
 
-            expect(omit(coverage, 'coverage_id')).toEqual({
+            expect(omit(coverage, ['coverage_id', 'planning._scheduledTime'])).toEqual({
                 planning: {
                     g2_content_type: 'picture',
                     slugline: 'slug',
@@ -289,18 +289,18 @@ describe('PlanningUtils', () => {
                     desk: 'desk2',
                     user: 'ident2',
                 },
+                firstpublished: '2017-10-15T16:00:00',
             };
 
             const coverage = planUtils.createCoverageFromNewsItem(
                 newsItem, newsCoverageStatus, desk, user, contentTypes);
 
-            expect(omit(coverage, 'coverage_id')).toEqual({
+            expect(omit(coverage, ['coverage_id', 'planning._scheduledTime'])).toEqual({
                 planning: {
                     g2_content_type: 'text',
                     slugline: 'slug',
                     ednote: 'edit my note',
-                    scheduled: moment().add(1, 'hour')
-                        .startOf('hour'),
+                    scheduled: moment('2017-10-15T16:00:00'),
                 },
                 news_coverage_status: {qcode: 'ncostat:int'},
                 workflow_status: 'active',
@@ -312,7 +312,7 @@ describe('PlanningUtils', () => {
             });
         });
 
-        it('coverage time is always rounded off to nearest hour even if published news item has past date', () => {
+        it('coverage time is derived from news item\'s published time', () => {
             const newsItem = {
                 slugline: 'slug',
                 ednote: 'edit my note',
@@ -324,18 +324,54 @@ describe('PlanningUtils', () => {
                     desk: 'desk2',
                     user: 'ident2',
                 },
+                firstpublished: '2017-10-15T16:00:00',
             };
 
             const coverage = planUtils.createCoverageFromNewsItem(
                 newsItem, newsCoverageStatus, desk, user, contentTypes);
 
-            expect(omit(coverage, 'coverage_id')).toEqual({
+            expect(omit(coverage, ['coverage_id', 'planning._scheduledTime'])).toEqual({
                 planning: {
                     g2_content_type: 'text',
                     slugline: 'slug',
                     ednote: 'edit my note',
-                    scheduled: moment().add(1, 'hour')
-                        .startOf('hour'),
+                    scheduled: moment('2017-10-15T16:00:00'),
+                },
+                news_coverage_status: {qcode: 'ncostat:int'},
+                workflow_status: 'active',
+                assigned_to: {
+                    desk: 'desk2',
+                    user: 'ident2',
+                    priority: ASSIGNMENTS.DEFAULT_PRIORITY,
+                },
+            });
+        });
+
+        it('coverage time is derived from news item\'s schedule time if item is scheduled for publishing', () => {
+            const newsItem = {
+                slugline: 'slug',
+                ednote: 'edit my note',
+                type: 'text',
+                state: 'scheduled',
+                versioncreated: '2017-10-15T14:01:11',
+                version_creator: 'ident2',
+                task: {
+                    desk: 'desk2',
+                    user: 'ident2',
+                },
+                firstpublished: '2017-10-15T16:00:00',
+                schedule_settings: {utc_publish_schedule: '2017-10-15T20:00:00'},
+            };
+
+            const coverage = planUtils.createCoverageFromNewsItem(
+                newsItem, newsCoverageStatus, desk, user, contentTypes);
+
+            expect(omit(coverage, ['coverage_id', 'planning._scheduledTime'])).toEqual({
+                planning: {
+                    g2_content_type: 'text',
+                    slugline: 'slug',
+                    ednote: 'edit my note',
+                    scheduled: moment('2017-10-15T20:00:00'),
                 },
                 news_coverage_status: {qcode: 'ncostat:int'},
                 workflow_status: 'active',
@@ -364,7 +400,7 @@ describe('PlanningUtils', () => {
         },
         ];
 
-        it('creates text coverage from unpublished news item', () => {
+        it('creates text coverage from unpublished news item with coverate time rounded off to nearest hour', () => {
             const newsItem = {
                 _id: 'news1',
                 slugline: 'slugger',
@@ -374,7 +410,7 @@ describe('PlanningUtils', () => {
                 anpa_category: 'cat',
                 urgency: 3,
                 abstract: '<p>some abstractions</p>',
-                state: 'published',
+                state: 'in_progress',
                 versioncreated: '2019-10-15T10:01:11',
                 version_creator: 'ident1',
                 task: {
@@ -405,58 +441,7 @@ describe('PlanningUtils', () => {
                         ednote: 'Edit my note!',
                         scheduled: moment().add(1, 'hour')
                             .startOf('hour'),
-                    },
-                    news_coverage_status: {qcode: 'ncostat:int'},
-                    workflow_status: 'active',
-                    assigned_to: {
-                        desk: 'desk1',
-                        user: 'ident1',
-                        priority: ASSIGNMENTS.DEFAULT_PRIORITY,
-                    },
-                }],
-            }));
-        });
-
-        it('coverage time is always rounded off to nearest hour even if unpublished news item has past date', () => {
-            const newsItem = {
-                _id: 'news1',
-                slugline: 'slugger',
-                ednote: 'Edit my note!',
-                type: 'text',
-                subject: 'sub',
-                anpa_category: 'cat',
-                urgency: 3,
-                abstract: '<p>some abstractions</p>',
-                state: 'published',
-                versioncreated: '2019-10-15T10:01:11',
-                version_creator: 'ident1',
-                task: {
-                    desk: 'desk1',
-                    user: 'ident1',
-                    priority: ASSIGNMENTS.DEFAULT_PRIORITY,
-                },
-                place: [{name: 'Australia'}],
-            };
-
-            const plan = planUtils.createNewPlanningFromNewsItem(
-                newsItem, newsCoverageStatus, desk, user, contentTypes);
-
-            expect(plan).toEqual(jasmine.objectContaining({
-                type: 'planning',
-                slugline: 'slugger',
-                ednote: 'Edit my note!',
-                subject: 'sub',
-                anpa_category: 'cat',
-                urgency: 3,
-                description_text: 'some abstractions',
-                place: [{name: 'Australia'}],
-                coverages: [{
-                    coverage_id: jasmine.any(String),
-                    planning: {
-                        g2_content_type: 'text',
-                        slugline: 'slugger',
-                        ednote: 'Edit my note!',
-                        scheduled: moment().add(1, 'hour')
+                        _scheduledTime: moment().add(1, 'hour')
                             .startOf('hour'),
                     },
                     news_coverage_status: {qcode: 'ncostat:int'},
@@ -480,7 +465,7 @@ describe('PlanningUtils', () => {
                 anpa_category: 'cat',
                 urgency: 3,
                 abstract: '<p>some abstractions</p>',
-                state: 'published',
+                state: 'in_progress',
                 version_creator: 'ident1',
                 versioncreated: '2019-10-15T10:01:11',
                 task: {
@@ -510,6 +495,8 @@ describe('PlanningUtils', () => {
                         slugline: 'slugger',
                         ednote: 'Edit my note!',
                         scheduled: moment().add(1, 'hour')
+                            .startOf('hour'),
+                        _scheduledTime: moment().add(1, 'hour')
                             .startOf('hour'),
                     },
                     news_coverage_status: {qcode: 'ncostat:int'},
