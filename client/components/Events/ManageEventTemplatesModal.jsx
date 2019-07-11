@@ -9,7 +9,7 @@ import {Form} from '../../components/UI';
 import {TOOLTIPS} from '../../constants';
 import {connectServices} from 'superdesk-core/scripts/core/helpers/ReactRenderAsync';
 import {cloneDeep} from 'lodash';
-import eventsPlanning from '../../actions/eventsPlanning';
+import eventsApi from '../../actions/events/api';
 
 class EventTemplateEdit extends React.Component {
     constructor(props) {
@@ -144,7 +144,7 @@ class ManageEventTemplatesModalComponent extends React.Component {
     }
 
     onEditComplete(templateEdited) {
-        this.props.dispatch(eventsPlanning.ui.updateEventTemplate(
+        this.props.dispatch(eventsApi.updateEventTemplate(
             this.props.eventTemplates.find(({_id}) => _id === this.state.templateInEditMode),
             {template_name: templateEdited.template_name}
         ));
@@ -162,7 +162,7 @@ class ManageEventTemplatesModalComponent extends React.Component {
 
     deleteTemplate(id) {
         this.props.modal.confirm(gettext('Confirm delete')).then(() => {
-            this.props.dispatch(eventsPlanning.ui.removeEventTemplate(
+            this.props.dispatch(eventsApi.removeEventTemplate(
                 this.props.eventTemplates.find(({_id}) => _id === id)
             ));
         });

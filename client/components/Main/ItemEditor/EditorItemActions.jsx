@@ -5,7 +5,7 @@ import {connectServices} from 'superdesk-core/scripts/core/helpers/ReactRenderAs
 
 import {ITEM_TYPE, EVENTS, PLANNING} from '../../../constants';
 import {getItemType, eventUtils, planningUtils} from '../../../utils';
-import eventsPlanning from '../../../actions/eventsPlanning';
+import eventsApi from '../../../actions/events/api';
 import * as allActions from '../../../actions';
 
 import {ItemActionsMenu} from '../../index';
@@ -103,7 +103,7 @@ const EditorItemActionsComponent = (props) => {
                             })
                                 .then((res) => {
                                     const doSave = () =>
-                                        dispatch(eventsPlanning.ui.saveEventTemplate(templateName, updatedItem._id));
+                                        dispatch(eventsApi.saveEventTemplate(templateName, updatedItem._id));
 
                                     const templateAlreadyExists = res._meta.total !== 0;
 

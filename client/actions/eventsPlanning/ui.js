@@ -17,7 +17,7 @@ import {showModal} from '../index';
 const fetch = (params = {}) => (
     (dispatch, getState, {$location, $timeout}) => {
         dispatch(self.requestEventsPlanning(params));
-        dispatch(self.fetchEventTemplates());
+        dispatch(eventsApi.fetchEventTemplates());
 
         return dispatch(eventsAndPlanningApi.query(params, true))
             .then((results) => {
@@ -314,38 +314,6 @@ const storeFilter = (filterId) => ({
     payload: filterId,
 });
 
-const fetchEventTemplates = () => (dispatch, getState, {api}) => {
-    api('recent_events_template').query()
-        .then((res) => {
-            dispatch({type: 'RECEIVE_EVENT_TEMPLATES', payload: res._items});
-        });
-};
-
-const updateEventTemplate = (template, updates) => (dispatch, getState, {api}) => {
-    api.update('events_template', template, updates)
-        .then(() => {
-            dispatch(fetchEventTemplates());
-        });
-};
-
-const removeEventTemplate = (template) => (dispatch, getState, {api}) => {
-    api.remove(template, {}, 'events_template')
-        .then(() => {
-            dispatch(fetchEventTemplates());
-        });
-};
-
-const saveEventTemplate = (tamplateName, eventId) => (dispatch, getState, {api}) => {
-    api('events_template').save({
-        template_name: tamplateName,
-        based_on_event: eventId,
-    })
-        .then(() => {
-            dispatch(fetchEventTemplates());
-        });
-};
-
-
 // eslint-disable-next-line consistent-this
 const self = {
     fetch,
@@ -369,10 +337,6 @@ const self = {
     openFilters,
     selectFilter,
     storeFilter,
-    fetchEventTemplates,
-    saveEventTemplate,
-    updateEventTemplate,
-    removeEventTemplate,
 };
 
 export default self;

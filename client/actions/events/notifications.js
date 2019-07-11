@@ -359,6 +359,12 @@ self.events = {
     'events:update_time:recurring': () => (self.onEventScheduleChanged),
     'events:update_repetitions:recurring': () => (self.onEventScheduleChanged),
     'events:expired': () => self.onEventExpired,
+
+    // event templates
+    'events-template:created': () => eventsApi.fetchEventTemplates,
+    'events-template:updated': () => eventsApi.fetchEventTemplates,
+    'events-template:replaced': () => eventsApi.fetchEventTemplates,
+    'events-template:deleted': () => eventsApi.fetchEventTemplates,
 };
 
 export default self;
