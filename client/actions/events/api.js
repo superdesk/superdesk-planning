@@ -1451,14 +1451,41 @@ const removeEventTemplate = (template) => (dispatch, getState, {api}) => {
         });
 };
 
-const saveEventTemplate = (tamplateName, eventId) => (dispatch, getState, {api}) => {
-    api('events_template').save({
-        template_name: tamplateName,
-        based_on_event: eventId,
-    })
-        .then(() => {
-            dispatch(fetchEventTemplates());
-        });
+const createEventTemplate = (itemId) => (dispatch, getState, {api, modal}) => {
+    modal.prompt(gettext('Template name')).then((templateName) => {
+        api('events_template').query({
+            where: {
+                template_name: {
+                    $regex: templateName,
+                    $options: 'i',
+                },
+            },
+        })
+            .then((res) => {
+                const doSave = () => {
+                    api('events_template').save({
+                        template_name: templateName,
+                        based_on_event: itemId,
+                    })
+                        .then(() => {
+                            dispatch(fetchEventTemplates());
+                        });
+                };
+
+                const templateAlreadyExists = res._meta.total !== 0;
+
+                if (templateAlreadyExists) {
+                    modal.confirm(gettext(
+                        'Template already exists. Do you want to overwrite it?'
+                    ))
+                        .then(() => {
+                            api.remove(res._items[0], {}, 'events_template').then(doSave);
+                        });
+                } else {
+                    doSave();
+                }
+            });
+    });
 };
 
 // eslint-disable-next-line consistent-this
@@ -1499,7 +1526,7 @@ const self = {
     fetchEventFiles,
     removeFile,
     fetchEventTemplates,
-    saveEventTemplate,
+    createEventTemplate,
     updateEventTemplate,
     removeEventTemplate,
 };

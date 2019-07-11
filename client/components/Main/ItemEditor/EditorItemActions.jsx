@@ -92,33 +92,7 @@ const EditorItemActionsComponent = (props) => {
                     const message = gettext('Save changes before creating a template?');
 
                     dispatch(allActions.main.openActionModalFromEditor(item, message, (updatedItem) => {
-                        modal.prompt(gettext('Template name')).then((templateName) => {
-                            api('events_template').query({
-                                where: {
-                                    template_name: {
-                                        $regex: templateName,
-                                        $options: 'i',
-                                    },
-                                },
-                            })
-                                .then((res) => {
-                                    const doSave = () =>
-                                        dispatch(eventsApi.saveEventTemplate(templateName, updatedItem._id));
-
-                                    const templateAlreadyExists = res._meta.total !== 0;
-
-                                    if (templateAlreadyExists) {
-                                        modal.confirm(gettext(
-                                            'Template already exists. Do you want to overwrite it?'
-                                        ))
-                                            .then(() => {
-                                                api.remove(res._items[0], {}, 'events_template').then(doSave);
-                                            });
-                                    } else {
-                                        doSave();
-                                    }
-                                });
-                        });
+                        dispatch(eventsApi.createEventTemplate(updatedItem._id));
                     }));
                 },
         };
