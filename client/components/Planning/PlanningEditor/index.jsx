@@ -280,7 +280,7 @@ export class PlanningEditorComponent extends React.Component {
         originalCoverages.forEach((original) => {
             // Push notification updates from 'assignment' workflow changes
             const index = updatedCoverages.findIndex((c) => c.coverage_id === original.coverage_id);
-            const updates = index >= 0 ? updatedCoverages[index] : null;
+            let updates = index >= 0 ? updatedCoverages[index] : null;
 
             if (!updates) {
                 return;
@@ -293,7 +293,14 @@ export class PlanningEditorComponent extends React.Component {
                 return;
             }
 
-            this.props.itemManager.finalisePartialSave({[`coverages[${index}]`]: updates}, false);
+            updates = {[`coverages[${index}]`]: updates};
+            if (get(this.props, 'original._etag') && get(nextProps, 'original._etag') &&
+                this.props.original._etag !== nextProps.original._etag) {
+                // Probably cancel-all-coverages
+                updates._etag = nextProps.original._etag;
+            }
+
+            this.props.itemManager.finalisePartialSave(updates, false);
         });
     }
 
