@@ -3,7 +3,6 @@ import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {defer} from 'lodash';
-import {firstCharUpperCase} from '../utils';
 
 import {Menu, Label, Divider, Dropdown as DropMenu} from '../Dropdown';
 import {gettext} from '../utils';
@@ -156,7 +155,7 @@ export class Dropdown extends React.Component {
                                             {'dropdown__menu-item--disabled': item.disabled},
                                             item.className
                                         )}>
-                                            {firstCharUpperCase(item.label)}
+                                            {item.label}
                                         </span>
                                     </button>
                                 </li>
