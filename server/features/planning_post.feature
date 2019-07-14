@@ -350,3 +350,62 @@ Feature: Post Planning
             }
         }]
         """
+
+    @auth
+    Scenario: Can not add planning with a disabled agenda
+        Given "agenda"
+        """
+        [{
+            "_id": "5d0b2fe75f627d4675887ae0",
+            "name": "TestAgenda",
+            "is_enabled": true
+        },{
+            "_id": "5d0b2fe75f627d4675887ae1",
+            "name": "DisablesAgenda",
+            "is_enabled": false
+        }]
+        """
+        When we post to "/planning"
+        """
+        [{
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "agendas": ["5d0b2fe75f627d4675887ae0", "5d0b2fe75f627d4675887ae1"],
+            "guid": "123",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get error 403
+
+    @auth
+    Scenario: Can not update planning with a disabled agenda
+        Given "agenda"
+        """
+        [{
+            "_id": "5d0b2fe75f627d4675887ae0",
+            "name": "TestAgenda",
+            "is_enabled": true
+        },{
+            "_id": "5d0b2fe75f627d4675887ae1",
+            "name": "DisablesAgenda",
+            "is_enabled": false
+        }]
+        """
+        When we post to "/planning"
+        """
+        [{
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "agendas": ["5d0b2fe75f627d4675887ae0"],
+            "guid": "123",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/123"
+        """
+        {
+            "agendas": ["5d0b2fe75f627d4675887ae0", "5d0b2fe75f627d4675887ae1"]
+        }
+        """
+        Then we get error 400
