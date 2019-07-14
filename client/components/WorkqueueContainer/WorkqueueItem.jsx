@@ -24,7 +24,7 @@ export const WorkqueueItem = ({
                     showRepeating={false}
                 />
                 <span className="item-label">
-                    {item.headline || item.slugline || 'Untitled'}
+                    {item.headline || item.slugline || item.name || 'Untitled'}
                     {!isExistingItem(item) && '*'}
                 </span>
             </a>
