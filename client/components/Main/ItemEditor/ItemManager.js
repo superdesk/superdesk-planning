@@ -116,9 +116,9 @@ export class ItemManager {
             if (!this.props.inModalView) {
                 this.clearForm();
             }
-        } else if (nextProps.itemId !== this.props.itemId ||
-            nextProps.itemAction !== this.props.itemAction
-        ) {
+        } else if (this.props.itemAction !== nextProps.itemAction) {
+            this.onItemActionChanged(nextProps);
+        } else if (nextProps.itemId !== this.props.itemId) {
             this.onItemIDChanged(nextProps);
         } else if (!this.state.loading &&
             !isTemporaryId(nextProps.itemId) &&
@@ -127,6 +127,16 @@ export class ItemManager {
         ) {
             this.onItemChanged(nextProps);
         }
+    }
+
+    onItemActionChanged(nextProps) {
+        let promise = Promise.resolve();
+
+        if (this.props.itemAction && nextProps.itemAction === 'read') {
+            promise = this.autoSave.remove();
+        }
+
+        return promise.then(() => this.onItemIDChanged(nextProps));
     }
 
     onItemIDChanged(nextProps) {
@@ -580,7 +590,10 @@ export class ItemManager {
         const updates = cloneDeep(this.state.diff);
 
         if (post) {
-            updates.state = WORKFLOW_STATE.SCHEDULED;
+            if (updates.pubstatus !== POST_STATE.USABLE) {
+                updates.state = WORKFLOW_STATE.SCHEDULED;
+            }
+
             updates.pubstatus = POST_STATE.USABLE;
             updates._post = true;
         } else if (unpost) {
