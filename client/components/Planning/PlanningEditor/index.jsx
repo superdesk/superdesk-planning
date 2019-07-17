@@ -33,7 +33,7 @@ import {ToggleBox} from '../../UI';
 import {PlanningEditorHeader} from './PlanningEditorHeader';
 import {CoverageArrayInput} from '../../Coverages';
 import {EventMetadata} from '../../Events';
-import {PLANNING, WORKFLOW_STATE, COVERAGES} from '../../../constants';
+import {WORKFLOW_STATE, COVERAGES} from '../../../constants';
 import CustomVocabulariesFields from '../../CustomVocabulariesFields';
 
 const toggleDetails = [
@@ -162,20 +162,13 @@ export class PlanningEditorComponent extends React.Component {
 
         if (remove) {
             _remove(coverages, (c) => c.coverage_id === coverage.coverage_id);
+            this.onChange('coverages', coverages);
         } else {
             // Cancel only
-            let coverageToUpdate = coverages.find((c) => c.coverage_id === coverage.coverage_id);
+            const coverageIndex = coverages.findIndex((c) => c.coverage_id === coverage.coverage_id);
 
-            coverageToUpdate.news_coverage_status = PLANNING.NEWS_COVERAGE_CANCELLED_STATUS;
-            coverageToUpdate.planning.workflow_status_reason = gettext('Coverage cancelled');
-            coverageToUpdate.workflow_status = WORKFLOW_STATE.CANCELLED;
-
-            if (get(coverageToUpdate, 'assigned_to.state')) {
-                coverageToUpdate.assigned_to.state = WORKFLOW_STATE.CANCELLED;
-            }
+            this.onPartialSave(coverage, coverageIndex, COVERAGES.PARTIAL_SAVE.CANCEL_COVERAGE);
         }
-
-        this.onChange('coverages', coverages);
     }
 
     onPartialSave(coverage, index, action) {
@@ -195,6 +188,8 @@ export class PlanningEditorComponent extends React.Component {
             partialSaveAction = this.props.itemManager.addCoverageToWorkflow;
         } else if (action === COVERAGES.PARTIAL_SAVE.REMOVE_ASSIGNMENT) {
             partialSaveAction = this.props.itemManager.removeAssignment;
+        } else if (action == COVERAGES.PARTIAL_SAVE.CANCEL_COVERAGE) {
+            partialSaveAction = this.props.itemManager.cancelCoverage;
         }
 
         partialSaveAction(this.props.item, coverage, index);
