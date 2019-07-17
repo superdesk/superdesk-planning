@@ -1,8 +1,19 @@
 # Superdesk Planning Changelog
 
+## [1.6.1] 2019-07-17
+### Fixes
+- [SDESK-4471] Reschedule and Postpone bugs when editor is open (#1259)
+- [SDESK-4453] Round up time when adding coverage for a published/scheduled news item (#1257)
+- [SDESK-4435] Cancel-All-Coverage and updating planning form was throwing an etag error
+- [SDESK-4436] New-line missing in downloaded file (Windows)
+- [SDESK-4318] Show name in workqueue in absence of slugline and headline
+- [SDESK-4336] Allow updates to planning items with disabled agendas
+- [SDESK-4413] Location Popup was closing when location text was selected and mouse click released
+
+
 ## [1.6] 2019-07-09
 ### Features
-- [SDBELGA-108] Event temlates API.
+- [SDBELGA-108] Event templates API.
 - [SDBELGA-111] As a user I want to select an article template when I do 'Export as article'
 - [SDESK-4125] Download functionality for events
 - [SDESK-4080] Adding configuration so that reason can be made mandatory.
