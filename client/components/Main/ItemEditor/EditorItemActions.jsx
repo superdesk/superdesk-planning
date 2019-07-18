@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {connectServices} from 'superdesk-core/scripts/core/helpers/ReactRenderAsync';
 
 import {ITEM_TYPE, EVENTS, PLANNING} from '../../../constants';
 import {getItemType, eventUtils, planningUtils} from '../../../utils';
@@ -21,9 +20,7 @@ const EditorItemActionsComponent = (props) => {
         contentTypes,
         itemManager,
         autoSave,
-        modal,
         dispatch,
-        api,
     } = props;
 
     const itemType = getItemType(item);
@@ -175,7 +172,4 @@ EditorItemActionsComponent.propTypes = {
     api: PropTypes.any,
 };
 
-export const EditorItemActions = connect()(connectServices(
-    EditorItemActionsComponent,
-    ['modal', 'api']
-));
+export const EditorItemActions = connect()(EditorItemActionsComponent);
