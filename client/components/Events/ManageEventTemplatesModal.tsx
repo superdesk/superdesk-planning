@@ -1,20 +1,32 @@
 /* eslint-disable react/no-multi-comp */
 
+import {IFormGroup, IBaseRestApiResponse, IGenericListPageComponent} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
-import {Modal} from '../../components';
+import {Modal} from '../../components/Modal/index';
 
-class ManageEventTemplatesModalComponent extends React.PureComponent {
+interface IProps {
+    handleHide(): void;
+}
+
+interface IEventTemplate extends IBaseRestApiResponse {
+    template_name: string;
+}
+
+class ManageEventTemplatesModalComponent extends React.PureComponent<IProps> {
+    static propTypes:  any;
+
     render() {
         const {handleHide} = this.props;
 
         const {getGenericListPageComponent, ListItemColumn, ListItem} = superdeskApi.components;
         const {getFormFieldPreviewComponent, FormFieldType} = superdeskApi.forms;
 
-        const EventTemplatesComponent = getGenericListPageComponent('events_template');
+        const EventTemplatesComponent = getGenericListPageComponent<IEventTemplate>('events_template');
+
+        const {gettext} = superdeskApi.localization;
 
         const nameField = {
             label: gettext('Template name'),
@@ -23,7 +35,7 @@ class ManageEventTemplatesModalComponent extends React.PureComponent {
             required: true,
         };
 
-        const formConfig = {
+        const formConfig: IFormGroup = {
             direction: 'vertical',
             type: 'inline',
             form: [
@@ -32,9 +44,9 @@ class ManageEventTemplatesModalComponent extends React.PureComponent {
         };
 
         const renderRow = (
-            key,
-            item,
-            page
+            key: string,
+            item: IEventTemplate,
+            page: IGenericListPageComponent<IEventTemplate>
         ) => (
             <ListItem
                 key={key}
@@ -84,15 +96,8 @@ class ManageEventTemplatesModalComponent extends React.PureComponent {
 
 ManageEventTemplatesModalComponent.propTypes = {
     handleHide: PropTypes.func,
-    eventTemplates: PropTypes.array,
-    dispatch: PropTypes.func,
 };
 
-function mapStateToProps(state) {
-    return {
-        eventTemplates: state.events.eventTemplates,
-    };
-}
 
-export const ManageEventTemplatesModal = connect(mapStateToProps)(ManageEventTemplatesModalComponent);
+export const ManageEventTemplatesModal = ManageEventTemplatesModalComponent;
 
