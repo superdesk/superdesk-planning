@@ -1,14 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {PLANNING, HISTORY_OPERATIONS} from '../../constants';
+import {PLANNING, HISTORY_OPERATIONS, ITEM_TYPE} from '../../constants';
 import {getItemInArrayById, gettext, historyUtils} from '../../utils';
 import {get} from 'lodash';
 import {ContentBlock} from '../UI/SidePanel';
 import {CoverageHistory} from '../Coverages';
 
 export class PlanningHistory extends React.Component {
-    closeAndOpenDuplicate(duplicateId) {
-        this.props.openItemPreview(duplicateId, 'planning');
+    closeAndOpenDuplicate(duplicateId, type = ITEM_TYPE.PLANNING) {
+        this.props.openItemPreview(duplicateId, type);
     }
 
     getHistoryActionElement(historyItem) {
@@ -16,7 +16,8 @@ export class PlanningHistory extends React.Component {
 
         switch (historyItem.operation) {
         case HISTORY_OPERATIONS.CREATE:
-            text = gettext('Created');
+            text = get(historyItem, 'update.event_item') ? gettext('Created from event') :
+                gettext('Created');
             break;
 
         case HISTORY_OPERATIONS.ADD_TO_PLANNING:
@@ -75,6 +76,10 @@ export class PlanningHistory extends React.Component {
         case PLANNING.HISTORY_OPERATIONS.ADD_FEATURED:
             text = gettext('Added to featured stories');
             break;
+
+        case PLANNING.HISTORY_OPERATIONS.CREATE_EVENT:
+            text = gettext('Associated an event');
+            break;
         }
 
         return historyUtils.getHistoryRowElement(text, historyItem, this.props.users);
@@ -124,6 +129,19 @@ export class PlanningHistory extends React.Component {
                                                     historyItem.update.duplicate_id
                                                 )}>
                                                     {gettext('View original planning item')}
+                                                </a>
+                                            </div>
+                                        )}
+                                        {(historyItem.operation === PLANNING.HISTORY_OPERATIONS.CREATE_EVENT ||
+                                            historyItem.operation === HISTORY_OPERATIONS.CREATE) &&
+                                            get(historyItem, 'update.event_item') && (
+                                            <div className="history-list__link">
+                                                <a onClick={this.closeAndOpenDuplicate.bind(
+                                                    this,
+                                                    historyItem.update.event_item,
+                                                    ITEM_TYPE.EVENT
+                                                )}>
+                                                    {gettext('View associated event')}
                                                 </a>
                                             </div>
                                         )}

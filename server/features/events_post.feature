@@ -753,12 +753,18 @@ Feature: Events Post
         """
         Then we get OK response
         When we get "published_planning"
-        Then we get list with 2 items
+        Then we get list with 3 items
         """
         {
             "_items": [
                 {
                     "item_id": "#planning._id#"
+                },
+                {
+                    "item_id": "#planning._id#",
+                    "published_item": {
+                        "event_item": "#events._id#"
+                    }
                 },
                 {
                     "item_id": "#events._id#",
