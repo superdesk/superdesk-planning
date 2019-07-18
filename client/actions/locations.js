@@ -243,7 +243,7 @@ const getLocation = (searchText, unique = false, page = 1) => (
                 });
         } else {
             const terms = (!isEmpty(searchText)) ? searchText.split(' ') : '*';
-            const queryString = (terms.length > 1 ? terms.join('* AND ') : terms[0]) + '*';
+            const queryString = (terms.length > 1 ? terms.join('* ') : terms[0]) + '*';
 
             return api('locations')
                 .query({
@@ -255,6 +255,7 @@ const getLocation = (searchText, unique = false, page = 1) => (
                                         fields: ['name', 'address.line', 'address.area',
                                             'address.postal_code', 'address.country', 'address.locality'],
                                         query: queryString,
+                                        default_operator: 'AND',
                                     },
                                 }],
                                 must_not: {
@@ -264,7 +265,6 @@ const getLocation = (searchText, unique = false, page = 1) => (
                         },
                     },
                     max_results: 200,
-                    sort: '[(\'unique_name\', 1)]',
                     page: page,
                 });
         }
