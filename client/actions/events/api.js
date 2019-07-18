@@ -1437,20 +1437,6 @@ const fetchEventTemplates = () => (dispatch, getState, {api}) => {
         });
 };
 
-const updateEventTemplate = (template, updates) => (dispatch, getState, {api}) => {
-    api.update('events_template', template, updates)
-        .then(() => {
-            dispatch(fetchEventTemplates());
-        });
-};
-
-const removeEventTemplate = (template) => (dispatch, getState, {api}) => {
-    api.remove(template, {}, 'events_template')
-        .then(() => {
-            dispatch(fetchEventTemplates());
-        });
-};
-
 const createEventTemplate = (itemId) => (dispatch, getState, {api, modal}) => {
     modal.prompt(gettext('Template name')).then((templateName) => {
         api('events_template').query({
@@ -1527,8 +1513,6 @@ const self = {
     removeFile,
     fetchEventTemplates,
     createEventTemplate,
-    updateEventTemplate,
-    removeEventTemplate,
 };
 
 export default self;

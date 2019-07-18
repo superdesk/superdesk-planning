@@ -1,56 +1,13 @@
 /* eslint-disable react/no-multi-comp */
+
+import {superdeskApi} from '../../superdeskApi';
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {Modal} from '../../components';
-import eventsApi from '../../actions/events/api';
 
-import {superdeskApi} from '../../superdeskApi';
-
-class ManageEventTemplatesModalComponent extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            templateInEditMode: null,
-        };
-
-        this.editTemplate = this.editTemplate.bind(this);
-        this.deleteTemplate = this.deleteTemplate.bind(this);
-        this.onEditComplete = this.onEditComplete.bind(this);
-        this.onEditCancel = this.onEditCancel.bind(this);
-    }
-
-    editTemplate(id) {
-        this.setState({
-            templateInEditMode: id,
-        });
-    }
-
-    onEditComplete(templateEdited) {
-        this.props.dispatch(eventsApi.updateEventTemplate(
-            this.props.eventTemplates.find(({_id}) => _id === this.state.templateInEditMode),
-            {template_name: templateEdited.template_name}
-        ));
-
-        this.setState({
-            templateInEditMode: null,
-        });
-    }
-
-    onEditCancel() {
-        this.setState({
-            templateInEditMode: null,
-        });
-    }
-
-    deleteTemplate(id) {
-        superdeskApi.ui.confirm(gettext('Confirm delete')).then(() => {
-            this.props.dispatch(eventsApi.removeEventTemplate(
-                this.props.eventTemplates.find(({_id}) => _id === id)
-            ));
-        });
-    }
-
+class ManageEventTemplatesModalComponent extends React.PureComponent {
     render() {
         const {handleHide} = this.props;
 
