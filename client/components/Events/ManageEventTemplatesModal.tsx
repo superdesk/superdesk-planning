@@ -15,7 +15,7 @@ interface IEventTemplate extends IBaseRestApiResponse {
     template_name: string;
 }
 
-class ManageEventTemplatesModal extends React.PureComponent<IProps> {
+export class ManageEventTemplatesModal extends React.PureComponent<IProps> {
     static propTypes:  any;
 
     render() {
