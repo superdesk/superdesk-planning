@@ -15,7 +15,7 @@ interface IEventTemplate extends IBaseRestApiResponse {
     template_name: string;
 }
 
-class ManageEventTemplatesModalComponent extends React.PureComponent<IProps> {
+class ManageEventTemplatesModal extends React.PureComponent<IProps> {
     static propTypes:  any;
 
     render() {
@@ -94,10 +94,6 @@ class ManageEventTemplatesModalComponent extends React.PureComponent<IProps> {
     }
 }
 
-ManageEventTemplatesModalComponent.propTypes = {
+ManageEventTemplatesModal.propTypes = {
     handleHide: PropTypes.func,
 };
-
-
-export const ManageEventTemplatesModal = ManageEventTemplatesModalComponent;
-
