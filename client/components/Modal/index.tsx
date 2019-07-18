@@ -41,7 +41,7 @@ export class Modal extends React.Component<IProps> {
             className,
             fullheight,
         } = this.props;
-    
+
         const classes = classNames(className, {
             modal: true,
             'modal--large': large,
@@ -50,7 +50,7 @@ export class Modal extends React.Component<IProps> {
             'modal--white': white,
             'modal--x-large': xLarge,
         });
-    
+
         return (
             <_Modal
                 show={show}

@@ -16,7 +16,7 @@ interface IEventTemplate extends IBaseRestApiResponse {
 }
 
 export class ManageEventTemplatesModal extends React.PureComponent<IProps> {
-    static propTypes:  any;
+    static propTypes: any;
 
     render() {
         const {handleHide} = this.props;
