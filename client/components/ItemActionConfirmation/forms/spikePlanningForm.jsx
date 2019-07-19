@@ -52,6 +52,7 @@ SpikePlanningComponent.propTypes = {
     dateFormat: PropTypes.string,
     timeFormat: PropTypes.string,
     onSubmit: PropTypes.func,
+    afterHide: PropTypes.func,
     enableSaveInModal: PropTypes.func,
 };
 
@@ -63,11 +64,10 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (plan) => dispatch(actions.planning.ui.spike(plan)),
-    onHide: (plan, modalProps) => {
+    afterHide: (plan, modalProps) => {
         if (get(modalProps, 'onCloseModal')) {
             modalProps.onCloseModal(plan);
         }
-        return Promise.resolve(plan);
     },
 });
 

@@ -126,6 +126,7 @@ SpikeEventComponent.propTypes = {
     timeFormat: PropTypes.string,
     submitting: PropTypes.bool,
     onSubmit: PropTypes.func,
+    afterHide: PropTypes.func,
     enableSaveInModal: PropTypes.func,
 };
 
@@ -137,7 +138,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (event) => dispatch(actions.events.ui.spike(event)),
-    onHide: (event, modalProps) => {
+    afterHide: (event, modalProps) => {
         if (get(modalProps, 'onCloseModal')) {
             modalProps.onCloseModal(event);
         }

@@ -382,7 +382,7 @@ const _openActionModalFromEditor = ({
                             if (get(previousLock, 'action')) {
                                 promise.then((refetchedEvent) => (
                                     (openInEditor || openInModal) ?
-                                        dispatch(main.openForEdit(refetchedEvent, openInModal)) :
+                                        dispatch(main.openForEdit(refetchedEvent, !openInModal, openInModal)) :
                                         dispatch(locks.lock(refetchedEvent, previousLock.action))
                                 ));
                             }

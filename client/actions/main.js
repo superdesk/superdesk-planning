@@ -517,7 +517,11 @@ const openActionModalFromEditor = (original, title, action) => (
         const onGoTo = !isOpenForEditing ?
             () => {
                 dispatch(hideModal());
-                return dispatch(self.openForEdit(original));
+                return dispatch(self.openForEdit(
+                    original,
+                    !isOpenInModal,
+                    isOpenInModal
+                ));
             } :
             null;
 
@@ -541,10 +545,22 @@ const openActionModalFromEditor = (original, title, action) => (
                     .then(unlockAndRunAction) :
             null;
 
+        const onCancel = () => {
+            dispatch(hideModal());
+
+            if (isOpenForEditing) {
+                return dispatch(self.openForEdit(
+                    original,
+                    !isOpenInModal,
+                    isOpenInModal
+                ));
+            }
+        };
+
         return dispatch(self.openIgnoreCancelSaveModal({
             itemId: itemId,
             itemType: itemType,
-            onCancel: () => dispatch(hideModal()),
+            onCancel: onCancel,
             onIgnore: unlockAndRunAction.bind(null, original, true),
             onGoTo: onGoTo,
             onSave: onSave,
@@ -1382,7 +1398,7 @@ const spikeAfterUnlock = (unlockedItem, previousLock, openInEditor, openInModal)
             if (!isItemSpiked(updatedItem) && get(previousLock, 'action')) {
                 if (openInEditor || openInModal) {
                     return dispatch(
-                        self.openForEdit(updatedItem, true, openInModal)
+                        self.openForEdit(updatedItem, !openInModal, openInModal)
                     );
                 }
 

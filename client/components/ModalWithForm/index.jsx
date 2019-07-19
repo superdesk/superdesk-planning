@@ -53,6 +53,15 @@ export class ModalWithForm extends React.Component {
         }
 
         this.props.onHide();
+
+        // If the form Component has an 'afterHide' property,
+        // then call that now
+        if ('afterHide' in form.props) {
+            form.props.afterHide(
+                this.props.original,
+                get(this.props, 'modalProps') || {}
+            );
+        }
     }
 
     render() {
