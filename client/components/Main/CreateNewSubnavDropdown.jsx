@@ -6,6 +6,7 @@ import {PRIVILEGES} from '../../constants';
 import {connect} from 'react-redux';
 import * as actions from '../../actions';
 import {ITEM_TYPE} from '../../constants/index';
+import {eventTemplates} from '../../selectors/events';
 
 class CreateNewSubnavDropdownFn extends React.Component {
     render() {
@@ -66,7 +67,7 @@ CreateNewSubnavDropdownFn.propTypes = {
 
 function mapStateToProps(state) {
     return {
-        eventTemplates: state.events.eventTemplates,
+        eventTemplates: eventTemplates(state),
     };
 }
 
