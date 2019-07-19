@@ -21,7 +21,7 @@ interface IProps {
     fullheight?: any;
 }
 
-export class Modal extends React.Component<IProps> {
+class Modal extends React.Component<IProps> {
     static Header: typeof Header;
     static Body: typeof Body;
     static Footer: typeof Footer;
@@ -85,3 +85,5 @@ Modal.propTypes = {
 Modal.Header = Header;
 Modal.Body = Body;
 Modal.Footer = Footer;
+
+export default Modal;

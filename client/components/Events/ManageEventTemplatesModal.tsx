@@ -5,7 +5,7 @@ import {superdeskApi} from '../../superdeskApi';
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Modal} from '../../components/Modal/index';
+import {Modal} from '../index';
 
 interface IProps {
     handleHide(): void;
