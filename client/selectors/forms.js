@@ -32,6 +32,7 @@ export const planningCancelProfile = createSelector([profiles], (p) => get(p, 'p
 export const planningCancelAllCoveragesProfile = createSelector(
     [profiles], (p) => get(p, 'planning_cancel_all_coverage', {})
 );
+export const coverageCancelProfile = createSelector([profiles], (p) => get(p, 'coverage_cancel_coverage', {}));
 export const searchProfile = createSelector(
     [profiles, activeFilter],
     (p, filter) => {

@@ -152,8 +152,11 @@ const isCoverageCancelled = (coverage) =>
     (get(coverage, 'workflow_status') === WORKFLOW_STATE.CANCELLED);
 
 const canCancelCoverage = (coverage) =>
-    (!isCoverageCancelled(coverage) && (!get(coverage, 'assigned_to.state') ||
-        get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED));
+    (!isCoverageCancelled(coverage) && isExistingItem(coverage, 'coverage_id') && (!get(coverage, 'assigned_to.state')
+        || get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED));
+
+const canAddCoverageToWorkflow = (coverage, autoAssignToWorkflow) => isExistingItem(coverage, 'coverage_id') &&
+    isCoverageDraft(coverage) && isCoverageAssigned(coverage) && !autoAssignToWorkflow;
 
 const canRemoveCoverage = (coverage, planning) => !isItemCancelled(planning) &&
     ([WORKFLOW_STATE.DRAFT, WORKFLOW_STATE.CANCELLED].includes(get(coverage, 'workflow_status')) ||
@@ -977,6 +980,7 @@ const self = {
     shouldFetchFilesForPlanning,
     getCoverageContentType,
     getAgendaNames,
+    canAddCoverageToWorkflow,
 };
 
 export default self;
