@@ -3,6 +3,7 @@ export const COVERAGES = {
     PARTIAL_SAVE: {
         ADD_TO_WORKFLOW: 'ADD_TO_WORKFLOW',
         REMOVE_ASSIGNMENT: 'REMOVE_ASSIGNMENT',
+        CANCEL_COVERAGE: 'CANCEL_COVERAGE',
     },
     HISTORY_OPERATIONS: {
         CREATED: 'coverage_created',
@@ -14,5 +15,11 @@ export const COVERAGES = {
         ASSIGNED: 'coverage_assigned',
     },
     DEFAULT_DESK_PREFERENCE: 'planning:default_coverage_desks',
+    ITEM_ACTIONS: {
+        CANCEL_COVERAGE: {
+            label: gettext('Cancel coverage'),
+            icon: 'icon-close-small',
+        },
+    },
 };
 

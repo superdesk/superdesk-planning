@@ -17,3 +17,4 @@ export {PostEventsForm} from './forms/postEventsForm';
 export {CreatePlanningForm} from './forms/createPlanningForm';
 export {AssignCalendarForm} from './forms/assignCalendarForm';
 export {UpdateMethodSelection} from './UpdateMethodSelection';
+export {CancelCoverageForm} from './forms/cancelCoverageForm';

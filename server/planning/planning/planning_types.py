@@ -366,6 +366,10 @@ DEFAULT_EDITOR = [{
     'name': 'planning_cancel_all_coverage',
     'schema': {},
     'editor': {},
+}, {
+    'name': 'coverage_cancel_coverage',
+    'schema': {},
+    'editor': {},
 }]
 
 logger = logging.getLogger(__name__)
