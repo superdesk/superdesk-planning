@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {gettext, getMapUrl} from '../../utils';
+import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
 export const Location = ({name, address, mapUrl, multiLine}) => {
     if (!name && !address) {
@@ -9,9 +10,18 @@ export const Location = ({name, address, mapUrl, multiLine}) => {
 
     // eslint-disable-next-line react/no-multi-comp
     const renderSingleline = () => (
-        <span className="sd-list-item__location">
-            {name || address}
-        </span>
+        <OverlayTrigger
+            overlay={<Tooltip id="location_tooltip" className="tooltip--text-left">
+                {name && <div className="sd-line-input__label">{name}</div>}
+                {address && <div className="sd-line-input__input--address">
+                    {address}
+                </div>}
+            </Tooltip>}
+        >
+            <span className="sd-list-item__location">
+                {name || address}
+            </span>
+        </OverlayTrigger>
     );
 
     // eslint-disable-next-line react/no-multi-comp
