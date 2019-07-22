@@ -109,5 +109,6 @@ export const PLANNING = {
         PLANNING_CANCEL: 'planning_cancel',
         ADD_FEATURED: 'add_featured',
         REMOVE_FEATURED: 'remove_featured',
+        CREATE_EVENT: 'create_event',
     },
 };

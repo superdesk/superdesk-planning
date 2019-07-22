@@ -8,7 +8,7 @@
 
 """Superdesk Files"""
 
-from superdesk import Resource
+from superdesk import Resource, get_resource_service
 from planning.history import HistoryService
 import logging
 from eve.utils import config
@@ -31,6 +31,19 @@ class EventsHistoryResource(Resource):
 
 
 class EventsHistoryService(HistoryService):
+    def on_item_created(self, items, operation=None):
+        created_from_planning = []
+        regular_events = []
+        for item in items:
+            planning_items = get_resource_service('events').get_plannings_for_event(item)
+            if planning_items.count() > 0:
+                item['created_from_planning'] = planning_items[0].get('_id')
+                created_from_planning.append(item)
+            else:
+                regular_events.append((item))
+
+        super().on_item_created(created_from_planning, 'created_from_planning')
+        super().on_item_created(regular_events)
 
     def on_item_deleted(self, doc):
         lookup = {'event_id': doc[config.ID_FIELD]}
