@@ -189,7 +189,7 @@ export class EventItem extends React.Component {
 
                         {(showRelatedPlanningLink) &&
                             <span
-                                className="sd-overflow-ellipsis sd-list-item__element-lm-10 sd-list-item--element-grow">
+                                className="sd-overflow-ellipsis sd-list-item__element-lm-10">
                                 <a className="sd-line-input__input--related-item-link"
                                     onClick={toggleRelatedPlanning} >
                                     <i className="icon-calendar" />
