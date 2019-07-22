@@ -70,6 +70,9 @@ class PlanningHistoryService(HistoryService):
                 if original.get(LOCK_ACTION) == 'assign_agenda':
                     diff['agendas'] = [a for a in diff.get('agendas', []) if a not in original.get('agendas', [])]
 
+            if diff.get('event_item'):
+                operation = 'create_event'
+
             self._save_history(item, diff, operation)
 
         self._save_coverage_history(updates, original)
