@@ -85,6 +85,33 @@ export class PlanningEditorComponent extends React.Component {
         if (this.props.event) {
             this.props.fetchEventFiles(this.props.event);
         }
+
+        // If this is the popup-editor, check if any coverages have changed to cancelled
+        if (this.props.inModalView) {
+            const originalCoverages = get(this.props, 'original.coverages') || [];
+            const diffCoverages = get(this.props, 'diff.coverages') || [];
+            const updates = {};
+
+            originalCoverages.forEach((original) => {
+                const index = diffCoverages.findIndex((c) => c.coverage_id === original.coverage_id);
+                let diff = index >= 0 ? diffCoverages[index] : null;
+
+                // If the coverage has been cancelled, and our diff has a different state
+                // then this has come from cancelling the planning or coverage
+                // So we need to update the autosave data and dirty flag of the form
+                if (diff &&
+                    get(diff, 'workflow_status') !== get(original, 'workflow_status') &&
+                    get(original, 'workflow_status') === WORKFLOW_STATE.CANCELLED
+                ) {
+                    updates[`coverages[${index}]`] = original;
+                }
+            });
+
+            // If we have any updates, then perform a partial save to update autosave
+            if (Object.keys(updates).length > 0) {
+                this.props.itemManager.finalisePartialSave(updates, true);
+            }
+        }
     }
 
     handleAddToPlanningLoading(nextProps) {
