@@ -337,6 +337,13 @@ const self = {
     onEventExpired,
 };
 
+export const planningEventTemplateEvents = {
+    'events-template:created': () => eventsApi.fetchEventTemplates,
+    'events-template:updated': () => eventsApi.fetchEventTemplates,
+    'events-template:replaced': () => eventsApi.fetchEventTemplates,
+    'events-template:deleted': () => eventsApi.fetchEventTemplates,
+};
+
 // Map of notification name and Action Event to execute
 self.events = {
     'events:created': () => (self.onEventCreated),
@@ -359,12 +366,7 @@ self.events = {
     'events:update_time:recurring': () => (self.onEventScheduleChanged),
     'events:update_repetitions:recurring': () => (self.onEventScheduleChanged),
     'events:expired': () => self.onEventExpired,
-
-    // event templates
-    'events-template:created': () => eventsApi.fetchEventTemplates,
-    'events-template:updated': () => eventsApi.fetchEventTemplates,
-    'events-template:replaced': () => eventsApi.fetchEventTemplates,
-    'events-template:deleted': () => eventsApi.fetchEventTemplates,
+    ...planningEventTemplateEvents,
 };
 
 export default self;

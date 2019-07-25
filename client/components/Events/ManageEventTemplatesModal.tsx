@@ -6,6 +6,7 @@ import {superdeskApi} from '../../superdeskApi';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Modal} from '../index';
+import {planningEventTemplateEvents} from '../../actions/events/notifications';
 
 interface IProps {
     handleHide(): void;
@@ -85,6 +86,7 @@ export class ManageEventTemplatesModal extends React.PureComponent<IProps> {
                         formConfig={formConfig}
                         defaultSortOption={{field: nameField.field, direction: 'ascending'}}
                         fieldForSearch={nameField}
+                        refreshOnEvents={Object.keys(planningEventTemplateEvents)}
                         disallowCreatingNewItem
                         disallowFiltering
                     />
