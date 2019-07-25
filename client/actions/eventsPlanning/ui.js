@@ -17,7 +17,6 @@ import {showModal} from '../index';
 const fetch = (params = {}) => (
     (dispatch, getState, {$location, $timeout}) => {
         dispatch(self.requestEventsPlanning(params));
-        dispatch(eventsApi.fetchEventTemplates());
 
         return dispatch(eventsAndPlanningApi.query(params, true))
             .then((results) => {

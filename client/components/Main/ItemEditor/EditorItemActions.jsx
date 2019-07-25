@@ -167,9 +167,7 @@ EditorItemActionsComponent.propTypes = {
     contentTypes: PropTypes.array,
     itemManager: PropTypes.object,
     autoSave: PropTypes.object,
-    modal: PropTypes.object,
     dispatch: PropTypes.func,
-    api: PropTypes.any,
 };
 
 export const EditorItemActions = connect()(EditorItemActionsComponent);
