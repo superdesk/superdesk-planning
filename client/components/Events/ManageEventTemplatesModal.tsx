@@ -89,6 +89,9 @@ export class ManageEventTemplatesModal extends React.PureComponent<IProps> {
                         disallowFiltering
                     />
                 </Modal.Body>
+                <Modal.Footer>
+                    <button className="btn" type="button" onClick={handleHide}>{gettext('Close')}</button>    
+                </Modal.Footer>
             </Modal>
         );
     }
