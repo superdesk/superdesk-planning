@@ -72,6 +72,18 @@ export const orderedPlanningList = createSelector(
     }
 );
 
+export const FlattenedPlanningList = createSelector(
+    [currentAgenda, plansInList, storedEvents, currentSearch, getStartOfWeek],
+    (currentAgenda, plansInList, events, search, startOfWeek) => {
+        const dateRange = getSearchDateRange(search, startOfWeek);
+
+        return planningUtils.getFlattenedPlanningByDate(
+            plansInList, events, dateRange.startDate, dateRange.endDate
+        );
+    }
+);
+
+
 export const getPlanningFilterParams = createSelector(
     [currentAgendaId, currentSearch, fullText],
     (agendaId, currentSearch, fullText) => {

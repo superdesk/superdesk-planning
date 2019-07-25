@@ -37,53 +37,59 @@ export const ListGroup = ({
     onItemActivate,
     previewItem,
     contentTypes,
-}) => (
-    <div className="ListGroup">
-        <Header title={moment(name).format('dddd LL')} />
-        <Group spaceBetween={true}>
-            {items.map((item, index) => {
-                let itemProps = {
-                    date: name,
-                    item: item,
-                    onItemClick: onItemClick,
-                    onDoubleClick: onDoubleClick,
-                    onAddCoverageClick: onAddCoverageClick.bind(null, item),
-                    lockedItems: lockedItems,
-                    dateFormat: dateFormat,
-                    timeFormat: timeFormat,
-                    agendas: agendas,
-                    session: session,
-                    privileges: privileges,
-                    activeFilter: activeFilter,
-                    showRelatedPlannings: showRelatedPlannings,
-                    relatedPlanningsInList: relatedPlanningsInList,
-                    onMultiSelectClick: onMultiSelectClick,
-                    selectedEventIds: selectedEventIds,
-                    selectedPlanningIds: selectedPlanningIds,
-                    itemActions: itemActions,
-                    users: users,
-                    desks: desks,
-                    showAddCoverage: showAddCoverage,
-                    hideItemActions: hideItemActions,
-                    calendars: calendars,
-                    listFields: listFields,
-                    navigateDown: navigateDown,
-                    navigateList: navigateList,
-                    onItemActivate: onItemActivate,
-                    previewItem: previewItem,
-                    contentTypes: contentTypes,
-                };
+}) => {
+    const flattenMultiday = (eventId, all, multi) => {
+        onMultiSelectClick(eventId, all, multi, name);
+    };
 
-                if (indexItems) {
-                    itemProps.index = indexFrom + index;
-                    itemProps.active = (activeItemIndex === itemProps.index);
-                }
+    return (
+        <div className="ListGroup">
+            <Header title={moment(name).format('dddd LL')} />
+            <Group spaceBetween={true}>
+                {items.map((item, index) => {
+                    let itemProps = {
+                        date: name,
+                        item: item,
+                        onItemClick: onItemClick,
+                        onDoubleClick: onDoubleClick,
+                        onAddCoverageClick: onAddCoverageClick.bind(null, item),
+                        lockedItems: lockedItems,
+                        dateFormat: dateFormat,
+                        timeFormat: timeFormat,
+                        agendas: agendas,
+                        session: session,
+                        privileges: privileges,
+                        activeFilter: activeFilter,
+                        showRelatedPlannings: showRelatedPlannings,
+                        relatedPlanningsInList: relatedPlanningsInList,
+                        onMultiSelectClick: flattenMultiday,
+                        selectedEventIds: selectedEventIds,
+                        selectedPlanningIds: selectedPlanningIds,
+                        itemActions: itemActions,
+                        users: users,
+                        desks: desks,
+                        showAddCoverage: showAddCoverage,
+                        hideItemActions: hideItemActions,
+                        calendars: calendars,
+                        listFields: listFields,
+                        navigateDown: navigateDown,
+                        navigateList: navigateList,
+                        onItemActivate: onItemActivate,
+                        previewItem: previewItem,
+                        contentTypes: contentTypes,
+                    };
 
-                return (<ListGroupItem key={item._id} {...itemProps} />);
-            })}
-        </Group>
-    </div>
-);
+                    if (indexItems) {
+                        itemProps.index = indexFrom + index;
+                        itemProps.active = (activeItemIndex === itemProps.index);
+                    }
+
+                    return (<ListGroupItem key={item._id} {...itemProps} />);
+                })}
+            </Group>
+        </div>
+    );
+};
 
 ListGroup.propTypes = {
     name: PropTypes.string,
