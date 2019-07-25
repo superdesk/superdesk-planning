@@ -92,7 +92,7 @@ export class ManageEventTemplatesModal extends React.PureComponent<IProps> {
                     />
                 </Modal.Body>
                 <Modal.Footer>
-                    <button className="btn" type="button" onClick={handleHide}>{gettext('Close')}</button>    
+                    <button className="btn" type="button" onClick={handleHide}>{gettext('Close')}</button>
                 </Modal.Footer>
             </Modal>
         );
