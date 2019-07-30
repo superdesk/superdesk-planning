@@ -30,7 +30,7 @@ import {
 } from './index';
 import moment from 'moment';
 import RRule from 'rrule';
-import {get, map, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy} from 'lodash';
+import {get, map, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten} from 'lodash';
 import {EventUpdateMethods} from '../components/Events';
 
 
@@ -625,6 +625,16 @@ const getEventActions = ({item, session, privileges, lockedItems, callBacks, wit
     );
 };
 
+
+/*
+ * Groups the events by date
+ */
+const getFlattenedEventsByDate = (events, startDate, endDate) => {
+    const eventsList = getEventsByDate(events, startDate, endDate);
+
+    return flatten(sortBy(eventsList, [(e) => (e.date)]).map((e) => e.events.map((k) => [e.date, k._id])));
+};
+
 /*
  * Groups the events by date
  */
@@ -1035,6 +1045,7 @@ const self = {
     getRepeatSummaryForEvent,
     eventsDatesSame,
     eventHasPostedPlannings,
+    getFlattenedEventsByDate,
 };
 
 export default self;

@@ -9,19 +9,38 @@ import {getItemType, gettext, planningUtils, eventUtils, getItemInArrayById} fro
 /**
  * Action Dispatcher to select an/all Event(s)
  */
-const selectEvents = (eventId, all = false) => (
+const selectEvents = (eventId, all = false, multi = false, name = '') => (
     (dispatch, getState) => {
         if (all) {
             return dispatch({
                 type: MULTISELECT.ACTIONS.SELECT_ALL_EVENTS,
                 payload: selectors.events.eventIdsInList(getState()),
             });
-        } else {
+        }
+        if (multi) {
+            const selectedIds = selectors.multiSelect.selectedEventIds(getState());
+            const prevSelectedId = selectedIds[selectedIds.length - 1];
+            const prevSelectedDate = selectors.multiSelect.lastSelectedEventDate(getState());
+            const displayedIds = selectors.events.flattenedEventsInList(getState());
+            const prevIndx = displayedIds.findIndex((l) => (l[0] === prevSelectedDate && l[1] === prevSelectedId));
+            const currentIndx = displayedIds.findIndex((c) => (c[0] === name && c[1] == eventId));
+            const idList = displayedIds.slice(Math.min(currentIndx, prevIndx),
+                Math.max(currentIndx, prevIndx) + 1).map((a) => a[1]);
+
+            // Clear the selection/highlight made on the items in the list on the shift click
+            window.getSelection().removeAllRanges();
             return dispatch({
-                type: MULTISELECT.ACTIONS.SELECT_EVENT,
-                payload: eventId,
+                type: MULTISELECT.ACTIONS.SELECT_MULTIPLE_EVENTS,
+                payload: idList,
             });
         }
+
+        return dispatch({
+            type: MULTISELECT.ACTIONS.SELECT_EVENT,
+            payload: {eventId: eventId,
+                name: name,
+            },
+        });
     }
 );
 
@@ -38,19 +57,38 @@ const deSelectEvents = (eventId, all = false) => (
     }
 );
 
-const selectPlannings = (planningId, all = false) => (
+const selectPlannings = (planningId, all = false, multi = false, name = '') => (
     (dispatch, getState) => {
         if (all) {
             return dispatch({
                 type: MULTISELECT.ACTIONS.SELECT_ALL_PLANNINGS,
                 payload: selectors.planning.planIdsInList(getState()),
             });
-        } else {
+        }
+        if (multi) {
+            const selectedIds = selectors.multiSelect.selectedPlanningIds(getState());
+            const prevSelectedId = selectedIds[selectedIds.length - 1];
+            const prevSelectedDate = selectors.multiSelect.lastSelectedPlanningDate(getState());
+            const displayedIds = selectors.planning.FlattenedPlanningList(getState());
+            const prevIndx = displayedIds.findIndex((l) => (l[0] === prevSelectedDate && l[1] === prevSelectedId));
+            const currentIndx = displayedIds.findIndex((c) => (c[0] === name && c[1] == planningId));
+            const idList = displayedIds.slice(Math.min(currentIndx, prevIndx),
+                Math.max(currentIndx, prevIndx) + 1).map((a) => a[1]);
+
+            // Clear the selection/highlight made on the items in the list on the shift click
+            window.getSelection().removeAllRanges();
             return dispatch({
-                type: MULTISELECT.ACTIONS.SELECT_PLANNING,
-                payload: planningId,
+                type: MULTISELECT.ACTIONS.SELECT_MULTIPLE_PLANNINGS,
+                payload: idList,
             });
         }
+
+        return dispatch({
+            type: MULTISELECT.ACTIONS.SELECT_PLANNING,
+            payload: {planningId: planningId,
+                name: name,
+            },
+        });
     }
 );
 

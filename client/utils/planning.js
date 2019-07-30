@@ -10,7 +10,7 @@ import {
     COVERAGES,
     ITEM_TYPE,
 } from '../constants/index';
-import {get, set, isNil, uniq, sortBy, isEmpty, cloneDeep, isArray, find} from 'lodash';
+import {get, set, isNil, uniq, sortBy, isEmpty, cloneDeep, isArray, find, flatten} from 'lodash';
 import {
     getItemWorkflowState,
     lockUtils,
@@ -686,6 +686,12 @@ const getCoverageReadOnlyFields = (
     }
 };
 
+const getFlattenedPlanningByDate = (plansInList, events, startDate, endDate, timezone = null) => {
+    const planning = getPlanningByDate(plansInList, events, startDate, endDate, timezone);
+
+    return flatten(sortBy(planning, [(e) => (e.date)]).map((e) => e.events.map((k) => [e.date, k._id])));
+};
+
 const getPlanningByDate = (plansInList, events, startDate, endDate, timezone = null) => {
     if (!plansInList) return [];
 
@@ -980,6 +986,7 @@ const self = {
     shouldFetchFilesForPlanning,
     getCoverageContentType,
     getAgendaNames,
+    getFlattenedPlanningByDate,
     canAddCoverageToWorkflow,
 };
 
