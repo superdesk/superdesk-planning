@@ -563,10 +563,10 @@ const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, d
     };
 
     if ([WORKFLOW_STATE.SCHEDULED, 'published'].includes(addNewsItemToPlanning.state)) {
-        newCoverage.planning.scheduled = addNewsItemToPlanning.state === 'published' ?
-            moment(addNewsItemToPlanning.firstpublished).add(1, 'hour')
+        newCoverage.planning.scheduled = get(addNewsItemToPlanning, 'schedule_settings.utc_publish_schedule') ?
+            moment(addNewsItemToPlanning.schedule_settings.utc_publish_schedule).add(1, 'hour')
                 .startOf('hour') :
-            moment(get(addNewsItemToPlanning, 'schedule_settings.utc_publish_schedule')).add(1, 'hour')
+            moment(addNewsItemToPlanning.firstpublished).add(1, 'hour')
                 .startOf('hour');
     }
 
