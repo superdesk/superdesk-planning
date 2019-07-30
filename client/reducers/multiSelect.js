@@ -4,6 +4,8 @@ import {MULTISELECT} from '../constants';
 const initialState = {
     selectedEventIds: [],
     selectedPlanningIds: [],
+    lastSelectedEventDate: null,
+    lastSelectedPlanningDate: null,
 };
 
 export default function(state = initialState, action) {
@@ -11,7 +13,8 @@ export default function(state = initialState, action) {
     case MULTISELECT.ACTIONS.SELECT_EVENT:
         return {
             ...state,
-            selectedEventIds: uniq([...state.selectedEventIds, action.payload]),
+            selectedEventIds: uniq([...state.selectedEventIds, action.payload.eventId]),
+            lastSelectedEventDate: action.payload.name,
         };
 
     case MULTISELECT.ACTIONS.DESELECT_EVENT:
@@ -26,6 +29,12 @@ export default function(state = initialState, action) {
             selectedEventIds: action.payload,
         };
 
+    case MULTISELECT.ACTIONS.SELECT_MULTIPLE_EVENTS:
+        return {
+            ...state,
+            selectedEventIds: uniq([...state.selectedEventIds].concat(action.payload)),
+        };
+
     case MULTISELECT.ACTIONS.DESELECT_ALL_EVENTS:
         return {
             ...state,
@@ -35,7 +44,8 @@ export default function(state = initialState, action) {
     case MULTISELECT.ACTIONS.SELECT_PLANNING:
         return {
             ...state,
-            selectedPlanningIds: uniq([...state.selectedPlanningIds, action.payload]),
+            selectedPlanningIds: uniq([...state.selectedPlanningIds, action.payload.planningId]),
+            lastSelectedPlanningDate: action.payload.name,
         };
 
     case MULTISELECT.ACTIONS.DESELECT_PLANNING:
@@ -48,6 +58,12 @@ export default function(state = initialState, action) {
         return {
             ...state,
             selectedPlanningIds: action.payload,
+        };
+
+    case MULTISELECT.ACTIONS.SELECT_MULTIPLE_PLANNINGS:
+        return {
+            ...state,
+            selectedPlanningIds: uniq([...state.selectedPlanningIds].concat(action.payload)),
         };
 
     case MULTISELECT.ACTIONS.DESELECT_ALL_PLANNINGS:
