@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {Modal} from '../index';
 import {gettext} from '../../utils';
-import {MODALS, PRIVILEGES} from '../../constants';
+import {MODALS, PRIVILEGES, KEYCODES} from '../../constants';
 import {SubNav, StretchBar, Button} from '../UI/SubNav';
 import {ColumnBox} from '../UI';
 import * as selectors from '../../selectors';
@@ -22,6 +22,22 @@ export class ManageFiltersComponent extends React.Component {
 
         this.editFilter = this.editFilter.bind(this);
         this.toggleEditor = this.toggleEditor.bind(this);
+        this.handleKeydown = this.handleKeydown.bind(this);
+    }
+
+    componentDidMount() {
+        document.addEventListener('keydown', this.handleKeydown);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.handleKeydown);
+    }
+
+    handleKeydown(event) {
+        if (event.keyCode === KEYCODES.ESCAPE) {
+            event.preventDefault();
+            this.props.handleHide();
+        }
     }
 
     toggleEditor() {

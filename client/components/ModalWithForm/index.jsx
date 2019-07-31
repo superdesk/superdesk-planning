@@ -8,6 +8,7 @@ import {Modal} from '../index';
 import {Button} from '../UI';
 
 import './style.scss';
+import {KEYCODES} from '../../constants';
 
 export class ModalWithForm extends React.Component {
     constructor(props) {
@@ -17,6 +18,22 @@ export class ModalWithForm extends React.Component {
         this.submit = this.submit.bind(this);
         this.onHide = this.onHide.bind(this);
         this.dom = {form: null};
+        this.handleKeydown = this.handleKeydown.bind(this);
+    }
+
+    componentDidMount() {
+        document.addEventListener('keydown', this.handleKeydown);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.handleKeydown);
+    }
+
+    handleKeydown(event) {
+        if (event.keyCode === KEYCODES.ESCAPE) {
+            event.preventDefault();
+            this.onHide();
+        }
     }
 
     getFormInstance() {
