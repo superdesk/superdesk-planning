@@ -33,7 +33,7 @@ export class PostEventsComponent extends React.Component {
             const event = isRecurring ?
                 eventUtils.getRelatedEventsForRecurringEvent(
                     this.props.original,
-                    EventUpdateMethods[0],
+                    EventUpdateMethods[2],
                     true
                 ) :
                 this.props.original;
@@ -77,10 +77,7 @@ export class PostEventsComponent extends React.Component {
             gettext('Post all recurring events or just this one?') :
             gettext('Unpost all recurring events or just this one?');
         const postAll = posting && !isItemPublic(original);
-        const eventsInUse = this.state.relatedEvents.filter((e) => (
-            get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
-        ));
-        const numEvents = this.state.relatedEvents.length + 1 - eventsInUse.length;
+        const numEvents = this.state.relatedEvents.length + 1;
 
         return (
             <div className="MetadataView">
