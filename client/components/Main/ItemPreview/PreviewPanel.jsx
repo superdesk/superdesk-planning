@@ -186,7 +186,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     loadPreviewItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'preview')),
-    edit: (item, modal = false) => dispatch(actions.main.openForEdit(item, true, modal)),
+    edit: (item, modal = false) => dispatch(actions.main.openForEdit(item, !modal, modal)),
     closePreview: () => dispatch(actions.main.closePreview()),
 });
 
