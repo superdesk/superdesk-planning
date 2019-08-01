@@ -168,7 +168,7 @@ const exportAsArticle = (items = [], download) => (
             }
 
             sortableItems.push({
-                id: item._id,
+                ...item,
                 label: label(item),
             });
         });
@@ -192,7 +192,7 @@ const exportAsArticle = (items = [], download) => (
         const templates = isPlanning ? selectors.general.getPlanningExportTemplates(getState()) :
             selectors.general.getEventExportTemplates(getState());
         const exportArticlesDispatch = (items, desk, template, type, download, articleTemplate) => {
-            const itemIds = items.map((item) => item.id);
+            const itemIds = items.map((item) => item._id);
             const url = selectors.config.getServerUrl(getState());
 
             if (download) {
@@ -255,6 +255,10 @@ const exportAsArticle = (items = [], download) => (
                 articleTemplates: articleTemplates,
                 defaultArticleTemplate: articleTemplates.find((t) =>
                     t._id === get(defaultDesk, 'default_content_template')) || articleTemplates[0],
+                exportListFields: selectors.forms.exportListFields(getState()),
+                dateFormat: selectors.config.getDateFormat(state),
+                timeFormat: selectors.config.getTimeFormat(state),
+                agendas: selectors.general.agendas(state),
             },
         }));
     }

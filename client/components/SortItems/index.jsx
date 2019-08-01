@@ -1,17 +1,27 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import classNames from 'classnames';
 import {SortableContainer, SortableElement, arrayMove} from 'react-sortable-hoc';
 
 import './style.scss';
 
-const SortableItem = SortableElement(({label, disabled}) =>
-    <li className="sortable-list__item draggable-list__item">{label}</li>
+const SortableItem = SortableElement(({item, disabled, getListElement}) =>
+    (<li className={classNames('sortable-list__item',
+        'draggable-list__item',
+        {'sortable-list__item--no-padding': getListElement})}>
+        {getListElement ? getListElement(item) : item.label}
+    </li>)
 );
 
-const SortableList = SortableContainer(({items}) =>
+const SortableList = SortableContainer(({items, getListElement}) =>
     <ul className="sortable-list">
         {(items || []).map((item, index, arr) =>
-            <SortableItem key={item.id} index={index} label={item.label} disabled={arr.length === 1}/>
+            <SortableItem
+                key={item.id}
+                index={index}
+                item={item}
+                disabled={arr.length === 1}
+                getListElement={getListElement} />
         )}
     </ul>
 );
@@ -45,6 +55,7 @@ class SortItems extends React.Component {
             <SortableList items={this.state.items}
                 onSortEnd={this.onSortEnd}
                 onSortStart={this.onSortStart}
+                getListElement={this.props.getListElement}
             />
         );
     }
@@ -53,6 +64,7 @@ class SortItems extends React.Component {
 SortItems.propTypes = {
     onSortChange: PropTypes.func.isRequired,
     items: PropTypes.array.isRequired,
+    getListElement: PropTypes.func,
 };
 
 export default SortItems;
