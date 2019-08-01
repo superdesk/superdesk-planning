@@ -15,7 +15,6 @@ import {
 } from './index';
 import {FeaturedPlanningModal} from './Planning/FeaturedPlanning/FeaturedPlanningModal';
 import {UnlockFeaturedPlanning} from './Planning/FeaturedPlanning/UnlockFeaturedPlanning';
-import {EditorModalPanel} from './Main';
 import {MODALS, ITEM_TYPE} from '../constants';
 
 import {ManageAgendasModal} from './Agendas/ManageAgendasModal';
@@ -31,7 +30,6 @@ const modals = {
     [MODALS.FULFIL_ASSIGNMENT]: FulFilAssignmentModal,
     [MODALS.SELECT_ITEM_MODAL]: SelectItemModal,
     [MODALS.MANAGE_AGENDAS]: ManageAgendasModal,
-    [MODALS.EDIT_ITEM]: EditorModalPanel,
     [MODALS.IGNORE_CANCEL_SAVE]: IgnoreCancelSaveModal,
     [MODALS.FEATURED_STORIES]: FeaturedPlanningModal,
     [MODALS.UNLOCK_FEATURED_STORIES]: UnlockFeaturedPlanning,
@@ -41,7 +39,7 @@ const modals = {
 };
 
 export function Modals({modalType, modalProps, handleHide}) {
-    if (modalType) {
+    if (modalType && modals[modalType]) {
         return React.createElement(modals[modalType], {
             handleHide,
             modalProps,

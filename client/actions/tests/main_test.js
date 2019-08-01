@@ -44,15 +44,10 @@ describe('actions.main', () => {
         it('closes modal editor', () => {
             store.test(null, main.closeEditor(true));
 
-            expect(store.dispatch.callCount).toBe(2);
+            expect(store.dispatch.callCount).toBe(1);
             expect(store.dispatch.args[0]).toEqual([{
                 type: 'MAIN_CLOSE_EDITOR',
                 payload: true,
-            }]);
-
-            expect(store.dispatch.args[1]).toEqual([{
-                type: 'HIDE_MODAL',
-                payload: {clearPreviousState: true},
             }]);
 
             expect(services.$location.search.callCount).toBe(0);
@@ -731,10 +726,6 @@ describe('actions.main', () => {
 
             return store.test(done, main.openActionModalFromEditor(data.events[0], 'title', actionCallback))
                 .then(() => {
-                    expect(store.dispatch.args[0]).toEqual([{
-                        type: 'HIDE_MODAL',
-                        payload: {clearPreviousState: false},
-                    }]);
                     expect(main.openIgnoreCancelSaveModal.callCount).toBe(1);
                     expect(main.openIgnoreCancelSaveModal.args[0]).toEqual([{
                         itemId: data.events[0]._id,

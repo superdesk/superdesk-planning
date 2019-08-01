@@ -94,11 +94,6 @@ const openEditorAction = (item, action, updateUrl = true, modal = false) => (
         });
 
         if (modal) {
-            dispatch(showModal({
-                modalType: MODALS.EDIT_ITEM,
-                modalProps: {item},
-            }));
-
             if (selectors.forms.currentItemId(getState()) === itemId) {
                 dispatch(self.closeEditor());
             }
@@ -483,12 +478,6 @@ const openActionModalFromEditor = (original, title, action) => (
                 ));
         }
 
-        // If the item is currently open in the ItemEditorModal
-        // then hide the modal for now (we will show the modal again later)
-        if (isOpenInModal) {
-            dispatch(hideModal());
-        }
-
         // Check if item has errors
         const isOpenForEditing = isOpenInEditor || isOpenInModal;
         const isKilled = isItemKilled(original);
@@ -517,7 +506,11 @@ const openActionModalFromEditor = (original, title, action) => (
         const onGoTo = !isOpenForEditing ?
             () => {
                 dispatch(hideModal());
-                return dispatch(self.openForEdit(original));
+                return dispatch(self.openForEdit(
+                    original,
+                    !isOpenInModal,
+                    isOpenInModal
+                ));
             } :
             null;
 
@@ -900,8 +893,6 @@ const closeEditor = (modal = false) => (
         if (!modal) {
             // Update the URL
             $timeout(() => $location.search('edit', null));
-        } else {
-            dispatch(hideModal(true));
         }
     }
 );
@@ -1236,10 +1227,11 @@ const onItemUnlocked = (data, item, itemType) => (
         const editorModalItemId = selectors.forms.currentItemIdModal(getState());
         const itemId = getItemId(item);
 
-        if (editorItemId === itemId) {
-            dispatch(self.changeEditorAction('read', false));
-        } else if (editorModalItemId === itemId) {
-            dispatch(self.closeEditor(true));
+        if (editorItemId === itemId || editorModalItemId === itemId) {
+            dispatch(self.changeEditorAction(
+                'read',
+                editorModalItemId === itemId
+            ));
         }
 
         // If this is the event item currently being edited, show popup notification
@@ -1382,7 +1374,7 @@ const spikeAfterUnlock = (unlockedItem, previousLock, openInEditor, openInModal)
             if (!isItemSpiked(updatedItem) && get(previousLock, 'action')) {
                 if (openInEditor || openInModal) {
                     return dispatch(
-                        self.openForEdit(updatedItem, true, openInModal)
+                        self.openForEdit(updatedItem, !openInModal, openInModal)
                     );
                 }
 
