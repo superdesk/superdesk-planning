@@ -4,7 +4,7 @@ import {connect} from 'react-redux';
 import {isEqual} from 'lodash';
 import {Modal} from '../index';
 import {gettext} from '../../utils';
-import {MODALS, PRIVILEGES} from '../../constants';
+import {MODALS, PRIVILEGES, KEYCODES} from '../../constants';
 import {SubNav, StretchBar, Button} from '../UI/SubNav';
 import {ColumnBox} from '../UI';
 import * as selectors from '../../selectors';
@@ -21,6 +21,22 @@ export class ManageAgendasComponent extends React.Component {
             editorOpen: false,
             selectedAgenda: null,
         };
+        this.handleKeydown = this.handleKeydown.bind(this);
+    }
+
+    componentDidMount() {
+        document.addEventListener('keydown', this.handleKeydown);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.handleKeydown);
+    }
+
+    handleKeydown(event) {
+        if (event.keyCode === KEYCODES.ESCAPE) {
+            event.preventDefault();
+            this.props.handleHide();
+        }
     }
 
     componentWillReceiveProps(nextProps) {
