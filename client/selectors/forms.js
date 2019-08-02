@@ -61,6 +61,16 @@ export const listFields = createSelector([profiles], (p) => {
     return fields;
 });
 
+export const exportListFields = createSelector([profiles], (p) => {
+    const fields = {};
+
+    Object.keys(p).forEach((type) => {
+        fields[type] = get(p[type], 'export_list', {});
+    });
+
+    return fields;
+});
+
 export const defaultEventDuration = createSelector(
     [eventProfile],
     (profile) => parseInt(get(profile, 'editor.dates.default_duration_on_change', 1), 10)

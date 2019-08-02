@@ -111,4 +111,12 @@ export const PLANNING = {
         REMOVE_FEATURED: 'remove_featured',
         CREATE_EVENT: 'create_event',
     },
+    LIST: {
+        PRIMARY_FIELDS: ['slugline', 'internalnote', 'description'],
+        SECONDARY_FIELDS: ['state', 'featured', 'agendas', 'coverages'],
+    },
+    EXPORT_LIST: {
+        PRIMARY_FIELDS: ['slugline', 'description'],
+        SECONDARY_FIELDS: ['agendas'],
+    },
 };

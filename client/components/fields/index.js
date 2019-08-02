@@ -48,6 +48,7 @@ registerField('name', name);
 registerField('slugline', slugline);
 registerField('headline', headline);
 registerField('description', description);
+registerField('definition_short', description);
 registerField('internalnote', internalnote);
 registerField('state', state);
 
