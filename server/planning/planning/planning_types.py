@@ -397,6 +397,14 @@ planning_types_schema = {
     # list fields config
     'list':
         {'type': 'dict'},
+
+    # list fields when seeing events/planning when exporting or downloading
+    'export_list': {
+        'type': 'list',
+        'schema': {
+            'type': 'string'
+        }
+    }
 }
 
 

@@ -24,8 +24,6 @@ import {
 import {gettext} from '../../utils/gettext';
 import {renderFields} from '../fields';
 
-const PRIMARY_FIELDS = ['slugline', 'internalnote', 'description'];
-const SECONDARY_FIELDS = ['state', 'featured', 'agendas', 'coverages'];
 
 export class PlanningItem extends React.Component {
     constructor(props) {
@@ -159,7 +157,7 @@ export class PlanningItem extends React.Component {
             borderState = 'locked';
 
         const isExpired = isItemExpired(item);
-        const secondaryFields = get(listFields, 'planning.secondary_fields', SECONDARY_FIELDS);
+        const secondaryFields = get(listFields, 'planning.secondary_fields', PLANNING.LIST.SECONDARY_FIELDS);
 
         return (
             <Item
@@ -187,7 +185,8 @@ export class PlanningItem extends React.Component {
                 >
                     <Row>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            {renderFields(get(listFields, 'planning.primary_fields', PRIMARY_FIELDS), item)}
+                            {renderFields(get(listFields, 'planning.primary_fields',
+                                PLANNING.LIST.PRIMARY_FIELDS), item)}
                         </span>
 
                         {event &&

@@ -112,4 +112,12 @@ export const EVENTS = {
         ALL_CALENDARS: 'ALL_CALENDARS',
         DEFAULT: 'ALL_CALENDARS',
     },
+    LIST: {
+        PRIMARY_FIELDS: ['slugline', 'internalnote', 'name'],
+        SECONDARY_FIELDS: ['state', 'actionedState', 'calendars', 'location'],
+    },
+    EXPORT_LIST: {
+        PRIMARY_FIELDS: ['slugline', 'name'],
+        SECONDARY_FIELDS: ['location'],
+    },
 };
