@@ -10,6 +10,7 @@ import {SelectInput, Row} from './UI/Form';
 import {Item, Column, Row as ListRow} from './UI/List';
 import {Modal} from './index';
 import SortItems from './SortItems/index';
+import {KEYCODES} from '../constants';
 import {renderFields} from './fields';
 
 export class ExportAsArticleModal extends React.Component {
@@ -29,10 +30,23 @@ export class ExportAsArticleModal extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.filterArticleTemplates = this.filterArticleTemplates.bind(this);
         this.getListElement = this.getListElement.bind(this);
+        this.handleKeydown = this.handleKeydown.bind(this);
     }
 
     componentDidMount() {
         this.filterArticleTemplates(this.state.desk);
+        document.addEventListener('keydown', this.handleKeydown);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.handleKeydown);
+    }
+
+    handleKeydown(event) {
+        if (event.keyCode === KEYCODES.ESCAPE) {
+            event.preventDefault();
+            this.props.handleHide();
+        }
     }
 
     onChange(field, value) {

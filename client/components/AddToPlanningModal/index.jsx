@@ -8,12 +8,30 @@ import {AddToPlanningApp} from '../../apps';
 
 import * as selectors from '../../selectors';
 import {gettext} from '../../utils';
+import {KEYCODES} from '../../constants';
 
 export class AddToPlanningComponent extends React.Component {
     constructor(props) {
         super(props);
 
         this.dom = {popupContainer: null};
+        this.handleKeydown = this.handleKeydown.bind(this);
+    }
+
+    componentDidMount() {
+        document.addEventListener('keydown', this.handleKeydown);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.handleKeydown);
+    }
+
+    handleKeydown(event) {
+        if (event.keyCode === KEYCODES.ESCAPE) {
+            event.preventDefault();
+            this.props.handleHide();
+            this.props.modalProps.$scope.resolve();
+        }
     }
 
     render() {

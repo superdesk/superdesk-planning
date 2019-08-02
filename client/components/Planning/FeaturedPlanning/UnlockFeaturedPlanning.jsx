@@ -6,57 +6,81 @@ import {Modal} from '../../index';
 import {ButtonList} from '../../UI';
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
-import {PRIVILEGES} from '../../../constants';
+import {PRIVILEGES, KEYCODES} from '../../../constants';
 import {getItemInArrayById} from '../../../utils';
 
 
-const UnlockFeaturedPlanningComponent = ({
-    handleHide,
-    currentUserId,
-    lockUser,
-    unlockFeaturedPlanning,
-    users,
-    privileges,
-}) => {
-    if (!lockUser) {
-        handleHide();
-        return null;
+class UnlockFeaturedPlanningComponent extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleKeydown = this.handleKeydown.bind(this);
     }
 
-    const userName = get(getItemInArrayById(users, lockUser), 'display_name');
-    let buttonList = [{
-        onClick: handleHide,
-        text: gettext('Cancel'),
-    }];
-
-    if (privileges[PRIVILEGES.FEATURED_STORIES]) {
-        buttonList.push({
-            color: 'primary',
-            onClick: unlockFeaturedPlanning,
-            text: gettext('Unlock'),
-        });
+    componentDidMount() {
+        document.addEventListener('keydown', this.handleKeydown);
     }
 
-    return (
-        <Modal show={true} onHide={handleHide}>
-            <Modal.Header>
-                {<a className="close" onClick={handleHide}>
-                    <i className="icon-close-small" />
-                </a>}
-                <h3>{gettext('Featured Stories Locked')}</h3>
-            </Modal.Header>
-            <Modal.Body>
-                {currentUserId === lockUser ?
-                    gettext('You are currently managing featured story in another session') :
-                    gettext(`'${userName}' is currently managing featured stories.`
-                    + ' This feature can only be accessed by one user at a time.')}
-            </Modal.Body>
-            <Modal.Footer>
-                <ButtonList buttonList={buttonList} />
-            </Modal.Footer>
-        </Modal>
-    );
-};
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.handleKeydown);
+    }
+
+    handleKeydown(event) {
+        if (event.keyCode === KEYCODES.ESCAPE) {
+            event.preventDefault();
+            this.props.handleHide();
+        }
+    }
+
+    render() {
+        const {
+            handleHide,
+            currentUserId,
+            lockUser,
+            unlockFeaturedPlanning,
+            users,
+            privileges,
+        } = this.props;
+
+        if (!lockUser) {
+            handleHide();
+            return null;
+        }
+
+        const userName = get(getItemInArrayById(users, lockUser), 'display_name');
+        let buttonList = [{
+            onClick: handleHide,
+            text: gettext('Cancel'),
+        }];
+
+        if (privileges[PRIVILEGES.FEATURED_STORIES]) {
+            buttonList.push({
+                color: 'primary',
+                onClick: unlockFeaturedPlanning,
+                text: gettext('Unlock'),
+            });
+        }
+
+        return (
+            <Modal show={true} onHide={handleHide}>
+                <Modal.Header>
+                    {<a className="close" onClick={handleHide}>
+                        <i className="icon-close-small" />
+                    </a>}
+                    <h3>{gettext('Featured Stories Locked')}</h3>
+                </Modal.Header>
+                <Modal.Body>
+                    {currentUserId === lockUser ?
+                        gettext('You are currently managing featured story in another session') :
+                        gettext(`'${userName}' is currently managing featured stories.`
+                        + ' This feature can only be accessed by one user at a time.')}
+                </Modal.Body>
+                <Modal.Footer>
+                    <ButtonList buttonList={buttonList} />
+                </Modal.Footer>
+            </Modal>
+        );
+    }
+}
 
 UnlockFeaturedPlanningComponent.propTypes = {
     handleHide: PropTypes.func,

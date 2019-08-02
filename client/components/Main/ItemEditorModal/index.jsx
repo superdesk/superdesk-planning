@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {get, union} from 'lodash';
 import classNames from 'classnames';
 
-import {ITEM_TYPE, UI} from '../../../constants';
+import {ITEM_TYPE, UI, KEYCODES} from '../../../constants';
 
 import {ItemMenuPanel} from './ItemMenuPanel';
 import {Modal} from '../../index';
@@ -37,6 +37,7 @@ export class EditorModalPanel extends React.Component {
         this.onDragEvents = this.onDragEvents.bind(this);
         this.onEditorTabChange = this.onEditorTabChange.bind(this);
         this.onCloseModal = this.onCloseModal.bind(this);
+        this.handleKeydown = this.handleKeydown.bind(this);
     }
 
     onDragEvents(e) {
@@ -50,11 +51,20 @@ export class EditorModalPanel extends React.Component {
     componentDidMount() {
         window.addEventListener('dragover', this.onDragEvents);
         window.addEventListener('drop', this.onDragEvents);
+        document.addEventListener('keydown', this.handleKeydown);
     }
 
     componentWillUnmount() {
         window.removeEventListener('dragover', this.onDragEvents);
         window.removeEventListener('drop', this.onDragEvents);
+        document.removeEventListener('keydown', this.handleKeydown);
+    }
+
+    handleKeydown(event) {
+        if (event.keyCode === KEYCODES.ESCAPE) {
+            event.preventDefault();
+            this.dom.editor.getWrappedInstance().cancelFromHeader();
+        }
     }
 
     componentDidUpdate(prevProps, prevState) {

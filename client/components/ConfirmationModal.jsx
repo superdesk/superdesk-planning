@@ -5,6 +5,7 @@ import {gettext} from '../utils';
 
 import {Modal} from './index';
 import {ButtonList, Icon} from './UI';
+import {KEYCODES} from '../constants';
 
 export class ConfirmationModal extends React.Component {
     constructor(props) {
@@ -15,6 +16,7 @@ export class ConfirmationModal extends React.Component {
         this.onCancel = this.onCancel.bind(this);
         this.onOK = this.onOK.bind(this);
         this.closeModelAfter = this.closeModelAfter.bind(this);
+        this.handleKeydown = this.handleKeydown.bind(this);
     }
 
     onIgnore() {
@@ -27,6 +29,21 @@ export class ConfirmationModal extends React.Component {
 
     onOK() {
         this.closeModelAfter(this.props.modalProps.action);
+    }
+
+    componentDidMount() {
+        document.addEventListener('keydown', this.handleKeydown);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.handleKeydown);
+    }
+
+    handleKeydown(event) {
+        if (event.keyCode === KEYCODES.ESCAPE) {
+            event.preventDefault();
+            this.onCancel();
+        }
     }
 
     closeModelAfter(func) {
