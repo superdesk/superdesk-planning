@@ -49,6 +49,8 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
                 itemActionDispatches[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]:
                 itemActionDispatches[EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName],
+            [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName]:
+                itemActionDispatches[EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName].bind(null, item),
         };
         const itemActions = !hideItemActions ?
             eventUtils.getEventActions({

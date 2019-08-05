@@ -1407,21 +1407,38 @@ const spikeAfterUnlock = (unlockedItem, previousLock, openInEditor, openInModal)
  * @param {object} updates - The item to save and unlock
  * @return Promise
  */
-const saveAndUnlockItem = (original, updates) => (
+const saveAndUnlockItem = (original, updates, ignoreRecurring = false) => (
     (dispatch, getState, {notify}) => {
         const promise = getItemType(original) === ITEM_TYPE.PLANNING ?
             dispatch(planningUi.save(original, updates)) :
-            dispatch(eventsUi.saveWithConfirmation(original, updates));
+            dispatch(eventsUi.saveWithConfirmation(original, updates, false, ignoreRecurring));
 
         return promise
-            .then((savedItem) => (
-                dispatch(locks.unlock(get(savedItem, '[0]', savedItem)))
+            .then((savedItems) => {
+                let savedItem = Array.isArray(savedItems) ? savedItems[0] : savedItems;
+
+                savedItem = modifyForClient(savedItem);
+
+                switch (getItemType(original)) {
+                case ITEM_TYPE.EVENT:
+                    dispatch(
+                        eventsApi.receiveEvents([savedItem])
+                    );
+                    break;
+                case ITEM_TYPE.PLANNING:
+                    dispatch(
+                        planningApi.receivePlannings([savedItem])
+                    );
+                    break;
+                }
+
+                return dispatch(locks.unlock(get(savedItem, '[0]', savedItem)))
                     .then((unlockedItem) => Promise.resolve(unlockedItem))
                     .catch(() => {
                         notify.error(gettext('Could not unlock the item.'));
                         return Promise.reject(savedItem);
-                    })
-            ), (error) => {
+                    });
+            }, (error) => {
                 notify.error(gettext('Could not save the item.'));
                 return Promise.reject(error);
             });

@@ -78,6 +78,13 @@ export const EditorItemActions = ({
                             itemActions[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName](item)
                         ))
                 ),
+            [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName]:
+                () => (
+                    autoSave.flushAutosave()
+                        .then(() => (
+                            itemActions[EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName](item, true)
+                        ))
+                ),
         };
         actions = eventUtils.getEventActions({
             item,

@@ -338,6 +338,10 @@ events_schema = {
         'type': 'datetime',
         'nullable': True
     },
+    'completed': {
+        'type': 'boolean',
+        'default': False
+    },
 
 
     # This is used if an Event is created from a Planning Item

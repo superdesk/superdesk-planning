@@ -143,6 +143,8 @@ export class ListGroupItem extends React.Component {
                 itemActions[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName],
             [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName],
+            [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName]:
+                itemActions[EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName],
         };
 
         let planningProps = {
