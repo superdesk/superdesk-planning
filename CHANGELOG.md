@@ -1,5 +1,24 @@
 # Superdesk Planning Changelog
 
+## [1.6.2] Not Released Yet
+### Features
+- [SDESK-4469] Introduce modal to prompt for a 'reason' to cancel individual coverages
+- [SDESK-4427] New Event action 'Mark as Completed'
+
+### Improvements
+- [SDESK-3286] Close popup modals with ESC key
+- [SDESK-4428] Multiselect in the Event list and Planning list
+- [SDESK-4402] Improve location display in planning lists
+- [SDESK-4493] Create a history record for Planning items and events when an Event is created from planning item
+- [SDESK-4421] Add details to location dropdown
+
+### Fixes
+- [SDESK-4286] List Item format for exporting and downloading events/planning
+- [SDESK-4478] Correctly display the number of events in Post/Unpost popup
+- [SDESK-4549] Coverages are inheriting published time and not scheduled time of a story
+- [SDESK-4328] Remove ability to clear the coverage type in the editor
+- (fix): Update enzyme-adapter-react-16
+
 ## [1.6.1] 2019-07-17
 ### Fixes
 - [SDESK-4471] Reschedule and Postpone bugs when editor is open (#1259)
