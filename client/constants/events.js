@@ -106,10 +106,24 @@ export const EVENTS = {
             actionName: 'onEventAssignCalendar',
             lock_action: 'assign_calendar',
         },
+        MARK_AS_COMPLETED: {
+            label: gettext('Mark as completed'),
+            icon: 'icon-ok',
+            actionName: 'onMarkEventCompleted',
+            lock_action: 'mark_completed',
+        },
     },
     FILTER: {
         NO_CALENDAR_ASSIGNED: 'NO_CALENDAR_ASSIGNED',
         ALL_CALENDARS: 'ALL_CALENDARS',
         DEFAULT: 'ALL_CALENDARS',
+    },
+    LIST: {
+        PRIMARY_FIELDS: ['slugline', 'internalnote', 'name'],
+        SECONDARY_FIELDS: ['state', 'actionedState', 'calendars', 'location'],
+    },
+    EXPORT_LIST: {
+        PRIMARY_FIELDS: ['slugline', 'name'],
+        SECONDARY_FIELDS: ['location'],
     },
 };

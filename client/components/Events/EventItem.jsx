@@ -17,9 +17,6 @@ import {
 import {gettext} from '../../utils/gettext';
 import {renderFields} from '../fields';
 
-const PRIMARY_FIELDS = ['slugline', 'internalnote', 'name'];
-const SECONDARY_FIELDS = ['state', 'actionedState', 'calendars', 'location'];
-
 
 export class EventItem extends React.Component {
     constructor(props) {
@@ -77,6 +74,8 @@ export class EventItem extends React.Component {
                 this.props[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName],
+            [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName]:
+                this.props[EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName].bind(null, item),
         };
         const itemActions = eventUtils.getEventActions({item, session, privileges, lockedItems, callBacks, calendars});
 
@@ -125,7 +124,7 @@ export class EventItem extends React.Component {
 
         const isExpired = isItemExpired(item);
 
-        const secondaryFields = get(listFields, 'event.secondary_fields', SECONDARY_FIELDS);
+        const secondaryFields = get(listFields, 'event.secondary_fields', EVENTS.LIST.SECONDARY_FIELDS);
 
         return (
             <Item
@@ -152,7 +151,8 @@ export class EventItem extends React.Component {
                     border={false}>
                     <Row>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            {renderFields(get(listFields, 'event.primary_fields', PRIMARY_FIELDS), item)}
+                            {renderFields(get(listFields, 'event.primary_fields',
+                                EVENTS.LIST.PRIMARY_FIELDS), item)}
                         </span>
                         <EventDateTime
                             item={item}
@@ -181,6 +181,13 @@ export class EventItem extends React.Component {
                                 },
                             })
                         }
+                        {eventUtils.isEventCompleted(item) && (
+                            <Label
+                                text={gettext('Event Completed')}
+                                iconType="success"
+                                isHollow={true}
+                            />
+                        )}
                         {secondaryFields.includes('calendars') && renderFields('calendars', item, {
                             calendars: calendars,
                             grow: !get(item, 'location') && !showRelatedPlanningLink,
@@ -189,7 +196,7 @@ export class EventItem extends React.Component {
 
                         {(showRelatedPlanningLink) &&
                             <span
-                                className="sd-overflow-ellipsis sd-list-item__element-lm-10 sd-list-item--element-grow">
+                                className="sd-overflow-ellipsis sd-list-item__element-lm-10">
                                 <a className="sd-line-input__input--related-item-link"
                                     onClick={toggleRelatedPlanning} >
                                     <i className="icon-calendar" />

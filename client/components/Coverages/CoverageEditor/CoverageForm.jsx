@@ -102,8 +102,10 @@ export class CoverageForm extends React.Component {
         const contentTypeQcode = get(value, 'planning.g2_content_type') || null;
         const contentType = contentTypeQcode ? getItemInArrayById(contentTypes, contentTypeQcode, 'qcode') : null;
         const onContentTypeChange = (f, v) => {
-            onChange(f, get(v, 'qcode') || null);
-            onChange(`${field}.planning.genre`, null);
+            if (v) {
+                onChange(f, get(v, 'qcode') || null);
+                onChange(`${field}.planning.genre`, null);
+            }
         };
 
         if (contentTypeQcode === 'text' && !get(value, 'planning.genre')) {
@@ -145,7 +147,7 @@ export class CoverageForm extends React.Component {
                     label={gettext('Coverage Type')}
                     options={contentTypes}
                     labelField="name"
-                    clearable={true}
+                    clearable={false}
                     value={contentType}
                     defaultValue={null}
                     {...fieldProps}

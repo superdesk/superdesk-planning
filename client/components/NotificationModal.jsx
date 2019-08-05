@@ -2,33 +2,59 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Modal} from './index';
 import {Button} from 'react-bootstrap';
+import {KEYCODES} from '../constants';
 
-export function NotificationModal({handleHide, modalProps}) {
-    const handleClose = () => {
-        handleHide();
-        if (modalProps.action) {
-            modalProps.action();
+export class NotificationModal extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleClose = this.handleClose.bind(this);
+        this.handleKeydown = this.handleKeydown.bind(this);
+    }
+
+    componentDidMount() {
+        document.addEventListener('keydown', this.handleKeydown);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.handleKeydown);
+    }
+
+    handleKeydown(event) {
+        if (event.keyCode === KEYCODES.ESCAPE) {
+            event.preventDefault();
+            this.handleClose();
         }
-    };
+    }
 
-    return (
-        <Modal show={true} onHide={handleClose}>
-            <Modal.Header>
-                <a className="close" onClick={handleClose}>
-                    <i className="icon-close-small" />
-                </a>
-                <h3>{ modalProps.title || 'Notification' }</h3>
-            </Modal.Header>
-            <Modal.Body>
-                <div>
-                    { modalProps.body }
-                </div>
-            </Modal.Body>
-            <Modal.Footer>
-                <Button type="button" onClick={handleClose}>OK</Button>
-            </Modal.Footer>
-        </Modal>
-    );
+    handleClose() {
+        this.props.handleHide();
+        if (this.props.modalProps.action) {
+            this.props.modalProps.action();
+        }
+    }
+
+    render() {
+        const {modalProps} = this.props;
+
+        return (
+            <Modal show={true} onHide={this.handleClose}>
+                <Modal.Header>
+                    <a className="close" onClick={this.handleClose}>
+                        <i className="icon-close-small" />
+                    </a>
+                    <h3>{ modalProps.title || 'Notification' }</h3>
+                </Modal.Header>
+                <Modal.Body>
+                    <div>
+                        { modalProps.body }
+                    </div>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button type="button" onClick={this.handleClose}>OK</Button>
+                </Modal.Footer>
+            </Modal>
+        );
+    }
 }
 
 NotificationModal.propTypes = {

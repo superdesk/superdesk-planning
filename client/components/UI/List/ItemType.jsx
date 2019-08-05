@@ -17,8 +17,8 @@ export const ItemType = ({hasCheck, checked, onCheckToggle, item, color}) => (
     <Column hasCheck={hasCheck} checked={checked} >
         {hasCheck && (
             <div className="sd-list-item__checkbox-container">
-                <Checkbox value={checked} onChange={(field, value) => {
-                    onCheckToggle(value);
+                <Checkbox value={checked} onChange={(field, value, shiftKey) => {
+                    onCheckToggle(value, shiftKey);
                 }}/>
             </div>
         )}

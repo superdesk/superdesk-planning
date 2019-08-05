@@ -8,7 +8,7 @@ import {get, difference, xor, isEqual, some} from 'lodash';
 
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
-import {MODALS, TIME_COMPARISON_GRANULARITY} from '../../../constants';
+import {MODALS, TIME_COMPARISON_GRANULARITY, KEYCODES} from '../../../constants';
 import {gettext, onEventCapture, isExistingItem, isItemPublic, planningUtils} from '../../../utils';
 
 import {Modal} from '../../index';
@@ -43,6 +43,22 @@ export class FeaturedPlanningModalComponent extends React.Component {
         this.removeHighlightForItem = this.removeHighlightForItem.bind(this);
         this.onSortStart = this.onSortStart.bind(this);
         this.save = this.save.bind(this);
+        this.handleKeydown = this.handleKeydown.bind(this);
+    }
+
+    componentDidMount() {
+        document.addEventListener('keydown', this.handleKeydown);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.handleKeydown);
+    }
+
+    handleKeydown(event) {
+        if (event.keyCode === KEYCODES.ESCAPE) {
+            event.preventDefault();
+            this.onCloseModal();
+        }
     }
 
     componentWillMount() {

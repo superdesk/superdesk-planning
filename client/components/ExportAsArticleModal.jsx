@@ -2,12 +2,16 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {get} from 'lodash';
-import {gettext} from '../utils';
+import {gettext, getItemType, eventUtils, planningUtils, getDateTimeString} from '../utils';
+import {ITEM_TYPE, EVENTS, PLANNING} from '../constants';
 
 import {Button} from './UI';
 import {SelectInput, Row} from './UI/Form';
+import {Item, Column, Row as ListRow} from './UI/List';
 import {Modal} from './index';
 import SortItems from './SortItems/index';
+import {KEYCODES} from '../constants';
+import {renderFields} from './fields';
 
 export class ExportAsArticleModal extends React.Component {
     constructor(props) {
@@ -25,10 +29,24 @@ export class ExportAsArticleModal extends React.Component {
         this.onSortChange = this.onSortChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.filterArticleTemplates = this.filterArticleTemplates.bind(this);
+        this.getListElement = this.getListElement.bind(this);
+        this.handleKeydown = this.handleKeydown.bind(this);
     }
 
     componentDidMount() {
         this.filterArticleTemplates(this.state.desk);
+        document.addEventListener('keydown', this.handleKeydown);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.handleKeydown);
+    }
+
+    handleKeydown(event) {
+        if (event.keyCode === KEYCODES.ESCAPE) {
+            event.preventDefault();
+            this.props.handleHide();
+        }
     }
 
     onChange(field, value) {
@@ -67,6 +85,53 @@ export class ExportAsArticleModal extends React.Component {
         this.setState((prevState) => ({...prevState, ...newObj}));
     }
 
+    getListElement(item) {
+        const {
+            exportListFields,
+            dateFormat,
+            timeFormat,
+            agendas,
+        } = this.props.modalProps;
+        const itemType = getItemType(item);
+        let primaryFields, secFields, dateStr;
+
+        if (itemType === ITEM_TYPE.EVENT) {
+            primaryFields = EVENTS.EXPORT_LIST.PRIMARY_FIELDS;
+            secFields = EVENTS.EXPORT_LIST.SECONDARY_FIELDS;
+            dateStr = eventUtils.getDateStringForEvent(item, dateFormat, timeFormat, false, true, true);
+        } else {
+            primaryFields = PLANNING.EXPORT_LIST.PRIMARY_FIELDS;
+            secFields = PLANNING.EXPORT_LIST.SECONDARY_FIELDS;
+            dateStr = getDateTimeString(item.planning_date, dateFormat, timeFormat, ' @ ', false) || '';
+        }
+
+        return (<Item>
+            <Column grow={true} border={false}>
+                <ListRow>
+                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                        {renderFields(get(exportListFields,
+                            `${itemType}.primary_fields`, primaryFields), item,
+                        {
+                            alternateFieldName: 'definition_short',
+                            agendas: planningUtils.getAgendaNames(item, agendas),
+                        })}
+                    </span>
+                </ListRow>
+                <ListRow>
+                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                        {renderFields(get(exportListFields,
+                            `${itemType}.secondary_fields`, secFields), item,
+                        {
+                            alternateFieldName: 'definition_short',
+                            agendas: planningUtils.getAgendaNames(item, agendas),
+                        })}
+                    </span>
+                    {dateStr && <time className="no-padding"><i className="icon-time"/>{dateStr}</time>}
+                </ListRow>
+            </Column>
+        </Item>);
+    }
+
     render() {
         const {
             items,
@@ -89,7 +154,10 @@ export class ExportAsArticleModal extends React.Component {
                 </Modal.Header>
                 <Modal.Body>
                     <Row>
-                        <SortItems items={items} onSortChange={this.onSortChange}/>
+                        <SortItems
+                            items={items}
+                            onSortChange={this.onSortChange}
+                            getListElement={this.getListElement} />
                     </Row>
                     {!download && [<Row key={0}>
                         <SelectInput
@@ -150,5 +218,9 @@ ExportAsArticleModal.propTypes = {
         download: PropTypes.bool,
         articleTemplates: PropTypes.array,
         defaultArticleTemplate: PropTypes.object,
+        exportListFields: PropTypes.object.isRequired,
+        dateFormat: PropTypes.string,
+        timeFormat: PropTypes.string,
+        agendas: PropTypes.array,
     }),
 };

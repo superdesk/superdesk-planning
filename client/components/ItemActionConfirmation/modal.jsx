@@ -19,9 +19,10 @@ import {
     PostEventsForm,
     CreatePlanningForm,
     AssignCalendarForm,
+    CancelCoverageForm,
 } from './index';
 import {get} from 'lodash';
-import {EVENTS, PLANNING, ASSIGNMENTS} from '../../constants';
+import {EVENTS, PLANNING, ASSIGNMENTS, COVERAGES} from '../../constants';
 import {gettext} from '../../utils';
 
 export class ItemActionConfirmationModal extends React.Component {
@@ -149,6 +150,11 @@ export class ItemActionConfirmationModal extends React.Component {
                     _cancelAllCoverage: true,
                 },
                 form: CancelPlanningCoveragesForm,
+            },
+            [COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE.label]: {
+                title: get(COVERAGES, 'ITEM_ACTIONS.CANCEL_COVERAGE.label'),
+                saveText: gettext('Cancel Coverage'),
+                form: CancelCoverageForm,
             },
             [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: {
                 title: ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label,

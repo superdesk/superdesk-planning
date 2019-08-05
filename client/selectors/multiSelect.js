@@ -8,6 +8,7 @@ export const selectedEvents = createSelector(
     [storedEvents, selectedEventIds],
     (events, eventIds) => eventIds.map((eventId) => events[eventId])
 );
+export const lastSelectedEventDate = (state) => get(state, 'multiSelect.lastSelectedEventDate');
 
 export const selectedPlanningIds = (state) => get(state, 'multiSelect.selectedPlanningIds');
 export const selectedPlannings = createSelector(
@@ -17,3 +18,4 @@ export const selectedPlannings = createSelector(
         event: get(events, get(plannings[planningId], 'event_item')),
     }))
 );
+export const lastSelectedPlanningDate = (state) => get(state, 'multiSelect.lastSelectedPlanningDate');

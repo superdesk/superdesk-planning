@@ -32,6 +32,7 @@ export const planningCancelProfile = createSelector([profiles], (p) => get(p, 'p
 export const planningCancelAllCoveragesProfile = createSelector(
     [profiles], (p) => get(p, 'planning_cancel_all_coverage', {})
 );
+export const coverageCancelProfile = createSelector([profiles], (p) => get(p, 'coverage_cancel_coverage', {}));
 export const searchProfile = createSelector(
     [profiles, activeFilter],
     (p, filter) => {
@@ -55,6 +56,16 @@ export const listFields = createSelector([profiles], (p) => {
 
     Object.keys(p).forEach((type) => {
         fields[type] = get(p[type], 'list', {});
+    });
+
+    return fields;
+});
+
+export const exportListFields = createSelector([profiles], (p) => {
+    const fields = {};
+
+    Object.keys(p).forEach((type) => {
+        fields[type] = get(p[type], 'export_list', {});
     });
 
     return fields;

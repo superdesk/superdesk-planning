@@ -558,6 +558,36 @@ const addNewCoverageToPlanning = (coverageType, item) => (
     })))
 );
 
+const openCancelCoverageModal = (planning, coverage, index, onSubmit, onCancel) => (
+    (dispatch, getState) =>
+        dispatch(showModal({
+            modalType: MODALS.ITEM_ACTIONS_MODAL,
+            modalProps: {
+                original: planning,
+                actionType: COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE.label,
+                coverage: coverage,
+                index: index,
+                onSubmit: onSubmit,
+                onCancel: onCancel,
+            },
+        }))
+);
+
+const cancelCoverage = (original, updatedCoverage, index) => (
+    (dispatch, getState, {notify}) => {
+        const updates = {coverages: cloneDeep(original.coverages)};
+        const coverage = cloneDeep(updatedCoverage);
+
+        updates.coverages[index] = coverage;
+
+        return dispatch(planningApi.save(original, updates))
+            .then((savedItem) => {
+                notify.success(gettext('Coverage cancelled.'));
+                return dispatch(self.updateItemOnSave(savedItem));
+            });
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     spike,
@@ -589,6 +619,8 @@ const self = {
     openFeaturedPlanningModal,
     updateItemOnSave,
     addNewCoverageToPlanning,
+    openCancelCoverageModal,
+    cancelCoverage,
 };
 
 export default self;

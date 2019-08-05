@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {HISTORY_OPERATIONS} from '../../constants';
+import {HISTORY_OPERATIONS, ITEM_TYPE} from '../../constants';
 import {gettext, historyUtils} from '../../utils';
 import {get} from 'lodash';
 import {AbsoluteDate} from '../index';
@@ -8,7 +8,7 @@ import {ContentBlock} from '../UI/SidePanel';
 
 export class EventHistory extends React.Component {
     closeAndOpenDuplicate(duplicateId) {
-        this.props.openItemPreview(duplicateId, 'event');
+        this.props.openItemPreview(duplicateId, ITEM_TYPE.EVENT);
     }
 
     getHistoryActionElement(historyItem) {
@@ -91,6 +91,10 @@ export class EventHistory extends React.Component {
         case HISTORY_OPERATIONS.DUPLICATE:
             text = gettext('Duplicated');
             break;
+
+        case HISTORY_OPERATIONS.CREATED_FROM_PLANNING:
+            text = gettext('Created from a planning item');
+            break;
         }
 
         return historyUtils.getHistoryRowElement(text, historyItem, this.props.users);
@@ -125,8 +129,8 @@ export class EventHistory extends React.Component {
                                             {historyItem.operation === HISTORY_OPERATIONS.PLANNING_CREATED && (
                                                 <div className="history-list__link">
                                                     <a onClick={this.props.openItemPreview.bind(
-                                                        null, historyItem.update.planning_id, 'planning')}>
-                                                        View planning item
+                                                        null, historyItem.update.planning_id, ITEM_TYPE.PLANNING)}>
+                                                        {gettext('View planning item')}
                                                     </a>
                                                 </div>)
                                             }
@@ -135,7 +139,7 @@ export class EventHistory extends React.Component {
                                                 <div className="history-list__link">
                                                     <a onClick={this.closeAndOpenDuplicate.bind(this,
                                                         historyItem.update.duplicate_id)}>
-                                                        View duplicate event
+                                                        {gettext('View duplicate event')}
                                                     </a>
                                                 </div>
                                             )}
@@ -143,7 +147,7 @@ export class EventHistory extends React.Component {
                                                 <div className="history-list__link">
                                                     <a onClick={this.closeAndOpenDuplicate.bind(this,
                                                         historyItem.update.duplicate_id)}>
-                                                        View original event
+                                                        {gettext('View original event')}
                                                     </a>
                                                 </div>
                                             )}
@@ -153,7 +157,7 @@ export class EventHistory extends React.Component {
                                                 <div className="history-list__link">
                                                     <a onClick={this.closeAndOpenDuplicate.bind(this,
                                                         historyItem.update.reschedule_to)}>
-                                                        View rescheduled event
+                                                        {gettext('View rescheduled event')}
                                                     </a>
                                                 </div>
                                             }
@@ -163,10 +167,21 @@ export class EventHistory extends React.Component {
                                                 <div className="history-list__link">
                                                     <a onClick={this.closeAndOpenDuplicate.bind(this,
                                                         historyItem.update.reschedule_from)}>
-                                                        View original event
+                                                        {gettext('View original event')}
                                                     </a>
                                                 </div>
                                             }
+
+                                            {historyItem.operation === HISTORY_OPERATIONS.CREATED_FROM_PLANNING &&
+                                            get(historyItem, 'update.created_from_planning') &&
+                                                <div className="history-list__link">
+                                                    <a onClick={this.props.openItemPreview.bind(this,
+                                                        historyItem.update.created_from_planning, ITEM_TYPE.PLANNING)}>
+                                                        {gettext('View planning item')}
+                                                    </a>
+                                                </div>
+                                            }
+
                                         </div>
                                     </div>
                                 </li>

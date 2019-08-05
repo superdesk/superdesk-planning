@@ -121,6 +121,7 @@ export const HISTORY_OPERATIONS = {
     DUPLICATE_FROM: 'duplicate_from',
     DUPLICATE: 'duplicate',
     ADD_TO_PLANNING: 'add_to_planning',
+    CREATED_FROM_PLANNING: 'created_from_planning',
 };
 
 export const QUEUE_ITEM_PREFIX = 'queueitem';
