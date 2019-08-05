@@ -67,6 +67,8 @@ const isEventLockRestricted = (event, session, locks) =>
     isEventLocked(event, locks) &&
     !lockUtils.isItemLockedInThisSession(event, session, locks);
 
+const isEventCompleted = (event) => (get(event, 'completed'));
+
 /**
  * Helper function to determine if a recurring event instances overlap
  * Using the RRule library (similar to that the server uses), it coverts the
@@ -234,7 +236,8 @@ const canCancelEvent = (event, session, privileges, locks) => (
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT]) &&
-        !isItemRescheduled(event)
+        !isItemRescheduled(event) &&
+        !isEventCompleted(event)
 );
 
 const isEventInUse = (event) => (
@@ -251,7 +254,7 @@ const canConvertToRecurringEvent = (event, session, privileges, locks) => (
         !event.recurrence_id &&
         canEditEvent(event, session, privileges, locks) &&
         !isItemPostponed(event) &&
-        !isEventLockedForMetadataEdit(event) && !isItemCancelled(event)
+        !isEventLockedForMetadataEdit(event) && !isItemCancelled(event) && !isEventCompleted(event)
 );
 
 const canEditEvent = (event, session, privileges, locks) => (
@@ -274,7 +277,8 @@ const canUpdateEvent = (event, session, privileges, locks) => (
 const canUpdateEventTime = (event, session, privileges, locks) => (
     !isNil(event) &&
         canEditEvent(event, session, privileges, locks) &&
-        !isItemPostponed(event) && !isItemCancelled(event)
+        !isItemPostponed(event) && !isItemCancelled(event) &&
+        !isEventCompleted(event)
 );
 
 const canRescheduleEvent = (event, session, privileges, locks) => (
@@ -284,7 +288,8 @@ const canRescheduleEvent = (event, session, privileges, locks) => (
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemRescheduled(event) &&
-        !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT])
+        !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT]) &&
+        !isEventCompleted(event)
 );
 
 const canPostponeEvent = (event, session, privileges, locks) => (
@@ -295,19 +300,40 @@ const canPostponeEvent = (event, session, privileges, locks) => (
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemPostponed(event) &&
         !isItemRescheduled(event) &&
-        !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT])
+        !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT]) &&
+        !isEventCompleted(event)
 );
 
 const canUpdateEventRepetitions = (event, session, privileges, locks) => (
     !isNil(event) &&
         isEventRecurring(event) &&
-        canRescheduleEvent(event, session, privileges, locks)
+        canRescheduleEvent(event, session, privileges, locks) &&
+        !isEventCompleted(event)
 );
 
 const canAssignEventToCalendar = (event, session, privileges, locks) => (
     canEditEvent(event, session, privileges, locks) &&
         !isEventLocked(event, locks)
 );
+
+const canMarkEventAsComplete = (event, session, privileges, locks) => {
+    const currentDate = moment();
+    const precondition = [
+        WORKFLOW_STATE.DRAFT,
+        WORKFLOW_STATE.INGESTED,
+        WORKFLOW_STATE.SCHEDULED,
+    ].includes(event.state) && canEditEvent(event, session, privileges, locks) &&
+    !isEventCompleted(event);
+
+    if (get(event, 'recurrence_id')) {
+        // can action on any recurring event from present to future
+        return precondition && event.dates.end.isSameOrAfter(currentDate, 'date');
+    } else {
+        // can action only if event is of current day or current day passes through a multi day event
+        return precondition && event.dates.start.isSameOrBefore(currentDate, 'date') &&
+            event.dates.end.isSameOrAfter(currentDate, 'date');
+    }
+};
 
 const getEventItemActions = (event, session, privileges, actions, locks) => {
     let itemActions = [];
@@ -342,6 +368,8 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
             canEditEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.label]: () =>
             canAssignEventToCalendar(event, session, privileges, locks),
+        [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.label]: () =>
+            canMarkEventAsComplete(event, session, privileges, locks),
     };
 
     actions.forEach((action) => {
@@ -565,6 +593,7 @@ const getEventActions = ({item, session, privileges, lockedItems, callBacks, wit
         EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName,
         EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName,
         EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName,
+        EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName,
     ];
 
     if (isExpired && !privileges[PRIVILEGES.EDIT_EXPIRED]) {
@@ -685,7 +714,7 @@ const getEventsByDate = (events, startDate, endDate) => {
 
     sortedEvents.forEach((event) => {
         // compute the number of days of the event
-        let ending = event.actioned_date ? moment(event.actioned_date) : event.dates.end;
+        let ending = event.actioned_date ? event.actioned_date : event.dates.end;
 
         if (!event.dates.start.isSame(ending, 'day')) {
             let deltaDays = Math.max(Math.ceil(ending.diff(event.dates.start, 'days', true)), 1);
@@ -705,7 +734,10 @@ const getEventsByDate = (events, startDate, endDate) => {
         }
 
         // add event to its initial starting date
-        addEventToDate(event);
+        // add an event only if it's not actioned or actioned after this event's start date
+        if (!event.actioned_date || event.actioned_date.isSameOrAfter(event.dates.start, 'date')) {
+            addEventToDate(event);
+        }
     });
 
     let sortable = [];
@@ -742,6 +774,10 @@ const modifyForClient = (event) => {
 
     if (get(event, 'unique_id') && typeof event.unique_id === 'string') {
         event.unique_id = parseInt(event.unique_id, 10);
+    }
+
+    if (get(event, 'actioned_date')) {
+        event.actioned_date = moment(event.actioned_date);
     }
 
     return event;
@@ -797,7 +833,7 @@ const duplicateEvent = (event, occurStatus) => {
         k.startsWith('_')) ||
         ['guid', 'unique_name', 'unique_id', 'lock_user', 'lock_time', 'lock_session', 'lock_action',
             'pubstatus', 'recurrence_id', 'previous_recurrence_id', 'reschedule_from', 'reschedule_to',
-            'planning_ids', 'reason', 'expired', 'state_reason', 'actioned_date'].indexOf(k) > -1));
+            'planning_ids', 'reason', 'expired', 'state_reason', 'actioned_date', 'completed'].indexOf(k) > -1));
 
     // Delete recurring rule
     if (duplicatedEvent.dates.recurring_rule) {
@@ -1046,6 +1082,7 @@ const self = {
     eventsDatesSame,
     eventHasPostedPlannings,
     getFlattenedEventsByDate,
+    isEventCompleted,
 };
 
 export default self;

@@ -2,7 +2,7 @@ import sinon from 'sinon';
 import moment from 'moment';
 
 import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
-import {removeAutosaveFields} from '../../utils';
+import {removeAutosaveFields, modifyForClient} from '../../utils';
 import {main} from '../';
 import {AGENDA, MAIN, POST_STATE} from '../../constants';
 import eventsUi from '../events/ui';
@@ -968,7 +968,7 @@ describe('actions.main', () => {
                     ]);
 
                     expect(locks.unlock.callCount).toBe(1);
-                    expect(locks.unlock.args[0]).toEqual([data.plannings[0]]);
+                    expect(locks.unlock.args[0]).toEqual([modifyForClient(data.plannings[0])]);
 
                     done();
                 })
@@ -982,10 +982,12 @@ describe('actions.main', () => {
                     expect(eventsUi.saveWithConfirmation.args[0]).toEqual([
                         data.events[0],
                         {slugline: 'New Slugger'},
+                        false,
+                        false,
                     ]);
 
                     expect(locks.unlock.callCount).toBe(1);
-                    expect(locks.unlock.args[0]).toEqual([data.events[0]]);
+                    expect(locks.unlock.args[0]).toEqual([modifyForClient(data.events[0])]);
 
                     done();
                 })
