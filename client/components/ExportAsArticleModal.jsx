@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {get} from 'lodash';
-import {gettext, getItemType, eventUtils, planningUtils, getDateTimeString} from '../utils';
+import {gettext, getItemType, eventUtils, getDateTimeString, timeUtils} from '../utils';
 import {ITEM_TYPE, EVENTS, PLANNING} from '../constants';
 
 import {Button} from './UI';
@@ -93,12 +93,26 @@ export class ExportAsArticleModal extends React.Component {
             agendas,
         } = this.props.modalProps;
         const itemType = getItemType(item);
+        const propsToComponent = {
+            fieldsProps: {
+                location: {noMargin: true},
+                description: {alternateFieldName: 'definition_short'},
+                agendas: {agendas: agendas},
+
+            },
+        };
         let primaryFields, secFields, dateStr;
 
         if (itemType === ITEM_TYPE.EVENT) {
             primaryFields = EVENTS.EXPORT_LIST.PRIMARY_FIELDS;
             secFields = EVENTS.EXPORT_LIST.SECONDARY_FIELDS;
-            dateStr = eventUtils.getDateStringForEvent(item, dateFormat, timeFormat, false, true, true);
+            dateStr = eventUtils.getDateStringForEvent(
+                item,
+                dateFormat,
+                timeFormat,
+                false,
+                true,
+                timeUtils.isEventInDifferentTimeZone(item));
         } else {
             primaryFields = PLANNING.EXPORT_LIST.PRIMARY_FIELDS;
             secFields = PLANNING.EXPORT_LIST.SECONDARY_FIELDS;
@@ -110,21 +124,13 @@ export class ExportAsArticleModal extends React.Component {
                 <ListRow>
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         {renderFields(get(exportListFields,
-                            `${itemType}.primary_fields`, primaryFields), item,
-                        {
-                            alternateFieldName: 'definition_short',
-                            agendas: planningUtils.getAgendaNames(item, agendas),
-                        })}
+                            `${itemType}.primary_fields`, primaryFields), item, propsToComponent)}
                     </span>
                 </ListRow>
                 <ListRow>
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         {renderFields(get(exportListFields,
-                            `${itemType}.secondary_fields`, secFields), item,
-                        {
-                            alternateFieldName: 'definition_short',
-                            agendas: planningUtils.getAgendaNames(item, agendas),
-                        })}
+                            `${itemType}.secondary_fields`, secFields), item, propsToComponent)}
                     </span>
                     {dateStr && <time className="no-padding"><i className="icon-time"/>{dateStr}</time>}
                 </ListRow>
