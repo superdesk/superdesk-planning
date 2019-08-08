@@ -131,9 +131,9 @@ describe('<AssignmentPreviewContainer />', () => {
 
             expect(menu.isAvailable()).toBe(true);
             menu.expectActions([
+                'Start Working',
                 'Reassign',
                 'Edit Priority',
-                'Start Working',
                 'Remove Assignment',
             ]);
         });
