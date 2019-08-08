@@ -92,23 +92,31 @@ const onAssignmentUpdated = (_e, data) => (
         );
 
         if (querySearchSettings.deskId === null ||
-                currentDesk === data.assigned_desk || currentDesk === data.original_assigned_desk) {
+            currentDesk === data.assigned_desk ||
+            currentDesk === data.original_assigned_desk
+        ) {
             dispatch(assignments.api.fetchAssignmentHistory({_id: data.item}));
             dispatch(assignments.ui.reloadAssignments([data.assignment_state]));
 
             dispatch(assignments.api.fetchAssignmentById(data.item))
                 .then((assignmentInStore) => {
-                // If assignment moved from one state to another, check if group changed
-                // And trigger reload
+                    // If assignment moved from one state to another, check if group changed
+                    // And trigger reload
                     if (assignmentInStore.assigned_to.state !== data.assignment_state) {
-                        const originalGroup = assignmentUtils.getAssignmentGroupByStates(
-                            [assignmentInStore.assigned_to.state]);
-                        const newGroup = assignmentUtils.getAssignmentGroupByStates(
-                            [data.assignment_state]);
+                        const visibleGroups = selectors.getAssignmentGroups(getState());
+                        const originalGroups = assignmentUtils.getAssignmentGroupsByStates(
+                            visibleGroups,
+                            [assignmentInStore.assigned_to.state]
+                        );
+                        const newGroups = assignmentUtils.getAssignmentGroupsByStates(
+                            visibleGroups,
+                            [data.assignment_state]
+                        );
 
-                        if (newGroup.label !== originalGroup.label) {
+                        if (newGroups[0] !== originalGroups[0]) {
                             dispatch(assignments.ui.reloadAssignments(
-                                [assignmentInStore.assigned_to.state]));
+                                [assignmentInStore.assigned_to.state])
+                            );
                         }
                     }
                 });

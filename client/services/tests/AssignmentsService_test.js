@@ -23,14 +23,21 @@ describe('assignments service', () => {
             services.modal,
             services.sdPlanningStore,
             {config: {planning_fulfil_on_publish_for_desks: ['desk1']}},
-            {active: {desk: 'desk1'}}
+            {active: {desk: 'desk1'}},
+            testData.config
         );
 
         sinon.stub(actions.assignments.ui, 'preview').returns({type: 'PREVIEW'});
+        sinon.stub(actions.assignments.ui, 'setListGroups');
+        sinon.stub(actions.assignments.ui, 'changeListSettings');
+        sinon.stub(actions.assignments.ui, 'reloadAssignments').returns(Promise.resolve());
     });
 
     afterEach(() => {
         restoreSinonStub(actions.assignments.ui.preview);
+        restoreSinonStub(actions.assignments.ui.setListGroups);
+        restoreSinonStub(actions.assignments.ui.changeListSettings);
+        restoreSinonStub(actions.assignments.ui.reloadAssignments);
     });
 
     describe('onPublishFromAuthoring', () => {
@@ -53,7 +60,11 @@ describe('assignments service', () => {
         });
 
         it('returns if no matching assignments found', (done) => {
-            services.api('assignments').query = sinon.spy(() => Promise.resolve({_items: []}));
+            assignmentService.deployConfig.config.planning_fulfil_on_publish_for_desks = [];
+            services.api('assignments').query = sinon.spy(() => Promise.resolve({
+                _items: [],
+                _meta: {total: 0},
+            }));
 
             assignmentService.onPublishFromAuthoring(testData.archive[0])
                 .then(() => {
@@ -63,16 +74,25 @@ describe('assignments service', () => {
                             query: {
                                 bool: {
                                     must: [
-                                        {term: {'assigned_to.state': 'assigned'}},
-                                        {query_string: {
-                                            query: 'planning.slugline.phrase:("test slugline")',
-                                            lenient: false,
-                                        }},
+                                        {terms: {'assigned_to.state': ['assigned']}},
                                         {term: {'planning.g2_content_type': 'text'}},
+                                        {query_string: {query: 'planning.slugline.phrase:("test slugline")'}},
+                                        {
+                                            range: {
+                                                'planning.scheduled': {
+                                                    gte: 'now/d',
+                                                    lte: 'now/d',
+                                                    time_zone: '+10:00',
+                                                },
+                                            },
+                                        },
                                     ],
                                 },
                             },
+                            size: 0,
                         }),
+                        page: 1,
+                        sort: '[("planning.scheduled", 1)]',
                     }]);
 
                     expect(services.sdPlanningStore.initWorkspace.callCount).toBe(0);
@@ -84,9 +104,15 @@ describe('assignments service', () => {
         });
 
         it('shows FULFIL_ASSIGNMENT modal if assignment(s) found', (done) => {
-            services.api('assignments').query = sinon.spy(
-                () => Promise.resolve({_items: [testData.assignments[0]]})
-            );
+            assignmentService.deployConfig.config.planning_fulfil_on_publish_for_desks = [];
+            assignmentService.desks.active.desk = 'desk2';
+            store.initialState.assignment.lists.CURRENT.assignmentIds = ['as1'];
+            store.initialState.assignment.assignments = {as1: testData.assignments[0]};
+
+            services.api('assignments').query = sinon.spy(() => Promise.resolve({
+                _items: [testData.assignments[0]],
+                _meta: {total: 1},
+            }));
 
             assignmentService.onPublishFromAuthoring(testData.archive[0])
                 .catch(done.fail);
@@ -98,23 +124,20 @@ describe('assignments service', () => {
                 expect(services.modal.createCustomModal.callCount).toBe(1);
                 expect(services.modal.openModal.callCount).toBe(1);
 
-                expect(store.dispatch.callCount).toBe(5);
-                expect(store.dispatch.args[1]).toEqual([{
-                    type: 'CHANGE_LIST_VIEW_MODE',
-                    payload: 'TODO',
-                }]);
-                expect(store.dispatch.args[2]).toEqual([{
-                    type: 'SET_BASE_ASSIGNMENT_QUERY',
-                    payload: {
-                        must: [
-                            {term: {'assigned_to.state': 'assigned'}},
-                            {query_string: {
-                                query: 'planning.slugline.phrase:("test slugline")',
-                                lenient: false,
-                            }},
-                            {term: {'planning.g2_content_type': 'text'}},
-                        ],
-                    },
+                expect(actions.assignments.ui.setListGroups.callCount).toBe(1);
+                expect(actions.assignments.ui.setListGroups.args[0]).toEqual([
+                    ['TODAY', 'FUTURE'],
+                ]);
+
+                expect(actions.assignments.ui.changeListSettings.callCount).toBe(1);
+                expect(actions.assignments.ui.changeListSettings.args[0]).toEqual([{
+                    filterBy: 'Desk',
+                    searchQuery: 'planning.slugline.phrase:("test slugline")',
+                    orderByField: 'Scheduled',
+                    orderDirection: 'Asc',
+                    filterByType: 'text',
+                    filterByPriority: null,
+                    selectedDeskId: 'desk2',
                 }]);
 
                 expect(actions.assignments.ui.preview.callCount).toBe(1);
@@ -122,7 +145,7 @@ describe('assignments service', () => {
                     testData.assignments[0],
                 ]);
 
-                expect(store.dispatch.args[4]).toEqual([{
+                expect(store.dispatch.args[store.dispatch.callCount - 1]).toEqual([{
                     type: 'SHOW_MODAL',
                     modalType: 'FULFIL_ASSIGNMENT',
                     modalProps: jasmine.objectContaining({
@@ -130,6 +153,7 @@ describe('assignments service', () => {
                         fullscreen: true,
                         showIgnore: true,
                         ignoreText: 'Don\'t Fulfil Assignment',
+                        title: 'Fulfil Assignment with this item?',
                     }),
                 }]);
 
@@ -158,10 +182,13 @@ describe('assignments service', () => {
             it('shows the modal if config is empty', (done) => {
                 assignmentService.desks.active.desk = 'desk2';
                 assignmentService.deployConfig.config.planning_fulfil_on_publish_for_desks = [];
+                store.initialState.assignment.lists.CURRENT.assignmentIds = ['as1'];
+                store.initialState.assignment.assignments = {as1: testData.assignments[0]};
 
-                services.api('assignments').query = sinon.spy(
-                    () => Promise.resolve({_items: [testData.assignments[0]]})
-                );
+                services.api('assignments').query = sinon.spy(() => Promise.resolve({
+                    _items: [testData.assignments[0]],
+                    _meta: {total: 1},
+                }));
 
                 assignmentService.onPublishFromAuthoring(testData.archive[0])
                     .catch(done.fail);
@@ -173,23 +200,20 @@ describe('assignments service', () => {
                     expect(services.modal.createCustomModal.callCount).toBe(1);
                     expect(services.modal.openModal.callCount).toBe(1);
 
-                    expect(store.dispatch.callCount).toBe(5);
-                    expect(store.dispatch.args[1]).toEqual([{
-                        type: 'CHANGE_LIST_VIEW_MODE',
-                        payload: 'TODO',
-                    }]);
-                    expect(store.dispatch.args[2]).toEqual([{
-                        type: 'SET_BASE_ASSIGNMENT_QUERY',
-                        payload: {
-                            must: [
-                                {term: {'assigned_to.state': 'assigned'}},
-                                {query_string: {
-                                    query: 'planning.slugline.phrase:("test slugline")',
-                                    lenient: false,
-                                }},
-                                {term: {'planning.g2_content_type': 'text'}},
-                            ],
-                        },
+                    expect(actions.assignments.ui.setListGroups.callCount).toBe(1);
+                    expect(actions.assignments.ui.setListGroups.args[0]).toEqual([
+                        ['TODAY', 'FUTURE'],
+                    ]);
+
+                    expect(actions.assignments.ui.changeListSettings.callCount).toBe(1);
+                    expect(actions.assignments.ui.changeListSettings.args[0]).toEqual([{
+                        filterBy: 'Desk',
+                        searchQuery: 'planning.slugline.phrase:("test slugline")',
+                        orderByField: 'Scheduled',
+                        orderDirection: 'Asc',
+                        filterByType: 'text',
+                        filterByPriority: null,
+                        selectedDeskId: 'desk2',
                     }]);
 
                     expect(actions.assignments.ui.preview.callCount).toBe(1);
@@ -197,7 +221,7 @@ describe('assignments service', () => {
                         testData.assignments[0],
                     ]);
 
-                    expect(store.dispatch.args[4]).toEqual([{
+                    expect(store.dispatch.args[store.dispatch.callCount - 1]).toEqual([{
                         type: 'SHOW_MODAL',
                         modalType: 'FULFIL_ASSIGNMENT',
                         modalProps: jasmine.objectContaining({
@@ -205,6 +229,7 @@ describe('assignments service', () => {
                             fullscreen: true,
                             showIgnore: true,
                             ignoreText: 'Don\'t Fulfil Assignment',
+                            title: 'Fulfil Assignment with this item?',
                         }),
                     }]);
 

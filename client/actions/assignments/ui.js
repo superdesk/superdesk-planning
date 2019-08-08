@@ -8,30 +8,87 @@ import {get, cloneDeep} from 'lodash';
 
 /**
  * Action dispatcher to load the list of assignments for current list settings.
- * @param {string} filterBy - the filter by desk or user ('Desk', 'User')
- * @param {string} searchQuery - the text used for free text query
- * @param {string} orderByField - the field used to order the assignments ('Created', 'Updated')
- * @param {string} orderDirection - the direction of order ('Asc', 'Desc')
- * @param {string} filterByState - State of the assignment
- * @param {string} filterByType - Type of the assignment
+ * @param {String} filterBy - the filter by desk or user ('Desk', 'User')
+ * @param {String} searchQuery - the text used for free text query
+ * @param {String} orderByField - the field used to order the assignments ('Created', 'Updated')
+ * @param {String} orderDirection - the direction of order ('Asc', 'Desc')
+ * @param {String} filterByType - Type of the assignment
+ * @param {String} filterByPriority - The priority to filter for
+ * @param {String} selectedDeskId - The Desk ID
  */
-const loadAssignments = (
-    filterBy,
-    searchQuery,
-    orderByField,
-    orderDirection,
-    filterByState = null,
+const loadAssignments = ({
+    filterBy = 'Desk',
+    searchQuery = null,
+    orderByField = 'Scheduled',
+    orderDirection = 'Asc',
     filterByType = null,
     filterByPriority = null,
-    selectedDeskId = null
-) => (dispatch) => {
+    selectedDeskId = null,
+}) => (dispatch) => {
     dispatch(
-        self.changeListSettings(filterBy, searchQuery,
-            orderByField, orderDirection, filterByType,
-            filterByPriority, selectedDeskId)
+        self.changeListSettings({
+            filterBy,
+            searchQuery,
+            orderByField,
+            orderDirection,
+            filterByType,
+            filterByPriority,
+            selectedDeskId,
+        })
     );
-    return dispatch(queryAndSetAssignmentListGroups(filterByState));
+
+    return dispatch(
+        self.reloadAssignments(null, false)
+    );
 };
+
+/**
+ * Action dispatcher to set store values and load appropriate Assignments
+ * @param {Object} item - Archive item being fulfilled
+ * @param {Array<String>} groupKeys - Array of keys for the list groups to show
+ */
+const loadFulfillModal = (item, groupKeys) => (
+    (dispatch, getState, {desks}) => {
+        dispatch(self.setListGroups(groupKeys));
+
+        const searchQuery = get(item, 'slugline') ?
+            `planning.slugline.phrase:("${item.slugline}")` :
+            null;
+
+        const currentDesk = get(desks, 'active.desk');
+        const selectedDeskId = get(item, 'task.desk') ?
+            item.task.desk :
+            currentDesk;
+
+        return dispatch(self.loadAssignments({
+            filterBy: 'Desk',
+            searchQuery: searchQuery,
+            orderByField: 'Scheduled',
+            orderDirection: 'Asc',
+            filterByType: get(item, 'type'),
+            filterByPriority: null,
+            selectedDeskId: selectedDeskId,
+        }));
+    }
+);
+
+/**
+ * Action dispatcher to open the first Assignment in a list group for preview
+ * @param {String} groupKey - The key for the Assignment list group
+ */
+const previewFirstInListGroup = (groupKey) => (
+    (dispatch, getState) => {
+        const group = selectors.getAssignmentGroupSelectors[groupKey];
+        const assignments = selectors.getStoredAssignments(getState());
+        const assignmentIds = group.assignmentIds(getState());
+
+        if (get(assignmentIds, 'length', 0) > 0 &&
+            get(assignments, assignmentIds[0])
+        ) {
+            dispatch(self.preview(assignments[assignmentIds[0]]));
+        }
+    }
+);
 
 const queryAndGetMyAssignments = (filterByState) => (
     (dispatch, getState) => {
@@ -42,6 +99,8 @@ const queryAndGetMyAssignments = (filterByState) => (
         querySearchSettings.deskId = null;
         querySearchSettings.userId = selectors.general.currentUserId(getState());
 
+        querySearchSettings.size = 0;
+
         return dispatch(assignments.api.query(querySearchSettings))
             .then((data) => {
                 dispatch(self.setMyAssignmentsTotal(get(data, '_meta.total')));
@@ -51,26 +110,29 @@ const queryAndGetMyAssignments = (filterByState) => (
 
 /**
  * Action dispatcher to load first page of the list of assignments for current list settings.
+ * @param {Array<String>} filterByState - Array of states used to get the list groups (defaults to current list groups)
+ * @param {boolean} resetPage - If true, the page for the list groups are set to 1
  */
-const reloadAssignments = (filterByState) => (
+const reloadAssignments = (filterByState = null, resetPage = true) => (
     (dispatch, getState) => {
-        if (!filterByState || filterByState.length <= 0) {
-            // Load all assignment groups
-            let dispatches = [];
+        const visibleGroups = selectors.getAssignmentGroups(getState());
+        let listGroups = (!filterByState || filterByState.length <= 0) ?
+            visibleGroups :
+            assignmentUtils.getAssignmentGroupsByStates(visibleGroups, filterByState);
 
-            Object.keys(ASSIGNMENTS.LIST_GROUPS).forEach((key) => {
-                const states = ASSIGNMENTS.LIST_GROUPS[key].states;
+        let dispatches = [];
 
-                dispatch(self.changeLastAssignmentLoadedPage(states));
-                dispatches.push(dispatch(self.queryAndSetAssignmentListGroups(states)));
-            });
+        listGroups.forEach((key) => {
+            const group = ASSIGNMENTS.LIST_GROUPS[key];
 
-            return Promise.all(dispatches);
-        } else {
-            dispatch(self.changeLastAssignmentLoadedPage(
-                assignmentUtils.getAssignmentGroupByStates(filterByState)));
-            return dispatch(queryAndSetAssignmentListGroups(filterByState));
-        }
+            if (resetPage) {
+                dispatch(self.changeLastAssignmentLoadedPage(group));
+            }
+
+            dispatches.push(dispatch(self.queryAndSetAssignmentListGroups(key)));
+        });
+
+        return Promise.all(dispatches);
     }
 );
 
@@ -117,23 +179,30 @@ const updatePreviewItemOnRouteUpdate = () => (
     }
 );
 
-const queryAndSetAssignmentListGroups = (filterByState, page = 1) => (
+const queryAndSetAssignmentListGroups = (groupKey, page = 1) => (
     (dispatch, getState) => {
         let querySearchSettings = cloneDeep(selectors.getAssignmentSearch(getState()));
-        const listGroupForStates = assignmentUtils.getAssignmentGroupByStates(filterByState);
+        const group = ASSIGNMENTS.LIST_GROUPS[groupKey];
 
-        querySearchSettings.states = listGroupForStates.states;
+        querySearchSettings.states = group.states;
         querySearchSettings.page = page;
+        querySearchSettings.dateFilter = group.dateFilter;
 
         return dispatch(assignments.api.query(querySearchSettings))
             .then((data) => {
                 dispatch(assignments.api.receivedAssignments(data._items));
-                if (page == 1) {
-                    dispatch(self.setAssignmentListGroup(data._items.map((a) => a._id),
-                        get(data, '_meta.total'), listGroupForStates));
+                if (page === 1) {
+                    dispatch(self.setAssignmentListGroup(
+                        data._items.map((a) => a._id),
+                        get(data, '_meta.total'),
+                        group
+                    ));
                 } else {
-                    dispatch(self.addToAssignmentListGroup(data._items.map((a) => a._id),
-                        get(data, '_meta.total'), listGroupForStates));
+                    dispatch(self.addToAssignmentListGroup(
+                        data._items.map((a) => a._id),
+                        get(data, '_meta.total'),
+                        group
+                    ));
                 }
 
                 return Promise.resolve(data._items);
@@ -145,33 +214,15 @@ const queryAndSetAssignmentListGroups = (filterByState, page = 1) => (
 /**
  * Action dispatcher to load the next page of assignments.
  */
-const loadMoreAssignments = (filterByState) => (
+const loadMoreAssignments = (groupKey) => (
     (dispatch, getState) => {
-        const listGroup = assignmentUtils.getAssignmentGroupByStates(filterByState);
-        let lastLoadedPageForListGroup;
+        const listGroup = ASSIGNMENTS.LIST_GROUPS[groupKey];
+        const lastLoadedPageForListGroup = selectors.getAssignmentGroupSelectors[groupKey]
+            .page(getState());
+        const page = lastLoadedPageForListGroup + 1 || 1;
 
-        switch (listGroup.label) {
-        case ASSIGNMENTS.LIST_GROUPS.TODO.label:
-            lastLoadedPageForListGroup = selectors.getAssignmentTodoListPage(getState());
-            break;
-
-        case ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.label:
-            lastLoadedPageForListGroup = selectors.getAssignmentInProgressPage(getState());
-            break;
-
-        case ASSIGNMENTS.LIST_GROUPS.COMPLETED.label:
-            lastLoadedPageForListGroup = selectors.getAssignmentCompletedPage(getState());
-            break;
-        }
-
-        const previousSearch = selectors.getAssignmentSearch(getState());
-        const search = {
-            ...previousSearch,
-            page: lastLoadedPageForListGroup + 1 || 1,
-        };
-
-        dispatch(changeLastAssignmentLoadedPage(listGroup, search.page));
-        return dispatch(queryAndSetAssignmentListGroups(filterByState, search.page));
+        dispatch(self.changeLastAssignmentLoadedPage(listGroup, page));
+        return dispatch(self.queryAndSetAssignmentListGroups(groupKey, page));
     }
 );
 
@@ -197,33 +248,17 @@ const changeAssignmentListSingleGroupView = (groupKey) => (
 
 /**
  * Action to change the last loaded page for the list of Assignments
- * @param {number} lastAssignmentLoadedPage - the last loaded page
+ * @param {Object} listGroup - The group to change the page number for
+ * @param {number} pageNum - the last loaded page
  * @return object
  */
-const changeLastAssignmentLoadedPage = (listGroup, pageNum = 1) => (
-    (dispatch) => {
-        let changeLastAssignmentPayload;
-
-        switch (listGroup.label) {
-        case ASSIGNMENTS.LIST_GROUPS.TODO.label:
-            changeLastAssignmentPayload = {todoListLastLoadedPage: pageNum};
-            break;
-
-        case ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.label:
-            changeLastAssignmentPayload = {inProgressListLastLoadedPage: pageNum};
-            break;
-
-        case ASSIGNMENTS.LIST_GROUPS.COMPLETED.label:
-            changeLastAssignmentPayload = {completedListLastLoadedPage: pageNum};
-            break;
-        }
-
-        return dispatch({
-            type: ASSIGNMENTS.ACTIONS.CHANGE_LIST_SETTINGS,
-            payload: changeLastAssignmentPayload,
-        });
-    }
-);
+const changeLastAssignmentLoadedPage = (listGroup, pageNum = 1) => ({
+    type: ASSIGNMENTS.ACTIONS.SET_LIST_PAGE,
+    payload: {
+        list: listGroup.id,
+        page: pageNum,
+    },
+});
 
 /**
  * Action to change the filter&search for the list of Assignments
@@ -231,13 +266,20 @@ const changeLastAssignmentLoadedPage = (listGroup, pageNum = 1) => (
  * @param {string} searchQuery - the text used for free text query
  * @param {string} orderByField - the field used to order the assignments ('Created', 'Updated')
  * @param {string} orderDirection - the direction of order ('Asc', 'Desc')
- * @param {string} filterByState - State of the assignment
+ * @param {string} filterByPriority - Priority of the assignment
  * @param {string} filterByType - Type of the assignment
  * @param {string} selectedDeskId - Desk Id
  * @return object
  */
-const changeListSettings = (filterBy, searchQuery, orderByField,
-    orderDirection, filterByType = null, filterByPriority = null, selectedDeskId = null) => ({
+const changeListSettings = ({
+    filterBy = 'Desk',
+    searchQuery = null,
+    orderByField = 'Scheduled',
+    orderDirection = 'Asc',
+    filterByType = null,
+    filterByPriority = null,
+    selectedDeskId = null,
+}) => ({
     type: ASSIGNMENTS.ACTIONS.CHANGE_LIST_SETTINGS,
     payload: {
         filterBy,
@@ -252,22 +294,18 @@ const changeListSettings = (filterBy, searchQuery, orderByField,
 
 /**
  * Action dispatcher to load first page of the list of assignments for current list settings.
+ * @param {Array<String>} assignmentIds - Array of Assignment ids for the list
+ * @param {number} totalNoOfItems - The total number of items for the list
+ * @param {Object} group - The group to set the list for
  */
-const setAssignmentListGroup = (assignments, totalNoOfItems, group) => (
-    (dispatch) => {
-        switch (group.label) {
-        case ASSIGNMENTS.LIST_GROUPS.TODO.label:
-            return dispatch(self.setAssignmentsTodoList(assignments, totalNoOfItems));
-
-        case ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.label:
-            return dispatch(self.setAssignmentsInProgressList(assignments, totalNoOfItems));
-
-        case ASSIGNMENTS.LIST_GROUPS.COMPLETED.label:
-            return dispatch(self.setAssignmentsInCompletedList(assignments, totalNoOfItems));
-        }
-        return Promise.resolve();
-    }
-);
+const setAssignmentListGroup = (assignmentIds, totalNoOfItems, group) => ({
+    type: ASSIGNMENTS.ACTIONS.SET_LIST_ITEMS,
+    payload: {
+        list: group.id,
+        ids: assignmentIds,
+        total: totalNoOfItems,
+    },
+});
 
 const setMyAssignmentsTotal = (total) => (
     (dispatch) => dispatch({
@@ -279,33 +317,14 @@ const setMyAssignmentsTotal = (total) => (
 /**
  * Action dispatcher to load first page of the list of assignments for current list settings.
  */
-const addToAssignmentListGroup = (assignments, totalNoOfItems, group) => (
-    (dispatch) => {
-        let actionType;
-
-        switch (group.label) {
-        case ASSIGNMENTS.LIST_GROUPS.TODO.label:
-            actionType = ASSIGNMENTS.ACTIONS.ADD_TO_TODO_LIST;
-            break;
-
-        case ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.label:
-            actionType = ASSIGNMENTS.ACTIONS.ADD_TO_IN_PROGRESS_LIST;
-            break;
-
-        case ASSIGNMENTS.LIST_GROUPS.COMPLETED.label:
-            actionType = ASSIGNMENTS.ACTIONS.ADD_TO_COMPLETED_LIST;
-            break;
-        }
-
-        return dispatch({
-            type: actionType,
-            payload: {
-                ids: [...assignments],
-                total: totalNoOfItems,
-            },
-        });
-    }
-);
+const addToAssignmentListGroup = (assignmentIds, totalNoOfItems, group) => ({
+    type: ASSIGNMENTS.ACTIONS.ADD_LIST_ITEMS,
+    payload: {
+        list: group.id,
+        ids: assignmentIds,
+        total: totalNoOfItems,
+    },
+});
 
 /**
  * Open assignment in preview mode
@@ -335,44 +354,6 @@ const closePreview = () => (
         return dispatch({type: ASSIGNMENTS.ACTIONS.CLOSE_PREVIEW_ASSIGNMENT});
     }
 );
-
-/**
- * Action that sets the list of assignments items in to-do state
- * @param {Array} ids - An array of assignments item ids
- */
-const setAssignmentsTodoList = (ids, totalNoOfItems) => ({
-    type: ASSIGNMENTS.ACTIONS.SET_TODO_LIST,
-    payload: {
-        ids: [...ids],
-        total: totalNoOfItems,
-    },
-});
-
-
-/**
- * Action that sets the list of assignments items in in-progress state
- * @param {Array} ids - An array of assignments item ids
- */
-const setAssignmentsInProgressList = (ids, totalNoOfItems) => ({
-    type: ASSIGNMENTS.ACTIONS.SET_IN_PROGRESS_LIST,
-    payload: {
-        ids: [...ids],
-        total: totalNoOfItems,
-    },
-});
-
-
-/**
- * Action that sets the list of assignments items in complete state
- * @param {Array} ids - An array of assignments item ids
- */
-const setAssignmentsInCompletedList = (ids, totalNoOfItems) => ({
-    type: ASSIGNMENTS.ACTIONS.SET_COMPLETED_LIST,
-    payload: {
-        ids: [...ids],
-        total: totalNoOfItems,
-    },
-});
 
 
 /**
@@ -822,6 +803,11 @@ const removeAssignment = (assignment) => (
     )
 );
 
+const setListGroups = (groupKeys) => ({
+    type: ASSIGNMENTS.ACTIONS.SET_GROUP_KEYS,
+    payload: groupKeys,
+});
+
 // eslint-disable-next-line consistent-this
 const self = {
     loadAssignments,
@@ -833,9 +819,6 @@ const self = {
     preview,
     closePreview,
     setAssignmentListGroup,
-    setAssignmentsTodoList,
-    setAssignmentsInProgressList,
-    setAssignmentsInCompletedList,
     changeLastAssignmentLoadedPage,
     changeAssignmentListSingleGroupView,
     reassign,
@@ -861,6 +844,9 @@ const self = {
     unlockAssignmentAndPlanning,
     openArchivePreview,
     setMyAssignmentsTotal,
+    setListGroups,
+    loadFulfillModal,
+    previewFirstInListGroup,
 };
 
 export default self;

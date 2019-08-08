@@ -173,40 +173,34 @@ describe('selectors', () => {
         });
     });
 
-    it('getAssignmentTodoListPage', () => {
-        const page = selectors.getAssignmentTodoListPage(state);
+    describe('TODO', () => {
+        it('getAssignmentTodoListPage', () => {
+            expect(selectors.getAssignmentTodoListPage(state)).toBe(1);
+        });
 
-        expect(page).toBe(1);
+        it('getAssignmentsToDoListCount', () => {
+            expect(selectors.getAssignmentsToDoListCount(state)).toBe(0);
+        });
     });
 
-    it('getAssignmentInProgressPage', () => {
-        const page = selectors.getAssignmentInProgressPage(state);
+    describe('IN_PROGRESS', () => {
+        it('getAssignmentInProgressPage', () => {
+            expect(selectors.getAssignmentInProgressPage(state)).toBe(1);
+        });
 
-        expect(page).toBe(1);
+        it('getAssignmentsInProgressListCount', () => {
+            expect(selectors.getAssignmentsInProgressListCount(state)).toBe(0);
+        });
     });
 
-    it('getAssignmentCompletedPage', () => {
-        const page = selectors.getAssignmentCompletedPage(state);
+    describe('COMPLETED', () => {
+        it('getAssignmentCompletedPage', () => {
+            expect(selectors.getAssignmentCompletedPage(state)).toBe(1);
+        });
 
-        expect(page).toBe(1);
-    });
-
-    it('getAssignmentsToDoListCount', () => {
-        const count = selectors.getAssignmentsToDoListCount(state);
-
-        expect(count).toBe(0);
-    });
-
-    it('getAssignmentsInProgressListCount', () => {
-        const count = selectors.getAssignmentsInProgressListCount(state);
-
-        expect(count).toBe(0);
-    });
-
-    it('getAssignmentsCompletedListCount', () => {
-        const count = selectors.getAssignmentsCompletedListCount(state);
-
-        expect(count).toBe(0);
+        it('getAssignmentsCompletedListCount', () => {
+            expect(selectors.getAssignmentsCompletedListCount(state)).toBe(0);
+        });
     });
 
     it('getAssignmentListSingleGroupView', () => {

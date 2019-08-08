@@ -15,13 +15,11 @@ export const FulfilAssignmentUi = ({previewOpen, newsItem}) => (
         SubNavPanel={AssignmentsSubNav}
         subNavProps={{
             archiveItem: newsItem,
-            onlyTodoAssignments: true,
             withArchiveItem: true,
         }}
 
         ListPanel={AssignmentList}
         listProps={{
-            setMaxHeight: false,
             hideItemActions: true,
         }}
 

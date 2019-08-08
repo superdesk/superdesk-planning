@@ -1,4 +1,4 @@
-import {uniq, keyBy, get, cloneDeep, filter, pickBy, includes} from 'lodash';
+import {uniq, keyBy, get, cloneDeep, filter} from 'lodash';
 import {ASSIGNMENTS, RESET_STORE, INIT_STORE} from '../constants';
 import moment from 'moment';
 import {createReducer} from './createReducer';
@@ -6,20 +6,12 @@ import {getItemId} from '../utils';
 
 const initialState = {
     archive: {},
-    assignmentListSingleGroupView: null,
     assignments: {},
-    assignmentsInCompletedList: [],
-    assignmentsInInProgressList: [],
-    assignmentsInTodoList: [],
     baseQuery: {must: []},
-    completedListLastLoadedPage: null,
-    completedListTotal: 0,
     currentAssignmentId: null,
     filterBy: 'Desk',
     filterByPriority: null,
     filterByType: null,
-    inProgressListLastLoadedPage: null,
-    inProgressListTotal: 0,
     myAssignmentsTotal: 0,
     orderByField: 'Scheduled',
     orderDirection: 'Asc',
@@ -27,8 +19,45 @@ const initialState = {
     readOnly: false,
     searchQuery: null,
     selectedDeskId: '',
-    todoListLastLoadedPage: null,
-    todoListTotal: 0,
+    assignmentListSingleGroupView: null,
+
+    groupKeys: [
+        ASSIGNMENTS.LIST_GROUPS.TODO.id,
+        ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.id,
+        ASSIGNMENTS.LIST_GROUPS.COMPLETED.id,
+    ],
+    lists: {
+        [ASSIGNMENTS.LIST_GROUPS.TODO.id]: {
+            assignmentIds: [],
+            total: 0,
+            lastPage: null,
+        },
+        [ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.id]: {
+            assignmentIds: [],
+            total: 0,
+            lastPage: null,
+        },
+        [ASSIGNMENTS.LIST_GROUPS.COMPLETED.id]: {
+            assignmentIds: [],
+            total: 0,
+            lastPage: null,
+        },
+        [ASSIGNMENTS.LIST_GROUPS.CURRENT.id]: {
+            assignmentIds: [],
+            total: 0,
+            lastPage: null,
+        },
+        [ASSIGNMENTS.LIST_GROUPS.TODAY.id]: {
+            assignmentIds: [],
+            total: 0,
+            lastPage: null,
+        },
+        [ASSIGNMENTS.LIST_GROUPS.FUTURE.id]: {
+            assignmentIds: [],
+            total: 0,
+            lastPage: null,
+        },
+    },
 };
 
 const modifyAssignmentBeingAdded = (payload) => {
@@ -41,6 +70,45 @@ const modifyAssignmentBeingAdded = (payload) => {
         }
     });
     return keyBy(payload, '_id');
+};
+
+const setList = (state, payload) => {
+    state.lists[payload.list] = {
+        assignmentIds: payload.ids,
+        total: payload.total,
+        lastPage: 1,
+    };
+
+    return state;
+};
+
+const addToList = (state, payload) => {
+    state.lists[payload.list].assignmentIds = uniq([
+        ...state.lists[payload.list].assignmentIds,
+        ...payload.ids,
+    ]);
+    state.lists[payload.list].total = payload.total;
+
+    return state;
+};
+
+const setLastPage = (state, payload) => {
+    state.lists[payload.list].lastPage = payload.page;
+
+    return state;
+};
+
+const filterList = (state, listId, assignmentId) => {
+    if (state.lists[listId].assignmentIds.indexOf(assignmentId) < 0) {
+        return;
+    }
+
+    state.lists[listId].assignmentIds = filter(
+        state.lists[listId].assignmentIds,
+        (aid) => aid !== assignmentId
+    );
+
+    state.lists[listId].total = state.lists[listId].total - 1;
 };
 
 const assignmentReducer = createReducer(initialState, {
@@ -60,13 +128,8 @@ const assignmentReducer = createReducer(initialState, {
         };
     },
 
-    [ASSIGNMENTS.ACTIONS.SET_TODO_LIST]: (state, payload) => (
-        {
-            ...state,
-            assignmentsInTodoList: payload.ids,
-            todoListTotal: payload.total,
-            todoListLastLoadedPage: 1,
-        }
+    [ASSIGNMENTS.ACTIONS.SET_LIST_ITEMS]: (state, payload) => (
+        setList(cloneDeep(state), payload)
     ),
 
     [ASSIGNMENTS.ACTIONS.MY_ASSIGNMENTS_TOTAL]: (state, payload) => (
@@ -76,46 +139,8 @@ const assignmentReducer = createReducer(initialState, {
         }
     ),
 
-    [ASSIGNMENTS.ACTIONS.SET_IN_PROGRESS_LIST]: (state, payload) => (
-        {
-            ...state,
-            assignmentsInInProgressList: payload.ids,
-            inProgressListTotal: payload.total,
-            inProgressListLastLoadedPage: 1,
-        }
-    ),
-
-    [ASSIGNMENTS.ACTIONS.SET_COMPLETED_LIST]: (state, payload) => (
-        {
-            ...state,
-            assignmentsInCompletedList: payload.ids,
-            completedListTotal: payload.total,
-            completedListLastLoadedPage: 1,
-        }
-    ),
-
-    [ASSIGNMENTS.ACTIONS.ADD_TO_TODO_LIST]: (state, payload) => (
-        {
-            ...state,
-            assignmentsInTodoList: uniq([...state.assignmentsInTodoList, ...payload.ids]),
-            todoListTotal: payload.total,
-        }
-    ),
-
-    [ASSIGNMENTS.ACTIONS.ADD_TO_IN_PROGRESS_LIST]: (state, payload) => (
-        {
-            ...state,
-            assignmentsInInProgressList: uniq([...state.assignmentsInInProgressList, ...payload.ids]),
-            inProgressListTotal: payload.total,
-        }
-    ),
-
-    [ASSIGNMENTS.ACTIONS.ADD_TO_COMPLETED_LIST]: (state, payload) => (
-        {
-            ...state,
-            assignmentsInCompletedList: uniq([...state.assignmentsInCompletedList, ...payload.ids]),
-            completedListTotal: payload.total,
-        }
+    [ASSIGNMENTS.ACTIONS.ADD_LIST_ITEMS]: (state, payload) => (
+        addToList(cloneDeep(state), payload)
     ),
 
     [ASSIGNMENTS.ACTIONS.CHANGE_LIST_VIEW_MODE]: (state, payload) => (
@@ -123,6 +148,10 @@ const assignmentReducer = createReducer(initialState, {
             ...state,
             assignmentListSingleGroupView: payload,
         }
+    ),
+
+    [ASSIGNMENTS.ACTIONS.SET_LIST_PAGE]: (state, payload) => (
+        setLastPage(cloneDeep(state), payload)
     ),
 
     [ASSIGNMENTS.ACTIONS.CHANGE_LIST_SETTINGS]: (state, payload) => (
@@ -193,37 +222,34 @@ const assignmentReducer = createReducer(initialState, {
         },
     }),
 
-    [ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT]: (state, payload) => (
-        // If the Assignment isn't loaded, then disregard this action
-        !(payload.assignment in state.assignments) ? state :
+    [ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT]: (oldState, payload) => {
+        if (!(payload.assignment in oldState.assignments)) {
+            return oldState;
+        }
 
-        // Otherwise filter out the Assignment from the store
-            {
-                ...state,
-                assignments: pickBy(
-                    state.assignments, (assignment, key) => key !== payload.assignment
-                ),
-                assignmentsInInProgressList: filter(
-                    state.assignmentsInInProgressList, (aid) => aid !== payload.assignment
-                ),
-                inProgressListTotal: includes(state.assignmentsInInProgressList, payload.assignment) ?
-                    state.inProgressListTotal - 1 : state.inProgressListTotal,
-                assignmentsInTodoList: filter(
-                    state.assignmentsInTodoList, (aid) => aid !== payload.assignment
-                ),
-                todoListTotal: includes(state.assignmentsInTodoList, payload.assignment) ?
-                    state.todoListTotal - 1 : state.todoListTotal,
-                assignmentsInCompletedList: filter(
-                    state.assignmentsInCompletedList, (aid) => aid !== payload.assignment
-                ),
-                completedListTotal: includes(state.assignmentsInCompletedList, payload.assignment) ?
-                    state.completedListTotal - 1 : state.completedListTotal,
-                previewOpened: state.currentAssignmentId === payload.assignment ?
-                    false : state.previewOpened,
-                currentAssignmentId: state.currentAssignmentId === payload.assignment ?
-                    null : state.currentAssignmentId,
-            }
-    ),
+        const state = cloneDeep(oldState);
+
+        // Remove the assignment from the stored list of assignments
+        delete state.assignments[payload.assignment];
+
+        // If this assignment is being viewed,
+        // then close the preview and de-select the assignment
+        if (state.currentAssignmentId === payload.assignment) {
+            state.previewOpened = false;
+            state.currentAssignmentId = null;
+        }
+
+        // Remove this assignment from any list groups
+        filterList(state, ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.id, payload.assignment);
+        filterList(state, ASSIGNMENTS.LIST_GROUPS.TODO.id, payload.assignment);
+        filterList(state, ASSIGNMENTS.LIST_GROUPS.COMPLETED.id, payload.assignment);
+        filterList(state, ASSIGNMENTS.LIST_GROUPS.CURRENT.id, payload.assignment);
+        filterList(state, ASSIGNMENTS.LIST_GROUPS.TODAY.id, payload.assignment);
+        filterList(state, ASSIGNMENTS.LIST_GROUPS.FUTURE.id, payload.assignment);
+
+        return state;
+    },
+
     [ASSIGNMENTS.ACTIONS.RECEIVE_ASSIGNMENT_HISTORY]: (state, payload) => ({
         ...state,
         assignmentHistoryItems: payload,
@@ -232,6 +258,11 @@ const assignmentReducer = createReducer(initialState, {
     [ASSIGNMENTS.ACTIONS.SET_BASE_QUERY]: (state, payload) => ({
         ...state,
         baseQuery: payload,
+    }),
+
+    [ASSIGNMENTS.ACTIONS.SET_GROUP_KEYS]: (state, payload) => ({
+        ...state,
+        groupKeys: payload,
     }),
 });
 

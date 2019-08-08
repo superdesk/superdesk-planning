@@ -1,9 +1,11 @@
+import sinon from 'sinon';
+
 import assignmentsUi from '../ui';
 import assignmentsApi from '../api';
 import planningApi from '../../planning/api';
-import sinon from 'sinon';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import * as testData from '../../../utils/testData';
+import {ASSIGNMENTS} from '../../../constants';
 
 describe('actions.assignments.ui', () => {
     let store;
@@ -77,41 +79,221 @@ describe('actions.assignments.ui', () => {
         });
     });
 
-    describe('assignment list actions', () => {
-        it('queryAndSetAssignmentListGroups will appply filter to the query', (done) => {
-            store.test(done, assignmentsUi.queryAndSetAssignmentListGroups(['in_progress']))
-                .then(() => {
+    describe('queryAndSetAssignmentListGroups', () => {
+        beforeEach(() => {
+            restoreSinonStub(assignmentsApi.query);
+            sinon.stub(assignmentsApi, 'query').returns(Promise.resolve({
+                _items: testData.assignments,
+                _meta: {total: testData.assignments.length},
+            }));
+
+            sinon.stub(assignmentsUi, 'setAssignmentListGroup');
+            sinon.stub(assignmentsUi, 'addToAssignmentListGroup');
+            sinon.stub(assignmentsApi, 'receivedAssignments');
+        });
+
+        afterEach(() => {
+            restoreSinonStub(assignmentsUi.setAssignmentListGroup);
+            restoreSinonStub(assignmentsUi.addToAssignmentListGroup);
+            restoreSinonStub(assignmentsApi.receivedAssignments);
+        });
+
+        it('uses list constants to construct the api query', (done) => {
+            store.test(done, assignmentsUi.queryAndSetAssignmentListGroups('TODO'))
+                .then((items) => {
+                    expect(items).toEqual(testData.assignments);
+
                     expect(assignmentsApi.query.callCount).toBe(1);
-                    expect(assignmentsApi.query.args[0][0].states).toEqual(['in_progress']);
+                    expect(assignmentsApi.query.args[0]).toEqual([{
+                        states: ['assigned', 'submitted'],
+                        page: 1,
+                        dateFilter: undefined,
+                        deskId: '',
+                        userId: null,
+                        searchQuery: null,
+                        orderByField: 'Scheduled',
+                        orderDirection: 'Asc',
+                        type: null,
+                        priority: null,
+                    }]);
+
+                    expect(assignmentsApi.receivedAssignments.callCount).toBe(1);
+                    expect(assignmentsApi.receivedAssignments.args[0]).toEqual([testData.assignments]);
+
                     done();
                 })
                 .catch(done.fail);
         });
 
-        it('queryAndSetAssignmentListGroups will use default page as 1 in query', (done) => {
-            store.test(done, assignmentsUi.queryAndSetAssignmentListGroups(['in_progress']))
+        it('replaces the list items if the query is for the first page', (done) => {
+            store.test(done, assignmentsUi.queryAndSetAssignmentListGroups('IN_PROGRESS'))
                 .then(() => {
-                    expect(assignmentsApi.query.callCount).toBe(1);
-                    expect(assignmentsApi.query.args[0][0].page).toEqual(1);
+                    expect(assignmentsUi.setAssignmentListGroup.callCount).toBe(1);
+                    expect(assignmentsUi.setAssignmentListGroup.args[0]).toEqual([
+                        [testData.assignments[0]._id, testData.assignments[1]._id],
+                        2,
+                        ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS,
+                    ]);
+
+                    expect(assignmentsUi.addToAssignmentListGroup.callCount).toBe(0);
+
                     done();
                 })
                 .catch(done.fail);
         });
 
-        it('reloadAssignments will query all list groups if not state filter is passed', (done) => {
+        it('adds to the list items if the query is for the first page', (done) => {
+            store.test(done, assignmentsUi.queryAndSetAssignmentListGroups('COMPLETED', 2))
+                .then(() => {
+                    expect(assignmentsUi.setAssignmentListGroup.callCount).toBe(0);
+
+                    expect(assignmentsUi.addToAssignmentListGroup.callCount).toBe(1);
+                    expect(assignmentsUi.addToAssignmentListGroup.args[0]).toEqual([
+                        [testData.assignments[0]._id, testData.assignments[1]._id],
+                        2,
+                        ASSIGNMENTS.LIST_GROUPS.COMPLETED,
+                    ]);
+
+                    done();
+                })
+                .catch(done.fail);
+        });
+    });
+
+    describe('loadMoreAssignments', () => {
+        beforeEach(() => {
+            sinon.stub(assignmentsUi, 'changeLastAssignmentLoadedPage');
+            sinon.stub(assignmentsUi, 'queryAndSetAssignmentListGroups');
+        });
+
+        afterEach(() => {
+            restoreSinonStub(assignmentsUi.changeLastAssignmentLoadedPage);
+            restoreSinonStub(assignmentsUi.queryAndSetAssignmentListGroups);
+        });
+
+        it('sets the page to 1 if not defined', () => {
+            store.dispatch(assignmentsUi.loadMoreAssignments('IN_PROGRESS'));
+
+            expect(assignmentsUi.changeLastAssignmentLoadedPage.callCount).toBe(1);
+            expect(assignmentsUi.changeLastAssignmentLoadedPage.args[0]).toEqual([
+                ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS,
+                1,
+            ]);
+
+            expect(assignmentsUi.queryAndSetAssignmentListGroups.callCount).toBe(1);
+            expect(assignmentsUi.queryAndSetAssignmentListGroups.args[0]).toEqual([
+                'IN_PROGRESS',
+                1,
+            ]);
+        });
+
+        it('uses existing search parameters and increments the page', () => {
+            store.initialState.assignment.lists.TODO.lastPage = 1;
+            store.dispatch(assignmentsUi.loadMoreAssignments('TODO'));
+
+            expect(assignmentsUi.changeLastAssignmentLoadedPage.callCount).toBe(1);
+            expect(assignmentsUi.changeLastAssignmentLoadedPage.args[0]).toEqual([
+                ASSIGNMENTS.LIST_GROUPS.TODO,
+                2,
+            ]);
+
+            expect(assignmentsUi.queryAndSetAssignmentListGroups.callCount).toBe(1);
+            expect(assignmentsUi.queryAndSetAssignmentListGroups.args[0]).toEqual([
+                'TODO',
+                2,
+            ]);
+        });
+    });
+
+    describe('reloadAssignments', () => {
+        beforeEach(() => {
+            sinon.stub(assignmentsUi, 'changeLastAssignmentLoadedPage');
+            sinon.stub(assignmentsUi, 'queryAndSetAssignmentListGroups').returns(Promise.resolve());
+        });
+
+        afterEach(() => {
+            restoreSinonStub(assignmentsUi.changeLastAssignmentLoadedPage);
+            restoreSinonStub(assignmentsUi.queryAndSetAssignmentListGroups);
+        });
+
+        it('reloads current visible list groups', (done) => {
+            store.initialState.assignment.groupKeys = ['TODAY', 'CURRENT'];
+
             store.test(done, assignmentsUi.reloadAssignments())
                 .then(() => {
-                    expect(assignmentsApi.query.callCount).toBe(3);
+                    // Resets the page counts
+                    expect(assignmentsUi.changeLastAssignmentLoadedPage.callCount).toBe(2);
+                    expect(assignmentsUi.changeLastAssignmentLoadedPage.args).toEqual([
+                        [ASSIGNMENTS.LIST_GROUPS.TODAY],
+                        [ASSIGNMENTS.LIST_GROUPS.CURRENT],
+                    ]);
+
+                    // Updates the lists
+                    expect(assignmentsUi.queryAndSetAssignmentListGroups.callCount).toBe(2);
+                    expect(assignmentsUi.queryAndSetAssignmentListGroups.args).toEqual([
+                        ['TODAY'],
+                        ['CURRENT'],
+                    ]);
+
                     done();
                 })
                 .catch(done.fail);
         });
 
-        it('loadMoreAssignments will increment page number', (done) => {
-            store.test(done, assignmentsUi.loadMoreAssignments(['in_progress']))
+        it('reloads list group based on state', (done) => {
+            store.initialState.assignment.groupKeys = ['TODO', 'IN_PROGRESS', 'COMPLETED'];
+
+            store.test(done, assignmentsUi.reloadAssignments(['assigned']))
                 .then(() => {
-                    expect(assignmentsApi.query.callCount).toBe(1);
-                    expect(assignmentsApi.query.args[0][0].page).toEqual(2);
+                    // Resets the page counts
+                    expect(assignmentsUi.changeLastAssignmentLoadedPage.callCount).toBe(1);
+                    expect(assignmentsUi.changeLastAssignmentLoadedPage.args).toEqual([
+                        [ASSIGNMENTS.LIST_GROUPS.TODO],
+                    ]);
+
+                    // Updates the lists
+                    expect(assignmentsUi.queryAndSetAssignmentListGroups.callCount).toBe(1);
+                    expect(assignmentsUi.queryAndSetAssignmentListGroups.args).toEqual([
+                        ['TODO'],
+                    ]);
+
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('reloads multiple list groups based on state', (done) => {
+            store.initialState.assignment.groupKeys = ['TODAY', 'CURRENT'];
+
+            store.test(done, assignmentsUi.reloadAssignments(['submitted']))
+                .then(() => {
+                    // Resets the page counts
+                    expect(assignmentsUi.changeLastAssignmentLoadedPage.callCount).toBe(2);
+                    expect(assignmentsUi.changeLastAssignmentLoadedPage.args).toEqual([
+                        [ASSIGNMENTS.LIST_GROUPS.TODAY],
+                        [ASSIGNMENTS.LIST_GROUPS.CURRENT],
+                    ]);
+
+                    // Updates the lists
+                    expect(assignmentsUi.queryAndSetAssignmentListGroups.callCount).toBe(2);
+                    expect(assignmentsUi.queryAndSetAssignmentListGroups.args).toEqual([
+                        ['TODAY'],
+                        ['CURRENT'],
+                    ]);
+
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('doesnt reset page if resetPage=false', (done) => {
+            store.initialState.assignment.groupKeys = ['TODAY', 'CURRENT'];
+
+            store.test(done, assignmentsUi.reloadAssignments(null, false))
+                .then(() => {
+                    // Resets the page counts
+                    expect(assignmentsUi.changeLastAssignmentLoadedPage.callCount).toBe(0);
+
                     done();
                 })
                 .catch(done.fail);
@@ -631,6 +813,115 @@ describe('actions.assignments.ui', () => {
                     done();
                 })
                 .catch(done.fail);
+        });
+    });
+
+    describe('loadFulfillModal', () => {
+        beforeEach(() => {
+            sinon.stub(assignmentsUi, 'setListGroups');
+            sinon.stub(assignmentsUi, 'loadAssignments');
+        });
+
+        afterEach(() => {
+            restoreSinonStub(assignmentsUi.setListGroups);
+            restoreSinonStub(assignmentsUi.loadAssignments);
+        });
+
+        it('sets the list groups and loads the assignments', () => {
+            const item = {
+                slugline: 'Olympics',
+                task: {desk: 'desk2'},
+                type: 'text',
+            };
+
+            store.dispatch(assignmentsUi.loadFulfillModal(item, ['CURRENT', 'FUTURE']));
+
+            expect(assignmentsUi.setListGroups.callCount).toBe(1);
+            expect(assignmentsUi.setListGroups.args[0]).toEqual([['CURRENT', 'FUTURE']]);
+
+            expect(assignmentsUi.loadAssignments.callCount).toBe(1);
+            expect(assignmentsUi.loadAssignments.args[0]).toEqual([{
+                filterBy: 'Desk',
+                searchQuery: 'planning.slugline.phrase:("Olympics")',
+                orderByField: 'Scheduled',
+                orderDirection: 'Asc',
+                filterByType: 'text',
+                filterByPriority: null,
+                selectedDeskId: 'desk2',
+            }]);
+        });
+
+        it('doesnt set the searchQuery if no slugline defined', () => {
+            const item = {
+                task: {desk: 'desk2'},
+                type: 'text',
+            };
+
+            store.dispatch(assignmentsUi.loadFulfillModal(item, ['TODAY', 'FUTURE']));
+
+            expect(assignmentsUi.setListGroups.callCount).toBe(1);
+            expect(assignmentsUi.setListGroups.args[0]).toEqual([['TODAY', 'FUTURE']]);
+
+            expect(assignmentsUi.loadAssignments.callCount).toBe(1);
+            expect(assignmentsUi.loadAssignments.args[0]).toEqual([{
+                filterBy: 'Desk',
+                searchQuery: null,
+                orderByField: 'Scheduled',
+                orderDirection: 'Asc',
+                filterByType: 'text',
+                filterByPriority: null,
+                selectedDeskId: 'desk2',
+            }]);
+        });
+
+        it('uses the currently selected desk if no desk defined', () => {
+            const item = {
+                slugline: 'Olympics',
+                type: 'text',
+            };
+
+            services.desks.active.desk = 'desk3';
+            store.dispatch(assignmentsUi.loadFulfillModal(item, ['CURRENT', 'FUTURE']));
+
+            expect(assignmentsUi.setListGroups.callCount).toBe(1);
+            expect(assignmentsUi.setListGroups.args[0]).toEqual([['CURRENT', 'FUTURE']]);
+
+            expect(assignmentsUi.loadAssignments.callCount).toBe(1);
+            expect(assignmentsUi.loadAssignments.args[0]).toEqual([{
+                filterBy: 'Desk',
+                searchQuery: 'planning.slugline.phrase:("Olympics")',
+                orderByField: 'Scheduled',
+                orderDirection: 'Asc',
+                filterByType: 'text',
+                filterByPriority: null,
+                selectedDeskId: 'desk3',
+            }]);
+        });
+    });
+
+    describe('previewFirstInListGroup', () => {
+        beforeEach(() => {
+            sinon.stub(assignmentsUi, 'preview');
+        });
+
+        afterEach(() => {
+            restoreSinonStub(assignmentsUi.preview);
+        });
+
+        it('doesnt attempt to preview if list is empty', () => {
+            store.initialState.assignment.lists.TODO.assignmentIds = [];
+            store.dispatch(assignmentsUi.previewFirstInListGroup('TODO'));
+            expect(assignmentsUi.preview.callCount).toBe(0);
+        });
+
+        it('previews first item', () => {
+            store.initialState.assignment.lists.TODO.assignmentIds = [testData.assignments[0]._id];
+            store.initialState.assignment.assignments = {
+                [testData.assignments[0]._id]: testData.assignments[0],
+            };
+            store.dispatch(assignmentsUi.previewFirstInListGroup('TODO'));
+            expect(assignmentsUi.preview.callCount).toBe(1);
+            expect(assignmentsUi.preview.args[0]).toEqual([testData.assignments[0]]);
         });
     });
 });
