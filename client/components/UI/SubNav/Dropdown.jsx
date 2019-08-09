@@ -124,7 +124,7 @@ export class Dropdown extends React.Component {
                     )}
 
                     {
-                        this.props.searchable === true ? (
+                        this.props.searchable === true && this.props.items.length > 5 ? (
                             <div style={{paddingLeft: 10, paddingRight: 10}}>
                                 <input
                                     type="text"
