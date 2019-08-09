@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
 import {get} from 'lodash';
 import {Label} from '../';
 import {EVENTS, MAIN, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
@@ -16,9 +17,10 @@ import {
 } from '../../utils';
 import {gettext} from '../../utils/gettext';
 import {renderFields} from '../fields';
+import {getDeployConfig} from '../../selectors/config';
 
 
-export class EventItem extends React.Component {
+export class EventItemComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {hover: false};
@@ -44,7 +46,7 @@ export class EventItem extends React.Component {
             return null;
         }
 
-        const {session, privileges, item, lockedItems, calendars} = this.props;
+        const {session, privileges, item, lockedItems, calendars, deployConfig} = this.props;
         const callBacks = {
             [EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName].bind(null, item, true),
@@ -79,7 +81,9 @@ export class EventItem extends React.Component {
             [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName].bind(null, item),
         };
-        const itemActions = eventUtils.getEventActions({item, session, privileges, lockedItems, callBacks, calendars});
+        const itemActions = eventUtils.getEventActions(
+            {item, session, privileges, lockedItems, callBacks, calendars, deployConfig}
+        );
 
         if (get(itemActions, 'length', 0) === 0) {
             return null;
@@ -219,7 +223,7 @@ export class EventItem extends React.Component {
     }
 }
 
-EventItem.propTypes = {
+EventItemComponent.propTypes = {
     item: PropTypes.object.isRequired,
     onItemClick: PropTypes.func.isRequired,
     lockedItems: PropTypes.object.isRequired,
@@ -236,6 +240,7 @@ EventItem.propTypes = {
     listFields: PropTypes.object,
     refNode: PropTypes.func,
     active: PropTypes.bool,
+    deployConfig: PropTypes.object.isRequired,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName]: PropTypes.func,
@@ -250,6 +255,14 @@ EventItem.propTypes = {
     [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]: PropTypes.func,
 };
 
-EventItem.defaultProps = {
+EventItemComponent.defaultProps = {
     togglePlanningItem: () => { /* no-op */ },
 };
+
+function mapStateToProps(state) {
+    return {
+        deployConfig: getDeployConfig(state),
+    };
+}
+
+export const EventItem = connect(mapStateToProps)(EventItemComponent);

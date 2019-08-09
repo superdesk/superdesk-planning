@@ -573,7 +573,16 @@ const getMultiDayPlanningActions = (item, actions, createPlanning, createAndOpen
     }
 };
 
-const getEventActions = ({item, session, privileges, lockedItems, callBacks, withMultiPlanningDate, calendars}) => {
+const getEventActions = ({
+    item,
+    session,
+    privileges,
+    lockedItems,
+    callBacks,
+    withMultiPlanningDate,
+    calendars,
+    deployConfig,
+}) => {
     if (!isExistingItem(item)) {
         return [];
     }
@@ -593,9 +602,12 @@ const getEventActions = ({item, session, privileges, lockedItems, callBacks, wit
         EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName,
         EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName,
         EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName,
-        EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.actionName,
         EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName,
     ];
+
+    if (deployConfig.event_templates_enabled === true) {
+        alllowedCallBacks.push(EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.actionName);
+    }
 
     if (isExpired && !privileges[PRIVILEGES.EDIT_EXPIRED]) {
         alllowedCallBacks = [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName];
