@@ -139,20 +139,21 @@ export class AddGeoLookupResultsPopUp extends React.Component {
                                 <ul className="addgeolookup__suggests" ref={(node) => this.dom.itemList = node}>
                                     {localSuggests.map((suggest, index) => {
                                         const shortName = suggest.existingLocation ?
-                                            suggest.name :
+                                            (suggest.name + ', ' + formatAddress(suggest).formattedAddress) :
                                             formatAddress(suggest.raw).shortName;
 
                                         return (
                                             <li
                                                 key={index}
                                                 className={classNames(
+                                                    'sd-list-item__row',
                                                     'addgeolookup__item',
                                                     {'addgeolookup__item--active':
                                                         index === this.state.activeOptionIndex}
                                                 )}
                                                 onClick={this.props.onChange.bind(null, suggest)}
                                             >
-                                                <span>&nbsp;&nbsp;{shortName}</span>
+                                                <span className="sd-overflow-ellipsis">&nbsp;&nbsp;{shortName}</span>
                                             </li>
                                         );
                                     })}

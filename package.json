@@ -36,7 +36,7 @@
     "@types/react-dom": "16.8.0",
     "btoa": "^1.1.2",
     "enzyme": "~3.3.0",
-    "enzyme-adapter-react-16": "~1.1.1",
+    "enzyme-adapter-react-16": "^1.1.1",
     "istanbul-instrumenter-loader": "0.2.0",
     "jasmine": "^2.99.0",
     "jasmine-reporters": "^2.3.0",

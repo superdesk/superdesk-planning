@@ -22,7 +22,7 @@ export const Checkbox = ({
         null :
         (event) => {
             event.stopPropagation();
-            onChange(field, isRadio ? checkedValue : !value);
+            onChange(field, isRadio ? checkedValue : !value, event.shiftKey);
         };
 
     const className = classNames(

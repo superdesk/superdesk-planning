@@ -33,6 +33,9 @@ export class ItemManager {
         this.openInModal = this.openInModal.bind(this);
         this.addCoverageToWorkflow = this.addCoverageToWorkflow.bind(this);
         this.removeAssignment = this.removeAssignment.bind(this);
+        this.cancelCoverage = this.cancelCoverage.bind(this);
+        this.finaliseCancelCoverage = this.finaliseCancelCoverage.bind(this);
+        this.setStateForPartialSave = this.setStateForPartialSave.bind(this);
 
         this.editor.state = {
             tab: UI.EDITOR.CONTENT_TAB_INDEX,
@@ -116,9 +119,9 @@ export class ItemManager {
             if (!this.props.inModalView) {
                 this.clearForm();
             }
-        } else if (nextProps.itemId !== this.props.itemId ||
-            nextProps.itemAction !== this.props.itemAction
-        ) {
+        } else if (this.props.itemAction !== nextProps.itemAction) {
+            this.onItemActionChanged(nextProps);
+        } else if (nextProps.itemId !== this.props.itemId) {
             this.onItemIDChanged(nextProps);
         } else if (!this.state.loading &&
             !isTemporaryId(nextProps.itemId) &&
@@ -127,6 +130,16 @@ export class ItemManager {
         ) {
             this.onItemChanged(nextProps);
         }
+    }
+
+    onItemActionChanged(nextProps) {
+        let promise = Promise.resolve();
+
+        if (this.props.itemAction && nextProps.itemAction === 'read') {
+            promise = this.autoSave.remove();
+        }
+
+        return promise.then(() => this.onItemIDChanged(nextProps));
     }
 
     onItemIDChanged(nextProps) {
@@ -580,7 +593,10 @@ export class ItemManager {
         const updates = cloneDeep(this.state.diff);
 
         if (post) {
-            updates.state = WORKFLOW_STATE.SCHEDULED;
+            if (updates.pubstatus !== POST_STATE.USABLE) {
+                updates.state = WORKFLOW_STATE.SCHEDULED;
+            }
+
             updates.pubstatus = POST_STATE.USABLE;
             updates._post = true;
         } else if (unpost) {
@@ -680,13 +696,22 @@ export class ItemManager {
             }
         );
 
-        return this.setState({
-            initialValues: initialValues,
+        return this.setStateForPartialSave(initialValues)
+            .then(() => this.editor.onChangeHandler(diff, null, updateDirtyFlag));
+    }
+
+    setStateForPartialSave(initialValues) {
+        let newState = {
             partialSave: false,
             submitting: false,
             submitFailed: false,
-        })
-            .then(() => this.editor.onChangeHandler(diff, null, updateDirtyFlag));
+        };
+
+        if (initialValues) {
+            newState.initialValues = initialValues;
+        }
+
+        return this.setState(newState);
     }
 
     forceUpdateInitialValues(diff) {
@@ -791,23 +816,31 @@ export class ItemManager {
 
     addCoverageToWorkflow(planning, coverage, index) {
         return this.dispatch(actions.planning.ui.addCoverageToWorkflow(planning, coverage, index))
-            .then((updates) => this.finalisePartialSave({
-                _etag: updates._etag,
-                _updated: updates._updated,
-                version_creator: updates.version_creator,
-                versioncreated: updates.versioncreated,
-                [`coverages[${index}]`]: updates.coverages[index],
-            }));
+            .then((updates) => this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
     }
 
     removeAssignment(planning, coverage, index) {
         return this.dispatch(actions.planning.ui.removeAssignment(planning, coverage, index))
-            .then((updates) => this.finalisePartialSave({
-                _etag: updates._etag,
-                _updated: updates._updated,
-                version_creator: updates.version_creator,
-                versioncreated: updates.versioncreated,
-                [`coverages[${index}]`]: updates.coverages[index],
-            }));
+            .then((updates) => this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
+    }
+
+    cancelCoverage(planning, coverage, index) {
+        return this.dispatch(actions.planning.ui.openCancelCoverageModal(planning,
+            coverage, index, this.finaliseCancelCoverage, this.setStateForPartialSave));
+    }
+
+    finaliseCancelCoverage(planning, updatedCoverage, index) {
+        return this.dispatch(actions.planning.ui.cancelCoverage(planning, updatedCoverage, index))
+            .then((updates) => this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
+    }
+
+    getCoverageAfterPartialSave(updates, index) {
+        return {
+            _etag: updates._etag,
+            _updated: updates._updated,
+            version_creator: updates.version_creator,
+            versioncreated: updates.versioncreated,
+            [`coverages[${index}]`]: updates.coverages[index],
+        };
     }
 }

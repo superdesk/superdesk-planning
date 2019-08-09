@@ -106,7 +106,7 @@ describe('components.Main.ItemManager', () => {
                 createOrLoadAutosave: sinon.spy(
                     (nextProps, diff) => Promise.resolve(diff)
                 ),
-                remove: sinon.spy(),
+                remove: sinon.stub().returns(Promise.resolve()),
                 saveAutosave: sinon.stub(),
             },
             isDirty: (initialValues, diff) => (
@@ -356,12 +356,31 @@ describe('components.Main.ItemManager', () => {
                 itemAction: 'edit',
             });
 
-            expect(manager.onItemIDChanged.callCount).toBe(1);
-            expect(manager.onItemIDChanged.args[0]).toEqual([jasmine.objectContaining({
+            waitFor(() => manager.onItemIDChanged.callCount > 0)
+                .then(() => {
+                    expect(manager.onItemIDChanged.callCount).toBe(1);
+                    expect(manager.onItemIDChanged.args[0]).toEqual([jasmine.objectContaining({
+                        itemId: 'e1',
+                        itemType: 'event',
+                        itemAction: 'edit',
+                    })]);
+                });
+        });
+
+        it('calls editor.autoSave.remove on action revert to read', () => {
+            updateProps({
                 itemId: 'e1',
                 itemType: 'event',
                 itemAction: 'edit',
-            })]);
+            });
+
+            manager.componentWillReceiveProps({
+                itemId: 'e1',
+                itemType: 'event',
+                itemAction: 'read',
+            });
+
+            expect(editor.autoSave.remove.callCount).toBe(1);
         });
 
         it('calls onItemChanged', () => {

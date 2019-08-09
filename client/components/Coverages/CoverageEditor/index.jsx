@@ -9,6 +9,7 @@ import {CoverageForm} from './CoverageForm';
 import {CoverageFormHeader} from './CoverageFormHeader';
 
 import {planningUtils, gettext, editorMenuUtils} from '../../../utils';
+import {COVERAGES} from '../../../constants';
 
 export const CoverageEditor = ({
     diff,
@@ -69,24 +70,20 @@ export const CoverageEditor = ({
             callback: duplicateActions,
         }];
 
-        if (value.coverage_id) {
-            if (planningUtils.canCancelCoverage(value)) {
-                itemActions.push({
-                    label: gettext('Cancel coverage'),
-                    icon: 'icon-close-small',
-                    callback: onCancelCoverage.bind(null, value),
-                });
-            }
+        if (planningUtils.canCancelCoverage(value)) {
+            itemActions.push({
+                ...COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE,
+                callback: onCancelCoverage.bind(null, value),
+            });
+        }
 
-            if (planningUtils.isCoverageDraft(value) && planningUtils.isCoverageAssigned(value)
-                && !autoAssignToWorkflow) {
-                itemActions.push({
-                    id: 'addToWorkflow',
-                    label: gettext('Add to workflow'),
-                    icon: 'icon-assign',
-                    callback: onAddCoverageToWorkflow.bind(null, value, index),
-                });
-            }
+        if (planningUtils.canAddCoverageToWorkflow(value, autoAssignToWorkflow)) {
+            itemActions.push({
+                id: 'addToWorkflow',
+                label: gettext('Add to workflow'),
+                icon: 'icon-assign',
+                callback: onAddCoverageToWorkflow.bind(null, value, index),
+            });
         }
 
         if (planningUtils.canRemoveCoverage(value, diff)) {

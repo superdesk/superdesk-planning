@@ -18,7 +18,7 @@ export class PlanningListComponent extends React.Component {
         this.handleItemSelection = this.handleItemSelection.bind(this);
     }
 
-    handleItemSelection(item) {
+    handleItemSelection(item, value, shiftKey, name) {
         let selectedList = this.props.selectedEventIds;
         let multiSelectDispatch = this.props.multiSelectEvent;
 
@@ -29,7 +29,7 @@ export class PlanningListComponent extends React.Component {
 
         const deSelect = indexOf(selectedList, item._id) !== -1;
 
-        multiSelectDispatch(item._id, deSelect);
+        multiSelectDispatch(item._id, deSelect, shiftKey, name);
     }
 
     render() {
@@ -161,13 +161,13 @@ const mapDispatchToProps = (dispatch) => ({
     openPreview: (item) => dispatch(actions.main.openPreview(item)),
     edit: (item) => dispatch(actions.main.openForEdit(item)),
     onAddCoverageClick: (item) => dispatch(actions.planning.ui.onAddCoverageClick(item)),
-    multiSelectEvent: (eventId, deselect = false) => dispatch(deselect ?
+    multiSelectEvent: (eventId, deselect = false, shiftKey = false, name = '') => dispatch(deselect ?
         actions.multiSelect.deSelectEvents(eventId) :
-        actions.multiSelect.selectEvents(eventId)
+        actions.multiSelect.selectEvents(eventId, false, shiftKey, name)
     ),
-    multiSelectPlanning: (planningId, deselect = false) => dispatch(deselect ?
+    multiSelectPlanning: (planningId, deselect = false, shiftKey = false, name = '') => dispatch(deselect ?
         actions.multiSelect.deSelectPlannings(planningId) :
-        actions.multiSelect.selectPlannings(planningId)
+        actions.multiSelect.selectPlannings(planningId, false, shiftKey, name)
     ),
     showRelatedPlannings: (event) => dispatch(
         actions.eventsPlanning.ui.showRelatedPlannings(event)

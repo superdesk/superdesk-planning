@@ -689,6 +689,33 @@ Feature: Events
             "extra": {"item": "#events._id#"}
         }]
         """
+        When we get "/events_history"
+        Then we get a list with 1 items
+        """
+            {
+                "_items": [{
+                    "operation": "created_from_planning",
+                    "event_id": "#events._id#",
+                    "update": {
+                        "name": "TestEvent",
+                        "created_from_planning": "#planning._id#"
+                    }
+                }]
+            }
+        """
+        When we get "/planning_history"
+        Then we get a list with 1 items
+        """
+            {
+                "_items": [{
+                    "operation": "create_event",
+                    "planning_id": "#planning._id#",
+                    "update": {
+                        "event_item": "#events._id#"
+                    }
+                }]
+            }
+        """
 
     @auth
     Scenario: Fails to link a new Event to a Planning Item if another use holds the Planning lock

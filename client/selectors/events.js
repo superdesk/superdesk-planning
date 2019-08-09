@@ -36,6 +36,15 @@ export const orderedEvents = createSelector(
     }
 );
 
+export const flattenedEventsInList = createSelector(
+    [eventsInList, currentSearch, getStartOfWeek],
+    (events, search, startOfWeek) => {
+        const dateRange = getSearchDateRange(search, startOfWeek);
+
+        return eventUtils.getFlattenedEventsByDate(events, dateRange.startDate, dateRange.endDate);
+    }
+);
+
 export const previewId = (state) => get(state, 'main.previewId', null);
 
 export const getEventPreviewRelatedDetails = createSelector(

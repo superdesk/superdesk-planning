@@ -38,6 +38,8 @@ const getActionDispatches = ({
             actions.main.openForEdit,
         [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]:
             actions.events.ui.assignToCalendar,
+        [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName]:
+            actions.events.ui.onMarkEventCompleted,
 
         // Planning Item Actions
         [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:

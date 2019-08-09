@@ -92,6 +92,13 @@ const EditorItemActionsComponent = (props) => {
                         dispatch(eventsApi.createEventTemplate(updatedItem._id));
                     }));
                 },
+            [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName]:
+                () => (
+                    autoSave.flushAutosave()
+                        .then(() => (
+                            itemActions[EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName](item, true)
+                        ))
+                ),
         };
         actions = eventUtils.getEventActions({
             item,

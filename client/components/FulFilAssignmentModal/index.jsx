@@ -9,79 +9,104 @@ import {Modal} from '../index';
 import {FulfilAssignmentApp} from '../../apps';
 
 import * as selectors from '../../selectors';
-import {WORKSPACE} from '../../constants';
+import {WORKSPACE, KEYCODES} from '../../constants';
 import {gettext} from '../../utils';
 
 
-export function FulFilAssignmentComponent({
-    handleHide,
-    modalProps,
-    currentWorkspace,
-    actionInProgress,
-}) {
-    if (currentWorkspace !== WORKSPACE.AUTHORING) {
-        return null;
+class FulFilAssignmentComponent extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleKeydown = this.handleKeydown.bind(this);
+        this.handleCancel = this.handleCancel.bind(this);
     }
 
-    const {newsItem, onCancel, onIgnore, showIgnore, ignoreText, title} = modalProps;
-    const showCancel = get(modalProps, 'showCancel', true);
+    componentDidMount() {
+        document.addEventListener('keydown', this.handleKeydown);
+    }
 
-    const handleCancel = () => {
-        handleHide();
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.handleKeydown);
+    }
 
-        if (onCancel) {
-            onCancel();
+    handleKeydown(event) {
+        if (event.keyCode === KEYCODES.ESCAPE) {
+            event.preventDefault();
+            this.handleCancel();
         }
-    };
+    }
 
-    const handleIgnore = !showIgnore ? null : () => {
-        handleHide();
+    handleCancel() {
+        this.props.handleHide();
 
-        if (onIgnore) {
-            onIgnore();
+        if (this.props.modalProps.onCancel) {
+            this.props.modalProps.onCancel();
         }
-    };
+    }
 
-    return (
-        <Modal
-            show={true}
-            onHide={handleHide}
-            fill={true}
-        >
-            <Modal.Header>
-                {actionInProgress ? null : (
-                    <a className="close" onClick={handleCancel}>
-                        <i className="icon-close-small" />
-                    </a>
-                )}
-                <h3>{title || gettext('Select an Assignment')}</h3>
-            </Modal.Header>
+    render() {
+        const {
+            handleHide,
+            modalProps,
+            currentWorkspace,
+            actionInProgress} = this.props;
 
-            <Modal.Body noPadding fullHeight noScroll
+        if (currentWorkspace !== WORKSPACE.AUTHORING) {
+            return null;
+        }
+
+        const {newsItem, onIgnore, showIgnore, ignoreText, title} = modalProps;
+        const showCancel = get(modalProps, 'showCancel', true);
+
+
+        const handleIgnore = !showIgnore ? null : () => {
+            handleHide();
+
+            if (onIgnore) {
+                onIgnore();
+            }
+        };
+
+        return (
+            <Modal
+                show={true}
+                onHide={handleHide}
+                fill={true}
             >
-                <div className="planning-app__modal FulfilAssignment">
-                    <FulfilAssignmentApp newsItem={newsItem}/>
-                </div>
-            </Modal.Body>
+                <Modal.Header>
+                    {actionInProgress ? null : (
+                        <a className="close" onClick={this.handleCancel}>
+                            <i className="icon-close-small" />
+                        </a>
+                    )}
+                    <h3>{title || gettext('Select an Assignment')}</h3>
+                </Modal.Header>
 
-            <Modal.Footer>
-                {!showCancel ? null : (
-                    <Button
-                        text={gettext('Cancel')}
-                        disabled={actionInProgress}
-                        onClick={handleCancel}
-                    />
-                )}
-                {!handleIgnore ? null : (
-                    <Button
-                        text={ignoreText || gettext('Ignore')}
-                        disabled={actionInProgress}
-                        onClick={handleIgnore}
-                    />
-                )}
-            </Modal.Footer>
-        </Modal>
-    );
+                <Modal.Body noPadding fullHeight noScroll
+                >
+                    <div className="planning-app__modal FulfilAssignment">
+                        <FulfilAssignmentApp newsItem={newsItem}/>
+                    </div>
+                </Modal.Body>
+
+                <Modal.Footer>
+                    {!showCancel ? null : (
+                        <Button
+                            text={gettext('Cancel')}
+                            disabled={actionInProgress}
+                            onClick={this.handleCancel}
+                        />
+                    )}
+                    {!handleIgnore ? null : (
+                        <Button
+                            text={ignoreText || gettext('Ignore')}
+                            disabled={actionInProgress}
+                            onClick={handleIgnore}
+                        />
+                    )}
+                </Modal.Footer>
+            </Modal>
+        );
+    }
 }
 
 FulFilAssignmentComponent.propTypes = {

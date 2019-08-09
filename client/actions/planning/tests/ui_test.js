@@ -575,7 +575,7 @@ describe('actions.planning.ui', () => {
                         ['Agenda assigned to the planning item.']);
 
                     expect(locks.unlock.callCount).toBe(1);
-                    expect(locks.unlock.args[0]).toEqual([planningWithAgenda]);
+                    expect(locks.unlock.args[0]).toEqual([planningUtils.modifyForClient(planningWithAgenda)]);
 
                     done();
                 })

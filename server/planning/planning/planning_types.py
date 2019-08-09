@@ -366,6 +366,10 @@ DEFAULT_EDITOR = [{
     'name': 'planning_cancel_all_coverage',
     'schema': {},
     'editor': {},
+}, {
+    'name': 'coverage_cancel_coverage',
+    'schema': {},
+    'editor': {},
 }]
 
 logger = logging.getLogger(__name__)
@@ -393,6 +397,14 @@ planning_types_schema = {
     # list fields config
     'list':
         {'type': 'dict'},
+
+    # list fields when seeing events/planning when exporting or downloading
+    'export_list': {
+        'type': 'list',
+        'schema': {
+            'type': 'string'
+        }
+    }
 }
 
 

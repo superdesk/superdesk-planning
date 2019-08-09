@@ -10,7 +10,7 @@ import {
     COVERAGES,
     ITEM_TYPE,
 } from '../constants/index';
-import {get, set, isNil, uniq, sortBy, isEmpty, cloneDeep, isArray, find} from 'lodash';
+import {get, set, isNil, uniq, sortBy, isEmpty, cloneDeep, isArray, find, flatten} from 'lodash';
 import {
     getItemWorkflowState,
     lockUtils,
@@ -152,8 +152,11 @@ const isCoverageCancelled = (coverage) =>
     (get(coverage, 'workflow_status') === WORKFLOW_STATE.CANCELLED);
 
 const canCancelCoverage = (coverage) =>
-    (!isCoverageCancelled(coverage) && (!get(coverage, 'assigned_to.state') ||
-        get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED));
+    (!isCoverageCancelled(coverage) && isExistingItem(coverage, 'coverage_id') && (!get(coverage, 'assigned_to.state')
+        || get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED));
+
+const canAddCoverageToWorkflow = (coverage, autoAssignToWorkflow) => isExistingItem(coverage, 'coverage_id') &&
+    isCoverageDraft(coverage) && isCoverageAssigned(coverage) && !autoAssignToWorkflow;
 
 const canRemoveCoverage = (coverage, planning) => !isItemCancelled(planning) &&
     ([WORKFLOW_STATE.DRAFT, WORKFLOW_STATE.CANCELLED].includes(get(coverage, 'workflow_status')) ||
@@ -560,9 +563,11 @@ const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, d
     };
 
     if ([WORKFLOW_STATE.SCHEDULED, 'published'].includes(addNewsItemToPlanning.state)) {
-        newCoverage.planning.scheduled = addNewsItemToPlanning.state === 'published' ?
-            moment(addNewsItemToPlanning.firstpublished) :
-            moment(get(addNewsItemToPlanning, 'schedule_settings.utc_publish_schedule'));
+        newCoverage.planning.scheduled = get(addNewsItemToPlanning, 'schedule_settings.utc_publish_schedule') ?
+            moment(addNewsItemToPlanning.schedule_settings.utc_publish_schedule).add(1, 'hour')
+                .startOf('hour') :
+            moment(addNewsItemToPlanning.firstpublished).add(1, 'hour')
+                .startOf('hour');
     }
 
     if (get(addNewsItemToPlanning, 'genre')) {
@@ -679,6 +684,12 @@ const getCoverageReadOnlyFields = (
             flags: false,
         };
     }
+};
+
+const getFlattenedPlanningByDate = (plansInList, events, startDate, endDate, timezone = null) => {
+    const planning = getPlanningByDate(plansInList, events, startDate, endDate, timezone);
+
+    return flatten(sortBy(planning, [(e) => (e.date)]).map((e) => e.events.map((k) => [e.date, k._id])));
 };
 
 const getPlanningByDate = (plansInList, events, startDate, endDate, timezone = null) => {
@@ -975,6 +986,8 @@ const self = {
     shouldFetchFilesForPlanning,
     getCoverageContentType,
     getAgendaNames,
+    getFlattenedPlanningByDate,
+    canAddCoverageToWorkflow,
 };
 
 export default self;
