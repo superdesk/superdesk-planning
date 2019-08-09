@@ -39,7 +39,7 @@ describe('actions.eventsplanning.ui', () => {
         store.test(done, eventsPlanningUi.fetch({}))
             .then(() => {
                 expect(eventsPlanningApi.query.callCount).toBe(1);
-                expect(store.dispatch.callCount).toBe(8);
+                expect(store.dispatch.callCount).toBe(6);
                 expect(store.dispatch.args[0][0]).toEqual(
                     {
                         type: MAIN.ACTIONS.REQUEST,
@@ -47,7 +47,7 @@ describe('actions.eventsplanning.ui', () => {
                     }
                 );
 
-                expect(store.dispatch.args[5][0]).toEqual(
+                expect(store.dispatch.args[3][0]).toEqual(
                     jasmine.objectContaining(
                         {
                             type: EVENTS.ACTIONS.ADD_EVENTS,
@@ -56,7 +56,7 @@ describe('actions.eventsplanning.ui', () => {
                     )
                 );
 
-                expect(store.dispatch.args[6][0]).toEqual(
+                expect(store.dispatch.args[4][0]).toEqual(
                     jasmine.objectContaining(
                         {
                             type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
@@ -65,7 +65,7 @@ describe('actions.eventsplanning.ui', () => {
                     )
                 );
 
-                expect(store.dispatch.args[7][0]).toEqual(
+                expect(store.dispatch.args[5][0]).toEqual(
                     jasmine.objectContaining(
                         {
                             type: EVENTS_PLANNING.ACTIONS.SET_EVENTS_PLANNING_LIST,
