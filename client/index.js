@@ -99,6 +99,8 @@ export default angular.module('superdesk-planning', [])
         'modal',
         'privileges',
         'lock',
+        'session',
+        'authoringWorkspace',
         (
             $injector,
             sdPlanningStore,
@@ -108,7 +110,9 @@ export default angular.module('superdesk-planning', [])
             deployConfig,
             modal,
             privileges,
-            lock
+            lock,
+            session,
+            authoringWorkspace,
         ) => {
             ng.register($injector);
 
@@ -124,7 +128,7 @@ export default angular.module('superdesk-planning', [])
 
             ng.waitForServicesToBeAvailable()
                 .then(() => {
-                    Object.assign(superdeskApi, getSuperdeskApiImplementation(null, {}, modal, privileges, lock));
+                    Object.assign(superdeskApi, getSuperdeskApiImplementation(null, {}, modal, privileges, lock, session, authoringWorkspace));
 
                     extensionPoints.register('publish_queue:preview',
                         PublishQueuePanel, {}, ['selected'],
