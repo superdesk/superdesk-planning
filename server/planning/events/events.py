@@ -486,6 +486,7 @@ class EventsService(superdesk.Service):
             if calendar['qcode'] not in original_calendar_qcodes
         ]
 
+        mark_complete_validated = False
         for e in events:
             event_id = e[config.ID_FIELD]
 
@@ -509,6 +510,13 @@ class EventsService(superdesk.Service):
                     if calendar['qcode'] not in original_qcodes
                 ])
             elif original.get('lock_action') == 'mark_completed' and updates.get('actioned_date'):
+                # If the entire series is in future, raise an error
+                if not mark_complete_validated:
+                    if e['dates']['start'].date() > updates['actioned_date'].date():
+                        raise SuperdeskApiError.badRequestError('Recurring series has not started.')
+                    else:
+                        mark_complete_validated = True
+
                 # If we are marking an event as completed
                 # Update only those which are behind the 'actioned_date'
                 if e['dates']['start'] < updates['actioned_date']:
