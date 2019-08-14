@@ -87,8 +87,8 @@ function configurePlanning(superdesk, $injector) {
                 function(lock, archiveService, item, authoring) {
                     return !item.assignment_id &&
                         (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
-                        !archiveService.isPersonal(item) && (authoring.itemActions(item).edit ||
-                        authoring.itemActions(item).correct || authoring.itemActions(item).deschedule);
+                        !archiveService.isPersonal(item) && !['killed', 'recalled',
+                            'unpublished', 'spiked'].includes(item.state);
                 }],
         })
         .activity('planning.unlink', {
