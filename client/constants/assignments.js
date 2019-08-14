@@ -30,6 +30,10 @@ export const ASSIGNMENTS = {
         REVERTED: 'reverted',
     },
     ITEM_ACTIONS: {
+        START_WORKING: {
+            label: gettext('Start Working'),
+            icon: 'icon-external',
+        },
         REASSIGN: {
             label: gettext('Reassign'),
             icon: 'icon-share-alt',
@@ -41,10 +45,6 @@ export const ASSIGNMENTS = {
         EDIT_PRIORITY: {
             label: gettext('Edit Priority'),
             icon: 'icon-chevron-up-thin',
-        },
-        START_WORKING: {
-            label: gettext('Start Working'),
-            icon: 'icon-external',
         },
         REMOVE: {
             label: gettext('Remove Assignment'),
