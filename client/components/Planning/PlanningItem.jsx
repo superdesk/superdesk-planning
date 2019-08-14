@@ -212,7 +212,13 @@ export class PlanningItem extends React.Component {
                         {secondaryFields.includes('featured') &&
                             renderFields('featured', item, {tooltipFlowDirection: 'right'})}
                         {secondaryFields.includes('agendas') &&
-                            renderFields('agendas', item, {agendas: planningUtils.getAgendaNames(item, agendas)})}
+                            renderFields('agendas', item, {
+                                fieldsProps: {
+                                    agendas: {
+                                        agendas: planningUtils.getAgendaNames(item, agendas),
+                                    },
+                                },
+                            })}
                         {secondaryFields.includes('coverages') && renderFields('coverages', item, {
                             date,
                             timeFormat,
