@@ -24,6 +24,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
 
     getItemActions() {
         const {
+            startWorking,
             reassign,
             editAssignmentPriority,
             completeAssignment,
@@ -31,7 +32,6 @@ class AssignmentPreviewContainerComponent extends React.Component {
             hideItemActions,
             session,
             privileges,
-            startWorking,
             removeAssignment,
             lockedItems,
             openArchivePreview,
@@ -44,10 +44,10 @@ class AssignmentPreviewContainerComponent extends React.Component {
         }
 
         const itemActionsCallBack = {
+            [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label]: startWorking.bind(null, assignment),
             [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: reassign.bind(null, assignment),
             [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label]: editAssignmentPriority.bind(null, assignment),
             [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label]: completeAssignment.bind(null, assignment),
-            [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label]: startWorking.bind(null, assignment),
             [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.label]: removeAssignment.bind(null, assignment),
             [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.label]: openArchivePreview.bind(null, assignment),
             [ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.label]: completeAssignment.bind(null, assignment),
