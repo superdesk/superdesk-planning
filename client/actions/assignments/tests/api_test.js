@@ -1,6 +1,8 @@
-import assignmentsApi from '../api';
 import sinon from 'sinon';
 import moment from 'moment';
+import {get} from 'lodash';
+
+import assignmentsApi from '../api';
 import {
     getTestActionStore,
     restoreSinonStub,
@@ -28,6 +30,99 @@ describe('actions.assignments.api', () => {
         restoreSinonStub(assignmentsApi.receivedAssignments);
         restoreSinonStub(assignmentsApi.fetchAssignmentById);
         restoreSinonStub(assignmentsApi.save);
+    });
+
+    describe('constructQuery', () => {
+        it('filter by desk', () => {
+            expect(assignmentsApi.constructQuery({deskId: 'desk1'})).toEqual({
+                bool: {must: [{term: {'assigned_to.desk': 'desk1'}}]},
+            });
+        });
+
+        it('filter by user', () => {
+            expect(assignmentsApi.constructQuery({userId: 'ident1'})).toEqual({
+                bool: {must: [{term: {'assigned_to.user': 'ident1'}}]},
+            });
+        });
+
+        it('filter by states', () => {
+            expect(assignmentsApi.constructQuery({states: ['assigned', 'submitted']})).toEqual({
+                bool: {must: [{terms: {'assigned_to.state': ['assigned', 'submitted']}}]},
+            });
+        });
+
+        it('filter by type', () => {
+            expect(assignmentsApi.constructQuery({type: 'text'})).toEqual({
+                bool: {must: [{term: {'planning.g2_content_type': 'text'}}]},
+            });
+        });
+
+        it('filter by priority', () => {
+            expect(assignmentsApi.constructQuery({priority: 3})).toEqual({
+                bool: {must: [{term: {priority: 3}}]},
+            });
+        });
+
+        it('filter by text search', () => {
+            expect(assignmentsApi.constructQuery({searchQuery: 'planning.slugline.phrase:("Olympics")'})).toEqual({
+                bool: {must: [{query_string: {query: 'planning.slugline.phrase:("Olympics")'}}]},
+            });
+        });
+
+        it('filter by date filter', () => {
+            const systemTimezone = get(
+                store,
+                'initialState.config.defaultTimezone',
+                'Australia/Sydney'
+            );
+
+            const timezoneOffset = moment()
+                .tz(systemTimezone)
+                .format('Z');
+
+            // The offset will either be '+10:00' or '+11:00' depending on daylight savings
+            expect(['+10:00', '+11:00']).toContain(timezoneOffset);
+
+            expect(assignmentsApi.constructQuery({dateFilter: 'today', systemTimezone: systemTimezone})).toEqual({
+                bool: {
+                    must: [{
+                        range: {
+                            'planning.scheduled': {
+                                gte: 'now/d',
+                                lte: 'now/d',
+                                time_zone: timezoneOffset,
+                            },
+                        },
+                    }],
+                },
+            });
+
+            expect(assignmentsApi.constructQuery({dateFilter: 'current', systemTimezone: 'Australia/Sydney'})).toEqual({
+                bool: {
+                    must: [{
+                        range: {
+                            'planning.scheduled': {
+                                lte: 'now/d',
+                                time_zone: timezoneOffset,
+                            },
+                        },
+                    }],
+                },
+            });
+
+            expect(assignmentsApi.constructQuery({dateFilter: 'future', systemTimezone: 'Australia/Sydney'})).toEqual({
+                bool: {
+                    must: [{
+                        range: {
+                            'planning.scheduled': {
+                                gt: 'now/d',
+                                time_zone: timezoneOffset,
+                            },
+                        },
+                    }],
+                },
+            });
+        });
     });
 
     describe('query', () => {
@@ -274,6 +369,34 @@ describe('actions.assignments.api', () => {
                     expect(params).toEqual({
                         page: 1,
                         sort: '[("priority", 1)]',
+                        source: source,
+                    });
+
+                    done();
+                })
+                .catch(done.fail);
+        });
+
+        it('query setting the size', (done) => {
+            const source = '{"query":{"bool":{"must":[{"terms":{'
+                + '"assigned_to.state":["assigned"]}}]}},"size":0}';
+
+            const params = {
+                searchQuery: null,
+                states: ['assigned'],
+                orderByField: 'Updated',
+                orderDirection: 'Desc',
+                size: 0,
+            };
+
+            store.test(done, assignmentsApi.query(params))
+                .then(() => {
+                    expect(services.api('assignments').query.callCount).toBe(1);
+                    const params = services.api('assignments').query.args[0][0];
+
+                    expect(params).toEqual({
+                        page: 1,
+                        sort: '[("_updated", -1)]',
                         source: source,
                     });
 

@@ -5,7 +5,7 @@ import {Provider} from 'react-redux';
 import {ModalsContainer} from '../components';
 import {get} from 'lodash';
 import {registerNotifications} from '../utils';
-import {WORKSPACE, ASSIGNMENTS, MODALS} from '../constants';
+import {WORKSPACE, MODALS, ASSIGNMENTS} from '../constants';
 import {getErrorMessage} from '../utils/index';
 
 export class FulFilAssignmentController {
@@ -20,7 +20,8 @@ export class FulFilAssignmentController {
         userList,
         api,
         $timeout,
-        superdeskFlags
+        superdeskFlags,
+        desks
     ) {
         this.$element = $element;
         this.$scope = $scope;
@@ -32,6 +33,7 @@ export class FulFilAssignmentController {
         this.api = api;
         this.$timeout = $timeout;
         this.superdeskFlags = superdeskFlags;
+        this.desks = desks;
 
         this.render = this.render.bind(this);
         this.loadWorkspace = this.loadWorkspace.bind(this);
@@ -67,9 +69,6 @@ export class FulFilAssignmentController {
     }
 
     render() {
-        this.store.dispatch(
-            actions.assignments.ui.changeAssignmentListSingleGroupView('TODO')
-        );
         this.store.dispatch(actions.main.closePublishQueuePreviewOnWorkspaceChange());
 
         ReactDOM.render(
@@ -100,16 +99,14 @@ export class FulFilAssignmentController {
             .then((newsItem) => {
                 this.newsItem = newsItem;
                 registerNotifications(this.$scope, this.store);
-                return this.store.dispatch(
-                    actions.assignments.ui.loadAssignments(
-                        'Desk',
-                        null,
-                        'Scheduled',
-                        'Asc',
-                        [ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED],
-                        this.newsItem.type,
-                        null,
-                        get(this.item, 'task.desk')
+
+                return store.dispatch(
+                    actions.assignments.ui.loadFulfillModal(
+                        this.newsItem,
+                        [
+                            ASSIGNMENTS.LIST_GROUPS.CURRENT.id,
+                            ASSIGNMENTS.LIST_GROUPS.FUTURE.id,
+                        ]
                     )
                 );
             });
@@ -233,4 +230,5 @@ FulFilAssignmentController.$inject = [
     'api',
     '$timeout',
     'superdeskFlags',
+    'desks',
 ];

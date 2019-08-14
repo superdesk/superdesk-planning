@@ -1,4 +1,6 @@
 import {get, includes, isNil} from 'lodash';
+import moment from 'moment';
+
 import {ASSIGNMENTS, PRIVILEGES} from '../constants';
 import {lockUtils, getCreator, getItemInArrayById, isExistingItem} from './index';
 
@@ -60,6 +62,15 @@ const canRevertAssignment = (assignment, session, privileges) => (
 
 const assignmentHasContent = (assignment) => (
     get(assignment, 'item_ids.length', 0) > 0
+);
+
+const isDue = (assignment) => (
+    get(assignment, 'planning.scheduled') &&
+        moment().isAfter(moment(assignment.planning.scheduled)) &&
+        [
+            ASSIGNMENTS.WORKFLOW_STATE.COMPLETED,
+            ASSIGNMENTS.WORKFLOW_STATE.CANCELLED,
+        ].indexOf(get(assignment, 'assigned_to.state')) < 0
 );
 
 const getAssignmentActions = (assignment, session, privileges, lockedItems, contentTypes, callBacks) => {
@@ -181,22 +192,26 @@ const getAssignmentItemActions = (assignment, session, privileges, contentTypes,
     return itemActions;
 };
 
-const getAssignmentGroupByStates = (states = []) => {
-    if (get(states, 'length') > 0) {
-        const state = states[0];
-
-        if (ASSIGNMENTS.LIST_GROUPS.TODO.states.indexOf(state) > -1) {
-            return ASSIGNMENTS.LIST_GROUPS.TODO;
-        }
-
-        if (ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.states.indexOf(state) > -1) {
-            return ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS;
-        }
-
-        if (ASSIGNMENTS.LIST_GROUPS.COMPLETED.states.indexOf(state) > -1) {
-            return ASSIGNMENTS.LIST_GROUPS.COMPLETED;
-        }
+const getAssignmentGroupsByStates = (groups, states) => {
+    if (get(states, 'length', 0) < 1) {
+        return [];
     }
+
+    const groupKeys = [];
+
+    const processState = (state) => {
+        groups.forEach((groupKey) => {
+            if (groupKeys.indexOf(groupKey) < 0 &&
+                ASSIGNMENTS.LIST_GROUPS[groupKey].states.indexOf(state) > -1
+            ) {
+                groupKeys.push(groupKey);
+            }
+        });
+    };
+
+    states.forEach(processState);
+
+    return groupKeys;
 };
 
 const canEditDesk = (assignment) => {
@@ -270,7 +285,7 @@ const self = {
     isAssignmentInEditableState,
     getAssignmentActions,
     canStartWorking,
-    getAssignmentGroupByStates,
+    getAssignmentGroupsByStates,
     canEditDesk,
     assignmentHasContent,
     isAssignmentLockRestricted,
@@ -279,6 +294,7 @@ const self = {
     canConfirmAvailability,
     canRevertAssignment,
     isAssignmentLocked,
+    isDue,
 };
 
 export default self;

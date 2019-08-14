@@ -155,7 +155,11 @@ describe('actions.assignments.notification', () => {
 
                     expect(coverage1.assigned_to.desk).toBe('desk2');
                     expect(coverage1.assigned_to.state).toBe('assigned');
-                    expect(assignmentsUi.reloadAssignments.callCount).toBe(1);
+                    expect(assignmentsUi.reloadAssignments.callCount).toBe(2);
+                    expect(assignmentsUi.reloadAssignments.args).toEqual([
+                        [['assigned']],
+                        [[undefined]],
+                    ]);
                     done();
                 })
                 .catch(done.fail);
@@ -328,7 +332,11 @@ describe('actions.assignments.notification', () => {
 
                     expect(coverage1.assigned_to.desk).toBe('desk2');
                     expect(coverage1.assigned_to.state).toBe('completed');
-                    expect(assignmentsUi.reloadAssignments.callCount).toBe(1);
+                    expect(assignmentsUi.reloadAssignments.callCount).toBe(2);
+                    expect(assignmentsUi.reloadAssignments.args).toEqual([
+                        [['completed']],
+                        [[undefined]],
+                    ]);
                     done();
                 })
                 .catch(done.fail);

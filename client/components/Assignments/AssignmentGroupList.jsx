@@ -3,11 +3,10 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
-import {ASSIGNMENTS, UI} from '../../constants';
+import {UI} from '../../constants';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {assignmentUtils} from '../../utils';
-import {gettext} from '../../utils/gettext';
 
 import {AssignmentItem} from './AssignmentItem';
 import {Header, Group} from '../UI/List';
@@ -34,10 +33,6 @@ class AssignmentGroupListComponent extends React.Component {
         }
     }
 
-    componentWillMount() {
-        this.props.loadAssignmentsForGroup(this.props.groupKey);
-    }
-
     handleScroll(event) {
         if (this.state.isNextPageLoading) {
             return;
@@ -50,14 +45,16 @@ class AssignmentGroupListComponent extends React.Component {
             if (node.scrollTop + node.offsetHeight + 200 >= node.scrollHeight) {
                 this.setState({isNextPageLoading: true});
 
-                loadMoreAssignments(ASSIGNMENTS.LIST_GROUPS[groupKey].states)
+                loadMoreAssignments(groupKey)
                     .finally(() => this.setState({isNextPageLoading: false}));
             }
         }
     }
 
     changeAssignmentListSingleGroupView() {
-        this.props.changeAssignmentListSingleGroupView(this.props.groupKey);
+        if (this.props.changeAssignmentListSingleGroupView) {
+            this.props.changeAssignmentListSingleGroupView(this.props.groupKey);
+        }
     }
 
     getListMaxHeight() {
@@ -117,10 +114,13 @@ class AssignmentGroupListComponent extends React.Component {
     render() {
         const {
             assignments,
-            groupKey,
             totalCount,
             assignmentListSingleGroupView,
             setMaxHeight,
+            groupLabel,
+            groupEmptyMessage,
+            showCount,
+            changeAssignmentListSingleGroupView,
         } = this.props;
         const listStyle = setMaxHeight ? {maxHeight: this.getListMaxHeight() + 'px'} : {};
 
@@ -128,13 +128,20 @@ class AssignmentGroupListComponent extends React.Component {
             <div>
                 {!assignmentListSingleGroupView && (
                     <Header>
-                        <a
-                            className="sd-list-header__name sd-list-header__name--cursorPointer"
-                            onClick={this.changeAssignmentListSingleGroupView}
-                        >
-                            <span>{gettext(ASSIGNMENTS.LIST_GROUPS[groupKey].label)}</span>
-                        </a>
-                        <span className="sd-list-header__number badge">{totalCount}</span>
+                        {changeAssignmentListSingleGroupView ? (
+                            <a
+                                className="sd-list-header__name sd-list-header__name--cursorPointer"
+                                onClick={this.changeAssignmentListSingleGroupView}
+                            >
+                                <span>{groupLabel}</span>
+                            </a>
+                        ) : (
+                            <span className="sd-list-header__name">{groupLabel}</span>
+                        )}
+
+                        {showCount && (
+                            <span className="sd-list-header__number badge">{totalCount}</span>
+                        )}
                     </Header>
 
                 )}
@@ -149,12 +156,7 @@ class AssignmentGroupListComponent extends React.Component {
                     {get(assignments, 'length', 0) > 0 ? (
                         assignments.map((assignment, index) => this.rowRenderer(index))
                     ) : (
-                        <p className="sd-list-item-group__empty-msg">{
-                            gettext(
-                                'There are no assignments {{ groupName }}',
-                                {groupName: gettext(ASSIGNMENTS.LIST_GROUPS[groupKey].label).toLowerCase()}
-                            )}
-                        </p>
+                        <p className="sd-list-item-group__empty-msg">{groupEmptyMessage}</p>
                     )}
                 </Group>
             </div>
@@ -171,7 +173,6 @@ AssignmentGroupListComponent.propTypes = {
     users: PropTypes.array,
     session: PropTypes.object,
     loadMoreAssignments: PropTypes.func.isRequired,
-    loadAssignmentsForGroup: PropTypes.func.isRequired,
     lockedItems: PropTypes.object,
     currentAssignmentId: PropTypes.string,
     reassign: PropTypes.func,
@@ -191,36 +192,20 @@ AssignmentGroupListComponent.propTypes = {
     setMaxHeight: PropTypes.bool,
     contentTypes: PropTypes.array,
     desks: PropTypes.array,
+
+    groupLabel: PropTypes.string,
+    groupStates: PropTypes.arrayOf(PropTypes.string),
+    groupEmptyMessage: PropTypes.string,
+    showCount: PropTypes.bool,
 };
 
-AssignmentGroupListComponent.defaultProps = {setMaxHeight: true};
-
-const getAssignmentsSelectorsForListGroup = (groupKey) => {
-    const groupLabel = ASSIGNMENTS.LIST_GROUPS[groupKey].label;
-
-    switch (groupLabel) {
-    case ASSIGNMENTS.LIST_GROUPS.TODO.label:
-        return {
-            assignmentsSelector: (state) => (selectors.getTodoAssignments(state)),
-            countSelector: (state) => (selectors.getAssignmentsToDoListCount(state)),
-        };
-
-    case ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.label:
-        return {
-            assignmentsSelector: (state) => (selectors.getInProgressAssignments(state)),
-            countSelector: (state) => (selectors.getAssignmentsInProgressListCount(state)),
-        };
-
-    default:
-        return {
-            assignmentsSelector: (state) => (selectors.getCompletedAssignments(state)),
-            countSelector: (state) => (selectors.getAssignmentsCompletedListCount(state)),
-        };
-    }
+AssignmentGroupListComponent.defaultProps = {
+    setMaxHeight: true,
+    showCount: true,
 };
 
 const mapStateToProps = (state, ownProps) => {
-    const assignmentDataSelector = getAssignmentsSelectorsForListGroup(ownProps.groupKey);
+    const assignmentDataSelector = selectors.getAssignmentGroupSelectors[ownProps.groupKey];
 
     return {
         filterBy: selectors.getFilterBy(state),

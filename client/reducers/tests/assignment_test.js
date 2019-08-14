@@ -1,160 +1,120 @@
-import assignment from '../assignment';
 import moment from 'moment';
+import {cloneDeep} from 'lodash';
+
+import assignment from '../assignment';
+import * as testData from '../../utils/testData';
 
 describe('assignment', () => {
     let initialState;
-    let stateTest;
+    let state;
+    let assignments;
 
     beforeEach(() => {
-        stateTest = {
-            archive: {},
-            assignmentListSingleGroupView: null,
-            assignments: {},
-            assignmentsInCompletedList: [],
-            assignmentsInInProgressList: [],
-            assignmentsInTodoList: [],
-            baseQuery: {must: []},
-            completedListLastLoadedPage: null,
-            completedListTotal: 0,
-            currentAssignmentId: null,
-            filterBy: 'Desk',
-            filterByPriority: null,
-            filterByType: null,
-            inProgressListLastLoadedPage: null,
-            inProgressListTotal: 0,
-            myAssignmentsTotal: 0,
-            orderByField: 'Scheduled',
-            orderDirection: 'Asc',
-            previewOpened: false,
-            readOnly: false,
-            searchQuery: null,
-            selectedDeskId: '',
-            todoListLastLoadedPage: null,
-            todoListTotal: 0,
-        };
+        initialState = cloneDeep(testData.assignmentInitialState);
+        state = assignment({}, {type: null});
+        assignments = cloneDeep(testData.assignments);
     });
 
-    describe('load reducers', () => {
-        beforeEach(() => {
-            stateTest.assignments = {
+    it('initialState load', () => {
+        expect(state).toEqual(initialState);
+    });
+
+    it('RECEIVED_ASSIGNMENTS', () => {
+        let result = assignment(state, {
+            type: 'RECEIVED_ASSIGNMENTS',
+            payload: [
+                assignments[0],
+                assignments[1],
+            ],
+        });
+
+        expect(result).toEqual({
+            ...initialState,
+            assignments: {
                 as1: {
-                    _id: 'as1',
-                    _created: '2017-07-13T13:55:41+0000',
-                    _updated: '2017-07-28T11:16:36+0000',
-                    planning: {scheduled: moment('2017-07-28T11:16:36+0000')},
-                    assigned_to: {
-                        assigned_date: '2017-07-28T11:16:36+0000',
-                        desk: 'desk1',
+                    ...assignments[0],
+                    planning: {
+                        ...assignments[0].planning,
+                        scheduled: moment(assignments[0].planning.scheduled),
                     },
                 },
                 as2: {
-                    _id: 'as2',
-                    _created: '2017-07-13T14:55:41+0000',
-                    _updated: '2017-07-28T13:16:36+0000',
-                    planning: {scheduled: moment('2017-07-28T13:16:36+0000')},
+                    ...assignments[1],
+                    planning: {
+                        ...assignments[1].planning,
+                        scheduled: moment(assignments[1].planning.scheduled),
+                    },
+                },
+            },
+        });
+
+        result = assignment(result, {
+            type: 'RECEIVED_ASSIGNMENTS',
+            payload: [
+                {
+                    ...assignments[1],
+                    planning: {
+                        ...assignments[1].planning,
+                        slugline: 'test',
+                    },
+                },
+                {
+                    _id: 'as3',
+                    _created: '2017-07-13T15:55:41+0000',
+                    _updated: '2017-07-28T14:16:36+0000',
+                    planning: {scheduled: '2017-07-28T14:16:36+0000'},
                     assigned_to: {
-                        assigned_date: '2017-07-28T13:16:36+0000',
-                        desk: 'desk2',
+                        assigned_date: '2017-07-28T14:16:36+0000',
+                        desk: 'desk3',
                     },
                 },
-            };
+            ],
         });
 
-        beforeEach(() => {
-            initialState = assignment(stateTest, {type: null});
-        });
-
-        it('initialState load', () => {
-            expect(initialState).toEqual(stateTest);
-        });
-
-        it('RECEIVED_ASSIGNMENTS', () => {
-            const result = assignment(initialState, {
-                type: 'RECEIVED_ASSIGNMENTS',
-                payload: [
-                    {
-                        _id: 'as2',
-                        _created: '2017-07-13T14:55:41+0000',
-                        _updated: '2017-07-28T13:16:36+0000',
-                        planning: {
-                            scheduled: '2017-07-28T13:16:36+0000',
-                            slugline: 'test',
-                        },
-                        assigned_to: {
-                            assigned_date: '2017-07-28T13:16:36+0000',
-                            desk: 'desk2',
-                        },
-                    },
-                    {
-                        _id: 'as3',
-                        _created: '2017-07-13T15:55:41+0000',
-                        _updated: '2017-07-28T14:16:36+0000',
-                        planning: {scheduled: '2017-07-28T14:16:36+0000'},
-                        assigned_to: {
-                            assigned_date: '2017-07-28T14:16:36+0000',
-                            desk: 'desk3',
-                        },
-                    },
-                ],
-            });
-
-            expect(result).toEqual({
-                ...stateTest,
-                assignments: {
-                    as1: {
-                        _id: 'as1',
-                        _created: '2017-07-13T13:55:41+0000',
-                        _updated: '2017-07-28T11:16:36+0000',
-                        planning: {scheduled: moment('2017-07-28T11:16:36+0000')},
-                        assigned_to: {
-                            assigned_date: '2017-07-28T11:16:36+0000',
-                            desk: 'desk1',
-                        },
-                    },
-                    as2: {
-                        _id: 'as2',
-                        _created: '2017-07-13T14:55:41+0000',
-                        _updated: '2017-07-28T13:16:36+0000',
-                        planning: {
-                            scheduled: moment('2017-07-28T13:16:36+0000'),
-                            slugline: 'test',
-                        },
-                        assigned_to: {
-                            assigned_date: '2017-07-28T13:16:36+0000',
-                            desk: 'desk2',
-                        },
-                    },
-                    as3: {
-                        _id: 'as3',
-                        _created: '2017-07-13T15:55:41+0000',
-                        _updated: '2017-07-28T14:16:36+0000',
-                        planning: {scheduled: moment('2017-07-28T14:16:36+0000')},
-                        assigned_to: {
-                            assigned_date: '2017-07-28T14:16:36+0000',
-                            desk: 'desk3',
-                        },
+        expect(result).toEqual({
+            ...initialState,
+            assignments: {
+                as1: {
+                    ...assignments[0],
+                    planning: {
+                        ...assignments[0].planning,
+                        scheduled: moment(assignments[0].planning.scheduled),
                     },
                 },
-            });
+                as2: {
+                    ...assignments[1],
+                    planning: {
+                        ...assignments[1].planning,
+                        scheduled: moment(assignments[1].planning.scheduled),
+                        slugline: 'test',
+                    },
+                },
+                as3: {
+                    _id: 'as3',
+                    _created: '2017-07-13T15:55:41+0000',
+                    _updated: '2017-07-28T14:16:36+0000',
+                    planning: {scheduled: moment('2017-07-28T14:16:36+0000')},
+                    assigned_to: {
+                        assigned_date: '2017-07-28T14:16:36+0000',
+                        desk: 'desk3',
+                    },
+                },
+            },
         });
     });
 
     describe('list setting reducers', () => {
         beforeEach(() => {
-            stateTest = {
-                ...stateTest,
+            state = {
+                ...state,
                 searchQuery: 'test',
                 orderByField: 'Updated',
                 orderDirection: 'Desc',
             };
         });
 
-        beforeEach(() => {
-            initialState = assignment(stateTest, {type: null});
-        });
-
         it('CHANGE_LIST_SETTINGS MY ASSIGNMENTS', () => {
-            const result = assignment(initialState, {
+            const result = assignment(state, {
                 type: 'CHANGE_LIST_SETTINGS',
                 payload: {
                     filterBy: 'User',
@@ -164,7 +124,8 @@ describe('assignment', () => {
             });
 
             expect(result).toEqual({
-                ...stateTest,
+                ...initialState,
+                searchQuery: 'test',
                 filterBy: 'User',
                 orderByField: 'Created',
                 orderDirection: 'Asc',
@@ -172,7 +133,7 @@ describe('assignment', () => {
         });
 
         it('CHANGE_LIST_SETTINGS DESK ASSIGNMENTS', () => {
-            const result = assignment(initialState, {
+            const result = assignment(state, {
                 type: 'CHANGE_LIST_SETTINGS',
                 payload: {
                     filterBy: 'Desk',
@@ -183,7 +144,8 @@ describe('assignment', () => {
             });
 
             expect(result).toEqual({
-                ...stateTest,
+                ...initialState,
+                searchQuery: 'test',
                 orderByField: 'Created',
                 orderDirection: 'Asc',
                 selectedDeskId: '1',
@@ -193,188 +155,211 @@ describe('assignment', () => {
 
     describe('list group reducers', () => {
         beforeEach(() => {
-            stateTest.assignments = {
-                as1: {
-                    _id: 'as1',
-                    _created: '2017-07-13T13:55:41+0000',
-                    _updated: '2017-07-28T11:16:36+0000',
-                    planning: {scheduled: moment('2017-07-28T11:16:36+0000')},
-                    assigned_to: {
-                        assigned_date: '2017-07-28T11:16:36+0000',
-                        desk: 'desk1',
-                    },
-                },
-                as2: {
-                    _id: 'as2',
-                    _created: '2017-07-13T14:55:41+0000',
-                    _updated: '2017-07-28T13:16:36+0000',
-                    planning: {scheduled: moment('2017-07-28T13:16:36+0000')},
-                    assigned_to: {
-                        assigned_date: '2017-07-28T13:16:36+0000',
-                        desk: 'desk2',
-                    },
-                },
-            };
-        });
-
-        beforeEach(() => {
-            initialState = assignment(stateTest, {type: null});
-        });
-
-        it('initialState list setting', () => {
-            expect(initialState).toEqual(stateTest);
+            state = assignment(state, {
+                type: 'RECEIVED_ASSIGNMENTS',
+                payload: [
+                    assignments[0],
+                    assignments[1],
+                ],
+            });
+            initialState = cloneDeep(state);
         });
 
         it('SET_TODO_LIST', () => {
-            const result = assignment(initialState, {
-                type: 'SET_TODO_LIST',
+            const result = assignment(state, {
+                type: 'SET_ASSIGNMENT_LIST_ITEMS',
                 payload: {
+                    list: 'TODO',
                     ids: ['1', '2'],
                     total: 4,
                 },
             });
 
             expect(result).toEqual({
-                ...stateTest,
-                assignmentsInTodoList: ['1', '2'],
-                todoListTotal: 4,
-                todoListLastLoadedPage: 1,
+                ...initialState,
+                lists: {
+                    ...initialState.lists,
+                    TODO: {
+                        assignmentIds: ['1', '2'],
+                        total: 4,
+                        lastPage: 1,
+                    },
+                },
             });
         });
 
         it('SET_IN_PROGRESS_LIST', () => {
-            const result = assignment(initialState, {
-                type: 'SET_IN_PROGRESS_LIST',
+            const result = assignment(state, {
+                type: 'SET_ASSIGNMENT_LIST_ITEMS',
                 payload: {
+                    list: 'IN_PROGRESS',
                     ids: ['1', '2'],
                     total: 4,
                 },
             });
 
             expect(result).toEqual({
-                ...stateTest,
-                assignmentsInInProgressList: ['1', '2'],
-                inProgressListTotal: 4,
-                inProgressListLastLoadedPage: 1,
+                ...initialState,
+                lists: {
+                    ...initialState.lists,
+                    IN_PROGRESS: {
+                        assignmentIds: ['1', '2'],
+                        total: 4,
+                        lastPage: 1,
+                    },
+                },
             });
         });
 
         it('SET_COMPLETED_LIST', () => {
-            const result = assignment(initialState, {
-                type: 'SET_COMPLETED_LIST',
+            const result = assignment(state, {
+                type: 'SET_ASSIGNMENT_LIST_ITEMS',
                 payload: {
+                    list: 'COMPLETED',
                     ids: ['1', '2'],
                     total: 4,
                 },
             });
 
             expect(result).toEqual({
-                ...stateTest,
-                assignmentsInCompletedList: ['1', '2'],
-                completedListTotal: 4,
-                completedListLastLoadedPage: 1,
+                ...initialState,
+                lists: {
+                    ...initialState.lists,
+                    COMPLETED: {
+                        assignmentIds: ['1', '2'],
+                        total: 4,
+                        lastPage: 1,
+                    },
+                },
             });
         });
 
         it('ADD_TO_TODO_LIST', () => {
-            initialState.assignmentsInTodoList = ['1', '2'];
-            const result = assignment(initialState, {
-                type: 'ADD_TO_TODO_LIST',
+            let result = assignment(state, {
+                type: 'SET_ASSIGNMENT_LIST_ITEMS',
                 payload: {
+                    list: 'TODO',
+                    ids: ['1', '2'],
+                    total: 4,
+                },
+            });
+
+            result = assignment(result, {
+                type: 'ADD_ASSIGNMENT_LIST_ITEMS',
+                payload: {
+                    list: 'TODO',
                     ids: ['3'],
                     total: 3,
                 },
             });
 
             expect(result).toEqual({
-                ...stateTest,
-                assignmentsInTodoList: ['1', '2', '3'],
-                todoListTotal: 3,
+                ...initialState,
+                lists: {
+                    ...initialState.lists,
+                    TODO: {
+                        assignmentIds: ['1', '2', '3'],
+                        total: 3,
+                        lastPage: 1,
+                    },
+                },
             });
         });
 
         it('ADD_TO_IN_PROGRESS_LIST', () => {
-            initialState.assignmentsInInProgressList = ['1', '2'];
-
-            const result = assignment(initialState, {
-                type: 'ADD_TO_IN_PROGRESS_LIST',
+            let result = assignment(state, {
+                type: 'SET_ASSIGNMENT_LIST_ITEMS',
                 payload: {
+                    list: 'IN_PROGRESS',
+                    ids: ['1', '2'],
+                    total: 4,
+                },
+            });
+
+            result = assignment(result, {
+                type: 'ADD_ASSIGNMENT_LIST_ITEMS',
+                payload: {
+                    list: 'IN_PROGRESS',
                     ids: ['3'],
                     total: 3,
                 },
             });
 
             expect(result).toEqual({
-                ...stateTest,
-                assignmentsInInProgressList: ['1', '2', '3'],
-                inProgressListTotal: 3,
+                ...initialState,
+                lists: {
+                    ...initialState.lists,
+                    IN_PROGRESS: {
+                        assignmentIds: ['1', '2', '3'],
+                        total: 3,
+                        lastPage: 1,
+                    },
+                },
             });
         });
 
         it('ADD_TO_COMPLETED_LIST', () => {
-            initialState.assignmentsInCompletedList = ['1', '2'];
-
-            const result = assignment(initialState, {
-                type: 'ADD_TO_COMPLETED_LIST',
+            let result = assignment(state, {
+                type: 'SET_ASSIGNMENT_LIST_ITEMS',
                 payload: {
+                    list: 'COMPLETED',
+                    ids: ['1', '2'],
+                    total: 4,
+                },
+            });
+
+            result = assignment(result, {
+                type: 'ADD_ASSIGNMENT_LIST_ITEMS',
+                payload: {
+                    list: 'COMPLETED',
                     ids: ['3'],
                     total: 3,
                 },
             });
 
             expect(result).toEqual({
-                ...stateTest,
-                assignmentsInCompletedList: ['1', '2', '3'],
-                completedListTotal: 3,
+                ...initialState,
+                lists: {
+                    ...initialState.lists,
+                    COMPLETED: {
+                        assignmentIds: ['1', '2', '3'],
+                        total: 3,
+                        lastPage: 1,
+                    },
+                },
             });
         });
 
         it('CHANGE_LIST_VIEW_MODE', () => {
-            const result = assignment(initialState, {
+            const result = assignment(state, {
                 type: 'CHANGE_LIST_VIEW_MODE',
                 payload: 'TODO',
             });
 
             expect(result).toEqual({
-                ...stateTest,
+                ...initialState,
                 assignmentListSingleGroupView: 'TODO',
             });
         });
     });
 
-    describe('preview&edit assignment reducers', () => {
+    describe('preview & edit assignment reducers', () => {
         beforeEach(() => {
-            stateTest.assignments = {
-                as1: {
-                    _id: 'as1',
-                    _created: '2017-07-13T15:55:41+0000',
-                    _updated: '2017-07-28T14:16:36+0000',
-                    planning: {
-                        assigned_to: {
-                            assigned_date: '2017-07-28T14:16:36+0000',
-                            desk: 'desk3',
-                        },
-                    },
-                },
-            };
-        });
-
-        beforeEach(() => {
-            initialState = assignment(stateTest, {type: null});
-        });
-
-        it('initialState preview&edit assignment', () => {
-            expect(initialState).toEqual(stateTest);
+            state = assignment(state, {
+                type: 'RECEIVED_ASSIGNMENTS',
+                payload: [assignments[0]],
+            });
+            initialState = cloneDeep(state);
         });
 
         it('PREVIEW_ASSIGNMENT', () => {
-            const result = assignment(initialState, {
+            const result = assignment(state, {
                 type: 'PREVIEW_ASSIGNMENT',
                 payload: 'as1',
             });
 
             expect(result).toEqual({
-                ...stateTest,
+                ...initialState,
                 previewOpened: true,
                 currentAssignmentId: 'as1',
                 readOnly: true,
@@ -382,123 +367,202 @@ describe('assignment', () => {
         });
 
         it('CLOSE_PREVIEW_ASSIGNMENT', () => {
-            const result = assignment(initialState, {type: 'CLOSE_PREVIEW_ASSIGNMENT'});
+            const result = assignment(state, {type: 'CLOSE_PREVIEW_ASSIGNMENT'});
 
             expect(result).toEqual({
-                ...stateTest,
+                ...initialState,
                 readOnly: true,
             });
         });
 
         describe('REMOVE_ASSIGNMENT', () => {
             beforeEach(() => {
-                initialState = assignment(undefined, {type: null});
+                state = assignment(undefined, {type: null});
+                initialState = cloneDeep(state);
             });
 
             it('REMOVE_ASSIGNMENT returns if Assignment not loaded', () => {
-                const result = assignment(initialState, {
+                const result = assignment(state, {
                     type: 'REMOVE_ASSIGNMENT',
-                    payload: {assignment: 'a1'},
+                    payload: {assignment: 'as1'},
                 });
 
                 expect(result).toEqual(initialState);
             });
 
             it('REMOVE_ASSIGNMENT removes the assignment from view lists', () => {
-                // Checks to see if assignmentsInInProgressList is set back to empty list
-                let result = assignment(
-                    {
-                        ...initialState,
-                        assignments: {a1: {_id: 'a1'}},
-                        assignmentsInInProgressList: ['a1'],
-                        inProgressListTotal: 1,
-                    },
-                    {
-                        type: 'REMOVE_ASSIGNMENT',
-                        payload: {assignment: 'a1'},
-                    }
-                );
+                // Checks to see if IN_PROGRESS list is set back to empty
+                let result = assignment(initialState, {
+                    type: 'RECEIVED_ASSIGNMENTS',
+                    payload: [assignments[0]],
+                });
 
-                expect(result).toEqual(initialState);
+                result = assignment(result, {
+                    type: 'SET_ASSIGNMENT_LIST_ITEMS',
+                    payload: {list: 'IN_PROGRESS', ids: ['as1'], total: 1},
+                });
 
-                // Checks to see if assignmentsInTodoList is set back to empty list
-                result = assignment(
-                    {
-                        ...initialState,
-                        assignments: {a1: {_id: 'a1'}},
-                        assignmentsInTodoList: ['a1'],
-                        todoListTotal: 1,
-                    },
-                    {
-                        type: 'REMOVE_ASSIGNMENT',
-                        payload: {assignment: 'a1'},
-                    }
-                );
-                expect(result).toEqual(initialState);
+                result = assignment(result, {
+                    type: 'REMOVE_ASSIGNMENT',
+                    payload: {assignment: 'as1'},
+                });
 
-                // Checks to see if assignmentsInCompletedList is set back to empty list
-                result = assignment(
-                    {
-                        ...initialState,
-                        assignments: {a1: {_id: 'a1'}},
-                        assignmentsInCompletedList: ['a1'],
-                        completedListTotal: 1,
-                    },
-                    {
-                        type: 'REMOVE_ASSIGNMENT',
-                        payload: {assignment: 'a1'},
-                    }
-                );
-                expect(result).toEqual(initialState);
-            });
+                expect(result.lists.IN_PROGRESS).toEqual({
+                    assignmentIds: [],
+                    total: 0,
+                    lastPage: 1,
+                });
 
-            it('REMOVE_ASSIGNMENT closes preview viewing the removed Assignment', () => {
-                // Closes the preview and sets currentAssignmentId to null
-                let result = assignment(
-                    {
-                        ...initialState,
-                        assignments: {a1: {_id: 'a1'}},
-                        assignmentsInInProgressList: ['a1'],
-                        inProgressListTotal: 1,
-                        previewOpened: true,
-                        currentAssignmentId: 'a1',
-                    },
-                    {
-                        type: 'REMOVE_ASSIGNMENT',
-                        payload: {assignment: 'a1'},
-                    }
-                );
+                // Checks to see if TO_DO list is set back to empty
+                result = assignment(initialState, {
+                    type: 'RECEIVED_ASSIGNMENTS',
+                    payload: [assignments[0]],
+                });
 
-                expect(result).toEqual(initialState);
+                result = assignment(result, {
+                    type: 'SET_ASSIGNMENT_LIST_ITEMS',
+                    payload: {list: 'TODO', ids: ['as1'], total: 1},
+                });
 
-                // Removes the assignment from the store, but keeps the preview open
-                result = assignment(
-                    {
-                        ...initialState,
-                        assignments: {
-                            a1: {_id: 'a1'},
-                            a2: {_id: 'a2'},
-                        },
-                        assignmentsInInProgressList: ['a1', 'a2'],
-                        inProgressListTotal: 2,
-                        previewOpened: true,
-                        currentAssignmentId: 'a2',
-                    },
-                    {
-                        type: 'REMOVE_ASSIGNMENT',
-                        payload: {assignment: 'a1'},
-                    }
-                );
+                result = assignment(result, {
+                    type: 'REMOVE_ASSIGNMENT',
+                    payload: {assignment: 'as1'},
+                });
 
-                expect(result).toEqual({
-                    ...initialState,
-                    assignments: {a2: {_id: 'a2'}},
-                    assignmentsInInProgressList: ['a2'],
-                    inProgressListTotal: 1,
-                    previewOpened: true,
-                    currentAssignmentId: 'a2',
+                expect(result.lists.TODO).toEqual({
+                    assignmentIds: [],
+                    total: 0,
+                    lastPage: 1,
+                });
+
+                // Checks to see if COMPLETED list is set back to empty
+                result = assignment(initialState, {
+                    type: 'RECEIVED_ASSIGNMENTS',
+                    payload: [assignments[0]],
+                });
+
+                result = assignment(result, {
+                    type: 'SET_ASSIGNMENT_LIST_ITEMS',
+                    payload: {list: 'COMPLETED', ids: ['as1'], total: 1},
+                });
+
+                result = assignment(result, {
+                    type: 'REMOVE_ASSIGNMENT',
+                    payload: {assignment: 'as1'},
+                });
+
+                expect(result.lists.COMPLETED).toEqual({
+                    assignmentIds: [],
+                    total: 0,
+                    lastPage: 1,
                 });
             });
+
+            it('REMOVE_ASSIGNMENT closes the preview', () => {
+                let result = assignment(initialState, {
+                    type: 'RECEIVED_ASSIGNMENTS',
+                    payload: [assignments[0]],
+                });
+
+                result = assignment(result, {
+                    type: 'SET_ASSIGNMENT_LIST_ITEMS',
+                    payload: {list: 'IN_PROGRESS', ids: ['as1'], total: 1},
+                });
+
+                result = assignment(result, {
+                    type: 'PREVIEW_ASSIGNMENT',
+                    payload: 'as1',
+                });
+
+                result = assignment(result, {
+                    type: 'REMOVE_ASSIGNMENT',
+                    payload: {assignment: 'as1'},
+                });
+
+                expect(result).toEqual(jasmine.objectContaining({
+                    previewOpened: false,
+                    currentAssignmentId: null,
+                }));
+            });
+
+            it('REMOVE_ASSIGNMENT doesnt close the preview if not viewing', () => {
+                let result = assignment(initialState, {
+                    type: 'RECEIVED_ASSIGNMENTS',
+                    payload: [assignments[0]],
+                });
+
+                result = assignment(result, {
+                    type: 'SET_ASSIGNMENT_LIST_ITEMS',
+                    payload: {list: 'IN_PROGRESS', ids: ['as1'], total: 1},
+                });
+
+                result = assignment(result, {
+                    type: 'PREVIEW_ASSIGNMENT',
+                    payload: 'as2',
+                });
+
+                result = assignment(result, {
+                    type: 'REMOVE_ASSIGNMENT',
+                    payload: {assignment: 'as1'},
+                });
+
+                expect(result).toEqual(jasmine.objectContaining({
+                    previewOpened: true,
+                    currentAssignmentId: 'as2',
+                }));
+            });
         });
+    });
+
+    it('SET_LIST_ITEMS and ADD_LIST_ITEMS', () => {
+        let result = assignment(initialState, {
+            type: 'SET_ASSIGNMENT_LIST_ITEMS',
+            payload: {
+                list: 'TODO',
+                ids: ['as1', 'as2'],
+                total: 2,
+            },
+        });
+
+        expect(result.lists).toEqual(jasmine.objectContaining({
+            TODO: {
+                assignmentIds: ['as1', 'as2'],
+                total: 2,
+                lastPage: 1,
+            },
+        }));
+
+        result = assignment(result, {
+            type: 'ADD_ASSIGNMENT_LIST_ITEMS',
+            payload: {
+                list: 'TODO',
+                ids: ['as3'],
+                total: 3,
+            },
+        });
+
+        expect(result.lists).toEqual(jasmine.objectContaining({
+            TODO: {
+                assignmentIds: ['as1', 'as2', 'as3'],
+                total: 3,
+                lastPage: 1,
+            },
+        }));
+
+        result = assignment(result, {
+            type: 'SET_ASSIGNMENT_LIST_PAGE',
+            payload: {
+                list: 'TODO',
+                page: 2,
+            },
+        });
+
+        expect(result.lists).toEqual(jasmine.objectContaining({
+            TODO: {
+                assignmentIds: ['as1', 'as2', 'as3'],
+                total: 3,
+                lastPage: 2,
+            },
+        }));
     });
 });

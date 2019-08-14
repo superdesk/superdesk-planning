@@ -6,7 +6,7 @@ import {registerNotifications} from '../utils';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
 import {AssignmentsApp} from '../apps';
-import {WORKSPACE} from '../constants';
+import {WORKSPACE, ASSIGNMENTS} from '../constants';
 
 export class AssignmentController {
     constructor(
@@ -41,12 +41,14 @@ export class AssignmentController {
     }
 
     render() {
-        ReactDOM.render(
-            <Provider store={this.store}>
-                <AssignmentsApp />
-            </Provider>,
-            document.getElementById('sd-planning-react-container')
-        );
+        if (this.$element) {
+            ReactDOM.render(
+                <Provider store={this.store}>
+                    <AssignmentsApp />
+                </Provider>,
+                document.getElementById('sd-planning-react-container')
+            );
+        }
 
         this.rendered = true;
         return Promise.resolve();
@@ -61,16 +63,21 @@ export class AssignmentController {
         }
 
         this.store.dispatch(actions.main.closePublishQueuePreviewOnWorkspaceChange());
-        this.onDeskChange();
+        this.store.dispatch(actions.assignments.ui.setListGroups([
+            ASSIGNMENTS.LIST_GROUPS.TODO.id,
+            ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.id,
+            ASSIGNMENTS.LIST_GROUPS.COMPLETED.id,
+        ]));
 
         return Promise.all([
+            this.onDeskChange(),
             this.store.dispatch(actions.locks.loadAssignmentLocks()),
             this.store.dispatch(actions.fetchAgendas()),
         ]);
     }
 
     onDestroy() {
-        if (this.rendered) {
+        if (this.rendered && this.$element) {
             // Unmount the React application
             ReactDOM.unmountComponentAtNode(this.$element.get(0));
         }
@@ -82,22 +89,16 @@ export class AssignmentController {
 
     onDeskChange() {
         if (!this.store) {
-            return;
+            return Promise.resolve();
         }
 
         const listSettings = cloneDeep(selectors.getAssignmentListSettings(this.store.getState()));
 
         listSettings.selectedDeskId = this.desks.getCurrentDeskId();
         listSettings.filterBy = listSettings.selectedDeskId ? 'Desk' : 'User';
-        this.store.dispatch(actions.assignments.ui.changeListSettings(
-            listSettings.filterBy,
-            listSettings.searchQuery,
-            listSettings.orderByField,
-            listSettings.orderDirection,
-            listSettings.filterByType,
-            listSettings.filterByPriority,
-            listSettings.selectedDeskId
-        ));
+        this.store.dispatch(
+            actions.assignments.ui.changeListSettings(listSettings)
+        );
 
         return this.store.dispatch(actions.assignments.ui.reloadAssignments())
             .then(() => this.store.dispatch(actions.assignments.ui.updatePreviewItemOnRouteUpdate()))

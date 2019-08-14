@@ -1,5 +1,5 @@
 import * as utils from '../index';
-import {PRIVILEGES} from '../../constants';
+import {PRIVILEGES, ASSIGNMENTS} from '../../constants';
 
 describe('can edit assignment', () => {
     let privileges;
@@ -184,5 +184,61 @@ describe('can edit assignment', () => {
 
         assignment.item_ids = ['item1', 'item2'];
         expect(assignmentHasContent()).toBe(true);
+    });
+
+    describe('getAssignmentGroupsByStates', () => {
+        it('returns an empty array if no states provided', () => {
+            let groups;
+
+            groups = utils.assignmentUtils.getAssignmentGroupsByStates([], []);
+            expect(groups).toEqual([]);
+
+            groups = utils.assignmentUtils.getAssignmentGroupsByStates();
+            expect(groups).toEqual([]);
+        });
+
+        it('returns groups that are associated with the assignment state', () => {
+            let groups;
+
+            groups = utils.assignmentUtils.getAssignmentGroupsByStates(
+                Object.keys(ASSIGNMENTS.LIST_GROUPS),
+                ['assigned']
+            );
+            expect(groups).toEqual(['TODO', 'CURRENT', 'TODAY', 'FUTURE']);
+
+            groups = utils.assignmentUtils.getAssignmentGroupsByStates(
+                Object.keys(ASSIGNMENTS.LIST_GROUPS),
+                ['submitted']
+            );
+            expect(groups).toEqual(['TODO', 'CURRENT', 'TODAY', 'FUTURE']);
+
+            groups = utils.assignmentUtils.getAssignmentGroupsByStates(
+                Object.keys(ASSIGNMENTS.LIST_GROUPS),
+                ['in_progress']
+            );
+            expect(groups).toEqual(['IN_PROGRESS']);
+
+            groups = utils.assignmentUtils.getAssignmentGroupsByStates(
+                Object.keys(ASSIGNMENTS.LIST_GROUPS),
+                ['completed']
+            );
+            expect(groups).toEqual(['COMPLETED']);
+
+            groups = utils.assignmentUtils.getAssignmentGroupsByStates(
+                Object.keys(ASSIGNMENTS.LIST_GROUPS),
+                ['cancelled']
+            );
+            expect(groups).toEqual(['COMPLETED']);
+        });
+
+        it('returns groups that are associated with any state in the array', () => {
+            let groups;
+
+            groups = utils.assignmentUtils.getAssignmentGroupsByStates(
+                Object.keys(ASSIGNMENTS.LIST_GROUPS),
+                ['assigned', 'in_progress']
+            );
+            expect(groups).toEqual(['TODO', 'CURRENT', 'TODAY', 'FUTURE', 'IN_PROGRESS']);
+        });
     });
 });
