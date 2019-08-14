@@ -80,7 +80,7 @@ export class PostponeEventComponent extends React.Component {
         const numPlannings = original._plannings.length;
 
         return (
-            <div className="ItemActionConfirmation">
+            <div className="MetadataView">
                 <Row
                     enabled={!!original.slugline}
                     label={gettext('Slugline')}

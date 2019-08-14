@@ -110,7 +110,7 @@ export class CancelEventComponent extends React.Component {
         const numPlannings = this.state.relatedPlannings.length;
 
         return (
-            <div className="ItemActionConfirmation">
+            <div className="MetadataView">
                 <Row
                     enabled={!!original.slugline}
                     label={gettext('Slugline')}
