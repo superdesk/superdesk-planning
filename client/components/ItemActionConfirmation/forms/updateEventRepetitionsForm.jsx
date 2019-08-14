@@ -10,7 +10,7 @@ import {Row} from '../../UI/Preview/';
 import {RepeatEventSummary} from '../../Events';
 import {RecurringRulesInput} from '../../Events/RecurringRulesInput/index';
 import '../style.scss';
-import {get, cloneDeep, isEqual} from 'lodash';
+import {get, cloneDeep, isEqual, set} from 'lodash';
 import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY} from '../../../constants';
 import {validateItem} from '../../../validators';
 
@@ -35,14 +35,19 @@ export class UpdateEventRepetitionsComponent extends React.Component {
     }
 
     onChange(field, value) {
+        const {original} = this.props;
         const errors = cloneDeep(this.state.errors);
         const diff = cloneDeep(get(this.state, 'diff') || {});
+        const firstEvent = cloneDeep(get(original, '_recurring[0]'));
         let errorMessages = [];
 
         updateFormValues(diff, field, value);
 
+        // Use the first Event in the series for validation purposes
+        // This makes the validation of the 'until' date/time work across the series
+        set(firstEvent, 'dates.recurring_rule', get(diff, 'dates.recurring_rule'));
         this.props.onValidate(
-            diff,
+            firstEvent,
             this.props.formProfiles,
             errors,
             errorMessages
