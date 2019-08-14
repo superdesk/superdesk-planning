@@ -24,6 +24,7 @@ from eve.utils import config, ParsedRequest
 from werkzeug.datastructures import MultiDict
 from superdesk.etree import parse_html
 import json
+from bson import ObjectId
 
 ITEM_STATE = 'state'
 ITEM_EXPIRY = 'expiry'
@@ -371,7 +372,7 @@ def get_related_items(item, assignment=None):
     }
 
     req.args['source'] = json.dumps(query)
-    req.args['repo'] = 'archive,published'
+    req.args['repo'] = 'archive,published,archived'
     items_list = get_resource_service('search').get(req, None)
 
     archive_list = {}
@@ -381,7 +382,7 @@ def get_related_items(item, assignment=None):
             archive_list[i.get(config.ID_FIELD)] = i.get('archive_item') or i
 
     # This is to ensure if elastic search is not updated, we add or remove the item
-    if item.get(config.ID_FIELD) not in archive_list:
+    if str(item.get(config.ID_FIELD)) not in archive_list:
         return list(archive_list.values()) + [item]
     else:
         return list(archive_list.values())
@@ -393,7 +394,8 @@ def update_assignment_on_link_unlink(assignment_id, item, published_updated):
                         CONTENT_STATE.KILLED,
                         CONTENT_STATE.RECALLED,
                         CONTENT_STATE.CORRECTED]
-    if item.get('state') in published_states and item.get(config.ID_FIELD) not in published_updated:
+    if item.get('state') in published_states and item.get(config.ID_FIELD) not in published_updated \
+            and not item.get('_type') == 'archived':
         # This will also update corrected, killed version of the published item
         get_resource_service('published').update_published_items(
             item[config.ID_FIELD],
@@ -401,11 +403,11 @@ def update_assignment_on_link_unlink(assignment_id, item, published_updated):
 
         published_updated.append(item.get(config.ID_FIELD))
 
-    get_resource_service('archive').system_update(
-        item[config.ID_FIELD],
-        {'assignment_id': assignment_id},
-        item
-    )
+    if item.get('_type') == 'archived':
+        get_resource_service('archived').system_update(ObjectId(item[config.ID_FIELD]),
+                                                       {'assignment_id': assignment_id}, item)
+    else:
+        get_resource_service('archive').system_update(item[config.ID_FIELD], {'assignment_id': assignment_id}, item)
 
 
 def planning_link_updates_to_coverage():
