@@ -221,3 +221,58 @@ class AssignmentUnlinkTestCase(TestCase):
             deliveries = get_resource_service('delivery').get(req=None, lookup={'assignment_id':
                                                                                 ObjectId('5b20652a1d41c812e24aa49e')})
             self.assertEqual(deliveries.count(), 0)
+
+    def test_unlinks_archived_content(self):
+        with self.app.app_context():
+            self.app.config.update({'PLANNING_LINK_UPDATES_TO_COVERAGES': True})
+            flask.g.user = {'_id': ObjectId()}
+            user_id = ObjectId()
+            desk_id = ObjectId()
+            self.app.data.insert('vocabularies', [{
+                "_id": "g2_content_type",
+                "display_name": "Coverage content types",
+                "type": "manageable",
+                "unique_field": "qcode",
+                "selection_type": "do not show",
+                "items": [
+                    {"name": "Text", "qcode": "text", "content item type": "text"}
+                ]
+            }])
+            self.app.data.insert('archived', [{
+                '_id': ObjectId('111111111111111111111111'),
+                'item_id': 'item1',
+                'type': 'text',
+                'headline': 'test headline',
+                'slugline': 'test slugline',
+                'assignment_id': '5b20652a1d41c812e24aa49e',
+                'task': {
+                    'desk': 'desk1',
+                    'stage': 'stage1'
+                },
+                'event_id': 'item1',
+                'state': 'in_progress'
+            }])
+            self.app.data.insert('assignments', [{
+                '_id': ObjectId('5b20652a1d41c812e24aa49e'),
+                'planning_item': 'plan1',
+                'coverage_item': 'cov1',
+                'assigned_to': {
+                    'state': 'assigned',
+                    'user': user_id,
+                    'desk': desk_id
+                },
+                'planning': {'g2_content_type': 'text'}
+            }])
+
+            self.app.data.insert('delivery', [{'assignment_id': ObjectId('5b20652a1d41c812e24aa49e'),
+                                               'coverage_id': 'cove1',
+                                               'item_id': 'item1'}])
+
+            get_resource_service('assignments_unlink').post([{
+                'assignment_id': '5b20652a1d41c812e24aa49e',
+                'item_id': ObjectId('111111111111111111111111')
+            }])
+
+            deliveries = get_resource_service('delivery').get(req=None, lookup={
+                'assignment_id': ObjectId('5b20652a1d41c812e24aa49e')})
+            self.assertEqual(deliveries.count(), 0)
