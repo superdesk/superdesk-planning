@@ -4,8 +4,7 @@ import {connect} from 'react-redux';
 
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
-import {ASSIGNMENTS} from '../../constants';
-import {WORKSPACE} from '../../constants';
+import {WORKSPACE, ASSIGNMENTS} from '../../constants';
 
 import {SubNavBar, FiltersBar} from '../../components/Assignments';
 import {ArchiveItem} from '../../components/Archive';
@@ -48,38 +47,37 @@ export class AssignmentsSubNavComponent extends React.Component {
             selectedDeskId,
         } = this.props;
 
-        Object.keys(ASSIGNMENTS.LIST_GROUPS).forEach((groupKey) =>
-            loadAssignments(
-                filterBy,
-                searchQuery,
-                orderByField,
-                orderDirection,
-                ASSIGNMENTS.LIST_GROUPS[groupKey].states,
-                filterByType,
-                filterByPriority,
-                selectedDeskId
-            )
-        );
+        loadAssignments({
+            filterBy,
+            searchQuery,
+            orderByField,
+            orderDirection,
+            filterByType,
+            filterByPriority,
+            selectedDeskId,
+        });
 
         // Retrieve 'Assigned to me' count based on recent search.
         this.props.fetchMyAssignmentsCount();
     }
 
     changeFilter(filterBy, orderByField, orderDirection, selectedDeskId = null) {
-        const {searchQuery, loadAssignments, filterByType, filterByPriority} = this.props;
+        const {
+            searchQuery,
+            loadAssignments,
+            filterByType,
+            filterByPriority,
+        } = this.props;
 
-        Object.keys(ASSIGNMENTS.LIST_GROUPS).forEach((groupKey) =>
-            loadAssignments(
-                filterBy,
-                searchQuery,
-                orderByField,
-                orderDirection,
-                ASSIGNMENTS.LIST_GROUPS[groupKey].states,
-                filterByType,
-                filterByPriority,
-                selectedDeskId
-            )
-        );
+        loadAssignments({
+            filterBy,
+            searchQuery,
+            orderByField,
+            orderDirection,
+            filterByType,
+            filterByPriority,
+            selectedDeskId,
+        });
     }
 
     getTotalCountForListGroup(groupKey) {
@@ -87,16 +85,9 @@ export class AssignmentsSubNavComponent extends React.Component {
             return;
         }
 
-        switch (ASSIGNMENTS.LIST_GROUPS[groupKey].label) {
-        case ASSIGNMENTS.LIST_GROUPS.TODO.label:
-            return this.props.assignmentsInTodoCount;
+        const {assignmentCounts} = this.props;
 
-        case ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.label:
-            return this.props.assignmentsInInProgressCount;
-
-        case ASSIGNMENTS.LIST_GROUPS.COMPLETED.label:
-            return this.props.assignmentsInCompletedCount;
-        }
+        return assignmentCounts[groupKey];
     }
 
     render() {
@@ -106,7 +97,6 @@ export class AssignmentsSubNavComponent extends React.Component {
             orderByField,
             orderDirection,
             searchQuery,
-            onlyTodoAssignments,
             assignmentListSingleGroupView,
             changeAssignmentListSingleGroupView,
             withArchiveItem,
@@ -127,10 +117,9 @@ export class AssignmentsSubNavComponent extends React.Component {
                 <SubNavBar
                     searchQuery={searchQuery}
                     changeSearchQuery={this.changeSearchQuery}
-                    assignmentListSingleGroupView={onlyTodoAssignments ? 'TODO' : assignmentListSingleGroupView}
+                    assignmentListSingleGroupView={assignmentListSingleGroupView}
                     changeAssignmentListSingleGroupView={changeAssignmentListSingleGroupView.bind(null, null)}
                     totalCountInListView={this.getTotalCountForListGroup(assignmentListSingleGroupView)}
-                    onlyTodoAssignments={onlyTodoAssignments}
                 />
 
                 <FiltersBar
@@ -157,7 +146,6 @@ AssignmentsSubNavComponent.propTypes = {
     orderDirection: PropTypes.string,
     fetchMyAssignmentsCount: PropTypes.func,
     searchQuery: PropTypes.string,
-    onlyTodoAssignments: PropTypes.bool,
     assignmentListSingleGroupView: PropTypes.string,
     changeAssignmentListSingleGroupView: PropTypes.func,
     loadAssignments: PropTypes.func.isRequired,
@@ -171,6 +159,8 @@ AssignmentsSubNavComponent.propTypes = {
     userDesks: PropTypes.array,
     workspace: PropTypes.string,
     currentDeskId: PropTypes.string,
+    listGroups: PropTypes.array,
+    assignmentCounts: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
@@ -190,8 +180,13 @@ const mapStateToProps = (state) => ({
     assignmentsInTodoCount: selectors.getAssignmentsToDoListCount(state),
     assignmentsInInProgressCount: selectors.getAssignmentsInProgressListCount(state),
     assignmentsInCompletedCount: selectors.getAssignmentsCompletedListCount(state),
+
+    assignmentCounts: selectors.getAssignmentGroupCounts(state),
+
     userDesks: selectors.general.userDesks(state),
     workspace: selectors.general.currentWorkspace(state),
+
+    listGroups: selectors.getAssignmentGroups(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -203,21 +198,7 @@ const mapDispatchToProps = (dispatch) => ({
             [ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED, ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED]
         )
     ),
-    loadAssignments: (
-        filterBy,
-        searchQuery,
-        orderByField,
-        orderDirection,
-        filterByState,
-        filterByType,
-        filterByPriority,
-        selectedDeskId
-    ) =>
-        dispatch(actions.assignments.ui.loadAssignments(
-            filterBy, searchQuery, orderByField,
-            orderDirection, filterByState, filterByType, filterByPriority, selectedDeskId
-        )
-        ),
+    loadAssignments: (filters) => dispatch(actions.assignments.ui.loadAssignments(filters)),
 });
 
 export const AssignmentsSubNav = connect(

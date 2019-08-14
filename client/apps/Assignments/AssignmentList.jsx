@@ -6,6 +6,7 @@ import {isNil} from 'lodash';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {ASSIGNMENTS} from '../../constants';
+import {gettext} from '../../utils/gettext';
 
 import {AssignmentGroupList} from '../../components/Assignments';
 
@@ -14,31 +15,11 @@ export const AssignmentListContainer = ({
     changeAssignmentListSingleGroupView,
     setMaxHeight,
     hideItemActions,
-    loadAssignments,
     loadMoreAssignments,
-    filterBy,
-    searchQuery,
-    orderByField,
-    orderDirection,
-    filterByType,
-    filterByPriority,
-    selectedDeskId,
     contentTypes,
+    listGroups,
 }) => {
-    const loadAssignmentsForGroup = (groupKey) =>
-        loadAssignments(
-            filterBy,
-            searchQuery,
-            orderByField,
-            orderDirection,
-            ASSIGNMENTS.LIST_GROUPS[groupKey].states,
-            filterByType,
-            filterByPriority,
-            selectedDeskId
-        );
-
     const listProps = {
-        loadAssignmentsForGroup,
         loadMoreAssignments,
         setMaxHeight,
         hideItemActions,
@@ -48,10 +29,13 @@ export const AssignmentListContainer = ({
     return (
         <div className="sd-column-box__main-column__items">
             {isNil(assignmentListSingleGroupView) ? (
-                Object.keys(ASSIGNMENTS.LIST_GROUPS).map((groupKey) => (
+                listGroups.map((groupKey) => (
                     <AssignmentGroupList
                         key={groupKey}
                         groupKey={groupKey}
+                        groupLabel={gettext(ASSIGNMENTS.LIST_GROUPS[groupKey].label)}
+                        groupStates={ASSIGNMENTS.LIST_GROUPS[groupKey].states}
+                        groupEmptyMessage={ASSIGNMENTS.LIST_GROUPS[groupKey].emptyMessage}
                         changeAssignmentListSingleGroupView={
                             changeAssignmentListSingleGroupView.bind(null, groupKey)
                         }
@@ -61,6 +45,9 @@ export const AssignmentListContainer = ({
             ) : (
                 <AssignmentGroupList
                     groupKey={assignmentListSingleGroupView}
+                    groupLabel={gettext(ASSIGNMENTS.LIST_GROUPS[assignmentListSingleGroupView].label)}
+                    groupStates={ASSIGNMENTS.LIST_GROUPS[assignmentListSingleGroupView].states}
+                    groupEmptyMessage={ASSIGNMENTS.LIST_GROUPS[assignmentListSingleGroupView].emptyMessage}
                     changeAssignmentListSingleGroupView={
                         changeAssignmentListSingleGroupView.bind(this, assignmentListSingleGroupView)
                     }
@@ -75,54 +62,27 @@ AssignmentListContainer.propTypes = {
     assignmentListSingleGroupView: PropTypes.string,
     changeAssignmentListSingleGroupView: PropTypes.func,
     setMaxHeight: PropTypes.bool,
-    loadAssignments: PropTypes.func.isRequired,
     loadMoreAssignments: PropTypes.func.isRequired,
-    filterBy: PropTypes.string,
-    filterByType: PropTypes.string,
-    filterByPriority: PropTypes.string,
-    searchQuery: PropTypes.string,
-    orderByField: PropTypes.string,
-    orderDirection: PropTypes.string,
     hideItemActions: PropTypes.bool,
-    selectedDeskId: PropTypes.string,
     contentTypes: PropTypes.array,
+    listGroups: PropTypes.arrayOf(PropTypes.string),
 };
 
 AssignmentListContainer.defaultProps = {setMaxHeight: true};
 
 const mapStateToProps = (state) => ({
     assignmentListSingleGroupView: selectors.getAssignmentListSingleGroupView(state),
-    filterBy: selectors.getFilterBy(state),
-    filterByType: selectors.getAssignmentFilterByType(state),
-    filterByPriority: selectors.getAssignmentFilterByPriority(state),
-    searchQuery: selectors.getSearchQuery(state),
-    orderByField: selectors.getOrderByField(state),
-    orderDirection: selectors.getOrderDirection(state),
-    selectedDeskId: selectors.getSelectedDeskId(state),
     contentTypes: selectors.general.contentTypes(state),
+    listGroups: selectors.getAssignmentGroups(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
     changeAssignmentListSingleGroupView: (groupKey) => dispatch(
         actions.assignments.ui.changeAssignmentListSingleGroupView(groupKey)
     ),
-    loadMoreAssignments: (states) => dispatch(
-        actions.assignments.ui.loadMoreAssignments(states)
+    loadMoreAssignments: (groupKey) => dispatch(
+        actions.assignments.ui.loadMoreAssignments(groupKey)
     ),
-    loadAssignments: (
-        filterBy,
-        searchQuery,
-        orderByField,
-        orderDirection,
-        filterByState,
-        filterByType,
-        filterByPriority,
-        selectedDeskId
-    ) =>
-        dispatch(actions.assignments.ui.loadAssignments(
-            filterBy, searchQuery, orderByField, orderDirection,
-            filterByState, filterByType, filterByPriority, selectedDeskId)
-        ),
 });
 
 export const AssignmentList = connect(

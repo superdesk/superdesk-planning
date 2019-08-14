@@ -491,15 +491,55 @@ export const agendaInitialState = {
 };
 
 export const assignmentInitialState = {
-    assignments: {},
-    filterBy: 'Desk',
-    previewOpened: false,
-    assignmentsInInProgressList: [],
-    assignmentsInTodoList: [],
-    assignmentsInCompletedList: [],
-    assignmentListSingleGroupView: null,
-    currentAssignmentId: null,
     archive: {},
+    assignments: {},
+    baseQuery: {must: []},
+    currentAssignmentId: null,
+    filterBy: 'Desk',
+    filterByPriority: null,
+    filterByType: null,
+    myAssignmentsTotal: 0,
+    orderByField: 'Scheduled',
+    orderDirection: 'Asc',
+    previewOpened: false,
+    readOnly: false,
+    searchQuery: null,
+    selectedDeskId: '',
+    assignmentListSingleGroupView: null,
+
+    groupKeys: ['TODO', 'IN_PROGRESS', 'COMPLETED'],
+    lists: {
+        TODO: {
+            assignmentIds: [],
+            total: 0,
+            lastPage: null,
+        },
+        IN_PROGRESS: {
+            assignmentIds: [],
+            total: 0,
+            lastPage: null,
+        },
+        COMPLETED: {
+            assignmentIds: [],
+            total: 0,
+            lastPage: null,
+        },
+        CURRENT: {
+            assignmentIds: [],
+            total: 0,
+            lastPage: null,
+        },
+        TODAY: {
+            assignmentIds: [],
+            total: 0,
+            lastPage: null,
+        },
+        FUTURE: {
+            assignmentIds: [],
+            total: 0,
+            lastPage: null,
+        },
+    },
 };
 
 export const modal = {
@@ -801,6 +841,7 @@ export const archive = [
         headline: 'test headline',
         urgency: 2,
         type: 'text',
+        task: {desk: 'desk2'},
     },
 ];
 
