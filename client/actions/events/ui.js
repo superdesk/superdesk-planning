@@ -13,6 +13,7 @@ import {
     gettext,
     getItemInArrayById,
     getPostedState,
+    timeUtils,
 } from '../../utils';
 
 /**
@@ -854,12 +855,12 @@ const creatAndOpenPlanning = (item, planningDate = null, openPlanningItem = fals
     )
 );
 
-const onMarkEventCompleted = (event, editor = true) => (
+const onMarkEventCompleted = (event, editor = false) => (
     (dispatch) => {
         let updates = {
             _id: event._id,
             type: event.type,
-            actioned_date: moment(),
+            actioned_date: timeUtils.getDateInRemoteTimeZone(moment().startOf('day'), get(event, 'dates.tz')),
             completed: true,
         };
 
@@ -900,7 +901,8 @@ const onMarkEventCompleted = (event, editor = true) => (
             gettext('Marked event as complete'),
             gettext('Failed to mark event as complete'),
             null,
-            false));
+            false))
+            .catch(() => dispatch(locks.unlock(event)));
     }
 );
 

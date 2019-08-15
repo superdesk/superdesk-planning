@@ -281,7 +281,10 @@ class AssignmentsService(superdesk.Service):
 
         # Determine the display name of the assignee
         assigned_to_user = get_resource_service('users').find_one(req=None, _id=assigned_to.get('user'))
-        assignee = assigned_to_user.get('display_name') if assigned_to_user else 'Unknown'
+        if assigned_to_user and assigned_to_user.get('slack_username'):
+            assignee = '@' + assigned_to_user.get('slack_username')
+        else:
+            assignee = assigned_to_user.get('display_name') if assigned_to_user else 'Unknown'
 
         coverage_type = updates.get('planning', original.get('planning', {})).get('g2_content_type', '')
         slugline = updates.get('planning', original.get('planning', {})).get('slugline', 'with no slugline')

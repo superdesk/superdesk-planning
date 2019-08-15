@@ -155,7 +155,7 @@ def _send_to_slack_desk_channel(sc, desk_id, message):
     channel_id = desk.get('slack_channel_name')
     if channel_id:
         response = sc.api_call('chat.postMessage', as_user=True, channel=channel_id,
-                               text=message)
+                               text=message, link_names=True,)
         if not response.get('ok', False):
             logger.warn('Failure response from slack post message call {}'.format(response))
             raise Exception('Failure response from slack post message call {}'.format(response))
@@ -278,7 +278,7 @@ def _send_to_slack_user(sc, user_id, message):
     im = sc.api_call('im.open', user=user_token, return_im=True)
     if im.get('ok', False):
         sent = sc.api_call('chat.postMessage', as_user=False, channel=im.get('channel', {}).get('id'),
-                           text=message)
+                           text=message, link_names=True)
         if not sent.get('ok', False):
             logger.warn('Failure response from slack post message call {}'.format(sent))
             raise Exception('Failure response from slack post message call {}'.format(sent))

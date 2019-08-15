@@ -1,6 +1,6 @@
 {
   "name": "superdesk-planning",
-  "version": "1.6.2-rc1",
+  "version": "1.6.2-rc2",
   "license": "AGPL-3.0",
   "description": "",
   "main": "index.js",
@@ -9,7 +9,7 @@
     "hint": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec",
     "lint": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec --quiet",
     "unit_test": "karma start karma.conf.js --log-level debug --display-error-details --single-run",
-    "karma": "karma start karma.conf.js",
+    "karma": "node --max-old-space-size=8192 ./node_modules/.bin/karma start karma.conf.js",
     "test": "npm run hint && npm run unit_test"
   },
   "author": "Edouard Richard",

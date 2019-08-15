@@ -106,10 +106,12 @@ def inject_internal_converages(items):
                 elif assigned_to.get('user'):
                     user = get_resource_service('users').find_one(req=None, _id=assigned_to.get('user'))
 
+                coverage_type = coverage.get('planning').get('g2_content_type')
+                label = coverage_labels.get(coverage_type, coverage_type)
                 if user is not None:
-                    coverage_type = coverage.get('planning').get('g2_content_type')
-                    label = coverage_labels.get(coverage_type, coverage_type)
                     item['internal_coverages'].append({"user": user, "type": label})
+                else:
+                    item['internal_coverages'].append({"type": label})
 
 
 def generate_text_item(items, template_name, resource_type):
