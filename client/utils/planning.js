@@ -30,6 +30,7 @@ import {
     getItemId,
     generateTempId,
     isItemPosted,
+    getDateTimeString,
 } from './index';
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
@@ -471,16 +472,24 @@ export const modifyForClient = (plan) => {
 };
 
 const modifyForServer = (plan) => {
-    get(plan, 'coverages', []).forEach((coverage) => {
-        coverage.planning = coverage.planning || {};
-
+    const modifyGenre = (coverage) => {
         if (!get(coverage, 'planning.genre', null)) {
             coverage.planning.genre = null;
         } else if (!isArray(coverage.planning.genre)) {
             coverage.planning.genre = [coverage.planning.genre];
         }
+    };
+
+    get(plan, 'coverages', []).forEach((coverage) => {
+        coverage.planning = coverage.planning || {};
+        modifyGenre(coverage);
 
         delete coverage.planning._scheduledTime;
+
+        get(coverage, 'scheduled_updates', []).forEach((s) => {
+            delete s.planning._scheduledTime;
+            modifyGenre(s);
+        });
     });
 
     return plan;
@@ -492,19 +501,22 @@ const modifyForServer = (plan) => {
  * @return {object} coverage item provided
  */
 const modifyCoverageForClient = (coverage) => {
+    const modifyGenre = (coverage) => {
+        // Convert genre from an Array to an Object
+        if (get(coverage, 'planning.genre[0]')) {
+            coverage.planning.genre = coverage.planning.genre[0];
+        } else if (!get(coverage, 'planning.genre.qcode')) {
+            // only delete when genre not object
+            delete coverage.planning.genre;
+        }
+    };
+
     // Make sure the coverage has a planning field
     if (!get(coverage, 'planning')) {
         coverage.planning = {};
     }
 
-    // Convert genre from an Array to an Object
-    if (get(coverage, 'planning.genre[0]')) {
-        coverage.planning.genre = coverage.planning.genre[0];
-    } else if (!get(coverage, 'planning.genre.qcode')) {
-        // only delete when genre not object
-        delete coverage.planning.genre;
-    }
-
+    modifyGenre(coverage);
     // Convert scheduled into a moment instance
     if (get(coverage, 'planning.scheduled')) {
         coverage.planning.scheduled = moment(coverage.planning.scheduled);
@@ -512,6 +524,14 @@ const modifyCoverageForClient = (coverage) => {
     } else {
         delete coverage.planning.scheduled;
     }
+
+    get(coverage, 'scheduled_updates', []).forEach((s) => {
+        if (s.planning.scheduled) {
+            s.planning.scheduled = moment(s.planning.scheduled);
+            s.planning._scheduledTime = moment(s.planning.scheduled);
+            modifyGenre(s);
+        }
+    });
 
     return coverage;
 };
@@ -764,7 +784,12 @@ const formatAgendaName = (agenda) => agenda.is_enabled ? agenda.name : agenda.na
  * @param {type} coverage types
  * @returns {string} icon name
  */
-const getCoverageIcon = (type) => {
+const getCoverageIcon = (type, coverage) => {
+    if (get(coverage, 'scheduled_updates.length', 0) > 0 ||
+            (get(coverage, 'scheduled_update_id') && get(coverage, 'assignment_id'))) {
+        return 'icon-copy';
+    }
+
     const coverageIcons = {
         [PLANNING.G2_CONTENT_TYPE.TEXT]: 'icon-text',
         [PLANNING.G2_CONTENT_TYPE.VIDEO]: 'icon-video',
@@ -895,17 +920,19 @@ const defaultCoverageValues = (
         }
     }
 
-    if (get(preferredCoverageDesks, g2contentType)) {
-        newCoverage.assigned_to = {desk: preferredCoverageDesks[g2contentType]};
-    } else if (g2contentType === 'text' && defaultDesk) {
-        newCoverage.assigned_to = {desk: defaultDesk._id};
-    } else {
-        delete newCoverage.assigned_to;
-    }
-
+    self.setDefaultAssignment(newCoverage, preferredCoverageDesks, g2contentType, defaultDesk);
     return newCoverage;
 };
 
+const setDefaultAssignment = (coverage, preferredCoverageDesks, g2contentType, defaultDesk) => {
+    if (get(preferredCoverageDesks, g2contentType)) {
+        coverage.assigned_to = {desk: preferredCoverageDesks[g2contentType]};
+    } else if (g2contentType === 'text' && defaultDesk) {
+        coverage.assigned_to = {desk: defaultDesk._id};
+    } else {
+        delete coverage.assigned_to;
+    }
+};
 
 const modifyPlanningsBeingAdded = (state, payload) => {
     // payload must be an array. If not, we transform
@@ -943,6 +970,13 @@ const getAgendaNames = (item = {}, agendas = []) => (
         .map((agendaId) => agendas.find((agenda) => agenda._id === get(agendaId, '_id', agendaId)))
         .filter((agenda) => agenda)
 );
+
+const getCoverageDateText = (coverage, dateFormat, timeFormat) => {
+    const coverageDate = get(coverage, 'planning.scheduled');
+
+    return !coverageDate ? gettext('Not scheduled yet') :
+        getDateTimeString(coverageDate, dateFormat, timeFormat, ' @ ', false);
+};
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -988,6 +1022,9 @@ const self = {
     getAgendaNames,
     getFlattenedPlanningByDate,
     canAddCoverageToWorkflow,
+    setDefaultAssignment,
+    getCoverageDateText,
+
 };
 
 export default self;
