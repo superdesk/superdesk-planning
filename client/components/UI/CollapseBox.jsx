@@ -129,7 +129,10 @@ export class CollapseBox extends React.Component {
             >
                 {this.state.isOpen && (
                     <div className="sd-collapse-box__content-wraper">
-                        <div className="sd-collapse-box__content">
+                        <div className={classNames(
+                            'sd-collapse-box__content',
+                            { 'no-border': !this.props.invalid }
+                            )}>
                             <div className="sd-collapse-box__tools">
                                 {this.props.tools}
                                 <IconButton
@@ -152,7 +155,8 @@ export class CollapseBox extends React.Component {
                         'sd-collapse-box__header',
                         {
                             'sd-collapse-box__inner-header': this.props.inner,
-                        }
+                            'no-border': !this.props.invalid,
+                        },
                     )}
                     >
                         {this.props.collapsedItem}

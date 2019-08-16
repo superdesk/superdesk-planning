@@ -1,12 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {getItemInArrayById, gettext, planningUtils, getItemWorkflowState, generateTempId} from '../../../utils';
+import {getItemInArrayById, gettext, planningUtils, getItemWorkflowState} from '../../../utils';
 import moment from 'moment';
 import {WORKFLOW_STATE} from '../../../constants';
 import {Button} from '../../UI'
-import {Row, Label} from '../../UI/Form'
-import {ScheduledUpdate} from '../ScheduledUpdate'
+import {Row} from '../../UI/Form'
 
 
 import {
@@ -21,21 +20,19 @@ import {
 import {InternalNoteLabel} from '../../';
 import {ContactField} from '../../Contacts';
 
-export class CoverageForm extends React.Component {
+export class ScheduledUpdateForm extends React.Component {
     constructor(props) {
         super(props);
         this.onScheduleChanged = this.onScheduleChanged.bind(this);
-        this.onAddScheduledUpdate = this.onAddScheduledUpdate.bind(this);
-        this.onRemoveScheduledUpdate = this.onRemoveScheduledUpdate.bind(this);
         this.dom = {
-            contentType: null,
+            internalNote: null,
             popupContainer: null,
         };
     }
 
     componentDidUpdate(prevProps) {
         if (!prevProps.hasAssignment && this.props.hasAssignment) {
-            this.dom.contentType.focus();
+            this.dom.internalNote.focus();
         }
     }
 
@@ -48,7 +45,7 @@ export class CoverageForm extends React.Component {
         // Update time only if date is already set
         if (f.endsWith('.date')) {
             fieldStr = f.slice(0, -5);
-            relatedFieldStr = fieldStr.replace('scheduled', '_scheduledTime');
+            relatedFieldStr = f.replace('scheduled.date', '_scheduledTime');
             // If there is no current scheduled date, then set the time value to end of the day
             if (!get(value, 'planning.scheduled')) {
                 finalValue = v.add(1, 'hour').startOf('hour');
@@ -56,7 +53,7 @@ export class CoverageForm extends React.Component {
             }
         } else if (f.endsWith('._scheduledTime')) {
             // If there is no current scheduled date, then set the date to today
-            relatedFieldStr = f.slice(0, -4).replace('_', '');
+            relatedFieldStr = f.replace('_scheduledTime', 'scheduled');
             fieldStr = f;
             if (!get(value, 'planning.scheduled')) {
                 finalValue = moment().hour(v.hour())
@@ -75,31 +72,6 @@ export class CoverageForm extends React.Component {
         if (relatedFieldStr) {
             onChange(relatedFieldStr, finalValue);
         }
-    }
-
-    onAddScheduledUpdate() {
-        let defaultScheduledUpdate = {
-            coverage_id: get(this.props, 'value.coverage_id'),
-            scheduled_update_id: generateTempId(),
-            planning: { internal_note: get(this.props, 'value.planning.internal_note') },
-            news_coverage_status: this.props.newsCoverageStatus[0],
-            workflow_status: WORKFLOW_STATE.DRAFT,
-        };
-
-        planningUtils.setDefaultAssignment(defaultScheduledUpdate, this.props.preferredCoverageDesks,
-            get(this.props, 'value.planning.g2_content_type'), this.props.defaultDesk)
-
-        this.props.onChange(`${this.props.field}.scheduled_updates`,
-            [
-                ...get(this.props, 'value.scheduled_updates', []),
-                defaultScheduledUpdate    
-            ])
-    }
-
-    onRemoveScheduledUpdate(index) {
-        // Remove the scheduled update at the index
-        this.props.onChange(`${this.props.field}.scheduled_updates`,
-            this.props.value.scheduled_updates.filter((s, ind) => ind !== index));
     }
 
     render() {
@@ -128,10 +100,6 @@ export class CoverageForm extends React.Component {
             onPopupOpen,
             onPopupClose,
             planningAllowScheduledUpdates,
-            openCoverageIds,
-            onRemoveAssignment,
-            setCoverageDefaultDesk,
-            ...props,
         } = this.props;
 
         const contentTypeQcode = get(value, 'planning.g2_content_type') || null;
@@ -175,67 +143,6 @@ export class CoverageForm extends React.Component {
                     stateField= {getItemWorkflowState(diff) === WORKFLOW_STATE.DRAFT ?
                         `coverages[${index}].workflow_status` : 'state'}
                     className="form__row" />
-                <Field
-                    component={SelectInput}
-                    field={`${field}.planning.g2_content_type`}
-                    profileName="g2_content_type"
-                    label={gettext('Coverage Type')}
-                    options={contentTypes}
-                    labelField="name"
-                    clearable={false}
-                    value={contentType}
-                    defaultValue={null}
-                    {...fieldProps}
-                    onChange={onContentTypeChange}
-                    readOnly={roFields.g2_content_type}
-                    autoFocus={hasAssignment}
-                    refNode={(ref) => this.dom.contentType = ref}
-                />
-
-                <Field
-                    component={SelectInput}
-                    field={`${field}.planning.genre`}
-                    profileName="genre"
-                    label={gettext('Genre')}
-                    options={genres}
-                    labelField="name"
-                    clearable={true}
-                    defaultValue={contentTypeQcode === 'text' ? defaultGenre : null}
-                    readOnly={roFields.genre}
-                    {...fieldProps}
-                />
-
-                <Field
-                    component={TextInput}
-                    field={`${field}.planning.slugline`}
-                    profileName="slugline"
-                    label={gettext('Slugline')}
-                    readOnly={roFields.slugline}
-                    autoFocus={hasAssignment && roFields.g2_content_type}
-                    {...fieldProps}
-                />
-
-                <Field
-                    component={TextAreaInput}
-                    field={`${field}.planning.ednote`}
-                    profileName="ednote"
-                    label={gettext('Ed Note')}
-                    readOnly={roFields.ednote}
-                    {...fieldProps}
-                />
-
-                <Field
-                    component={SelectTagInput}
-                    field={`${field}.planning.keyword`}
-                    profileName="keyword"
-                    label={gettext('Keywords')}
-                    defaultValue={[]}
-                    options={keywords}
-                    readOnly={roFields.keyword}
-                    {...fieldProps}
-                    onPopupOpen={onPopupOpen}
-                    onPopupClose={onPopupClose}
-                />
 
                 <Field
                     component={TextAreaInput}
@@ -244,6 +151,7 @@ export class CoverageForm extends React.Component {
                     label={gettext('Internal Note')}
                     readOnly={roFields.internal_note}
                     {...fieldProps}
+                    refNode={(ref) => this.dom.internalNote = ref}
                 />
 
                 <Field
@@ -285,59 +193,12 @@ export class CoverageForm extends React.Component {
                     onPopupClose={onPopupClose}
                     timeField={`${field}.planning._scheduledTime`}
                 />
-
-                <Field
-                    component={ToggleInput}
-                    field={`${field}.flags.no_content_linking`}
-                    label={gettext('Do not link content updates')}
-                    labelLeft={true}
-                    defaultValue={false}
-                    {...fieldProps}
-                    readOnly={roFields.flags}
-                    profileName="flags"
-                />
-
-                <Label text={gettext('SCHEDULED UPDATES')}/>
-                {get(value, 'scheduled_updates.length', 0) > 0 &&
-                    value.scheduled_updates.map((s, i) => (
-                        <ScheduledUpdate
-                            key={i}
-                            value={s}
-                            field={field}
-                            coverageIndex={index}
-                            index={i}
-                            newsCoverageStatus={newsCoverageStatus}
-                            dateFormat={dateFormat}
-                            timeFormat={timeFormat}
-                            contentTypes={contentTypes}
-                            genres={genres}
-                            keywords={keywords}
-                            readOnly={readOnly}
-                            defaultGenre={defaultGenre}
-                            openCoverageIds={openCoverageIds}
-                            onRemoveAssignment={onRemoveAssignment}
-                            setCoverageDefaultDesk={setCoverageDefaultDesk}
-                            remove={this.onRemoveScheduledUpdate.bind(null, i)}
-                            {...fieldProps}
-                            {...props} />
-                    ))}
-
-                {planningAllowScheduledUpdates && get(formProfile, 'editor.scheduled_updates.enabled') && (
-                    <Row>
-                        <Button
-                            color="primary"
-                            text={gettext('Schedule an update')}
-                            onClick={this.onAddScheduledUpdate}
-                        />
-                    </Row>
-                )}
-
             </div>
         );
     }
 }
 
-CoverageForm.propTypes = {
+ScheduledUpdateForm.propTypes = {
     field: PropTypes.string,
     value: PropTypes.object,
     onChange: PropTypes.func,
@@ -368,7 +229,7 @@ CoverageForm.propTypes = {
     onPopupClose: PropTypes.func,
 };
 
-CoverageForm.defaultProps = {
+ScheduledUpdateForm.defaultProps = {
     dateFormat: 'DD/MM/YYYY',
     timeFormat: 'HH:mm',
 };

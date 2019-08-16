@@ -125,10 +125,9 @@ export const validateCoverages = ({
 
             Object.keys(validators.coverage).forEach((key) => {
                 const coverageErrors = {};
-                const keyName = key === 'news_coverage_status' ? key : `planning.${key}`;
-
-                const original = get(originalCoverage, keyName);
-                const value = get(coverage, keyName);
+                let keyName = ['news_coverage_status', 'scheduled_updates'].includes(key) ? key : `planning.${key}`;
+                let original = get(originalCoverage, keyName);
+                let value = get(coverage, keyName);
 
                 if (key === 'scheduled' && original !== undefined && isEqual(original, value)) {
                     // Only validate scheduled date if it has changed
@@ -147,6 +146,7 @@ export const validateCoverages = ({
                     profile: profile,
                     errors: coverageErrors,
                     messages: messages,
+                    diff: diff
                 });
 
                 if (get(coverageErrors, key)) {
@@ -197,7 +197,8 @@ const validateCoverageScheduleDate = ({
     const canCreateInPast = !!privileges[PRIVILEGES.CREATE_IN_PAST];
     const today = moment();
 
-    if (validateSchedule && moment.isMoment(value) && value.isBefore(today, 'day')) {
+    if (!field.endsWith('_scheduledTime') &&
+            validateSchedule && moment.isMoment(value) && value.isBefore(today, 'day')) {
         set(errors, `${field}.date`, gettext('Date is in the past'));
 
         if (!canCreateInPast) {
@@ -222,6 +223,70 @@ const validatePlanningScheduleDate = ({getState, field, value, errors, messages,
 
         if (!canCreateInPast) {
             messages.push(gettext('PLANNING DATE cannot be in the past'));
+        }
+    }
+};
+
+const validateScheduledUpdatesDate = ({
+    getState,
+    field,
+    value,
+    profile,
+    errors,
+    messages,
+    diff,
+}) => {
+    const coverageSchedule = get(get(diff, 'coverages', []).find((c) => c.coverage_id === get(value, '[0].coverage_id')),
+        'planning.scheduled')
+    errors.scheduled_updates = {}
+    const planningSchedules = (value || []).map((v) => get(v, 'planning')).reverse();
+    let requiredMissing, scheduleConflict
+
+
+    planningSchedules.forEach((planningSchedule, index) => {
+        const schedule = get(planningSchedule, 'scheduled')
+        const scheduledIndex = planningSchedules.length -1 - index
+        const _scheduledTime = get(planningSchedule, '_scheduledTime')
+        if (get(profile, 'schema.scheduled_updates_scheduled.required')) {
+            if (!schedule || !_scheduledTime) {
+                requiredMissing = true
+                errors.scheduled_updates[scheduledIndex] =  { 'planning': {} }
+                if (!schedule) {
+                    errors.scheduled_updates[scheduledIndex].planning.scheduled = { 'date': gettext('Required') }
+                }
+
+                if (!_scheduledTime) {
+                    errors.scheduled_updates[scheduledIndex].planning._scheduledTime = gettext('Required')
+                }
+            }
+        } 
+
+        if (schedule && _scheduledTime) {
+            const previousSchedule = schedule ? (planningSchedules.slice(index + 1)).find((s) => s) : null
+            const fieldName = `${index}.planning`
+            if ((coverageSchedule && schedule <= coverageSchedule) || (previousSchedule && schedule <= previousSchedule)) {
+                errors.scheduled_updates[planningSchedules.length -1 - index] = {
+                    'planning': {
+                        '_scheduledTime': gettext('Should be after the previous scheduled update/coverage'),
+                        'scheduled': {
+                            'date': gettext('Should be after the previous scheduled update/coverage'),
+                        }
+                    }
+                }
+                scheduleConflict = true
+            }
+        }
+    })
+
+    if (isEmpty(errors.scheduled_updates)) {
+        delete errors.scheduled_updates
+    } else {
+        if (scheduleConflict) {
+            messages.push(gettext('Scheduled Upates have to be after the previous updates.'));    
+        }
+        
+        if (requiredMissing) {
+            messages.push(gettext('Scheduled Upates should have a date/time.'));
         }
     }
 };
@@ -266,6 +331,7 @@ export const validators = {
         scheduled: [validateCoverageScheduleDate],
         _scheduledTime: [validateCoverageScheduleDate],
         slugline: [formProfile],
+        scheduled_updates: [validateScheduledUpdatesDate]
     },
     assignment: {
         _all: [validateAssignment],

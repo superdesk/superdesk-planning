@@ -2119,7 +2119,7 @@ Feature: Planning
         """
 
     @auth
-    @notification @test
+    @notification
     Scenario: no_content_linking flag cannot be updated if coverage is active
         Given "desks"
         """
@@ -2233,5 +2233,612 @@ Feature: Planning
         """
         {
             "_issues": {"validator exception": "400: Cannot edit content linking flag of a coverage already in workflow"}
+        }
+        """
+
+    @auth
+    @notification
+    @scheduled_updates @today
+    Scenario: Can create scheduled updates if PLANNING_ALLOW_SCHEDULED_UPDATES is enabled
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then the assignment not created for coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "scheduled_updates": [{
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-21T14:00:00.000Z"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "scheduled_updates": [{
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-21T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+
+    @auth
+    @notification
+    @today
+    Scenario: Error when creating scheduled updates if PLANNING_ALLOW_SCHEDULED_UPDATES is not enabled
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "scheduled_updates": [{
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-21T14:00:00.000Z"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we get error 400
+        """
+        {"_issues": { "validator exception": "400: Not configured to create scheduled updates to a coverage" }}
+        """
+
+    @auth
+    @notification
+    @scheduled_updates @today
+    Scenario: Schedule of a coverage updates should always be after parent coverage and previous update
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z"
+                    },
+                    "scheduled_updates": [{
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-20T14:00:00.000Z"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we get error 400
+        """
+        {"_issues": { "validator exception": "400: Scheduled updates of a coverage must be after the original coverage." }}
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z"
+                    },
+                    "scheduled_updates": [{
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-25T14:00:00.000Z"
+                        }
+                    }, {
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-23T14:00:00.000Z"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we get error 400
+        """
+        {"_issues": { "validator exception": "400: Scheduled updates of a coverage must be after the previous update" }}
+        """
+
+    @auth
+    @notification
+    @scheduled_updates @today
+    Scenario: Cannot add a scheduled update to workflow when original coverag is not in workflow
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "assigned_to": {
+                            "desk": "Politic Desk",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "active"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "active",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00.000Z"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we get error 400
+        """
+        {"_issues": { "validator exception": "400: Cannot add a scheduled update to workflow when original coverage is not in workflow" }}
+        """
+
+    @auth
+    @notification
+    @scheduled_updates @today
+    Scenario: Can add a scheduled update to workflow when original coverag is in workflow
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "workflow_status": "active",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "state": "active"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "workflow_status": "active",
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "state": "active"
+                    }
+                }
+            ]
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "active",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "assigned_to": {
+                            "desk": "Politic Desk",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "active"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "active",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00.000Z"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "active",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00+0000"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "assigned_to": {
+                            "desk": "Politic Desk",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "active"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "active",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
         }
         """

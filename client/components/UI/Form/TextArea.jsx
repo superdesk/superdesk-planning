@@ -78,6 +78,7 @@ export class TextArea extends React.Component {
             placeholder,
             paddingRight60,
             className,
+            refNode,
 
             // Remove these variables from the props variable
             // So they are not passed down to the textarea dom node
@@ -89,7 +90,12 @@ export class TextArea extends React.Component {
 
         return (
             <textarea
-                ref={(node) => this.dom.input = node}
+                ref={(node) => {
+                    this.dom.input = node
+                    if (refNode) {
+                        refNode(node)
+                    }
+                }}
                 className={classNames(
                     'sd-line-input__input',
                     {

@@ -5,13 +5,13 @@ import {get} from 'lodash';
 import {ItemActionsMenu} from '../../index';
 import {CollapseBox} from '../../UI';
 import {CoverageItem} from '../CoverageItem';
-import {CoverageForm} from './CoverageForm';
-import {CoverageFormHeader} from './CoverageFormHeader';
+import {ScheduledUpdateForm} from './ScheduledUpdateForm';
+import {CoverageFormHeader} from '../CoverageEditor/CoverageFormHeader';
 
 import {planningUtils, gettext, editorMenuUtils} from '../../../utils';
 import {COVERAGES} from '../../../constants';
 
-export const CoverageEditor = ({
+export const ScheduledUpdate = ({
     diff,
     index,
     field,
@@ -28,13 +28,11 @@ export const CoverageEditor = ({
     coverageProviders,
     priorities,
     keywords,
-    onDuplicateCoverage,
     onCancelCoverage,
     onAddCoverageToWorkflow,
     onRemoveAssignment,
     readOnly,
     message,
-    invalid,
     defaultGenre,
     addNewsItemToPlanning,
     navigation,
@@ -50,27 +48,8 @@ export const CoverageEditor = ({
     let itemActions = [];
 
     if (!readOnly && !addNewsItemToPlanning) {
-        const duplicateActions = contentTypes
-            .filter((contentType) => (
-                contentType.qcode !== get(value, 'planning.g2_content_type')
-            ))
-            .map((contentType) => ({
-                label: contentType.name,
-                callback: onDuplicateCoverage.bind(null, value, contentType.qcode),
-            }));
-
-        itemActions = [{
-            label: gettext('Duplicate'),
-            icon: 'icon-copy',
-            callback: onDuplicateCoverage.bind(null, value),
-        },
-        {
-            label: gettext('Duplicate As'),
-            icon: 'icon-copy',
-            callback: duplicateActions,
-        }];
-
-        if (planningUtils.canCancelCoverage(value)) {
+        // To be done in the next iteration
+        /* if (planningUtils.canCancelCoverage(value)) {
             itemActions.push({
                 ...COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE,
                 callback: onCancelCoverage.bind(null, value),
@@ -84,7 +63,7 @@ export const CoverageEditor = ({
                 icon: 'icon-assign',
                 callback: onAddCoverageToWorkflow.bind(null, value, index),
             });
-        }
+        } */
 
         if (planningUtils.canRemoveCoverage(value, diff)) {
             itemActions.push({
@@ -95,17 +74,18 @@ export const CoverageEditor = ({
         }
     }
 
-    const onClose = editorMenuUtils.onItemClose(navigation, value.coverage_id);
-    const onOpen = editorMenuUtils.onItemOpen(navigation, value.coverage_id);
+    const onClose = editorMenuUtils.onItemClose(navigation, value.scheduled_update_id);
+    const onOpen = editorMenuUtils.onItemOpen(navigation, value.scheduled_update_id);
     let scrollIntoView = true;
 
-    if (get(navigation, 'scrollToViewItem') && navigation.scrollToViewItem !== value.coverage_id) {
+    if (get(navigation, 'scrollToViewItem') && navigation.scrollToViewItem !== value.scheduled_update_id) {
         scrollIntoView = false;
     }
 
     const forceScroll = editorMenuUtils.forceScroll(navigation, value.coverage_id);
     const isOpen = editorMenuUtils.isOpen(navigation, value.coverage_id) || openCoverageIds.includes(value.coverage_id);
     const onFocus = editorMenuUtils.onItemFocus(navigation, value.coverage_id);
+    const componentInvalid = get(message, `scheduled_updates.${index}`)
 
     const itemActionComponent = get(itemActions, 'length', 0) > 0 ?
         (
@@ -118,6 +98,7 @@ export const CoverageEditor = ({
             </div>
         ) :
         null;
+    const fieldName = `${field}.scheduled_updates[${index}]`
 
     const coverageItem = (
         <CoverageItem
@@ -136,7 +117,7 @@ export const CoverageEditor = ({
 
     const coverageTopBar = (
         <CoverageFormHeader
-            field={field}
+            field={fieldName}
             value={value}
             onChange={onChange}
             users={users}
@@ -146,17 +127,14 @@ export const CoverageEditor = ({
             readOnly={readOnly}
             addNewsItemToPlanning={addNewsItemToPlanning}
             onRemoveAssignment={onRemoveAssignment.bind(null, value, index)}
-            popupContainer={popupContainer}
-            onPopupOpen={onPopupOpen}
-            onPopupClose={onPopupClose}
             setCoverageDefaultDesk={setCoverageDefaultDesk}
             {...props}
         />
     );
 
-    const coverageForm = (
-        <CoverageForm
-            field={field}
+    const scheduledUpdateForm = (
+        <ScheduledUpdateForm
+            field={fieldName}
             value={value}
             diff={diff}
             index={index}
@@ -169,25 +147,13 @@ export const CoverageEditor = ({
             keywords={keywords}
             readOnly={readOnly}
             message={message}
-            invalid={invalid}
+            invalid={componentInvalid}
             hasAssignment={planningUtils.isCoverageAssigned(value)}
             defaultGenre={defaultGenre}
             addNewsItemToPlanning={addNewsItemToPlanning}
             onFieldFocus={onFocus}
             onPopupOpen={onPopupOpen}
             onPopupClose={onPopupClose}
-            openCoverageIds={openCoverageIds}
-            onRemoveAssignment={onRemoveAssignment.bind(null, value, index)}
-            setCoverageDefaultDesk={setCoverageDefaultDesk}
-            onDuplicateCoverage={onDuplicateCoverage}
-            onCancelCoverage={onCancelCoverage}
-            onAddCoverageToWorkflow={onAddCoverageToWorkflow}
-            onRemoveAssignment={onRemoveAssignment.bind(null, value, index)}
-            onChange={onChange}
-            users={users}
-            desks={desks}
-            coverageProviders={coverageProviders}
-            priorities={priorities}
             {...props}
         />
     );
@@ -195,22 +161,22 @@ export const CoverageEditor = ({
     return (
         <CollapseBox
             collapsedItem={coverageItem}
-            tools={itemActionComponent}
+            openItem={scheduledUpdateForm}
             openItemTopBar={coverageTopBar}
-            openItem={coverageForm}
+            tools={itemActionComponent}
             scrollInView={scrollIntoView}
             isOpen={isOpen}
-            invalid={invalid}
+            invalid={componentInvalid}
             forceScroll={forceScroll}
             onClose={onClose}
             onOpen={onOpen}
-            entityId={value.coverage_id}
+            entityId={value.scheduled_update_id}
             tabEnabled
         />
     );
 };
 
-CoverageEditor.propTypes = {
+ScheduledUpdate.propTypes = {
     field: PropTypes.string,
     value: PropTypes.object,
     onChange: PropTypes.func,
@@ -226,7 +192,6 @@ CoverageEditor.propTypes = {
     priorities: PropTypes.array,
     keywords: PropTypes.array,
     readOnly: PropTypes.bool,
-    onDuplicateCoverage: PropTypes.func,
     onCancelCoverage: PropTypes.func,
     onAddCoverageToWorkflow: PropTypes.func,
     message: PropTypes.oneOfType([
@@ -238,7 +203,6 @@ CoverageEditor.propTypes = {
     formProfile: PropTypes.object,
     errors: PropTypes.object,
     showErrors: PropTypes.bool,
-    invalid: PropTypes.bool,
     defaultGenre: PropTypes.object,
     addNewsItemToPlanning: PropTypes.object,
     navigation: PropTypes.object,
@@ -253,7 +217,7 @@ CoverageEditor.propTypes = {
     autoAssignToWorkflow: PropTypes.bool,
 };
 
-CoverageEditor.defaultProps = {
+ScheduledUpdate.defaultProps = {
     dateFormat: 'DD/MM/YYYY',
     timeFormat: 'HH:mm',
 };

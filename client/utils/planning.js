@@ -481,6 +481,8 @@ const modifyForServer = (plan) => {
         }
 
         delete coverage.planning._scheduledTime;
+
+        get(coverage, 'scheduled_updates', []).forEach((s) => delete s.planning._scheduledTime)
     });
 
     return plan;
@@ -512,6 +514,13 @@ const modifyCoverageForClient = (coverage) => {
     } else {
         delete coverage.planning.scheduled;
     }
+
+    get(coverage, 'scheduled_updates', []).forEach((s) => {
+        if (s.planning.scheduled) {
+            s.planning.scheduled = moment(s.planning.scheduled)
+            s.planning._scheduledTime = moment(s.planning.scheduled);
+        }
+    })
 
     return coverage;
 };
@@ -895,17 +904,19 @@ const defaultCoverageValues = (
         }
     }
 
-    if (get(preferredCoverageDesks, g2contentType)) {
-        newCoverage.assigned_to = {desk: preferredCoverageDesks[g2contentType]};
-    } else if (g2contentType === 'text' && defaultDesk) {
-        newCoverage.assigned_to = {desk: defaultDesk._id};
-    } else {
-        delete newCoverage.assigned_to;
-    }
-
+    self.setDefaultAssignment(newCoverage, preferredCoverageDesks, g2contentType, defaultDesk)
     return newCoverage;
 };
 
+const setDefaultAssignment = (coverage, preferredCoverageDesks, g2contentType, defaultDesk) => {
+    if (get(preferredCoverageDesks, g2contentType)) {
+        coverage.assigned_to = {desk: preferredCoverageDesks[g2contentType]};
+    } else if (g2contentType === 'text' && defaultDesk) {
+        coverage.assigned_to = {desk: defaultDesk._id};
+    } else {
+        delete coverage.assigned_to;
+    }
+};
 
 const modifyPlanningsBeingAdded = (state, payload) => {
     // payload must be an array. If not, we transform
@@ -988,6 +999,7 @@ const self = {
     getAgendaNames,
     getFlattenedPlanningByDate,
     canAddCoverageToWorkflow,
+    setDefaultAssignment,
 };
 
 export default self;
