@@ -412,6 +412,7 @@ export class PlanningEditorComponent extends React.Component {
             inModalView,
             autoAssignToWorkflow,
             longEventDurationThreshold,
+            planningAllowScheduledUpdates,
         } = this.props;
 
         const agendaValues = cloneDeep(get(diff, 'agendas', [])
@@ -733,6 +734,7 @@ export class PlanningEditorComponent extends React.Component {
                     autoAssignToWorkflow={autoAssignToWorkflow}
                     event={event}
                     longEventDurationThreshold={longEventDurationThreshold}
+                    planningAllowScheduledUpdates={planningAllowScheduledUpdates}
                 />
             </div>
         );
@@ -792,6 +794,7 @@ PlanningEditorComponent.propTypes = {
     longEventDurationThreshold: PropTypes.number,
     itemManager: PropTypes.object,
     original: PropTypes.object,
+    planningAllowScheduledUpdates: PropTypes.bool,
 };
 
 PlanningEditorComponent.defaultProps = {
@@ -831,6 +834,7 @@ const mapStateToProps = (state) => ({
     preferredCoverageDesks: get(selectors.general.preferredCoverageDesks(state), 'desks'),
     autoAssignToWorkflow: selectors.config.getAutoAssignToWorkflow(state),
     longEventDurationThreshold: selectors.config.getLongEventDurationThreshold(state),
+    planningAllowScheduledUpdates: selectors.config.getPlanningAllowScheduledUpdates(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
