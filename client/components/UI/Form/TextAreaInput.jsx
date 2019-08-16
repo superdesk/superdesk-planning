@@ -24,6 +24,7 @@ export const TextAreaInput = ({
     maxLength,
     onFocus,
     initialFocus,
+    refNode,
     ...props
 }) => (
     <LineInput {...props} readOnly={readOnly}>
@@ -39,6 +40,7 @@ export const TextAreaInput = ({
             readOnly={readOnly}
             onFocus={onFocus}
             initialFocus={initialFocus}
+            refNode={refNode}
         />
 
         {maxLength > 0 &&
@@ -68,6 +70,7 @@ TextAreaInput.propTypes = {
     placeholder: PropTypes.string,
     onFocus: PropTypes.func,
     initialFocus: PropTypes.bool,
+    refNode: PropTypes.func,
 };
 
 TextAreaInput.defaultProps = {
