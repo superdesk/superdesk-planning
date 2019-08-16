@@ -175,6 +175,17 @@ def then_we_store_assignment_id(context, tag, index):
     set_placeholder(context, tag, coverage_id)
 
 
+@then('we store assignment id in "{tag}" from scheduled_update {index} of coverage {coverage_index}')
+def then_we_store_assignment_id(context, tag, index, coverage_index):
+    index = int(index)
+    coverage_index = int(coverage_index)
+    response = get_json_data(context.response)
+    coverage = (response.get('coverages') or [])[coverage_index]
+    assert len(coverage.get('scheduled_updates')), 'scheduled_updates are not defined.'
+    scheduled_update = coverage['scheduled_updates'][index]
+    set_placeholder(context, tag, scheduled_update.get('assigned_to', {}).get('assignment_id'))
+
+
 @then('the assignment not created for coverage {index}')
 def then_we_store_assignment_id(context, index):
     index = int(index)

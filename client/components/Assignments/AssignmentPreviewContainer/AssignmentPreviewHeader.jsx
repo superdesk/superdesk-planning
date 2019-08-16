@@ -50,7 +50,7 @@ export const AssignmentPreviewHeader = ({
 
     const planningSchedule = get(assignment, 'planning.scheduled');
     const coverageIcon = planningUtils.getCoverageIcon(planningUtils.getCoverageContentType(
-        assignment, contentTypes) || get(assignment, 'planning.g2_content_type'));
+        assignment, contentTypes) || get(assignment, 'planning.g2_content_type'), assignment);
 
     return (
         <div>

@@ -17,7 +17,8 @@ from .agendas import AgendasResource, AgendasService
 from .planning_export_templates import PlanningExportTemplatesResource, PlanningExportTemplatesService
 from .planning_article_export import PlanningArticleExportResource, PlanningArticleExportService
 from .common import get_max_recurrent_events, get_street_map_url, get_event_max_multi_day_duration,\
-    planning_auto_assign_to_workflow, get_long_event_duration_threshold, event_templates_enabled
+    planning_auto_assign_to_workflow, get_long_event_duration_threshold, event_templates_enabled, \
+    get_planning_allow_scheduled_updates
 from apps.common.components.utils import register_component
 from .item_lock import LockService
 from .planning_notifications import PlanningNotifications
@@ -174,6 +175,7 @@ def init_app(app):
     app.client_config['planning_auto_assign_to_workflow'] = planning_auto_assign_to_workflow(app)
     app.client_config['long_event_duration_threshold'] = get_long_event_duration_threshold(app)
     app.client_config['event_templates_enabled'] = event_templates_enabled(app)
+    app.client_config['planning_allow_scheduled_updates'] = get_planning_allow_scheduled_updates(app)
 
     # Set up Celery task options
     if not app.config.get('CELERY_TASK_ROUTES'):

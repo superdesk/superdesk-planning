@@ -49,7 +49,7 @@ export class CoverageFormHeader extends React.Component {
         const assignmentState = get(value, 'assigned_to.state');
         const cancelled = get(value, 'workflow_status') === 'cancelled';
         const canEditAssignment = planningUtils.isCoverageDraft(value) ||
-            (!!addNewsItemToPlanning && !get(value, 'coverage_id'));
+            (!!addNewsItemToPlanning && !get(value, 'coverage_id') && !get(value, 'scheduled_update_id'));
 
         if (!deskAssigned && (!userAssigned || !coverageProvider)) {
             return (

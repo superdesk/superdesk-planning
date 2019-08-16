@@ -45,6 +45,15 @@ export const CoverageIcon = ({
                 {genre && <span><br />{gettext('Genre: ') + genre}</span>}
                 {slugline && <span><br />{gettext('Slugline: ') + slugline}</span>}
                 {scheduledStr && <span><br />{gettext('Due: ') + scheduledStr}</span>}
+                {(get(coverage, 'scheduled_updates') || []).map((s) => {
+                    if (get(s, 'planning.scheduled')) {
+                        scheduledStr = dateFormat && timeFormat ?
+                            moment(s.planning.scheduled).format(dateFormat + ' ' + timeFormat) : null;
+                        return (<span><br />{gettext('Due: ') + scheduledStr}</span>);
+                    }
+
+                    return null;
+                })}
             </Tooltip>
         }>
         <span className="sd-list-item__inline-icon icn-mix sd-list-item__item-type">
@@ -55,7 +64,7 @@ export const CoverageIcon = ({
             <i className={classNames(
                 planningUtils.getCoverageIcon(
                     planningUtils.getCoverageContentType(coverage, contentTypes) ||
-                        get(coverage, 'planning.g2_content_type')),
+                        get(coverage, 'planning.g2_content_type'), coverage),
                 planningUtils.getCoverageIconColor(coverage),
                 'sd-list-item__inline-icon')}/>
         </span>

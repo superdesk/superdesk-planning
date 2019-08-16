@@ -58,6 +58,7 @@ export class PlanningPreviewContentComponent extends React.Component {
             hideRelatedItems,
             hideEditIcon,
             files,
+            planningAllowScheduledUpdates,
         } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
@@ -238,7 +239,8 @@ export class PlanningPreviewContentComponent extends React.Component {
                         dateFormat={dateFormat}
                         timeFormat={timeFormat}
                         formProfile={formProfile.coverage}
-                        inner={inner} />)
+                        inner={inner}
+                        planningAllowScheduledUpdates={planningAllowScheduledUpdates} />)
                     )
                 }
             </ContentBlock>
@@ -270,6 +272,7 @@ PlanningPreviewContentComponent.propTypes = {
     hideRelatedItems: PropTypes.bool,
     files: PropTypes.object,
     hideEditIcon: PropTypes.bool,
+    planningAllowScheduledUpdates: PropTypes.bool,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -290,6 +293,7 @@ const mapStateToProps = (state, ownProps) => ({
     customVocabularies: state.customVocabularies,
     createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
     files: selectors.general.files(state),
+    planningAllowScheduledUpdates: selectors.config.getPlanningAllowScheduledUpdates(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
