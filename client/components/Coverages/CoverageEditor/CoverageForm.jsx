@@ -5,7 +5,7 @@ import {getItemInArrayById, gettext, planningUtils, getItemWorkflowState, genera
 import moment from 'moment';
 import {WORKFLOW_STATE} from '../../../constants';
 import {Button} from '../../UI'
-import {Row, Label} from '../../UI/Form'
+import {Row, Label, LineInput} from '../../UI/Form'
 import {ScheduledUpdate} from '../ScheduledUpdate'
 
 
@@ -297,40 +297,42 @@ export class CoverageForm extends React.Component {
                     profileName="flags"
                 />
 
-                <Label text={gettext('SCHEDULED UPDATES')}/>
-                {get(value, 'scheduled_updates.length', 0) > 0 &&
-                    value.scheduled_updates.map((s, i) => (
-                        <ScheduledUpdate
-                            key={i}
-                            value={s}
-                            field={field}
-                            coverageIndex={index}
-                            index={i}
-                            newsCoverageStatus={newsCoverageStatus}
-                            dateFormat={dateFormat}
-                            timeFormat={timeFormat}
-                            contentTypes={contentTypes}
-                            genres={genres}
-                            keywords={keywords}
-                            readOnly={readOnly}
-                            defaultGenre={defaultGenre}
-                            openCoverageIds={openCoverageIds}
-                            onRemoveAssignment={onRemoveAssignment}
-                            setCoverageDefaultDesk={setCoverageDefaultDesk}
-                            remove={this.onRemoveScheduledUpdate.bind(null, i)}
-                            {...fieldProps}
-                            {...props} />
-                    ))}
+                {planningAllowScheduledUpdates && (
+                <div>
+                    <LineInput><Label text={gettext('SCHEDULED UPDATES')}/></LineInput>
+                    {get(value, 'scheduled_updates.length', 0) > 0 &&
+                        value.scheduled_updates.map((s, i) => (
+                            <ScheduledUpdate
+                                key={i}
+                                value={s}
+                                field={field}
+                                coverageIndex={index}
+                                index={i}
+                                newsCoverageStatus={newsCoverageStatus}
+                                dateFormat={dateFormat}
+                                timeFormat={timeFormat}
+                                contentTypes={contentTypes}
+                                genres={genres}
+                                keywords={keywords}
+                                readOnly={readOnly}
+                                defaultGenre={defaultGenre}
+                                openCoverageIds={openCoverageIds}
+                                onRemoveAssignment={onRemoveAssignment}
+                                setCoverageDefaultDesk={setCoverageDefaultDesk}
+                                remove={this.onRemoveScheduledUpdate.bind(null, i)}
+                                {...fieldProps}
+                                {...props} />
+                        ))}
 
-                {planningAllowScheduledUpdates && get(formProfile, 'editor.scheduled_updates.enabled') && (
-                    <Row>
-                        <Button
-                            color="primary"
-                            text={gettext('Schedule an update')}
-                            onClick={this.onAddScheduledUpdate}
-                        />
-                    </Row>
-                )}
+                    
+                        <Row>
+                            <Button
+                                color="primary"
+                                text={gettext('Schedule an update')}
+                                onClick={this.onAddScheduledUpdate}
+                            />
+                        </Row>
+                    </div>)}
 
             </div>
         );

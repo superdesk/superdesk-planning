@@ -109,8 +109,8 @@ def get_long_event_duration_threshold(current_app=None):
 
 def get_planning_allow_scheduled_updates(current_app=None):
     if current_app is not None:
-        return current_app.config.get('PLANNING_ALLOW_SCHEDULED_UPDATES', False)
-    return app.config.get('PLANNING_ALLOW_SCHEDULED_UPDATES', False)
+        return current_app.config.get('PLANNING_ALLOW_SCHEDULED_UPDATES', True)
+    return app.config.get('PLANNING_ALLOW_SCHEDULED_UPDATES', True)
 
 
 def remove_lock_information(item):
