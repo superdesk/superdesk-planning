@@ -152,7 +152,7 @@ class PlanningPostService(BaseService):
                                                                        'published_item': plan}])
         if version_id:
             # Asynchronously enqueue the item for publishing.
-            enqueue_planning_item.apply_async(kwargs={'id': version_id[0]})
+            enqueue_planning_item.apply_async(kwargs={'id': version_id[0]}, serializer="eve/json")
         else:
             logger.error('Failed to save planning version for planning item id {}'.format(plan['_id']))
 
