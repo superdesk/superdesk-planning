@@ -156,6 +156,8 @@ export class EditorModalPanel extends React.Component {
                 show={true}
                 xLarge
                 fullheight
+                backdrop={false}
+                draggable
             >
                 <Modal.Header>
                     <a className="close" onClick={this.onCloseModal}>
