@@ -70,14 +70,14 @@ export const CoverageEditor = ({
             callback: duplicateActions,
         }];
 
-        if (planningUtils.canCancelCoverage(value)) {
+        if (planningUtils.canCancelCoverage(value, diff)) {
             itemActions.push({
                 ...COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE,
                 callback: onCancelCoverage.bind(null, value),
             });
         }
 
-        if (planningUtils.canAddCoverageToWorkflow(value, autoAssignToWorkflow)) {
+        if (planningUtils.canAddCoverageToWorkflow(value, autoAssignToWorkflow, diff)) {
             itemActions.push({
                 id: 'addToWorkflow',
                 label: gettext('Add to workflow'),

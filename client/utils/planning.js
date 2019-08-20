@@ -129,7 +129,8 @@ const canCancelPlanning = (planning, event = null, session, privileges, locks) =
         !isPlanningLockRestricted(planning, session, locks) &&
         getItemWorkflowState(planning) === WORKFLOW_STATE.SCHEDULED &&
         getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED &&
-        !(getPostedState(planning) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_PLANNING])
+        !(getPostedState(planning) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_PLANNING]) &&
+        !isItemExpired(planning)
 );
 
 const canCancelAllCoverage = (planning, event = null, session, privileges, locks) => (
@@ -137,7 +138,8 @@ const canCancelAllCoverage = (planning, event = null, session, privileges, locks
         !isItemSpiked(planning) && !isPlanningLockRestricted(planning, session, locks) &&
         getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED &&
         canCancelAllCoverageForPlanning(planning) &&
-        !(getPostedState(planning) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_PLANNING])
+        !(getPostedState(planning) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_PLANNING]) &&
+        !isItemExpired(planning)
 );
 
 const canAddAsEvent = (planning, event = null, session, privileges, locks) => (
@@ -146,22 +148,23 @@ const canAddAsEvent = (planning, event = null, session, privileges, locks) => (
         isPlanAdHoc(planning) &&
         !isPlanningLocked(planning, locks) &&
         !isItemSpiked(planning) &&
-        getItemWorkflowState(planning) !== WORKFLOW_STATE.KILLED
+        getItemWorkflowState(planning) !== WORKFLOW_STATE.KILLED &&
+        !isItemExpired(planning)
 );
 
 const isCoverageCancelled = (coverage) =>
     (get(coverage, 'workflow_status') === WORKFLOW_STATE.CANCELLED);
 
-const canCancelCoverage = (coverage) =>
+const canCancelCoverage = (coverage, planning) =>
     (!isCoverageCancelled(coverage) && isExistingItem(coverage, 'coverage_id') && (!get(coverage, 'assigned_to.state')
-        || get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED));
+        || get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED)) && !isItemExpired(planning);
 
-const canAddCoverageToWorkflow = (coverage, autoAssignToWorkflow) => isExistingItem(coverage, 'coverage_id') &&
-    isCoverageDraft(coverage) && isCoverageAssigned(coverage) && !autoAssignToWorkflow;
+const canAddCoverageToWorkflow = (coverage, autoAssignToWorkflow, planning) => isExistingItem(coverage, 'coverage_id')
+    && isCoverageDraft(coverage) && isCoverageAssigned(coverage) && !autoAssignToWorkflow && !isItemExpired(planning);
 
 const canRemoveCoverage = (coverage, planning) => !isItemCancelled(planning) &&
     ([WORKFLOW_STATE.DRAFT, WORKFLOW_STATE.CANCELLED].includes(get(coverage, 'workflow_status')) ||
-        get(coverage, 'previous_status') === WORKFLOW_STATE.DRAFT);
+        get(coverage, 'previous_status') === WORKFLOW_STATE.DRAFT) && !isItemExpired(planning);
 
 const canCancelAllCoverageForPlanning = (planning) => (
     get(planning, 'coverages.length') > 0 && get(planning, 'coverages')
@@ -173,7 +176,8 @@ const canAddCoverages = (planning, event, privileges, session, locks) => (
         isPlanningLocked(planning, locks) &&
         lockUtils.isItemLockedInThisSession(planning, session, locks) &&
         (isNil(event) || !isItemCancelled(event)) &&
-        (!isItemCancelled(planning) || isItemKilled(planning)) && !isItemRescheduled(planning)
+        (!isItemCancelled(planning) || isItemKilled(planning)) && !isItemRescheduled(planning) &&
+        !isItemExpired(planning)
 );
 
 const isPlanningLocked = (plan, locks) =>
@@ -250,7 +254,7 @@ export const getPlanningItemActions = (plan, event = null, session, privileges, 
         [PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.actionName]: () =>
             canRemovedFeatured(plan, event, session, privileges, locks),
         [PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.actionName]: () =>
-            canModifyPlanning(plan, event, privileges, locks),
+            canModifyPlanning(plan, event, privileges, locks) && !isItemExpired(plan),
         [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: () =>
             !isPlanAdHoc(plan) && eventUtils.canCancelEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: () =>
