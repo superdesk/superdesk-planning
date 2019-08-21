@@ -913,7 +913,7 @@ class AssignmentsService(superdesk.Service):
                                                                                'published_item': item}])
                 if version_id:
                     # Asynchronously enqueue the item for publishing.
-                    enqueue_planning_item.apply_async(kwargs={'id': version_id[0]})
+                    enqueue_planning_item.apply_async(kwargs={'id': version_id[0]}, serializer="eve/json")
                 else:
                     logger.error('Failed to save planning version for planning item id {}'.format(item['_id']))
 

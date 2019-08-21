@@ -74,8 +74,6 @@ export class EventItem extends React.Component {
                 this.props[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName],
-            [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName].bind(null, item),
         };
         const itemActions = eventUtils.getEventActions({item, session, privileges, lockedItems, callBacks, calendars});
 
@@ -181,13 +179,6 @@ export class EventItem extends React.Component {
                                 },
                             })
                         }
-                        {eventUtils.isEventCompleted(item) && (
-                            <Label
-                                text={gettext('Event Completed')}
-                                iconType="success"
-                                isHollow={true}
-                            />
-                        )}
                         {secondaryFields.includes('calendars') && renderFields('calendars', item, {
                             calendars: calendars,
                             grow: !get(item, 'location') && !showRelatedPlanningLink,

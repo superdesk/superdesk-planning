@@ -85,7 +85,7 @@ export class PageContent extends React.Component {
 
                     <div className="sd-column-box--3">
                         {FilterPanel && (
-                            <div className="sd-filters-panel">
+                            <div className="sd-filters-panel sd-filters-panel--fixed">
                                 <FilterPanel
                                     toggleFilterPanel={this.toggleFilterPanel}
                                     {...filterProps}

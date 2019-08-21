@@ -84,13 +84,13 @@ class PlanningNotifications():
         if slack_client_installed and app.config.get('SLACK_BOT_TOKEN'):
             args = {'token': app.config.get('SLACK_BOT_TOKEN'), 'target_user': target_user, 'target_desk': target_desk,
                     'target_desk2': target_desk2, 'message': _get_slack_message_string(source, data)}
-            self._notify_slack.apply_async(kwargs=args)
+            self._notify_slack.apply_async(kwargs=args, serializer="eve/json")
 
         # send email notification to user
         if target_user:
             args = {'target_user': target_user, 'text_message': _get_email_message_string(source, meta_message, data),
                     'html_message': _get_email_message_html(source, meta_message, data), 'data': data}
-            self._notify_email.apply_async(kwargs=args)
+            self._notify_email.apply_async(kwargs=args, serializer="eve/json")
 
     def user_update(self, updates, original):
         """

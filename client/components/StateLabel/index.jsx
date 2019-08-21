@@ -4,13 +4,7 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import classNames from 'classnames';
 import {Label} from '../../components';
-import {
-    getItemWorkflowStateLabel,
-    getItemPostedStateLabel,
-    getItemExpiredStateLabel,
-    eventUtils,
-    isEvent,
-} from '../../utils';
+import {getItemWorkflowStateLabel, getItemPostedStateLabel, getItemExpiredStateLabel} from '../../utils';
 import {gettext} from '../../utils/gettext';
 
 export const StateLabel = ({
@@ -51,13 +45,6 @@ export const StateLabel = ({
                 <div>
                     {getStateLabel(expiredState)}
                 </div>
-            )}
-            {isEvent(item) && eventUtils.isEventCompleted(item) && (
-                <Label
-                    text={gettext('Event Completed')}
-                    iconType="success"
-                    isHollow={true}
-                />
             )}
         </span>
     );

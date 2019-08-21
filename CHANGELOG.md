@@ -1,9 +1,8 @@
 # Superdesk Planning Changelog
 
-## [1.6.2] Not Released Yet
+## [1.6.2] 2019-08-21
 ### Features
 - [SDESK-4469] Introduce modal to prompt for a 'reason' to cancel individual coverages (#1260)
-- [SDESK-4427] New Event action 'Mark as Completed' (#1273)
 
 ### Improvements
 - [SDESK-3286] Close popup modals with ESC key (#1272)
@@ -23,7 +22,6 @@
 - [SDESK-4549] Coverages are inheriting published time and not scheduled time of a story (#1271)
 - [SDESK-4328] Remove ability to clear the coverage type in the editor (1270)
 - (fix): Update enzyme-adapter-react-16 (#1269)
-- [SDESK-4427] Mark for complete fix to cater for events that start on same day but ahead in time. (#1278)
 - [SDESK-4571] Allow content unlinking when content has been archived (1280)
 - [SDESK-4552] (fix): Assignment preview not showing from monitoring preview (#1285)
 - [SDESK-4477] (fix): Cannot lower repetitions unless on the first event (#1286))
@@ -31,6 +29,8 @@
 - [SDESK-4524] Make contact form read only when embedded in read only coverage form (#1289)
 - [SDESK-4535] Fulfill assignment available for Reporters (#1288)
 - [SDESK-4609] Filter soft deleted locations out from the browse view (#1290)
+- [SDESK-4637] (fix) Select first assignment on fulfill on publish (#1296)
+- [SDESK-4608] (fix) Advance Search Panel was collapsing if list item has a long text (#1298)
 
 ## [1.6.1] 2019-07-17
 ### Fixes
