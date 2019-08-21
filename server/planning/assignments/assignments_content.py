@@ -149,20 +149,26 @@ class AssignmentsContentService(superdesk.Service):
             doc.update(item)
             ids.append(doc['_id'])
 
-            # Send notification that the work has commenced
-            # Determine the display name of the assignee
-            assigned_to_user = get_resource_service('users').find_one(req=None,
-                                                                      _id=str(item.get('task').get('user')))
-            assignee = assigned_to_user.get('display_name') if assigned_to_user else 'Unknown'
-            PlanningNotifications().notify_assignment(target_desk=item.get('task').get('desk'),
-                                                      target_user=str(item.get('task').get('user')),
-                                                      message='assignment_commenced_msg',
-                                                      assignee=assignee,
-                                                      coverage_type=get_coverage_type_name(item.get('type', '')),
-                                                      slugline=item.get('slugline'),
-                                                      omit_user=True,
-                                                      assignment_id=assignment[config.ID_FIELD],
-                                                      is_link=True)
+            # Send notification that the work has commenced to the user who assigned the task
+            # Get the id of the user who assigned the task
+            assignor = assignment.get('assigned_to', {}).get('assignor_user',
+                                                             assignment.get('assigned_to', {}).get('assignor_desk'))
+
+            if str(assignor) != str(item.get('task').get('user')):
+                # Determine the display name of the assignee
+                assigned_to_user = get_resource_service('users').find_one(req=None,
+                                                                          _id=str(item.get('task').get('user')))
+                assignee = assigned_to_user.get('display_name') if assigned_to_user else 'Unknown'
+                PlanningNotifications().notify_assignment(target_desk=None,
+                                                          target_user=assignor,
+                                                          message='assignment_commenced_msg',
+                                                          assignee=assignee,
+                                                          coverage_type=get_coverage_type_name(item.get('type', '')),
+                                                          slugline=item.get('slugline'),
+                                                          omit_user=True,
+                                                          assignment_id=assignment[config.ID_FIELD],
+                                                          is_link=True,
+                                                          no_email=True)
             # Save history
             get_resource_service('assignments_history').on_item_start_working(updates, assignment)
             # publishing planning item

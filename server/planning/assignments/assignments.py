@@ -263,6 +263,11 @@ class AssignmentsService(superdesk.Service):
         if self.is_assignment_draft(updates, original):
             return
 
+        # No assignment notification sent on start work
+        if original.get('assigned_to', {}).get('state') == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED and \
+                updates.get('assigned_to', {}).get('state') == ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
+            return
+
         assigned_to = updates.get('assigned_to', {})
         assignment_id = (updates.get('_id') or assigned_to.get('assignment_id', 'Unknown'))
         if not original:
@@ -324,6 +329,21 @@ class AssignmentsService(superdesk.Service):
                                                               assignment=assignment,
                                                               event=event_item,
                                                               is_link=True)
+                    # notify the desk
+                    if assigned_to.get('desk'):
+                        PlanningNotifications().notify_assignment(target_desk=assigned_to.get('desk'),
+                                                                  message='assignment_reassigned_3_msg',
+                                                                  meta_message='assignment_details_email',
+                                                                  assignee=assignee,
+                                                                  client_url=client_url,
+                                                                  assignment_id=assignment_id,
+                                                                  desk=desk_name,
+                                                                  assignor=user.get('display_name'),
+                                                                  assignment=assignment,
+                                                                  event=event_item,
+                                                                  omit_user=True,
+                                                                  is_link=True)
+
                 else:
                     # if it was assigned to a desk before, test if there has been a change of desk
                     if original.get('assigned_to') and original.get('assigned_to').get('desk') != updates.get(
@@ -383,6 +403,7 @@ class AssignmentsService(superdesk.Service):
                                                                   meta_message='assignment_details_email',
                                                                   coverage_type=get_coverage_type_name(coverage_type),
                                                                   slugline=slugline,
+                                                                  assignor=user.get('display_name', ''),
                                                                   old_assignee=' from ' + old_assignee
                                                                   if old_assignee else '',
                                                                   client_url=client_url,
@@ -417,20 +438,35 @@ class AssignmentsService(superdesk.Service):
                 assigned_from_desk = get_resource_service('desks').find_one(req=None,
                                                                             _id=original.get('assigned_to').get('desk'))
                 desk_from_name = assigned_from_desk.get('name') if assigned_from_desk else 'Unknown'
-
-                PlanningNotifications().notify_assignment(target_desk=assigned_to.get('desk'),
-                                                          target_desk2=original.get('assigned_to').get('desk'),
-                                                          message='assignment_submitted_msg',
-                                                          meta_message='assignment_details_email',
-                                                          coverage_type=get_coverage_type_name(coverage_type),
-                                                          slugline=slugline,
-                                                          desk=desk_name,
-                                                          client_url=client_url,
-                                                          assignment_id=assignment_id,
-                                                          from_desk=desk_from_name,
-                                                          assignment=assignment,
-                                                          event=event_item,
-                                                          is_link=True)
+                if original.get('assigned_to', {}).get('user', '') == str(user.get(config.ID_FIELD, None)):
+                    PlanningNotifications().notify_assignment(target_desk=assigned_to.get('desk'),
+                                                              message='assignment_to_desk_msg',
+                                                              meta_message='assignment_details_email',
+                                                              coverage_type=get_coverage_type_name(coverage_type),
+                                                              slugline=slugline,
+                                                              assign_type='reassigned',
+                                                              client_url=client_url,
+                                                              assignment_id=assignment_id,
+                                                              desk=desk_name,
+                                                              assignor=user.get('display_name'),
+                                                              assignment=assignment,
+                                                              event=event_item,
+                                                              omit_user=True,
+                                                              is_link=True)
+                else:
+                    PlanningNotifications().notify_assignment(target_desk=assigned_to.get('desk'),
+                                                              target_desk2=original.get('assigned_to').get('desk'),
+                                                              message='assignment_submitted_msg',
+                                                              meta_message='assignment_details_email',
+                                                              coverage_type=get_coverage_type_name(coverage_type),
+                                                              slugline=slugline,
+                                                              desk=desk_name,
+                                                              client_url=client_url,
+                                                              assignment_id=assignment_id,
+                                                              from_desk=desk_from_name,
+                                                              assignment=assignment,
+                                                              event=event_item,
+                                                              is_link=True)
             else:
                 assign_type = 'reassigned' if original.get('assigned_to') else 'assigned'
                 PlanningNotifications().notify_assignment(target_desk=assigned_to.get('desk'),
@@ -448,13 +484,18 @@ class AssignmentsService(superdesk.Service):
                                                           omit_user=True,
                                                           is_link=True)
 
-    def send_assignment_cancellation_notification(self, assignment, original_state, event_cancellation=False):
+    def send_assignment_cancellation_notification(self, assignment, original_state, event_cancellation=False,
+                                                  event_reschedule=False):
         """Set the assignment information and send notification
 
         :param dict doc: Updates related to assignments
         """
         # No notifications for 'draft' assignments
         if not assignment or original_state == ASSIGNMENT_WORKFLOW_STATE.DRAFT:
+            return
+
+        # No notifications on event reschedule
+        if event_reschedule:
             return
 
         user = get_user()
@@ -481,9 +522,10 @@ class AssignmentsService(superdesk.Service):
                                                   omit_user=True,
                                                   slugline=slugline,
                                                   desk=desk.get('name'),
+                                                  coverage_type=get_coverage_type_name(coverage_type),
                                                   assignment_id=assignment.get(config.ID_FIELD))
 
-    def cancel_assignment(self, original_assignment, coverage, event_cancellation=False):
+    def cancel_assignment(self, original_assignment, coverage, event_cancellation=False, event_reschedule=False):
         coverage_to_copy = deepcopy(coverage)
         if original_assignment:
             updated_assignment = {'assigned_to': {}}
@@ -503,7 +545,8 @@ class AssignmentsService(superdesk.Service):
                 if archive_item and archive_item.get('assignment_id'):
                     get_resource_service('assignments_unlink').post([{
                         'item_id': archive_item.get(config.ID_FIELD),
-                        'assignment_id': original_assignment.get(config.ID_FIELD)
+                        'assignment_id': original_assignment.get(config.ID_FIELD),
+                        'cancel': True
                     }])
 
             self.system_update(ObjectId(original_assignment.get('_id')), updated_assignment, original_assignment)
@@ -515,7 +558,7 @@ class AssignmentsService(superdesk.Service):
             self.notify('assignments:updated', updated_assignment, original_assignment)
             self.send_assignment_cancellation_notification(updated_assignment,
                                                            original_assignment.get('assigned_to')['state'],
-                                                           event_cancellation)
+                                                           event_cancellation, event_reschedule)
 
     def _get_empty_updates_for_assignment(self, assignment):
         updated_assignment = {'assigned_to': {}}
@@ -624,7 +667,8 @@ class AssignmentsService(superdesk.Service):
                                                                   slugline=original.get('slugline'),
                                                                   omit_user=True,
                                                                   assignment_id=assignment['_id'],
-                                                                  is_link=True
+                                                                  is_link=True,
+                                                                  no_email=True
                                                                   )
 
     def create_delivery_for_content_update(self, items):
