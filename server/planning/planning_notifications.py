@@ -13,13 +13,14 @@ import logging
 from superdesk.activity import add_activity, ACTIVITY_UPDATE
 import superdesk
 from jinja2 import Template, TemplateNotFound
-from apps.archive.common import get_user
 from superdesk.errors import SuperdeskApiError
 from superdesk.celery_app import celery
 from planning.common import WORKFLOW_STATE
 from superdesk.emails import send_email
 from flask import current_app as app, render_template
 from flask_mail import Attachment
+from apps.archive.common import get_user
+from eve.utils import config
 
 try:
     from slackclient import SlackClient
@@ -75,7 +76,7 @@ class PlanningNotifications():
                 members = members + [x for x in desk.get('members', []) if x not in members]
 
             for member in members:
-                if target_user is not None and str(member.get('user', '')) == target_user:
+                if get_user() and str(member.get('user', '')) == str(get_user().get(config.ID_FIELD)):
                     continue
                 add_activity(ACTIVITY_UPDATE, can_push_notification=True, resource='assignments', msg=source,
                              notify=[member.get('user')], **data)
@@ -87,7 +88,7 @@ class PlanningNotifications():
             self._notify_slack.apply_async(kwargs=args)
 
         # send email notification to user
-        if target_user:
+        if target_user and not data.get('no_email', False):
             args = {'target_user': target_user, 'text_message': _get_email_message_string(source, meta_message, data),
                     'html_message': _get_email_message_html(source, meta_message, data), 'data': data}
             self._notify_email.apply_async(kwargs=args)
@@ -275,16 +276,17 @@ def _send_to_slack_user(sc, user_id, message):
 
     user_token = _get_slack_user_id(sc, user)
     # Need to open a direct IM channel to the target user
-    im = sc.api_call('im.open', user=user_token, return_im=True)
-    if im.get('ok', False):
-        sent = sc.api_call('chat.postMessage', as_user=False, channel=im.get('channel', {}).get('id'),
-                           text=message, link_names=True)
-        if not sent.get('ok', False):
-            logger.warn('Failure response from slack post message call {}'.format(sent))
-            raise Exception('Failure response from slack post message call {}'.format(sent))
-    else:
-        logger.warn('Failed to open IM channel to username: {}'.format(user.get('username', '')))
-        raise Exception('Failed to open IM channel to username: {}'.format(user.get('username', '')))
+    if user_token:
+        im = sc.api_call('im.open', user=user_token, return_im=True)
+        if im.get('ok', False):
+            sent = sc.api_call('chat.postMessage', as_user=False, channel=im.get('channel', {}).get('id'),
+                               text=message, link_names=True)
+            if not sent.get('ok', False):
+                logger.warn('Failure response from slack post message call {}'.format(sent))
+                raise Exception('Failure response from slack post message call {}'.format(sent))
+        else:
+            logger.warn('Failed to open IM channel to username: {}'.format(user.get('username', '')))
+            raise Exception('Failed to open IM channel to username: {}'.format(user.get('username', '')))
 
 
 def _get_slack_user_id(sc, user):

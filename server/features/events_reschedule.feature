@@ -274,15 +274,6 @@ Feature: Events Reschedule
                 "user_name" : "test_user"
                 }
             }
-        },
-        {
-            "event": "activity",
-            "extra": {
-                "activity": {
-                "message" : "Assignment {{slugline}} for desk {{desk}} has been cancelled by {{user}}",
-                "user_name" : "test_user"
-                }
-            }
         }]
         """
 

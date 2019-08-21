@@ -63,6 +63,7 @@ class PlanningCancelService(BaseService):
 
         event_cancellation = updates.pop('event_cancellation', False)
         cancel_all_coverage = updates.pop('cancel_all_coverage', False)
+        event_reschedule = updates.pop('event_reschedule', False)
 
         coverage_cancel_state = None
         if coverage_states:
@@ -81,7 +82,7 @@ class PlanningCancelService(BaseService):
                 ids.append(coverage.get('coverage_id'))
                 planning_service.cancel_coverage(coverage, coverage_cancel_state,
                                                  coverage.get('workflow_status'), None, reason,
-                                                 event_cancellation)
+                                                 event_cancellation, event_reschedule)
 
         if cancel_all_coverage:
             item = None
