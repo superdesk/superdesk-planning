@@ -1,6 +1,6 @@
 # Superdesk Planning Changelog
 
-## [1.6.2] Not Released Yet
+## [1.6.2] 2019-08-21
 ### Features
 - [SDESK-4469] Introduce modal to prompt for a 'reason' to cancel individual coverages (#1260)
 - [SDESK-4427] New Event action 'Mark as Completed' (#1273)
@@ -31,6 +31,8 @@
 - [SDESK-4524] Make contact form read only when embedded in read only coverage form (#1289)
 - [SDESK-4535] Fulfill assignment available for Reporters (#1288)
 - [SDESK-4609] Filter soft deleted locations out from the browse view (#1290)
+- [SDESK-4637] (fix) Select first assignment on fulfill on publish (#1296)
+- [SDESK-4608] (fix) Advance Search Panel was collapsing if list item has a long text (#1298)
 
 ## [1.6.1] 2019-07-17
 ### Fixes
