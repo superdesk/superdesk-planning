@@ -119,7 +119,7 @@ export class AssignmentsService {
                             .then(() => {
                                 store.dispatch(
                                     actions.assignments.ui.previewFirstInListGroup(
-                                        ASSIGNMENTS.LIST_GROUPS.CURRENT.id
+                                        ASSIGNMENTS.LIST_GROUPS.TODAY.id
                                     )
                                 );
 
