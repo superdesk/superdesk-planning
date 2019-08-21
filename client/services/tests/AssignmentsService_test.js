@@ -106,7 +106,7 @@ describe('assignments service', () => {
         it('shows FULFIL_ASSIGNMENT modal if assignment(s) found', (done) => {
             assignmentService.deployConfig.config.planning_fulfil_on_publish_for_desks = [];
             assignmentService.desks.active.desk = 'desk2';
-            store.initialState.assignment.lists.CURRENT.assignmentIds = ['as1'];
+            store.initialState.assignment.lists.TODAY.assignmentIds = ['as1'];
             store.initialState.assignment.assignments = {as1: testData.assignments[0]};
 
             services.api('assignments').query = sinon.spy(() => Promise.resolve({
@@ -182,7 +182,7 @@ describe('assignments service', () => {
             it('shows the modal if config is empty', (done) => {
                 assignmentService.desks.active.desk = 'desk2';
                 assignmentService.deployConfig.config.planning_fulfil_on_publish_for_desks = [];
-                store.initialState.assignment.lists.CURRENT.assignmentIds = ['as1'];
+                store.initialState.assignment.lists.TODAY.assignmentIds = ['as1'];
                 store.initialState.assignment.assignments = {as1: testData.assignments[0]};
 
                 services.api('assignments').query = sinon.spy(() => Promise.resolve({
