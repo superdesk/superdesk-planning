@@ -508,11 +508,6 @@ class EventsService(superdesk.Service):
                     for calendar in updated_calendars
                     if calendar['qcode'] not in original_qcodes
                 ])
-            elif original.get('lock_action') == 'mark_completed' and updates.get('actioned_date'):
-                # If we are marking an event as completed
-                # Update only those which are behind the 'actioned_date'
-                if e['dates']['start'] < updates['actioned_date']:
-                    continue
 
             self.patch(event_id, new_updates)
             app.on_updated_events(new_updates, {'_id': event_id})

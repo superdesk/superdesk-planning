@@ -496,13 +496,12 @@ const updateRepetitions = (original, updates) => (
     )
 );
 
-const saveWithConfirmation = (original, updates, unlockOnClose, ignoreRecurring = false) => (
+const saveWithConfirmation = (original, updates, unlockOnClose) => (
     (dispatch, getState) => {
         const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
 
         // If this is not from a recurring series, then simply post this event
-        // Do the same if we need to ignore recurring event selection on purpose
-        if (!get(original, 'recurrence_id') || ignoreRecurring) {
+        if (!get(original, 'recurrence_id')) {
             return dispatch(eventsApi.save(original, updates));
         }
 
@@ -742,52 +741,6 @@ const onEventEditUnlock = (event) => (
     )
 );
 
-const lockAndSaveUpdates = (
-    event,
-    updates,
-    lockAction,
-    successNotification,
-    failureNotification,
-    recurringModalAction,
-    openRecurringModal = true) => (
-    (dispatch, getState, {notify}) => {
-        // If this is a recurring event, then open the modal
-        // so the user can select which Events to action on
-        // Note: Some actions don't need this if it is a recurring event
-        // Eg. "Mark event as complete"
-        if (get(event, 'recurrence_id') && openRecurringModal && recurringModalAction) {
-            return dispatch(recurringModalAction(event, updates));
-        }
-
-        // Otherwise lock, save and unlock this Event
-        return dispatch(locks.lock(event, lockAction))
-            .then((original) => (
-                dispatch(main.saveAndUnlockItem(original, updates, true))
-                    .then((item) => {
-                        notify.success(successNotification);
-                        return Promise.resolve(item);
-                    }, (error) => {
-                        notify.error(
-                            getErrorMessage(
-                                error,
-                                failureNotification
-                            )
-                        );
-
-                        return Promise.reject(error);
-                    })
-            ), (error) => {
-                notify.error(
-                    getErrorMessage(
-                        error,
-                        gettext('Could not obtain lock on the event.')
-                    )
-                );
-                return Promise.reject(error);
-            });
-    }
-);
-
 /**
  * Action dispatcher that attempts to assign a calendar to an event
  * @param {object} event - The Event to asssign the agenda
@@ -803,14 +756,41 @@ const assignToCalendar = (event, calendar) => (
             _calendar: calendar,
         };
 
-        return dispatch(lockAndSaveUpdates(
-            event,
-            updates,
-            EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.lock_action,
-            gettext('Calendar assigned to the event'),
-            gettext('Failed to add Calendar to the Event'),
-            self.openAssignCalendarModal)
-        );
+        // If this is a recurring event, then open the modal
+        // so the user can select which Events to assign this calendar to
+        if (get(event, 'recurrence_id')) {
+            return dispatch(self.openAssignCalendarModal(event, updates));
+        }
+
+        // Otherwise lock, save and unlock this Event
+        // with the new list of calendars
+        return dispatch(locks.lock(event, 'assign_calendar'))
+            .then((original) => (
+                dispatch(main.saveAndUnlockItem(original, updates))
+                    .then(() => {
+                        notify.success(
+                            gettext('Calendar assigned to the event')
+                        );
+                        return Promise.resolve();
+                    }, (error) => {
+                        notify.error(
+                            getErrorMessage(
+                                error,
+                                gettext('Failed to add Calendar to the Event')
+                            )
+                        );
+
+                        return Promise.reject(error);
+                    })
+            ), (error) => {
+                notify.error(
+                    getErrorMessage(
+                        error,
+                        gettext('Could not obtain lock on the event.')
+                    )
+                );
+                return Promise.reject(error);
+            });
     }
 );
 
@@ -854,56 +834,6 @@ const creatAndOpenPlanning = (item, planningDate = null, openPlanningItem = fals
     )
 );
 
-const onMarkEventCompleted = (event, editor = true) => (
-    (dispatch) => {
-        let updates = {
-            _id: event._id,
-            type: event.type,
-            actioned_date: moment(),
-            completed: true,
-        };
-
-        if (event.recurrence_id) {
-            // 'all': to make sure if we select a future event and action on it, logic should still apply to events
-            // falling on the current day and ahead (not future and ahead) - determine which events in backend.
-            updates.update_method = {value: 'all'};
-        }
-
-        if (editor) {
-            return dispatch(main.openActionModalFromEditor(
-                event,
-                gettext('Save changes before marking event as complete ?'),
-                (unlockedItem, previousLock, openInEditor, openInModal) => (
-                    dispatch(lockAndSaveUpdates(
-                        unlockedItem,
-                        updates,
-                        EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.lock_action,
-                        gettext('Marked event as complete'),
-                        gettext('Failed to mark event as complete'),
-                        null,
-                        false))
-                        .then((result) => {
-                            if (get(previousLock, 'action') && (openInEditor || openInModal)) {
-                                dispatch(main.openForEdit(result, true, openInModal));
-                                dispatch(locks.lock(result, previousLock.action));
-                            }
-                        })
-                )
-            ));
-        }
-
-        // If actioned on list / preview
-        return dispatch(lockAndSaveUpdates(
-            event,
-            updates,
-            EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.lock_action,
-            gettext('Marked event as complete'),
-            gettext('Failed to mark event as complete'),
-            null,
-            false));
-    }
-);
-
 // eslint-disable-next-line consistent-this
 const self = {
     fetchEvents,
@@ -943,7 +873,6 @@ const self = {
     save,
     openAssignCalendarModal,
     creatAndOpenPlanning,
-    onMarkEventCompleted,
 };
 
 export default self;
