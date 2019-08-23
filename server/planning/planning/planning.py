@@ -381,7 +381,8 @@ class PlanningService(superdesk.Service):
                             coverage_type=get_coverage_type_name(
                                 coverage.get('planning', {}).get('g2_content_type', '')),
                             slugline=coverage.get('planning', {}).get('slugline', ''),
-                            internal_note=coverage.get('planning', {}).get('internal_note', ''))
+                            internal_note=coverage.get('planning', {}).get('internal_note', ''),
+                            no_email=True)
                     # If the scheduled time for the coverage changes
                     if coverage.get('planning', {}).get('scheduled', datetime.min).strftime('%c') != \
                             original_coverage.get('planning', {}).get('scheduled', datetime.min).strftime('%c'):
@@ -568,7 +569,8 @@ class PlanningService(superdesk.Service):
                     message='assignment_planning_internal_note_msg',
                     coverage_type=get_coverage_type_name(updates.get('planning', {}).get('g2_content_type', '')),
                     slugline=planning.get('slugline', ''),
-                    internal_note=planning.get('internal_note', ''))
+                    internal_note=planning.get('internal_note', ''),
+                    no_email=True)
 
             # Update only if anything got modified
             if 'planning' in assignment or 'assigned_to' in assignment or 'description_text' in assignment:
@@ -579,7 +581,7 @@ class PlanningService(superdesk.Service):
                 )
 
     def cancel_coverage(self, coverage, coverage_cancel_state, original_workflow_status, assignment=None,
-                        reason=None, event_cancellation=False):
+                        reason=None, event_cancellation=False, event_reschedule=False):
         coverage['news_coverage_status'] = coverage_cancel_state
         coverage['previous_status'] = original_workflow_status
         coverage['workflow_status'] = WORKFLOW_STATE.CANCELLED
@@ -593,7 +595,7 @@ class PlanningService(superdesk.Service):
                 assignment = assignment_service.find_one(req=None, _id=coverage['assigned_to'].get('assignment_id'))
 
             if assignment:
-                assignment_service.cancel_assignment(assignment, coverage, event_cancellation)
+                assignment_service.cancel_assignment(assignment, coverage, event_cancellation, event_reschedule)
 
     def duplicate_coverage_for_article_rewrite(self, planning_id, coverage_id, updates):
         planning = self.find_one(req=None, _id=planning_id)

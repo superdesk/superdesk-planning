@@ -141,7 +141,7 @@ Feature: Assignment Complete
         Then we get existing resource
         """
         {"_items": [{
-            "message" : "{{coverage_type}} coverage \"{{slugline}}\" has been completed by {{assignee}}",
+            "message" : "{{coverage_type}} coverage \"{{slugline}}\" has been fullfilled by {{assignee}}",
             "name" : "update",
             "user" : "#CONTEXT_USER_ID#",
             "user_name" : "test-user-2",
