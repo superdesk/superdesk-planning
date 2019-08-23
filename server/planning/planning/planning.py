@@ -1066,7 +1066,7 @@ planning_schema = {
         'default': [],
         'schema': {
             'type': 'dict',
-            'schema': coverage_schema
+            'schema': coverage_schema,
         },
         'mapping': {
             'type': 'nested',
@@ -1094,7 +1094,10 @@ planning_schema = {
                         'assignment_id': not_analyzed,
                         'state': not_analyzed
                     }
-                }
+                },
+                'original_creator': {
+                    'type': 'keyword',
+                },
             }
         }
     },
