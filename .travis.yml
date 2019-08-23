@@ -11,18 +11,13 @@ env:
 #    - TEST_TYPE="e2e"
 
 services:
-    - mongodb
-    - redis-server
+    - docker
 
 addons:
   apt:
     sources:
-    - mongodb-3.0-precise
-    - elasticsearch-2.x
     - google-chrome
     packages:
-    - mongodb-org-server
-    - elasticsearch
     - google-chrome-stable
 
 cache:
@@ -30,12 +25,9 @@ cache:
     - npm
 
 before_install:
-    - sudo apt-get purge elasticsearch
-    - sudo apt-get install -t stable elasticsearch && sudo service elasticsearch restart
-    - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
-    - node --version
-    - export CHROME_BIN=`which google-chrome` && $CHROME_BIN --version
+    - docker-compose pull
     - chmod a+x ./scripts/*
+    - docker-compose up -d
 script:
     - ./scripts/install_run_$TEST_TYPE.sh
 after_script:
