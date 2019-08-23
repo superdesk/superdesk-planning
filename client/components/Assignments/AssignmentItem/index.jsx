@@ -135,7 +135,8 @@ export class AssignmentItem extends React.Component {
                         }
                     >
                         <i className={planningUtils.getCoverageIcon(planningUtils.getCoverageContentType(
-                            assignment, contentTypes) || get(assignment, 'planning.g2_content_type'))} />
+                            assignment, contentTypes) || get(assignment, 'planning.g2_content_type'),
+                        assignment)} />
                     </OverlayTrigger>
                 </Column>
                 <Column grow={true} border={false}>

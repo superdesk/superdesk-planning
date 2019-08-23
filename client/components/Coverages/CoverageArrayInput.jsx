@@ -123,6 +123,7 @@ export class CoverageArrayInput extends React.Component {
                         navigation={coverageNavigation}
                         openCoverageIds={this.state.openCoverageIds}
                         autoAssignToWorkflow={autoAssignToWorkflow}
+                        preferredCoverageDesks={preferredCoverageDesks}
                         {...props}
                     />
                 </ContentBlock>

@@ -1,16 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Row as PreviewRow} from '../UI/Preview';
-import {CollapseBox} from '../UI';
-import moment from 'moment-timezone';
+import {Row as PreviewRow} from '../../UI/Preview';
+import {CollapseBox} from '../../UI';
 import {get} from 'lodash';
-import {getCreator, getItemInArrayById, getDateTimeString, gettext, stringUtils} from '../../utils';
-import {StateLabel} from '../index';
-import {ContactsPreviewList} from '../Contacts/index';
-import {PLANNING, WORKFLOW_STATE} from '../../constants';
+import {gettext, stringUtils, planningUtils} from '../../../utils';
+import {ContactsPreviewList} from '../../Contacts/index';
+import {PLANNING, WORKFLOW_STATE} from '../../../constants';
 
-import {CoverageItem} from './';
-import {InternalNoteLabel} from '../index';
+import {CoverageItem} from '../';
+import {CoveragePreviewTopBar} from './CoveragePreviewTopBar';
+import {ScheduledUpdate} from '../ScheduledUpdate';
+import {InternalNoteLabel} from '../../index';
 
 export const CoveragePreview = ({
     item,
@@ -27,30 +27,12 @@ export const CoveragePreview = ({
     active,
     scrollInView,
     inner,
+    planningAllowScheduledUpdates,
 }) => {
-    const userAssigned = getCreator(coverage, 'assigned_to.user', users);
-    const deskAssigned = desks.find((d) =>
-        d._id === get(coverage, 'assigned_to.desk'));
-    const coverageDate = get(coverage, 'planning.scheduled');
-    const coverageProvider = get(coverage, 'assigned_to.coverage_provider');
-    /* eslint-disable camelcase */
-    const {
-        assignor_user,
-        assignor_desk,
-        assigned_date_user,
-        assigned_date_desk,
-    } = get(coverage, 'assigned_to', {});
-
-    const deskAssignor = getItemInArrayById(users, assignor_desk);
-    const userAssignor = getItemInArrayById(users, assignor_user);
-
     const coverageStatus = get(coverage, 'news_coverage_status.qcode', '') ===
         PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode ? PLANNING.NEWS_COVERAGE_CANCELLED_STATUS :
         newsCoverageStatus.find((s) => s.qcode === get(coverage, 'news_coverage_status.qcode', '')) || {};
 
-    const coverageDateText = !coverageDate ? gettext('Not scheduled yet') :
-        getDateTimeString(coverageDate, dateFormat, timeFormat, ' @ ', false);
-    const assignmentPriority = get(coverage, 'assigned_to.priority');
     const keywordText = get(coverage, 'planning.keyword.length', 0) === 0 ? '' :
         coverage.planning.keyword.join(', ');
 
@@ -64,42 +46,20 @@ export const CoveragePreview = ({
             dateFormat={dateFormat}
             timeFormat={timeFormat}
             readOnly={true}
-            isPreview={true}
+            isPreview
             active={active}
         />
     );
 
-    let coverageTopBar = (<PreviewRow><label>Unassigned</label></PreviewRow>);
-
-    if (deskAssigned || userAssigned) {
-        coverageTopBar = (
-            <div>
-                <div className="TimeAndAuthor">
-                    { deskAssigned && <div>
-                        {gettext('Desk')}:&nbsp;
-                        <span className="TimeAndAuthor__author">{deskAssigned.name.toUpperCase()}</span>
-                        {' (' + moment(assigned_date_desk).format(timeFormat + ' ' + dateFormat) + ', ' +
-                            get(deskAssignor, 'display_name', '').toUpperCase() + ')'}
-                    </div> }
-                    { userAssigned && <div>
-                        {gettext('Assignee')}&nbsp;
-                        <span className="TimeAndAuthor__author">
-                            {get(userAssigned, 'display_name', '').toUpperCase()}</span>
-                        {' (' + moment(assigned_date_user).format(timeFormat + ' ' + dateFormat) + ', ' +
-                            get(userAssignor, 'display_name', '').toUpperCase() + ')'}
-                    </div> }
-                    { coverageProvider && <span> {gettext('Coverage Provider: ') + coverageProvider.name} </span>}
-                </div>
-                <PreviewRow>
-                    <span className={'line-input priority-label priority-label--' + assignmentPriority}>
-                        {assignmentPriority}</span>
-                    <StateLabel item={coverage.assigned_to}
-                        verbose={true}
-                        className="pull-right"/>
-                </PreviewRow>
-            </div>
-        );
-    }
+    const coverageTopBar = (<CoveragePreviewTopBar
+        item={item}
+        coverage={coverage}
+        users={users}
+        desks={desks}
+        newsCoverageStatus={newsCoverageStatus}
+        dateFormat={dateFormat}
+        timeFormat={timeFormat}
+    />);
 
     const coverageInDetail = (
         <div>
@@ -181,7 +141,7 @@ export const CoveragePreview = ({
             {get(formProfile, 'editor.scheduled.enabled') &&
                 <PreviewRow
                     label={gettext('Due')}
-                    value={coverageDateText}
+                    value={planningUtils.getCoverageDateText(coverage, dateFormat, timeFormat)}
                 />
             }
 
@@ -190,6 +150,24 @@ export const CoveragePreview = ({
                     <span className="state-label not-for-publication">{gettext('Do not link content updates')}</span>
                 </PreviewRow>
             }
+
+            {planningAllowScheduledUpdates && (
+                <PreviewRow label={gettext('SCHEDULED UPDATES')}>
+                    {(coverage.scheduled_updates || []).map((s, i) => (
+                        <ScheduledUpdate
+                            key={i}
+                            value={s}
+                            coverageIndex={index}
+                            index={i}
+                            users={users}
+                            desks={desks}
+                            newsCoverageStatus={newsCoverageStatus}
+                            dateFormat={dateFormat}
+                            timeFormat={timeFormat}
+                            forPreview />
+                    ))}
+                </PreviewRow>)}
+
         </div>
     );
 
@@ -221,6 +199,7 @@ CoveragePreview.propTypes = {
     inner: PropTypes.bool,
     index: PropTypes.number,
     item: PropTypes.object,
+    planningAllowScheduledUpdates: PropTypes.bool,
 };
 
 

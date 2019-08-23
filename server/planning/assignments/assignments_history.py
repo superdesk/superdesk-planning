@@ -87,6 +87,10 @@ class AssignmentsHistoryService(HistoryService):
             'coverage_id': doc.get('coverage_item'),
             'workflow_status': WORKFLOW_STATE.DRAFT
         }
+
+        if doc.get('scheduled_update_id'):
+            coverage_diff['scheduled_update_id'] = doc['scheduled_update_id']
+
         get_resource_service('planning_history')._save_history(planning, coverage_diff,
                                                                ASSIGNMENT_HISTORY_ACTIONS.ASSIGNMENT_REMOVED)
 
