@@ -54,12 +54,7 @@ class PlanningSearchService(superdesk.Service):
         if fields:
             params['_source'] = fields
 
-        hits = self.elastic.es.search(body=query,
-                                      index=self._get_index(types),
-                                      doc_type=types,
-                                      params=params)
-
-        docs = self._parse_hits(hits)
+        docs = self.elastic.search(query, types, params)
 
         # to avoid call on_fetched_resource callback from some internal resource
         on_fetched_resource = True
