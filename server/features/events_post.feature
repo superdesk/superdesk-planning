@@ -1004,3 +1004,133 @@ Feature: Events Post
         """
         { "state": "spiked" }
         """
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: When a postponed multiday event is scheduled actioned_date is poppped
+        Given we have sessions "/sessions"
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "name": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-26T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "state": "draft",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "postpone",
+            "lock_time": "#DATE#"
+        }]
+        """
+        When we perform postpone on events "event1"
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "events:created",
+            "extra": {"item": "event1"}
+        },
+        {
+            "event": "events:postpone",
+            "extra": {"item": "event1","user": "#CONTEXT_USER_ID#"}
+        }]
+        """
+        When we get "/events"
+        Then we get a list with 1 items
+        """
+        {"_items": [{
+            "_id": "event1",
+            "state": "postponed",
+            "lock_user": null,
+            "lock_session": null,
+            "actioned_date": "__now__"
+        }]}
+        """
+        When we post to "/events/post"
+        """
+        {
+            "event": "#events._id#",
+            "etag": "#events._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get a list with 1 items
+        """
+        {"_items": [{
+            "_id": "event1",
+            "state": "scheduled",
+            "actioned_date": "__none__"
+        }]}
+        """
+
+    @auth
+    @notification
+    Scenario: actioned_date of completed event is not popped when posted
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2029-11-22T01:00:00.000Z",
+                "end": "2029-11-22T02:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 4,
+                    "endRepeatMode": "count"
+                }
+            },
+            "state": "draft"
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        Then we store "EVENT4" with 4 item
+        When we patch "/events/#EVENT3._id#"
+        """
+        {
+            "lock_action": "mark_completed",
+            "actioned_date": "2029-11-24T02:00:00.000Z",
+            "completed": true
+        }
+        """
+        Then we get OK response
+        When we get "/events/#EVENT3._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#EVENT3._id#",
+            "actioned_date": "2029-11-24T02:00:00+0000",
+            "completed": true
+        }
+        """
+        When we post to "/events/post"
+        """
+        {
+            "event": "#EVENT3._id#",
+            "etag": "#EVENT3._etag#",
+            "pubstatus": "usable",
+            "update_method": "all"
+        }
+        """
+        Then we get OK response
+        When we get "/events/#EVENT3._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#EVENT3._id#",
+            "actioned_date": "2029-11-24T02:00:00+0000",
+            "completed": true
+        }
+        """
