@@ -792,7 +792,7 @@ export class ItemManager {
             // If an item was provided, then we want to change the editor to this item
             // otherwise simply change the itemAction of this editor in redux
             .then(() => (this.dispatch(newItem !== null ?
-                actions.main.openForEdit(newItem, true, this.props.inModalView) :
+                actions.main.openForEdit(newItem, !this.props.inModalView, this.props.inModalView) :
                 actions.main.changeEditorAction(action, this.props.inModalView)
             )));
     }

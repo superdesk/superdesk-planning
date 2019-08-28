@@ -14,6 +14,7 @@ import {
     getItemInArrayById,
     getPostedState,
     timeUtils,
+    getItemId,
 } from '../../utils';
 
 /**
@@ -315,12 +316,26 @@ const rescheduleEvent = (original, updates) => (
                 notify.success(gettext('Event has been rescheduled'));
 
                 const duplicatedEvent = get(updatedEvent, 'reschedule_to');
+                const openEditor = (item) => {
+                    const itemId = getItemId(item);
+                    const editorItemId = selectors.forms.currentItemId(getState());
+                    const editorModalItemId = selectors.forms.currentItemIdModal(getState());
+
+                    if (editorItemId === itemId || editorModalItemId === itemId) {
+                        dispatch(main.changeEditorAction(
+                            'edit',
+                            editorModalItemId === itemId
+                        ));
+                    } else {
+                        dispatch(main.openForEdit(item));
+                    }
+                };
 
                 if (isItemRescheduled(updatedEvent) && duplicatedEvent) {
                     return dispatch(eventsApi.fetchById(duplicatedEvent))
                         .then(
                             (newEvent) => {
-                                dispatch(main.openForEdit(newEvent));
+                                openEditor(newEvent);
 
                                 return Promise.resolve(newEvent);
                             },
@@ -334,7 +349,7 @@ const rescheduleEvent = (original, updates) => (
                         );
                 }
 
-                dispatch(main.openForEdit(updatedEvent));
+                openEditor(updatedEvent);
 
                 return Promise.resolve(updatedEvent);
             }, (error) => {
@@ -383,7 +398,7 @@ const _openActionModalFromEditor = ({
                             if (get(previousLock, 'action')) {
                                 promise.then((refetchedEvent) => (
                                     (openInEditor || openInModal) ?
-                                        dispatch(main.openForEdit(refetchedEvent, openInModal)) :
+                                        dispatch(main.openForEdit(refetchedEvent, !openInModal, openInModal)) :
                                         dispatch(locks.lock(refetchedEvent, previousLock.action))
                                 ));
                             }
