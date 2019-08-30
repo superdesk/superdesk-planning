@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {defer} from 'lodash';
 import {firstCharUpperCase} from '../utils';
+import {get} from 'lodash';
 
 import {Menu, Label, Divider, Dropdown as DropMenu} from '../Dropdown';
 
@@ -35,8 +36,8 @@ export class Dropdown extends React.Component {
         });
     }
 
-    close() {
-        if (!this.inToggle && this.state.open) {
+    close(event) {
+        if (!this.inToggle && this.state.open && !(get(event.target, 'nodeName') === 'UL')) {
             this.setState({open: false});
         }
     }
