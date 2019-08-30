@@ -385,6 +385,7 @@ describe('actions.main', () => {
                         page: 1,
                         calendars: [],
                         agendas: [],
+                        places: [],
                         fulltext: '',
                         spikeState: 'draft',
                         eventsPlanningFilter: 'ALL_EVENTS_PLANNING',
