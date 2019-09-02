@@ -66,7 +66,7 @@ const onAssignmentCreated = (_e, data) => (
  * @param {object} data - Assignment, User, Desk IDs
  */
 const onAssignmentUpdated = (_e, data) => (
-    (dispatch, getState) => {
+    (dispatch, getState, {notify}) => {
         // If this planning item was updated by this user in AddToPlanning Modal
         // Then ignore this notification
         if (selectors.general.sessionId(getState()) === data.session && (
@@ -132,7 +132,15 @@ const onAssignmentUpdated = (_e, data) => (
             }
         }
 
-        if (!get(data, 'lock_user')) {
+        if (data.item === selectors.getCurrentAssignmentId(getState())) {
+            // If this Assignment is currently being previewed
+            if (data.assigned_desk !== data.original_assigned_desk) {
+                dispatch(assignments.ui.closePreview());
+                notify.warning(gettext('The Assignment you were viewing was reassigned to another desk'));
+            } else {
+                return dispatch(assignments.api.fetchAssignmentById(data.item, true));
+            }
+        } else if (!get(data, 'lock_user')) {
             // Assignment was completed on editor but context was a different desk
             return dispatch(assignments.api.fetchAssignmentById(data.item, false))
                 .then((assignmentInStore) => {
