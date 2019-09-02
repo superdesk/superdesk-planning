@@ -80,6 +80,8 @@ class AssignmentPreviewContainerComponent extends React.Component {
             hideAvatar,
             currentWorkspace,
             contentTypes,
+            session,
+            privileges,
         } = this.props;
 
         if (!assignment) {
@@ -87,9 +89,12 @@ class AssignmentPreviewContainerComponent extends React.Component {
         }
 
         const planning = get(assignment, 'planning', {});
-        const assignedTo = get(assignment, 'assigned_to', {});
-        const state = get(assignedTo, 'state');
         const itemActions = this.getItemActions();
+        const canFulfilAssignment = showFulfilAssignment && assignmentUtils.canFulfilAssignment(
+            assignment,
+            session,
+            privileges
+        );
 
         return (
             <div className="AssignmentPreview">
@@ -105,7 +110,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
                     contentTypes={contentTypes}
                 />
 
-                {showFulfilAssignment && state === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
+                {canFulfilAssignment &&
                     <ContentBlock className="AssignmentPreview__fulfil" padSmall={true} flex={true}>
                         <ContentBlockInner grow={true}>
                             <Button
