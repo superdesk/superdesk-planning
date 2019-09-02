@@ -20,6 +20,11 @@ export const ASSIGNMENTS = {
         REMOVE_ASSIGNMENT: 'REMOVE_ASSIGNMENT',
         RECEIVE_ASSIGNMENT_HISTORY: 'RECEIVE_ASSIGNMENT_HISTORY',
         SET_BASE_QUERY: 'SET_BASE_ASSIGNMENT_QUERY',
+
+        SET_LIST_PAGE: 'SET_ASSIGNMENT_LIST_PAGE',
+        SET_LIST_ITEMS: 'SET_ASSIGNMENT_LIST_ITEMS',
+        ADD_LIST_ITEMS: 'ADD_ASSIGNMENT_LIST_ITEMS',
+        SET_GROUP_KEYS: 'SET_ASSIGNMENT_GROUP_KEYS',
     },
     WORKFLOW_STATE: {
         ASSIGNED: 'assigned',
@@ -30,6 +35,10 @@ export const ASSIGNMENTS = {
         REVERTED: 'reverted',
     },
     ITEM_ACTIONS: {
+        START_WORKING: {
+            label: gettext('Start Working'),
+            icon: 'icon-external',
+        },
         REASSIGN: {
             label: gettext('Reassign'),
             icon: 'icon-share-alt',
@@ -41,10 +50,6 @@ export const ASSIGNMENTS = {
         EDIT_PRIORITY: {
             label: gettext('Edit Priority'),
             icon: 'icon-chevron-up-thin',
-        },
-        START_WORKING: {
-            label: gettext('Start Working'),
-            icon: 'icon-external',
         },
         REMOVE: {
             label: gettext('Remove Assignment'),
@@ -67,18 +72,46 @@ export const ASSIGNMENTS = {
     DEFAULT_PRIORITY: 2,
     LIST_GROUPS: {
         TODO: {
+            id: 'TODO',
             label: gettext('To Do'),
             states: ['assigned', 'submitted'],
+            emptyMessage: gettext('There are no assignments to do'),
         },
         IN_PROGRESS: {
+            id: 'IN_PROGRESS',
             label: gettext('In Progress'),
             states: ['in_progress'],
+            emptyMessage: gettext('There are no assignments in progress'),
         },
         COMPLETED: {
+            id: 'COMPLETED',
             label: gettext('Completed'),
             states: ['completed', 'cancelled'],
+            emptyMessage: gettext('There are no assignments completed'),
+        },
+        CURRENT: {
+            id: 'CURRENT',
+            label: gettext('Current Assignments'),
+            states: ['assigned', 'submitted'],
+            emptyMessage: gettext('There are no current assignments'),
+            dateFilter: 'current',
+        },
+        TODAY: {
+            id: 'TODAY',
+            label: gettext('Todays Assignments'),
+            states: ['assigned', 'submitted'],
+            emptyMessage: gettext('There are no assignments for today'),
+            dateFilter: 'today',
+        },
+        FUTURE: {
+            id: 'FUTURE',
+            label: gettext('Future Assignments'),
+            states: ['assigned', 'submitted'],
+            emptyMessage: gettext('There are no future assignments'),
+            dateFilter: 'future',
         },
     },
+    DEFAULT_LIST_GROUPS: ['TODO', 'IN_PROGRESS', 'COMPLETED'],
     HISTORY_OPERATIONS: {
         CREATE: 'create',
         ADD_TO_WORKFLOW: 'add_to_workflow',

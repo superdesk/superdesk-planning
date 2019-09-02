@@ -7,5 +7,6 @@
 .EventsPlanningFilter {
     .sd-column-box__slide-in-column {
         width: 40rem;
+        flex-shrink: 0;
     }
 }

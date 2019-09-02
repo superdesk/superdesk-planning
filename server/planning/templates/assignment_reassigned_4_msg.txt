@@ -1,1 +1,1 @@
-{{coverage_type}} coverage "{{slugline}}" has been reassigned {{old_assignee}} to you on desk ({{desk}})
+You have been assigned {{coverage_type}} coverage "{{slugline}}" by {{assignor}}

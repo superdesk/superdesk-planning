@@ -21,10 +21,25 @@
 
 .AssignmentItem {
     .sd-list-item__time__schedule {
-        color: #005b7f !important;
+        color: $sd-blueDark !important;
         font-weight: 500;
         vertical-align: text-top;
+        padding-left: 0;
     }
+
+    .label-icon--warning {
+        .sd-list-item__time__schedule {
+            color: $orange !important;
+        }
+
+        .label {
+            margin-left: 0.75rem;
+        }
+    }
+}
+
+.assignment-preview__side-panel {
+  opacity: 1 !important;
 }
 
 .opened-articles ul > li {

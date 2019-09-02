@@ -777,7 +777,7 @@ Feature: Planning
         {"_items":[
             {
                 "resource": "assignments",
-                "message": "Assignment {{slugline}} for desk {{desk}} has been cancelled by {{user}}",
+                "message": "Work on {{coverage_type}} coverage {{slugline}} has been cancelled and the assignment removed from workflow by {{user}}",
                 "data": {
                     "desk": "Politic Desk",
                     "user": "test_user",

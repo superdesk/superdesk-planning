@@ -42,7 +42,7 @@ export class Dropdown extends React.Component {
         if (event.target.classList.contains('dropdown-filter')) {
             return;
         }
-        if (!this.inToggle && this.state.open) {
+        if (!this.inToggle && this.state.open && !(get(event.target, 'nodeName') === 'UL')) {
             this.setState({open: false});
         }
     }

@@ -1390,6 +1390,18 @@ Feature: Assignments
         ]
         """
         Then we get OK response
+        And we store "firstuser" with value "#CONTEXT_USER_ID#" to context
+        When we post to "users"
+        """
+        {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
+        """
+        Then we get OK response
+        And we store "seconduser" with value "#users._id#" to context
+        When we patch "/desks/#desks._id#"
+        """
+        {"members": [{"user": "#firstuser#"}, {"user": "#seconduser#"}]}
+        """
+        Then we get OK response
         When we patch "/planning/#planning._id#"
         """
         {
@@ -1439,12 +1451,12 @@ Feature: Assignments
                  },
                  "resource":"assignments",
                  "user":"#CONTEXT_USER_ID#",
-                 "message":"{{coverage_type}} coverage \"{{slugline}}\" {{assign_type}} to desk {{desk}} by {{assignor}}",
+                 "message":"{{coverage_type}} coverage \"{{slugline}}\" has been {{assign_type}} to desk {{desk}} by {{assignor}}",
                  "name":"update",
                  "recipients":[
                     {
                        "read":false,
-                       "user_id":"#CONTEXT_USER_ID#"
+                       "user_id":"#seconduser#"
                     }
                  ],
                  "user_name":"test_user"
@@ -1470,6 +1482,18 @@ Feature: Assignments
         """
         Then we get OK response
         And we store "firstuser" with value "#CONTEXT_USER_ID#" to context
+        When we post to "users"
+        """
+        {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
+        """
+        Then we get OK response
+        And we store "seconduser" with value "#users._id#" to context
+        When we patch "/desks/#desks._id#"
+        """
+        {"members": [{"user": "#firstuser#"}, {"user": "#seconduser#"}]}
+        """
+        Then we get OK response
+        Given empty "activity"
         When we patch "/planning/#planning._id#"
         """
         {
@@ -1502,11 +1526,11 @@ Feature: Assignments
                         "assign_type" : "assigned",
                         "slugline" : "test slugline"
                     },
-                    "message" : "{{coverage_type}} coverage \"{{slugline}}\" {{assign_type}} to desk {{desk}} by {{assignor}}",
+                    "message" : "{{coverage_type}} coverage \"{{slugline}}\" has been {{assign_type}} to desk {{desk}} by {{assignor}}",
                     "name":"update",
                     "recipients":[
                        {
-                          "user_id":"#CONTEXT_USER_ID#",
+                          "user_id":"#seconduser#",
                           "read":false
                        }
                     ],
@@ -1516,8 +1540,8 @@ Feature: Assignments
                  }
         ]}
         """
-        Given empty "activity"
         When we switch user
+        Given empty "activity"
         When we patch "/assignments/#firstassignment#"
         """
         {
@@ -1554,22 +1578,25 @@ Feature: Assignments
               },
               {
                  "name":"update",
-                 "recipients":[
+                 "message":"{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to {{assignee}} on desk ({{desk}}) by {{assignor}}",
+                 "data" : {
+                    "coverage_type" : "text",
+                    "assignor" : "test-user-2",
+                    "desk" : "Sports",
+                    "slugline" : "test slugline"
+                 },
+                 "resource":"assignments",
+                 "user":"#CONTEXT_USER_ID#",
+                 "user_name":"test-user-2"
+              },
+              {
+                "recipients":[
                     {
                        "user_id":"#CONTEXT_USER_ID#",
                        "read":false
                     }
                  ],
-                 "message":"{{coverage_type}} coverage \"{{slugline}}\" has been reassigned {{old_assignee}} to you on desk ({{desk}})",
-                 "data":{
-                    "slugline":"test slugline",
-                    "old_assignee":"",
-                    "coverage_type":"text",
-                    "desk":"Sports"
-                 },
-                 "resource":"assignments",
-                 "user":"#CONTEXT_USER_ID#",
-                 "user_name":"test-user-2"
+                "message" : "You have been assigned {{coverage_type}} coverage \"{{slugline}}\" by {{assignor}}"
               }
            ]
         }
@@ -1659,7 +1686,7 @@ Feature: Assignments
                 "assignee" : "foo"
             }
         },
-                {
+        {
             "name":"update",
                     "recipients":[
                        {
@@ -1667,9 +1694,9 @@ Feature: Assignments
                           "read":false
                        }
                     ],
-            "message" : "{{coverage_type}} coverage \"{{slugline}}\" has been reassigned {{old_assignee}} to you on desk ({{desk}})",
+            "message" : "You have been assigned {{coverage_type}} coverage \"{{slugline}}\" by {{assignor}}",
             "data" : {
-                "old_assignee" : " from test_user",
+                "assignor" : "test-user-2",
                 "coverage_type" : "text",
                 "slugline" : "test slugline",
                 "desk" : "Sports"
@@ -1715,10 +1742,12 @@ Feature: Assignments
         """
         Then we get OK response
         Then we store assignment id in "firstassignment" from coverage 0
+        And we store "firstuser" with value "#CONTEXT_USER_ID#" to context
         When we post to "/desks"
         """
         [{"name": "News", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
         """
+        When we switch user
         Given empty "activity"
         When we patch "/assignments/#firstassignment#"
         """
@@ -1737,13 +1766,13 @@ Feature: Assignments
                     "name":"update",
                     "recipients":[
                        {
-                          "user_id":"#CONTEXT_USER_ID#",
+                          "user_id":"#firstuser#",
                           "read":false
                        }
                     ],
                     "resource":"assignments",
                     "user":"#CONTEXT_USER_ID#",
-                    "user_name":"test_user",
+                    "user_name":"test-user-2",
                     "message" : "{{coverage_type}} coverage \"{{slugline}}\" has been submitted to desk {{desk}} from {{from_desk}}",
                     "data" : {
                         "desk" : "News",

@@ -81,10 +81,10 @@ export class AssignmentItem extends React.Component {
 
         const isItemLocked = get(lockedItems, 'assignment') && assignment._id in lockedItems.assignment;
         const itemActionsCallBack = {
+            [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label]: startWorking.bind(null, assignment),
             [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: reassign.bind(null, assignment),
             [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label]: editAssignmentPriority.bind(null, assignment),
             [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label]: completeAssignment.bind(null, assignment),
-            [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label]: startWorking.bind(null, assignment),
             [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.label]: removeAssignment.bind(null, assignment),
             [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.label]: this.onDoubleClick,
             [ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.label]: completeAssignment.bind(null, assignment),
@@ -109,6 +109,9 @@ export class AssignmentItem extends React.Component {
         const planningSchedule = get(assignment, 'planning.scheduled');
         const assignedDeskName = get(assignedDesk, 'name') || '-';
         const genre = get(assignment, 'planning.genre.name');
+
+        const isOverdue = assignmentUtils.isDue(assignment);
+        const clockIconClass = isOverdue ? 'label-icon label-icon--warning' : 'label-icon';
 
         return (
             <Item
@@ -159,10 +162,11 @@ export class AssignmentItem extends React.Component {
                                 marginRight={true}
                                 marginLeft={true}
                             />
-                            <span data-sd-tooltip={gettext('Due Date')} data-flow="right">
+                            <span data-sd-tooltip={gettext('Due Date')}
+                                data-flow="right"
+                                className={clockIconClass}
+                            >
                                 <i className="icon-time" />
-                            </span>
-                            <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                                 {planningSchedule ? (
                                     <AbsoluteDate
                                         date={moment(planningSchedule).format()}
@@ -170,6 +174,7 @@ export class AssignmentItem extends React.Component {
                                 ) : (
                                     <span>{gettext('\'not scheduled yet\'')}</span>
                                 )}
+                                {isOverdue && <span className="label label--warning label--hollow">due</span>}
                             </span>
                         </span>
                         <div className="sd-list-item__element-lm-10">

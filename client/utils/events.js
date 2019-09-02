@@ -195,7 +195,7 @@ const canCreatePlanningFromEvent = (event, session, privileges, locks) => (
         !isItemCancelled(event) &&
         !isItemRescheduled(event) &&
         !isItemPostponed(event) &&
-        (!isItemExpired(event) || privileges[PRIVILEGES.EDIT_EXPIRED])
+        !isItemExpired(event)
 );
 
 const canCreateAndOpenPlanningFromEvent = (event, session, privileges, locks) => (
@@ -205,7 +205,8 @@ const canCreateAndOpenPlanningFromEvent = (event, session, privileges, locks) =>
         !isEventLockRestricted(event, session, locks) &&
         !isItemCancelled(event) &&
         !isItemRescheduled(event) &&
-        !isItemPostponed(event)
+        !isItemPostponed(event) &&
+        !isItemExpired(event)
 );
 
 const canPostEvent = (event, session, privileges, locks) => (
@@ -237,7 +238,8 @@ const canCancelEvent = (event, session, privileges, locks) => (
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT]) &&
         !isItemRescheduled(event) &&
-        !isEventCompleted(event)
+        !isEventCompleted(event) &&
+        !isItemExpired(event)
 );
 
 const isEventInUse = (event) => (
@@ -254,7 +256,8 @@ const canConvertToRecurringEvent = (event, session, privileges, locks) => (
         !event.recurrence_id &&
         canEditEvent(event, session, privileges, locks) &&
         !isItemPostponed(event) &&
-        !isEventLockedForMetadataEdit(event) && !isItemCancelled(event) && !isEventCompleted(event)
+        !isEventLockedForMetadataEdit(event) && !isItemCancelled(event) && !isEventCompleted(event) &&
+        !isItemExpired(event)
 );
 
 const canEditEvent = (event, session, privileges, locks) => (
@@ -278,7 +281,8 @@ const canUpdateEventTime = (event, session, privileges, locks) => (
     !isNil(event) &&
         canEditEvent(event, session, privileges, locks) &&
         !isItemPostponed(event) && !isItemCancelled(event) &&
-        !isEventCompleted(event)
+        !isEventCompleted(event) &&
+        !isItemExpired(event)
 );
 
 const canRescheduleEvent = (event, session, privileges, locks) => (
@@ -289,7 +293,8 @@ const canRescheduleEvent = (event, session, privileges, locks) => (
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemRescheduled(event) &&
         !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT]) &&
-        !isEventCompleted(event)
+        !isEventCompleted(event) &&
+        !isItemExpired(event)
 );
 
 const canPostponeEvent = (event, session, privileges, locks) => (
@@ -301,14 +306,16 @@ const canPostponeEvent = (event, session, privileges, locks) => (
         !isItemPostponed(event) &&
         !isItemRescheduled(event) &&
         !(getPostedState(event) === POST_STATE.USABLE && !privileges[PRIVILEGES.POST_EVENT]) &&
-        !isEventCompleted(event)
+        !isEventCompleted(event) &&
+        !isItemExpired(event)
 );
 
 const canUpdateEventRepetitions = (event, session, privileges, locks) => (
     !isNil(event) &&
         isEventRecurring(event) &&
         canRescheduleEvent(event, session, privileges, locks) &&
-        !isEventCompleted(event)
+        !isEventCompleted(event) &&
+        !isItemExpired(event)
 );
 
 const canAssignEventToCalendar = (event, session, privileges, locks) => (

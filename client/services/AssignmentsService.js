@@ -4,65 +4,69 @@ import {Provider} from 'react-redux';
 
 import {gettext} from '../utils';
 
-import planningUtils from '../utils/planning';
-import {WORKSPACE, MODALS} from '../constants';
+import {WORKSPACE, MODALS, ASSIGNMENTS} from '../constants';
 import {ModalsContainer} from '../components';
 import * as actions from '../actions';
 
 export class AssignmentsService {
-    constructor(api, notify, modal, sdPlanningStore, deployConfig, desks) {
+    constructor(api, notify, modal, sdPlanningStore, deployConfig, desks, config) {
         this.api = api;
         this.notify = notify;
         this.modal = modal;
         this.sdPlanningStore = sdPlanningStore;
         this.deployConfig = deployConfig;
         this.desks = desks;
+        this.config = config;
 
         this.onPublishFromAuthoring = this.onPublishFromAuthoring.bind(this);
     }
 
     getAssignmentQuery(slugline, contentType) {
-        return {
-            must: [
-                {term: {'assigned_to.state': 'assigned'}},
-                {query_string: {
-                    query: `planning.slugline.phrase:("${slugline}")`,
-                    lenient: false,
-                }},
-                {term: {'planning.g2_content_type': contentType}},
-            ],
-        };
+        return actions.assignments.api.constructQuery({
+            systemTimezone: this.config.defaultTimezone,
+            searchQuery: `planning.slugline.phrase:("${slugline}")`,
+            states: ['assigned'],
+            type: contentType,
+            dateFilter: 'today',
+        });
     }
 
     onPublishFromAuthoring(item) {
         // Get the complete item from a new query
         return this.api.find('archive', item._id)
-            .then((archiveTtem) => {
+            .then((archiveItem) => {
                 // If the archive item is already linked to an Assignment
                 // then return now (nothing needs to be done)
-                if (get(archiveTtem, 'assignment_id')) {
+                if (get(archiveItem, 'assignment_id')) {
                     return Promise.resolve();
                 }
 
-                const fulfilFromDesks = get(this.deployConfig, 'config.planning_fulfil_on_publish_for_desks', []);
+                const fulfilFromDesks = get(
+                    this.deployConfig,
+                    'config.planning_fulfil_on_publish_for_desks',
+                    []
+                );
                 const currentDesk = get(this.desks, 'active.desk');
+                const selectedDeskId = get(archiveItem, 'task.desk') ?
+                    archiveItem.task.desk :
+                    currentDesk;
 
-                if (fulfilFromDesks.length > 0 && fulfilFromDesks.indexOf(currentDesk) < 0) {
+                if (fulfilFromDesks.length > 0 && fulfilFromDesks.indexOf(selectedDeskId) < 0) {
                     return Promise.resolve();
                 }
 
                 // Otherwise attempt to get an open Assignment (state==assigned)
                 // based on the slugline of the archive item
                 return new Promise((resolve, reject) => {
-                    this.getBySlugline(get(archiveTtem, 'slugline'), get(archiveTtem, 'type'))
-                        .then((assignments) => {
+                    this.getBySlugline(get(archiveItem, 'slugline'), get(archiveItem, 'type'))
+                        .then((data) => {
                             // If no Assignments were found, then there is nothing to do
-                            if (!Array.isArray(assignments) || assignments.length === 0) {
+                            if (get(data, '_meta.total', 0) < 1) {
                                 return resolve();
                             }
 
                             // Show the LinkToAssignment modal for further user decisions
-                            return this.showLinkAssignmentModal(archiveTtem, assignments, resolve, reject);
+                            return this.showLinkAssignmentModal(archiveItem, resolve, reject);
                         })
                         .catch(() => {
                             // If the API call failed, allow the publishing to continue
@@ -81,25 +85,15 @@ export class AssignmentsService {
     getBySlugline(slugline, contentType) {
         return this.api('assignments').query({
             source: JSON.stringify({
-                query: {
-                    bool: this.getAssignmentQuery(slugline, contentType),
-                },
+                query: this.getAssignmentQuery(slugline, contentType),
+                size: 0,
             }),
-        })
-            .then(
-                (data) => {
-                    if (get(data, '_items.length', 0) > 0) {
-                        data._items.forEach(planningUtils.modifyForClient);
-                        return Promise.resolve(data._items);
-                    }
-
-                    return Promise.resolve([]);
-                },
-                (error) => Promise.reject(error)
-            );
+            page: 1,
+            sort: '[("planning.scheduled", 1)]',
+        });
     }
 
-    showLinkAssignmentModal(item, assignments, resolve, reject) {
+    showLinkAssignmentModal(item, resolve, reject) {
         let store;
 
         this.sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, (newStore) => {
@@ -115,49 +109,54 @@ export class AssignmentsService {
                             </Provider>
                         );
 
-                        store.dispatch(
-                            actions.assignments.ui.changeAssignmentListSingleGroupView('TODO')
-                        );
-                        store.dispatch(actions.assignments.api.setBaseQuery(
-                            this.getAssignmentQuery(get(item, 'slugline'), get(item, 'type'))
-                        ));
-                        store.dispatch(actions.assignments.ui.preview(assignments[0]));
+                        store.dispatch(actions.assignments.ui.loadFulfillModal(
+                            item,
+                            [
+                                ASSIGNMENTS.LIST_GROUPS.TODAY.id,
+                                ASSIGNMENTS.LIST_GROUPS.FUTURE.id,
+                            ]
+                        ))
+                            .then(() => {
+                                store.dispatch(
+                                    actions.assignments.ui.previewFirstInListGroup(
+                                        ASSIGNMENTS.LIST_GROUPS.TODAY.id
+                                    )
+                                );
 
-                        const onCancel = () => {
-                            closeModal();
-                            reject();
-                        };
+                                const onUnload = () => {
+                                    closeModal();
+                                    store.dispatch(actions.resetStore());
+                                };
 
-                        const onIgnore = () => {
-                            closeModal();
-                            resolve();
-                        };
+                                const $scope = {
+                                    resolve: () => {
+                                        onUnload();
+                                        resolve();
+                                    },
+                                    reject: () => {
+                                        onUnload();
+                                        reject();
+                                    },
+                                };
 
-                        const $scope = {
-                            resolve: () => {
-                                closeModal();
-                                resolve();
-                            },
-                            reject: reject,
-                        };
-
-                        store.dispatch(actions.showModal({
-                            modalType: MODALS.FULFIL_ASSIGNMENT,
-                            modalProps: {
-                                newsItem: item,
-                                fullscreen: true,
-                                $scope: $scope, // Required by actions dispatches
-                                onCancel: onCancel,
-                                onIgnore: onIgnore,
-                                showCancel: false,
-                                showIgnore: true,
-                                ignoreText: gettext('Don\'t Fulfil Assignment'),
-                                title: gettext('Fulfil Assignment with this item?'),
-                            },
-                        }));
+                                store.dispatch(actions.showModal({
+                                    modalType: MODALS.FULFIL_ASSIGNMENT,
+                                    modalProps: {
+                                        newsItem: item,
+                                        fullscreen: true,
+                                        $scope: $scope, // Required by actions dispatches
+                                        onCancel: $scope.resolve,
+                                        onIgnore: $scope.resolve,
+                                        showCancel: false,
+                                        showIgnore: true,
+                                        ignoreText: gettext('Don\'t Fulfil Assignment'),
+                                        title: gettext('Fulfil Assignment with this item?'),
+                                    },
+                                }));
+                            });
                     });
             });
     }
 }
 
-AssignmentsService.$inject = ['api', 'notify', 'modal', 'sdPlanningStore', 'deployConfig', 'desks'];
+AssignmentsService.$inject = ['api', 'notify', 'modal', 'sdPlanningStore', 'deployConfig', 'desks', 'config'];

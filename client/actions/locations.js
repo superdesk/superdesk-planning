@@ -230,10 +230,24 @@ const getLocation = (searchText, unique = false, page = 1) => (
                 {
                     source: {
                         query: {
-                            range: {
-                                unique_name: {
-                                    gte: searchText,
-                                },
+                            bool: {
+                                must: [
+                                    {
+                                        range: {
+                                            unique_name: {
+                                                gte: searchText,
+                                            },
+                                        },
+                                    },
+                                ],
+                                must_not: [
+                                    {term: {
+                                        is_active: {
+                                            value: false,
+                                        },
+                                    },
+                                    },
+                                ],
                             },
                         },
                     },

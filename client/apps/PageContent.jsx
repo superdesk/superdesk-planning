@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 import {WorkqueueContainer, ModalsContainer} from '../components';
+import {PopupEditorPortal} from '../components/Main/ItemEditorModal';
 
 import './style.scss';
 
@@ -85,7 +86,7 @@ export class PageContent extends React.Component {
 
                     <div className="sd-column-box--3">
                         {FilterPanel && (
-                            <div className="sd-filters-panel">
+                            <div className="sd-filters-panel sd-filters-panel--fixed">
                                 <FilterPanel
                                     toggleFilterPanel={this.toggleFilterPanel}
                                     {...filterProps}
@@ -129,6 +130,8 @@ export class PageContent extends React.Component {
                 )}
                 {showModals && <ModalsContainer />}
                 {showWorkqueue && <WorkqueueContainer />}
+
+                <PopupEditorPortal />
             </div>
         );
     }

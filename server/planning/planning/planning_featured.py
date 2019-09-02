@@ -80,7 +80,7 @@ class PlanningFeaturedService(superdesk.Service):
                                                                            'published_item': plan}])
             if version_id:
                 # Asynchronously enqueue the item for publishing.
-                enqueue_planning_item.apply_async(kwargs={'id': version_id[0]})
+                enqueue_planning_item.apply_async(kwargs={'id': version_id[0]}, serializer="eve/json")
             else:
                 logger.error('Failed to save planning_featured version for featured item id {}'.format(plan['_id']))
 

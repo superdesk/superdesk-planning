@@ -1,7 +1,9 @@
+import moment from 'moment';
+import {get, cloneDeep, has, pick} from 'lodash';
+
 import * as selectors from '../../selectors';
 import {ASSIGNMENTS} from '../../constants';
 import planningUtils from '../../utils/planning';
-import {get, cloneDeep, has, pick} from 'lodash';
 import {lockUtils, getErrorMessage, isExistingItem, gettext} from '../../utils';
 import planning from '../planning';
 
@@ -9,6 +11,118 @@ const setBaseQuery = ({must = []}) => ({
     type: ASSIGNMENTS.ACTIONS.SET_BASE_QUERY,
     payload: {must},
 });
+
+const constructQuery = ({
+    systemTimezone,
+    baseQuery,
+    searchQuery,
+    deskId = null,
+    userId = null,
+    states = [],
+    type = null,
+    priority = null,
+    dateFilter = null,
+}) => {
+    let must = [];
+
+    const filters = [{
+        condition: () => deskId,
+        do: () => {
+            must.push(
+                {term: {'assigned_to.desk': deskId}}
+            );
+        },
+    }, {
+        condition: () => userId,
+        do: () => {
+            must.push(
+                {term: {'assigned_to.user': userId}}
+            );
+        },
+    }, {
+        condition: () => get(states, 'length', 0) > 0,
+        do: () => {
+            must.push(
+                {terms: {'assigned_to.state': states}}
+            );
+        },
+    }, {
+        condition: () => type,
+        do: () => {
+            must.push(
+                {term: {'planning.g2_content_type': type}}
+            );
+        },
+    }, {
+        condition: () => priority,
+        do: () => {
+            must.push(
+                {term: {priority: priority}}
+            );
+        },
+    }, {
+        condition: () => searchQuery,
+        do: () => {
+            must.push(
+                {query_string: {query: searchQuery}}
+            );
+        },
+    }, {
+        condition: () => dateFilter,
+        do: () => {
+            const timezoneOffset = moment()
+                .tz(systemTimezone || moment.tz.guess())
+                .format('Z');
+
+            switch (dateFilter) {
+            case 'today':
+                must.push({
+                    range: {
+                        'planning.scheduled': {
+                            gte: 'now/d',
+                            lte: 'now/d',
+                            time_zone: timezoneOffset,
+                        },
+                    },
+                });
+                break;
+            case 'current':
+                must.push({
+                    range: {
+                        'planning.scheduled': {
+                            lte: 'now/d',
+                            time_zone: timezoneOffset,
+                        },
+                    },
+                });
+                break;
+            case 'future':
+                must.push({
+                    range: {
+                        'planning.scheduled': {
+                            gt: 'now/d',
+                            time_zone: timezoneOffset,
+                        },
+                    },
+                });
+                break;
+            }
+        },
+    }, {
+        condition: () => get(baseQuery, 'must.length', 0) > 0,
+        do: () => {
+            must = must.concat(baseQuery.must);
+        },
+    }];
+
+    filters.forEach((filter) => {
+        if (filter.condition()) {
+            filter.do();
+        }
+    });
+
+    return {bool: {must}};
+};
 
 
 /**
@@ -25,6 +139,8 @@ const query = ({
     states = [],
     type = null,
     priority = null,
+    dateFilter = null,
+    size = null,
 }) => (
     (dispatch, getState, {api}) => {
         const filterByValues = {
@@ -34,53 +150,30 @@ const query = ({
             Scheduled: 'planning.scheduled',
         };
 
-        const baseQuery = selectors.getBaseAssignmentQuery(getState());
-
-        let query = {};
-        let must = [];
         let sort = '[("' + (get(filterByValues, orderByField, 'planning.scheduled')) + '", '
             + (orderDirection === 'Asc' ? 1 : -1) + ')]';
 
-        if (deskId) {
-            must.push(
-                {term: {'assigned_to.desk': deskId}}
-            );
-        }
-
-        if (userId) {
-            must.push(
-                {term: {'assigned_to.user': userId}}
-            );
-        }
-
-        if (states.length > 0) {
-            must.push(
-                {terms: {'assigned_to.state': states}}
-            );
-        }
-
-        if (type) {
-            must.push(
-                {term: {'planning.g2_content_type': type}}
-            );
-        }
-
-        if (priority) {
-            must.push(
-                {term: {priority: priority}}
-            );
-        }
-
-        if (searchQuery) {
-            must.push({query_string: {query: searchQuery}});
-        }
-
-        query.bool = {must: must.concat(baseQuery.must)};
+        const systemTimezone = selectors.config.defaultTimeZone(getState());
+        const baseQuery = selectors.getBaseAssignmentQuery(getState());
+        const query = constructQuery({
+            systemTimezone,
+            baseQuery,
+            searchQuery,
+            deskId,
+            userId,
+            states,
+            type,
+            priority,
+            dateFilter,
+        });
 
         return api('assignments').query({
             page: page,
             sort: sort,
-            source: JSON.stringify({query}),
+            source: JSON.stringify(size !== null ?
+                {query, size} :
+                {query}
+            ),
         })
             .then((data) => {
                 if (get(data, '_items')) {
@@ -467,6 +560,7 @@ const self = {
     receiveAssignmentHistory,
     unlink,
     setBaseQuery,
+    constructQuery,
 };
 
 export default self;

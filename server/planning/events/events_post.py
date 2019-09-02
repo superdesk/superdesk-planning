@@ -156,7 +156,8 @@ class EventsPostService(EventsBaseService):
         # Remove previous workflow state reason
         if new_item_state in [WORKFLOW_STATE.SCHEDULED, WORKFLOW_STATE.KILLED]:
             updates['state_reason'] = None
-            updates['actioned_date'] = None
+            if not event.get('completed'):
+                updates['actioned_date'] = None
 
         updated_event = get_resource_service('events').update(event['_id'], updates, event)
         event.update(updated_event)
@@ -186,7 +187,7 @@ class EventsPostService(EventsBaseService):
                                                                        'published_item': event}])
         if version_id:
             # Asynchronously enqueue the item for publishing.
-            enqueue_planning_item.apply_async(kwargs={'id': version_id[0]})
+            enqueue_planning_item.apply_async(kwargs={'id': version_id[0]}, serializer="eve/json")
         else:
             logger.error('Failed to save planning version for event item id {}'.format(event['_id']))
 

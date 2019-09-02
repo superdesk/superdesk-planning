@@ -218,6 +218,7 @@ export class CoverageForm extends React.Component {
                     label={gettext('Coverage Provider Contact')}
                     defaultValue={[]}
                     {...fieldProps}
+                    readOnly={readOnly}
                     onPopupOpen={onPopupOpen}
                     onPopupClose={onPopupClose}
                     singleValue={true} />

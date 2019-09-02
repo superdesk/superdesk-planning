@@ -27,6 +27,7 @@ class AssignmentsUnlinkService(Service):
     def create(self, docs):
         ids = []
         production = get_resource_service('archive')
+        archived = get_resource_service('archived')
         assignments_service = get_resource_service('assignments')
         updated_items = []
         actioned_item = {}
@@ -35,10 +36,15 @@ class AssignmentsUnlinkService(Service):
         for doc in docs:
             # Boolean set to true if the unlink is as the result of spiking the content item
             spike = doc.pop('spike', False)
+            cancel = doc.pop('cancel', False)
             assignment = assignments_service.find_one(req=None, _id=doc.pop('assignment_id'))
             assignments_service.validate_assignment_action(assignment)
             actioned_item_id = doc.pop('item_id')
             actioned_item = production.find_one(req=None, _id=actioned_item_id)
+            if not actioned_item:
+                actioned_item = archived.find_one(req=None, _id=actioned_item_id)
+                actioned_item_id = actioned_item.get('item_id')
+
             updates = {'assigned_to': deepcopy(assignment.get('assigned_to'))}
 
             related_items = get_related_items(actioned_item, assignment)
@@ -58,24 +64,27 @@ class AssignmentsUnlinkService(Service):
                 assignments_service.patch(assignment.get(config.ID_FIELD), updates)
 
             # Delete delivery records associated with all the items unlinked
-            item_ids = [i.get(config.ID_FIELD) for i in related_items]
+            item_ids = [i.get(config.ID_FIELD) if not i.get('_type') == 'archived' else i.get('item_id') for i in
+                        related_items]
             get_resource_service('delivery').delete_action(lookup={'item_id': {'$in': item_ids}})
 
             # publishing planning item
             assignments_service.publish_planning(assignment['planning_item'])
 
-            user = get_user()
-            PlanningNotifications().notify_assignment(target_desk=actioned_item.get('task').get('desk'),
-                                                      message='assignment_spiked_unlinked_msg',
-                                                      actioning_user=user.get('display_name',
-                                                                              user.get('username', 'Unknown')),
-                                                      action='unlinked' if not spike else 'spiked',
-                                                      coverage_type=get_coverage_type_name(
-                                                          actioned_item.get('type', '')),
-                                                      slugline=actioned_item.get('slugline'),
-                                                      omit_user=True,
-                                                      assignment_id=assignment[config.ID_FIELD],
-                                                      is_link=True)
+            if not cancel:
+                user = get_user()
+                PlanningNotifications().notify_assignment(target_desk=actioned_item.get('task').get('desk'),
+                                                          message='assignment_spiked_unlinked_msg',
+                                                          actioning_user=user.get('display_name',
+                                                                                  user.get('username', 'Unknown')),
+                                                          action='unlinked' if not spike else 'spiked',
+                                                          coverage_type=get_coverage_type_name(
+                                                              actioned_item.get('type', '')),
+                                                          slugline=actioned_item.get('slugline'),
+                                                          omit_user=True,
+                                                          assignment_id=assignment[config.ID_FIELD],
+                                                          is_link=True,
+                                                          no_email=True)
 
             push_content_notification(updated_items)
             push_notification(
@@ -130,8 +139,11 @@ class AssignmentsUnlinkService(Service):
             _id=doc.get('item_id')
         )
 
+        # try looking in the archived content
         if not item:
-            raise SuperdeskApiError.badRequestError('Content item not found.')
+            item = get_resource_service('archived').find_one(req=None, _id=doc.get('item_id'))
+            if not item:
+                raise SuperdeskApiError.badRequestError('Content item not found.')
 
         # If the item is locked, then check to see if it is locked by the
         # current user in their current session
@@ -158,7 +170,8 @@ class AssignmentsUnlinkService(Service):
 
         deliveries = get_resource_service('delivery').get(req=None, lookup={
             'assignment_id': assignment.get(config.ID_FIELD)})
-        delivery = [d for d in deliveries if d.get('item_id') == doc.get('item_id')]
+        # Match the passed item_id in doc or if the item is archived the archived item_id
+        delivery = [d for d in deliveries if d.get('item_id') == item.get('item_id', doc.get('item_id'))]
         if len(delivery) <= 0:
             raise SuperdeskApiError.badRequestError(
                 'Content doesnt exist for the assignment. Cannot unlink assignment and content.'

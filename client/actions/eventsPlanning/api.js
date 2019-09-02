@@ -17,6 +17,7 @@ const query = (
         maxResults = MAIN.PAGE_SIZE,
         calendars = [],
         agendas = [],
+        places = [],
     },
     storeTotal = false
 ) => (
@@ -46,6 +47,8 @@ const query = (
             page: page,
             max_results: maxResults,
         };
+
+        search.place = get(places, 'length', 0) > 0 ? JSON.stringify((places || []).map((a) => a.qcode)) : search.place;
 
         // Query the API
         return api('events_planning_search').query(search)
@@ -95,6 +98,7 @@ const refetch = (page = 1, items = [], updateFilter = false) => (
                 ...params,
                 agendas: get(filter, 'agendas', []),
                 calendars: get(filter, 'calendars', []),
+                places: get(filter, 'places', []),
             };
         }
 
