@@ -2,7 +2,7 @@ import React from 'react';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import {defer} from 'lodash';
+import {defer, get} from 'lodash';
 
 import {Menu, Label, Divider, Dropdown as DropMenu} from '../Dropdown';
 import {gettext} from '../utils';
