@@ -446,7 +446,6 @@ class PlanningService(superdesk.Service):
                         slugline=coverage.get('planning', {}).get('slugline', ''),
                         internal_note=coverage.get('planning', {}).get('internal_note', ''),
                         no_email=True)
-
                 # If the scheduled time for the coverage changes
                 if coverage.get('planning', {}).get('scheduled', datetime.min).strftime('%c') != \
                         original_coverage.get('planning', {}).get('scheduled', datetime.min).strftime('%c'):
@@ -468,6 +467,7 @@ class PlanningService(superdesk.Service):
             self.add_scheduled_updates(updates, original, coverage)
             self.update_scheduled_updates(updates, original, coverage, original_coverage)
             self.remove_scheduled_updates(updates, original, coverage, original_coverage)
+
             self._create_update_assignment(original, updates, coverage, original_coverage)
 
     def _set_coverage(self, updates, original=None):
