@@ -164,7 +164,8 @@ export const CoveragePreview = ({
                             newsCoverageStatus={newsCoverageStatus}
                             dateFormat={dateFormat}
                             timeFormat={timeFormat}
-                            forPreview />
+                            forPreview
+                            readOnly />
                     ))}
                 </PreviewRow>)}
 

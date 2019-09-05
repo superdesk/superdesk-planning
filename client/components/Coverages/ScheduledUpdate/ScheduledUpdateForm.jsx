@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {gettext, planningUtils, getItemWorkflowState} from '../../../utils';
+import {gettext, planningUtils} from '../../../utils';
 import {WORKFLOW_STATE} from '../../../constants';
 import {
     TextAreaInput,
@@ -81,7 +81,7 @@ export class ScheduledUpdateForm extends React.Component {
                     noteField="workflow_status_reason"
                     showTooltip={false}
                     showText
-                    stateField= {getItemWorkflowState(diff) === WORKFLOW_STATE.DRAFT ?
+                    stateField= {value.workflow_status === WORKFLOW_STATE.CANCELLED ?
                         `coverages[${coverageIndex}].scheduled_updates[${index}].workflow_status` : 'state'}
                     className="form__row" />
 
@@ -115,7 +115,8 @@ export class ScheduledUpdateForm extends React.Component {
                     {...fieldProps}
                     onPopupOpen={onPopupOpen}
                     onPopupClose={onPopupClose}
-                    singleValue={true} />
+                    singleValue={true}
+                    readOnly={readOnly} />
 
                 <Field
                     component={SelectInput}

@@ -321,7 +321,7 @@ class PlanningService(superdesk.Service):
             return all_items
 
     def remove_coverages(self, updates, original):
-        for coverage in original.get('coverages') or []:
+        for coverage in (original or {}).get('coverages') or []:
             updated_coverage = next((cov for cov in updates.get('coverages') or []
                                      if cov.get('coverage_id') == coverage.get('coverage_id')), None)
 
@@ -339,6 +339,13 @@ class PlanningService(superdesk.Service):
                 'user')) and not planning.get('flags', {}).get('overide_auto_assign_to_workflow', False) \
                 and coverage['workflow_status'] == WORKFLOW_STATE.DRAFT:
             coverage['workflow_status'] = WORKFLOW_STATE.ACTIVE
+
+            # set all scheduled_updates to be activated
+            for s in coverage.get('scheduled_updates') or []:
+                if s.get('assigned_to') and s['workflow_status'] == WORKFLOW_STATE.DRAFT:
+                    s['workflow_status'] = WORKFLOW_STATE.ACTIVE
+
+            return
 
         assigned_to = coverage.get('assigned_to')
         if assigned_to and assigned_to.get('state') == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED:
@@ -401,14 +408,14 @@ class PlanningService(superdesk.Service):
             original_scheduled_update = next((orig_s for orig_s in (original_coverage.get('scheduled_updates') or [])
                                               if s['scheduled_update_id'] == orig_s.get('scheduled_update_id')), None)
 
-            if original_scheduled_update and original_scheduled_update.get('workflow_status') == WORKFLOW_STATE.DRAFT \
-                    and s.get('workflow_status') == WORKFLOW_STATE.ACTIVE:
-                self.set_scheduled_update_active(s, updates, coverage)
-            self._create_update_assignment(original, updates, s, original_scheduled_update, coverage)
+            if original_scheduled_update:
+                if original_scheduled_update.get('workflow_status') == WORKFLOW_STATE.DRAFT and \
+                        s.get('workflow_status') == WORKFLOW_STATE.ACTIVE:
+                    self.set_scheduled_update_active(s, updates, coverage)
+                self._create_update_assignment(original, updates, s, original_scheduled_update, coverage)
 
     def update_coverages(self, updates, original):
         for coverage in (updates.get('coverages') or []):
-            original_coverage = None
             coverage_id = coverage.get('coverage_id')
             original_coverage = next((cov for cov in original.get('coverages') or []
                                       if cov['coverage_id'] == coverage_id), None)
@@ -680,6 +687,19 @@ class PlanningService(superdesk.Service):
 
     def cancel_coverage(self, coverage, coverage_cancel_state, original_workflow_status, assignment=None,
                         reason=None, event_cancellation=False, event_reschedule=False):
+        self._perform_coverage_cancel(coverage, coverage_cancel_state, original_workflow_status, assignment,
+                                      reason, event_cancellation, event_reschedule)
+
+        for s in coverage.get('scheduled_updates') or []:
+            self._perform_coverage_cancel(s, coverage_cancel_state, original_workflow_status, None,
+                                          reason, event_cancellation, event_reschedule)
+
+    def _perform_coverage_cancel(self, coverage, coverage_cancel_state, original_workflow_status, assignment,
+                                 reason, event_cancellation, event_reschedule):
+        # If coverage is already cancelled, don't change it's state_reason
+        if coverage.get('previous_status'):
+            return
+
         coverage['news_coverage_status'] = coverage_cancel_state
         coverage['previous_status'] = original_workflow_status
         coverage['workflow_status'] = WORKFLOW_STATE.CANCELLED
@@ -1098,6 +1118,7 @@ coverage_schema = {
                 },
                 'workflow_status': {'type': 'string'},
                 'assigned_to': assigned_to_schema,
+                'previous_status': {'type': 'string'},
                 'news_coverage_status': {
                     'type': 'dict',
                     'schema': {
@@ -1115,6 +1136,10 @@ coverage_schema = {
                         'contact_info': Resource.rel('contacts', type='string', nullable=True),
                         'scheduled': {'type': 'datetime'},
                         'genre': metadata_schema['genre'],
+                        'workflow_status_reason': {
+                            'type': 'string',
+                            'nullable': True
+                        },
                     }
                 }
             }

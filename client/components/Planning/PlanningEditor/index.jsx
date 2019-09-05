@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get, cloneDeep, remove as _remove, some, isEqual, isEmpty, omit} from 'lodash';
+import {get, cloneDeep, some, isEqual, isEmpty, omit} from 'lodash';
 
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
@@ -59,6 +59,7 @@ export class PlanningEditorComponent extends React.Component {
         this.onCancelCoverage = this.onCancelCoverage.bind(this);
         this.onPlanningDateChange = this.onPlanningDateChange.bind(this);
         this.onAddCoverageToWorkflow = this.onAddCoverageToWorkflow.bind(this);
+        this.onAddScheduledUpdateToWorkflow = this.onAddScheduledUpdateToWorkflow.bind(this);
         this.onRemoveAssignment = this.onRemoveAssignment.bind(this);
 
         this.onAddFiles = this.onAddFiles.bind(this);
@@ -157,21 +158,12 @@ export class PlanningEditorComponent extends React.Component {
         this.onChange('coverages', diffCoverages);
     }
 
-    onCancelCoverage(coverage, remove = false) {
-        let coverages = cloneDeep(this.props.diff.coverages);
-
-        if (remove) {
-            _remove(coverages, (c) => c.coverage_id === coverage.coverage_id);
-            this.onChange('coverages', coverages);
-        } else {
-            // Cancel only
-            const coverageIndex = coverages.findIndex((c) => c.coverage_id === coverage.coverage_id);
-
-            this.onPartialSave(coverage, coverageIndex, COVERAGES.PARTIAL_SAVE.CANCEL_COVERAGE);
-        }
+    onCancelCoverage(coverage, index, scheduledUpdate, scheduledUpdateIndex) {
+        this.onPartialSave(coverage, index, COVERAGES.PARTIAL_SAVE.CANCEL_COVERAGE,
+            scheduledUpdate, scheduledUpdateIndex);
     }
 
-    onPartialSave(coverage, index, action) {
+    onPartialSave(coverage, index, action, scheduledUpdate, scheduledUpdateIndex) {
         const updates = cloneDeep(get(this.props, 'item'));
 
         updates.coverages[index] = coverage;
@@ -190,13 +182,20 @@ export class PlanningEditorComponent extends React.Component {
             partialSaveAction = this.props.itemManager.removeAssignment;
         } else if (action == COVERAGES.PARTIAL_SAVE.CANCEL_COVERAGE) {
             partialSaveAction = this.props.itemManager.cancelCoverage;
+        } else if (action == COVERAGES.PARTIAL_SAVE.SCHEDULED_UPDATES_ADD_TO_WORKFLOW) {
+            partialSaveAction = this.props.itemManager.addScheduledUpdateToWorkflow;
         }
 
-        partialSaveAction(this.props.item, coverage, index);
+        partialSaveAction(this.props.item, coverage, index, scheduledUpdate, scheduledUpdateIndex);
     }
 
     onAddCoverageToWorkflow(coverage, index) {
         this.onPartialSave(coverage, index, COVERAGES.PARTIAL_SAVE.ADD_TO_WORKFLOW);
+    }
+
+    onAddScheduledUpdateToWorkflow(coverage, coverageIndex, scheduledUpdate, index) {
+        this.onPartialSave(coverage, coverageIndex, COVERAGES.PARTIAL_SAVE.SCHEDULED_UPDATES_ADD_TO_WORKFLOW,
+            scheduledUpdate, index);
     }
 
     onRemoveAssignment(coverage, index) {
@@ -715,6 +714,7 @@ export class PlanningEditorComponent extends React.Component {
                     onDuplicateCoverage={this.onDuplicateCoverage}
                     onCancelCoverage={this.onCancelCoverage}
                     onAddCoverageToWorkflow={this.onAddCoverageToWorkflow}
+                    onAddScheduledUpdateToWorkflow={this.onAddScheduledUpdateToWorkflow}
                     onRemoveAssignment={this.onRemoveAssignment}
                     readOnly={readOnly}
                     maxCoverageCount={maxCoverageCount}
