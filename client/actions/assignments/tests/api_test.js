@@ -7,7 +7,7 @@ import {
     getTestActionStore,
     restoreSinonStub,
 } from '../../../utils/testUtils';
-import {ASSIGNMENTS} from '../../../constants';
+import {ASSIGNMENTS, ALL_DESKS} from '../../../constants';
 
 describe('actions.assignments.api', () => {
     let store;
@@ -36,6 +36,12 @@ describe('actions.assignments.api', () => {
         it('filter by desk', () => {
             expect(assignmentsApi.constructQuery({deskId: 'desk1'})).toEqual({
                 bool: {must: [{term: {'assigned_to.desk': 'desk1'}}]},
+            });
+        });
+
+        it('doesnt filter any desk if deskId is ALL_DESKS', () => {
+            expect(assignmentsApi.constructQuery({deskId: ALL_DESKS})).toEqual({
+                bool: {must: []},
             });
         });
 
