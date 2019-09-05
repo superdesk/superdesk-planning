@@ -1,5 +1,6 @@
 import sinon from 'sinon';
 
+import {ALL_DESKS} from '../../constants';
 import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
 import * as testData from '../../utils/testData';
 
@@ -137,7 +138,7 @@ describe('assignments service', () => {
                     orderDirection: 'Asc',
                     filterByType: 'text',
                     filterByPriority: null,
-                    selectedDeskId: 'desk2',
+                    selectedDeskId: ALL_DESKS,
                 }]);
 
                 expect(actions.assignments.ui.preview.callCount).toBe(1);
@@ -213,7 +214,7 @@ describe('assignments service', () => {
                         orderDirection: 'Asc',
                         filterByType: 'text',
                         filterByPriority: null,
-                        selectedDeskId: 'desk2',
+                        selectedDeskId: ALL_DESKS,
                     }]);
 
                     expect(actions.assignments.ui.preview.callCount).toBe(1);

@@ -2,7 +2,7 @@ import moment from 'moment';
 import {get, cloneDeep, has, pick} from 'lodash';
 
 import * as selectors from '../../selectors';
-import {ASSIGNMENTS} from '../../constants';
+import {ASSIGNMENTS, ALL_DESKS} from '../../constants';
 import planningUtils from '../../utils/planning';
 import {lockUtils, getErrorMessage, isExistingItem, gettext} from '../../utils';
 import planning from '../planning';
@@ -26,7 +26,7 @@ const constructQuery = ({
     let must = [];
 
     const filters = [{
-        condition: () => deskId,
+        condition: () => deskId && deskId !== ALL_DESKS,
         do: () => {
             must.push(
                 {term: {'assigned_to.desk': deskId}}

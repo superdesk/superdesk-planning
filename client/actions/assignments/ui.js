@@ -2,7 +2,7 @@ import {showModal} from '../index';
 import assignments from './index';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
-import {ASSIGNMENTS, MODALS, WORKSPACE} from '../../constants';
+import {ASSIGNMENTS, MODALS, WORKSPACE, ALL_DESKS} from '../../constants';
 import {getErrorMessage, assignmentUtils, gettext} from '../../utils';
 import {get, cloneDeep} from 'lodash';
 
@@ -55,11 +55,6 @@ const loadFulfillModal = (item, groupKeys) => (
             `planning.slugline.phrase:("${item.slugline}")` :
             null;
 
-        const currentDesk = get(desks, 'active.desk');
-        const selectedDeskId = get(item, 'task.desk') ?
-            item.task.desk :
-            currentDesk;
-
         return dispatch(self.loadAssignments({
             filterBy: 'Desk',
             searchQuery: searchQuery,
@@ -67,7 +62,7 @@ const loadFulfillModal = (item, groupKeys) => (
             orderDirection: 'Asc',
             filterByType: get(item, 'type'),
             filterByPriority: null,
-            selectedDeskId: selectedDeskId,
+            selectedDeskId: ALL_DESKS,
         }));
     }
 );

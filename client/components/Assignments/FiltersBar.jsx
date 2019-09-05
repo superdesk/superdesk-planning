@@ -18,6 +18,7 @@ export const FiltersBar = ({
     selectedDeskId,
     selectAssignmentsFrom,
     showDeskSelection,
+    showAllDeskOption,
 }) => (
     <SubNav>
         <StretchBar>
@@ -50,6 +51,7 @@ export const FiltersBar = ({
                     userDesks={userDesks}
                     selectedDeskId={selectedDeskId}
                     selectAssignmentsFrom={selectAssignmentsFrom}
+                    showAllDeskOption={showAllDeskOption}
                 />
             )}
         </StretchBar>
@@ -75,6 +77,7 @@ FiltersBar.propTypes = {
     selectedDeskId: PropTypes.string,
     selectAssignmentsFrom: PropTypes.func,
     showDeskSelection: PropTypes.bool,
+    showAllDeskOption: PropTypes.bool,
 };
 
 FiltersBar.defaultProps = {
@@ -86,4 +89,5 @@ FiltersBar.defaultProps = {
     selectedDeskId: '',
     workspace: '',
     showDeskSelection: false,
+    showAllDeskOption: false,
 };

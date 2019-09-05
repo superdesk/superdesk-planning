@@ -105,6 +105,7 @@ export class AssignmentsSubNavComponent extends React.Component {
             workspace,
             userDesks,
             currentDeskId,
+            showAllDeskOption,
         } = this.props;
 
         // Show the Desk selection if we're in Fulfil Assignment or Custom Workspace
@@ -132,6 +133,7 @@ export class AssignmentsSubNavComponent extends React.Component {
                     userDesks={showDeskSelection ? userDesks : []}
                     selectAssignmentsFrom={this.selectAssignmentsFrom}
                     showDeskSelection={showDeskSelection}
+                    showAllDeskOption={showAllDeskOption}
                 />
             </div>
         );
@@ -161,7 +163,10 @@ AssignmentsSubNavComponent.propTypes = {
     currentDeskId: PropTypes.string,
     listGroups: PropTypes.array,
     assignmentCounts: PropTypes.object,
+    showAllDeskOption: PropTypes.bool,
 };
+
+AssignmentsSubNavComponent.defaultProps = {showAllDeskOption: false};
 
 const mapStateToProps = (state) => ({
     filterBy: selectors.getFilterBy(state),

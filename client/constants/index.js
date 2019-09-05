@@ -137,3 +137,5 @@ export const TIME_COMPARISON_GRANULARITY = {
     SECOND: 'second',
     MILLISECOND: 'millisecond',
 };
+
+export const ALL_DESKS = '_all';
