@@ -72,7 +72,10 @@ const planningReducer = createReducer(initialState, {
 
         markPlaning(plan, payload, 'cancelled');
         plan.state = WORKFLOW_STATE.CANCELLED;
-        plan.coverages.forEach((coverage) => markCoverage(coverage, payload, 'cancelled'));
+        plan.coverages.forEach((coverage) => {
+            markCoverage(coverage, payload, 'cancelled')
+            (coverage.get('scheduled_updates') || []).forEach((s) => markCoverage(s, payload, 'cancelled'));
+        });
 
         return {
             ...state,

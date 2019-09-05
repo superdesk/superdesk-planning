@@ -504,18 +504,30 @@ const saveFromAuthoring = (original, updates) => (
  */
 const addCoverageToWorkflow = (original, updatedCoverage, index) => (
     (dispatch, getState, {notify}) => {
-        const updates = {coverages: cloneDeep(original.coverages)};
-        const coverage = cloneDeep(updatedCoverage);
-        const newsCoverageStatus = selectors.general.newsCoverageStatus(getState());
+        let updates = {coverages: cloneDeep(original.coverages)};
 
-        set(coverage, 'news_coverage_status', newsCoverageStatus.find((s) => s.qcode === 'ncostat:int'));
-        set(coverage, 'workflow_status', COVERAGES.WORKFLOW_STATE.ACTIVE);
-        set(coverage, 'assigned_to.state', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED);
-        updates.coverages[index] = coverage;
+        updates.coverages[index] = planningUtils.getActiveCoverage(updatedCoverage,
+            selectors.general.newsCoverageStatus(getState()));
 
         return dispatch(planningApi.save(original, updates))
             .then((savedItem) => {
                 notify.success(gettext('Coverage added to workflow.'));
+                return dispatch(self.updateItemOnSave(savedItem));
+            });
+    }
+);
+
+const addScheduledUpdateToWorkflow = (original, coverage, coverageIndex, scheduledUpdate, index) => (
+    (dispatch, getState, {notify}) => {
+        let updates = {coverages: cloneDeep(original.coverages)};
+        let coverage = updates.coverages[coverageIndex];
+
+        coverage.scheduled_updates[index] = planningUtils.getActiveCoverage(scheduledUpdate,
+            selectors.general.newsCoverageStatus(getState()));
+
+        return dispatch(planningApi.save(original, updates))
+            .then((savedItem) => {
+                notify.success(gettext('Scheduled update added to workflow.'));
                 return dispatch(self.updateItemOnSave(savedItem));
             });
     }
@@ -558,7 +570,8 @@ const addNewCoverageToPlanning = (coverageType, item) => (
     })))
 );
 
-const openCancelCoverageModal = (planning, coverage, index, onSubmit, onCancel) => (
+const openCancelCoverageModal = (planning, coverage, index, onSubmit, onCancel,
+    scheduledUpdate, scheduledUpdateIndex) => (
     (dispatch, getState) =>
         dispatch(showModal({
             modalType: MODALS.ITEM_ACTIONS_MODAL,
@@ -569,16 +582,21 @@ const openCancelCoverageModal = (planning, coverage, index, onSubmit, onCancel) 
                 index: index,
                 onSubmit: onSubmit,
                 onCancel: onCancel,
+                scheduledUpdate: scheduledUpdate,
+                scheduledUpdateIndex: scheduledUpdateIndex,
             },
         }))
 );
 
-const cancelCoverage = (original, updatedCoverage, index) => (
+const cancelCoverage = (original, updatedCoverage, index, scheduledUpdate, scheduledUpdateIndex) => (
     (dispatch, getState, {notify}) => {
-        const updates = {coverages: cloneDeep(original.coverages)};
-        const coverage = cloneDeep(updatedCoverage);
+        let updates = {coverages: cloneDeep(original.coverages)};
 
-        updates.coverages[index] = coverage;
+        if (!scheduledUpdate) {
+            updates.coverages[index] = cloneDeep(updatedCoverage);
+        } else {
+            updates.coverages[index].scheduled_updates[scheduledUpdateIndex] = cloneDeep(scheduledUpdate);
+        }
 
         return dispatch(planningApi.save(original, updates))
             .then((savedItem) => {
@@ -621,6 +639,7 @@ const self = {
     addNewCoverageToPlanning,
     openCancelCoverageModal,
     cancelCoverage,
+    addScheduledUpdateToWorkflow,
 };
 
 export default self;

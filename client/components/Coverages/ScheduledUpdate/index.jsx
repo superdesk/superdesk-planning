@@ -12,7 +12,7 @@ import {CoverageFormHeader} from '../CoverageEditor/CoverageFormHeader';
 import {CoveragePreviewTopBar} from '../CoveragePreview/CoveragePreviewTopBar';
 
 import {planningUtils, gettext, stringUtils} from '../../../utils';
-import {PLANNING} from '../../../constants';
+import {PLANNING, COVERAGES} from '../../../constants';
 
 export const ScheduledUpdate = ({
     diff,
@@ -47,28 +47,32 @@ export const ScheduledUpdate = ({
     onOpen,
     onClose,
     message,
+    onAddScheduledUpdateToWorkflow,
+    onCancelCoverage,
     ...props
 }) => {
+    const coverage = get(diff, `coverages[${coverageIndex}]`);
     // Coverage item actions
     let itemActions = [];
 
     if (!readOnly && !addNewsItemToPlanning) {
         // To be done in the next iteration
-        /* if (planningUtils.canCancelCoverage(value)) {
+        if (planningUtils.canCancelCoverage(value, diff, 'scheduled_update_id')) {
             itemActions.push({
                 ...COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE,
-                callback: onCancelCoverage.bind(null, value),
+                label: gettext('Cancel Scheduled Update'),
+                callback: onCancelCoverage.bind(null, coverage, coverageIndex, value, index),
             });
         }
 
-        if (planningUtils.canAddCoverageToWorkflow(value, autoAssignToWorkflow)) {
+        if (planningUtils.canAddScheduledUpdateToWorkflow(value, autoAssignToWorkflow, diff, coverage)) {
             itemActions.push({
                 id: 'addToWorkflow',
                 label: gettext('Add to workflow'),
                 icon: 'icon-assign',
-                callback: onAddCoverageToWorkflow.bind(null, value, index),
+                callback: onAddScheduledUpdateToWorkflow.bind(null, coverage, coverageIndex, value, index),
             });
-        } */
+        }
 
         if (planningUtils.canRemoveCoverage(value, diff)) {
             itemActions.push({
@@ -78,7 +82,6 @@ export const ScheduledUpdate = ({
             });
         }
     }
-
 
     const componentInvalid = get(message, `scheduled_updates.${index}`);
     const itemActionComponent = get(itemActions, 'length', 0) > 0 ?
@@ -107,6 +110,7 @@ export const ScheduledUpdate = ({
             itemActionComponent={itemActionComponent}
             readOnly={readOnly}
             isPreview={forPreview}
+            workflowStateReasonPrefix={`coverages[${coverageIndex}].scheduled_updates[${index}]`}
         />
     );
 

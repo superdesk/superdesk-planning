@@ -56,7 +56,9 @@ export class CancelCoverageComponent extends React.Component {
     }
 
     submit() {
-        let coverage = cloneDeep(this.props.modalProps.coverage);
+        const forScheduledUpdate = !!this.props.modalProps.scheduledUpdate;
+        let coverage = forScheduledUpdate ? cloneDeep(this.props.modalProps.scheduledUpdate) :
+            cloneDeep(this.props.modalProps.coverage);
 
         coverage.news_coverage_status = PLANNING.NEWS_COVERAGE_CANCELLED_STATUS;
         coverage.planning.workflow_status_reason = this.state.reason;
@@ -66,16 +68,24 @@ export class CancelCoverageComponent extends React.Component {
             coverage.assigned_to.state = WORKFLOW_STATE.CANCELLED;
         }
 
-        return this.props.onSubmit(this.props.original, coverage, this.props.modalProps.index);
+        return this.props.onSubmit(
+            this.props.original,
+            forScheduledUpdate ? null : coverage,
+            this.props.modalProps.index,
+            forScheduledUpdate ? coverage : null,
+            this.props.modalProps.scheduledUpdateIndex);
     }
 
     render() {
+        const label = this.props.modalProps.scheduledUpdate ? gettext('Reason for cancelling the scheduled update') :
+            gettext('Reason for cancelling the coverage');
+
         return (
             <div className="MetadataView">
                 <Row value={get(this.props, 'modalProps.coverage.planning.slugline')} className="strong" />
                 <Row>
                     <TextAreaInput
-                        label={gettext('Reason for cancelling the coverage')}
+                        label={label}
                         value={this.state.reason}
                         onChange={this.onReasonChange}
                         disabled={this.props.submitting}
@@ -114,7 +124,8 @@ CancelCoverageComponent.propTypes = {
 const mapStateToProps = (state) => ({coverageCancelProfile: selectors.forms.coverageCancelProfile(state)});
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-    onSubmit: (original, updates, index) => ownProps.modalProps.onSubmit(original, updates, index),
+    onSubmit: (original, updates, index, scheduledUpdate, scheduledUpdateIndex) =>
+        ownProps.modalProps.onSubmit(original, updates, index, scheduledUpdate, scheduledUpdateIndex),
 
     onHide: () => {
         ownProps.modalProps.onCancel();

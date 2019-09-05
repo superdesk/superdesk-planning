@@ -29,6 +29,7 @@ export const CoverageItem = ({
     itemActionComponent,
     isPreview,
     active,
+    workflowStateReasonPrefix,
 }) => {
     const userAssigned = getCreator(coverage, 'assigned_to.user', users);
     const deskAssigned = getItemInArrayById(desks, get(coverage, 'assigned_to.desk'));
@@ -37,9 +38,10 @@ export const CoverageItem = ({
         getDateTimeString(coverageDate, dateFormat, timeFormat, ' @ ', false);
     const coverageInWorkflow = planningUtils.isCoverageInWorkflow(coverage);
     const displayContentType = [
-        stringUtils.firstCharUpperCase(get(coverage, 'planning.g2_content_type', '').replace('_', ' ')),
+        stringUtils.firstCharUpperCase(get(coverage, 'planning.g2_content_type', gettext('Text')).replace('_', ' ')),
     ];
     const genre = stringUtils.firstCharUpperCase(get(coverage, 'planning.genre.name', ''));
+    const internalNoteFieldPrefix = workflowStateReasonPrefix || `coverages[${index}]`;
 
     if (genre) {
         displayContentType.push(`/${genre}`);
@@ -97,11 +99,11 @@ export const CoverageItem = ({
                     <span className="grid">
                         <InternalNoteLabel
                             item={item}
-                            prefix={`coverages[${index}].planning.`}
+                            prefix={`${internalNoteFieldPrefix}.planning.`}
                             noteField="workflow_status_reason"
                             showTooltip
                             stateField = {coverage.workflow_status === WORKFLOW_STATE.CANCELLED ?
-                                `coverages[${index}].workflow_status` : 'state'}
+                                `${internalNoteFieldPrefix}.workflow_status` : 'state'}
                             showHeaderText={false} />
                         <StateLabel
                             item={coverageInWorkflow ? get(coverage, 'assigned_to', {}) : coverage }

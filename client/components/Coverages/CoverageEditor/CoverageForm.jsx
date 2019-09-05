@@ -199,7 +199,7 @@ export class CoverageForm extends React.Component {
                     noteField="workflow_status_reason"
                     showTooltip={false}
                     showText
-                    stateField= {getItemWorkflowState(diff) === WORKFLOW_STATE.DRAFT ?
+                    stateField={value.workflow_status === WORKFLOW_STATE.CANCELLED ?
                         `coverages[${index}].workflow_status` : 'state'}
                     className="form__row" />
                 <Field
