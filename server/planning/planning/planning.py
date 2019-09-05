@@ -489,6 +489,7 @@ class PlanningService(superdesk.Service):
         # self._create_update_assignment(original, updates, coverage, coverage)
         # return
         # ********* [SDESK-3073]: End revert ***************"""
+
         self.remove_coverages(updates, original)
         self.add_coverages(updates, original)
         self.update_coverages(updates, original)

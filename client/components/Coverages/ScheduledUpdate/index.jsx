@@ -52,6 +52,7 @@ export const ScheduledUpdate = ({
     ...props
 }) => {
     const coverage = get(diff, `coverages[${coverageIndex}]`);
+
     // Coverage item actions
     let itemActions = [];
 
