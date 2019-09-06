@@ -36,6 +36,7 @@ class AssignmentsUnlinkService(Service):
         for doc in docs:
             # Boolean set to true if the unlink is as the result of spiking the content item
             spike = doc.pop('spike', False)
+            cancel = doc.pop('cancel', False)
             assignment = assignments_service.find_one(req=None, _id=doc.pop('assignment_id'))
             assignments_service.validate_assignment_action(assignment)
             actioned_item_id = doc.pop('item_id')
@@ -70,18 +71,20 @@ class AssignmentsUnlinkService(Service):
             # publishing planning item
             assignments_service.publish_planning(assignment['planning_item'])
 
-            user = get_user()
-            PlanningNotifications().notify_assignment(target_desk=actioned_item.get('task').get('desk'),
-                                                      message='assignment_spiked_unlinked_msg',
-                                                      actioning_user=user.get('display_name',
-                                                                              user.get('username', 'Unknown')),
-                                                      action='unlinked' if not spike else 'spiked',
-                                                      coverage_type=get_coverage_type_name(
-                                                          actioned_item.get('type', '')),
-                                                      slugline=actioned_item.get('slugline'),
-                                                      omit_user=True,
-                                                      assignment_id=assignment[config.ID_FIELD],
-                                                      is_link=True)
+            if not cancel:
+                user = get_user()
+                PlanningNotifications().notify_assignment(target_desk=actioned_item.get('task').get('desk'),
+                                                          message='assignment_spiked_unlinked_msg',
+                                                          actioning_user=user.get('display_name',
+                                                                                  user.get('username', 'Unknown')),
+                                                          action='unlinked' if not spike else 'spiked',
+                                                          coverage_type=get_coverage_type_name(
+                                                              actioned_item.get('type', '')),
+                                                          slugline=actioned_item.get('slugline'),
+                                                          omit_user=True,
+                                                          assignment_id=assignment[config.ID_FIELD],
+                                                          is_link=True,
+                                                          no_email=True)
 
             push_content_notification(updated_items)
             push_notification(

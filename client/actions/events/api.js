@@ -1265,10 +1265,11 @@ const _saveLocation = (event, original) => (
         const location = get(event, 'location');
 
         if (!location || !location.name) {
-            if (get(original, 'location')) {
-                event.location = null;
-            } else {
+            if (!get(original, 'location')) {
                 delete event.location;
+            } else if (get(original, 'lock_action') === EVENTS.ITEM_ACTIONS.EDIT_EVENT.lock_action) {
+                // only if event was edited
+                event.location = null;
             }
 
             return Promise.resolve(event);

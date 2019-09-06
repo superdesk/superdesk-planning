@@ -102,13 +102,14 @@ class AssignmentsCompleteService(BaseService):
         if target_user is None:
             target_user = original.get('assigned_to', {}).get('assignor_desk')
         PlanningNotifications().notify_assignment(target_user=target_user,
-                                                  message='assignment_complete_msg',
+                                                  message='assignment_fulfilled_msg',
                                                   assignee=assignee,
                                                   coverage_type=get_coverage_type_name(
                                                       original.get('planning', {}).get('g2_content_type', '')),
                                                   slugline=original.get('planning', {}).get('slugline'),
                                                   omit_user=True,
                                                   assignment_id=original[config.ID_FIELD],
-                                                  is_link=True)
+                                                  is_link=True,
+                                                  no_email=True)
 
         return item

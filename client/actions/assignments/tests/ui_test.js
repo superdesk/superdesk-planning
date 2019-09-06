@@ -5,7 +5,7 @@ import assignmentsApi from '../api';
 import planningApi from '../../planning/api';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import * as testData from '../../../utils/testData';
-import {ASSIGNMENTS} from '../../../constants';
+import {ASSIGNMENTS, ALL_DESKS} from '../../../constants';
 
 describe('actions.assignments.ui', () => {
     let store;
@@ -847,7 +847,7 @@ describe('actions.assignments.ui', () => {
                 orderDirection: 'Asc',
                 filterByType: 'text',
                 filterByPriority: null,
-                selectedDeskId: 'desk2',
+                selectedDeskId: ALL_DESKS,
             }]);
         });
 
@@ -870,11 +870,11 @@ describe('actions.assignments.ui', () => {
                 orderDirection: 'Asc',
                 filterByType: 'text',
                 filterByPriority: null,
-                selectedDeskId: 'desk2',
+                selectedDeskId: ALL_DESKS,
             }]);
         });
 
-        it('uses the currently selected desk if no desk defined', () => {
+        it('uses the currently selected desk to all desks', () => {
             const item = {
                 slugline: 'Olympics',
                 type: 'text',
@@ -894,7 +894,7 @@ describe('actions.assignments.ui', () => {
                 orderDirection: 'Asc',
                 filterByType: 'text',
                 filterByPriority: null,
-                selectedDeskId: 'desk3',
+                selectedDeskId: ALL_DESKS,
             }]);
         });
     });

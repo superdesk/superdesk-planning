@@ -106,7 +106,8 @@ class EventsRescheduleService(EventsBaseService):
                 if len(plan.get('coverages', [])) > 0:
                     planning_cancel_service.update(plan[config.ID_FIELD], {
                         'reason': reason,
-                        'cancel_all_coverage': True
+                        'cancel_all_coverage': True,
+                        'event_reschedule': True
                     }, plan)
 
     @staticmethod

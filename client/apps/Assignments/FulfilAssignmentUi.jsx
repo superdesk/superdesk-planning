@@ -16,6 +16,7 @@ export const FulfilAssignmentUi = ({previewOpen, newsItem}) => (
         subNavProps={{
             archiveItem: newsItem,
             withArchiveItem: true,
+            showAllDeskOption: true,
         }}
 
         ListPanel={AssignmentList}

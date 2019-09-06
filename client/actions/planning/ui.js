@@ -207,10 +207,10 @@ const duplicate = (plan) => (
 
                 if (get(plan, 'event_item')) {
                     dispatch(main.unlockAndCancel(plan)).then(() => {
-                        dispatch(main.openForEdit(newPlan, true, openInModal));
+                        dispatch(main.openForEdit(newPlan, !openInModal, openInModal));
                     });
                 } else {
-                    dispatch(main.openForEdit(newPlan, true, openInModal));
+                    dispatch(main.openForEdit(newPlan, !openInModal, openInModal));
                 }
 
                 return Promise.resolve(newPlan);

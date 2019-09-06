@@ -32,6 +32,12 @@ const canStartWorking = (assignment, session, privileges, contentTypes) => (
         )
 );
 
+const canFulfilAssignment = (assignment, session, privileges) => (
+    !!privileges[PRIVILEGES.ARCHIVE] &&
+        isNotLockRestricted(assignment, session) &&
+        get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED
+);
+
 const isAssignmentInEditableState = (assignment) => (
     (includes([ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED, ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
         ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS],
@@ -285,6 +291,7 @@ const self = {
     isAssignmentInEditableState,
     getAssignmentActions,
     canStartWorking,
+    canFulfilAssignment,
     getAssignmentGroupsByStates,
     canEditDesk,
     assignmentHasContent,

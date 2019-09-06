@@ -47,6 +47,12 @@ class EventsFilesService(superdesk.Service):
             # save the media id to retrieve the file later
             doc['filemeta'] = {'media_id': doc['media']}
 
+    def on_created(self, docs):
+        for doc in docs:
+            # check if the filename contains a folder, if so just return the file name component
+            if isinstance(doc.get('media'), dict) and '/' in doc.get('media', {}).get('name', ''):
+                doc['media']['name'] = doc['media']['name'].split('/')[1]
+
     def on_delete(self, doc):
         events_using_file = get_resource_service("events").find(where={'files': doc.get("_id")})
         if events_using_file.count() > 0:

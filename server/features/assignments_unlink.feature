@@ -116,12 +116,14 @@ Feature: Assignment Unlink
             }
         }
         """
+        And we store "firstuser" with value "#CONTEXT_USER_ID#" to context
         When we get "archive/#archive._id#"
         Then we get existing resource
         """
         {"assignment_id": "#assignmentId#"}
         """
         When we reset notifications
+        When we switch user
         When we post to "assignments/unlink" with success
         """
         [{
@@ -138,24 +140,26 @@ Feature: Assignment Unlink
         Then we get existing resource
         """
         {"_items": [{
+            "user_name" : "test-user-2",
+            "data" : {
+                "no_email" : true,
+                "slugline" : "test slugline",
+                "action" : "unlinked",
+                "coverage_type" : "Text",
+                "actioning_user" : "test-user-2",
+                "is_link" : true,
+                "omit_user" : true
+            },
+            "user" : "#CONTEXT_USER_ID#",
+            "message" : "{{actioning_user}} has {{action}} a {{coverage_type}} coverage for \"{{slugline}}\"",
             "recipients" : [
                 {
-                    "read" : false,
-                    "user_id" : "#CONTEXT_USER_ID#"
+                    "user_id" : "#firstuser#",
+                    "read" : false
                 }
             ],
-            "user" : "#CONTEXT_USER_ID#",
             "resource" : "assignments",
-            "name" : "update",
-            "data" : {
-                "omit_user" : true,
-                "coverage_type" : "Text",
-                "actioning_user" : "test_user",
-                "slugline" : "test slugline",
-                "action" : "unlinked"
-            },
-            "user_name" : "test_user",
-            "message" : "{{actioning_user}} has {{action}} a {{coverage_type}} coverage for \"{{slugline}}\""
+            "name" : "update"
         }]}
         """
         When we get "assignments/#assignmentId#"
@@ -168,7 +172,7 @@ Feature: Assignment Unlink
             },
             "assigned_to": {
                 "desk": "#desks._id#",
-                "user": "#CONTEXT_USER_ID#",
+                "user": "#firstuser#",
                 "state": "assigned"
             }
         }
