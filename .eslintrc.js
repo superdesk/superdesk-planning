@@ -18,6 +18,12 @@ module.exports = Object.assign({}, sharedConfigs, {
                 'no-empty-pattern': 0,
             },
         },
+        {
+            files: ['*.d.ts'],
+            rules: {
+                'spaced-comment': 0,
+            },
+        },
     ],
 });
 

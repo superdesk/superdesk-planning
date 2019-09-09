@@ -1,22 +1,30 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
 
 import {ITEM_TYPE, EVENTS, PLANNING} from '../../../constants';
 import {getItemType, eventUtils, planningUtils} from '../../../utils';
+import eventsApi from '../../../actions/events/api';
+import * as allActions from '../../../actions';
 
 import {ItemActionsMenu} from '../../index';
+import {getDeployConfig} from '../../../selectors/config';
 
-export const EditorItemActions = ({
-    item,
-    event,
-    session,
-    privileges,
-    lockedItems,
-    itemActions,
-    contentTypes,
-    itemManager,
-    autoSave,
-}) => {
+const EditorItemActionsComponent = (props) => {
+    const {
+        item,
+        event,
+        session,
+        privileges,
+        lockedItems,
+        itemActions,
+        contentTypes,
+        itemManager,
+        autoSave,
+        dispatch,
+        deployConfig,
+    } = props;
+
     const itemType = getItemType(item);
     const withMultiPlanningDate = true;
     let actions = [], callBacks;
@@ -78,6 +86,14 @@ export const EditorItemActions = ({
                             itemActions[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName](item)
                         ))
                 ),
+            [EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.actionName]:
+                () => {
+                    const message = gettext('Save changes before creating a template?');
+
+                    dispatch(allActions.main.openActionModalFromEditor(item, message, (updatedItem) => {
+                        dispatch(eventsApi.createEventTemplate(updatedItem._id));
+                    }));
+                },
             [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName]:
                 () => (
                     autoSave.flushAutosave()
@@ -93,6 +109,7 @@ export const EditorItemActions = ({
             lockedItems,
             callBacks,
             withMultiPlanningDate,
+            deployConfig,
         });
     }
 
@@ -150,7 +167,7 @@ export const EditorItemActions = ({
     />);
 };
 
-EditorItemActions.propTypes = {
+EditorItemActionsComponent.propTypes = {
     item: PropTypes.object,
     event: PropTypes.object,
     session: PropTypes.object,
@@ -160,4 +177,14 @@ EditorItemActions.propTypes = {
     contentTypes: PropTypes.array,
     itemManager: PropTypes.object,
     autoSave: PropTypes.object,
+    dispatch: PropTypes.func,
+    deployConfig: PropTypes.object,
 };
+
+function mapStateToProps(state) {
+    return {
+        deployConfig: getDeployConfig(state),
+    };
+}
+
+export const EditorItemActions = connect(mapStateToProps)(EditorItemActionsComponent);
