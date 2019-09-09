@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {gettext, getCreator, getItemInArrayById, getDateTimeString, stringUtils} from '../../utils';
+import {gettext, getCreator, getItemInArrayById, getDateTimeString, stringUtils, eventUtils} from '../../utils';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {get} from 'lodash';
@@ -9,6 +9,7 @@ import {Row} from '../UI/Preview';
 import {
     AuditInformation,
     StateLabel,
+    Label,
 } from '../index';
 import {ToggleBox} from '../UI';
 import {ColouredValueInput, FileInput} from '../UI/Form';
@@ -90,6 +91,13 @@ export class PlanningPreviewContentComponent extends React.Component {
                             verbose={true}
                             withExpiredStatus={true}
                         />
+                        {eventUtils.isEventCompleted(event) && (
+                            <Label
+                                text={gettext('Event Completed')}
+                                iconType="success"
+                                isHollow={true}
+                            />
+                        )}
                         <FeatureLabel item={item} />
                     </div>
                 </div>

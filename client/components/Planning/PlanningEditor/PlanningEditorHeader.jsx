@@ -2,13 +2,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
-import {getCreator, isExistingItem} from '../../../utils';
+import {getCreator, isExistingItem, eventUtils} from '../../../utils';
 
 import {ContentBlock, ContentBlockInner} from '../../UI/SidePanel';
-import {AuditInformation, StateLabel} from '../..';
+import {AuditInformation, StateLabel, Label} from '../..';
 import {FeatureLabel} from '../FeaturedPlanning';
 
-export const PlanningEditorHeader = ({item, users}) => {
+export const PlanningEditorHeader = ({item, users, event}) => {
     if (!isExistingItem(item)) {
         return null;
     }
@@ -41,6 +41,13 @@ export const PlanningEditorHeader = ({item, users}) => {
                     verbose={true}
                     withExpiredStatus={true}
                 />
+                {eventUtils.isEventCompleted(event) && (
+                    <Label
+                        text={gettext('Event Completed')}
+                        iconType="success"
+                        isHollow={true}
+                    />
+                )}
                 <FeatureLabel item={item} />
             </ContentBlockInner>
         </ContentBlock>
@@ -50,4 +57,5 @@ export const PlanningEditorHeader = ({item, users}) => {
 PlanningEditorHeader.propTypes = {
     item: PropTypes.object.isRequired,
     users: PropTypes.array.isRequired,
+    event: PropTypes.object,
 };
