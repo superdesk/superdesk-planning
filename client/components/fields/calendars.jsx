@@ -22,7 +22,10 @@ export const calendars = ({item, calendars, grow}) => {
 };
 
 calendars.propTypes = {
-    item: PropTypes.object.isRequired,
+    item: PropTypes.shape({
+        description_text: PropTypes.string,
+        calendars: PropTypes.array,
+    }).isRequired,
     calendars: PropTypes.array,
     grow: PropTypes.bool,
 };

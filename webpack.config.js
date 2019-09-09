@@ -89,5 +89,10 @@ module.exports = {
     },
 
     // Define mock gettext ('required when running unit_tests for planning)
-    plugins: [new webpack.DefinePlugin({gettext: 'function gettext(msg) { return msg; }'})]
-}
+    plugins: [
+        new webpack.DefinePlugin({
+            gettext: 'function gettext(msg) { return msg; }',
+            __SUPERDESK_CONFIG__: JSON.stringify({}),
+        }),
+    ],
+};
