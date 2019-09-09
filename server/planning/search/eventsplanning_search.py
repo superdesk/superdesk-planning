@@ -678,7 +678,7 @@ class EventsPlanningService(superdesk.Service):
         return {
             'query_string': {
                 'query': query_text,
-                'lenient': False,
+                'lenient': True,
                 'default_operator': 'AND'
             }
         }
