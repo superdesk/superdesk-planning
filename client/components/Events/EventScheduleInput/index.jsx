@@ -246,6 +246,7 @@ export class EventScheduleInput extends React.Component {
             onPopupClose,
             showTimeZone,
             refNode,
+            formProfile,
         } = this.props;
         const {isAllDay} = this.state;
 
@@ -347,14 +348,14 @@ export class EventScheduleInput extends React.Component {
                 />
 
                 <Row flex={true} noPadding>
-                    <Field
+                    {get(formProfile, 'editor.dates.all_day.enabled') && <Field
                         onChange={this.handleAllDayChange}
                         field="dates.all_day"
                         label={gettext('All Day')}
                         value={isAllDay}
 
                         {...toggleProps}
-                    />
+                    />}
                     {showTimeZone && <Field
                         field="dates.tz"
                         label={gettext('Timezone')}
@@ -362,7 +363,7 @@ export class EventScheduleInput extends React.Component {
                         onChange={this.onChange}
                         row={false}
                         {...fieldProps}
-                        halfWidth />}
+                        halfWidth={get(formProfile, 'editor.dates.all_day.enabled')} />}
                 </Row>
 
                 <Row
