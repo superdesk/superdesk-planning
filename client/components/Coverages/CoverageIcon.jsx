@@ -44,7 +44,7 @@ export const CoverageIcon = ({
                     if (get(s, 'planning.scheduled')) {
                         scheduledStr = dateFormat && timeFormat ?
                             moment(s.planning.scheduled).format(dateFormat + ' ' + timeFormat) : null;
-                        return (<span><br />{gettext('Due: ') + scheduledStr}</span>);
+                        return (<span><br />{gettext('Update Due: ') + scheduledStr}</span>);
                     }
 
                     return null;

@@ -52,9 +52,7 @@ def before_scenario(context, scenario):
     else:
         config['PLANNING_LINK_UPDATES_TO_COVERAGES'] = False
 
-    if 'scheduled_updates' in scenario.tags:
-        config['PLANNING_ALLOW_SCHEDULED_UPDATES'] = True
-    else:
+    if 'no_scheduled_updates' in scenario.tags:
         config['PLANNING_ALLOW_SCHEDULED_UPDATES'] = False
 
     setup_before_scenario(context, scenario, config, app_factory=get_app)

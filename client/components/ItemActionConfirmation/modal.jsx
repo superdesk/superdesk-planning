@@ -152,8 +152,10 @@ export class ItemActionConfirmationModal extends React.Component {
                 form: CancelPlanningCoveragesForm,
             },
             [COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE.label]: {
-                title: get(COVERAGES, 'ITEM_ACTIONS.CANCEL_COVERAGE.label'),
-                saveText: gettext('Cancel Coverage'),
+                title: modalProps.scheduledUpdate ? gettext('Cancel Scheduled Update') :
+                    get(COVERAGES, 'ITEM_ACTIONS.CANCEL_COVERAGE.label'),
+                saveText: modalProps.scheduledUpdate ? gettext('Cancel Scheduled Update') :
+                    gettext('Cancel Coverage'),
                 form: CancelCoverageForm,
             },
             [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: {
@@ -204,5 +206,6 @@ ItemActionConfirmationModal.propTypes = {
         large: PropTypes.bool,
         title: PropTypes.string,
         resolve: PropTypes.func,
+        scheduledUpdate: PropTypes.object,
     }),
 };
