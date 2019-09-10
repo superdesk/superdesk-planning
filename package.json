@@ -5,6 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "postinstall": "node tasks/backwards-compatibility-fixes.js",
     "fix": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec --fix",
     "hint": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec",
     "lint": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec --quiet",
