@@ -474,6 +474,7 @@ export class PlanningEditorComponent extends React.Component {
                 <PlanningEditorHeader
                     item={diff}
                     users={users}
+                    event={event}
                 />
 
                 <ContentBlock>
