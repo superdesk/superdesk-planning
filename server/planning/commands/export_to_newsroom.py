@@ -32,6 +32,7 @@ class ExportToNewsroom(Command):
 
         $ python manage.py planning:export_to_newsroom --resource-url=http://<host>:<port>/<path>
         --assets-url=http://<host>:<port>/<path> --page-size=200
+
     """
 
     option_list = (

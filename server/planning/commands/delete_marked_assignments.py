@@ -27,6 +27,7 @@ class DeleteMarkedAssignments(Command):
     ::
 
         $ python manage.py planning:delete_assignments
+
     """
 
     log_msg = ''
