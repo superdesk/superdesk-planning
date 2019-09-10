@@ -158,8 +158,8 @@ const canAddAsEvent = (planning, event = null, session, privileges, locks) => (
 const isCoverageCancelled = (coverage) =>
     (get(coverage, 'workflow_status') === WORKFLOW_STATE.CANCELLED);
 
-const canCancelCoverage = (coverage, planning) =>
-    (!isCoverageCancelled(coverage) && isExistingItem(coverage, 'coverage_id') && (!get(coverage, 'assigned_to.state')
+const canCancelCoverage = (coverage, planning, field = 'coverage_id') =>
+    (!isCoverageCancelled(coverage) && isExistingItem(coverage, field) && (!get(coverage, 'assigned_to.state')
         || get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED)) && !isItemExpired(planning);
 
 const canAddCoverageToWorkflow = (coverage, autoAssignToWorkflow, planning) => isExistingItem(coverage, 'coverage_id')
@@ -704,7 +704,7 @@ const getCoverageReadOnlyFields = (
             ednote: readOnly,
             keyword: readOnly,
             internal_note: readOnly,
-            g2_content_type: readOnly,
+            g2_content_type: (get(coverage, 'scheduled_updates.length', 0) > 0 ? true : readOnly),
             genre: readOnly,
             newsCoverageStatus: readOnly,
             scheduled: readOnly,
@@ -991,6 +991,31 @@ const getCoverageDateText = (coverage, dateFormat, timeFormat) => {
         getDateTimeString(coverageDate, dateFormat, timeFormat, ' @ ', false);
 };
 
+const canAddScheduledUpdateToWorkflow = (scheduledUpdate, autoAssignToWorkflow, planning, coverage) =>
+    isExistingItem(scheduledUpdate, 'scheduled_update_id') && isCoverageInWorkflow(coverage) &&
+    isCoverageDraft(scheduledUpdate) && isCoverageAssigned(scheduledUpdate) && !autoAssignToWorkflow &&
+    !isItemExpired(planning);
+
+const setCoverageActiveValues = (coverage, newsCoverageStatus) => {
+    set(coverage, 'news_coverage_status', newsCoverageStatus.find((s) => s.qcode === 'ncostat:int'));
+    set(coverage, 'workflow_status', COVERAGES.WORKFLOW_STATE.ACTIVE);
+    set(coverage, 'assigned_to.state', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED);
+};
+
+const getActiveCoverage = (updatedCoverage, newsCoverageStatus) => {
+    const coverage = cloneDeep(updatedCoverage);
+
+    setCoverageActiveValues(coverage, newsCoverageStatus);
+    (get(coverage, 'scheduled_updates') || []).forEach((s) => {
+        // Add the scheduled_update to workflow if they have an assignment
+        if (get(s, 'assigned_to')) {
+            setCoverageActiveValues(s, newsCoverageStatus);
+        }
+    });
+
+    return coverage;
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     canSpikePlanning,
@@ -1039,6 +1064,8 @@ const self = {
     getDateStringForPlanning,
     setDefaultAssignment,
     getCoverageDateText,
+    getActiveCoverage,
+    canAddScheduledUpdateToWorkflow,
 };
 
 export default self;

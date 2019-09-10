@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {getItemInArrayById, gettext, planningUtils, getItemWorkflowState, generateTempId} from '../../../utils';
+import {getItemInArrayById, gettext, planningUtils, generateTempId} from '../../../utils';
 import moment from 'moment';
 import {WORKFLOW_STATE, TO_BE_CONFIRMED_FIELD} from '../../../constants';
 import {Button} from '../../UI';
@@ -209,7 +209,7 @@ export class CoverageForm extends React.Component {
                     noteField="workflow_status_reason"
                     showTooltip={false}
                     showText
-                    stateField= {getItemWorkflowState(diff) === WORKFLOW_STATE.DRAFT ?
+                    stateField={value.workflow_status === WORKFLOW_STATE.CANCELLED ?
                         `coverages[${index}].workflow_status` : 'state'}
                     className="form__row" />
                 <Field

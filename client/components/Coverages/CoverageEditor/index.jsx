@@ -73,7 +73,7 @@ export const CoverageEditor = ({
         if (planningUtils.canCancelCoverage(value, diff)) {
             itemActions.push({
                 ...COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE,
-                callback: onCancelCoverage.bind(null, value),
+                callback: onCancelCoverage.bind(null, value, index),
             });
         }
 
@@ -182,6 +182,7 @@ export const CoverageEditor = ({
             desks={desks}
             coverageProviders={coverageProviders}
             priorities={priorities}
+            onCancelCoverage={onCancelCoverage}
             {...props}
         />
     );
