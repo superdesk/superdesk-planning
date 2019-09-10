@@ -438,6 +438,9 @@ class EventsService(superdesk.Service):
                 recurrence_id=str(generated_events[0]['recurrence_id'])
             )
         else:
+            if original.get('lock_action') == 'mark_completed' and updates.get('actioned_date'):
+                self.mark_event_complete(original, updates, original, None)
+
             # This updates Event metadata only
             push_notification(
                 'events:updated',
@@ -486,6 +489,7 @@ class EventsService(superdesk.Service):
             if calendar['qcode'] not in original_calendar_qcodes
         ]
 
+        mark_completed = original.get('lock_action') == 'mark_completed' and updates.get('actioned_date')
         mark_complete_validated = False
         for e in events:
             event_id = e[config.ID_FIELD]
@@ -509,18 +513,10 @@ class EventsService(superdesk.Service):
                     for calendar in updated_calendars
                     if calendar['qcode'] not in original_qcodes
                 ])
-            elif original.get('lock_action') == 'mark_completed' and updates.get('actioned_date'):
-                # If the entire series is in future, raise an error
-                if not mark_complete_validated:
-                    if e['dates']['start'].date() > updates['actioned_date'].date():
-                        raise SuperdeskApiError.badRequestError('Recurring series has not started.')
-                    else:
-                        mark_complete_validated = True
-
-                # If we are marking an event as completed
-                # Update only those which are behind the 'actioned_date'
-                if e['dates']['start'] < updates['actioned_date']:
-                    continue
+            elif mark_completed:
+                self.mark_event_complete(original, updates, e, mark_complete_validated)
+                # It is validated if the previous funciton did not raise an error
+                mark_complete_validated = True
 
             self.patch(event_id, new_updates)
             app.on_updated_events(new_updates, {'_id': event_id})
@@ -532,6 +528,26 @@ class EventsService(superdesk.Service):
             recurrence_id=str(original['recurrence_id']),
             user=str(updates.get('version_creator', ''))
         )
+
+    def mark_event_complete(self, original, updates, event, mark_complete_validated):
+        # If the entire series is in future, raise an error
+        if event.get('recurrence_id'):
+            if not mark_complete_validated:
+                if event['dates']['start'].date() > updates['actioned_date'].date():
+                    raise SuperdeskApiError.badRequestError('Recurring series has not started.')
+
+            # If we are marking an event as completed
+            # Update only those which are behind the 'actioned_date'
+            if event['dates']['start'] < updates['actioned_date']:
+                return
+
+        plans = list(get_resource_service('planning').find(where={'event_item': event[config.ID_FIELD]}))
+        for plan in plans:
+            if plan.get('state') != WORKFLOW_STATE.CANCELLED and len(plan.get('coverages', [])) > 0:
+                get_resource_service('planning_cancel').update(plan[config.ID_FIELD], {
+                    'reason': 'Event Completed',
+                    'cancel_all_coverage': True,
+                }, plan)
 
     def _convert_to_recurring_event(self, updates, original):
         """Convert a single event to a series of recurring events"""
