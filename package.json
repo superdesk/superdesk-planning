@@ -33,8 +33,6 @@
     "whatwg-fetch": "~2.0.4"
   },
   "devDependencies": {
-    "@types/react": "16.4.9",
-    "@types/react-dom": "16.8.0",
     "btoa": "^1.1.2",
     "enzyme": "~3.3.0",
     "enzyme-adapter-react-16": "^1.1.1",
@@ -56,7 +54,6 @@
     "sinon": "~4.4.2",
     "superdesk-code-style": "^1.1.1",
     "superdesk-core": "superdesk/superdesk-client-core#develop",
-    "typescript": "3.5.2",
     "typescript-eslint-parser": "^18.0.0",
     "ts-node": "~7.0.1"
   }

@@ -11,7 +11,6 @@ const initialState = {
     eventHistoryItems: [],
     calendars: [],
     currentCalendarId: undefined,
-    eventTemplates: [],
 };
 
 const modifyEventsBeingAdded = (state, payload) => {
@@ -299,11 +298,6 @@ const eventsReducer = createReducer(initialState, {
             events,
         };
     },
-
-    [EVENTS.ACTIONS.RECEIVE_EVENT_TEMPLATES]: (state, payload) => ({
-        ...state,
-        eventTemplates: payload,
-    }),
 });
 
 const onEventPostChanged = (state, payload) => {

@@ -3,27 +3,12 @@ import PropTypes from 'prop-types';
 import {gettext} from '../../utils';
 import {Dropdown} from '../UI/SubNav';
 import {PRIVILEGES} from '../../constants';
-import {connect} from 'react-redux';
-import {showModal} from '../../actions/modal';
-import {MODALS} from '../../constants/modals';
-import {getDeployConfig} from '../../selectors/config';
 
-const ActionsSubnavDropdownComponent = (props) => {
-    let items = [
-        {
-            label: gettext('Manage agendas'),
-            action: props.openAgendas,
-        },
-    ];
-
-    if (props.deployConfig.event_templates_enabled === true) {
-        items.push({
-            label: gettext('Manage event templates'),
-            action: () => props.dispatch(showModal({
-                modalType: MODALS.MANAGE_EVENT_TEMPLATES,
-            })),
-        });
-    }
+export const ActionsSubnavDropdown = (props) => {
+    let items = [{
+        label: gettext('Manage agendas'),
+        action: props.openAgendas,
+    }];
 
     if (props.privileges[PRIVILEGES.EVENTS_PLANNING_FILTERS_MANAGEMENT]) {
         items.push({
@@ -50,19 +35,9 @@ const ActionsSubnavDropdownComponent = (props) => {
     );
 };
 
-ActionsSubnavDropdownComponent.propTypes = {
+ActionsSubnavDropdown.propTypes = {
     openFeaturedPlanningModal: PropTypes.func,
-    deployConfig: PropTypes.object,
     openAgendas: PropTypes.func,
     openEventsPlanningFiltersModal: PropTypes.func,
     privileges: PropTypes.object,
-    dispatch: PropTypes.func,
 };
-
-function mapStateToProps(state) {
-    return {
-        deployConfig: getDeployConfig(state),
-    };
-}
-
-export const ActionsSubnavDropdown = connect(mapStateToProps)(ActionsSubnavDropdownComponent);

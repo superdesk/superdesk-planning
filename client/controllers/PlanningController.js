@@ -5,7 +5,6 @@ import {registerNotifications} from '../utils';
 import * as actions from '../actions';
 import {WORKSPACE} from '../constants';
 import {PlanningApp} from '../apps';
-import eventsApi from '../actions/events/api';
 
 
 export class PlanningController {
@@ -73,7 +72,6 @@ export class PlanningController {
             this.store.dispatch(actions.events.api.fetchCalendars()),
             this.store.dispatch(actions.autosave.fetchAll()),
             this.store.dispatch(actions.eventsPlanning.ui.fetchFilters()),
-            this.store.dispatch(eventsApi.fetchEventTemplates()),
         ])
             .then(() => (
                 // Load the current items that are currently open for Preview/Editing
