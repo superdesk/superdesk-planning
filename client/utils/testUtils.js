@@ -35,9 +35,6 @@ export const getTestActionStore = () => {
                     save: sinon.spy((ori, item) => (store.spies.api._save('events', ori, item))),
                     getById: sinon.spy((id) => store.spies.api._getById('events', id)),
                 },
-                recent_events_template: {
-                    query: sinon.spy(() => (store.spies.api._query('recent_events_template'))),
-                },
                 events_history: {
                     query: sinon.spy(
                         () => (store.spies.api._query('events_history'))

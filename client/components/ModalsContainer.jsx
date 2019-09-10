@@ -20,7 +20,6 @@ import {MODALS, ITEM_TYPE} from '../constants';
 import {ManageAgendasModal} from './Agendas/ManageAgendasModal';
 import {SelectDeskTemplate} from './Assignments';
 import {ManageFiltersModal} from './EventsPlanningFilters';
-import {ManageEventTemplatesModal} from './Events/ManageEventTemplatesModal';
 import {ExportAsArticleModal} from './ExportAsArticleModal';
 
 const modals = {
@@ -36,7 +35,6 @@ const modals = {
     [MODALS.UNLOCK_FEATURED_STORIES]: UnlockFeaturedPlanning,
     [MODALS.SELECT_DESK_TEMPLATE]: SelectDeskTemplate,
     [MODALS.MANAGE_EVENTS_PLANNING_FILTERS]: ManageFiltersModal,
-    [MODALS.MANAGE_EVENT_TEMPLATES]: ManageEventTemplatesModal,
     [MODALS.EXPORT_AS_ARTICLE]: ExportAsArticleModal,
 };
 

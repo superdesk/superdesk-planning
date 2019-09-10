@@ -313,6 +313,7 @@ const storeFilter = (filterId) => ({
     payload: filterId,
 });
 
+
 // eslint-disable-next-line consistent-this
 const self = {
     fetch,

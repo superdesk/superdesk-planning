@@ -7,7 +7,6 @@
     ],
     "compilerOptions": {
         "baseUrl": "client",
-        "skipLibCheck": true,
         "sourceMap": true,
         "allowJs": true,
         "esModuleInterop": true,

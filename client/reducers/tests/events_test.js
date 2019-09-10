@@ -46,7 +46,6 @@ describe('events', () => {
                 eventHistoryItems: [],
                 calendars: [],
                 currentCalendarId: undefined,
-                eventTemplates: [],
             });
         });
 

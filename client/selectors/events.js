@@ -12,7 +12,6 @@ export const eventIdsInList = (state) => get(state, 'events.eventsInList', []);
 export const eventHistory = (state) => get(state, 'events.eventHistoryItems');
 export const currentSearch = (state) => get(state, 'main.search.EVENTS.currentSearch');
 export const fullText = (state) => get(state, 'main.search.EVENTS.fulltext', '');
-export const eventTemplates = (state) => state.events.eventTemplates;
 const isEventsView = (state) => get(state, 'main.filter', '') === MAIN.FILTERS.EVENTS;
 
 /** Used for the events list */

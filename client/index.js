@@ -10,8 +10,6 @@ import {gettext} from './utils';
 import {reactToAngular1} from 'superdesk-ui-framework';
 import PlanningDetailsWidget, {getItemPlanningInfo} from './components/PlanningDetailsWidget';
 
-import {getSuperdeskApiImplementation} from 'superdesk-core/scripts/core/get-superdesk-api-implementation';
-import {superdeskApi} from './superdeskApi';
 
 export default angular.module('superdesk-planning', [])
     .directive('sdPlanning',
@@ -90,30 +88,8 @@ export default angular.module('superdesk-planning', [])
         $templateCache.put('locations.html', require('./views/locations.html'));
     }])
     .run([
-        '$injector',
-        'sdPlanningStore',
-        'extensionPoints',
-        'functionPoints',
-        'assignments',
-        'deployConfig',
-        'modal',
-        'privileges',
-        'lock',
-        'session',
-        'authoringWorkspace',
-        (
-            $injector,
-            sdPlanningStore,
-            extensionPoints,
-            functionPoints,
-            assignments,
-            deployConfig,
-            modal,
-            privileges,
-            lock,
-            session,
-            authoringWorkspace
-        ) => {
+        '$injector', 'sdPlanningStore', 'extensionPoints', 'functionPoints', 'assignments', 'deployConfig',
+        ($injector, sdPlanningStore, extensionPoints, functionPoints, assignments, deployConfig) => {
             ng.register($injector);
 
             const callback = (extension, scope) => (
@@ -128,11 +104,6 @@ export default angular.module('superdesk-planning', [])
 
             ng.waitForServicesToBeAvailable()
                 .then(() => {
-                    Object.assign(
-                        superdeskApi,
-                        getSuperdeskApiImplementation(null, {}, modal, privileges, lock, session, authoringWorkspace)
-                    );
-
                     extensionPoints.register('publish_queue:preview',
                         PublishQueuePanel, {}, ['selected'],
                         callback);
