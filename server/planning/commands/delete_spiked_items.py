@@ -27,6 +27,7 @@ class DeleteSpikedItems(Command):
     ::
 
         $ python manage.py planning:delete_spiked
+
     """
 
     log_msg = ''
