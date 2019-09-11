@@ -79,6 +79,7 @@ class PlanningService(superdesk.Service):
         coverages = {}
         for doc in docs:
             doc.pop('_planning_schedule', None)
+            doc.pop('_updates_schedule', None)
 
             if not doc.get('coverages'):
                 doc['coverages'] = []
@@ -520,7 +521,9 @@ class PlanningService(superdesk.Service):
         planning_date = updates.get('planning_date') or (original or {}).get('planning_date') or utcnow()
 
         add_default_schedule = True
+        add_default_updates_schedule = True
         schedule = []
+        updates_schedule = []
         for coverage in coverages:
             if coverage.get('planning', {}).get('scheduled'):
                 add_default_schedule = False
@@ -530,13 +533,29 @@ class PlanningService(superdesk.Service):
                 'scheduled': coverage.get('planning', {}).get('scheduled')
             })
 
+            for s in coverage.get('scheduled_updates') or []:
+                if s.get('planning', {}).get('scheduled') and add_default_updates_schedule:
+                    add_default_updates_schedule = False
+
+                updates_schedule.append({
+                    'scheduled_update_id': s.get('scheduled_update_id'),
+                    'scheduled': s.get('planning', {}).get('scheduled')
+                })
+
         if add_default_schedule:
             schedule.append({
                 'coverage_id': None,
                 'scheduled': planning_date or utcnow()
             })
 
+        if add_default_updates_schedule:
+            updates_schedule.append({
+                'scheduled_update_id': None,
+                'scheduled': planning_date or utcnow()
+            })
+
         updates['_planning_schedule'] = schedule
+        updates['_updates_schedule'] = updates_schedule
 
     def _create_update_assignment(self, planning_original, planning_updates, updates, original=None,
                                   parent_coverage=None):
@@ -1273,6 +1292,19 @@ planning_schema = {
         }
     },
 
+    # field to sync scheduled_updates scheduled information
+    # to be used for sorting/filtering on scheduled
+    '_updates_schedule': {
+        'type': 'list',
+        'mapping': {
+            'type': 'nested',
+            'properties': {
+                'scheduled_update_id': not_analyzed,
+                'scheduled': {'type': 'date'},
+            }
+        }
+    },
+
     'planning_date': {
         'type': 'datetime',
         "nullable": False,
@@ -1350,6 +1382,6 @@ class PlanningResource(superdesk.Resource):
     privileges = {'POST': 'planning_planning_management',
                   'PATCH': 'planning_planning_management',
                   'DELETE': 'planning'}
-    etag_ignore_fields = ['_planning_schedule']
+    etag_ignore_fields = ['_planning_schedule', '_updates_schedule']
 
     mongo_indexes = {'event_item': ([('event_item', 1)], {'background': True})}

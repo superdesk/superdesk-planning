@@ -101,6 +101,7 @@ export const FeaturedPlanningItem = ({
                         users={users}
                         desks={desks}
                         contentTypes={contentTypes}
+                        includeScheduledUpdates
                     />
                 </Row>
             </Column>
