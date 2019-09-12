@@ -1039,3 +1039,341 @@ Feature: Events
         """
         {"_message": "Event START DATE and END DATE are mandatory."}
         """
+
+    @auth
+    @notification
+    @vocabularies
+    Scenario: Marking an event as complete will cancel related coverages
+        Given "desks"
+        """
+        [{"name": "Sports", "content_expiry": 60}]
+        """
+        And "vocabularies"
+        """
+        [{
+            "_id": "newscoveragestatus",
+            "display_name": "News Coverage Status",
+            "type": "manageable",
+            "unique_field": "qcode",
+            "items": [
+                {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
+                    "label": "On merit"},
+                {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
+                    "label": "Not planned"},
+                {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
+                    "label": "On request"}
+            ]
+        }, {
+              "_id": "g2_content_type",
+              "display_name": "Coverage content types",
+              "type": "manageable",
+              "unique_field": "qcode",
+              "selection_type": "do not show",
+              "items": [
+                  {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
+              ]
+        }]
+        """
+        When we post to "/planning"
+        """
+        [{
+            "slugline": "test slugline",
+            "planning_date": "2029-11-21T12:00:00.000Z"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [{
+                "workflow_status": "draft",
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline",
+                    "g2_content_type": "text"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#"
+                }
+            }]
+        }
+        """
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we reset notifications
+        When we get "assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        {
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "draft"
+            }
+        }
+        """
+        When we post to "events"
+        """
+        {
+            "name": "TestEvent",
+            "slugline": "TestEvent",
+            "_planning_item": "#planning._id#",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {"event_item": "#events._id#"}
+        """
+        When we post to "/events/#events._id#/lock"
+        """
+        {
+            "lock_action": "mark_completed"
+        }
+        """
+        Then we get OK response
+        When we patch "/events/#events._id#"
+        """
+        {
+            "completed": true,
+            "actioned_date": "2029-11-21T12:00:00.000Z"
+        }
+        """
+        Then we get OK response
+        When we get "/events/#events._id#"
+        Then we get existing resource
+        """
+        {
+            "completed": true,
+            "actioned_date": "2029-11-21T12:00:00+0000"
+        }
+        """
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+            "slugline": "test slugline",
+            "planning_date": "2029-11-21T12:00:00+0000",
+            "coverages": [{
+                "workflow_status": "cancelled",
+                "planning": {
+                    "workflow_status_reason": "Event Completed",
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "state": "cancelled"
+                }
+            }]
+        }
+        """
+
+    @auth
+    @notification
+    @vocabularies
+    Scenario: Marking an event as complete will unlink related news items
+        Given "desks"
+        """
+        [{"name": "Sports", "content_expiry": 60}]
+        """
+        And "vocabularies"
+        """
+        [{
+            "_id": "newscoveragestatus",
+            "display_name": "News Coverage Status",
+            "type": "manageable",
+            "unique_field": "qcode",
+            "items": [
+                {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+                {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
+                    "label": "On merit"},
+                {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
+                    "label": "Not planned"},
+                {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
+                    "label": "On request"}
+            ]
+        }, {
+              "_id": "g2_content_type",
+              "display_name": "Coverage content types",
+              "type": "manageable",
+              "unique_field": "qcode",
+              "selection_type": "do not show",
+              "items": [
+                  {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"}
+              ]
+        }]
+        """
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        Then we get OK response
+        When we post to "/planning"
+        """
+        [{
+            "slugline": "test slugline",
+            "planning_date": "2029-11-21T12:00:00.000Z"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [{
+                "workflow_status": "draft",
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline",
+                    "g2_content_type": "text"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#"
+                }
+            }]
+        }
+        """
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we reset notifications
+        When we post to "assignments/link"
+        """
+        [{
+            "assignment_id": "#firstassignment#",
+            "item_id": "#archive._id#",
+            "reassign": true
+        }]
+        """
+        Then we get OK response
+        Then we get notifications
+        """
+        [{"event": "content:update"}, {"event": "content:link"}]
+        """
+        When we get "/archive/#archive._id#"
+        Then we get existing resource
+        """
+        {
+            "assignment_id": "#firstassignment#"
+        }
+        """
+        When we get "assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        {
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "in_progress"
+            }
+        }
+        """
+        When we get "/assignments_history"
+        Then we get list with 2 items
+        """
+        {"_items": [
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "create"
+            },
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "content_link"
+            }
+        ]}
+        """
+        When we post to "events"
+        """
+        {
+            "name": "TestEvent",
+            "slugline": "TestEvent",
+            "_planning_item": "#planning._id#",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {"event_item": "#events._id#"}
+        """
+        When we post to "/events/#events._id#/lock"
+        """
+        {
+            "lock_action": "mark_completed"
+        }
+        """
+        Then we get OK response
+        When we patch "/events/#events._id#"
+        """
+        {
+            "completed": true,
+            "actioned_date": "2029-11-21T12:00:00.000Z"
+        }
+        """
+        Then we get OK response
+        When we get "/events/#events._id#"
+        Then we get existing resource
+        """
+        {
+            "completed": true,
+            "actioned_date": "2029-11-21T12:00:00+0000"
+        }
+        """
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+            "slugline": "test slugline",
+            "planning_date": "2029-11-21T12:00:00+0000",
+            "coverages": [{
+                "workflow_status": "cancelled",
+                "planning": {
+                    "workflow_status_reason": "Event Completed",
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "state": "cancelled"
+                }
+            }]
+        }
+        """
+        When we get "/archive/#archive._id#"
+        Then we get existing resource
+        """
+        {
+            "assignment_id": null
+        }
+        """

@@ -28,6 +28,7 @@ class FlagExpiredItems(Command):
     ::
 
         $ python manage.py planning:flag_expired
+
     """
 
     log_msg = ''

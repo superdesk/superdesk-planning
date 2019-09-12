@@ -13,6 +13,7 @@ import {ItemActionsMenu} from '../index';
 import {PLANNING, EVENTS, MAIN, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
 
 import {
+    eventUtils,
     planningUtils,
     onEventCapture,
     isItemPosted,
@@ -209,6 +210,13 @@ export class PlanningItem extends React.Component {
                             />
                         )}
                         {secondaryFields.includes('state') && renderFields('state', item) }
+                        {eventUtils.isEventCompleted(event) && (
+                            <Label
+                                text={gettext('Event Completed')}
+                                iconType="success"
+                                isHollow={true}
+                            />
+                        )}
                         {secondaryFields.includes('featured') &&
                             renderFields('featured', item, {tooltipFlowDirection: 'right'})}
                         {secondaryFields.includes('agendas') &&

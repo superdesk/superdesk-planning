@@ -163,7 +163,8 @@ DEFAULT_EDITOR = [{
         'links': {'enabled': True},
         'dates': {
             'enabled': True,
-            'default_duration_on_change': 1
+            'default_duration_on_change': 1,
+            'all_day': {'enabled': True}
         },
         'ednote': {'enabled': True}
     },
