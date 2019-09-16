@@ -1,5 +1,65 @@
 # Superdesk Planning Changelog
 
+## [1.7.0] Not released yet
+### Features
+- [SDESK-4427] New Event action 'Mark as Completed' (#1273)
+- [SDNTB-584] feat(draggable): Added ability to make modals draggable (#1294)
+
+### Improvements
+- [SDESK-4599] Review planning workflow notifications (#1301)
+- [SDESK-4598] Add Place to event and planning filter (#1302)
+- [SDESK-4618] Remove the folder from the filename returned for attachments (#1307)
+- [SDESK-4595] Move the attachment icon in lists (#1311)
+- [SDESK-4651] Show all desks by default in Fulfil Assignment modal (#1305)
+- [SDESK-4676] Hide 'all day' as an event form option (#1320)
+
+### Fixes
+- [SDESK-4427] Mark for complete fix to cater for events that start on same day but ahead in time. (#1278)
+- [SDESK-4592] Restrict some item actions on expired items (#1297)
+- actioned_date was removed when posting an event (#1299)
+- [SDESK-4224][SDESK-4510][SDESK-4513] (fix): Don't unmount the PopupEditor when action modal is shown (#1274)
+- [SDESK-4572] Don't close dropdown on scroll bar click (#1303)
+- [SDESK-4654] Handle the enter key in Selecting subject codes etc. (#1312)
+- [SDESK-4669] Location was getting deleted when event was marked as complete or assigned to calendar (#1310)
+- [SDESK-4661] (fix) Fulfil Assignment button visible if Assignment is locked (#1306)
+- (fix-requirements) Add responses lib in dev-requirements.txt (#1315)
+- [SDESK-4678] When marking an Event as completed Planning and Assignments need to be updated (#1317)
+- fix(flake8): Resolve 'D413 Missing blank line after last section' (#1312)
+- fix(import ui-framework): Add helpers and colors to scss imports (#1323)
+- fix to use modal__backdrop class locally (#1326)
+
+## [1.6.2] 2019-08-21
+### Features
+- [SDESK-4469] Introduce modal to prompt for a 'reason' to cancel individual coverages (#1260)
+
+### Improvements
+- [SDESK-3286] Close popup modals with ESC key (#1272)
+- [SDESK-4428] Multiselect in the Event list and Planning list (#1268)
+- [SDESK-4402] Improve location display in planning lists (#1266)
+- [SDESK-4493] Create a history record for Planning items and events when an Event is created from planning item (#1264)
+- [SDESK-4421] Add details to location dropdown (#1263)
+- [SDBELGA-129] Include coverage without users on export templates (#1281)
+- [SDESK-4286] Minor changes to event and planning list items in Export Modal (#1279)
+- [SDESK-4566] Position 'start working' as the first item in the action menu for assignments (#1282)
+- [SDESK-4573] Slack mentions in slack notifications (#1283)
+- [SDESK-4529][SDESK-4534] Show current and future only assignments in the Fulfill modal (#1284)
+
+### Fixes
+- [SDESK-4286] List Item format for exporting and downloading events/planning (#1276)
+- [SDESK-4478] Correctly display the number of events in Post/Unpost popup (#1275)
+- [SDESK-4549] Coverages are inheriting published time and not scheduled time of a story (#1271)
+- [SDESK-4328] Remove ability to clear the coverage type in the editor (1270)
+- (fix): Update enzyme-adapter-react-16 (#1269)
+- [SDESK-4571] Allow content unlinking when content has been archived (1280)
+- [SDESK-4552] (fix): Assignment preview not showing from monitoring preview (#1285)
+- [SDESK-4477] (fix): Cannot lower repetitions unless on the first event (#1286))
+- [SDESK-4511] (fix): Scrollbar required for planning items in CancelEvent modal (#1287)
+- [SDESK-4524] Make contact form read only when embedded in read only coverage form (#1289)
+- [SDESK-4535] Fulfill assignment available for Reporters (#1288)
+- [SDESK-4609] Filter soft deleted locations out from the browse view (#1290)
+- [SDESK-4637] (fix) Select first assignment on fulfill on publish (#1296)
+- [SDESK-4608] (fix) Advance Search Panel was collapsing if list item has a long text (#1298)
+
 ## [1.6.1] 2019-07-17
 ### Fixes
 - [SDESK-4471] Reschedule and Postpone bugs when editor is open (#1259)
