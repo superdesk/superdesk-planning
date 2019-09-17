@@ -197,7 +197,8 @@ const fetchToList = (params = {}, append = false, featuredItem = null) => (
                     get(params, 'advancedSearch.dates.start') || moment(),
                     selectors.config.defaultTimeZone(getState())
                 )
-            )
+            ),
+            true
         ))
             .then((data) => {
                 dispatch(self.total(data.total));

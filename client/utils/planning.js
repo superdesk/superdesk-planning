@@ -719,7 +719,13 @@ const getFlattenedPlanningByDate = (plansInList, events, startDate, endDate, tim
     return flatten(sortBy(planning, [(e) => (e.date)]).map((e) => e.events.map((k) => [e.date, k._id])));
 };
 
-const getPlanningByDate = (plansInList, events, startDate, endDate, timezone = null) => {
+const getPlanningByDate = (
+    plansInList,
+    events,
+    startDate,
+    endDate,
+    timezone = null,
+    includeScheduledUpdates = false) => {
     if (!plansInList) return [];
 
     const days = {};
@@ -733,11 +739,10 @@ const getPlanningByDate = (plansInList, events, startDate, endDate, timezone = n
     };
 
     plansInList.forEach((plan) => {
-        const dates = {};
+        let dates = {};
         let groupDate = null;
 
-        plan.event = get(events, get(plan, 'event_item'));
-        plan.coverages.forEach((coverage) => {
+        const setCoverageToDate = (coverage) => {
             groupDate = getGroupDate(moment(get(coverage, 'planning.scheduled', plan.planning_date)).clone());
             if (!isDateInRange(groupDate, startDate, endDate)) {
                 return;
@@ -745,6 +750,17 @@ const getPlanningByDate = (plansInList, events, startDate, endDate, timezone = n
 
             if (!get(dates, groupDate.format('YYYY-MM-DD'))) {
                 dates[groupDate.format('YYYY-MM-DD')] = groupDate;
+            }
+        };
+
+        plan.event = get(events, get(plan, 'event_item'));
+        plan.coverages.forEach((coverage) => {
+            setCoverageToDate(coverage);
+
+            if (includeScheduledUpdates) {
+                (get(coverage, 'scheduled_updates') || []).forEach((s) => {
+                    setCoverageToDate(s);
+                });
             }
         });
 
@@ -887,8 +903,6 @@ const defaultCoverageValues = (
         newCoverage[TO_BE_CONFIRMED_FIELD] = planningItem[TO_BE_CONFIRMED_FIELD];
     }
 
-    newCoverage.planning._scheduledTime = newCoverage.planning.scheduled;
-
     if (planningItem) {
         let coverageTime = null;
 
@@ -926,6 +940,7 @@ const defaultCoverageValues = (
                 }
             }
         }
+        newCoverage.planning._scheduledTime = newCoverage.planning.scheduled;
     }
 
     self.setDefaultAssignment(newCoverage, preferredCoverageDesks, g2contentType, defaultDesk);

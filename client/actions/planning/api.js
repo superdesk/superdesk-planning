@@ -95,6 +95,7 @@ const getCriteria = ({
     startOfWeek = 0,
     featured,
     timezoneOffset = null,
+    includeScheduledUpdates = false,
 }) => {
     let query = {};
     let mustNot = [];
@@ -208,10 +209,31 @@ const getCriteria = ({
                     }
                 }
 
-                filter.nested = {
+                const planningSchedule = {
                     path: '_planning_schedule',
                     filter: {range: range},
                 };
+
+                if (includeScheduledUpdates) {
+                    let updatesRange = cloneDeep(range);
+
+                    updatesRange['_updates_schedule.scheduled'] = range[fieldName];
+                    delete updatesRange[fieldName];
+
+                    filter.or = [
+                        {and: [{nested: planningSchedule}]},
+                        {
+                            and: [{nested:
+                                {
+                                    path: '_updates_schedule',
+                                    filter: {range: updatesRange},
+                                },
+                            }],
+                        },
+                    ];
+                } else {
+                    filter.nested = planningSchedule;
+                }
             },
         },
         {
@@ -351,7 +373,8 @@ const query = (
         featured,
     },
     storeTotal = true,
-    timeZoneOffset = null
+    timeZoneOffset = null,
+    includeScheduledUpdates = false
 
 ) => (
     (dispatch, getState, {api}) => {
@@ -369,6 +392,7 @@ const query = (
             startOfWeek,
             featured,
             timezoneOffset: tzOffset,
+            includeScheduledUpdates: includeScheduledUpdates,
         });
 
         const sortField = '_planning_schedule.scheduled';
