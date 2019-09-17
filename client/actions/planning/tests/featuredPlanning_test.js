@@ -78,6 +78,7 @@ describe('actions.planning.api', () => {
                         },
                         false,
                         '+11:00',
+                        true,
                     ]);
                     done();
                 })

@@ -55,8 +55,7 @@ export const orderedFeaturedPlanningList = createSelector(
         const dateRange = getSearchDateRange(search, startOfWeek);
 
         const group = planningUtils.getPlanningByDate(
-            plansInList, null, dateRange.startDate, dateRange.endDate, timezone
-        );
+            plansInList, null, dateRange.startDate, dateRange.endDate, timezone, true);
 
         if (group.length > 0) {
             const featuredPlansForDate = group.find((g) => g.date === date.format('YYYY-MM-DD'));
