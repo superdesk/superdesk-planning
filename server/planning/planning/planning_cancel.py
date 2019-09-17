@@ -17,7 +17,7 @@ from eve.utils import config
 from copy import deepcopy
 from .planning import PlanningResource, planning_schema
 from planning.common import WORKFLOW_STATE, ITEM_STATE, update_post_item, ITEM_ACTIONS, \
-    is_valid_event_planning_reason
+    is_valid_event_planning_reason, ASSIGNMENT_WORKFLOW_STATE
 
 
 planning_cancel_schema = deepcopy(planning_schema)
@@ -78,7 +78,7 @@ class PlanningCancelService(BaseService):
 
         planning_service = get_resource_service('planning')
         for coverage in coverages:
-            if coverage['workflow_status'] != WORKFLOW_STATE.CANCELLED:
+            if coverage['workflow_status'] not in [WORKFLOW_STATE.CANCELLED, ASSIGNMENT_WORKFLOW_STATE.COMPLETED]:
                 ids.append(coverage.get('coverage_id'))
                 planning_service.cancel_coverage(coverage, coverage_cancel_state,
                                                  coverage.get('workflow_status'), None, reason,
@@ -122,5 +122,14 @@ class PlanningCancelService(BaseService):
 
     def on_updated(self, updates, original):
         lock_action = original.get('lock_action')
-        if lock_action in [ITEM_ACTIONS.EDIT, ITEM_ACTIONS.PLANNING_CANCEL, ITEM_ACTIONS.CANCEL_ALL_COVERAGE]:
+        if lock_action in [ITEM_ACTIONS.EDIT, ITEM_ACTIONS.PLANNING_CANCEL,
+                           ITEM_ACTIONS.CANCEL_ALL_COVERAGE] or self.is_related_event_completed(updates, original):
             update_post_item(updates, original)
+
+    def is_related_event_completed(self, updates, original):
+        if len(original.get('coverages')) > 0 and len(updates.get('coverages') or []) > 0 and \
+                not original['coverages'][0]['planning'].get('workflow_status_reason') and \
+                updates['coverages'][0]['planning'].get('workflow_status_reason') == 'Event Completed':
+            return True
+
+        return False

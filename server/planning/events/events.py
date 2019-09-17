@@ -544,10 +544,10 @@ class EventsService(superdesk.Service):
         plans = list(get_resource_service('planning').find(where={'event_item': event[config.ID_FIELD]}))
         for plan in plans:
             if plan.get('state') != WORKFLOW_STATE.CANCELLED and len(plan.get('coverages', [])) > 0:
-                get_resource_service('planning_cancel').update(plan[config.ID_FIELD], {
+                get_resource_service('planning_cancel').patch(plan[config.ID_FIELD], {
                     'reason': 'Event Completed',
                     'cancel_all_coverage': True,
-                }, plan)
+                })
 
     def _convert_to_recurring_event(self, updates, original):
         """Convert a single event to a series of recurring events"""
