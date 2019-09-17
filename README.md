@@ -1,5 +1,4 @@
 # Superdesk Planning
-_Sept 2016, Berlin_  
 [![Build Status](https://travis-ci.org/superdesk/superdesk-planning.svg?branch=master)](https://travis-ci.org/superdesk/superdesk-planning)
 [![Coverage Status](https://coveralls.io/repos/github/superdesk/superdesk-planning/badge.svg?branch=master)](https://coveralls.io/github/superdesk/superdesk-planning?branch=master)
 
@@ -7,10 +6,31 @@ _Sept 2016, Berlin_
 This is a plugin for [superdesk](https://github.com/superdesk/superdesk).  
 It allows to ingest and manage events, to create planning within agenda, and to link coverages to them.
 
-## Configure Superdesk
+## Table of contents
+* [Installation](#installation)
+    * [Client](#install-client)
+    * [Server](#install-server)
+    * [Development](#install-for-development)
+* [Config](#config)
+    * [System](#system-config)
+    * [Events](#event-config)
+    * [Planning](#planning-config)
+    * [Assignments](#assignments-config)
+    * [Authoring](#authoring-config)
+* [Slack Integration](#slack-integration)
+* [Celery Tasks](#celery-tasks)
+    * [Expire Items](#celery-tasks-expire-items)
+    * [Delete Spiked](#celery-tasks-delete-spiked)
+    * [Delete Assignments](#celery-tasks-delete-assignments)
+* [Testing](#running-tests)
+    * [Client](#tests-client)
+    * [Server](#tests-server)
+    
+
+## Installation
 In order for Superdesk to expose the Planning module, you must configure it in both the client and server config files.
 
-### Client
+### Install Client
 Add the dependency to your instance of superdesk.  
 In `superdesk/client/package.json` add `superdesk-planning` to the dependencies
 (replacing `#a79d428` with the specific commit you require):
@@ -49,7 +69,12 @@ importApps: [
 
 This will import the `superdesk-planning` node module and load the `superdesk.planning` angular module in the main angular application.
 
-### Server
+Finally install planning for javascript:
+```
+npm install
+```
+
+### Install Server
 Add the dependency to your instance of superdesk.
 In `superdesk/server/requirements.txt` add `superdesk-planning` to the dependencies
 (replacing `@a5b14c23e` with the specific commit you require):
@@ -66,7 +91,99 @@ INSTALLED_APPS.extend([
 ])
 ```
 
-## Celery Task: Expire Items
+Finally install planning for Python:
+```
+pip install -r requirements.txt
+```
+
+### Install for Development
+After performing the above steps, you can enable editing of your local copy for use with development.
+
+First you will need to clone the repo from GitHub.  
+In the root folder where your current superdesk folder is, run the following:
+```
+git clone git@github.com:superdesk/superdesk-planning.git
+```
+
+#### Client
+Running the following will link the superdesk-planning module in development mode:
+```
+cd superdesk/client
+npm install
+npm link ../../superdesk-planning
+cd ../..
+```
+
+#### Server
+Run the following to install the python module in development mode:
+```
+cd superdesk/server
+pip install -r requirements.txt
+cd ../../superdesk-planning
+pip install -e .
+cd ..
+```
+
+## Config
+Below sections include the config options that can be defined in settings.py.
+
+### System Config
+* PLANNING_EXPIRY_MINUTES
+    * Defaults to 0 - disabled
+* PLANNING_DELETE_SPIKED_MINUTES
+    * Defaults to 0 - disabled
+
+### Event Config
+* MAX_RECURRENT_EVENTS:
+    * Defaults to 200
+    * Defines an upper limit to how many events can be created in a recurring series of Events.
+* STREET_MAP_URL:
+    * Defaults to 'https://www.google.com.au/maps/?q='
+    * Defines the generated url used when clicking on a location of an Event.
+* MAX_MULTI_DAY_EVENT_DURATION:
+    * Defaults to 7
+    * Defines the maximum number of days a single event can span.
+* PLANNING_EVENT_TEMPLATES_ENABLED:
+    * Defaults to False
+    * Enables the ability to create templates from an existing Event, and use them for creating new Events.
+
+### Planning Config
+* LONG_EVENT_DURATION_THRESHOLD:
+    * Defaults to -1 - disabled
+
+### Assignments Config
+* SLACK_BOT_TOKEN
+    * Defaults to ''
+    * The Bot User OAuth Token for access to Slack
+* PLANNING_AUTO_ASSIGN_TO_WORKFLOW
+    * Defaults to false
+    * Automatically assigned a coverage to workflow
+
+### Authoring Config
+* PLANNING_CHECK_FOR_ASSIGNMENT_ON_PUBLISH
+    * Defaults to false
+    * If true, check for unfulfilled assignments when publishing a story
+* PLANNING_LINK_UPDATES_TO_COVERAGES
+    * Defaults to false
+    * If true, links content update to the assignment of the parent item
+* PLANNING_FULFIL_ON_PUBLISH_FOR_DESKS
+    * Defaults to ''
+    * Desk IDs to display fulfil challenge on publish (requires PLANNING_CHECK_FOR_ASSIGNMENT_ON_PUBLISH=true)
+
+## Slack Integration
+There are a couple of steps to take to enable slack for assignment notifications.
+
+* Add `features.slackNotifications: 1` to your superdesk.config.js file
+* Configure a SLACK_BOT_TOKEN in your settings.py
+* Add `slackclient==1.0.9` to your requirements.txt file, and install using pip
+* Configure slack channel/user names in the Superdesk UI
+    * `SLACK CHANNEL NAME` in the `General` tab for a desk
+    * `SLACK USERNAME` in the `Overview` of each user
+
+## Celery Tasks
+The following are celery tasks configured to perform periodic tasks specific to Planning. 
+
+### Celery Tasks: Expire Items
 There is a Celery Task to expire items after a configured amount of time.
 
 In your settings.py, configure CELERY_TASK_ROUTES, CELERY_BEAT_SCHEDULE
@@ -95,7 +212,7 @@ There is also a manage.py command so that you can manually run this task.
 python manage.py planning:flag_expired
 ```
 
-## Celery Task: Expire Items
+### Celery Tasks: Delete Spiked
 This is a Celery Task to delete spiked planning items, associated assignments and events after a configured amount of time.
 Settings are very similar to "planning:flag_expired" task
 
@@ -124,44 +241,23 @@ There is also a manage.py command so that you can manually run this task.
 python manage.py planning:delete_spiked
 ```
 
-## Install for Production/Testing
-Installing Superdesk-Planning for production or test environments is as easy as running the following:
-```
-cd superdesk/client
-npm install
-cd ../server
-pip install -r requirements.txt
-cd ../..
-```
+### Celery Tasks: Delete Assignments
+This is a Celery Task to delete Assignments that have been marked by the system to be removed.
+This can happen when the Coverage is cancelled but the Assignemnt or content item is currently locked.
+This task will later on attempt to remove the Assignment once it is unlocked by the user.
 
-## Install for Development
+The following is the default config if one is not defined:
+```
+CELERY_TASK_ROUTES['planning.delete_assignments'] = {
+    'queue': celery_queue('expiry'),
+    'routing_key': 'expiry.delete_assignments'
+}
 
-First you will need to clone the repo from GitHub.  
-In the root folder where your current superdesk folder is, run the following:
+CELERY_BEAT_SCHEDULE['lanning:delete_assignments'] = {
+    'task': 'planning.delete_assignments',
+    'schedule': crontab(seconds=60)
+}
 ```
-git clone git@github.com:superdesk/superdesk-planning.git
-```
-
-### Client
-Running the following will link the superdesk-planning module in development mode:
-```
-cd superdesk/client
-npm install
-npm link ../../superdesk-planning
-cd ../..
-```
-
-### Server
-
-Run the following to install the python module in development mode:
-```
-cd superdesk/server
-pip install -r requirements.txt
-cd ../../superdesk-planning
-pip install -e .
-cd ..
-```
-
 
 ## Running Tests
 
@@ -174,7 +270,7 @@ cd ..
 
 Or you can run them individually as below.
 
-### Client
+### Tests: Client
 Code Style
 ```
 cd superdesk-planning
@@ -196,7 +292,7 @@ npm run coveralls
 cd ..
 ```
 
-### Server
+### Tests: Server
 
 Code Style
 ```
