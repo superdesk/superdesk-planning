@@ -27,6 +27,7 @@
 - fix(flake8): Resolve 'D413 Missing blank line after last section' (#1312)
 - fix(import ui-framework): Add helpers and colors to scss imports (#1323)
 - fix to use modal__backdrop class locally (#1326)
+- [SDESK-4691] Planning was not published when event was completed (#1330)
 
 ## [1.6.2] 2019-08-21
 ### Features
