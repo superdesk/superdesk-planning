@@ -47,7 +47,10 @@ const isAssignmentInEditableState = (assignment) => (
 const canCompleteAssignment = (assignment, session, privileges) => (
     !!privileges[PRIVILEGES.ARCHIVE] &&
         self.isNotLockRestricted(assignment, session) &&
-        get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS
+        (get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS ||
+            ([ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED, ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
+                ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS].includes(
+                get(assignment, 'assigned_to.state'))) && get(assignment, 'scheduled_update_id'))
 );
 
 const canConfirmAvailability = (assignment, session, privileges, contentTypes) => (

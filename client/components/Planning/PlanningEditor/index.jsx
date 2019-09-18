@@ -184,6 +184,8 @@ export class PlanningEditorComponent extends React.Component {
             partialSaveAction = this.props.itemManager.cancelCoverage;
         } else if (action == COVERAGES.PARTIAL_SAVE.SCHEDULED_UPDATES_ADD_TO_WORKFLOW) {
             partialSaveAction = this.props.itemManager.addScheduledUpdateToWorkflow;
+        } else if (action == COVERAGES.PARTIAL_SAVE.SCHEDULED_UPDATES_ADD_TO_WORKFLOW) {
+            partialSaveAction = this.props.itemManager.addScheduledUpdateToWorkflow;
         }
 
         partialSaveAction(this.props.item, coverage, index, scheduledUpdate, scheduledUpdateIndex);
@@ -198,12 +200,19 @@ export class PlanningEditorComponent extends React.Component {
             scheduledUpdate, index);
     }
 
-    onRemoveAssignment(coverage, index) {
-        if (!get(coverage, 'assigned_to.assignment_id')) {
+    onRemoveAssignment(coverage, index, scheduledUpdate, scheduledUpdateIndex) {
+        const forScheduledUpdate = get(scheduledUpdate, 'scheduled_update_id');
+        const toRemove = !forScheduledUpdate ? coverage : scheduledUpdate;
+
+        if (!get(toRemove, 'assigned_to.assignment_id')) {
             // Non existing assignment, just remove from autosave
-            this.onChange('coverages[' + index + '].assigned_to', {});
+            if (!forScheduledUpdate) {
+                this.onChange('coverages[' + index + '].assigned_to', {});
+            } else {
+                this.onChange(`coverages[${index}].scheduled_updates[${scheduledUpdateIndex}].assigned_to`, {});
+            }
         } else {
-            delete coverage.assigned_to;
+            delete toRemove.assigned_to;
             this.onPartialSave(coverage, index, COVERAGES.PARTIAL_SAVE.REMOVE_ASSIGNMENT);
         }
     }

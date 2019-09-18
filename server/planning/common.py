@@ -392,6 +392,7 @@ def get_related_items(item, assignment=None):
             }
         }
     }
+    query['sort'] = [{'rewrite_sequence': 'asc'}]
 
     req.args['source'] = json.dumps(query)
     req.args['repo'] = 'archive,published,archived'
@@ -509,3 +510,9 @@ def get_first_paragraph_text(input_string):
 def get_delivery_publish_time(updates, original={}):
     schdl_stngs = (updates.get('schedule_settings') or original.get('schedule_settings', {}))
     return schdl_stngs.get('utc_publish_schedule') or updates.get('firstpublished') or original.get('firstpublished')
+
+
+def get_coverage_for_assignment(assignment):
+    planning_item = get_resource_service('planning').find_one(req=None, _id=assignment.get('planning_item'))
+    return next((c for c in (planning_item or {}).get('coverages', [])
+                 if c['coverage_id'] == assignment['coverage_item']), None)
