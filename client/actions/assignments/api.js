@@ -22,8 +22,10 @@ const constructQuery = ({
     type = null,
     priority = null,
     dateFilter = null,
+    ignoreScheduledUpdates = false,
 }) => {
     let must = [];
+    let mustNot = [];
 
     const filters = [{
         condition: () => deskId && deskId !== ALL_DESKS,
@@ -109,6 +111,13 @@ const constructQuery = ({
             }
         },
     }, {
+        condition: () => ignoreScheduledUpdates,
+        do: () => {
+            mustNot.push({
+                constant_score: {filter: {exists: {field: 'scheduled_update_id'}}},
+            });
+        },
+    }, {
         condition: () => get(baseQuery, 'must.length', 0) > 0,
         do: () => {
             must = must.concat(baseQuery.must);
@@ -121,7 +130,13 @@ const constructQuery = ({
         }
     });
 
-    return {bool: {must}};
+    let returnQuery = {bool: {must}};
+
+    if (mustNot.length > 0) {
+        returnQuery.bool.must_not = mustNot;
+    }
+
+    return returnQuery;
 };
 
 
@@ -141,6 +156,7 @@ const query = ({
     priority = null,
     dateFilter = null,
     size = null,
+    ignoreScheduledUpdates = false,
 }) => (
     (dispatch, getState, {api}) => {
         const filterByValues = {
@@ -165,6 +181,7 @@ const query = ({
             type,
             priority,
             dateFilter,
+            ignoreScheduledUpdates,
         });
 
         return api('assignments').query({

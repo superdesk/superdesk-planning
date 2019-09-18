@@ -1049,6 +1049,10 @@ assignments_schema = {
         'mapping': not_analyzed
     },
     'planning_item': planning_type,
+    'scheduled_update_id': {
+        'type': 'string',
+        'mapping': not_analyzed
+    },
     'lock_user': metadata_schema['lock_user'],
     'lock_time': metadata_schema['lock_time'],
     'lock_session': metadata_schema['lock_session'],

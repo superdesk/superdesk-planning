@@ -125,6 +125,7 @@ export const getOrderDirection = (state) => get(state, 'assignment.orderDirectio
 export const getAssignmentFilterByState = (state) => get(state, 'assignment.filterByState', null);
 export const getAssignmentFilterByType = (state) => get(state, 'assignment.filterByType', null);
 export const getSelectedDeskId = (state) => get(state, 'assignment.selectedDeskId', '');
+export const getIgnoreScheduledUpdates = (state) => get(state, 'assignment.ignoreScheduledUpdates', false);
 export const getAssignmentFilterByPriority = (state) =>
     get(state, 'assignment.filterByPriority', null);
 
@@ -137,6 +138,7 @@ export const getAssignmentListSettings = (state) => ({
     filterByType: getAssignmentFilterByType(state),
     filterByPriority: getAssignmentFilterByPriority(state),
     selectedDeskId: getSelectedDeskId(state),
+    ignoreScheduledUpdates: getIgnoreScheduledUpdates(state),
 });
 
 export const getAssignmentListSingleGroupView = (state) => get(state,
@@ -181,6 +183,7 @@ export const getAssignmentSearch = createSelector(
             states: null,
             type: filterByType,
             priority: filterByPriority,
+            ignoreScheduledUpdates: get(listSettings, 'ignoreScheduledUpdates', false),
         };
     }
 );

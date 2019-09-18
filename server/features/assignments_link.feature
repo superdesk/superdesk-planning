@@ -1386,3 +1386,597 @@ Feature: Assignment link
             }]
         }
         """
+
+    @auth
+    @notification
+    Scenario: Can link only rewrites to scheduled update assignments
+    Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "desk_123",
+                        "user": "507f191e810c19729de870eb",
+                        "state": "draft"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "assignment_id": "#firstassignment#",
+                        "desk": "desk_123",
+                        "user": "507f191e810c19729de870eb",
+                        "state": "draft"
+                    }
+                }
+            ]
+        }
+        """
+        When we get "assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        { "_id": "#firstassignment#" }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z"
+                    },
+                    "assigned_to": {
+                        "assignment_id": "#firstassignment#",
+                        "desk": "desk_123",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "assigned_to": {
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "draft"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00.000Z"
+                        }
+                    },
+                    {
+                        "assigned_to": {
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "draft"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-28T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we store scheduled_update id in "firstscheduled" from scheduled_update 0 of coverage 0
+        Then we store scheduled_update id in "secondscheduled" from scheduled_update 1 of coverage 0
+        Then we store assignment id in "firstscheduledassignment" from scheduled_update 0 of coverage 0
+        Then we store assignment id in "secondscheduledassignment" from scheduled_update 1 of coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00+0000"
+                    },
+                    "assigned_to": {
+                        "assignment_id": "#firstassignment#",
+                        "desk": "desk_123",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "assigned_to": {
+                            "assignment_id": "#firstscheduledassignment#",
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "draft"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00+0000"
+                        }
+                    },
+                    {
+                        "assigned_to": {
+                            "assignment_id": "#secondscheduledassignment#",
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "draft"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-28T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "active",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z"
+                    },
+                    "assigned_to": {
+                        "assignment_id": "#firstassignment#",
+                        "desk": "desk_123",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "scheduled_update_id": "#firstscheduled#",
+                        "assigned_to": {
+                            "assignment_id": "#firstscheduledassignment#",
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "active"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "active",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00.000Z"
+                        }
+                    },
+                    {
+                        "scheduled_update_id": "#secondscheduled#",
+                        "assigned_to": {
+                            "assignment_id": "#secondscheduledassignment#",
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "active"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "active",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-28T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        When we post to "assignments/link"
+        """
+        [{
+            "assignment_id": "#firstscheduledassignment#",
+            "item_id": "#archive._id#",
+            "reassign": true
+        }]
+        """
+        Then we get error 400
+        """
+        {"_message": "Only updates can be linked to a scheduled update assignment"}
+        """
+
+    @auth
+    @notification @today
+    Scenario: Correct sequqnce rewrite can be linked to a scheduled update assignment
+    Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "desk_123",
+                        "user": "507f191e810c19729de870eb",
+                        "state": "draft"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "assignment_id": "#firstassignment#",
+                        "desk": "desk_123",
+                        "user": "507f191e810c19729de870eb",
+                        "state": "draft"
+                    }
+                }
+            ]
+        }
+        """
+        When we get "assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        { "_id": "#firstassignment#" }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z"
+                    },
+                    "assigned_to": {
+                        "assignment_id": "#firstassignment#",
+                        "desk": "desk_123",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "assigned_to": {
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "draft"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00.000Z"
+                        }
+                    },
+                    {
+                        "assigned_to": {
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "draft"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-28T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we store scheduled_update id in "firstscheduled" from scheduled_update 0 of coverage 0
+        Then we store scheduled_update id in "secondscheduled" from scheduled_update 1 of coverage 0
+        Then we store assignment id in "firstscheduledassignment" from scheduled_update 0 of coverage 0
+        Then we store assignment id in "secondscheduledassignment" from scheduled_update 1 of coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00+0000"
+                    },
+                    "assigned_to": {
+                        "assignment_id": "#firstassignment#",
+                        "desk": "desk_123",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "assigned_to": {
+                            "assignment_id": "#firstscheduledassignment#",
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "draft"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00+0000"
+                        }
+                    },
+                    {
+                        "assigned_to": {
+                            "assignment_id": "#secondscheduledassignment#",
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "draft"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-28T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "active",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z"
+                    },
+                    "assigned_to": {
+                        "assignment_id": "#firstassignment#",
+                        "desk": "desk_123",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "scheduled_update_id": "#firstscheduled#",
+                        "assigned_to": {
+                            "assignment_id": "#firstscheduledassignment#",
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "active"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "active",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00.000Z"
+                        }
+                    },
+                    {
+                        "scheduled_update_id": "#secondscheduled#",
+                        "assigned_to": {
+                            "assignment_id": "#secondscheduledassignment#",
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "active"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "active",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-28T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        When we post to "/archive" with success
+        """
+        [{"type": "text", "headline": "test", "state": "fetched",
+        "task": {"desk": "#desks._id#", "stage": "#desks.incoming_stage#", "user": "#CONTEXT_USER_ID#"},
+        "subject":[{"qcode": "17004000", "name": "Statistics"}],
+        "slugline": "test",
+        "body_html": "Test Document body",
+        "target_subscribers": [{"_id": "#subscribers._id#"}],
+        "dateline": {
+          "located" : {
+              "country" : "Afghanistan",
+              "tz" : "Asia/Kabul",
+              "city" : "Mazar-e Sharif",
+              "alt_name" : "",
+              "country_code" : "AF",
+              "city_code" : "Mazar-e Sharif",
+              "dateline" : "city",
+              "state" : "Balkh",
+              "state_code" : "AF.30"
+          },
+          "text" : "MAZAR-E SHARIF, Dec 30  -",
+          "source": "AAP"}
+        }]
+        """
+        And we publish "#archive._id#" with "publish" type and "published" state
+        Then we get OK response
+        When we rewrite "#archive._id#"
+        """
+        {"desk_id": "#desks._id#"}
+        """
+        Then we get OK response
+        And we store "rewrite1" with value "#REWRITE_ID#" to context
+        When we publish "#REWRITE_ID#" with "publish" type and "published" state
+        Then we get OK response
+        When we rewrite "#rewrite1#"
+        """
+        {"desk_id": "#desks._id#"}
+        """
+        Then we get OK response
+        When we post to "assignments/link"
+        """
+        [{
+            "assignment_id": "#firstscheduledassignment#",
+            "item_id": "#rewrite1#",
+            "reassign": true
+        }]
+        """
+        Then we get OK response

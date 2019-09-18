@@ -29,36 +29,42 @@ class AssignmentsLinkService(Service):
     def create(self, docs):
         ids = []
         production = get_resource_service('archive')
-        assignments_service = get_resource_service('assignments')
-        items = []
-        deliveries = []
-        published_updated_items = []
 
         for doc in docs:
-            assignment = assignments_service.find_one(req=None, _id=doc.pop('assignment_id'))
-            assignments_service.validate_assignment_action(assignment)
+            assignment = get_resource_service('assignments').find_one(req=None, _id=doc.pop('assignment_id'))
             item_id = doc.pop('item_id')
             actioned_item = production.find_one(req=None, _id=item_id)
             related_items = get_related_items(actioned_item)
+            ids = self.link_archive_items_to_assignments(assignment, related_items, actioned_item, doc)
 
-            for item in related_items:
-                if not item.get('assignment_id'):
-                    # Add a delivery for all items in published collection
-                    deliveries.append({
-                        'item_id': item[config.ID_FIELD],
-                        'assignment_id': assignment.get(config.ID_FIELD),
-                        'planning_id': assignment['planning_item'],
-                        'coverage_id': assignment['coverage_item'],
-                        'item_state': item.get('state'),
-                        'sequence_no': item.get('rewrite_sequence') or 0,
-                        'publish_time': get_delivery_publish_time(item)
-                    })
+        return ids
 
-                    # Update archive/published collection with assignment linking
-                    update_assignment_on_link_unlink(assignment[config.ID_FIELD], item, published_updated_items)
+    def link_archive_items_to_assignments(self, assignment, related_items, actioned_item, doc):
+        assignments_service = get_resource_service('assignments')
+        assignments_service.validate_assignment_action(assignment)
+        items = []
+        ids = []
+        deliveries = []
+        published_updated_items = []
+        for item in related_items:
+            if not item.get('assignment_id'):
+                # Add a delivery for all items in published collection
+                deliveries.append({
+                    'item_id': item[config.ID_FIELD],
+                    'assignment_id': assignment.get(config.ID_FIELD),
+                    'planning_id': assignment['planning_item'],
+                    'coverage_id': assignment['coverage_item'],
+                    'item_state': item.get('state'),
+                    'sequence_no': item.get('rewrite_sequence') or 0,
+                    'publish_time': get_delivery_publish_time(item),
+                    'scheduled_update_id': assignment.get('scheduled_update_id'),
+                })
 
-                    ids.append(item.get(config.ID_FIELD))
-                    items.append(item)
+                # Update archive/published collection with assignment linking
+                update_assignment_on_link_unlink(assignment[config.ID_FIELD], item, published_updated_items)
+
+                ids.append(item.get(config.ID_FIELD))
+                items.append(item)
 
         # Create all deliveries
         if len(deliveries) > 0:
@@ -74,8 +80,10 @@ class AssignmentsLinkService(Service):
         # Update assignment history with all items affected
         if len(ids) > 0:
             updates['assigned_to']['item_ids'] = ids
-            assignment_history_service = get_resource_service('assignments_history')
-            assignment_history_service.on_item_content_link(updates, assignment)
+            if not assignment.get('scheduled_update_id'):
+                assignment_history_service = get_resource_service('assignments_history')
+                assignment_history_service.on_item_content_link(updates, assignment)
+
             if actioned_item.get(ITEM_STATE) not in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED] or \
                     already_completed:
                 # publishing planning item
@@ -126,6 +134,10 @@ class AssignmentsLinkService(Service):
                 raise SuperdeskApiError.badRequestError(
                     'Content already exists for the assignment. Cannot link assignment and content.'
                 )
+
+            # scheduled update validation
+            if assignment.get('scheduled_update_id'):
+                raise SuperdeskApiError.badRequestError('Only updates can be linked to a scheduled update assignment')
 
     def update_assignment(self, updates, assignment, actioned_item, reassign, already_completed):
         # Update assignments, assignment history and publish planning
