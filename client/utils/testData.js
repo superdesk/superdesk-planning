@@ -546,6 +546,7 @@ export const events = [
     },
     {
         _id: 'e2',
+        duplicate_from: 'e1',
         type: 'event',
         slugline: 'test slugline 2',
         name: 'Event 2',
