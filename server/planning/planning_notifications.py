@@ -187,7 +187,11 @@ def _get_email_message_string(message, meta_message, data):
     :return: The message with the data applied
     """
     template_string = Template(message).render(data)
-    template_meta_string = render_template(meta_message + '.txt', **data) if meta_message else ''
+    try:
+        template_meta_string = render_template(meta_message + '.txt', **data) if meta_message else ''
+    except Exception:
+        logger.exception('Failed to apply meta text template: {}'.format(meta_message))
+        template_meta_string = None
 
     if template_meta_string:
         return template_string + '\n\n' + template_meta_string
@@ -205,7 +209,11 @@ def _get_email_message_html(message, meta_message, data):
     :return: The message with the data applied
     """
     template_string = Template(message).render(data)
-    template_meta_string = render_template(meta_message + '.html', **data) if meta_message else ''
+    try:
+        template_meta_string = render_template(meta_message + '.html', **data) if meta_message else ''
+    except Exception:
+        logger.exception('Failed to apply meta html template: {}'.format(meta_message))
+        template_meta_string = None
 
     if template_meta_string:
         return template_string + '<br><br>' + template_meta_string
@@ -248,7 +256,7 @@ def _send_user_email(user_id, text_message, html_message, data):
             fp = media.read()
             attachments.append(Attachment(filename=media.name, content_type=media.content_type, data=fp))
 
-    send_email(subject='Superdesk assignment',
+    send_email(subject='Superdesk assignment' + ': {}'.format(data.get('slugline') if data.get('slugline') else ''),
                sender=admins[0],
                recipients=[user_email],
                text_body=text_message,
