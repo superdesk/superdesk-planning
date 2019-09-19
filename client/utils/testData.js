@@ -981,4 +981,5 @@ export const items = {
     published_planning: publishedPlanning,
     events_planning_search: events.concat(plannings),
     events_planning_filters: eventsPlanningFilters,
+    recent_events_template: [],
 };
