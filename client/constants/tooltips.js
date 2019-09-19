@@ -5,6 +5,7 @@ export const TOOLTIPS = {
     edit: gettext('Edit'),
     close: gettext('Close'),
     deleteAgenda: gettext('Delete Agenda'),
+    delete: gettext('Delete'),
     postedState: gettext('Posted'),
     withheldState: gettext('The event has been killed'),
     scheduledState: gettext('Scheduled'),

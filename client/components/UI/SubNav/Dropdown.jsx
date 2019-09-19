@@ -2,11 +2,10 @@ import React from 'react';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import {defer} from 'lodash';
-import {firstCharUpperCase} from '../utils';
-import {get} from 'lodash';
+import {defer, get} from 'lodash';
 
 import {Menu, Label, Divider, Dropdown as DropMenu} from '../Dropdown';
+import {gettext} from '../utils';
 
 /**
  * @ngdoc react
@@ -16,7 +15,10 @@ import {Menu, Label, Divider, Dropdown as DropMenu} from '../Dropdown';
 export class Dropdown extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {open: false};
+        this.state = {
+            open: false,
+            filterValue: '',
+        };
         this.toggle = this.toggle.bind(this);
         this.close = this.close.bind(this);
     }
@@ -37,6 +39,9 @@ export class Dropdown extends React.Component {
     }
 
     close(event) {
+        if (event.target.classList.contains('dropdown-filter')) {
+            return;
+        }
         if (!this.inToggle && this.state.open && !(get(event.target, 'nodeName') === 'UL')) {
             this.setState({open: false});
         }
@@ -48,6 +53,7 @@ export class Dropdown extends React.Component {
         }
     }
 
+    // eslint-disable-next-line complexity
     render() {
         const isCreate = this.props.icon === 'icon-plus-large';
         const buttonClassName = classNames(
@@ -77,6 +83,11 @@ export class Dropdown extends React.Component {
                     <span className="circle" />
                 )}
             </button>
+        );
+
+        const filterValueNormalized = this.state.filterValue.trim().toLowerCase();
+        const filteredItems = filterValueNormalized.length < 1 ? this.props.items : this.props.items.filter(
+            (item) => item.label.toLowerCase().includes(filterValueNormalized)
         );
 
         return (
@@ -112,7 +123,21 @@ export class Dropdown extends React.Component {
                         <Divider />
                     )}
 
-                    {this.props.items.map((item, index) => {
+                    {
+                        this.props.searchable === true && this.props.items.length > 5 ? (
+                            <div style={{paddingLeft: 10, paddingRight: 10}}>
+                                <input
+                                    type="text"
+                                    value={this.state.filterValue}
+                                    onChange={(event) => this.setState({filterValue: event.target.value})}
+                                    placeholder={gettext('Filter')}
+                                    className="dropdown-filter"
+                                />
+                            </div>
+                        ) : null
+                    }
+
+                    {filteredItems.map((item, index) => {
                         if (item.divider) {
                             return <Divider key={index} />;
                         } else {
@@ -130,7 +155,7 @@ export class Dropdown extends React.Component {
                                             {'dropdown__menu-item--disabled': item.disabled},
                                             item.className
                                         )}>
-                                            {firstCharUpperCase(item.label)}
+                                            {item.label}
                                         </span>
                                     </button>
                                 </li>
@@ -164,6 +189,7 @@ Dropdown.propTypes = {
     className: PropTypes.string,
     tooltip: PropTypes.string,
     scrollable: PropTypes.bool,
+    searchable: PropTypes.bool,
 };
 
 Dropdown.defaultProps = {

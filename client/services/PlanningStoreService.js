@@ -29,6 +29,7 @@ export class PlanningStoreService {
         $q,
         $interpolate,
         search,
+        modal,
         preferencesService
     ) {
         this.$rootScope = $rootScope;
@@ -54,6 +55,7 @@ export class PlanningStoreService {
         this.$q = $q;
         this.$interpolate = $interpolate;
         this.search = search;
+        this.modal = modal;
         this.preferencesService = preferencesService;
 
         this.onSessionChanged = this.onSessionChanged.bind(this);
@@ -161,6 +163,7 @@ export class PlanningStoreService {
                         authoringWorkspace: this.authoringWorkspace,
                         $interpolate: this.$interpolate,
                         search: this.search,
+                        modal: this.modal,
                         config: this.config,
                         preferencesService: this.preferencesService,
                         $rootScope: this.$rootScope,
@@ -328,5 +331,6 @@ PlanningStoreService.$inject = [
     '$q',
     '$interpolate',
     'search',
+    'modal',
     'preferencesService',
 ];

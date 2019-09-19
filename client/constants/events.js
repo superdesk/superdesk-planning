@@ -19,6 +19,7 @@ export const EVENTS = {
         MARK_EVENT_UNPOSTED: 'MARK_EVENT_UNPOSTED',
         SELECT_CALENDAR: 'SELECT_EVENT_CALENDAR',
         RECEIVE_CALENDARS: 'RECEIVE_CALENDARS',
+        RECEIVE_EVENT_TEMPLATES: 'RECEIVE_EVENT_TEMPLATES',
         EXPIRE_EVENTS: 'EXPIRE_EVENTS',
     },
     // Number of ids to look for by single request
@@ -105,6 +106,11 @@ export const EVENTS = {
             icon: 'icon-list-plus',
             actionName: 'onEventAssignCalendar',
             lock_action: 'assign_calendar',
+        },
+        SAVE_AS_TEMPLATE: {
+            label: gettext('Save event as a template'),
+            icon: 'icon-new-doc',
+            actionName: 'onCreateEventTemplate',
         },
         MARK_AS_COMPLETED: {
             label: gettext('Mark as completed'),
