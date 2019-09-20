@@ -132,6 +132,7 @@ describe('actions.autosave', () => {
                     const expectedItem = {
                         ...data.events[1],
                         _id: 'tempId-e4',
+                        duplicate_from: 'e1',
                         lock_action: 'create',
                         lock_user: store.initialState.session.identity._id,
                         lock_session: store.initialState.session.sessionId,
