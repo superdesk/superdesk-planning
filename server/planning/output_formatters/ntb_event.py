@@ -31,10 +31,7 @@ class NTBEventFormatter(Formatter):
 
     def _format_doc(self, doc, item):
         ntb_id = etree.SubElement(doc, 'ntbId')
-        if item.get('ntb_id'):
-            ntb_id.text = item.get('ntb_id')
-        else:
-            ntb_id.text = self._format_id(item)
+        ntb_id.text = self._format_id(item)
 
         service = etree.SubElement(doc, 'service')
         service.text = self.SERVICE
@@ -108,10 +105,19 @@ class NTBEventFormatter(Formatter):
         return local_time.strftime('%Y-%m-%dT%H:%M:%S')
 
     def _format_id(self, item):
-        if item.get('duplicate_from'):
+        if item.get('ntb_id'):
+            return item.get('ntb_id')
+
+        time = item.get('firstcreated')
+        if item.get('reschedule_from'):
+            parent_event = get_resource_service('events').find_one(
+                req=None,
+                _id=item.get('reschedule_from')
+            )
+            if parent_event:
+                return self._format_id(parent_event)
+        elif item.get('duplicate_from'):
             time = item.get('_created')
-        else:
-            time = item.get('firstcreated')
 
         local_time = self._get_local_time(time)
         return 'NBRP{}_hh_00'.format(local_time.strftime('%y%m%d_%H%M%S'))
