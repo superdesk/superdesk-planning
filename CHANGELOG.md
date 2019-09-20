@@ -1,6 +1,6 @@
 # Superdesk Planning Changelog
 
-## [1.7.0] Not released yet
+## [1.7.0] 2019-09-20
 ### Features
 - [SDESK-4427] New Event action 'Mark as Completed' (#1273)
 - [SDNTB-584] feat(draggable): Added ability to make modals draggable (#1294)
@@ -12,6 +12,7 @@
 - [SDESK-4595] Move the attachment icon in lists (#1311)
 - [SDESK-4651] Show all desks by default in Fulfil Assignment modal (#1305)
 - [SDESK-4676] Hide 'all day' as an event form option (#1320)
+- [SDESK-4705] modify the internal note message (#1334)
 
 ### Fixes
 - [SDESK-4427] Mark for complete fix to cater for events that start on same day but ahead in time. (#1278)
@@ -28,6 +29,9 @@
 - fix(import ui-framework): Add helpers and colors to scss imports (#1323)
 - fix to use modal__backdrop class locally (#1326)
 - [SDESK-4691] Planning was not published when event was completed (#1330)
+- fix(assignment templates) handle missing bits of address, add slugline to subject (#1333)
+- [SDESK-4704] Send Assignment notification when Event is updated (#1337)
+- [SDNTB-599] 'duplicate_from' was missing when duplicating an Event. (#1335)
 
 ## [1.6.2] 2019-08-21
 ### Features
