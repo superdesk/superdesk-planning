@@ -35,6 +35,8 @@ from celery.schedules import crontab
 import jinja2
 import os
 from datetime import timedelta
+from superdesk import register_jinja_filter
+from .common import get_formatted_address
 
 from .commands import FlagExpiredItems, DeleteSpikedItems, DeleteMarkedAssignments
 import planning.commands  # noqa
@@ -241,6 +243,8 @@ def init_app(app):
         custom_loaders = jinja2.ChoiceLoader(app.jinja_loader.loaders + [jinja2.FileSystemLoader(
             os.path.join(os.path.dirname(os.path.realpath(__file__)), 'templates'))])
         app.jinja_loader = custom_loaders
+
+        register_jinja_filter('formatted_address', get_formatted_address)
 
 
 @celery.task(soft_time_limit=600)
