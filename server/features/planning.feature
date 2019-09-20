@@ -1052,7 +1052,7 @@ Feature: Planning
             "event": "activity",
             "extra": {
                 "activity": {
-                    "message" : "{{coverage_type}} coverage \"slugline\": {{internal_note}}",
+                    "message" : "{{coverage_type}} coverage \"{{slugline}}\" internal note: \"{{internal_note}}\"",
                     "data" : {
                         "coverage_type" : "Text",
                         "internal_note" : "Mostly harmless",
