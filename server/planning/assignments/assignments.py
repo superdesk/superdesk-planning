@@ -412,6 +412,7 @@ class AssignmentsService(superdesk.Service):
                                                                   desk=desk_name,
                                                                   event=event_item,
                                                                   assignment=assignment,
+                                                                  omit_user=True,
                                                                   is_link=True)
             else:  # A new assignment
                 # Notify the user the assignment has been made to unless assigning to your self

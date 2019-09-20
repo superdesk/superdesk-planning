@@ -21,6 +21,7 @@
 - [SDESK-4710] Error when assigning past date to coverage (#1350)
 - (fix) Place superdesk-core in peerDependencies and update Typescript version (#1351)
 - [SDNTB-589] (fix): Cannot perform reschedule or convert to recurring on events. (#1352)
+- fix duplicate by on slack notification (#1339)
 
 ## [1.7.0] 2019-09-20
 ### Features
