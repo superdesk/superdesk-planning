@@ -5,7 +5,7 @@ import {get, debounce} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
 import {planningUtils, assignmentUtils, gettext, stringUtils} from '../../../utils';
-import {ASSIGNMENTS, CLICK_DELAY} from '../../../constants';
+import {ASSIGNMENTS, CLICK_DELAY, TO_BE_CONFIRMED_FIELD} from '../../../constants';
 
 import {
     UserAvatar,
@@ -170,7 +170,8 @@ export class AssignmentItem extends React.Component {
                                 {planningSchedule ? (
                                     <AbsoluteDate
                                         date={moment(planningSchedule).format()}
-                                        className="sd-list-item__time__schedule" />
+                                        className="sd-list-item__time__schedule"
+                                        toBeConfirmed={get(assignment, `planning.${TO_BE_CONFIRMED_FIELD}`)} />
                                 ) : (
                                     <span>{gettext('\'not scheduled yet\'')}</span>
                                 )}

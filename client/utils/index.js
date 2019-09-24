@@ -3,7 +3,7 @@ import {createStore as _createStore, applyMiddleware, compose} from 'redux';
 import planningApp from '../reducers';
 import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
-import {get, set, map, cloneDeep, forEach, pickBy, includes, isEqual, pick} from 'lodash';
+import {get, set, map, cloneDeep, forEach, pickBy, includes, isEqual, pick, partition, sortBy} from 'lodash';
 import {
     POST_STATE,
     WORKFLOW_STATE,
@@ -18,6 +18,8 @@ import {
     AUTOSAVE,
     QUEUE_ITEM_PREFIX,
     FEATURED_PLANNING,
+    TO_BE_CONFIRMED_FIELD,
+    TO_BE_CONFIRMED_SHORT_TEXT,
 } from '../constants/index';
 import * as testData from './testData';
 import {default as lockUtils} from './locks';
@@ -857,7 +859,7 @@ export const generateTempId = () => TEMP_ID_PREFIX + moment().valueOf();
  * @return {object} Autosave item with fields stripped
  */
 export const removeAutosaveFields = (item, stripLockFields = false, keepTime = false) => {
-    let fieldsToKeep = ['_id', '_planning_item'];
+    let fieldsToKeep = ['_id', '_planning_item', TO_BE_CONFIRMED_FIELD];
     let fieldsToIgnore = [...AUTOSAVE.IGNORE_FIELDS];
 
     if (keepTime) {
@@ -895,7 +897,7 @@ export const isValidFileInput = (f, includeObjectType = false) =>
 
 export const itemsEqual = (nextItem, currentItem) => {
     const pickField = (value, key) => (
-        !key.startsWith('_') &&
+        (key === TO_BE_CONFIRMED_FIELD || !key.startsWith('_')) &&
         !key.startsWith('lock_') &&
         AUTOSAVE.IGNORE_FIELDS.indexOf(key) < 0 &&
         value !== null &&
@@ -988,3 +990,39 @@ export const isItemLockedForEditing = (item, session, lockedItems) => (
 );
 
 export const getProfileName = (itemType, lockAction = null) => lockAction ? `${itemType}_${lockAction}` : itemType;
+
+export const getTBCDateString = (event, dateFormat, separator = ' @ ', dateOnly = false) => {
+    if (dateOnly || !get(event, TO_BE_CONFIRMED_FIELD)) {
+        return '';
+    }
+
+    if (get(event.dates, 'start', moment()).isSame(get(event.dates, 'end', moment()), 'day')) {
+        return (get(event.dates, 'start').format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT);
+    }
+
+    return (get(event.dates, 'start').format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT) + ' - ' +
+        (get(event.dates, 'end').format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT);
+};
+
+
+export const sortBasedOnTBC = (days) => {
+    let sortable = [];
+    const pushEventsForTheDay = (days) => {
+        for (let day in days) sortable.push({
+            date: day,
+            events: [
+                ...sortBy(days[day][0], [(e) => (e._sortDate)]),
+                ...sortBy(days[day][1], [(e) => (e._sortDate)]),
+            ],
+        });
+    };
+
+    for (let day in days) {
+        const tbcPartioned = partition(days[day], (e) => e[TO_BE_CONFIRMED_FIELD]);
+
+        days[day] = tbcPartioned;
+    }
+
+    pushEventsForTheDay(days);
+    return sortBy(sortable, [(e) => (e.date)]);
+};

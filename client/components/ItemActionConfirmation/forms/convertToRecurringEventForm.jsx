@@ -38,8 +38,8 @@ export class ConvertToRecurringEventComponent extends React.Component {
             diff.dates.end = timeUtils.getDateInRemoteTimeZone(diff.dates.end, diff.dates.tz);
         }
 
-        diff._startTime = diff.dates.start;
-        diff._endTime = diff.dates.end;
+        eventUtils.fillEventTime(diff);
+
         diff.dates.recurring_rule = {
             frequency: 'DAILY',
             interval: 1,
