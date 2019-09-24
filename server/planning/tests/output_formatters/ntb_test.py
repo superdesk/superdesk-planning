@@ -1,12 +1,12 @@
 import lxml
-import unittest
 from unittest import mock
 
+from planning.tests import TestCase
 from planning.common import POST_STATE, WORKFLOW_STATE
 from planning.output_formatters.ntb_event import NTBEventFormatter
 
 
-class NTBEventTestCase(unittest.TestCase):
+class NTBEventTestCase(TestCase):
 
     def setUp(self):
         super(NTBEventTestCase, self).setUp()
@@ -57,11 +57,37 @@ class NTBEventTestCase(unittest.TestCase):
         self.item_duplicated['_created'] = '2016-10-31T08:37:25+0000'
         self.item_duplicated['duplicate_from'] = self.item['_id']
 
+        self.item_rescheduled = self.item.copy()
+        self.item_rescheduled['_id'] = '8f2541ad-2cda-4f49-9d4f-d8db3cb822e2'
+        self.item_rescheduled['reschedule_from'] = self.item['_id']
+        self.item_rescheduled['dates'] = {
+            'start': '2018-10-25T23:00:00+0000',
+            'end': '2018-11-01T22:59:59+0000',
+            'tz': 'Europe/Oslo',
+        }
+
         self.item_ingested = self.item.copy()
         self.item_ingested['_id'] = '﻿d31dde37-272e-4437-8216-d74ec871b586'
         self.item_ingested['guid'] = '﻿d31dde37-272e-4437-8216-d74ec871b586'
         self.item_ingested['state'] = 'ingested'
         self.item_ingested['ntb_id'] = 'NBRP123456_123456_na_00'
+
+        self.item_ingested_rescheduled = self.item_ingested.copy()
+        self.item_ingested_rescheduled['_id'] = 'ae5290f1-633a-4642-b7c9-6887d6f3e295'
+        self.item_ingested_rescheduled['reschedule_from'] = self.item_ingested['_id']
+        self.item_ingested_rescheduled['dates'] = {
+            'start': '2018-10-25T23:00:00+0000',
+            'end': '2018-11-01T22:59:59+0000',
+            'tz': 'Europe/Oslo',
+        }
+
+        with self.app.app_context():
+            self.app.data.insert('events', [
+                self.item,
+                self.item_duplicated,
+                self.item_rescheduled,
+                self.item_ingested
+            ])
 
     def test_formatter(self):
         formatter = NTBEventFormatter()
@@ -430,6 +456,20 @@ class NTBEventTestCase(unittest.TestCase):
     def test_ntb_id_ingested(self):
         formatter = NTBEventFormatter()
         item = self.item_ingested.copy()
+        output = formatter.format(item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        self.assertEqual('NBRP123456_123456_na_00', root.find('ntbId').text)
+
+    def test_ntb_id_rescheduled(self):
+        formatter = NTBEventFormatter()
+        item = self.item_rescheduled.copy()
+        output = formatter.format(item, {})[0]
+        root = lxml.etree.fromstring(output['encoded_item'])
+        self.assertEqual('NBRP161031_092725_hh_00', root.find('ntbId').text)
+
+    def test_ntb_id_ingested_rescheduled(self):
+        formatter = NTBEventFormatter()
+        item = self.item_ingested_rescheduled.copy()
         output = formatter.format(item, {})[0]
         root = lxml.etree.fromstring(output['encoded_item'])
         self.assertEqual('NBRP123456_123456_na_00', root.find('ntbId').text)
