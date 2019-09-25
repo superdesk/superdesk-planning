@@ -55,7 +55,7 @@ export default angular.module('superdesk-planning', [])
             icon: 'tasks',
             label: gettext('Assignments'),
             shortcut: 'ctrl+alt+a',
-            if: 'workspaceConfig.assignments',
+            if: 'workspaceConfig.assignments && privileges.planning_assignments_view',
             order: 300,
         });
 

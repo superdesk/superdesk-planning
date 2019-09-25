@@ -122,6 +122,12 @@ def init_app(app):
         decsription='Ability to create, edit and delete locations'
     )
 
+    superdesk.privilege(
+        name='planning_assignments_view',
+        label='Planning - Assignments view',
+        decsription='Ability to access assignments view'
+    )
+
     app.on_update_users += PlanningNotifications().user_update
 
     superdesk.register_default_user_preference('slack:notification', {
