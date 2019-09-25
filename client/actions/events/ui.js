@@ -298,6 +298,7 @@ const openRepetitionsModal = (event, fromEditor = true) => {
             event: event,
             action: EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS,
             title: gettext('Save changes before updating Event Repetitions?'),
+            refetchBeforeFinalLock: true,
         });
     } else {
         return self._openActionModal(
@@ -400,7 +401,7 @@ const _openActionModalFromEditor = ({
                                     (openInEditor || openInModal) ?
                                         dispatch(main.openForEdit(refetchedEvent, !openInModal, openInModal)) :
                                         dispatch(locks.lock(refetchedEvent, previousLock.action))
-                                ));
+                                ), () => Promise.reject());
                             }
 
                             return promise;
