@@ -171,6 +171,7 @@ describe('actions.events.ui', () => {
             event: data.events[1],
             action: EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS,
             title: 'Save changes before updating Event Repetitions?',
+            refetchBeforeFinalLock: true,
         }]);
     });
 
