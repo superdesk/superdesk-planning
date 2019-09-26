@@ -2,7 +2,6 @@ export {GeoLookupInput} from './GeoLookupInput/index';
 export {StateLabel} from './StateLabel/index';
 export {ModalWithForm} from './ModalWithForm/index';
 export {default as Modal} from './Modal/index';
-export {default as OrderBar} from './OrderBar/index';
 export {ConfirmationModal} from './ConfirmationModal';
 import * as fields from './fields';
 export {fields};

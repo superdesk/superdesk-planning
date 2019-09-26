@@ -139,3 +139,8 @@ export const TIME_COMPARISON_GRANULARITY = {
 };
 
 export const ALL_DESKS = '_all';
+
+export const SORT_DIRECTION = {
+    ASCENDING: 'Asc',
+    DESCENDING: 'Desc',
+};

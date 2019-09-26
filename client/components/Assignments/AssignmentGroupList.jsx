@@ -10,6 +10,7 @@ import {assignmentUtils} from '../../utils';
 
 import {AssignmentItem} from './AssignmentItem';
 import {Header, Group} from '../UI/List';
+import {OrderDirectionIcon} from '../OrderBar';
 
 class AssignmentGroupListComponent extends React.Component {
     constructor(props) {
@@ -19,6 +20,7 @@ class AssignmentGroupListComponent extends React.Component {
 
         this.handleScroll = this.handleScroll.bind(this);
         this.changeAssignmentListSingleGroupView = this.changeAssignmentListSingleGroupView.bind(this);
+        this.changeListOrder = this.changeListOrder.bind(this);
     }
 
     componentWillUpdate(nextProps) {
@@ -55,6 +57,12 @@ class AssignmentGroupListComponent extends React.Component {
         if (this.props.changeAssignmentListSingleGroupView) {
             this.props.changeAssignmentListSingleGroupView(this.props.groupKey);
         }
+    }
+
+    changeListOrder(order) {
+        const {changeListSortOrder, groupKey, saveSortPreferences} = this.props;
+
+        changeListSortOrder(groupKey, order, saveSortPreferences);
     }
 
     getListMaxHeight() {
@@ -121,6 +129,7 @@ class AssignmentGroupListComponent extends React.Component {
             groupEmptyMessage,
             showCount,
             changeAssignmentListSingleGroupView,
+            orderDirection,
         } = this.props;
         const listStyle = setMaxHeight ? {maxHeight: this.getListMaxHeight() + 'px'} : {};
 
@@ -140,10 +149,17 @@ class AssignmentGroupListComponent extends React.Component {
                         )}
 
                         {showCount && (
-                            <span className="sd-list-header__number badge">{totalCount}</span>
-                        )}
-                    </Header>
+                            <div className="sd-list-header__number sd-flex-grow">
+                                <span className="badge">{totalCount}</span>
+                            </div>
 
+                        )}
+
+                        <OrderDirectionIcon
+                            direction={orderDirection}
+                            onChange={this.changeListOrder}
+                        />
+                    </Header>
                 )}
 
                 <Group
@@ -192,16 +208,18 @@ AssignmentGroupListComponent.propTypes = {
     setMaxHeight: PropTypes.bool,
     contentTypes: PropTypes.array,
     desks: PropTypes.array,
-
     groupLabel: PropTypes.string,
     groupStates: PropTypes.arrayOf(PropTypes.string),
     groupEmptyMessage: PropTypes.string,
     showCount: PropTypes.bool,
+    changeListSortOrder: PropTypes.func,
+    saveSortPreferences: PropTypes.bool,
 };
 
 AssignmentGroupListComponent.defaultProps = {
     setMaxHeight: true,
     showCount: true,
+    saveSortPreferences: true,
 };
 
 const mapStateToProps = (state, ownProps) => {
@@ -210,7 +228,7 @@ const mapStateToProps = (state, ownProps) => {
     return {
         filterBy: selectors.getFilterBy(state),
         orderByField: selectors.getOrderByField(state),
-        orderDirection: selectors.getOrderDirection(state),
+        orderDirection: assignmentDataSelector.sortOrder(state),
         assignments: assignmentDataSelector.assignmentsSelector(state),
         totalCount: assignmentDataSelector.countSelector(state),
         previewOpened: selectors.getPreviewAssignmentOpened(state),
@@ -234,6 +252,9 @@ const mapDispatchToProps = (dispatch) => ({
     startWorking: (assignment) => dispatch(actions.assignments.ui.openSelectTemplateModal(assignment)),
     removeAssignment: (assignment) => dispatch(actions.assignments.ui.showRemoveAssignmentModal(assignment)),
     openArchivePreview: (assignment) => dispatch(actions.assignments.ui.openArchivePreview(assignment)),
+    changeListSortOrder: (list, order, savePreference) => (
+        dispatch(actions.assignments.ui.changeListSortOrder(list, order, savePreference))
+    ),
 });
 
 export const AssignmentGroupList = connect(mapStateToProps, mapDispatchToProps)(AssignmentGroupListComponent);

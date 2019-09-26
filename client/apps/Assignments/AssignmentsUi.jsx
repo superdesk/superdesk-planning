@@ -13,8 +13,10 @@ export const AssignmentsUi = ({previewOpen, showModals, showWorkqueue, marginBot
 
         previewOpen={previewOpen}
         ListPanel={AssignmentList}
+        listProps={{saveSortPreferences: true}}
         PreviewPanel={AssignmentPreview}
         SubNavPanel={AssignmentsSubNav}
+        subNavProps={{saveSortPreferences: true}}
     />
 );
 
