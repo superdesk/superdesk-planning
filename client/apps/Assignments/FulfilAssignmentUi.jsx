@@ -17,6 +17,7 @@ export const FulfilAssignmentUi = ({previewOpen, newsItem}) => (
             archiveItem: newsItem,
             withArchiveItem: true,
             showAllDeskOption: true,
+            ignoreScheduledUpdates: true,
         }}
 
         ListPanel={AssignmentList}

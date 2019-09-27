@@ -231,7 +231,7 @@ const mapDispatchToProps = (dispatch) => ({
     completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
     revertAssignment: (assignment) => dispatch(actions.assignments.ui.revert(assignment)),
     editAssignmentPriority: (assignment) => dispatch(actions.assignments.ui.editPriority(assignment)),
-    startWorking: (assignment) => dispatch(actions.assignments.ui.openSelectTemplateModal(assignment)),
+    startWorking: (assignment) => dispatch(actions.assignments.ui.startWorking(assignment)),
     removeAssignment: (assignment) => dispatch(actions.assignments.ui.showRemoveAssignmentModal(assignment)),
     openArchivePreview: (assignment) => dispatch(actions.assignments.ui.openArchivePreview(assignment)),
 });

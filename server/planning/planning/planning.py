@@ -87,7 +87,11 @@ class PlanningService(superdesk.Service):
             for cov in (doc.get('coverages') or []):
                 scheduled_updates = {}
                 coverages[cov.get('coverage_id')] = cov
-                for s in (cov.get('scheduled_updates') or []):
+
+                if not cov.get('scheduled_updates'):
+                    cov['scheduled_updates'] = []
+
+                for s in cov.get('scheduled_updates'):
                     scheduled_updates[s.get('scheduled_update_id')] = s
 
                 _enhance_coverage_entities(coverages)
@@ -108,7 +112,6 @@ class PlanningService(superdesk.Service):
                         not isinstance(coverage['planning']['scheduled'], datetime):
                     coverage['planning']['scheduled'] = datetime.strptime(coverage['planning']['scheduled'],
                                                                           '%Y-%m-%dT%H:%M:%S%z')
-
         return item
 
     def on_create(self, docs):
@@ -332,7 +335,7 @@ class PlanningService(superdesk.Service):
 
                 self.remove_coverage_entity(coverage, original)
 
-    def set_coverage_active(self, coverage, planning):
+    def set_coverage_active(self, coverage, planning, parentCoverage=None):
         # If the coverage is created and assigned to a desk/user and the PLANNING_AUTO_ASSIGN_TO_WORKFLOW is
         # True the coverage will be created in workflow unless the overide flag is set.
         if app.config.get('PLANNING_AUTO_ASSIGN_TO_WORKFLOW', False) and \
@@ -349,8 +352,10 @@ class PlanningService(superdesk.Service):
             return
 
         assigned_to = coverage.get('assigned_to')
-        if assigned_to and assigned_to.get('state') == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED:
+        if (assigned_to and assigned_to.get('state') == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED) or \
+                (parentCoverage or {}).get('workflow_status') == WORKFLOW_STATE.ACTIVE:
             coverage['workflow_status'] = WORKFLOW_STATE.ACTIVE
+            return
 
     def remove_coverage_entity(self, coverage_entity, original_planning, entity_type='coverage'):
         if original_planning.get('state') == WORKFLOW_STATE.CANCELLED:
@@ -378,7 +383,7 @@ class PlanningService(superdesk.Service):
                 self.add_scheduled_updates(updates, original, coverage)
 
     def set_scheduled_update_active(self, scheduled_update, planning, coverage):
-        self.set_coverage_active(scheduled_update, planning)
+        self.set_coverage_active(scheduled_update, planning, coverage)
 
         if coverage.get('workflow_status') == WORKFLOW_STATE.DRAFT and \
                 scheduled_update.get('workflow_status') == WORKFLOW_STATE.ACTIVE:

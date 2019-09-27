@@ -76,7 +76,7 @@ export const ScheduledUpdate = ({
 
         if (planningUtils.canRemoveCoverage(value, diff)) {
             itemActions.push({
-                label: gettext('Remove coverage'),
+                label: gettext('Remove Scheduled Update'),
                 icon: 'icon-trash',
                 callback: onRemove,
             });
@@ -133,7 +133,8 @@ export const ScheduledUpdate = ({
             priorities={priorities}
             readOnly={forPreview ? true : readOnly}
             addNewsItemToPlanning={addNewsItemToPlanning}
-            onRemoveAssignment={onRemoveAssignment ? onRemoveAssignment.bind(null, value, index) : null}
+            onRemoveAssignment={!onRemoveAssignment ? null :
+                onRemoveAssignment.bind(null, coverage, coverageIndex, value, index)}
             setCoverageDefaultDesk={setCoverageDefaultDesk}
             {...props}
         />

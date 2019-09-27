@@ -78,7 +78,7 @@ describe('<AssignmentPreviewContainer />', () => {
 
     describe('top toolbar', () => {
         beforeEach(() => {
-            sinon.stub(actions.assignments.ui, 'openSelectTemplateModal').returns({type: 'Test'});
+            sinon.stub(actions.assignments.ui, 'startWorking').returns({type: 'Test'});
             sinon.stub(actions.assignments.ui, 'reassign').returns({type: 'Test'});
             sinon.stub(actions.assignments.ui, 'complete').returns({type: 'Test'});
             sinon.stub(actions.assignments.ui, 'editPriority').returns({type: 'Test'});
@@ -86,7 +86,7 @@ describe('<AssignmentPreviewContainer />', () => {
         });
 
         afterEach(() => {
-            restoreSinonStub(actions.assignments.ui.openSelectTemplateModal);
+            restoreSinonStub(actions.assignments.ui.startWorking);
             restoreSinonStub(actions.assignments.ui.reassign);
             restoreSinonStub(actions.assignments.ui.complete);
             restoreSinonStub(actions.assignments.ui.editPriority);
@@ -138,7 +138,7 @@ describe('<AssignmentPreviewContainer />', () => {
             ]);
         });
 
-        it('`Start Working` executes `assignments.ui.openSelectTemplateModal`', () => {
+        it('`Start Working` executes `assignments.ui.startWorking`', () => {
             assignment.assigned_to.state = 'assigned';
             assignment.planning.g2_content_type = 'text';
             const wrapper = getWrapper();
@@ -146,7 +146,7 @@ describe('<AssignmentPreviewContainer />', () => {
 
             expect(menu.actionLabels()).toContain('Start Working');
             menu.invokeAction('Start Working');
-            expect(actions.assignments.ui.openSelectTemplateModal.callCount).toBe(1);
+            expect(actions.assignments.ui.startWorking.callCount).toBe(1);
         });
 
         it('`Reassign` executes `assignments.ui.reassign`', () => {

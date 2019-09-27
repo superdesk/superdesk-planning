@@ -79,7 +79,7 @@ describe('can edit assignment', () => {
         it('assignment workflow state is `assigned`', () => {
             assignment.assigned_to.state = 'assigned';
             expect(canStartWorking()).toBe(true);
-            expect(canCompleteAssignment()).toBe(false);
+            expect(!!canCompleteAssignment()).toBe(false);
             expect(canRemoveAssignment()).toBe(true);
             expect(canReassign()).toBe(true);
             expect(canEditPriority()).toBe(true);
@@ -112,7 +112,7 @@ describe('can edit assignment', () => {
         it('assignment workflow state is `submitted`', () => {
             assignment.assigned_to.state = 'submitted';
             expect(canStartWorking()).toBe(false);
-            expect(canCompleteAssignment()).toBe(false);
+            expect(!!canCompleteAssignment()).toBe(false);
             expect(canRemoveAssignment()).toBe(true);
             expect(canReassign()).toBe(true);
             expect(canEditPriority()).toBe(true);
@@ -169,7 +169,7 @@ describe('can edit assignment', () => {
             assignment.lock_user = 'ident1';
             assignment.lock_session = 'session1';
             expect(canStartWorking()).toBe(false);
-            expect(canCompleteAssignment()).toBe(false);
+            expect(!!canCompleteAssignment()).toBe(false);
         });
     });
 

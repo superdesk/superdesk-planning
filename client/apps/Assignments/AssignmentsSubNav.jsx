@@ -67,6 +67,7 @@ export class AssignmentsSubNavComponent extends React.Component {
             loadAssignments,
             filterByType,
             filterByPriority,
+            ignoreScheduledUpdates,
         } = this.props;
 
         loadAssignments({
@@ -77,6 +78,7 @@ export class AssignmentsSubNavComponent extends React.Component {
             filterByType,
             filterByPriority,
             selectedDeskId,
+            ignoreScheduledUpdates,
         });
     }
 
@@ -164,6 +166,7 @@ AssignmentsSubNavComponent.propTypes = {
     listGroups: PropTypes.array,
     assignmentCounts: PropTypes.object,
     showAllDeskOption: PropTypes.bool,
+    ignoreScheduledUpdates: PropTypes.bool,
 };
 
 AssignmentsSubNavComponent.defaultProps = {showAllDeskOption: false};
