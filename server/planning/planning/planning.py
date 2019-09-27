@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 class PlanningService(superdesk.Service):
     """Service class for the planning model."""
 
-    def __generate_related_assignments(self, docs):
+    def generate_related_assignments(self, docs):
         def _enhance_coverage_entities(coverage_entities, lookup_field='coverage_item'):
             if not coverage_entities:
                 return
@@ -94,15 +94,15 @@ class PlanningService(superdesk.Service):
                 _enhance_coverage_entities(scheduled_updates, lookup_field='scheduled_update_id')
 
     def on_fetched(self, docs):
-        self.__generate_related_assignments(docs.get(config.ITEMS))
+        self.generate_related_assignments(docs.get(config.ITEMS))
 
     def on_fetched_item(self, doc):
-        self.__generate_related_assignments([doc])
+        self.generate_related_assignments([doc])
 
     def find_one(self, req, **lookup):
         item = super().find_one(req, **lookup)
         if item:
-            self.__generate_related_assignments([item])
+            self.generate_related_assignments([item])
             for coverage in item.get('coverages', []):
                 if coverage.get('planning', {}).get('scheduled') and \
                         not isinstance(coverage['planning']['scheduled'], datetime):
@@ -139,7 +139,7 @@ class PlanningService(superdesk.Service):
                 event_item=doc.get('event_item', None)
             )
             self._update_event_history(doc)
-        self.__generate_related_assignments(docs)
+        self.generate_related_assignments(docs)
 
     def _update_event_history(self, doc):
         if 'event_item' not in doc:
@@ -173,7 +173,7 @@ class PlanningService(superdesk.Service):
         )
 
     def on_locked_planning(self, item, user_id):
-        self.__generate_related_assignments([item])
+        self.generate_related_assignments([item])
 
     def update(self, id, updates, original):
         updates.setdefault('versioncreated', utcnow())
@@ -273,7 +273,7 @@ class PlanningService(superdesk.Service):
 
         doc = deepcopy(original)
         doc.update(updates)
-        self.__generate_related_assignments([doc])
+        self.generate_related_assignments([doc])
         updates['coverages'] = doc.get('coverages') or []
 
         posted = update_post_item(updates, original)
@@ -742,7 +742,7 @@ class PlanningService(superdesk.Service):
                 'Planning does not exist'
             )
 
-        self.__generate_related_assignments([planning])
+        self.generate_related_assignments([planning])
         coverages = planning.get('coverages') or []
         try:
             coverage = next(c for c in coverages if c.get('coverage_id') == coverage_id)

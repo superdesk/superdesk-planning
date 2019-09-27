@@ -24,6 +24,8 @@ export const getAutoAssignToWorkflow = (state) => get(state, 'deployConfig.plann
 
 export const getLongEventDurationThreshold = (state) => get(state, 'deployConfig.long_event_duration_threshold');
 
+export const getDeployConfig = (state) => get(state, 'deployConfig');
+
 export const getStartOfWeek = (state) =>
     parseInt(get(state, 'config.startingDay', 0), 10);
 

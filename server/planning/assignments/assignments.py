@@ -411,6 +411,7 @@ class AssignmentsService(superdesk.Service):
                                                                   desk=desk_name,
                                                                   event=event_item,
                                                                   assignment=assignment,
+                                                                  omit_user=True,
                                                                   is_link=True)
             else:  # A new assignment
                 # Notify the user the assignment has been made to unless assigning to your self
@@ -670,6 +671,51 @@ class AssignmentsService(superdesk.Service):
                                                                   is_link=True,
                                                                   no_email=True
                                                                   )
+
+    def on_events_updated(self, updates, original):
+        """Send assignment notifications if any relevant Event metadata has changed"""
+
+        event = deepcopy(original)
+        event.update(updates)
+        plannings = list(get_resource_service('events').get_plannings_for_event(event))
+
+        if not plannings:
+            # If this Event has no associated Planning items
+            # then there is no need to send notifications
+            return
+
+        changed_fields = []
+
+        for field in ['location', 'event_contact_info', 'files', 'links']:
+            if (updates.get(field) or []) != (original.get(field) or []):
+                changed_fields.append(field)
+
+        if not changed_fields:
+            # If no relevant Event fields have changed
+            # then there is no need to send notifications
+            return
+
+        # Add 'assigned_to' details to all the coverages
+        get_resource_service('planning').generate_related_assignments(plannings)
+
+        for planning in plannings:
+            for coverage in planning.get('coverages') or []:
+                assigned_to = coverage.get('assigned_to') or {}
+
+                slugline = (coverage.get('planning') or {}).get('slugline') or ''
+                coverage_type = (coverage.get('planning') or {}).get('g2_content_type') or ''
+
+                PlanningNotifications().notify_assignment(
+                    coverage_status=(coverage.get('assigned_to') or {}).get('state'),
+                    target_user=assigned_to.get('user'),
+                    target_desk=assigned_to.get('desk') if not assigned_to.get('user') else None,
+                    message='assignment_event_metadata_msg',
+                    slugline=slugline,
+                    coverage_type=get_coverage_type_name(coverage_type),
+                    event=event,
+                    client_url=app.config['CLIENT_URL'],
+                    no_email=True
+                )
 
     def create_delivery_for_content_update(self, items):
         """Duplicates the coverage/assignment for the archive rewrite

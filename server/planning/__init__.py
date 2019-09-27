@@ -17,7 +17,8 @@ from .agendas import AgendasResource, AgendasService
 from .planning_export_templates import PlanningExportTemplatesResource, PlanningExportTemplatesService
 from .planning_article_export import PlanningArticleExportResource, PlanningArticleExportService
 from .common import get_max_recurrent_events, get_street_map_url, get_event_max_multi_day_duration,\
-    planning_auto_assign_to_workflow, get_long_event_duration_threshold, get_planning_allow_scheduled_updates
+    planning_auto_assign_to_workflow, get_long_event_duration_threshold, get_planning_allow_scheduled_updates,\
+    event_templates_enabled
 from apps.common.components.utils import register_component
 from .item_lock import LockService
 from .planning_notifications import PlanningNotifications
@@ -34,6 +35,8 @@ from celery.schedules import crontab
 import jinja2
 import os
 from datetime import timedelta
+from superdesk import register_jinja_filter
+from .common import get_formatted_address
 
 from .commands import FlagExpiredItems, DeleteSpikedItems, DeleteMarkedAssignments
 import planning.commands  # noqa
@@ -119,6 +122,12 @@ def init_app(app):
         decsription='Ability to create, edit and delete locations'
     )
 
+    superdesk.privilege(
+        name='planning_assignments_view',
+        label='Planning - Assignments view',
+        decsription='Ability to access assignments view'
+    )
+
     app.on_update_users += PlanningNotifications().user_update
 
     superdesk.register_default_user_preference('slack:notification', {
@@ -166,6 +175,7 @@ def init_app(app):
     app.client_config['planning_auto_assign_to_workflow'] = planning_auto_assign_to_workflow(app)
     app.client_config['long_event_duration_threshold'] = get_long_event_duration_threshold(app)
     app.client_config['planning_allow_scheduled_updates'] = get_planning_allow_scheduled_updates(app)
+    app.client_config['event_templates_enabled'] = event_templates_enabled(app)
 
     # Set up Celery task options
     if not app.config.get('CELERY_TASK_ROUTES'):
@@ -239,6 +249,8 @@ def init_app(app):
         custom_loaders = jinja2.ChoiceLoader(app.jinja_loader.loaders + [jinja2.FileSystemLoader(
             os.path.join(os.path.dirname(os.path.realpath(__file__)), 'templates'))])
         app.jinja_loader = custom_loaders
+
+        register_jinja_filter('formatted_address', get_formatted_address)
 
 
 @celery.task(soft_time_limit=600)

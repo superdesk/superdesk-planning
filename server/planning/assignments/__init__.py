@@ -78,6 +78,7 @@ def init_app(app):
     app.on_item_lock += assignments_publish_service.validate_assignment_lock
     app.on_item_locked += assignments_publish_service.sync_assignment_lock
     app.on_item_unlocked += assignments_publish_service.sync_assignment_unlock
+    app.on_updated_events += assignments_publish_service.on_events_updated
 
     # Track updates for an assignment if it's news story was updated
     if app.config.get('PLANNING_LINK_UPDATES_TO_COVERAGES', False):

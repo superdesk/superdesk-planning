@@ -8,6 +8,7 @@ import {PRIVILEGES, EVENTS, ICON_COLORS} from '../../constants';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {get} from 'lodash';
+import {getDeployConfig} from '../../selectors/config';
 
 export class EventPreviewHeaderComponent extends React.PureComponent {
     render() {
@@ -21,6 +22,7 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
             onUnlock,
             itemActionDispatches,
             hideItemActions,
+            deployConfig,
         } = this.props;
 
         const withMultiPlanningDate = true;
@@ -61,6 +63,7 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
                 callBacks,
                 withMultiPlanningDate,
                 calendars,
+                deployConfig,
             }) : null;
         const lockedUser = lockUtils.getLockedUser(item, lockedItems, users);
         const lockRestricted = eventUtils.isEventLockRestricted(item, session, lockedItems);
@@ -109,6 +112,7 @@ EventPreviewHeaderComponent.propTypes = {
     duplicateEvent: PropTypes.func,
     onUnlock: PropTypes.func,
     calendars: PropTypes.array,
+    deployConfig: PropTypes.object,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -118,6 +122,7 @@ const mapStateToProps = (state, ownProps) => ({
     users: selectors.general.users(state),
     lockedItems: selectors.locks.getLockedItems(state),
     calendars: selectors.events.enabledCalendars(state),
+    deployConfig: getDeployConfig(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

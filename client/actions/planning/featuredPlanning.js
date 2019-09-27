@@ -261,7 +261,7 @@ const openFeaturedPlanningModal = () => (
  * @return Promise
  */
 const modifyPlanningFeatured = (original, remove = false) => (
-    (dispatch) => (
+    (dispatch) => {
         dispatch(main.openActionModalFromEditor(
             original,
             gettext('Save changes before adding to top stories ?'),
@@ -269,12 +269,17 @@ const modifyPlanningFeatured = (original, remove = false) => (
                 dispatch(self._modifyPlanningFeatured(unlockedItem, remove))
                     .then((updatedItem) => {
                         if (get(previousLock, 'action')) {
-                            return dispatch(locks.lock(updatedItem, previousLock.action));
+                            dispatch(locks.lock(updatedItem, previousLock.action)).then((updatedItem) => {
+                                if (openInEditor || openInModal) {
+                                    dispatch(main.openForEdit(updatedItem, !openInModal, openInModal));
+                                }
+                            }
+                            );
                         }
                     })
             )
-        ))
-    )
+        ));
+    }
 );
 
 

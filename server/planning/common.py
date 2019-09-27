@@ -102,6 +102,12 @@ def planning_auto_assign_to_workflow(current_app=None):
     return app.config.get('PLANNING_AUTO_ASSIGN_TO_WORKFLOW', False)
 
 
+def event_templates_enabled(current_app=None):
+    if current_app is not None:
+        return current_app.config.get('PLANNING_EVENT_TEMPLATES_ENABLED', False)
+    return app.config.get('PLANNING_EVENT_TEMPLATES_ENABLED', False)
+
+
 def get_long_event_duration_threshold(current_app=None):
     if current_app is not None:
         return current_app.config.get('LONG_EVENT_DURATION_THRESHOLD', -1)
@@ -150,7 +156,7 @@ def is_locked_in_this_session(item, user_id=None, session_id=None):
     return str(item.get(LOCK_USER)) == user_id and str(item.get(LOCK_SESSION)) == session_id
 
 
-def format_address(location=None):
+def format_address(location=None, seperator=' '):
     """Location is enhanced with the formatted address
 
     :param dict location:
@@ -168,7 +174,17 @@ def format_address(location=None):
     formatted_address.append(address.get('postal_code'))
     formatted_address.append(address.get('country'))
 
-    location['formatted_address'] = " ".join([a for a in formatted_address if a]).strip()
+    location['formatted_address'] = seperator.join([a for a in formatted_address if a]).strip()
+
+
+def get_formatted_address(location, seperator=' '):
+    """Return the formatted address for the loaction
+
+    :param location:
+    :return:
+    """
+    format_address(location, seperator=seperator)
+    return location.get('name', '') + seperator + location.get('formatted_address', '')
 
 
 def get_street_map_url(current_app=None):
