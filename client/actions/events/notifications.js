@@ -321,6 +321,16 @@ const onEventExpired = (_e, data) => (
     }
 );
 
+const onEventDeleted = (e, data) => (
+    (dispatch, getState) => {
+        if (get(data, 'item')) {
+            if (selectors.main.previewId(getState()) === data.item ||
+            selectors.forms.currentItemId(getState()) === data.item) {
+                return dispatch(main.closePreviewAndEditorForItems([{_id: data.item}]));
+            }
+        }
+    });
+
 // eslint-disable-next-line consistent-this
 const self = {
     onEventCreated,
@@ -335,6 +345,7 @@ const self = {
     onEventPostponed,
     onEventPostChanged,
     onEventExpired,
+    onEventDeleted,
 };
 
 export const planningEventTemplateEvents = {
@@ -366,6 +377,7 @@ self.events = {
     'events:update_time:recurring': () => (self.onEventScheduleChanged),
     'events:update_repetitions:recurring': () => (self.onEventScheduleChanged),
     'events:expired': () => self.onEventExpired,
+    'events:delete': () => (self.onEventDeleted),
     ...planningEventTemplateEvents,
 };
 
