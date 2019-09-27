@@ -127,7 +127,7 @@ const cancelEvent = (original, updates) => (
         dispatch(eventsApi.cancelEvent(original, updates))
             .then(() => {
                 notify.success(gettext('Event has been cancelled'));
-                return Promise.resolve();
+                return dispatch(main.closePreviewAndEditorForItems([original]));
             }, (error) => {
                 notify.error(
                     getErrorMessage(error, gettext('Failed to cancel the Event!'))
