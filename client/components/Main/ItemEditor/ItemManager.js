@@ -689,11 +689,12 @@ export class ItemManager {
     }
 
     finalisePartialSave(diff, updateDirtyFlag = false) {
+        const clonedDiff = cloneDeep(diff);
         const initialValues = cloneDeep(this.state.initialValues);
 
         Object.keys(diff).forEach(
             (field) => {
-                set(initialValues, field, get(diff, field));
+                set(initialValues, field, get(clonedDiff, field));
             }
         );
 
