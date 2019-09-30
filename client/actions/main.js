@@ -8,6 +8,7 @@ import {
     EVENTS,
     AGENDA,
     QUEUE_ITEM_PREFIX,
+    WORKSPACE,
 } from '../constants';
 import {activeFilter, lastRequestParams} from '../selectors/main';
 import planningUi from './planning/ui';
@@ -1263,6 +1264,11 @@ const onItemUnlocked = (data, item, itemType) => (
                         ' "' + user.display_name + '"',
                 },
             }));
+
+            if (getItemType(item) === ITEM_TYPE.PLANNING && selectors.general.currentWorkspace(getState())
+                    === WORKSPACE.AUTHORING) {
+                dispatch(self.closePreviewAndEditorForItems([item]));
+            }
         }
     }
 );
