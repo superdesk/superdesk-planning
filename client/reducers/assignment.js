@@ -1,5 +1,5 @@
 import {uniq, keyBy, get, cloneDeep, filter} from 'lodash';
-import {ASSIGNMENTS, RESET_STORE, INIT_STORE} from '../constants';
+import {ASSIGNMENTS, RESET_STORE, INIT_STORE, SORT_DIRECTION} from '../constants';
 import moment from 'moment';
 import {createReducer} from './createReducer';
 import {getItemId} from '../utils';
@@ -14,7 +14,6 @@ const initialState = {
     filterByType: null,
     myAssignmentsTotal: 0,
     orderByField: 'Scheduled',
-    orderDirection: 'Asc',
     previewOpened: false,
     readOnly: false,
     searchQuery: null,
@@ -31,31 +30,37 @@ const initialState = {
             assignmentIds: [],
             total: 0,
             lastPage: null,
+            sortOrder: SORT_DIRECTION.ASCENDING,
         },
         [ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.id]: {
             assignmentIds: [],
             total: 0,
             lastPage: null,
+            sortOrder: SORT_DIRECTION.DESCENDING,
         },
         [ASSIGNMENTS.LIST_GROUPS.COMPLETED.id]: {
             assignmentIds: [],
             total: 0,
             lastPage: null,
+            sortOrder: SORT_DIRECTION.DESCENDING,
         },
         [ASSIGNMENTS.LIST_GROUPS.CURRENT.id]: {
             assignmentIds: [],
             total: 0,
             lastPage: null,
+            sortOrder: SORT_DIRECTION.ASCENDING,
         },
         [ASSIGNMENTS.LIST_GROUPS.TODAY.id]: {
             assignmentIds: [],
             total: 0,
             lastPage: null,
+            sortOrder: SORT_DIRECTION.ASCENDING,
         },
         [ASSIGNMENTS.LIST_GROUPS.FUTURE.id]: {
             assignmentIds: [],
             total: 0,
             lastPage: null,
+            sortOrder: SORT_DIRECTION.ASCENDING,
         },
     },
 };
@@ -74,6 +79,7 @@ const modifyAssignmentBeingAdded = (payload) => {
 
 const setList = (state, payload) => {
     state.lists[payload.list] = {
+        ...state.lists[payload.list],
         assignmentIds: payload.ids,
         total: payload.total,
         lastPage: 1,
@@ -94,6 +100,12 @@ const addToList = (state, payload) => {
 
 const setLastPage = (state, payload) => {
     state.lists[payload.list].lastPage = payload.page;
+
+    return state;
+};
+
+const setListSortOrder = (state, payload) => {
+    state.lists[payload.list].sortOrder = payload.sortOrder;
 
     return state;
 };
@@ -153,6 +165,15 @@ const assignmentReducer = createReducer(initialState, {
     [ASSIGNMENTS.ACTIONS.SET_LIST_PAGE]: (state, payload) => (
         setLastPage(cloneDeep(state), payload)
     ),
+
+    [ASSIGNMENTS.ACTIONS.SET_GROUP_SORT_ORDER]: (state, payload) => (
+        setListSortOrder(cloneDeep(state), payload)
+    ),
+
+    [ASSIGNMENTS.ACTIONS.SET_SORT_FIELD]: (state, payload) => ({
+        ...state,
+        orderByField: payload,
+    }),
 
     [ASSIGNMENTS.ACTIONS.CHANGE_LIST_SETTINGS]: (state, payload) => (
         {
