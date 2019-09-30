@@ -1,6 +1,6 @@
 import {isNil, zipObject, get, isEmpty} from 'lodash';
 import {createStore} from '../utils';
-import {ITEM_TYPE} from '../constants';
+import {COVERAGES, ITEM_TYPE, ASSIGNMENTS} from '../constants';
 import * as selectors from '../selectors';
 import * as actions from '../actions';
 
@@ -170,6 +170,8 @@ export class PlanningStoreService {
                     },
                 });
 
+                this.registerUserPreferences();
+
                 return Promise.resolve(store);
             });
     }
@@ -304,6 +306,11 @@ export class PlanningStoreService {
                 },
             });
         }
+    }
+
+    registerUserPreferences() {
+        this.preferencesService.registerUserPreference(COVERAGES.DEFAULT_DESK_PREFERENCE);
+        this.preferencesService.registerUserPreference(ASSIGNMENTS.DEFAULT_SORT_PREFERENCE);
     }
 }
 

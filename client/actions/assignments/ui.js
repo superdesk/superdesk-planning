@@ -1,17 +1,17 @@
+import {get, cloneDeep, forEach} from 'lodash';
+
 import {showModal} from '../index';
 import assignments from './index';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {ASSIGNMENTS, MODALS, WORKSPACE, ALL_DESKS} from '../../constants';
 import {getErrorMessage, assignmentUtils, gettext} from '../../utils';
-import {get, cloneDeep} from 'lodash';
 
 /**
  * Action dispatcher to load the list of assignments for current list settings.
  * @param {String} filterBy - the filter by desk or user ('Desk', 'User')
  * @param {String} searchQuery - the text used for free text query
  * @param {String} orderByField - the field used to order the assignments ('Created', 'Updated')
- * @param {String} orderDirection - the direction of order ('Asc', 'Desc')
  * @param {String} filterByType - Type of the assignment
  * @param {String} filterByPriority - The priority to filter for
  * @param {String} selectedDeskId - The Desk ID
@@ -20,7 +20,6 @@ const loadAssignments = ({
     filterBy = 'Desk',
     searchQuery = null,
     orderByField = 'Scheduled',
-    orderDirection = 'Asc',
     filterByType = null,
     filterByPriority = null,
     selectedDeskId = null,
@@ -30,7 +29,6 @@ const loadAssignments = ({
             filterBy,
             searchQuery,
             orderByField,
-            orderDirection,
             filterByType,
             filterByPriority,
             selectedDeskId,
@@ -59,7 +57,6 @@ const loadFulfillModal = (item, groupKeys) => (
             filterBy: 'Desk',
             searchQuery: searchQuery,
             orderByField: 'Scheduled',
-            orderDirection: 'Asc',
             filterByType: get(item, 'type'),
             filterByPriority: null,
             selectedDeskId: ALL_DESKS,
@@ -117,17 +114,31 @@ const reloadAssignments = (filterByState = null, resetPage = true) => (
 
         let dispatches = [];
 
-        listGroups.forEach((key) => {
-            const group = ASSIGNMENTS.LIST_GROUPS[key];
-
-            if (resetPage) {
-                dispatch(self.changeLastAssignmentLoadedPage(group));
-            }
-
-            dispatches.push(dispatch(self.queryAndSetAssignmentListGroups(key)));
-        });
+        listGroups.forEach((key) => (
+            dispatches.push(
+                dispatch(self.reloadAssignmentList(key, resetPage))
+            )
+        ));
 
         return Promise.all(dispatches);
+    }
+);
+
+/**
+ * Action dispatcher to reload a single list of Assignments
+ * @param {String} list - The list group key to reload
+ * @param {boolean} resetPage - If true, the page for the list groups are set to 1
+ * @returns {Promise} - A promise containing the result of queryAndSetAssignmentListGroups action
+ */
+const reloadAssignmentList = (list, resetPage = true) => (
+    (dispatch) => {
+        if (resetPage) {
+            dispatch(self.changeLastAssignmentLoadedPage(
+                ASSIGNMENTS.LIST_GROUPS[list]
+            ));
+        }
+
+        return dispatch(self.queryAndSetAssignmentListGroups(list));
     }
 );
 
@@ -177,11 +188,13 @@ const updatePreviewItemOnRouteUpdate = () => (
 const queryAndSetAssignmentListGroups = (groupKey, page = 1) => (
     (dispatch, getState) => {
         let querySearchSettings = cloneDeep(selectors.getAssignmentSearch(getState()));
+        const assignmentListSelectors = selectors.getAssignmentGroupSelectors[groupKey];
         const group = ASSIGNMENTS.LIST_GROUPS[groupKey];
 
         querySearchSettings.states = group.states;
         querySearchSettings.page = page;
         querySearchSettings.dateFilter = group.dateFilter;
+        querySearchSettings.orderDirection = assignmentListSelectors.sortOrder(getState());
 
         return dispatch(assignments.api.query(querySearchSettings))
             .then((data) => {
@@ -260,7 +273,6 @@ const changeLastAssignmentLoadedPage = (listGroup, pageNum = 1) => ({
  * @param {string} filterBy - the filter by desk or user ('Desk', 'User')
  * @param {string} searchQuery - the text used for free text query
  * @param {string} orderByField - the field used to order the assignments ('Created', 'Updated')
- * @param {string} orderDirection - the direction of order ('Asc', 'Desc')
  * @param {string} filterByPriority - Priority of the assignment
  * @param {string} filterByType - Type of the assignment
  * @param {string} selectedDeskId - Desk Id
@@ -270,7 +282,6 @@ const changeListSettings = ({
     filterBy = 'Desk',
     searchQuery = null,
     orderByField = 'Scheduled',
-    orderDirection = 'Asc',
     filterByType = null,
     filterByPriority = null,
     selectedDeskId = null,
@@ -280,7 +291,6 @@ const changeListSettings = ({
         filterBy,
         searchQuery,
         orderByField,
-        orderDirection,
         filterByType,
         filterByPriority,
         selectedDeskId,
@@ -540,7 +550,7 @@ const openSelectTemplateModal = (assignment) => (
     (dispatch, getState, {templates, session, desks, notify}) => (
         dispatch(self.lockAssignment(assignment, 'start_working'))
             .then((lockedAssignment) => {
-                const currentDesk = desks.getCurrentDesk();
+                const currentDesk = assignmentUtils.getCurrentSelectedDesk(desks, getState());
                 const defaultTemplateId = get(currentDesk, 'default_content_template') || null;
 
                 return templates.fetchTemplatesByUserDesk(
@@ -803,6 +813,83 @@ const setListGroups = (groupKeys) => ({
     payload: groupKeys,
 });
 
+/**
+ * Action dispatcher to set the list sort order in redux
+ * @param {String} list - The list group key
+ * @param {String} sortOrder - The sort order to use ('Asc' or 'Desc')
+ */
+const setListSortOrder = (list, sortOrder) => ({
+    type: ASSIGNMENTS.ACTIONS.SET_GROUP_SORT_ORDER,
+    payload: {list, sortOrder},
+});
+
+/**
+ * Action dispatcher to change the list sort order and reload the list of assignments
+ * (optionally saves to user preferences)
+ * @param {String} list - The list group key
+ * @param {String} sortOrder - The sort order to use ('Asc' or 'Desc')
+ * @param {boolean} savePreference - If true, save the list sort order to the current users' preferences
+ */
+const changeListSortOrder = (list, sortOrder, savePreference = true) => (
+    (dispatch) => {
+        dispatch(self.setListSortOrder(list, sortOrder));
+
+        if (savePreference) {
+            dispatch(actions.users.setAssignmentSortOrder(list, sortOrder));
+        }
+
+        return dispatch(self.reloadAssignmentList(list, false));
+    }
+);
+
+/**
+ * Action dispatcher to set the field to sort by for all lists
+ * @param {String} field - The name of the field to sort by
+ */
+const setSortField = (field) => ({
+    type: ASSIGNMENTS.ACTIONS.SET_SORT_FIELD,
+    payload: field,
+});
+
+/**
+ * Action dispatcher to change the field to sort by for all lists and reload all lists of assignments
+ * (optionally saves to user preferences)
+ * @param {String} field - The name of the field to sort by
+ * @param {boolean} savePreference - If true, save the sort field to the current users' preferences
+ * @returns {Promise} - A promise with the result of the reloadAssignments action
+ */
+const changeSortField = (field, savePreference = true) => (
+    (dispatch) => {
+        dispatch(self.setSortField(field));
+
+        if (savePreference) {
+            dispatch(actions.users.setAssignmentSortField(field));
+        }
+
+        return dispatch(self.reloadAssignments(null, false));
+    }
+);
+
+/**
+ * Action dispatcher to load the current users' preferred sort field and list orders
+ * (This assumes the users' preferences have already been loaded into redux)
+ */
+const loadDefaultListSort = () => (
+    (dispatch, getState) => {
+        const defaultSort = get(
+            selectors.general.preferredAssignmentSort(getState()),
+            'sort',
+            {}
+        );
+
+        dispatch(self.setSortField(get(defaultSort, 'field') || 'Scheduled'));
+
+        forEach(get(defaultSort, 'order') || {}, (order, list) => {
+            dispatch(self.setListSortOrder(list, order));
+        });
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     loadAssignments,
@@ -810,6 +897,7 @@ const self = {
     queryAndSetAssignmentListGroups,
     changeListSettings,
     reloadAssignments,
+    reloadAssignmentList,
     loadMoreAssignments,
     preview,
     closePreview,
@@ -842,6 +930,11 @@ const self = {
     setListGroups,
     loadFulfillModal,
     previewFirstInListGroup,
+    setListSortOrder,
+    changeListSortOrder,
+    setSortField,
+    loadDefaultListSort,
+    changeSortField,
 };
 
 export default self;
