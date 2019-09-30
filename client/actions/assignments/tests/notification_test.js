@@ -1,7 +1,7 @@
 import sinon from 'sinon';
 
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
-import {createTestStore} from '../../../utils';
+import {createTestStore, assignmentUtils} from '../../../utils';
 import {registerNotifications} from '../../../utils/notifications';
 import * as selectors from '../../../selectors';
 import assignmentsUi from '../ui';
@@ -100,16 +100,14 @@ describe('actions.assignments.notification', () => {
         beforeEach(() => {
             sinon.stub(assignmentsApi, 'query').callsFake(() => (Promise.resolve({_items: []})));
             sinon.stub(assignmentsApi, 'receivedAssignments').callsFake(() => { /* no-op */ });
-            sinon.stub(assignmentsUi, 'getCurrentSelectedDeskId').callsFake(
-                () => () => 'desk1'
-            );
+            sinon.stub(assignmentUtils, 'getCurrentSelectedDeskId').returns('desk1');
         });
 
         afterEach(() => {
             restoreSinonStub(assignmentsApi.query);
             restoreSinonStub(assignmentsApi.receivedAssignments);
             restoreSinonStub(assignmentsUi.setInList);
-            restoreSinonStub(assignmentsUi.getCurrentSelectedDeskId);
+            restoreSinonStub(assignmentUtils.getCurrentSelectedDeskId);
         });
 
         it('query assignments on create', (done) => {
@@ -134,14 +132,12 @@ describe('actions.assignments.notification', () => {
             sinon.stub(assignmentsUi, 'reloadAssignments').callsFake(
                 () => () => Promise.resolve()
             );
-            sinon.stub(assignmentsUi, 'getCurrentSelectedDeskId').callsFake(
-                () => () => 'desk1'
-            );
+            sinon.stub(assignmentUtils, 'getCurrentSelectedDeskId').returns('desk1');
         });
 
         afterEach(() => {
             restoreSinonStub(assignmentsUi.reloadAssignments);
-            restoreSinonStub(assignmentsUi.getCurrentSelectedDeskId);
+            restoreSinonStub(assignmentUtils.getCurrentSelectedDeskId);
             restoreSinonStub(main.fetchItemHistory);
         });
 
@@ -307,15 +303,13 @@ describe('actions.assignments.notification', () => {
             sinon.stub(assignmentsUi, 'queryAndGetMyAssignments').callsFake(
                 () => () => (Promise.resolve())
             );
-            sinon.stub(assignmentsUi, 'getCurrentSelectedDeskId').callsFake(
-                () => () => 'desk1'
-            );
+            sinon.stub(assignmentUtils, 'getCurrentSelectedDeskId').returns('desk1');
         });
 
         afterEach(() => {
             restoreSinonStub(assignmentsUi.reloadAssignments);
             restoreSinonStub(assignmentsUi.queryAndGetMyAssignments);
-            restoreSinonStub(assignmentsUi.getCurrentSelectedDeskId);
+            restoreSinonStub(assignmentUtils.getCurrentSelectedDeskId);
         });
 
         it('update planning on assignment complete', (done) => {
@@ -371,7 +365,7 @@ describe('actions.assignments.notification', () => {
             return store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
                 .then(() => {
                     expect(assignmentsApi.fetchAssignmentById.callCount).toBe(1);
-                    expect(store.dispatch.args[6]).toEqual([{
+                    expect(store.dispatch.args[5]).toEqual([{
                         type: 'UNLOCK_ASSIGNMENT',
                         payload: {
                             assignment: {

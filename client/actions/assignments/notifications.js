@@ -26,7 +26,7 @@ const _notifyAssignmentEdited = (assignmentId) => (
  * @param {object} data - Assignment, User, Desk IDs
  */
 const onAssignmentCreated = (_e, data) => (
-    (dispatch, getState) => {
+    (dispatch, getState, {desks}) => {
         // If this planning item was updated by this user in AddToPlanning Modal
         // Then ignore this notification
         if (selectors.general.sessionId(getState()) === data.session && (
@@ -36,7 +36,7 @@ const onAssignmentCreated = (_e, data) => (
             return;
         }
 
-        const currentDesk = dispatch(assignments.ui.getCurrentSelectedDeskId());
+        const currentDesk = assignmentUtils.getCurrentSelectedDeskId(desks, getState());
 
         let querySearchSettings = selectors.getAssignmentSearch(getState());
 
@@ -66,7 +66,7 @@ const onAssignmentCreated = (_e, data) => (
  * @param {object} data - Assignment, User, Desk IDs
  */
 const onAssignmentUpdated = (_e, data) => (
-    (dispatch, getState) => {
+    (dispatch, getState, {desks}) => {
         // If this planning item was updated by this user in AddToPlanning Modal
         // Then ignore this notification
         if (selectors.general.sessionId(getState()) === data.session && (
@@ -76,7 +76,7 @@ const onAssignmentUpdated = (_e, data) => (
             return;
         }
 
-        const currentDesk = dispatch(assignments.ui.getCurrentSelectedDeskId());
+        const currentDesk = assignmentUtils.getCurrentSelectedDeskId(desks, getState());
         let querySearchSettings = selectors.getAssignmentSearch(getState());
 
         dispatch(_updatePlannigRelatedToAssignment(data));
