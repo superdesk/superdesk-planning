@@ -550,7 +550,7 @@ const openSelectTemplateModal = (assignment) => (
     (dispatch, getState, {templates, session, desks, notify}) => (
         dispatch(self.lockAssignment(assignment, 'start_working'))
             .then((lockedAssignment) => {
-                const currentDesk = desks.getCurrentDesk();
+                const currentDesk = dispatch(self.getCurrentSelectedDesk());
                 const defaultTemplateId = get(currentDesk, 'default_content_template') || null;
 
                 return templates.fetchTemplatesByUserDesk(
@@ -890,6 +890,38 @@ const loadDefaultListSort = () => (
     }
 );
 
+/**
+ * Action dispatcher to get the id of the currently selected desk
+ * This could either be from the workspace dropdown, or if this is a custom workspace,
+ * then return the id of the desk dropdown provided in the Assignments subnav
+ * @returns {String} - Desk Id
+ */
+const getCurrentSelectedDeskId = () => (
+    (dispatch, getState, {desks}) => {
+        if (get(desks, 'userDesks.length', 0) < 1) {
+            return null;
+        } else if (!desks.activeDeskId || !find(desks.userDesks, {_id: desks.activeDeskId})) {
+            return selectors.getSelectedDeskId(getState());
+        }
+
+        return desks.activeDeskId;
+    }
+);
+
+/**
+ * Action dispatcher to get the currently selected desk
+ * This could either be from the workspace dropdown, or if this is a custom workspace,
+ * then return the desk dropdown provided in the Assignments subnav
+ * @returns {Object} - Desk
+ */
+const getCurrentSelectedDesk = () => (
+    (dispatch, getState, {desks}) => {
+        const deskId = dispatch(self.getCurrentSelectedDeskId());
+
+        return desks.deskLookup[deskId] || null;
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     loadAssignments,
@@ -935,6 +967,8 @@ const self = {
     setSortField,
     loadDefaultListSort,
     changeSortField,
+    getCurrentSelectedDeskId,
+    getCurrentSelectedDesk,
 };
 
 export default self;

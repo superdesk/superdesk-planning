@@ -36,7 +36,7 @@ const onAssignmentCreated = (_e, data) => (
             return;
         }
 
-        const currentDesk = selectors.general.currentDeskId(getState());
+        const currentDesk = dispatch(assignments.ui.getCurrentSelectedDeskId());
 
         let querySearchSettings = selectors.getAssignmentSearch(getState());
 
@@ -76,7 +76,7 @@ const onAssignmentUpdated = (_e, data) => (
             return;
         }
 
-        const currentDesk = selectors.general.currentDeskId(getState());
+        const currentDesk = dispatch(assignments.ui.getCurrentSelectedDeskId());
         let querySearchSettings = selectors.getAssignmentSearch(getState());
 
         dispatch(_updatePlannigRelatedToAssignment(data));

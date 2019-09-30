@@ -135,7 +135,7 @@ class AssignmentGroupListComponent extends React.Component {
 
         return (
             <div>
-                {!assignmentListSingleGroupView && (
+                {!assignmentListSingleGroupView ? (
                     <Header>
                         {changeAssignmentListSingleGroupView ? (
                             <a
@@ -155,6 +155,14 @@ class AssignmentGroupListComponent extends React.Component {
 
                         )}
 
+                        <OrderDirectionIcon
+                            direction={orderDirection}
+                            onChange={this.changeListOrder}
+                        />
+                    </Header>
+                ) : (
+                    <Header>
+                        <div className="sd-flex-grow sd-list-header__name" />
                         <OrderDirectionIcon
                             direction={orderDirection}
                             onChange={this.changeListOrder}

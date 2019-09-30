@@ -3,7 +3,7 @@
   opacity: 0.8;
   margin-bottom: 1rem;
 
-  &:hover {
+  &:hover, &:focus {
     background: none;
   }
 }
