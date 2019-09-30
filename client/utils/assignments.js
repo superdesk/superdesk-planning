@@ -1,8 +1,9 @@
-import {get, includes, isNil} from 'lodash';
+import {get, includes, isNil, find} from 'lodash';
 import moment from 'moment';
 import {gettext} from './index';
 
 import {ASSIGNMENTS, PRIVILEGES} from '../constants';
+import * as selectors from '../selectors';
 import {lockUtils, getCreator, getItemInArrayById, isExistingItem} from './index';
 
 const isNotLockRestricted = (assignment, session) => (
@@ -289,6 +290,38 @@ const getAssignmentInfo = (assignment, users, desks) => {
     };
 };
 
+/**
+ * Action dispatcher to get the id of the currently selected desk
+ * This could either be from the workspace dropdown, or if this is a custom workspace,
+ * then return the id of the desk dropdown provided in the Assignments subnav
+ * @param {Object} desks - The Desks service from client-core
+ * @param {Object} state - The redux store's state
+ * @returns {String} - Desk Id
+ */
+const getCurrentSelectedDeskId = (desks, state) => {
+    if (get(desks, 'userDesks.length', 0) < 1) {
+        return null;
+    } else if (!desks.activeDeskId || !find(desks.userDesks, {_id: desks.activeDeskId})) {
+        return selectors.getSelectedDeskId(state);
+    }
+
+    return desks.activeDeskId;
+};
+
+/**
+ * Action dispatcher to get the currently selected desk
+ * This could either be from the workspace dropdown, or if this is a custom workspace,
+ * then return the desk dropdown provided in the Assignments subnav
+ * @param {Object} desks - The Desks service from client-core
+ * @param {Object} state - The redux store's state
+ * @returns {Object} - Desk
+ */
+const getCurrentSelectedDesk = (desks, state) => {
+    const deskId = self.getCurrentSelectedDeskId(desks, state);
+
+    return get(desks.deskLookup, deskId) || null;
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     isNotLockRestricted,
@@ -308,6 +341,8 @@ const self = {
     canRevertAssignment,
     isAssignmentLocked,
     isDue,
+    getCurrentSelectedDeskId,
+    getCurrentSelectedDesk,
 };
 
 export default self;

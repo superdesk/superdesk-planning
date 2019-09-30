@@ -106,3 +106,12 @@ def init_app(app):
 
     # Privileges
     superdesk.intrinsic_privilege(AssignmentsUnlockResource.endpoint_name, method=['POST'])
+
+    # User Preferences
+    superdesk.register_default_user_preference('assignments:default_sort', {
+        'type': 'dict',
+        'label': 'Default sort preferences for Assignment lists',
+        'category': 'assignments',
+        'sort': {},
+        'default': None
+    })
