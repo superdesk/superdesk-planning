@@ -4,6 +4,7 @@ import {connect} from 'react-redux';
 import {get, some, isEqual} from 'lodash';
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
+import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
 import {ContentBlock} from '../../UI/SidePanel';
 import {
     TextInput,
@@ -233,7 +234,10 @@ export class EventEditorComponent extends React.Component {
                 {itemExists && (
                     <ContentBlock padSmall={true}>
                         <EventScheduleSummary
-                            schedule={get(diff, 'dates', {})}
+                            schedule={{
+                                dates: get(diff, 'dates', {}),
+                                [TO_BE_CONFIRMED_FIELD]: get(diff, TO_BE_CONFIRMED_FIELD),
+                            }}
                             noPadding={true}
                         />
                     </ContentBlock>

@@ -21,6 +21,7 @@ import {
     MAIN,
     WORKFLOW_STATE,
     WORKSPACE,
+    TO_BE_CONFIRMED_FIELD,
 } from '../../constants';
 import main from '../main';
 
@@ -746,7 +747,7 @@ const save = (original, planUpdates) => (
             // remove all properties starting with _ or lock_,
             let updates = pickBy(
                 cloneDeep(planUpdates),
-                (v, k) => (!k.startsWith('_') && !k.startsWith('lock_'))
+                (v, k) => ((k === TO_BE_CONFIRMED_FIELD || !k.startsWith('_')) && !k.startsWith('lock_'))
             );
 
             // remove nested original creator

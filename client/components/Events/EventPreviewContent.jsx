@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {gettext, getCreator, stringUtils} from '../../utils';
+import {TO_BE_CONFIRMED_FIELD} from '../../constants';
 import * as selectors from '../../selectors';
 import {get} from 'lodash';
 import {Row} from '../UI/Preview';
@@ -100,8 +101,12 @@ export class EventPreviewContentComponent extends React.Component {
                     label={gettext('Occurrence Status')}
                     value={get(item, 'occur_status.name', '')}
                 />
-                <EventScheduleSummary schedule={item.dates} timeFormat={timeFormat} dateFormat={dateFormat}/>
-
+                <EventScheduleSummary
+                    schedule={{
+                        dates: item.dates,
+                        [TO_BE_CONFIRMED_FIELD]: get(item, TO_BE_CONFIRMED_FIELD),
+                    }}
+                    timeFormat={timeFormat} dateFormat={dateFormat}/>
                 <Row
                     enabled={get(formProfile, 'editor.calendars.enabled')}
                     label={gettext('Calendars')}

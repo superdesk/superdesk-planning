@@ -6,6 +6,7 @@ import {
     GENERIC_ITEM_ACTIONS,
     ITEM_TYPE,
     TIME_COMPARISON_GRANULARITY,
+    TO_BE_CONFIRMED_FIELD,
 } from '../constants';
 import {
     getItemWorkflowState,
@@ -27,6 +28,8 @@ import {
     isItemPosted,
     timeUtils,
     getItemInArrayById,
+    getTBCDateString,
+    sortBasedOnTBC,
 } from './index';
 import moment from 'moment';
 import RRule from 'rrule';
@@ -418,18 +421,21 @@ const getDateStringForEvent = (
     if (!start || !end)
         return;
 
-    if (start.isSame(end, 'day')) {
-        if (dateOnly) {
-            dateString = start.format(dateFormat);
+    dateString = getTBCDateString(event, dateFormat, ' @ ', dateOnly);
+    if (!dateString) {
+        if (start.isSame(end, 'day')) {
+            if (dateOnly) {
+                dateString = start.format(dateFormat);
+            } else {
+                dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false) + ' - ' +
+                    end.format(timeFormat);
+            }
+        } else if (dateOnly) {
+            dateString = start.format(dateFormat) + ' - ' + end.format(dateFormat);
         } else {
             dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false) + ' - ' +
-                end.format(timeFormat);
+                    getDateTimeString(end, dateFormat, timeFormat, ' @ ', false);
         }
-    } else if (dateOnly) {
-        dateString = start.format(dateFormat) + ' - ' + end.format(dateFormat);
-    } else {
-        dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false) + ' - ' +
-                getDateTimeString(end, dateFormat, timeFormat, ' @ ', false);
     }
 
     if (withTimezone) {
@@ -760,14 +766,7 @@ const getEventsByDate = (events, startDate, endDate) => {
         }
     });
 
-    let sortable = [];
-
-    for (let day in days) sortable.push({
-        date: day,
-        events: sortBy(days[day], [(e) => (e._sortDate)]),
-    });
-
-    return sortBy(sortable, [(e) => (e.date)]);
+    return sortBasedOnTBC(days);
 };
 
 const modifyForClient = (event) => {
@@ -1060,6 +1059,16 @@ const eventHasPostedPlannings = (event) => {
     return hasPosteditem;
 };
 
+const fillEventTime = (event) => {
+    if (!get(event, TO_BE_CONFIRMED_FIELD) && get(event, 'dates')) {
+        event._startTime = event.dates.start;
+        event._endTime = event.dates.end;
+    } else {
+        event._startTime = null;
+        event._endTime = null;
+    }
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     isEventAllDay,
@@ -1103,6 +1112,7 @@ const self = {
     eventHasPostedPlannings,
     getFlattenedEventsByDate,
     isEventCompleted,
+    fillEventTime,
 };
 
 export default self;

@@ -9,7 +9,6 @@ import {CoverageIcon} from './CoverageIcon';
 import {
     getCreator,
     getItemInArrayById,
-    getDateTimeString,
     gettext,
     stringUtils,
     planningUtils,
@@ -34,7 +33,7 @@ export const CoverageItem = ({
     const deskAssigned = getItemInArrayById(desks, get(coverage, 'assigned_to.desk'));
     const coverageDate = get(coverage, 'planning.scheduled');
     const coverageDateText = !coverageDate ? gettext('Not scheduled yet') :
-        getDateTimeString(coverageDate, dateFormat, timeFormat, ' @ ', false);
+        planningUtils.getCoverageDateTimeText(coverage, dateFormat, timeFormat);
     const coverageInWorkflow = planningUtils.isCoverageInWorkflow(coverage);
     const displayContentType = [
         stringUtils.firstCharUpperCase(get(coverage, 'planning.g2_content_type', '').replace('_', ' ')),

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import {getItemInArrayById, gettext, planningUtils, getItemWorkflowState} from '../../../utils';
 import moment from 'moment';
-import {WORKFLOW_STATE} from '../../../constants';
+import {WORKFLOW_STATE, TO_BE_CONFIRMED_FIELD} from '../../../constants';
 
 
 import {
@@ -22,6 +22,7 @@ export class CoverageForm extends React.Component {
     constructor(props) {
         super(props);
         this.onScheduleChanged = this.onScheduleChanged.bind(this);
+        this.onTimeToBeConfirmed = this.onTimeToBeConfirmed.bind(this);
         this.dom = {
             contentType: null,
             popupContainer: null,
@@ -34,8 +35,14 @@ export class CoverageForm extends React.Component {
         }
     }
 
+    onTimeToBeConfirmed() {
+        const {onChange, index} = this.props;
+
+        onChange(`coverages[${index}].${TO_BE_CONFIRMED_FIELD}`, true);
+    }
+
     onScheduleChanged(f, v) {
-        const {value, onChange} = this.props;
+        const {value, onChange, index} = this.props;
         let finalValue = v, fieldStr, relatedFieldStr;
 
         // We will be updating scheduled and _scheduledTime together
@@ -53,6 +60,9 @@ export class CoverageForm extends React.Component {
             // If there is no current scheduled date, then set the date to today
             relatedFieldStr = f.slice(0, -4).replace('_', '');
             fieldStr = f;
+
+            onChange(`coverages[${index}].${TO_BE_CONFIRMED_FIELD}`, false);
+
             if (!get(value, 'planning.scheduled')) {
                 finalValue = moment().hour(v.hour())
                     .minute(v.minute());
@@ -250,6 +260,9 @@ export class CoverageForm extends React.Component {
                     onPopupOpen={onPopupOpen}
                     onPopupClose={onPopupClose}
                     timeField={`${field}.planning._scheduledTime`}
+                    showToBeConfirmed
+                    toBeConfirmed={get(value, TO_BE_CONFIRMED_FIELD)}
+                    onToBeConfirmed={this.onTimeToBeConfirmed}
                 />
 
                 <Field
