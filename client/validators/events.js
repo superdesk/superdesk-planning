@@ -3,9 +3,9 @@ import {get, set, isEmpty, isEqual, pick} from 'lodash';
 import {gettext, eventUtils} from '../utils';
 import * as selectors from '../selectors';
 import {formProfile} from './profile';
-import {PRIVILEGES, EVENTS} from '../constants';
+import {PRIVILEGES, EVENTS, TO_BE_CONFIRMED_FIELD} from '../constants';
 
-const validateRequiredDates = ({value, errors, messages}) => {
+const validateRequiredDates = ({value, errors, messages, diff}) => {
     if (!get(value, 'start')) {
         set(errors, 'start.date', gettext('This field is required'));
         messages.push(gettext('START DATE is a required field'));
@@ -21,14 +21,16 @@ const validateRequiredDates = ({value, errors, messages}) => {
         messages.push(gettext('TIMEZONE is a required field'));
     }
 
-    if (!get(value, '_startTime')) {
-        set(errors, '_startTime', gettext('This field is required'));
-        messages.push(gettext('START TIME is a required field'));
-    }
+    if (!get(diff, TO_BE_CONFIRMED_FIELD)) {
+        if (!get(value, '_startTime')) {
+            set(errors, '_startTime', gettext('This field is required'));
+            messages.push(gettext('START TIME is a required field'));
+        }
 
-    if (!get(value, '_endTime')) {
-        set(errors, '_endTime', gettext('This field is required'));
-        messages.push(gettext('END TIME is a required field'));
+        if (!get(value, '_endTime')) {
+            set(errors, '_endTime', gettext('This field is required'));
+            messages.push(gettext('END TIME is a required field'));
+        }
     }
 };
 
@@ -146,7 +148,7 @@ const validateMultiDayDuration = ({getState, value, errors, messages}) => {
     }
 };
 
-const validateDates = ({getState, value, errors, messages}) => {
+const validateDates = ({getState, value, errors, messages, diff}) => {
     if (!value) {
         return;
     }
@@ -158,6 +160,7 @@ const validateDates = ({getState, value, errors, messages}) => {
         value: value,
         errors: newErrors,
         messages: messages,
+        diff: diff,
     });
     self.validateDateRange({
         value: value,
@@ -289,7 +292,9 @@ const validateLinks = ({dispatch, getState, field, value, profile, errors, messa
 };
 
 const valdiateStartEndDateValues = (value, startDate, endDate) => {
-    if (!get(value, 'start') || !get(value, 'end') || !moment.isMoment(value.start) || !moment.isMoment(value.end)) {
+    if (!get(value, 'start') || !get(value, 'end') || !moment.isMoment(value.start) || !moment.isMoment(value.end) ||
+        !get(value, '_startTime') || !get(value, '_endTime') || !moment.isMoment(value._startTime) ||
+        !moment.isMoment(value._endTime)) {
         return false;
     }
 

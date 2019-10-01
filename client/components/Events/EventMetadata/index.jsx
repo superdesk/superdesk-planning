@@ -130,7 +130,7 @@ export const EventMetadata = (
                 <StateLabel item={event} verbose={true}/>
             </PreviewRow>
             <PreviewRow label={gettext('Name')} value={event.name} />
-            <EventScheduleSummary schedule={event.dates}
+            <EventScheduleSummary schedule={event}
                 dateFormat={dateFormat}
                 timeFormat={timeFormat} />
             <PreviewRow label={gettext('Location')}>

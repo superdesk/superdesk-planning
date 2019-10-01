@@ -27,7 +27,11 @@ from eve.utils import config, ParsedRequest, date_to_str
 from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, get_coverage_cancellation_state,\
     remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name,\
     set_original_creator, list_uniq_with_order, TEMP_ID_PREFIX, DEFAULT_ASSIGNMENT_PRIORITY,\
+<<<<<<< HEAD
     get_planning_allow_scheduled_updates
+=======
+    TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA
+>>>>>>> f7b4c11... [SDESK-4472] 'To be confirmed' feature (#1341)
 from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
@@ -255,6 +259,9 @@ class PlanningService(superdesk.Service):
                 # populate headline using name
                 if event.get('name') and is_field_enabled('headline', planning_type):
                     doc.setdefault('headline', event['name'])
+
+                if event.get(TO_BE_CONFIRMED_FIELD):
+                    doc[TO_BE_CONFIRMED_FIELD] = True
 
     def _get_added_removed_agendas(self, updates, original):
         updated_agendas = [str(a) for a in (updates.get('agendas') or [])]
@@ -608,7 +615,7 @@ class PlanningService(superdesk.Service):
                 },
                 'planning_item': planning_id,
                 'coverage_item': doc.get('coverage_id'),
-                'planning': doc.get('planning'),
+                'planning': deepcopy(doc.get('planning')),
                 'priority': assigned_to.get('priority', DEFAULT_ASSIGNMENT_PRIORITY),
                 'description_text': planning.get('description_text')
             }
@@ -624,6 +631,9 @@ class PlanningService(superdesk.Service):
 
             if 'coverage_provider' in assigned_to:
                 assignment['assigned_to']['coverage_provider'] = assigned_to.get('coverage_provider')
+
+            if TO_BE_CONFIRMED_FIELD in doc:
+                assignment['planning'][TO_BE_CONFIRMED_FIELD] = doc[TO_BE_CONFIRMED_FIELD]
 
             assignment_id = assignment_service.post([assignment])
             updates['assigned_to']['assignment_id'] = str(assignment_id[0])
@@ -664,7 +674,10 @@ class PlanningService(superdesk.Service):
 
             assignment = {}
             if self.is_coverage_planning_modified(updates, original):
-                assignment['planning'] = doc.get('planning')
+                assignment['planning'] = deepcopy(doc.get('planning'))
+
+                if TO_BE_CONFIRMED_FIELD in doc:
+                    assignment['planning'][TO_BE_CONFIRMED_FIELD] = doc[TO_BE_CONFIRMED_FIELD]
 
             if original_assignment.get('assigned_to').get('state') == ASSIGNMENT_WORKFLOW_STATE.DRAFT:
                 if self.is_coverage_assignment_modified(updates, original_assignment):
@@ -833,6 +846,10 @@ class PlanningService(superdesk.Service):
             if not key.startswith('_') and \
                     updates.get('planning')[key] != (original.get('planning') or {}).get(key):
                 return True
+
+        if (TO_BE_CONFIRMED_FIELD in original and TO_BE_CONFIRMED_FIELD in updates and
+                original[TO_BE_CONFIRMED_FIELD] != updates[TO_BE_CONFIRMED_FIELD]):
+            return True
 
         return False
 
@@ -1127,6 +1144,7 @@ coverage_schema = {
             'no_content_linking': {'type': 'boolean', 'default': False}
         }
     },
+<<<<<<< HEAD
     'scheduled_updates': {
         'type': 'list',
         'schema': {
@@ -1169,6 +1187,9 @@ coverage_schema = {
             }
         }
     }  # end scheduled_updates
+=======
+    TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
+>>>>>>> f7b4c11... [SDESK-4472] 'To be confirmed' feature (#1341)
 }  # end coverage_schema
 
 planning_schema = {
@@ -1363,7 +1384,9 @@ planning_schema = {
     'state_reason': {
         'type': 'string',
         'nullable': True
-    }
+    },
+
+    TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA
 
 }  # end planning_schema
 

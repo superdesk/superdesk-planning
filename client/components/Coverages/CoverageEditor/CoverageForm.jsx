@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import {getItemInArrayById, gettext, planningUtils, generateTempId} from '../../../utils';
 import moment from 'moment';
-import {WORKFLOW_STATE, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
+import {WORKFLOW_STATE, TO_BE_CONFIRMED_FIELD, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
 import {Button} from '../../UI';
 import {Row, Label, LineInput} from '../../UI/Form';
 import {ScheduledUpdate} from '../ScheduledUpdate';
@@ -29,6 +29,7 @@ export class CoverageForm extends React.Component {
         this.onRemoveScheduledUpdate = this.onRemoveScheduledUpdate.bind(this);
         this.onScheduledUpdateClose = this.onScheduledUpdateClose.bind(this);
         this.onScheduledUpdateOpen = this.onScheduledUpdateOpen.bind(this);
+        this.onTimeToBeConfirmed = this.onTimeToBeConfirmed.bind(this);
         this.dom = {
             contentType: null,
             popupContainer: null,
@@ -42,8 +43,14 @@ export class CoverageForm extends React.Component {
         }
     }
 
+    onTimeToBeConfirmed() {
+        const {onChange, index} = this.props;
+
+        onChange(`coverages[${index}].${TO_BE_CONFIRMED_FIELD}`, true);
+    }
+
     onScheduleChanged(f, v, value = this.props.value) {
-        const {onChange} = this.props;
+        const {onChange, index} = this.props;
         let finalValue = v, fieldStr, relatedFieldStr;
 
         // We will be updating scheduled and _scheduledTime together
@@ -61,6 +68,9 @@ export class CoverageForm extends React.Component {
             // If there is no current scheduled date, then set the date to today
             relatedFieldStr = f.replace('_scheduledTime', 'scheduled');
             fieldStr = f;
+
+            onChange(`coverages[${index}].${TO_BE_CONFIRMED_FIELD}`, false);
+
             if (!get(value, 'planning.scheduled')) {
                 finalValue = moment().hour(v.hour())
                     .minute(v.minute());
@@ -312,6 +322,9 @@ export class CoverageForm extends React.Component {
                     onPopupOpen={onPopupOpen}
                     onPopupClose={onPopupClose}
                     timeField={`${field}.planning._scheduledTime`}
+                    showToBeConfirmed
+                    toBeConfirmed={get(value, TO_BE_CONFIRMED_FIELD)}
+                    onToBeConfirmed={this.onTimeToBeConfirmed}
                 />
 
                 <Field

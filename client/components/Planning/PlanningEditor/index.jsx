@@ -33,7 +33,7 @@ import {ToggleBox} from '../../UI';
 import {PlanningEditorHeader} from './PlanningEditorHeader';
 import {CoverageArrayInput} from '../../Coverages';
 import {EventMetadata} from '../../Events';
-import {WORKFLOW_STATE, COVERAGES} from '../../../constants';
+import {WORKFLOW_STATE, COVERAGES, TO_BE_CONFIRMED_FIELD} from '../../../constants';
 import CustomVocabulariesFields from '../../CustomVocabulariesFields';
 
 const toggleDetails = [
@@ -64,6 +64,7 @@ export class PlanningEditorComponent extends React.Component {
 
         this.onAddFiles = this.onAddFiles.bind(this);
         this.onRemoveFile = this.onRemoveFile.bind(this);
+        this.onTimeToBeConfirmed = this.onTimeToBeConfirmed.bind(this);
     }
 
     componentWillUpdate(nextProps) {
@@ -333,7 +334,17 @@ export class PlanningEditorComponent extends React.Component {
     }
 
     onPlanningDateChange(field, value) {
-        this.onChange('planning_date', value);
+        let changes = {planning_date: value};
+
+        if (field.indexOf('.time') >= 0) {
+            changes[TO_BE_CONFIRMED_FIELD] = false;
+        }
+
+        this.props.onChangeHandler(changes, null);
+    }
+
+    onTimeToBeConfirmed() {
+        this.onChange(TO_BE_CONFIRMED_FIELD, true);
     }
 
     assignCoverageToDefaultDesk(coverage) {
@@ -524,6 +535,9 @@ export class PlanningEditorComponent extends React.Component {
                         onChange={this.onPlanningDateChange}
                         onFocus={onFocusPlanning}
                         {...popupProps}
+                        showToBeConfirmed
+                        toBeConfirmed={get(diff, TO_BE_CONFIRMED_FIELD)}
+                        onToBeConfirmed={this.onTimeToBeConfirmed}
                     />
 
                     <Field

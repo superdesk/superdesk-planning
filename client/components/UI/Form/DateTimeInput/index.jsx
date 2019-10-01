@@ -38,6 +38,9 @@ export const DateTimeInput = ({
     allowInvalidTime,
     isLocalTimeZoneDifferent,
     refNode,
+    showToBeConfirmed,
+    onToBeConfirmed,
+    toBeConfirmed,
     ...props
 }) => (
     <Row flex={true} halfWidth={halfWidth} noPadding={!!invalid} className={{
@@ -92,6 +95,9 @@ export const DateTimeInput = ({
             allowInvalidText={allowInvalidTime}
             isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
             halfWidth={!hideTime}
+            showToBeConfirmed={showToBeConfirmed}
+            onToBeConfirmed={onToBeConfirmed}
+            toBeConfirmed={toBeConfirmed}
         />}
         {canClear && <Button
             onClick={() => onChange(field, null)}
@@ -138,6 +144,9 @@ DateTimeInput.propTypes = {
     allowInvalidTime: PropTypes.bool,
     isLocalTimeZoneDifferent: PropTypes.bool,
     refNode: PropTypes.func,
+    showToBeConfirmed: PropTypes.bool,
+    onToBeConfirmed: PropTypes.func,
+    toBeConfirmed: PropTypes.bool,
 };
 
 DateTimeInput.defaultProps = {

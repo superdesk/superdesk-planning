@@ -6,7 +6,6 @@ import {get} from 'lodash';
 import {gettext, stringUtils, planningUtils} from '../../../utils';
 import {ContactsPreviewList} from '../../Contacts/index';
 import {PLANNING, WORKFLOW_STATE, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
-
 import {CoverageItem} from '../';
 import {CoveragePreviewTopBar} from './CoveragePreviewTopBar';
 import {ScheduledUpdate} from '../ScheduledUpdate';
@@ -32,6 +31,9 @@ export const CoveragePreview = ({
     const coverageStatus = get(coverage, 'news_coverage_status.qcode', '') ===
         PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode ? PLANNING.NEWS_COVERAGE_CANCELLED_STATUS :
         newsCoverageStatus.find((s) => s.qcode === get(coverage, 'news_coverage_status.qcode', '')) || {};
+
+    const coverageDateText = !get(coverage, 'planning.scheduled') ? gettext('Not scheduled yet') :
+        planningUtils.getCoverageDateTimeText(coverage, dateFormat, timeFormat);
 
     const keywordText = get(coverage, 'planning.keyword.length', 0) === 0 ? '' :
         coverage.planning.keyword.join(', ');
@@ -141,7 +143,7 @@ export const CoveragePreview = ({
             {get(formProfile, 'editor.scheduled.enabled') &&
                 <PreviewRow
                     label={gettext('Due')}
-                    value={planningUtils.getCoverageDateText(coverage, dateFormat, timeFormat)}
+                    value={coverageDateText}
                 />
             }
 
