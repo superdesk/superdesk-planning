@@ -351,11 +351,11 @@ export class CoverageForm extends React.Component {
                                 {...fieldProps}
                                 {...props} />
                         ))}
-                        <Button
+                        {!get(diff, `${field}.flags.no_content_linking`) && <Button
                             color="primary"
                             text={gettext('Schedule an update')}
                             onClick={this.onAddScheduledUpdate}
-                        />
+                        />}
                     </Row>)}
 
             </div>

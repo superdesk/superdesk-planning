@@ -620,6 +620,8 @@ const getCoverageReadOnlyFields = (
     newsCoverageStatus,
     addNewsItemToPlanning
 ) => {
+    const scheduledUpdatesExist = get(coverage, 'scheduled_updates.length', 0) > 0;
+
     if (addNewsItemToPlanning) {
         // if newsItem is published, schedule is readOnly
         return {
@@ -631,7 +633,7 @@ const getCoverageReadOnlyFields = (
             genre: true,
             newsCoverageStatus: true,
             scheduled: readOnly || get(addNewsItemToPlanning, 'state') === 'published',
-            flags: false,
+            flags: scheduledUpdatesExist,
         };
     }
 
@@ -705,7 +707,7 @@ const getCoverageReadOnlyFields = (
             genre: readOnly,
             newsCoverageStatus: readOnly,
             scheduled: readOnly,
-            flags: false,
+            flags: scheduledUpdatesExist,
         };
     }
 };
