@@ -80,6 +80,11 @@ ITEM_ACTIONS = namedtuple('ITEM_ACTIONS',
 spiked_state = ['both', 'draft', 'spiked']
 SPIKED_STATE = namedtuple('SPIKED_STATE', ['BOTH', 'NOT_SPIKED', 'SPIKED'])(*spiked_state)
 TEMP_ID_PREFIX = 'tempId-'
+TO_BE_CONFIRMED_FIELD = '_time_to_be_confirmed'
+TO_BE_CONFIRMED_FIELD_SCHEMA = {
+    'type': 'boolean',
+    'default': False
+}
 
 
 def set_item_expiry(doc):

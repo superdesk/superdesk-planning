@@ -4,7 +4,7 @@ import {Row as PreviewRow} from '../UI/Preview';
 import {CollapseBox} from '../UI';
 import moment from 'moment-timezone';
 import {get} from 'lodash';
-import {getCreator, getItemInArrayById, getDateTimeString, gettext, stringUtils} from '../../utils';
+import {getCreator, getItemInArrayById, gettext, stringUtils, planningUtils} from '../../utils';
 import {StateLabel} from '../index';
 import {ContactsPreviewList} from '../Contacts/index';
 import {PLANNING, WORKFLOW_STATE} from '../../constants';
@@ -49,7 +49,8 @@ export const CoveragePreview = ({
         newsCoverageStatus.find((s) => s.qcode === get(coverage, 'news_coverage_status.qcode', '')) || {};
 
     const coverageDateText = !coverageDate ? gettext('Not scheduled yet') :
-        getDateTimeString(coverageDate, dateFormat, timeFormat, ' @ ', false);
+        planningUtils.getCoverageDateTimeText(coverage, dateFormat, timeFormat);
+
     const assignmentPriority = get(coverage, 'assigned_to.priority');
     const keywordText = get(coverage, 'planning.keyword.length', 0) === 0 ? '' :
         coverage.planning.keyword.join(', ');

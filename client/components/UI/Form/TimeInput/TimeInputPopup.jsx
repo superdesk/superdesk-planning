@@ -64,8 +64,10 @@ export class TimeInputPopup extends React.Component {
         const {onChange, close} = this.props;
 
         if (addMinutes) {
-            this.state.currentTime.add(addMinutes, 'm');
-            onChange(this.state.currentTime.format('HH:mm'));
+            let newTime = moment.clone(this.state.currentTime);
+
+            newTime.add(addMinutes, 'm');
+            onChange(newTime.format('HH:mm'));
         } else {
             onChange(('0' + this.state.selectedHourIndex).slice(-2) +
                 ':' + ('0' + (this.state.selectedMinuteIndex * 5)).slice(-2));
@@ -87,7 +89,7 @@ export class TimeInputPopup extends React.Component {
                 onPopupClose={this.props.onPopupClose}
             >
                 <Header noBorder={true}>
-                    <div className="time-popup__header-row">
+                    {!this.props.showToBeConfirmed && (<div className="time-popup__header-row">
                         <Button
                             onClick={this.handleConfirm.bind(this, 30)}
                             text={gettext('in 30 min')}
@@ -100,7 +102,18 @@ export class TimeInputPopup extends React.Component {
                             onClick={this.handleConfirm.bind(this, 120)}
                             text={gettext('in 2 hrs')}
                         />
-                    </div>
+                    </div>)}
+                    {this.props.showToBeConfirmed && (
+                        <div className="time-popup__header-row">
+                            <Button
+                                onClick={() => {
+                                    this.props.onToBeConfirmed();
+                                    this.props.close();
+                                }}
+                                text={this.props.toBeConfirmedText}
+                            />
+                        </div>
+                    )}
                 </Header>
 
                 <Content>
@@ -160,4 +173,7 @@ TimeInputPopup.propTypes = {
     popupContainer: PropTypes.func,
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
+    showToBeConfirmed: PropTypes.bool,
+    onToBeConfirmed: PropTypes.func,
+    toBeConfirmedText: PropTypes.string,
 };
