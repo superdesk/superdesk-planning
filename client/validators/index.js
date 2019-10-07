@@ -197,7 +197,7 @@ const validateCoverageScheduleDate = ({
     const canCreateInPast = !!privileges[PRIVILEGES.CREATE_IN_PAST];
     const today = moment();
 
-    if (validateSchedule && moment.isMoment(value) && value.isBefore(today, 'day')) {
+    if (field !== '_scheduledTime' && validateSchedule && moment.isMoment(value) && value.isBefore(today, 'day')) {
         set(errors, `${field}.date`, gettext('Date is in the past'));
 
         if (!canCreateInPast) {
