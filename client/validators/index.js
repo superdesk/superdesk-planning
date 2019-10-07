@@ -101,6 +101,7 @@ export const validateItem = ({
     }
 );
 
+
 export const validators = {
     event: {
         anpa_category: [formProfile],
