@@ -3,7 +3,6 @@ BACKEND_DIR=server
 VENV=`pwd`/$BACKEND_DIR/env/bin/activate
 PLANNING_DIR=`pwd`
 
-npm install superdesk/superdesk-client-core#develop
 npm install
 cd server && pip install -r requirements.txt && cd ..
 gem install coveralls-lcov
