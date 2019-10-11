@@ -145,6 +145,13 @@ export default angular.module('superdesk-planning', [])
                         assignments.onPublishFromAuthoring
                     );
                 }
+
+                if (get(deployConfig, 'config.planning_link_updates_to_coverage')) {
+                    functionPoints.register(
+                        'archive:rewrite_after',
+                        assignments.onArchiveRewrite
+                    );
+                }
             });
         },
     ]);

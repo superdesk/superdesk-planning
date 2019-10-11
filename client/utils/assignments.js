@@ -1,5 +1,6 @@
 import {get, includes, isNil} from 'lodash';
 import moment from 'moment';
+import {gettext} from './index';
 
 import {ASSIGNMENTS, PRIVILEGES} from '../constants';
 import {lockUtils, getCreator, getItemInArrayById, isExistingItem} from './index';
@@ -112,6 +113,8 @@ const getAssignmentActions = (assignment, session, privileges, lockedItems, cont
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
                         callback: callBacks[callBackName].bind(null, assignment),
+                        label: get(assignment, 'scheduled_update_id') ? gettext('Mark as completed') :
+                            ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label,
                     });
             break;
 

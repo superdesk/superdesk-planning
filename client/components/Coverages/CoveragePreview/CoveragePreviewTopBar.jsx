@@ -4,6 +4,7 @@ import {Row as PreviewRow} from '../../UI/Preview';
 import moment from 'moment-timezone';
 import {get} from 'lodash';
 import {getCreator, getItemInArrayById, gettext} from '../../../utils';
+import {DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
 import {StateLabel} from '../../index';
 
 export const CoveragePreviewTopBar = ({
@@ -86,6 +87,6 @@ CoveragePreviewTopBar.propTypes = {
 
 
 CoveragePreviewTopBar.defaultProps = {
-    dateFormat: 'DD/MM/YYYY',
-    timeFormat: 'HH:mm',
+    dateFormat: DEFAULT_DATE_FORMAT,
+    timeFormat: DEFAULT_TIME_FORMAT,
 };

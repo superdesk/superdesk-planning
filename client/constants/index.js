@@ -21,6 +21,9 @@ export {EVENTS} from './events';
 
 export const WS_NOTIFICATION = 'WS_NOTIFICATION';
 
+export const DEFAULT_DATE_FORMAT = 'DD/MM/YYYY';
+export const DEFAULT_TIME_FORMAT = 'HH:mm';
+
 export const DATE_FORMATS = {
     COMPARE_FORMAT: 'YYYY-M-D',
     DISPLAY_DATE_FORMAT: 'D. MMMM YYYY HH:mm',

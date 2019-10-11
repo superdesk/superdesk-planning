@@ -5,7 +5,7 @@ import {CollapseBox} from '../../UI';
 import {get} from 'lodash';
 import {gettext, stringUtils, planningUtils} from '../../../utils';
 import {ContactsPreviewList} from '../../Contacts/index';
-import {PLANNING, WORKFLOW_STATE} from '../../../constants';
+import {PLANNING, WORKFLOW_STATE, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
 
 import {CoverageItem} from '../';
 import {CoveragePreviewTopBar} from './CoveragePreviewTopBar';
@@ -205,6 +205,6 @@ CoveragePreview.propTypes = {
 
 
 CoveragePreview.defaultProps = {
-    dateFormat: 'DD/MM/YYYY',
-    timeFormat: 'HH:mm',
+    dateFormat: DEFAULT_DATE_FORMAT,
+    timeFormat: DEFAULT_TIME_FORMAT,
 };
