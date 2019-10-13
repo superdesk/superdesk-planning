@@ -2,6 +2,7 @@ import sinon from 'sinon';
 
 import {ALL_DESKS} from '../../constants';
 import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
+import {getTimeZoneOffset} from '../../utils';
 import * as testData from '../../utils/testData';
 
 import {AssignmentsService} from '../AssignmentsService';
@@ -83,7 +84,7 @@ describe('assignments service', () => {
                                                 'planning.scheduled': {
                                                     gte: 'now/d',
                                                     lte: 'now/d',
-                                                    time_zone: '+10:00',
+                                                    time_zone: getTimeZoneOffset(),
                                                 },
                                             },
                                         },
