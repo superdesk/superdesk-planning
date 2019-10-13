@@ -55,8 +55,8 @@
     "simulant": "^0.2.2",
     "sinon": "~4.4.2",
     "superdesk-code-style": "^1.1.1",
-    "superdesk-core": "superdesk/superdesk-client-core#develop",
-    "typescript": "3.5.2",
+    "superdesk-core": "superdesk/superdesk-client-core#1.30",
+    "typescript": "3.6.2",
     "typescript-eslint-parser": "^18.0.0",
     "ts-node": "~7.0.1"
   }
