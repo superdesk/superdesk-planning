@@ -3,6 +3,7 @@ import {
     SPIKED_STATE,
     POST_STATE,
     MAIN,
+    TO_BE_CONFIRMED_FIELD,
 } from '../../constants';
 import {EventUpdateMethods} from '../../components/Events';
 import {get, isEqual, cloneDeep, pickBy, isNil, has, find, every} from 'lodash';
@@ -1155,16 +1156,21 @@ const unpost = (original, updates) => (
 );
 
 const updateEventTime = (original, updates) => (
-    (dispatch, getState, {api}) => (
-        api.update(
+    (dispatch, getState, {api}) => {
+        if (get(updates, TO_BE_CONFIRMED_FIELD)) {
+            return dispatch(main.saveAndUnlockItem(original, {[TO_BE_CONFIRMED_FIELD]: true}, true));
+        }
+
+        return api.update(
             'events_update_time',
             original,
             {
                 update_method: get(updates, 'update_method.value', EventUpdateMethods[0].value),
                 dates: updates.dates,
+                [TO_BE_CONFIRMED_FIELD]: false,
             }
-        )
-    )
+        );
+    }
 );
 
 const markEventCancelled = (eventId, etag, reason, occurStatus, cancelledItems, actionedDate) => ({
@@ -1327,7 +1333,7 @@ const _save = (original, eventUpdates) => (
             // remove all properties starting with _
             // and updates that are the same as original
             updates = pickBy(updates, (v, k) => (
-                (k === '_planning_item' || !k.startsWith('_')) &&
+                (k === TO_BE_CONFIRMED_FIELD || k === '_planning_item' || !k.startsWith('_')) &&
                 !isEqual(updates[k], originalItem[k])
             ));
 
@@ -1431,6 +1437,50 @@ const receiveCalendars = (calendars) => ({
     payload: calendars,
 });
 
+const fetchEventTemplates = () => (dispatch, getState, {api}) => {
+    api('recent_events_template').query()
+        .then((res) => {
+            dispatch({type: EVENTS.ACTIONS.RECEIVE_EVENT_TEMPLATES, payload: res._items});
+        });
+};
+
+const createEventTemplate = (itemId) => (dispatch, getState, {api, modal}) => {
+    modal.prompt(gettext('Template name')).then((templateName) => {
+        api('events_template').query({
+            where: {
+                template_name: {
+                    $regex: templateName,
+                    $options: 'i',
+                },
+            },
+        })
+            .then((res) => {
+                const doSave = () => {
+                    api('events_template').save({
+                        template_name: templateName,
+                        based_on_event: itemId,
+                    })
+                        .then(() => {
+                            dispatch(fetchEventTemplates());
+                        });
+                };
+
+                const templateAlreadyExists = res._meta.total !== 0;
+
+                if (templateAlreadyExists) {
+                    modal.confirm(gettext(
+                        'Template already exists. Do you want to overwrite it?'
+                    ))
+                        .then(() => {
+                            api.remove(res._items[0], {}, 'events_template').then(doSave);
+                        });
+                } else {
+                    doSave();
+                }
+            });
+    });
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     loadEventsByRecurrenceId,
@@ -1468,6 +1518,8 @@ const self = {
     receiveCalendars,
     fetchEventFiles,
     removeFile,
+    fetchEventTemplates,
+    createEventTemplate,
 };
 
 export default self;

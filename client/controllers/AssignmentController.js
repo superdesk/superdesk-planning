@@ -70,9 +70,11 @@ export class AssignmentController {
         ]));
 
         return Promise.all([
-            this.onDeskChange(),
             this.store.dispatch(actions.locks.loadAssignmentLocks()),
             this.store.dispatch(actions.fetchAgendas()),
+            this.store.dispatch(actions.users.fetchAndRegisterUserPreferences())
+                .then(() => this.store.dispatch(actions.assignments.ui.loadDefaultListSort()))
+                .then(() => this.onDeskChange()),
         ]);
     }
 

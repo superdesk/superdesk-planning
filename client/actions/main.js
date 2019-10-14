@@ -8,6 +8,7 @@ import {
     EVENTS,
     AGENDA,
     QUEUE_ITEM_PREFIX,
+    WORKSPACE,
 } from '../constants';
 import {activeFilter, lastRequestParams} from '../selectors/main';
 import planningUi from './planning/ui';
@@ -629,7 +630,7 @@ const openIgnoreCancelSaveModal = ({
     }
 );
 
-const closePreviewAndEditorForItems = (items, actionMessage = '', field = '_id') => (
+const closePreviewAndEditorForItems = (items, actionMessage = '', field = '_id', unlock = false) => (
     (dispatch, getState, {notify}) => {
         const previewId = selectors.main.previewId(getState());
         const editId = selectors.forms.currentItemId(getState());
@@ -642,14 +643,21 @@ const closePreviewAndEditorForItems = (items, actionMessage = '', field = '_id')
             }
         }
 
-        if (editId && items.find((i) => get(i, field) === editId)) {
-            dispatch(self.closeEditor());
+        if (editId) {
+            const itemInEditor = items.find((i) => get(i, field) === editId);
+
+            if (itemInEditor) {
+                if (!unlock) {
+                    dispatch(self.closeEditor());
+                } else {
+                    dispatch(self.unlockAndCancel(itemInEditor));
+                }
+            }
 
             if (actionMessage !== '') {
                 notify.warning(actionMessage);
             }
         }
-
 
         items.forEach((item) => {
             const itemType = (get(item, field) in selectors.planning.storedPlannings(getState())) ?
@@ -1256,6 +1264,11 @@ const onItemUnlocked = (data, item, itemType) => (
                         ' "' + user.display_name + '"',
                 },
             }));
+
+            if (getItemType(item) === ITEM_TYPE.PLANNING && selectors.general.currentWorkspace(getState())
+                    === WORKSPACE.AUTHORING) {
+                dispatch(self.closePreviewAndEditorForItems([item]));
+            }
         }
     }
 );

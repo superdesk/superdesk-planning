@@ -1,6 +1,6 @@
 import {isNil, zipObject, get, isEmpty} from 'lodash';
 import {createStore} from '../utils';
-import {ITEM_TYPE} from '../constants';
+import {COVERAGES, ITEM_TYPE, ASSIGNMENTS} from '../constants';
 import * as selectors from '../selectors';
 import * as actions from '../actions';
 
@@ -29,6 +29,7 @@ export class PlanningStoreService {
         $q,
         $interpolate,
         search,
+        modal,
         preferencesService
     ) {
         this.$rootScope = $rootScope;
@@ -54,6 +55,7 @@ export class PlanningStoreService {
         this.$q = $q;
         this.$interpolate = $interpolate;
         this.search = search;
+        this.modal = modal;
         this.preferencesService = preferencesService;
 
         this.onSessionChanged = this.onSessionChanged.bind(this);
@@ -161,11 +163,14 @@ export class PlanningStoreService {
                         authoringWorkspace: this.authoringWorkspace,
                         $interpolate: this.$interpolate,
                         search: this.search,
+                        modal: this.modal,
                         config: this.config,
                         preferencesService: this.preferencesService,
                         $rootScope: this.$rootScope,
                     },
                 });
+
+                this.registerUserPreferences();
 
                 return Promise.resolve(store);
             });
@@ -302,6 +307,11 @@ export class PlanningStoreService {
             });
         }
     }
+
+    registerUserPreferences() {
+        this.preferencesService.registerUserPreference(COVERAGES.DEFAULT_DESK_PREFERENCE);
+        this.preferencesService.registerUserPreference(ASSIGNMENTS.DEFAULT_SORT_PREFERENCE);
+    }
 }
 
 PlanningStoreService.$inject = [
@@ -328,5 +338,6 @@ PlanningStoreService.$inject = [
     '$q',
     '$interpolate',
     'search',
+    'modal',
     'preferencesService',
 ];

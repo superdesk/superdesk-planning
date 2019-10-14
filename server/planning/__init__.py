@@ -17,7 +17,7 @@ from .agendas import AgendasResource, AgendasService
 from .planning_export_templates import PlanningExportTemplatesResource, PlanningExportTemplatesService
 from .planning_article_export import PlanningArticleExportResource, PlanningArticleExportService
 from .common import get_max_recurrent_events, get_street_map_url, get_event_max_multi_day_duration,\
-    planning_auto_assign_to_workflow, get_long_event_duration_threshold
+    planning_auto_assign_to_workflow, get_long_event_duration_threshold, event_templates_enabled
 from apps.common.components.utils import register_component
 from .item_lock import LockService
 from .planning_notifications import PlanningNotifications
@@ -44,7 +44,7 @@ import planning.feed_parsers  # noqa
 import planning.output_formatters  # noqa
 from planning.planning_download import init_app as init_planning_download_app
 
-__version__ = '1.7.0'
+__version__ = '1.8.0-rc1'
 
 
 def init_app(app):
@@ -121,6 +121,12 @@ def init_app(app):
         decsription='Ability to create, edit and delete locations'
     )
 
+    superdesk.privilege(
+        name='planning_assignments_view',
+        label='Planning - Assignments view',
+        decsription='Ability to access assignments view'
+    )
+
     app.on_update_users += PlanningNotifications().user_update
 
     superdesk.register_default_user_preference('slack:notification', {
@@ -167,6 +173,7 @@ def init_app(app):
     app.client_config['max_multi_day_event_duration'] = get_event_max_multi_day_duration(app)
     app.client_config['planning_auto_assign_to_workflow'] = planning_auto_assign_to_workflow(app)
     app.client_config['long_event_duration_threshold'] = get_long_event_duration_threshold(app)
+    app.client_config['event_templates_enabled'] = event_templates_enabled(app)
 
     # Set up Celery task options
     if not app.config.get('CELERY_TASK_ROUTES'):

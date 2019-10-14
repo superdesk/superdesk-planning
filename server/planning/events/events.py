@@ -407,6 +407,13 @@ class EventsService(superdesk.Service):
 
         self._enhance_event_item(updates)
 
+    def on_deleted(self, doc):
+        push_notification(
+            'events:delete',
+            item=str(doc.get(config.ID_FIELD)),
+            user=str(get_user_id()), lock_session=str(get_auth().get('_id')),
+        )
+
     def _update_single_event(self, updates, original):
         """Updates the metadata of a single event.
 

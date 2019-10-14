@@ -1,6 +1,6 @@
 {
   "name": "superdesk-planning",
-  "version": "1.7.0",
+  "version": "1.8.0-rc1",
   "license": "AGPL-3.0",
   "description": "",
   "main": "index.js",
@@ -33,6 +33,8 @@
     "whatwg-fetch": "~2.0.4"
   },
   "devDependencies": {
+    "@types/react": "16.4.9",
+    "@types/react-dom": "16.8.0",
     "btoa": "^1.1.2",
     "enzyme": "~3.3.0",
     "enzyme-adapter-react-16": "^1.1.1",
@@ -53,7 +55,8 @@
     "simulant": "^0.2.2",
     "sinon": "~4.4.2",
     "superdesk-code-style": "^1.1.1",
-    "superdesk-core": "superdesk/superdesk-client-core#develop",
+    "superdesk-core": "superdesk/superdesk-client-core#1.30",
+    "typescript": "3.6.2",
     "typescript-eslint-parser": "^18.0.0",
     "ts-node": "~7.0.1"
   }

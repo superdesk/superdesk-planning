@@ -80,6 +80,11 @@ ITEM_ACTIONS = namedtuple('ITEM_ACTIONS',
 spiked_state = ['both', 'draft', 'spiked']
 SPIKED_STATE = namedtuple('SPIKED_STATE', ['BOTH', 'NOT_SPIKED', 'SPIKED'])(*spiked_state)
 TEMP_ID_PREFIX = 'tempId-'
+TO_BE_CONFIRMED_FIELD = '_time_to_be_confirmed'
+TO_BE_CONFIRMED_FIELD_SCHEMA = {
+    'type': 'boolean',
+    'default': False
+}
 
 
 def set_item_expiry(doc):
@@ -100,6 +105,12 @@ def planning_auto_assign_to_workflow(current_app=None):
     if current_app is not None:
         return current_app.config.get('PLANNING_AUTO_ASSIGN_TO_WORKFLOW', False)
     return app.config.get('PLANNING_AUTO_ASSIGN_TO_WORKFLOW', False)
+
+
+def event_templates_enabled(current_app=None):
+    if current_app is not None:
+        return current_app.config.get('PLANNING_EVENT_TEMPLATES_ENABLED', False)
+    return app.config.get('PLANNING_EVENT_TEMPLATES_ENABLED', False)
 
 
 def get_long_event_duration_threshold(current_app=None):

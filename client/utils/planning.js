@@ -9,6 +9,8 @@ import {
     POST_STATE,
     COVERAGES,
     ITEM_TYPE,
+    TO_BE_CONFIRMED_FIELD,
+    TO_BE_CONFIRMED_SHORT_TEXT,
 } from '../constants/index';
 import {get, set, isNil, uniq, sortBy, isEmpty, cloneDeep, isArray, find, flatten} from 'lodash';
 import {
@@ -30,6 +32,8 @@ import {
     getItemId,
     generateTempId,
     isItemPosted,
+    getDateTimeString,
+    sortBasedOnTBC,
 } from './index';
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
@@ -744,15 +748,7 @@ const getPlanningByDate = (plansInList, events, startDate, endDate, timezone = n
         }
     });
 
-    let sortable = [];
-
-    for (let day in days)
-        sortable.push({
-            date: day,
-            events: sortBy(days[day], [(e) => e._sortDate]),
-        });
-
-    return sortBy(sortable, [(e) => e.date]);
+    return sortBasedOnTBC(days);
 };
 
 const isLockedForAddToPlanning = (item) => get(item, 'lock_action') ===
@@ -762,6 +758,11 @@ const isCoverageDraft = (coverage) => get(coverage, 'workflow_status') === WORKF
 const isCoverageInWorkflow = (coverage) => !isEmpty(coverage.assigned_to) &&
     get(coverage, 'assigned_to.state') !== WORKFLOW_STATE.DRAFT;
 const formatAgendaName = (agenda) => agenda.is_enabled ? agenda.name : agenda.name + ` - [${gettext('Disabled')}]`;
+
+const getCoverageDateTimeText = (coverage, dateFormat, timeFormat) =>
+    get(coverage, TO_BE_CONFIRMED_FIELD) ? (get(coverage, 'planning.scheduled').format(dateFormat) + ' @ ' +
+        TO_BE_CONFIRMED_SHORT_TEXT) :
+        getDateTimeString(get(coverage, 'planning.scheduled'), dateFormat, timeFormat, ' @ ', false);
 
 /**
  * Get the name of associated icon for different coverage types
@@ -858,6 +859,10 @@ const defaultCoverageValues = (
         workflow_status: WORKFLOW_STATE.DRAFT,
     };
 
+    if (get(planningItem, TO_BE_CONFIRMED_FIELD)) {
+        newCoverage[TO_BE_CONFIRMED_FIELD] = planningItem[TO_BE_CONFIRMED_FIELD];
+    }
+
     newCoverage.planning._scheduledTime = newCoverage.planning.scheduled;
 
     if (planningItem) {
@@ -948,6 +953,11 @@ const getAgendaNames = (item = {}, agendas = []) => (
         .filter((agenda) => agenda)
 );
 
+const getDateStringForPlanning = (planning, dateFormat, timeFormat) =>
+    get(planning, TO_BE_CONFIRMED_FIELD) ?
+        planning.planning_date.format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT :
+        getDateTimeString(get(planning, 'planning_date'), dateFormat, timeFormat, ' @ ', false);
+
 // eslint-disable-next-line consistent-this
 const self = {
     canSpikePlanning,
@@ -992,6 +1002,8 @@ const self = {
     getAgendaNames,
     getFlattenedPlanningByDate,
     canAddCoverageToWorkflow,
+    getCoverageDateTimeText,
+    getDateStringForPlanning,
 };
 
 export default self;

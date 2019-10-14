@@ -15,7 +15,7 @@ import {TextInput} from '../UI/Form';
  * param {string} noDateString - string to display if the date is not valid
  * param {string} className - The CSS class names to use in the parent time element
  */
-export const AbsoluteDate = ({date, noDateString, className, asTextInput, ...props}) => {
+export const AbsoluteDate = ({date, noDateString, className, asTextInput, toBeConfirmed, ...props}) => {
     let momentDate = moment.utc(date);
     let timeStr = '';
     let spanStr = noDateString;
@@ -31,9 +31,11 @@ export const AbsoluteDate = ({date, noDateString, className, asTextInput, ...pro
         }
 
         if (moment().format('YYYY') === momentDate.format('YYYY')) {
-            spanStr += momentDate.format(DATE_FORMATS.DISPLAY_CDATE_FORMAT);
+            spanStr += (toBeConfirmed ? momentDate.format(DATE_FORMATS.DISPLAY_CDATE_TBC_FORMAT) :
+                momentDate.format(DATE_FORMATS.DISPLAY_CDATE_FORMAT));
         } else {
-            spanStr += momentDate.format(DATE_FORMATS.DISPLAY_DATE_FORMAT);
+            spanStr += (toBeConfirmed ? momentDate.format(DATE_FORMATS.DISPLAY_TBC_FORMAT) :
+                momentDate.format(DATE_FORMATS.DISPLAY_DATE_FORMAT));
         }
     }
 
@@ -51,6 +53,7 @@ AbsoluteDate.propTypes = {
     noDateString: PropTypes.string,
     className: PropTypes.string,
     asTextInput: PropTypes.bool,
+    toBeConfirmed: PropTypes.bool,
 };
 
 AbsoluteDate.defaultProps = {asTextInput: false};

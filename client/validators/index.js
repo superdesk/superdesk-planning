@@ -51,6 +51,7 @@ export const validateItem = ({
     messages = [],
     fields = null,
     ignoreDateValidation = false,
+    fieldsToValidate,
 }) => (
     (dispatch, getState) => {
         const profiles = formProfiles ? formProfiles : selectors.forms.profiles(getState());
@@ -73,7 +74,9 @@ export const validateItem = ({
 
                     switch (true) {
                     case schema.required:
-                        if (isEmpty(diff[key]) && isEmpty(getSubject(diff, key))) {
+                        if (isEmpty(diff[key]) && isEmpty(getSubject(diff, key))
+                            && fieldsToValidate == null
+                            || (Array.isArray(fieldsToValidate) && fieldsToValidate.includes(key))) {
                             errors[key] = gettext('This field is required');
                             messages.push(gettext('{{ key }} is a required field', {key: key.toUpperCase()}));
                         } else if (errors[key]) {
@@ -197,7 +200,7 @@ const validateCoverageScheduleDate = ({
     const canCreateInPast = !!privileges[PRIVILEGES.CREATE_IN_PAST];
     const today = moment();
 
-    if (validateSchedule && moment.isMoment(value) && value.isBefore(today, 'day')) {
+    if (field !== '_scheduledTime' && validateSchedule && moment.isMoment(value) && value.isBefore(today, 'day')) {
         set(errors, `${field}.date`, gettext('Date is in the past'));
 
         if (!canCreateInPast) {

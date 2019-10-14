@@ -31,7 +31,8 @@ from planning.item_lock import LockService, LOCK_USER, LOCK_ACTION
 from superdesk.users.services import current_user_has_privilege
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information, \
     is_locked_in_this_session, get_coverage_type_name, get_version_item_for_post, \
-    enqueue_planning_item, WORKFLOW_STATE, get_next_assignment_status, get_delivery_publish_time
+    enqueue_planning_item, WORKFLOW_STATE, get_next_assignment_status, get_delivery_publish_time, \
+    TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA
 from flask import request, json, current_app as app
 from planning.planning_notifications import PlanningNotifications
 from apps.content import push_content_notification
@@ -411,6 +412,7 @@ class AssignmentsService(superdesk.Service):
                                                                   desk=desk_name,
                                                                   event=event_item,
                                                                   assignment=assignment,
+                                                                  omit_user=True,
                                                                   is_link=True)
             else:  # A new assignment
                 # Notify the user the assignment has been made to unless assigning to your self
@@ -1081,12 +1083,13 @@ assignments_schema = {
     },
 
     # coverage details
-    'planning': coverage_schema['planning'],
+    'planning': deepcopy(coverage_schema['planning']),
     'description_text': metadata_schema['description_text'],
 
     # Field to mark assignment for deletion if a delete operation fails
     '_to_delete': {'type': 'boolean'}
 }
+assignments_schema['planning']['schema'][TO_BE_CONFIRMED_FIELD] = TO_BE_CONFIRMED_FIELD_SCHEMA
 
 
 class AssignmentsResource(superdesk.Resource):

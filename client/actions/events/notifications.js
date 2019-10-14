@@ -321,6 +321,16 @@ const onEventExpired = (_e, data) => (
     }
 );
 
+const onEventDeleted = (e, data) => (
+    (dispatch, getState) => {
+        if (get(data, 'item')) {
+            if (selectors.main.previewId(getState()) === data.item ||
+            selectors.forms.currentItemId(getState()) === data.item) {
+                return dispatch(main.closePreviewAndEditorForItems([{_id: data.item}]));
+            }
+        }
+    });
+
 // eslint-disable-next-line consistent-this
 const self = {
     onEventCreated,
@@ -335,6 +345,14 @@ const self = {
     onEventPostponed,
     onEventPostChanged,
     onEventExpired,
+    onEventDeleted,
+};
+
+export const planningEventTemplateEvents = {
+    'events-template:created': () => eventsApi.fetchEventTemplates,
+    'events-template:updated': () => eventsApi.fetchEventTemplates,
+    'events-template:replaced': () => eventsApi.fetchEventTemplates,
+    'events-template:deleted': () => eventsApi.fetchEventTemplates,
 };
 
 // Map of notification name and Action Event to execute
@@ -359,6 +377,8 @@ self.events = {
     'events:update_time:recurring': () => (self.onEventScheduleChanged),
     'events:update_repetitions:recurring': () => (self.onEventScheduleChanged),
     'events:expired': () => self.onEventExpired,
+    'events:delete': () => (self.onEventDeleted),
+    ...planningEventTemplateEvents,
 };
 
 export default self;

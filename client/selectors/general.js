@@ -1,7 +1,7 @@
 import {get, keyBy} from 'lodash';
 import {createSelector} from 'reselect';
 import {getEnabledAgendas, getDisabledAgendas, getItemInArrayById} from '../utils';
-import {ITEM_TYPE} from '../constants/index';
+import {ITEM_TYPE, COVERAGES, ASSIGNMENTS} from '../constants/index';
 
 export const currentWorkspace = (state) => get(state, 'workspace.currentWorkspace', null);
 export const ingestProviders = (state) => get(state, 'ingest.providers');
@@ -45,14 +45,20 @@ export const preferredCountry = createSelector(
 
 export const session = (state) => get(state, 'session');
 export const sessionId = (state) => get(state, 'session.sessionId');
-export const userPreferences = (state) => get(state, 'session.userPreferences');
+export const userPreferences = (state) => get(state, 'session.userPreferences') || {};
 export const defaultPlaceList = (state) => get(state, 'session.userPreferences.article:default:place.place', []);
 export const defaultDesk = createSelector(
     [desks, session],
     (deskList, sessionDetails) => (!get(sessionDetails, 'identity.desk') ? null :
         getItemInArrayById(deskList, sessionDetails.identity.desk))
 );
-export const preferredCoverageDesks = (state) => get(state, 'session.userPreferences.planning:default_coverage_desks');
+
+export const preferredCoverageDesks = (state) => (
+    get(userPreferences(state), COVERAGES.DEFAULT_DESK_PREFERENCE) || {}
+);
+export const preferredAssignmentSort = (state) => (
+    get(userPreferences(state), ASSIGNMENTS.DEFAULT_SORT_PREFERENCE) || {}
+);
 
 export const currentUserId = createSelector(
     [session],

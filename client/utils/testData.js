@@ -500,7 +500,6 @@ export const assignmentInitialState = {
     filterByType: null,
     myAssignmentsTotal: 0,
     orderByField: 'Scheduled',
-    orderDirection: 'Asc',
     previewOpened: false,
     readOnly: false,
     searchQuery: null,
@@ -513,31 +512,37 @@ export const assignmentInitialState = {
             assignmentIds: [],
             total: 0,
             lastPage: null,
+            sortOrder: 'Asc',
         },
         IN_PROGRESS: {
             assignmentIds: [],
             total: 0,
             lastPage: null,
+            sortOrder: 'Desc',
         },
         COMPLETED: {
             assignmentIds: [],
             total: 0,
             lastPage: null,
+            sortOrder: 'Desc',
         },
         CURRENT: {
             assignmentIds: [],
             total: 0,
             lastPage: null,
+            sortOrder: 'Asc',
         },
         TODAY: {
             assignmentIds: [],
             total: 0,
             lastPage: null,
+            sortOrder: 'Asc',
         },
         FUTURE: {
             assignmentIds: [],
             total: 0,
             lastPage: null,
+            sortOrder: 'Asc',
         },
     },
 };
@@ -981,4 +986,5 @@ export const items = {
     published_planning: publishedPlanning,
     events_planning_search: events.concat(plannings),
     events_planning_filters: eventsPlanningFilters,
+    recent_events_template: [],
 };
