@@ -1,5 +1,27 @@
 # Superdesk Planning Changelog
 
+## [1.8.0-rc1] Not released yet
+### Features
+- [SDBELGA-101][SDBELGA-102][SDBELGA-103] Event templates (#1328)
+- [SDESK-4565] Independently sort Assignment lists (#1344)
+- [SDESK-4472] 'To be confirmed' feature (#1341)
+
+### Improvements
+- [SDESK-4668] Introduce configuration for the main left hand side toolbar (#1336)
+- [SDESK-4701] Align collapse box close button left and next to three-dot button (#1348)
+- [SDBELGA-186] control via article template where generated content is inserted (#1354)
+
+### Fixes
+- [SDESK-4514] reopen editor if required when item is added to featured stories (#1331)
+- [SDNTB-599] When duplicated event is rescheduled and posted, SD sends file with NTBID of orginal event (#1340)
+- [SDESK-4515] Close editor after cancelling event/planning-item (#1342)
+- [SDESK-4516] Event editor is blank when reducing repetitions if that event no longer exists (#1343)
+- [SDESK-4515] Cancelling planning item was keeping the item in editor still locked (#1347)
+- [SDESK-4663] The editor in 'Add To Planning' modal should close if the same Planning item is unlocked in another session (#1346)
+- [SDESK-4710] Error when assigning past date to coverage (#1350)
+- (fix) Place superdesk-core in peerDependencies and update Typescript version (#1351)
+- [SDNTB-589] (fix): Cannot perform reschedule or convert to recurring on events. (#1352)
+
 ## [1.7.0] 2019-09-20
 ### Features
 - [SDESK-4427] New Event action 'Mark as Completed' (#1273)
