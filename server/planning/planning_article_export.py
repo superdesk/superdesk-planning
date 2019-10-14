@@ -10,6 +10,7 @@ from eve.utils import config
 from superdesk.utc import utc_to_local, get_timezone_offset, utcnow
 from superdesk import get_resource_service
 from bson import ObjectId
+from dateutil import tz
 
 
 class PlanningArticleExportResource(superdesk.Resource):
@@ -286,7 +287,7 @@ class PlanningArticleExportService(superdesk.Service):
             ids.append(doc['_id'])
         return ids
 
-    def export_events_to_text(self, items, format='utf-8', template=None):
+    def export_events_to_text(self, items, format='utf-8', template=None, tz_offset=None):
         for item in items:
             item['formatted_state'] = item['state'] if item.get('state') in [WORKFLOW_STATE.CANCELLED,
                                                                              WORKFLOW_STATE.RESCHEDULED,
@@ -324,6 +325,11 @@ class PlanningArticleExportService(superdesk.Service):
             if ((item['dates']['end'] - item['dates']['start']).total_seconds() / 60) >= (24 * 60):
                 item['schedule'] = "{0} to {1}".format(item['dates']['start'].strftime(date_time_format),
                                                        item['dates']['end'].strftime(date_time_format))
+
+            if tz_offset:
+                tz_browser = tz.tzoffset('', int(tz_offset))
+                item['browser_start'] = (item['dates']['start']).astimezone(tz_browser)
+                item['browser_end'] = (item['dates']['end']).astimezone(tz_browser)
 
             set_item_place(item)
 

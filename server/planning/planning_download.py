@@ -33,7 +33,7 @@ def planning_download_file(_ids):
     if not template:
         raise superdesk.errors.SuperdeskApiError.badRequestError('Template not available')
 
-    exported_text = export_service.export_events_to_text(items, template=template)
+    exported_text = export_service.export_events_to_text(items, template=template, tz_offset=request.args.get('tz'))
     if exported_text:
         try:
             temp_file = io.BytesIO()
