@@ -116,12 +116,14 @@ export class RescheduleEventComponent extends React.Component {
 
         const errors = cloneDeep(this.state.errors);
         let errorMessages = [];
+        const fieldsToValidate = Object.keys(diff);
 
         this.props.onValidate(
             omit(diff, 'dates.recurring_rule'), // Omit recurring rules as we reschedule only single instance
             this.props.formProfiles,
             errors,
-            errorMessages
+            errorMessages,
+            fieldsToValidate // Validate only those fields which can change while rescheduling.
         );
 
         const multiDayChanged = eventUtils.isEventSameDay(original.dates.start, original.dates.end) &&
@@ -362,13 +364,14 @@ const mapDispatchToProps = (dispatch) => ({
         return promise;
     },
 
-    onValidate: (item, profile, errors, errorMessages) => dispatch(validateItem({
+    onValidate: (item, profile, errors, errorMessages, fieldsToValidate) => dispatch(validateItem({
         profileName: ITEM_TYPE.EVENT,
         diff: item,
         formProfiles: profile,
         errors: errors,
         messages: errorMessages,
         fields: ['dates'],
+        fieldsToValidate: fieldsToValidate,
     })),
 });
 
