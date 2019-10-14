@@ -1,5 +1,6 @@
 import * as selectors from '../selectors';
 import {get} from 'lodash';
+import moment from 'moment';
 import {showModal} from './index';
 import {MULTISELECT, ITEM_TYPE, MODALS} from '../constants';
 import eventsUi from './events/ui';
@@ -196,10 +197,11 @@ const exportAsArticle = (items = [], download) => (
             const url = selectors.config.getServerUrl(getState());
 
             if (download) {
-                let queryString = `${url}/planning_download/events/${itemIds.join(',')}`;
+                const timeZoneOffsetSecs = moment().utcOffset() * 60;
+                let queryString = `${url}/planning_download/events/${itemIds.join(',')}?tz=${timeZoneOffsetSecs}`;
 
                 if (template) {
-                    queryString = `${queryString}?template=${template}`;
+                    queryString = `${queryString}&template=${template}`;
                 }
 
                 window.open(queryString, '_blank');
