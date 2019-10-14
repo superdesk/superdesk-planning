@@ -51,6 +51,7 @@ export const validateItem = ({
     messages = [],
     fields = null,
     ignoreDateValidation = false,
+    fieldsToValidate,
 }) => (
     (dispatch, getState) => {
         const profiles = formProfiles ? formProfiles : selectors.forms.profiles(getState());
@@ -73,7 +74,9 @@ export const validateItem = ({
 
                     switch (true) {
                     case schema.required:
-                        if (isEmpty(diff[key]) && isEmpty(getSubject(diff, key))) {
+                        if (isEmpty(diff[key]) && isEmpty(getSubject(diff, key))
+                            && fieldsToValidate == null
+                            || (Array.isArray(fieldsToValidate) && fieldsToValidate.includes(key))) {
                             errors[key] = gettext('This field is required');
                             messages.push(gettext('{{ key }} is a required field', {key: key.toUpperCase()}));
                         } else if (errors[key]) {

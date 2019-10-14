@@ -74,12 +74,14 @@ export class ConvertToRecurringEventComponent extends React.Component {
     validateAndSetState(diff) {
         let errors = cloneDeep(this.state.errors);
         let errorsMessages = [];
+        const fieldsToValidate = Object.keys(diff);
 
         this.props.onValidate(
             diff,
             this.props.formProfiles,
             errors,
-            errorsMessages
+            errorsMessages,
+            fieldsToValidate // Validate only those fields which can change while convertToRecurring operation.
         );
 
         this.setState({
@@ -206,13 +208,14 @@ const mapDispatchToProps = (dispatch) => ({
         }
     },
 
-    onValidate: (item, profile, errors, errorsMessages) => dispatch(validateItem({
+    onValidate: (item, profile, errors, errorsMessages, fieldsToValidate) => dispatch(validateItem({
         profileName: ITEM_TYPE.EVENT,
         diff: item,
         formProfiles: profile,
         errors: errors,
         messages: errorsMessages,
         fields: ['dates'],
+        fieldsToValidate: fieldsToValidate,
     })),
 });
 
