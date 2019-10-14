@@ -580,7 +580,8 @@ export const shouldUnLockItem = (
  * @param {moment} date
  * @returns {Array}
  */
-export const getTimeZoneOffset = (date = null) => (moment.isMoment(date) ? date.format('Z') : moment().format('Z'));
+export const getTimeZoneOffset = (date = null, format = 'Z') => (moment.isMoment(date) ? date.format(format) :
+    moment().format(format));
 
 export const getPostedState = (item) => get(item, 'pubstatus', null);
 
