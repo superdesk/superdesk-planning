@@ -210,7 +210,7 @@ Feature: Export planning items with default template
             {
                 "template_name": "editor_template",
                 "template_type": "editor_template",
-                "data": {"slugline": "Foo"}
+                "data": {"slugline": "Foo", "body_html": "<p>header</p>\n<p>{{content}}</p>", "body_text": "test\n{{content}}"}
             }
         ]
         """
@@ -223,7 +223,8 @@ Feature: Export planning items with default template
                 "label": "Default Planning Template",
                 "type": "planning",
                 "data": {
-                    "body_html_template": "test_planning_export_template.html"
+                    "body_html_template": "test_planning_export_template.html",
+                    "body_text": "template"
                 }
             }
         ]
@@ -302,14 +303,15 @@ Feature: Export planning items with default template
             "type": "text",
             "slugline": "Foo",
             "task": {"desk": "#desks._id#", "stage": "#desks.working_stage#"},
-            "body_html": "Editorial note: Ed. note 1"
+            "body_html": "<p>header</p>\nEditorial note: Ed. note 1",
+            "body_text": "test\ntemplate"
         }
         """
         When we get "archive"
         Then we get list with 1 items
         """
         {"_items": [
-            {"slugline": "Foo", "body_html": "Editorial note: Ed. note 1"}
+            {"slugline": "Foo", "body_html": "<p>header</p>\nEditorial note: Ed. note 1", "body_text": "test\ntemplate"}
 
         ]}
         """

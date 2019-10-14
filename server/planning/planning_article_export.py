@@ -12,6 +12,10 @@ from superdesk import get_resource_service
 from bson import ObjectId
 
 
+PLACEHOLDER_TEXT = r'{{content}}'
+PLACEHOLDER_HTML = '<p>%s</p>' % PLACEHOLDER_TEXT
+
+
 class PlanningArticleExportResource(superdesk.Resource):
     schema = {
         'items': {
@@ -279,7 +283,12 @@ class PlanningArticleExportService(superdesk.Service):
                 'stage': desk.get('working_stage'),
             }
             item_from_template = generate_text_item(item_list, doc.pop('template', None), item_type)
-            item.update(item_from_template)
+            for key, val in item_from_template.items():
+                placeholder = PLACEHOLDER_HTML if '_html' in key else PLACEHOLDER_TEXT
+                if item.get(key) and placeholder in item[key]:
+                    item[key] = item[key].replace(placeholder, val)
+                else:
+                    item[key] = val
             ids = production.post([item])
             insert_into_versions(doc=item)
             doc.update(item)
