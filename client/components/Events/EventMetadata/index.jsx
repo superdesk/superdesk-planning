@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {ICON_COLORS} from '../../../constants';
+import {ICON_COLORS, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
 import {StateLabel} from '../..';
 import {EventScheduleSummary} from '../';
 import {ItemIcon} from '../../index';
@@ -250,8 +250,8 @@ EventMetadata.propTypes = {
 
 
 EventMetadata.defaultProps = {
-    dateFormat: 'DD/MM/YYYY',
-    timeFormat: 'HH:mm',
+    dateFormat: DEFAULT_DATE_FORMAT,
+    timeFormat: DEFAULT_TIME_FORMAT,
     scrollInView: true,
     showIcon: true,
     showBorder: true,

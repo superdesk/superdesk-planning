@@ -15,7 +15,6 @@ import json
 from superdesk.utils import json_serialize_datetime_objectId
 from copy import deepcopy
 from superdesk import get_resource_service
-from bson.objectid import ObjectId
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, WORKFLOW_STATE
 from superdesk.metadata.item import CONTENT_STATE
 
@@ -56,9 +55,7 @@ class JsonPlanningFormatter(Formatter):
         for f in self.remove_fields:
             output_item.pop(f, None)
         for coverage in output_item.get('coverages', []):
-            assigned_to = coverage.pop('assigned_to', None) or {}
-            coverage['coverage_provider'] = assigned_to.get('coverage_provider')
-            deliveries, workflow_state = self._expand_delivery(assigned_to.get('assignment_id'))
+            deliveries, workflow_state = self._expand_delivery(coverage)
             if workflow_state:
                 coverage['workflow_status'] = self._get_coverage_workflow_state(workflow_state)
 
@@ -95,12 +92,16 @@ class JsonPlanningFormatter(Formatter):
                 expanded.append(agenda_details)
         return expanded
 
-    def _expand_delivery(self, assignment_id):
+    def _expand_delivery(self, coverage):
         """Find any deliveries associated with the assignment
 
         :param assignment_id:
         :return:
         """
+        assigned_to = coverage.pop('assigned_to', None) or {}
+        coverage['coverage_provider'] = assigned_to.get('coverage_provider')
+        assignment_id = assigned_to.get('assignment_id')
+
         if not assignment_id:
             return [], None
 
@@ -114,7 +115,7 @@ class JsonPlanningFormatter(Formatter):
 
         delivery_service = get_resource_service('delivery')
         remove_fields = ('coverage_id', 'planning_id', '_created', '_updated', 'assignment_id', '_etag')
-        deliveries = list(delivery_service.get(req=None, lookup={'assignment_id': ObjectId(assignment_id)}))
+        deliveries = list(delivery_service.get(req=None, lookup={'coverage_id': coverage.get('coverage_id')}))
 
         # Check to see if in this delivery chain, whether the item has been published at least once
         item_never_published = True

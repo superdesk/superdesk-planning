@@ -12,7 +12,7 @@ import {CoverageFormHeader} from '../CoverageEditor/CoverageFormHeader';
 import {CoveragePreviewTopBar} from '../CoveragePreview/CoveragePreviewTopBar';
 
 import {planningUtils, gettext, stringUtils} from '../../../utils';
-import {PLANNING, COVERAGES} from '../../../constants';
+import {PLANNING, COVERAGES, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
 
 export const ScheduledUpdate = ({
     diff,
@@ -255,7 +255,7 @@ ScheduledUpdate.propTypes = {
 };
 
 ScheduledUpdate.defaultProps = {
-    dateFormat: 'DD/MM/YYYY',
-    timeFormat: 'HH:mm',
+    dateFormat: DEFAULT_DATE_FORMAT,
+    timeFormat: DEFAULT_TIME_FORMAT,
     openScheduledUpdates: [],
 };

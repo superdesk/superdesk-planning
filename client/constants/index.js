@@ -25,6 +25,9 @@ export const WS_NOTIFICATION = 'WS_NOTIFICATION';
 export const TO_BE_CONFIRMED_FIELD = '_time_to_be_confirmed';
 export const TO_BE_CONFIRMED_SHORT_TEXT = gettext('TBC');
 
+export const DEFAULT_DATE_FORMAT = 'DD/MM/YYYY';
+export const DEFAULT_TIME_FORMAT = 'HH:mm';
+
 export const DATE_FORMATS = {
     COMPARE_FORMAT: 'YYYY-M-D',
     DISPLAY_DATE_FORMAT: 'D. MMMM YYYY HH:mm',

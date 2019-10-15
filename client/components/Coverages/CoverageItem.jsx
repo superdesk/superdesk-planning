@@ -14,7 +14,7 @@ import {
     planningUtils,
 } from '../../utils';
 import {UserAvatar} from '../UserAvatar';
-import {WORKFLOW_STATE} from '../../constants';
+import {WORKFLOW_STATE, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../constants';
 
 export const CoverageItem = ({
     item,
@@ -147,7 +147,7 @@ CoverageItem.propTypes = {
 };
 
 CoverageItem.defaultProps = {
-    dateFormat: 'DD/MM/YYYY',
-    timeFormat: 'HH:mm',
+    dateFormat: DEFAULT_DATE_FORMAT,
+    timeFormat: DEFAULT_TIME_FORMAT,
     isPreview: false,
 };

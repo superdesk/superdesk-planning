@@ -9,7 +9,7 @@ import {CoverageForm} from './CoverageForm';
 import {CoverageFormHeader} from './CoverageFormHeader';
 
 import {planningUtils, gettext, editorMenuUtils} from '../../../utils';
-import {COVERAGES} from '../../../constants';
+import {COVERAGES, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
 
 export const CoverageEditor = ({
     diff,
@@ -249,6 +249,6 @@ CoverageEditor.propTypes = {
 };
 
 CoverageEditor.defaultProps = {
-    dateFormat: 'DD/MM/YYYY',
-    timeFormat: 'HH:mm',
+    dateFormat: DEFAULT_DATE_FORMAT,
+    timeFormat: DEFAULT_TIME_FORMAT,
 };
