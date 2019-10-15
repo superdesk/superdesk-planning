@@ -538,9 +538,17 @@ def get_first_paragraph_text(input_string):
         logger.warning(e)
     else:
         # all non-empty paragraphs: ignores <p><br></p> sections
-        for p in elem.iterfind('.//p'):
-            if p.text:
-                return p.text
+        return get_text_from_elem(elem) or get_text_from_elem(elem, tag=None)
+
+
+def get_text_from_elem(elem, tag='.//p'):
+    if not tag:
+        for t in elem.itertext():
+            return t  # Return first text item
+
+    for p in elem.iterfind(tag):
+        if p.text:
+            return p.text
 
 
 def get_delivery_publish_time(updates, original={}):
