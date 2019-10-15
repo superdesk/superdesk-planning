@@ -10,7 +10,7 @@ from superdesk import Resource, Service, get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.item import ITEM_STATE, CONTENT_STATE
 from eve.utils import config
-from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_related_items, \
+from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_related_items, get_coverage_for_assignment, \
     update_assignment_on_link_unlink, get_next_assignment_status, get_delivery_publish_time
 from apps.archive.common import get_user, is_assigned_to_a_desk
 from apps.content import push_content_notification
@@ -41,24 +41,30 @@ class AssignmentsLinkService(Service):
 
     def link_archive_items_to_assignments(self, assignment, related_items, actioned_item, doc):
         assignments_service = get_resource_service('assignments')
+        delivery_service = get_resource_service('delivery')
         assignments_service.validate_assignment_action(assignment)
         items = []
         ids = []
         deliveries = []
         published_updated_items = []
         for item in related_items:
-            if not item.get('assignment_id'):
-                # Add a delivery for all items in published collection
-                deliveries.append({
-                    'item_id': item[config.ID_FIELD],
-                    'assignment_id': assignment.get(config.ID_FIELD),
-                    'planning_id': assignment['planning_item'],
-                    'coverage_id': assignment['coverage_item'],
-                    'item_state': item.get('state'),
-                    'sequence_no': item.get('rewrite_sequence') or 0,
-                    'publish_time': get_delivery_publish_time(item),
-                    'scheduled_update_id': assignment.get('scheduled_update_id'),
-                })
+            if not item.get('assignment_id') or (item['_id'] == actioned_item.get('_id') and doc.get('force')):
+                # Update the delivery for the item if one exists
+                delivery = delivery_service.find_one(req=None, item_id=item[config.ID_FIELD])
+                if delivery:
+                    delivery_service.patch(delivery['_id'], {'assignment_id': assignment['_id']})
+                else:
+                    # Add a delivery for the item
+                    deliveries.append({
+                        'item_id': item[config.ID_FIELD],
+                        'assignment_id': assignment.get(config.ID_FIELD),
+                        'planning_id': assignment['planning_item'],
+                        'coverage_id': assignment['coverage_item'],
+                        'item_state': item.get('state'),
+                        'sequence_no': item.get('rewrite_sequence') or 0,
+                        'publish_time': get_delivery_publish_time(item),
+                        'scheduled_update_id': assignment.get('scheduled_update_id'),
+                    })
 
                 # Update archive/published collection with assignment linking
                 update_assignment_on_link_unlink(assignment[config.ID_FIELD], item, published_updated_items)
@@ -68,7 +74,7 @@ class AssignmentsLinkService(Service):
 
         # Create all deliveries
         if len(deliveries) > 0:
-            get_resource_service('delivery').post(deliveries)
+            delivery_service.post(deliveries)
 
         updates = {'assigned_to': deepcopy(assignment.get('assigned_to'))}
         already_completed = assignment['assigned_to']['state'] == ASSIGNMENT_WORKFLOW_STATE.COMPLETED
@@ -115,7 +121,7 @@ class AssignmentsLinkService(Service):
         if not item:
             raise SuperdeskApiError.badRequestError('Content item not found.')
 
-        if item.get('assignment_id'):
+        if not doc.get('force') and item.get('assignment_id'):
             raise SuperdeskApiError.badRequestError(
                 'Content is already linked to an assignment. Cannot link assignment and content.'
             )
@@ -138,6 +144,22 @@ class AssignmentsLinkService(Service):
             # scheduled update validation
             if assignment.get('scheduled_update_id'):
                 raise SuperdeskApiError.badRequestError('Only updates can be linked to a scheduled update assignment')
+
+        coverage = get_coverage_for_assignment(assignment)
+        allowed_states = [ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS, ASSIGNMENT_WORKFLOW_STATE.COMPLETED]
+        if (coverage and len(coverage.get('scheduled_updates')) > 0 and
+                str(assignment['_id']) != str((coverage.get('assigned_to') or {}).get('assignment_id'))):
+            if (coverage.get('assigned_to') or {}).get('state') not in allowed_states:
+                raise SuperdeskApiError('Previous coverage is not linked to content.')
+
+            # Check all previous scheduled updated to be linked/completed
+            for s in coverage.get('scheduled_updates'):
+                assigned_to = (s.get('assigned_to') or {})
+                if str(assigned_to.get('assignment_id')) == str(doc.get('assignment_id')):
+                    break
+
+                if assigned_to.get('state') not in allowed_states:
+                    raise SuperdeskApiError('Previous scheduled-update pending content-linking/completion')
 
     def update_assignment(self, updates, assignment, actioned_item, reassign, already_completed):
         # Update assignments, assignment history and publish planning
@@ -186,7 +208,8 @@ class AssignmentsLinkResource(Resource):
         'reassign': {
             'type': 'boolean',
             'required': True
-        }
+        },
+        'force': {'type': 'boolean'}
     }
 
     resource_methods = ['POST']

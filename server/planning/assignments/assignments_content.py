@@ -17,7 +17,7 @@ from apps.templates.content_templates import get_item_from_template
 from planning.planning_article_export import get_desk_template
 from superdesk.errors import SuperdeskApiError
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_coverage_type_name, get_next_assignment_status,\
-    get_coverage_for_assignment
+    get_coverage_for_assignment, get_archive_items_for_assignment
 from superdesk.utc import utcnow
 from planning.planning_notifications import PlanningNotifications
 from superdesk import get_resource_service
@@ -138,6 +138,7 @@ class AssignmentsContentService(superdesk.Service):
                 request.view_args['original_id'] = archive_item.get(config.ID_FIELD)
                 ids = get_resource_service('archive_rewrite').post([{'desk_id': str(item.get('task').get('desk'))}])
                 item = archive_service.find_one(_id=ids[0], req=None)
+                item['task']['user'] = get_user_id()
 
                 # link the rewrite
                 get_resource_service('assignments_link').post([{
@@ -200,20 +201,22 @@ class AssignmentsContentService(superdesk.Service):
 
     def get_latest_news_item_for_coverage(self, assignment):
         coverage = get_coverage_for_assignment(assignment)
+        previous_items = []
+
         assignment_id = (coverage.get('assigned_to') or {}).get('assignment_id')
-
         if len(coverage.get('scheduled_updates')) == 0:
-            return get_resource_service('archive').find_one(req=None, assignment_id=assignment_id)
+            previous_items = get_archive_items_for_assignment(assignment_id)
         else:
-            previous_item = get_resource_service('archive').find_one(req=None, assignment_id=assignment_id)
+            previous_items = get_archive_items_for_assignment(assignment_id)
             for s in coverage.get('scheduled_updates'):
-                if s['scheduled_update_id'] == assignment['scheduled_update_id']:
-                    return previous_item
+                new_items = get_archive_items_for_assignment((s.get('assigned_to') or {}).get('assignment_id'))
+                if len(new_items) > 0:
+                    previous_items = new_items
 
-                assignment_id = (s.get('assigned_to') or {}).get('assignment_id')
-                new_item = get_resource_service('archive').find_one(req=None, assignment_id=assignment_id)
-                if new_item:
-                    previous_item = new_item
+        if len(previous_items) > 0:
+            return previous_items[0]
+
+        return None
 
     def _validate(self, doc):
         """Validate the doc for content creation"""

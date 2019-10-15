@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {gettext, planningUtils} from '../../../utils';
-import {WORKFLOW_STATE} from '../../../constants';
+import {WORKFLOW_STATE, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
 import {
     TextAreaInput,
     SelectInput,
@@ -177,6 +177,6 @@ ScheduledUpdateForm.propTypes = {
 };
 
 ScheduledUpdateForm.defaultProps = {
-    dateFormat: 'DD/MM/YYYY',
-    timeFormat: 'HH:mm',
+    dateFormat: DEFAULT_DATE_FORMAT,
+    timeFormat: DEFAULT_TIME_FORMAT,
 };

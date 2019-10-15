@@ -366,6 +366,36 @@ def set_actioned_date_to_event(updates, original):
             updates['actioned_date'] = original['dates']['start']
 
 
+def get_archive_items_for_assignment(assignment_id, descending_rewrite_seq=True):
+    if not assignment_id:
+        return []
+
+    req = ParsedRequest()
+    req.args = MultiDict()
+    must_not = [{'term': {'state': 'spiked'}}]
+    must = [{'term': {'assignment_id': str(assignment_id)}},
+            {'term': {'type': 'text'}}]
+
+    query = {
+        'query': {
+            'filtered': {
+                'filter': {
+                    'bool': {
+                        'must': must,
+                        'must_not': must_not
+                    }
+                }
+            }
+        }
+    }
+    query['sort'] = [{'rewrite_sequence': 'desc' if descending_rewrite_seq else 'asc'}]
+    query['size'] = 200
+
+    req.args['source'] = json.dumps(query)
+    req.args['repo'] = 'archive,published,archived'
+    return list(get_resource_service('search').get(req, None))
+
+
 def get_related_items(item, assignment=None):
     # If linking updates is not configured, return just this item
     if not planning_link_updates_to_coverage():
@@ -393,6 +423,7 @@ def get_related_items(item, assignment=None):
         }
     }
     query['sort'] = [{'rewrite_sequence': 'asc'}]
+    query['size'] = 200
 
     req.args['source'] = json.dumps(query)
     req.args['repo'] = 'archive,published,archived'
@@ -433,8 +464,8 @@ def update_assignment_on_link_unlink(assignment_id, item, published_updated):
         get_resource_service('archive').system_update(item[config.ID_FIELD], {'assignment_id': assignment_id}, item)
 
 
-def planning_link_updates_to_coverage():
-    return app.config.get('PLANNING_LINK_UPDATES_TO_COVERAGES', False)
+def planning_link_updates_to_coverage(current_app=None):
+    return (current_app if current_app else app).config.get('PLANNING_LINK_UPDATES_TO_COVERAGES', False)
 
 
 def is_valid_event_planning_reason(updates, original):

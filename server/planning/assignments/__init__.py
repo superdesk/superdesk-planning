@@ -81,7 +81,7 @@ def init_app(app):
     app.on_updated_events += assignments_publish_service.on_events_updated
 
     # Track updates for an assignment if it's news story was updated
-    if app.config.get('PLANNING_LINK_UPDATES_TO_COVERAGES', False):
+    if app.config.get('PLANNING_LINK_UPDATES_TO_COVERAGES', True):
         app.on_inserted_archive_rewrite += assignments_publish_service.create_delivery_for_content_update
 
         # Remove Assignment and Coverage upon deleting an Archive Rewrite

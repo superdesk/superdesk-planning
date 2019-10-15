@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import {getItemInArrayById, gettext, planningUtils, generateTempId} from '../../../utils';
 import moment from 'moment';
-import {WORKFLOW_STATE} from '../../../constants';
+import {WORKFLOW_STATE, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
 import {Button} from '../../UI';
 import {Row, Label, LineInput} from '../../UI/Form';
 import {ScheduledUpdate} from '../ScheduledUpdate';
@@ -400,6 +400,6 @@ CoverageForm.propTypes = {
 };
 
 CoverageForm.defaultProps = {
-    dateFormat: 'DD/MM/YYYY',
-    timeFormat: 'HH:mm',
+    dateFormat: DEFAULT_DATE_FORMAT,
+    timeFormat: DEFAULT_TIME_FORMAT,
 };
