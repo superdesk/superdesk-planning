@@ -2,7 +2,7 @@ import moment from 'moment';
 import {get, cloneDeep, has, pick} from 'lodash';
 
 import * as selectors from '../../selectors';
-import {ASSIGNMENTS, ALL_DESKS} from '../../constants';
+import {ASSIGNMENTS, ALL_DESKS, SORT_DIRECTION} from '../../constants';
 import planningUtils from '../../utils/planning';
 import {lockUtils, getErrorMessage, isExistingItem, gettext} from '../../utils';
 import planning from '../planning';
@@ -167,7 +167,7 @@ const query = ({
         };
 
         let sort = '[("' + (get(filterByValues, orderByField, 'planning.scheduled')) + '", '
-            + (orderDirection === 'Asc' ? 1 : -1) + ')]';
+            + (orderDirection === SORT_DIRECTION.ASCENDING ? 1 : -1) + ')]';
 
         const systemTimezone = selectors.config.defaultTimeZone(getState());
         const baseQuery = selectors.getBaseAssignmentQuery(getState());

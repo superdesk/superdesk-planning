@@ -12,6 +12,7 @@ import {
     gettext,
     planningUtils,
 } from '../../utils';
+import {TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_SHORT_TEXT} from '../../constants';
 
 export const CoverageIcon = ({
     coverage,
@@ -26,6 +27,10 @@ export const CoverageIcon = ({
     const assignmentStr = desk ? gettext('Desk: ') + desk.name : gettext('Status: Unassigned');
     let scheduledStr = get(coverage, 'planning.scheduled') && dateFormat && timeFormat ?
         moment(coverage.planning.scheduled).format(dateFormat + ' ' + timeFormat) : null;
+
+    if (get(coverage, TO_BE_CONFIRMED_FIELD)) {
+        scheduledStr = moment(coverage.planning.scheduled).format(dateFormat + ` @ ${TO_BE_CONFIRMED_SHORT_TEXT}`);
+    }
     const state = getItemWorkflowStateLabel(get(coverage, 'assigned_to'));
     const genre = get(coverage, 'planning.genre.name', '');
     const slugline = get(coverage, 'planning.slugline', '');

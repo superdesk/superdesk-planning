@@ -13,7 +13,7 @@ import {EventUpdateMethods, EventScheduleSummary} from '../../Events';
 import '../style.scss';
 import {get, set, cloneDeep, isEqual} from 'lodash';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
-import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY} from '../../../constants';
+import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY, TO_BE_CONFIRMED_FIELD} from '../../../constants';
 import {validateItem} from '../../../validators';
 
 export class UpdateTimeComponent extends React.Component {
@@ -27,6 +27,7 @@ export class UpdateTimeComponent extends React.Component {
 
         this.onChange = this.onChange.bind(this);
         this.getPopupContainer = this.getPopupContainer.bind(this);
+        this.handleToBeConfirmed = this.handleToBeConfirmed.bind(this);
 
         this.dom = {popupContainer: null};
     }
@@ -61,6 +62,30 @@ export class UpdateTimeComponent extends React.Component {
         });
     }
 
+    handleToBeConfirmed() {
+        let diff = cloneDeep(this.state.diff);
+        const tz = get(this.props.original, 'dates.tz');
+
+        diff._startTime = timeUtils.getDateInRemoteTimeZone(this.props.original._startTime, tz);
+        diff._endTime = timeUtils.getDateInRemoteTimeZone(this.props.original._endTime, tz);
+        diff[TO_BE_CONFIRMED_FIELD] = true;
+
+        const dirty = diff[TO_BE_CONFIRMED_FIELD] !== this.props.original[TO_BE_CONFIRMED_FIELD];
+
+        this.setState({
+            diff: diff,
+            dirty: dirty,
+            errorMessages: [],
+            errors: {},
+        });
+
+        if (dirty) {
+            this.props.enableSaveInModal();
+        } else {
+            this.props.disableSaveInModal();
+        }
+    }
+
     onChange(field, value) {
         const diff = cloneDeep(get(this.state, 'diff') || {});
         const errors = cloneDeep(this.state.errors);
@@ -93,6 +118,7 @@ export class UpdateTimeComponent extends React.Component {
             set(diff, field, value);
         }
 
+        diff[TO_BE_CONFIRMED_FIELD] = false;
         this.props.onValidate(
             diff,
             this.props.formProfiles,
@@ -212,6 +238,9 @@ export class UpdateTimeComponent extends React.Component {
                         isLocalTimeZoneDifferent={isRemoteTimeZone}
                         dateFormat={dateFormat}
                         className={classes}
+                        showToBeConfirmed
+                        onToBeConfirmed={this.handleToBeConfirmed}
+                        toBeConfirmed={get(this.state.diff, TO_BE_CONFIRMED_FIELD)}
                         {...fieldProps}
                     />
                 </FormRow>
@@ -233,6 +262,9 @@ export class UpdateTimeComponent extends React.Component {
                         isLocalTimeZoneDifferent={isRemoteTimeZone}
                         dateFormat={dateFormat}
                         className={classes}
+                        showToBeConfirmed
+                        onToBeConfirmed={this.handleToBeConfirmed}
+                        toBeConfirmed={get(this.state.diff, TO_BE_CONFIRMED_FIELD)}
                         {...fieldProps}
                     />
                 </FormRow>

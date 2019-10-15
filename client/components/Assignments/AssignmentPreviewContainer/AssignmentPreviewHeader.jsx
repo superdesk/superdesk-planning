@@ -17,6 +17,7 @@ import {
     AuditInformation,
     ItemActionsMenu,
 } from '../../';
+import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
 
 export const AssignmentPreviewHeader = ({
     assignment,
@@ -135,6 +136,7 @@ export const AssignmentPreviewHeader = ({
                                 <AbsoluteDate
                                     date={moment(planningSchedule).format()}
                                     noDateString={gettext('\'not scheduled yet\'')}
+                                    toBeConfirmed={get(assignment, `planning.${TO_BE_CONFIRMED_FIELD}`)}
                                 />
                             </Row>
                             <Row marginTop={true}>

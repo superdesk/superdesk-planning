@@ -80,6 +80,8 @@ ITEM_ACTIONS = namedtuple('ITEM_ACTIONS',
 spiked_state = ['both', 'draft', 'spiked']
 SPIKED_STATE = namedtuple('SPIKED_STATE', ['BOTH', 'NOT_SPIKED', 'SPIKED'])(*spiked_state)
 TEMP_ID_PREFIX = 'tempId-'
+TO_BE_CONFIRMED_FIELD = '_time_to_be_confirmed'
+TO_BE_CONFIRMED_FIELD_SCHEMA = {'type': 'boolean'}
 
 
 def set_item_expiry(doc):
@@ -533,9 +535,17 @@ def get_first_paragraph_text(input_string):
         logger.warning(e)
     else:
         # all non-empty paragraphs: ignores <p><br></p> sections
-        for p in elem.iterfind('.//p'):
-            if p.text:
-                return p.text
+        return get_text_from_elem(elem) or get_text_from_elem(elem, tag=None)
+
+
+def get_text_from_elem(elem, tag='.//p'):
+    if not tag:
+        for t in elem.itertext():
+            return t  # Return first text item
+
+    for p in elem.iterfind(tag):
+        if p.text:
+            return p.text
 
 
 def get_delivery_publish_time(updates, original={}):

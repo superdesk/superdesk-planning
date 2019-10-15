@@ -13,7 +13,8 @@ from superdesk.resource import not_analyzed
 from superdesk.metadata.item import metadata_schema, ITEM_TYPE
 from copy import deepcopy
 
-from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, UPDATE_METHODS
+from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, UPDATE_METHODS, \
+    TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA
 
 event_type = deepcopy(Resource.rel('events', type='string'))
 event_type['mapping'] = not_analyzed
@@ -338,10 +339,8 @@ events_schema = {
         'type': 'datetime',
         'nullable': True
     },
-    'completed': {
-        'type': 'boolean',
-        'default': False
-    },
+    'completed': {'type': 'boolean'},
+    TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
 
 
     # This is used if an Event is created from a Planning Item

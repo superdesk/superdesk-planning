@@ -12,19 +12,20 @@ export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPaddin
     if (!schedule)
         return null;
 
-    const doesRepeat = get(schedule, 'recurring_rule', null) !== null;
-    const event = {dates: schedule};
-    const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(event);
-    const eventDateText = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat,
+    const eventSchedule = get(schedule, 'dates', {});
+    const doesRepeat = get(eventSchedule, 'recurring_rule', null) !== null;
+    const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(eventSchedule);
+    const eventDateText = eventUtils.getDateStringForEvent(schedule, dateFormat, timeFormat,
         false, true, isRemoteTimeZone);
     let newDateString, currentDateText, remoteDateText, currentDateLabel;
 
     if (isRemoteTimeZone) {
         const remoteSchedule = {
+            ...schedule,
             dates: {
-                ...schedule,
-                start: timeUtils.getDateInRemoteTimeZone(schedule.start, schedule.tz),
-                end: timeUtils.getDateInRemoteTimeZone(schedule.end, schedule.tz),
+                ...eventSchedule,
+                start: timeUtils.getDateInRemoteTimeZone(eventSchedule.start, eventSchedule.tz),
+                end: timeUtils.getDateInRemoteTimeZone(eventSchedule.end, eventSchedule.tz),
             },
         };
 
@@ -55,7 +56,7 @@ export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPaddin
             {doesRepeat && (
                 <Row noPadding={noPadding}>
                     <RepeatEventSummary
-                        schedule={schedule}
+                        schedule={eventSchedule}
                         asInputField
                         noMargin={noPadding}
                         forUpdating={forUpdating}

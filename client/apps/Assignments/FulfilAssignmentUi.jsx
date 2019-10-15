@@ -18,11 +18,13 @@ export const FulfilAssignmentUi = ({previewOpen, newsItem}) => (
             withArchiveItem: true,
             showAllDeskOption: true,
             ignoreScheduledUpdates: true,
+            saveSortPreferences: false,
         }}
 
         ListPanel={AssignmentList}
         listProps={{
             hideItemActions: true,
+            saveSortPreferences: false,
         }}
 
         editorOpen={previewOpen}

@@ -114,6 +114,12 @@ time.Datetime {
     }
 }
 
+.sd-collapse-box__tools--rightFlex {
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+}
+
 // This is used so the action-menu is visible
 // when using tab to select an sd-list-item
 .sd-list-item:focus-within {
