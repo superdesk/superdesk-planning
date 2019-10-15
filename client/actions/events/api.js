@@ -1158,7 +1158,10 @@ const unpost = (original, updates) => (
 const updateEventTime = (original, updates) => (
     (dispatch, getState, {api}) => {
         if (get(updates, TO_BE_CONFIRMED_FIELD)) {
-            return dispatch(main.saveAndUnlockItem(original, {[TO_BE_CONFIRMED_FIELD]: true}, true));
+            return dispatch(main.saveAndUnlockItem(original, {
+                [TO_BE_CONFIRMED_FIELD]: true,
+                update_method: get(updates, 'update_method'),
+            }, true));
         }
 
         return api.update(
