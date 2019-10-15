@@ -339,10 +339,7 @@ events_schema = {
         'type': 'datetime',
         'nullable': True
     },
-    'completed': {
-        'type': 'boolean',
-        'default': False
-    },
+    'completed': {'type': 'boolean'},
     TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
 
 
