@@ -26,12 +26,8 @@ from copy import deepcopy
 from eve.utils import config, ParsedRequest, date_to_str
 from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, get_coverage_cancellation_state,\
     remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name,\
-    set_original_creator, list_uniq_with_order, TEMP_ID_PREFIX, DEFAULT_ASSIGNMENT_PRIORITY,\
-<<<<<<< HEAD
-    get_planning_allow_scheduled_updates
-=======
-    TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA
->>>>>>> f7b4c11... [SDESK-4472] 'To be confirmed' feature (#1341)
+    set_original_creator, list_uniq_with_order, TEMP_ID_PREFIX, DEFAULT_ASSIGNMENT_PRIORITY, \
+    get_planning_allow_scheduled_updates, TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA
 from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
@@ -1144,7 +1140,7 @@ coverage_schema = {
             'no_content_linking': {'type': 'boolean', 'default': False}
         }
     },
-<<<<<<< HEAD
+    TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
     'scheduled_updates': {
         'type': 'list',
         'schema': {
@@ -1187,9 +1183,6 @@ coverage_schema = {
             }
         }
     }  # end scheduled_updates
-=======
-    TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
->>>>>>> f7b4c11... [SDESK-4472] 'To be confirmed' feature (#1341)
 }  # end coverage_schema
 
 planning_schema = {
