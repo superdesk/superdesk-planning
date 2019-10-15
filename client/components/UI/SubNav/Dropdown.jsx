@@ -2,7 +2,7 @@ import React from 'react';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import {defer, get} from 'lodash';
+import {defer, get, groupBy} from 'lodash';
 
 import {Menu, Label, Divider, Dropdown as DropMenu} from '../Dropdown';
 import {gettext} from '../utils';
@@ -85,10 +85,40 @@ export class Dropdown extends React.Component {
             </button>
         );
 
-        const filterValueNormalized = this.state.filterValue.trim().toLowerCase();
-        const filteredItems = filterValueNormalized.length < 1 ? this.props.items : this.props.items.filter(
-            (item) => item.label.toLowerCase().includes(filterValueNormalized)
+        const buttonItem = (item, index) => (
+            <li key={index}>
+                <button id={item.id} onMouseDown={() => item.action()}>
+                    {item.icon && (
+                        <i className={classNames(
+                            {'icon--gray': item.disabled},
+                            item.icon
+                        )} />
+                    )}
+
+                    <span className={classNames(
+                        {'dropdown__menu-item--disabled': item.disabled},
+                        item.className
+                    )}>
+                        {item.label}
+                    </span>
+                </button>
+            </li>
         );
+
+        const filterValueNormalized = this.state.filterValue.trim().toLowerCase();
+
+        let filteredItems;
+
+        if (this.props.group === true) {
+            filteredItems = filterValueNormalized.length < 1 ? this.props.items : this.props.items.filter(
+                (item) => item.label.toLowerCase().includes(filterValueNormalized)
+            );
+            filteredItems = groupBy(filteredItems, 'group');
+        } else {
+            filteredItems = filterValueNormalized.length < 1 ? this.props.items : this.props.items.filter(
+                (item) => item.label.toLowerCase().includes(filterValueNormalized)
+            );
+        }
 
         return (
             <DropMenu
@@ -124,7 +154,7 @@ export class Dropdown extends React.Component {
                     )}
 
                     {
-                        this.props.searchable === true && this.props.items.length > 5 ? (
+                        this.props.searchable === true && this.props.items.length > 3 ? (
                             <div style={{paddingLeft: 10, paddingRight: 10}}>
                                 <input
                                     type="text"
@@ -137,29 +167,21 @@ export class Dropdown extends React.Component {
                         ) : null
                     }
 
-                    {filteredItems.map((item, index) => {
+                    {
+                        this.props.group === true && Object.keys(filteredItems).map((item, index) => (
+                            <React.Fragment key={index}>
+                                <Divider />
+                                <Label>{item}</Label>
+                                {filteredItems[item].map((item, index) => buttonItem(item, index))}
+                            </React.Fragment>)
+                        )
+                    }
+
+                    {!this.props.group && filteredItems.map((item, index) => {
                         if (item.divider) {
                             return <Divider key={index} />;
                         } else {
-                            return (
-                                <li key={index}>
-                                    <button id={item.id} onMouseDown={() => item.action()}>
-                                        {item.icon && (
-                                            <i className={classNames(
-                                                {'icon--gray': item.disabled},
-                                                item.icon
-                                            )} />
-                                        )}
-
-                                        <span className={classNames(
-                                            {'dropdown__menu-item--disabled': item.disabled},
-                                            item.className
-                                        )}>
-                                            {item.label}
-                                        </span>
-                                    </button>
-                                </li>
-                            );
+                            return buttonItem(item, index);
                         }
                     })}
                 </Menu>
@@ -175,6 +197,8 @@ Dropdown.propTypes = {
     label: PropTypes.string,
     items: PropTypes.arrayOf(PropTypes.shape({
         label: PropTypes.string,
+        group: PropTypes.string,
+        searchable: PropTypes.bool,
         divider: PropTypes.bool,
         icon: PropTypes.string,
         action: PropTypes.func,
@@ -182,6 +206,7 @@ Dropdown.propTypes = {
         disabled: PropTypes.bool,
     })),
     alignRight: PropTypes.bool,
+    group: PropTypes.bool,
     disableSelection: PropTypes.bool,
     defaultAction: PropTypes.func,
     dropUp: PropTypes.bool,
