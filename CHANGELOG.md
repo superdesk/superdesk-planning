@@ -1,6 +1,6 @@
 # Superdesk Planning Changelog
 
-## [1.8.0-rc1] Not released yet
+## [1.8.0-rc2] Not released yet
 ### Features
 - [SDBELGA-101][SDBELGA-102][SDBELGA-103] Event templates (#1328)
 - [SDESK-4565] Independently sort Assignment lists (#1344)
@@ -10,6 +10,7 @@
 - [SDESK-4668] Introduce configuration for the main left hand side toolbar (#1336)
 - [SDESK-4701] Align collapse box close button left and next to three-dot button (#1348)
 - [SDBELGA-186] control via article template where generated content is inserted (#1354)
+- [SDESK-4756] Provide browser time accesibility to events download templates (#1357)
 
 ### Fixes
 - [SDESK-4514] reopen editor if required when item is added to featured stories (#1331)
@@ -22,6 +23,8 @@
 - (fix) Place superdesk-core in peerDependencies and update Typescript version (#1351)
 - [SDNTB-589] (fix): Cannot perform reschedule or convert to recurring on events. (#1352)
 - fix duplicate by on slack notification (#1339)
+- [SDESK-4757] 'Abstract' from news item was missing when planning item was exported as article (#1358)
+- [SDESK-4648] User asked for saving changes when an event is not edited (#1359)
 
 ## [1.7.0] 2019-09-20
 ### Features

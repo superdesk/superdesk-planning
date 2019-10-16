@@ -93,7 +93,8 @@ class EventsUpdateTimeService(EventsBaseService):
             new_updates['dates']['start'] = start_date_time
             new_updates['dates']['end'] = start_date_time + duration
 
-            new_updates[TO_BE_CONFIRMED_FIELD] = False
+            if event.get(TO_BE_CONFIRMED_FIELD):
+                new_updates[TO_BE_CONFIRMED_FIELD] = False
 
             # Set '_planning_schedule' on the Event item
             self.set_planning_schedule(new_updates)

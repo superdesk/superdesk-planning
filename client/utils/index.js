@@ -3,7 +3,7 @@ import {createStore as _createStore, applyMiddleware, compose} from 'redux';
 import planningApp from '../reducers';
 import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
-import {get, set, map, cloneDeep, forEach, pickBy, includes, isEqual, pick, partition, sortBy} from 'lodash';
+import {get, set, map, cloneDeep, forEach, pickBy, includes, isEqual, pick, partition, sortBy, isNil} from 'lodash';
 import {
     POST_STATE,
     WORKFLOW_STATE,
@@ -580,7 +580,8 @@ export const shouldUnLockItem = (
  * @param {moment} date
  * @returns {Array}
  */
-export const getTimeZoneOffset = (date = null) => (moment.isMoment(date) ? date.format('Z') : moment().format('Z'));
+export const getTimeZoneOffset = (date = null, format = 'Z') => (moment.isMoment(date) ? date.format(format) :
+    moment().format(format));
 
 export const getPostedState = (item) => get(item, 'pubstatus', null);
 
@@ -874,7 +875,7 @@ export const removeAutosaveFields = (item, stripLockFields = false, keepTime = f
 
     return pickBy(modifiedItem, (value, key) =>
         key.startsWith('_') ?
-            (includes(fieldsToKeep, key) && value) :
+            (includes(fieldsToKeep, key) && !isNil(value)) :
             !includes(fieldsToIgnore, key)
     );
 };
