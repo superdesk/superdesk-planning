@@ -1,6 +1,6 @@
 # Superdesk Planning Changelog
 
-## [1.8.0-rc2] Not released yet
+## [1.8.0] 2019-10-17
 ### Features
 - [SDBELGA-101][SDBELGA-102][SDBELGA-103] Event templates (#1328)
 - [SDESK-4565] Independently sort Assignment lists (#1344)
