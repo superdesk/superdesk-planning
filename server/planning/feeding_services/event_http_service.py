@@ -17,10 +17,15 @@ from superdesk.io.feeding_services.http_service import HTTPFeedingService
 from superdesk.errors import IngestApiError
 from superdesk.logging import logger
 from superdesk.utc import utcnow
-from planning.feed_parsers.ntb_event_xml import NTBEventXMLFeedParser
 from planning.feed_parsers.ics_2_0 import IcsTwoFeedParser
 from flask import current_app as app
 from icalendar import Calendar
+
+
+try:
+    from ntb.io.feed_parsers.ntb_event_xml import NTBEventXMLFeedParser
+except ImportError:
+    NTBEventXMLFeedParser = None
 
 
 class EventHTTPFeedingService(HTTPFeedingService):
@@ -93,7 +98,7 @@ class EventHTTPFeedingService(HTTPFeedingService):
 
         logger.info('Ingesting: %s', str(response.content))
 
-        if isinstance(parser, NTBEventXMLFeedParser):
+        if NTBEventXMLFeedParser and isinstance(parser, NTBEventXMLFeedParser):
             xml = ET.fromstring(response.content)
             items = parser.parse(xml, provider)
         elif isinstance(parser, IcsTwoFeedParser):

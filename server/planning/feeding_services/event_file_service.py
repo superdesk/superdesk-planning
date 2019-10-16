@@ -15,12 +15,17 @@ from datetime import datetime
 from xml.etree import ElementTree
 from superdesk.errors import ParserError, ProviderError
 from superdesk.io.feeding_services.file_service import FileFeedingService
-from planning.feed_parsers.ntb_event_xml import NTBEventXMLFeedParser
 from planning.feed_parsers.ics_2_0 import IcsTwoFeedParser
 from superdesk.notification import push_notification
 from superdesk.utc import utc
 from superdesk.utils import get_sorted_files, FileSortAttributes
 from icalendar import Calendar
+
+
+try:
+    from ntb.io.feed_parsers.ntb_event_xml import NTBEventXMLFeedParser
+except ImportError:
+    NTBEventXMLFeedParser = None
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +78,7 @@ class EventFileFeedingService(FileFeedingService):
                     last_updated = datetime.fromtimestamp(stat.st_mtime, tz=utc)
 
                     if self.is_latest_content(last_updated, provider.get('last_updated')):
-                        if isinstance(registered_parser, NTBEventXMLFeedParser):
+                        if NTBEventXMLFeedParser and isinstance(registered_parser, NTBEventXMLFeedParser):
                             logger.info('Ingesting xml events')
                             with open(file_path, 'rb') as f:
                                 xml = ElementTree.parse(f)

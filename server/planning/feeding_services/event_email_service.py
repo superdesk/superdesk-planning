@@ -17,11 +17,15 @@ from superdesk.errors import IngestEmailError
 from superdesk.io.feeding_services import FeedingService
 from superdesk.upload import url_for_media
 from superdesk.media.media_operations import process_file_from_stream
-from planning.feed_parsers.ntb_event_xml import NTBEventXMLFeedParser
 from planning.feed_parsers.ics_2_0 import IcsTwoFeedParser
 from xml.etree import ElementTree
 from icalendar import Calendar
 
+
+try:
+    from ntb.io.feed_parsers.ntb_event_xml import NTBEventXMLFeedParser
+except ImportError:
+    NTBEventXMLFeedParser = None
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +121,7 @@ class EventEmailFeedingService(FeedingService):
                                                 content = io.BytesIO(attachment)
                                                 res = process_file_from_stream(content, part.get_content_type())
                                                 file_name, content_type, metadata = res
-                                                if isinstance(parser, NTBEventXMLFeedParser):
+                                                if NTBEventXMLFeedParser and isinstance(parser, NTBEventXMLFeedParser):
                                                     if content_type != 'text/xml':
                                                         continue
                                                     content.seek(0)

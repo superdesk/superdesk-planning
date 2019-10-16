@@ -587,7 +587,7 @@ Feature: Events Postpone
             "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
             "products": ["#products._id#"],
             "codes": "xyz, abc",
-            "destinations": [{"name":"events", "format": "ntb_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
+            "destinations": [{"name":"events", "format": "json_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
         }
         """
         When we perform postpone on events "event1"
@@ -698,7 +698,7 @@ Feature: Events Postpone
         """
         When we perform postpone on events "event1"
         Then we get error 400
-        when we perform postpone on events "event1"
+        When we perform postpone on events "event1"
         """
         {"reason": "postpone event"}
         """
