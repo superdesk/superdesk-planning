@@ -8,6 +8,7 @@ import assignmentsUi from '../ui';
 import assignmentsApi from '../api';
 import main from '../../main';
 import assignmentNotifications from '../notifications';
+import planningApi from '../../planning/api';
 
 describe('actions.assignments.notification', () => {
     let store;
@@ -133,12 +134,16 @@ describe('actions.assignments.notification', () => {
                 () => () => Promise.resolve()
             );
             sinon.stub(assignmentUtils, 'getCurrentSelectedDeskId').returns('desk1');
+            sinon.stub(planningApi, 'loadPlanningByIds').callsFake(
+                () => () => Promise.resolve()
+            );
         });
 
         afterEach(() => {
             restoreSinonStub(assignmentsUi.reloadAssignments);
             restoreSinonStub(assignmentUtils.getCurrentSelectedDeskId);
             restoreSinonStub(main.fetchItemHistory);
+            restoreSinonStub(planningApi.loadPlanningByIds);
         });
 
         it('update planning on assignment update', (done) => {
@@ -159,10 +164,10 @@ describe('actions.assignments.notification', () => {
 
             testStore.dispatch(assignmentNotifications.onAssignmentUpdated({}, payload))
                 .then(() => {
-                    coverage1 = getCoverage(payload);
-
-                    expect(coverage1.assigned_to.desk).toBe('desk2');
-                    expect(coverage1.assigned_to.state).toBe('assigned');
+                    expect(planningApi.loadPlanningByIds.callCount).toBe(1);
+                    expect(planningApi.loadPlanningByIds.args).toEqual([
+                        [['p1']],
+                    ]);
                     expect(assignmentsUi.reloadAssignments.callCount).toBe(2);
                     expect(assignmentsUi.reloadAssignments.args).toEqual([
                         [['assigned']],
@@ -304,12 +309,16 @@ describe('actions.assignments.notification', () => {
                 () => () => (Promise.resolve())
             );
             sinon.stub(assignmentUtils, 'getCurrentSelectedDeskId').returns('desk1');
+            sinon.stub(planningApi, 'loadPlanningByIds').callsFake(
+                () => () => (Promise.resolve())
+            );
         });
 
         afterEach(() => {
             restoreSinonStub(assignmentsUi.reloadAssignments);
             restoreSinonStub(assignmentsUi.queryAndGetMyAssignments);
             restoreSinonStub(assignmentUtils.getCurrentSelectedDeskId);
+            restoreSinonStub(planningApi.loadPlanningByIds);
         });
 
         it('update planning on assignment complete', (done) => {
@@ -335,8 +344,10 @@ describe('actions.assignments.notification', () => {
                 .then(() => {
                     coverage1 = getCoverage(payload);
 
-                    expect(coverage1.assigned_to.desk).toBe('desk2');
-                    expect(coverage1.assigned_to.state).toBe('completed');
+                    expect(planningApi.loadPlanningByIds.callCount).toBe(1);
+                    expect(planningApi.loadPlanningByIds.args).toEqual([
+                        [['p1']],
+                    ]);
                     expect(assignmentsUi.reloadAssignments.callCount).toBe(2);
                     expect(assignmentsUi.reloadAssignments.args).toEqual([
                         [['completed']],

@@ -44,6 +44,7 @@ export class AssignmentsSubNavComponent extends React.Component {
             filterByType,
             filterByPriority,
             selectedDeskId,
+            ignoreScheduledUpdates,
         } = this.props;
 
         loadAssignments({
@@ -53,6 +54,7 @@ export class AssignmentsSubNavComponent extends React.Component {
             filterByType,
             filterByPriority,
             selectedDeskId,
+            ignoreScheduledUpdates,
         });
 
         // Retrieve 'Assigned to me' count based on recent search.
