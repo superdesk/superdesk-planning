@@ -16,7 +16,8 @@ class CreateNewSubnavDropdownFn extends React.Component {
         if (privileges[PRIVILEGES.PLANNING_MANAGEMENT]) {
             items.push({
                 label: gettext('Planning Item'),
-                icon: 'icon-plus-sign icon--blue',
+                icon: 'icon-calendar icon--blue',
+                group: 'Create new',
                 action: addPlanning,
                 id: 'create_planning',
             });
@@ -25,7 +26,8 @@ class CreateNewSubnavDropdownFn extends React.Component {
         if (!createPlanningOnly && !!privileges[PRIVILEGES.EVENT_MANAGEMENT]) {
             items.push({
                 label: gettext('Event'),
-                icon: 'icon-plus-sign icon--blue',
+                icon: 'icon-event icon--blue',
+                group: 'Create new',
                 action: addEvent,
                 id: 'create_event',
             });
@@ -33,7 +35,9 @@ class CreateNewSubnavDropdownFn extends React.Component {
             this.props.eventTemplates.forEach((template) => {
                 items.push({
                     label: template.template_name,
-                    icon: 'icon-plus-sign icon--blue',
+                    icon: 'icon-event icon--blue',
+                    group: 'From template',
+                    searchable: true,
                     action: () => dispatch(actions.main.createNew(ITEM_TYPE.EVENT, template.data)),
                     id: template._id,
                 });
@@ -43,9 +47,9 @@ class CreateNewSubnavDropdownFn extends React.Component {
         return (items.length === 0 ? null :
             <Dropdown
                 icon="icon-plus-large"
-                label={gettext('Create new')}
                 items={items}
                 alignRight={true}
+                group={true}
                 disableSelection={createPlanningOnly}
                 defaultAction={addPlanning}
                 tooltip={createPlanningOnly ? gettext('Create new planning item') : gettext('Create new item')}
