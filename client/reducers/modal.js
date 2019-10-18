@@ -31,6 +31,9 @@ const modal = (state = initialState, action) => {
             ...state,
             previousState: undefined,
         };
+    case 'RESET_STORE': {
+        return initialState;
+    }
     default:
         return state;
     }

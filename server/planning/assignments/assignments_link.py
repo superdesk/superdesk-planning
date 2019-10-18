@@ -43,10 +43,13 @@ class AssignmentsLinkService(Service):
         assignments_service = get_resource_service('assignments')
         delivery_service = get_resource_service('delivery')
         assignments_service.validate_assignment_action(assignment)
+        already_completed = assignment['assigned_to']['state'] == ASSIGNMENT_WORKFLOW_STATE.COMPLETED
         items = []
         ids = []
         deliveries = []
         published_updated_items = []
+        updates = {'assigned_to': deepcopy(assignment.get('assigned_to'))}
+        need_complete = None
         for item in related_items:
             if not item.get('assignment_id') or (item['_id'] == actioned_item.get('_id') and doc.get('force')):
                 # Update the delivery for the item if one exists
@@ -72,13 +75,18 @@ class AssignmentsLinkService(Service):
                 ids.append(item.get(config.ID_FIELD))
                 items.append(item)
 
+                if item.get(ITEM_STATE) in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED] and \
+                        not assignment.get('scheduled_update_id') and \
+                        assignment['assigned_to']['state'] != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+                    # If assignment belongs to coverage, 'complete' it if any news item is published
+                    need_complete = True
+
         # Create all deliveries
         if len(deliveries) > 0:
             delivery_service.post(deliveries)
 
-        updates = {'assigned_to': deepcopy(assignment.get('assigned_to'))}
-        already_completed = assignment['assigned_to']['state'] == ASSIGNMENT_WORKFLOW_STATE.COMPLETED
-        self.update_assignment(updates, assignment, actioned_item, doc.pop('reassign', None), already_completed)
+        self.update_assignment(updates, assignment, actioned_item, doc.pop('reassign', None), already_completed,
+                               need_complete)
         actioned_item['assignment_id'] = assignment[config.ID_FIELD]
         doc.update(actioned_item)
 
@@ -90,8 +98,8 @@ class AssignmentsLinkService(Service):
                 assignment_history_service = get_resource_service('assignments_history')
                 assignment_history_service.on_item_content_link(updates, assignment)
 
-            if actioned_item.get(ITEM_STATE) not in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED] or \
-                    already_completed:
+            if (actioned_item.get(ITEM_STATE) not in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED] or
+                    already_completed) and not need_complete:
                 # publishing planning item
                 assignments_service.publish_planning(assignment['planning_item'])
 
@@ -161,11 +169,13 @@ class AssignmentsLinkService(Service):
                 if assigned_to.get('state') not in allowed_states:
                     raise SuperdeskApiError('Previous scheduled-update pending content-linking/completion')
 
-    def update_assignment(self, updates, assignment, actioned_item, reassign, already_completed):
+    def update_assignment(self, updates, assignment, actioned_item, reassign, already_completed, need_complete):
         # Update assignments, assignment history and publish planning
         # set the state to in progress if no item in the updates chain has ever been published
         updated = False
-        if not already_completed:
+        if need_complete:
+            updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED
+        elif not already_completed:
             new_state = ASSIGNMENT_WORKFLOW_STATE.COMPLETED if \
                 actioned_item.get(ITEM_STATE) in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED] else \
                 ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
@@ -185,10 +195,8 @@ class AssignmentsLinkService(Service):
                 updates['assigned_to']['desk'] = str(actioned_item.get('task').get('desk'))
                 updated = True
 
-        # If assignment is already complete, no need to update it again
-        if not already_completed and updates['assigned_to']['state'] == ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+        if need_complete:
             get_resource_service('assignments_complete').update(assignment[config.ID_FIELD], updates, assignment)
-
         if updated:
             get_resource_service('assignments').patch(assignment[config.ID_FIELD], updates)
 

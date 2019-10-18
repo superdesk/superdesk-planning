@@ -968,6 +968,10 @@ class AssignmentsService(superdesk.Service):
             updates.get('assigned_to', {}).get('state') == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
 
     def is_text_assignment(self, assignment):
+        # scheduled_update is always for text coverages
+        if assignment.get('scheduled_update_id'):
+            return True
+
         text_assignment = False
         content_types = get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
         if content_types:

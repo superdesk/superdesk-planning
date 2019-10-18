@@ -3,7 +3,7 @@ import assignments from './index';
 import main from '../main';
 import {get, isEmpty, cloneDeep} from 'lodash';
 import planning from '../planning';
-import {ASSIGNMENTS, WORKSPACE, PLANNING, MODALS} from '../../constants';
+import {ASSIGNMENTS, WORKSPACE, MODALS} from '../../constants';
 import {lockUtils, assignmentUtils, gettext, isExistingItem} from '../../utils';
 import {hideModal, showModal} from '../index';
 
@@ -161,7 +161,6 @@ const onAssignmentUpdated = (_e, data) => (
 const _updatePlannigRelatedToAssignment = (data) => (
     (dispatch, getState) => {
         const plans = selectors.planning.storedPlannings(getState());
-        const session = selectors.general.session(getState());
 
         if (!get(data, 'planning')) {
             return Promise.resolve();
@@ -180,31 +179,7 @@ const _updatePlannigRelatedToAssignment = (data) => (
             return Promise.resolve();
         }
 
-        if (get(planningItem, 'lock_action') !== 'edit' && !!get(planningItem, 'lock_user') &&
-                !lockUtils.isItemLockedInThisSession(
-                    planningItem,
-                    session,
-                    selectors.locks.getLockedItems(getState())
-                )) {
-            dispatch({
-                type: PLANNING.ACTIONS.UNLOCK_PLANNING,
-                payload: {plan: planningItem},
-            });
-        }
-
-        coverage.assigned_to.user = data.assigned_user;
-        coverage.assigned_to.assigned_date_user = data.assigned_date_user;
-
-        coverage.assigned_to.desk = data.assigned_desk;
-        coverage.assigned_to.assigned_date_desk = data.assigned_date_desk;
-
-        coverage.assigned_to.state = data.assignment_state;
-
-        if (get(data, 'priority')) {
-            coverage.assigned_to.priority = data.priority;
-        }
-
-        dispatch(planning.api.receivePlannings([planningItem]));
+        dispatch(planning.api.loadPlanningByIds([data.planning]));
         dispatch(main.fetchItemHistory(planningItem));
     }
 );
