@@ -172,7 +172,7 @@ export class PlanningPreviewContentComponent extends React.Component {
                     <Row enabled={get(formProfile, 'planning.editor.urgency.enabled')}>
                         <ColouredValueInput
                             value={urgency}
-                            label="Urgency"
+                            label={gettext('Urgency')}
                             iconName="urgency-label"
                             readOnly={true}
                             options={urgencies}
