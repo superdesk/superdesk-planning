@@ -59,6 +59,9 @@ export const preferredCoverageDesks = (state) => (
 export const preferredAssignmentSort = (state) => (
     get(userPreferences(state), ASSIGNMENTS.DEFAULT_SORT_PREFERENCE) || {}
 );
+export const coverageAddAdvancedMode = (state) => (
+    !!get(userPreferences(state), COVERAGES.ADD_ADVANCED_MODE_PREFERENCE + '.enabled')
+);
 
 export const currentUserId = createSelector(
     [session],

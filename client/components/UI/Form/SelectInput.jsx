@@ -22,6 +22,7 @@ export const SelectInput = ({
     autoFocus,
     refNode,
     onFocus,
+    placeholder,
     ...props
 }) => {
     const key = clearable ?
@@ -55,6 +56,7 @@ export const SelectInput = ({
                 autoFocus={autoFocus}
                 refNode={refNode}
                 onFocus={onFocus}
+                placeholder={placeholder}
             />
         </LineInput>
     );
@@ -69,6 +71,7 @@ SelectInput.propTypes = {
         PropTypes.object,
     ]),
     onChange: PropTypes.func.isRequired,
+    placeholder: PropTypes.string,
 
     required: PropTypes.bool,
     invalid: PropTypes.bool,

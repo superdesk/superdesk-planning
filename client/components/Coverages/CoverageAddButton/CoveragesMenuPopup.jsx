@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
 import {GENERIC_ITEM_ACTIONS} from '../../../constants';
-import {onEventCapture} from '../../../utils';
+import {onEventCapture, gettext} from '../../../utils';
 
 import {Popup, Content} from '../../UI/Popup';
 
@@ -31,7 +31,7 @@ export class CoveragesMenuPopup extends React.PureComponent {
                     <ul className="dropdown dropdown__menu more-activity-menu open">
                         <li onClick={onEventCapture.bind(this)}>
                             <div className="dropdown__menu-label">
-                                Coverage Type
+                                {gettext('Coverage Type')}
                                 <button
                                     className="dropdown__menu-close"
                                     onClick={closeMenu}
@@ -42,6 +42,13 @@ export class CoveragesMenuPopup extends React.PureComponent {
                         </li>
                         <li className="dropdown__menu-divider" />
                         {items}
+                        <li className="dropdown__menu-divider" />
+                        <li>
+                            <button onClick={this.props.openAdvanced}>
+                                <i className="icon-external" />
+                                {gettext('Advanced mode')}
+                            </button>
+                        </li>
                     </ul>
                 </Content>
             </Popup>
@@ -82,4 +89,5 @@ CoveragesMenuPopup.propTypes = {
     target: PropTypes.string.isRequired,
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
+    openAdvanced: PropTypes.func.isRequired,
 };

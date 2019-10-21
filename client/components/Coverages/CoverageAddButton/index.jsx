@@ -4,15 +4,17 @@ import {get} from 'lodash';
 
 import {onEventCapture, gettext, planningUtils} from '../../../utils';
 import {CoveragesMenuPopup} from './CoveragesMenuPopup';
+import {CoverageAddAdvancedModal} from '../CoverageAddAdvancedModal';
 
 
 export class CoverageAddButton extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {isOpen: false};
+        this.state = {isOpen: false, advanced: false};
         this.toggleMenu = this.toggleMenu.bind(this);
         this.closeMenu = this.closeMenu.bind(this);
         this.openMenu = this.openMenu.bind(this);
+        this.openAdvanced = this.openAdvanced.bind(this);
     }
 
     componentDidMount() {
@@ -42,8 +44,19 @@ export class CoverageAddButton extends React.Component {
         this.setState({isOpen: false});
     }
 
-    openMenu(event) {
+    openAdvanced(event) {
         onEventCapture(event);
+        this.setState({isOpen: false, advanced: true});
+    }
+
+    openMenu(event) {
+        if (this.props.coverageAddAdvancedMode) {
+            this.openAdvanced(event);
+            return;
+        }
+
+        onEventCapture(event);
+
         this.setState({isOpen: true});
 
         if (this.props.onOpen) {
@@ -67,9 +80,29 @@ export class CoverageAddButton extends React.Component {
                             target="icon-plus-large"
                             onPopupOpen={onPopupOpen}
                             onPopupClose={onPopupClose}
+                            openAdvanced={this.openAdvanced}
                         />
                     )}
                 </button>
+                {this.state.advanced && (
+                    <CoverageAddAdvancedModal
+                        close={() => this.setState({advanced: false})}
+
+                        contentTypes={this.props.contentTypes}
+                        newsCoverageStatus={this.props.newsCoverageStatus}
+
+                        field={this.props.field}
+                        value={this.props.value}
+                        onChange={this.props.onChange}
+                        createCoverage={this.props.createCoverage}
+
+                        users={this.props.users}
+                        desks={this.props.desks}
+
+                        coverageAddAdvancedMode={this.props.coverageAddAdvancedMode}
+                        setCoverageAddAdvancedMode={this.props.setCoverageAddAdvancedMode}
+                    />
+                )}
             </div>
         );
     }
@@ -91,6 +124,16 @@ CoverageAddButton.propTypes = {
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
     preferredCoverageDesks: PropTypes.object,
+    newsCoverageStatus: PropTypes.array,
+
+    desks: PropTypes.array,
+    users: PropTypes.array,
+    field: PropTypes.string,
+    value: PropTypes.array,
+    onChange: PropTypes.func,
+    createCoverage: PropTypes.func,
+    coverageAddAdvancedMode: PropTypes.bool,
+    setCoverageAddAdvancedMode: PropTypes.func,
 };
 
 CoverageAddButton.defaultProps = {

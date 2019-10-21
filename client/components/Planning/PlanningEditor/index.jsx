@@ -759,6 +759,8 @@ export class PlanningEditorComponent extends React.Component {
                     event={event}
                     longEventDurationThreshold={longEventDurationThreshold}
                     planningAllowScheduledUpdates={planningAllowScheduledUpdates}
+                    coverageAddAdvancedMode={this.props.coverageAddAdvancedMode}
+                    setCoverageAddAdvancedMode={this.props.setCoverageAddAdvancedMode}
                 />
             </div>
         );
@@ -819,6 +821,8 @@ PlanningEditorComponent.propTypes = {
     itemManager: PropTypes.object,
     original: PropTypes.object,
     planningAllowScheduledUpdates: PropTypes.bool,
+    coverageAddAdvancedMode: PropTypes.bool,
+    setCoverageAddAdvancedMode: PropTypes.func,
 };
 
 PlanningEditorComponent.defaultProps = {
@@ -859,6 +863,7 @@ const mapStateToProps = (state) => ({
     autoAssignToWorkflow: selectors.config.getAutoAssignToWorkflow(state),
     longEventDurationThreshold: selectors.config.getLongEventDurationThreshold(state),
     planningAllowScheduledUpdates: selectors.config.getPlanningAllowScheduledUpdates(state),
+    coverageAddAdvancedMode: selectors.general.coverageAddAdvancedMode(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -867,6 +872,7 @@ const mapDispatchToProps = (dispatch) => ({
     uploadFiles: (files) => dispatch(actions.planning.api.uploadFiles({files: files})),
     removeFile: (file) => dispatch(actions.planning.api.removeFile(file)),
     fetchPlanningFiles: (planning) => dispatch(actions.planning.api.fetchPlanningFiles(planning)),
+    setCoverageAddAdvancedMode: (advancedMode) => dispatch(actions.users.setCoverageAddAdvancedMode(advancedMode)),
 });
 
 export const PlanningEditor = connect(
