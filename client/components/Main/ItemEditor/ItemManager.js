@@ -32,6 +32,7 @@ export class ItemManager {
         this.startPartialSave = this.startPartialSave.bind(this);
         this.openInModal = this.openInModal.bind(this);
         this.addCoverageToWorkflow = this.addCoverageToWorkflow.bind(this);
+        this.addScheduledUpdateToWorkflow = this.addScheduledUpdateToWorkflow.bind(this);
         this.removeAssignment = this.removeAssignment.bind(this);
         this.cancelCoverage = this.cancelCoverage.bind(this);
         this.finaliseCancelCoverage = this.finaliseCancelCoverage.bind(this);
@@ -688,11 +689,12 @@ export class ItemManager {
     }
 
     finalisePartialSave(diff, updateDirtyFlag = false) {
+        const clonedDiff = cloneDeep(diff);
         const initialValues = cloneDeep(this.state.initialValues);
 
         Object.keys(diff).forEach(
             (field) => {
-                set(initialValues, field, get(diff, field));
+                set(initialValues, field, get(clonedDiff, field));
             }
         );
 
@@ -819,19 +821,27 @@ export class ItemManager {
             .then((updates) => this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
     }
 
+    addScheduledUpdateToWorkflow(planning, coverage, covergeIndex, scheduledUpdate, index) {
+        return this.dispatch(actions.planning.ui.addScheduledUpdateToWorkflow(planning, coverage, covergeIndex,
+            scheduledUpdate, index))
+            .then((updates) => this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
+    }
+
     removeAssignment(planning, coverage, index) {
         return this.dispatch(actions.planning.ui.removeAssignment(planning, coverage, index))
             .then((updates) => this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
     }
 
-    cancelCoverage(planning, coverage, index) {
+    cancelCoverage(planning, coverage, index, scheduledUpdate, scheduledUpdateIndex) {
         return this.dispatch(actions.planning.ui.openCancelCoverageModal(planning,
-            coverage, index, this.finaliseCancelCoverage, this.setStateForPartialSave));
+            coverage, index, this.finaliseCancelCoverage, this.setStateForPartialSave,
+            scheduledUpdate, scheduledUpdateIndex));
     }
 
-    finaliseCancelCoverage(planning, updatedCoverage, index) {
-        return this.dispatch(actions.planning.ui.cancelCoverage(planning, updatedCoverage, index))
-            .then((updates) => this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
+    finaliseCancelCoverage(planning, updatedCoverage, index, scheduledUpdate, scheduledUpdateIndex) {
+        return this.dispatch(actions.planning.ui.cancelCoverage(planning, updatedCoverage, index,
+            scheduledUpdate, scheduledUpdateIndex)).then((updates) =>
+            this.finalisePartialSave(this.getCoverageAfterPartialSave(updates, index)));
     }
 
     getCoverageAfterPartialSave(updates, index) {

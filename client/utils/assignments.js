@@ -1,5 +1,6 @@
 import {get, includes, isNil, find} from 'lodash';
 import moment from 'moment';
+import {gettext} from './index';
 
 import {ASSIGNMENTS, PRIVILEGES} from '../constants';
 import * as selectors from '../selectors';
@@ -48,7 +49,10 @@ const isAssignmentInEditableState = (assignment) => (
 const canCompleteAssignment = (assignment, session, privileges) => (
     !!privileges[PRIVILEGES.ARCHIVE] &&
         self.isNotLockRestricted(assignment, session) &&
-        get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS
+        (get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS ||
+            ([ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED, ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
+                ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS].includes(
+                get(assignment, 'assigned_to.state'))) && get(assignment, 'scheduled_update_id'))
 );
 
 const canConfirmAvailability = (assignment, session, privileges, contentTypes) => (
@@ -110,6 +114,8 @@ const getAssignmentActions = (assignment, session, privileges, lockedItems, cont
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
                         callback: callBacks[callBackName].bind(null, assignment),
+                        label: get(assignment, 'scheduled_update_id') ? gettext('Mark as completed') :
+                            ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label,
                     });
             break;
 

@@ -36,3 +36,6 @@ export const defaultTimeZone = (state) => get(state, 'config.defaultTimezone', m
 export const getMaxMultiDayEventDuration = (state) => get(state, 'deployConfig.max_multi_day_event_duration', 0);
 
 export const allowFreeTextLocation = (state) => get(state, 'config.planning_allow_freetext_location', false);
+
+export const getPlanningAllowScheduledUpdates = (state) => get(state, 'deployConfig.planning_allow_scheduled_updates',
+    false);

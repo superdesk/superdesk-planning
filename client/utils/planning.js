@@ -158,8 +158,8 @@ const canAddAsEvent = (planning, event = null, session, privileges, locks) => (
 const isCoverageCancelled = (coverage) =>
     (get(coverage, 'workflow_status') === WORKFLOW_STATE.CANCELLED);
 
-const canCancelCoverage = (coverage, planning) =>
-    (!isCoverageCancelled(coverage) && isExistingItem(coverage, 'coverage_id') && (!get(coverage, 'assigned_to.state')
+const canCancelCoverage = (coverage, planning, field = 'coverage_id') =>
+    (!isCoverageCancelled(coverage) && isExistingItem(coverage, field) && (!get(coverage, 'assigned_to.state')
         || get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED)) && !isItemExpired(planning);
 
 const canAddCoverageToWorkflow = (coverage, autoAssignToWorkflow, planning) => isExistingItem(coverage, 'coverage_id')
@@ -479,16 +479,24 @@ export const modifyForClient = (plan) => {
 };
 
 const modifyForServer = (plan) => {
-    get(plan, 'coverages', []).forEach((coverage) => {
-        coverage.planning = coverage.planning || {};
-
+    const modifyGenre = (coverage) => {
         if (!get(coverage, 'planning.genre', null)) {
             coverage.planning.genre = null;
         } else if (!isArray(coverage.planning.genre)) {
             coverage.planning.genre = [coverage.planning.genre];
         }
+    };
+
+    get(plan, 'coverages', []).forEach((coverage) => {
+        coverage.planning = coverage.planning || {};
+        modifyGenre(coverage);
 
         delete coverage.planning._scheduledTime;
+
+        get(coverage, 'scheduled_updates', []).forEach((s) => {
+            delete s.planning._scheduledTime;
+            modifyGenre(s);
+        });
     });
 
     return plan;
@@ -500,19 +508,22 @@ const modifyForServer = (plan) => {
  * @return {object} coverage item provided
  */
 const modifyCoverageForClient = (coverage) => {
+    const modifyGenre = (coverage) => {
+        // Convert genre from an Array to an Object
+        if (get(coverage, 'planning.genre[0]')) {
+            coverage.planning.genre = coverage.planning.genre[0];
+        } else if (!get(coverage, 'planning.genre.qcode')) {
+            // only delete when genre not object
+            delete coverage.planning.genre;
+        }
+    };
+
     // Make sure the coverage has a planning field
     if (!get(coverage, 'planning')) {
         coverage.planning = {};
     }
 
-    // Convert genre from an Array to an Object
-    if (get(coverage, 'planning.genre[0]')) {
-        coverage.planning.genre = coverage.planning.genre[0];
-    } else if (!get(coverage, 'planning.genre.qcode')) {
-        // only delete when genre not object
-        delete coverage.planning.genre;
-    }
-
+    modifyGenre(coverage);
     // Convert scheduled into a moment instance
     if (get(coverage, 'planning.scheduled')) {
         coverage.planning.scheduled = moment(coverage.planning.scheduled);
@@ -520,6 +531,14 @@ const modifyCoverageForClient = (coverage) => {
     } else {
         delete coverage.planning.scheduled;
     }
+
+    get(coverage, 'scheduled_updates', []).forEach((s) => {
+        if (s.planning.scheduled) {
+            s.planning.scheduled = moment(s.planning.scheduled);
+            s.planning._scheduledTime = moment(s.planning.scheduled);
+            modifyGenre(s);
+        }
+    });
 
     return coverage;
 };
@@ -604,6 +623,8 @@ const getCoverageReadOnlyFields = (
     newsCoverageStatus,
     addNewsItemToPlanning
 ) => {
+    const scheduledUpdatesExist = get(coverage, 'scheduled_updates.length', 0) > 0;
+
     if (addNewsItemToPlanning) {
         // if newsItem is published, schedule is readOnly
         return {
@@ -615,7 +636,7 @@ const getCoverageReadOnlyFields = (
             genre: true,
             newsCoverageStatus: true,
             scheduled: readOnly || get(addNewsItemToPlanning, 'state') === 'published',
-            flags: false,
+            flags: scheduledUpdatesExist,
         };
     }
 
@@ -685,11 +706,11 @@ const getCoverageReadOnlyFields = (
             ednote: readOnly,
             keyword: readOnly,
             internal_note: readOnly,
-            g2_content_type: readOnly,
+            g2_content_type: (get(coverage, 'scheduled_updates.length', 0) > 0 ? true : readOnly),
             genre: readOnly,
             newsCoverageStatus: readOnly,
             scheduled: readOnly,
-            flags: false,
+            flags: scheduledUpdatesExist,
         };
     }
 };
@@ -700,7 +721,13 @@ const getFlattenedPlanningByDate = (plansInList, events, startDate, endDate, tim
     return flatten(sortBy(planning, [(e) => (e.date)]).map((e) => e.events.map((k) => [e.date, k._id])));
 };
 
-const getPlanningByDate = (plansInList, events, startDate, endDate, timezone = null) => {
+const getPlanningByDate = (
+    plansInList,
+    events,
+    startDate,
+    endDate,
+    timezone = null,
+    includeScheduledUpdates = false) => {
     if (!plansInList) return [];
 
     const days = {};
@@ -714,11 +741,10 @@ const getPlanningByDate = (plansInList, events, startDate, endDate, timezone = n
     };
 
     plansInList.forEach((plan) => {
-        const dates = {};
+        let dates = {};
         let groupDate = null;
 
-        plan.event = get(events, get(plan, 'event_item'));
-        plan.coverages.forEach((coverage) => {
+        const setCoverageToDate = (coverage) => {
             groupDate = getGroupDate(moment(get(coverage, 'planning.scheduled', plan.planning_date)).clone());
             if (!isDateInRange(groupDate, startDate, endDate)) {
                 return;
@@ -726,6 +752,17 @@ const getPlanningByDate = (plansInList, events, startDate, endDate, timezone = n
 
             if (!get(dates, groupDate.format('YYYY-MM-DD'))) {
                 dates[groupDate.format('YYYY-MM-DD')] = groupDate;
+            }
+        };
+
+        plan.event = get(events, get(plan, 'event_item'));
+        plan.coverages.forEach((coverage) => {
+            setCoverageToDate(coverage);
+
+            if (includeScheduledUpdates) {
+                (get(coverage, 'scheduled_updates') || []).forEach((s) => {
+                    setCoverageToDate(s);
+                });
             }
         });
 
@@ -769,7 +806,12 @@ const getCoverageDateTimeText = (coverage, dateFormat, timeFormat) =>
  * @param {type} coverage types
  * @returns {string} icon name
  */
-const getCoverageIcon = (type) => {
+const getCoverageIcon = (type, coverage) => {
+    if (get(coverage, 'scheduled_updates.length', 0) > 0 ||
+            (get(coverage, 'scheduled_update_id') && get(coverage, 'assignment_id'))) {
+        return 'icon-copy';
+    }
+
     const coverageIcons = {
         [PLANNING.G2_CONTENT_TYPE.TEXT]: 'icon-text',
         [PLANNING.G2_CONTENT_TYPE.VIDEO]: 'icon-video',
@@ -863,8 +905,6 @@ const defaultCoverageValues = (
         newCoverage[TO_BE_CONFIRMED_FIELD] = planningItem[TO_BE_CONFIRMED_FIELD];
     }
 
-    newCoverage.planning._scheduledTime = newCoverage.planning.scheduled;
-
     if (planningItem) {
         let coverageTime = null;
 
@@ -902,19 +942,22 @@ const defaultCoverageValues = (
                 }
             }
         }
+        newCoverage.planning._scheduledTime = newCoverage.planning.scheduled;
     }
 
-    if (get(preferredCoverageDesks, g2contentType)) {
-        newCoverage.assigned_to = {desk: preferredCoverageDesks[g2contentType]};
-    } else if (g2contentType === 'text' && defaultDesk) {
-        newCoverage.assigned_to = {desk: defaultDesk._id};
-    } else {
-        delete newCoverage.assigned_to;
-    }
-
+    self.setDefaultAssignment(newCoverage, preferredCoverageDesks, g2contentType, defaultDesk);
     return newCoverage;
 };
 
+const setDefaultAssignment = (coverage, preferredCoverageDesks, g2contentType, defaultDesk) => {
+    if (get(preferredCoverageDesks, g2contentType)) {
+        coverage.assigned_to = {desk: preferredCoverageDesks[g2contentType]};
+    } else if (g2contentType === 'text' && defaultDesk) {
+        coverage.assigned_to = {desk: defaultDesk._id};
+    } else {
+        delete coverage.assigned_to;
+    }
+};
 
 const modifyPlanningsBeingAdded = (state, payload) => {
     // payload must be an array. If not, we transform
@@ -957,6 +1000,38 @@ const getDateStringForPlanning = (planning, dateFormat, timeFormat) =>
     get(planning, TO_BE_CONFIRMED_FIELD) ?
         planning.planning_date.format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT :
         getDateTimeString(get(planning, 'planning_date'), dateFormat, timeFormat, ' @ ', false);
+
+const getCoverageDateText = (coverage, dateFormat, timeFormat) => {
+    const coverageDate = get(coverage, 'planning.scheduled');
+
+    return !coverageDate ? gettext('Not scheduled yet') :
+        getDateTimeString(coverageDate, dateFormat, timeFormat, ' @ ', false);
+};
+
+const canAddScheduledUpdateToWorkflow = (scheduledUpdate, autoAssignToWorkflow, planning, coverage) =>
+    isExistingItem(scheduledUpdate, 'scheduled_update_id') && isCoverageInWorkflow(coverage) &&
+    isCoverageDraft(scheduledUpdate) && isCoverageAssigned(scheduledUpdate) && !autoAssignToWorkflow &&
+    !isItemExpired(planning);
+
+const setCoverageActiveValues = (coverage, newsCoverageStatus) => {
+    set(coverage, 'news_coverage_status', newsCoverageStatus.find((s) => s.qcode === 'ncostat:int'));
+    set(coverage, 'workflow_status', COVERAGES.WORKFLOW_STATE.ACTIVE);
+    set(coverage, 'assigned_to.state', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED);
+};
+
+const getActiveCoverage = (updatedCoverage, newsCoverageStatus) => {
+    const coverage = cloneDeep(updatedCoverage);
+
+    setCoverageActiveValues(coverage, newsCoverageStatus);
+    (get(coverage, 'scheduled_updates') || []).forEach((s) => {
+        // Add the scheduled_update to workflow if they have an assignment
+        if (get(s, 'assigned_to')) {
+            setCoverageActiveValues(s, newsCoverageStatus);
+        }
+    });
+
+    return coverage;
+};
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -1004,6 +1079,10 @@ const self = {
     canAddCoverageToWorkflow,
     getCoverageDateTimeText,
     getDateStringForPlanning,
+    setDefaultAssignment,
+    getCoverageDateText,
+    getActiveCoverage,
+    canAddScheduledUpdateToWorkflow,
 };
 
 export default self;

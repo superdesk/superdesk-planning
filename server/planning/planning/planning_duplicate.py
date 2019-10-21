@@ -72,7 +72,7 @@ class PlanningDuplicateService(BaseService):
 
         for f in ('_id', 'guid', 'lock_user', 'lock_time', 'original_creator', '_planning_schedule'
                   'lock_session', 'lock_action', '_created', '_updated', '_etag', 'pubstatus', 'expired',
-                  'featured', 'state_reason'):
+                  'featured', 'state_reason', '_updates_schedule'):
             new_plan.pop(f, None)
 
         new_plan[ITEM_STATE] = WORKFLOW_STATE.DRAFT

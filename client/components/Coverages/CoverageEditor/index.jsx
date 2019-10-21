@@ -9,7 +9,7 @@ import {CoverageForm} from './CoverageForm';
 import {CoverageFormHeader} from './CoverageFormHeader';
 
 import {planningUtils, gettext, editorMenuUtils} from '../../../utils';
-import {COVERAGES} from '../../../constants';
+import {COVERAGES, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
 
 export const CoverageEditor = ({
     diff,
@@ -73,7 +73,7 @@ export const CoverageEditor = ({
         if (planningUtils.canCancelCoverage(value, diff)) {
             itemActions.push({
                 ...COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE,
-                callback: onCancelCoverage.bind(null, value),
+                callback: onCancelCoverage.bind(null, value, index),
             });
         }
 
@@ -176,6 +176,13 @@ export const CoverageEditor = ({
             onFieldFocus={onFocus}
             onPopupOpen={onPopupOpen}
             onPopupClose={onPopupClose}
+            onRemoveAssignment={onRemoveAssignment}
+            setCoverageDefaultDesk={setCoverageDefaultDesk}
+            users={users}
+            desks={desks}
+            coverageProviders={coverageProviders}
+            priorities={priorities}
+            onCancelCoverage={onCancelCoverage}
             {...props}
         />
     );
@@ -242,6 +249,6 @@ CoverageEditor.propTypes = {
 };
 
 CoverageEditor.defaultProps = {
-    dateFormat: 'DD/MM/YYYY',
-    timeFormat: 'HH:mm',
+    dateFormat: DEFAULT_DATE_FORMAT,
+    timeFormat: DEFAULT_TIME_FORMAT,
 };

@@ -45,7 +45,11 @@ delivery_schema = {
 
     'publish_time': {
         'type': 'datetime'
-    }
+    },
+
+    'scheduled_update_id': {
+        'type': 'string'
+    },
 }
 
 

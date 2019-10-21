@@ -226,7 +226,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    startWorking: (assignment) => dispatch(actions.assignments.ui.openSelectTemplateModal(assignment)),
+    startWorking: (assignment) => dispatch(actions.assignments.ui.startWorking(assignment)),
     reassign: (assignment) => dispatch(actions.assignments.ui.reassign(assignment)),
     completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
     revertAssignment: (assignment) => dispatch(actions.assignments.ui.revert(assignment)),

@@ -737,12 +737,6 @@ class AssignmentsService(superdesk.Service):
             if not original_item.get('assignment_id'):
                 continue
 
-            assignment = self.find_one(req=None, _id=str(original_item['assignment_id']))
-            if not assignment:
-                raise SuperdeskApiError.badRequestError(
-                    'Assignment not found.'
-                )
-
             delivery = delivery_service.find_one(req=None, item_id=original_item[config.ID_FIELD])
             if not delivery:
                 raise SuperdeskApiError.badRequestError(
@@ -755,6 +749,7 @@ class AssignmentsService(superdesk.Service):
                     'Planning does not exist'
                 )
 
+            coverage = None
             coverages = planning.get('coverages') or []
             try:
                 coverage = next(c for c in coverages if c.get('coverage_id') == delivery.get('coverage_id'))
@@ -764,12 +759,29 @@ class AssignmentsService(superdesk.Service):
                 )
 
             # Link only if linking updates are enabled
-            if not (coverage.get('flags') or {}).get('no_content_linking'):
-                assignment_link_service.post([{
-                    'assignment_id': str(assignment[config.ID_FIELD]),
-                    'item_id': str(item[config.ID_FIELD]),
-                    'reassign': True
-                }])
+            if (coverage.get('flags') or {}).get('no_content_linking'):
+                return
+
+            # get latest assignment available to link
+            assignment_id = (coverage.get('assigned_to') or {}).get('assignment_id')
+            for s in coverage.get('scheduled_updates'):
+                if (s.get('assigned_to') or {}).get('state') in [ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
+                                                                 ASSIGNMENT_WORKFLOW_STATE.COMPLETED]:
+                    assignment_id = (s.get('assigned_to') or {}).get('assignment_id')
+
+            assignment = self.find_one(req=None, _id=str(assignment_id))
+            if not assignment:
+                raise SuperdeskApiError.badRequestError(
+                    'Assignment not found.'
+                )
+
+            assignment_link_service.post([{
+                'assignment_id': str(assignment[config.ID_FIELD]),
+                'item_id': str(item[config.ID_FIELD]),
+                'reassign': True
+            }])
+
+            doc['assignment_id'] = assignment['_id']
 
     def unlink_assignment_on_delete_archive_rewrite(self):
         # Because this is in response to a Resource level DELETE, we need to get the
@@ -956,6 +968,10 @@ class AssignmentsService(superdesk.Service):
             updates.get('assigned_to', {}).get('state') == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
 
     def is_text_assignment(self, assignment):
+        # scheduled_update is always for text coverages
+        if assignment.get('scheduled_update_id'):
+            return True
+
         text_assignment = False
         content_types = get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
         if content_types:
@@ -1049,6 +1065,10 @@ assignments_schema = {
         'mapping': not_analyzed
     },
     'planning_item': planning_type,
+    'scheduled_update_id': {
+        'type': 'string',
+        'mapping': not_analyzed
+    },
     'lock_user': metadata_schema['lock_user'],
     'lock_time': metadata_schema['lock_time'],
     'lock_session': metadata_schema['lock_session'],

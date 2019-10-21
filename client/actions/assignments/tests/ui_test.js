@@ -115,6 +115,7 @@ describe('actions.assignments.ui', () => {
                         orderDirection: 'Asc',
                         type: null,
                         priority: null,
+                        ignoreScheduledUpdates: false,
                     }]);
 
                     expect(assignmentsApi.receivedAssignments.callCount).toBe(1);
@@ -847,6 +848,7 @@ describe('actions.assignments.ui', () => {
                 filterByType: 'text',
                 filterByPriority: null,
                 selectedDeskId: ALL_DESKS,
+                ignoreScheduledUpdates: true,
             }]);
         });
 
@@ -869,6 +871,7 @@ describe('actions.assignments.ui', () => {
                 filterByType: 'text',
                 filterByPriority: null,
                 selectedDeskId: ALL_DESKS,
+                ignoreScheduledUpdates: true,
             }]);
         });
 
@@ -892,6 +895,7 @@ describe('actions.assignments.ui', () => {
                 filterByType: 'text',
                 filterByPriority: null,
                 selectedDeskId: ALL_DESKS,
+                ignoreScheduledUpdates: true,
             }]);
         });
     });

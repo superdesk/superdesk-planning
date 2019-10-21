@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {RepeatEventSummary} from '../RepeatEventSummary';
 import {Row} from '../../UI/Preview';
 import {gettext, eventUtils, timeUtils} from '../../../utils';
+import {DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
 import {get} from 'lodash';
 import './style.scss';
 
@@ -76,8 +77,8 @@ EventScheduleSummary.propTypes = {
 };
 
 EventScheduleSummary.defaultProps = {
-    dateFormat: 'DD/MM/YYYY',
-    timeFormat: 'HH:mm',
+    dateFormat: DEFAULT_DATE_FORMAT,
+    timeFormat: DEFAULT_TIME_FORMAT,
     noPadding: false,
     useEventTimezone: false,
 };

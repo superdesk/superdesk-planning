@@ -16,10 +16,12 @@ from apps.auth import get_user_id, get_user
 from apps.templates.content_templates import get_item_from_template
 from planning.planning_article_export import get_desk_template
 from superdesk.errors import SuperdeskApiError
-from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_coverage_type_name, get_next_assignment_status
+from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_coverage_type_name, get_next_assignment_status,\
+    get_coverage_for_assignment, get_archive_items_for_assignment
 from superdesk.utc import utcnow
 from planning.planning_notifications import PlanningNotifications
 from superdesk import get_resource_service
+from flask import request
 
 
 FIELDS_TO_COPY = ('anpa_category', 'subject', 'urgency', 'place')
@@ -71,7 +73,7 @@ def get_item_from_assignment(assignment, template=None):
             if planning.get('headline'):
                 item['headline'] = planning['headline']
 
-            if not item['flags']:
+            if not item.get('flags'):
                 item['flags'] = {}
 
             item['flags']['marked_for_not_publication'] = \
@@ -116,7 +118,7 @@ class AssignmentsContentService(superdesk.Service):
 
     def create(self, docs):
         ids = []
-        production = get_resource_service('archive')
+        archive_service = get_resource_service('archive')
         assignments_service = get_resource_service('assignments')
         for doc in docs:
             assignment = assignments_service.find_one(req=None, _id=doc.pop('assignment_id'))
@@ -125,17 +127,37 @@ class AssignmentsContentService(superdesk.Service):
             item.setdefault('type', 'text')
             item['assignment_id'] = assignment[config.ID_FIELD]
 
-            # create content
-            ids = production.post([item])
-            insert_into_versions(doc=item)
+            if assignment.get('scheduled_update_id'):
+                # get the latest archive item to be updated
+                archive_item = self.get_latest_news_item_for_coverage(assignment)
 
-            # create delivery references
-            get_resource_service('delivery').post([{
-                'item_id': item[config.ID_FIELD],
-                'assignment_id': assignment[config.ID_FIELD],
-                'planning_id': assignment['planning_item'],
-                'coverage_id': assignment['coverage_item']
-            }])
+                if not archive_item:
+                    raise SuperdeskApiError.badRequestError('Archive item not found to create a rewrite.')
+
+                # create a rewrite
+                request.view_args['original_id'] = archive_item.get(config.ID_FIELD)
+                ids = get_resource_service('archive_rewrite').post([{'desk_id': str(item.get('task').get('desk'))}])
+                item = archive_service.find_one(_id=ids[0], req=None)
+                item['task']['user'] = get_user_id()
+
+                # link the rewrite
+                get_resource_service('assignments_link').post([{
+                    'assignment_id': assignment[config.ID_FIELD],
+                    'item_id': ids[0],
+                    'reassign': True
+                }])
+            else:
+                # create content
+                ids = archive_service.post([item])
+                insert_into_versions(doc=item)
+
+                # create delivery references
+                get_resource_service('delivery').post([{
+                    'item_id': item[config.ID_FIELD],
+                    'assignment_id': assignment[config.ID_FIELD],
+                    'planning_id': assignment['planning_item'],
+                    'coverage_id': assignment['coverage_item']
+                }])
 
             updates = {'assigned_to': deepcopy(assignment.get('assigned_to'))}
             updates['assigned_to']['user'] = str(item.get('task').get('user'))
@@ -144,8 +166,11 @@ class AssignmentsContentService(superdesk.Service):
             updates['assigned_to']['assignor_user'] = str(item.get('task').get('user'))
             updates['assigned_to']['assigned_date_user'] = utcnow()
 
-            # set the assignment to in progress
-            assignments_service.patch(assignment[config.ID_FIELD], updates)
+            if not assignment.get('scheduled_update_id'):
+                # set the assignment to in progress
+                assignments_service.patch(assignment[config.ID_FIELD], updates)
+                assignments_service.publish_planning(assignment['planning_item'])
+
             doc.update(item)
             ids.append(doc['_id'])
 
@@ -171,9 +196,27 @@ class AssignmentsContentService(superdesk.Service):
                                                           no_email=True)
             # Save history
             get_resource_service('assignments_history').on_item_start_working(updates, assignment)
-            # publishing planning item
-            assignments_service.publish_planning(assignment['planning_item'])
+
         return ids
+
+    def get_latest_news_item_for_coverage(self, assignment):
+        coverage = get_coverage_for_assignment(assignment)
+        previous_items = []
+
+        assignment_id = (coverage.get('assigned_to') or {}).get('assignment_id')
+        if len(coverage.get('scheduled_updates')) == 0:
+            previous_items = get_archive_items_for_assignment(assignment_id)
+        else:
+            previous_items = get_archive_items_for_assignment(assignment_id)
+            for s in coverage.get('scheduled_updates'):
+                new_items = get_archive_items_for_assignment((s.get('assigned_to') or {}).get('assignment_id'))
+                if len(new_items) > 0:
+                    previous_items = new_items
+
+        if len(previous_items) > 0:
+            return previous_items[0]
+
+        return None
 
     def _validate(self, doc):
         """Validate the doc for content creation"""
@@ -192,6 +235,23 @@ class AssignmentsContentService(superdesk.Service):
         if delivery:
             raise SuperdeskApiError.badRequestError('Content already exists for the assignment. '
                                                     'Cannot create content.')
+
+        # Handle schedule_updates validation
+        if assignment.get('scheduled_update_id'):
+            # Make sure all previous content is linked
+            coverage = get_coverage_for_assignment(assignment)
+
+            allowed_states = [ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS, ASSIGNMENT_WORKFLOW_STATE.COMPLETED]
+            if (coverage.get('assigned_to') or {}).get('state') not in allowed_states:
+                raise SuperdeskApiError.badRequestError('Coverage not linked to news item yet.')
+
+            # Since scheduled_updates are cronologically indexed, check all previous scheduled_updates
+            for s in coverage.get('scheduled_updates'):
+                if s.get('scheduled_update_id') == assignment['scheduled_update_id']:
+                    break
+
+                if (s.get('assigned_to') or {}).get('state') not in allowed_states:
+                    raise SuperdeskApiError.badRequestError('Previous scheduled update not linked to news item yet.')
 
 
 class AssignmentsContentResource(superdesk.Resource):

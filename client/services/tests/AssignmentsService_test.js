@@ -139,6 +139,7 @@ describe('assignments service', () => {
                     filterByType: 'text',
                     filterByPriority: null,
                     selectedDeskId: ALL_DESKS,
+                    ignoreScheduledUpdates: true,
                 }]);
 
                 expect(actions.assignments.ui.preview.callCount).toBe(1);
@@ -214,6 +215,7 @@ describe('assignments service', () => {
                         filterByType: 'text',
                         filterByPriority: null,
                         selectedDeskId: ALL_DESKS,
+                        ignoreScheduledUpdates: true,
                     }]);
 
                     expect(actions.assignments.ui.preview.callCount).toBe(1);

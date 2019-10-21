@@ -17,7 +17,7 @@ from eve.utils import config
 from copy import deepcopy
 from .assignments import AssignmentsResource, assignments_schema, AssignmentsService
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, remove_lock_information, get_coverage_type_name,\
-    get_next_assignment_status
+    get_next_assignment_status, get_coverage_for_assignment
 from planning.planning_notifications import PlanningNotifications
 
 
@@ -44,10 +44,26 @@ class AssignmentsCompleteService(BaseService):
         assignments_service.validate_assignment_action(original)
         text_assignment = assignments_service.is_text_assignment(original)
 
-        if text_assignment and assignment_state != ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
-            raise SuperdeskApiError.forbiddenError('Cannot complete. Assignment not in progress.')
-        elif not text_assignment and \
-                assignment_state not in [ASSIGNMENT_WORKFLOW_STATE.ASSIGNED, ASSIGNMENT_WORKFLOW_STATE.SUBMITTED]:
+        if text_assignment:
+            if original.get('scheduled_update_id'):
+                coverage = get_coverage_for_assignment(original)
+                cov_assigned_to = coverage.get('assigned_to')
+                if cov_assigned_to['state'] != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+                    raise SuperdeskApiError.forbiddenError('Cannot complete a scheduled update unless parent coverage '
+                                                           'is completed.')
+                for s in coverage.get('scheduled_updates'):
+                    if s.get('scheduled_update_id') == original.get('scheduled_update_id'):
+                        break
+
+                    if (s.get('assigned_to') or {}).get('state') != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+                        raise SuperdeskApiError.forbiddenError('Cannot complete a scheduled update unless all '
+                                                               'previous scheduled updates are completed.')
+                if assignment_state not in [ASSIGNMENT_WORKFLOW_STATE.ASSIGNED, ASSIGNMENT_WORKFLOW_STATE.SUBMITTED,
+                                            ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS]:
+                    raise SuperdeskApiError.forbiddenError('Update Assignment not in correct state.')
+            elif not original.get('scheduled_update_id') and assignment_state != ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
+                raise SuperdeskApiError.forbiddenError('Assignment not in progress.')
+        elif assignment_state not in [ASSIGNMENT_WORKFLOW_STATE.ASSIGNED, ASSIGNMENT_WORKFLOW_STATE.SUBMITTED]:
             raise SuperdeskApiError.forbiddenError(
                 'Cannot confirm availability. Assignment should be assigned or submitted.')
 

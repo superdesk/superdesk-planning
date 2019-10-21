@@ -1,7 +1,8 @@
 import {get, cloneDeep, forEach} from 'lodash';
-
+import moment from 'moment';
 import {showModal} from '../index';
 import assignments from './index';
+import planningApi from '../planning/api';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {ASSIGNMENTS, MODALS, WORKSPACE, ALL_DESKS} from '../../constants';
@@ -23,6 +24,7 @@ const loadAssignments = ({
     filterByType = null,
     filterByPriority = null,
     selectedDeskId = null,
+    ignoreScheduledUpdates = false,
 }) => (dispatch) => {
     dispatch(
         self.changeListSettings({
@@ -32,6 +34,7 @@ const loadAssignments = ({
             filterByType,
             filterByPriority,
             selectedDeskId,
+            ignoreScheduledUpdates,
         })
     );
 
@@ -60,6 +63,7 @@ const loadFulfillModal = (item, groupKeys) => (
             filterByType: get(item, 'type'),
             filterByPriority: null,
             selectedDeskId: ALL_DESKS,
+            ignoreScheduledUpdates: true,
         }));
     }
 );
@@ -285,6 +289,7 @@ const changeListSettings = ({
     filterByType = null,
     filterByPriority = null,
     selectedDeskId = null,
+    ignoreScheduledUpdates = false,
 }) => ({
     type: ASSIGNMENTS.ACTIONS.CHANGE_LIST_SETTINGS,
     payload: {
@@ -294,6 +299,7 @@ const changeListSettings = ({
         filterByType,
         filterByPriority,
         selectedDeskId,
+        ignoreScheduledUpdates,
     },
 });
 
@@ -450,8 +456,10 @@ const complete = (item) => (
                         notify.success('The assignment has been completed.');
                         return Promise.resolve(lockedItem);
                     }, (error) => {
-                        notify.error('Failed to complete the assignment.');
-                        return Promise.reject(error);
+                        notify.error(getErrorMessage(error, 'Failed to complete the assignment.'));
+
+                        // unlock the assignment
+                        return dispatch(self.unlockAssignment(lockedItem));
                     });
             }, (error) => Promise.reject(error))
     )
@@ -546,62 +554,116 @@ const canLinkItem = (item) => (
     )
 );
 
-const openSelectTemplateModal = (assignment) => (
-    (dispatch, getState, {templates, session, desks, notify}) => (
-        dispatch(self.lockAssignment(assignment, 'start_working'))
-            .then((lockedAssignment) => {
-                const currentDesk = assignmentUtils.getCurrentSelectedDesk(desks, getState());
-                const defaultTemplateId = get(currentDesk, 'default_content_template') || null;
+const validateStartWorkingOnScheduledUpdate = (assignment) => (
+    (dispatch, getState, {notify}) => (
+        // Validate the coverage to see if all preceeding scheduled_updates / coverage
+        // is linked to an item
+        dispatch(planningApi.loadPlanningByIds([get(assignment, 'planning_item')], false)).then(
+            (plannings) => {
+                const planning = get(plannings, '[0]');
 
-                return templates.fetchTemplatesByUserDesk(
-                    session.identity._id,
-                    get(currentDesk, '_id') || null,
-                    1,
-                    200,
-                    'create'
-                ).then((data) => {
-                    let defaultTemplate = null;
-                    const publicTemplates = [];
-                    const privateTemplates = [];
+                if (!planning) {
+                    notify.error(gettext('Failed to fetch planning item.'));
+                    return Promise.reject();
+                }
 
-                    (get(data, '_items') || []).forEach((template) => {
-                        if (get(template, '_id') === defaultTemplateId) {
-                            defaultTemplate = template;
-                        } else if (get(template, 'is_public') !== false) {
-                            publicTemplates.push(template);
-                        } else {
-                            privateTemplates.push(template);
-                        }
-                    });
+                const coverage = get(planning, 'coverages', []).find((c) =>
+                    c.coverage_id === assignment.coverage_item);
 
-                    const onSelect = (template) => (
-                        dispatch(assignments.api.createFromTemplateAndShow(
-                            assignment._id,
-                            template.template_name
-                        )).catch((error) => {
-                            dispatch(self.unlockAssignment(assignment));
-                            notify.error(getErrorMessage(error, gettext('Failed to create an archive item.')));
-                            return Promise.reject(error);
-                        })
-                    );
+                if (![ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS, ASSIGNMENTS.WORKFLOW_STATE.COMPLETED].includes(
+                    get(coverage, 'assigned_to.state'))) {
+                    notify.error(gettext('Parent coverage not linked to a news item yet.'));
+                    return Promise.reject();
+                }
 
-                    const onCancel = () => (
-                        dispatch(assignments.api.unlock(lockedAssignment))
-                    );
+                const scheduledUpdate = (get(coverage, 'scheduled_updates') || []).find((s) =>
+                    s.scheduled_update_id === assignment.scheduled_update_id);
+                const previousScheduledUpdateIndex = (get(coverage, 'scheduled_updates') || []).findIndex((s) => {
+                    if (moment.isMoment(get(s, 'planning.scheduled')) && moment.isMoment(
+                        get(scheduledUpdate, 'planning.scheduled'))) {
+                        return s.planning.scheduled >= scheduledUpdate.planning.scheduled;
+                    }
+                    return Promise.reject();
+                }) - 1;
 
-                    return dispatch(showModal({
-                        modalType: MODALS.SELECT_DESK_TEMPLATE,
-                        modalProps: {
-                            onSelect: onSelect,
-                            onCancel: onCancel,
-                            defaultTemplate: defaultTemplate,
-                            publicTemplates: publicTemplates,
-                            privateTemplates: privateTemplates,
-                        },
-                    }));
-                });
-            }, (error) => Promise.reject(error))
+                if (previousScheduledUpdateIndex >= 0 && ![ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS,
+                    ASSIGNMENTS.WORKFLOW_STATE.COMPLETED].includes(get(
+                    coverage, `scheduled_updates[${previousScheduledUpdateIndex}].assigned_to.state`))) {
+                    notify.error(gettext('Previous scheduled update is not linked to a news item yet.'));
+                    return Promise.reject();
+                }
+
+                return Promise.resolve();
+            }
+        )
     )
+);
+
+const startWorking = (assignment) => (
+    (dispatch, getState, {templates, session, desks, notify}) => {
+        let promise = Promise.resolve();
+
+        if (get(assignment, 'scheduled_update_id')) {
+            promise = dispatch(self.validateStartWorkingOnScheduledUpdate(assignment));
+        }
+
+        promise.then(() =>
+            (dispatch(self.lockAssignment(assignment, 'start_working'))
+                .then((lockedAssignment) => {
+                    const currentDesk = assignmentUtils.getCurrentSelectedDesk(desks, getState());
+                    const defaultTemplateId = get(currentDesk, 'default_content_template') || null;
+
+                    return templates.fetchTemplatesByUserDesk(
+                        session.identity._id,
+                        get(currentDesk, '_id') || null,
+                        1,
+                        200,
+                        'create'
+                    ).then((data) => {
+                        let defaultTemplate = null;
+                        const publicTemplates = [];
+                        const privateTemplates = [];
+
+                        (get(data, '_items') || []).forEach((template) => {
+                            if (get(template, '_id') === defaultTemplateId) {
+                                defaultTemplate = template;
+                            } else if (get(template, 'is_public') !== false) {
+                                publicTemplates.push(template);
+                            } else {
+                                privateTemplates.push(template);
+                            }
+                        });
+
+                        const onSelect = (template) => (
+                            dispatch(assignments.api.createFromTemplateAndShow(
+                                assignment._id,
+                                template.template_name
+                            )).catch((error) => {
+                                dispatch(self.unlockAssignment(assignment));
+                                notify.error(getErrorMessage(error, gettext('Failed to create an archive item.')));
+                                return Promise.reject(error);
+                            })
+                        );
+
+                        const onCancel = () => (
+                            dispatch(assignments.api.unlock(lockedAssignment))
+                        );
+
+                        return dispatch(showModal({
+                            modalType: MODALS.SELECT_DESK_TEMPLATE,
+                            modalProps: {
+                                onSelect: onSelect,
+                                onCancel: onCancel,
+                                defaultTemplate: defaultTemplate,
+                                publicTemplates: publicTemplates,
+                                privateTemplates: privateTemplates,
+                            },
+                        }));
+                    });
+                }, (error) => Promise.reject(error))
+            ), (error) => Promise.resolve()
+        );
+    }
 );
 
 const _openActionModal = (assignment, action, lockAction = null) => (
@@ -913,7 +975,7 @@ const self = {
     onAuthoringMenuClick,
     canLinkItem,
     _openActionModal,
-    openSelectTemplateModal,
+    startWorking,
     addToAssignmentListGroup,
     onArchivePreviewImageClick,
     showRemoveAssignmentModal,
@@ -935,6 +997,7 @@ const self = {
     setSortField,
     loadDefaultListSort,
     changeSortField,
+    validateStartWorkingOnScheduledUpdate,
 };
 
 export default self;
