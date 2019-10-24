@@ -157,18 +157,14 @@ export class TimeInput extends React.Component {
         }
     }
 
-    onChange(newValue, toBeConfirmed) {
-        const {value, onChange, field, timeFormat, remoteTimeZone} = this.props;
+    onChange(newValue) {
+        const {value, onChange, field, timeFormat, remoteTimeZone, toBeConfirmed} = this.props;
 
         // Takes the time as a string (based on the configured time format)
         // Then parses it and calls parents onChange with new moment object
         if (!newValue) {
-            if (!toBeConfirmed) {
-                onChange(field, null);
-                return;
-            } else {
-                onChange(field, null, {toBeConfirmed: true});
-            }
+            onChange(field, null);
+            return;
         }
 
         let newTime;
@@ -190,7 +186,7 @@ export class TimeInput extends React.Component {
         newMoment.minute(newTime.minute());
         newMoment.second(0);
 
-        if (!newMoment.isSame(value) || !value) {
+        if (!newMoment.isSame(value) || !value || toBeConfirmed) {
             if (this.isValidInput(newValue) && this.state.invalid) {
                 this.setState({
                     invalid: false,
