@@ -821,10 +821,6 @@ const modifyForServer = (event, removeNullLinks = false) => {
         event.links = event.links.filter(
             (link) => link && get(link, 'length', 0) > 0
         );
-
-        if (get(event, 'links.length', 0) < 1) {
-            event.links = null;
-        }
     }
 
     if (timeUtils.isEventInDifferentTimeZone(event)) {
