@@ -10,7 +10,5 @@
 
 from superdesk.io.registry import register_feed_parser
 from .ics_2_0 import IcsTwoFeedParser
-from .ntb_event_xml import NTBEventXMLFeedParser
 
 register_feed_parser(IcsTwoFeedParser.NAME, IcsTwoFeedParser())
-register_feed_parser(NTBEventXMLFeedParser.NAME, NTBEventXMLFeedParser())

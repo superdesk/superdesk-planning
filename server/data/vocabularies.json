@@ -67,7 +67,6 @@
                     {"name": "Newsroom NINJS", "qcode": "newsroom ninjs"},
                     {"name": "NewsML G2", "qcode": "newsmlg2"},
                     {"name": "Email", "qcode": "email"},
-                    {"name": "NTB Event", "qcode": "ntb_event"},
                     {"name": "JSON Event", "qcode": "json_event"},
                     {"name": "JSON Planning", "qcode": "json_planning"},
                     {"name": "JSON Planning Featured", "qcode": "json_planning_featured"}
@@ -78,7 +77,6 @@
                     {"name": "Newsroom NINJS", "qcode": "newsroom ninjs"},
                     {"name": "NewsML G2", "qcode": "newsmlg2"},
                     {"name": "Email", "qcode": "email"},
-                    {"name": "NTB Event", "qcode": "ntb_event"},
                     {"name": "JSON Event", "qcode": "json_event"},
                     {"name": "JSON Planning", "qcode": "json_planning"},
                     {"name": "JSON Planning Featured", "qcode": "json_planning_featured"}
@@ -88,7 +86,6 @@
                     {"name": "NITF", "qcode": "nitf"},
                     {"name": "Newsroom NINJS", "qcode": "newsroom ninjs"},
                     {"name": "Email", "qcode": "email"},
-                    {"name": "NTB Event", "qcode": "ntb_event"},
                     {"name": "JSON Event", "qcode": "json_event"},
                     {"name": "JSON Planning", "qcode": "json_planning"},
                     {"name": "JSON Planning Featured", "qcode": "json_planning_featured"}

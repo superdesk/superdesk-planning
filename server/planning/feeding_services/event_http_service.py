@@ -8,19 +8,18 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+import logging
 import datetime
 import requests
 import traceback
 
-import xml.etree.ElementTree as ET
 from superdesk.io.feeding_services.http_service import HTTPFeedingService
 from superdesk.errors import IngestApiError
-from superdesk.logging import logger
 from superdesk.utc import utcnow
-from planning.feed_parsers.ntb_event_xml import NTBEventXMLFeedParser
-from planning.feed_parsers.ics_2_0 import IcsTwoFeedParser
 from flask import current_app as app
-from icalendar import Calendar
+
+
+logger = logging.getLogger(__name__)
 
 
 class EventHTTPFeedingService(HTTPFeedingService):
@@ -67,8 +66,6 @@ class EventHTTPFeedingService(HTTPFeedingService):
         self.URL = provider_config.get('url')
         payload = {}
 
-        parser = self.get_feed_parser(provider)
-
         try:
             response = requests.get(self.URL, params=payload, timeout=15)
             # TODO: check if file has been updated since provider last_updated
@@ -91,14 +88,12 @@ class EventHTTPFeedingService(HTTPFeedingService):
         if response.status_code == 404:
             raise LookupError('Not found %s' % payload)
 
+        parser = self.get_feed_parser(provider)
+        logger.info('Ingesting events with {} parser'.format(parser.__class__.__name__))
         logger.info('Ingesting: %s', str(response.content))
 
-        if isinstance(parser, NTBEventXMLFeedParser):
-            xml = ET.fromstring(response.content)
-            items = parser.parse(xml, provider)
-        elif isinstance(parser, IcsTwoFeedParser):
-            cal = Calendar.from_ical(response.content)
-            items = parser.parse(cal, provider)
+        if getattr(parser, 'parse_http'):
+            items = parser.parse_http(response.content, provider)
         else:
             items = parser.parse(response.content)
 
