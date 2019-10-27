@@ -80,28 +80,32 @@ export class SelectUserInput extends React.Component {
     }
 
     render() {
-        const {value, popupContainer, label, readOnly} = this.props;
+        const {value, popupContainer, label, readOnly, inline} = this.props;
 
         return (
             <div>
-                <Row noPadding={true}>
-                    <LineInput noMargin={true}>
-                        <Label text={label} />
+                {(!inline || value) && (
+                    <Row noPadding={true}>
+                        <LineInput noMargin={true} noPadding={inline}>
+                            <Label text={label} />
 
-                        {value && (
-                            <div className="user-search__popup-user">
-                                <UserAvatar user={value} />
-                                <div className="user-search__popup-item-label">{value.display_name}</div>
-                                {!readOnly && <button type="button" onClick={this.onUserChange.bind(null, null)}>
-                                    <i className="icon-close-small"/>
-                                </button>}
-                            </div>
-                        )}
-                    </LineInput>
-                </Row>
-                {!readOnly && <Row>
+                            {value && (
+                                <div className="user-search__popup-user" onClick={this.openPopup}
+                                    style={inline ? {margin: 0} : {}}>
+                                    <UserAvatar user={value} />
+                                    <div className="user-search__popup-item-label">{value.display_name}</div>
+                                    {!readOnly && <button type="button" onClick={this.onUserChange.bind(null, null)}>
+                                        <i className="icon-close-small"/>
+                                    </button>}
+                                </div>
+                            )}
+                        </LineInput>
+                    </Row>
+                )}
+
+                {!readOnly && (!inline || !value) && <Row noPadding={inline}>
                     <LineInput isSelect={true} noLabel={!!value}
-                        onClick={this.openPopup}>
+                        onClick={this.openPopup} noPadding={inline}>
                         <Input
                             className="sd-line-input--no-label"
                             value={this.state.searchText}
@@ -143,6 +147,10 @@ SelectUserInput.propTypes = {
     popupContainer: PropTypes.func,
     readOnly: PropTypes.bool,
     hideInactiveDisabled: PropTypes.bool,
+    inline: PropTypes.bool,
 };
 
-SelectUserInput.defaultProps = {hideInactiveDisabled: true};
+SelectUserInput.defaultProps = {
+    hideInactiveDisabled: true,
+    inline: false,
+};

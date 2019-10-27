@@ -17,6 +17,7 @@ export const COVERAGES = {
         ASSIGNED: 'coverage_assigned',
     },
     DEFAULT_DESK_PREFERENCE: 'planning:default_coverage_desks',
+    ADD_ADVANCED_MODE_PREFERENCE: 'planning:add_coverage_advanced_mode',
     ITEM_ACTIONS: {
         CANCEL_COVERAGE: {
             label: gettext('Cancel coverage'),

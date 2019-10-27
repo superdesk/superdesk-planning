@@ -310,6 +310,7 @@ export class PlanningStoreService {
 
     registerUserPreferences() {
         this.preferencesService.registerUserPreference(COVERAGES.DEFAULT_DESK_PREFERENCE);
+        this.preferencesService.registerUserPreference(COVERAGES.ADD_ADVANCED_MODE_PREFERENCE);
         this.preferencesService.registerUserPreference(ASSIGNMENTS.DEFAULT_SORT_PREFERENCE);
     }
 }

@@ -60,6 +60,18 @@ const setCoverageDefaultDesk = (coverage) => (
     }
 );
 
+const setCoverageAddAdvancedMode = (advancedMode) => (
+    (dispatch) => {
+        const update = {
+            [COVERAGES.ADD_ADVANCED_MODE_PREFERENCE]: {
+                enabled: advancedMode,
+            },
+        };
+
+        return dispatch(updatePreferences(update, COVERAGES.ADD_ADVANCED_MODE_PREFERENCE));
+    }
+);
+
 /**
  * Action dispatcher to set the assignment sort field user preference
  * @param {String} field - The new sort field to store
@@ -129,6 +141,7 @@ const self = {
     updatePreferences,
     setAssignmentSortField,
     setAssignmentSortOrder,
+    setCoverageAddAdvancedMode,
 };
 
 export default self;
