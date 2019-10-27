@@ -1,5 +1,117 @@
 # Superdesk Planning Changelog
 
+## [1.9.0-rc1] Not released yet
+### Features
+- [SDESK-4560] Cherry-picking scheduled_updates feature to master (#1366)
+  - [SDESK-4561] Coverage forward updates (#1293)
+  - [SDESK-4647] Item actions for Scheduled Updates (#1316)
+  - [SDESK-4562] Logically constrain the scheduling of planned updates to a coverage (#1324)
+  - [SDESK-4563][SDESK-4564] Scheduled updates linking and unlinking features (#1332)
+  - [SDESK-4727] Editor related bugs in Scheduled Updates creation (#1349)
+  - [SDESK-4730] Changes to scheduled_updates feature and merging information to newsroom (#1353)
+  - [SDESK-4758] Fixes to scheduled_updates feature (#1364)
+
+### Improvements
+- feat(dropdown): Improved behaviour for dropdown, added groups (#1361)
+- [SDNTB-604] Move NTB related feed parser and formatter from planning to NTB repo (#1363)
+- [SDBELGA-148] implement add coverages advanced modal (#1370)
+
+### Fixes
+- [SDESK-4745] Correct the label for news value in planning preview (#1365)
+- [SDESK-4771] Unable to change coverage schedule from 'To Be Confirmed' to default value (#1369)
+- [SDESK-4774] Event links getting a null value when editing (#1368)
+
+## [1.8.0] 2019-10-17
+### Features
+- [SDBELGA-101][SDBELGA-102][SDBELGA-103] Event templates (#1328)
+- [SDESK-4565] Independently sort Assignment lists (#1344)
+- [SDESK-4472] 'To be confirmed' feature (#1341)
+
+### Improvements
+- [SDESK-4668] Introduce configuration for the main left hand side toolbar (#1336)
+- [SDESK-4701] Align collapse box close button left and next to three-dot button (#1348)
+- [SDBELGA-186] control via article template where generated content is inserted (#1354)
+- [SDESK-4756] Provide browser time accesibility to events download templates (#1357)
+
+### Fixes
+- [SDESK-4514] reopen editor if required when item is added to featured stories (#1331)
+- [SDNTB-599] When duplicated event is rescheduled and posted, SD sends file with NTBID of orginal event (#1340)
+- [SDESK-4515] Close editor after cancelling event/planning-item (#1342)
+- [SDESK-4516] Event editor is blank when reducing repetitions if that event no longer exists (#1343)
+- [SDESK-4515] Cancelling planning item was keeping the item in editor still locked (#1347)
+- [SDESK-4663] The editor in 'Add To Planning' modal should close if the same Planning item is unlocked in another session (#1346)
+- [SDESK-4710] Error when assigning past date to coverage (#1350)
+- (fix) Place superdesk-core in peerDependencies and update Typescript version (#1351)
+- [SDNTB-589] (fix): Cannot perform reschedule or convert to recurring on events. (#1352)
+- fix duplicate by on slack notification (#1339)
+- [SDESK-4757] 'Abstract' from news item was missing when planning item was exported as article (#1358)
+- [SDESK-4648] User asked for saving changes when an event is not edited (#1359)
+
+## [1.7.0] 2019-09-20
+### Features
+- [SDESK-4427] New Event action 'Mark as Completed' (#1273)
+- [SDNTB-584] feat(draggable): Added ability to make modals draggable (#1294)
+
+### Improvements
+- [SDESK-4599] Review planning workflow notifications (#1301)
+- [SDESK-4598] Add Place to event and planning filter (#1302)
+- [SDESK-4618] Remove the folder from the filename returned for attachments (#1307)
+- [SDESK-4595] Move the attachment icon in lists (#1311)
+- [SDESK-4651] Show all desks by default in Fulfil Assignment modal (#1305)
+- [SDESK-4676] Hide 'all day' as an event form option (#1320)
+- [SDESK-4705] modify the internal note message (#1334)
+
+### Fixes
+- [SDESK-4427] Mark for complete fix to cater for events that start on same day but ahead in time. (#1278)
+- [SDESK-4592] Restrict some item actions on expired items (#1297)
+- actioned_date was removed when posting an event (#1299)
+- [SDESK-4224][SDESK-4510][SDESK-4513] (fix): Don't unmount the PopupEditor when action modal is shown (#1274)
+- [SDESK-4572] Don't close dropdown on scroll bar click (#1303)
+- [SDESK-4654] Handle the enter key in Selecting subject codes etc. (#1312)
+- [SDESK-4669] Location was getting deleted when event was marked as complete or assigned to calendar (#1310)
+- [SDESK-4661] (fix) Fulfil Assignment button visible if Assignment is locked (#1306)
+- (fix-requirements) Add responses lib in dev-requirements.txt (#1315)
+- [SDESK-4678] When marking an Event as completed Planning and Assignments need to be updated (#1317)
+- fix(flake8): Resolve 'D413 Missing blank line after last section' (#1312)
+- fix(import ui-framework): Add helpers and colors to scss imports (#1323)
+- fix to use modal__backdrop class locally (#1326)
+- [SDESK-4691] Planning was not published when event was completed (#1330)
+- fix(assignment templates) handle missing bits of address, add slugline to subject (#1333)
+- [SDESK-4704] Send Assignment notification when Event is updated (#1337)
+- [SDNTB-599] 'duplicate_from' was missing when duplicating an Event. (#1335)
+
+## [1.6.2] 2019-08-21
+### Features
+- [SDESK-4469] Introduce modal to prompt for a 'reason' to cancel individual coverages (#1260)
+
+### Improvements
+- [SDESK-3286] Close popup modals with ESC key (#1272)
+- [SDESK-4428] Multiselect in the Event list and Planning list (#1268)
+- [SDESK-4402] Improve location display in planning lists (#1266)
+- [SDESK-4493] Create a history record for Planning items and events when an Event is created from planning item (#1264)
+- [SDESK-4421] Add details to location dropdown (#1263)
+- [SDBELGA-129] Include coverage without users on export templates (#1281)
+- [SDESK-4286] Minor changes to event and planning list items in Export Modal (#1279)
+- [SDESK-4566] Position 'start working' as the first item in the action menu for assignments (#1282)
+- [SDESK-4573] Slack mentions in slack notifications (#1283)
+- [SDESK-4529][SDESK-4534] Show current and future only assignments in the Fulfill modal (#1284)
+
+### Fixes
+- [SDESK-4286] List Item format for exporting and downloading events/planning (#1276)
+- [SDESK-4478] Correctly display the number of events in Post/Unpost popup (#1275)
+- [SDESK-4549] Coverages are inheriting published time and not scheduled time of a story (#1271)
+- [SDESK-4328] Remove ability to clear the coverage type in the editor (1270)
+- (fix): Update enzyme-adapter-react-16 (#1269)
+- [SDESK-4571] Allow content unlinking when content has been archived (1280)
+- [SDESK-4552] (fix): Assignment preview not showing from monitoring preview (#1285)
+- [SDESK-4477] (fix): Cannot lower repetitions unless on the first event (#1286))
+- [SDESK-4511] (fix): Scrollbar required for planning items in CancelEvent modal (#1287)
+- [SDESK-4524] Make contact form read only when embedded in read only coverage form (#1289)
+- [SDESK-4535] Fulfill assignment available for Reporters (#1288)
+- [SDESK-4609] Filter soft deleted locations out from the browse view (#1290)
+- [SDESK-4637] (fix) Select first assignment on fulfill on publish (#1296)
+- [SDESK-4608] (fix) Advance Search Panel was collapsing if list item has a long text (#1298)
+
 ## [1.6.1] 2019-07-17
 ### Fixes
 - [SDESK-4471] Reschedule and Postpone bugs when editor is open (#1259)
