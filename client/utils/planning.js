@@ -990,10 +990,10 @@ const shouldFetchFilesForPlanning = (planning) => (
             || f instanceof String).length > 0
 );
 
-const getAgendaNames = (item = {}, agendas = []) => (
+const getAgendaNames = (item = {}, agendas = [], onlyEnabled = false) => (
     get(item, 'agendas', [])
         .map((agendaId) => agendas.find((agenda) => agenda._id === get(agendaId, '_id', agendaId)))
-        .filter((agenda) => agenda)
+        .filter((agenda) => agenda && (!onlyEnabled || agenda.is_enabled))
 );
 
 const getDateStringForPlanning = (planning, dateFormat, timeFormat) =>
