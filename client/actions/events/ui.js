@@ -15,6 +15,7 @@ import {
     getPostedState,
     timeUtils,
     getItemId,
+    isItemPublic,
 } from '../../utils';
 
 /**
@@ -563,44 +564,71 @@ const postWithConfirmation = (original, updates, post) => (
     }
 );
 
-const openEventPostModal = (original, updates, post, unpostAction, modalProps = {}) => (
-    (dispatch) => (
-        dispatch(eventsApi.loadEventDataForAction(
-            original,
-            true,
-            post,
-            true,
-            true
-        )).then((eventWithData) => {
-            if (!post &&
-                !eventWithData.recurrence_id &&
-                !eventUtils.eventHasPostedPlannings(eventWithData)
-            ) {
-                // Not a recurring event and has no posted planning items to confirm unpost
-                // Just unpost
-                return dispatch(!unpostAction ?
-                    eventsApi.unpost(original, updates) :
-                    unpostAction(original, updates)
-                );
+const openEventPostModal = (
+    original,
+    updates,
+    post,
+    unpostAction,
+    modalProps = {},
+    planningItem = null,
+    planningAction = null) => (
+    (dispatch) => {
+        let promise = Promise.resolve(original);
+
+        if (planningItem) {
+            // Actually posting a planning item
+            if (!planningItem.event_item || !planningItem.recurrence_id) {
+                // Adhoc planning item or does not belong to recurring series
+                return dispatch(planningAction()).then((p) => Promise.resolve(p));
             }
 
-            return new Promise((resolve, reject) => {
-                dispatch(showModal({
-                    modalType: MODALS.ITEM_ACTIONS_MODAL,
-                    modalProps: {
-                        resolve: resolve,
-                        reject: reject,
-                        original: eventWithData,
-                        updates: updates,
-                        actionType: modalProps.actionType ?
-                            modalProps.actionType :
-                            EVENTS.ITEM_ACTIONS.POST_EVENT.label,
-                        ...modalProps,
-                    },
-                }));
+            promise = dispatch(eventsApi.fetchById(planningItem.event_item, {force: true, loadPlanning: false}));
+        }
+
+        return promise.then((fetchedEvent) => {
+            if (planningItem && isItemPublic(fetchedEvent)) {
+                return dispatch(planningAction()).then((p) => Promise.resolve(p));
+            }
+
+            return dispatch(eventsApi.loadEventDataForAction(
+                fetchedEvent,
+                true,
+                post,
+                true,
+                true
+            )).then((eventWithData) => {
+                if (!post &&
+                    !eventWithData.recurrence_id &&
+                    !eventUtils.eventHasPostedPlannings(eventWithData)
+                ) {
+                    // Not a recurring event and has no posted planning items to confirm unpost
+                    // Just unpost
+                    return dispatch(!unpostAction ?
+                        eventsApi.unpost(fetchedEvent, updates) :
+                        unpostAction(fetchedEvent, updates)
+                    );
+                }
+
+                return new Promise((resolve, reject) => {
+                    dispatch(showModal({
+                        modalType: MODALS.ITEM_ACTIONS_MODAL,
+                        modalProps: {
+                            resolve: resolve,
+                            reject: reject,
+                            original: eventWithData,
+                            updates: updates,
+                            actionType: modalProps.actionType ?
+                                modalProps.actionType :
+                                EVENTS.ITEM_ACTIONS.POST_EVENT.label,
+                            planningItem: planningItem,
+                            planningAction: planningAction,
+                            ...modalProps,
+                        },
+                    }));
+                }).then((rtn) => Promise.resolve(rtn));
             });
-        })
-    )
+        });
+    }
 );
 
 const openAssignCalendarModal = (original, updates) => (
