@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {get} from 'lodash';
-import {gettext, getItemType, eventUtils, getDateTimeString, timeUtils} from '../utils';
+import {gettext, getItemType, eventUtils, getDateTimeString, timeUtils, planningUtils} from '../utils';
 import {ITEM_TYPE, EVENTS, PLANNING} from '../constants';
 
 import {Button} from './UI';
@@ -97,7 +97,7 @@ export class ExportAsArticleModal extends React.Component {
             fieldsProps: {
                 location: {noMargin: true},
                 description: {alternateFieldName: 'definition_short'},
-                agendas: {agendas: agendas},
+                agendas: {agendas: planningUtils.getAgendaNames(item, agendas, true)},
 
             },
         };
