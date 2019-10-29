@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import {WORKFLOW_STATE} from '../../constants/index';
 
-export const RelatedEvents = ({events, dateFormat}) => (
+export const RelatedEvents = ({events, dateFormat, originalEvent}) => (
     <ul className="related-events">
-        {events.map(({
+        {(originalEvent ? [...events, originalEvent] : events).map(({
             _id, // eslint-disable-line camelcase
             slugline,
             name,
@@ -31,4 +31,5 @@ export const RelatedEvents = ({events, dateFormat}) => (
 RelatedEvents.propTypes = {
     events: PropTypes.array.isRequired,
     dateFormat: PropTypes.string.isRequired,
+    originalEvent: PropTypes.object,
 };

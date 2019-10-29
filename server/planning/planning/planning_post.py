@@ -19,7 +19,7 @@ import logging
 
 from eve.utils import config
 from planning.planning import PlanningResource
-from planning.common import WORKFLOW_STATE, POST_STATE, post_state, \
+from planning.common import WORKFLOW_STATE, POST_STATE, post_state, UPDATE_SINGLE, UPDATE_ALL, \
     get_item_post_state, enqueue_planning_item, get_version_item_for_post
 
 logger = logging.getLogger(__name__)
@@ -108,9 +108,10 @@ class PlanningPostService(BaseService):
         :return:
         """
         if event:
+            update_method = UPDATE_ALL if event.get('recurrence_id') else UPDATE_SINGLE
             if event and event.get('pubstatus') is None:
                 get_resource_service('events_post').post([{'event': event[config.ID_FIELD], 'etag': event['_etag'],
-                                                           'update_method': 'single', 'pubstatus': 'usable'}])
+                                                           'update_method': update_method, 'pubstatus': 'usable'}])
 
     def post_planning(self, plan, new_post_state, assignments_to_delete):
         """Post a Planning item

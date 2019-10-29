@@ -1077,8 +1077,8 @@ Feature: Events Reschedule
                         "endRepeatMode": "count"
                     }
                 },
-                "state": "draft",
-                "state_reason": "Event back on at original date and time"
+                "state": "scheduled",
+                "state_reason": null
             },
             {
                 "name": "Friday Club",
@@ -1094,8 +1094,8 @@ Feature: Events Reschedule
                         "endRepeatMode": "count"
                     }
                 },
-                "state": "draft",
-                "state_reason": "Event back on at original date and time"
+                "state": "scheduled",
+                "state_reason": null
             },
             {
                 "name": "Friday Club",

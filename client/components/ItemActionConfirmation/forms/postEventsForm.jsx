@@ -78,6 +78,10 @@ export class PostEventsComponent extends React.Component {
             gettext('Unpost all recurring events or just this one?');
         const postAll = posting && !isItemPublic(original);
         const numEvents = this.state.relatedEvents.length + 1;
+        const planningItem = get(this.props, 'modalProps.planningItem');
+        const msgTxt = planningItem ?
+            gettext('This will also post the related event\'s entire recurring series') :
+            gettext('This event is a recurring event. Post all recurring events');
 
         return (
             <div className="MetadataView">
@@ -118,13 +122,12 @@ export class PostEventsComponent extends React.Component {
                     readOnly={submitting}
                     relatedPlannings={this.state.relatedPlannings}
                     relatedEvents={this.state.relatedEvents}
-                    action={posting ? gettext('post') : gettext('unpost')} />
+                    action={posting ? gettext('post') : gettext('unpost')}
+                    originalEvent={planningItem ? original : null} />
                 {postAll && (
-                    <div className="sd-alert sd-alert--hollow
-                        sd-alert--alert sd-alert--flex-direction">
-                        {gettext('This event is a recurring event. Post all recurring events')}
-                    </div>
-                )}
+                    <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">
+                        {msgTxt}
+                    </div>)}
             </div>
         );
     }
@@ -138,6 +141,7 @@ PostEventsComponent.propTypes = {
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
     resolve: PropTypes.func,
+    modalProps: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
@@ -146,17 +150,24 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-    onSubmit: (original, updates) => dispatch(original._post ?
-        actions.main.post(original, updates, false) :
-        actions.main.unpost(original, updates, false)
-    )
-        .then((updatedEvent) => {
+    onSubmit: (original, updates) => {
+        let promise;
+
+        if (get(ownProps, 'modalProps.planningAction')) {
+            promise = dispatch(ownProps.modalProps.planningAction(ownProps.modalProps.planningItem, updates));
+        } else {
+            promise = dispatch(original._post ? actions.main.post(original, updates, false) :
+                actions.main.unpost(original, updates, false));
+        }
+
+        return promise.then((updatedItem) => {
             if (ownProps.resolve) {
-                ownProps.resolve(updatedEvent);
+                ownProps.resolve(updatedItem);
             }
 
-            return Promise.resolve(updatedEvent);
-        }),
+            return Promise.resolve(updatedItem);
+        });
+    },
     onHide: () => {
         if (ownProps.resolve) {
             ownProps.resolve();
