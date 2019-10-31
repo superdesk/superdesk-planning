@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {SelectFieldPopup} from './SelectFieldPopup';
-import {differenceBy, cloneDeep} from 'lodash';
+import {differenceByS} from 'lodash';
 
 import {LineInput, Label} from '../';
 import {TermsList} from '../../';
@@ -42,7 +42,7 @@ export class SelectMetaTermsInput extends React.Component {
 
         onChange(
             field,
-            value.filter(({scheme, qcode}) => !(term.scheme === scheme && term.qcode === qcode)),
+            value.filter(({scheme, qcode}) => !(term.scheme === scheme && term.qcode === qcode))
         );
     }
 
