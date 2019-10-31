@@ -17,7 +17,7 @@ npm-debug.log
 dist/
 *.egg-info
 *.pyc
-src/
+/src/
 yarn.lock
 
 # VIM related files
