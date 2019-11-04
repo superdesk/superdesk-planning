@@ -583,7 +583,8 @@ describe('actions.assignments.ui', () => {
                         type: 'SHOW_MODAL',
                         modalType: 'CONFIRMATION',
                         modalProps: jasmine.objectContaining(
-                            {body: 'Are you sure you want to remove the Assignment?'}
+                            {body: 'This will also remove other linked assignments (if any, for story updates). '
+                                + 'Are you sure?'}
                         ),
                     }]);
 

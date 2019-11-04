@@ -244,29 +244,28 @@ const assignmentReducer = createReducer(initialState, {
     }),
 
     [ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT]: (oldState, payload) => {
-        if (!(payload.assignment in oldState.assignments)) {
-            return oldState;
-        }
-
         const state = cloneDeep(oldState);
 
         // Remove the assignment from the stored list of assignments
-        delete state.assignments[payload.assignment];
+        (get(payload, 'assignments') || []).forEach((a) => {
+            if (a in state.assignments) {
+                delete state.assignments[a];
+                // If this assignment is being viewed,
+                // then close the preview and de-select the assignment
+                if (state.currentAssignmentId === a) {
+                    state.previewOpened = false;
+                    state.currentAssignmentId = null;
+                }
 
-        // If this assignment is being viewed,
-        // then close the preview and de-select the assignment
-        if (state.currentAssignmentId === payload.assignment) {
-            state.previewOpened = false;
-            state.currentAssignmentId = null;
-        }
-
-        // Remove this assignment from any list groups
-        filterList(state, ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.id, payload.assignment);
-        filterList(state, ASSIGNMENTS.LIST_GROUPS.TODO.id, payload.assignment);
-        filterList(state, ASSIGNMENTS.LIST_GROUPS.COMPLETED.id, payload.assignment);
-        filterList(state, ASSIGNMENTS.LIST_GROUPS.CURRENT.id, payload.assignment);
-        filterList(state, ASSIGNMENTS.LIST_GROUPS.TODAY.id, payload.assignment);
-        filterList(state, ASSIGNMENTS.LIST_GROUPS.FUTURE.id, payload.assignment);
+                // Remove this assignment from any list groups
+                filterList(state, ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.id, a);
+                filterList(state, ASSIGNMENTS.LIST_GROUPS.TODO.id, a);
+                filterList(state, ASSIGNMENTS.LIST_GROUPS.COMPLETED.id, a);
+                filterList(state, ASSIGNMENTS.LIST_GROUPS.CURRENT.id, a);
+                filterList(state, ASSIGNMENTS.LIST_GROUPS.TODAY.id, a);
+                filterList(state, ASSIGNMENTS.LIST_GROUPS.FUTURE.id, a);
+            }
+        });
 
         return state;
     },

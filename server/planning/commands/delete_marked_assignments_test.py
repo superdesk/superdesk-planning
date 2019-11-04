@@ -33,8 +33,8 @@ class DeleteMarkedAssignmentsTest(TestCase):
     ]
 
     assignments = [
-        {'_id': 'a1', '_to_delete': True, 'planning_item': 'p1'},
-        {'_id': 'a2', '_to_delete': True, 'planning_item': 'p2'},
+        {'_id': 'a1', '_to_delete': True, 'planning_item': 'p1', 'coverage_item': 'c1'},
+        {'_id': 'a2', '_to_delete': True, 'planning_item': 'p2', 'coverage_item': 'c1'},
         {'_id': 'a3', 'planning_item': 'p3'},
     ]
     plans = [

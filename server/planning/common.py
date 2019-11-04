@@ -444,7 +444,7 @@ def get_related_items(item, assignment=None):
         return list(archive_list.values())
 
 
-def update_assignment_on_link_unlink(assignment_id, item, published_updated):
+def update_assignment_on_link_unlink(assignment_id, item, published_updated=[]):
     published_states = [CONTENT_STATE.SCHEDULED,
                         CONTENT_STATE.PUBLISHED,
                         CONTENT_STATE.KILLED,

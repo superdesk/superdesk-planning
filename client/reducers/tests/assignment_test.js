@@ -391,7 +391,7 @@ describe('assignment', () => {
             it('REMOVE_ASSIGNMENT returns if Assignment not loaded', () => {
                 const result = assignment(state, {
                     type: 'REMOVE_ASSIGNMENT',
-                    payload: {assignment: 'as1'},
+                    payload: {assignments: ['as1']},
                 });
 
                 expect(result).toEqual(initialState);
@@ -411,7 +411,7 @@ describe('assignment', () => {
 
                 result = assignment(result, {
                     type: 'REMOVE_ASSIGNMENT',
-                    payload: {assignment: 'as1'},
+                    payload: {assignments: ['as1']},
                 });
 
                 expect(result.lists.IN_PROGRESS).toEqual({
@@ -434,7 +434,7 @@ describe('assignment', () => {
 
                 result = assignment(result, {
                     type: 'REMOVE_ASSIGNMENT',
-                    payload: {assignment: 'as1'},
+                    payload: {assignments: ['as1']},
                 });
 
                 expect(result.lists.TODO).toEqual({
@@ -457,7 +457,7 @@ describe('assignment', () => {
 
                 result = assignment(result, {
                     type: 'REMOVE_ASSIGNMENT',
-                    payload: {assignment: 'as1'},
+                    payload: {assignments: ['as1']},
                 });
 
                 expect(result.lists.COMPLETED).toEqual({
@@ -486,7 +486,7 @@ describe('assignment', () => {
 
                 result = assignment(result, {
                     type: 'REMOVE_ASSIGNMENT',
-                    payload: {assignment: 'as1'},
+                    payload: {assignments: ['as1']},
                 });
 
                 expect(result).toEqual(jasmine.objectContaining({
@@ -513,7 +513,7 @@ describe('assignment', () => {
 
                 result = assignment(result, {
                     type: 'REMOVE_ASSIGNMENT',
-                    payload: {assignment: 'as1'},
+                    payload: {assignments: ['as1']},
                 });
 
                 expect(result).toEqual(jasmine.objectContaining({

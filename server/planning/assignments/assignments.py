@@ -30,9 +30,9 @@ from apps.common.components.utils import get_component
 from planning.item_lock import LockService, LOCK_USER, LOCK_ACTION
 from superdesk.users.services import current_user_has_privilege
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information, \
-    is_locked_in_this_session, get_coverage_type_name, get_version_item_for_post, \
+    is_locked_in_this_session, get_coverage_type_name, get_version_item_for_post, get_related_items, \
     enqueue_planning_item, WORKFLOW_STATE, get_next_assignment_status, get_delivery_publish_time, \
-    TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA
+    TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA, update_assignment_on_link_unlink
 from flask import request, json, current_app as app
 from planning.planning_notifications import PlanningNotifications
 from apps.content import push_content_notification
@@ -905,57 +905,75 @@ class AssignmentsService(superdesk.Service):
                 message='Cannot delete a completed Assignment'
             )
 
-    def on_deleted(self, doc):
-        """Validate we can safely delete the Assignment item
-
+    def archive_delete_assignment(self, doc):
+        """
         Make sure to clean up the Archive, Delivery and Planning items by:
-            * Remove 'assignment_id' from Archive item (if linked)
-            * Delete the Delivery record associated with the Assignment & Archive items (if linked)
-            * Removing 'assigned_to' dictionary from the associated Coverage
+
+        * Remove 'assignment_id' from Archive item (if linked)
+        * Delete the Delivery record associated with the Assignment & Archive items (if linked)
+        * Removing 'assigned_to' dictionary from the associated Coverage
         """
         archive_service = get_resource_service('archive')
         delivery_service = get_resource_service('delivery')
-        planning_service = get_resource_service('planning')
         assignment_id = doc.get(config.ID_FIELD)
 
         # If we have a Content Item linked, then we need to remove the
         # assignment_id from it and remove the delivery record
         # Then send a notification that the content has been updated
+        related_items = []
         archive_item = archive_service.find_one(req=None, assignment_id=assignment_id)
         if archive_item:
-            archive_service.system_update(
-                archive_item[config.ID_FIELD],
-                {'assignment_id': None},
-                archive_item
-            )
+            related_items = get_related_items(archive_item, doc)
+            for item in related_items:
+                update_assignment_on_link_unlink(None, item)
+                push_notification(
+                    'assignments:removed',
+                    item=item[config.ID_FIELD] if item else None,
+                    session=get_auth().get('_id')
+                )
 
-            delivery_service.delete_action(lookup={
-                'assignment_id': ObjectId(assignment_id),
-                'item_id': archive_item[config.ID_FIELD]
-            })
+            if len(related_items) > 0:
+                # Push content nofitication so connected clients can update the
+                # content views (i.e. removes the Calendar icon from Monitoring)
+                push_content_notification(related_items)
 
-            # Push content nofitication so connected clients can update the
-            # content views (i.e. removes the Calendar icon from Monitoring)
-            push_content_notification([archive_item])
+            # Now delete all deliveries for that assignment
+            delivery_service.delete_action(lookup={'assignment_id': ObjectId(assignment_id)})
+
+    def on_deleted(self, doc):
+        deleted_assignments = [doc.get(config.ID_FIELD)]
+        planning_service = get_resource_service('planning')
+        self.archive_delete_assignment(doc)
+        marked_for_delete = False
+        # Delete all assignments in that coverage
+        assignments = list(get_resource_service('assignments').get_from_mongo(
+            req=None, lookup={'coverage_item': doc['coverage_item']}))
+        for a in assignments:
+            if str(a['_id']) != str(doc['_id']):
+                self.delete(lookup={'_id': a['_id']})
+                self.archive_delete_assignment(a)
+                deleted_assignments.append(a.get(config.ID_FIELD))
+                if a.get('_to_delete'):
+                    marked_for_delete = True
 
         # Remove assignment information from coverage
         updated_planning = planning_service.remove_assignment(doc, unlock_planning=True)
 
         # Finally send a notification to connected clients that the Assignment
         # has been removed
-        if updated_planning and updated_planning.get('state') not in [WORKFLOW_STATE.KILLED, WORKFLOW_STATE.SPIKED]:
+        archive_item = get_resource_service('archive').find_one(req=None, assignment_id=doc.get(config.ID_FIELD))
+        if updated_planning:
             push_notification(
                 'assignments:removed',
                 item=archive_item[config.ID_FIELD] if archive_item else None,
-                assignment=assignment_id,
+                assignments=deleted_assignments,
                 planning=doc.get('planning_item'),
                 coverage=doc.get('coverage_item'),
                 planning_etag=updated_planning.get(config.ETAG),
                 event_item=updated_planning.get('event_item'),
                 session=get_auth().get('_id')
             )
-
-        if not doc.get('_to_delete'):
+        if not doc.get('_to_delete') or marked_for_delete:
             # publish planning
             self.publish_planning(doc.get('planning_item'))
 
