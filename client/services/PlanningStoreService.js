@@ -264,8 +264,20 @@ export class PlanningStoreService {
 
     onNotificationClick(event, data) {
         // If the notification has an assignment related to it, open that item
-        if (get(data, 'notification.data.assignment_id')) {
-            this.$location.path('/workspace/assignments').search('assignment', data.notification.data.assignment_id);
+        if (!get(data, 'notification.data.assignment_id')) {
+            return;
+        }
+
+        const currentPath = this.$location.path();
+
+        this.$location
+            .path('/workspace/assignments')
+            .search('assignment', data.notification.data.assignment_id);
+
+        if (currentPath.startsWith('/workspace/assignments') && !isNil(this.store)) {
+            this.store.dispatch(
+                actions.assignments.ui.updatePreviewItemOnRouteUpdate()
+            );
         }
     }
 
