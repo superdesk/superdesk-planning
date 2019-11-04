@@ -398,7 +398,7 @@ const save = (original, updates) => (
         if (selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING) {
             return dispatch(self.saveFromAuthoring(original, updates));
         } else {
-            if (get(original, 'recurrence_id')) {
+            if (get(updates, '_post') && get(original, 'recurrence_id')) {
                 return dispatch(eventsUi.openEventPostModal(
                     original,
                     updates,

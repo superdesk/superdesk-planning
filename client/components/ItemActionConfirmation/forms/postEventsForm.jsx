@@ -101,7 +101,7 @@ export class PostEventsComponent extends React.Component {
                 />
 
                 <EventScheduleSummary
-                    schedule={original.dates}
+                    schedule={original}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
                 />
@@ -123,7 +123,9 @@ export class PostEventsComponent extends React.Component {
                     relatedPlannings={this.state.relatedPlannings}
                     relatedEvents={this.state.relatedEvents}
                     action={posting ? gettext('post') : gettext('unpost')}
-                    originalEvent={planningItem ? original : null} />
+                    originalEvent={planningItem ? original : null}
+                    dateFormat={dateFormat}
+                />
                 {postAll && (
                     <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">
                         {msgTxt}
