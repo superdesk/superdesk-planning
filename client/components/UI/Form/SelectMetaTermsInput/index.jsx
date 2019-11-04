@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {SelectFieldPopup} from './SelectFieldPopup';
-import {differenceByS} from 'lodash';
+import {differenceBy} from 'lodash';
 
 import {LineInput, Label} from '../';
 import {TermsList} from '../../';
