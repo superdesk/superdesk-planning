@@ -836,7 +836,8 @@ const showRemoveAssignmentModal = (assignment) => (
                 dispatch(showModal({
                     modalType: MODALS.CONFIRMATION,
                     modalProps: {
-                        body: 'Are you sure you want to remove the Assignment?',
+                        body: gettext('This will also remove other linked assignments (if any, for story updates). '
+                            + 'Are you sure?'),
                         action: () => dispatch(self.removeAssignment(lockedAssignment)),
                         onCancel: () => dispatch(self.unlockAssignmentAndPlanning(lockedAssignment)),
                         autoClose: true,

@@ -201,6 +201,9 @@ export class CoverageForm extends React.Component {
             addNewsItemToPlanning
         );
 
+        const canCreateScheduledUpdate = !addNewsItemToPlanning &&
+            !get(diff, `${field}.flags.no_content_linking`);
+
         return (
             <div>
                 <InternalNoteLabel
@@ -364,7 +367,7 @@ export class CoverageForm extends React.Component {
                                 {...fieldProps}
                                 {...props} />
                         ))}
-                        {!get(diff, `${field}.flags.no_content_linking`) && <Button
+                        {canCreateScheduledUpdate && <Button
                             color="primary"
                             text={gettext('Schedule an update')}
                             onClick={this.onAddScheduledUpdate}

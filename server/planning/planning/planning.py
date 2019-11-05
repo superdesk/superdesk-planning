@@ -620,10 +620,6 @@ class PlanningService(superdesk.Service):
                 assignment['scheduled_update_id'] = doc['scheduled_update_id']
                 assignment['planning'] = deepcopy(parent_coverage.get('planning'))
                 assignment['planning'].update(doc.get('planning'))
-                assignment['planning']['genre'] = [{
-                    'qcode': 'Update',
-                    'name': 'Update'
-                }]
 
             if 'coverage_provider' in assigned_to:
                 assignment['assigned_to']['coverage_provider'] = assigned_to.get('coverage_provider')
@@ -810,6 +806,18 @@ class PlanningService(superdesk.Service):
             # Assignment was already removed (unposting a planning item scenario)
             return planning_item
 
+        for s in coverage_item.get('scheduled_updates'):
+            assigned_to = s.get('assigned_to')
+            PlanningNotifications().notify_assignment(
+                coverage_status=s.get('workflow_status'),
+                target_desk=assigned_to.get('desk') if assigned_to.get('user') is None else None,
+                target_user=assigned_to.get('user'),
+                message='assignment_removed_msg',
+                coverage_type=get_coverage_type_name(coverage_item.get('planning', {}).get('g2_content_type', '')),
+                slugline=planning_item.get('slugline', ''))
+            del s['assigned_to']
+            s['workflow_status'] = WORKFLOW_STATE.DRAFT
+
         assigned_to = assignment_item.get('assigned_to')
         PlanningNotifications().notify_assignment(
             coverage_status=coverage_item.get('workflow_status'),
@@ -818,7 +826,6 @@ class PlanningService(superdesk.Service):
             message='assignment_removed_msg',
             coverage_type=get_coverage_type_name(coverage_item.get('planning', {}).get('g2_content_type', '')),
             slugline=planning_item.get('slugline', ''))
-
         del coverage_item['assigned_to']
         coverage_item['workflow_status'] = WORKFLOW_STATE.DRAFT
 
