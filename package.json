@@ -10,7 +10,8 @@
     "lint": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec --quiet",
     "unit_test": "karma start karma.conf.js --log-level debug --display-error-details --single-run",
     "karma": "node --max-old-space-size=8192 ./node_modules/.bin/karma start karma.conf.js",
-    "test": "npm run hint && npm run unit_test"
+    "test": "npm run hint && npm run unit_test",
+    "postinstall": "cd client/planning-extension && npm install && npm run compile"
   },
   "author": "Edouard Richard",
   "dependencies": {
