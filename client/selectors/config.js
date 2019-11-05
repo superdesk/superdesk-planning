@@ -1,5 +1,8 @@
 import {get} from 'lodash';
 import moment from 'moment-timezone';
+import {createSelector} from 'reselect';
+
+import {coverageProfile} from './forms';
 
 export const getDateFormat = (state) =>
     get(state, 'config.view.dateformat') ||
@@ -37,5 +40,8 @@ export const getMaxMultiDayEventDuration = (state) => get(state, 'deployConfig.m
 
 export const allowFreeTextLocation = (state) => get(state, 'config.planning_allow_freetext_location', false);
 
-export const getPlanningAllowScheduledUpdates = (state) => get(state, 'deployConfig.planning_allow_scheduled_updates',
+export const planningAllowScheduledUpdates = (state) => get(state, 'deployConfig.planning_allow_scheduled_updates',
     false);
+
+export const getPlanningAllowScheduledUpdates = createSelector([coverageProfile, planningAllowScheduledUpdates],
+    (cp, allowScheduleUpdates) => get(cp, 'editor.flags') && allowScheduleUpdates);

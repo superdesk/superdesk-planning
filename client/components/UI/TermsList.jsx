@@ -15,7 +15,7 @@ const TermsList = ({terms, displayField, onClick, readOnly}) => (
     )}>
         <ul>
             {terms.map((term, index) => (
-                <li key={index} onClick={(!readOnly && onClick) ? onClick.bind(null, index) : null}>
+                <li key={index} onClick={(!readOnly && onClick) ? onClick.bind(null, index, term) : null}>
                     {(!readOnly && onClick) && <i className="icon-close-small"/>}
                     {get(term, displayField) || term}
                 </li>

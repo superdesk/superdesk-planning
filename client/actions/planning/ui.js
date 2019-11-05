@@ -2,6 +2,7 @@ import {showModal} from '../index';
 import planningApi from './api';
 import {locks} from '../index';
 import main from '../main';
+import eventsUi from '../events/ui';
 import {ITEM_TYPE} from '../../constants';
 
 import {
@@ -397,6 +398,16 @@ const save = (original, updates) => (
         if (selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING) {
             return dispatch(self.saveFromAuthoring(original, updates));
         } else {
+            if (get(updates, '_post') && get(original, 'recurrence_id')) {
+                return dispatch(eventsUi.openEventPostModal(
+                    original,
+                    updates,
+                    true,
+                    null,
+                    {},
+                    original,
+                    planningApi.save.bind(null, original, updates)));
+            }
             return dispatch(planningApi.save(original, updates));
         }
     }

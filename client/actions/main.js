@@ -340,7 +340,14 @@ const post = (original, updates = {}, withConfirmation = true) => (
             break;
         case ITEM_TYPE.PLANNING:
             confirmation = false;
-            promise = dispatch(planningApi.post(original, updates));
+            promise = dispatch(eventsUi.openEventPostModal(
+                original,
+                updates,
+                true,
+                null,
+                {},
+                original,
+                planningApi.post.bind(null, original, updates)));
             break;
         default:
             promise = Promise.reject(
@@ -354,7 +361,7 @@ const post = (original, updates = {}, withConfirmation = true) => (
         return promise
             .then(
                 (rtn) => {
-                    if (!confirmation) {
+                    if (!confirmation && rtn) {
                         notify.success(
                             gettext(
                                 'The {{ itemType }} has been posted',

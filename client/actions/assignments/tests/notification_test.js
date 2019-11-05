@@ -406,13 +406,13 @@ describe('actions.assignments.notification', () => {
         it('calls `REMOVE_ASSIGNMENT` action', (done) => (
             store.test(done, assignmentNotifications.onAssignmentRemoved(
                 {},
-                {assignment: 'as1'}
+                {assignments: ['as1']}
             ))
                 .then(() => {
                     expect(store.dispatch.callCount).toBe(5);
-                    expect(store.dispatch.args[1]).toEqual([{
+                    expect(store.dispatch.args[0]).toEqual([{
                         type: 'REMOVE_ASSIGNMENT',
-                        payload: {assignment: 'as1'},
+                        payload: {assignments: ['as1']},
                     }]);
 
                     done();
@@ -424,7 +424,7 @@ describe('actions.assignments.notification', () => {
 
             return store.test(done, assignmentNotifications.onAssignmentRemoved(
                 {},
-                {assignment: 'as1'}
+                {assignments: ['as1']}
             ))
                 .then(() => {
                     expect(store.services.notify.warning.callCount).toBe(1);

@@ -32,19 +32,24 @@ export class CancelEventComponent extends React.Component {
     }
 
     componentWillMount() {
-        const event = eventUtils.getRelatedEventsForRecurringEvent(
-            this.props.original,
-            EventUpdateMethods[0]
-        );
-
-        this.setState({
-            relatedEvents: event._events,
-            relatedPlannings: event._relatedPlannings,
-        });
+        this.updatePlanningList(this.state.eventUpdateMethod);
 
         // Enable save so that the user can action on this event.
         get(this.props, 'formProfile.schema.reason.required', false) ?
             this.props.disableSaveInModal() : this.props.enableSaveInModal();
+    }
+
+    updatePlanningList(updateMethod) {
+        const event = eventUtils.getRelatedEventsForRecurringEvent(
+            this.props.original,
+            updateMethod
+        );
+
+        this.setState({
+            eventUpdateMethod: updateMethod,
+            relatedEvents: event._events,
+            relatedPlannings: event._relatedPlannings,
+        });
     }
 
     submit() {
@@ -62,15 +67,7 @@ export class CancelEventComponent extends React.Component {
     }
 
     onEventUpdateMethodChange(field, option) {
-        const event = eventUtils.getRelatedEventsForRecurringEvent(
-            this.props.original,
-            option
-        );
-
-        this.setState({
-            eventUpdateMethod: option,
-            relatedEvents: event._events,
-        });
+        this.updatePlanningList(option);
     }
 
     onReasonChange(field, reason) {
