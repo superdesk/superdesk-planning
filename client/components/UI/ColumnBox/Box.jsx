@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import classNames from 'classnames';
 
 /**
  * @ngdoc react
@@ -7,10 +8,14 @@ import PropTypes from 'prop-types';
  * @description UI component with column-box styling
  */
 
-export const Box = ({children}) => (
-    <div className="sd-column-box--2">
+export const Box = ({children, verticalScroll}) => (
+    <div className={classNames('sd-column-box--2',
+        {'sd-column-box--vertical-scroll': verticalScroll})}>
         {children}
     </div>
 );
 
-Box.propTypes = {children: PropTypes.node};
+Box.propTypes = {
+    children: PropTypes.node,
+    verticalScroll: PropTypes.bool,
+};
