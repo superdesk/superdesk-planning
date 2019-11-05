@@ -1,6 +1,6 @@
 # Superdesk Planning Changelog
 
-## [1.9.0-rc1] Not released yet
+## [1.9.0-rc2] Not released yet
 ### Features
 - [SDESK-4560] Cherry-picking scheduled_updates feature to master (#1366)
   - [SDESK-4561] Coverage forward updates (#1293)
@@ -10,6 +10,7 @@
   - [SDESK-4727] Editor related bugs in Scheduled Updates creation (#1349)
   - [SDESK-4730] Changes to scheduled_updates feature and merging information to newsroom (#1353)
   - [SDESK-4758] Fixes to scheduled_updates feature (#1364)
+  - [SDESK-4793] Removing assignment in a scheduled update chain should remove all assignments (#1376)
 
 ### Improvements
 - feat(dropdown): Improved behaviour for dropdown, added groups (#1361)
@@ -20,6 +21,14 @@
 - [SDESK-4745] Correct the label for news value in planning preview (#1365)
 - [SDESK-4771] Unable to change coverage schedule from 'To Be Confirmed' to default value (#1369)
 - [SDESK-4774] Event links getting a null value when editing (#1368)
+- [SDESK-4760] Planning Export dialog is showing all Agendas (#1372)
+- [SDESK-4692] Posting a Planning item should post the entire series of Events (#1371)
+- [SDBELGA-148] fix coverage duplication in advanced mode (#1374)
+- [SDNTB-613] Fix buggy behaviour when trying to remove subjects from event and planning item (#1373)
+- [SDESK-4714] Always open preview when clicking in-app Assignment notification (#1375)
+- [SDESK-4692] (fix): Dont show PostEvent modal when saving Planning item (#1377)
+- [SDESK-4741] Scroll issue in the Manage Events & Planning Filters window (#1378)
+- [SDESK-4620] Display all affected Planning items when cancelling an Event (#1380)
 
 ## [1.8.0] 2019-10-17
 ### Features
