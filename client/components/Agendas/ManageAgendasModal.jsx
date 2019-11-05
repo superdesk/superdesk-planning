@@ -90,8 +90,8 @@ export class ManageAgendasComponent extends React.Component {
                             {gettext('Add New Agenda')}
                         </Button>}
                     </SubNav>}
-                    <ColumnBox.Box>
-                        <ColumnBox.MainColumn padded={true} verticalScroll={true}>
+                    <ColumnBox.Box verticalScroll={true}>
+                        <ColumnBox.MainColumn padded={true}>
                             <AgendaList privileges={privileges}
                                 agendas={enabledAgendas}
                                 editAgenda={this.state.editorOpen ? null : this.editAgenda.bind(this)}
