@@ -1451,7 +1451,7 @@ const saveAndUnlockItem = (original, updates, ignoreRecurring = false) => (
                         return Promise.reject(savedItem);
                     });
             }, (error) => {
-                notify.error(gettext('Could not save the item.'));
+                notify.error(getErrorMessage(error, gettext('Could not save the item.')));
                 return Promise.reject(error);
             });
     }
