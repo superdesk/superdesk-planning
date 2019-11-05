@@ -82,8 +82,8 @@ export class ManageFiltersComponent extends React.Component {
                                 {gettext('Add New Filter')}
                             </Button>}
                         </SubNav>}
-                        <ColumnBox.Box>
-                            <ColumnBox.MainColumn padded={true} verticalScroll={true}>
+                        <ColumnBox.Box verticalScroll={true}>
+                            <ColumnBox.MainColumn padded={true}>
                                 <FiltersList
                                     filters={filters}
                                     privileges={privileges}
