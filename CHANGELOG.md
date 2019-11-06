@@ -1,6 +1,6 @@
 # Superdesk Planning Changelog
 
-## [1.9.0-rc2] Not released yet
+## [1.9.0] 2019-11-06
 ### Features
 - [SDESK-4560] Cherry-picking scheduled_updates feature to master (#1366)
   - [SDESK-4561] Coverage forward updates (#1293)
