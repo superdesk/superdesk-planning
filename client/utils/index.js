@@ -190,6 +190,7 @@ export const createTestStore = (params = {}) => {
  * displaying the error in the console.
  */
 const crashReporter = () => (next) => (action) => {
+    // eslint-disable-next-line no-useless-catch
     try {
         return next(action);
     } catch (err) {

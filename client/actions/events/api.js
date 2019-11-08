@@ -680,6 +680,7 @@ const query = (
 
                 for (let i = 0; i < Math.ceil(ids.length / chunkSize); i++) {
                     const args = {
+                        // eslint-disable-next-line no-undef
                         ...arguments[0],
                         ids: ids.slice(i * chunkSize, (i + 1) * chunkSize),
                     };
