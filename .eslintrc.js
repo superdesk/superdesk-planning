@@ -1,7 +1,7 @@
 const sharedConfigs = require('superdesk-code-style');
 
 module.exports = Object.assign({}, sharedConfigs, {
-    parser: 'typescript-eslint-parser',
+    parser: '@typescript-eslint/parser',
     overrides: [
         {
             files: ['*.ts', '*.tsx'],
