@@ -108,6 +108,11 @@ export class RescheduleEventComponent extends React.Component {
         const original = this.props.original;
         let datesInvalid = false;
 
+        if (typeof diff.dates === 'object' && !diff.dates.tz) {
+            // if no timezone use default one
+            diff.dates.tz = this.props.defaultTimeZone;
+        }
+
         if (field === 'dates.recurring_rule' && !val) {
             delete diff.dates.recurring_rule;
         } else {
@@ -167,13 +172,13 @@ export class RescheduleEventComponent extends React.Component {
     }
 
     render() {
-        const {original, dateFormat, timeFormat, formProfiles, submitting} = this.props;
+        const {original, dateFormat, timeFormat, formProfiles, submitting, defaultTimeZone} = this.props;
         let reasonLabel = gettext('Reason for rescheduling this event:');
         const numPlannings = get(original, '_plannings.length');
         const afterUntil = moment.isMoment(get(original, 'dates.recurring_rule.until')) &&
             moment.isMoment(get(this.state, 'diff.dates.start')) &&
             this.state.diff.dates.start.isAfter(original.dates.recurring_rule.until);
-        const timeZone = get(original, 'dates.tz');
+        const timeZone = get(original, 'dates.tz') || defaultTimeZone;
 
         return (
             <div className="MetadataView">
@@ -305,6 +310,7 @@ RescheduleEventComponent.propTypes = {
     disableSaveInModal: PropTypes.func,
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
+    defaultTimeZone: PropTypes.string,
 
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
@@ -324,6 +330,7 @@ const mapStateToProps = (state) => ({
     dateFormat: getDateFormat(state),
     formProfiles: selectors.forms.profiles(state),
     rescheduleProfile: selectors.forms.eventRescheduleProfile(state),
+    defaultTimeZone: selectors.config.defaultTimeZone(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
