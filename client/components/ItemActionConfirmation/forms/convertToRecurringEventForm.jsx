@@ -52,6 +52,11 @@ export class ConvertToRecurringEventComponent extends React.Component {
     onChange(field, val) {
         const diff = cloneDeep(get(this.state, 'diff') || {});
 
+        if (typeof diff.dates === 'object' && !diff.dates.tz) {
+            // if no timezone use default one
+            diff.dates.tz = this.props.defaultTimeZone;
+        }
+
         if (field === 'dates.recurring_rule' && !val) {
             delete diff.dates.recurring_rule;
             this.props.disableSaveInModal();
@@ -107,8 +112,8 @@ export class ConvertToRecurringEventComponent extends React.Component {
     }
 
     render() {
-        const {original, dateFormat, timeFormat} = this.props;
-        const timeZone = get(original, 'dates.tz');
+        const {original, dateFormat, timeFormat, defaultTimeZone} = this.props;
+        const timeZone = get(original, 'dates.tz') || defaultTimeZone;
 
         return (
             <div className="MetadataView">
@@ -169,6 +174,7 @@ ConvertToRecurringEventComponent.propTypes = {
     disableSaveInModal: PropTypes.func,
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
+    defaultTimeZone: PropTypes.string,
 
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
@@ -182,6 +188,7 @@ const mapStateToProps = (state) => ({
     timeFormat: getTimeFormat(state),
     dateFormat: getDateFormat(state),
     formProfiles: selectors.forms.profiles(state),
+    defaultTimeZone: selectors.config.defaultTimeZone(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
