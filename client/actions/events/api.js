@@ -6,7 +6,7 @@ import {
     TO_BE_CONFIRMED_FIELD,
 } from '../../constants';
 import {EventUpdateMethods} from '../../components/Events';
-import {get, isEqual, cloneDeep, pickBy, isNil, has, find, every} from 'lodash';
+import {get, isEqual, cloneDeep, pickBy, has, find, every} from 'lodash';
 import * as selectors from '../../selectors';
 import {
     eventUtils,
@@ -26,7 +26,6 @@ import moment from 'moment';
 
 import planningApi from '../planning/api';
 import eventsUi from './ui';
-import locationApi from '../locations';
 import main from '../main';
 
 /**
@@ -1264,59 +1263,15 @@ const uploadFiles = (event) => (
     }
 );
 
-/**
- * Action Dispatcher for saving the location for an event
- * @param {object} event - The event the location is associated with
- * @return arrow function
- */
-const _saveLocation = (event, original) => (
-    (dispatch) => {
-        const location = get(event, 'location');
-
-        if (!location || !location.name) {
-            if (!get(original, 'location')) {
-                delete event.location;
-            } else if (get(original, 'lock_action') === EVENTS.ITEM_ACTIONS.EDIT_EVENT.lock_action) {
-                // only if event was edited
-                event.location = null;
-            }
-
-            return Promise.resolve(event);
-        } else if (location.existingLocation) {
-            event.location = {
-                name: location.name,
-                qcode: location.guid,
-                address: location.address,
-            };
-
-            // external address might not be there.
-            if (get(location, 'address.external')) {
-                delete location.address.external;
-            }
-
-            return Promise.resolve(event);
-        } else if (isNil(location.qcode)) {
-            // the location is set, but doesn't have a qcode (not registered in the location collection)
-            return dispatch(locationApi.saveLocation(location))
-                .then((savedLocation) => {
-                    event.location = savedLocation;
-                    return Promise.resolve(event);
-                });
-        } else {
-            return Promise.resolve(event);
-        }
-    }
-);
-
-const _save = (original, eventUpdates) => (
+const save = (original, updates) => (
     (dispatch, getState, {api}) => {
         let promise;
 
         if (original) {
             promise = Promise.resolve(original);
-        } else if (isExistingItem(eventUpdates)) {
+        } else if (isExistingItem(updates)) {
             promise = dispatch(
-                self.fetchById(eventUpdates._id, {saveToStore: false, loadPlanning: false})
+                self.fetchById(updates._id, {saveToStore: false, loadPlanning: false})
             );
         } else {
             promise = Promise.resolve({});
@@ -1326,8 +1281,8 @@ const _save = (original, eventUpdates) => (
             const originalItem = eventUtils.modifyForServer(cloneDeep(originalEvent), true);
 
             // clone the updates as we're going to modify it
-            let updates = eventUtils.modifyForServer(
-                cloneDeep(eventUpdates),
+            let eventUpdates = eventUtils.modifyForServer(
+                cloneDeep(updates),
                 true
             );
 
@@ -1335,34 +1290,26 @@ const _save = (original, eventUpdates) => (
 
             // remove all properties starting with _
             // and updates that are the same as original
-            updates = pickBy(updates, (v, k) => (
+            eventUpdates = pickBy(eventUpdates, (v, k) => (
                 (k === TO_BE_CONFIRMED_FIELD || k === '_planning_item' || !k.startsWith('_')) &&
-                !isEqual(updates[k], originalItem[k])
+                !isEqual(eventUpdates[k], originalItem[k])
             ));
 
             if (get(originalItem, 'lock_action') === EVENTS.ITEM_ACTIONS.EDIT_EVENT.lock_action &&
                 !isTemporaryId(originalItem._id)
             ) {
-                delete updates.dates;
+                delete eventUpdates.dates;
             }
-            updates.update_method = get(updates, 'update_method.value') ||
+            eventUpdates.update_method = get(eventUpdates, 'update_method.value') ||
                 EventUpdateMethods[0].value;
 
-            return api('events').save(originalItem, updates);
+            return api('events').save(originalItem, eventUpdates);
         })
             .then(
                 (data) => Promise.resolve(get(data, '_items') || [data]),
                 (error) => Promise.reject(error)
             );
     }
-);
-
-const save = (original, updates) => (
-    (dispatch) => (
-        // Returns the modified unsaved event with the locations changes
-        dispatch(self._saveLocation(updates, original))
-            .then((modifiedUpdates) => dispatch(self._save(original, modifiedUpdates)))
-    )
 );
 
 const updateRepetitions = (original, updates) => (
@@ -1511,9 +1458,7 @@ const self = {
     fetchEventHistory,
     unpost,
     uploadFiles,
-    _save,
     save,
-    _saveLocation,
     getCriteria,
     fetchById,
     updateRepetitions,

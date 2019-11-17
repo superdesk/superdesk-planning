@@ -171,28 +171,6 @@ const saveLocation = (newLocation) => (
                         (result) => Promise.resolve(result),
                         () => Promise.reject('Failed to save location.!')
                     );
-            })
-            .then((data) => {
-                const eventData = {
-                    name: data.name,
-                    qcode: data.guid,
-                };
-
-                if (data.position) {
-                    eventData.location = {
-                        lat: data.position.latitude,
-                        lon: data.position.longitude,
-                    };
-                }
-
-                if (get(data, 'address')) {
-                    eventData.address = data.address;
-                    if (eventData.address.external) {
-                        delete eventData.address.external;
-                    }
-                }
-
-                return eventData;
             });
     }
 );
