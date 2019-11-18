@@ -758,7 +758,7 @@ export class ItemManager {
             loading: true,
         })
             .then(() => this.dispatch(
-                actions.locks.unlockThenLock(item)
+                actions.locks.unlockThenLock(item, this.props.inModalView)
             ));
     }
 
