@@ -123,7 +123,7 @@ describe('actions.main', () => {
                         payload: 'PLANNING',
                     }]);
 
-                    expect(store.dispatch.callCount).toBe(15);
+                    expect(store.dispatch.callCount).toBe(17);
                     expect(services.$location.search.args).toEqual(
                         [[], [], [], ['filter', 'PLANNING'], [], ['searchParams', '{}']]
                     );

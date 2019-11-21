@@ -87,6 +87,7 @@ export class ListGroupItem extends React.Component {
             onItemActivate,
             previewItem,
             contentTypes,
+            contacts,
         } = this.props;
         const itemType = getItemType(item);
 
@@ -149,6 +150,7 @@ export class ListGroupItem extends React.Component {
 
         let planningProps = {
             ...itemProps,
+            contacts: contacts,
             users: users,
             desks: desks,
             contentTypes: contentTypes,
@@ -260,4 +262,5 @@ ListGroupItem.propTypes = {
     navigateList: PropTypes.func,
     onItemActivate: PropTypes.func,
     contentTypes: PropTypes.array,
+    contacts: PropTypes.object,
 };

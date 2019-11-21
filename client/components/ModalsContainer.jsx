@@ -12,6 +12,7 @@ import {
     FulFilAssignmentModal,
     SelectItemModal,
     IgnoreCancelSaveModal,
+    EditCoverageAssignmentModal,
 } from './index';
 import {FeaturedPlanningModal} from './Planning/FeaturedPlanning/FeaturedPlanningModal';
 import {UnlockFeaturedPlanning} from './Planning/FeaturedPlanning/UnlockFeaturedPlanning';
@@ -38,6 +39,7 @@ const modals = {
     [MODALS.MANAGE_EVENTS_PLANNING_FILTERS]: ManageFiltersModal,
     [MODALS.MANAGE_EVENT_TEMPLATES]: ManageEventTemplatesModal,
     [MODALS.EXPORT_AS_ARTICLE]: ExportAsArticleModal,
+    [MODALS.EDIT_COVERAGE_ASSIGNMENT]: EditCoverageAssignmentModal,
 };
 
 export function Modals({modalType, modalProps, handleHide}) {

@@ -19,7 +19,9 @@ import {
     ToggleInput,
 } from '../../UI/Form';
 import {InternalNoteLabel} from '../../';
-import {ContactField} from '../../Contacts';
+import {ContactField, ContactsPreviewList} from '../../Contacts';
+
+import '../style.scss';
 
 export class CoverageForm extends React.Component {
     constructor(props) {
@@ -205,7 +207,31 @@ export class CoverageForm extends React.Component {
             !get(diff, `${field}.flags.no_content_linking`);
 
         return (
-            <div>
+            <div className="coverage-editor">
+                {get(diff, `${field}.assigned_to.contact`) ? (
+                    <Row className="coverage-editor__contact">
+                        <Label row={true} text={gettext('Coverage Provider Contact')} />
+                        <ContactsPreviewList
+                            contactIds={[get(diff, `${field}.assigned_to.contact`)]}
+                            scrollInView={true}
+                            scrollIntoViewOptions={{block: 'center'}}
+                        />
+                    </Row>
+                ) : (
+                    <Field
+                        component={ContactField}
+                        field={`${field}.planning.contact_info`}
+                        profileName="contact_info"
+                        label={gettext('Coverage Provider Contact')}
+                        defaultValue={[]}
+                        {...fieldProps}
+                        readOnly={readOnly}
+                        onPopupOpen={onPopupOpen}
+                        onPopupClose={onPopupClose}
+                        singleValue={true}
+                    />
+                )}
+
                 <InternalNoteLabel
                     item={diff}
                     prefix={`coverages[${index}].planning.`}
@@ -214,7 +240,8 @@ export class CoverageForm extends React.Component {
                     showText
                     stateField={value.workflow_status === WORKFLOW_STATE.CANCELLED ?
                         `coverages[${index}].workflow_status` : 'state'}
-                    className="form__row" />
+                    className="form__row"
+                />
                 <Field
                     component={SelectInput}
                     field={`${field}.planning.g2_content_type`}
@@ -285,18 +312,6 @@ export class CoverageForm extends React.Component {
                     readOnly={roFields.internal_note}
                     {...fieldProps}
                 />
-
-                <Field
-                    component={ContactField}
-                    field={`${field}.planning.contact_info`}
-                    profileName="contact_info"
-                    label={gettext('Coverage Provider Contact')}
-                    defaultValue={[]}
-                    {...fieldProps}
-                    readOnly={readOnly}
-                    onPopupOpen={onPopupOpen}
-                    onPopupClose={onPopupClose}
-                    singleValue={true} />
 
                 <Field
                     component={SelectInput}
