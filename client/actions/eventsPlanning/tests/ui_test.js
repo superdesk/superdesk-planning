@@ -263,7 +263,7 @@ describe('actions.eventsplanning.ui', () => {
             store.test(done, eventsPlanningUi.selectFilter('finance', {}))
                 .then(() => {
                     expect(eventsPlanningUi.fetch.callCount).toBe(1);
-                    expect(store.dispatch.callCount).toBe(2);
+                    expect(store.dispatch.callCount).toBe(4);
                     expect(store.dispatch.args[0][0]).toEqual(
                         {
                             type: EVENTS_PLANNING.ACTIONS.SELECT_EVENTS_PLANNING_FILTER,
@@ -280,7 +280,7 @@ describe('actions.eventsplanning.ui', () => {
             store.test(done, eventsPlanningUi.selectFilter('foo', {}))
                 .then(() => {
                     expect(eventsPlanningUi.fetch.callCount).toBe(1);
-                    expect(store.dispatch.callCount).toBe(3);
+                    expect(store.dispatch.callCount).toBe(5);
                     expect(store.dispatch.args[1][0]).toEqual(
                         {
                             type: EVENTS_PLANNING.ACTIONS.SELECT_EVENTS_PLANNING_FILTER,

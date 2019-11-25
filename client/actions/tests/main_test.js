@@ -100,7 +100,7 @@ describe('actions.main', () => {
                         payload: 'EVENTS',
                     }]);
 
-                    expect(store.dispatch.callCount).toBe(9);
+                    expect(store.dispatch.callCount).toBe(11);
                     expect(services.$timeout.callCount).toBe(2);
                     expect(services.$location.search.callCount).toBe(6);
                     expect(services.$location.search.args).toEqual(

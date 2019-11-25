@@ -303,7 +303,10 @@ const selectFilter = (filterId, params = {}) => (
         };
 
         // reload the list
-        return dispatch(self.fetch(queryParams));
+        dispatch(main.setUnsetUserInitiatedSearch(true));
+        return dispatch(self.fetch(queryParams))
+            .then((data) => Promise.resolve(data))
+            .finally(() => dispatch(main.setUnsetUserInitiatedSearch(false)));
     }
 );
 
