@@ -215,8 +215,8 @@ class EventsTemplateService(BaseService):
         event = self._get_event(doc['based_on_event'])
         doc['data'] = {}
 
-        for field in ('slugline', 'name', 'definition_short', 'definition_long',
-                      'internal_note', 'ednote', 'links', 'files', 'calendars',
+        for field in ('slugline', 'name', 'definition_short', 'definition_long', 'anpa_category',
+                      'internal_note', 'ednote', 'links', 'files', 'calendars', 'place',
                       'location', 'event_contact_info', 'subject', 'occur_status'):
             if field in event and event[field]:
                 doc['data'][field] = event[field]
