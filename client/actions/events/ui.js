@@ -776,7 +776,10 @@ const selectCalendar = (calendarId = '', params = {}) => (
         $timeout(() => $location.search('calendar', calendar));
 
         // Reload the Event list
-        return dispatch(self.fetchEvents(params));
+        dispatch(main.setUnsetUserInitiatedSearch(true));
+        return dispatch(self.fetchEvents(params))
+            .then((data) => Promise.resolve(data))
+            .finally(() => dispatch(main.setUnsetUserInitiatedSearch(false)));
     }
 );
 
