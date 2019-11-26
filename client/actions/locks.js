@@ -126,7 +126,7 @@ const lock = (item, lockAction = 'edit') => (
     }
 );
 
-const unlockThenLock = (item) => (
+const unlockThenLock = (item, modal) => (
     (dispatch) => (
         dispatch(self.unlock(item))
             .then(
@@ -135,7 +135,7 @@ const unlockThenLock = (item) => (
                         modifyForClient(item._id !== unlockedItem._id ?
                             item :
                             unlockedItem
-                        )
+                        ), true, modal
                     ))
                 ),
                 (error) => Promise.reject(error)
