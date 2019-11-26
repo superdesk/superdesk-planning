@@ -37,6 +37,8 @@ export class LocationsListComponent extends React.Component {
     render() {
         return (
             <div className="sd-column-box__main-column__items" onScroll={this.handleScroll}>
+                {get(this.props.locations, 'length') === 0 && (
+                    <span className="sd-alert">{gettext('No result')}</span>)}
                 {this.props.locations.map((location, index) => (
                     <List.Item shadow={1} key={location._id} onClick={this.props.editLocation.bind(null, location)}
                         activated={location._id === get(this.props.currentLocation, '_id')}>

@@ -236,6 +236,7 @@ const getLocation = (searchText, unique = false, page = 1) => (
         } else {
             const terms = (!isEmpty(searchText)) ? searchText.split(' ') : '*';
             const queryString = (terms.length > 1 ? terms.join('* ') : terms[0]) + '*';
+            const sortString = (isEmpty(searchText) ? '[(\'unique_name\', 1)]' : null);
 
             return api('locations')
                 .query({
@@ -258,6 +259,7 @@ const getLocation = (searchText, unique = false, page = 1) => (
                     },
                     max_results: 200,
                     page: page,
+                    sort: sortString,
                 });
         }
     }
