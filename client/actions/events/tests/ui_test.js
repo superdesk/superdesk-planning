@@ -686,7 +686,7 @@ describe('actions.events.ui', () => {
         it('selects default Calendar', (done) => (
             store.test(done, eventsUi.selectCalendar())
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(2);
+                    expect(store.dispatch.callCount).toBe(4);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'SELECT_EVENT_CALENDAR',
                         payload: 'ALL_CALENDARS',
@@ -706,7 +706,7 @@ describe('actions.events.ui', () => {
         it('selects specific calendar and passes params to fetchEvents', (done) => (
             store.test(done, eventsUi.selectCalendar('cal1', {fulltext: 'search text'}))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(2);
+                    expect(store.dispatch.callCount).toBe(4);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'SELECT_EVENT_CALENDAR',
                         payload: 'cal1',

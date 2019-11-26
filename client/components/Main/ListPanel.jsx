@@ -40,11 +40,9 @@ export class ListPanel extends React.Component {
 
         // If the list has finished loading, and is not for the next page,
         // Then scroll the list to the top (Used to Advanced Filters and Calendar Navigation)
-        if (!get(nextProps, 'loadingIndicator') &&
-            !!get(this.props, 'loadingIndicator') &&
-            this.dom.list &&
-            !this.state.isNextPageLoading
-        ) {
+        // Or user has initiated a search
+        if (this.dom.list && get(nextProps, 'userInitiatedSearch') &&
+            !get(this.props, 'userInitiatedSearch')) {
             this.dom.list.scrollTop = 0;
             this.setState({activeItemIndex: -1});
         }

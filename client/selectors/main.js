@@ -22,6 +22,7 @@ export const previewId = (state) => get(state, 'main.previewId', null);
 export const previewType = (state) => get(state, 'main.previewType', null);
 export const previewLoading = (state) => get(state, 'main.loadingPreview', false);
 export const previewItemHistory = (state) => get(state, 'main.itemHistory', []);
+export const userInitiatedSearch = (state) => get(state, 'main.userInitiatedSearch', false);
 
 export const getPreviewItem = createSelector(
     [previewLoading, previewId, previewType, storedEvents, storedPlannings],

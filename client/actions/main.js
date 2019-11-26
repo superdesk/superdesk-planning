@@ -850,6 +850,7 @@ const search = (fulltext, currentSearch = undefined) => (
             promise = dispatch(eventsPlanningUi.fetch(params));
         }
 
+        dispatch(self.setUnsetUserInitiatedSearch(true));
         return promise
             .then(
                 (results) => Promise.resolve(results),
@@ -859,6 +860,7 @@ const search = (fulltext, currentSearch = undefined) => (
                 }
             )
             .finally(() => {
+                dispatch(self.setUnsetUserInitiatedSearch(false));
                 dispatch(self.setUnsetLoadingIndicator(false));
             });
     }
@@ -892,6 +894,11 @@ const setTotal = (filter, total) => ({
 
 const setUnsetLoadingIndicator = (value = false) => ({
     type: MAIN.ACTIONS.SET_UNSET_LOADING_INDICATOR,
+    payload: value,
+});
+
+const setUnsetUserInitiatedSearch = (value) => ({
+    type: MAIN.ACTIONS.SET_UNSET_USER_INITIATED_SEARCH,
     payload: value,
 });
 
@@ -1511,6 +1518,7 @@ const self = {
     openEditorAction,
     changeEditorAction,
     notifyPreconditionFailed,
+    setUnsetUserInitiatedSearch,
 };
 
 export default self;
