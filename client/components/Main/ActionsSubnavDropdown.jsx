@@ -16,7 +16,8 @@ const ActionsSubnavDropdownComponent = (props) => {
         },
     ];
 
-    if (props.deployConfig.event_templates_enabled === true) {
+    if (props.deployConfig.event_templates_enabled === true &&
+        props.privileges[PRIVILEGES.EVENT_TEMPLATES]) {
         items.push({
             label: gettext('Manage event templates'),
             action: () => props.dispatch(showModal({
