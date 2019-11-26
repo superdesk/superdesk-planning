@@ -23,7 +23,7 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                 user: null,
                 filteredUsers: this.props.users,
                 popupContainer: null,
-                status: null,
+                status: planningUtils.getDefaultCoverageStatus(this.props.newsCoverageStatus),
             })),
         };
     }
@@ -38,7 +38,7 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
             icon: coverage.icon,
             desk: null,
             user: null,
-            status: null,
+            status: planningUtils.getDefaultCoverageStatus(this.props.newsCoverageStatus),
             popupContainer: null,
             filteredDesks: this.props.desks,
             filteredUsers: this.props.users,
@@ -144,6 +144,19 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                                         <div className="sd-list-item__column sd-list-item__column--grow">
                                             <div className="grid">
                                                 <div className="grid__item grid__item--col4">
+                                                    <SelectInput
+                                                        placeholder={gettext('Select desk')}
+                                                        field={'desk'}
+                                                        value={coverage.desk}
+                                                        onChange={(field, value) => this.onDeskChange(coverage, value)}
+                                                        options={coverage.filteredDesks}
+                                                        labelField="name"
+                                                        keyField="_id"
+                                                        clearable={true}
+                                                    />
+                                                </div>
+
+                                                <div className="grid__item grid__item--col4">
                                                     <SelectUserInput
                                                         field={'user'}
                                                         value={coverage.user}
@@ -156,19 +169,6 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                                                         inline={true}
                                                     />
                                                     <div ref={(node) => coverage.popupContainer = node} />
-                                                </div>
-
-                                                <div className="grid__item grid__item--col4">
-                                                    <SelectInput
-                                                        placeholder={gettext('Select desk')}
-                                                        field={'desk'}
-                                                        value={coverage.desk}
-                                                        onChange={(field, value) => this.onDeskChange(coverage, value)}
-                                                        options={coverage.filteredDesks}
-                                                        labelField="name"
-                                                        keyField="_id"
-                                                        clearable={true}
-                                                    />
                                                 </div>
 
                                                 <div className="grid__item grid__item--col4">

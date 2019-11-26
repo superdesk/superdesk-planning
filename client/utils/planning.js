@@ -880,6 +880,8 @@ const defaultPlanningValues = (currentAgenda, defaultPlaceList) => {
     return self.modifyForClient(newPlanning);
 };
 
+const getDefaultCoverageStatus = (newsCoverageStatus) => newsCoverageStatus[0];
+
 const defaultCoverageValues = (
     newsCoverageStatus,
     planningItem,
@@ -897,7 +899,7 @@ const defaultCoverageValues = (
             scheduled: get(planningItem, 'planning_date', moment()),
             g2_content_type: g2contentType,
         },
-        news_coverage_status: newsCoverageStatus[0],
+        news_coverage_status: getDefaultCoverageStatus(newsCoverageStatus),
         workflow_status: WORKFLOW_STATE.DRAFT,
     };
 
@@ -1083,6 +1085,7 @@ const self = {
     getCoverageDateText,
     getActiveCoverage,
     canAddScheduledUpdateToWorkflow,
+    getDefaultCoverageStatus,
 };
 
 export default self;
