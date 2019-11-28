@@ -32,10 +32,10 @@ class EventsTemplateResource(Resource):
     item_methods = ['GET', 'DELETE', 'PATCH', 'PUT']
     privileges = {
         'GET': 'planning_event_management',
-        'POST': 'planning_event_management',
-        'DELETE': 'planning_event_management',
-        'PATCH': 'planning_event_management',
-        'PUT': 'planning_event_management'
+        'POST': 'planning_event_templates',
+        'DELETE': 'planning_event_templates',
+        'PATCH': 'planning_event_templates',
+        'PUT': 'planning_event_templates'
     }
     _event_fields = {
         'slugline': {
