@@ -5,6 +5,8 @@ import Modal from '../Modal';
 import {SelectInput, SelectUserInput} from '../UI/Form';
 import {gettext, planningUtils, getUsersForDesk, getDesksForUser} from '../../utils';
 
+const isInvalid = (coverage) => coverage.user && !coverage.desk;
+
 export class CoverageAddAdvancedModal extends React.PureComponent {
     constructor(props) {
         super(props);
@@ -153,6 +155,7 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                                                         labelField="name"
                                                         keyField="_id"
                                                         clearable={true}
+                                                        invalid={isInvalid(coverage)}
                                                     />
                                                 </div>
 
@@ -210,6 +213,7 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                     </label>
                     <button className="btn" type="button" onClick={this.props.close}>{gettext('Cancel')}</button>
                     <button className="btn btn--primary" type="button"
+                        disabled={this.state.coverages.some((coverage) => coverage.enabled && isInvalid(coverage))}
                         onClick={() => this.save()}
                     >{gettext('Save')}</button>
                 </Modal.Footer>
