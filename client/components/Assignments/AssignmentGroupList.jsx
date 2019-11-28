@@ -82,6 +82,7 @@ class AssignmentGroupListComponent extends React.Component {
             privileges,
             contentTypes,
             desks,
+            contacts,
         } = this.props;
 
         const assignment = this.props.assignments[index];
@@ -115,6 +116,7 @@ class AssignmentGroupListComponent extends React.Component {
                 revertAssignment={this.props.revertAssignment}
                 contentTypes={contentTypes}
                 assignedDesk={assignedDesk}
+                contacts={contacts}
             />
         );
     }
@@ -222,6 +224,7 @@ AssignmentGroupListComponent.propTypes = {
     showCount: PropTypes.bool,
     changeListSortOrder: PropTypes.func,
     saveSortPreferences: PropTypes.bool,
+    contacts: PropTypes.object,
 };
 
 AssignmentGroupListComponent.defaultProps = {
@@ -248,6 +251,7 @@ const mapStateToProps = (state, ownProps) => {
         assignmentListSingleGroupView: selectors.getAssignmentListSingleGroupView(state),
         priorities: selectors.getAssignmentPriorities(state),
         desks: selectors.general.desks(state),
+        contacts: selectors.general.contactsById(state),
     };
 };
 

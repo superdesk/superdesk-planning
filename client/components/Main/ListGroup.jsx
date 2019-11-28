@@ -37,6 +37,7 @@ export const ListGroup = ({
     onItemActivate,
     previewItem,
     contentTypes,
+    contacts,
 }) => {
     const flattenMultiday = (eventId, all, multi) => {
         onMultiSelectClick(eventId, all, multi, name);
@@ -77,6 +78,7 @@ export const ListGroup = ({
                         onItemActivate: onItemActivate,
                         previewItem: previewItem,
                         contentTypes: contentTypes,
+                        contacts: contacts,
                     };
 
                     if (indexItems) {
@@ -125,6 +127,7 @@ ListGroup.propTypes = {
     navigateList: PropTypes.func,
     onItemActivate: PropTypes.func,
     contentTypes: PropTypes.array,
+    contacts: PropTypes.object,
 };
 
 ListGroup.defaultProps = {

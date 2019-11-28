@@ -7,9 +7,10 @@ import {
     convertEventDatesToMoment,
 } from '../../../utils/testUtils';
 import {getTimeZoneOffset, createTestStore} from '../../../utils/index';
-import {SPIKED_STATE, WORKFLOW_STATE} from '../../../constants/index';
+import {PLANNING, SPIKED_STATE, WORKFLOW_STATE} from '../../../constants/index';
 import {MAIN} from '../../../constants';
 import * as selectors from '../../../selectors';
+import contactsApi from '../../contacts';
 
 describe('actions.planning.api', () => {
     let errorMessage;
@@ -681,11 +682,37 @@ describe('actions.planning.api', () => {
         });
     });
 
-    it('receivePlannings', () => {
-        restoreSinonStub(planningApi.receivePlannings);
-        expect(planningApi.receivePlannings(data.plannings)).toEqual({
-            type: 'RECEIVE_PLANNINGS',
-            payload: data.plannings,
+    describe('receivePlannings', () => {
+        beforeEach(() => {
+            restoreSinonStub(planningApi.receivePlannings);
+            sinon.stub(contactsApi, 'fetchContactsFromPlanning').returns(Promise.resolve([]));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(contactsApi.fetchContactsFromPlanning);
+        });
+
+        it('adds the planning items to the store', () => {
+            store.dispatch(planningApi.receivePlannings(data.plannings));
+
+            expect(store.dispatch.callCount).toBe(3);
+            expect(store.dispatch.args[2][0]).toEqual({
+                type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
+                payload: data.plannings,
+            });
+        });
+
+        it('loads contacts from received planning items', () => {
+            const items = [
+                {coverages: [{assigned_to: {contact: 'con1'}}]},
+                {coverages: [{assigned_to: {contact: 'con2'}}]},
+                {coverages: [{assigned_to: {user: 'ident1'}}]},
+                {coverages: [{assigned_to: {}}]},
+            ];
+
+            store.dispatch(planningApi.receivePlannings(items));
+            expect(contactsApi.fetchContactsFromPlanning.callCount).toBe(1);
+            expect(contactsApi.fetchContactsFromPlanning.args[0]).toEqual([items]);
         });
     });
 

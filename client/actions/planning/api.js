@@ -867,13 +867,18 @@ const unpost = (original, updates) => (
 
 /**
  * Action for updating the list of planning items in the redux store
+ * Also loads all the associated contacts (if any)
  * @param  {array, object} plannings - An array of planning item objects
- * @return action object
  */
-const receivePlannings = (plannings) => ({
-    type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
-    payload: plannings,
-});
+const receivePlannings = (plannings) => (
+    (dispatch) => {
+        dispatch(actions.contacts.fetchContactsFromPlanning(plannings));
+        dispatch({
+            type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
+            payload: plannings,
+        });
+    }
+);
 
 /**
  * Action dispatcher that attempts to unlock a Planning item through the API

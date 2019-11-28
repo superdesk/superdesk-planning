@@ -150,7 +150,10 @@ ContactFieldComponent.propTypes = {
     querySearch: PropTypes.bool,
     onQuerySearch: PropTypes.func,
     onFocus: PropTypes.func,
-    value: PropTypes.arrayOf(PropTypes.string),
+    value: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.string),
+        PropTypes.string,
+    ]),
     searchContacts: PropTypes.func,
     fetchContacts: PropTypes.func,
     contacts: PropTypes.array,
