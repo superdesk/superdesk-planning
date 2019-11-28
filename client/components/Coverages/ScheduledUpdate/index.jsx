@@ -102,11 +102,6 @@ export const ScheduledUpdate = ({
             item={diff}
             index={index}
             coverage={value}
-            users={users}
-            desks={desks}
-            dateFormat={dateFormat}
-            timeFormat={timeFormat}
-            contentTypes={contentTypes}
             itemActionComponent={itemActionComponent}
             readOnly={readOnly}
             isPreview={forPreview}
@@ -129,8 +124,6 @@ export const ScheduledUpdate = ({
             onChange={onChange}
             users={users}
             desks={desks}
-            coverageProviders={coverageProviders}
-            priorities={priorities}
             readOnly={forPreview ? true : readOnly}
             addNewsItemToPlanning={addNewsItemToPlanning}
             onRemoveAssignment={!onRemoveAssignment ? null :
@@ -242,7 +235,7 @@ ScheduledUpdate.propTypes = {
     onFocus: PropTypes.func,
     forPreview: PropTypes.bool,
     onScheduleChanged: PropTypes.func,
-    coverageIndex: PropTypes.string,
+    coverageIndex: PropTypes.number,
     openScheduledUpdates: PropTypes.array,
     onOpen: PropTypes.func,
     onClose: PropTypes.func,

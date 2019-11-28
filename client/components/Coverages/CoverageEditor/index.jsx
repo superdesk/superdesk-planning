@@ -124,11 +124,6 @@ export const CoverageEditor = ({
             item={diff}
             index={index}
             coverage={value}
-            users={users}
-            desks={desks}
-            dateFormat={dateFormat}
-            timeFormat={timeFormat}
-            contentTypes={contentTypes}
             itemActionComponent={itemActionComponent}
             readOnly={readOnly}
         />
@@ -141,14 +136,9 @@ export const CoverageEditor = ({
             onChange={onChange}
             users={users}
             desks={desks}
-            coverageProviders={coverageProviders}
-            priorities={priorities}
             readOnly={readOnly}
             addNewsItemToPlanning={addNewsItemToPlanning}
             onRemoveAssignment={onRemoveAssignment.bind(null, value, index)}
-            popupContainer={popupContainer}
-            onPopupOpen={onPopupOpen}
-            onPopupClose={onPopupClose}
             setCoverageDefaultDesk={setCoverageDefaultDesk}
             {...props}
         />

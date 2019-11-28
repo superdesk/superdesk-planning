@@ -3,7 +3,17 @@ import PropTypes from 'prop-types';
 
 import {PlanningDateTime} from '../Planning';
 
-export const coverages = ({item, date, timeFormat, dateFormat, users, desks, activeFilter, contentTypes}) => (
+export const coverages = ({
+    item,
+    date,
+    timeFormat,
+    dateFormat,
+    users,
+    desks,
+    activeFilter,
+    contentTypes,
+    contacts,
+}) => (
     <PlanningDateTime
         item={item}
         date={date}
@@ -13,6 +23,7 @@ export const coverages = ({item, date, timeFormat, dateFormat, users, desks, act
         desks={desks}
         activeFilter={activeFilter}
         contentTypes={contentTypes}
+        contacts={contacts}
     />
 );
 
@@ -27,4 +38,5 @@ coverages.propTypes = {
     desks: PropTypes.array,
     activeFilter: PropTypes.string,
     contentTypes: PropTypes.array,
+    contacts: PropTypes.object,
 };

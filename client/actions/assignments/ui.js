@@ -953,6 +953,41 @@ const loadDefaultListSort = () => (
     }
 );
 
+/**
+ * Show the Coverage Assignment modal
+ * @param {string} field - The field to edit in the item
+ * @param {Object} value - The item to edit
+ * @param {Function} onChange - onChange callback
+ * @param {string} priorityPrefix - The prefix for the priority field
+ * @param {boolean} disableDeskSelection - If true, disables the Desk input field
+ * @param {boolean} disableUserSelection - If true, disables the User input field
+ * @param {Function} setCoverageDefaultDesk - Callback function to set default desk for coverages
+ */
+const showEditCoverageAssignmentModal = ({
+    field,
+    value,
+    onChange,
+    priorityPrefix,
+    disableDeskSelection,
+    disableUserSelection,
+    setCoverageDefaultDesk,
+}) => (
+    (dispatch) => {
+        dispatch(showModal({
+            modalType: MODALS.EDIT_COVERAGE_ASSIGNMENT,
+            modalProps: {
+                field,
+                value,
+                onChange,
+                priorityPrefix,
+                disableDeskSelection,
+                disableUserSelection,
+                setCoverageDefaultDesk,
+            },
+        }));
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     loadAssignments,
@@ -999,6 +1034,7 @@ const self = {
     loadDefaultListSort,
     changeSortField,
     validateStartWorkingOnScheduledUpdate,
+    showEditCoverageAssignmentModal,
 };
 
 export default self;

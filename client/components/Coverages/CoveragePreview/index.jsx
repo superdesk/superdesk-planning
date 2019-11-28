@@ -10,6 +10,7 @@ import {CoverageItem} from '../';
 import {CoveragePreviewTopBar} from './CoveragePreviewTopBar';
 import {ScheduledUpdate} from '../ScheduledUpdate';
 import {InternalNoteLabel} from '../../index';
+import '../style.scss';
 
 export const CoveragePreview = ({
     item,
@@ -43,12 +44,8 @@ export const CoveragePreview = ({
             item={item}
             index={index}
             coverage={coverage}
-            users={users}
-            desks={desks}
-            dateFormat={dateFormat}
-            timeFormat={timeFormat}
             readOnly={true}
-            isPreview
+            isPreview={true}
             active={active}
         />
     );
@@ -63,19 +60,41 @@ export const CoveragePreview = ({
         timeFormat={timeFormat}
     />);
 
+    let contactId;
+
+    if (get(formProfile, 'editor.contact_info.enabled')) {
+        if (get(coverage, 'assigned_to.contact')) {
+            contactId = coverage.assigned_to.contact;
+        } else if (get(coverage, 'planning.contact_info.length', 0) > 0) {
+            contactId = coverage.planning.contact_info[0];
+        }
+    }
+
     const coverageInDetail = (
-        <div>
-            <PreviewRow>
+        <div className="coverage-preview__detail">
+            {contactId && (
+                <PreviewRow label={gettext('Coverage Provider Contact')} className="coverage-preview__contact">
+                    <ContactsPreviewList
+                        contactIds={contactId ? [contactId] : []}
+                        scrollInView={true}
+                        scrollIntoViewOptions={{block: 'center'}}
+                    />
+                </PreviewRow>
+            )}
+
+            <PreviewRow enabled={get(item, `coverages[${index}].planning.workflow_status_reason.length`) > 0}>
                 <InternalNoteLabel
                     item={item}
                     prefix={`coverages[${index}].planning.`}
                     noteField="workflow_status_reason"
                     showTooltip={false}
-                    showText
-                    stateField = {coverage.workflow_status === WORKFLOW_STATE.CANCELLED ?
+                    showText={true}
+                    stateField={coverage.workflow_status === WORKFLOW_STATE.CANCELLED ?
                         `coverages[${index}].workflow_status` : 'state'}
-                    showHeaderText={false} />
+                    showHeaderText={false}
+                />
             </PreviewRow>
+
             {get(formProfile, 'editor.slugline.enabled') &&
                 <PreviewRow
                     label={gettext('Slugline')}
@@ -122,17 +141,6 @@ export const CoveragePreview = ({
                     label={gettext('Genre')}
                     value={get(coverage, 'planning.genre.name')}
                 />
-            }
-
-            {get(formProfile, 'editor.contact_info.enabled') && coverage.planning.contact_info &&
-                <PreviewRow label={gettext('Coverage Provider Contact')}>
-                    <ContactsPreviewList
-                        contactIds={get(coverage, 'planning.contact_info.length', 0) > 0 ?
-                            [coverage.planning.contact_info] : []}
-                        scrollInView={true}
-                        scrollIntoViewOptions={{block: 'center'}}
-                    />
-                </PreviewRow>
             }
 
             <PreviewRow

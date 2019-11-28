@@ -16,6 +16,7 @@ export const Row = ({label, value, className, children, noPadding, enabled, flex
                     'form__row-item': rowItem,
                     'no-padding': noPadding,
                     'form__row--flex': flex,
+                    [className]: className && !value,
                 }
             )}
         >

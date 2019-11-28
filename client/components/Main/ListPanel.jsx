@@ -209,6 +209,7 @@ export class ListPanel extends React.Component {
             indexItems,
             previewItem,
             contentTypes,
+            contacts,
         } = this.props;
 
         let indexFrom = 0;
@@ -262,6 +263,7 @@ export class ListPanel extends React.Component {
                             showAddCoverage: showAddCoverage,
                             hideItemActions: hideItemActions,
                             listFields: listFields,
+                            contacts: contacts,
                             ...propsForNestedListItems,
                         };
 
@@ -328,4 +330,5 @@ ListPanel.propTypes = {
     navigateList: PropTypes.func,
     onItemActivate: PropTypes.func,
     contentTypes: PropTypes.array,
+    contacts: PropTypes.object,
 };
