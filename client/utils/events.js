@@ -326,6 +326,10 @@ const canAssignEventToCalendar = (event, session, privileges, locks) => (
         !isEventLocked(event, locks)
 );
 
+const canSaveEventAsTemplate = (event, session, privileges, locks) => (
+    !isEventLockRestricted(event, session, locks) && privileges[PRIVILEGES.EVENT_TEMPLATES]
+);
+
 const canMarkEventAsComplete = (event, session, privileges, locks) => {
     const currentDate = moment();
     const precondition = [
@@ -380,6 +384,8 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
             canAssignEventToCalendar(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.label]: () =>
             canMarkEventAsComplete(event, session, privileges, locks),
+        [EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.label]: () =>
+            canSaveEventAsTemplate(event, session, privileges, locks),
     };
 
     actions.forEach((action) => {

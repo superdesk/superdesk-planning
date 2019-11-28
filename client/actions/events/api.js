@@ -1394,7 +1394,7 @@ const fetchEventTemplates = () => (dispatch, getState, {api}) => {
         });
 };
 
-const createEventTemplate = (itemId) => (dispatch, getState, {api, modal}) => {
+const createEventTemplate = (itemId) => (dispatch, getState, {api, modal, notify}) => {
     modal.prompt(gettext('Template name')).then((templateName) => {
         api('events_template').query({
             where: {
@@ -1412,6 +1412,11 @@ const createEventTemplate = (itemId) => (dispatch, getState, {api, modal}) => {
                     })
                         .then(() => {
                             dispatch(fetchEventTemplates());
+                        }, (error) => {
+                            notify.error(
+                                getErrorMessage(error, gettext('Failed to save the event template'))
+                            );
+                            return Promise.reject(error);
                         });
                 };
 
