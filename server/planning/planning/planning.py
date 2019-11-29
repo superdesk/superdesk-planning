@@ -65,6 +65,7 @@ class PlanningService(superdesk.Service):
                     coverage['assigned_to']['assignment_id'] = assignment.get(config.ID_FIELD)
                     coverage['assigned_to']['desk'] = assignment.get('assigned_to', {}).get('desk')
                     coverage['assigned_to']['user'] = assignment.get('assigned_to', {}).get('user')
+                    coverage['assigned_to']['contact'] = assignment.get('assigned_to', {}).get('contact')
                     coverage['assigned_to']['state'] = assignment.get('assigned_to', {}).get('state')
                     coverage['assigned_to']['assignor_user'] = assignment.get('assigned_to', {}).get('assignor_user')
                     coverage['assigned_to']['assignor_desk'] = assignment.get('assigned_to', {}).get('assignor_desk')
@@ -443,6 +444,11 @@ class PlanningService(superdesk.Service):
                 coverage['version_creator'] = str(user.get(config.ID_FIELD)) if user else None
                 coverage['versioncreated'] = utcnow()
 
+                contact_id = coverage.get(
+                    'contact',
+                    (original_coverage.get('assigned_to') or {}).get('contact', None)
+                )
+
                 # If the internal note has changed send a notification, except if it's been cancelled
                 if coverage.get('planning', {}).get('internal_note', '') != original_coverage.get('planning',
                                                                                                   {}).get(
@@ -452,10 +458,12 @@ class PlanningService(superdesk.Service):
                                                                                                             None)
                     target_desk = coverage.get('assigned_to', original_coverage.get('assigned_to', {})).get('desk',
                                                                                                             None)
+
                     PlanningNotifications().notify_assignment(
                         coverage_status=coverage.get('workflow_status'),
                         target_desk=target_desk if target_user is None else None,
                         target_user=target_user,
+                        contact_id=contact_id,
                         message='assignment_internal_note_msg',
                         coverage_type=get_coverage_type_name(
                             coverage.get('planning', {}).get('g2_content_type', '')),
@@ -472,6 +480,7 @@ class PlanningService(superdesk.Service):
                         coverage_status=coverage.get('workflow_status'),
                         target_desk=target_desk if target_user is None else None,
                         target_user=target_user,
+                        contact_id=contact_id,
                         message='assignment_due_time_msg',
                         due=utc_to_local(app.config['DEFAULT_TIMEZONE'],
                                          coverage.get('planning', {}).get('scheduled')).strftime('%c'),
@@ -607,6 +616,7 @@ class PlanningService(superdesk.Service):
                 'assigned_to': {
                     'user': assigned_to.get('user'),
                     'desk': assigned_to.get('desk'),
+                    'contact': assigned_to.get('contact'),
                     'state': assign_state
                 },
                 'planning_item': planning_id,
@@ -700,6 +710,7 @@ class PlanningService(superdesk.Service):
                     coverage_status=updates.get('workflow_status'),
                     target_desk=assigned_to.get('desk') if assigned_to.get('user') is None else None,
                     target_user=assigned_to.get('user'),
+                    contact_id=assigned_to.get('contact'),
                     message='assignment_planning_internal_note_msg',
                     coverage_type=get_coverage_type_name(updates.get('planning', {}).get('g2_content_type', '')),
                     slugline=planning.get('slugline', ''),

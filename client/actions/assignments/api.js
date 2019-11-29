@@ -2,6 +2,7 @@ import moment from 'moment';
 import {get, cloneDeep, has, pick} from 'lodash';
 
 import * as selectors from '../../selectors';
+import * as actions from '../';
 import {ASSIGNMENTS, ALL_DESKS, SORT_DIRECTION} from '../../constants';
 import planningUtils from '../../utils/planning';
 import {lockUtils, getErrorMessage, isExistingItem, gettext} from '../../utils';
@@ -254,13 +255,19 @@ const queryLockedAssignments = () => (
 
 /**
  * Action to receive the list of Assignments and store them in the store
+ * Also loads all the associated contacts (if any)
  * @param {Array} assignments - An array of Assignment items
  * @return object
  */
-const receivedAssignments = (assignments) => ({
-    type: ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS,
-    payload: assignments,
-});
+const receivedAssignments = (assignments) => (
+    (dispatch) => {
+        dispatch(actions.contacts.fetchContactsFromAssignments(assignments));
+        dispatch({
+            type: ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS,
+            payload: assignments,
+        });
+    }
+);
 
 /**
  * Action to save assignment
@@ -289,7 +296,7 @@ const save = (original, assignmentUpdates) => (
                 updates = pick(assignmentUpdates, 'assigned_to');
                 updates.assigned_to = pick(
                     assignmentUpdates.assigned_to,
-                    ['desk', 'user', 'coverage_provider']
+                    ['desk', 'user', 'coverage_provider', 'contact']
                 );
             } else {
                 // Edit priority

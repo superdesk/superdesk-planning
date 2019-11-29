@@ -776,7 +776,10 @@ const selectCalendar = (calendarId = '', params = {}) => (
         $timeout(() => $location.search('calendar', calendar));
 
         // Reload the Event list
-        return dispatch(self.fetchEvents(params));
+        dispatch(main.setUnsetUserInitiatedSearch(true));
+        return dispatch(self.fetchEvents(params))
+            .then((data) => Promise.resolve(data))
+            .finally(() => dispatch(main.setUnsetUserInitiatedSearch(false)));
     }
 );
 
@@ -900,7 +903,7 @@ const creatAndOpenPlanning = (item, planningDate = null, openPlanningItem = fals
 );
 
 const onMarkEventCompleted = (event, editor = false) => (
-    (dispatch) => {
+    (dispatch, getState, {notify}) => {
         let updates = {
             _id: event._id,
             type: event.type,
@@ -919,34 +922,51 @@ const onMarkEventCompleted = (event, editor = false) => (
                 event,
                 gettext('Save changes before marking event as complete ?'),
                 (unlockedItem, previousLock, openInEditor, openInModal) => (
-                    dispatch(lockAndSaveUpdates(
-                        unlockedItem,
-                        updates,
-                        EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.lock_action,
-                        gettext('Marked event as complete'),
-                        gettext('Failed to mark event as complete'),
-                        null,
-                        false))
-                        .then((result) => {
-                            if (get(previousLock, 'action') && (openInEditor || openInModal)) {
-                                dispatch(main.openForEdit(result, true, openInModal));
-                                dispatch(locks.lock(result, previousLock.action));
-                            }
-                        })
-                )
-            ));
+                    dispatch(locks.lock(unlockedItem, EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.lock_action))
+                        .then((lockedItem) => (
+                            dispatch(showModal({
+                                modalType: MODALS.CONFIRMATION,
+                                modalProps: {
+                                    body: gettext('Are you sure you want to mark this event as complete?'),
+                                    action: () =>
+                                        dispatch(main.saveAndUnlockItem(lockedItem, updates, true)).then((result) => {
+                                            if (get(previousLock, 'action') && (openInEditor || openInModal)) {
+                                                dispatch(main.openForEdit(result, true, openInModal));
+                                                dispatch(locks.lock(result, previousLock.action));
+                                            }
+                                        }, (error) => {
+                                            dispatch(locks.unlock(lockedItem));
+                                        }),
+                                    onCancel: () => dispatch(locks.unlock(lockedItem)).then((result) => {
+                                        if (get(previousLock, 'action') && (openInEditor || openInModal)) {
+                                            dispatch(main.openForEdit(result, true, openInModal));
+                                            dispatch(locks.lock(result, previousLock.action));
+                                        }
+                                    }),
+                                    autoClose: true,
+                                },
+                            }))), (error) => {
+                            notify.error(getErrorMessage(error, gettext('Could not obtain lock on the event.')));
+                        }
+                        ))));
         }
 
         // If actioned on list / preview
-        return dispatch(lockAndSaveUpdates(
-            event,
-            updates,
-            EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.lock_action,
-            gettext('Marked event as complete'),
-            gettext('Failed to mark event as complete'),
-            null,
-            false))
-            .catch(() => dispatch(locks.unlock(event)));
+        return dispatch(locks.lock(event, EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.lock_action))
+            .then((original) => (
+                dispatch(showModal({
+                    modalType: MODALS.CONFIRMATION,
+                    modalProps: {
+                        body: gettext('Are you sure you want to mark this event as complete?'),
+                        action: () => dispatch(main.saveAndUnlockItem(original, updates, true)).catch((error) => {
+                            dispatch(locks.unlock(original));
+                        }),
+                        onCancel: () => dispatch(locks.unlock(original)),
+                        autoClose: true,
+                    },
+                }))), (error) => {
+                notify.error(getErrorMessage(error, gettext('Could not obtain lock on the event.')));
+            });
     }
 );
 

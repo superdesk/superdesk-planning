@@ -1,5 +1,25 @@
 # Superdesk Planning Changelog
 
+## [1.10.0-rc1] Not released yet
+### Features
+- [SDESK-4766] Assign coverages to assignable media contacts (#1389)
+
+### Improvements
+- [SDESK-4734] Confirmation on completing event (#1382)
+- [SDESK-4721] Save location directly from location popup (#1386)
+- [SDBELGA-220] improvements for quick creation of coverages (#1388) 
+- [SDESK-4722] Add no result indication in location manager and set sort order on empty search (#1390)
+- [SDESK-4807] Event templates privilege (#1394)
+
+### Fixes
+- [SDESK-4723] Improve stability when searching locations (#1384)
+- [SDNTB-589] Use default timezone for rescheduling events if there is no timezone in event (#1385)
+- [SDESK-4735] Infinite loading when unlocking an event thats being edited in popup (#1387)
+- [SDESK-4389] Remove repeated 'by' in planning history tab (#1391)
+- [SDESK-4772] Avoid planning lists' scroll position from jumping to start on item notifications (#1392)
+- [SDESK-4806] Event templates were not saving 'category' field (#1393)
+- [SDBELGA-220] validate coverage in add advanced modal (#1395)
+
 ## [1.9.0] 2019-11-06
 ### Features
 - [SDESK-4560] Cherry-picking scheduled_updates feature to master (#1366)

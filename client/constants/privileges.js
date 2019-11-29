@@ -6,6 +6,7 @@ export const PRIVILEGES = {
     SPIKE_PLANNING: 'planning_planning_spike',
     UNSPIKE_PLANNING: 'planning_planning_unspike',
     EVENT_MANAGEMENT: 'planning_event_management',
+    EVENT_TEMPLATES: 'planning_event_templates',
     SPIKE_EVENT: 'planning_event_spike',
     UNSPIKE_EVENT: 'planning_event_unspike',
     POST_EVENT: 'planning_event_post',

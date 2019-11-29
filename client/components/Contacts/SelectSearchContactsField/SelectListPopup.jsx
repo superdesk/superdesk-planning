@@ -7,7 +7,7 @@ import {get} from 'lodash';
 import * as actions from '../../../actions';
 import {CONTACTS} from '../../../constants';
 
-import {uiUtils, onEventCapture} from '../../../utils';
+import {uiUtils, onEventCapture, gettext} from '../../../utils';
 import {KEYCODES} from '../../../constants';
 
 import {SearchField, Button} from '../../UI';
@@ -120,8 +120,8 @@ export class SelectListPopupComponent extends React.Component {
     openSearchList(event) {
         if (event && get(event.target, 'value.length') > 1) {
             if (!this.state.openFilterList) {
-                this.setState({filteredList: this.getFilteredOptionList()});
                 this.setState({
+                    filteredList: this.getFilteredOptionList(),
                     openFilterList: true,
                     search: true,
                 });
@@ -140,7 +140,7 @@ export class SelectListPopupComponent extends React.Component {
     }
 
     getSearchResult(text) {
-        this.props.searchContacts(text)
+        this.props.searchContacts(text, this.props.contactType)
             .then((contacts) => {
                 this.setState({
                     options: contacts,
@@ -160,6 +160,7 @@ export class SelectListPopupComponent extends React.Component {
                 ref={(node) => this.dom.searchField = node}
                 onFocus={this.props.onFocus}
                 readOnly={this.props.readOnly}
+                placeholder={gettext('Search for a contact')}
             />
             {this.state.openFilterList && (
                 <Popup
@@ -223,11 +224,12 @@ SelectListPopupComponent.propTypes = {
     searchContacts: PropTypes.func,
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
+    contactType: PropTypes.string,
 };
 
 const mapDispatchToProps = (dispatch) => ({
-    searchContacts: (text) => dispatch(
-        actions.contacts.getContacts(text, CONTACTS.SEARCH_FIELDS)
+    searchContacts: (text, contactType) => dispatch(
+        actions.contacts.getContacts(text, CONTACTS.SEARCH_FIELDS, contactType)
     ),
 });
 

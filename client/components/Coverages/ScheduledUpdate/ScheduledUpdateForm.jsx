@@ -170,7 +170,7 @@ ScheduledUpdateForm.propTypes = {
     index: PropTypes.number,
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
-    coverageIndex: PropTypes.string,
+    coverageIndex: PropTypes.number,
     hasAssignment: PropTypes.bool,
     onScheduleChanged: PropTypes.func,
     genres: PropTypes.array,

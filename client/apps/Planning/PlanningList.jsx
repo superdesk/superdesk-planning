@@ -62,6 +62,8 @@ export class PlanningListComponent extends React.Component {
             isAllListItemsLoaded,
             previewId,
             contentTypes,
+            userInitiatedSearch,
+            contacts,
         } = this.props;
 
         return (
@@ -95,6 +97,8 @@ export class PlanningListComponent extends React.Component {
                 isAllListItemsLoaded={isAllListItemsLoaded}
                 previewItem={previewId}
                 contentTypes={contentTypes}
+                userInitiatedSearch={userInitiatedSearch}
+                contacts={contacts}
                 indexItems
             />
         );
@@ -133,6 +137,8 @@ PlanningListComponent.propTypes = {
     isAllListItemsLoaded: PropTypes.bool,
     previewId: PropTypes.string,
     contentTypes: PropTypes.array,
+    userInitiatedSearch: PropTypes.bool,
+    contacts: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
@@ -155,6 +161,8 @@ const mapStateToProps = (state) => ({
     isAllListItemsLoaded: selectors.main.isAllListItemsLoaded(state),
     previewId: selectors.main.previewId(state),
     contentTypes: selectors.general.contentTypes(state),
+    userInitiatedSearch: selectors.main.userInitiatedSearch(state),
+    contacts: selectors.general.contactsById(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -171,4 +171,10 @@ def init_app(app):
         description='Ability to unpost an Event'
     )
 
+    superdesk.privilege(
+        name='planning_event_templates',
+        label='Planning - Event Templates',
+        description='Ability to create and manage Event templates'
+    )
+
     superdesk.intrinsic_privilege(EventsUnlockResource.endpoint_name, method=['POST'])

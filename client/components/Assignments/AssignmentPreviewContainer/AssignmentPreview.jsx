@@ -33,11 +33,15 @@ export const AssignmentPreview = ({
     const subjectText = get(planningItem, 'subject.length', 0) > 0 ?
         planningItem.subject.map((s) => s.name).join(', ') : '-';
 
+    const contactIds = get(assignment, 'assigned_to.contact') ?
+        [assignment.assigned_to.contact] :
+        get(planning, 'contact_info', []);
+
     return (
         <div>
             <Row label={gettext('Coverage Provider Contact')}>
                 <ContactsPreviewList
-                    contactIds={get(planning, 'contact_info.length', 0) > 0 ? [planning.contact_info] : []}
+                    contactIds={contactIds}
                     scrollInView={true}
                     scrollIntoViewOptions={{block: 'center'}}
                     tabEnabled={true}

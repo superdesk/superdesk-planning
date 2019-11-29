@@ -25,11 +25,13 @@ export class SelectSearchContactsField extends React.Component {
     }
 
     render() {
-        const {label, value, onAdd, onAddText, onFocus, readOnly, ...props} = this.props;
+        const {label, value, onAdd, onAddText, onFocus, readOnly, contactType, ...props} = this.props;
 
         return (
             <LineInput readOnly={readOnly} {...props}>
-                <Label text={label} />
+                {label && (
+                    <Label text={label} />
+                )}
                 <SelectListPopup
                     value={value}
                     onChange={this.onChange}
@@ -40,6 +42,7 @@ export class SelectSearchContactsField extends React.Component {
                     readOnly={readOnly}
                     onPopupOpen={props.onPopupOpen}
                     onPopupClose={props.onPopupClose}
+                    contactType={contactType}
                 />
             </LineInput>
         );
@@ -56,6 +59,7 @@ SelectSearchContactsField.propTypes = {
     onAdd: PropTypes.func,
     onAddText: PropTypes.string,
     onFocus: PropTypes.func,
+    contactType: PropTypes.string,
 };
 
 SelectSearchContactsField.defaultProps = {

@@ -56,7 +56,7 @@ export default class SearchField extends React.Component {
                 onChange={this.onSearchChange.bind(this)}
                 onClick={this.onSearchClick.bind(this)}
                 id={uniqueId}
-                placeholder={gettext('Search')}
+                placeholder={this.props.placeholder || gettext('Search')}
                 className="sd-line-input__input"
                 type="text"
                 onKeyDown={(event) => {
@@ -78,4 +78,5 @@ SearchField.propTypes = {
     minLength: PropTypes.number,
     onFocus: PropTypes.func,
     readOnly: PropTypes.bool,
+    placeholder: PropTypes.string,
 };

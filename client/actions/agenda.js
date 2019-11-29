@@ -92,8 +92,14 @@ const selectAgenda = (agendaId, params = {}) => (
 
         // update the url (deep linking)
         $timeout(() => ($location.search('agenda', agendaId)));
+
         // reload the plannings list
-        return dispatch(fetchSelectedAgendaPlannings(params));
+        dispatch(main.setUnsetUserInitiatedSearch(true));
+        return dispatch(fetchSelectedAgendaPlannings(params))
+            .then((data) => Promise.resolve(data))
+            .finally(() => {
+                dispatch(main.setUnsetUserInitiatedSearch(false));
+            });
     }
 );
 
