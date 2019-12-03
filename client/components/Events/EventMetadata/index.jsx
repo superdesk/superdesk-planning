@@ -106,6 +106,7 @@ export const EventMetadata = (
                                     name={get(event, 'location.name')}
                                     address={get(event, 'location.formatted_address')}
                                     mapUrl={streetMapUrl}
+                                    details={get(event, 'location.details[0]')}
                                 />
                             </span>
                             <time>{dateStr}</time>
@@ -140,6 +141,7 @@ export const EventMetadata = (
                         address={get(event, 'location.formatted_address')}
                         multiLine={true}
                         mapUrl={streetMapUrl}
+                        details={get(event, 'location.details[0]')}
                     />
                 </div>
             </PreviewRow>

@@ -55,6 +55,10 @@
     .sd-line-input__input--padding-right-60 {
         padding-right: 60px !important;
     }
+
+    .sd-line-input__input--unset-height {
+        height: initial !important;
+    }
 }
 
 .sd-line-input--invalid, .form-label--invalid {
