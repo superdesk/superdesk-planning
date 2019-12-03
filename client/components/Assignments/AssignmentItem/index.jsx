@@ -110,6 +110,8 @@ export class AssignmentItem extends React.Component {
         const assignedDeskName = get(assignedDesk, 'name') || '-';
         const genre = get(assignment, 'planning.genre.name');
 
+        const assignedToProvider = assignmentUtils.isAssignedToProvider(assignment);
+
         return (
             <Column grow={true} border={false}>
                 <Row>
@@ -139,6 +141,9 @@ export class AssignmentItem extends React.Component {
                             data-flow="right"
                             className={clockIconClass}
                         >
+                            {assignedToProvider && (
+                                <i className="icon-ingest" />
+                            )}
                             <i className="icon-time" />
                             {planningSchedule ? (
                                 <AbsoluteDate

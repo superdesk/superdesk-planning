@@ -31,7 +31,8 @@ const canStartWorking = (assignment, session, privileges, contentTypes) => (
         (
             !get(assignment, 'assigned_to.user') ||
             assignment.assigned_to.user === get(session, 'identity._id')
-        )
+        ) &&
+        !isAssignedToProvider(assignment)
 );
 
 const canFulfilAssignment = (assignment, session, privileges) => (
@@ -82,6 +83,10 @@ const isDue = (assignment) => (
             ASSIGNMENTS.WORKFLOW_STATE.COMPLETED,
             ASSIGNMENTS.WORKFLOW_STATE.CANCELLED,
         ].indexOf(get(assignment, 'assigned_to.state')) < 0
+);
+
+const isAssignedToProvider = (assignment) => (
+    get(assignment, 'assigned_to.coverage_provider.qcode')
 );
 
 const getAssignmentActions = (assignment, session, privileges, lockedItems, contentTypes, callBacks) => {
@@ -343,6 +348,7 @@ const self = {
     isDue,
     getCurrentSelectedDeskId,
     getCurrentSelectedDesk,
+    isAssignedToProvider,
 };
 
 export default self;
