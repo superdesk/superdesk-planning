@@ -1,6 +1,6 @@
 # Superdesk Planning Changelog
 
-## [1.10.0-rc1] Not released yet
+## [1.10.0-rc2] Not released yet
 ### Features
 - [SDESK-4766] Assign coverages to assignable media contacts (#1389)
 
@@ -19,6 +19,7 @@
 - [SDESK-4772] Avoid planning lists' scroll position from jumping to start on item notifications (#1392)
 - [SDESK-4806] Event templates were not saving 'category' field (#1393)
 - [SDBELGA-220] validate coverage in add advanced modal (#1395)
+- [SDESK-4766] Remove 'Start Working' for external coverages (#1397)
 
 ## [1.9.0] 2019-11-06
 ### Features
