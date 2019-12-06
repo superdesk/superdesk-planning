@@ -129,6 +129,7 @@ export class EventPreviewContentComponent extends React.Component {
                             address={get(item, 'location.formatted_address')}
                             mapUrl={streetMapUrl}
                             multiLine={true}
+                            details={get(item, 'location.details[0]')}
                         />
                     </div>
                 </Row>

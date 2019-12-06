@@ -9,7 +9,7 @@ import './style.scss';
  * @name Label
  * @description Form label component
  */
-export const Label = ({text, row, light, invalid, noMinWidth, padding, marginLeft}) => (
+export const Label = ({text, row, light, invalid, noMinWidth, padding, marginLeft, icon}) => (
     !text ? null : (
         <label className={classNames({
             'sd-line-input__label': !row,
@@ -20,6 +20,7 @@ export const Label = ({text, row, light, invalid, noMinWidth, padding, marginLef
             'form-label--padding': padding,
             'form-label--left-margin': marginLeft,
         })}>
+            {icon && <i className={icon}/>}
             {text}
         </label>
     )
@@ -33,6 +34,7 @@ Label.propTypes = {
     noMinWidth: PropTypes.bool,
     padding: PropTypes.bool,
     marginLeft: PropTypes.bool,
+    icon: PropTypes.string,
 };
 
 Label.defaultProps = {

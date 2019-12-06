@@ -200,6 +200,7 @@ export class GeoLookupInputComponent extends React.Component {
                 name: newLocation.name,
                 qcode: newLocation.guid,
                 address: newLocation.address,
+                details: newLocation.details,
             };
 
             // external address might not be there.
