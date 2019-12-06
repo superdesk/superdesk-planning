@@ -22,6 +22,7 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
     const formattedAddress = get(location, 'formatted_address', '');
     const contacts = get(item, 'event_contact_info') || [];
     const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(item);
+    const locationDetails = get(location, 'details[0]');
 
     return (
         <div>
@@ -71,6 +72,7 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
                         address={formattedAddress}
                         mapUrl={streetMapUrl}
                         multiLine={true}
+                        details={locationDetails}
                     />
                 </div>
             </Row>

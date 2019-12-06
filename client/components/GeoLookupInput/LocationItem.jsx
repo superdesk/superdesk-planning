@@ -18,7 +18,8 @@ export const LocationItem = ({location, streetMapUrl, active, onRemoveLocation, 
                     address={'formatted_address' in location ? location.formatted_address :
                         get(formatAddress(get(location, 'nominatim', location)), 'formattedAddress')}
                     mapUrl={streetMapUrl}
-                    multiLine={true} />
+                    multiLine={true}
+                    details={get(location, 'details[0]')}/>
                 <ActionMenu className="pull-right">
                     {!readOnly && <Button
                         data-sd-tooltip={gettext('Remove Location')}

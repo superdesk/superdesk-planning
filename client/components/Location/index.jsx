@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {gettext, getMapUrl} from '../../utils';
+import {gettext, getMapUrl, stringUtils} from '../../utils';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
-export const Location = ({name, address, mapUrl, multiLine}) => {
+export const Location = ({name, address, mapUrl, multiLine, details}) => {
     if (!name && !address) {
         return null;
     }
@@ -40,15 +40,17 @@ export const Location = ({name, address, mapUrl, multiLine}) => {
 
     if (mapUrl) {
         return (
-            <a
-                title={gettext('Show on map')}
-                href={getMapUrl(mapUrl, name, address)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="addgeolookup"
-            >
-                {renderLocation()}
-            </a>
+            <span className="addgeolookup">
+                <a
+                    title={gettext('Show on map')}
+                    href={getMapUrl(mapUrl, name, address)}
+                    target="_blank"
+                    rel="noopener noreferrer">
+                    {renderLocation()}
+                </a>
+                {details && <div><i className="icon-info-sign icon--blue sd-padding-r--3"/>
+                    {stringUtils.convertNewlineToBreak(details)}</div>}
+            </span>
         );
     }
 
@@ -61,6 +63,7 @@ Location.propTypes = {
     mapUrl: PropTypes.string,
     classes: PropTypes.string,
     multiLine: PropTypes.bool,
+    details: PropTypes.string,
 };
 
 Location.defaultProps = {
@@ -69,4 +72,5 @@ Location.defaultProps = {
     mapUrl: '',
     classes: '',
     multiLine: false,
+    details: '',
 };
