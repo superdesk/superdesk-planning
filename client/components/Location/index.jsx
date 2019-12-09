@@ -48,8 +48,8 @@ export const Location = ({name, address, mapUrl, multiLine, details}) => {
                     rel="noopener noreferrer">
                     {renderLocation()}
                 </a>
-                {details && <div><i className="icon-info-sign icon--blue sd-padding-r--3"/>
-                    {stringUtils.convertNewlineToBreak(details)}</div>}
+                {details && <div className="sd-padding-t--1"><i className="icon-info-sign icon--blue"/></div>}
+                {details && stringUtils.convertNewlineToBreak(details)}
             </span>
         );
     }

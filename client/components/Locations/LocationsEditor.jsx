@@ -263,8 +263,7 @@ export class LocationsEditorComponent extends React.Component {
                         label={gettext('Notes')}
                         value={get(this, 'state.details')}
                         onChange={this.onChange}
-                        autoHeight={false}
-                        rows={3}
+                        autoHeight={true}
                         labelIcon="icon-info-sign icon--blue sd-padding-r--3"
                     />
                 </Content>
