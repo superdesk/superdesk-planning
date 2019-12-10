@@ -125,7 +125,7 @@ describe('<EventPreviewContent />', () => {
         let contacts = wrapper.find('.contact-info');
 
         expect(contacts.find('span').first()
-            .text()).toBe(`${storeContact.last_name}, ${storeContact.first_name} `);
+            .text()).toBe(`${storeContact.first_name} ${storeContact.last_name} `);
 
         let files = wrapper.find('.toggle-box').at(1);
 

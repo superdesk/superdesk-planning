@@ -99,7 +99,7 @@ export class SelectListPopupComponent extends React.Component {
     }
 
     filterSearchResults(val) {
-        if (!val) {
+        if (this.props.minLength > 0 && (!val || get(val, 'length') < this.props.minLength)) {
             this.setState({
                 search: false,
                 filteredList: this.getFilteredOptionList(),
@@ -108,7 +108,7 @@ export class SelectListPopupComponent extends React.Component {
             return;
         }
 
-        const valueNoCase = val.toLowerCase();
+        const valueNoCase = (val || '').toLowerCase();
 
         this.getSearchResult(valueNoCase);
         this.setState({
@@ -118,7 +118,9 @@ export class SelectListPopupComponent extends React.Component {
     }
 
     openSearchList(event) {
-        if (event && get(event.target, 'value.length') > 1) {
+        if (event && get(event.target, 'value.length') >= this.props.minLength) {
+            this.filterSearchResults(event.target.value);
+
             if (!this.state.openFilterList) {
                 this.setState({
                     filteredList: this.getFilteredOptionList(),
@@ -160,7 +162,8 @@ export class SelectListPopupComponent extends React.Component {
                 ref={(node) => this.dom.searchField = node}
                 onFocus={this.props.onFocus}
                 readOnly={this.props.readOnly}
-                placeholder={gettext('Search for a contact')}
+                placeholder={this.props.placeholder || gettext('Search for a contact')}
+                autoComplete={false}
             />
             {this.state.openFilterList && (
                 <Popup
@@ -225,7 +228,11 @@ SelectListPopupComponent.propTypes = {
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
     contactType: PropTypes.string,
+    minLength: PropTypes.number,
+    placeholder: PropTypes.string,
 };
+
+SelectListPopupComponent.defaultProps = {minLength: 1};
 
 const mapDispatchToProps = (dispatch) => ({
     searchContacts: (text, contactType) => dispatch(

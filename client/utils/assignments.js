@@ -89,6 +89,12 @@ const isAssignedToProvider = (assignment) => (
     get(assignment, 'assigned_to.coverage_provider.qcode')
 );
 
+const getContactLabel = (assignment) => (
+    isAssignedToProvider(assignment) ?
+        gettext('Assigned Provider') :
+        gettext('Coverage Contact')
+);
+
 const getAssignmentActions = (assignment, session, privileges, lockedItems, contentTypes, callBacks) => {
     if (!isExistingItem(assignment) || lockUtils.isLockRestricted(assignment, session, lockedItems)) {
         return [];
@@ -349,6 +355,7 @@ const self = {
     getCurrentSelectedDeskId,
     getCurrentSelectedDesk,
     isAssignedToProvider,
+    getContactLabel,
 };
 
 export default self;

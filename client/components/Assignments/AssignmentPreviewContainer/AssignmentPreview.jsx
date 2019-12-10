@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
-import {gettext, stringUtils} from '../../../utils';
+import {gettext, stringUtils, assignmentUtils} from '../../../utils';
 
 import {InternalNoteLabel} from '../../';
 import {ContactsPreviewList} from '../../Contacts/index';
@@ -33,15 +33,15 @@ export const AssignmentPreview = ({
     const subjectText = get(planningItem, 'subject.length', 0) > 0 ?
         planningItem.subject.map((s) => s.name).join(', ') : '-';
 
-    const contactIds = get(assignment, 'assigned_to.contact') ?
-        [assignment.assigned_to.contact] :
-        get(planning, 'contact_info', []);
+    const contactId = get(assignment, 'assigned_to.contact') ?
+        assignment.assigned_to.contact :
+        get(planning, 'contact_info');
 
     return (
         <div>
-            <Row label={gettext('Coverage Provider Contact')}>
+            <Row label={assignmentUtils.getContactLabel(assignment)}>
                 <ContactsPreviewList
-                    contactIds={contactIds}
+                    contactIds={contactId ? [contactId] : []}
                     scrollInView={true}
                     scrollIntoViewOptions={{block: 'center'}}
                     tabEnabled={true}
