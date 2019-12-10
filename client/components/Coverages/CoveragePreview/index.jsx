@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {Row as PreviewRow} from '../../UI/Preview';
 import {CollapseBox} from '../../UI';
 import {get} from 'lodash';
-import {gettext, stringUtils, planningUtils} from '../../../utils';
+import {gettext, stringUtils, planningUtils, assignmentUtils} from '../../../utils';
 import {ContactsPreviewList} from '../../Contacts/index';
 import {PLANNING, WORKFLOW_STATE, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
 import {CoverageItem} from '../';
@@ -73,7 +73,10 @@ export const CoveragePreview = ({
     const coverageInDetail = (
         <div className="coverage-preview__detail">
             {contactId && (
-                <PreviewRow label={gettext('Coverage Provider Contact')} className="coverage-preview__contact">
+                <PreviewRow
+                    label={assignmentUtils.getContactLabel(coverage)}
+                    className="coverage-preview__contact"
+                >
                     <ContactsPreviewList
                         contactIds={contactId ? [contactId] : []}
                         scrollInView={true}

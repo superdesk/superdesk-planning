@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {getItemInArrayById, gettext, planningUtils, generateTempId} from '../../../utils';
+import {getItemInArrayById, gettext, planningUtils, generateTempId, assignmentUtils} from '../../../utils';
 import moment from 'moment';
 import {WORKFLOW_STATE, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT, TO_BE_CONFIRMED_FIELD} from '../../../constants';
 import {Button} from '../../UI';
@@ -206,11 +206,13 @@ export class CoverageForm extends React.Component {
         const canCreateScheduledUpdate = !addNewsItemToPlanning &&
             !get(diff, `${field}.flags.no_content_linking`);
 
+        const contactLabel = assignmentUtils.getContactLabel(get(diff, field));
+
         return (
             <div className="coverage-editor">
                 {get(diff, `${field}.assigned_to.contact`) ? (
                     <Row className="coverage-editor__contact">
-                        <Label row={true} text={gettext('Coverage Provider Contact')} />
+                        <Label row={true} text={contactLabel} />
                         <ContactsPreviewList
                             contactIds={[get(diff, `${field}.assigned_to.contact`)]}
                             scrollInView={true}
@@ -222,7 +224,7 @@ export class CoverageForm extends React.Component {
                         component={ContactField}
                         field={`${field}.planning.contact_info`}
                         profileName="contact_info"
-                        label={gettext('Coverage Provider Contact')}
+                        label={contactLabel}
                         defaultValue={[]}
                         {...fieldProps}
                         readOnly={readOnly}
