@@ -105,6 +105,19 @@ export class AssignmentEditorComponent extends React.Component {
         }
     }
 
+    componentDidUpdate(prevProps, prevState) {
+        const currentContactType = get(this.state, 'contactType') || {};
+        const prevContactType = get(prevState, 'contactType') || {};
+
+        if (currentContactType.qcode !== prevContactType.qcode) {
+            if (currentContactType.assignable) {
+                this.onChange(this.FIELDS.USER, null);
+            } else {
+                this.onChange(this.FIELDS.CONTACT, null);
+            }
+        }
+    }
+
     onChange(field, value, state = {}) {
         const errors = cloneDeep(this.state.errors);
         const combinedState = {
@@ -266,7 +279,7 @@ export class AssignmentEditorComponent extends React.Component {
 
                 {this.state.contactType && this.state.contactType.assignable ? (
                     <Row>
-                        <Label text={gettext('External Contact')} />
+                        <Label text={gettext('Assigned Provider')} />
                         {this.state.contactId && (
                             <ContactsPreviewList
                                 contactIds={[this.state.contactId]}
@@ -278,6 +291,8 @@ export class AssignmentEditorComponent extends React.Component {
                             value={this.state.contactId ? [this.state.contactId] : []}
                             onChange={this.onContactChange}
                             contactType={this.state.contactType.qcode}
+                            minLengthPopup={0}
+                            placeholder={gettext('Search provider contacts')}
                         />
                     </Row>
                 ) : (

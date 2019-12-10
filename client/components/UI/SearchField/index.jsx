@@ -19,6 +19,10 @@ export default class SearchField extends React.Component {
             searchInputValue: this.props.value || '',
             uniqueId: uniqueId('SearchField'),
         };
+
+        this.onSearchChange = this.onSearchChange.bind(this);
+        this.onSearchClick = this.onSearchClick.bind(this);
+        this.onKeyDown = this.onKeyDown.bind(this);
     }
 
     /** Reset the field value, close the search bar and load events */
@@ -41,7 +45,16 @@ export default class SearchField extends React.Component {
     }
 
     onSearchClick(event) {
-        this.setState(() => this.props.onSearchClick());
+        if (this.props.onSearchClick) {
+            this.props.onSearchClick(event);
+        }
+    }
+
+    onKeyDown(event) {
+        if (event.keyCode === KEYCODES.ENTER) {
+            onEventCapture(event);
+            this.onSearchClick();
+        }
     }
 
     render() {
@@ -53,20 +66,17 @@ export default class SearchField extends React.Component {
                 minLength={minLength}
                 debounceTimeout={800}
                 value={this.state.searchInputValue}
-                onChange={this.onSearchChange.bind(this)}
-                onClick={this.onSearchClick.bind(this)}
+                onChange={this.onSearchChange}
+                onClick={this.onSearchClick}
                 id={uniqueId}
                 placeholder={this.props.placeholder || gettext('Search')}
                 className="sd-line-input__input"
                 type="text"
-                onKeyDown={(event) => {
-                    if (event.keyCode === KEYCODES.ENTER) {
-                        onEventCapture(event);
-                        this.onSearchClick();
-                    }
-                }}
+                onKeyDown={this.onKeyDown}
                 onFocus={this.props.onFocus}
-                disabled={this.props.readOnly} />
+                disabled={this.props.readOnly}
+                autoComplete={this.props.autoComplete ? 'on' : 'off'}
+            />
         );
     }
 }
@@ -79,4 +89,7 @@ SearchField.propTypes = {
     onFocus: PropTypes.func,
     readOnly: PropTypes.bool,
     placeholder: PropTypes.string,
+    autoComplete: PropTypes.bool,
 };
+
+SearchField.defaultProps = {autoComplete: true};

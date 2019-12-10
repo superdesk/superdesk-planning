@@ -17,7 +17,7 @@ export const ContactLabel = ({contact}) => (
             <div>
                 <span className="sd-list-item__text-strong sd-overflow-ellipsis">
                     {contact.first_name ?
-                        `${contact.last_name}, ${contact.first_name} ` :
+                        `${contact.first_name} ${contact.last_name} ` :
                         `${contact.organisation} `
                     }
                     {(contact.first_name && contact.job_title && contact.organisation) && (
