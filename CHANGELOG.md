@@ -1,6 +1,6 @@
 # Superdesk Planning Changelog
 
-## [1.10.0-rc2] Not released yet
+## [1.10.0-rc3] Not released yet
 ### Features
 - [SDESK-4766] Assign coverages to assignable media contacts (#1389)
 
@@ -10,6 +10,7 @@
 - [SDBELGA-220] improvements for quick creation of coverages (#1388) 
 - [SDESK-4722] Add no result indication in location manager and set sort order on empty search (#1390)
 - [SDESK-4807] Event templates privilege (#1394)
+- [SDESK-4846] Add notes to locations (#1398)
 
 ### Fixes
 - [SDESK-4723] Improve stability when searching locations (#1384)
@@ -20,6 +21,8 @@
 - [SDESK-4806] Event templates were not saving 'category' field (#1393)
 - [SDBELGA-220] validate coverage in add advanced modal (#1395)
 - [SDESK-4766] Remove 'Start Working' for external coverages (#1397)
+- [SDESK-4846] Styling changes to location details (#1399)
+- [SDESK-4766] UX improvements for coverage provider contact (#1400)
 
 ## [1.9.0] 2019-11-06
 ### Features
