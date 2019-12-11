@@ -1,6 +1,6 @@
 # Superdesk Planning Changelog
 
-## [1.10.0-rc3] Not released yet
+## [1.10.0] 2019-12-12
 ### Features
 - [SDESK-4766] Assign coverages to assignable media contacts (#1389)
 
