@@ -665,8 +665,8 @@ Feature: Events Reschedule
         [{
             "name": "Friday Club",
             "dates": {
-                "start": "2019-11-22T12:00:00.000Z",
-                "end": "2019-11-22T14:00:00.000Z",
+                "start": "2052-11-22T12:00:00.000Z",
+                "end": "2052-11-22T14:00:00.000Z",
                 "recurring_rule": {
                     "frequency": "WEEKLY",
                     "interval": 1,
@@ -691,8 +691,8 @@ Feature: Events Reschedule
         """
         {
             "dates": {
-                "start": "2019-12-06T12:00:00.000Z",
-                "end": "2019-12-06T14:00:00.000Z",
+                "start": "2052-12-06T12:00:00.000Z",
+                "end": "2052-12-06T14:00:00.000Z",
                 "recurring_rule": {
                     "frequency": "WEEKLY",
                     "interval": 1,
@@ -712,8 +712,8 @@ Feature: Events Reschedule
             {
                 "_id": "#EVENT1._id#",
                 "dates": {
-                    "start": "2019-11-22T12:00:00+0000",
-                    "end": "2019-11-22T14:00:00+0000",
+                    "start": "2052-11-22T12:00:00+0000",
+                    "end": "2052-11-22T14:00:00+0000",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
                         "interval": 1,
@@ -726,8 +726,8 @@ Feature: Events Reschedule
             {
                 "_id": "#EVENT2._id#",
                 "dates": {
-                    "start": "2019-11-29T12:00:00+0000",
-                    "end": "2019-11-29T14:00:00+0000",
+                    "start": "2052-11-29T12:00:00+0000",
+                    "end": "2052-11-29T14:00:00+0000",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
                         "interval": 1,
@@ -739,8 +739,8 @@ Feature: Events Reschedule
             },
             {
                 "dates": {
-                    "start": "2019-12-11T12:00:00+0000",
-                    "end": "2019-12-11T14:00:00+0000",
+                    "start": "2052-12-11T12:00:00+0000",
+                    "end": "2052-12-11T14:00:00+0000",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
                         "interval": 1,
@@ -752,8 +752,8 @@ Feature: Events Reschedule
             },
             {
                 "dates": {
-                    "start": "2019-12-18T12:00:00+0000",
-                    "end": "2019-12-18T14:00:00+0000",
+                    "start": "2052-12-18T12:00:00+0000",
+                    "end": "2052-12-18T14:00:00+0000",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
                         "interval": 1,
@@ -765,8 +765,8 @@ Feature: Events Reschedule
             },
             {
                 "dates": {
-                    "start": "2019-12-25T12:00:00+0000",
-                    "end": "2019-12-25T14:00:00+0000",
+                    "start": "2052-12-25T12:00:00+0000",
+                    "end": "2052-12-25T14:00:00+0000",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
                         "interval": 1,
