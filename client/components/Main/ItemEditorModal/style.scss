@@ -18,7 +18,11 @@
         // Extra padding to allow elements to scroll to top of editor
         &--padding-bottom {
             .side-panel__content-block:last-child {
-                padding-bottom: 520px;
+                padding-bottom: 260px;
+
+                @media only screen and (min-height: 800px) {
+                    padding-bottom: 520px;
+                }
             }
         }
     }
