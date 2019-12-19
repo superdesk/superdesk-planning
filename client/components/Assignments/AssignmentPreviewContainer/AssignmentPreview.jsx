@@ -7,6 +7,7 @@ import {gettext, stringUtils, assignmentUtils} from '../../../utils';
 import {InternalNoteLabel} from '../../';
 import {ContactsPreviewList} from '../../Contacts/index';
 import {Row} from '../../UI/Preview';
+import {FileReadOnlyList} from '../../UI';
 
 // eslint-disable-next-line complexity
 export const AssignmentPreview = ({
@@ -15,6 +16,8 @@ export const AssignmentPreview = ({
     coverageFormProfile,
     planningFormProfile,
     planningItem,
+    files,
+    createLink,
 }) => {
     const planning = get(assignment, 'planning', {});
 
@@ -86,11 +89,25 @@ export const AssignmentPreview = ({
             <Row
                 enabled={get(coverageFormProfile, 'editor.internal_note.enabled')}
                 label={gettext('Internal Note')}
-                noPadding={true}
             >
                 <InternalNoteLabel item={planning} showTooltip={false}/>
                 <p>{stringUtils.convertNewlineToBreak(planning.internal_note || '-')}</p>
             </Row>
+
+            <Row
+                enabled={get(coverageFormProfile, 'editor.files.enabled')}
+                label={gettext('ATTACHMENTS')}
+                noPadding={true}
+            >
+                <FileReadOnlyList
+                    formProfile={coverageFormProfile}
+                    files={files}
+                    item={planning}
+                    createLink={createLink}
+                    noToggle />
+            </Row>
+
+
         </div>
     );
 };
@@ -101,4 +118,6 @@ AssignmentPreview.propTypes = {
     coverageFormProfile: PropTypes.object,
     planningFormProfile: PropTypes.object,
     planningItem: PropTypes.object,
+    files: PropTypes.array,
+    createLink: PropTypes.func,
 };

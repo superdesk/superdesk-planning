@@ -4,8 +4,8 @@ import {get} from 'lodash';
 import {getItemInArrayById, gettext, planningUtils, generateTempId, assignmentUtils} from '../../../utils';
 import moment from 'moment';
 import {WORKFLOW_STATE, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT, TO_BE_CONFIRMED_FIELD} from '../../../constants';
-import {Button} from '../../UI';
-import {Row, Label, LineInput} from '../../UI/Form';
+import {Button, ToggleBox} from '../../UI';
+import {Row, Label, LineInput, FileInput} from '../../UI/Form';
 import {ScheduledUpdate} from '../ScheduledUpdate';
 
 
@@ -32,11 +32,18 @@ export class CoverageForm extends React.Component {
         this.onRemoveScheduledUpdate = this.onRemoveScheduledUpdate.bind(this);
         this.onScheduledUpdateClose = this.onScheduledUpdateClose.bind(this);
         this.onScheduledUpdateOpen = this.onScheduledUpdateOpen.bind(this);
+        this.onAddFiles = this.onAddFiles.bind(this);
+        this.onRemoveFile = this.onRemoveFile.bind(this);
         this.dom = {
             contentType: null,
             popupContainer: null,
         };
-        this.state = {openScheduledUpdates: []};
+        this.state = {
+            openScheduledUpdates: [],
+            uploading: false,
+        };
+        this.filePath = 'value.planning.files';
+        this.fullFilePath = `coverages[${this.props.index}].planning.files`;
     }
 
     componentDidUpdate(prevProps) {
@@ -142,6 +149,34 @@ export class CoverageForm extends React.Component {
             )});
     }
 
+    onAddFiles(fileList) {
+        const files = Array.from(fileList).map((f) => [f]);
+
+        this.setState({uploading: true});
+        this.props.uploadFiles(files)
+            .then((newFiles) => {
+                this.props.onChange(this.fullFilePath,
+                    [
+                        ...get(this.props, this.filePath, []),
+                        ...newFiles.map((f) => f._id),
+                    ]);
+                this.setState({uploading: false});
+            }, () => {
+                this.props.notifyValidationErrors(['Failed to upload files']);
+                this.setState({uploading: false});
+            });
+    }
+
+    onRemoveFile(file) {
+        const promise = !get(this.props, this.filePath, []).includes(file._id) ?
+            this.props.removeFile(file) : Promise.resolve();
+
+        promise.then(() =>
+            this.props.onChange(this.fullFilePath,
+                get(this.props, this.filePath, []).filter((f) => f !== file._id))
+        );
+    }
+
     render() {
         const {
             field,
@@ -170,6 +205,8 @@ export class CoverageForm extends React.Component {
             planningAllowScheduledUpdates,
             onRemoveAssignment,
             setCoverageDefaultDesk,
+            createUploadLink,
+            files,
             ...props
         } = this.props;
 
@@ -315,6 +352,28 @@ export class CoverageForm extends React.Component {
                     {...fieldProps}
                 />
 
+                <ToggleBox
+                    isOpen={false}
+                    badgeValue={get(this.props, `${this.filePath}.length`) || null }
+                    title={gettext('Attached Files')}
+                    scrollInView={true}
+                    hideUsingCSS={true} >
+                    <div className={this.state.uploading ? 'sd-loader' : ''}>
+                        {!this.state.uploading && <Field
+                            component={FileInput}
+                            field={`${field}.planning.files`}
+                            profileName="files"
+                            createLink={createUploadLink}
+                            defaultValue={[]}
+                            readOnly={roFields.files}
+                            {...fieldProps}
+                            files={files}
+                            onAddFiles={this.onAddFiles}
+                            onRemoveFile={this.onRemoveFile}
+                        />}
+                    </div>
+                </ToggleBox>
+
                 <Field
                     component={SelectInput}
                     field={`${field}.news_coverage_status`}
@@ -430,6 +489,11 @@ CoverageForm.propTypes = {
     planningAllowScheduledUpdates: PropTypes.bool,
     onRemoveAssignment: PropTypes.func,
     setCoverageDefaultDesk: PropTypes.func,
+    uploadFiles: PropTypes.func,
+    createUploadLink: PropTypes.func,
+    removeFile: PropTypes.func,
+    files: PropTypes.array,
+    notifyValidationErrors: PropTypes.func,
 };
 
 CoverageForm.defaultProps = {

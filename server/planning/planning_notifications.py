@@ -269,6 +269,14 @@ def _send_user_email(user_id, contact_id, text_message, html_message, data):
             fp = media.read()
             attachments.append(Attachment(filename=media.name, content_type=media.content_type, data=fp))
 
+    if data.get('assignment') and (data['assignment'].get('planning', {})).get('files'):
+        for file_id in data['assignment']['planning']['files']:
+            assignment_file = superdesk.get_resource_service('planning_files').find_one(req=None, _id=file_id)
+            if assignment_file:
+                media = app.media.get(assignment_file['media'], resource='planning_files')
+                fp = media.read()
+                attachments.append(Attachment(filename=media.name, content_type=media.content_type, data=fp))
+
     send_email(subject='Superdesk assignment' + ': {}'.format(data.get('slugline') if data.get('slugline') else ''),
                sender=admins[0],
                recipients=[email_address],

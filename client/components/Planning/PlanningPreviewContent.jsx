@@ -240,6 +240,8 @@ export class PlanningPreviewContentComponent extends React.Component {
                         timeFormat={timeFormat}
                         formProfile={formProfile.coverage}
                         inner={inner}
+                        files={files}
+                        createLink={createUploadLink}
                         planningAllowScheduledUpdates={planningAllowScheduledUpdates} />)
                     )
                 }

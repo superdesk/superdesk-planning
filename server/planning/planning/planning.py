@@ -1067,6 +1067,12 @@ coverage_schema = {
             'item_class': {'type': 'string', 'mapping': not_analyzed},
             'item_count': {'type': 'string', 'mapping': not_analyzed},
             'scheduled': {'type': 'datetime'},
+            'files': {
+                'type': 'list',
+                'nullable': True,
+                'schema': Resource.rel('planning_files'),
+                'mapping': not_analyzed,
+            },
             'service': {
                 'type': 'list',
                 'mapping': {
