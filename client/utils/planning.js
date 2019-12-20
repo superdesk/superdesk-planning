@@ -716,7 +716,7 @@ const getCoverageReadOnlyFields = (
             newsCoverageStatus: readOnly,
             scheduled: readOnly,
             flags: scheduledUpdatesExist,
-            files: !readOnly,
+            files: readOnly,
         };
     }
 };
