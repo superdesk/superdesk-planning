@@ -960,15 +960,16 @@ const fetchPlanningFiles = (planning) => (
             return Promise.resolve();
         }
 
+        const filesToFetch = planningUtils.getPlanningFiles(planning);
         const filesInStore = selectors.general.files(getState());
 
-        if (every(planning.files, (f) => f in filesInStore)) {
+        if (every(filesToFetch, (f) => f in filesInStore)) {
             return Promise.resolve();
         }
 
         return api('planning_files').query(
             {
-                where: {$and: [{_id: {$in: planning.files}}]},
+                where: {$and: [{_id: {$in: filesToFetch}}]},
             }
         )
             .then((data) => {
