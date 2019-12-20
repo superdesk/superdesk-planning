@@ -352,6 +352,7 @@ export class CoverageForm extends React.Component {
                     {...fieldProps}
                 />
 
+                {get(formProfile, 'editor.files.enabled') &&
                 <ToggleBox
                     isOpen={false}
                     badgeValue={get(this.props, `${this.filePath}.length`) || null }
@@ -372,7 +373,7 @@ export class CoverageForm extends React.Component {
                             onRemoveFile={this.onRemoveFile}
                         />}
                     </div>
-                </ToggleBox>
+                </ToggleBox>}
 
                 <Field
                     component={SelectInput}
