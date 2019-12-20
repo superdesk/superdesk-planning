@@ -374,7 +374,7 @@ export class PlanningEditorComponent extends React.Component {
                     ]);
                 this.setState({uploading: false});
             }, () => {
-                this.notifyValidationErrors('Failed to upload files');
+                this.props.notifyValidationErrors('Failed to upload files');
                 this.setState({uploading: false});
             });
     }
@@ -761,6 +761,10 @@ export class PlanningEditorComponent extends React.Component {
                     planningAllowScheduledUpdates={planningAllowScheduledUpdates}
                     coverageAddAdvancedMode={this.props.coverageAddAdvancedMode}
                     setCoverageAddAdvancedMode={this.props.setCoverageAddAdvancedMode}
+                    files={files}
+                    createUploadLink={createUploadLink}
+                    uploadFiles={this.props.uploadFiles}
+                    notifyValidationErrors={this.props.notifyValidationErrors}
                 />
             </div>
         );
@@ -823,6 +827,7 @@ PlanningEditorComponent.propTypes = {
     planningAllowScheduledUpdates: PropTypes.bool,
     coverageAddAdvancedMode: PropTypes.bool,
     setCoverageAddAdvancedMode: PropTypes.func,
+    notifyValidationErrors: PropTypes.func,
 };
 
 PlanningEditorComponent.defaultProps = {

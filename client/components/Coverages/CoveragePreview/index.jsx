@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Row as PreviewRow} from '../../UI/Preview';
-import {CollapseBox} from '../../UI';
+import {CollapseBox, FileReadOnlyList} from '../../UI';
 import {get} from 'lodash';
 import {gettext, stringUtils, planningUtils, assignmentUtils} from '../../../utils';
 import {ContactsPreviewList} from '../../Contacts/index';
@@ -28,6 +28,8 @@ export const CoveragePreview = ({
     scrollInView,
     inner,
     planningAllowScheduledUpdates,
+    files,
+    createLink,
 }) => {
     const coverageStatus = get(coverage, 'news_coverage_status.qcode', '') ===
         PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode ? PLANNING.NEWS_COVERAGE_CANCELLED_STATUS :
@@ -146,6 +148,14 @@ export const CoveragePreview = ({
                 />
             }
 
+            {get(formProfile, 'editor.files.enabled') &&
+                <FileReadOnlyList
+                    formProfile={formProfile}
+                    files={files}
+                    item={coverage.planning}
+                    createLink={createLink} />
+            }
+
             <PreviewRow
                 label={gettext('Coverage Status')}
                 value={coverageStatus.label || ''}
@@ -214,6 +224,8 @@ CoveragePreview.propTypes = {
     index: PropTypes.number,
     item: PropTypes.object,
     planningAllowScheduledUpdates: PropTypes.bool,
+    createLink: PropTypes.func,
+    files: PropTypes.array,
 };
 
 

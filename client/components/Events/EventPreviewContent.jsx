@@ -12,9 +12,9 @@ import {
     StateLabel,
 } from '../index';
 import {EventScheduleSummary} from './';
-import {ToggleBox} from '../UI';
+import {ToggleBox, FileReadOnlyList} from '../UI';
 import {ContentBlock} from '../UI/SidePanel';
-import {LinkInput, FileInput} from '../UI/Form';
+import {LinkInput} from '../UI/Form';
 import {Location} from '../Location';
 import * as actions from '../../actions';
 import {ContactsPreviewList} from '../Contacts/index';
@@ -180,26 +180,13 @@ export class EventPreviewContentComponent extends React.Component {
                         value={stringUtils.convertNewlineToBreak(item.ednote || '-')}
                     />
                 </ToggleBox>
-                {get(formProfile, 'editor.files.enabled') &&
-                    <ToggleBox
-                        title={gettext('Attached Files')}
-                        isOpen={false}
-                        badgeValue={get(item, 'files.length', 0) > 0 ? item.files.length : null}>
-                        {get(item, 'files.length') > 0 ?
-                            <ul>
-                                {get(item, 'files', []).map((file, index) => (
-                                    <li key={index}>
-                                        <FileInput
-                                            value={file}
-                                            createLink={createUploadLink}
-                                            readOnly={true}
-                                            files={files} />
-                                    </li>
-                                ))}
-                            </ul> :
-                            <span className="sd-text__info">{gettext('No attached files added.')}</span>}
-                    </ToggleBox>
-                }
+
+                <FileReadOnlyList
+                    formProfile={formProfile}
+                    files={files}
+                    item={item}
+                    createLink={createUploadLink} />
+
                 {get(formProfile, 'editor.links.enabled') &&
                     <ToggleBox
                         title={gettext('External Links')}

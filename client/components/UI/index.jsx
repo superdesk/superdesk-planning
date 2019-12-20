@@ -21,6 +21,7 @@ import ButtonList from './ButtonList';
 import IconButton from './IconButton';
 import Icon from './Icon';
 import IconMix from './IconMix';
+import FileReadOnlyList from './FileReadOnlyList';
 
 export {
     List,
@@ -46,4 +47,5 @@ export {
     IconButton,
     Icon,
     IconMix,
+    FileReadOnlyList,
 };

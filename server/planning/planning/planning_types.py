@@ -198,6 +198,7 @@ DEFAULT_EDITOR = [{
         'news_coverage_status': {'enabled': True},
         'contact_info': {'enabled': False},
         'flags': {'enabled': True},
+        'files': {'enabled': True},
     },
     'schema': dict(CoverageSchema)
 }, {
