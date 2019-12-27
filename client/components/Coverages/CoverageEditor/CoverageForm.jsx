@@ -1,6 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {get} from 'lodash';
+import {connect} from 'react-redux';
+import {get, forEach} from 'lodash';
+
+import * as selectors from '../../../selectors';
 import {getItemInArrayById, gettext, planningUtils, generateTempId, assignmentUtils} from '../../../utils';
 import moment from 'moment';
 import {WORKFLOW_STATE, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT, TO_BE_CONFIRMED_FIELD} from '../../../constants';
@@ -23,7 +26,7 @@ import {ContactField, ContactsPreviewList} from '../../Contacts';
 
 import '../style.scss';
 
-export class CoverageForm extends React.Component {
+export class CoverageFormComponent extends React.Component {
     constructor(props) {
         super(props);
         this.onScheduleChanged = this.onScheduleChanged.bind(this);
@@ -34,6 +37,8 @@ export class CoverageForm extends React.Component {
         this.onScheduledUpdateOpen = this.onScheduledUpdateOpen.bind(this);
         this.onAddFiles = this.onAddFiles.bind(this);
         this.onRemoveFile = this.onRemoveFile.bind(this);
+        this.onAddXmpFile = this.onAddXmpFile.bind(this);
+        this.onRemoveXmpFile = this.onRemoveXmpFile.bind(this);
         this.dom = {
             contentType: null,
             popupContainer: null,
@@ -43,7 +48,9 @@ export class CoverageForm extends React.Component {
             uploading: false,
         };
         this.filePath = 'value.planning.files';
+        this.xmpFilePath = 'value.planning.xmp_file';
         this.fullFilePath = `coverages[${this.props.index}].planning.files`;
+        this.xmpFullFilePath = `coverages[${this.props.index}].planning.xmp_file`;
     }
 
     componentDidUpdate(prevProps) {
@@ -149,17 +156,45 @@ export class CoverageForm extends React.Component {
             )});
     }
 
-    onAddFiles(fileList) {
+    onAddXmpFile(fileList) {
+        if (get(fileList, 'length', 0) > 1) {
+            this.props.notifyValidationErrors(['You can associate only one XMP file']);
+            return
+        }
+
+        let error
+        forEach(fileList, (f) => {
+            if (!get(f, 'name').toLowerCase().endsWith('.xmp')) {
+                error = true
+                return
+            }
+        })
+
+        if (error) {
+            this.props.notifyValidationErrors(['Only one XMP files are accepted']);
+            return
+        }
+
+        this.onAddFiles(fileList, true)
+    }
+
+    onRemoveXmpFile(file) {
+        this.onRemoveFile(file, true)
+    }
+
+    onAddFiles(fileList, xmpFile = false) {
         const files = Array.from(fileList).map((f) => [f]);
+        const changeFullFilePath = xmpFile ? this.xmpFullFilePath : this.fullFilePath
 
         this.setState({uploading: true});
         this.props.uploadFiles(files)
             .then((newFiles) => {
-                this.props.onChange(this.fullFilePath,
+                const value = xmpFile ? get(newFiles, '[0]._id') :
                     [
                         ...get(this.props, this.filePath, []),
                         ...newFiles.map((f) => f._id),
-                    ]);
+                    ]
+                this.props.onChange(changeFullFilePath, value);
                 this.setState({uploading: false});
             }, () => {
                 this.props.notifyValidationErrors(['Failed to upload files']);
@@ -167,14 +202,13 @@ export class CoverageForm extends React.Component {
             });
     }
 
-    onRemoveFile(file) {
-        const promise = !get(this.props, this.filePath, []).includes(file._id) ?
+    onRemoveFile(file, xmpFile = false) {
+        const promise = (xmpFile ? file : !get(this.props, this.filePath, []).includes(file._id)) ?
             this.props.removeFile(file) : Promise.resolve();
+        const changeFullFilePath = xmpFile ? this.xmpFullFilePath : this.fullFilePath
+        const value = xmpFile ? null : get(this.props, this.filePath, []).filter((f) => f !== file._id)
 
-        promise.then(() =>
-            this.props.onChange(this.fullFilePath,
-                get(this.props, this.filePath, []).filter((f) => f !== file._id))
-        );
+        promise.then(() => this.props.onChange(changeFullFilePath, value));
     }
 
     render() {
@@ -207,6 +241,7 @@ export class CoverageForm extends React.Component {
             setCoverageDefaultDesk,
             createUploadLink,
             files,
+            useXmpFile,
             ...props
         } = this.props;
 
@@ -244,6 +279,7 @@ export class CoverageForm extends React.Component {
             !get(diff, `${field}.flags.no_content_linking`);
 
         const contactLabel = assignmentUtils.getContactLabel(get(diff, field));
+        const showXmpFileInput = get(contentType, 'qcode') === 'picture' && useXmpFile
 
         return (
             <div className="coverage-editor">
@@ -297,6 +333,23 @@ export class CoverageForm extends React.Component {
                     autoFocus={hasAssignment}
                     refNode={(ref) => this.dom.contentType = ref}
                 />
+
+                {showXmpFileInput && <div className={this.state.uploading ? 'sd-loader' : ''}>
+                    {!this.state.uploading && <Field
+                        label={gettext('Associate an XMP file')}
+                        component={FileInput}
+                        field={`${field}.planning.xmp_file`}
+                        createLink={createUploadLink}
+                        defaultValue={[]}
+                        readOnly={roFields.xmp_file}
+                        hideInput={get(this.props, this.xmpFilePath)}
+                        {...fieldProps}
+                        files={files}
+                        onAddFiles={this.onAddXmpFile}
+                        onRemoveFile={this.onRemoveXmpFile}
+                        formats={'*.xmp'}
+                    />}
+                </div>}
 
                 <Field
                     component={SelectInput}
@@ -456,7 +509,7 @@ export class CoverageForm extends React.Component {
     }
 }
 
-CoverageForm.propTypes = {
+CoverageFormComponent.propTypes = {
     field: PropTypes.string,
     value: PropTypes.object,
     onChange: PropTypes.func,
@@ -497,7 +550,11 @@ CoverageForm.propTypes = {
     notifyValidationErrors: PropTypes.func,
 };
 
-CoverageForm.defaultProps = {
+CoverageFormComponent.defaultProps = {
     dateFormat: DEFAULT_DATE_FORMAT,
     timeFormat: DEFAULT_TIME_FORMAT,
 };
+
+const mapStateToProps = (state) => ({ useXmpFile: selectors.config.useXmpFile(state) })
+
+export const CoverageForm = connect(mapStateToProps)(CoverageFormComponent);

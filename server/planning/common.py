@@ -122,6 +122,19 @@ def get_planning_allow_scheduled_updates(current_app=None):
     return app.config.get('PLANNING_ALLOW_SCHEDULED_UPDATES', True)
 
 
+def get_planning_use_xmp_for_pic_assignments(current_app=None):
+    if current_app is not None:
+        return current_app.config.get('PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS', False)
+    return app.config.get('PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS', False)
+
+
+def get_planning_xmp_assignment_mapping(current_app=None):
+    if current_app is not None:
+        return current_app.config.get('PLANNING_XMP_ASSIGNMENT_MAPPING', '')
+    return app.config.get('PLANNING_XMP_ASSIGNMENT_MAPPING', '')
+
+
+
 def remove_lock_information(item):
     item.update({
         LOCK_USER: None,

@@ -638,6 +638,7 @@ const getCoverageReadOnlyFields = (
             scheduled: readOnly || get(addNewsItemToPlanning, 'state') === 'published',
             flags: scheduledUpdatesExist,
             files: true,
+            xmp_file: true,
         };
     }
 
@@ -663,6 +664,7 @@ const getCoverageReadOnlyFields = (
             scheduled: readOnly,
             flags: true,
             files: readOnly,
+            xmp_file: readOnly,
         };
     case ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS:
     case ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED:
@@ -677,6 +679,7 @@ const getCoverageReadOnlyFields = (
             scheduled: readOnly,
             flags: true,
             files: readOnly,
+            xmp_file: readOnly,
         };
     case ASSIGNMENTS.WORKFLOW_STATE.COMPLETED:
         return {
@@ -690,6 +693,7 @@ const getCoverageReadOnlyFields = (
             scheduled: readOnly,
             flags: true,
             files: readOnly,
+            xmp_file: readOnly,
         };
     case ASSIGNMENTS.WORKFLOW_STATE.CANCELLED:
         return {
@@ -703,6 +707,7 @@ const getCoverageReadOnlyFields = (
             scheduled: true,
             flags: true,
             files: readOnly,
+            xmp_file: readOnly,
         };
     case null:
     default:
@@ -717,6 +722,7 @@ const getCoverageReadOnlyFields = (
             scheduled: readOnly,
             flags: scheduledUpdatesExist,
             files: readOnly,
+            xmp_file: readOnly,
         };
     }
 };
@@ -1050,6 +1056,10 @@ const getPlanningFiles = (planning) => {
                 ...filesToFetch,
                 ...c.planning.files,
             ];
+        }
+
+        if (c.planning.xmp_file) {
+            filesToFetch.push(c.planning.xmp_file)
         }
     });
 

@@ -27,7 +27,8 @@ from eve.utils import config, ParsedRequest, date_to_str
 from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, get_coverage_cancellation_state,\
     remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name,\
     set_original_creator, list_uniq_with_order, TEMP_ID_PREFIX, DEFAULT_ASSIGNMENT_PRIORITY,\
-    get_planning_allow_scheduled_updates, TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA
+    get_planning_allow_scheduled_updates, TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA, \
+    get_planning_xmp_assignment_mapping
 from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
@@ -35,6 +36,11 @@ from superdesk.utc import utc_to_local
 from datetime import datetime
 from .planning_types import is_field_enabled
 from superdesk import Resource
+from libxmp.utils import file_to_dict
+from libxmp import consts, XMPFiles
+import tempfile
+import io
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -594,6 +600,7 @@ class PlanningService(superdesk.Service):
         doc.update(updates)
         assignment_service = get_resource_service('assignments')
         assigned_to = updates.get('assigned_to') or original.get('assigned_to')
+        new_assignment_id = None
         if not assigned_to:
             return
 
@@ -637,8 +644,8 @@ class PlanningService(superdesk.Service):
             if TO_BE_CONFIRMED_FIELD in doc:
                 assignment['planning'][TO_BE_CONFIRMED_FIELD] = doc[TO_BE_CONFIRMED_FIELD]
 
-            assignment_id = assignment_service.post([assignment])
-            updates['assigned_to']['assignment_id'] = str(assignment_id[0])
+            new_assignment_id = str(assignment_service.post([assignment])[0])
+            updates['assigned_to']['assignment_id'] = new_assignment_id
             updates['assigned_to']['state'] = assign_state
         elif assigned_to.get('assignment_id'):
             if not updates.get('assigned_to'):
@@ -724,6 +731,8 @@ class PlanningService(superdesk.Service):
                     assignment,
                     original_assignment
                 )
+
+        self.set_xmp_file_info(updates, original, new_assignment_id)
 
     def cancel_coverage(self, coverage, coverage_cancel_state, original_workflow_status, assignment=None,
                         reason=None, event_cancellation=False, event_reschedule=False):
@@ -1026,6 +1035,89 @@ class PlanningService(superdesk.Service):
         for item in items:
             self.patch(item[config.ID_FIELD], {'recurrence_id': updates['recurrence_id']})
 
+    def set_xmp_file_info(self, updates_coverage, original_coverage=None, new_assignment=False):
+        xmp_mapping = get_planning_xmp_assignment_mapping(app)
+        if not xmp_mapping:
+            return
+
+        if not (updates_coverage.get('assigned_to') or {}).get('assignment_id') or \
+                not (updates_coverage['planning'] or {}).get('xmp_file'):
+            return
+
+        if not get_coverage_type_name((updates_coverage.get('planning') or {}).get('g2_content_type')) \
+                in ['Picture', 'picture']:
+            return
+
+        if not new_assignment and original_coverage and \
+                (original_coverage.get('planning') or {}).get('xmp_file') and \
+                original_coverage['planning']['xmp_file'] == updates_coverage['planning']['xmp_file']:
+            return
+
+        assignment_id = updates_coverage['assigned_to']['assignment_id']
+        xmp_file = get_resource_service('planning_files').find_one(req=None,
+                                                                   _id=updates_coverage['planning']['xmp_file'])
+        if not xmp_file:
+            logger.error('Attached xmp_file not found. Assignment: {0}, xmp_file: {1}'.format(
+                assignment_id,
+                updates_coverage['planning']['xmp_file']
+            ))
+            return
+
+        xmp_file = app.media.get(xmp_file['media'], resource='planning_files')
+        if not xmp_file:
+            logger.error('xmp_file not found in media storage. Assignment: {0}, xmp_file: {1}'.format(
+                assignment_id,
+                updates_coverage['planning']['xmp_file']
+            ))
+            return
+
+        temp_path = tempfile.mkdtemp()
+        with open(os.path.join(temp_path, xmp_file.filename), 'wb') as f:
+            f.write(xmp_file.read())
+
+        # xmp = file_to_dict(os.path.join(temp_path, xmp_file.filename))
+        # ps = xmp.get(consts.XMP_NS_Photoshop)
+        # a = ps[xmp_mapping]
+
+        xmp_file = XMPFiles(file_path=os.path.join(temp_path, xmp_file.filename), open_forupdate=True)
+        xmp = xmp_file.get_xmp()
+        current_val = xmp.get_property(consts.XMP_NS_Photoshop, xmp_mapping)
+        xmp.set_property(consts.XMP_NS_Photoshop, xmp_mapping, assignment_id)
+        if xmp_file.can_put_xmp(xmp):
+            xmp_file.put_xmp(xmp)
+            xmp_file.close_file()
+
+
+
+
+        # we apply all requested operations on original media
+        # for operation, param in edit.items():
+        #     try:
+        #         out = self.transform(out, operation, param)
+        #     except ValueError:
+        #         # if the operation can't be applied just ignore it
+        #         logger.warning('failed to apply operation: {operation} {param} for media {id}'.format(
+        #             operation=operation,
+        #             param=param,
+        #             id=media_id))
+        # buf = io.BytesIO()
+        # out.save(buf, format=im.format)
+        #
+        # # we set metadata
+        # buf.seek(0)
+        # content_type = rendition['mimetype']
+        # ext = os.path.splitext(rendition['href'])[1]
+        # filename = str(uuid.uuid4()) + ext
+        #
+        # # and save transformed media in database
+        # media_id = current_app.media.put(buf, filename=filename, content_type=content_type)
+        #
+        # # now we recreate other renditions based on transformed original media
+        # buf.seek(0)
+        #
+        # xmp = file_to_dict(xmp_file)
+        # ps = xmp.get(consts.XMP_NS_Photoshop)
+
 
 event_type = deepcopy(superdesk.Resource.rel('events', type='string'))
 event_type['mapping'] = not_analyzed
@@ -1073,6 +1165,7 @@ coverage_schema = {
                 'schema': Resource.rel('planning_files'),
                 'mapping': not_analyzed,
             },
+            'xmp_file': Resource.rel('planning_files', nullable=True),
             'service': {
                 'type': 'list',
                 'mapping': {

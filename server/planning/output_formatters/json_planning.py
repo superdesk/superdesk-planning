@@ -38,7 +38,7 @@ class JsonPlanningFormatter(Formatter):
 
     # fields to be removed from coverage
     remove_coverage_fields = ('original_creator', 'version_creator', 'assigned_to', 'flags')
-    remove_coverage_planning_fields = ('contact_info', 'files')
+    remove_coverage_planning_fields = ('contact_info', 'files', 'xmp_file')
 
     def can_format(self, format_type, article):
         if article.get('flags', {}).get('marked_for_not_publication', False):

@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Row, LineInput, Input, TextArea} from './';
+import {Row, LineInput, Input, TextArea, Label} from './';
 import {IconButton} from '../';
 import {onEventCapture, gettext} from '../utils';
 import {get, isArrayLikeObject} from 'lodash';
@@ -134,11 +134,12 @@ export class FileInput extends React.Component {
     }
 
     render() {
-        const {field, readOnly, onFocus} = this.props;
+        const {field, readOnly, onFocus, hideInput, label, formats} = this.props;
 
         return (<Row>
+            <Label text={label} />
             {this.getFileItems()}
-            {!readOnly && <div onDrop={this.onDrop} onDragEnter={this.onDragEnter} className="basic-drag-block">
+            {!hideInput && !readOnly && <div onDrop={this.onDrop} onDragEnter={this.onDragEnter} className="basic-drag-block">
                 <i className="big-icon--upload-alt" />
                 <span className="basic-drag-block__text">{gettext('Drag files here or') + ' '}</span>
                 <a className="text-link link" onClick={this.onBrowseClick}>&nbsp;{gettext('browse')}
@@ -147,6 +148,7 @@ export class FileInput extends React.Component {
                         field={field}
                         onChange={this.onAdd}
                         type="file"
+                        accept={formats}
                         onFocus={onFocus}
                         autoFocus
                         refNode={(node) => {
@@ -173,6 +175,8 @@ FileInput.propTypes = {
     noMargin: PropTypes.bool,
     files: PropTypes.object,
     onAddFiles: PropTypes.func,
+    hideInput: PropTypes.bool,
+    formats: PropTypes.string,
 };
 
 FileInput.defaultProps = {noMargin: true};

@@ -97,7 +97,7 @@ export const AssignmentPreview = ({
             <Row
                 enabled={get(coverageFormProfile, 'editor.files.enabled')}
                 label={gettext('ATTACHMENTS')}
-                noPadding={true}
+                noPadding={!get(planning, 'xmp_file')}
             >
                 <FileReadOnlyList
                     formProfile={coverageFormProfile}
@@ -107,7 +107,17 @@ export const AssignmentPreview = ({
                     noToggle />
             </Row>
 
-
+            {get(planning, 'xmp_file') && (<Row
+                label={gettext('ASSOCIATED XMP FILE')}
+                noPadding={true}
+            >
+                <FileReadOnlyList
+                    files={files}
+                    item={planning}
+                    createLink={createLink}
+                    field={'xmp_file'}
+                    noToggle />
+            </Row>)}
         </div>
     );
 };
