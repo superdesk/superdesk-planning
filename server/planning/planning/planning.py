@@ -36,11 +36,11 @@ from superdesk.utc import utc_to_local
 from datetime import datetime
 from .planning_types import is_field_enabled
 from superdesk import Resource
-from libxmp.utils import file_to_dict
-from libxmp import consts, XMPFiles
-import tempfile
-import io
-import os
+# from libxmp.utils import file_to_dict
+# from libxmp import consts, XMPFiles
+# import tempfile
+# import io
+# import os
 
 logger = logging.getLogger(__name__)
 
@@ -1071,52 +1071,17 @@ class PlanningService(superdesk.Service):
             ))
             return
 
-        temp_path = tempfile.mkdtemp()
-        with open(os.path.join(temp_path, xmp_file.filename), 'wb') as f:
-            f.write(xmp_file.read())
-
-        # xmp = file_to_dict(os.path.join(temp_path, xmp_file.filename))
-        # ps = xmp.get(consts.XMP_NS_Photoshop)
-        # a = ps[xmp_mapping]
-
-        xmp_file = XMPFiles(file_path=os.path.join(temp_path, xmp_file.filename), open_forupdate=True)
-        xmp = xmp_file.get_xmp()
-        current_val = xmp.get_property(consts.XMP_NS_Photoshop, xmp_mapping)
-        xmp.set_property(consts.XMP_NS_Photoshop, xmp_mapping, assignment_id)
-        if xmp_file.can_put_xmp(xmp):
-            xmp_file.put_xmp(xmp)
-            xmp_file.close_file()
-
-
-
-
-        # we apply all requested operations on original media
-        # for operation, param in edit.items():
-        #     try:
-        #         out = self.transform(out, operation, param)
-        #     except ValueError:
-        #         # if the operation can't be applied just ignore it
-        #         logger.warning('failed to apply operation: {operation} {param} for media {id}'.format(
-        #             operation=operation,
-        #             param=param,
-        #             id=media_id))
-        # buf = io.BytesIO()
-        # out.save(buf, format=im.format)
+        # temp_path = tempfile.mkdtemp()
+        # with open(os.path.join(temp_path, xmp_file.filename), 'wb') as f:
+        #     f.write(xmp_file.read())
         #
-        # # we set metadata
-        # buf.seek(0)
-        # content_type = rendition['mimetype']
-        # ext = os.path.splitext(rendition['href'])[1]
-        # filename = str(uuid.uuid4()) + ext
-        #
-        # # and save transformed media in database
-        # media_id = current_app.media.put(buf, filename=filename, content_type=content_type)
-        #
-        # # now we recreate other renditions based on transformed original media
-        # buf.seek(0)
-        #
-        # xmp = file_to_dict(xmp_file)
-        # ps = xmp.get(consts.XMP_NS_Photoshop)
+        # xmp_file = XMPFiles(file_path=os.path.join(temp_path, xmp_file.filename), open_forupdate=True)
+        # xmp = xmp_file.get_xmp()
+        # current_val = xmp.get_property(consts.XMP_NS_Photoshop, xmp_mapping)
+        # xmp.set_property(consts.XMP_NS_Photoshop, xmp_mapping, assignment_id)
+        # if xmp_file.can_put_xmp(xmp):
+        #     xmp_file.put_xmp(xmp)
+        #     xmp_file.close_file()
 
 
 event_type = deepcopy(superdesk.Resource.rel('events', type='string'))

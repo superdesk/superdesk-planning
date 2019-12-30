@@ -16,11 +16,12 @@ const FileReadOnlyList = ({formProfile, item, field, createLink, files, noToggle
     }
 
 
-    let filesInput = []
+    let filesInput = [];
+
     if (item[field]) {
-        filesInput = Array.isArray(item[field]) ? item[field] : [item[field]]
+        filesInput = Array.isArray(item[field]) ? item[field] : [item[field]];
     }
-    
+
     const fileList = get(filesInput, 'length', 0) > 0 ?
         (<ul>
             {filesInput.map((file, index) => (

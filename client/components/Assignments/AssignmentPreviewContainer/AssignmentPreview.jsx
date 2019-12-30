@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
-import {gettext, stringUtils, assignmentUtils} from '../../../utils';
+import {gettext, stringUtils, assignmentUtils, planningUtils} from '../../../utils';
 
 import {InternalNoteLabel} from '../../';
 import {ContactsPreviewList} from '../../Contacts/index';
@@ -18,6 +18,7 @@ export const AssignmentPreview = ({
     planningItem,
     files,
     createLink,
+    useXmpFile,
 }) => {
     const planning = get(assignment, 'planning', {});
 
@@ -39,6 +40,8 @@ export const AssignmentPreview = ({
     const contactId = get(assignment, 'assigned_to.contact') ?
         assignment.assigned_to.contact :
         get(planning, 'contact_info');
+
+    const showXMPFiles = planningUtils.showXMPFileUIControl(assignment, useXmpFile);
 
     return (
         <div>
@@ -97,7 +100,7 @@ export const AssignmentPreview = ({
             <Row
                 enabled={get(coverageFormProfile, 'editor.files.enabled')}
                 label={gettext('ATTACHMENTS')}
-                noPadding={!get(planning, 'xmp_file')}
+                noPadding={!showXMPFiles}
             >
                 <FileReadOnlyList
                     formProfile={coverageFormProfile}
@@ -107,7 +110,7 @@ export const AssignmentPreview = ({
                     noToggle />
             </Row>
 
-            {get(planning, 'xmp_file') && (<Row
+            {showXMPFiles && (<Row
                 label={gettext('ASSOCIATED XMP FILE')}
                 noPadding={true}
             >
@@ -130,4 +133,5 @@ AssignmentPreview.propTypes = {
     planningItem: PropTypes.object,
     files: PropTypes.array,
     createLink: PropTypes.func,
+    useXmpFile: PropTypes.bool,
 };

@@ -1059,12 +1059,16 @@ const getPlanningFiles = (planning) => {
         }
 
         if (c.planning.xmp_file) {
-            filesToFetch.push(c.planning.xmp_file)
+            filesToFetch.push(c.planning.xmp_file);
         }
     });
 
     return filesToFetch;
 };
+
+const showXMPFileUIControl = (coverage, useXmpFile) => (
+    get(coverage, 'planning.g2_content_type') === 'picture' && useXmpFile
+);
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -1118,6 +1122,7 @@ const self = {
     canAddScheduledUpdateToWorkflow,
     getDefaultCoverageStatus,
     getPlanningFiles,
+    showXMPFileUIControl,
 };
 
 export default self;

@@ -134,7 +134,6 @@ def get_planning_xmp_assignment_mapping(current_app=None):
     return app.config.get('PLANNING_XMP_ASSIGNMENT_MAPPING', '')
 
 
-
 def remove_lock_information(item):
     item.update({
         LOCK_USER: None,
