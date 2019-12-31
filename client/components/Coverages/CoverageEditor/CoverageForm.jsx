@@ -159,7 +159,7 @@ export class CoverageFormComponent extends React.Component {
 
     onAddXmpFile(fileList) {
         if (get(fileList, 'length', 0) > 1) {
-            this.props.notifyValidationErrors(['You can associate only one XMP file']);
+            this.props.notifyValidationErrors([gettext('You can associate only one XMP file')]);
             return;
         }
 
@@ -173,7 +173,7 @@ export class CoverageFormComponent extends React.Component {
         });
 
         if (error) {
-            this.props.notifyValidationErrors(['Only one XMP files are accepted']);
+            this.props.notifyValidationErrors([gettext('Only one XMP files are accepted')]);
             return;
         }
 
