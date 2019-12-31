@@ -36,11 +36,8 @@ from superdesk.utc import utc_to_local
 from datetime import datetime
 from .planning_types import is_field_enabled
 from superdesk import Resource
-# from libxmp.utils import file_to_dict
-# from libxmp import consts, XMPFiles
-# import tempfile
-# import io
-# import os
+from lxml import etree
+from io import BytesIO
 
 logger = logging.getLogger(__name__)
 
@@ -1071,17 +1068,40 @@ class PlanningService(superdesk.Service):
             ))
             return
 
-        # temp_path = tempfile.mkdtemp()
-        # with open(os.path.join(temp_path, xmp_file.filename), 'wb') as f:
-        #     f.write(xmp_file.read())
-        #
-        # xmp_file = XMPFiles(file_path=os.path.join(temp_path, xmp_file.filename), open_forupdate=True)
-        # xmp = xmp_file.get_xmp()
-        # current_val = xmp.get_property(consts.XMP_NS_Photoshop, xmp_mapping)
-        # xmp.set_property(consts.XMP_NS_Photoshop, xmp_mapping, assignment_id)
-        # if xmp_file.can_put_xmp(xmp):
-        #     xmp_file.put_xmp(xmp)
-        #     xmp_file.close_file()
+        try:
+            parsed = etree.parse(xmp_file)
+            mapped = False
+            tags = parsed.xpath(xmp_mapping['xpath'], namespaces=xmp_mapping['namespaces'])
+            if tags:
+                tags[0].attrib[xmp_mapping['atribute_key']] = assignment_id
+                mapped = True
+
+            if not mapped:
+                parent_xpath = xmp_mapping['xpath'][0: xmp_mapping['xpath'].rfind('/')]
+                parent = parsed.xpath(parent_xpath, namespaces=xmp_mapping['namespaces'])
+                if parent:
+                    elem = etree.SubElement(parent[0], "{{{0}}}Description".format(xmp_mapping['namespaces']['rdf']),
+                                            nsmap=xmp_mapping['namespaces'])
+                    elem.attrib[xmp_mapping['atribute_key']] = assignment_id
+                else:
+                    logger.error('Cannot find xmp_mapping path in XMP file for assignment: {}'.format(assignment_id))
+                    return
+
+            buf = BytesIO()
+            buf.write(etree.tostring(parsed.getroot(), pretty_print=True))
+            buf.seek(0)
+            media_id = app.media.put(buf, resource='planning_files', filename=xmp_file.filename,
+                                     content_type='application/octet-stream')
+            get_resource_service('planning_files').patch(updates_coverage['planning']['xmp_file'],
+                                                         {
+                                                             'filemeta': {'media_id': media_id},
+                                                             'media': media_id})
+            push_notification('planning_files:updated', item=updates_coverage['planning']['xmp_file'])
+        except Exception:
+            logger.error('Error while injecting assignment ID to XMP File. Assignment: {0}, xmp_file: {1}'.format(
+                assignment_id,
+                updates_coverage['planning']['xmp_file']
+            ))
 
 
 event_type = deepcopy(superdesk.Resource.rel('events', type='string'))
