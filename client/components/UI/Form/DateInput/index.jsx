@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
+import {isEqual} from 'lodash';
+
 import {LineInput, Label, Input} from '../';
 import {IconButton} from '../../';
 import {DateInputPopup} from './DateInputPopup';
@@ -34,13 +36,18 @@ export class DateInput extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         const {value, dateFormat} = this.props;
-        const val = nextProps.value && moment.isMoment(nextProps.value) ?
-            nextProps.value.format(dateFormat) : '';
 
-        this.setState({
-            viewValue: val,
-            previousValidValue: value,
-        });
+        // Only update the value if they have changed
+        // This fixes the value being cleared on autosave (SDESK-4929)
+        if (!isEqual(value, nextProps.value)) {
+            const val = nextProps.value && moment.isMoment(nextProps.value) ?
+                nextProps.value.format(dateFormat) : '';
+
+            this.setState({
+                viewValue: val,
+                previousValidValue: value,
+            });
+        }
     }
 
     componentDidMount() {
