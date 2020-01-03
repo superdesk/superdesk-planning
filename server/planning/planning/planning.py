@@ -1036,7 +1036,8 @@ assigned_to_schema = {
         'type': 'object',
         'properties': {
             'assignment_id': not_analyzed,
-            'state': not_analyzed
+            'state': not_analyzed,
+            'contact': not_analyzed,
         }
     }
 }
@@ -1312,13 +1313,7 @@ planning_schema = {
 
                     }
                 },
-                'assigned_to': {
-                    'type': 'object',
-                    'properties': {
-                        'assignment_id': not_analyzed,
-                        'state': not_analyzed
-                    }
-                }
+                'assigned_to': assigned_to_schema['mapping'],
             }
         }
     },
