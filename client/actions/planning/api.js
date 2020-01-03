@@ -955,7 +955,7 @@ const fetchFeaturedPlanningItemById = (id) => (
 );
 
 const fetchPlanningFiles = (planning) => (
-    (dispatch, getState, {api}) => {
+    (dispatch, getState) => {
         if (!planningUtils.shouldFetchFilesForPlanning(planning)) {
             return Promise.resolve();
         }
@@ -967,9 +967,15 @@ const fetchPlanningFiles = (planning) => (
             return Promise.resolve();
         }
 
-        return api('planning_files').query(
+        return dispatch(getFiles(filesToFetch));
+    }
+);
+
+const getFiles = (files) => (
+    (dispatch, getState, {api}) => (
+        api('planning_files').query(
             {
-                where: {$and: [{_id: {$in: filesToFetch}}]},
+                where: {$and: [{_id: {$in: files}}]},
             }
         )
             .then((data) => {
@@ -980,8 +986,8 @@ const fetchPlanningFiles = (planning) => (
                     });
                 }
                 return Promise.resolve();
-            });
-    }
+            })
+    )
 );
 
 
@@ -1138,6 +1144,7 @@ const self = {
     fetchPlanningFiles,
     uploadFiles,
     removeFile,
+    getFiles,
 };
 
 export default self;

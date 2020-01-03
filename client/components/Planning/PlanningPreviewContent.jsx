@@ -59,6 +59,7 @@ export class PlanningPreviewContentComponent extends React.Component {
             hideEditIcon,
             files,
             planningAllowScheduledUpdates,
+            useXmpFile,
         } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
@@ -242,7 +243,8 @@ export class PlanningPreviewContentComponent extends React.Component {
                         inner={inner}
                         files={files}
                         createLink={createUploadLink}
-                        planningAllowScheduledUpdates={planningAllowScheduledUpdates} />)
+                        planningAllowScheduledUpdates={planningAllowScheduledUpdates}
+                        useXmpFile={useXmpFile} />)
                     )
                 }
             </ContentBlock>
@@ -275,6 +277,7 @@ PlanningPreviewContentComponent.propTypes = {
     files: PropTypes.object,
     hideEditIcon: PropTypes.bool,
     planningAllowScheduledUpdates: PropTypes.bool,
+    useXmpFile: PropTypes.bool,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -296,6 +299,7 @@ const mapStateToProps = (state, ownProps) => ({
     createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
     files: selectors.general.files(state),
     planningAllowScheduledUpdates: selectors.config.getPlanningAllowScheduledUpdates(state),
+    useXmpFile: selectors.config.useXmpFile(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
