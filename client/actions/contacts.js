@@ -8,7 +8,7 @@ import * as selectors from '../selectors';
  * @param {string} contactType - Limit the query to a particular contact type
  * @returns {Array<Object>} Returns an array of contacts found
  */
-const getContacts = (searchText, searchFields = [], contactType = '') => (
+const getContacts = (searchText, searchFields = [], contactType = '', page = 1) => (
     (dispatch, getState, {api}) => {
         const bool = {
             must: [],
@@ -24,6 +24,7 @@ const getContacts = (searchText, searchFields = [], contactType = '') => (
                     default_field: 'first_name',
                     fields: searchFields,
                     query: searchText + '*',
+                    default_operator: 'AND',
                 },
             });
         }
@@ -32,14 +33,21 @@ const getContacts = (searchText, searchFields = [], contactType = '') => (
             bool.must.push({term: {contact_type: contactType}});
         }
 
+        dispatch({type: 'LOADING_CONTACTS'});
+
         return api('contacts').query({
             source: {query: {bool: bool}},
             sort: '[("first_name", 1)]',
+            max_results: 200,
+            page: page,
         })
             .then(
                 (data) => dispatch(
                     self.receiveContacts(
-                        get(data, '_items', [])
+                        get(data, '_items', []),
+                        get(data, '_meta.total'),
+                        get(data, '_meta.page')
+
                     )
                 )
             );
@@ -160,12 +168,16 @@ const addContact = (newContact) => ({
  * @param {Array<Object>} contacts - The contacts to add to the store
  * @returns {Array<Object>} Returns an array of the contacts provided
  */
-const receiveContacts = (contacts) => (
+const receiveContacts = (contacts, total, page) => (
     (dispatch) => {
         if (get(contacts, 'length', 0) > 0) {
             dispatch({
                 type: 'RECEIVE_CONTACTS',
-                payload: contacts,
+                payload: {
+                    contacts,
+                    total,
+                    page,
+                },
             });
         }
         return Promise.resolve(contacts);

@@ -5,7 +5,6 @@ import {get} from 'lodash';
 import * as selectors from '../../selectors';
 import {ContactEditor, SelectSearchContactsField, ContactsPreviewList} from './index';
 import * as actions from '../../actions';
-import {CONTACTS} from '../../constants';
 import {gettext} from '../../utils/index';
 
 
@@ -154,7 +153,6 @@ ContactFieldComponent.propTypes = {
         PropTypes.arrayOf(PropTypes.string),
         PropTypes.string,
     ]),
-    searchContacts: PropTypes.func,
     fetchContacts: PropTypes.func,
     contacts: PropTypes.array,
     privileges: PropTypes.object,
@@ -174,7 +172,6 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    searchContacts: (text) => dispatch(actions.contacts.getContacts(text, CONTACTS.SEARCH_FIELDS)),
     addContact: (newContact) => dispatch(actions.contacts.addContact(newContact)),
     fetchContacts: (ids) => dispatch(actions.contacts.fetchContactsByIds(ids)),
 });
