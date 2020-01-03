@@ -12,7 +12,7 @@ sudo service elasticsearch restart
 sleep 30
 
 cd $PLANNING_DIR/e2e/server
-pip install -e .
+pip install -r requirements.txt
 honcho start &
 
 sleep 10
