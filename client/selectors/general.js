@@ -71,6 +71,9 @@ export const currentUserId = createSelector(
 export const files = (state) => get(state, 'files.files');
 
 export const contacts = (state) => get(state, 'contacts.contacts') || [];
+export const contactsLoading = (state) => get(state, 'contacts.loading', false);
+export const contactsTotal = (state) => get(state, 'contacts.total', 0);
+export const contactsPage = (state) => get(state, 'contacts.page', 1);
 
 export const contactsById = createSelector(
     [contacts],
