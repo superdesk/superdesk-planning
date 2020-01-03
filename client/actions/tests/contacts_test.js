@@ -40,6 +40,7 @@ describe('actions.contacts', () => {
                                             default_field: 'first_name',
                                             fields: [],
                                             query: 'bob*',
+                                            default_operator: 'AND',
                                         },
                                     }],
                                     should: [
@@ -50,10 +51,12 @@ describe('actions.contacts', () => {
                             },
                         },
                         sort: '[("first_name", 1)]',
+                        max_results: 200,
+                        page: 1,
                     }]);
 
                     expect(contactsApi.receiveContacts.callCount).toBe(1);
-                    expect(contactsApi.receiveContacts.args[0]).toEqual([data.contacts.contacts]);
+                    expect(contactsApi.receiveContacts.args[0][0]).toEqual(data.contacts.contacts);
                     done();
                 })
                 .catch(done.fail);
@@ -72,6 +75,7 @@ describe('actions.contacts', () => {
                                             default_field: 'first_name',
                                             fields: ['organisation'],
                                             query: 'bob*',
+                                            default_operator: 'AND',
                                         },
                                     }],
                                     should: [
@@ -82,10 +86,12 @@ describe('actions.contacts', () => {
                             },
                         },
                         sort: '[("first_name", 1)]',
+                        max_results: 200,
+                        page: 1,
                     }]);
 
                     expect(contactsApi.receiveContacts.callCount).toBe(1);
-                    expect(contactsApi.receiveContacts.args[0]).toEqual([data.contacts.contacts]);
+                    expect(contactsApi.receiveContacts.args[0][0]).toEqual(data.contacts.contacts);
                     done();
                 })
                 .catch(done.fail);
@@ -104,6 +110,7 @@ describe('actions.contacts', () => {
                                             default_field: 'first_name',
                                             fields: [],
                                             query: 'bob*',
+                                            default_operator: 'AND',
                                         },
                                     }, {
                                         term: {contact_type: 'stringer'},
@@ -116,10 +123,12 @@ describe('actions.contacts', () => {
                             },
                         },
                         sort: '[("first_name", 1)]',
+                        max_results: 200,
+                        page: 1,
                     }]);
 
                     expect(contactsApi.receiveContacts.callCount).toBe(1);
-                    expect(contactsApi.receiveContacts.args[0]).toEqual([data.contacts.contacts]);
+                    expect(contactsApi.receiveContacts.args[0][0]).toEqual(data.contacts.contacts);
                     done();
                 })
                 .catch(done.fail);
