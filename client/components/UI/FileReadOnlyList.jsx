@@ -11,13 +11,20 @@ import {ToggleBox} from './index';
  * @description Generic read-only file list
  */
 const FileReadOnlyList = ({formProfile, item, field, createLink, files, noToggle}) => {
-    if (!get(formProfile, 'editor.files.enabled')) {
+    if (field === 'files' && !get(formProfile, 'editor.files.enabled')) {
         return null;
     }
 
-    const fileList = get(item, `${field}.length`, 0) > 0 ?
+
+    let filesInput = [];
+
+    if (item[field]) {
+        filesInput = Array.isArray(item[field]) ? item[field] : [item[field]];
+    }
+
+    const fileList = get(filesInput, 'length', 0) > 0 ?
         (<ul>
-            {item[field].map((file, index) => (
+            {filesInput.map((file, index) => (
                 <li key={index}>
                     <FileInput
                         value={file}

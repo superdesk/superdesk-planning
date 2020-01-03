@@ -30,6 +30,7 @@ export const CoveragePreview = ({
     planningAllowScheduledUpdates,
     files,
     createLink,
+    useXmpFile,
 }) => {
     const coverageStatus = get(coverage, 'news_coverage_status.qcode', '') ===
         PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode ? PLANNING.NEWS_COVERAGE_CANCELLED_STATUS :
@@ -141,6 +142,18 @@ export const CoveragePreview = ({
                 />
             }
 
+            {planningUtils.showXMPFileUIControl(coverage, useXmpFile) && (
+                <PreviewRow
+                    label={gettext('Associated XMP File')} >
+                    <FileReadOnlyList
+                        field={'xmp_file'}
+                        files={files}
+                        item={coverage.planning}
+                        createLink={createLink}
+                        noToggle />
+                </PreviewRow>
+            )}
+
             {get(formProfile, 'editor.genre.enabled') && coverage.planning.genre &&
                 <PreviewRow
                     label={gettext('Genre')}
@@ -149,11 +162,15 @@ export const CoveragePreview = ({
             }
 
             {get(formProfile, 'editor.files.enabled') &&
-                <FileReadOnlyList
-                    formProfile={formProfile}
-                    files={files}
-                    item={coverage.planning}
-                    createLink={createLink} />
+                <PreviewRow
+                    label={gettext('Attached files')} >
+                    <FileReadOnlyList
+                        formProfile={formProfile}
+                        files={files}
+                        item={coverage.planning}
+                        createLink={createLink}
+                        noToggle />
+                </PreviewRow>
             }
 
             <PreviewRow
@@ -226,6 +243,7 @@ CoveragePreview.propTypes = {
     planningAllowScheduledUpdates: PropTypes.bool,
     createLink: PropTypes.func,
     files: PropTypes.array,
+    useXmpFile: PropTypes.bool,
 };
 
 

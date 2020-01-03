@@ -89,6 +89,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
             createLink,
             streetMapUrl,
             files,
+            useXmpFile,
         } = this.props;
 
         if (!assignment) {
@@ -138,6 +139,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
                         planningItem={planningItem}
                         createLink={createLink}
                         files={files}
+                        useXmpFile={useXmpFile}
                     />
                 </ContentBlock>
 
@@ -218,6 +220,7 @@ AssignmentPreviewContainerComponent.propTypes = {
     createLink: PropTypes.func,
     streetMapUrl: PropTypes.string,
     files: PropTypes.array,
+    useXmpFile: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -242,6 +245,7 @@ const mapStateToProps = (state) => ({
     createLink: (f) => (selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw'),
     streetMapUrl: selectors.config.getStreetMapUrl(state),
     files: selectors.general.files(state),
+    useXmpFile: selectors.config.useXmpFile(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

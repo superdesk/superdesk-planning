@@ -346,3 +346,33 @@ def step_impl_when_we_duplicate_event(context, event_id):
 @when('we set auto workflow on')
 def then_set_auto_workflow(context):
     context.app.config['PLANNING_AUTO_ASSIGN_TO_WORKFLOW'] = True
+
+
+@when('we set PLANNING_XMP_ASSIGNMENT_MAPPING')
+def then_set_xmp_mapping(context):
+    ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+    BEHAVE_TESTS_FIXTURES_PATH = ABS_PATH + '/steps/fixtures'
+    context.app.settings['BEHAVE_TESTS_FIXTURES_PATH'] = BEHAVE_TESTS_FIXTURES_PATH
+    context.app.config['PLANNING_XMP_ASSIGNMENT_MAPPING'] = {
+        'xpath': '//x:xmpmeta/rdf:RDF/rdf:Description',
+        'namespaces': {
+            'x': 'adobe:ns:meta/',
+            'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+            'photoshop': 'http://ns.adobe.com/photoshop/1.0/'
+        },
+        'atribute_key': '{http://ns.adobe.com/photoshop/1.0/}TransmissionReference'
+    }
+
+
+@then('we have string {check_string} in media stream')
+def step_impl_then_get_media_stream(context, check_string):
+    assert_200(context.response)
+    data = get_json_data(context.response)
+    url = '/upload-raw/%s' % data['filemeta']['media_id']
+    headers = [('Content - Type', 'application / octet - stream')]
+    headers = unique_headers(headers, context.headers)
+    response = context.client.get(get_prefixed_url(context.app, url), headers=headers)
+    assert_200(response)
+    assert len(response.get_data()), response
+    check_string = apply_placeholders(context, check_string)
+    assert check_string in str(response.stream.response.data)

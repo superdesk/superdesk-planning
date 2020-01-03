@@ -43,5 +43,11 @@ export const allowFreeTextLocation = (state) => get(state, 'config.planning_allo
 export const planningAllowScheduledUpdates = (state) => get(state, 'deployConfig.planning_allow_scheduled_updates',
     false);
 
+export const useXmpFile = (state) => get(state, 'deployConfig.planning_use_xmp_for_pic_assignments',
+    false);
+
+export const xmpAssignmentMapping = (state) => get(state, 'deployConfig.planning_xmp_assignment_mapping',
+    false);
+
 export const getPlanningAllowScheduledUpdates = createSelector([coverageProfile, planningAllowScheduledUpdates],
     (cp, allowScheduleUpdates) => get(cp, 'editor.flags') && allowScheduleUpdates);

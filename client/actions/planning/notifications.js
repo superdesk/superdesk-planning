@@ -359,6 +359,10 @@ const onPlanningFeaturedUnLocked = (_e, data) => (
     }
 );
 
+const onPlanningFilesUpdated = (_e, data) => (
+    (dispatch) => (dispatch(planning.api.getFiles([data.item])))
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     onPlanningCreated,
@@ -375,6 +379,7 @@ const self = {
     onPlanningExpired,
     onPlanningFeaturedLocked,
     onPlanningFeaturedUnLocked,
+    onPlanningFilesUpdated,
 };
 
 // Map of notification name and Action Event to execute
@@ -394,6 +399,7 @@ self.events = {
     'planning:expired': () => self.onPlanningExpired,
     'planning_featured_lock:lock': () => self.onPlanningFeaturedLocked,
     'planning_featured_lock:unlock': () => onPlanningFeaturedUnLocked,
+    'planning_files:updated': () => onPlanningFilesUpdated,
 };
 
 export default self;
