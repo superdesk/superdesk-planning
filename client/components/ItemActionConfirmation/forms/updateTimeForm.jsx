@@ -119,7 +119,7 @@ export class UpdateTimeComponent extends React.Component {
             set(diff, field, value);
         }
 
-        if (diff.dates != null && diff.dates.tz == null) {
+        if (diff.dates != null && !diff.dates.tz) {
             // if no timezone use default one
             diff.dates.tz = this.props.defaultTimeZone;
         }
