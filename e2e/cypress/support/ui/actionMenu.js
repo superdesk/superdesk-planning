@@ -18,7 +18,7 @@ export default class ActionMenu {
 
     open() {
         this.menuButton.click();
-        this.popup.wait();
+        this.popup.waitTillOpen();
         return this;
     }
 

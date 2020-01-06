@@ -32,6 +32,7 @@ export default class AssignmentEditor extends Modal {
     }
 
     type(values) {
+        cy.log('Editor.Assignment.type');
         cy.wrap(Object.keys(values)).each(
             (field) => {
                 this.getField(field)
@@ -41,6 +42,7 @@ export default class AssignmentEditor extends Modal {
     }
 
     expect(values) {
+        cy.log('Editor.Assignment.expect');
         cy.wrap(Object.keys(values)).each(
             (field) => {
                 this.getField(field)

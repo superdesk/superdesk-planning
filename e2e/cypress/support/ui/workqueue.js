@@ -17,6 +17,7 @@ class Workqueue {
     }
 
     expectTitle(index, title) {
+        cy.log('UI.Workqueue.expectTitle');
         this.getItem(index)
             .find('.item-label')
             .should('contain.text', title);

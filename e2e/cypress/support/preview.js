@@ -14,6 +14,7 @@ class Preview {
     }
 
     clickAction(label) {
+        cy.log('Preview.clickAction');
         this.actionMenu
             .open()
             .getAction(label)
@@ -21,10 +22,12 @@ class Preview {
     }
 
     waitTillOpen() {
+        cy.log('Preview.waitTillOpen');
         this.element.should('exist');
     }
 
     waitTillClosed() {
+        cy.log('Preview.waitTillClosed');
         this.element.should('not.exist');
     }
 }

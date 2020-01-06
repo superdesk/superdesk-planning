@@ -8,9 +8,10 @@ import SubNavBar from './subNavBar';
 import Workqueue from './workqueue';
 
 function waitForPageLoad() {
-    // Set the timeout waiting for this button to 30 seconds
+    cy.log('UI.waitForPageLoad');
+    // Set the timeout waiting for this button to 60 seconds
     // as this can sometimes take a while on initial load
-    cy.get('.icon-plus-large', {timeout: 30000});
+    cy.get('.icon-plus-large', {timeout: 60000});
 }
 
 export default {

@@ -63,10 +63,10 @@ describe('event duplicate', () => {
         editor.type({slugline: 'Duplicate2'});
         editor.waitForAutosave();
         editor.closeButton.click();
-        modal.wait(30000);
+        modal.waitTillOpen(30000);
         modal.getFooterButton('Ignore')
             .click();
-        editor.waitTillClose();
+        editor.waitTillClosed();
 
         // 3. Cancel duplicate saving changes
         UI.ListPanel.clickAction(0, 'Duplicate');
@@ -80,10 +80,10 @@ describe('event duplicate', () => {
         });
         editor.waitForAutosave();
         editor.closeButton.click();
-        modal.wait(30000);
+        modal.waitTillOpen(30000);
         modal.getFooterButton('Create')
             .click();
-        editor.waitTillClose();
+        editor.waitTillClosed();
 
         // 4. Duplicate from preview
         UI.ListPanel.item(0).click();

@@ -9,17 +9,28 @@ describe('event action cancel', () => {
     const editor = new Editors.EventEditor();
     const modal = new UI.Modal();
     let menu;
-
-    const event = {
-        'dates.start.date': '12/12/2045',
-        'dates.start.time': '00:00',
-        slugline: 'Original',
-        name: 'Test',
-    };
     let reason;
 
     beforeEach(() => {
         App.setup({fixture_profile: 'planning_prepopulate_data'});
+        App.addItems('events', [{
+            type: 'event',
+            occur_status: {
+                name: 'Planned, occurs certainly',
+                label: 'Confirmed',
+                qcode: 'eocstat:eos5',
+            },
+            dates: {
+                start: '2045-12-11T13:00:00+0000',
+                end: '2045-12-11T14:00:00+0000',
+                tz: 'Australia/Sydney',
+            },
+            calendars: [],
+            state: 'draft',
+            place: [],
+            name: 'Test',
+            slugline: 'Original',
+        }]);
 
         cy.visit('/#/planning');
         App.login();
@@ -31,7 +42,7 @@ describe('event action cancel', () => {
         menu.open();
         menu.getAction('Cancel')
             .click();
-        modal.wait(30000);
+        modal.waitTillOpen(30000);
         modal.element
             .find('textarea[name="reason"]')
             .type(reason);
@@ -63,8 +74,6 @@ describe('event action cancel', () => {
     it('can cancel from the list', () => {
         // 1. Cancel Event from list
         // 1.a Create the Event
-        UI.SubNavBar.createEvent();
-        editor.createAndClose(event);
         reason = 'Cancelled due to some reason';
 
         UI.ListPanel
@@ -76,10 +85,10 @@ describe('event action cancel', () => {
         menu.open();
         menu.getAction('Cancel')
             .click();
-        modal.wait(30000);
+        modal.waitTillOpen(30000);
         modal.getFooterButton('Cancel')
             .click();
-        modal.waitForClose();
+        modal.waitTillClosed();
 
         // 1.c Open the 'Cancel Event' modal again, and cancel the Event
         cancelEvent();
@@ -106,8 +115,6 @@ describe('event action cancel', () => {
     it('can cancel from the preview', () => {
         // 2. Cancel Event from preview
         // 2.a Create the Event
-        UI.SubNavBar.createEvent();
-        editor.createAndClose(event);
         reason = 'Cancelling2 something else';
 
         // 2.b Open the 'Cancel Event' modal from the preview panel, and cancel the Event
@@ -135,8 +142,6 @@ describe('event action cancel', () => {
     it('can cancel from the editor', () => {
         // 3. Cancel from Editor with no unsaved changes
         // 3.a Create the Event
-        UI.SubNavBar.createEvent();
-        editor.createAndClose(event);
         reason = 'Cancelled three times';
         UI.ListPanel
             .item(0)
@@ -172,8 +177,6 @@ describe('event action cancel', () => {
     it('can cancel from the editor ignoring changes', () => {
         // 4. Cancel from Editor ignoring unsaved changes
         // 4.a Create the Event
-        UI.SubNavBar.createEvent();
-        editor.createAndClose(event);
         reason = 'Cancelled without changes';
         UI.ListPanel
             .item(0)
@@ -194,10 +197,10 @@ describe('event action cancel', () => {
         menu.open();
         menu.getAction('Cancel')
             .click();
-        modal.wait();
+        modal.waitTillOpen();
         modal.getFooterButton('Cancel')
             .click();
-        modal.waitForClose();
+        modal.waitTillClosed();
 
         // 4.d Start cancel action, showing ignore/cancel/save dialog
         // And ignore changes
@@ -205,13 +208,13 @@ describe('event action cancel', () => {
         menu.open();
         menu.getAction('Cancel')
             .click();
-        modal.wait();
+        modal.waitTillOpen();
         modal.getFooterButton('Ignore')
             .click();
-        modal.waitForClose();
+        modal.waitTillClosed();
 
         // 4.e Now cancel the Event
-        modal.wait();
+        modal.waitTillOpen();
         modal.element
             .find('textarea[name="reason"]')
             .type(reason);
@@ -236,8 +239,6 @@ describe('event action cancel', () => {
     it('can cancel from the editor saving changes', () => {
         // 5. Cancel from Editor saving changes
         // 5.a Create the Event
-        UI.SubNavBar.createEvent();
-        editor.createAndClose(event);
         reason = 'Cancelled savings changes';
         UI.ListPanel
             .item(0)
@@ -258,13 +259,13 @@ describe('event action cancel', () => {
         menu.open();
         menu.getAction('Cancel')
             .click();
-        modal.wait();
+        modal.waitTillOpen();
         modal.getFooterButton('Save')
             .click();
-        modal.waitForClose();
+        modal.waitTillClosed();
 
         // 5.d Now cancel the Event
-        modal.wait();
+        modal.waitTillOpen();
         modal.element
             .find('textarea[name="reason"]')
             .type(reason);

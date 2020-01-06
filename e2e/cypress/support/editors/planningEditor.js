@@ -38,14 +38,15 @@ export default class PlanningEditor extends BaseEditor {
     }
 
     addCoverage(coverageType) {
+        cy.log('Editor.Planning.addCoverage');
         const popup = new Popup();
 
         this.addCoverageButton.click();
-        popup.wait();
+        popup.waitTillOpen();
         popup.element
             .contains(coverageType)
             .click();
-        popup.waitForClose();
+        popup.waitTillClosed();
     }
 
     getCoverageEditor(index) {
@@ -53,6 +54,7 @@ export default class PlanningEditor extends BaseEditor {
     }
 
     typeCoverages(coverages) {
+        cy.log('Editor.Planning.typeCoverages');
         let editor;
 
         coverages.forEach(
@@ -65,6 +67,7 @@ export default class PlanningEditor extends BaseEditor {
     }
 
     expectCoverages(coverages) {
+        cy.log('Editor.Planning.expectCoverages');
         let editor;
 
         coverages.forEach(

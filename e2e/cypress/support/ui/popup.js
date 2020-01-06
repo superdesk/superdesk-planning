@@ -9,12 +9,14 @@ export default class Popup {
         return cy.get(this.selector);
     }
 
-    wait(timeout = 4000) {
+    waitTillOpen(timeout = 4000) {
+        cy.log('UI.Popup.waitTillOpen');
         cy.get(this.selector, {timeout: timeout})
             .should('exist');
     }
 
-    waitForClose(timeout = 4000) {
+    waitTillClosed(timeout = 4000) {
+        cy.log('UI.Popup.waitTillClosed');
         cy.get(this.selector, {timeout: timeout})
             .should('not.exist');
     }

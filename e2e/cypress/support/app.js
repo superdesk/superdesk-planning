@@ -36,7 +36,20 @@ function resetApp(profile) {
     });
 }
 
+function addItems(resource, items) {
+    backendRequest({
+        uri: '/planning_prepopulate',
+        method: 'POST',
+        timeout: 40000,
+        json: {
+            resource: resource,
+            items: items,
+        },
+    });
+}
+
 function login() {
+    cy.log('App.login');
     cy.get('#login-username')
         .type('admin')
         .should('have.value', 'admin');
@@ -50,6 +63,7 @@ function login() {
 }
 
 function setup(params) {
+    cy.log('App.setup');
     resetApp(params.fixture_profile);
 }
 
@@ -59,4 +73,5 @@ export default {
     resetApp,
     login,
     setup,
+    addItems,
 };

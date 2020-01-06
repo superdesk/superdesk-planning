@@ -12,12 +12,12 @@ export default class UrgencyInput extends Input {
         this.element
             .find('button')
             .click();
-        popup.wait();
+        popup.waitTillOpen();
         popup.element
             .find('.popup__menu-content')
             .contains(value)
             .parent()
             .click();
-        popup.waitForClose();
+        popup.waitTillClosed();
     }
 }

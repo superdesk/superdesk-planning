@@ -13,10 +13,12 @@ export default class CollapseBox {
     }
 
     waitTillOpen() {
+        cy.log('UI.CollapseBox.waitTillOpen');
         this.element.should('have.class', 'sd-collapse-box--open');
     }
 
-    waitTillClose() {
+    waitTillClosed() {
+        cy.log('UI.CollapseBox.waitTillClosed');
         this.element.should('not.have.class', 'sd-collapse-box--open');
     }
 }

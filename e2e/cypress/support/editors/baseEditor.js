@@ -31,10 +31,20 @@ export default class BaseEditor {
     }
 
     getField(name) {
-        return get(this.fields, name);
+        const field = get(this.fields, name);
+
+        if (!field) {
+            const error = `Error: Field "${name}" not defined for this editor`;
+
+            cy.log(error);
+            throw error;
+        }
+
+        return field;
     }
 
     type(values) {
+        cy.log('Editor.type');
         cy.wrap(Object.keys(values)).each(
             (field) => {
                 this.getField(field)
@@ -55,10 +65,11 @@ export default class BaseEditor {
         this.createButton.click();
         this.waitLoadingComplete();
         this.closeButton.click();
-        this.waitTillClose();
+        this.waitTillClosed();
     }
 
     expect(values) {
+        cy.log('Editor.expect');
         cy.wrap(Object.keys(values)).each(
             (field) => {
                 this.getField(field)
@@ -68,31 +79,37 @@ export default class BaseEditor {
     }
 
     expectItemType() {
+        cy.log('Editor.expectItemType');
         this.element.find(this.itemIcon)
             .should('exist');
     }
 
     waitTillOpen() {
+        cy.log('Editor.waitTillOpen');
         this.closeButton.should('exist');
     }
 
-    waitTillClose() {
+    waitTillClosed() {
+        cy.log('Editor.waitTillClosed');
         this.closeButton.should('not.exist');
     }
 
     waitForAutosave() {
+        cy.log('Editor.waitForAutosave');
         // Autosave fires every 3 seconds
         // This ensures we're half a second beyond that
         cy.wait(3500);
     }
 
     waitLoadingComplete() {
+        cy.log('Editor.waitLoadingComplete');
         this.element
             .find('.side-panel__content-tab-nav', {timeout: 30000})
             .should('exist');
     }
 
     openAllToggleBoxes() {
+        cy.log('Editor.openAllToggleBoxes');
         this.element
             .find('.toggle-box.toggle-box--circle.hidden')
             .click({multiple: true});

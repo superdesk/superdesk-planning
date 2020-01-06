@@ -77,12 +77,12 @@ describe('edit planning', () => {
         let assignmentEditor = new Editors.AssignmentEditor();
 
         coverageEditor.editAssignmentButton.click();
-        assignmentEditor.wait();
+        assignmentEditor.waitTillOpen();
         assignmentEditor.type({
             desk: 'Politic Desk',
         });
         assignmentEditor.okButton.click();
-        assignmentEditor.waitForClose();
+        assignmentEditor.waitTillClosed();
 
         editor.waitForAutosave();
         editor.createButton.click();
