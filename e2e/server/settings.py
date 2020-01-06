@@ -19,6 +19,8 @@ ABS_PATH = str(Path(__file__).resolve().parent)
 DEBUG = False
 SUPERDESK_TESTING = True
 
+DEFAULT_TIMEZONE = env('DEFAULT_TIMEZONE', 'Australia/Sydney')
+
 init_data = Path(ABS_PATH) / 'data'
 if init_data.exists():
     INIT_DATA_PATH = init_data
