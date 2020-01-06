@@ -1,4 +1,6 @@
 #!/bin/bash -e
+
+export TZ=Australia/Sydney
 PLANNING_DIR=`pwd`
 
 cd $PLANNING_DIR/e2e
