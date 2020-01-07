@@ -40,7 +40,7 @@ class ListPanel {
 
     expectEmpty() {
         cy.log('UI.ListPanel.expectEmpty');
-        this.items(0)
+        this.items()
             .should('not.exist');
     }
 

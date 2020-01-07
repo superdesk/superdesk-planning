@@ -1,5 +1,6 @@
 import BaseEditor from './baseEditor';
 import Form from '../form';
+import ContactInput from '../contacts/contactInput';
 
 export default class EventEditor extends BaseEditor {
     constructor() {
@@ -31,6 +32,7 @@ export default class EventEditor extends BaseEditor {
             anpa_category: new Form.SelectMetaTerms(this, '#form-row-anpa_category'),
             subject: new Form.SelectMetaTerms(this, '#form-row-subject'),
             links: new Form.LinkInput(this, ''),
+            event_contact_info: new ContactInput(this, '#form-row-event_contact_info'),
         };
     }
 }

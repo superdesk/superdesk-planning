@@ -3,6 +3,7 @@ import Form from './form';
 import Preview from './preview';
 import Editors from './editors';
 import UI from './ui';
+import Contacts from './contacts';
 
 export {
     Form,
@@ -10,4 +11,5 @@ export {
     Editors,
     UI,
     App,
+    Contacts,
 };
