@@ -1,19 +1,17 @@
-import {
-    App,
-    UI,
-    Preview,
-    Editors,
-} from '../../support';
+import {setup, login, addItems, waitForPageLoad, Modal} from '../../support/common';
+import {PlanningList, EventEditor, PlanningPreview} from '../../support/planning';
 
-describe('event action cancel', () => {
-    const editor = new Editors.EventEditor();
-    const modal = new UI.Modal();
+describe('Planning.Events: event cancel action', () => {
+    const editor = new EventEditor();
+    const modal = new Modal();
+    const preview = new PlanningPreview();
+    const list = new PlanningList();
     let menu;
     let reason;
 
     beforeEach(() => {
-        App.setup({fixture_profile: 'planning_prepopulate_data'});
-        App.addItems('events', [{
+        setup({fixture_profile: 'planning_prepopulate_data'});
+        addItems('events', [{
             type: 'event',
             occur_status: {
                 name: 'Planned, occurs certainly',
@@ -33,9 +31,9 @@ describe('event action cancel', () => {
         }]);
 
         cy.visit('/#/planning');
-        App.login();
+        login();
 
-        UI.waitForPageLoad();
+        waitForPageLoad();
     });
 
     function cancelEvent() {
@@ -51,12 +49,12 @@ describe('event action cancel', () => {
     }
 
     function expectCancelledInPreview() {
-        Preview.waitTillOpen();
-        Preview.element
+        preview.waitTillOpen();
+        preview.element
             .find('.label--yellow2')
             .should('contain.text', 'Cancelled');
 
-        Preview.element
+        preview.element
             .find('.internal-note__label')
             .parent()
             .should('contain.text', reason);
@@ -76,12 +74,11 @@ describe('event action cancel', () => {
         // 1.a Create the Event
         reason = 'Cancelled due to some reason';
 
-        UI.ListPanel
-            .item(0)
+        list.item(0)
             .click();
 
         // 1.b Open the 'Cancel Event' modal, then close it
-        menu = UI.ListPanel.getActionMenu(0);
+        menu = list.getActionMenu(0);
         menu.open();
         menu.getAction('Cancel')
             .click();
@@ -92,21 +89,18 @@ describe('event action cancel', () => {
 
         // 1.c Open the 'Cancel Event' modal again, and cancel the Event
         cancelEvent();
-        UI.ListPanel
-            .item(0)
+        list.item(0)
             .find('.label--yellow2')
             .should('contain.text', 'Cancelled');
 
         // 1.d Open the preview/editor and check cancel label/reason
         // Open the preview
-        UI.ListPanel
-            .item(0)
+        list.item(0)
             .click();
         expectCancelledInPreview();
 
         // Open the editor
-        UI.ListPanel
-            .item(0)
+        list.item(0)
             .dblclick();
         expectCancelledInEditor();
         editor.closeButton.click();
@@ -118,22 +112,19 @@ describe('event action cancel', () => {
         reason = 'Cancelling2 something else';
 
         // 2.b Open the 'Cancel Event' modal from the preview panel, and cancel the Event
-        UI.ListPanel
-            .item(0)
+        list.item(0)
             .click();
-        menu = Preview.actionMenu;
+        menu = preview.actionMenu;
         cancelEvent();
 
         // 2.c Open the editor and check cancel label/reason
         // Open the preview
-        UI.ListPanel
-            .item(0)
+        list.item(0)
             .click();
         expectCancelledInPreview();
 
         // Open the editor
-        UI.ListPanel
-            .item(0)
+        list.item(0)
             .dblclick();
         expectCancelledInEditor();
         editor.closeButton.click();
@@ -143,14 +134,12 @@ describe('event action cancel', () => {
         // 3. Cancel from Editor with no unsaved changes
         // 3.a Create the Event
         reason = 'Cancelled three times';
-        UI.ListPanel
-            .item(0)
+        list.item(0)
             .find('.sd-list-item__border--locked')
             .should('not.exist');
 
         // 3.b Open the Event in the editor
-        UI.ListPanel
-            .item(0)
+        list.item(0)
             .dblclick();
         editor.waitTillOpen();
         editor.waitLoadingComplete();
@@ -161,14 +150,12 @@ describe('event action cancel', () => {
 
         // 3.d Open the preview and editor and check cancel label/reason
         // Open the preview
-        UI.ListPanel
-            .item(0)
+        list.item(0)
             .click();
         expectCancelledInPreview();
 
         // Open the editor
-        UI.ListPanel
-            .item(0)
+        list.item(0)
             .dblclick();
         expectCancelledInEditor();
         editor.closeButton.click();
@@ -178,14 +165,12 @@ describe('event action cancel', () => {
         // 4. Cancel from Editor ignoring unsaved changes
         // 4.a Create the Event
         reason = 'Cancelled without changes';
-        UI.ListPanel
-            .item(0)
+        list.item(0)
             .find('.sd-list-item__border--locked')
             .should('not.exist');
 
         // 4.b Open the Event in the editor and make changes
-        UI.ListPanel
-            .item(0)
+        list.item(0)
             .dblclick();
         editor.waitTillOpen();
         editor.waitLoadingComplete();
@@ -223,15 +208,13 @@ describe('event action cancel', () => {
 
         // 4.f Open the preview and editor and check cancel label/reason
         // Open the preview
-        UI.ListPanel
-            .item(0)
+        list.item(0)
             .click();
 
         expectCancelledInPreview();
 
         // Open the editor
-        UI.ListPanel
-            .item(0)
+        list.item(0)
             .dblclick();
         expectCancelledInEditor();
     });
@@ -240,14 +223,12 @@ describe('event action cancel', () => {
         // 5. Cancel from Editor saving changes
         // 5.a Create the Event
         reason = 'Cancelled savings changes';
-        UI.ListPanel
-            .item(0)
+        list.item(0)
             .find('.sd-list-item__border--locked')
             .should('not.exist');
 
         // 5.b Open the Event in the editor and make changes
-        UI.ListPanel
-            .item(0)
+        list.item(0)
             .dblclick();
         editor.waitTillOpen();
         editor.waitLoadingComplete();
@@ -274,15 +255,13 @@ describe('event action cancel', () => {
 
         // 5.e Open the preview and editor and check cancel label/reason
         // Open the preview
-        UI.ListPanel
-            .item(0)
+        list.item(0)
             .click();
 
         expectCancelledInPreview();
 
         // Open the editor
-        UI.ListPanel
-            .item(0)
+        list.item(0)
             .dblclick();
         expectCancelledInEditor();
     });

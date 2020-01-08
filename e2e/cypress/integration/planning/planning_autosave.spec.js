@@ -1,23 +1,23 @@
-import {
-    App,
-    UI,
-    Editors,
-} from '../../support';
+import {setup, login, waitForPageLoad, SubNavBar, Workqueue} from '../../support/common';
+import {PlanningList, PlanningEditor} from '../../support/planning';
 
-describe('planning autosave', () => {
-    const editor = new Editors.PlanningEditor();
+describe('Planning.Planning: autosave', () => {
+    const editor = new PlanningEditor();
+    const subnav = new SubNavBar();
+    const list = new PlanningList();
+    const workqueue = new Workqueue();
     let coverageEditor = editor.getCoverageEditor(0);
     let plan;
     let coverages;
 
     beforeEach(() => {
-        App.setup({fixture_profile: 'planning_prepopulate_data'});
+        setup({fixture_profile: 'planning_prepopulate_data'});
 
         cy.visit('/#/planning');
-        App.login();
+        login();
 
-        UI.waitForPageLoad();
-        UI.SubNavBar.createPlanning();
+        waitForPageLoad();
+        subnav.createPlanning();
         editor.waitTillOpen();
     });
 
@@ -48,9 +48,9 @@ describe('planning autosave', () => {
             'scheduled.time': '15:45',
         }];
 
-        UI.ListPanel.expectEmpty();
+        list.expectEmpty();
         editor.expectItemType();
-        UI.Workqueue.expectTitle(0, 'Untitled*');
+        workqueue.expectTitle(0, 'Untitled*');
 
         editor.openAllToggleBoxes();
         editor.type(plan);
@@ -59,7 +59,7 @@ describe('planning autosave', () => {
         editor.expectCoverages(coverages);
         editor.minimiseButton.click();
 
-        UI.Workqueue.getItem(0).click();
+        workqueue.getItem(0).click();
         editor.openAllToggleBoxes();
         coverageEditor.element.click();
         editor.expect(plan);
@@ -68,7 +68,7 @@ describe('planning autosave', () => {
         // Navigate to Workspace, then back to Planning
         cy.visit('/#/workspace');
         cy.visit('/#/planning');
-        UI.waitForPageLoad();
+        waitForPageLoad();
 
         editor.openAllToggleBoxes();
         coverageEditor.element.click();
@@ -77,7 +77,7 @@ describe('planning autosave', () => {
 
         // Refresh the page while the Event is open in the Editor
         cy.reload();
-        UI.waitForPageLoad();
+        waitForPageLoad();
         editor.openAllToggleBoxes();
         coverageEditor.element.click();
         editor.expect(plan);
@@ -87,8 +87,8 @@ describe('planning autosave', () => {
         // so the editor is not open when the page opens
         editor.minimiseButton.click();
         cy.reload();
-        UI.waitForPageLoad();
-        UI.Workqueue.getItem(0).click();
+        waitForPageLoad();
+        workqueue.getItem(0).click();
         editor.openAllToggleBoxes();
         coverageEditor.element.click();
         editor.expect(plan);

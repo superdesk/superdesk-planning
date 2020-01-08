@@ -1,20 +1,20 @@
-import {
-    App,
-    UI,
-    Editors,
-} from '../../support';
+import {setup, login, waitForPageLoad, SubNavBar, Workqueue} from '../../support/common';
+import {PlanningList, PlanningEditor, AssignmentEditor} from '../../support/planning';
 
-describe('edit planning', () => {
-    const editor = new Editors.PlanningEditor();
+describe('Planning.Planning: edit metadata', () => {
+    const editor = new PlanningEditor();
+    const subnav = new SubNavBar();
+    const list = new PlanningList();
+    const workqueue = new Workqueue();
 
     beforeEach(() => {
-        App.setup({fixture_profile: 'planning_prepopulate_data'});
+        setup({fixture_profile: 'planning_prepopulate_data'});
 
         cy.visit('/#/planning');
-        App.login();
+        login();
 
-        UI.waitForPageLoad();
-        UI.SubNavBar.createPlanning();
+        waitForPageLoad();
+        subnav.createPlanning();
         editor.waitTillOpen();
     });
 
@@ -45,9 +45,9 @@ describe('edit planning', () => {
             'scheduled.time': '13:15',
         }];
 
-        UI.ListPanel.expectEmpty();
+        list.expectEmpty();
         editor.expectItemType();
-        UI.Workqueue.expectTitle(0, 'Untitled*');
+        workqueue.expectTitle(0, 'Untitled*');
 
         editor.openAllToggleBoxes();
         editor.type(plan);
@@ -56,12 +56,12 @@ describe('edit planning', () => {
         editor.expectCoverages(coverages);
         editor.waitForAutosave();
 
-        UI.Workqueue.expectTitle(0, 'headline of the planning*');
+        workqueue.expectTitle(0, 'headline of the planning*');
         editor.createButton.click();
         editor.waitLoadingComplete();
-        UI.ListPanel.expectItemCount(1);
-        UI.ListPanel.expectItemText(0, 'slugline of the planning');
-        UI.Workqueue.expectTitle(0, 'headline of the planning');
+        list.expectItemCount(1);
+        list.expectItemText(0, 'slugline of the planning');
+        workqueue.expectTitle(0, 'headline of the planning');
     });
 
     it('can add coverage to workflow', () => {
@@ -74,7 +74,7 @@ describe('edit planning', () => {
         editor.addCoverage('Picture');
 
         let coverageEditor = editor.getCoverageEditor(0);
-        let assignmentEditor = new Editors.AssignmentEditor();
+        let assignmentEditor = new AssignmentEditor();
 
         coverageEditor.editAssignmentButton.click();
         assignmentEditor.waitTillOpen();

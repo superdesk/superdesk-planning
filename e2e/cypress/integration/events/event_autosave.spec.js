@@ -1,22 +1,23 @@
-import {
-    App,
-    UI,
-    Editors,
-} from '../../support';
+import {setup, login, waitForPageLoad, SubNavBar, Workqueue} from '../../support/common';
+import {PlanningList, EventEditor} from '../../support/planning';
 
-describe('event autosave', () => {
-    const editor = new Editors.EventEditor();
+describe('Planning.Events: autosave', () => {
+    const editor = new EventEditor();
+    const subnav = new SubNavBar();
+    const list = new PlanningList();
+    const workqueue = new Workqueue();
+
     let event;
     let expectedEvent;
 
     beforeEach(() => {
-        App.setup({fixture_profile: 'planning_prepopulate_data'});
+        setup({fixture_profile: 'planning_prepopulate_data'});
 
         cy.visit('/#/planning');
-        App.login();
+        login();
 
-        UI.waitForPageLoad();
-        UI.SubNavBar.createEvent();
+        waitForPageLoad();
+        subnav.createEvent();
         editor.waitTillOpen();
     });
 
@@ -44,30 +45,30 @@ describe('event autosave', () => {
             'dates.end.date': '12/12/2045',
         });
 
-        UI.ListPanel.expectEmpty();
+        list.expectEmpty();
         editor.expectItemType();
-        UI.Workqueue.expectTitle(0, 'Untitled*');
+        workqueue.expectTitle(0, 'Untitled*');
 
         editor.openAllToggleBoxes();
         editor.type(event);
         editor.expect(expectedEvent);
         editor.minimiseButton.click();
 
-        UI.Workqueue.getItem(0).click();
+        workqueue.getItem(0).click();
         editor.openAllToggleBoxes();
         editor.expect(expectedEvent);
 
         // Navigate to Workspace, then back to Planning
         cy.visit('/#/workspace');
         cy.visit('/#/planning');
-        UI.waitForPageLoad();
+        waitForPageLoad();
 
         editor.openAllToggleBoxes();
         editor.expect(expectedEvent);
 
         // Refresh the page while the Event is open in the Editor
         cy.reload();
-        UI.waitForPageLoad();
+        waitForPageLoad();
         editor.openAllToggleBoxes();
         editor.expect(expectedEvent);
 
@@ -75,8 +76,8 @@ describe('event autosave', () => {
         // so the editor is not open when the page opens
         editor.minimiseButton.click();
         cy.reload();
-        UI.waitForPageLoad();
-        UI.Workqueue.getItem(0).click();
+        waitForPageLoad();
+        workqueue.getItem(0).click();
         editor.openAllToggleBoxes();
         editor.expect(expectedEvent);
 

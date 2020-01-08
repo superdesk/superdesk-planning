@@ -1,11 +1,4 @@
-import EmailInput from './emailInput';
-import Editor from './contactsEditor';
-import List from './contactsList';
-import Input from './contactInput';
-
-export default {
-    EmailInput,
-    Editor,
-    List,
-    Input,
-};
+export {ContactEmailInput} from './contactEmailInput';
+export {ContactsEditor} from './contactsEditor';
+export {ContactsList} from './contactsList';
+export {ContactsInput} from './contactsInput';

@@ -1,11 +1,11 @@
-import {
-    App,
-    UI,
-    Editors,
-} from '../../support';
+import {setup, login, waitForPageLoad, SubNavBar, Workqueue} from '../../support/common';
+import {EventEditor, PlanningList} from '../../support/planning';
 
-describe('edit event', () => {
-    const editor = new Editors.EventEditor();
+describe('Planning.Events: edit metadata', () => {
+    const editor = new EventEditor();
+    const subnav = new SubNavBar();
+    const list = new PlanningList();
+    const workqueue = new Workqueue();
     let event;
     let expectedEvent;
 
@@ -32,13 +32,13 @@ describe('edit event', () => {
             'dates.end.date': '12/12/2045',
         };
 
-        App.setup({fixture_profile: 'planning_prepopulate_data'});
+        setup({fixture_profile: 'planning_prepopulate_data'});
 
         cy.visit('/#/planning');
-        App.login();
+        login();
 
-        UI.waitForPageLoad();
-        UI.SubNavBar.createEvent();
+        waitForPageLoad();
+        subnav.createEvent();
         editor.waitTillOpen();
     });
 
@@ -46,24 +46,24 @@ describe('edit event', () => {
         event['dates.allDay'] = true;
         expectedEvent['dates.allDay'] = true;
 
-        UI.ListPanel.expectEmpty();
+        list.expectEmpty();
         editor.expectItemType();
-        UI.Workqueue.expectTitle(0, 'Untitled*');
+        workqueue.expectTitle(0, 'Untitled*');
 
         editor.openAllToggleBoxes();
         editor.type(event);
         editor.expect(expectedEvent);
         editor.waitForAutosave();
 
-        UI.Workqueue.expectTitle(0, 'slugline of the event*');
+        workqueue.expectTitle(0, 'slugline of the event*');
         editor.createButton.click();
-        UI.ListPanel.expectItemCount(1);
-        UI.ListPanel.expectItemText(0, 'slugline of the event');
-        UI.Workqueue.expectTitle(0, 'slugline of the event');
+        list.expectItemCount(1);
+        list.expectItemText(0, 'slugline of the event');
+        workqueue.expectTitle(0, 'slugline of the event');
     });
 
     it('can create a Recurring Event', () => {
-        UI.ListPanel.expectEmpty();
+        list.expectEmpty();
         editor.expectItemType();
 
         event = {
@@ -89,8 +89,8 @@ describe('edit event', () => {
 
         editor.waitForAutosave();
         editor.createButton.click();
-        UI.ListPanel.expectItemCount(2);
-        UI.ListPanel.expectItemText(0, 'slugline of the recurring event');
-        UI.ListPanel.expectItemText(1, 'slugline of the recurring event');
+        list.expectItemCount(2);
+        list.expectItemText(0, 'slugline of the recurring event');
+        list.expectItemText(1, 'slugline of the recurring event');
     });
 });

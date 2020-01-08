@@ -1,16 +1,15 @@
-import {
-    App,
-    UI,
-    Editors,
-    Preview,
-} from '../../support';
+import {setup, login, waitForPageLoad, Modal, SubNavBar} from '../../support/common';
+import {PlanningList, PlanningPreview, EventEditor} from '../../support/planning';
 
-describe('event duplicate', () => {
+describe('Planning.Events: duplicate event', () => {
     let event;
     let expectedValues;
 
-    const editor = new Editors.EventEditor();
-    const modal = new UI.Modal();
+    const editor = new EventEditor();
+    const modal = new Modal();
+    const subnav = new SubNavBar();
+    const list = new PlanningList();
+    const preview = new PlanningPreview();
 
     beforeEach(() => {
         event = {
@@ -34,18 +33,18 @@ describe('event duplicate', () => {
             'dates.end.time': '01:00',
         });
 
-        App.setup({fixture_profile: 'planning_prepopulate_data'});
+        setup({fixture_profile: 'planning_prepopulate_data'});
         cy.visit('/#/planning');
-        App.login();
-        UI.waitForPageLoad();
+        login();
+        waitForPageLoad();
     });
 
     it('can duplicate an event', () => {
         // 1. Duplicate from the list
-        UI.SubNavBar.createEvent();
+        subnav.createEvent();
         editor.createAndClose(event);
 
-        UI.ListPanel.clickAction(0, 'Duplicate');
+        list.clickAction(0, 'Duplicate');
         editor.waitTillOpen();
         editor.openAllToggleBoxes();
         editor.expect(expectedValues);
@@ -56,7 +55,7 @@ describe('event duplicate', () => {
         }, false);
 
         // 2. Cancel duplicate ignoring changes
-        UI.ListPanel.clickAction(0, 'Duplicate');
+        list.clickAction(0, 'Duplicate');
         editor.waitTillOpen();
         editor.openAllToggleBoxes();
         editor.expect(expectedValues);
@@ -69,7 +68,7 @@ describe('event duplicate', () => {
         editor.waitTillClosed();
 
         // 3. Cancel duplicate saving changes
-        UI.ListPanel.clickAction(0, 'Duplicate');
+        list.clickAction(0, 'Duplicate');
         editor.waitTillOpen();
         editor.openAllToggleBoxes();
         editor.expect(expectedValues);
@@ -86,9 +85,9 @@ describe('event duplicate', () => {
         editor.waitTillClosed();
 
         // 4. Duplicate from preview
-        UI.ListPanel.item(0).click();
-        Preview.waitTillOpen();
-        Preview.clickAction('Duplicate');
+        list.item(0).click();
+        preview.waitTillOpen();
+        preview.clickAction('Duplicate');
         editor.waitTillOpen();
         editor.openAllToggleBoxes();
         editor.expect(expectedValues);

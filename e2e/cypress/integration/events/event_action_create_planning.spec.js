@@ -1,28 +1,15 @@
-import {
-    App,
-    UI,
-    Editors,
-    Preview,
-} from '../../support';
+import {setup, login, addItems, waitForPageLoad} from '../../support/common';
+import {PlanningList, PlanningPreview, EventEditor, PlanningEditor} from '../../support/planning';
 
-describe('event action create planning', () => {
+describe('Planning.Events: create planning action', () => {
     const editors = {
-        event: new Editors.EventEditor(),
-        planning: new Editors.PlanningEditor(),
+        event: new EventEditor(),
+        planning: new PlanningEditor(),
     };
-    const modal = new UI.Modal();
-    let menu;
 
-    const event = {
-        slugline: 'Original',
-        name: 'Test',
-        definition_short: 'Desc.',
-        'dates.start.date': '12/12/2045',
-        'dates.start.time': '00:00',
-        anpa_category: ['Finance'],
-        subject: ['sports awards'],
-        ednote: 'Ed. Note',
-    };
+    const list = new PlanningList();
+    const preview = new PlanningPreview();
+    let menu;
 
     const expectedValues = {
         slugline: 'Original',
@@ -35,70 +22,9 @@ describe('event action create planning', () => {
         subject: ['sports awards'],
     };
 
-    function expectListItemText() {
-        UI.ListPanel.nestedItem(0)
-            .find('.sd-list-item')
-            .eq(0)
-            .should('contain.text', '(1) Show planning item(s)');
-
-        UI.ListPanel.toggleAssociatedPlanning(0);
-
-        UI.ListPanel.nestedItem(0)
-            .find('.sd-list-item')
-            .eq(0)
-            .should('contain.text', '(1) Hide planning item(s)');
-    }
-
-    function expectEditorValues() {
-        editors.planning.waitTillOpen();
-        editors.planning.waitLoadingComplete();
-        editors.planning.openAllToggleBoxes();
-        editors.planning.expect(expectedValues);
-    }
-
-    function doubleClickPlanningItem() {
-        UI.ListPanel
-            .nestedItem(0)
-            .find('.sd-list-item-nested__childs')
-            .find('.sd-list-item')
-            .eq(0)
-            .dblclick();
-    }
-
-    function createFromPreview(open) {
-        UI.ListPanel
-            .item(0)
-            .click();
-
-        menu = Preview.actionMenu;
-        menu.open();
-        menu.getAction(open ?
-            'Create and Open Planning Item' :
-            'Create Planning Item'
-        )
-            .click();
-    }
-
-    function createFromEditor(open) {
-        UI.ListPanel
-            .item(0)
-            .dblclick();
-
-        editors.event.waitTillOpen();
-        editors.event.waitLoadingComplete();
-
-        menu = editors.planning.actionMenu;
-        menu.open();
-        menu.getAction(open ?
-            'Create and Open Planning Item' :
-            'Create Planning Item'
-        )
-            .click();
-    }
-
     beforeEach(() => {
-        App.setup({fixture_profile: 'planning_prepopulate_data'});
-        App.addItems('events', [{
+        setup({fixture_profile: 'planning_prepopulate_data'});
+        addItems('events', [{
             slugline: 'Original',
             name: 'Test',
             definition_short: 'Desc.',
@@ -118,20 +44,78 @@ describe('event action create planning', () => {
         }]);
 
         cy.visit('/#/planning');
-        App.login();
+        login();
 
-        UI.waitForPageLoad();
+        waitForPageLoad();
     });
 
+    function expectListItemText() {
+        list.nestedItem(0)
+            .find('.sd-list-item')
+            .eq(0)
+            .should('contain.text', '(1) Show planning item(s)');
+
+        list.toggleAssociatedPlanning(0);
+
+        list.nestedItem(0)
+            .find('.sd-list-item')
+            .eq(0)
+            .should('contain.text', '(1) Hide planning item(s)');
+    }
+
+    function expectEditorValues() {
+        editors.planning.waitTillOpen();
+        editors.planning.waitLoadingComplete();
+        editors.planning.openAllToggleBoxes();
+        editors.planning.expect(expectedValues);
+    }
+
+    function doubleClickPlanningItem() {
+        list.nestedItem(0)
+            .find('.sd-list-item-nested__childs')
+            .find('.sd-list-item')
+            .eq(0)
+            .dblclick();
+    }
+
+    function createFromPreview(open) {
+        list.item(0)
+            .click();
+
+        menu = preview.actionMenu;
+        menu.open();
+        menu.getAction(open ?
+            'Create and Open Planning Item' :
+            'Create Planning Item'
+        )
+            .click();
+    }
+
+    function createFromEditor(open) {
+        list.item(0)
+            .dblclick();
+
+        editors.event.waitTillOpen();
+        editors.event.waitLoadingComplete();
+
+        menu = editors.planning.actionMenu;
+        menu.open();
+        menu.getAction(open ?
+            'Create and Open Planning Item' :
+            'Create Planning Item'
+        )
+            .click();
+    }
+
     it('can create from the list', () => {
-        UI.ListPanel.clickAction(0, 'Create Planning Item');
+        list.clickAction(0, 'Create Planning Item');
         expectListItemText();
         doubleClickPlanningItem();
         expectEditorValues();
     });
 
     it('can create and open from the list', () => {
-        UI.ListPanel.clickAction(0, 'Create and Open Planning Item');
+        list.clickAction(0, 'Create and Open Planning Item');
         expectEditorValues();
         expectListItemText();
     });
