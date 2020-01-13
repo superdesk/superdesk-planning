@@ -43,9 +43,14 @@ class AssignmentsHistoryResource(Resource):
 class AssignmentsHistoryService(HistoryService):
 
     def _save_history(self, assignment, update, operation):
+        user = self.get_user_id()
+        # confirmation could be from external fulfillment, so set the user to the assignor
+        if operation == ASSIGNMENT_HISTORY_ACTIONS.CONFIRM and self.get_user_id() is None:
+            assigned_to = update.get('assigned_to')
+            user = update.get('proxy_user', assigned_to.get('assignor_user', assigned_to.get('assignor_desk')))
         history = {
             'assignment_id': assignment[config.ID_FIELD],
-            'user_id': self.get_user_id(),
+            'user_id': user,
             'operation': operation,
             'update': update
         }
@@ -98,6 +103,8 @@ class AssignmentsHistoryService(HistoryService):
         self.on_item_updated(updates, original, operation)
         cov = {'coverage_id': original.get('coverage_item')}
         cov['assigned_to'] = updates.get('assigned_to')
+        if 'proxy_user' in updates:
+            cov['proxy_user'] = updates.get('proxy_user')
 
         if operation == ASSIGNMENT_HISTORY_ACTIONS.ADD_TO_WORKFLOW:
             cov['workflow_status'] = WORKFLOW_STATE.ACTIVE
