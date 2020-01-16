@@ -8,7 +8,7 @@ env:
         - TRAVIS_NODE_VERSION="6"
     matrix:
         - TEST_TYPE="unit"
-#       - TEST_TYPE="e2e"
+        - TEST_TYPE="e2e"
 
 services:
     - mongodb
