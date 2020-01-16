@@ -51,7 +51,6 @@
     "karma-verbose-reporter": "0.0.6",
     "karma-webpack": "^2.0.13",
     "react-test-renderer": "16.2.0",
-    "protractor": "^5.1.2",
     "simulant": "^0.2.2",
     "sinon": "~4.4.2",
     "superdesk-code-style": "^1.1.1",

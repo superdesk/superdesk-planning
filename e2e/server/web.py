@@ -1,0 +1,21 @@
+from os import chdir
+import sys
+import socketserver
+import http.server
+
+
+class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
+    daemon_threads = True
+
+
+chdir('../dist')
+
+# port = int(sys.argv[1])
+port = 9000
+address = '127.0.0.1'
+server = ThreadedHTTPServer((address, port), http.server.SimpleHTTPRequestHandler)
+
+try:
+    server.serve_forever()
+except KeyboardInterrupt:
+    pass
