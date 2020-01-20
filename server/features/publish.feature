@@ -107,7 +107,7 @@ Feature: Publish
                     "type": "event",
                     "published_item": {
                         "_id": "#events._id#",
-                        "files": [{"_id": "#FILE._id#", "media": {"_id": "#FILE.filemeta.media_id#"}}]
+                        "files": [{"_id": "#FILE._id#", "media": {"_id": "#FILE.media._id#"}}]
                     }
                 }
             ]
