@@ -56,7 +56,7 @@ class EventHTTPFeedingService(HTTPFeedingServiceBase):
         logger.info('Ingesting events with {} parser'.format(parser.__class__.__name__))
         logger.info('Ingesting content: {} ...'.format(str(response.content)[:4000]))
 
-        if getattr(parser, 'parse_http'):
+        if hasattr(parser, 'parse_http'):
             items = parser.parse_http(response.content, provider)
         else:
             items = parser.parse(response.content)
