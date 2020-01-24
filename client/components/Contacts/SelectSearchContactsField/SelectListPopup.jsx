@@ -135,7 +135,7 @@ export class SelectListPopupComponent extends React.Component {
 
         const valueNoCase = (val || '').toLowerCase();
 
-        if (valueNoCase === this.state.searchText) {
+        if (valueNoCase === this.state.searchText && valueNoCase.length > 0) {
             return;
         }
 
