@@ -1,13 +1,6 @@
 #!/bin/bash -e
-BACKEND_DIR=server
-VENV=`pwd`/$BACKEND_DIR/env/bin/activate
-PLANNING_DIR=`pwd`
 
-npm install
-cd server && pip install -r requirements.txt && cd ..
-gem install coveralls-lcov
-
-cd $BACKEND_DIR
+cd server
 flake8
 nosetests -v --with-coverage --cover-package=planning
 mv .coverage ../.coverage.nosetests
