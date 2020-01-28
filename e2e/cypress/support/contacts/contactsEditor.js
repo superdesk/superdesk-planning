@@ -43,7 +43,9 @@ export class ContactsEditor extends Editor {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get closeButton() {
-        return this.element.find('#cancel-edit-btn');
+        return this.element
+            .find('#cancel-edit-btn')
+            .should('exist');
     }
 
     /**
