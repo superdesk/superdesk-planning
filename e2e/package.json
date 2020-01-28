@@ -6,7 +6,8 @@
     "superdesk-planning": "file:../"
   },
   "devDependencies": {
-    "cypress": "^3.8.1",
+    "cypress": "^3.8.3",
+    "cypress-terminal-report": "^0.2.1",
     "lodash": "^4.17.15"
   },
   "scripts": {

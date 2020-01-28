@@ -35,13 +35,11 @@ before_install:
     - node --version
     - chmod a+x ./scripts/*
 
-before_script: >
-    sudo sed -i 's\enabled: true\enabled: false\' /etc/mongod.conf
-    && sudo service mongod restart
-    && sudo service elasticsearch restart
+install:
+    - ./scripts/install_$TEST_TYPE.sh
 
 script:
-    - ./scripts/install_run_$TEST_TYPE.sh
+    - ./scripts/script_$TEST_TYPE.sh
 
 after_script:
     - test $TEST_TYPE = "e2e" && killall -9 python
