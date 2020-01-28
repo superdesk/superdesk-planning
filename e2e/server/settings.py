@@ -53,3 +53,12 @@ if env('REDIS_PORT'):
 BROKER_URL = env('CELERY_BROKER_URL', REDIS_URL)
 
 SECRET_KEY = env('SECRET_KEY', '')
+
+MONGO_DBNAME = 'e2e_superdesk'
+MONGO_URI = 'mongodb://localhost/%s' % MONGO_DBNAME
+
+ARCHIVED_DBNAME = 'e2e_archived'
+ARCHIVED_URI = 'mongodb://localhost/%s' % ARCHIVED_DBNAME
+
+LEGAL_ARCHIVE = False
+CONTENTAPI_ENABLED = False
