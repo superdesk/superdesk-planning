@@ -44,7 +44,7 @@ export class ContactsEditor extends Editor {
      */
     get closeButton() {
         return this.element
-            .find('#cancel-edit-btn')
+            .find('#cancel-edit-btn', {timeout: 30000})
             .should('exist');
     }
 
