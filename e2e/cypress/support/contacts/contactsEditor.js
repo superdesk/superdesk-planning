@@ -35,7 +35,9 @@ export class ContactsEditor extends Editor {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get createButton() {
-        return this.element.find('#save-edit-btn');
+        return this.element
+            .contains('Save')
+            .should('exist');
     }
 
     /**
@@ -44,7 +46,7 @@ export class ContactsEditor extends Editor {
      */
     get closeButton() {
         return this.element
-            .find('#cancel-edit-btn', {timeout: 30000})
+            .contains('Cancel')
             .should('exist');
     }
 
