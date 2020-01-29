@@ -125,6 +125,7 @@ class AssignmentsService(superdesk.Service):
             self.notify('assignments:created', doc, {})
 
             if assignment_state != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+                get_resource_service('planning').set_xmp_file_info(doc)
                 self.send_assignment_notification(doc, {})
 
     def set_assignment(self, updates, original=None):
