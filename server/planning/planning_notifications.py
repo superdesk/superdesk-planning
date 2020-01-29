@@ -281,6 +281,7 @@ def _send_user_email(user_id, contact_id, text_message, html_message, data):
                                                                                   data['assignment']['assignment_id']))
 
     if data.get('assignment') and (data['assignment'].get('planning', {})).get('xmp_file'):
+        file_id = data['assignment']['planning']['xmp_file']
         xmp_file = superdesk.get_resource_service('planning_files').find_one(req=None, _id=file_id)
         if xmp_file:
             media = app.media.get(xmp_file['media'], resource='planning_files')
