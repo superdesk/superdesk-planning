@@ -1,1 +1,1 @@
-XMP file attached to "{{coverage_type}}" coverage "{{slugline}}" has changed.
+The XMP file attached to "{{coverage_type}}" coverage "{{slugline}}" has been updated.
