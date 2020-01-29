@@ -742,6 +742,7 @@ class PlanningService(superdesk.Service):
                     target_user=assigned_to.get('user'),
                     contact_id=assigned_to.get('contact'),
                     message='assignment_planning_xmp_file_msg',
+                    meta_message='assignment_details_email',
                     coverage_type=get_coverage_type_name(updates.get('planning', {}).get('g2_content_type', '')),
                     slugline=planning.get('slugline', ''),
                     assignment=assignment)
@@ -1052,7 +1053,7 @@ class PlanningService(superdesk.Service):
         if not xmp_mapping:
             return
 
-        if not (updates_coverage.get('assigned_to') or {}).get('assignment_id') or \
+        if not (updates_coverage.get('assigned_to') or {}).get('assignment_id') and \
                 not (updates_coverage['planning'] or {}).get('xmp_file'):
             return
 
@@ -1060,7 +1061,7 @@ class PlanningService(superdesk.Service):
                 in ['Picture', 'picture']:
             return
 
-        assignment_id = updates_coverage['assigned_to']['assignment_id']
+        assignment_id = updates_coverage.get('_id') or updates_coverage['assigned_to'].get('assignment_id')
         xmp_file = get_resource_service('planning_files').find_one(req=None,
                                                                    _id=updates_coverage['planning']['xmp_file'])
         if not xmp_file:
