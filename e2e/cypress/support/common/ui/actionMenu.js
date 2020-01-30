@@ -28,7 +28,8 @@ export class ActionMenu {
     get menuButton() {
         return this.parent
             .find('.icon-dots-vertical')
-            .first();
+            .first()
+            .should('exist');
     }
 
     /**
