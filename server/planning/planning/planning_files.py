@@ -53,6 +53,11 @@ class PlanningFilesService(superdesk.Service):
                 doc['media']['name'] = doc['media']['name'].split('/')[1]
 
     def on_delete(self, doc):
-        plannings_using_file = get_resource_service("planning").find(where={'files': doc.get("_id")})
+        find_clause = {
+            '$or': [{'files': doc.get("_id")},
+                    {'coverages.planning.files': doc.get("_id")},
+                    {'coverages.planning.xmp_file': doc.get("_id")}],
+        }
+        plannings_using_file = get_resource_service("planning").find(where=find_clause)
         if plannings_using_file.count() > 0:
-            raise SuperdeskApiError.forbiddenError('Delete failed. File still used by other events.')
+            raise SuperdeskApiError.forbiddenError('Delete failed. File still used by other planning items.')

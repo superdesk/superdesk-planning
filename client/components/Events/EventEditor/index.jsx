@@ -138,7 +138,7 @@ export class EventEditorComponent extends React.Component {
                     ]);
                 this.setState({uploading: false});
             }, () => {
-                this.notifyValidationErrors('Failed to upload files');
+                this.props.notifyValidationErrors(['Failed to upload files']);
                 this.setState({uploading: false});
             });
     }
@@ -518,6 +518,7 @@ EventEditorComponent.propTypes = {
     onPopupClose: PropTypes.func,
     itemManager: PropTypes.object,
     original: PropTypes.object,
+    notifyValidationErrors: PropTypes.func,
 };
 
 EventEditorComponent.defaultProps = {

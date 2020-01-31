@@ -304,6 +304,8 @@ Feature: Assignment Complete
         }
         """
         When we perform complete on assignments "#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
         """
         {
             "_id": "#firstassignment#",
@@ -462,3 +464,83 @@ Feature: Assignment Complete
         }
     }
     """
+
+    @auth
+    Scenario: Photo assignment completed by proxy user
+    Given empty "assignments"
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline",
+                    "g2_content_type": "picture"
+                },
+                "assigned_to": {
+                    "desk": "Politic Desk",
+                    "user": "#CONTEXT_USER_ID#",
+                    "state": "assigned"
+                }
+            }]
+        }
+        """
+        # We are checking cancelled state because non text cannot be in_progress
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "g2_content_type": "picture"
+            },
+            "assigned_to": {
+                "desk": "Politic Desk",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
+            }
+        }
+        """
+        When we perform complete on assignments "#firstassignment#"
+        """
+        {
+          "proxy_user" : "5e1bef1ce4c03b8935f0130b"
+        }
+        """
+        Then we get OK response
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "g2_content_type": "picture"
+            },
+            "assigned_to": {
+                "desk": "Politic Desk",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "completed"
+            }
+        }
+        """

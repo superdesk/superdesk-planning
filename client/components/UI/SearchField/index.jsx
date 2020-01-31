@@ -76,6 +76,7 @@ export default class SearchField extends React.Component {
                 onFocus={this.props.onFocus}
                 disabled={this.props.readOnly}
                 autoComplete={this.props.autoComplete ? 'on' : 'off'}
+                name={this.props.name}
             />
         );
     }
@@ -90,6 +91,7 @@ SearchField.propTypes = {
     readOnly: PropTypes.bool,
     placeholder: PropTypes.string,
     autoComplete: PropTypes.bool,
+    name: PropTypes.string,
 };
 
 SearchField.defaultProps = {autoComplete: true};

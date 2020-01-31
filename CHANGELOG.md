@@ -1,5 +1,28 @@
 # Superdesk Planning Changelog
 
+## [1.10.1-rc1] Not Released Yet
+### Features
+- [SDESK-4767] Feature to attach files to coverages (#1403)
+- [SDESK-4775] Attach .xmp file to picture assignments (#1405)
+
+### Improvements
+- [SDESK-4797] Reduce vertical padding in PopupEditor on small screens (#1402)
+- fix: Automatically show contact popup when search text is empty (#1416)
+
+### Fixes
+- [SDESK-4889] Bug while removing an agenda (#1401)
+- [SDESK-4929] Don't clear invalid date fields on autosave (#1406)
+- [SDNTB-616] FIX: Update time is not working for ingested events. (#1404)
+- [SDESK-4908] Paginate results in contacts selection in Event Form (#1407)
+- [SDNTB-616] fix: update time not working for ingested events. (#1409)
+- [sdesk-4776] Allow a user id to be passed to complete assignment (#1410)
+- [SDESK-4509] Port e2e tests from Protractor to Cypress (#1408)
+- [SDBELGA-262] EVENT FILES - Save additional file information. (#1412)
+- fix(e2e): Failing to click on Contacts Close button (#1418)
+- [SDESK-4888] Wrong history entry when creating a Planning item with a coverage (#1414)
+- [SDESK-4890] Multiple errors when canceling a coverage (#1413)
+- [SDESK-4976] Assignment notifications not having XMP file attachments (#1417)
+
 ## [1.10.0] 2019-12-12
 ### Features
 - [SDESK-4766] Assign coverages to assignable media contacts (#1389)

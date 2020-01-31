@@ -18,7 +18,7 @@ from .planning_export_templates import PlanningExportTemplatesResource, Planning
 from .planning_article_export import PlanningArticleExportResource, PlanningArticleExportService
 from .common import get_max_recurrent_events, get_street_map_url, get_event_max_multi_day_duration,\
     planning_auto_assign_to_workflow, get_long_event_duration_threshold, get_planning_allow_scheduled_updates,\
-    event_templates_enabled, planning_link_updates_to_coverage
+    event_templates_enabled, planning_link_updates_to_coverage, get_planning_use_xmp_for_pic_assignments
 from apps.common.components.utils import register_component
 from .item_lock import LockService
 from .planning_notifications import PlanningNotifications
@@ -45,7 +45,7 @@ import planning.feed_parsers  # noqa
 import planning.output_formatters  # noqa
 from planning.planning_download import init_app as init_planning_download_app
 
-__version__ = '1.10.0'
+__version__ = '1.10.1-rc1'
 
 
 def init_app(app):
@@ -185,6 +185,7 @@ def init_app(app):
     app.client_config['event_templates_enabled'] = event_templates_enabled(app)
     app.client_config['planning_allow_scheduled_updates'] = get_planning_allow_scheduled_updates(app)
     app.client_config['planning_link_updates_to_coverage'] = planning_link_updates_to_coverage(app)
+    app.client_config['planning_use_xmp_for_pic_assignments'] = get_planning_use_xmp_for_pic_assignments(app)
 
     # Set up Celery task options
     if not app.config.get('CELERY_TASK_ROUTES'):

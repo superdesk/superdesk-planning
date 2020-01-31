@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import {get} from 'lodash';
 
 import * as actions from '../../../actions';
+import {contactsLoading, contactsTotal, contactsPage} from '../../../selectors/general';
 import {CONTACTS} from '../../../constants';
 
 import {uiUtils, onEventCapture, gettext} from '../../../utils';
@@ -26,6 +27,8 @@ export class SelectListPopupComponent extends React.Component {
             activeOptionIndex: -1,
             openFilterList: false,
             filteredList: [],
+            options: [],
+            searchText: '',
         };
 
         this.dom = {
@@ -38,6 +41,13 @@ export class SelectListPopupComponent extends React.Component {
         this.onAdd = this.onAdd.bind(this);
         this.openSearchList = this.openSearchList.bind(this);
         this.filterSearchResults = this.filterSearchResults.bind(this);
+        this.handleScroll = this.handleScroll.bind(this);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.page < this.props.page && this.dom.listItems) {
+            this.dom.listItems.scrollTop = 0;
+        }
     }
 
     onKeyDown(event) {
@@ -80,6 +90,21 @@ export class SelectListPopupComponent extends React.Component {
         uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.dom.listItems);
     }
 
+    handleScroll(event) {
+        if (this.props.loading) {
+            return;
+        }
+
+        const node = event.target;
+        const {total, page} = this.props;
+
+        if (node && total > get(this.state.options, 'length', 0)) {
+            if (node.scrollTop + node.offsetHeight + 100 >= node.scrollHeight) {
+                this.getSearchResult(this.state.searchText, page + 1);
+            }
+        }
+    }
+
     onAdd(event) {
         this.closeSearchList();
         this.dom.searchField.resetSearch();
@@ -110,10 +135,15 @@ export class SelectListPopupComponent extends React.Component {
 
         const valueNoCase = (val || '').toLowerCase();
 
+        if (valueNoCase === this.state.searchText && valueNoCase.length > 0) {
+            return;
+        }
+
         this.getSearchResult(valueNoCase);
         this.setState({
             search: true,
             openFilterList: true,
+            searchText: valueNoCase,
         });
     }
 
@@ -137,16 +167,20 @@ export class SelectListPopupComponent extends React.Component {
                 filteredList: null,
                 search: false,
                 openFilterList: false,
+                options: [],
+                searchText: '',
             });
         }
     }
 
-    getSearchResult(text) {
-        this.props.searchContacts(text, this.props.contactType)
+    getSearchResult(text, page = 1) {
+        this.props.searchContacts(text, this.props.contactType, page)
             .then((contacts) => {
+                const allContacts = page <= 1 ? contacts : [...this.state.options, ...contacts];
+
                 this.setState({
-                    options: contacts,
-                    filteredList: contacts.filter(
+                    options: allContacts,
+                    filteredList: allContacts.filter(
                         (contact) => !this.props.value.find((contactId) => contactId === contact._id)
                     ),
                 });
@@ -164,6 +198,7 @@ export class SelectListPopupComponent extends React.Component {
                 readOnly={this.props.readOnly}
                 placeholder={this.props.placeholder || gettext('Search for a contact')}
                 autoComplete={false}
+                name="searchFieldInput"
             />
             {this.state.openFilterList && (
                 <Popup
@@ -174,9 +209,12 @@ export class SelectListPopupComponent extends React.Component {
                     noPadding={true}
                     onPopupOpen={this.props.onPopupOpen}
                     onPopupClose={this.props.onPopupClose}
+                    ignoreOnClickElement="searchFieldInput"
                 >
                     <div className="Select__popup__wrapper">
-                        <ul className="Select__popup__list" ref={(node) => this.dom.listItems = node}>
+                        <ul className="Select__popup__list"
+                            ref={(node) => this.dom.listItems = node}
+                            onScroll={this.handleScroll} >
                             {get(this.state, 'filteredList.length', 0) > 0 &&
                                 this.state.filteredList.map((opt, index) => (
                                     <li
@@ -230,17 +268,26 @@ SelectListPopupComponent.propTypes = {
     contactType: PropTypes.string,
     minLength: PropTypes.number,
     placeholder: PropTypes.string,
+    page: PropTypes.number,
+    loading: PropTypes.bool,
+    total: PropTypes.number,
 };
 
 SelectListPopupComponent.defaultProps = {minLength: 1};
 
+const mapStateToProps = (state) => ({
+    loading: contactsLoading(state),
+    total: contactsTotal(state),
+    page: contactsPage(state),
+});
+
 const mapDispatchToProps = (dispatch) => ({
-    searchContacts: (text, contactType) => dispatch(
-        actions.contacts.getContacts(text, CONTACTS.SEARCH_FIELDS, contactType)
+    searchContacts: (text, contactType, page) => dispatch(
+        actions.contacts.getContacts(text, CONTACTS.SEARCH_FIELDS, contactType, page)
     ),
 });
 
 export const SelectListPopup = connect(
-    null,
+    mapStateToProps,
     mapDispatchToProps
 )(SelectListPopupComponent);

@@ -91,6 +91,7 @@ export class UpdateTimeComponent extends React.Component {
         const errors = cloneDeep(this.state.errors);
         let relatedEvents = this.state.relatedEvents;
         let errorMessages = [];
+        const fieldsToValidate = Object.keys(diff);
 
         if (field === '_startTime') {
             if (value && moment.isMoment(value) && value.isValid()) {
@@ -118,12 +119,18 @@ export class UpdateTimeComponent extends React.Component {
             set(diff, field, value);
         }
 
+        if (diff.dates != null && !diff.dates.tz) {
+            // if no timezone use default one
+            diff.dates.tz = this.props.defaultTimeZone;
+        }
+
         diff[TO_BE_CONFIRMED_FIELD] = false;
         this.props.onValidate(
             diff,
             this.props.formProfiles,
             errors,
-            errorMessages
+            errorMessages,
+            fieldsToValidate
         );
 
         this.setState({
@@ -302,12 +309,14 @@ UpdateTimeComponent.propTypes = {
     formProfiles: PropTypes.object,
     submitting: PropTypes.bool,
     modalProps: PropTypes.object,
+    defaultTimeZone: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({
     timeFormat: getTimeFormat(state),
     dateFormat: getDateFormat(state),
     formProfiles: selectors.forms.profiles(state),
+    defaultTimeZone: selectors.config.defaultTimeZone(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -333,13 +342,14 @@ const mapDispatchToProps = (dispatch) => ({
 
         return promise;
     },
-    onValidate: (item, profile, errors, errorMessages) => dispatch(validateItem({
+    onValidate: (item, profile, errors, errorMessages, fieldsToValidate) => dispatch(validateItem({
         profileName: ITEM_TYPE.EVENT,
         diff: item,
         formProfiles: profile,
         errors: errors,
         messages: errorMessages,
         fields: ['dates'],
+        fieldsToValidate: fieldsToValidate,
     })),
 });
 

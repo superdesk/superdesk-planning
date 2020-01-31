@@ -27,7 +27,8 @@ from eve.utils import config, ParsedRequest, date_to_str
 from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, get_coverage_cancellation_state,\
     remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name,\
     set_original_creator, list_uniq_with_order, TEMP_ID_PREFIX, DEFAULT_ASSIGNMENT_PRIORITY,\
-    get_planning_allow_scheduled_updates, TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA
+    get_planning_allow_scheduled_updates, TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA, \
+    get_planning_xmp_assignment_mapping
 from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
@@ -35,6 +36,8 @@ from superdesk.utc import utc_to_local
 from datetime import datetime
 from .planning_types import is_field_enabled
 from superdesk import Resource
+from lxml import etree
+from io import BytesIO
 
 logger = logging.getLogger(__name__)
 
@@ -594,6 +597,7 @@ class PlanningService(superdesk.Service):
         doc.update(updates)
         assignment_service = get_resource_service('assignments')
         assigned_to = updates.get('assigned_to') or original.get('assigned_to')
+        new_assignment_id = None
         if not assigned_to:
             return
 
@@ -637,17 +641,23 @@ class PlanningService(superdesk.Service):
             if TO_BE_CONFIRMED_FIELD in doc:
                 assignment['planning'][TO_BE_CONFIRMED_FIELD] = doc[TO_BE_CONFIRMED_FIELD]
 
-            assignment_id = assignment_service.post([assignment])
-            updates['assigned_to']['assignment_id'] = str(assignment_id[0])
+            new_assignment_id = str(assignment_service.post([assignment])[0])
+            updates['assigned_to']['assignment_id'] = new_assignment_id
             updates['assigned_to']['state'] = assign_state
         elif assigned_to.get('assignment_id'):
+            xmp_updated = updates['planning'].get('xmp_file') and \
+                ((original or {}).get('planning') or {}).get('xmp_file') != updates['planning']['xmp_file']
+
+            if xmp_updated:
+                self.set_xmp_file_info(updates)
+
             if not updates.get('assigned_to'):
                 if planning_original.get('state') == WORKFLOW_STATE.CANCELLED or coverage_status \
                         not in [WORKFLOW_STATE.CANCELLED, WORKFLOW_STATE.DRAFT]:
                     raise SuperdeskApiError.badRequestError(
                         'Coverage not in correct state to remove assignment.')
                 # Removing assignment
-                get_resource_service('assignments').delete(lookup={'_id': assigned_to.get('assignment_id')})
+                assignment_service.delete(lookup={'_id': assigned_to.get('assignment_id')})
                 assignment = {
                     'planning_item': planning_original.get(config.ID_FIELD),
                     'coverage_item': doc.get('coverage_id')
@@ -724,6 +734,17 @@ class PlanningService(superdesk.Service):
                     assignment,
                     original_assignment
                 )
+
+            if xmp_updated:
+                PlanningNotifications().notify_assignment(
+                    coverage_status=updates.get('workflow_status'),
+                    target_desk=assigned_to.get('desk') if assigned_to.get('user') is None else None,
+                    target_user=assigned_to.get('user'),
+                    contact_id=assigned_to.get('contact'),
+                    message='assignment_planning_xmp_file_msg',
+                    coverage_type=get_coverage_type_name(updates.get('planning', {}).get('g2_content_type', '')),
+                    slugline=planning.get('slugline', ''),
+                    assignment=assignment)
 
     def cancel_coverage(self, coverage, coverage_cancel_state, original_workflow_status, assignment=None,
                         reason=None, event_cancellation=False, event_reschedule=False):
@@ -1026,6 +1047,72 @@ class PlanningService(superdesk.Service):
         for item in items:
             self.patch(item[config.ID_FIELD], {'recurrence_id': updates['recurrence_id']})
 
+    def set_xmp_file_info(self, updates_coverage):
+        xmp_mapping = get_planning_xmp_assignment_mapping(app)
+        if not xmp_mapping:
+            return
+
+        if not (updates_coverage.get('assigned_to') or {}).get('assignment_id') or \
+                not (updates_coverage['planning'] or {}).get('xmp_file'):
+            return
+
+        if not get_coverage_type_name((updates_coverage.get('planning') or {}).get('g2_content_type')) \
+                in ['Picture', 'picture']:
+            return
+
+        assignment_id = updates_coverage['assigned_to']['assignment_id']
+        xmp_file = get_resource_service('planning_files').find_one(req=None,
+                                                                   _id=updates_coverage['planning']['xmp_file'])
+        if not xmp_file:
+            logger.error('Attached xmp_file not found. Assignment: {0}, xmp_file: {1}'.format(
+                assignment_id,
+                updates_coverage['planning']['xmp_file']
+            ))
+            return
+
+        xmp_file = app.media.get(xmp_file['media'], resource='planning_files')
+        if not xmp_file:
+            logger.error('xmp_file not found in media storage. Assignment: {0}, xmp_file: {1}'.format(
+                assignment_id,
+                updates_coverage['planning']['xmp_file']
+            ))
+            return
+
+        try:
+            parsed = etree.parse(xmp_file)
+            mapped = False
+            tags = parsed.xpath(xmp_mapping['xpath'], namespaces=xmp_mapping['namespaces'])
+            if tags:
+                tags[0].attrib[xmp_mapping['atribute_key']] = assignment_id
+                mapped = True
+
+            if not mapped:
+                parent_xpath = xmp_mapping['xpath'][0: xmp_mapping['xpath'].rfind('/')]
+                parent = parsed.xpath(parent_xpath, namespaces=xmp_mapping['namespaces'])
+                if parent:
+                    elem = etree.SubElement(parent[0], "{{{0}}}Description".format(xmp_mapping['namespaces']['rdf']),
+                                            nsmap=xmp_mapping['namespaces'])
+                    elem.attrib[xmp_mapping['atribute_key']] = assignment_id
+                else:
+                    logger.error('Cannot find xmp_mapping path in XMP file for assignment: {}'.format(assignment_id))
+                    return
+
+            buf = BytesIO()
+            buf.write(etree.tostring(parsed.getroot(), pretty_print=True))
+            buf.seek(0)
+            media_id = app.media.put(buf, resource='planning_files', filename=xmp_file.filename,
+                                     content_type='application/octet-stream')
+            get_resource_service('planning_files').patch(updates_coverage['planning']['xmp_file'],
+                                                         {
+                                                             'filemeta': {'media_id': media_id},
+                                                             'media': media_id})
+            push_notification('planning_files:updated', item=updates_coverage['planning']['xmp_file'])
+        except Exception:
+            logger.error('Error while injecting assignment ID to XMP File. Assignment: {0}, xmp_file: {1}'.format(
+                assignment_id,
+                updates_coverage['planning']['xmp_file']
+            ))
+
 
 event_type = deepcopy(superdesk.Resource.rel('events', type='string'))
 event_type['mapping'] = not_analyzed
@@ -1036,7 +1123,8 @@ assigned_to_schema = {
         'type': 'object',
         'properties': {
             'assignment_id': not_analyzed,
-            'state': not_analyzed
+            'state': not_analyzed,
+            'contact': not_analyzed,
         }
     }
 }
@@ -1067,6 +1155,13 @@ coverage_schema = {
             'item_class': {'type': 'string', 'mapping': not_analyzed},
             'item_count': {'type': 'string', 'mapping': not_analyzed},
             'scheduled': {'type': 'datetime'},
+            'files': {
+                'type': 'list',
+                'nullable': True,
+                'schema': Resource.rel('planning_files'),
+                'mapping': not_analyzed,
+            },
+            'xmp_file': Resource.rel('planning_files', nullable=True),
             'service': {
                 'type': 'list',
                 'mapping': {
@@ -1306,13 +1401,7 @@ planning_schema = {
 
                     }
                 },
-                'assigned_to': {
-                    'type': 'object',
-                    'properties': {
-                        'assignment_id': not_analyzed,
-                        'state': not_analyzed
-                    }
-                }
+                'assigned_to': assigned_to_schema['mapping'],
             }
         }
     },
