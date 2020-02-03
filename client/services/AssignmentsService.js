@@ -79,9 +79,9 @@ export class AssignmentsService {
                         });
                 });
             })
-            .catch(() => {
-                return Promise.resolve({warnings: [{text: gettext('Failed to fetch item from archive')}]});
-            });
+            .catch(() => (
+                Promise.resolve({warnings: [{text: gettext('Failed to fetch item from archive')}]})
+            ));
     }
 
     onArchiveRewrite(item) {

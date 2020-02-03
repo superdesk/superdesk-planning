@@ -1,5 +1,3 @@
-import {get} from 'lodash';
-
 import * as ctrl from './controllers';
 import * as svc from './services';
 import {WORKSPACE} from './constants';
