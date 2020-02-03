@@ -645,13 +645,19 @@ class PlanningService(superdesk.Service):
             updates['assigned_to']['assignment_id'] = new_assignment_id
             updates['assigned_to']['state'] = assign_state
         elif assigned_to.get('assignment_id'):
+            xmp_updated = updates['planning'].get('xmp_file') and \
+                ((original or {}).get('planning') or {}).get('xmp_file') != updates['planning']['xmp_file']
+
+            if xmp_updated:
+                self.set_xmp_file_info(updates)
+
             if not updates.get('assigned_to'):
                 if planning_original.get('state') == WORKFLOW_STATE.CANCELLED or coverage_status \
                         not in [WORKFLOW_STATE.CANCELLED, WORKFLOW_STATE.DRAFT]:
                     raise SuperdeskApiError.badRequestError(
                         'Coverage not in correct state to remove assignment.')
                 # Removing assignment
-                get_resource_service('assignments').delete(lookup={'_id': assigned_to.get('assignment_id')})
+                assignment_service.delete(lookup={'_id': assigned_to.get('assignment_id')})
                 assignment = {
                     'planning_item': planning_original.get(config.ID_FIELD),
                     'coverage_item': doc.get('coverage_id')
@@ -729,7 +735,17 @@ class PlanningService(superdesk.Service):
                     original_assignment
                 )
 
-        self.set_xmp_file_info(updates, original, new_assignment_id)
+            if xmp_updated:
+                PlanningNotifications().notify_assignment(
+                    coverage_status=updates.get('workflow_status'),
+                    target_desk=assigned_to.get('desk') if assigned_to.get('user') is None else None,
+                    target_user=assigned_to.get('user'),
+                    contact_id=assigned_to.get('contact'),
+                    message='assignment_planning_xmp_file_msg',
+                    meta_message='assignment_details_email',
+                    coverage_type=get_coverage_type_name(updates.get('planning', {}).get('g2_content_type', '')),
+                    slugline=planning.get('slugline', ''),
+                    assignment=assignment)
 
     def cancel_coverage(self, coverage, coverage_cancel_state, original_workflow_status, assignment=None,
                         reason=None, event_cancellation=False, event_reschedule=False):
@@ -1032,12 +1048,12 @@ class PlanningService(superdesk.Service):
         for item in items:
             self.patch(item[config.ID_FIELD], {'recurrence_id': updates['recurrence_id']})
 
-    def set_xmp_file_info(self, updates_coverage, original_coverage=None, new_assignment=False):
+    def set_xmp_file_info(self, updates_coverage):
         xmp_mapping = get_planning_xmp_assignment_mapping(app)
         if not xmp_mapping:
             return
 
-        if not (updates_coverage.get('assigned_to') or {}).get('assignment_id') or \
+        if not (updates_coverage.get('assigned_to') or {}).get('assignment_id') and \
                 not (updates_coverage['planning'] or {}).get('xmp_file'):
             return
 
@@ -1045,12 +1061,7 @@ class PlanningService(superdesk.Service):
                 in ['Picture', 'picture']:
             return
 
-        if not new_assignment and original_coverage and \
-                (original_coverage.get('planning') or {}).get('xmp_file') and \
-                original_coverage['planning']['xmp_file'] == updates_coverage['planning']['xmp_file']:
-            return
-
-        assignment_id = updates_coverage['assigned_to']['assignment_id']
+        assignment_id = updates_coverage.get('_id') or updates_coverage['assigned_to'].get('assignment_id')
         xmp_file = get_resource_service('planning_files').find_one(req=None,
                                                                    _id=updates_coverage['planning']['xmp_file'])
         if not xmp_file:
