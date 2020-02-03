@@ -36,7 +36,7 @@
   },
   "devDependencies": {
     "btoa": "^1.1.2",
-    "enzyme": "~3.9.0",
+    "enzyme": "~3.3.0",
     "enzyme-adapter-react-16": "^1.1.1",
     "istanbul-instrumenter-loader": "0.2.0",
     "jasmine": "^2.99.0",
