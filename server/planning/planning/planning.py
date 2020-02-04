@@ -379,8 +379,10 @@ class PlanningService(superdesk.Service):
 
     def add_coverages(self, updates, original):
         for coverage in (updates.get('coverages') or []):
-            coverage_id = coverage.get('coverage_id')
+            coverage_id = coverage.get('coverage_id', '')
             if not coverage_id or TEMP_ID_PREFIX in coverage_id:
+                if 'duplicate' in coverage_id:
+                    self.duplicate_xmp_file(coverage)
                 # coverage to be created
                 coverage['coverage_id'] = generate_guid(type=GUID_NEWSML)
                 coverage['firstcreated'] = utcnow()
@@ -1113,6 +1115,35 @@ class PlanningService(superdesk.Service):
                 assignment_id,
                 updates_coverage['planning']['xmp_file']
             ))
+
+    def duplicate_xmp_file(self, coverage):
+        cov_plan = coverage.get('planning') or {}
+        if not (cov_plan.get('xmp_file') and get_coverage_type_name(cov_plan.get('g2_content_type')) in ['Picture',
+                                                                                                         'picture']):
+            return
+
+        file_id = coverage['planning']['xmp_file']
+        xmp_file = get_resource_service('planning_files').find_one(req=None, _id=file_id)
+        coverage_msg = 'Duplicating Coverage: {}'.format(coverage['coverage_id'])
+        if not xmp_file:
+            logger.error('XMP File {} attached to coverage not found. {}'.format(file_id, coverage_msg))
+            return
+
+        xmp_file = app.media.get(xmp_file['media'], resource='planning_files')
+        if not xmp_file:
+            logger.error('Media file for XMP File {} not found. {}'.format(file_id, coverage_msg))
+            return
+
+        try:
+            buf = BytesIO()
+            buf.write(xmp_file.read())
+            buf.seek(0)
+            media_id = app.media.put(buf, resource='planning_files', filename=xmp_file.name,
+                                     content_type='application/octet-stream')
+        except Exception as e:
+            logger.exception('Error creating media file. {}. Exception: {}'.format(coverage_msg, e))
+        planning_file_ids = get_resource_service('planning_files').post([{'media': media_id}])
+        coverage['planning']['xmp_file'] = planning_file_ids[0]
 
 
 event_type = deepcopy(superdesk.Resource.rel('events', type='string'))
