@@ -148,6 +148,6 @@ class JsonPlanningFormatter(Formatter):
             user = get_resource_service('users').find_one(req=None, _id=coverage['assigned_to']['user'])
             if user:
                 coverage['assigned_user'] = {
-                    'first_name': user['first_name'],
-                    'last_name': user['last_name']
+                    'first_name': user.get('first_name'),
+                    'last_name': user.get('last_name')
                 }
