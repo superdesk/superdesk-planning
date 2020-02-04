@@ -144,9 +144,9 @@ export class PlanningEditorComponent extends React.Component {
             this.props.defaultDesk,
             this.props.preferredCoverageDesks);
 
-        newCoverage.coverage_id = newCoverage.coverage_id + '-duplicate'
+        newCoverage.coverage_id = newCoverage.coverage_id + '-duplicate';
         if (['picture', 'Picture'].includes(newCoverage.planning.g2_content_type) && coverage.planning.xmp_file) {
-            newCoverage.planning.xmp_file = coverage.planning.xmp_file
+            newCoverage.planning.xmp_file = coverage.planning.xmp_file;
         }
 
         if (coverage.workflow_status === WORKFLOW_STATE.CANCELLED) {
