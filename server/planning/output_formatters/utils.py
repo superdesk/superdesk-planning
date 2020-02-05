@@ -13,15 +13,18 @@ def expand_contact_info(contacts):
     if not contacts:
         return expanded
 
-    for contact in contacts:
-        contact_details = get_resource_service('contacts').find_one(req=None, _id=contact)
-        if contact_details:
+    contact_details = get_resource_service('contacts').find(where={
+        '_id': {'$in': contacts},
+        'public': True,
+        'is_active': True
+    })
+
+    if contact_details.count():
+        for c_details in contact_details:
             for f in remove_contact_fields:
-                contact_details.pop(f, None)
+                c_details.pop(f, None)
             # Remove any none public contact details
-            contact_details['contact_phone'] = [p for p in contact_details.get('contact_phone', []) if
-                                                p.get('public')]
-            contact_details['mobile'] = [p for p in contact_details.get('mobile', []) if p.get('public')]
-            if contact_details.get('public', False) and contact_details.get('is_active', False):
-                expanded.append(contact_details)
+            c_details['contact_phone'] = [p for p in c_details.get('contact_phone', [])]
+            c_details['mobile'] = [p for p in c_details.get('mobile', [])]
+            expanded.append(c_details)
     return expanded
