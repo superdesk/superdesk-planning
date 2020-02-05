@@ -1,6 +1,6 @@
 # Superdesk Planning Changelog
 
-## [1.10.1-rc1] Not Released Yet
+## [1.10.1-rc2] Not Released Yet
 ### Features
 - [SDESK-4767] Feature to attach files to coverages (#1403)
 - [SDESK-4775] Attach .xmp file to picture assignments (#1405)
@@ -17,11 +17,15 @@
 - [SDNTB-616] fix: update time not working for ingested events. (#1409)
 - [sdesk-4776] Allow a user id to be passed to complete assignment (#1410)
 - [SDESK-4509] Port e2e tests from Protractor to Cypress (#1408)
-- [SDBELGA-262] EVENT FILES - Save additional file information. (#1412)
+- [SDBELGA-262] (EVENT FILES) - Save additional file information. (#1412)
 - fix(e2e): Failing to click on Contacts Close button (#1418)
 - [SDESK-4888] Wrong history entry when creating a Planning item with a coverage (#1414)
 - [SDESK-4890] Multiple errors when canceling a coverage (#1413)
 - [SDESK-4976] Assignment notifications not having XMP file attachments (#1417)
+- [SDESK-4796] Bug around assignment XMP mapping when XMP is attached during assignment creation (#1419)
+- [SDNTB-622] (INGEST) NIFS event ingest parser error (#1415)
+- [SDESK-4993] Planning item with an XMP file was not getting published (#1422)
+- [SDESK-4977] Duplicating coverage or planning item should duplicate the XMP File too (#1423)
 
 ## [1.10.0] 2019-12-12
 ### Features
