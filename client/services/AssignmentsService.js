@@ -3,7 +3,7 @@ import React from 'react';
 import {Provider} from 'react-redux';
 import moment from 'moment';
 
-import {gettext, planningUtils} from '../utils';
+import {gettext, planningUtils, iteratePromiseCallbacks} from '../utils';
 
 import {WORKSPACE, MODALS, ASSIGNMENTS, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../constants';
 import {ModalsContainer} from '../components';
@@ -22,6 +22,7 @@ export class AssignmentsService {
         this.onPublishFromAuthoring = this.onPublishFromAuthoring.bind(this);
         this.onArchiveRewrite = this.onArchiveRewrite.bind(this);
         this.onUnloadModal = this.onUnloadModal.bind();
+        this.onSendFromAuthoring = this.onSendFromAuthoring.bind(this);
     }
 
     getAssignmentQuery(slugline, contentType) {
@@ -83,6 +84,78 @@ export class AssignmentsService {
                 this.notify.warning(gettext('Failed to fetch item from archive'));
                 return Promise.resolve();
             });
+    }
+
+    onSendFromAuthoring({toDesk, items}) {
+        // If the destination desk is not a production desk
+        // or if no items were provided, then simply return
+        if (!toDesk || toDesk.desk_type !== 'production' || get(items, 'length', 0) < 1) {
+            return Promise.resolve({toDesk, items});
+        }
+
+        return this.api.query('archive', {
+            source: {
+                query: {
+                    bool: {
+                        must: [
+                            {terms: {_id: items}},
+                        ],
+                    },
+                },
+            },
+        })
+            .then((data) => new Promise((parentResolve, parentReject) => {
+                const currentDesk = get(this.desks, 'active.desk');
+                const challenges = [];
+
+                get(data, '_items', []).forEach((item) => {
+                    // If the archive item is already linked to an Assignment
+                    // then return now (nothing needs to be done)
+                    if (get(item, 'assignment_id')) {
+                        return;
+                    }
+
+                    const itemDeskId = get(item, 'task.desk') ?
+                        item.task.desk :
+                        currentDesk;
+
+                    const itemDesk = this.desks.deskLookup[itemDeskId];
+
+                    // If the item is not currently in am authoring desk,
+                    // then skip checking this item
+                    if (!itemDesk || itemDesk.desk_type !== 'authoring') {
+                        return;
+                    }
+
+                    challenges.push(() => new Promise((resolve, reject) => {
+                        // Otherwise attempt to get an open Assignment (state==assigned)
+                        // based on the slugline of the archive item
+                        this.getBySlugline(get(item, 'slugline'), get(item, 'type'))
+                            .then((data) => {
+                                // If no Assignments were found, then there is nothing to do
+                                if (get(data, '_meta.total', 0) < 1) {
+                                    resolve();
+                                }
+
+                                // Show the LinkToAssignment modal for further user decisions
+                                this.showLinkAssignmentModal(item, resolve, reject);
+                            })
+                            .catch(() => {
+                                // If the API call failed, allow the publishing to continue
+                                this.notify.warning(gettext('Failed to find an Assignment to link to!'));
+
+                                resolve();
+                            });
+                    }));
+                });
+
+                iteratePromiseCallbacks(challenges)
+                    .then(
+                        () => parentResolve({toDesk, items}),
+                        (error) => parentReject(error)
+                    )
+                    .catch((error) => parentReject(error));
+            }));
     }
 
     onArchiveRewrite(item) {

@@ -146,6 +146,13 @@ export default angular.module('superdesk-planning', [])
                     );
                 }
 
+                if (get(deployConfig, 'config.planning_check_for_assignment_on_send', false)) {
+                    functionPoints.register(
+                        'authoring:send',
+                        assignments.onSendFromAuthoring
+                    );
+                }
+
                 if (get(deployConfig, 'config.planning_link_updates_to_coverage')) {
                     functionPoints.register(
                         'archive:rewrite_after',

@@ -91,6 +91,9 @@ def init_app(app):
     app.client_config['planning_check_for_assignment_on_publish'] = \
         app.config.get('PLANNING_CHECK_FOR_ASSIGNMENT_ON_PUBLISH', False)
 
+    app.client_config['planning_check_for_assignment_on_send'] = \
+        app.config.get('PLANNING_CHECK_FOR_ASSIGNMENT_ON_SEND', False)
+
     if len(app.config.get('PLANNING_FULFIL_ON_PUBLISH_FOR_DESKS', '')) == 0:
         app.client_config['planning_fulfil_on_publish_for_desks'] = []
     else:
