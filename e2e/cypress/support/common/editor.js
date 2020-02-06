@@ -31,6 +31,14 @@ export class Editor {
     }
 
     /**
+     * Returns the dom node for the post button
+     * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
+     */
+    get postButton() {
+        return this.element.find('#post');
+    }
+
+    /**
      * Returns the dom node for the close button
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */

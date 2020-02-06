@@ -91,4 +91,44 @@ describe('Planning.Planning: edit metadata', () => {
         coverageEditor.element.click();
         coverageEditor.clickAction('Add to workflow');
     });
+
+    it.only('not_for_publication flag will not enable post button', () => {
+        const plan = {
+            slugline: 'slugline of the planning',
+            'planning_date.date': '12/12/2045',
+            'planning_date.time': '12:13',
+        };
+
+        list.expectEmpty();
+        editor.expectItemType();
+        workqueue.expectTitle(0, 'Untitled*');
+
+        editor.openAllToggleBoxes();
+        editor.type(plan);
+        editor.expect(plan);
+
+        editor.waitForAutosave();
+        editor.createButton.click();
+        editor.waitLoadingComplete();
+
+        editor.openAllToggleBoxes();
+        editor.type({description_text: 'Desc. Text'});
+        editor.expect({description_text: 'Desc. Text'});
+        editor.waitForAutosave();
+        editor.waitTillOpen()
+        editor.postButton.should('exist');
+
+
+        editor.type({
+            'flags.marked_for_not_publication': true,
+            description_text: 'Desc. Text',
+            internal_note: 'Int. Note',
+            ednote: 'Ed. Note',
+            anpa_category: ['Domestic Sport', 'Finance'],
+            subject: ['sports awards'],
+        });
+        editor.waitForAutosave();
+        editor.waitTillOpen()
+        editor.postButton.should('not.exist');
+    });
 });
