@@ -830,6 +830,9 @@ const getCoverageIcon = (type, coverage) => {
         [PLANNING.G2_CONTENT_TYPE.LIVE_VIDEO]: 'icon-video',
         [PLANNING.G2_CONTENT_TYPE.AUDIO]: 'icon-audio',
         [PLANNING.G2_CONTENT_TYPE.PICTURE]: 'icon-photo',
+        [PLANNING.G2_CONTENT_TYPE.GRAPHIC]: 'icon-graphic',
+        [PLANNING.G2_CONTENT_TYPE.LIVE_BLOG]: 'icon-post',
+        [PLANNING.G2_CONTENT_TYPE.VIDEO_EXPLAINER]: 'icon-play',
     };
 
     return get(coverageIcons, type, 'icon-file');
