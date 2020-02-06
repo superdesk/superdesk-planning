@@ -2,6 +2,6 @@
     "extends": "superdesk-code-style/tsconfig-strict",
     "compilerOptions": {
         "target": "ES5",
-        "outDir": "../dist/src"
+        "outDir": "../dist"
     }
 }
