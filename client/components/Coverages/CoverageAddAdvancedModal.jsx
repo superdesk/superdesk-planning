@@ -9,9 +9,11 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
     constructor(props) {
         super(props);
 
+        this.id = 1;
         this.state = {
             advancedMode: !!props.coverageAddAdvancedMode,
             coverages: this.props.contentTypes.map((contentType) => ({
+                id: this.id++,
                 enabled: false,
                 qcode: contentType.qcode,
                 name: contentType.name,
@@ -29,6 +31,7 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
     duplicate(index, coverage) {
         const coverages = this.state.coverages.slice();
         const newCoverage = {
+            id: this.id++,
             enabled: false,
             qcode: coverage.qcode,
             name: coverage.name,
@@ -124,7 +127,7 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                 <Modal.Body noScroll>
                     <div className="sd-list-item-group sd-list-item-group--space-between-items">
                         {this.state.coverages.map((coverage, index) => (
-                            <div key={index} className="sd-list-item sd-shadow--z1">
+                            <div key={coverage.id} className="sd-list-item sd-shadow--z1">
                                 <div className="sd-list-item__column">
                                     <input type="checkbox" value={coverage.enabled}
                                         onChange={() => this.updateCoverage(coverage, {enabled: !coverage.enabled})}

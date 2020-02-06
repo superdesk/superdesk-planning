@@ -1,7 +1,7 @@
 import * as selectors from '../../selectors';
 import assignments from './index';
 import main from '../main';
-import {get, isEmpty, cloneDeep} from 'lodash';
+import {get, cloneDeep} from 'lodash';
 import planning from '../planning';
 import {ASSIGNMENTS, WORKSPACE, MODALS} from '../../constants';
 import {lockUtils, assignmentUtils, gettext, isExistingItem} from '../../utils';
@@ -175,7 +175,7 @@ const _updatePlannigRelatedToAssignment = (data) => (
         let coverages = get(planningItem, 'coverages') || [];
         let coverage = coverages.find((cov) => cov.coverage_id === data.coverage);
 
-        if (!coverage || isEmpty(coverage.assigned_to)) {
+        if (!coverage) {
             return Promise.resolve();
         }
 
@@ -274,17 +274,19 @@ const onAssignmentUnlocked = (_e, data) => (
  */
 const onAssignmentRemoved = (_e, data) => (
     (dispatch, getState, {notify}) => {
-        if (get(data, 'assignment')) {
-            dispatch(_notifyAssignmentEdited(data.assignment));
+        if (get(data, 'assignments')) {
             dispatch({
                 type: ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT,
                 payload: data,
             });
 
-            // Though assignment is removed, this is to remove the orphan lock in the store
-            dispatch({
-                type: ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT,
-                payload: {assignment: {_id: data.assignment}},
+            data.assignments.forEach((a) => {
+                dispatch(_notifyAssignmentEdited(a));
+                // Though assignment is removed, this is to remove the orphan lock in the store
+                dispatch({
+                    type: ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT,
+                    payload: {assignment: {_id: a}},
+                });
             });
 
             // Updates my assignment count

@@ -9,12 +9,10 @@ import './style.scss';
  * @name MainColumn
  * @description Main panel component of column box
  */
-export const MainColumn = ({children, padded, verticalScroll}) => (
+export const MainColumn = ({children, padded}) => (
     <div className={classNames(
         'sd-column-box__main-column',
-        {'sd-column-box__main-column--padded': padded},
-        {'sd-column-box__main-column--vertical-scroll': verticalScroll}
-    )} >
+        {'sd-column-box__main-column--padded': padded})} >
         {children}
     </div>
 );
@@ -22,5 +20,4 @@ export const MainColumn = ({children, padded, verticalScroll}) => (
 MainColumn.propTypes = {
     children: PropTypes.node,
     padded: PropTypes.bool,
-    verticalScroll: PropTypes.bool,
 };
