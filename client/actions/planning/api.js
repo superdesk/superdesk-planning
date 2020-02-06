@@ -802,7 +802,7 @@ const save = (original, planUpdates) => (
             }
 
             const addToPlanning = {
-                add_to_planning: selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING
+                add_to_planning: selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING,
             };
 
             return api('planning').save(

@@ -607,7 +607,7 @@ describe('actions.planning.api', () => {
                             coverages: [],
                         }),
                         planningItem,
-                        {add_to_planning: false}
+                        {add_to_planning: false},
                     ]);
 
                     done();
