@@ -130,5 +130,15 @@ describe('Planning.Planning: edit metadata', () => {
         editor.waitForAutosave();
         editor.waitTillOpen()
         editor.postButton.should('not.exist');
+
+        editor.type({
+            'flags.marked_for_not_publication': false,
+            description_text: 'Other Desc. Text',
+            internal_note: 'Other Int. Note',
+            ednote: 'Other Ed. Note',
+        });
+        editor.waitForAutosave();
+        editor.waitTillOpen()
+        editor.postButton.should('exist');
     });
 });
