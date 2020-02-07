@@ -801,16 +801,20 @@ const save = (original, planUpdates) => (
                 delete modifiedUpdates.state;
             }
 
+            const addToPlanning = {
+                add_to_planning: selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING,
+            };
+
             return api('planning').save(
                 {},
                 {
                     ...modifiedUpdates,
                     coverages: [],
-                },
-                {add_to_planning: selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING}
+                }, addToPlanning
+
             )
                 .then(
-                    (originalItem) => api('planning').save(originalItem, updates),
+                    (originalItem) => api('planning').save(originalItem, updates, addToPlanning),
                     (error) => Promise.reject(error)
                 );
         });

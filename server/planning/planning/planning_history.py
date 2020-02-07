@@ -109,6 +109,7 @@ class PlanningHistoryService(HistoryService):
         updates_coverages = {c.get('coverage_id'): c for c in (updates or {}).get('coverages') or []}
         added, deleted, updated = [], [], []
         planning_service = get_resource_service('planning')
+        add_to_planning = strtobool(request.args.get('add_to_planning', 'false'))
 
         for coverage_id, coverage in updates_coverages.items():
             original_coverage = original_coverages.get(coverage_id)
@@ -124,7 +125,7 @@ class PlanningHistoryService(HistoryService):
             if cov.get('assigned_to', {}).get('state') == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED:
                 diff = {'coverage_id': cov.get('coverage_id')}
                 diff.update(cov)
-                self._save_history(item, diff, 'coverage_created_content')
+                self._save_history(item, diff, 'coverage_created_content' if add_to_planning else 'coverage_created')
                 self._save_history(item, diff, 'reassigned')
                 self._save_history(item, diff, 'add_to_workflow')
             else:
