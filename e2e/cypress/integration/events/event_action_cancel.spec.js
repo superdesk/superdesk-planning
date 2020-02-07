@@ -51,7 +51,7 @@ describe('Planning.Events: event cancel action', () => {
     function expectCancelledInPreview() {
         preview.waitTillOpen();
         preview.element
-            .find('.label--yellow2')
+            .find('.label--yellow2', {timeout: 30000})
             .should('contain.text', 'Cancelled');
 
         preview.element
