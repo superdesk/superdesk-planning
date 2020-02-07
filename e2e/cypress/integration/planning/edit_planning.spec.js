@@ -92,7 +92,7 @@ describe('Planning.Planning: edit metadata', () => {
         coverageEditor.clickAction('Add to workflow');
     });
 
-    it.only('not_for_publication flag will not enable post button', () => {
+    it('not_for_publication flag will not enable post button', () => {
         const plan = {
             slugline: 'slugline of the planning',
             'planning_date.date': '12/12/2045',
