@@ -251,6 +251,7 @@ export class GeoLookupInputComponent extends React.Component {
                 name: get(suggest, nameField, shortName),
                 boundingbox: get(suggest, 'boundingbox'),
                 type: get(suggest, 'type'),
+                language: this.language,
             };
         }
     }
