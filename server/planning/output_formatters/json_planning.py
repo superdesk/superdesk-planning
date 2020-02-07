@@ -17,6 +17,7 @@ from copy import deepcopy
 from superdesk import get_resource_service
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, WORKFLOW_STATE
 from superdesk.metadata.item import CONTENT_STATE
+from .utils import expand_contact_info
 
 
 class JsonPlanningFormatter(Formatter):
@@ -56,6 +57,8 @@ class JsonPlanningFormatter(Formatter):
         for f in self.remove_fields:
             output_item.pop(f, None)
         for coverage in output_item.get('coverages', []):
+            self._expand_coverage_contacts(coverage)
+
             deliveries, workflow_state = self._expand_delivery(coverage)
             if workflow_state:
                 coverage['workflow_status'] = self._get_coverage_workflow_state(workflow_state)
@@ -131,3 +134,20 @@ class JsonPlanningFormatter(Formatter):
             deliveries = []
 
         return deliveries, assignment.get('assigned_to').get('state')
+
+    def _expand_coverage_contacts(self, coverage):
+        if (coverage.get('assigned_to') or {}).get('contact'):
+            expanded_contacts = expand_contact_info([coverage['assigned_to']['contact']])
+            if expanded_contacts:
+                coverage['coverage_provider_contact_info'] = {
+                    'first_name': expanded_contacts[0]['first_name'],
+                    'last_name': expanded_contacts[0]['last_name']
+                }
+
+        if (coverage.get('assigned_to') or {}).get('user'):
+            user = get_resource_service('users').find_one(req=None, _id=coverage['assigned_to']['user'])
+            if user:
+                coverage['assigned_user'] = {
+                    'first_name': user.get('first_name'),
+                    'last_name': user.get('last_name')
+                }

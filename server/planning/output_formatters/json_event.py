@@ -15,7 +15,7 @@ from copy import deepcopy
 from flask import current_app as app
 from superdesk.publish.formatters import Formatter
 from superdesk.utils import json_serialize_datetime_objectId
-from superdesk import get_resource_service
+from .utils import expand_contact_info
 
 
 class JsonEventFormatter(Formatter):
@@ -45,7 +45,7 @@ class JsonEventFormatter(Formatter):
     def _format_item(self, item):
         """Format the item to json event"""
         output_item = deepcopy(item)
-        output_item['event_contact_info'] = self._expand_contact_info(item)
+        output_item['event_contact_info'] = expand_contact_info(item.get('event_contact_info', []))
         if item.get('files'):
             try:
                 output_item['files'] = self._publish_files(item)
@@ -70,25 +70,3 @@ class JsonEventFormatter(Formatter):
             }
 
         return [publish_file(file_id) for file_id in item['files']]
-
-    def _expand_contact_info(self, item):
-        """
-        Given an item it will scan any event contacts, look them up and return the expanded values
-
-        :param item:
-        :return: Array of expanded contacts
-        """
-        remove_contact_fields = {'_etag', '_type'}
-        expanded = []
-        for contact in item.get('event_contact_info', []):
-            contact_details = get_resource_service('contacts').find_one(req=None, _id=contact)
-            if contact_details:
-                for f in remove_contact_fields:
-                    contact_details.pop(f, None)
-                # Remove any none public contact details
-                contact_details['contact_phone'] = [p for p in contact_details.get('contact_phone', []) if
-                                                    p.get('public')]
-                contact_details['mobile'] = [p for p in contact_details.get('mobile', []) if p.get('public')]
-                if contact_details.get('public', False) and contact_details.get('is_active', False):
-                    expanded.append(contact_details)
-        return expanded
