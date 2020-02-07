@@ -7,6 +7,7 @@ from superdesk.publish import init_app, registered_transmitters
 from planning.output_formatters.json_event import JsonEventFormatter
 from planning.events import init_app
 from eve.methods.common import store_media_files
+from bson import ObjectId
 
 
 @mock.patch('superdesk.publish.subscribers.SubscribersService.generate_sequence_number', lambda self, subscriber: 1)
@@ -107,7 +108,7 @@ class JsonEventTestCase(TestCase):
         init_app(self.app)
         self.maxDiff = None
         contact = [{
-            '_id': '5ab491271d41c88e98ad9336',
+            '_id': ObjectId('5ab491271d41c88e98ad9336'),
             'contact_email': [
                 'jdoe@fubar.com'
             ],
