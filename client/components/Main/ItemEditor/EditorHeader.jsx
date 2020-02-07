@@ -108,6 +108,7 @@ export class EditorHeader extends React.Component {
             privileges,
             associatedEvent,
             addNewsItemToPlanning,
+            diff,
         } = this.props;
 
         if (states.isExpired && !states.canEditExpired) {
@@ -126,7 +127,7 @@ export class EditorHeader extends React.Component {
         if (states.isLockedInContext) {
             switch (get(states, 'itemLock.action')) {
             case 'edit':
-                states.canPost = planningUtils.canPostPlanning(initialValues,
+                states.canPost = planningUtils.canPostPlanning(diff,
                     associatedEvent, session, privileges, lockedItems);
                 states.canUnpost = planningUtils.canUnpostPlanning(initialValues,
                     associatedEvent, session, privileges, lockedItems);
@@ -137,7 +138,7 @@ export class EditorHeader extends React.Component {
                 break;
             case 'add_to_planning':
                 states.canPost = planningUtils.canPostPlanning(
-                    initialValues,
+                    diff,
                     associatedEvent,
                     session,
                     privileges,
