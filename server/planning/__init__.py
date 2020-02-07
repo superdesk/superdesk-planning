@@ -45,7 +45,7 @@ import planning.feed_parsers  # noqa
 import planning.output_formatters  # noqa
 from planning.planning_download import init_app as init_planning_download_app
 
-__version__ = '1.10.1-rc2'
+__version__ = '1.10.1-rc3'
 
 
 def init_app(app):

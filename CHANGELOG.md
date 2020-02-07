@@ -1,6 +1,6 @@
 # Superdesk Planning Changelog
 
-## [1.10.1-rc2] Not Released Yet
+## [1.10.1-rc3] Not Released Yet
 ### Features
 - [SDESK-4767] Feature to attach files to coverages (#1403)
 - [SDESK-4775] Attach .xmp file to picture assignments (#1405)
@@ -8,6 +8,9 @@
 ### Improvements
 - [SDESK-4797] Reduce vertical padding in PopupEditor on small screens (#1402)
 - fix: Automatically show contact popup when search text is empty (#1416)
+- [SDESK-4979] Add coverage provider and assigned user names to coverages on posting the planning item (#1424)
+- [SDESK-5001] Coverage Icons for graphic, video_explainer and live_blog (#1428)
+- [SDESK-4903] (1.10) Show FulfilAssignment challenge on archive send (#1425)
 
 ### Fixes
 - [SDESK-4889] Bug while removing an agenda (#1401)
@@ -26,6 +29,9 @@
 - [SDNTB-622] (INGEST) NIFS event ingest parser error (#1415)
 - [SDESK-4993] Planning item with an XMP file was not getting published (#1422)
 - [SDESK-4977] Duplicating coverage or planning item should duplicate the XMP File too (#1423)
+- [SDESK-4980] Create two locations with same name (#1420)
+- [SDESK-4888] Wrong coverage history on creation (#1427)
+- [SDESK-5004] Turning on the 'NOT FOR PUBLICATION' toggle enables the 'SAVE & POST' button in the Planning editor (#1426)
 
 ## [1.10.0] 2019-12-12
 ### Features
