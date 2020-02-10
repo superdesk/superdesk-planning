@@ -79,12 +79,19 @@ export class GeoLookupInputComponent extends React.Component {
     }
 
     saveNewLocation(value) {
-        this.props.onChange(this.props.field, value);
-        this.setState({
-            unsavedInput: '',
-            searching: false,
-            searchLocalAlways: true,
-        });
+        this.props.saveLocation(value)
+            .then((newLocation) => {
+                this.onSuggestSelect({
+                    ...newLocation,
+                    existingLocation: true,
+                });
+
+                this.setState({
+                    unsavedInput: '',
+                    searching: false,
+                    searchLocalAlways: true,
+                });
+            });
     }
 
     removeLocation() {
@@ -184,8 +191,35 @@ export class GeoLookupInputComponent extends React.Component {
     *    @param  {Object} suggest The suggest
     */
     onSuggestSelect(suggest) {
-        this.props.onChange(this.props.field, this.onGeocodeSuggest(suggest));
-        this.resetSearchResults();
+        const location = this.onGeocodeSuggest(suggest);
+        let promise = get(location, 'existingLocation') ? Promise.resolve(location) :
+            this.props.saveLocation(location);
+
+        promise.then((newLocation) => {
+            let value = {
+                name: newLocation.name,
+                qcode: newLocation.guid,
+                address: newLocation.address,
+                details: newLocation.details,
+            };
+
+            // external address might not be there.
+            if (get(value, 'address.external')) {
+                delete value.address.external;
+            }
+
+            if (newLocation.position) {
+                value = {
+                    ...value,
+                    location: {
+                        lat: get(newLocation, 'position.latitude'),
+                        lon: get(newLocation, 'position.longitude'),
+                    },
+                };
+            }
+
+            this.props.onChange(this.props.field, value);
+        }).finally(() => this.resetSearchResults());
     }
 
     onSuggestsLookup(userInput) {
@@ -332,6 +366,7 @@ GeoLookupInputComponent.propTypes = {
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
     allowFreeTextLocation: PropTypes.bool,
+    saveLocation: PropTypes.func,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -346,6 +381,7 @@ const mapStateToProps = (state, ownProps) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     searchLocalLocations: (text) => dispatch(actions.locations.getLocation(text)),
+    saveLocation: (newLocation) => dispatch(actions.locations.saveLocation(newLocation)),
 });
 
 export const AddGeoLookupInput = connect(

@@ -4,5 +4,6 @@ export const CONTACTS = {
         'last_name',
         'job_title',
         'organisation',
+        'contact_email',
     ],
 };

@@ -69,8 +69,21 @@ export const currentUserId = createSelector(
 );
 
 export const files = (state) => get(state, 'files.files');
+
 export const contacts = (state) => get(state, 'contacts.contacts') || [];
-export const contactsById = (state) => keyBy(get(state, 'contacts.contacts') || [], '_id');
+export const contactsLoading = (state) => get(state, 'contacts.loading', false);
+export const contactsTotal = (state) => get(state, 'contacts.total', 0);
+export const contactsPage = (state) => get(state, 'contacts.page', 1);
+
+export const contactsById = createSelector(
+    [contacts],
+    (contacts) => keyBy(contacts, '_id')
+);
+export const contactIds = createSelector(
+    [contacts],
+    (contacts) => contacts.map((contact) => contact._id)
+);
+
 export const getPlanningExportTemplates = (state) => get(state, 'exportTemplates', []).filter(
     (e) => e.type === ITEM_TYPE.PLANNING);
 export const getEventExportTemplates = (state) => get(state, 'exportTemplates', []).filter(

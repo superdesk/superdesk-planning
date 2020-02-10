@@ -1,5 +1,3 @@
-import {get} from 'lodash';
-
 import * as ctrl from './controllers';
 import * as svc from './services';
 import {WORKSPACE} from './constants';
@@ -12,6 +10,7 @@ import PlanningDetailsWidget, {getItemPlanningInfo} from './components/PlanningD
 
 import {getSuperdeskApiImplementation} from 'superdesk-core/scripts/core/get-superdesk-api-implementation';
 import {superdeskApi} from './superdeskApi';
+import {extensions} from 'superdesk-core/scripts/appConfig';
 
 export default angular.module('superdesk-planning', [])
     .directive('sdPlanning',
@@ -93,7 +92,6 @@ export default angular.module('superdesk-planning', [])
         '$injector',
         'sdPlanningStore',
         'extensionPoints',
-        'functionPoints',
         'assignments',
         'deployConfig',
         'modal',
@@ -101,18 +99,19 @@ export default angular.module('superdesk-planning', [])
         'lock',
         'session',
         'authoringWorkspace',
+        'metadata',
         (
             $injector,
             sdPlanningStore,
             extensionPoints,
-            functionPoints,
             assignments,
             deployConfig,
             modal,
             privileges,
             lock,
             session,
-            authoringWorkspace
+            authoringWorkspace,
+            metadata
         ) => {
             ng.register($injector);
 
@@ -130,28 +129,22 @@ export default angular.module('superdesk-planning', [])
                 .then(() => {
                     Object.assign(
                         superdeskApi,
-                        getSuperdeskApiImplementation(null, {}, modal, privileges, lock, session, authoringWorkspace)
+                        getSuperdeskApiImplementation(
+                            null,
+                            extensions,
+                            modal,
+                            privileges,
+                            lock,
+                            session,
+                            authoringWorkspace,
+                            metadata,
+                            deployConfig
+                        )
                     );
 
                     extensionPoints.register('publish_queue:preview',
                         PublishQueuePanel, {}, ['selected'],
                         callback);
                 });
-
-            deployConfig.promise.then(() => {
-                if (get(deployConfig, 'config.planning_check_for_assignment_on_publish', false)) {
-                    functionPoints.register(
-                        'authoring:publish',
-                        assignments.onPublishFromAuthoring
-                    );
-                }
-
-                if (get(deployConfig, 'config.planning_link_updates_to_coverage')) {
-                    functionPoints.register(
-                        'archive:rewrite_after',
-                        assignments.onArchiveRewrite
-                    );
-                }
-            });
         },
     ]);

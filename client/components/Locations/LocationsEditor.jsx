@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {SidePanel, Header, Content} from '../UI/SidePanel';
 import {connect} from 'react-redux';
 import * as selectors from '../../selectors';
-import {Field, TextInput, SelectInput, SelectInputWithFreeText} from '../UI/Form';
+import {Field, TextInput, SelectInput, SelectInputWithFreeText, TextAreaInput} from '../UI/Form';
 import {omit, get, isObject} from 'lodash';
 import {Footer} from '../UI/Popup';
 import {ButtonList} from '../UI';
@@ -35,6 +35,7 @@ export class LocationsEditorComponent extends React.Component {
             bad_long_message: '',
             tab: 0,
             formNew: true,
+            details: '',
         };
 
         this.tabs = [
@@ -64,6 +65,7 @@ export class LocationsEditorComponent extends React.Component {
             bad_long_message: '',
             tab: 0,
             formNew: false,
+            details: get(item, 'details[0]', ''),
         });
     }
 
@@ -88,7 +90,7 @@ export class LocationsEditorComponent extends React.Component {
     onChange(field, value) {
         const values = {
             ...omit(this.state, ['formInvalid', field, 'city', 'state', 'postal_code', 'long', 'lat',
-                'bad_lat_message', 'bad_long_message', 'invalid_lat', 'invalid_long', 'tab', 'formNew']),
+                'bad_lat_message', 'bad_long_message', 'invalid_lat', 'invalid_long', 'tab', 'formNew', 'details']),
             [field]: value,
         };
 
@@ -135,6 +137,7 @@ export class LocationsEditorComponent extends React.Component {
         });
 
         locationAddress.name = get(this, 'state.name');
+        locationAddress.details = [get(this, 'state.details')];
         if (get(this, 'state.lat') && get(this, 'state.lat')) {
             locationAddress.position = {};
             locationAddress.position.latitude = get(this, 'state.lat');
@@ -253,6 +256,15 @@ export class LocationsEditorComponent extends React.Component {
                         onChange={this.onChange}
                         invalid={get(this, 'state.invalid_long')}
                         message={gettext(get(this, 'state.bad_long_message'))}
+                    />
+                    <Field
+                        component={TextAreaInput}
+                        field="details"
+                        label={gettext('Notes')}
+                        value={get(this, 'state.details')}
+                        onChange={this.onChange}
+                        autoHeight={true}
+                        labelIcon="icon-info-sign icon--blue sd-padding-r--3"
                     />
                 </Content>
                 <Footer>

@@ -37,7 +37,8 @@ class PlanningNotifications():
     """
 
     def notify_assignment(self, coverage_status=None, target_user=None,
-                          target_desk=None, target_desk2=None, message='', meta_message='', **data):
+                          target_desk=None, target_desk2=None, message='',
+                          meta_message='', contact_id=None, **data):
         """
         Send notification to the client regarding the changes in assigment detals
 
@@ -88,9 +89,14 @@ class PlanningNotifications():
             self._notify_slack.apply_async(kwargs=args, serializer="eve/json")
 
         # send email notification to user
-        if target_user and not data.get('no_email', False):
-            args = {'target_user': target_user, 'text_message': _get_email_message_string(source, meta_message, data),
-                    'html_message': _get_email_message_html(source, meta_message, data), 'data': data}
+        if (target_user or contact_id) and not data.get('no_email', False):
+            args = {
+                'target_user': target_user,
+                'contact_id': contact_id,
+                'text_message': _get_email_message_string(source, meta_message, data),
+                'html_message': _get_email_message_html(source, meta_message, data),
+                'data': data
+            }
             self._notify_email.apply_async(kwargs=args, serializer="eve/json")
 
     def user_update(self, updates, original):
@@ -134,8 +140,8 @@ class PlanningNotifications():
             _send_to_slack_desk_channel(sc, target_desk2, message)
 
     @celery.task(bind=True)
-    def _notify_email(self, target_user, text_message, html_message, data):
-        _send_user_email(target_user, text_message, html_message, data)
+    def _notify_email(self, target_user, contact_id, text_message, html_message, data):
+        _send_user_email(target_user, contact_id, text_message, html_message, data)
 
 
 def _get_slack_client(token):
@@ -221,7 +227,7 @@ def _get_email_message_html(message, meta_message, data):
         return template_string
 
 
-def _send_user_email(user_id, text_message, html_message, data):
+def _send_user_email(user_id, contact_id, text_message, html_message, data):
     """
     Send a notification to the user email
 
@@ -230,19 +236,26 @@ def _send_user_email(user_id, text_message, html_message, data):
     :param html_message:
     :return:
     """
-    user = superdesk.get_resource_service('users').find_one(req=None, _id=user_id)
-    if not user:
-        return
+    email_address = None
 
-    # Check if the user has email notifications enabled
-    preferences = superdesk.get_resource_service('preferences').get_user_preference(user.get('_id'))
-    email_notification = preferences.get('email:notification', {}) if isinstance(preferences, dict) else {}
+    if contact_id:
+        contact = superdesk.get_resource_service('contacts').find_one(req=None, _id=contact_id)
+        email_address = next(iter(contact.get('contact_email') or []), None)
+    elif user_id:
+        user = superdesk.get_resource_service('users').find_one(req=None, _id=user_id)
+        if not user:
+            return
 
-    if not email_notification.get('enabled', False):
-        return
+        # Check if the user has email notifications enabled
+        preferences = superdesk.get_resource_service('preferences').get_user_preference(user.get('_id'))
+        email_notification = preferences.get('email:notification', {}) if isinstance(preferences, dict) else {}
 
-    user_email = user.get('email')
-    if not user_email:
+        if not email_notification.get('enabled', False):
+            return
+
+        email_address = user.get('email')
+
+    if not email_address:
         return
 
     admins = app.config['ADMINS']
@@ -256,9 +269,32 @@ def _send_user_email(user_id, text_message, html_message, data):
             fp = media.read()
             attachments.append(Attachment(filename=media.name, content_type=media.content_type, data=fp))
 
+    if data.get('assignment') and (data['assignment'].get('planning', {})).get('files'):
+        for file_id in data['assignment']['planning']['files']:
+            assignment_file = superdesk.get_resource_service('planning_files').find_one(req=None, _id=file_id)
+            if assignment_file:
+                media = app.media.get(assignment_file['media'], resource='planning_files')
+                fp = media.read()
+                attachments.append(Attachment(filename=media.name, content_type=media.content_type, data=fp))
+            else:
+                logger.error('File {} attached to assignment {} not found'.format(file_id,
+                                                                                  data['assignment']['assignment_id']))
+
+    if data.get('assignment') and (data['assignment'].get('planning', {})).get('xmp_file'):
+        file_id = data['assignment']['planning']['xmp_file']
+        xmp_file = superdesk.get_resource_service('planning_files').find_one(req=None, _id=file_id)
+        if xmp_file:
+            media = app.media.get(xmp_file['media'], resource='planning_files')
+            fp = media.read()
+            attachments.append(Attachment(filename=media.name, content_type=media.content_type, data=fp))
+        else:
+            logger.error('XMP File {} attached to assignment {} not found'.format(data['assignment']['xmp_file'],
+                                                                                  data['assignment'][
+                                                                                      'assignment_id']))
+
     send_email(subject='Superdesk assignment' + ': {}'.format(data.get('slugline') if data.get('slugline') else ''),
                sender=admins[0],
-               recipients=[user_email],
+               recipients=[email_address],
                text_body=text_message,
                html_body=html_message,
                attachments=attachments)

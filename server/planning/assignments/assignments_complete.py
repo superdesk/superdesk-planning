@@ -23,6 +23,9 @@ from planning.planning_notifications import PlanningNotifications
 
 assignments_complete_schema = deepcopy(assignments_schema)
 
+# allow an external application to pass a user
+assignments_complete_schema['proxy_user'] = {'type': 'objectid', 'nullable': True}
+
 
 class AssignmentsCompleteResource(AssignmentsResource):
     url = 'assignments/complete'
@@ -68,7 +71,16 @@ class AssignmentsCompleteService(BaseService):
                 'Cannot confirm availability. Assignment should be assigned or submitted.')
 
     def update(self, id, updates, original):
-        user = get_user(required=True).get(config.ID_FIELD, '')
+        # if the completion is being done by an external application then ensure that it is not locked
+        if 'proxy_user' in updates:
+            if original.get('lock_user'):
+                raise SuperdeskApiError.forbiddenError(
+                    'Assignment is locked')
+            user = updates.pop('proxy_user', None)
+            proxy_user = True
+        else:
+            user = get_user(required=True).get(config.ID_FIELD, '')
+            proxy_user = False
         session = get_auth().get(config.ID_FIELD, '')
 
         original_assigned_to = deepcopy(original).get('assigned_to')
@@ -96,6 +108,8 @@ class AssignmentsCompleteService(BaseService):
         if text_assignment:
             get_resource_service('assignments_history').on_item_complete(updates, original)
         else:
+            if proxy_user:
+                updates['proxy_user'] = user
             get_resource_service('assignments_history').on_item_confirm_availability(updates, original)
 
         push_notification(

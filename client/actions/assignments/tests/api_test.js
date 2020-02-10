@@ -3,6 +3,7 @@ import moment from 'moment';
 import {get} from 'lodash';
 
 import assignmentsApi from '../api';
+import contactsApi from '../../contacts';
 import {
     getTestActionStore,
     restoreSinonStub,
@@ -572,4 +573,38 @@ describe('actions.assignments.api', () => {
                 done();
             })
     ).catch(done.fail));
+
+    describe('receivedAssignments', () => {
+        beforeEach(() => {
+            restoreSinonStub(assignmentsApi.receivedAssignments);
+            sinon.stub(contactsApi, 'fetchContactsFromAssignments').returns(Promise.resolve([]));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(contactsApi.fetchContactsFromAssignments);
+        });
+
+        it('adds the assignments to the store', () => {
+            store.dispatch(assignmentsApi.receivedAssignments(data.assignments));
+
+            expect(store.dispatch.callCount).toBe(3);
+            expect(store.dispatch.args[2][0]).toEqual({
+                type: ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS,
+                payload: data.assignments,
+            });
+        });
+
+        it('loads contacts from received assignment items', () => {
+            const items = [
+                {assigned_to: {contact: 'con1'}},
+                {assigned_to: {contact: 'con2'}},
+                {assigned_to: {user: 'ident1'}},
+                {assigned_to: {}},
+            ];
+
+            store.dispatch(assignmentsApi.receivedAssignments(items));
+            expect(contactsApi.fetchContactsFromAssignments.callCount).toBe(1);
+            expect(contactsApi.fetchContactsFromAssignments.args[0]).toEqual([items]);
+        });
+    });
 });

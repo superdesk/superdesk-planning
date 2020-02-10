@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get, cloneDeep, some, isEqual, isEmpty, omit} from 'lodash';
+import {get, cloneDeep, some, isEqual, isEmpty} from 'lodash';
 
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
@@ -144,6 +144,11 @@ export class PlanningEditorComponent extends React.Component {
             this.props.defaultDesk,
             this.props.preferredCoverageDesks);
 
+        newCoverage.coverage_id = newCoverage.coverage_id + '-duplicate';
+        if (['picture', 'Picture'].includes(newCoverage.planning.g2_content_type) && coverage.planning.xmp_file) {
+            newCoverage.planning.xmp_file = coverage.planning.xmp_file;
+        }
+
         if (coverage.workflow_status === WORKFLOW_STATE.CANCELLED) {
             newCoverage.planning.workflow_status_reason = null;
         }
@@ -281,31 +286,34 @@ export class PlanningEditorComponent extends React.Component {
             return;
         }
 
+        let updates = {};
+
         originalCoverages.forEach((original) => {
             // Push notification updates from 'assignment' workflow changes
             const index = updatedCoverages.findIndex((c) => c.coverage_id === original.coverage_id);
-            let updates = index >= 0 ? updatedCoverages[index] : null;
+            let covUpdates = index >= 0 ? updatedCoverages[index] : null;
 
-            if (!updates) {
+            if (!covUpdates) {
                 return;
             }
 
-            if (isEqual(omit(updates, 'assigned_to'), omit(original, 'assigned_to')) &&
-                isEqual(updates.assigned_to, original.assigned_to)
-            ) {
-                // If assignment and coverage has not changed
+            if (isEqual(covUpdates.assigned_to, original.assigned_to)) {
+                // If assignment has not changed
                 return;
             }
 
-            updates = {[`coverages[${index}]`]: updates};
-            if (get(this.props, 'original._etag') && get(nextProps, 'original._etag') &&
-                this.props.original._etag !== nextProps.original._etag) {
-                // Probably cancel-all-coverages
-                updates._etag = nextProps.original._etag;
-            }
-
-            this.props.itemManager.finalisePartialSave(updates, false);
+            updates[`coverages[${index}]`] = covUpdates;
         });
+
+        if (get(this.props, 'original._etag') && get(nextProps, 'original._etag') &&
+            this.props.original._etag !== nextProps.original._etag) {
+            // Probably cancel-all-coverages
+            updates._etag = nextProps.original._etag;
+        }
+
+        if (!isEmpty(updates)) {
+            this.props.itemManager.finalisePartialSave(updates, false);
+        }
     }
 
     componentDidMount() {
@@ -374,7 +382,7 @@ export class PlanningEditorComponent extends React.Component {
                     ]);
                 this.setState({uploading: false});
             }, () => {
-                this.notifyValidationErrors('Failed to upload files');
+                this.props.notifyValidationErrors('Failed to upload files');
                 this.setState({uploading: false});
             });
     }
@@ -761,6 +769,10 @@ export class PlanningEditorComponent extends React.Component {
                     planningAllowScheduledUpdates={planningAllowScheduledUpdates}
                     coverageAddAdvancedMode={this.props.coverageAddAdvancedMode}
                     setCoverageAddAdvancedMode={this.props.setCoverageAddAdvancedMode}
+                    files={files}
+                    createUploadLink={createUploadLink}
+                    uploadFiles={this.props.uploadFiles}
+                    notifyValidationErrors={this.props.notifyValidationErrors}
                 />
             </div>
         );
@@ -823,6 +835,7 @@ PlanningEditorComponent.propTypes = {
     planningAllowScheduledUpdates: PropTypes.bool,
     coverageAddAdvancedMode: PropTypes.bool,
     setCoverageAddAdvancedMode: PropTypes.func,
+    notifyValidationErrors: PropTypes.func,
 };
 
 PlanningEditorComponent.defaultProps = {

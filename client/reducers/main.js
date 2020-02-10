@@ -90,6 +90,11 @@ export default createReducer(initialState, {
         loadingIndicator: payload,
     }),
 
+    [MAIN.ACTIONS.SET_UNSET_USER_INITIATED_SEARCH]: (state, payload) => ({
+        ...state,
+        userInitiatedSearch: payload,
+    }),
+
     [MAIN.ACTIONS.CLEAR_SEARCH]: (state, payload) => {
         let newState = {
             ...state,

@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {gettext, planningUtils} from '../../../utils';
+import {get} from 'lodash';
+
+import {gettext, planningUtils, assignmentUtils} from '../../../utils';
 import {WORKFLOW_STATE, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
 import {
     TextAreaInput,
@@ -83,7 +85,21 @@ export class ScheduledUpdateForm extends React.Component {
                     showText
                     stateField= {value.workflow_status === WORKFLOW_STATE.CANCELLED ?
                         `coverages[${coverageIndex}].scheduled_updates[${index}].workflow_status` : 'state'}
-                    className="form__row" />
+                    className="form__row"
+                />
+
+                <Field
+                    component={ContactField}
+                    field={`${field}.planning.contact_info`}
+                    profileName="contact_info"
+                    label={assignmentUtils.getContactLabel(get(diff, field))}
+                    defaultValue={[]}
+                    {...fieldProps}
+                    onPopupOpen={onPopupOpen}
+                    onPopupClose={onPopupClose}
+                    singleValue={true}
+                    readOnly={readOnly}
+                />
 
                 <Field
                     component={SelectInput}
@@ -105,18 +121,6 @@ export class ScheduledUpdateForm extends React.Component {
                     {...fieldProps}
                     refNode={(ref) => this.dom.internalNote = ref}
                 />
-
-                <Field
-                    component={ContactField}
-                    field={`${field}.planning.contact_info`}
-                    profileName="contact_info"
-                    label={gettext('Coverage Provider Contact')}
-                    defaultValue={[]}
-                    {...fieldProps}
-                    onPopupOpen={onPopupOpen}
-                    onPopupClose={onPopupClose}
-                    singleValue={true}
-                    readOnly={readOnly} />
 
                 <Field
                     component={SelectInput}
@@ -170,7 +174,7 @@ ScheduledUpdateForm.propTypes = {
     index: PropTypes.number,
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
-    coverageIndex: PropTypes.string,
+    coverageIndex: PropTypes.number,
     hasAssignment: PropTypes.bool,
     onScheduleChanged: PropTypes.func,
     genres: PropTypes.array,

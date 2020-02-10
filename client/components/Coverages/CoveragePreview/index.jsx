@@ -1,15 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Row as PreviewRow} from '../../UI/Preview';
-import {CollapseBox} from '../../UI';
+import {CollapseBox, FileReadOnlyList} from '../../UI';
 import {get} from 'lodash';
-import {gettext, stringUtils, planningUtils} from '../../../utils';
+import {gettext, stringUtils, planningUtils, assignmentUtils} from '../../../utils';
 import {ContactsPreviewList} from '../../Contacts/index';
 import {PLANNING, WORKFLOW_STATE, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
 import {CoverageItem} from '../';
 import {CoveragePreviewTopBar} from './CoveragePreviewTopBar';
 import {ScheduledUpdate} from '../ScheduledUpdate';
 import {InternalNoteLabel} from '../../index';
+import '../style.scss';
 
 export const CoveragePreview = ({
     item,
@@ -27,6 +28,9 @@ export const CoveragePreview = ({
     scrollInView,
     inner,
     planningAllowScheduledUpdates,
+    files,
+    createLink,
+    useXmpFile,
 }) => {
     const coverageStatus = get(coverage, 'news_coverage_status.qcode', '') ===
         PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode ? PLANNING.NEWS_COVERAGE_CANCELLED_STATUS :
@@ -43,12 +47,8 @@ export const CoveragePreview = ({
             item={item}
             index={index}
             coverage={coverage}
-            users={users}
-            desks={desks}
-            dateFormat={dateFormat}
-            timeFormat={timeFormat}
             readOnly={true}
-            isPreview
+            isPreview={true}
             active={active}
         />
     );
@@ -63,19 +63,44 @@ export const CoveragePreview = ({
         timeFormat={timeFormat}
     />);
 
+    let contactId;
+
+    if (get(formProfile, 'editor.contact_info.enabled')) {
+        if (get(coverage, 'assigned_to.contact')) {
+            contactId = coverage.assigned_to.contact;
+        } else if (get(coverage, 'planning.contact_info.length', 0) > 0) {
+            contactId = coverage.planning.contact_info[0];
+        }
+    }
+
     const coverageInDetail = (
-        <div>
-            <PreviewRow>
+        <div className="coverage-preview__detail">
+            {contactId && (
+                <PreviewRow
+                    label={assignmentUtils.getContactLabel(coverage)}
+                    className="coverage-preview__contact"
+                >
+                    <ContactsPreviewList
+                        contactIds={contactId ? [contactId] : []}
+                        scrollInView={true}
+                        scrollIntoViewOptions={{block: 'center'}}
+                    />
+                </PreviewRow>
+            )}
+
+            <PreviewRow enabled={get(item, `coverages[${index}].planning.workflow_status_reason.length`) > 0}>
                 <InternalNoteLabel
                     item={item}
                     prefix={`coverages[${index}].planning.`}
                     noteField="workflow_status_reason"
                     showTooltip={false}
-                    showText
-                    stateField = {coverage.workflow_status === WORKFLOW_STATE.CANCELLED ?
+                    showText={true}
+                    stateField={coverage.workflow_status === WORKFLOW_STATE.CANCELLED ?
                         `coverages[${index}].workflow_status` : 'state'}
-                    showHeaderText={false} />
+                    showHeaderText={false}
+                />
             </PreviewRow>
+
             {get(formProfile, 'editor.slugline.enabled') &&
                 <PreviewRow
                     label={gettext('Slugline')}
@@ -117,6 +142,18 @@ export const CoveragePreview = ({
                 />
             }
 
+            {planningUtils.showXMPFileUIControl(coverage, useXmpFile) && (
+                <PreviewRow
+                    label={gettext('Associated XMP File')} >
+                    <FileReadOnlyList
+                        field={'xmp_file'}
+                        files={files}
+                        item={coverage.planning}
+                        createLink={createLink}
+                        noToggle />
+                </PreviewRow>
+            )}
+
             {get(formProfile, 'editor.genre.enabled') && coverage.planning.genre &&
                 <PreviewRow
                     label={gettext('Genre')}
@@ -124,14 +161,15 @@ export const CoveragePreview = ({
                 />
             }
 
-            {get(formProfile, 'editor.contact_info.enabled') && coverage.planning.contact_info &&
-                <PreviewRow label={gettext('Coverage Provider Contact')}>
-                    <ContactsPreviewList
-                        contactIds={get(coverage, 'planning.contact_info.length', 0) > 0 ?
-                            [coverage.planning.contact_info] : []}
-                        scrollInView={true}
-                        scrollIntoViewOptions={{block: 'center'}}
-                    />
+            {get(formProfile, 'editor.files.enabled') &&
+                <PreviewRow
+                    label={gettext('Attached files')} >
+                    <FileReadOnlyList
+                        formProfile={formProfile}
+                        files={files}
+                        item={coverage.planning}
+                        createLink={createLink}
+                        noToggle />
                 </PreviewRow>
             }
 
@@ -203,6 +241,9 @@ CoveragePreview.propTypes = {
     index: PropTypes.number,
     item: PropTypes.object,
     planningAllowScheduledUpdates: PropTypes.bool,
+    createLink: PropTypes.func,
+    files: PropTypes.array,
+    useXmpFile: PropTypes.bool,
 };
 
 

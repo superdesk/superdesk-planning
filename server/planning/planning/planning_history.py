@@ -16,6 +16,8 @@ from eve.utils import config
 from copy import deepcopy
 from planning.common import WORKFLOW_STATE, ITEM_ACTIONS, ASSIGNMENT_WORKFLOW_STATE
 from planning.item_lock import LOCK_ACTION
+from planning.assignments.assignments_history import ASSIGNMENT_HISTORY_ACTIONS
+from superdesk.default_settings import strtobool
 
 logger = logging.getLogger(__name__)
 update_item_actions = ['assign_agenda', 'add_featured', 'remove_featured']
@@ -41,13 +43,18 @@ class PlanningHistoryService(HistoryService):
     """
 
     def on_item_created(self, items):
-        add_to_planning = request.args.get('add_to_planning')
+        add_to_planning = strtobool(request.args.get('add_to_planning', 'false'))
         super().on_item_created(items, 'add_to_planning' if add_to_planning else None)
 
     def _save_history(self, planning, update, operation):
+        user = self.get_user_id()
+        # confirmation could be from external fulfillment, so set the user to the assignor
+        if operation == ASSIGNMENT_HISTORY_ACTIONS.CONFIRM and self.get_user_id() is None:
+            assigned_to = update.get('assigned_to')
+            user = update.get('proxy_user', assigned_to.get('assignor_user', assigned_to.get('assignor_desk')))
         history = {
             'planning_id': planning[config.ID_FIELD],
-            'user_id': self.get_user_id(),
+            'user_id': user,
             'operation': operation,
             'update': update
         }

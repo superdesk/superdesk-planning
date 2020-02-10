@@ -21,7 +21,7 @@ export class PlanningHistory extends React.Component {
             break;
 
         case HISTORY_OPERATIONS.ADD_TO_PLANNING:
-            text = gettext('Created from content by');
+            text = gettext('Created from content');
             break;
 
         case HISTORY_OPERATIONS.EDITED:

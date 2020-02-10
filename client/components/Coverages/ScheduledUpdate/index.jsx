@@ -11,7 +11,7 @@ import {ScheduledUpdateForm} from './ScheduledUpdateForm';
 import {CoverageFormHeader} from '../CoverageEditor/CoverageFormHeader';
 import {CoveragePreviewTopBar} from '../CoveragePreview/CoveragePreviewTopBar';
 
-import {planningUtils, gettext, stringUtils} from '../../../utils';
+import {planningUtils, gettext, stringUtils, assignmentUtils} from '../../../utils';
 import {PLANNING, COVERAGES, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
 
 export const ScheduledUpdate = ({
@@ -102,11 +102,6 @@ export const ScheduledUpdate = ({
             item={diff}
             index={index}
             coverage={value}
-            users={users}
-            desks={desks}
-            dateFormat={dateFormat}
-            timeFormat={timeFormat}
-            contentTypes={contentTypes}
             itemActionComponent={itemActionComponent}
             readOnly={readOnly}
             isPreview={forPreview}
@@ -129,8 +124,6 @@ export const ScheduledUpdate = ({
             onChange={onChange}
             users={users}
             desks={desks}
-            coverageProviders={coverageProviders}
-            priorities={priorities}
             readOnly={forPreview ? true : readOnly}
             addNewsItemToPlanning={addNewsItemToPlanning}
             onRemoveAssignment={!onRemoveAssignment ? null :
@@ -145,6 +138,14 @@ export const ScheduledUpdate = ({
         newsCoverageStatus.find((s) => s.qcode === get(value, 'news_coverage_status.qcode', '')) || {};
 
     const openItem = forPreview ? (<div>
+        <PreviewRow label={assignmentUtils.getContactLabel(coverage)}>
+            <ContactsPreviewList
+                contactIds={get(value, 'planning.contact_info.length', 0) > 0 ?
+                    [value.planning.contact_info] : []}
+                scrollInView={true}
+                scrollIntoViewOptions={{block: 'center'}}
+            />
+        </PreviewRow>
         <PreviewRow
             label={gettext('Genre')}
             value={get(value, 'planning.genre.name')}
@@ -155,14 +156,6 @@ export const ScheduledUpdate = ({
                 value.planning.internal_note || ''
             )}
         />
-        <PreviewRow label={gettext('Coverage Provider Contact')}>
-            <ContactsPreviewList
-                contactIds={get(value, 'planning.contact_info.length', 0) > 0 ?
-                    [value.planning.contact_info] : []}
-                scrollInView={true}
-                scrollIntoViewOptions={{block: 'center'}}
-            />
-        </PreviewRow>
         <PreviewRow
             label={gettext('Coverage Status')}
             value={coverageStatus.label || ''}
@@ -242,7 +235,7 @@ ScheduledUpdate.propTypes = {
     onFocus: PropTypes.func,
     forPreview: PropTypes.bool,
     onScheduleChanged: PropTypes.func,
-    coverageIndex: PropTypes.string,
+    coverageIndex: PropTypes.number,
     openScheduledUpdates: PropTypes.array,
     onOpen: PropTypes.func,
     onClose: PropTypes.func,

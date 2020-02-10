@@ -1562,7 +1562,7 @@ describe('components.Main.ItemManager', () => {
             manager.unlockThenLock(testData.events[0])
                 .then(() => {
                     expect(locks.unlockThenLock.callCount).toBe(1);
-                    expect(locks.unlockThenLock.args[0]).toEqual([testData.events[0]]);
+                    expect(locks.unlockThenLock.args[0]).toEqual([testData.events[0], false]);
 
                     done();
                 })

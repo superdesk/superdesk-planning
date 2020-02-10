@@ -41,7 +41,7 @@ export class AssignmentsService {
                 // If the archive item is already linked to an Assignment
                 // then return now (nothing needs to be done)
                 if (get(archiveItem, 'assignment_id')) {
-                    return Promise.resolve();
+                    return Promise.resolve({});
                 }
 
                 const fulfilFromDesks = get(
@@ -55,7 +55,7 @@ export class AssignmentsService {
                     currentDesk;
 
                 if (fulfilFromDesks.length > 0 && fulfilFromDesks.indexOf(selectedDeskId) < 0) {
-                    return Promise.resolve();
+                    return Promise.resolve({});
                 }
 
                 // Otherwise attempt to get an open Assignment (state==assigned)
@@ -65,7 +65,7 @@ export class AssignmentsService {
                         .then((data) => {
                             // If no Assignments were found, then there is nothing to do
                             if (get(data, '_meta.total', 0) < 1) {
-                                return resolve();
+                                return resolve({});
                             }
 
                             // Show the LinkToAssignment modal for further user decisions
@@ -75,14 +75,13 @@ export class AssignmentsService {
                             // If the API call failed, allow the publishing to continue
                             this.notify.warning(gettext('Failed to find an Assignment to link to!'));
 
-                            resolve();
+                            resolve({});
                         });
                 });
             })
-            .catch(() => {
-                this.notify.warning(gettext('Failed to fetch item from archive'));
-                return Promise.resolve();
-            });
+            .catch(() => (
+                Promise.resolve({warnings: [{text: gettext('Failed to fetch item from archive')}]})
+            ));
     }
 
     onArchiveRewrite(item) {

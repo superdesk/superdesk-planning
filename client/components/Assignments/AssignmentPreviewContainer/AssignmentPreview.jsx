@@ -2,11 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
-import {gettext, stringUtils} from '../../../utils';
+import {gettext, stringUtils, assignmentUtils, planningUtils} from '../../../utils';
 
 import {InternalNoteLabel} from '../../';
 import {ContactsPreviewList} from '../../Contacts/index';
 import {Row} from '../../UI/Preview';
+import {FileReadOnlyList} from '../../UI';
 
 // eslint-disable-next-line complexity
 export const AssignmentPreview = ({
@@ -15,6 +16,9 @@ export const AssignmentPreview = ({
     coverageFormProfile,
     planningFormProfile,
     planningItem,
+    files,
+    createLink,
+    useXmpFile,
 }) => {
     const planning = get(assignment, 'planning', {});
 
@@ -33,11 +37,17 @@ export const AssignmentPreview = ({
     const subjectText = get(planningItem, 'subject.length', 0) > 0 ?
         planningItem.subject.map((s) => s.name).join(', ') : '-';
 
+    const contactId = get(assignment, 'assigned_to.contact') ?
+        assignment.assigned_to.contact :
+        get(planning, 'contact_info');
+
+    const showXMPFiles = planningUtils.showXMPFileUIControl(assignment, useXmpFile);
+
     return (
         <div>
-            <Row label={gettext('Coverage Provider Contact')}>
+            <Row label={assignmentUtils.getContactLabel(assignment)}>
                 <ContactsPreviewList
-                    contactIds={get(planning, 'contact_info.length', 0) > 0 ? [planning.contact_info] : []}
+                    contactIds={contactId ? [contactId] : []}
                     scrollInView={true}
                     scrollIntoViewOptions={{block: 'center'}}
                     tabEnabled={true}
@@ -82,11 +92,35 @@ export const AssignmentPreview = ({
             <Row
                 enabled={get(coverageFormProfile, 'editor.internal_note.enabled')}
                 label={gettext('Internal Note')}
-                noPadding={true}
             >
                 <InternalNoteLabel item={planning} showTooltip={false}/>
                 <p>{stringUtils.convertNewlineToBreak(planning.internal_note || '-')}</p>
             </Row>
+
+            <Row
+                enabled={get(coverageFormProfile, 'editor.files.enabled')}
+                label={gettext('ATTACHMENTS')}
+                noPadding={!showXMPFiles}
+            >
+                <FileReadOnlyList
+                    formProfile={coverageFormProfile}
+                    files={files}
+                    item={planning}
+                    createLink={createLink}
+                    noToggle />
+            </Row>
+
+            {showXMPFiles && (<Row
+                label={gettext('ASSOCIATED XMP FILE')}
+                noPadding={true}
+            >
+                <FileReadOnlyList
+                    files={files}
+                    item={planning}
+                    createLink={createLink}
+                    field={'xmp_file'}
+                    noToggle />
+            </Row>)}
         </div>
     );
 };
@@ -97,4 +131,7 @@ AssignmentPreview.propTypes = {
     coverageFormProfile: PropTypes.object,
     planningFormProfile: PropTypes.object,
     planningItem: PropTypes.object,
+    files: PropTypes.array,
+    createLink: PropTypes.func,
+    useXmpFile: PropTypes.bool,
 };

@@ -18,7 +18,9 @@ export const PlanningDateTime = ({
     desks,
     activeFilter,
     contentTypes,
-    includeScheduledUpdates}) => {
+    includeScheduledUpdates,
+    contacts,
+}) => {
     const coverages = get(item, 'coverages', []);
     const coverageTypes = planningUtils.mapCoverageByDate(coverages);
     const hasAssociatedEvent = !!get(item, 'event_item');
@@ -57,7 +59,9 @@ export const PlanningDateTime = ({
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
                     coverage={coverage}
-                    contentTypes={contentTypes} />
+                    contentTypes={contentTypes}
+                    contacts={contacts}
+                />
             )}
         </span>
     );
@@ -73,4 +77,5 @@ PlanningDateTime.propTypes = {
     activeFilter: PropTypes.string,
     contentTypes: PropTypes.array,
     includeScheduledUpdates: PropTypes.bool,
+    contacts: PropTypes.object,
 };

@@ -143,6 +143,7 @@ export class PlanningItem extends React.Component {
             refNode,
             contentTypes,
             agendas,
+            contacts,
         } = this.props;
 
         if (!item) {
@@ -235,6 +236,7 @@ export class PlanningItem extends React.Component {
                             desks,
                             activeFilter,
                             contentTypes,
+                            contacts,
                         })}
                     </Row>
                 </Column>
@@ -297,4 +299,5 @@ PlanningItem.propTypes = {
     [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]: PropTypes.func,
+    contacts: PropTypes.object,
 };

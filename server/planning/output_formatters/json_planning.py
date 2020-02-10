@@ -38,6 +38,7 @@ class JsonPlanningFormatter(Formatter):
 
     # fields to be removed from coverage
     remove_coverage_fields = ('original_creator', 'version_creator', 'assigned_to', 'flags')
+    remove_coverage_planning_fields = ('contact_info', 'files', 'xmp_file')
 
     def can_format(self, format_type, article):
         if article.get('flags', {}).get('marked_for_not_publication', False):
@@ -63,8 +64,9 @@ class JsonPlanningFormatter(Formatter):
             for f in self.remove_coverage_fields:
                 coverage.pop(f, None)
 
-            # Remove contacts field in coverage
-            coverage.get('planning').pop('contact_info', None)
+            for key in self.remove_coverage_planning_fields:
+                if key in (coverage.get('planning') or {}):
+                    coverage['planning'].pop(key, None)
 
         output_item['agendas'] = self._expand_agendas(item)
         return output_item

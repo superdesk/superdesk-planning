@@ -637,6 +637,8 @@ const getCoverageReadOnlyFields = (
             newsCoverageStatus: true,
             scheduled: readOnly || get(addNewsItemToPlanning, 'state') === 'published',
             flags: scheduledUpdatesExist,
+            files: true,
+            xmp_file: true,
         };
     }
 
@@ -661,6 +663,8 @@ const getCoverageReadOnlyFields = (
             newsCoverageStatus: true,
             scheduled: readOnly,
             flags: true,
+            files: readOnly,
+            xmp_file: readOnly,
         };
     case ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS:
     case ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED:
@@ -674,6 +678,8 @@ const getCoverageReadOnlyFields = (
             newsCoverageStatus: true,
             scheduled: readOnly,
             flags: true,
+            files: readOnly,
+            xmp_file: readOnly,
         };
     case ASSIGNMENTS.WORKFLOW_STATE.COMPLETED:
         return {
@@ -686,6 +692,8 @@ const getCoverageReadOnlyFields = (
             newsCoverageStatus: true,
             scheduled: readOnly,
             flags: true,
+            files: readOnly,
+            xmp_file: readOnly,
         };
     case ASSIGNMENTS.WORKFLOW_STATE.CANCELLED:
         return {
@@ -698,6 +706,8 @@ const getCoverageReadOnlyFields = (
             newsCoverageStatus: true,
             scheduled: true,
             flags: true,
+            files: readOnly,
+            xmp_file: readOnly,
         };
     case null:
     default:
@@ -711,6 +721,8 @@ const getCoverageReadOnlyFields = (
             newsCoverageStatus: readOnly,
             scheduled: readOnly,
             flags: scheduledUpdatesExist,
+            files: readOnly,
+            xmp_file: readOnly,
         };
     }
 };
@@ -880,6 +892,8 @@ const defaultPlanningValues = (currentAgenda, defaultPlaceList) => {
     return self.modifyForClient(newPlanning);
 };
 
+const getDefaultCoverageStatus = (newsCoverageStatus) => newsCoverageStatus[0];
+
 const defaultCoverageValues = (
     newsCoverageStatus,
     planningItem,
@@ -897,7 +911,7 @@ const defaultCoverageValues = (
             scheduled: get(planningItem, 'planning_date', moment()),
             g2_content_type: g2contentType,
         },
-        news_coverage_status: newsCoverageStatus[0],
+        news_coverage_status: getDefaultCoverageStatus(newsCoverageStatus),
         workflow_status: WORKFLOW_STATE.DRAFT,
     };
 
@@ -986,7 +1000,7 @@ const isFeaturedPlanningUpdatedAfterPosting = (item) => {
 };
 
 const shouldFetchFilesForPlanning = (planning) => (
-    get(planning, 'files', []).filter((f) => typeof (f) === 'string'
+    self.getPlanningFiles(planning).filter((f) => typeof (f) === 'string'
             || f instanceof String).length > 0
 );
 
@@ -1032,6 +1046,29 @@ const getActiveCoverage = (updatedCoverage, newsCoverageStatus) => {
 
     return coverage;
 };
+
+const getPlanningFiles = (planning) => {
+    let filesToFetch = get(planning, 'files') || [];
+
+    (get(planning, 'coverages') || []).forEach((c) => {
+        if ((c.planning.files || []).length) {
+            filesToFetch = [
+                ...filesToFetch,
+                ...c.planning.files,
+            ];
+        }
+
+        if (c.planning.xmp_file) {
+            filesToFetch.push(c.planning.xmp_file);
+        }
+    });
+
+    return filesToFetch;
+};
+
+const showXMPFileUIControl = (coverage, useXmpFile) => (
+    get(coverage, 'planning.g2_content_type') === 'picture' && useXmpFile
+);
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -1083,6 +1120,9 @@ const self = {
     getCoverageDateText,
     getActiveCoverage,
     canAddScheduledUpdateToWorkflow,
+    getDefaultCoverageStatus,
+    getPlanningFiles,
+    showXMPFileUIControl,
 };
 
 export default self;

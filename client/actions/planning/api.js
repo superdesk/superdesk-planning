@@ -867,13 +867,18 @@ const unpost = (original, updates) => (
 
 /**
  * Action for updating the list of planning items in the redux store
+ * Also loads all the associated contacts (if any)
  * @param  {array, object} plannings - An array of planning item objects
- * @return action object
  */
-const receivePlannings = (plannings) => ({
-    type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
-    payload: plannings,
-});
+const receivePlannings = (plannings) => (
+    (dispatch) => {
+        dispatch(actions.contacts.fetchContactsFromPlanning(plannings));
+        dispatch({
+            type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
+            payload: plannings,
+        });
+    }
+);
 
 /**
  * Action dispatcher that attempts to unlock a Planning item through the API
@@ -950,20 +955,27 @@ const fetchFeaturedPlanningItemById = (id) => (
 );
 
 const fetchPlanningFiles = (planning) => (
-    (dispatch, getState, {api}) => {
+    (dispatch, getState) => {
         if (!planningUtils.shouldFetchFilesForPlanning(planning)) {
             return Promise.resolve();
         }
 
+        const filesToFetch = planningUtils.getPlanningFiles(planning);
         const filesInStore = selectors.general.files(getState());
 
-        if (every(planning.files, (f) => f in filesInStore)) {
+        if (every(filesToFetch, (f) => f in filesInStore)) {
             return Promise.resolve();
         }
 
-        return api('planning_files').query(
+        return dispatch(getFiles(filesToFetch));
+    }
+);
+
+const getFiles = (files) => (
+    (dispatch, getState, {api}) => (
+        api('planning_files').query(
             {
-                where: {$and: [{_id: {$in: planning.files}}]},
+                where: {$and: [{_id: {$in: files}}]},
             }
         )
             .then((data) => {
@@ -974,8 +986,8 @@ const fetchPlanningFiles = (planning) => (
                     });
                 }
                 return Promise.resolve();
-            });
-    }
+            })
+    )
 );
 
 
@@ -1132,6 +1144,7 @@ const self = {
     fetchPlanningFiles,
     uploadFiles,
     removeFile,
+    getFiles,
 };
 
 export default self;

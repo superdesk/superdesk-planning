@@ -8,10 +8,11 @@
 
 """Superdesk Files"""
 
+import logging
+from flask import current_app as app
 import superdesk
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,15 @@ class EventsFilesService(superdesk.Service):
     def on_create(self, docs):
         for doc in docs:
             # save the media id to retrieve the file later
-            doc['filemeta'] = {'media_id': doc['media']}
+            if 'media' in doc:
+                _file = app.media.get(doc['media'])
+                if _file:
+                    doc['filemeta'] = {
+                        'media_id': doc['media'],
+                        'content_type': _file.content_type,
+                        'filename': _file.filename,
+                        'length': _file.length
+                    }
 
     def on_created(self, docs):
         for doc in docs:
