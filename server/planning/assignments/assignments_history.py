@@ -45,7 +45,8 @@ class AssignmentsHistoryService(HistoryService):
     def _save_history(self, assignment, update, operation):
         user = self.get_user_id()
         # confirmation could be from external fulfillment, so set the user to the assignor
-        if operation == ASSIGNMENT_HISTORY_ACTIONS.CONFIRM and self.get_user_id() is None:
+        if operation in [ASSIGNMENT_HISTORY_ACTIONS.CONFIRM, ASSIGNMENT_HISTORY_ACTIONS.START_WORKING] \
+                and self.get_user_id() is None:
             assigned_to = update.get('assigned_to')
             user = update.get('proxy_user', assigned_to.get('assignor_user', assigned_to.get('assignor_desk')))
         history = {
