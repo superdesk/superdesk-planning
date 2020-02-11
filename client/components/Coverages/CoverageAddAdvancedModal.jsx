@@ -126,7 +126,7 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                         <small>{gettext('(advanced mode)')}</small>
                     </h3>
                 </Modal.Header>
-                <Modal.Body noScroll>
+                <Modal.Body>
                     <div className="sd-list-item-group sd-list-item-group--space-between-items">
                         {this.state.coverages.map((coverage, index) => (
                             <div key={coverage.id} className="sd-list-item sd-shadow--z1">
