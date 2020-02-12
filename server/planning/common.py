@@ -569,3 +569,12 @@ def get_coverage_for_assignment(assignment):
     planning_item = get_resource_service('planning').find_one(req=None, _id=assignment.get('planning_item'))
     return next((c for c in (planning_item or {}).get('coverages', [])
                  if c['coverage_id'] == assignment['coverage_item']), None)
+
+
+def strip_text_fields(item, fields=['name', 'slugline']):
+    if not item:
+        return
+
+    for f in fields:
+        if item.get(f):
+            item[f] = item[f].strip()
