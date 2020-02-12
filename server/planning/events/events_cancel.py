@@ -16,7 +16,7 @@ from planning.common import UPDATE_FUTURE, WORKFLOW_STATE, remove_lock_informati
 from copy import deepcopy
 from .events import EventsResource, events_schema
 from .events_base_service import EventsBaseService
-from flask import current_app as app
+from flask import current_app as app, request
 from superdesk.errors import SuperdeskApiError
 
 event_cancel_schema = deepcopy(events_schema)
@@ -99,14 +99,8 @@ class EventsCancelService(EventsBaseService):
         plans = list(planning_service.find(where={'event_item': original[config.ID_FIELD]}))
         for plan in plans:
             if plan.get('state') != WORKFLOW_STATE.CANCELLED:
-                updated_plan = planning_cancel_service.patch(
-                    plan[config.ID_FIELD],
-                    {'reason': reason, 'event_cancellation': True}
-                )
-                app.on_updated_planning_cancel(
-                    updated_plan,
-                    plan
-                )
+                request.view_args['event_cancellation'] = True
+                planning_cancel_service.patch(plan[config.ID_FIELD], {'reason': reason})
 
     @staticmethod
     def _set_event_cancelled(updates, original, occur_cancel_state):
