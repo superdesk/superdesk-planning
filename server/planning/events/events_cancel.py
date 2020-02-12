@@ -16,7 +16,7 @@ from planning.common import UPDATE_FUTURE, WORKFLOW_STATE, remove_lock_informati
 from copy import deepcopy
 from .events import EventsResource, events_schema
 from .events_base_service import EventsBaseService
-from flask import current_app as app, request
+from flask import request
 from superdesk.errors import SuperdeskApiError
 
 event_cancel_schema = deepcopy(events_schema)

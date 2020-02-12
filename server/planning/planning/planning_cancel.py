@@ -120,8 +120,9 @@ class PlanningCancelService(BaseService):
 
     def on_updated(self, updates, original):
         lock_action = original.get('lock_action')
-        if request.view_args.get('event_cancellation') or lock_action in [ITEM_ACTIONS.EDIT, ITEM_ACTIONS.PLANNING_CANCEL,
-                           ITEM_ACTIONS.CANCEL_ALL_COVERAGE] or self.is_related_event_completed(updates, original):
+        allowed_actions = [ITEM_ACTIONS.EDIT, ITEM_ACTIONS.PLANNING_CANCEL, ITEM_ACTIONS.CANCEL_ALL_COVERAGE]
+        if request.view_args.get('event_cancellation') or lock_action in allowed_actions or \
+                self.is_related_event_completed(updates, original):
             update_post_item(updates, original)
 
     def is_related_event_completed(self, updates, original):
