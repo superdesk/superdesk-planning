@@ -36,7 +36,7 @@ from .events_base_service import EventsBaseService
 from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, get_max_recurrent_events, \
     WORKFLOW_STATE, ITEM_STATE, remove_lock_information, format_address, update_post_item, \
     post_required, POST_STATE, get_event_max_multi_day_duration, set_original_creator, set_ingested_event_state, \
-    LOCK_ACTION
+    LOCK_ACTION, strip_text_fields
 from .events_schema import events_schema
 
 logger = logging.getLogger(__name__)
@@ -211,6 +211,7 @@ class EventsService(superdesk.Service):
         # Remove duplicated calendars
         # uniq_qcodes = list_uniq_with_order([o['qcode'] for o in updates['calendars']])
         # updates['calendars'] = [cal for cal in existing_calendars.get('items', []) if cal['qcode'] in uniq_qcodes]
+        strip_text_fields(updates)
 
     def _validate_convert_to_recurring(self, updates, original):
         """Validates if the convert to recurring action is valid.
