@@ -1,6 +1,6 @@
 # Superdesk Planning Changelog
 
-## [1.10.1-rc3] Not Released Yet
+## [1.10.1-rc4] Not Released Yet
 ### Features
 - [SDESK-4767] Feature to attach files to coverages (#1403)
 - [SDESK-4775] Attach .xmp file to picture assignments (#1405)
@@ -11,6 +11,7 @@
 - [SDESK-4979] Add coverage provider and assigned user names to coverages on posting the planning item (#1424)
 - [SDESK-5001] Coverage Icons for graphic, video_explainer and live_blog (#1428)
 - [SDESK-4903] (1.10) Show FulfilAssignment challenge on archive send (#1425)
+- [SDESK-5022] Remove whitespace from the beginning and end of the name and slugline when saving an Event or Planning item and Coverages (#1432)
 
 ### Fixes
 - [SDESK-4889] Bug while removing an agenda (#1401)
@@ -32,6 +33,10 @@
 - [SDESK-4980] Create two locations with same name (#1420)
 - [SDESK-4888] Wrong coverage history on creation (#1427)
 - [SDESK-5004] Turning on the 'NOT FOR PUBLICATION' toggle enables the 'SAVE & POST' button in the Planning editor (#1426)
+- [SDESK-5019] FIX: Add scrolling for coverage types list in add coverage advance mode. (#1430)
+- [SDESK-5025] Related planning item(s) not published when event is cancelled (#1431)
+- [SDESK-5030] Scheduled Update not in delivery record (#1433)
+- fix(behave): Add privilege error message in expected response (#1435)
 
 ## [1.10.0] 2019-12-12
 ### Features
