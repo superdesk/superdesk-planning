@@ -628,7 +628,8 @@ Feature: Duplicate Planning
                     "end": "2029-11-21T14:00:00.000Z",
                     "tz": "Australia/Sydney"
                 },
-                "state": "draft",
+                "state": "scheduled",
+                "pubstatus": "usable",
                 "lock_user": "#CONTEXT_USER_ID#",
                 "lock_session": "#SESSION_ID#",
                 "lock_action": "cancel",
@@ -649,6 +650,9 @@ Feature: Duplicate Planning
         }]
         """
         When we perform cancel on events "123"
+        """
+        {"reason": "Cancelling the Event"}
+        """
         Then we get OK response
         When we get "/events"
         Then we get a list with 1 items

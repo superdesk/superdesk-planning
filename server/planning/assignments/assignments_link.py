@@ -55,7 +55,10 @@ class AssignmentsLinkService(Service):
                 # Update the delivery for the item if one exists
                 delivery = delivery_service.find_one(req=None, item_id=item[config.ID_FIELD])
                 if delivery:
-                    delivery_service.patch(delivery['_id'], {'assignment_id': assignment['_id']})
+                    delivery_service.patch(delivery['_id'], {
+                        'assignment_id': assignment['_id'],
+                        'scheduled_update_id': assignment.get('scheduled_update_id'),
+                    })
                 else:
                     # Add a delivery for the item
                     deliveries.append({

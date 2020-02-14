@@ -3,7 +3,7 @@ export function waitForPageLoad() {
     cy.log('UI.waitForPageLoad');
     // Set the timeout waiting for this button to 60 seconds
     // as this can sometimes take a while on initial load
-    cy.get('.icon-plus-large', {timeout: 60000});
+    cy.get('.icon-plus-large', {timeout: 180000});
 }
 
 export {ActionMenu} from './actionMenu';

@@ -125,7 +125,7 @@ Feature: Agenda
         """
         Then we get error 403
         """
-        {"_message": "", "_status": "ERR"}
+        {"_message": "Insufficient privileges for the requested operation.", "_status": "ERR"}
         """
         When we patch "/users/#CONTEXT_USER_ID#"
         """
