@@ -338,12 +338,13 @@ class AssignmentsService(superdesk.Service):
         # The assignment is to an external contact or a user
         if assigned_to.get('contact') or assigned_to.get('user'):
             # If it is a reassignment
+            meta_msg = 'assignment_details_internal_email' if assigned_to.get('user') else 'assignment_details_email'
             if original.get('assigned_to'):
                 # it is being reassigned by the original assignee, notify the new assignee
                 if original.get('assigned_to', {}).get('user', '') == str(user.get(config.ID_FIELD, None)):
                     PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
                                                               message='assignment_reassigned_1_msg',
-                                                              meta_message='assignment_details_email',
+                                                              meta_message=meta_msg,
                                                               coverage_type=get_coverage_type_name(coverage_type),
                                                               slugline=slugline,
                                                               desk=desk_name,
@@ -357,7 +358,7 @@ class AssignmentsService(superdesk.Service):
                     if assigned_to.get('desk'):
                         PlanningNotifications().notify_assignment(target_desk=assigned_to.get('desk'),
                                                                   message='assignment_reassigned_3_msg',
-                                                                  meta_message='assignment_details_email',
+                                                                  meta_message=meta_msg,
                                                                   assignee=assignee,
                                                                   client_url=client_url,
                                                                   assignment_id=assignment_id,
@@ -384,7 +385,7 @@ class AssignmentsService(superdesk.Service):
                         PlanningNotifications().notify_assignment(target_desk=assigned_to.get('desk'),
                                                                   target_desk2=original.get('assigned_to').get('desk'),
                                                                   message='assignment_reassigned_2_msg',
-                                                                  meta_message='assignment_details_email',
+                                                                  meta_message=meta_msg,
                                                                   coverage_type=get_coverage_type_name(coverage_type),
                                                                   slugline=slugline,
                                                                   assignee=assignee,
@@ -406,7 +407,7 @@ class AssignmentsService(superdesk.Service):
                                                                       'desk') if original.get('assigned_to').get(
                                                                       'user') is None else None,
                                                                   message='assignment_reassigned_3_msg',
-                                                                  meta_message='assignment_details_email',
+                                                                  meta_message=meta_msg,
                                                                   coverage_type=get_coverage_type_name(coverage_type),
                                                                   slugline=slugline,
                                                                   assignee=assignee,
@@ -426,7 +427,7 @@ class AssignmentsService(superdesk.Service):
                         old_assignee = assigned_from_user.get('display_name') if assigned_from_user else None
                         PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
                                                                   message='assignment_reassigned_4_msg',
-                                                                  meta_message='assignment_details_email',
+                                                                  meta_message=meta_msg,
                                                                   coverage_type=get_coverage_type_name(coverage_type),
                                                                   slugline=slugline,
                                                                   assignor=user.get('display_name', ''),
@@ -445,7 +446,7 @@ class AssignmentsService(superdesk.Service):
                 if str(user.get(config.ID_FIELD, None)) != assigned_to.get('user', ''):
                     PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
                                                               message='assignment_assigned_msg',
-                                                              meta_message='assignment_details_email',
+                                                              meta_message=meta_msg,
                                                               coverage_type=get_coverage_type_name(coverage_type),
                                                               slugline=slugline,
                                                               client_url=client_url,
