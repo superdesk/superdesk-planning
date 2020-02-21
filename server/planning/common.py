@@ -134,6 +134,12 @@ def get_planning_xmp_assignment_mapping(current_app=None):
     return app.config.get('PLANNING_XMP_ASSIGNMENT_MAPPING', '')
 
 
+def get_assignment_acceptance_email_address(current_app=None):
+    if current_app is not None:
+        return current_app.config.get('PLANNING_ACCEPT_ASSIGNMENT_EMAIL', '')
+    return app.config.get('PLANNING_ACCEPT_ASSIGNMENT_EMAIL', '')
+
+
 def remove_lock_information(item):
     item.update({
         LOCK_USER: None,

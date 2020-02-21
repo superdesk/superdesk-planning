@@ -15,7 +15,7 @@ import superdesk
 from jinja2 import Template, TemplateNotFound
 from superdesk.errors import SuperdeskApiError
 from superdesk.celery_app import celery
-from planning.common import WORKFLOW_STATE
+from planning.common import WORKFLOW_STATE, get_assignment_acceptance_email_address
 from superdesk.emails import send_email
 from flask import current_app as app, render_template
 from flask_mail import Attachment
@@ -93,8 +93,8 @@ class PlanningNotifications():
             args = {
                 'target_user': target_user,
                 'contact_id': contact_id,
-                'text_message': _get_email_message_string(source, meta_message, data),
-                'html_message': _get_email_message_html(source, meta_message, data),
+                'source': source,
+                'meta_message': meta_message,
                 'data': data
             }
             self._notify_email.apply_async(kwargs=args, serializer="eve/json")
@@ -140,8 +140,8 @@ class PlanningNotifications():
             _send_to_slack_desk_channel(sc, target_desk2, message)
 
     @celery.task(bind=True)
-    def _notify_email(self, target_user, contact_id, text_message, html_message, data):
-        _send_user_email(target_user, contact_id, text_message, html_message, data)
+    def _notify_email(self, target_user, contact_id, source, meta_message, data):
+        _send_user_email(target_user, contact_id, source, meta_message, data)
 
 
 def _get_slack_client(token):
@@ -227,7 +227,7 @@ def _get_email_message_html(message, meta_message, data):
         return template_string
 
 
-def _send_user_email(user_id, contact_id, text_message, html_message, data):
+def _send_user_email(user_id, contact_id, source, meta_message, data):
     """
     Send a notification to the user email
 
@@ -241,8 +241,10 @@ def _send_user_email(user_id, contact_id, text_message, html_message, data):
     if contact_id:
         contact = superdesk.get_resource_service('contacts').find_one(req=None, _id=contact_id)
         email_address = next(iter(contact.get('contact_email') or []), None)
+        data['recepient'] = contact
     elif user_id:
         user = superdesk.get_resource_service('users').find_one(req=None, _id=user_id)
+        data['recepient'] = user
         if not user:
             return
 
@@ -259,6 +261,11 @@ def _send_user_email(user_id, contact_id, text_message, html_message, data):
         return
 
     admins = app.config['ADMINS']
+
+    data['subject'] = 'Superdesk assignment' + ': {}'.format(data.get('slugline') if data.get('slugline') else '')
+    data['system_reciepient'] = get_assignment_acceptance_email_address()
+    html_message = _get_email_message_html(source, meta_message, data)
+    text_message = _get_email_message_string(source, meta_message, data)
 
     # Determine if there are any files attached to the event and send them as attachments
     attachments = []
@@ -292,7 +299,7 @@ def _send_user_email(user_id, contact_id, text_message, html_message, data):
                                                                                   data['assignment'][
                                                                                       'assignment_id']))
 
-    send_email(subject='Superdesk assignment' + ': {}'.format(data.get('slugline') if data.get('slugline') else ''),
+    send_email(subject=data['subject'],
                sender=admins[0],
                recipients=[email_address],
                text_body=text_message,
