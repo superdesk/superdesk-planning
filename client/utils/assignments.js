@@ -17,7 +17,20 @@ const isTextAssignment = (assignment, contentTypes = []) => {
     return get(contentType, 'content item type', get(contentType, 'qcode')) === 'text';
 };
 
-const canEditAssignment = (assignment, session, privileges, privilege) => (
+const isPictureAssignment = (assignment, contentTypes = []) => {
+    const contentType = contentTypes.find((c) => get(c, 'qcode') === get(assignment, 'planning.g2_content_type'));
+
+    return get(contentType, 'content item type', get(contentType, 'qcode')) === 'picture';
+};
+
+const canEditAssignment = (assignment, session, privileges, privilege, contentTypes) => (
+    !!privileges[privilege] &&
+        self.isNotLockRestricted(assignment, session) &&
+        self.isAssignmentInEditableState(assignment) &&
+        !self.isPictureAssignment(assignment, contentTypes)
+);
+
+const canRemoveAssignment = (assignment, session, privileges, privilege) => (
     !!privileges[privilege] &&
         self.isNotLockRestricted(assignment, session) &&
         self.isAssignmentInEditableState(assignment)
@@ -182,15 +195,15 @@ const getAssignmentItemActions = (assignment, session, privileges, contentTypes,
 
     const actionsValidator = {
         [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: () =>
-            self.canEditAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE),
+            self.canEditAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE, contentTypes),
         [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label]: () =>
             self.canCompleteAssignment(assignment, session, privileges),
         [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label]: () =>
-            self.canEditAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE),
+            self.canEditAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE, contentTypes),
         [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label]: () =>
             self.canStartWorking(assignment, session, privileges, contentTypes),
         [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.label]: () =>
-            self.canEditAssignment(assignment, session, privileges, PRIVILEGES.PLANNING_MANAGEMENT),
+            self.canRemoveAssignment(assignment, session, privileges, PRIVILEGES.PLANNING_MANAGEMENT),
         [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.label]: () =>
             self.assignmentHasContent(assignment),
         [ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.label]: () =>
@@ -338,6 +351,7 @@ const self = {
     isNotLockRestricted,
     canEditAssignment,
     canCompleteAssignment,
+    canRemoveAssignment,
     isAssignmentInEditableState,
     getAssignmentActions,
     canStartWorking,
@@ -348,6 +362,7 @@ const self = {
     isAssignmentLockRestricted,
     getAssignmentInfo,
     isTextAssignment,
+    isPictureAssignment,
     canConfirmAvailability,
     canRevertAssignment,
     isAssignmentLocked,
