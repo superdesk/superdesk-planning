@@ -66,9 +66,10 @@ class AssignmentsCompleteService(BaseService):
                     raise SuperdeskApiError.forbiddenError('Update Assignment not in correct state.')
             elif not original.get('scheduled_update_id') and assignment_state != ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
                 raise SuperdeskApiError.forbiddenError('Assignment not in progress.')
-        elif assignment_state not in [ASSIGNMENT_WORKFLOW_STATE.ASSIGNED, ASSIGNMENT_WORKFLOW_STATE.SUBMITTED]:
+        elif assignment_state not in [ASSIGNMENT_WORKFLOW_STATE.ASSIGNED, ASSIGNMENT_WORKFLOW_STATE.SUBMITTED,
+                                      ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS]:
             raise SuperdeskApiError.forbiddenError(
-                'Cannot confirm availability. Assignment should be assigned or submitted.')
+                'Cannot confirm availability. Assignment should be assigned, submitted or in progress.')
 
     def update(self, id, updates, original):
         # if the completion is being done by an external application then ensure that it is not locked
