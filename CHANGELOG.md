@@ -1,6 +1,6 @@
 # Superdesk Planning Changelog
 
-## [1.10.1-rc4] Not Released Yet
+## [1.10.1] 2020-01-31
 ### Features
 - [SDESK-4767] Feature to attach files to coverages (#1403)
 - [SDESK-4775] Attach .xmp file to picture assignments (#1405)
@@ -37,6 +37,7 @@
 - [SDESK-5025] Related planning item(s) not published when event is cancelled (#1431)
 - [SDESK-5030] Scheduled Update not in delivery record (#1433)
 - fix(behave): Add privilege error message in expected response (#1435)
+- [SDESK-5050] SendTo challenge should only appear if an Assignment is found (#1436)
 
 ## [1.10.0] 2019-12-12
 ### Features
