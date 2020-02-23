@@ -1,5 +1,15 @@
 # Superdesk Planning Changelog
 
+## [1.10.2-rc1] Not Released Yet
+### Features
+- None
+
+### Improvements
+- [SDESK-4863] Implement an Assignment Email layout that allows 'acceptance' of assignments (#1437)
+
+### Fixes
+- [SDESK-5010] Update allowed actions on pictures assignments in progress (#1429)
+
 ## [1.10.1] 2020-01-31
 ### Features
 - [SDESK-4767] Feature to attach files to coverages (#1403)
