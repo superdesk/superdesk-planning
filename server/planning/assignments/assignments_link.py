@@ -198,6 +198,11 @@ class AssignmentsLinkService(Service):
                 updates['assigned_to']['desk'] = str(actioned_item.get('task').get('desk'))
                 updated = True
 
+            # On a reassign if it was accepted clear the accept flag
+            if assignment.get('accepted', False):
+                updates['accepted'] = False
+                updated = True
+
         if need_complete:
             get_resource_service('assignments_complete').update(assignment[config.ID_FIELD], updates, assignment)
         if updated:
