@@ -134,53 +134,6 @@ describe('planning', () => {
 
                 expect(result).toEqual(initialState);
             });
-
-            it('REMOVE_ASSIGNMENT removes the lock and updates the etag', () => {
-                const result = planning(
-                    {
-                        ...initialState,
-                        plannings: {
-                            p1: {
-                                _id: 'p1',
-                                _etag: 'e123',
-                                coverages: [{
-                                    coverage_id: 'cov1',
-                                    workflow_status: 'active',
-                                    assigned_to: {
-                                        desk: 'desk1',
-                                        user: 'user1',
-                                    },
-                                }],
-                                workflow_status: 'active',
-                                lock_action: 'remove_assignment',
-                                lock_user: 'user1',
-                                lock_session: 'session1',
-                                lock_time: 'now',
-                            },
-                        },
-                    },
-                    {
-                        type: 'REMOVE_ASSIGNMENT',
-                        payload: {
-                            planning: 'p1',
-                            planning_etag: 'e456',
-                            coverage: 'cov1',
-                        },
-                    }
-                );
-
-                expect(result).toEqual({
-                    ...initialState,
-                    plannings: {
-                        p1: {
-                            _id: 'p1',
-                            _etag: 'e456',
-                            workflow_status: 'active',
-                            coverages: [{coverage_id: 'cov1', workflow_status: 'draft'}],
-                        },
-                    },
-                });
-            });
         });
 
         it('spike planning marks the planning as spiked', () => {
