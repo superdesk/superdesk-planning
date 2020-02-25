@@ -1,6 +1,6 @@
 # Superdesk Planning Changelog
 
-## [1.10.2-rc1] Not Released Yet
+## [1.10.2] 2020-02-25
 ### Features
 - None
 
