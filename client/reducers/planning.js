@@ -216,6 +216,7 @@ const planningReducer = createReducer(initialState, {
 
         let plannings = cloneDeep(state.plannings);
         let plan = plannings[payload.planning];
+
         plan._etag = payload.planning_etag;
 
         const coverage = find(get(plan, 'coverages', []), (c) => c.coverage_id === payload.coverage);
