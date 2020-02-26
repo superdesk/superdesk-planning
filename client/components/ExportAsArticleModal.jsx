@@ -31,6 +31,7 @@ export class ExportAsArticleModal extends React.Component {
         this.filterArticleTemplates = this.filterArticleTemplates.bind(this);
         this.getListElement = this.getListElement.bind(this);
         this.handleKeydown = this.handleKeydown.bind(this);
+        this.onCloseItem = this.onCloseItem.bind(this);
     }
 
     componentDidMount() {
@@ -71,6 +72,10 @@ export class ExportAsArticleModal extends React.Component {
 
     onSortChange(items) {
         this.setState({items: items});
+    }
+
+    onCloseItem(itemId) {
+        this.setState({items: this.state.items.filter((i) => i._id !== itemId)});
     }
 
     filterArticleTemplates(desk) {
@@ -126,6 +131,8 @@ export class ExportAsArticleModal extends React.Component {
                         {renderFields(get(exportListFields,
                             `${itemType}.primary_fields`, primaryFields), item, propsToComponent)}
                     </span>
+                    <button className="icon-close-small"
+                        onClick={this.onCloseItem.bind(null, item._id)} />
                 </ListRow>
                 <ListRow>
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
@@ -140,7 +147,6 @@ export class ExportAsArticleModal extends React.Component {
 
     render() {
         const {
-            items,
             desks,
             templates,
             download,
@@ -161,7 +167,7 @@ export class ExportAsArticleModal extends React.Component {
                 <Modal.Body>
                     <Row>
                         <SortItems
-                            items={items}
+                            items={this.state.items}
                             onSortChange={this.onSortChange}
                             getListElement={this.getListElement} />
                     </Row>
