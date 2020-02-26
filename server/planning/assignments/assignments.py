@@ -991,7 +991,7 @@ class AssignmentsService(superdesk.Service):
                     marked_for_delete = True
 
         # Remove assignment information from coverage
-        updated_planning = planning_service.remove_assignment(doc, unlock_planning=True)
+        updated_planning = planning_service.remove_assignment(doc)
 
         # Finally send a notification to connected clients that the Assignment
         # has been removed

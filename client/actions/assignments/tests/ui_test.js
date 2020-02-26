@@ -558,22 +558,22 @@ describe('actions.assignments.ui', () => {
 
     describe('showRemoveAssignmentModal', () => {
         beforeEach(() => {
-            sinon.stub(assignmentsUi, 'lockAssignmentAndPlanning').callsFake(
+            sinon.stub(assignmentsUi, 'lockAssignment').callsFake(
                 (item) => Promise.resolve(item)
             );
         });
 
         afterEach(() => {
-            restoreSinonStub(assignmentsUi.lockAssignmentAndPlanning);
+            restoreSinonStub(assignmentsUi.lockAssignment);
         });
 
-        it('locks both Assignment and Planning and displays the confirmation dialog', (done) => (
+        it('locks only Assignment and displays the confirmation dialog', (done) => (
             store.test(done, assignmentsUi.showRemoveAssignmentModal(data.assignments[0]))
                 .then((item) => {
                     expect(item).toEqual(data.assignments[0]);
 
-                    expect(assignmentsUi.lockAssignmentAndPlanning.callCount).toBe(1);
-                    expect(assignmentsUi.lockAssignmentAndPlanning.args[0]).toEqual([
+                    expect(assignmentsUi.lockAssignment.callCount).toBe(1);
+                    expect(assignmentsUi.lockAssignment.args[0]).toEqual([
                         data.assignments[0],
                         'remove_assignment',
                     ]);
@@ -593,8 +593,8 @@ describe('actions.assignments.ui', () => {
         ).catch(done.fail));
 
         it('returns Promise.reject on locking error', (done) => {
-            restoreSinonStub(assignmentsUi.lockAssignmentAndPlanning);
-            sinon.stub(assignmentsUi, 'lockAssignmentAndPlanning').returns(
+            restoreSinonStub(assignmentsUi.lockAssignment);
+            sinon.stub(assignmentsUi, 'lockAssignment').returns(
                 Promise.reject(errorMessage)
             );
 

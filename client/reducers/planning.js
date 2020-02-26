@@ -217,11 +217,6 @@ const planningReducer = createReducer(initialState, {
         let plannings = cloneDeep(state.plannings);
         let plan = plannings[payload.planning];
 
-        // Remove the lock from the item
-        delete plan.lock_action;
-        delete plan.lock_user;
-        delete plan.lock_time;
-        delete plan.lock_session;
         plan._etag = payload.planning_etag;
 
         const coverage = find(get(plan, 'coverages', []), (c) => c.coverage_id === payload.coverage);
