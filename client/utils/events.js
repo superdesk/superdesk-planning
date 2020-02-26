@@ -30,6 +30,7 @@ import {
     getItemInArrayById,
     getTBCDateString,
     sortBasedOnTBC,
+    sanitizeItemFields,
 } from './index';
 import moment from 'moment';
 import RRule from 'rrule';
@@ -776,6 +777,8 @@ const getEventsByDate = (events, startDate, endDate) => {
 };
 
 const modifyForClient = (event) => {
+    sanitizeItemFields(event);
+
     if (get(event, 'dates.start')) {
         event.dates.start = timeUtils.getDateInRemoteTimeZone(event.dates.start, timeUtils.localTimeZone());
         event._startTime = timeUtils.getDateInRemoteTimeZone(event.dates.start, timeUtils.localTimeZone());
