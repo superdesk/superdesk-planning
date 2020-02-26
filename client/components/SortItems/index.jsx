@@ -29,15 +29,13 @@ const SortableList = SortableContainer(({items, getListElement}) =>
 class SortItems extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {items: this.props.items};
         this.onSortEnd = this.onSortEnd.bind(this);
         this.onSortStart = this.onSortStart.bind(this);
     }
 
     onSortEnd({oldIndex, newIndex}) {
-        const newItemsOrder = arrayMove(this.state.items, oldIndex, newIndex);
+        const newItemsOrder = arrayMove(this.props.items, oldIndex, newIndex);
 
-        this.setState({items: newItemsOrder});
         document.body.style.cursor = this.cursor;
         if (this.props.onSortChange) {
             this.props.onSortChange(newItemsOrder);
@@ -52,7 +50,7 @@ class SortItems extends React.Component {
 
     render() {
         return (
-            <SortableList items={this.state.items}
+            <SortableList items={this.props.items}
                 onSortEnd={this.onSortEnd}
                 onSortStart={this.onSortStart}
                 getListElement={this.props.getListElement}
