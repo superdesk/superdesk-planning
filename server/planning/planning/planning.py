@@ -28,7 +28,7 @@ from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, get_covera
     remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name,\
     set_original_creator, list_uniq_with_order, TEMP_ID_PREFIX, DEFAULT_ASSIGNMENT_PRIORITY,\
     get_planning_allow_scheduled_updates, TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA, \
-    get_planning_xmp_assignment_mapping, strip_text_fields
+    get_planning_xmp_assignment_mapping, sanitize_input_data
 from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
@@ -211,10 +211,7 @@ class PlanningService(superdesk.Service):
                 ('planning_date' in updates and updates['planning_date'] is None):
             raise SuperdeskApiError(message="Planning item should have a date")
 
-        strip_text_fields(updates)
-        if updates.get('coverages'):
-            for c in updates['coverages']:
-                strip_text_fields(c.get('planning') or {})
+        sanitize_input_data(updates)
 
         # Validate if agendas being added are enabled agendas
         agenda_service = get_resource_service('agenda')
