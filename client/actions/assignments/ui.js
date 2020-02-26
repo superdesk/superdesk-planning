@@ -831,7 +831,7 @@ const unlockAssignmentAndPlanning = (assignment) => (
  */
 const showRemoveAssignmentModal = (assignment) => (
     (dispatch) => (
-        dispatch(self.lockAssignmentAndPlanning(assignment, ASSIGNMENTS.ITEM_ACTIONS.REMOVE.lock_action))
+        dispatch(self.lockAssignment(assignment, ASSIGNMENTS.ITEM_ACTIONS.REMOVE.lock_action))
             .then((lockedAssignment) => {
                 dispatch(showModal({
                     modalType: MODALS.CONFIRMATION,
@@ -839,7 +839,7 @@ const showRemoveAssignmentModal = (assignment) => (
                         body: gettext('This will also remove other linked assignments (if any, for story updates). '
                             + 'Are you sure?'),
                         action: () => dispatch(self.removeAssignment(lockedAssignment)),
-                        onCancel: () => dispatch(self.unlockAssignmentAndPlanning(lockedAssignment)),
+                        onCancel: () => dispatch(self.unlockAssignment(lockedAssignment)),
                         autoClose: true,
                     },
                 }));
