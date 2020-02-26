@@ -34,6 +34,7 @@ import {
     isItemPosted,
     getDateTimeString,
     sortBasedOnTBC,
+    sanitizeItemFields,
 } from './index';
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
@@ -454,6 +455,8 @@ const getPlanningActions = ({
 };
 
 export const modifyForClient = (plan) => {
+    sanitizeItemFields(plan);
+
     if (get(plan, 'planning_date')) {
         plan.planning_date = moment(plan.planning_date);
     }

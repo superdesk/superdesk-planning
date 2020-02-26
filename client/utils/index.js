@@ -1054,3 +1054,34 @@ export const iteratePromiseCallbacks = (callbacks) => (
         runNextCallback();
     })
 );
+
+export const sanitizeArrayFields = (item, fields) => {
+    if (!item) {
+        return;
+    }
+
+    const itemKeys = Object.keys(item);
+
+    (fields || ['calendars', 'place', 'contacts', 'anpa_category', 'subject', 'files', 'links', 'agenda',
+        'coverages']).forEach((f) => {
+        if (itemKeys.includes(f)) {
+            if (!Array.isArray(item[f])) {
+                item[f] = [];
+            } else {
+                item[f] = item[f].filter((v) => !!v);
+            }
+        }
+    });
+};
+
+export const sanitizeItemFields = (item) => {
+    sanitizeArrayFields(item);
+
+    if (getItemType(item) === ITEM_TYPE.PLANNING) {
+        if (get(item, 'coverages')) {
+            item.coverages.forEach((c) => {
+                sanitizeArrayFields(get(c, 'planning'), ['keyword', 'genre']);
+            });
+        }
+    }
+};
