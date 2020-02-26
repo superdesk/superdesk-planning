@@ -25,7 +25,7 @@ from apps.archive.common import get_user, get_auth, update_dates_for
 from copy import deepcopy
 from eve.utils import config, ParsedRequest, date_to_str
 from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, get_coverage_cancellation_state,\
-    remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name,\
+    WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name,\
     set_original_creator, list_uniq_with_order, TEMP_ID_PREFIX, DEFAULT_ASSIGNMENT_PRIORITY,\
     get_planning_allow_scheduled_updates, TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA, \
     get_planning_xmp_assignment_mapping, sanitize_input_data
@@ -824,7 +824,7 @@ class PlanningService(superdesk.Service):
         planning.update(new_plan)
         return planning, new_coverage
 
-    def remove_assignment(self, assignment_item, unlock_planning=False):
+    def remove_assignment(self, assignment_item):
         coverage_id = assignment_item.get('coverage_item')
         planning_item = self.find_one(req=None, _id=assignment_item.get('planning_item'))
 
@@ -866,13 +866,9 @@ class PlanningService(superdesk.Service):
         del coverage_item['assigned_to']
         coverage_item['workflow_status'] = WORKFLOW_STATE.DRAFT
 
-        updates = {'coverages': coverages}
-        if unlock_planning:
-            remove_lock_information(updates)
-
-        updated_planning = self.update(
+        updated_planning = self.system_update(
             planning_item[config.ID_FIELD],
-            updates,
+            {'coverages': coverages},
             planning_item
         )
 

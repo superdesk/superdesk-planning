@@ -53,7 +53,7 @@ Feature: Assignments Delete
 
     @auth
     @notification
-    Scenario: Cannot delete an Assignment without Assignment and Planning locks
+    Scenario: Cannot delete an Assignment without Assignment and Planning locks by same user
         When we delete "/assignments/#assignmentId#"
         Then we get error 403
         When we post to "/assignments/#assignmentId#/lock"
@@ -77,10 +77,6 @@ Feature: Assignments Delete
         Then we get existing resource
         """
         {
-            "lock_user": "__none__",
-            "lock_session": "__none__",
-            "lock_action": "__none__",
-            "lock_time": "__none__",
             "coverages": [{
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
