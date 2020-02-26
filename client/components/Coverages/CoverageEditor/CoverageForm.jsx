@@ -16,6 +16,7 @@ import {ScheduledUpdate} from '../ScheduledUpdate';
 import {
     TextInput,
     TextAreaInput,
+    ExpandableTextAreaInput,
     SelectInput,
     DateTimeInput,
     SelectTagInput,
@@ -401,7 +402,7 @@ export class CoverageFormComponent extends React.Component {
                 />
 
                 <Field
-                    component={TextAreaInput}
+                    component={ExpandableTextAreaInput}
                     field={`${field}.planning.internal_note`}
                     profileName="internal_note"
                     label={gettext('Internal Note')}

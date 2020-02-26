@@ -61,6 +61,20 @@
     }
 }
 
+.sd-line-input__expand_btn {
+    box-shadow: 0 0 3px 0 rgba(0, 0, 0, 0.4);
+    width: 21px;
+    height: 21px;
+    border: 0;
+    padding: 0;
+    background-color: #ffffff;
+    line-height: 0;
+    border-radius: 50%;
+    margin-left: 50%;
+    margin-top: -21px;
+    position: relative;
+}
+
 .sd-line-input--invalid, .form-label--invalid {
     color: $red;
 

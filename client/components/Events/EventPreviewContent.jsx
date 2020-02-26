@@ -5,7 +5,7 @@ import {gettext, getCreator, stringUtils} from '../../utils';
 import {TO_BE_CONFIRMED_FIELD} from '../../constants';
 import * as selectors from '../../selectors';
 import {get} from 'lodash';
-import {Row} from '../UI/Preview';
+import {Row, ExpandableRow} from '../UI/Preview';
 import {
     AuditInformation,
     RelatedPlannings,
@@ -169,7 +169,7 @@ export class EventPreviewContentComponent extends React.Component {
                         label={gettext('Long Description')}
                         value={stringUtils.convertNewlineToBreak(item.definition_long || '-')}
                     />
-                    <Row
+                    <ExpandableRow
                         enabled={get(formProfile, 'editor.internal_note.enabled')}
                         label={gettext('Internal Note')}
                         value={stringUtils.convertNewlineToBreak(item.internal_note || '-')}
