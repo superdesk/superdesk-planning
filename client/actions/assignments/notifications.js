@@ -373,6 +373,7 @@ self.events = {
     'assignments:removed': () => (self.onAssignmentRemoved),
     'assignments:delete:fail': () => (self.onAssignmentDeleteFailed),
     'assignments:delete': () => (self.onAssignmentDeleted),
+    'assignments:accepted': () => (self.onAssignmentUpdated),
 };
 
 export default self;
