@@ -215,6 +215,8 @@ const save = (original, updates, withConfirmation = true) => (
 
                 let savedItem = Array.isArray(savedItems) ? savedItems[0] : savedItems;
 
+                savedItem = modifyForClient(savedItem);
+
                 if (!confirmation && [ITEM_TYPE.EVENT, ITEM_TYPE.PLANNING].indexOf(itemType) >= 0) {
                     const typeString = getItemTypeString(savedItem);
 
@@ -233,8 +235,6 @@ const save = (original, updates, withConfirmation = true) => (
                             )
                         );
                     }
-
-                    savedItem = modifyForClient(savedItem);
                 }
 
                 switch (itemType) {
