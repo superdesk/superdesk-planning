@@ -93,6 +93,9 @@ class AssignmentHistoryComponent extends React.Component {
         case ASSIGNMENTS.HISTORY_OPERATIONS.START_WORKING:
             return (<span><strong>{gettext('Work started ')}</strong>{gettext('on assignment by ')}</span>);
 
+        case ASSIGNMENTS.HISTORY_OPERATIONS.ASSIGNMENT_ACCEPTED:
+            return (<span>{gettext('The assignment has been accepted ')}</span>);
+
         default:
             return null;
         }
