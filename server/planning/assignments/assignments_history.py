@@ -20,12 +20,12 @@ logger = logging.getLogger(__name__)
 
 assignment_history_actions = ['add_to_workflow', 'edit_priority', 'reassigned', 'content_link', 'complete',
                               'confirm', 'revert', 'submitted', 'cancelled', 'spike_unlink', 'unlink',
-                              'start_working', 'assignment_removed']
+                              'start_working', 'assignment_removed', 'accepted']
 ASSIGNMENT_HISTORY_ACTIONS = namedtuple('ASSIGNMENT_HISTORY_ACTIONS',
                                         ['ADD_TO_WORKFLOW', 'EDIT_PRIORITY', 'REASSIGNED', 'CONTENT_LINK',
                                          'COMPLETE', 'CONFIRM', 'REVERT', 'SUBMITTED', 'CANCELLED',
                                          'SPIKE_UNLINK', 'UNLINK', 'START_WORKING',
-                                         'ASSIGNMENT_REMOVED'])(*assignment_history_actions)
+                                         'ASSIGNMENT_REMOVED', 'ACCEPTED'])(*assignment_history_actions)
 
 
 class AssignmentsHistoryResource(Resource):

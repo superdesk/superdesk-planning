@@ -560,6 +560,39 @@ class AssignmentsService(superdesk.Service):
                                                   assignment_id=assignment.get(config.ID_FIELD),
                                                   contact_id=assigned_to.get('contact'))
 
+    def send_acceptance_notification(self, assignment):
+        """
+        On an external acceptance of an assignment send a notification to the assignor
+
+        :param assignment:
+        :return:
+        """
+        assigned_to = assignment.get('assigned_to')
+
+        if assigned_to.get('state') != ASSIGNMENT_WORKFLOW_STATE.ASSIGNED:
+            return
+
+        slugline = assignment.get('planning').get('slugline', '')
+        coverage_type = assignment.get('planning').get('g2_content_type', '')
+        target_user = assigned_to.get('assignor_user')
+
+        assignee_name = ''
+        user_id = assigned_to.get('user')
+        if user_id:
+            assigned_to_user = get_resource_service('users').find_one(req=None, _id=assigned_to.get('user'))
+            assignee_name = assigned_to_user.get('display_name')
+        else:
+            contact = superdesk.get_resource_service('contacts').find_one(req=None,
+                                                                          _id=ObjectId(assigned_to.get('contact')))
+            assignee_name = contact.get('first_name') + ' ' + contact.get('last_name')
+
+        PlanningNotifications().notify_assignment(target_user=target_user,
+                                                  slugline=slugline,
+                                                  coverage_type=coverage_type,
+                                                  message='assignment_accepted_msg',
+                                                  user=assignee_name,
+                                                  omit_user=True)
+
     def cancel_assignment(self, original_assignment, coverage, event_cancellation=False, event_reschedule=False):
         coverage_to_copy = deepcopy(coverage)
         if original_assignment:
@@ -1083,7 +1116,7 @@ class AssignmentsService(superdesk.Service):
             except SuperdeskApiError as ex:
                 # planning item is already locked.
                 use_published_planning = True
-                logger.exception(ex.message)
+                logger.exception(str(ex))
 
             if use_published_planning:
                 # use the published planning and enqueue again
@@ -1094,6 +1127,62 @@ class AssignmentsService(superdesk.Service):
             _publish_planning(plan)
         except Exception:
             logger.exception('Failed to publish assignment for planning.')
+
+    def accept_assignment(self, assignment_id, assignee):
+        """Mark an assignment as accepted
+
+        Set the accept flag in the assignment to true, assuming the assignment is assigned and the assignee is the one
+        accepting the assignment. The assignee could be either a Superdesk user or a Contact
+
+        :param assignment_id:
+        :param assignee:
+        :return:
+        """
+
+        # Fetch the assignment to ensure that it exists and is in a state that it makes sense to flag as accepted
+        original = self.find_one(req=None, _id=ObjectId(assignment_id))
+        if not original:
+            raise Exception('Accept Assignment unable to locate assignment {}'.format(assignment_id))
+
+        if (original.get('assigned_to') or {}).get('state') != ASSIGNMENT_WORKFLOW_STATE.ASSIGNED:
+            raise Exception('Assignment {} is not in assigned state'.format(assignment_id))
+
+        # try to find a user that the assignment is being accepted by
+        user_service = superdesk.get_resource_service('users')
+        user = user_service.find_one(req=None, _id=ObjectId(assignee))
+        if not user:
+            # no user try to find a contact
+            contact_service = superdesk.get_resource_service('contacts')
+            contact = contact_service.find_one(req=None, _id=ObjectId(assignee))
+            if contact:
+                # make sure it is the assigned contact accepting the assignment
+                if str(contact.get(config.ID_FIELD)) != str(original.get('assigned_to', {}).get('contact')):
+                    raise Exception('Attempt to accept assignment by contact that it is not assigned to')
+            else:
+                raise Exception(
+                    'Unknown User or Contact accepting assignment {} user/contact'.format(assignment_id, assignee))
+        else:
+            # make sure that the assignment is still assigned to the user that is accepting the assignment
+            if str(user.get(config.ID_FIELD)) != str(original.get('assigned_to', {}).get('user')):
+                raise Exception('Attempt to accept assignment by user that it is not assigned to')
+
+        # If the assignment has already been accepted bail out!
+        if original.get('accepted', False):
+            raise Exception('The assignment {} is already accepted'.format(assignment_id))
+
+        update = {'accepted': True}
+
+        # Set flag using system update, bypass locks, etag problems
+        self.system_update(ObjectId(assignment_id), update, original)
+
+        # update the history
+        superdesk.get_resource_service('assignments_history').on_item_updated(
+            update, original, ASSIGNMENT_HISTORY_ACTIONS.ACCEPTED)
+
+        # send notification
+        self.notify('assignments:accepted', update, original)
+
+        self.send_acceptance_notification(original)
 
 
 assignments_schema = {
@@ -1162,7 +1251,10 @@ assignments_schema = {
     'description_text': metadata_schema['description_text'],
 
     # Field to mark assignment for deletion if a delete operation fails
-    '_to_delete': {'type': 'boolean'}
+    '_to_delete': {'type': 'boolean'},
+
+    # Flag that indicates the assignment has been accepted
+    'accepted': {'type': 'boolean', 'default': False}
 }
 assignments_schema['planning']['schema'][TO_BE_CONFIRMED_FIELD] = TO_BE_CONFIRMED_FIELD_SCHEMA
 

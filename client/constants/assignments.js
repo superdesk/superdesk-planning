@@ -129,6 +129,7 @@ export const ASSIGNMENTS = {
         UNLINK: 'unlink',
         START_WORKING: 'start_working',
         ASSIGNMENT_REMOVED: 'assignment_removed',
+        ASSIGNMENT_ACCEPTED: 'accepted',
     },
     DEFAULT_SORT_PREFERENCE: 'assignments:default_sort',
 };
