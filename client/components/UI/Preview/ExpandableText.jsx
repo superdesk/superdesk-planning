@@ -34,7 +34,7 @@ export function ExpandableText({value, className, expandAt}) {
             gettext('Show all');
 
         text.push(
-            <a className='sd-text__expandable-link' onClick={toggleExpanded}>
+            <a className="sd-text__expandable-link" onClick={toggleExpanded}>
                 ... {linkText}
             </a>
         );
