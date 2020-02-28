@@ -249,7 +249,7 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                             checked={this.state.advancedMode}
                             onChange={() => this.setState({
                                 advancedMode: !this.state.advancedMode,
-                                isDirty: !this.state.isDirty,
+                                isDirty: true,
                             })}
                         />
                         {' '}
