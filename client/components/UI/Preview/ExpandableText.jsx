@@ -4,6 +4,8 @@ import {get} from 'lodash';
 
 import {gettext} from '../../../utils';
 
+import './style.scss';
+
 export function ExpandableText({value, className, expandAt}) {
     const valueRef = useRef();
     const [expanded, setExpanded] = useState(false);
@@ -32,7 +34,7 @@ export function ExpandableText({value, className, expandAt}) {
             gettext('Show all');
 
         text.push(
-            <a onClick={toggleExpanded} style={{cursor: 'pointer', userSelect: 'none'}}>
+            <a className='sd-text__expandable-link' onClick={toggleExpanded}>
                 ... {linkText}
             </a>
         );
