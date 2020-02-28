@@ -12,7 +12,7 @@ import {
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {get} from 'lodash';
-import {Row, ExpandableRow} from '../UI/Preview';
+import {Row, ExpandableText} from '../UI/Preview';
 import {
     AuditInformation,
     StateLabel,
@@ -136,11 +136,12 @@ export class PlanningPreviewContentComponent extends React.Component {
                     label={gettext('Description')}
                     value={stringUtils.convertNewlineToBreak(item.description_text || '-')}
                 />
-                <ExpandableRow
+                <Row
                     enabled={get(formProfile, 'planning.editor.internal_note.enabled')}
                     label={gettext('Internal Note')}
-                    value={stringUtils.convertNewlineToBreak(item.internal_note || '-')}
-                />
+                >
+                    <ExpandableText value={item.internal_note || '-'} />
+                </Row>
                 <Row
                     enabled={get(formProfile, 'planning.editor.place.enabled')}
                     label={gettext('Place')}

@@ -12,6 +12,8 @@ export class ExpandableTextArea extends React.Component {
         this.state = {
             expanded: false,
             showExpandedButton: false,
+            hover: false,
+            focus: false,
         };
         this.dom = {input: null};
         this.delayedResize = null;
@@ -19,6 +21,11 @@ export class ExpandableTextArea extends React.Component {
         this.setDomNode = this.setDomNode.bind(this);
         this.onChange = this.onChange.bind(this);
         this.toggleExpanded = this.toggleExpanded.bind(this);
+
+        this.onMouseEnter = this.onMouseEnter.bind(this);
+        this.onMouseLeave = this.onMouseLeave.bind(this);
+        this.onFocus = this.onFocus.bind(this);
+        this.onBlur = this.onBlur.bind(this);
     }
 
     setDomNode(node) {
@@ -27,6 +34,22 @@ export class ExpandableTextArea extends React.Component {
         if (this.props.refNode) {
             this.props.refNode(node);
         }
+    }
+
+    onMouseEnter() {
+        this.setState({hover: true});
+    }
+
+    onMouseLeave() {
+        this.setState({hover: false});
+    }
+
+    onFocus() {
+        this.setState({focus: true});
+    }
+
+    onBlur() {
+        this.setState({focus: false});
     }
 
     componentDidMount() {
@@ -61,34 +84,35 @@ export class ExpandableTextArea extends React.Component {
         // shrink the height back down
         this.dom.input.style.height = '5px';
 
-        if (this.dom.input.scrollHeight <= 100) {
+        if (this.state.expanded) {
             // Now set the height to the scrollHeight value to display the entire
             // text content
             this.dom.input.style['overflow-y'] = null;
             this.dom.input.style.height = `${this.dom.input.scrollHeight}px`;
-            this.setState({
-                expanded: false,
-                showExpandedButton: false,
-            });
+
+            if (this.dom.input.scrollHeight <= 100) {
+                this.setState({
+                    expanded: false,
+                    showExpandedButton: false,
+                });
+            }
+        } else if (this.dom.input.scrollHeight <= 100) {
+            // Now set the height to the scrollHeight value to display the entire
+            // text content
+            this.dom.input.style['overflow-y'] = null;
+            this.dom.input.style.height = `${this.dom.input.scrollHeight}px`;
+
+            if (this.state.showExpandedButton) {
+                this.setState({showExpandedButton: false});
+            }
         } else {
-            const maxHeight = this.state.expanded ? 500 : 100;
+            // Add scrollbar if required, and set height to the maximum height
+            this.dom.input.style['overflow-y'] = 'auto';
+            this.dom.input.style.height = '100px';
 
-            if (this.dom.input.scrollHeight >= maxHeight) {
-                // Add scrollbar if required, and set height to the maximum height
-                this.dom.input.style['overflow-y'] = 'auto';
-                this.dom.input.style.height = `${maxHeight}px`;
-            } else {
-                // Now set the height to the scrollHeight value to display the entire
-                // text content
-                this.dom.input.style['overflow-y'] = null;
-                this.dom.input.style.height = `${this.dom.input.scrollHeight}px`;
-            }
+            const scrollbarRequired = (this.dom.input.clientHeight + 5) < this.dom.input.scrollHeight;
 
-            if (!this.state.expanded) {
-                const scrollbarRequired = (this.dom.input.clientHeight + 5) < this.dom.input.scrollHeight;
-
-                this.setState({showExpandedButton: scrollbarRequired});
-            }
+            this.setState({showExpandedButton: scrollbarRequired});
         }
     }
 
@@ -139,6 +163,7 @@ export class ExpandableTextArea extends React.Component {
                     className={classNames(
                         'sd-line-input__input',
                         'sd-line-input__input--auto-height',
+                        {'sd-line-input__input--expandable': this.state.showExpandedButton},
                         className
                     )}
                     value={value}
@@ -147,16 +172,28 @@ export class ExpandableTextArea extends React.Component {
                     placeholder={readOnly ? '' : placeholder}
                     {...props}
                     onChange={readOnly ? null : this.onChange}
+                    onMouseEnter={this.onMouseEnter}
+                    onMouseLeave={this.onMouseLeave}
+                    onFocus={this.onFocus}
+                    onBlur={this.onBlur}
                 />
 
                 {this.state.showExpandedButton && (
-                    <button className="sd-line-input__expand_btn" onClick={this.toggleExpanded}>
-                        {this.state.expanded ? (
-                            <i className="icon-chevron-up-thin"/>
-                        ) : (
-                            <i className="icon-chevron-down-thin"/>
-                        )}
-                    </button>
+                    <div className={classNames(
+                        'sd-line-input__expand_btn',
+                        {
+                            'sd-line-input__expand_btn--hover': this.state.hover,
+                            'sd-line-input__expand_btn--focus': this.state.focus,
+                        }
+                    )}>
+                        <button onClick={this.toggleExpanded}>
+                            {this.state.expanded ? (
+                                <i className="icon-chevron-up-thin"/>
+                            ) : (
+                                <i className="icon-chevron-down-thin"/>
+                            )}
+                        </button>
+                    </div>
                 )}
             </Fragment>
         );
