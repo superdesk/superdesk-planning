@@ -247,7 +247,10 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                     <label style={{float: 'left'}}>
                         <input type="checkbox" id="advanced-default-mode"
                             checked={this.state.advancedMode}
-                            onChange={() => this.setState({advancedMode: !this.state.advancedMode})}
+                            onChange={() => this.setState({
+                                advancedMode: !this.state.advancedMode,
+                                isDirty: !this.state.isDirty,
+                            })}
                         />
                         {' '}
                         {gettext('make this mode the default')}
