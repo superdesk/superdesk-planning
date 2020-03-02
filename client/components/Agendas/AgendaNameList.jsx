@@ -9,22 +9,21 @@ export const AgendaNameList = ({agendas}) => {
     let tooltipElem = (agendas || []).map((a) =>
         <div key={a._id}>{a.name}{!a.is_enabled ? ' (Disabled)' : ''}</div>);
 
-    const agendaElem = (a, index, arr) => (<OverlayTrigger
-        key={a._id}
-        overlay={<Tooltip id="agenda_tooltip" className="tooltip--text-left">
-            {tooltipElem}
-        </Tooltip>}>
-        {<span
-            className={!a.is_enabled ? 'sd-list-item__text--disabled' : ''}>
-            {a.name}{index === arr.length - 1 ? '' : ', '}
-        </span>}
-    </OverlayTrigger>);
-
-
     return (<span>
         {get(agendas, 'length', 0) === 0 ? gettext('No Agenda Assigned.') :
-            sortBy(agendas.filter((a) => a), [(a) => get(a, 'name', '').toLowerCase()])
-                .map((agenda, index, arr) => agendaElem(agenda, index, arr))
+            (<OverlayTrigger
+                placement="left"
+                overlay={<Tooltip id="agenda_tooltip" className="tooltip--text-left">
+                    {tooltipElem}
+                </Tooltip>}>
+                <span>
+                    {sortBy(agendas.filter((a) => a), [(a) => get(a, 'name', '').toLowerCase()])
+                        .map((a, index, arr) => (<span
+                            key={a._id}
+                            className={!a.is_enabled ? 'sd-list-item__text--disabled' : ''}>
+                            {a.name}{index === arr.length - 1 ? '' : ', '}
+                        </span>))}</span>
+            </OverlayTrigger>)
         }
     </span>);
 };
