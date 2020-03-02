@@ -11,6 +11,7 @@ import {
     SelectInput,
     SelectMetaTermsInput,
     TextAreaInput,
+    ExpandableTextAreaInput,
     FileInput,
     InputArray,
     LinkInput,
@@ -392,7 +393,7 @@ export class EventEditorComponent extends React.Component {
                         />
 
                         <Field
-                            component={TextAreaInput}
+                            component={ExpandableTextAreaInput}
                             field="internal_note"
                             label={gettext('Internal Note')}
                             {...fieldProps}

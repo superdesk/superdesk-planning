@@ -21,6 +21,7 @@ import {ContentBlock} from '../../UI/SidePanel';
 import {
     TextInput,
     TextAreaInput,
+    ExpandableTextAreaInput,
     SelectMetaTermsInput,
     ToggleInput,
     ColouredValueInput,
@@ -557,7 +558,7 @@ export class PlanningEditorComponent extends React.Component {
                     />
 
                     <Field
-                        component={TextAreaInput}
+                        component={ExpandableTextAreaInput}
                         field="internal_note"
                         label={gettext('Internal Note')}
                         {...fieldProps}

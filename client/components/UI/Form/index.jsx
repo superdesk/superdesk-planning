@@ -8,6 +8,8 @@ export {Select} from './Select';
 export {TextInput} from './TextInput';
 export {TextArea} from './TextArea';
 export {TextAreaInput} from './TextAreaInput';
+export {ExpandableTextArea} from './ExpandableTextArea';
+export {ExpandableTextAreaInput} from './ExpandableTextAreaInput';
 export {SelectInput} from './SelectInput';
 export {FileInput} from './FileInput';
 export {LinkInput} from './LinkInput';
