@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Row as PreviewRow} from '../../UI/Preview';
+import {Row as PreviewRow, ExpandableText} from '../../UI/Preview';
 import {CollapseBox, FileReadOnlyList} from '../../UI';
 import {get} from 'lodash';
 import {gettext, stringUtils, planningUtils, assignmentUtils} from '../../../utils';
@@ -124,14 +124,12 @@ export const CoveragePreview = ({
                 />
             }
 
-            {get(formProfile, 'editor.internal_note.enabled') &&
-                <PreviewRow
-                    label={gettext('Internal Note')}
-                    value={stringUtils.convertNewlineToBreak(
-                        coverage.planning.internal_note || ''
-                    )}
-                />
-            }
+            <PreviewRow
+                enabled={get(formProfile, 'editor.internal_note.enabled')}
+                label={gettext('Internal Note')}
+            >
+                <ExpandableText value={coverage.planning.internal_note || ''} />
+            </PreviewRow>
 
             {get(formProfile, 'editor.g2_content_type.enabled') &&
                 <PreviewRow
