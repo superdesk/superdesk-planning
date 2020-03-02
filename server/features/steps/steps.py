@@ -348,11 +348,20 @@ def then_set_auto_workflow(context):
     context.app.config['PLANNING_AUTO_ASSIGN_TO_WORKFLOW'] = True
 
 
+@when('we set PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS')
+def then_set_xmp_mapping(context):
+    ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+    BEHAVE_TESTS_FIXTURES_PATH = ABS_PATH + '/steps/fixtures'
+    context.app.settings['BEHAVE_TESTS_FIXTURES_PATH'] = BEHAVE_TESTS_FIXTURES_PATH
+    context.app.config['PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS'] = True
+
+
 @when('we set PLANNING_XMP_ASSIGNMENT_MAPPING')
 def then_set_xmp_mapping(context):
     ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
     BEHAVE_TESTS_FIXTURES_PATH = ABS_PATH + '/steps/fixtures'
     context.app.settings['BEHAVE_TESTS_FIXTURES_PATH'] = BEHAVE_TESTS_FIXTURES_PATH
+    context.app.config['PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS'] = True
     context.app.config['PLANNING_XMP_ASSIGNMENT_MAPPING'] = {
         'xpath': '//x:xmpmeta/rdf:RDF/rdf:Description',
         'namespaces': {
@@ -362,6 +371,31 @@ def then_set_xmp_mapping(context):
         },
         'atribute_key': '{http://ns.adobe.com/photoshop/1.0/}TransmissionReference'
     }
+
+
+@when('we set PLANNING_XMP_SLUGLINE_MAPPING')
+def then_set_xmp_mapping(context):
+    ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+    BEHAVE_TESTS_FIXTURES_PATH = ABS_PATH + '/steps/fixtures'
+    context.app.settings['BEHAVE_TESTS_FIXTURES_PATH'] = BEHAVE_TESTS_FIXTURES_PATH
+    context.app.config['PLANNING_USE_XMP_FOR_PIC_SLUGLINE'] = True
+    context.app.config['PLANNING_XMP_SLUGLINE_MAPPING'] = {
+        'xpath': '//x:xmpmeta/rdf:RDF/rdf:Description/dc:title/rdf:Alt/rdf:li',
+        'namespaces': {
+            'x': 'adobe:ns:meta/',
+            'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+            'photoshop': 'http://ns.adobe.com/photoshop/1.0/',
+            'dc': 'http://purl.org/dc/elements/1.1/',
+        }
+    }
+
+
+@when('we set PLANNING_USE_XMP_FOR_PIC_SLUGLINE')
+def then_set_xmp_mapping(context):
+    ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+    BEHAVE_TESTS_FIXTURES_PATH = ABS_PATH + '/steps/fixtures'
+    context.app.settings['BEHAVE_TESTS_FIXTURES_PATH'] = BEHAVE_TESTS_FIXTURES_PATH
+    context.app.config['PLANNING_USE_XMP_FOR_PIC_SLUGLINE'] = True
 
 
 @then('we have string {check_string} in media stream')
