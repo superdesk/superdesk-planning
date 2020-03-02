@@ -134,6 +134,18 @@ def get_planning_xmp_assignment_mapping(current_app=None):
     return app.config.get('PLANNING_XMP_ASSIGNMENT_MAPPING', '')
 
 
+def get_planning_use_xmp_for_pic_slugline(current_app=None):
+    if current_app is not None:
+        return current_app.config.get('PLANNING_USE_XMP_FOR_PIC_SLUGLINE', False)
+    return app.config.get('PLANNING_USE_XMP_FOR_PIC_SLUGLINE', False)
+
+
+def get_planning_xmp_slugline_mapping(current_app=None):
+    if current_app is not None:
+        return current_app.config.get('PLANNING_XMP_SLUGLINE_MAPPING', '')
+    return app.config.get('PLANNING_XMP_SLUGLINE_MAPPING', '')
+
+
 def get_assignment_acceptance_email_address(current_app=None):
     if current_app is not None:
         return current_app.config.get('PLANNING_ACCEPT_ASSIGNMENT_EMAIL', '')
