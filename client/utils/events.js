@@ -199,18 +199,12 @@ const canCreatePlanningFromEvent = (event, session, privileges, locks) => (
         !isItemCancelled(event) &&
         !isItemRescheduled(event) &&
         !isItemPostponed(event) &&
-        !isItemExpired(event)
+        !isItemExpired(event) &&
+        !isItemKilled(event)
 );
 
 const canCreateAndOpenPlanningFromEvent = (event, session, privileges, locks) => (
-    !isNil(event) &&
-        !isItemSpiked(event) &&
-        !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isEventLockRestricted(event, session, locks) &&
-        !isItemCancelled(event) &&
-        !isItemRescheduled(event) &&
-        !isItemPostponed(event) &&
-        !isItemExpired(event)
+    canCreatePlanningFromEvent(event, session, privileges, locks)
 );
 
 const canPostEvent = (event, session, privileges, locks) => (
