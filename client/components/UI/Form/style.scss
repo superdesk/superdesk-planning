@@ -59,6 +59,43 @@
     .sd-line-input__input--unset-height {
         height: initial !important;
     }
+
+    .sd-line-input__input--expandable {
+        border-bottom: none !important;
+
+        &:focus {
+            box-shadow: none !important;
+        }
+    }
+}
+
+.sd-line-input__expand_btn {
+    margin-top: 10px;
+    border-top: 1px solid var(--color-input-border);
+    transition: border linear 0.2s, box-shadow linear 0.2s;
+
+    button {
+        box-shadow: 0 0 3px 0 rgba(0, 0, 0, 0.4);
+        width: 21px;
+        height: 21px;
+        border: 0;
+        padding: 0;
+        background-color: #ffffff;
+        line-height: 0;
+        border-radius: 50%;
+        margin-left: 50%;
+        margin-top: -21px;
+        position: relative;
+    }
+
+    &--hover {
+        border-top: 1px solid var(--color-input-border-hover);
+    }
+
+    &--focus {
+        border-top: 1px solid $sd-blue;
+        box-shadow: 0 -1px 0 0 $sd-blue;
+    }
 }
 
 .sd-line-input--invalid, .form-label--invalid {

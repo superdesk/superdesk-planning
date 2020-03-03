@@ -2,12 +2,12 @@
   "name": "superdesk",
   "license": "GPL-3.0",
   "dependencies": {
-    "superdesk-core": "superdesk/superdesk-client-core#1.30",
+    "superdesk-core": "superdesk/superdesk-client-core#1.31",
     "superdesk-planning": "file:../"
   },
   "devDependencies": {
-    "cypress": "^3.8.3",
-    "cypress-terminal-report": "^0.2.1",
+    "cypress": "^4.1.0",
+    "cypress-terminal-report": "^1.1.0",
     "lodash": "^4.17.15"
   },
   "scripts": {

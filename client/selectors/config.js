@@ -44,7 +44,7 @@ export const planningAllowScheduledUpdates = (state) => get(state, 'deployConfig
     false);
 
 export const useXmpFile = (state) => get(state, 'deployConfig.planning_use_xmp_for_pic_assignments',
-    false);
+    false) || get(state, 'deployConfig.planning_use_xmp_for_pic_slugline', false);
 
 export const xmpAssignmentMapping = (state) => get(state, 'deployConfig.planning_xmp_assignment_mapping',
     false);

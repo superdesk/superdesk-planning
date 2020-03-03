@@ -112,6 +112,8 @@ export class AssignmentItem extends React.Component {
 
         const assignedToProvider = assignmentUtils.isAssignedToProvider(assignment);
 
+        const isAccepted = get(assignment, 'accepted');
+
         return (
             <Column grow={true} border={false}>
                 <Row>
@@ -129,6 +131,7 @@ export class AssignmentItem extends React.Component {
                     />
 
                     <StateLabel item={assignment.assigned_to} />
+                    {isAccepted && <Label iconType="highlight" text={gettext('Accepted')} /> }
                     {hasContent && <Label text="Content" isHollow={true} iconType="darkBlue2" /> }
                     <span>
                         <InternalNoteLabel

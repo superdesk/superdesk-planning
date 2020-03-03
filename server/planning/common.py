@@ -134,6 +134,18 @@ def get_planning_xmp_assignment_mapping(current_app=None):
     return app.config.get('PLANNING_XMP_ASSIGNMENT_MAPPING', '')
 
 
+def get_planning_use_xmp_for_pic_slugline(current_app=None):
+    if current_app is not None:
+        return current_app.config.get('PLANNING_USE_XMP_FOR_PIC_SLUGLINE', False)
+    return app.config.get('PLANNING_USE_XMP_FOR_PIC_SLUGLINE', False)
+
+
+def get_planning_xmp_slugline_mapping(current_app=None):
+    if current_app is not None:
+        return current_app.config.get('PLANNING_XMP_SLUGLINE_MAPPING', '')
+    return app.config.get('PLANNING_XMP_SLUGLINE_MAPPING', '')
+
+
 def get_assignment_acceptance_email_address(current_app=None):
     if current_app is not None:
         return current_app.config.get('PLANNING_ACCEPT_ASSIGNMENT_EMAIL', '')
@@ -584,3 +596,25 @@ def strip_text_fields(item, fields=['name', 'slugline']):
     for f in fields:
         if item.get(f):
             item[f] = item[f].strip()
+
+
+def sanitize_array_fields(item, fields=['calendars', 'place', 'contacts', 'anpa_category', 'subject',
+                                        'files', 'links', 'agenda', 'coverages']):
+    for field in fields:
+        if field in item:
+            if not isinstance(item[field], list):
+                item[field] = []
+            else:
+                item[field] = [v for v in item[field] if v is not None]
+
+
+def sanitize_input_data(item):
+    if not item:
+        return
+
+    strip_text_fields(item)
+    sanitize_array_fields(item)
+
+    if item.get('type') == 'planning':
+        for c in item.get('coverages') or []:
+            sanitize_array_fields(c.get('planning') or {}, ['keyword', 'genre'])

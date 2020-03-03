@@ -3,6 +3,9 @@ module.exports = function() {
         apps: ['superdesk-planning'],
         importApps: ['superdesk-planning'],
         defaultRoute: '/workspace',
+        enabledExtensions: {
+            planning: 1,
+        },
         workspace: {
             ingest: 1,
             content: 1,

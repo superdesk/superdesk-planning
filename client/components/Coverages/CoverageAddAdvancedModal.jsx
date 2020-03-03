@@ -14,20 +14,56 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
         this.id = 1;
         this.state = {
             advancedMode: !!props.coverageAddAdvancedMode,
-            coverages: this.props.contentTypes.map((contentType) => ({
+            coverages: [],
+            isDirty: false,
+        };
+    }
+
+    componentDidMount() {
+        const {value, contentTypes, users, desks, newsCoverageStatus} = this.props;
+        const coverages = [];
+        const savedCoverages = value.map((coverage) => {
+            const contentType = contentTypes.find((type) => type.qcode === coverage.planning.g2_content_type);
+
+            return {
                 id: this.id++,
-                enabled: false,
+                enabled: true,
                 qcode: contentType.qcode,
                 name: contentType.name,
-                icon: planningUtils.getCoverageIcon(get(contentType, 'content item type') || contentType.qcode),
-                desk: null,
-                filteredDesks: this.props.desks,
-                user: null,
-                filteredUsers: this.props.users,
+                icon: contentType.icon,
+                desk: desks.find((desk) => desk._id === coverage.assigned_to.desk),
+                user: users.find((user) => user._id === coverage.assigned_to.user),
+                status: coverage.news_coverage_status,
                 popupContainer: null,
-                status: planningUtils.getDefaultCoverageStatus(this.props.newsCoverageStatus),
-            })),
-        };
+                filteredDesks: desks,
+                filteredUsers: users,
+                coverage_id: coverage.coverage_id,
+            };
+        });
+
+        contentTypes.forEach((contentType) => {
+            const presentInSavedCoverages = savedCoverages.find((coverage) => coverage.qcode === contentType.qcode);
+
+            if (presentInSavedCoverages == null) {
+                const coverageObj = {
+                    id: this.id++,
+                    enabled: false,
+                    qcode: contentType.qcode,
+                    name: contentType.name,
+                    icon: planningUtils.getCoverageIcon(get(contentType, 'content item type') || contentType.qcode),
+                    desk: null,
+                    filteredDesks: desks,
+                    user: null,
+                    filteredUsers: users,
+                    popupContainer: null,
+                    status: planningUtils.getDefaultCoverageStatus(newsCoverageStatus),
+                };
+
+                coverages.push(coverageObj);
+            }
+        });
+
+        this.setState({coverages: [...savedCoverages, ...coverages]});
     }
 
     duplicate(index, coverage) {
@@ -55,11 +91,10 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
             if (selected === coverage) {
                 return Object.assign(coverage, updates);
             }
-
             return coverage;
         });
 
-        this.setState({coverages});
+        this.setState({coverages: coverages, isDirty: true});
     }
 
     onDeskChange(selected, desk) {
@@ -84,7 +119,13 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
         const coverages = this.state.coverages
             .filter((coverage) => coverage.enabled)
             .map((coverage) => {
-                const newCoverage = this.props.createCoverage(coverage.qcode);
+                let newCoverage = {};
+
+                if (coverage.coverage_id != null) {
+                    newCoverage = this.props.value.find((val) => val.coverage_id === coverage.coverage_id);
+                } else {
+                    newCoverage = this.props.createCoverage(coverage.qcode);
+                }
 
                 newCoverage.assigned_to = {
                     user: get(coverage, 'user._id'),
@@ -97,10 +138,10 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
 
                 return newCoverage;
             });
-        const newValue = this.props.value.concat(coverages);
+
 
         // create coverages
-        this.props.onChange(this.props.field, newValue);
+        this.props.onChange(this.props.field, coverages);
 
         // save advanced mode preference
         if (this.state.advancedMode !== this.props.coverageAddAdvancedMode) {
@@ -131,7 +172,7 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                         {this.state.coverages.map((coverage, index) => (
                             <div key={coverage.id} className="sd-list-item sd-shadow--z1">
                                 <div className="sd-list-item__column">
-                                    <input type="checkbox" value={coverage.enabled}
+                                    <input type="checkbox" value={coverage.enabled} checked={coverage.enabled}
                                         onChange={() => this.updateCoverage(coverage, {enabled: !coverage.enabled})}
                                     />
                                 </div>
@@ -206,14 +247,20 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                     <label style={{float: 'left'}}>
                         <input type="checkbox" id="advanced-default-mode"
                             checked={this.state.advancedMode}
-                            onChange={() => this.setState({advancedMode: !this.state.advancedMode})}
+                            onChange={() => this.setState({
+                                advancedMode: !this.state.advancedMode,
+                                isDirty: true,
+                            })}
                         />
                         {' '}
                         {gettext('make this mode the default')}
                     </label>
                     <button className="btn" type="button" onClick={this.props.close}>{gettext('Cancel')}</button>
                     <button className="btn btn--primary" type="button"
-                        disabled={this.state.coverages.some((coverage) => coverage.enabled && isInvalid(coverage))}
+                        disabled={
+                            !this.state.isDirty
+                            || this.state.coverages.some((coverage) => coverage.enabled && isInvalid(coverage))
+                        }
                         onClick={() => this.save()}
                     >{gettext('Save')}</button>
                 </Modal.Footer>

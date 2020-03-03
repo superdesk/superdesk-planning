@@ -25,10 +25,11 @@ from apps.archive.common import get_user, get_auth, update_dates_for
 from copy import deepcopy
 from eve.utils import config, ParsedRequest, date_to_str
 from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, get_coverage_cancellation_state,\
-    remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name,\
+    WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name,\
     set_original_creator, list_uniq_with_order, TEMP_ID_PREFIX, DEFAULT_ASSIGNMENT_PRIORITY,\
     get_planning_allow_scheduled_updates, TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA, \
-    get_planning_xmp_assignment_mapping, strip_text_fields
+    get_planning_xmp_assignment_mapping, sanitize_input_data, get_planning_xmp_slugline_mapping, \
+    get_planning_use_xmp_for_pic_slugline, get_planning_use_xmp_for_pic_assignments
 from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
@@ -211,10 +212,7 @@ class PlanningService(superdesk.Service):
                 ('planning_date' in updates and updates['planning_date'] is None):
             raise SuperdeskApiError(message="Planning item should have a date")
 
-        strip_text_fields(updates)
-        if updates.get('coverages'):
-            for c in updates['coverages']:
-                strip_text_fields(c.get('planning') or {})
+        sanitize_input_data(updates)
 
         # Validate if agendas being added are enabled agendas
         agenda_service = get_resource_service('agenda')
@@ -393,6 +391,7 @@ class PlanningService(superdesk.Service):
                 coverage['firstcreated'] = utcnow()
                 set_original_creator(coverage)
                 self.set_coverage_active(coverage, updates)
+                self.set_slugline_from_xmp(coverage, None)
                 self._create_update_assignment(original, updates, coverage)
                 self.add_scheduled_updates(updates, original, coverage)
 
@@ -449,6 +448,7 @@ class PlanningService(superdesk.Service):
                     'Cannot edit content linking flag of a coverage already in workflow')
 
             self.set_coverage_active(coverage, updates)
+            self.set_slugline_from_xmp(coverage, original_coverage)
             if self.coverage_changed(coverage, original_coverage):
                 user = get_user()
                 coverage['version_creator'] = str(user.get(config.ID_FIELD)) if user else None
@@ -652,11 +652,7 @@ class PlanningService(superdesk.Service):
             updates['assigned_to']['assignment_id'] = new_assignment_id
             updates['assigned_to']['state'] = assign_state
         elif assigned_to.get('assignment_id'):
-            xmp_updated = updates['planning'].get('xmp_file') and \
-                ((original or {}).get('planning') or {}).get('xmp_file') != updates['planning']['xmp_file']
-
-            if xmp_updated:
-                self.set_xmp_file_info(updates)
+            self.set_xmp_file_info(updates, original)
 
             if not updates.get('assigned_to'):
                 if planning_original.get('state') == WORKFLOW_STATE.CANCELLED or coverage_status \
@@ -742,7 +738,7 @@ class PlanningService(superdesk.Service):
                     original_assignment
                 )
 
-            if xmp_updated:
+            if self.is_xmp_updated(updates, original):
                 PlanningNotifications().notify_assignment(
                     coverage_status=updates.get('workflow_status'),
                     target_desk=assigned_to.get('desk') if assigned_to.get('user') is None else None,
@@ -827,7 +823,7 @@ class PlanningService(superdesk.Service):
         planning.update(new_plan)
         return planning, new_coverage
 
-    def remove_assignment(self, assignment_item, unlock_planning=False):
+    def remove_assignment(self, assignment_item):
         coverage_id = assignment_item.get('coverage_item')
         planning_item = self.find_one(req=None, _id=assignment_item.get('planning_item'))
 
@@ -869,13 +865,9 @@ class PlanningService(superdesk.Service):
         del coverage_item['assigned_to']
         coverage_item['workflow_status'] = WORKFLOW_STATE.DRAFT
 
-        updates = {'coverages': coverages}
-        if unlock_planning:
-            remove_lock_information(updates)
-
-        updated_planning = self.update(
+        updated_planning = self.system_update(
             planning_item[config.ID_FIELD],
-            updates,
+            {'coverages': coverages},
             planning_item
         )
 
@@ -1055,18 +1047,17 @@ class PlanningService(superdesk.Service):
         for item in items:
             self.patch(item[config.ID_FIELD], {'recurrence_id': updates['recurrence_id']})
 
-    def set_xmp_file_info(self, updates_coverage):
-        xmp_mapping = get_planning_xmp_assignment_mapping(app)
-        if not xmp_mapping:
-            return
-
-        if not (updates_coverage.get('assigned_to') or {}).get('assignment_id') and \
-                not (updates_coverage['planning'] or {}).get('xmp_file'):
-            return
+    def get_xmp_file_for_updates(self, updates_coverage, original_coverage, for_slugline=False):
+        rv = False
+        if not (updates_coverage['planning'] or {}).get('xmp_file'):
+            return rv
 
         if not get_coverage_type_name((updates_coverage.get('planning') or {}).get('g2_content_type')) \
                 in ['Picture', 'picture']:
-            return
+            return rv
+
+        if not self.is_xmp_updated(updates_coverage, original_coverage):
+            return rv
 
         assignment_id = updates_coverage.get('_id') or updates_coverage['assigned_to'].get('assignment_id')
         xmp_file = get_resource_service('planning_files').find_one(req=None,
@@ -1076,7 +1067,7 @@ class PlanningService(superdesk.Service):
                 assignment_id,
                 updates_coverage['planning']['xmp_file']
             ))
-            return
+            return rv
 
         xmp_file = app.media.get(xmp_file['media'], resource='planning_files')
         if not xmp_file:
@@ -1084,23 +1075,59 @@ class PlanningService(superdesk.Service):
                 assignment_id,
                 updates_coverage['planning']['xmp_file']
             ))
+            return rv
+
+        if for_slugline:
+            if not get_planning_use_xmp_for_pic_slugline(app) or not get_planning_xmp_slugline_mapping(app):
+                return rv
+        else:
+            if not (updates_coverage.get('assigned_to') or {}).get('assignment_id'):
+                return rv
+
+            if not get_planning_use_xmp_for_pic_assignments(app) or not get_planning_xmp_assignment_mapping(app):
+                return rv
+
+        return xmp_file
+
+    def set_slugline_from_xmp(self, updates_coverage, original_coverage=None):
+        xmp_file = self.get_xmp_file_for_updates(updates_coverage, original_coverage, for_slugline=True)
+        if not xmp_file:
             return
 
+        parsed = etree.parse(xmp_file)
+        xmp_slugline_mapping = get_planning_xmp_slugline_mapping(app)
+        tags = parsed.xpath(xmp_slugline_mapping['xpath'], namespaces=xmp_slugline_mapping['namespaces'])
+        if tags:
+            updates_coverage['planning']['slugline'] = tags[0].text
+
+    def is_xmp_updated(self, updates_coverage, original_coverage=None):
+        return (updates_coverage['planning'].get('xmp_file') and ((original_coverage or {}).get('planning') or
+                                                                  {}).get('xmp_file') !=
+                updates_coverage['planning']['xmp_file'])
+
+    def set_xmp_file_info(self, updates_coverage, original_coverage=None):
+        xmp_file = self.get_xmp_file_for_updates(updates_coverage, original_coverage)
+        if not xmp_file:
+            return
+
+        assignment_id = updates_coverage.get('_id') or updates_coverage['assigned_to'].get('assignment_id')
         try:
-            parsed = etree.parse(xmp_file)
             mapped = False
-            tags = parsed.xpath(xmp_mapping['xpath'], namespaces=xmp_mapping['namespaces'])
+            parsed = etree.parse(xmp_file)
+            xmp_assignment_mapping = get_planning_xmp_assignment_mapping(app)
+            tags = parsed.xpath(xmp_assignment_mapping['xpath'], namespaces=xmp_assignment_mapping['namespaces'])
             if tags:
-                tags[0].attrib[xmp_mapping['atribute_key']] = assignment_id
+                tags[0].attrib[xmp_assignment_mapping['atribute_key']] = assignment_id
                 mapped = True
 
             if not mapped:
-                parent_xpath = xmp_mapping['xpath'][0: xmp_mapping['xpath'].rfind('/')]
-                parent = parsed.xpath(parent_xpath, namespaces=xmp_mapping['namespaces'])
+                parent_xpath = xmp_assignment_mapping['xpath'][0: xmp_assignment_mapping['xpath'].rfind('/')]
+                parent = parsed.xpath(parent_xpath, namespaces=xmp_assignment_mapping['namespaces'])
                 if parent:
-                    elem = etree.SubElement(parent[0], "{{{0}}}Description".format(xmp_mapping['namespaces']['rdf']),
-                                            nsmap=xmp_mapping['namespaces'])
-                    elem.attrib[xmp_mapping['atribute_key']] = assignment_id
+                    elem = etree.SubElement(parent[0],
+                                            "{{{0}}}Description".format(xmp_assignment_mapping['namespaces']['rdf']),
+                                            nsmap=xmp_assignment_mapping['namespaces'])
+                    elem.attrib[xmp_assignment_mapping['atribute_key']] = assignment_id
                 else:
                     logger.error('Cannot find xmp_mapping path in XMP file for assignment: {}'.format(assignment_id))
                     return

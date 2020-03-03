@@ -30,6 +30,7 @@ import {
     getItemInArrayById,
     getTBCDateString,
     sortBasedOnTBC,
+    sanitizeItemFields,
 } from './index';
 import moment from 'moment';
 import RRule from 'rrule';
@@ -198,18 +199,12 @@ const canCreatePlanningFromEvent = (event, session, privileges, locks) => (
         !isItemCancelled(event) &&
         !isItemRescheduled(event) &&
         !isItemPostponed(event) &&
-        !isItemExpired(event)
+        !isItemExpired(event) &&
+        !isItemKilled(event)
 );
 
 const canCreateAndOpenPlanningFromEvent = (event, session, privileges, locks) => (
-    !isNil(event) &&
-        !isItemSpiked(event) &&
-        !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isEventLockRestricted(event, session, locks) &&
-        !isItemCancelled(event) &&
-        !isItemRescheduled(event) &&
-        !isItemPostponed(event) &&
-        !isItemExpired(event)
+    canCreatePlanningFromEvent(event, session, privileges, locks)
 );
 
 const canPostEvent = (event, session, privileges, locks) => (
@@ -776,6 +771,8 @@ const getEventsByDate = (events, startDate, endDate) => {
 };
 
 const modifyForClient = (event) => {
+    sanitizeItemFields(event);
+
     if (get(event, 'dates.start')) {
         event.dates.start = timeUtils.getDateInRemoteTimeZone(event.dates.start, timeUtils.localTimeZone());
         event._startTime = timeUtils.getDateInRemoteTimeZone(event.dates.start, timeUtils.localTimeZone());
