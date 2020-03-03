@@ -1,6 +1,6 @@
 {
   "name": "superdesk-planning",
-  "version": "1.10.2",
+  "version": "1.11.0-rc1",
   "license": "AGPL-3.0",
   "description": "",
   "main": "index.js",
