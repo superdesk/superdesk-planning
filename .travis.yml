@@ -1,48 +1,103 @@
 language: python
 
 python: 3.5
-sudo: required
 
-env:
-    global:
-        - TRAVIS_NODE_VERSION="6"
-    matrix:
-        - TEST_TYPE="unit"
-        - TEST_TYPE="e2e"
+dist: bionic
 
 services:
-    - mongodb
-    - redis-server
+    - docker
 
 addons:
-    apt:
-        sources:
-            - mongodb-3.0-precise
-            - elasticsearch-2.x
-        packages:
-            - mongodb-org-server
-            - elasticsearch
-            - google-chrome-stable
+    chrome: stable
 
 cache:
-    - pip
-    - npm
+    pip: true
+    npm: true
+    directories:
+      - ~/.npm
+      - ~/.cache
 
 before_install:
-    - sudo apt-get purge elasticsearch
-    - sudo apt-get install -t stable elasticsearch
-    - nvm install $TRAVIS_NODE_VERSION
-    - node --version
-    - chmod a+x ./scripts/*
+    - |
+      if [ "$INSTALL_NODEJS" == "true" ]; then
+        nvm install 10
+      fi
+    - |
+      if [ "$INSTALL_NODE_MODULES" == "true" ]; then
+        npm ci
+      fi
+    - |
+      if [ "$INSTALL_PY_MODULES" == "true" ]; then
+        cd server
+        pip install -r requirements.txt
+        cd ..
+      fi
+    - |
+      if [ "$RUN_SERVICES" == "true" ]; then
+        docker-compose -f .travis-docker-compose.yml up -d
+        sleep 30
+      fi
+    - |
+      if [ "$E2E" == "true" ]; then
+        cd e2e/server
+        pip install -r requirements.txt
+        cd ..
+      fi
+    - |
+      if [ "$E2E" == "true" ]; then
+        npm ci
+      fi
+    - |
+      if [ "$E2E" == "true" ]; then
+        npm run build
+      fi
+    - |
+      if [ "$E2E" == "true" ]; then
+        cd server
+        honcho start &
+        cd ..
+      fi
 
-install:
-    - ./scripts/install_$TEST_TYPE.sh
-
-script:
-    - ./scripts/script_$TEST_TYPE.sh
-
-after_script:
-    - test $TEST_TYPE = "e2e" && killall -9 python
-
-after_success:
-    - test $TEST_TYPE = "unit" && coveralls-lcov -v -n coverage/lcov.info > coverage.json && coveralls --merge=coverage.json
+jobs:
+    include:
+        - name: "server"
+          env:
+            - INSTALL_NODEJS=false
+            - INSTALL_NODE_MODULES=false
+            - INSTALL_PY_MODULES=true
+            - RUN_SERVICES=true
+          script:
+            - |
+              cd server
+              flake8
+              nosetests --logging-level=ERROR
+              behave --format progress2 --logging-level=ERROR
+        - name: "client"
+          env:
+            - INSTALL_NODEJS=true
+            - INSTALL_NODE_MODULES=true
+            - INSTALL_PY_MODULES=false
+            - RUN_SERVICES=false
+          script:
+            - |
+              npm run lint
+              npm run test
+              cd server
+        - name: "e2e vol. 1 (events)"
+          env:
+            - INSTALL_NODEJS=true
+            - INSTALL_NODE_MODULES=true
+            - INSTALL_PY_MODULES=false
+            - RUN_SERVICES=true
+            - E2E=true
+            - TZ=Australia/Sydney
+          script: npm run cypress-ci -- --spec "cypress/integration/events/*.spec.js"
+        - name: "e2e vol. 2 (non-events)"
+          env:
+            - INSTALL_NODEJS=true
+            - INSTALL_NODE_MODULES=true
+            - INSTALL_PY_MODULES=false
+            - RUN_SERVICES=true
+            - E2E=true
+            - TZ=Australia/Sydney
+          script: npm run cypress-ci -- --spec "cypress/integration/!(events)/*.spec.js"
