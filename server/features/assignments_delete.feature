@@ -53,7 +53,7 @@ Feature: Assignments Delete
 
     @auth
     @notification
-    Scenario: Cannot delete an Assignment without Assignment and Planning locks by same user
+    Scenario: Cannot delete an Assignment if assignment is not locked
         When we delete "/assignments/#assignmentId#"
         Then we get error 403
         When we post to "/assignments/#assignmentId#/lock"
@@ -62,7 +62,20 @@ Feature: Assignments Delete
         """
         Then we get OK response
         When we delete "/assignments/#assignmentId#"
+        Then we get OK response
+        When we get "/assignments/#assignmentId#"
+        Then we get error 404
+
+    @auth
+    @notification
+    Scenario: Can delete an Assignment if planning item is locked by the same user and session
+        When we delete "/assignments/#assignmentId#"
         Then we get error 403
+        When we post to "/assignments/#assignmentId#/lock"
+        """
+        {"lock_action": "remove_assignment"}
+        """
+        Then we get OK response
         When we post to "/planning/#planning._id#/lock"
         """
         {"lock_action": "remove_assignment"}
@@ -105,7 +118,7 @@ Feature: Assignments Delete
         }]
         """
 
-    @auth @today
+    @auth
     Scenario: Deleting an Assignment removes the assignment id from the Archive item
         When we post to "/archive"
         """

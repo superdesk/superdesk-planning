@@ -938,21 +938,11 @@ class AssignmentsService(superdesk.Service):
         # Also make sure the Planning item is locked by this user and session
         planning_service = get_resource_service('planning')
         planning_item = planning_service.find_one(req=None, _id=doc.get('planning_item'))
-        planning_item_state = (planning_item or {}).get('state')
 
-        if planning_item_state != WORKFLOW_STATE.SPIKED:
-            if not self.is_associated_planning_or_event_locked(planning_item):
-                raise SuperdeskApiError.forbiddenError(
-                    message='Lock is not obtained on the associated Planning item or Event'
-                )
-
-        # Make sure the Assignment is locked by this user and session
-        assignment_locked = is_locked_in_this_session(doc)
-        if planning_item_state in [WORKFLOW_STATE.KILLED, WORKFLOW_STATE.SPIKED] and\
-                (not doc.get('lock_user') or assignment_locked):
-            assignment_locked = True
-
-        if not assignment_locked:
+        # Make sure the Assignment is locked by this user and session unless when removing
+        # assignments during spiking/unposting planning items
+        if not is_locked_in_this_session(doc) and planning_item.get('state') not in [WORKFLOW_STATE.KILLED,
+                                                                                     WORKFLOW_STATE.SPIKED]:
             raise SuperdeskApiError.forbiddenError(
                 message='Lock is not obtained on the Assignment item'
             )
