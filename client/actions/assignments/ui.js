@@ -865,7 +865,7 @@ const removeAssignment = (assignment) => (
                 notify.error(
                     getErrorMessage(error, 'Failed to remove the Assignment')
                 );
-
+                dispatch(self.unlockAssignment(assignment));
                 return Promise.reject(error);
             })
     )
