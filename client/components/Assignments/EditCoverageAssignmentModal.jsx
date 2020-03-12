@@ -60,6 +60,7 @@ export class EditCoverageAssignmentModalComponent extends React.Component {
         } = this.props.modalProps;
 
         const {
+            valid,
             submitting,
             diff,
         } = this.state;
@@ -104,7 +105,7 @@ export class EditCoverageAssignmentModalComponent extends React.Component {
                     <Button
                         text={gettext('OK')}
                         color="primary"
-                        disabled={submitting}
+                        disabled={!valid || submitting}
                         onClick={this.onSubmit}
                         enterKeyIsClick={true}
                     />
