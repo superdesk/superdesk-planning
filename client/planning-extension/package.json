@@ -1,6 +1,5 @@
 {
   "name": "superdesk-planning-extension",
-  "version": "1.0.4",
   "files": [
     "/dist"
   ],
@@ -8,8 +7,7 @@
   "scripts": {
     "compile": "tsc -p src",
     "compile-e2e": "echo 'No end-to-end tests defined'",
-    "watch": "tsc -watch -p src",
-    "prepublish": "rm -rf dist && npm run compile"
+    "watch": "tsc -watch -p src"
   },
   "devDependencies": {
     "@types/angular": "1.6.50",
