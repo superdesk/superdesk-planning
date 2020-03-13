@@ -3,7 +3,7 @@ import React from 'react';
 import {Provider} from 'react-redux';
 import moment from 'moment';
 
-import {gettext, planningUtils} from '../utils';
+import {gettext, planningUtils, iteratePromiseCallbacks} from '../utils';
 
 import {WORKSPACE, MODALS, ASSIGNMENTS, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../constants';
 import {ModalsContainer} from '../components';
@@ -22,6 +22,7 @@ export class AssignmentsService {
         this.onPublishFromAuthoring = this.onPublishFromAuthoring.bind(this);
         this.onArchiveRewrite = this.onArchiveRewrite.bind(this);
         this.onUnloadModal = this.onUnloadModal.bind();
+        this.onSendFromAuthoring = this.onSendFromAuthoring.bind(this);
     }
 
     getAssignmentQuery(slugline, contentType) {
@@ -82,6 +83,61 @@ export class AssignmentsService {
             .catch(() => (
                 Promise.resolve({warnings: [{text: gettext('Failed to fetch item from archive')}]})
             ));
+    }
+
+    onSendFromAuthoring(items) {
+        return new Promise((parentResolve, parentReject) => {
+            const currentDesk = get(this.desks, 'active.desk');
+            const challenges = [];
+
+            items.forEach((item) => {
+                // If the archive item is already linked to an Assignment
+                // then return now (nothing needs to be done)
+                if (get(item, 'assignment_id')) {
+                    return;
+                }
+
+                const itemDeskId = get(item, 'task.desk') ?
+                    item.task.desk :
+                    currentDesk;
+
+                const itemDesk = this.desks.deskLookup[itemDeskId];
+
+                // If the item is not currently in an authoring desk,
+                // then skip checking this item
+                if (!itemDesk || itemDesk.desk_type !== 'authoring') {
+                    return;
+                }
+
+                challenges.push(() => new Promise((resolve, reject) => {
+                    // Otherwise attempt to get an open Assignment (state==assigned)
+                    // based on the slugline of the archive item
+                    this.getBySlugline(get(item, 'slugline'), get(item, 'type'))
+                        .then((data) => {
+                            // If no Assignments were found, then there is nothing to do
+                            if (get(data, '_meta.total', 0) < 1) {
+                                resolve();
+                            }
+
+                            // Show the LinkToAssignment modal for further user decisions
+                            this.showLinkAssignmentModal(item, resolve, reject);
+                        })
+                        .catch(() => {
+                            // If the API call failed, allow the publishing to continue
+                            this.notify.warning(gettext('Failed to find an Assignment to link to!'));
+
+                            resolve();
+                        });
+                }));
+            })
+
+            iteratePromiseCallbacks(challenges)
+                .then(
+                    () => parentResolve(),
+                    (error) => parentReject(error)
+                )
+                .catch((error) => parentReject(error));
+        });
     }
 
     onArchiveRewrite(item) {
