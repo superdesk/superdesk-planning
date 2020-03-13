@@ -129,7 +129,7 @@ export class AssignmentsService {
                             resolve();
                         });
                 }));
-            })
+            });
 
             iteratePromiseCallbacks(challenges)
                 .then(

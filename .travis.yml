@@ -66,23 +66,14 @@ jobs:
             - INSTALL_NODE_MODULES=false
             - INSTALL_PY_MODULES=true
             - RUN_SERVICES=true
-          script:
-            - |
-              cd server
-              flake8
-              nosetests --logging-level=ERROR
-              behave --format progress2 --logging-level=ERROR
+          script: cd server && flake8 && nosetests --logging-level=ERROR && behave --format progress2 --logging-level=ERROR
         - name: "client"
           env:
             - INSTALL_NODEJS=true
             - INSTALL_NODE_MODULES=true
             - INSTALL_PY_MODULES=false
             - RUN_SERVICES=false
-          script:
-            - |
-              npm run lint
-              npm run test
-              cd server
+          script: npm run test
         - name: "e2e vol. 1 (events)"
           env:
             - INSTALL_NODEJS=true
