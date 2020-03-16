@@ -45,7 +45,7 @@ before_install:
       fi
     - |
       if [ "$E2E" == "true" ]; then
-        npm ci
+        npm install
       fi
     - |
       if [ "$E2E" == "true" ]; then
