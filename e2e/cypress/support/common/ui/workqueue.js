@@ -33,7 +33,7 @@ export class Workqueue {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     getItem(index) {
-        return this.items.eq(index);
+        return this.items.eq(index).find('a');
     }
 
     /**
