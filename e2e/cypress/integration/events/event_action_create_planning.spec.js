@@ -23,7 +23,7 @@ describe('Planning.Events: create planning action', () => {
     };
 
     beforeEach(() => {
-        setup({fixture_profile: 'planning_prepopulate_data'});
+        setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
         addItems('events', [{
             slugline: 'Original',
             name: 'Test',
@@ -43,7 +43,6 @@ describe('Planning.Events: create planning action', () => {
             ednote: 'Ed. Note',
         }]);
 
-        cy.visit('/#/planning');
         login();
 
         waitForPageLoad();

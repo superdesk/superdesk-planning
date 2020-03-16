@@ -22,7 +22,7 @@ describe('MediaContacts: contact input', () => {
     const workqueue = new Workqueue();
 
     beforeEach(() => {
-        setup({fixture_profile: 'planning_prepopulate_data'});
+        setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
         addItems('contacts', [{
             first_name: 'Foo',
             last_name: 'Bar',
@@ -43,7 +43,6 @@ describe('MediaContacts: contact input', () => {
             contact_email: ['elder@bows.com'],
         }]);
 
-        cy.visit('/#/planning');
         login();
 
         waitForPageLoad();

@@ -10,7 +10,7 @@ describe('Planning.Events: event cancel action', () => {
     let reason;
 
     beforeEach(() => {
-        setup({fixture_profile: 'planning_prepopulate_data'});
+        setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
         addItems('events', [{
             type: 'event',
             occur_status: {
@@ -30,7 +30,6 @@ describe('Planning.Events: event cancel action', () => {
             slugline: 'Original',
         }]);
 
-        cy.visit('/#/planning');
         login();
 
         waitForPageLoad();

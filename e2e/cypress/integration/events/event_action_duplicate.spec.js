@@ -33,8 +33,7 @@ describe('Planning.Events: duplicate event', () => {
             'dates.end.time': '01:00',
         });
 
-        setup({fixture_profile: 'planning_prepopulate_data'});
-        cy.visit('/#/planning');
+        setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
         login();
         waitForPageLoad();
     });
