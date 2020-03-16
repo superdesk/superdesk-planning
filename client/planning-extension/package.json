@@ -1,4 +1,5 @@
 {
+  "private": true,
   "name": "superdesk-planning-extension",
   "files": [
     "/dist"
