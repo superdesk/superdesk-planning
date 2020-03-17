@@ -84,7 +84,8 @@ export function login() {
  * Setup the test scenario
  * @param {Object} params - The fixture profile to use
  */
-export function setup(params) {
+export function setup(params, url) {
     cy.log('Common.App.setup');
+    cy.visit(url);
     resetApp(params.fixture_profile);
 }

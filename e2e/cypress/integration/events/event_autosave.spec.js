@@ -11,9 +11,8 @@ describe('Planning.Events: autosave', () => {
     let expectedEvent;
 
     beforeEach(() => {
-        setup({fixture_profile: 'planning_prepopulate_data'});
+        setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
 
-        cy.visit('/#/planning');
         login();
 
         waitForPageLoad();

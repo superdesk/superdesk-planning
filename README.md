@@ -169,6 +169,9 @@ Below sections include the config options that can be defined in settings.py.
 * PLANNING_FULFIL_ON_PUBLISH_FOR_DESKS
     * Defaults to ''
     * Desk IDs to display fulfil challenge on publish (requires PLANNING_CHECK_FOR_ASSIGNMENT_ON_PUBLISH=true)
+* PLANNING_CHECK_FOR_ASSIGNMENT_ON_SEND
+    * Defaults to false
+    * If true, check for unfulfilled assignments when sending a story from an authoring desk to production desk
 
 ## Slack Integration
 There are a couple of steps to take to enable slack for assignment notifications.

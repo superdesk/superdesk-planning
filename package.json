@@ -31,19 +31,22 @@
     "reselect": "~3.0.1",
     "rrule": "~2.2.9",
     "ts-loader": "3.5.0",
-    "typescript": "3.5.2",
+    "typescript": "3.7.2",
     "whatwg-fetch": "~2.0.4"
   },
   "devDependencies": {
+    "@typescript-eslint/parser": "2.6.1",
     "btoa": "^1.1.2",
     "enzyme": "~3.3.0",
     "enzyme-adapter-react-16": "^1.1.1",
+    "eslint": "6.6.0",
+    "eslint-plugin-react": "7.16.0",
     "istanbul-instrumenter-loader": "0.2.0",
     "jasmine": "^2.99.0",
     "jasmine-reporters": "^2.3.0",
     "karma": "^2.0.0",
-    "karma-cli": "^1.0.1",
     "karma-chrome-launcher": "2.2.0",
+    "karma-cli": "^1.0.1",
     "karma-coverage": "1.1.1",
     "karma-jasmine": "^1.1.1",
     "karma-junit-reporter": "^1.1.0",
@@ -54,8 +57,7 @@
     "simulant": "^0.2.2",
     "sinon": "~4.4.2",
     "superdesk-code-style": "^1.1.1",
-    "superdesk-core": "superdesk/superdesk-client-core#1.31",
-    "typescript-eslint-parser": "^18.0.0",
+    "superdesk-core": "superdesk/superdesk-client-core#develop",
     "ts-node": "~7.0.1"
   }
 }
