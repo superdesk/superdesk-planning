@@ -8,9 +8,8 @@ describe('MediaContacts: contacts manager', () => {
     let contact;
 
     beforeEach(() => {
-        setup({fixture_profile: 'planning_prepopulate_data'});
+        setup({fixture_profile: 'planning_prepopulate_data'}, '/#/contacts');
 
-        cy.visit('/#/contacts');
         login();
 
         waitForPageLoad();

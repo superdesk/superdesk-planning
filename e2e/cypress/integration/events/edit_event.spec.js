@@ -32,9 +32,7 @@ describe('Planning.Events: edit metadata', () => {
             'dates.end.date': '12/12/2045',
         };
 
-        setup({fixture_profile: 'planning_prepopulate_data'});
-
-        cy.visit('/#/planning');
+        setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
         login();
 
         waitForPageLoad();
