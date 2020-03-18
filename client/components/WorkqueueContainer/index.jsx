@@ -17,13 +17,11 @@ export const WorkqueueComponent = ({
     openEditForm,
     openConfirmationModal,
 }) => (
-    <div className="opened-articles">
-        <div className="quick-actions pull-left">
-            <button>
-                <Icon icon="icon-th-large" color={ICON_COLORS.WHITE} />
-            </button>
-        </div>
-        <ul className="list full-width">
+    <div className="opened-articles-bar">
+        <button className="opened-articles-bar__quick-actions">
+            <Icon icon="icon-th-large" color={ICON_COLORS.WHITE} />
+        </button>
+        <ul className="opened-articles-bar__list">
             {workqueueItems.map((openedItem, index) => (
                 <WorkqueueItem
                     key={index}

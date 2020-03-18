@@ -7,7 +7,7 @@ export class Workqueue {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get panel() {
-        return cy.get('.opened-articles');
+        return cy.get('.opened-articles-bar');
     }
 
     /**
@@ -15,7 +15,7 @@ export class Workqueue {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get items() {
-        return this.panel.find('.workqueue-item');
+        return this.panel.find('.opened-articles-bar__item');
     }
 
     /**
@@ -45,7 +45,7 @@ export class Workqueue {
         cy.log('Common.UI.Workqueue.expectTitle');
         cy.log('UI.Workqueue.expectTitle');
         this.getItem(index)
-            .find('.item-label')
+            .find('span')
             .should('contain.text', title);
     }
 }
