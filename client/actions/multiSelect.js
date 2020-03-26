@@ -145,6 +145,40 @@ const itemBulkUnSpikeModal = (items) => (
     }
 );
 
+
+const downloadEvents = (url, data) => {
+    var req = new XMLHttpRequest();
+
+    req.open('POST', url, true);
+    req.responseType = 'blob';
+    req.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+
+    req.onload = function(event) {
+        var blob = req.response;
+        var fileName = '';
+
+        var disposition = req.getResponseHeader('Content-Disposition');
+
+        if (disposition && disposition.indexOf('attachment') !== -1) {
+            var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+            var matches = filenameRegex.exec(disposition);
+
+            if (matches != null && matches[1]) {
+                fileName = matches[1].replace(/['"]/g, '');
+            }
+        }
+
+        var link = document.createElement('a');
+
+        link.href = window.URL.createObjectURL(blob);
+        link.download = fileName;
+        link.click();
+    };
+
+    req.send(JSON.stringify(data));
+};
+
+
 const exportAsArticle = (items = [], download) => (
     (dispatch, getState, {api, notify, gettext, superdesk, $location, $interpolate, desks}) => {
         if (get(items, 'length', 0) <= 0) {
@@ -198,13 +232,14 @@ const exportAsArticle = (items = [], download) => (
 
             if (download) {
                 const timeZoneOffsetSecs = moment().utcOffset() * 60;
-                let queryString = `${url}/planning_download/events/${itemIds.join(',')}?tz=${timeZoneOffsetSecs}`;
+                let queryString = `${url}/planning_download/events?tz=${timeZoneOffsetSecs}`;
 
                 if (template) {
                     queryString = `${queryString}&template=${template}`;
                 }
 
-                window.open(queryString, '_blank');
+                downloadEvents(queryString, itemIds);
+
                 dispatch(self.deSelectEvents(null, true));
                 return Promise.resolve();
             } else {
