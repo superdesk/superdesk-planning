@@ -1067,7 +1067,11 @@ export const sanitizeArrayFields = (item, fields) => {
         'coverages']).forEach((f) => {
         if (itemKeys.includes(f)) {
             if (!Array.isArray(item[f])) {
-                item[f] = [];
+                if (item[f] instanceof Object) {
+                    item[f] = [item[f]];
+                } else {
+                    item[f] = [];
+                }
             } else {
                 item[f] = item[f].filter((v) => !!v);
             }
