@@ -16,10 +16,11 @@ export class Modal extends Popup {
     /**
      * Returns the dom node for a specific button in the footer
      * @param {string} label - The label on the button
+     * @param {number} timeout - The ms timeout when getting the button
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
-    getFooterButton(label) {
+    getFooterButton(label, timeout = 3000) {
         return this.element.find('.modal__footer')
-            .contains(label);
+            .contains(label, {timeout: timeout});
     }
 }

@@ -46,6 +46,16 @@ export class CoverageEditor extends Editor {
     }
 
     /**
+     * Waits until the coverage array components are mounted and visible
+     * @param {number} timeout - The number of ms to wait for coverages to be visible
+     */
+    waitTillVisible(timeout = 30000) {
+        this.parentEditor.element
+            .find('.coverages__array', {timeout: timeout})
+            .should('exist');
+    }
+
+    /**
      * Returns the dom node for the REASSIGN button
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */

@@ -83,9 +83,20 @@ export function login() {
 /**
  * Setup the test scenario
  * @param {Object} params - The fixture profile to use
+ * @param {string} url - The initial URL to visit
  */
 export function setup(params, url) {
     cy.log('Common.App.setup');
     cy.visit(url);
     resetApp(params.fixture_profile);
+}
+
+/**
+ * Change the workspace, i.e. Monitoring, Assignments, Planning etc
+ * @param {string} name - The data-test-id attribute for the workspace button
+ */
+export function changeWorkspace(name) {
+    cy.get('[data-test-id=workspace-navigation]')
+        .get(`[data-test-id=${name}]`)
+        .click();
 }

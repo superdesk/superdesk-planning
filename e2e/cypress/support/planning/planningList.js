@@ -89,11 +89,12 @@ export class PlanningList {
     /**
      * Assert the list has a specific number of items in it
      * @param {number} count - The expected number of items in the list
+     * @param {number} timeout - The ms timeout when getting the list
      */
-    expectItemCount(count) {
+    expectItemCount(count, timeout = 40000) {
         cy.log('Planning.List.expectItemCount');
         // Use a greater timeout here to give the server and client time to finish the request
-        this.items()
+        this.items(timeout)
             .should('have.length', count);
     }
 
