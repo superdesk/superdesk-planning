@@ -1,5 +1,31 @@
 # Superdesk Planning Changelog
 
+## [1.33.0-rc1] 2020-04-15
+### Features
+- None
+
+### Improvements
+- [SDESK-5130] Support Superdesk v1.33 (#1452)
+- [SDESK-4989] Add an [X] button to remove selected items from the Download/Export modal in Planning (#1442)
+- [SDESK-4864] Add accepted flag (#1441)
+- [SDESK-5006] Expandable textarea input for internal_note (#1443)
+- [SDESK-5072] Derive coverage slugline from XMP for photo coverages (#1448)
+
+### Fixes
+- [SDESK-4861] Remove usage of functionPoints (#1411)
+- [SDESK-5068] Sanitize Input data when saving event/planning (#1438)
+- [SDESK-4941] Unposting planing item with assignment was removing planning editor lock (#1439)
+- [SDESK-4988] Cannot save/update completed events (#1440)
+- [SDESK-5071] Creating planing from killed events (#1445)
+- [SDESK-4852] Limit calendar and agenda display in lists (#1444)
+- [SDESK-5020] FIX: Issues with advance coverage mode (#1446)
+- fix(behave): Add privilege error message in expected response (#1435)
+- chore(travis): Upgrade to use multiple stages (#1449)
+- [SDESK-5106] Cannot remove assignments (#1450)
+- [SDESK-5111] Coverage assignment ok button should not be active if a desk is not selected (#1451)
+- [SDESK-4849] Change event download to post id's rather than pass them on the URL (#1454)
+- [SDESK-5121] (fix): Issue with setting the 'genre' field for coverage (#1455)
+
 ## [1.10.2] 2020-02-25
 ### Features
 - None
