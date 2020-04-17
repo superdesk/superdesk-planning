@@ -1119,3 +1119,57 @@ Feature: Assignments Delete
         """
         { "assignment_id": null }
         """
+
+    @auth
+    Scenario: Deleting an Assignment removes assignment info from coverage autosaves
+        Given "planning_autosave"
+        """
+        [{
+            "_id": "#planning._id#",
+            "coverages": [{
+                "coverage_id": "#coverageId#",
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type" : "text"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "state": "assigned"
+                },
+                "workflow_status": "active"
+            }],
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "2018-06-01T05:19:02+0000"
+        }]
+        """
+        When we post to "/assignments/#assignmentId#/lock"
+        """
+        {"lock_action": "remove_assignment"}
+        """
+        When we post to "/planning/#planning._id#/lock"
+        """
+        {"lock_action": "remove_assignment"}
+        """
+        Then we get OK response
+        When we delete "/assignments/#assignmentId#"
+        Then we get OK response
+        When we get "/planning_autosave/#planning._id#"
+        Then we get existing resource
+        """
+        {"coverages": [{
+            "coverage_id": "#coverageId#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline",
+                    "g2_content_type" : "text"
+            },
+            "assigned_to": "__no_value__",
+            "workflow_status": "draft"
+        }]}
+        """
