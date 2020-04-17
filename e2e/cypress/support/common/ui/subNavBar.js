@@ -19,6 +19,10 @@ export class SubNavBar {
         return this.element.find('.icon-plus-large');
     }
 
+    get menuBtn() {
+        return this.element.find('.icon-dots-vertical');
+    }
+
     /**
      * Returns the dom node for the dropdown menu from the plus button
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
