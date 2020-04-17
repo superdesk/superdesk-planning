@@ -871,6 +871,11 @@ class PlanningService(superdesk.Service):
             planning_item
         )
 
+        get_resource_service('planning_autosave').on_assignment_removed(
+            planning_item[config.ID_FIELD],
+            coverage_id
+        )
+
         if planning_item.get('event_item'):
             updated_planning['event_item'] = planning_item['event_item']
 
