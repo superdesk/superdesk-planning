@@ -9,6 +9,8 @@
   "devDependencies": {
     "cypress": "^4.4.0",
     "cypress-terminal-report": "^1.1.0",
+    "extract-text-webpack-plugin": "3.0.2",
+    "gettext.js": "0.9.0",
     "grunt": "1.0.2",
     "lodash": "^4.17.15"
   },

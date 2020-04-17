@@ -25,8 +25,6 @@ export class ManageEventTemplatesModal extends React.PureComponent<IProps> {
         const {getGenericListPageComponent, ListItemColumn, ListItem} = superdeskApi.components;
         const {getFormFieldPreviewComponent, FormFieldType} = superdeskApi.forms;
 
-        const EventTemplatesComponent = getGenericListPageComponent<IEventTemplate>('events_template');
-
         const {gettext} = superdeskApi.localization;
 
         const nameField = {
@@ -43,6 +41,11 @@ export class ManageEventTemplatesModal extends React.PureComponent<IProps> {
                 nameField,
             ],
         };
+
+        const EventTemplatesComponent = getGenericListPageComponent<IEventTemplate>(
+            'events_template',
+            formConfig
+        );
 
         const renderRow = (
             key: string,
