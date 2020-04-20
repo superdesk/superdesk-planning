@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
 import moment from 'moment';
 import {get, debounce} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
 import {planningUtils, assignmentUtils, gettext, stringUtils} from '../../../utils';
-import {ASSIGNMENTS, CLICK_DELAY, TO_BE_CONFIRMED_FIELD} from '../../../constants';
+import {ASSIGNMENTS, CLICK_DELAY} from '../../../constants';
 
 import {
     UserAvatar,
@@ -18,7 +19,10 @@ import {
 } from '../../';
 import {Item, Border, Column, Row, ActionMenu} from '../../UI/List';
 
-export class AssignmentItem extends React.Component {
+import {getComponentForField, DEFAULT_ASSSIGNMENTS_LIST_VIEW} from './fields';
+import {connectServices} from 'superdesk-core/scripts/core/helpers/ReactRenderAsync';
+
+export class AssignmentItemComponent extends React.Component {
     constructor(props) {
         super(props);
 
@@ -93,84 +97,26 @@ export class AssignmentItem extends React.Component {
         );
     }
 
+    renderField(field) {
+        const FieldComponent = getComponentForField(field);
+
+        return <FieldComponent {...this.props} key={field}/>;
+    }
+
     renderContentColumn() {
-        const {
-            assignment,
-            priorities,
-            assignedDesk,
-        } = this.props;
-
-        const hasContent = assignmentUtils.assignmentHasContent(assignment);
-
-        const planningSchedule = get(assignment, 'planning.scheduled');
-
-        const isOverdue = assignmentUtils.isDue(assignment);
-        const clockIconClass = isOverdue ? 'label-icon label-icon--warning' : 'label-icon';
-
-        const assignedDeskName = get(assignedDesk, 'name') || '-';
-        const genre = get(assignment, 'planning.genre.name');
-
-        const assignedToProvider = assignmentUtils.isAssignedToProvider(assignment);
-
-        const isAccepted = get(assignment, 'accepted');
+        const listViewConfig = this.props.config.assignmentsList || DEFAULT_ASSSIGNMENTS_LIST_VIEW;
 
         return (
             <Column grow={true} border={false}>
                 <Row>
-                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                        <span className="sd-text__slugline">{get(assignment, 'planning.slugline')}</span>
-                        <span>{get(assignment, 'description_text')}</span>
-                    </span>
+                    {listViewConfig.firstLine.map((field) => (
+                        this.renderField(field)
+                    ))}
                 </Row>
                 <Row>
-                    <PriorityLabel
-                        item={assignment}
-                        priorities={priorities}
-                        tooltipFlow="right"
-                        inline={true}
-                    />
-
-                    <StateLabel item={assignment.assigned_to} />
-                    {isAccepted && <Label iconType="highlight" text={gettext('Accepted')} /> }
-                    {hasContent && <Label text="Content" isHollow={true} iconType="darkBlue2" /> }
-                    <span>
-                        <InternalNoteLabel
-                            item={assignment}
-                            prefix="planning."
-                            marginRight={true}
-                            marginLeft={true}
-                        />
-                        <span data-sd-tooltip={gettext('Due Date')}
-                            data-flow="right"
-                            className={clockIconClass}
-                        >
-                            {assignedToProvider && (
-                                <i className="icon-ingest" />
-                            )}
-                            <i className="icon-time" />
-                            {planningSchedule ? (
-                                <AbsoluteDate
-                                    date={moment(planningSchedule).format()}
-                                    className="sd-list-item__time__schedule"
-                                    toBeConfirmed={get(assignment, `planning.${TO_BE_CONFIRMED_FIELD}`)} />
-                            ) : (
-                                <span>{gettext('\'not scheduled yet\'')}</span>
-                            )}
-                            {isOverdue && <span className="label label--warning label--hollow">due</span>}
-                        </span>
-                    </span>
-                    <div className="sd-list-item__element-lm-10">
-                        <span className="sd-list-item__text-label">{gettext('Desk:')}</span>
-                        <span className="sd-overflow-ellipsis sd-list-item__text-strong">
-                            <span>{assignedDeskName}</span>
-                        </span>
-                    </div>
-                    {genre && (<div className="sd-list-item__element-lm-10">
-                        <span className="sd-list-item__text-label">{gettext('Genre:')}</span>
-                        <span className="sd-overflow-ellipsis sd-list-item__text-strong">
-                            <span>{genre}</span>
-                        </span>
-                    </div>)}
+                    {listViewConfig.secondLine.map((field) => (
+                        this.renderField(field)
+                    ))}
                 </Row>
             </Column>
         );
@@ -288,7 +234,7 @@ export class AssignmentItem extends React.Component {
     }
 }
 
-AssignmentItem.propTypes = {
+AssignmentItemComponent.propTypes = {
     assignment: PropTypes.object.isRequired,
     onClick: PropTypes.func,
     onDoubleClick: PropTypes.func,
@@ -309,4 +255,17 @@ AssignmentItem.propTypes = {
     contentTypes: PropTypes.array,
     assignedDesk: PropTypes.object,
     contacts: PropTypes.object,
+    config: PropTypes.object,
 };
+
+const mapStateToProps = (state) => ({
+    config: state.config,
+});
+
+export const AssignmentItem =
+  connect(mapStateToProps, {})(
+      connectServices(
+          AssignmentItemComponent,
+          ['api']
+      )
+  );
