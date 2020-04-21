@@ -11,30 +11,37 @@ import {PriorityComponent} from './Priority';
 import {SluglineComponent} from './Slugline';
 import {StateComponent} from './State';
 
-export const getComponentForField = (field) => {
+export const getComponentForField = (field: string) => {
     switch (field) {
-    case 'accepted': return AcceptedComponent;
-    case 'content': return ContentComponent;
-    case 'description_text': return DescriptionTextComponent;
-    case 'desk': return DeskComponent;
-    case 'due_date': return DueDateComponent;
-    case 'genre': return GenreComponent;
-    case 'headline': return HeadlineComponent;
-    case 'internal': return InternalComponent;
-    case 'name': return NameComponent;
-    case 'priority': return PriorityComponent;
-    case 'slugline': return SluglineComponent;
-    case 'state': return StateComponent;
+    case 'accepted':
+        return AcceptedComponent;
+    case 'content':
+        return ContentComponent;
+    case 'description_text':
+        return DescriptionTextComponent;
+    case 'desk':
+        return DeskComponent;
+    case 'due_date':
+        return DueDateComponent;
+    case 'genre':
+        return GenreComponent;
+    case 'headline':
+        return HeadlineComponent;
+    case 'internal':
+        return InternalComponent;
+    case 'name':
+        return NameComponent;
+    case 'priority':
+        return PriorityComponent;
+    case 'slugline':
+        return SluglineComponent;
+    case 'state':
+        return StateComponent;
     }
 };
 
 export const DEFAULT_ASSSIGNMENTS_LIST_VIEW = {
-    firstLine: [
-        'slugline',
-        'description_text',
-        'name',
-        'headline',
-    ],
+    firstLine: ['slugline', 'description_text'],
     secondLine: [
         'priority',
         'state',
@@ -46,4 +53,3 @@ export const DEFAULT_ASSSIGNMENTS_LIST_VIEW = {
         'genre',
     ],
 };
-
