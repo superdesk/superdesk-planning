@@ -1,3 +1,9 @@
+import moment from 'moment';
+import RRule from 'rrule';
+import {get, map, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
 import {
     PRIVILEGES,
     WORKFLOW_STATE,
@@ -32,9 +38,6 @@ import {
     sortBasedOnTBC,
     sanitizeItemFields,
 } from './index';
-import moment from 'moment';
-import RRule from 'rrule';
-import {get, map, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten} from 'lodash';
 import {EventUpdateMethods} from '../components/Events';
 
 
@@ -408,11 +411,10 @@ const isEventRecurring = (item) => (
     get(item, 'recurrence_id', null) !== null
 );
 
-const getDateStringForEvent = (
-    event, dateFormat, timeFormat, dateOnly = false,
-    useLocal = true, withTimezone = true
-) => {
+const getDateStringForEvent = (event, dateOnly = false, useLocal = true, withTimezone = true) => {
     // !! Note - expects event dates as instance of moment() !! //
+    const dateFormat = appConfig.view.dateformat;
+    const timeFormat = appConfig.view.timeformat;
     const start = get(event.dates, 'start');
     const end = get(event.dates, 'end');
     const tz = get(event.dates, 'tz');
@@ -422,7 +424,7 @@ const getDateStringForEvent = (
     if (!start || !end)
         return;
 
-    dateString = getTBCDateString(event, dateFormat, ' @ ', dateOnly);
+    dateString = getTBCDateString(event, ' @ ', dateOnly);
     if (!dateString) {
         if (start.isSame(end, 'day')) {
             if (dateOnly) {
@@ -595,7 +597,6 @@ const getEventActions = ({
     callBacks,
     withMultiPlanningDate,
     calendars,
-    deployConfig,
 }) => {
     if (!isExistingItem(item)) {
         return [];
@@ -619,7 +620,7 @@ const getEventActions = ({
         EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName,
     ];
 
-    if (deployConfig.event_templates_enabled === true) {
+    if (appConfig.event_templates_enabled === true) {
         alllowedCallBacks.push(EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.actionName);
     }
 

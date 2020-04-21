@@ -26,7 +26,7 @@ export class IgnoreCancelSaveModalComponent extends React.Component {
     }
 
     renderEvent() {
-        const {dateFormat, timeFormat, modalProps} = this.props;
+        const {modalProps} = this.props;
 
         const {
             item,
@@ -53,11 +53,7 @@ export class IgnoreCancelSaveModalComponent extends React.Component {
                     className="strong"
                 />
 
-                <EventScheduleSummary
-                    schedule={item.dates}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
-                />
+                <EventScheduleSummary schedule={item.dates}/>
 
                 {onSave && (
                     <UpdateMethodSelection
@@ -195,14 +191,10 @@ IgnoreCancelSaveModalComponent.propTypes = {
         autoClose: PropTypes.bool,
         bodyText: PropTypes.string,
     }),
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
     currentEditId: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({
-    dateFormat: selectors.config.getDateFormat(state),
-    timeFormat: selectors.config.getTimeFormat(state),
     currentEditId: selectors.forms.currentItemId(state),
 });
 

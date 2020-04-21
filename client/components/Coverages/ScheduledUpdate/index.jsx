@@ -12,7 +12,7 @@ import {CoverageFormHeader} from '../CoverageEditor/CoverageFormHeader';
 import {CoveragePreviewTopBar} from '../CoveragePreview/CoveragePreviewTopBar';
 
 import {planningUtils, gettext, stringUtils, assignmentUtils} from '../../../utils';
-import {PLANNING, COVERAGES, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
+import {PLANNING, COVERAGES} from '../../../constants';
 
 export const ScheduledUpdate = ({
     diff,
@@ -21,8 +21,6 @@ export const ScheduledUpdate = ({
     value,
     users,
     desks,
-    dateFormat,
-    timeFormat,
     onRemove,
     contentTypes,
     genres,
@@ -115,8 +113,6 @@ export const ScheduledUpdate = ({
         users={users}
         desks={desks}
         newsCoverageStatus={newsCoverageStatus}
-        dateFormat={dateFormat}
-        timeFormat={timeFormat}
     />) :
         (<CoverageFormHeader
             field={fieldName}
@@ -162,7 +158,7 @@ export const ScheduledUpdate = ({
         />
         <PreviewRow
             label={gettext('Due')}
-            value={planningUtils.getCoverageDateText(value, dateFormat, timeFormat)}
+            value={planningUtils.getCoverageDateText(value)}
         />
     </div>) :
         (<ScheduledUpdateForm
@@ -173,8 +169,6 @@ export const ScheduledUpdate = ({
             coverageIndex={coverageIndex}
             onChange={onChange}
             newsCoverageStatus={newsCoverageStatus}
-            dateFormat={dateFormat}
-            timeFormat={timeFormat}
             contentTypes={contentTypes}
             genres={genres}
             readOnly={readOnly}
@@ -212,8 +206,6 @@ ScheduledUpdate.propTypes = {
     users: PropTypes.array,
     desks: PropTypes.array,
     newsCoverageStatus: PropTypes.array,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     onRemove: PropTypes.func,
     contentTypes: PropTypes.array,
     genres: PropTypes.array,
@@ -248,7 +240,5 @@ ScheduledUpdate.propTypes = {
 };
 
 ScheduledUpdate.defaultProps = {
-    dateFormat: DEFAULT_DATE_FORMAT,
-    timeFormat: DEFAULT_TIME_FORMAT,
     openScheduledUpdates: [],
 };

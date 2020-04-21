@@ -100,7 +100,7 @@ export class CancelEventComponent extends React.Component {
     }
 
     render() {
-        const {original, dateFormat, timeFormat, submitting} = this.props;
+        const {original, submitting} = this.props;
         const isRecurring = !!original.recurrence_id;
 
         const numEvents = this.state.relatedEvents.length + 1;
@@ -125,8 +125,6 @@ export class CancelEventComponent extends React.Component {
 
                 <EventScheduleSummary
                     schedule={original.dates}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     forUpdating={true}
                     useEventTimezone={true}
                 />
@@ -180,8 +178,6 @@ CancelEventComponent.propTypes = {
     original: PropTypes.object.isRequired,
     relatedEvents: PropTypes.array,
     relatedPlannings: PropTypes.array,
-    timeFormat: PropTypes.string,
-    dateFormat: PropTypes.string,
     enableSaveInModal: PropTypes.func,
     disableSaveInModal: PropTypes.func,
 
@@ -194,8 +190,6 @@ CancelEventComponent.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-    timeFormat: selectors.config.getTimeFormat(state),
-    dateFormat: selectors.config.getDateFormat(state),
     formProfile: selectors.forms.eventCancelProfile(state),
 });
 

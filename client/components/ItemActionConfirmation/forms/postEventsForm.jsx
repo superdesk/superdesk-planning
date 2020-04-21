@@ -5,7 +5,6 @@ import * as actions from '../../../actions';
 import {get} from 'lodash';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
-import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import {eventUtils, gettext, isItemPublic} from '../../../utils';
 import {Row} from '../../UI/Preview';
 import '../style.scss';
@@ -70,7 +69,7 @@ export class PostEventsComponent extends React.Component {
     }
 
     render() {
-        const {original, dateFormat, timeFormat, submitting} = this.props;
+        const {original, submitting} = this.props;
         const isRecurring = !!original.recurrence_id;
         const posting = get(original, '_post', true);
         const updateMethodLabel = posting ?
@@ -100,11 +99,7 @@ export class PostEventsComponent extends React.Component {
                     className="strong"
                 />
 
-                <EventScheduleSummary
-                    schedule={original}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
-                />
+                <EventScheduleSummary schedule={original}/>
 
                 <Row
                     enabled={isRecurring}
@@ -124,7 +119,6 @@ export class PostEventsComponent extends React.Component {
                     relatedEvents={this.state.relatedEvents}
                     action={posting ? gettext('post') : gettext('unpost')}
                     originalEvent={planningItem ? original : null}
-                    dateFormat={dateFormat}
                 />
                 {postAll && (
                     <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">
@@ -137,19 +131,12 @@ export class PostEventsComponent extends React.Component {
 
 PostEventsComponent.propTypes = {
     original: PropTypes.object.isRequired,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
     submitting: PropTypes.bool,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
     resolve: PropTypes.func,
     modalProps: PropTypes.object,
 };
-
-const mapStateToProps = (state) => ({
-    timeFormat: getTimeFormat(state),
-    dateFormat: getDateFormat(state),
-});
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
     onSubmit: (original, updates) => {
@@ -178,7 +165,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 });
 
 export const PostEventsForm = connect(
-    mapStateToProps,
+    null,
     mapDispatchToProps,
     null,
     {withRef: true}

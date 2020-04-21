@@ -5,7 +5,7 @@ import {get} from 'lodash';
 
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
-import {assignmentUtils, gettext, eventUtils, planningUtils} from '../../../utils';
+import {assignmentUtils, gettext, eventUtils, planningUtils, getFileDownloadURL} from '../../../utils';
 import {ASSIGNMENTS, WORKSPACE} from '../../../constants';
 
 import {AssignmentPreviewHeader} from './AssignmentPreviewHeader';
@@ -86,10 +86,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
             contentTypes,
             session,
             privileges,
-            createLink,
-            streetMapUrl,
             files,
-            useXmpFile,
         } = this.props;
 
         if (!assignment) {
@@ -137,9 +134,8 @@ class AssignmentPreviewContainerComponent extends React.Component {
                         coverageFormProfile={formProfile.coverage}
                         planningFormProfile={formProfile.planning}
                         planningItem={planningItem}
-                        createLink={createLink}
+                        createLink={getFileDownloadURL}
                         files={files}
-                        useXmpFile={useXmpFile}
                     />
                 </ContentBlock>
 
@@ -172,8 +168,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
                             <EventPreview
                                 item={eventItem}
                                 formProfile={formProfile.event}
-                                createLink={createLink}
-                                streetMapUrl={streetMapUrl}
+                                createLink={getFileDownloadURL}
                                 files={files}
                             />
                         </ToggleBox>
@@ -217,10 +212,7 @@ AssignmentPreviewContainerComponent.propTypes = {
     currentWorkspace: PropTypes.string,
     contentTypes: PropTypes.array,
     fetchPlanningFiles: PropTypes.func,
-    createLink: PropTypes.func,
-    streetMapUrl: PropTypes.string,
     files: PropTypes.array,
-    useXmpFile: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -242,10 +234,7 @@ const mapStateToProps = (state) => ({
     agendas: selectors.general.agendas(state),
     currentWorkspace: selectors.general.currentWorkspace(state),
     contentTypes: selectors.general.contentTypes(state),
-    createLink: (f) => (selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw'),
-    streetMapUrl: selectors.config.getStreetMapUrl(state),
     files: selectors.general.files(state),
-    useXmpFile: selectors.config.useXmpFile(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

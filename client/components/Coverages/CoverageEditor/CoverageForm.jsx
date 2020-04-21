@@ -2,12 +2,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, forEach} from 'lodash';
+import moment from 'moment';
+
+import {appConfig} from 'appConfig';
 
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
 import {getItemInArrayById, gettext, planningUtils, generateTempId, assignmentUtils} from '../../../utils';
-import moment from 'moment';
-import {WORKFLOW_STATE, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT, TO_BE_CONFIRMED_FIELD} from '../../../constants';
+import {WORKFLOW_STATE, TO_BE_CONFIRMED_FIELD} from '../../../constants';
 import {Button} from '../../UI';
 import {Row, Label, LineInput, FileInput} from '../../UI/Form';
 import {ScheduledUpdate} from '../ScheduledUpdate';
@@ -222,8 +224,6 @@ export class CoverageFormComponent extends React.Component {
             index,
             onChange,
             newsCoverageStatus,
-            dateFormat,
-            timeFormat,
             contentTypes,
             genres,
             keywords,
@@ -234,7 +234,6 @@ export class CoverageFormComponent extends React.Component {
             errors,
             showErrors,
             hasAssignment,
-            defaultGenre,
             addNewsItemToPlanning,
             popupContainer,
             onFieldFocus,
@@ -245,7 +244,6 @@ export class CoverageFormComponent extends React.Component {
             setCoverageDefaultDesk,
             createUploadLink,
             files,
-            useXmpFile,
             ...props
         } = this.props;
 
@@ -257,6 +255,7 @@ export class CoverageFormComponent extends React.Component {
                 onChange(`${field}.planning.genre`, null);
             }
         };
+        const defaultGenre = (appConfig.default_genre || [{}])[0];
 
         if (contentTypeQcode === 'text' && !get(value, 'planning.genre')) {
             value.planning.genre = defaultGenre;
@@ -283,7 +282,7 @@ export class CoverageFormComponent extends React.Component {
             !get(diff, `${field}.flags.no_content_linking`);
 
         const contactLabel = assignmentUtils.getContactLabel(get(diff, field));
-        const showXmpFileInput = planningUtils.showXMPFileUIControl(value, useXmpFile);
+        const showXmpFileInput = planningUtils.showXMPFileUIControl(value);
 
         return (
             <div className="coverage-editor">
@@ -443,8 +442,6 @@ export class CoverageFormComponent extends React.Component {
                     field={`${field}.planning.scheduled`}
                     profileName="scheduled"
                     label={gettext('Due')}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     defaultValue={null}
                     row={false}
                     {...fieldProps}
@@ -481,8 +478,6 @@ export class CoverageFormComponent extends React.Component {
                                 coverageIndex={index}
                                 index={i}
                                 newsCoverageStatus={newsCoverageStatus}
-                                dateFormat={dateFormat}
-                                timeFormat={timeFormat}
                                 readOnly={readOnly}
                                 contentTypes={contentTypes}
                                 onRemoveAssignment={onRemoveAssignment}
@@ -513,8 +508,6 @@ CoverageFormComponent.propTypes = {
     value: PropTypes.object,
     onChange: PropTypes.func,
     newsCoverageStatus: PropTypes.array,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     contentTypes: PropTypes.array,
     genres: PropTypes.array,
     keywords: PropTypes.array,
@@ -530,7 +523,6 @@ CoverageFormComponent.propTypes = {
     errors: PropTypes.object,
     showErrors: PropTypes.bool,
     hasAssignment: PropTypes.bool,
-    defaultGenre: PropTypes.object,
     addNewsItemToPlanning: PropTypes.object,
     popupContainer: PropTypes.func,
     onFieldFocus: PropTypes.func,
@@ -547,25 +539,15 @@ CoverageFormComponent.propTypes = {
     removeFile: PropTypes.func,
     files: PropTypes.array,
     notifyValidationErrors: PropTypes.func,
-    useXmpFile: PropTypes.bool,
-};
-
-CoverageFormComponent.defaultProps = {
-    dateFormat: DEFAULT_DATE_FORMAT,
-    timeFormat: DEFAULT_TIME_FORMAT,
 };
 
 const mapStateToProps = (state) => ({
-    useXmpFile: selectors.config.useXmpFile(state),
-    timeFormat: selectors.config.getTimeFormat(state),
-    dateFormat: selectors.config.getDateFormat(state),
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     contentTypes: selectors.general.contentTypes(state),
     genres: state.genres,
     keywords: selectors.general.keywords(state),
     preferredCoverageDesks: get(selectors.general.preferredCoverageDesks(state), 'desks'),
-    planningAllowScheduledUpdates: selectors.config.getPlanningAllowScheduledUpdates(state),
-
+    planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

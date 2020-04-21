@@ -4,9 +4,10 @@ import {connect} from 'react-redux';
 import {get, isEqual, cloneDeep, omit, isEmpty} from 'lodash';
 import moment from 'moment';
 
+import {appConfig} from 'appConfig';
+
 import * as actions from '../../../actions';
 import {formProfile, validateItem} from '../../../validators';
-import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
 import {gettext, eventUtils, getDateTimeString, updateFormValues, timeUtils} from '../../../utils';
 import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY, TO_BE_CONFIRMED_FIELD} from '../../../constants';
@@ -110,7 +111,7 @@ export class RescheduleEventComponent extends React.Component {
 
         if (typeof diff.dates === 'object' && !diff.dates.tz) {
             // if no timezone use default one
-            diff.dates.tz = this.props.defaultTimeZone;
+            diff.dates.tz = appConfig.defaultTimezone;
         }
 
         if (field === 'dates.recurring_rule' && !val) {
@@ -172,13 +173,15 @@ export class RescheduleEventComponent extends React.Component {
     }
 
     render() {
-        const {original, dateFormat, timeFormat, formProfiles, submitting, defaultTimeZone} = this.props;
+        const {original, formProfiles, submitting} = this.props;
         let reasonLabel = gettext('Reason for rescheduling this event:');
         const numPlannings = get(original, '_plannings.length');
         const afterUntil = moment.isMoment(get(original, 'dates.recurring_rule.until')) &&
             moment.isMoment(get(this.state, 'diff.dates.start')) &&
             this.state.diff.dates.start.isAfter(original.dates.recurring_rule.until);
-        const timeZone = get(original, 'dates.tz') || defaultTimeZone;
+        const timeZone = get(original, 'dates.tz') || appConfig.defaultTimezone;
+        const dateFormat = appConfig.view.dateformat;
+        const timeFormat = appConfig.view.timeformat;
 
         return (
             <div className="MetadataView">
@@ -199,8 +202,6 @@ export class RescheduleEventComponent extends React.Component {
 
                 <EventScheduleSummary
                     schedule={this.props.original.dates}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     noPadding={true}
                     forUpdating={true}
                     useEventTimezone={true}
@@ -271,8 +272,6 @@ export class RescheduleEventComponent extends React.Component {
                     item={this.state.diff}
                     diff={this.state.diff}
                     onChange={this.onDatesChange}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     showRepeat={false}
                     showRepeatToggle={false}
                     showErrors={true}
@@ -308,9 +307,6 @@ RescheduleEventComponent.propTypes = {
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
     disableSaveInModal: PropTypes.func,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
-    defaultTimeZone: PropTypes.string,
 
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
@@ -326,11 +322,8 @@ RescheduleEventComponent.propTypes = {
 
 
 const mapStateToProps = (state) => ({
-    timeFormat: getTimeFormat(state),
-    dateFormat: getDateFormat(state),
     formProfiles: selectors.forms.profiles(state),
     rescheduleProfile: selectors.forms.eventRescheduleProfile(state),
-    defaultTimeZone: selectors.config.defaultTimeZone(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

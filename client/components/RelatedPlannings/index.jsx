@@ -21,8 +21,6 @@ export const RelatedPlanningsComponent = ({
     onEditPlanning,
     users,
     desks,
-    dateFormat,
-    timeFormat,
     allowEditPlanning,
     contentTypes,
 }) => (
@@ -39,10 +37,9 @@ export const RelatedPlanningsComponent = ({
                     onEditPlanning={allowEditPlanning ? onEditPlanning.bind(null, plan) : null}
                     users={users}
                     desks={desks}
-                    dateFormat={dateFormat}
-                    timeFormat={timeFormat}
                     contentTypes={contentTypes}
-                    tabEnabled />
+                    tabEnabled
+                />
             ))
             :
             (<ul className="simple-list simple-list--dotted simple-list--no-padding">
@@ -110,8 +107,6 @@ RelatedPlanningsComponent.propTypes = {
     navigation: PropTypes.object,
     users: PropTypes.array,
     desks: PropTypes.array,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     onEditPlanning: PropTypes.func,
     allowEditPlanning: PropTypes.bool,
     contentTypes: PropTypes.array,

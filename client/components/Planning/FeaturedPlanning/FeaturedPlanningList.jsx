@@ -17,8 +17,6 @@ export const FeaturedPlanningList = ({
     readOnly,
     lockedItems,
     currentSearchDate,
-    dateFormat,
-    timeFormat,
     selectedPlanningIds,
     loadingIndicator,
     desks,
@@ -44,8 +42,6 @@ export const FeaturedPlanningList = ({
             date={currentSearchDate}
             readOnly={readOnly}
             lockedItems={lockedItems}
-            dateFormat={dateFormat}
-            timeFormat={timeFormat}
             selectedPlanningIds={selectedPlanningIds}
             desks={desks}
             users={users}
@@ -136,8 +132,6 @@ FeaturedPlanningList.propTypes = {
     header: PropTypes.string,
     withMargin: PropTypes.bool,
     lockedItems: PropTypes.object.isRequired,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
     loadingIndicator: PropTypes.bool,
     desks: PropTypes.array,
     users: PropTypes.array,

@@ -1,10 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Row as PreviewRow} from '../../UI/Preview';
 import moment from 'moment-timezone';
 import {get} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
+import {Row as PreviewRow} from '../../UI/Preview';
 import {getCreator, getItemInArrayById, gettext} from '../../../utils';
-import {DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
 import {StateLabel} from '../../index';
 
 export const CoveragePreviewTopBar = ({
@@ -13,8 +15,6 @@ export const CoveragePreviewTopBar = ({
     users,
     desks,
     newsCoverageStatus,
-    dateFormat,
-    timeFormat,
 }) => {
     const userAssigned = getCreator(coverage, 'assigned_to.user', users);
     const deskAssigned = desks.find((d) =>
@@ -29,6 +29,8 @@ export const CoveragePreviewTopBar = ({
         assigned_date_desk,
     } = get(coverage, 'assigned_to', {});
 
+    const dateFormat = appConfig.view.dateformat;
+    const timeFormat = appConfig.view.timeformat;
     const deskAssignor = getItemInArrayById(users, assignor_desk);
     const userAssignor = getItemInArrayById(users, assignor_user);
     const assignmentPriority = get(coverage, 'assigned_to.priority');
@@ -72,8 +74,6 @@ CoveragePreviewTopBar.propTypes = {
     users: PropTypes.array,
     desks: PropTypes.array,
     newsCoverageStatus: PropTypes.array,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     formProfile: PropTypes.object,
     noOpen: PropTypes.bool,
     active: PropTypes.bool,
@@ -83,10 +83,4 @@ CoveragePreviewTopBar.propTypes = {
     index: PropTypes.number,
     item: PropTypes.object,
     planningAllowScheduledUpdates: PropTypes.bool,
-};
-
-
-CoveragePreviewTopBar.defaultProps = {
-    dateFormat: DEFAULT_DATE_FORMAT,
-    timeFormat: DEFAULT_TIME_FORMAT,
 };

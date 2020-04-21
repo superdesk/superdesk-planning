@@ -2,9 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, some, isEqual} from 'lodash';
+
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
+import {gettext, editorMenuUtils, getItemId, getFileDownloadURL} from '../../../utils';
 import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
+
 import {ContentBlock} from '../../UI/SidePanel';
 import {
     TextInput,
@@ -23,7 +26,6 @@ import {RelatedPlannings} from '../../RelatedPlannings';
 import {EventScheduleInput, EventScheduleSummary} from '../';
 import {GeoLookupInput} from '../../index';
 import {EventEditorHeader} from './EventEditorHeader';
-import {gettext, editorMenuUtils, getItemId} from '../../../utils';
 import CustomVocabulariesFields from '../../CustomVocabulariesFields';
 
 const toggleDetails = [
@@ -162,12 +164,8 @@ export class EventEditorComponent extends React.Component {
             locators,
             categories,
             subjects,
-            createUploadLink,
-            iframelyKey,
             users,
             desks,
-            timeFormat,
-            dateFormat,
             readOnly,
             formProfile,
             submitFailed,
@@ -249,8 +247,6 @@ export class EventEditorComponent extends React.Component {
                         component={EventScheduleInput}
                         field="dates"
                         enabled={!itemExists}
-                        timeFormat={timeFormat}
-                        dateFormat={dateFormat}
                         row={false}
                         {...fieldProps}
                         onFocus={onFocusEvent}
@@ -425,7 +421,7 @@ export class EventEditorComponent extends React.Component {
                             { !this.state.uploading && <Field
                                 component={FileInput}
                                 field="files"
-                                createLink={createUploadLink}
+                                createLink={getFileDownloadURL}
                                 defaultValue={[]}
                                 {...fieldProps}
                                 onFocus={onFocusFiles}
@@ -449,7 +445,6 @@ export class EventEditorComponent extends React.Component {
                         <Field
                             component={InputArray}
                             field="links"
-                            iframelyKey={iframelyKey}
                             defaultValue={[]}
                             defaultElement=""
                             addButtonText={gettext('Add a link')}
@@ -475,8 +470,6 @@ export class EventEditorComponent extends React.Component {
                             navigation={navigation}
                             users={users}
                             desks={desks}
-                            timeFormat={timeFormat}
-                            dateFormat={dateFormat}
                         />
                     )}
                 </ContentBlock>
@@ -497,12 +490,8 @@ EventEditorComponent.propTypes = {
     locators: PropTypes.array,
     categories: PropTypes.array,
     subjects: PropTypes.array,
-    createUploadLink: PropTypes.func,
-    iframelyKey: PropTypes.string,
     users: PropTypes.array,
     desks: PropTypes.array,
-    timeFormat: PropTypes.string.isRequired,
-    dateFormat: PropTypes.string.isRequired,
     readOnly: PropTypes.bool,
     submitFailed: PropTypes.bool,
     dirty: PropTypes.bool,
@@ -536,12 +525,8 @@ const mapStateToProps = (state) => ({
     locators: selectors.vocabs.locators(state),
     categories: selectors.vocabs.categories(state),
     subjects: selectors.vocabs.subjects(state),
-    createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
-    iframelyKey: selectors.config.getIframelyKey(state),
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
-    timeFormat: selectors.config.getTimeFormat(state),
-    dateFormat: selectors.config.getDateFormat(state),
     customVocabularies: state.customVocabularies,
     files: selectors.general.files(state),
 });

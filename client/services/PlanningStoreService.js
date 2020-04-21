@@ -8,7 +8,7 @@ export class PlanningStoreService {
     constructor(
         $rootScope,
         api,
-        config,
+        // config,
         $location,
         $timeout,
         vocabularies,
@@ -22,7 +22,7 @@ export class PlanningStoreService {
         templates,
         metadata,
         session,
-        deployConfig,
+        // deployConfig,
         gettext,
         authoringWorkspace,
         gettextCatalog,
@@ -34,7 +34,7 @@ export class PlanningStoreService {
     ) {
         this.$rootScope = $rootScope;
         this.api = api;
-        this.config = config;
+        // this.config = config;
         this.$location = $location;
         this.$timeout = $timeout;
         this.vocabularies = vocabularies;
@@ -48,7 +48,7 @@ export class PlanningStoreService {
         this.templates = templates;
         this.metadata = metadata;
         this.session = session;
-        this.deployConfig = deployConfig;
+        // this.deployConfig = deployConfig;
         this.gettext = gettext;
         this.authoringWorkspace = authoringWorkspace;
         this.gettextCatalog = gettextCatalog;
@@ -157,14 +157,14 @@ export class PlanningStoreService {
                         templates: this.templates,
                         metadata: this.metadata,
                         session: this.session,
-                        deployConfig: this.deployConfig,
+                        // deployConfig: this.deployConfig,
                         gettextCatalog: this.gettextCatalog,
                         gettext: this.gettext,
                         authoringWorkspace: this.authoringWorkspace,
                         $interpolate: this.$interpolate,
                         search: this.search,
                         modal: this.modal,
-                        config: this.config,
+                        // config: this.config,
                         preferencesService: this.preferencesService,
                         $rootScope: this.$rootScope,
                     },
@@ -207,8 +207,8 @@ export class PlanningStoreService {
                     this.metadata.values.genre;
 
                 const initialState = {
-                    config: this.config,
-                    deployConfig: this.deployConfig.config,
+                    // config: this.config,
+                    // deployConfig: this.deployConfig.config,
                     vocabularies: zipObject(
                         get(data, 'voc', []).map((cv) => cv._id),
                         get(data, 'voc', []).map((cv) => cv.items)
@@ -330,7 +330,7 @@ export class PlanningStoreService {
 PlanningStoreService.$inject = [
     '$rootScope',
     'api',
-    'config',
+    // 'config',
     '$location',
     '$timeout',
     'vocabularies',
@@ -344,7 +344,7 @@ PlanningStoreService.$inject = [
     'templates',
     'metadata',
     'session',
-    'deployConfig',
+    // 'deployConfig',
     'gettext',
     'authoringWorkspace',
     'gettextCatalog',

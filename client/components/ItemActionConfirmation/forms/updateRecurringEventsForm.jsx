@@ -5,7 +5,6 @@ import * as actions from '../../../actions';
 import {get} from 'lodash';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
-import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import {eventUtils, gettext} from '../../../utils';
 import {Row} from '../../UI/Preview';
 import '../style.scss';
@@ -70,7 +69,7 @@ export class UpdateRecurringEventsComponent extends React.Component {
     }
 
     render() {
-        const {original, dateFormat, timeFormat, submitting} = this.props;
+        const {original, submitting} = this.props;
         const isRecurring = !!original.recurrence_id;
         const eventsInUse = this.state.relatedEvents.filter((e) => (
             get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
@@ -96,8 +95,6 @@ export class UpdateRecurringEventsComponent extends React.Component {
 
                 <EventScheduleSummary
                     schedule={original.dates}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     forUpdating={true}
                     useEventTimezone={true}
                 />
@@ -126,18 +123,11 @@ export class UpdateRecurringEventsComponent extends React.Component {
 UpdateRecurringEventsComponent.propTypes = {
     original: PropTypes.object.isRequired,
     updates: PropTypes.object.isRequired,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
     submitting: PropTypes.bool,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
     resolve: PropTypes.func,
 };
-
-const mapStateToProps = (state) => ({
-    timeFormat: getTimeFormat(state),
-    dateFormat: getDateFormat(state),
-});
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
     onSubmit: (original, updates) => (
@@ -164,7 +154,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 });
 
 export const UpdateRecurringEventsForm = connect(
-    mapStateToProps,
+    null,
     mapDispatchToProps,
     null,
     {withRef: true}

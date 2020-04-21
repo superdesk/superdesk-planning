@@ -2,9 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
 import * as actions from '../../../actions';
 import '../style.scss';
-import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import {gettext, getDateTimeString} from '../../../utils';
 import {Row} from '../../UI/Preview';
 
@@ -21,7 +23,7 @@ export class SpikePlanningComponent extends React.Component {
     }
 
     render() {
-        const {original, dateFormat, timeFormat} = this.props;
+        const {original} = this.props;
 
         return (
             <div className="MetadataView">
@@ -40,7 +42,11 @@ export class SpikePlanningComponent extends React.Component {
 
                 <Row
                     label={gettext('Planning Date')}
-                    value={getDateTimeString(original.planning_date, dateFormat, timeFormat) || ''}
+                    value={getDateTimeString(
+                        original.planning_date,
+                        appConfig.view.dateformat,
+                        appConfig.view.timeformat
+                    ) || ''}
                     noPadding={true} />
             </div>
         );
@@ -49,17 +55,9 @@ export class SpikePlanningComponent extends React.Component {
 
 SpikePlanningComponent.propTypes = {
     original: PropTypes.object.isRequired,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
 };
-
-
-const mapStateToProps = (state) => ({
-    timeFormat: getTimeFormat(state),
-    dateFormat: getDateFormat(state),
-});
 
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (plan) => dispatch(actions.planning.ui.spike(plan)),
@@ -72,7 +70,7 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 export const SpikePlanningForm = connect(
-    mapStateToProps,
+    null,
     mapDispatchToProps,
     null,
     {withRef: true})(SpikePlanningComponent);

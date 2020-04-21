@@ -1,12 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import {appConfig} from 'appConfig';
+
 import {getDateTimeString} from '../../../utils';
 import {Item, Column, Row, Border} from '../../UI/List';
 import {CollapseBox} from '../../UI';
 import {StateLabel, InternalNoteLabel} from '../../../components';
 
-export const PlanningInfo = ({item, onClick, timeFormat, dateFormat, active}) => {
+export const PlanningInfo = ({item, onClick, active}) => {
     const collapsedItem = (<Item noBg={!active} onClick={onClick} activated={active}>
         <Border/>
         <Column grow={true}>
@@ -23,7 +25,11 @@ export const PlanningInfo = ({item, onClick, timeFormat, dateFormat, active}) =>
                     <time className="no-padding">
                         <i className="icon-time"/>
                         {item.planning_date &&
-                            getDateTimeString(item.planning_date, dateFormat, timeFormat)
+                            getDateTimeString(
+                                item.planning_date,
+                                appConfig.view.dateformat,
+                                appConfig.view.timeformat
+                            )
                         }
                     </time>
                 </span>
@@ -50,6 +56,4 @@ PlanningInfo.propTypes = {
     item: PropTypes.object,
     onClick: PropTypes.func,
     active: PropTypes.bool,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
 };
