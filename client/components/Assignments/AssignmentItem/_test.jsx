@@ -57,6 +57,7 @@ describe('assignments', () => {
                             assignedUser={user}
                             isCurrentUser={false}
                             contentTypes={contentTypes}
+                            api={{find: () => ({})}}
                         />
                     </Provider>
                 );
