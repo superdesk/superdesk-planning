@@ -41,7 +41,7 @@ export const getComponentForField = (field: string) => {
 };
 
 export const DEFAULT_ASSSIGNMENTS_LIST_VIEW = {
-    firstLine: ['slugline', 'description_text'],
+    firstLine: ['slugline', 'description_text', 'name'],
     secondLine: [
         'priority',
         'state',

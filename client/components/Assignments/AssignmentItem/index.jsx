@@ -1,9 +1,11 @@
 import React from 'react';
+import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import {get, debounce} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import {appConfig} from 'appConfig';
+import * as actions from '../../../actions';
 
 import {
     planningUtils,
@@ -17,7 +19,6 @@ import {UserAvatar, ItemActionsMenu} from '../../';
 import {Item, Border, Column, Row, ActionMenu} from '../../UI/List';
 
 import {getComponentForField, DEFAULT_ASSSIGNMENTS_LIST_VIEW} from './fields';
-import {connectServices} from 'superdesk-core/scripts/core/helpers/ReactRenderAsync';
 
 export class AssignmentItemComponent extends React.Component {
     constructor(props) {
@@ -281,6 +282,13 @@ AssignmentItemComponent.propTypes = {
     contentTypes: PropTypes.array,
     assignedDesk: PropTypes.object,
     contacts: PropTypes.object,
+    loadArchiveItem: PropTypes.func,
+    fetchPlanningItemForAssignment: PropTypes.func,
 };
 
-export const AssignmentItem = connectServices(AssignmentItemComponent, ['api']);
+export const AssignmentItem = connect(null, (dispatch) => ({
+    loadArchiveItem: (assignment) =>
+        dispatch(actions.assignments.api.loadArchiveItem(assignment)),
+    fetchPlanningItemForAssignment: (assignment) =>
+        dispatch(actions.planning.api.fetchById(assignment.planning_item)),
+}))(AssignmentItemComponent);

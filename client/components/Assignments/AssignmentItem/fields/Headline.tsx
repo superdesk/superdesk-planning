@@ -3,10 +3,10 @@ import PropTypes from 'prop-types';
 
 interface IProps {
     assignment: any;
-    api: any;
+    loadArchiveItem: (assignment) => any;
 }
 
-export const HeadlineComponent = ({assignment, api}: IProps) => {
+export const HeadlineComponent = ({assignment, loadArchiveItem}: IProps) => {
     const itemIds = assignment.item_ids;
 
     if (!itemIds) {
@@ -22,7 +22,7 @@ export const HeadlineComponent = ({assignment, api}: IProps) => {
     const [item, setItem] = React.useState(null);
 
     if (!item) {
-        api.find('archive', itemId).then(setItem);
+        loadArchiveItem(assignment).then(setItem);
         return null;
     }
 
