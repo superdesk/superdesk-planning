@@ -13,15 +13,7 @@ import {
 } from '../../../utils';
 import {ASSIGNMENTS, CLICK_DELAY} from '../../../constants';
 
-import {
-    UserAvatar,
-    AbsoluteDate,
-    StateLabel,
-    ItemActionsMenu,
-    Label,
-    PriorityLabel,
-    InternalNoteLabel,
-} from '../../';
+import {UserAvatar, ItemActionsMenu} from '../../';
 import {Item, Border, Column, Row, ActionMenu} from '../../UI/List';
 
 import {getComponentForField, DEFAULT_ASSSIGNMENTS_LIST_VIEW} from './fields';
