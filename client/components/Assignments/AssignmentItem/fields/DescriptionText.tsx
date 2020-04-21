@@ -1,7 +1,11 @@
 import React from 'react';
 import {get} from 'lodash';
 
-export const DescriptionTextComponent = ({assignment}) => {
+interface IProps {
+    assignment: any;
+}
+
+export const DescriptionTextComponent = ({assignment}: IProps) => {
     const descriptionText = get(assignment, 'description_text');
 
     return (

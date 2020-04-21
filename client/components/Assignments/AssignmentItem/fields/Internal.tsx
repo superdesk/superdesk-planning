@@ -1,7 +1,12 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {InternalNoteLabel} from '../../../InternalNoteLabel';
 
-export const InternalComponent = ({assignment}) => (
+interface IProps {
+    assignment: any;
+}
+
+export const InternalComponent = ({assignment}: IProps) => (
     <InternalNoteLabel
         item={assignment}
         prefix="planning."

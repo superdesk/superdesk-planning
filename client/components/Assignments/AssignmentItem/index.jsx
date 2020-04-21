@@ -1,11 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
 import moment from 'moment';
 import {get, debounce} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
+import {appConfig} from 'appConfig';
 
-import {planningUtils, assignmentUtils, gettext, stringUtils} from '../../../utils';
+import {
+    planningUtils,
+    assignmentUtils,
+    gettext,
+    stringUtils,
+} from '../../../utils';
 import {ASSIGNMENTS, CLICK_DELAY} from '../../../constants';
 
 import {
@@ -31,7 +36,9 @@ export class AssignmentItemComponent extends React.Component {
 
         this.onSingleClick = this.onSingleClick.bind(this);
         this.onDoubleClick = this.onDoubleClick.bind(this);
-        this.handleSingleAndDoubleClick = this.handleSingleAndDoubleClick.bind(this);
+        this.handleSingleAndDoubleClick = this.handleSingleAndDoubleClick.bind(
+            this
+        );
         this.renderContentTypeColumn = this.renderContentTypeColumn.bind(this);
         this.renderContentColumn = this.renderContentColumn.bind(this);
         this.renderAvatar = this.renderAvatar.bind(this);
@@ -69,19 +76,18 @@ export class AssignmentItemComponent extends React.Component {
     renderContentTypeColumn() {
         const {assignment, contentTypes} = this.props;
 
-        const tooltip = gettext(
-            'Type: {{type}}',
-            {
-                type: stringUtils.firstCharUpperCase(
-                    get(assignment, 'planning.g2_content_type', '')
-                        .replace('_', ' ')
-                ),
-            }
-        );
+        const tooltip = gettext('Type: {{type}}', {
+            type: stringUtils.firstCharUpperCase(
+                get(assignment, 'planning.g2_content_type', '').replace(
+                    '_',
+                    ' '
+                )
+            ),
+        });
 
         const className = planningUtils.getCoverageIcon(
             planningUtils.getCoverageContentType(assignment, contentTypes) ||
-            get(assignment, 'planning.g2_content_type'),
+                get(assignment, 'planning.g2_content_type'),
             assignment
         );
 
@@ -100,42 +106,55 @@ export class AssignmentItemComponent extends React.Component {
     renderField(field) {
         const FieldComponent = getComponentForField(field);
 
-        return <FieldComponent {...this.props} key={field}/>;
+        return <FieldComponent {...this.props} key={field} />;
     }
 
     renderContentColumn() {
-        const listViewConfig = this.props.config.assignmentsList || DEFAULT_ASSSIGNMENTS_LIST_VIEW;
+        const listViewConfig =
+            appConfig.assignmentsList || DEFAULT_ASSSIGNMENTS_LIST_VIEW;
 
         return (
             <Column grow={true} border={false}>
                 <Row>
-                    {listViewConfig.firstLine.map((field) => (
+                    {listViewConfig.firstLine.map((field) =>
                         this.renderField(field)
-                    ))}
+                    )}
                 </Row>
                 <Row>
-                    {listViewConfig.secondLine.map((field) => (
+                    {listViewConfig.secondLine.map((field) =>
                         this.renderField(field)
-                    ))}
+                    )}
                 </Row>
             </Column>
         );
     }
 
     renderAvatar() {
-        const {assignedUser, isCurrentUser, assignment, contacts} = this.props;
+        const {
+            assignedUser,
+            isCurrentUser,
+            assignment,
+            contacts,
+        } = this.props;
         let user;
         let tooltip;
 
-        if (get(assignment, 'assigned_to.contact') && get(contacts, assignment.assigned_to.contact)) {
+        if (
+            get(assignment, 'assigned_to.contact') &&
+            get(contacts, assignment.assigned_to.contact)
+        ) {
             const contact = contacts[assignment.assigned_to.contact];
 
-            user = {display_name: `${contact.last_name}, ${contact.first_name}`};
-            tooltip = gettext('Provider: {{ name }}', {name: user.display_name});
+            user = {
+                display_name: `${contact.last_name}, ${contact.first_name}`,
+            };
+            tooltip = gettext('Provider: {{ name }}', {
+                name: user.display_name,
+            });
         } else if (assignedUser) {
-            const displayName = assignedUser.display_name ?
-                assignedUser.display_name :
-                ' - ';
+            const displayName = assignedUser.display_name
+                ? assignedUser.display_name
+                : ' - ';
 
             user = assignedUser;
             tooltip = gettext('Assigned: {{ name }}', {name: displayName});
@@ -175,24 +194,42 @@ export class AssignmentItemComponent extends React.Component {
         } = this.props;
 
         const itemActionsCallBack = {
-            [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label]: startWorking.bind(null, assignment),
-            [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: reassign.bind(null, assignment),
-            [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label]: editAssignmentPriority.bind(null, assignment),
-            [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label]: completeAssignment.bind(null, assignment),
-            [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.label]: removeAssignment.bind(null, assignment),
-            [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.label]: this.onDoubleClick,
-            [ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.label]: completeAssignment.bind(null, assignment),
-            [ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.label]: revertAssignment.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label]: startWorking.bind(
+                null,
+                assignment
+            ),
+            [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: reassign.bind(
+                null,
+                assignment
+            ),
+            [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY
+                .label]: editAssignmentPriority.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label]: completeAssignment.bind(
+                null,
+                assignment
+            ),
+            [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.label]: removeAssignment.bind(
+                null,
+                assignment
+            ),
+            [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.label]: this
+                .onDoubleClick,
+            [ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY
+                .label]: completeAssignment.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY
+                .label]: revertAssignment.bind(null, assignment),
         };
 
-        const itemActions = !hideItemActions ?
-            assignmentUtils.getAssignmentActions(assignment,
+        const itemActions = !hideItemActions
+            ? assignmentUtils.getAssignmentActions(
+                assignment,
                 session,
                 privileges,
                 lockedItems,
                 contentTypes,
-                itemActionsCallBack) :
-            [];
+                itemActionsCallBack
+            )
+            : [];
 
         return itemActions.length < 1 ? null : (
             <ActionMenu>
@@ -202,13 +239,10 @@ export class AssignmentItemComponent extends React.Component {
     }
 
     render() {
-        const {
-            assignment,
-            lockedItems,
-            currentAssignmentId,
-        } = this.props;
+        const {assignment, lockedItems, currentAssignmentId} = this.props;
 
-        const isItemLocked = get(lockedItems, 'assignment') &&
+        const isItemLocked =
+            get(lockedItems, 'assignment') &&
             assignment._id in lockedItems.assignment;
         const borderState = isItemLocked ? 'locked' : false;
 
@@ -255,17 +289,6 @@ AssignmentItemComponent.propTypes = {
     contentTypes: PropTypes.array,
     assignedDesk: PropTypes.object,
     contacts: PropTypes.object,
-    config: PropTypes.object,
 };
 
-const mapStateToProps = (state) => ({
-    config: state.config,
-});
-
-export const AssignmentItem =
-  connect(mapStateToProps, {})(
-      connectServices(
-          AssignmentItemComponent,
-          ['api']
-      )
-  );
+export const AssignmentItem = connectServices(AssignmentItemComponent, ['api']);

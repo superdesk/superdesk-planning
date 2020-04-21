@@ -1,7 +1,12 @@
 import React from 'react';
 import {get} from 'lodash';
+import {gettext} from '../../../../utils';
 
-export const DeskComponent = ({assignedDesk}) => {
+interface IProps {
+    assignedDesk: any;
+}
+
+export const DeskComponent = ({assignedDesk}: IProps) => {
     const assignedDeskName = get(assignedDesk, 'name') || '-';
 
     return (

@@ -2,7 +2,11 @@ import React from 'react';
 import {assignmentUtils} from '../../../../utils';
 import {Label} from '../../..';
 
-export const ContentComponent = ({assignment}) => {
+interface IProps {
+    assignment: any;
+}
+
+export const ContentComponent = ({assignment}: IProps) => {
     const hasContent = assignmentUtils.assignmentHasContent(assignment);
 
     if (!hasContent) {

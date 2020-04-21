@@ -1,7 +1,12 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
-export const SluglineComponent = ({assignment}) => {
+interface IProps {
+    assignment: any;
+}
+
+export const SluglineComponent = ({assignment}: IProps) => {
     const slugline = get(assignment, 'planning.slugline');
 
     return <span className="sd-text__slugline">{slugline}</span>;

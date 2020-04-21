@@ -15,7 +15,14 @@ import {TextInput} from '../UI/Form';
  * param {string} noDateString - string to display if the date is not valid
  * param {string} className - The CSS class names to use in the parent time element
  */
-export const AbsoluteDate = ({date, noDateString, className, asTextInput, toBeConfirmed, ...props}) => {
+export const AbsoluteDate = ({
+    date,
+    noDateString = '',
+    className,
+    asTextInput = false,
+    toBeConfirmed,
+    ...props
+}) => {
     let momentDate = moment.utc(date);
     let timeStr = '';
     let spanStr = noDateString;
@@ -24,18 +31,23 @@ export const AbsoluteDate = ({date, noDateString, className, asTextInput, toBeCo
         timeStr = momentDate.toISOString();
         momentDate.local(); // switch to local time zone.
 
-        if (moment().format(DATE_FORMATS.COMPARE_FORMAT) === momentDate.format(DATE_FORMATS.COMPARE_FORMAT)) {
+        if (
+            moment().format(DATE_FORMATS.COMPARE_FORMAT) ===
+            momentDate.format(DATE_FORMATS.COMPARE_FORMAT)
+        ) {
             spanStr = momentDate.format(DATE_FORMATS.DISPLAY_TODAY_FORMAT);
         } else {
             spanStr = momentDate.format(DATE_FORMATS.DISPLAY_DAY_FORMAT);
         }
 
         if (moment().format('YYYY') === momentDate.format('YYYY')) {
-            spanStr += (toBeConfirmed ? momentDate.format(DATE_FORMATS.DISPLAY_CDATE_TBC_FORMAT) :
-                momentDate.format(DATE_FORMATS.DISPLAY_CDATE_FORMAT));
+            spanStr += toBeConfirmed
+                ? momentDate.format(DATE_FORMATS.DISPLAY_CDATE_TBC_FORMAT)
+                : momentDate.format(DATE_FORMATS.DISPLAY_CDATE_FORMAT);
         } else {
-            spanStr += (toBeConfirmed ? momentDate.format(DATE_FORMATS.DISPLAY_TBC_FORMAT) :
-                momentDate.format(DATE_FORMATS.DISPLAY_DATE_FORMAT));
+            spanStr += toBeConfirmed
+                ? momentDate.format(DATE_FORMATS.DISPLAY_TBC_FORMAT)
+                : momentDate.format(DATE_FORMATS.DISPLAY_DATE_FORMAT);
         }
     }
 
@@ -44,7 +56,7 @@ export const AbsoluteDate = ({date, noDateString, className, asTextInput, toBeCo
             <span>{spanStr}</span>
         </time>
     ) : (
-        <TextInput className={className} value={spanStr} {...props}/>
+        <TextInput className={className} value={spanStr} {...props} />
     );
 };
 

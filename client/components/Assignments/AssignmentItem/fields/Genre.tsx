@@ -1,7 +1,13 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {get} from 'lodash';
+import {gettext} from '../../../../utils';
 
-export const GenreComponent = ({assignment}) => {
+interface IProps {
+    assignment: any;
+}
+
+export const GenreComponent = ({assignment}: IProps) => {
     const genre = get(assignment, 'planning.genre.name');
 
     if (!genre) {
