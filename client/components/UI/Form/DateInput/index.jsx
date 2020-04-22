@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import {isEqual} from 'lodash';
 
+import {appConfig} from 'appConfig';
+
 import {LineInput, Label, Input} from '../';
 import {IconButton} from '../../';
 import {DateInputPopup} from './DateInputPopup';
@@ -35,13 +37,13 @@ export class DateInput extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        const {value, dateFormat} = this.props;
+        const {value} = this.props;
 
         // Only update the value if they have changed
         // This fixes the value being cleared on autosave (SDESK-4929)
         if (!isEqual(value, nextProps.value)) {
             const val = nextProps.value && moment.isMoment(nextProps.value) ?
-                nextProps.value.format(dateFormat) : '';
+                nextProps.value.format(appConfig.view.dateformat) : '';
 
             this.setState({
                 viewValue: val,
@@ -52,9 +54,9 @@ export class DateInput extends React.Component {
 
     componentDidMount() {
         // After first render, set value
-        const {value, dateFormat} = this.props;
+        const {value} = this.props;
         const viewValue = value && moment.isMoment(value) ?
-            value.format(dateFormat) : '';
+            value.format(appConfig.view.dateformat) : '';
 
         this.setState({viewValue});
     }
@@ -80,13 +82,13 @@ export class DateInput extends React.Component {
     */
     validateDateText(field, val) {
         const valMoment = this.props.remoteTimeZone ?
-            moment.tz(val, this.props.dateFormat, true, this.props.remoteTimeZone) :
-            moment(val, this.props.dateFormat, true);
+            moment.tz(val, appConfig.view.dateformat, true, this.props.remoteTimeZone) :
+            moment(val, appConfig.view.dateformat, true);
 
         if (valMoment.isValid()) {
             this.setState({
                 invalid: false,
-                viewValue: valMoment.format(this.props.dateFormat),
+                viewValue: valMoment.format(appConfig.view.dateformat),
                 previousValidValue: valMoment,
             });
             this.onChange(valMoment);
@@ -110,7 +112,7 @@ export class DateInput extends React.Component {
 
             this.setState({
                 viewValue: moment.isMoment(previousValidValue) && previousValidValue.isValid() ?
-                    previousValidValue.format(this.props.dateFormat) : '',
+                    previousValidValue.format(appConfig.view.dateformat) : '',
                 invalid: false,
             });
         }
@@ -140,7 +142,6 @@ export class DateInput extends React.Component {
             onFocus,
             onPopupOpen,
             onPopupClose,
-            dateFormat,
             isLocalTimeZoneDifferent,
             remoteTimeZone,
             inputAsLabel,
@@ -154,7 +155,7 @@ export class DateInput extends React.Component {
         if (moment.isMoment(value) && isLocalTimeZoneDifferent) {
             const displayDate = timeUtils.getDateInRemoteTimeZone(value, timeUtils.localTimeZone());
 
-            displayDateString = `(${displayDate.format('z')} ${displayDate.format(dateFormat)})`;
+            displayDateString = `(${displayDate.format('z')} ${displayDate.format(appConfig.view.dateformat)})`;
         }
 
         if (!invalid && this.state.invalid) {
@@ -224,7 +225,6 @@ DateInput.propTypes = {
     onChange: PropTypes.func.isRequired,
     placeholder: PropTypes.string,
     className: PropTypes.string,
-    dateFormat: PropTypes.string.isRequired,
 
     hint: PropTypes.string,
     message: PropTypes.string,

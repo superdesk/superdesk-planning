@@ -441,7 +441,6 @@ EditorComponent.propTypes = {
     preferredCoverageDesks: PropTypes.object,
     associatedPlannings: PropTypes.arrayOf(PropTypes.object),
     associatedEvent: PropTypes.object,
-    longEventDurationThreshold: PropTypes.number,
     dispatch: PropTypes.func,
     currentWorkspace: PropTypes.string,
 };

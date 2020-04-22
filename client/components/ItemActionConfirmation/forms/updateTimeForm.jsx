@@ -3,18 +3,21 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import classNames from 'classnames';
 import moment from 'moment';
+import {get, set, cloneDeep, isEqual} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
 import * as actions from '../../../actions';
-import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
 import {eventUtils, gettext, timeUtils} from '../../../utils';
 import {Label, TimeInput, Row as FormRow, LineInput, Field} from '../../UI/Form/';
 import {Row} from '../../UI/Preview/';
 import {EventUpdateMethods, EventScheduleSummary} from '../../Events';
-import '../style.scss';
-import {get, set, cloneDeep, isEqual} from 'lodash';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY, TO_BE_CONFIRMED_FIELD} from '../../../constants';
 import {validateItem} from '../../../validators';
+
+import '../style.scss';
 
 export class UpdateTimeComponent extends React.Component {
     constructor(props) {
@@ -121,7 +124,7 @@ export class UpdateTimeComponent extends React.Component {
 
         if (diff.dates != null && !diff.dates.tz) {
             // if no timezone use default one
-            diff.dates.tz = this.props.defaultTimeZone;
+            diff.dates.tz = appConfig.defaultTimezone;
         }
 
         diff[TO_BE_CONFIRMED_FIELD] = false;
@@ -163,7 +166,7 @@ export class UpdateTimeComponent extends React.Component {
     }
 
     render() {
-        const {original, dateFormat, timeFormat, submitting} = this.props;
+        const {original, submitting} = this.props;
         const isRecurring = !!original.recurrence_id;
         const eventsInUse = this.state.relatedEvents.filter((e) => (
             get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
@@ -215,8 +218,6 @@ export class UpdateTimeComponent extends React.Component {
 
                 <EventScheduleSummary
                     schedule={original.dates}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     noPadding={true}
                     forUpdating={true}
                     useEventTimezone={true}
@@ -238,16 +239,15 @@ export class UpdateTimeComponent extends React.Component {
                         component={TimeInput}
                         field="_startTime"
                         value={start}
-                        timeFormat={timeFormat}
                         noMargin={true}
                         popupContainer={this.getPopupContainer}
                         remoteTimeZone={tz}
                         isLocalTimeZoneDifferent={isRemoteTimeZone}
-                        dateFormat={dateFormat}
                         className={classes}
                         showToBeConfirmed
                         onToBeConfirmed={this.handleToBeConfirmed}
                         toBeConfirmed={get(this.state.diff, TO_BE_CONFIRMED_FIELD)}
+                        showDate={true}
                         {...fieldProps}
                     />
                 </FormRow>
@@ -262,16 +262,15 @@ export class UpdateTimeComponent extends React.Component {
                         component={TimeInput}
                         field="_endTime"
                         value={end}
-                        timeFormat={timeFormat}
                         noMargin={true}
                         popupContainer={this.getPopupContainer}
                         remoteTimeZone={tz}
                         isLocalTimeZoneDifferent={isRemoteTimeZone}
-                        dateFormat={dateFormat}
                         className={classes}
                         showToBeConfirmed
                         onToBeConfirmed={this.handleToBeConfirmed}
                         toBeConfirmed={get(this.state.diff, TO_BE_CONFIRMED_FIELD)}
+                        showDate={true}
                         {...fieldProps}
                     />
                 </FormRow>
@@ -303,20 +302,14 @@ UpdateTimeComponent.propTypes = {
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
     disableSaveInModal: PropTypes.func,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
     onValidate: PropTypes.func,
     formProfiles: PropTypes.object,
     submitting: PropTypes.bool,
     modalProps: PropTypes.object,
-    defaultTimeZone: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({
-    timeFormat: getTimeFormat(state),
-    dateFormat: getDateFormat(state),
     formProfiles: selectors.forms.profiles(state),
-    defaultTimeZone: selectors.config.defaultTimeZone(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -1,7 +1,10 @@
 import {get, cloneDeep, pickBy, has, every} from 'lodash';
+import moment from 'moment';
+
+import {appConfig} from 'appConfig';
+
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
-import moment from 'moment';
 import {
     getErrorMessage,
     getTimeZoneOffset,
@@ -378,19 +381,17 @@ const query = (
 
 ) => (
     (dispatch, getState, {api}) => {
-        const startOfWeek = selectors.config.getStartOfWeek(getState());
         let tzOffset = timeZoneOffset || getTimeZoneOffset();
-        // eslint-disable-next-line object-shorthand
         let criteria = self.getCriteria({
-            spikeState,
-            agendas,
-            noAgendaAssigned,
-            advancedSearch,
-            fulltext,
-            adHocPlanning,
-            excludeRescheduledAndCancelled,
-            startOfWeek,
-            featured,
+            spikeState: spikeState,
+            agendas: agendas,
+            noAgendaAssigned: noAgendaAssigned,
+            advancedSearch: advancedSearch,
+            fulltext: fulltext,
+            adHocPlanning: adHocPlanning,
+            excludeRescheduledAndCancelled: excludeRescheduledAndCancelled,
+            startOfWeek: appConfig.start_of_week,
+            featured: featured,
             timezoneOffset: tzOffset,
             includeScheduledUpdates: includeScheduledUpdates,
         });
@@ -1074,7 +1075,7 @@ const uploadFiles = (planning) => (
         return Promise.all(filesToUpload.map((file) => (
             upload.start({
                 method: 'POST',
-                url: getState().config.server.url + '/planning_files/',
+                url: appConfig.server.url + '/planning_files/',
                 headers: {'Content-Type': 'multipart/form-data'},
                 data: {media: [file]},
                 arrayKey: '',

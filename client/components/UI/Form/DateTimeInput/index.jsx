@@ -20,8 +20,6 @@ export const DateTimeInput = ({
     onChange,
     required,
     invalid,
-    timeFormat,
-    dateFormat,
     readOnly,
     canClear,
     item,
@@ -60,7 +58,6 @@ export const DateTimeInput = ({
             errors={errors}
             showErrors={showErrors}
             noMargin={!invalid}
-            dateFormat={dateFormat}
             label={label}
             required={required}
             popupContainer={popupContainer}
@@ -85,7 +82,6 @@ export const DateTimeInput = ({
             errors={errors}
             showErrors={showErrors}
             noMargin={!invalid}
-            timeFormat={timeFormat}
             popupContainer={popupContainer}
             onFocus={onFocus}
             onPopupOpen={onPopupOpen}
@@ -118,8 +114,6 @@ DateTimeInput.propTypes = {
         PropTypes.instanceOf(moment),
     ]),
     onChange: PropTypes.func.isRequired,
-    timeFormat: PropTypes.string.isRequired,
-    dateFormat: PropTypes.string.isRequired,
     timeField: PropTypes.string,
 
     hint: PropTypes.string,

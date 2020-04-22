@@ -1,10 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {gettext, getCreator, stringUtils} from '../../utils';
+import {get} from 'lodash';
+
+import {gettext, getCreator, stringUtils, getFileDownloadURL} from '../../utils';
 import {TO_BE_CONFIRMED_FIELD} from '../../constants';
 import * as selectors from '../../selectors';
-import {get} from 'lodash';
+
 import {Row, ExpandableText} from '../UI/Preview';
 import {
     AuditInformation,
@@ -31,10 +33,6 @@ export class EventPreviewContentComponent extends React.Component {
             users,
             desks,
             formProfile,
-            timeFormat,
-            dateFormat,
-            createUploadLink,
-            streetMapUrl,
             customVocabularies,
             hideRelatedItems,
             files,
@@ -106,7 +104,7 @@ export class EventPreviewContentComponent extends React.Component {
                         dates: item.dates,
                         [TO_BE_CONFIRMED_FIELD]: get(item, TO_BE_CONFIRMED_FIELD),
                     }}
-                    timeFormat={timeFormat} dateFormat={dateFormat}/>
+                />
                 <Row
                     enabled={get(formProfile, 'editor.calendars.enabled')}
                     label={gettext('Calendars')}
@@ -127,7 +125,6 @@ export class EventPreviewContentComponent extends React.Component {
                         <Location
                             name={get(item, 'location.name')}
                             address={get(item, 'location.formatted_address')}
-                            mapUrl={streetMapUrl}
                             multiLine={true}
                             details={get(item, 'location.details[0]')}
                         />
@@ -186,7 +183,7 @@ export class EventPreviewContentComponent extends React.Component {
                     formProfile={formProfile}
                     files={files}
                     item={item}
-                    createLink={createUploadLink} />
+                    createLink={getFileDownloadURL} />
 
                 {get(formProfile, 'editor.links.enabled') &&
                     <ToggleBox
@@ -217,8 +214,6 @@ export class EventPreviewContentComponent extends React.Component {
                         expandable={true}
                         users={users}
                         desks={desks}
-                        timeFormat={timeFormat}
-                        dateFormat={dateFormat}
                         allowEditPlanning={true} /> :
                     !hideRelatedItems &&
                     <span className="sd-text__info">{gettext('No related planning items.')}</span>
@@ -236,10 +231,6 @@ EventPreviewContentComponent.propTypes = {
     session: PropTypes.object,
     lockedItems: PropTypes.object,
     formProfile: PropTypes.object,
-    timeFormat: PropTypes.string,
-    dateFormat: PropTypes.string,
-    createUploadLink: PropTypes.func,
-    streetMapUrl: PropTypes.string,
     fetchEventFiles: PropTypes.func,
     customVocabularies: PropTypes.array,
     hideRelatedItems: PropTypes.bool,
@@ -253,11 +244,7 @@ const mapStateToProps = (state, ownProps) => ({
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
     lockedItems: selectors.locks.getLockedItems(state),
-    timeFormat: selectors.config.getTimeFormat(state),
-    dateFormat: selectors.config.getDateFormat(state),
     formProfile: selectors.forms.eventProfile(state),
-    createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
-    streetMapUrl: selectors.config.getStreetMapUrl(state),
     customVocabularies: state.customVocabularies,
     files: selectors.general.files(state),
     contacts: selectors.general.contacts(state),

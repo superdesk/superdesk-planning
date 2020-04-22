@@ -1,7 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-
 import {get} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
 import {gettext, getItemType, eventUtils, getDateTimeString, timeUtils, planningUtils} from '../utils';
 import {ITEM_TYPE, EVENTS, PLANNING} from '../constants';
 
@@ -91,12 +93,7 @@ export class ExportAsArticleModal extends React.Component {
     }
 
     getListElement(item) {
-        const {
-            exportListFields,
-            dateFormat,
-            timeFormat,
-            agendas,
-        } = this.props.modalProps;
+        const {exportListFields, agendas} = this.props.modalProps;
         const itemType = getItemType(item);
         const propsToComponent = {
             fieldsProps: {
@@ -113,15 +110,19 @@ export class ExportAsArticleModal extends React.Component {
             secFields = EVENTS.EXPORT_LIST.SECONDARY_FIELDS;
             dateStr = eventUtils.getDateStringForEvent(
                 item,
-                dateFormat,
-                timeFormat,
                 false,
                 true,
                 timeUtils.isEventInDifferentTimeZone(item));
         } else {
             primaryFields = PLANNING.EXPORT_LIST.PRIMARY_FIELDS;
             secFields = PLANNING.EXPORT_LIST.SECONDARY_FIELDS;
-            dateStr = getDateTimeString(item.planning_date, dateFormat, timeFormat, ' @ ', false) || '';
+            dateStr = getDateTimeString(
+                item.planning_date,
+                appConfig.view.dateformat,
+                appConfig.view.timeformat,
+                ' @ ',
+                false
+            ) || '';
         }
 
         return (<Item>
@@ -231,8 +232,6 @@ ExportAsArticleModal.propTypes = {
         articleTemplates: PropTypes.array,
         defaultArticleTemplate: PropTypes.object,
         exportListFields: PropTypes.object.isRequired,
-        dateFormat: PropTypes.string,
-        timeFormat: PropTypes.string,
         agendas: PropTypes.array,
     }),
 };

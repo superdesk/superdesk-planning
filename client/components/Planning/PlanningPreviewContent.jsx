@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import {get} from 'lodash';
+
 import {
     gettext,
     getCreator,
@@ -8,10 +10,11 @@ import {
     stringUtils,
     eventUtils,
     planningUtils,
+    getFileDownloadURL,
 } from '../../utils';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
-import {get} from 'lodash';
+
 import {Row, ExpandableText} from '../UI/Preview';
 import {
     AuditInformation,
@@ -43,23 +46,18 @@ export class PlanningPreviewContentComponent extends React.Component {
             formProfile,
             agendas,
             event,
-            dateFormat,
-            timeFormat,
             desks,
             newsCoverageStatus,
             urgencies,
-            streetMapUrl,
             onEditEvent,
             lockedItems,
             customVocabularies,
             inner,
             noPadding,
-            createUploadLink,
             hideRelatedItems,
             hideEditIcon,
             files,
             planningAllowScheduledUpdates,
-            useXmpFile,
         } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
@@ -129,7 +127,7 @@ export class PlanningPreviewContentComponent extends React.Component {
                 <Row
                     enabled={get(formProfile, 'planning.editor.planning_date.enabled')}
                     label={gettext('Planning Date')}
-                    value={planningUtils.getDateStringForPlanning(item, dateFormat, timeFormat) || ''}
+                    value={planningUtils.getDateStringForPlanning(item) || ''}
                 />
                 <Row
                     enabled={get(formProfile, 'planning.editor.description_text.enabled')}
@@ -200,7 +198,7 @@ export class PlanningPreviewContentComponent extends React.Component {
                                     <li key={index}>
                                         <FileInput
                                             value={file}
-                                            createLink={createUploadLink}
+                                            createLink={getFileDownloadURL}
                                             readOnly={true}
                                             files={files} />
                                     </li>
@@ -216,13 +214,10 @@ export class PlanningPreviewContentComponent extends React.Component {
                 )}
                 {!hideRelatedItems && event && (
                     <EventMetadata event={event}
-                        dateFormat={dateFormat}
-                        timeFormat={timeFormat}
                         dateOnly={true}
-                        streetMapUrl={streetMapUrl}
                         onEditEvent={onEditEvent.bind(null, event)}
                         lockedItems={lockedItems}
-                        createUploadLink={createUploadLink}
+                        createUploadLink={getFileDownloadURL}
                         files={files}
                         hideEditIcon={hideEditIcon}
                     />
@@ -238,15 +233,12 @@ export class PlanningPreviewContentComponent extends React.Component {
                         users= {users}
                         desks= {desks}
                         newsCoverageStatus={newsCoverageStatus}
-                        dateFormat={dateFormat}
-                        timeFormat={timeFormat}
                         formProfile={formProfile.coverage}
                         inner={inner}
                         files={files}
-                        createLink={createUploadLink}
+                        createLink={getFileDownloadURL}
                         planningAllowScheduledUpdates={planningAllowScheduledUpdates}
-                        useXmpFile={useXmpFile} />)
-                    )
+                    />))
                 }
             </ContentBlock>
         );
@@ -262,23 +254,18 @@ PlanningPreviewContentComponent.propTypes = {
     lockedItems: PropTypes.object,
     formProfile: PropTypes.object,
     event: PropTypes.object,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     newsCoverageStatus: PropTypes.array,
     urgencies: PropTypes.array,
-    streetMapUrl: PropTypes.string,
     onEditEvent: PropTypes.func,
     customVocabularies: PropTypes.array,
     inner: PropTypes.bool,
     noPadding: PropTypes.bool,
     fetchEventFiles: PropTypes.func,
     fetchPlanningFiles: PropTypes.func,
-    createUploadLink: PropTypes.func,
     hideRelatedItems: PropTypes.bool,
     files: PropTypes.object,
     hideEditIcon: PropTypes.bool,
     planningAllowScheduledUpdates: PropTypes.bool,
-    useXmpFile: PropTypes.bool,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -290,17 +277,12 @@ const mapStateToProps = (state, ownProps) => ({
     desks: selectors.general.desks(state),
     lockedItems: selectors.locks.getLockedItems(state),
     agendas: selectors.general.agendas(state),
-    dateFormat: selectors.config.getDateFormat(state),
-    timeFormat: selectors.config.getTimeFormat(state),
     formProfile: selectors.forms.profiles(state),
     newsCoverageStatus: selectors.general.newsCoverageStatus(state) || ownProps.item.coverages.news_coverage_status,
     urgencies: selectors.getUrgencies(state),
-    streetMapUrl: selectors.config.getStreetMapUrl(state),
     customVocabularies: state.customVocabularies,
-    createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
     files: selectors.general.files(state),
-    planningAllowScheduledUpdates: selectors.config.getPlanningAllowScheduledUpdates(state),
-    useXmpFile: selectors.config.useXmpFile(state),
+    planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

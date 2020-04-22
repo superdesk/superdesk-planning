@@ -1,9 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {gettext, getMapUrl, stringUtils} from '../../utils';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
-export const Location = ({name, address, mapUrl, multiLine, details}) => {
+import {appConfig} from 'appConfig';
+
+import {gettext, getMapUrl, stringUtils} from '../../utils';
+
+export const Location = ({name, address, multiLine, details}) => {
     if (!name && !address) {
         return null;
     }
@@ -38,12 +41,12 @@ export const Location = ({name, address, mapUrl, multiLine, details}) => {
     // eslint-disable-next-line react/no-multi-comp
     const renderLocation = () => (multiLine ? renderMultiline() : renderSingleline());
 
-    if (mapUrl) {
+    if (appConfig.street_map_url) {
         return (
             <span className="addgeolookup">
                 <a
                     title={gettext('Show on map')}
-                    href={getMapUrl(mapUrl, name, address)}
+                    href={getMapUrl(appConfig.street_map_url, name, address)}
                     target="_blank"
                     rel="noopener noreferrer">
                     {renderLocation()}
@@ -60,7 +63,6 @@ export const Location = ({name, address, mapUrl, multiLine, details}) => {
 Location.propTypes = {
     name: PropTypes.string,
     address: PropTypes.string,
-    mapUrl: PropTypes.string,
     classes: PropTypes.string,
     multiLine: PropTypes.bool,
     details: PropTypes.string,
@@ -69,7 +71,6 @@ Location.propTypes = {
 Location.defaultProps = {
     name: '',
     address: '',
-    mapUrl: '',
     classes: '',
     multiLine: false,
     details: '',

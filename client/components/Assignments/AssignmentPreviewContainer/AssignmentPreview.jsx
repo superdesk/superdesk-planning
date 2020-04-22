@@ -18,7 +18,6 @@ export const AssignmentPreview = ({
     planningItem,
     files,
     createLink,
-    useXmpFile,
 }) => {
     const planning = get(assignment, 'planning', {});
 
@@ -41,7 +40,7 @@ export const AssignmentPreview = ({
         assignment.assigned_to.contact :
         get(planning, 'contact_info');
 
-    const showXMPFiles = planningUtils.showXMPFileUIControl(assignment, useXmpFile);
+    const showXMPFiles = planningUtils.showXMPFileUIControl(assignment);
 
     return (
         <div>
@@ -133,5 +132,4 @@ AssignmentPreview.propTypes = {
     planningItem: PropTypes.object,
     files: PropTypes.array,
     createLink: PropTypes.func,
-    useXmpFile: PropTypes.bool,
 };

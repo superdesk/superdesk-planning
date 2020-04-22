@@ -2,8 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 
+import {appConfig} from 'appConfig';
+
 import * as actions from '../../../actions';
-import {getDateFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
 import {gettext, updateFormValues, eventUtils, timeUtils} from '../../../utils';
 import {Row} from '../../UI/Preview/';
@@ -83,7 +84,7 @@ export class UpdateEventRepetitionsComponent extends React.Component {
     }
 
     render() {
-        const {original, dateFormat, submitting} = this.props;
+        const {original, submitting} = this.props;
         const {diff} = this.state;
 
         return (
@@ -106,7 +107,7 @@ export class UpdateEventRepetitionsComponent extends React.Component {
                 <Row
                     label={gettext('Series Start Date')}
                     value={get(original, '_recurring[0].dates.start')
-                    && original._recurring[0].dates.start.format(dateFormat) || ''}
+                    && original._recurring[0].dates.start.format(appConfig.view.dateformat) || ''}
                     className="strong"
                     noPadding={true}
                 />
@@ -119,7 +120,6 @@ export class UpdateEventRepetitionsComponent extends React.Component {
                     onlyUpdateRepetitions
                     onChange={this.onChange}
                     schedule={diff.dates || {}}
-                    dateFormat={dateFormat}
                     readOnly={submitting}
                     errors={get(this.state.errors, 'dates.recurring_rule')}
                     popupContainer={() => this.dom.popupContainer}
@@ -136,7 +136,6 @@ UpdateEventRepetitionsComponent.propTypes = {
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
     disableSaveInModal: PropTypes.func,
-    dateFormat: PropTypes.string.isRequired,
     onValidate: PropTypes.func,
     formProfiles: PropTypes.object,
     submitting: PropTypes.bool,
@@ -145,7 +144,6 @@ UpdateEventRepetitionsComponent.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-    dateFormat: getDateFormat(state),
     formProfiles: selectors.forms.profiles(state),
 });
 

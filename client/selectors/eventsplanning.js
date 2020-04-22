@@ -1,12 +1,13 @@
 import {createSelector} from 'reselect';
 import {get, sortBy, uniq, keyBy} from 'lodash';
-import {getStartOfWeek} from './config';
+
+import {appConfig} from 'appConfig';
+
 import {storedEvents} from './events';
 import {storedPlannings} from './planning';
 import {eventUtils, getSearchDateRange, planningUtils} from '../utils';
 import {EVENTS_PLANNING, SPIKED_STATE} from '../constants';
 import {userPreferences} from './general';
-
 
 export const getEventsPlanningList = (state) => get(state, 'eventsPlanning.eventsAndPlanningInList', []);
 export const getRelatedPlanningsList = (state) => get(state, 'eventsPlanning.relatedPlannings', {});
@@ -34,11 +35,11 @@ export const currentFilter = createSelector(
  * @type {Reselect.Selector<any, any>}
  */
 export const orderedEventsPlanning = createSelector(
-    [storedEvents, storedPlannings, getEventsPlanningList, currentSearch, getStartOfWeek],
-    (events, plannings, eventPlanningList, search, startOfWeek) => {
+    [storedEvents, storedPlannings, getEventsPlanningList, currentSearch],
+    (events, plannings, eventPlanningList, search) => {
         const eventsList = [];
         const planningList = [];
-        const dateRange = getSearchDateRange(search, startOfWeek);
+        const dateRange = getSearchDateRange(search, appConfig.start_of_week);
 
         eventPlanningList.forEach((_id) => {
             if (_id in events) {

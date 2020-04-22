@@ -1,7 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {ICON_COLORS, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
+
+import {ICON_COLORS} from '../../../constants';
 import {StateLabel} from '../..';
 import {EventScheduleSummary} from '../';
 import {ItemIcon} from '../../index';
@@ -17,12 +18,9 @@ import {ContactsPreviewList} from '../../Contacts';
 export const EventMetadata = (
     {
         event,
-        dateFormat,
-        timeFormat,
         dateOnly,
         scrollInView,
         tabEnabled,
-        streetMapUrl,
         lockedItems,
         onEditEvent,
         noOpen,
@@ -36,7 +34,12 @@ export const EventMetadata = (
         hideEditIcon,
     }
 ) => {
-    const dateStr = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat, dateOnly, true, false);
+    const dateStr = eventUtils.getDateStringForEvent(
+        event,
+        dateOnly,
+        true,
+        false
+    );
     const isItemLocked = eventUtils.isEventLocked(event, lockedItems);
     const editEventComponent = onEditEvent && !hideEditIcon ?
         (<button data-sd-tooltip="Edit Event"
@@ -105,7 +108,6 @@ export const EventMetadata = (
                                 <Location
                                     name={get(event, 'location.name')}
                                     address={get(event, 'location.formatted_address')}
-                                    mapUrl={streetMapUrl}
                                     details={get(event, 'location.details[0]')}
                                 />
                             </span>
@@ -131,16 +133,13 @@ export const EventMetadata = (
                 <StateLabel item={event} verbose={true}/>
             </PreviewRow>
             <PreviewRow label={gettext('Name')} value={event.name} />
-            <EventScheduleSummary schedule={event}
-                dateFormat={dateFormat}
-                timeFormat={timeFormat} />
+            <EventScheduleSummary schedule={event}/>
             <PreviewRow label={gettext('Location')}>
                 <div>
                     <Location
                         name={get(event, 'location.name')}
                         address={get(event, 'location.formatted_address')}
                         multiLine={true}
-                        mapUrl={streetMapUrl}
                         details={get(event, 'location.details[0]')}
                     />
                 </div>
@@ -231,11 +230,8 @@ export const EventMetadata = (
 EventMetadata.propTypes = {
     event: PropTypes.object,
     dateOnly: PropTypes.bool,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     scrollInView: PropTypes.bool,
     tabEnabled: PropTypes.bool,
-    streetMapUrl: PropTypes.string,
     onEditEvent: PropTypes.func,
     onOpen: PropTypes.func,
     onClick: PropTypes.func,
@@ -252,8 +248,6 @@ EventMetadata.propTypes = {
 
 
 EventMetadata.defaultProps = {
-    dateFormat: DEFAULT_DATE_FORMAT,
-    timeFormat: DEFAULT_TIME_FORMAT,
     scrollInView: true,
     showIcon: true,
     showBorder: true,

@@ -10,7 +10,8 @@ import PlanningDetailsWidget, {getItemPlanningInfo} from './components/PlanningD
 
 import {getSuperdeskApiImplementation} from 'superdesk-core/scripts/core/get-superdesk-api-implementation';
 import {superdeskApi} from './superdeskApi';
-import {extensions} from 'appConfig';
+import {appConfig, extensions} from 'appConfig';
+import './config';
 
 export default angular.module('superdesk-planning', [])
     .directive('sdPlanning',
@@ -93,7 +94,6 @@ export default angular.module('superdesk-planning', [])
         'sdPlanningStore',
         'extensionPoints',
         'assignments',
-        'deployConfig',
         'modal',
         'privileges',
         'lock',
@@ -105,7 +105,6 @@ export default angular.module('superdesk-planning', [])
             sdPlanningStore,
             extensionPoints,
             assignments,
-            deployConfig,
             modal,
             privileges,
             lock,
@@ -138,7 +137,7 @@ export default angular.module('superdesk-planning', [])
                             session,
                             authoringWorkspace,
                             metadata,
-                            deployConfig
+                            appConfig
                         )
                     );
 

@@ -4,7 +4,6 @@ import {connect} from 'react-redux';
 import * as actions from '../../../actions';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
-import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import {eventUtils, gettext} from '../../../utils';
 import {Row} from '../../UI/Preview';
 import '../style.scss';
@@ -58,7 +57,7 @@ export class AssignCalendarComponent extends React.Component {
     }
 
     render() {
-        const {original, dateFormat, timeFormat, submitting} = this.props;
+        const {original, submitting} = this.props;
         const numEvents = this.state.relatedEvents.length + 1;
 
         return (
@@ -78,12 +77,7 @@ export class AssignCalendarComponent extends React.Component {
                     className="strong"
                 />
 
-                <EventScheduleSummary
-                    schedule={original.dates}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
-                    noPadding={true}
-                />
+                <EventScheduleSummary schedule={original.dates} noPadding={true} />
 
                 <Row
                     enabled={true}
@@ -108,17 +102,10 @@ export class AssignCalendarComponent extends React.Component {
 AssignCalendarComponent.propTypes = {
     original: PropTypes.object.isRequired,
     updates: PropTypes.object.isRequired,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
     submitting: PropTypes.bool,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
 };
-
-const mapStateToProps = (state) => ({
-    timeFormat: getTimeFormat(state),
-    dateFormat: getDateFormat(state),
-});
 
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (original, updates) => (
@@ -131,7 +118,7 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 export const AssignCalendarForm = connect(
-    mapStateToProps,
+    null,
     mapDispatchToProps,
     null,
     {withRef: true}

@@ -1,3 +1,7 @@
+import {get, omit, isEmpty, isNil, isEqual} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
 import {
     MAIN,
     ITEM_TYPE,
@@ -43,7 +47,6 @@ import {
     modifyForClient,
 } from '../utils';
 import eventsPlanningUi from './eventsPlanning/ui';
-import {get, omit, isEmpty, isNil, isEqual} from 'lodash';
 
 import * as selectors from '../selectors';
 import {validateItem} from '../validators';
@@ -602,11 +605,10 @@ const openIgnoreCancelSaveModal = ({
 
         if (itemType === ITEM_TYPE.EVENT && eventUtils.isEventRecurring(item)) {
             const originalEvent = get(storedItems, itemId, {});
-            const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
 
             promise = dispatch(eventsApi.query({
                 recurrenceId: originalEvent.recurrence_id,
-                maxResults: maxRecurringEvents,
+                maxResults: appConfig.max_recurrent_events,
                 onlyFuture: false,
             }))
                 .then((relatedEvents) => ({
@@ -1129,11 +1131,9 @@ const jumpTo = (direction) => (
                     currentStartFilter.clone().subtract(1, 'd') :
                     currentStartFilter.clone().add(1, 'd');
             } else if (jumpInterval === MAIN.JUMP.WEEK) {
-                const startOfWeek = selectors.config.getStartOfWeek(getState());
-
                 newStart = direction === MAIN.JUMP.FORWARD ?
-                    timeUtils.getStartOfNextWeek(currentStartFilter, startOfWeek) :
-                    timeUtils.getStartOfPreviousWeek(currentStartFilter, startOfWeek);
+                    timeUtils.getStartOfNextWeek(currentStartFilter, appConfig.start_of_week) :
+                    timeUtils.getStartOfPreviousWeek(currentStartFilter, appConfig.start_of_week);
             } else if (jumpInterval === MAIN.JUMP.MONTH) {
                 newStart = direction === MAIN.JUMP.FORWARD ?
                     timeUtils.getStartOfNextMonth(currentStartFilter) :

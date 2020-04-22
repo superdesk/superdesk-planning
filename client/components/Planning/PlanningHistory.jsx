@@ -159,9 +159,9 @@ export class PlanningHistory extends React.Component {
                         historyData={groupedCoverageHistory[historyKey]}
                         users={this.props.users}
                         desks={this.props.desks}
-                        timeFormat={this.props.timeFormat}
-                        dateFormat={this.props.dateFormat}
-                        contentTypes={this.props.contentTypes} />)}
+                        contentTypes={this.props.contentTypes}
+                    />)
+                }
             </ContentBlock>
         );
     }
@@ -177,8 +177,6 @@ PlanningHistory.propTypes = {
     desks: PropTypes.array,
     agendas: PropTypes.array,
     currentPlanningId: PropTypes.string,
-    timeFormat: PropTypes.string,
-    dateFormat: PropTypes.string,
     fetchPlanningHistory: PropTypes.func,
     openItemPreview: PropTypes.func,
     contentTypes: PropTypes.array,

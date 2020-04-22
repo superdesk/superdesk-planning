@@ -1,6 +1,8 @@
 import moment from 'moment';
 import {get, cloneDeep, has, pick} from 'lodash';
 
+import {appConfig} from 'appConfig';
+
 import * as selectors from '../../selectors';
 import * as actions from '../';
 import {ASSIGNMENTS, ALL_DESKS, SORT_DIRECTION} from '../../constants';
@@ -170,19 +172,18 @@ const query = ({
         let sort = '[("' + (get(filterByValues, orderByField, 'planning.scheduled')) + '", '
             + (orderDirection === SORT_DIRECTION.ASCENDING ? 1 : -1) + ')]';
 
-        const systemTimezone = selectors.config.defaultTimeZone(getState());
         const baseQuery = selectors.getBaseAssignmentQuery(getState());
         const query = constructQuery({
-            systemTimezone,
-            baseQuery,
-            searchQuery,
-            deskId,
-            userId,
-            states,
-            type,
-            priority,
-            dateFilter,
-            ignoreScheduledUpdates,
+            systemTimezone: appConfig.defaultTimezone,
+            baseQuery: baseQuery,
+            searchQuery: searchQuery,
+            deskId: deskId,
+            userId: userId,
+            states: states,
+            type: type,
+            priority: priority,
+            dateFilter: dateFilter,
+            ignoreScheduledUpdates: ignoreScheduledUpdates,
         });
 
         return api('assignments').query({

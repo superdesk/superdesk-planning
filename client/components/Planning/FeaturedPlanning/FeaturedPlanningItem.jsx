@@ -19,8 +19,6 @@ import {
 export const FeaturedPlanningItem = ({
     item,
     lockedItems,
-    dateFormat,
-    timeFormat,
     date,
     users,
     desks,
@@ -96,8 +94,6 @@ export const FeaturedPlanningItem = ({
                     <PlanningDateTime
                         item={item}
                         date={date.format('YYYY-MM-DD')}
-                        timeFormat={timeFormat}
-                        dateFormat={dateFormat}
                         users={users}
                         desks={desks}
                         contentTypes={contentTypes}
@@ -130,8 +126,6 @@ FeaturedPlanningItem.propTypes = {
     item: PropTypes.object.isRequired,
     date: PropTypes.object,
     lockedItems: PropTypes.object.isRequired,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
     selectedPlanningIds: PropTypes.array,
     highlights: PropTypes.array,
     users: PropTypes.array,

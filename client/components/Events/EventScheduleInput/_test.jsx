@@ -44,8 +44,6 @@ describe('<EventScheduleInput />', () => {
                 pristine={pristine}
                 showRepeat={showRepeat}
                 showRepeatSummary={showRepeatSummary}
-                timeFormat="HH:mm"
-                dateFormat="DD/MM/YYYY"
                 formProfile={formProfile}
             />
         );

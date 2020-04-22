@@ -1,4 +1,7 @@
 import {get, pickBy, isEqual} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
 import {EVENTS_PLANNING, MAIN, SPIKED_STATE} from '../../constants';
 import {planningUtils, eventUtils, getDateTimeElasticFormat, getTimeZoneOffset} from '../../utils';
 import * as selectors from '../../selectors';
@@ -40,7 +43,7 @@ const query = (
                 getDateTimeElasticFormat(get(advancedSearch, 'dates.start')) : null,
             end_date: get(advancedSearch, 'dates.end') ?
                 getDateTimeElasticFormat(get(advancedSearch, 'dates.end')) : null,
-            start_of_week: selectors.config.getStartOfWeek(getState()),
+            start_of_week: appConfig.start_of_week,
             calendars: get(calendars, 'length', 0) > 0 ? JSON.stringify((calendars || []).map((c) => c.qcode)) : null,
             agendas: get(agendas, 'length', 0) > 0 ? JSON.stringify((agendas || []).map((a) => a._id)) : null,
             tz_offset: getTimeZoneOffset(),
