@@ -7,7 +7,6 @@ import {appConfig} from 'appConfig';
 
 Object.assign(appConfig, {
     server: {url: 'http://server.com'},
-    // iframely: {key: '123'},
     view: {
         timeformat: 'HH:mm',
         dateformat: 'DD/MM/YYYY',

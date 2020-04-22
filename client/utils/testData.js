@@ -1,6 +1,5 @@
 export const config = {
     server: {url: 'http://server.com'},
-    // iframely: {key: '123'},
     model: {dateformat: 'DD/MM/YYYY'},
     shortTimeFormat: 'HH:mm',
     defaultTimezone: 'Australia/Sydney',
@@ -467,8 +466,6 @@ export const urgency = {
     ],
 };
 
-// export const deployConfig = {max_recurrent_events: 200};
-
 export const locks = {
     event: {},
     planning: {},
@@ -908,7 +905,6 @@ export const eventsPlanningFilters = [
 ];
 
 export const initialState = {
-    // config: config,
     privileges: privileges,
     session: sessions[0],
     users: users,
@@ -942,7 +938,6 @@ export const initialState = {
     genres: genres,
     ingest: ingest,
     urgency: urgency,
-    // deployConfig: deployConfig,
     locks: locks,
     events: eventsInitialState,
     agenda: agendaInitialState,

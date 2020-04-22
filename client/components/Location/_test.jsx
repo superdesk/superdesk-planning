@@ -40,7 +40,6 @@ describe('<Location />', () => {
     });
 
     it('render single line with map', () => {
-        // appConfig.street_map_url = 'https://www.google.com.au/maps/?q=';
         appConfig.street_map_url = 'http://www.google.com/?q=';
         wrapper = mount(
             <Provider store={store}>

@@ -42,8 +42,6 @@ const planningApp = combineReducers({
     contacts: contacts,
 
     // The following doesn't require reducers as they are loaded using sdPlanningService
-    // config: returnState,
-    // deployConfig: returnState,
     ingest: returnState,
     privileges: returnState,
     subjects: returnState,

@@ -12,7 +12,6 @@ Enzyme.configure({adapter: new Adapter()});
 
 Object.assign(appConfig, {
     server: {url: 'http://server.com'},
-    // iframely: {key: '123'},
     model: {dateformat: 'DD/MM/YYYY'},
     shortTimeFormat: 'HH:mm',
     defaultTimezone: 'Australia/Sydney',
