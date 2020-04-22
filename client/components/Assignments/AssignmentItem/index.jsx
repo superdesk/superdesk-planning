@@ -109,9 +109,11 @@ export class AssignmentItemComponent extends React.Component {
         return (
             <Column grow={true} border={false}>
                 <Row>
-                    {listViewConfig.firstLine.map((field) =>
-                        this.renderField(field)
-                    )}
+                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                        {listViewConfig.firstLine.map((field) =>
+                            this.renderField(field)
+                        )}
+                    </span>
                 </Row>
                 <Row>
                     {listViewConfig.secondLine.map((field) =>
@@ -283,12 +285,9 @@ AssignmentItemComponent.propTypes = {
     assignedDesk: PropTypes.object,
     contacts: PropTypes.object,
     loadArchiveItem: PropTypes.func,
-    fetchPlanningItemForAssignment: PropTypes.func,
 };
 
 export const AssignmentItem = connect(null, (dispatch) => ({
     loadArchiveItem: (assignment) =>
         dispatch(actions.assignments.api.loadArchiveItem(assignment)),
-    fetchPlanningItemForAssignment: (assignment) =>
-        dispatch(actions.planning.api.fetchById(assignment.planning_item)),
 }))(AssignmentItemComponent);

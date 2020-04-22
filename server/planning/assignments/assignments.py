@@ -1239,6 +1239,7 @@ assignments_schema = {
     # coverage details
     'planning': deepcopy(coverage_schema['planning']),
     'description_text': metadata_schema['description_text'],
+    'name': metadata_schema['name'],
 
     # Field to mark assignment for deletion if a delete operation fails
     '_to_delete': {'type': 'boolean'},

@@ -10,7 +10,7 @@ export const ContentComponent = ({assignment}: IProps) => {
     const hasContent = assignmentUtils.assignmentHasContent(assignment);
 
     if (!hasContent) {
-        return <span />;
+        return null;
     }
 
     return <Label text="Content" isHollow={true} iconType="darkBlue2" />;

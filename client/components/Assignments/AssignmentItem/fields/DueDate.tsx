@@ -39,7 +39,9 @@ export const DueDateComponent = ({assignment}: IProps) => {
                 <span>{gettext('\'not scheduled yet\'')}</span>
             )}
             {isOverdue && (
-                <span className="label label--warning label--hollow">due</span>
+                <span className="label label--warning label--hollow">
+                    {gettext('due')}
+                </span>
             )}
         </span>
     );

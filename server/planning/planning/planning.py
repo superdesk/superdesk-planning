@@ -716,6 +716,10 @@ class PlanningService(superdesk.Service):
             if planning_original.get('description_text') != planning_updates.get('description_text'):
                 assignment['description_text'] = planning['description_text']
 
+            # If the Planning name has been changed
+            if planning_original.get('name') != planning_updates.get('name'):
+                assignment['name'] = planning['name']
+
             # If there has been a change in the planning internal note then notify the assigned users/desk
             if planning_updates.get('internal_note') and planning_original.get('internal_note') != planning_updates.get(
                     'internal_note'):
@@ -731,7 +735,10 @@ class PlanningService(superdesk.Service):
                     no_email=True)
 
             # Update only if anything got modified
-            if 'planning' in assignment or 'assigned_to' in assignment or 'description_text' in assignment:
+            if ('planning' in assignment or
+                'assigned_to' in assignment or
+                'description_text' in assignment or
+                'name' in assignment):
                 assignment_service.system_update(
                     ObjectId(assigned_to.get('assignment_id')),
                     assignment,

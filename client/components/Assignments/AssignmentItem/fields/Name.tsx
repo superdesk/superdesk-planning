@@ -3,21 +3,12 @@ import PropTypes from 'prop-types';
 
 interface IProps {
     assignment: any;
-    fetchPlanningItemForAssignment: any;
 }
 
-export const NameComponent = ({
-    assignment,
-    fetchPlanningItemForAssignment,
-}: IProps) => {
-    const [name, setName] = React.useState(null);
+export const NameComponent = ({assignment}: IProps) => {
+    const name = assignment.name;
 
-    if (name === null) {
-        // Retrieve full item from id
-        fetchPlanningItemForAssignment(assignment).then((planningItem) => {
-            setName(planningItem.name || '');
-        });
-
+    if (!name) {
         return null;
     }
 
