@@ -1,18 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import {get, isEqual, cloneDeep} from 'lodash';
+
+import {appConfig} from 'appConfig';
 
 import * as actions from '../../../actions';
-import '../style.scss';
-import {get, isEqual, cloneDeep} from 'lodash';
 import {EventScheduleSummary, EventScheduleInput} from '../../Events';
 import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY} from '../../../constants';
-import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
 import {Row} from '../../UI/Preview';
 import {Field} from '../../UI/Form';
 import {validateItem} from '../../../validators';
 import {updateFormValues, eventUtils, timeUtils, gettext} from '../../../utils';
+
+import '../style.scss';
 
 export class ConvertToRecurringEventComponent extends React.Component {
     constructor(props) {
@@ -54,7 +56,7 @@ export class ConvertToRecurringEventComponent extends React.Component {
 
         if (typeof diff.dates === 'object' && !diff.dates.tz) {
             // if no timezone use default one
-            diff.dates.tz = this.props.defaultTimeZone;
+            diff.dates.tz = appConfig.defaultTimezone;
         }
 
         if (field === 'dates.recurring_rule' && !val) {
@@ -112,8 +114,8 @@ export class ConvertToRecurringEventComponent extends React.Component {
     }
 
     render() {
-        const {original, dateFormat, timeFormat, defaultTimeZone} = this.props;
-        const timeZone = get(original, 'dates.tz') || defaultTimeZone;
+        const {original} = this.props;
+        const timeZone = get(original, 'dates.tz') || appConfig.defaultTimezone;
 
         return (
             <div className="MetadataView">
@@ -134,8 +136,6 @@ export class ConvertToRecurringEventComponent extends React.Component {
 
                 <EventScheduleSummary
                     schedule={this.currentDate}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     noPadding={true}
                     forUpdating={true}
                     useEventTimezone={true}
@@ -153,8 +153,6 @@ export class ConvertToRecurringEventComponent extends React.Component {
                     item={this.state.diff}
                     diff={this.state.diff}
                     onChange={this.onChange}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     showRepeatToggle={false}
                     showErrors={true}
                     errors={this.state.errors}
@@ -172,9 +170,6 @@ ConvertToRecurringEventComponent.propTypes = {
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
     disableSaveInModal: PropTypes.func,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
-    defaultTimeZone: PropTypes.string,
 
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
@@ -185,10 +180,7 @@ ConvertToRecurringEventComponent.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-    timeFormat: getTimeFormat(state),
-    dateFormat: getDateFormat(state),
     formProfiles: selectors.forms.profiles(state),
-    defaultTimeZone: selectors.config.defaultTimeZone(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

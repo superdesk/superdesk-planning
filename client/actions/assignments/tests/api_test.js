@@ -1,6 +1,5 @@
 import sinon from 'sinon';
 import moment from 'moment';
-import {get} from 'lodash';
 
 import assignmentsApi from '../api';
 import contactsApi from '../../contacts';
@@ -77,12 +76,7 @@ describe('actions.assignments.api', () => {
         });
 
         it('filter by date filter', () => {
-            const systemTimezone = get(
-                store,
-                'initialState.config.defaultTimezone',
-                'Australia/Sydney'
-            );
-
+            const systemTimezone = 'Australia/Sydney';
             const timezoneOffset = moment()
                 .tz(systemTimezone)
                 .format('Z');

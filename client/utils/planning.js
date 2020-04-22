@@ -1,4 +1,9 @@
 import moment from 'moment-timezone';
+import {get, set, isNil, uniq, sortBy, isEmpty, cloneDeep, isArray, find, flatten} from 'lodash';
+
+import {appConfig} from 'appConfig';
+import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
+
 import {
     WORKFLOW_STATE,
     GENERIC_ITEM_ACTIONS,
@@ -12,7 +17,6 @@ import {
     TO_BE_CONFIRMED_FIELD,
     TO_BE_CONFIRMED_SHORT_TEXT,
 } from '../constants/index';
-import {get, set, isNil, uniq, sortBy, isEmpty, cloneDeep, isArray, find, flatten} from 'lodash';
 import {
     getItemWorkflowState,
     lockUtils,
@@ -36,7 +40,6 @@ import {
     sortBasedOnTBC,
     sanitizeItemFields,
 } from './index';
-import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
@@ -163,8 +166,12 @@ const canCancelCoverage = (coverage, planning, field = 'coverage_id') =>
     (!isCoverageCancelled(coverage) && isExistingItem(coverage, field) && (!get(coverage, 'assigned_to.state')
         || get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED)) && !isItemExpired(planning);
 
-const canAddCoverageToWorkflow = (coverage, autoAssignToWorkflow, planning) => isExistingItem(coverage, 'coverage_id')
-    && isCoverageDraft(coverage) && isCoverageAssigned(coverage) && !autoAssignToWorkflow && !isItemExpired(planning);
+const canAddCoverageToWorkflow = (coverage, planning) =>
+    isExistingItem(coverage, 'coverage_id') &&
+    isCoverageDraft(coverage) &&
+    isCoverageAssigned(coverage) &&
+    !appConfig.planning_auto_assign_to_workflow &&
+    !isItemExpired(planning);
 
 const canRemoveCoverage = (coverage, planning) => !isItemCancelled(planning) &&
     ([WORKFLOW_STATE.DRAFT, WORKFLOW_STATE.CANCELLED].includes(get(coverage, 'workflow_status')) ||
@@ -811,10 +818,19 @@ const isCoverageInWorkflow = (coverage) => !isEmpty(coverage.assigned_to) &&
     get(coverage, 'assigned_to.state') !== WORKFLOW_STATE.DRAFT;
 const formatAgendaName = (agenda) => agenda.is_enabled ? agenda.name : agenda.name + ` - [${gettext('Disabled')}]`;
 
-const getCoverageDateTimeText = (coverage, dateFormat, timeFormat) =>
-    get(coverage, TO_BE_CONFIRMED_FIELD) ? (get(coverage, 'planning.scheduled').format(dateFormat) + ' @ ' +
-        TO_BE_CONFIRMED_SHORT_TEXT) :
-        getDateTimeString(get(coverage, 'planning.scheduled'), dateFormat, timeFormat, ' @ ', false);
+const getCoverageDateTimeText = (coverage) =>
+    get(coverage, TO_BE_CONFIRMED_FIELD) ? (
+        get(coverage, 'planning.scheduled').format(appConfig.view.dateformat) +
+        ' @ ' +
+        TO_BE_CONFIRMED_SHORT_TEXT
+    ) :
+        getDateTimeString(
+            get(coverage, 'planning.scheduled'),
+            appConfig.view.dateformat,
+            appConfig.view.timeformat,
+            ' @ ',
+            false
+        );
 
 /**
  * Get the name of associated icon for different coverage types
@@ -904,7 +920,6 @@ const defaultCoverageValues = (
     newsCoverageStatus,
     planningItem,
     eventItem,
-    longEventDurationThreshold,
     g2contentType,
     defaultDesk,
     preferredCoverageDesks) => {
@@ -949,14 +964,14 @@ const defaultCoverageValues = (
             }
             newCoverage.planning.scheduled = coverageTime;
         }
-        if (eventItem && longEventDurationThreshold > -1) {
-            if (longEventDurationThreshold === 0) {
+        if (eventItem && appConfig.long_event_duration_threshold > -1) {
+            if (appConfig.long_event_duration_threshold === 0) {
                 newCoverage.planning.scheduled = get(eventItem, 'dates.end', moment()).clone();
             } else {
                 let duration = parseInt(moment.duration(get(eventItem, 'dates.end').diff(get(eventItem,
                     'dates.start'))).asHours(), 10);
 
-                if (duration > longEventDurationThreshold) {
+                if (duration > appConfig.long_event_duration_threshold) {
                     delete newCoverage.planning.scheduled;
                     delete newCoverage.planning._scheduledTime;
                 }
@@ -1016,16 +1031,29 @@ const getAgendaNames = (item = {}, agendas = [], onlyEnabled = false) => (
         .filter((agenda) => agenda && (!onlyEnabled || agenda.is_enabled))
 );
 
-const getDateStringForPlanning = (planning, dateFormat, timeFormat) =>
+const getDateStringForPlanning = (planning) =>
     get(planning, TO_BE_CONFIRMED_FIELD) ?
-        planning.planning_date.format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT :
-        getDateTimeString(get(planning, 'planning_date'), dateFormat, timeFormat, ' @ ', false);
+        planning.planning_date.format(appConfig.view.dateformat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT :
+        getDateTimeString(
+            get(planning, 'planning_date'),
+            appConfig.view.dateformat,
+            appConfig.view.timeformat,
+            ' @ ',
+            false
+        );
 
-const getCoverageDateText = (coverage, dateFormat, timeFormat) => {
+const getCoverageDateText = (coverage) => {
     const coverageDate = get(coverage, 'planning.scheduled');
 
-    return !coverageDate ? gettext('Not scheduled yet') :
-        getDateTimeString(coverageDate, dateFormat, timeFormat, ' @ ', false);
+    return !coverageDate ?
+        gettext('Not scheduled yet') :
+        getDateTimeString(
+            coverageDate,
+            appConfig.view.dateformat,
+            appConfig.view.timeformat,
+            ' @ ',
+            false
+        );
 };
 
 const canAddScheduledUpdateToWorkflow = (scheduledUpdate, autoAssignToWorkflow, planning, coverage) =>
@@ -1072,8 +1100,11 @@ const getPlanningFiles = (planning) => {
     return filesToFetch;
 };
 
-const showXMPFileUIControl = (coverage, useXmpFile) => (
-    get(coverage, 'planning.g2_content_type') === 'picture' && useXmpFile
+const showXMPFileUIControl = (coverage) => (
+    get(coverage, 'planning.g2_content_type') === 'picture' && (
+        appConfig.planning_use_xmp_for_pic_assignments ||
+        appConfig.planning_use_xmp_for_pic_slugline
+    )
 );
 
 // eslint-disable-next-line consistent-this

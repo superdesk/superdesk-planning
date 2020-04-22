@@ -1,13 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import {get} from 'lodash';
+
 import * as actions from '../../../actions';
 import '../style.scss';
 import {WORKFLOW_STATE} from '../../../constants';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
-import {getDateFormat, getTimeFormat} from '../../../selectors/config';
-import {get} from 'lodash';
 import {eventUtils, gettext} from '../../../utils';
 import {Row} from '../../UI/Preview';
 
@@ -56,7 +56,7 @@ export class UnspikeEventComponent extends React.Component {
     }
 
     render() {
-        const {original, dateFormat, timeFormat, submitting} = this.props;
+        const {original, submitting} = this.props;
         const isRecurring = !!original.recurrence_id;
         const numEvents = (this.state.relatedEvents.filter(
             (event) => get(event, 'state') === WORKFLOW_STATE.SPIKED)
@@ -79,11 +79,7 @@ export class UnspikeEventComponent extends React.Component {
                     noPadding={true}
                 />
 
-                <EventScheduleSummary
-                    schedule={original.dates}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
-                />
+                <EventScheduleSummary schedule={original.dates} />
 
                 <Row
                     enabled={isRecurring}
@@ -107,25 +103,17 @@ export class UnspikeEventComponent extends React.Component {
 
 UnspikeEventComponent.propTypes = {
     original: PropTypes.object.isRequired,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     submitting: PropTypes.bool,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
 };
-
-
-const mapStateToProps = (state) => ({
-    timeFormat: getTimeFormat(state),
-    dateFormat: getDateFormat(state),
-});
 
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (event) => (dispatch(actions.events.ui.unspike(event))),
 });
 
 export const UnspikeEventForm = connect(
-    mapStateToProps,
+    null,
     mapDispatchToProps,
     null,
     {withRef: true})(UnspikeEventComponent);

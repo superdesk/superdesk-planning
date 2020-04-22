@@ -72,9 +72,7 @@ export class CoverageArrayInput extends React.Component {
             diff,
             navigation,
             useLocalNavigation,
-            autoAssignToWorkflow,
             event,
-            longEventDurationThreshold,
             ...props
         } = this.props;
 
@@ -87,8 +85,7 @@ export class CoverageArrayInput extends React.Component {
             null,
             newsCoverageStatus,
             diff,
-            event,
-            longEventDurationThreshold
+            event
         );
 
         const {desks, users, coverageAddAdvancedMode, setCoverageAddAdvancedMode} = this.props;
@@ -139,7 +136,6 @@ export class CoverageArrayInput extends React.Component {
                         diff={diff}
                         navigation={coverageNavigation}
                         openCoverageIds={this.state.openCoverageIds}
-                        autoAssignToWorkflow={autoAssignToWorkflow}
                         preferredCoverageDesks={preferredCoverageDesks}
                         {...props}
                     />
@@ -176,9 +172,7 @@ CoverageArrayInput.propTypes = {
     onPopupClose: PropTypes.func,
     setCoverageDefaultDesk: PropTypes.func,
     preferredCoverageDesks: PropTypes.object,
-    autoAssignToWorkflow: PropTypes.bool,
     event: PropTypes.object,
-    longEventDurationThreshold: PropTypes.number,
     addNewsItemToPlanning: PropTypes.bool,
     desks: PropTypes.array,
     users: PropTypes.array,

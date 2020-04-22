@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
+
 import {DateTime} from '../UI';
 import {eventUtils, timeUtils} from '../../utils';
 import {gettext} from '../../utils/gettext';
@@ -8,7 +9,7 @@ import {TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_SHORT_TEXT} from '../../constants
 
 import './style.scss';
 
-export const EventDateTime = ({item, timeFormat, dateFormat, ignoreAllDay, displayLocalTimezone}) => {
+export const EventDateTime = ({item, ignoreAllDay, displayLocalTimezone}) => {
     const start = item.dates.start;
     const end = item.dates.end;
     const isAllDay = eventUtils.isEventAllDay(start, end);
@@ -35,8 +36,6 @@ export const EventDateTime = ({item, timeFormat, dateFormat, ignoreAllDay, displ
 
     const commonProps = {
         padLeft: false,
-        dateFormat: dateFormat,
-        timeFormat: timeFormat,
         toBeConfirmed: get(item, TO_BE_CONFIRMED_FIELD),
     };
 
@@ -87,8 +86,6 @@ export const EventDateTime = ({item, timeFormat, dateFormat, ignoreAllDay, displ
 
 EventDateTime.propTypes = {
     item: PropTypes.object.isRequired,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
     ignoreAllDay: PropTypes.bool,
     displayLocalTimezone: PropTypes.bool,
 };

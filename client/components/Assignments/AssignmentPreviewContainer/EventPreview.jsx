@@ -2,6 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
+import {appConfig} from 'appConfig';
+
 import {gettext, stringUtils, timeUtils} from '../../../utils';
 import {Datetime} from '../../';
 import {Location} from '../../Location';
@@ -10,7 +12,7 @@ import {Row} from '../../UI/Preview';
 import {LinkInput} from '../../UI/Form';
 import {ContactsPreviewList} from '../../Contacts';
 
-export const EventPreview = ({item, formProfile, createLink, streetMapUrl, files}) => {
+export const EventPreview = ({item, formProfile, createLink, files}) => {
     if (!item) {
         return null;
     }
@@ -68,7 +70,7 @@ export const EventPreview = ({item, formProfile, createLink, streetMapUrl, files
                     <Location
                         name={locationName}
                         address={formattedAddress}
-                        mapUrl={streetMapUrl}
+                        mapUrl={appConfig.street_map_url}
                         multiLine={true}
                         details={locationDetails}
                     />
@@ -148,6 +150,5 @@ EventPreview.propTypes = {
     item: PropTypes.object,
     formProfile: PropTypes.object,
     createLink: PropTypes.func,
-    streetMapUrl: PropTypes.string,
     files: PropTypes.object,
 };

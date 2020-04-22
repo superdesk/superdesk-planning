@@ -1,5 +1,8 @@
 import moment from 'moment';
 import {get, set, isEmpty, isEqual, pick} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
 import {gettext, eventUtils} from '../utils';
 import * as selectors from '../selectors';
 import {formProfile} from './profile';
@@ -78,8 +81,7 @@ const validateDateInPast = ({getState, value, errors, messages}) => {
     }
 };
 
-const validateRecurringRules = ({getState, value, errors, messages}) => {
-    const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
+const validateRecurringRules = ({value, errors, messages}) => {
     const frequency = get(value, 'recurring_rule.frequency');
     const byday = get(value, 'recurring_rule.byday');
     const endRepeatMode = get(value, 'recurring_rule.endRepeatMode');
@@ -110,8 +112,8 @@ const validateRecurringRules = ({getState, value, errors, messages}) => {
         } else {
             count = parseInt(count, 10);
 
-            if (count > maxRecurringEvents) {
-                const maximum = maxRecurringEvents + 1;
+            if (count > appConfig.max_recurrent_events) {
+                const maximum = appConfig.max_recurrent_events + 1;
 
                 recurringErrors.count = gettext('Must be less than {{ maximum }}', {maximum});
                 messages.push(gettext('RECURRING REPEAT COUNT must be less than {{ maximum }}', {maximum}));
@@ -129,7 +131,7 @@ const validateRecurringRules = ({getState, value, errors, messages}) => {
     }
 };
 
-const validateMultiDayDuration = ({getState, value, errors, messages}) => {
+const validateMultiDayDuration = ({value, errors, messages}) => {
     let startDate = moment(value.start);
     let endDate = moment(value.end);
 
@@ -138,7 +140,7 @@ const validateMultiDayDuration = ({getState, value, errors, messages}) => {
     }
 
     const diff = endDate.diff(startDate, 'minutes');
-    const maxDuration = selectors.config.getMaxMultiDayEventDuration(getState());
+    const maxDuration = appConfig.max_multi_day_event_duration;
 
     if (maxDuration > 0 && diff > maxDuration * 1440) {
         const message = gettext('Event duration is greater than {{maxDuration}} days.', {maxDuration});
@@ -179,14 +181,12 @@ const validateDates = ({getState, value, errors, messages, diff}) => {
             messages: messages,
         });
         self.validateRecurringRules({
-            getState: getState,
             value: value,
             errors: newErrors,
             messages: messages,
         });
         self.validateMultiDayDuration({
             value: value,
-            getState: getState,
             errors: newErrors,
             messages: messages,
         });

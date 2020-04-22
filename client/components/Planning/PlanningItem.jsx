@@ -129,8 +129,6 @@ export class PlanningItem extends React.Component {
             item,
             onItemClick,
             lockedItems,
-            dateFormat,
-            timeFormat,
             date,
             onMultiSelectClick,
             multiSelected,
@@ -194,11 +192,7 @@ export class PlanningItem extends React.Component {
                         {event &&
                             <span className="sd-no-wrap">
                                 <Icon className="icon-event" color={ICON_COLORS.DARK_BLUE_GREY}/>&nbsp;
-                                <EventDateTime
-                                    item={event}
-                                    dateFormat={dateFormat}
-                                    timeFormat={timeFormat}
-                                />
+                                <EventDateTime item={event}/>
                             </span>
                         }
                     </Row>
@@ -230,8 +224,6 @@ export class PlanningItem extends React.Component {
                             })}
                         {secondaryFields.includes('coverages') && renderFields('coverages', item, {
                             date,
-                            timeFormat,
-                            dateFormat,
                             users,
                             desks,
                             activeFilter,
@@ -270,8 +262,6 @@ PlanningItem.propTypes = {
     date: PropTypes.string.isRequired,
     onItemClick: PropTypes.func.isRequired,
     lockedItems: PropTypes.object.isRequired,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
     agendas: PropTypes.array.isRequired,
     session: PropTypes.object,
     privileges: PropTypes.object,

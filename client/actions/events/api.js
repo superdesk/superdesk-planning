@@ -1,3 +1,8 @@
+import {get, isEqual, cloneDeep, pickBy, has, find, every} from 'lodash';
+import moment from 'moment';
+
+import {appConfig} from 'appConfig';
+
 import {
     EVENTS,
     SPIKED_STATE,
@@ -6,7 +11,6 @@ import {
     TO_BE_CONFIRMED_FIELD,
 } from '../../constants';
 import {EventUpdateMethods} from '../../components/Events';
-import {get, isEqual, cloneDeep, pickBy, has, find, every} from 'lodash';
 import * as selectors from '../../selectors';
 import {
     eventUtils,
@@ -22,7 +26,6 @@ import {
     isTemporaryId,
     gettext,
 } from '../../utils';
-import moment from 'moment';
 
 import planningApi from '../planning/api';
 import eventsUi from './ui';
@@ -693,7 +696,7 @@ const query = (
             }
         }
 
-        const startOfWeek = selectors.config.getStartOfWeek(getState());
+        const startOfWeek = appConfig.start_of_week;
         const criteria = self.getCriteria(
             {
                 calendars,
@@ -774,13 +777,11 @@ const loadRecurringEventsAndPlanningItems = (event, loadPlannings = true,
     loadEvents = true, loadEveryRecurringPlanning = false) => (
     (dispatch, getState) => {
         if (get(event, 'recurrence_id') && loadEvents) {
-            const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
-
             return dispatch(self.loadEventsByRecurrenceId(
                 event.recurrence_id,
                 SPIKED_STATE.BOTH,
                 1,
-                maxRecurringEvents,
+                appConfig.max_recurrent_events,
                 false
             )).then((relatedEvents) => {
                 if (!loadPlannings) {
@@ -1244,7 +1245,7 @@ const uploadFiles = (event) => (
         return Promise.all(filesToUpload.map((file) => (
             upload.start({
                 method: 'POST',
-                url: getState().config.server.url + '/events_files/',
+                url: appConfig.server.url + '/events_files/',
                 headers: {'Content-Type': 'multipart/form-data'},
                 data: {media: [file]},
                 arrayKey: '',

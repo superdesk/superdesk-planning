@@ -1,11 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import {get} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
-import {List} from '../UI';
 import {formatAddress, getMapUrl, gettext} from '../../utils';
-import {get} from 'lodash';
+
+import {List} from '../UI';
 
 export class LocationsListComponent extends React.Component {
     constructor(props) {
@@ -48,7 +52,7 @@ export class LocationsListComponent extends React.Component {
                                     title={gettext('Show on map')}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    href={getMapUrl(this.props.streetMapUrl, get(location, 'name'),
+                                    href={getMapUrl(appConfig.street_map_url, get(location, 'name'),
                                         get(formatAddress(location), 'formattedAddress'))}>
                                     <i className="sd-list-item__location"/>
                                 </a>
@@ -99,14 +103,12 @@ LocationsListComponent.propTypes = {
     loadMore: PropTypes.func,
     isLoading: PropTypes.bool,
     deleteLocation: PropTypes.func,
-    streetMapUrl: PropTypes.string,
     currentLocation: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
     locations: selectors.locations.locations(state),
     isLoading: selectors.locations.loadingLocations(state),
-    streetMapUrl: selectors.config.getStreetMapUrl(state),
     currentLocation: selectors.locations.getEditLocation(state),
 });
 

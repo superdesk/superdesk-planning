@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import {get} from 'lodash';
 
+import {appConfig} from 'appConfig';
+
 import {LineInput, Label, Input} from '../';
 import {TimeInputPopup} from './TimeInputPopup';
 import {IconButton} from '../../';
@@ -52,7 +54,7 @@ export class TimeInput extends React.Component {
             });
         } else {
             const val = nextProps.value && moment.isMoment(nextProps.value) ?
-                nextProps.value.format(this.props.timeFormat) : '';
+                nextProps.value.format(appConfig.view.timeformat) : '';
 
             this.setState({
                 viewValue: val,
@@ -67,7 +69,7 @@ export class TimeInput extends React.Component {
         // After first render, set the value
         const value = this.props.toBeConfirmed ? TO_BE_CONFIRMED_TEXT : this.props.value;
         const viewValue = value && moment.isMoment(value) ?
-            value.format(this.props.timeFormat) : (value || '');
+            value.format(appConfig.view.timeformat) : (value || '');
 
         this.setState({viewValue});
     }
@@ -158,7 +160,7 @@ export class TimeInput extends React.Component {
     }
 
     onChange(newValue) {
-        const {value, onChange, field, timeFormat, remoteTimeZone, toBeConfirmed} = this.props;
+        const {value, onChange, field, remoteTimeZone, toBeConfirmed} = this.props;
 
         // Takes the time as a string (based on the configured time format)
         // Then parses it and calls parents onChange with new moment object
@@ -171,12 +173,12 @@ export class TimeInput extends React.Component {
         let newMoment;
 
         if (remoteTimeZone) {
-            newTime = moment.tz(newValue, timeFormat, true, remoteTimeZone);
+            newTime = moment.tz(newValue, appConfig.view.timeformat, true, remoteTimeZone);
             newMoment = value && moment.isMoment(value) ?
                 value.clone() :
                 moment.tz(remoteTimeZone);
         } else {
-            newTime = moment(newValue, timeFormat, true);
+            newTime = moment(newValue, appConfig.view.timeformat, true);
             newMoment = value && moment.isMoment(value) ?
                 value.clone() :
                 moment();
@@ -208,11 +210,10 @@ export class TimeInput extends React.Component {
             readOnly,
             popupContainer,
             onFocus,
-            timeFormat,
-            dateFormat,
             isLocalTimeZoneDifferent,
             showToBeConfirmed,
             onToBeConfirmed,
+            showDate,
             ...props
         } = this.props;
 
@@ -221,10 +222,10 @@ export class TimeInput extends React.Component {
 
         if (moment.isMoment(value) && isLocalTimeZoneDifferent && !this.state.invalid && !invalid) {
             const displayDate = timeUtils.getDateInRemoteTimeZone(value, timeUtils.localTimeZone());
-            let displayFormat = timeFormat;
+            let displayFormat = appConfig.view.timeformat;
 
-            if (dateFormat) {
-                displayFormat = dateFormat + ' @ ' + displayFormat;
+            if (showDate) {
+                displayFormat = appConfig.view.dateformat + ' @ ' + displayFormat;
             }
 
             displayDateString = `(${displayDate.format('z')} ${displayDate.format(displayFormat)})`;
@@ -294,7 +295,6 @@ TimeInput.propTypes = {
     ]),
     onChange: PropTypes.func.isRequired,
     placeholder: PropTypes.string,
-    timeFormat: PropTypes.string.isRequired,
 
     hint: PropTypes.string,
     message: PropTypes.string,
@@ -306,7 +306,6 @@ TimeInput.propTypes = {
     popupContainer: PropTypes.func,
     onFocus: PropTypes.func,
     remoteTimeZone: PropTypes.string,
-    dateFormat: PropTypes.string,
     allowInvalidText: PropTypes.bool,
     canClear: PropTypes.bool,
     errors: PropTypes.object,
@@ -314,6 +313,7 @@ TimeInput.propTypes = {
     showToBeConfirmed: PropTypes.bool,
     onToBeConfirmed: PropTypes.func,
     toBeConfirmed: PropTypes.bool,
+    showDate: PropTypes.bool,
 };
 
 TimeInput.defaultProps = {
@@ -323,4 +323,5 @@ TimeInput.defaultProps = {
     boxed: false,
     noMargin: false,
     isLocalTimeZoneDifferent: false,
+    showDate: false,
 };

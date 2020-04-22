@@ -37,8 +37,6 @@ export class PlanningListComponent extends React.Component {
             groups,
             agendas,
             lockedItems,
-            dateFormat,
-            timeFormat,
             session,
             privileges,
             calendars,
@@ -73,8 +71,6 @@ export class PlanningListComponent extends React.Component {
                 onDoubleClick={edit}
                 agendas={agendas}
                 lockedItems={lockedItems}
-                dateFormat={dateFormat}
-                timeFormat={timeFormat}
                 session={session}
                 privileges={privileges}
                 activeFilter={activeFilter}
@@ -112,8 +108,6 @@ PlanningListComponent.propTypes = {
     edit: PropTypes.func,
     agendas: PropTypes.array.isRequired,
     lockedItems: PropTypes.object.isRequired,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
     session: PropTypes.object,
     privileges: PropTypes.object,
     activeFilter: PropTypes.string.isRequired,
@@ -145,8 +139,6 @@ const mapStateToProps = (state) => ({
     groups: selectors.main.itemGroups(state),
     agendas: selectors.general.agendas(state),
     lockedItems: selectors.locks.getLockedItems(state),
-    dateFormat: selectors.config.getDateFormat(state),
-    timeFormat: selectors.config.getTimeFormat(state),
     session: selectors.general.session(state),
     privileges: selectors.general.privileges(state),
     activeFilter: selectors.main.activeFilter(state),

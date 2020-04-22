@@ -1,3 +1,5 @@
+import {appConfig} from 'appConfig';
+
 import * as selectors from '../selectors';
 import {get} from 'lodash';
 import moment from 'moment';
@@ -228,11 +230,10 @@ const exportAsArticle = (items = [], download) => (
             selectors.general.getEventExportTemplates(getState());
         const exportArticlesDispatch = (items, desk, template, type, download, articleTemplate) => {
             const itemIds = items.map((item) => item._id);
-            const url = selectors.config.getServerUrl(getState());
 
             if (download) {
                 const timeZoneOffsetSecs = moment().utcOffset() * 60;
-                let queryString = `${url}/planning_download/events?tz=${timeZoneOffsetSecs}`;
+                let queryString = `${appConfig.server.url}/planning_download/events?tz=${timeZoneOffsetSecs}`;
 
                 if (template) {
                     queryString = `${queryString}&template=${template}`;
@@ -293,8 +294,6 @@ const exportAsArticle = (items = [], download) => (
                 defaultArticleTemplate: articleTemplates.find((t) =>
                     t._id === get(defaultDesk, 'default_content_template')) || articleTemplates[0],
                 exportListFields: selectors.forms.exportListFields(getState()),
-                dateFormat: selectors.config.getDateFormat(state),
-                timeFormat: selectors.config.getTimeFormat(state),
                 agendas: selectors.general.agendas(state),
             },
         }));

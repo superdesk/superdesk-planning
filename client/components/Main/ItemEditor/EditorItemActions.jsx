@@ -8,7 +8,6 @@ import eventsApi from '../../../actions/events/api';
 import * as allActions from '../../../actions';
 
 import {ItemActionsMenu} from '../../index';
-import {getDeployConfig} from '../../../selectors/config';
 
 const EditorItemActionsComponent = (props) => {
     const {
@@ -22,7 +21,6 @@ const EditorItemActionsComponent = (props) => {
         itemManager,
         autoSave,
         dispatch,
-        deployConfig,
     } = props;
 
     const itemType = getItemType(item);
@@ -109,7 +107,6 @@ const EditorItemActionsComponent = (props) => {
             lockedItems,
             callBacks,
             withMultiPlanningDate,
-            deployConfig,
         });
     }
 
@@ -178,13 +175,6 @@ EditorItemActionsComponent.propTypes = {
     itemManager: PropTypes.object,
     autoSave: PropTypes.object,
     dispatch: PropTypes.func,
-    deployConfig: PropTypes.object,
 };
 
-function mapStateToProps(state) {
-    return {
-        deployConfig: getDeployConfig(state),
-    };
-}
-
-export const EditorItemActions = connect(mapStateToProps)(EditorItemActionsComponent);
+export const EditorItemActions = connect()(EditorItemActionsComponent);

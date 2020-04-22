@@ -1,9 +1,12 @@
+import {get, set, map, cloneDeep, forEach, pickBy, includes, isEqual, pick, partition, sortBy, isNil} from 'lodash';
 import moment from 'moment-timezone';
 import {createStore as _createStore, applyMiddleware, compose} from 'redux';
-import planningApp from '../reducers';
 import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
-import {get, set, map, cloneDeep, forEach, pickBy, includes, isEqual, pick, partition, sortBy, isNil} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
+import planningApp from '../reducers';
 import {
     POST_STATE,
     WORKFLOW_STATE,
@@ -993,10 +996,12 @@ export const isItemLockedForEditing = (item, session, lockedItems) => (
 
 export const getProfileName = (itemType, lockAction = null) => lockAction ? `${itemType}_${lockAction}` : itemType;
 
-export const getTBCDateString = (event, dateFormat, separator = ' @ ', dateOnly = false) => {
+export const getTBCDateString = (event, separator = ' @ ', dateOnly = false) => {
     if (dateOnly || !get(event, TO_BE_CONFIRMED_FIELD)) {
         return '';
     }
+
+    const dateFormat = appConfig.view.dateformat;
 
     if (get(event.dates, 'start', moment()).isSame(get(event.dates, 'end', moment()), 'day')) {
         return (get(event.dates, 'start').format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT);
@@ -1117,4 +1122,8 @@ export const iteratePromiseCallbacks = (callbacks) => (
 
         runNextCallback();
     })
+);
+
+export const getFileDownloadURL = (file) => (
+    appConfig.server.url + '/upload/' + file.filemeta.media_id + '/raw'
 );

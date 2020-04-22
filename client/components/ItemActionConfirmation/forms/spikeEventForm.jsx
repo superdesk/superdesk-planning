@@ -1,13 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import {get} from 'lodash';
+
 import * as actions from '../../../actions';
 import '../style.scss';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {RelatedEvents} from '../../index';
 import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
-import {getDateFormat, getTimeFormat} from '../../../selectors/config';
-import {get} from 'lodash';
 import {eventUtils, gettext} from '../../../utils';
 import {Row} from '../../UI/Preview';
 
@@ -59,7 +59,7 @@ export class SpikeEventComponent extends React.Component {
     }
 
     render() {
-        const {original, dateFormat, timeFormat, submitting} = this.props;
+        const {original, submitting} = this.props;
         const isRecurring = !!original.recurrence_id;
         const eventsInUse = this.state.relatedEvents.filter((e) => (
             get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
@@ -83,11 +83,7 @@ export class SpikeEventComponent extends React.Component {
                     noPadding={true}
                 />
 
-                <EventScheduleSummary
-                    schedule={original.dates}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
-                />
+                <EventScheduleSummary schedule={original.dates} />
 
                 <Row
                     enabled={isRecurring}
@@ -109,10 +105,7 @@ export class SpikeEventComponent extends React.Component {
                 {eventsInUse.length > 0 &&
                     <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">
                         <strong>{gettext('The following Events are in use and will not be spiked:')}</strong>
-                        <RelatedEvents
-                            events={eventsInUse}
-                            dateFormat={dateFormat}
-                        />
+                        <RelatedEvents events={eventsInUse} />
                     </div>
                 }
             </div>
@@ -122,18 +115,10 @@ export class SpikeEventComponent extends React.Component {
 
 SpikeEventComponent.propTypes = {
     original: PropTypes.object.isRequired,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     submitting: PropTypes.bool,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
 };
-
-
-const mapStateToProps = (state) => ({
-    timeFormat: getTimeFormat(state),
-    dateFormat: getDateFormat(state),
-});
 
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (event) => dispatch(actions.events.ui.spike(event)),
@@ -146,7 +131,7 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 export const SpikeEventForm = connect(
-    mapStateToProps,
+    null,
     mapDispatchToProps,
     null,
     {withRef: true})(SpikeEventComponent);

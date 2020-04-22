@@ -1,7 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-
-
 import {get} from 'lodash';
 import moment from 'moment';
 
@@ -12,8 +10,6 @@ import {CoverageIcon} from '../Coverages/';
 export const PlanningDateTime = ({
     item,
     date,
-    timeFormat,
-    dateFormat,
     users,
     desks,
     activeFilter,
@@ -56,8 +52,6 @@ export const PlanningDateTime = ({
                     key={i}
                     users={users}
                     desks={desks}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     coverage={coverage}
                     contentTypes={contentTypes}
                     contacts={contacts}
@@ -70,8 +64,6 @@ export const PlanningDateTime = ({
 PlanningDateTime.propTypes = {
     item: PropTypes.object.isRequired,
     date: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
-    dateFormat: PropTypes.string.isRequired,
     users: PropTypes.array,
     desks: PropTypes.array,
     activeFilter: PropTypes.string,
