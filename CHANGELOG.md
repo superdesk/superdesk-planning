@@ -1,5 +1,19 @@
 # Superdesk Planning Changelog
 
+## [1.33.0-rc2] 2020-04-22
+### Features
+- None
+
+### Improvements
+- None
+
+### Fixes
+- fix(bottom-bar): Refactored bottom-bar structure (#1453)
+- [SDESK-5171] fix: Search in manage events templates cashes the UI (#1457)
+- [SDESK-5112] Update autosave when removing an assignment (#1456)
+- [SDESK-5160] fix: Hide native input button for coverage files (#1458)
+- [SDESK-5132] chore: Replace deployConfig with appConfig (#1460)
+
 ## [1.33.0-rc1] 2020-04-15
 ### Features
 - None
