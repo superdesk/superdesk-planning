@@ -6,6 +6,7 @@ import planning from '../planning';
 import {ASSIGNMENTS, WORKSPACE, MODALS} from '../../constants';
 import {lockUtils, assignmentUtils, gettext, isExistingItem} from '../../utils';
 import {hideModal, showModal} from '../index';
+import * as actions from '../../actions';
 
 const _notifyAssignmentEdited = (assignmentId) => (
     (dispatch, getState, {notify}) => {
@@ -351,6 +352,29 @@ const onAssignmentDeleted = (_e, data) => (
     }
 );
 
+export const onContentUpdate = (_e, data) => (
+    (dispatch, getState) => {
+        const updatedIds = Object.keys(data.items);
+        const currentItems = Object.values(getState().assignment.archive);
+        let refetchItems = false;
+
+        for (const updatedId of updatedIds) {
+            const updatedItemInState = currentItems.find((i) => i._id === updatedId);
+
+            if (updatedItemInState != null) {
+                refetchItems = true;
+                break;
+            }
+        }
+
+        if (refetchItems) {
+            const assignments = Object.values(getState().assignment.assignments);
+
+            dispatch(actions.assignments.api.loadArchiveItems(assignments));
+        }
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     onAssignmentCreated,
@@ -360,6 +384,7 @@ const self = {
     onAssignmentRemoved,
     onAssignmentDeleteFailed,
     onAssignmentDeleted,
+    onContentUpdate,
 };
 
 // Map of notification name and Action Event to execute
@@ -374,6 +399,7 @@ self.events = {
     'assignments:delete:fail': () => (self.onAssignmentDeleteFailed),
     'assignments:delete': () => (self.onAssignmentDeleted),
     'assignments:accepted': () => (self.onAssignmentUpdated),
+    'content:update': () => (self.onContentUpdate),
 };
 
 export default self;
