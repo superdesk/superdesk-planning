@@ -736,9 +736,9 @@ class PlanningService(superdesk.Service):
 
             # Update only if anything got modified
             if ('planning' in assignment or
-                'assigned_to' in assignment or
-                'description_text' in assignment or
-                'name' in assignment):
+                    'assigned_to' in assignment or
+                    'description_text' in assignment or
+                    'name' in assignment):
                 assignment_service.system_update(
                     ObjectId(assigned_to.get('assignment_id')),
                     assignment,
