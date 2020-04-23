@@ -572,6 +572,7 @@ describe('actions.assignments.api', () => {
         beforeEach(() => {
             restoreSinonStub(assignmentsApi.receivedAssignments);
             sinon.stub(contactsApi, 'fetchContactsFromAssignments').returns(Promise.resolve([]));
+            sinon.stub(assignmentsApi, 'loadArchiveItems').returns(Promise.resolve([]));
         });
 
         afterEach(() => {
