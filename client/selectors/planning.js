@@ -1,7 +1,9 @@
 import {createSelector} from 'reselect';
 import {get, cloneDeep} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
 import {session, userPreferences} from './general';
-import {getStartOfWeek} from './config';
 import {planningUtils, lockUtils, getSearchDateRange} from '../utils';
 import {AGENDA, SPIKED_STATE} from '../constants';
 
@@ -62,9 +64,9 @@ export const plansInList = createSelector(
 );
 
 export const orderedPlanningList = createSelector(
-    [currentAgenda, plansInList, storedEvents, currentSearch, getStartOfWeek],
-    (currentAgenda, plansInList, events, search, startOfWeek) => {
-        const dateRange = getSearchDateRange(search, startOfWeek);
+    [currentAgenda, plansInList, storedEvents, currentSearch],
+    (currentAgenda, plansInList, events, search) => {
+        const dateRange = getSearchDateRange(search, appConfig.start_of_week);
 
         return planningUtils.getPlanningByDate(
             plansInList, events, dateRange.startDate, dateRange.endDate
@@ -73,9 +75,9 @@ export const orderedPlanningList = createSelector(
 );
 
 export const FlattenedPlanningList = createSelector(
-    [currentAgenda, plansInList, storedEvents, currentSearch, getStartOfWeek],
-    (currentAgenda, plansInList, events, search, startOfWeek) => {
-        const dateRange = getSearchDateRange(search, startOfWeek);
+    [currentAgenda, plansInList, storedEvents, currentSearch],
+    (currentAgenda, plansInList, events, search) => {
+        const dateRange = getSearchDateRange(search, appConfig.start_of_week);
 
         return planningUtils.getFlattenedPlanningByDate(
             plansInList, events, dateRange.startDate, dateRange.endDate

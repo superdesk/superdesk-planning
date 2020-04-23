@@ -1,12 +1,14 @@
 import {createSelector} from 'reselect';
 import {get, isEmpty, isBoolean} from 'lodash';
+import moment from 'moment';
+
+import {appConfig} from 'appConfig';
+
 import {MAIN, SPIKED_STATE} from '../constants';
 import {orderedEvents, storedEvents, eventsInList} from './events';
 import {orderedPlanningList, storedPlannings, plansInList} from './planning';
 import {orderedEventsPlanning, getEventsPlanningList} from './eventsplanning';
 import {ITEM_TYPE} from '../constants';
-import moment from 'moment';
-import {getStartOfWeek} from './config';
 import {getSearchDateRange} from '../utils';
 
 
@@ -73,9 +75,9 @@ export const currentAdvancedSearch = createSelector(
 );
 
 export const currentStartFilter = createSelector(
-    [currentSearch, getStartOfWeek],
-    (search, startOfWeek) =>
-        get(getSearchDateRange(search, startOfWeek), 'startDate') || moment()
+    [currentSearch],
+    (search) =>
+        get(getSearchDateRange(search, appConfig.start_of_week), 'startDate') || moment()
 );
 
 export const eventsTotalItems = (state) => get(state, 'main.search.EVENTS.totalItems', 0);

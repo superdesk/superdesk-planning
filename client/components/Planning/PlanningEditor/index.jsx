@@ -3,9 +3,10 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, cloneDeep, some, isEqual, isEmpty} from 'lodash';
 
+import {appConfig} from 'appConfig';
+
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
-
 import {
     gettext,
     getItemInArrayById,
@@ -15,6 +16,7 @@ import {
     isExistingItem,
     eventUtils,
     getItemId,
+    getFileDownloadURL,
 } from '../../../utils';
 
 import {ContentBlock} from '../../UI/SidePanel';
@@ -140,7 +142,6 @@ export class PlanningEditorComponent extends React.Component {
             this.props.newsCoverageStatus.find((s) => s.qcode === 'ncostat:int'),
             coveragePlanning,
             this.props.event,
-            this.props.longEventDurationThreshold,
             duplicateAs || coveragePlanning.g2_content_type,
             this.props.defaultDesk,
             this.props.preferredCoverageDesks);
@@ -412,8 +413,6 @@ export class PlanningEditorComponent extends React.Component {
             agendas,
             readOnly,
             urgencies,
-            timeFormat,
-            dateFormat,
             newsCoverageStatus,
             contentTypes,
             genres,
@@ -429,17 +428,13 @@ export class PlanningEditorComponent extends React.Component {
             lockedItems,
             navigation,
             customVocabularies,
-            createUploadLink,
             files,
             popupContainer,
-            streetMapUrl,
             onPopupOpen,
             onPopupClose,
             setCoverageDefaultDesk,
             preferredCoverageDesks,
             inModalView,
-            autoAssignToWorkflow,
-            longEventDurationThreshold,
             planningAllowScheduledUpdates,
         } = this.props;
 
@@ -536,8 +531,6 @@ export class PlanningEditorComponent extends React.Component {
                         component={DateTimeInput}
                         field="planning_date"
                         label={gettext('Planning Date')}
-                        timeFormat={timeFormat}
-                        dateFormat={dateFormat}
                         defaultValue={null}
                         row={false}
                         {...fieldProps}
@@ -665,7 +658,7 @@ export class PlanningEditorComponent extends React.Component {
                             {...fieldProps}
                             onFocus={onFocusDetails}
                         />}
-                        {autoAssignToWorkflow &&
+                        {appConfig.planning_auto_assign_to_workflow &&
                         <Field
                             component={ToggleInput}
                             field="flags.overide_auto_assign_to_workflow"
@@ -694,7 +687,7 @@ export class PlanningEditorComponent extends React.Component {
                             { !this.state.uploading && <Field
                                 component={FileInput}
                                 field="files"
-                                createLink={createUploadLink}
+                                createLink={getFileDownloadURL}
                                 defaultValue={[]}
                                 {...fieldProps}
                                 onFocus={onFocusFiles}
@@ -717,13 +710,10 @@ export class PlanningEditorComponent extends React.Component {
                     <ContentBlock>
                         <EventMetadata
                             event={event}
-                            dateFormat={dateFormat}
-                            timeFormat={timeFormat}
                             lockedItems={lockedItems}
                             navigation={navigation}
-                            createUploadLink={createUploadLink}
+                            createUploadLink={getFileDownloadURL}
                             files={files}
-                            streetMapUrl={streetMapUrl}
                             tabEnabled
                         />
                     </ContentBlock>
@@ -736,8 +726,6 @@ export class PlanningEditorComponent extends React.Component {
                     defaultDesk={defaultDesk}
                     users={users}
                     desks={desks}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     newsCoverageStatus={newsCoverageStatus}
                     contentTypes={contentTypes}
                     genres={genres}
@@ -755,7 +743,6 @@ export class PlanningEditorComponent extends React.Component {
                     addNewsItemToPlanning={addNewsItemToPlanning}
                     originalCount={get(item, 'coverages', []).length}
                     defaultValue={[]}
-                    defaultGenre={this.props.defaultGenre}
                     {...fieldProps}
                     formProfile={coverageProfile}
                     navigation={navigation}
@@ -764,14 +751,12 @@ export class PlanningEditorComponent extends React.Component {
                     setCoverageDefaultDesk={setCoverageDefaultDesk}
                     preferredCoverageDesks={preferredCoverageDesks}
                     useLocalNavigation={!inModalView}
-                    autoAssignToWorkflow={autoAssignToWorkflow}
                     event={event}
-                    longEventDurationThreshold={longEventDurationThreshold}
                     planningAllowScheduledUpdates={planningAllowScheduledUpdates}
                     coverageAddAdvancedMode={this.props.coverageAddAdvancedMode}
                     setCoverageAddAdvancedMode={this.props.setCoverageAddAdvancedMode}
                     files={files}
-                    createUploadLink={createUploadLink}
+                    createUploadLink={getFileDownloadURL}
                     uploadFiles={this.props.uploadFiles}
                     notifyValidationErrors={this.props.notifyValidationErrors}
                 />
@@ -794,8 +779,6 @@ PlanningEditorComponent.propTypes = {
     agendas: PropTypes.array,
     readOnly: PropTypes.bool,
     urgencies: PropTypes.array,
-    timeFormat: PropTypes.string.isRequired,
-    dateFormat: PropTypes.string.isRequired,
     newsCoverageStatus: PropTypes.array,
     contentTypes: PropTypes.array,
     genres: PropTypes.array,
@@ -810,16 +793,13 @@ PlanningEditorComponent.propTypes = {
     dirty: PropTypes.bool,
     planningProfile: PropTypes.object,
     coverageProfile: PropTypes.object,
-    defaultGenre: PropTypes.object,
     currentAgenda: PropTypes.object,
     lockedItems: PropTypes.object,
     navigation: PropTypes.object,
     customVocabularies: PropTypes.array,
     fetchEventFiles: PropTypes.func,
-    createUploadLink: PropTypes.func,
     files: PropTypes.object,
     popupContainer: PropTypes.func,
-    streetMapUrl: PropTypes.string,
     defaultDesk: PropTypes.object,
     uploadFiles: PropTypes.func,
     removeFile: PropTypes.func,
@@ -829,8 +809,6 @@ PlanningEditorComponent.propTypes = {
     onPopupClose: PropTypes.func,
     setCoverageDefaultDesk: PropTypes.func,
     inModalView: PropTypes.bool,
-    autoAssignToWorkflow: PropTypes.bool,
-    longEventDurationThreshold: PropTypes.number,
     itemManager: PropTypes.object,
     original: PropTypes.object,
     planningAllowScheduledUpdates: PropTypes.bool,
@@ -853,8 +831,6 @@ const mapStateToProps = (state) => ({
     desks: selectors.general.desks(state),
     agendas: selectors.general.agendas(state),
     urgencies: state.urgency.urgency,
-    timeFormat: selectors.config.getTimeFormat(state),
-    dateFormat: selectors.config.getDateFormat(state),
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     contentTypes: selectors.general.contentTypes(state),
     genres: state.genres,
@@ -865,18 +841,13 @@ const mapStateToProps = (state) => ({
     user: selectors.general.currentUserId(state),
     planningProfile: selectors.forms.planningProfile(state),
     coverageProfile: selectors.forms.coverageProfile(state),
-    defaultGenre: selectors.config.getDefaultGenre(state),
     currentAgenda: selectors.planning.currentAgenda(state),
     lockedItems: selectors.locks.getLockedItems(state),
     customVocabularies: state.customVocabularies,
-    createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
     files: selectors.general.files(state),
-    streetMapUrl: selectors.config.getStreetMapUrl(state),
     defaultDesk: selectors.general.defaultDesk(state),
     preferredCoverageDesks: get(selectors.general.preferredCoverageDesks(state), 'desks'),
-    autoAssignToWorkflow: selectors.config.getAutoAssignToWorkflow(state),
-    longEventDurationThreshold: selectors.config.getLongEventDurationThreshold(state),
-    planningAllowScheduledUpdates: selectors.config.getPlanningAllowScheduledUpdates(state),
+    planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
     coverageAddAdvancedMode: selectors.general.coverageAddAdvancedMode(state),
 });
 

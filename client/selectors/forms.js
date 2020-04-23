@@ -1,5 +1,8 @@
 import {createSelector} from 'reselect';
 import {get, filter} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
 import {ITEM_TYPE, MAIN} from '../constants';
 import {sessionId as getSessionId} from './general';
 import {isExistingItem} from '../utils';
@@ -120,3 +123,9 @@ export const currentItemModal = createSelector(
     (itemId, itemType, events, plannings, values) => (
         getcurrentItem(itemId, itemType, events, plannings, values, true)
     ));
+
+export const getPlanningAllowScheduledUpdates = createSelector(
+    [coverageProfile],
+    (cp) => get(cp, 'editor.flags') &&
+        appConfig.planning_allow_scheduled_updates
+);

@@ -1,5 +1,8 @@
 import moment from 'moment';
 import {get, omit} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
 import planUtils from '../planning';
 import lockReducer from '../../reducers/locks';
 import {EVENTS, PLANNING, ASSIGNMENTS} from '../../constants';
@@ -839,6 +842,10 @@ describe('PlanningUtils', () => {
     });
 
     describe('canRemoveCoverage', () => {
+        afterEach(() => {
+            appConfig.long_event_duration_threshold = -1;
+        });
+
         it('draft coverages can be removed', () => {
             const planning = {state: 'draft'};
             const coverage = {
@@ -887,7 +894,8 @@ describe('PlanningUtils', () => {
                 internal_note: 'Internal Note',
                 ednote: 'Ed note',
                 planning_date: planned};
-            let coverage = planUtils.defaultCoverageValues(newsCoverageStatus, plan, null, -1);
+
+            let coverage = planUtils.defaultCoverageValues(newsCoverageStatus, plan, null);
 
             expect(get(coverage, 'planning.scheduled').format()).toBe(planned.add(1, 'hour').format());
 
@@ -896,8 +904,7 @@ describe('PlanningUtils', () => {
             coverage = planUtils.defaultCoverageValues(
                 newsCoverageStatus,
                 plan,
-                null,
-                -1
+                null
             );
 
             expect((get(coverage, 'planning.scheduled').format())).toBe(
@@ -916,17 +923,18 @@ describe('PlanningUtils', () => {
                 planning_date: planned,
                 event_item: 'xxx'};
             const event = {dates: {end: eventEnd}};
-            let coverage = planUtils.defaultCoverageValues(newsCoverageStatus, plan, event, -1);
+
+            let coverage = planUtils.defaultCoverageValues(newsCoverageStatus, plan, event);
 
             expect(get(coverage, 'planning.scheduled').format()).toBe(eventEnd.add(1, 'hour').format());
 
             eventEnd = moment('2119-03-17T09:33:00+11:00');
             event.dates.end = eventEnd;
+
             coverage = planUtils.defaultCoverageValues(
                 newsCoverageStatus,
                 plan,
-                event,
-                -1
+                event
             );
 
             expect(get(coverage, 'planning.scheduled').format())
@@ -943,7 +951,9 @@ describe('PlanningUtils', () => {
                 planning_date: planned,
                 event_item: 'xxx'};
             const event = {dates: {end: eventEnd, start: eventStart}};
-            let coverage = planUtils.defaultCoverageValues(newsCoverageStatus, plan, event, 4);
+
+            appConfig.long_event_duration_threshold = 4;
+            let coverage = planUtils.defaultCoverageValues(newsCoverageStatus, plan, event);
 
             expect(get(coverage, 'planning.scheduled', null)).toBeNull(null);
         });

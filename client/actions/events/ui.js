@@ -1,10 +1,13 @@
+import {get} from 'lodash';
+import moment from 'moment-timezone';
+
+import {appConfig} from 'appConfig';
+
 import {showModal, main, locks, addEventToCurrentAgenda} from '../index';
 import {EVENTS, MODALS, SPIKED_STATE, MAIN, ITEM_TYPE, POST_STATE} from '../../constants';
 import eventsApi from './api';
 import planningApi from '../planning/api';
 import * as selectors from '../../selectors';
-import {get} from 'lodash';
-import moment from 'moment-timezone';
 import {
     eventUtils,
     getErrorMessage,
@@ -515,9 +518,7 @@ const updateRepetitions = (original, updates) => (
 );
 
 const saveWithConfirmation = (original, updates, unlockOnClose, ignoreRecurring = false) => (
-    (dispatch, getState) => {
-        const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
-
+    (dispatch) => {
         // If this is not from a recurring series, then simply post this event
         // Do the same if we need to ignore recurring event selection on purpose
         if (!get(original, 'recurrence_id') || ignoreRecurring) {
@@ -526,7 +527,7 @@ const saveWithConfirmation = (original, updates, unlockOnClose, ignoreRecurring 
 
         return dispatch(eventsApi.query({
             recurrenceId: original.recurrence_id,
-            maxResults: maxRecurringEvents,
+            maxResults: appConfig.max_recurrent_events,
             onlyFuture: false,
         }))
             .then((relatedEvents) => (

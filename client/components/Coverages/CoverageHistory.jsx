@@ -1,6 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
 import {COVERAGES, ASSIGNMENTS, HISTORY_OPERATIONS} from '../../constants';
 import {stringUtils, historyUtils, getDateTimeString, getItemInArrayById, gettext} from '../../utils';
 import {Item, Column, Row, Border} from '../UI/List';
@@ -118,7 +121,7 @@ export class CoverageHistory extends React.Component {
     }
 
     render() {
-        const {historyData, users, desks, timeFormat, dateFormat, contentTypes} = this.props;
+        const {historyData, users, desks, contentTypes} = this.props;
         const coverage = get((historyData.items || []).find((item) =>
             [COVERAGES.HISTORY_OPERATIONS.CREATED, COVERAGES.HISTORY_OPERATIONS.CREATED_CONTENT].includes(
                 item.operation)), 'update');
@@ -127,16 +130,25 @@ export class CoverageHistory extends React.Component {
             return null;
         }
 
-        const coverageDateText = !get(historyData, 'planning.scheduled') ? 'Not scheduled' :
-            getDateTimeString(historyData.planning.scheduled, dateFormat, timeFormat);
+        const coverageDateText = !get(historyData, 'planning.scheduled') ?
+            gettext('Not scheduled') :
+            getDateTimeString(
+                historyData.planning.scheduled,
+                appConfig.view.dateformat,
+                appConfig.view.timeformat
+            );
 
         const coverageItem = (
             <Item>
                 <Border/>
                 <Column grow={true} border={false}>
                     <Row paddingBottom>
-                        <CoverageIcon coverage={historyData} dateFormat={dateFormat} timeFormat={timeFormat}
-                            users={users} desks={desks} contentTypes={contentTypes}/>
+                        <CoverageIcon
+                            coverage={historyData}
+                            users={users}
+                            desks={desks}
+                            contentTypes={contentTypes}
+                        />
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                             {stringUtils.firstCharUpperCase(
                                 get(historyData, 'planning.g2_content_type', '').replace('_', ' '))}
@@ -181,7 +193,5 @@ CoverageHistory.propTypes = {
     historyData: PropTypes.object,
     users: PropTypes.array,
     desks: PropTypes.array,
-    timeFormat: PropTypes.string,
-    dateFormat: PropTypes.string,
     contentTypes: PropTypes.array,
 };

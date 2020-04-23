@@ -1,22 +1,26 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {get} from 'lodash';
+
 import {RepeatEventSummary} from '../RepeatEventSummary';
 import {Row} from '../../UI/Preview';
 import {gettext, eventUtils, timeUtils} from '../../../utils';
-import {DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
-import {get} from 'lodash';
 import './style.scss';
 
 
-export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPadding, forUpdating, useEventTimezone}) => {
+export const EventScheduleSummary = ({schedule, noPadding, forUpdating, useEventTimezone}) => {
     if (!schedule)
         return null;
 
     const eventSchedule = get(schedule, 'dates', {});
     const doesRepeat = get(eventSchedule, 'recurring_rule', null) !== null;
     const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(eventSchedule);
-    const eventDateText = eventUtils.getDateStringForEvent(schedule, dateFormat, timeFormat,
-        false, true, isRemoteTimeZone);
+    const eventDateText = eventUtils.getDateStringForEvent(
+        schedule,
+        false,
+        true,
+        isRemoteTimeZone
+    );
     let newDateString, currentDateText, remoteDateText, currentDateLabel;
 
     if (isRemoteTimeZone) {
@@ -29,7 +33,11 @@ export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPaddin
             },
         };
 
-        newDateString = eventUtils.getDateStringForEvent(remoteSchedule, dateFormat, timeFormat, false, false);
+        newDateString = eventUtils.getDateStringForEvent(
+            remoteSchedule,
+            false,
+            false
+        );
     }
 
     currentDateText = eventDateText;
@@ -69,16 +77,12 @@ export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPaddin
 
 EventScheduleSummary.propTypes = {
     schedule: PropTypes.object,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     noPadding: PropTypes.bool,
     forUpdating: PropTypes.bool,
     useEventTimezone: PropTypes.bool,
 };
 
 EventScheduleSummary.defaultProps = {
-    dateFormat: DEFAULT_DATE_FORMAT,
-    timeFormat: DEFAULT_TIME_FORMAT,
     noPadding: false,
     useEventTimezone: false,
 };

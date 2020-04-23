@@ -75,7 +75,7 @@ export class PostponeEventComponent extends React.Component {
     }
 
     render() {
-        const {original, dateFormat, timeFormat, submitting} = this.props;
+        const {original, submitting} = this.props;
         let reasonLabel = gettext('Reason for Event postponement:');
         const numPlannings = original._plannings.length;
 
@@ -98,8 +98,6 @@ export class PostponeEventComponent extends React.Component {
 
                 <EventScheduleSummary
                     schedule={original.dates}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     noPadding={true}
                     forUpdating={true}
                     useEventTimezone={true}
@@ -144,8 +142,6 @@ PostponeEventComponent.propTypes = {
     onSubmit: PropTypes.func.isRequired,
     original: PropTypes.object.isRequired,
     relatedPlannings: PropTypes.array,
-    timeFormat: PropTypes.string,
-    dateFormat: PropTypes.string,
     enableSaveInModal: PropTypes.func,
     disableSaveInModal: PropTypes.func,
 
@@ -160,8 +156,6 @@ PostponeEventComponent.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-    timeFormat: selectors.config.getTimeFormat(state),
-    dateFormat: selectors.config.getDateFormat(state),
     formProfile: selectors.forms.eventPostponeProfile(state),
 });
 

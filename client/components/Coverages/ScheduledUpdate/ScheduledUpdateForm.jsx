@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
 import {gettext, planningUtils, assignmentUtils} from '../../../utils';
-import {WORKFLOW_STATE, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
+import {WORKFLOW_STATE} from '../../../constants';
 import {
     TextAreaInput,
     SelectInput,
@@ -41,8 +41,6 @@ export class ScheduledUpdateForm extends React.Component {
             index,
             onChange,
             newsCoverageStatus,
-            dateFormat,
-            timeFormat,
             readOnly,
             item,
             diff,
@@ -138,8 +136,6 @@ export class ScheduledUpdateForm extends React.Component {
                     field={`${field}.planning.scheduled`}
                     profileName="scheduled"
                     label={gettext('Due')}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     defaultValue={null}
                     row={false}
                     {...fieldProps}
@@ -160,8 +156,6 @@ ScheduledUpdateForm.propTypes = {
     value: PropTypes.object,
     onChange: PropTypes.func,
     newsCoverageStatus: PropTypes.array,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     readOnly: PropTypes.bool,
     item: PropTypes.object,
     diff: PropTypes.object,
@@ -178,9 +172,4 @@ ScheduledUpdateForm.propTypes = {
     hasAssignment: PropTypes.bool,
     onScheduleChanged: PropTypes.func,
     genres: PropTypes.array,
-};
-
-ScheduledUpdateForm.defaultProps = {
-    dateFormat: DEFAULT_DATE_FORMAT,
-    timeFormat: DEFAULT_TIME_FORMAT,
 };

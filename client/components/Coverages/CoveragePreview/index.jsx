@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {get} from 'lodash';
+
 import {Row as PreviewRow, ExpandableText} from '../../UI/Preview';
 import {CollapseBox, FileReadOnlyList} from '../../UI';
-import {get} from 'lodash';
 import {gettext, stringUtils, planningUtils, assignmentUtils} from '../../../utils';
 import {ContactsPreviewList} from '../../Contacts/index';
-import {PLANNING, WORKFLOW_STATE, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../../../constants';
+import {PLANNING, WORKFLOW_STATE} from '../../../constants';
 import {CoverageItem} from '../';
 import {CoveragePreviewTopBar} from './CoveragePreviewTopBar';
 import {ScheduledUpdate} from '../ScheduledUpdate';
@@ -19,8 +20,6 @@ export const CoveragePreview = ({
     users,
     desks,
     newsCoverageStatus,
-    dateFormat,
-    timeFormat,
     formProfile,
     noOpen,
     onClick,
@@ -30,14 +29,14 @@ export const CoveragePreview = ({
     planningAllowScheduledUpdates,
     files,
     createLink,
-    useXmpFile,
 }) => {
     const coverageStatus = get(coverage, 'news_coverage_status.qcode', '') ===
         PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode ? PLANNING.NEWS_COVERAGE_CANCELLED_STATUS :
         newsCoverageStatus.find((s) => s.qcode === get(coverage, 'news_coverage_status.qcode', '')) || {};
 
-    const coverageDateText = !get(coverage, 'planning.scheduled') ? gettext('Not scheduled yet') :
-        planningUtils.getCoverageDateTimeText(coverage, dateFormat, timeFormat);
+    const coverageDateText = !get(coverage, 'planning.scheduled') ?
+        gettext('Not scheduled yet') :
+        planningUtils.getCoverageDateTimeText(coverage);
 
     const keywordText = get(coverage, 'planning.keyword.length', 0) === 0 ? '' :
         coverage.planning.keyword.join(', ');
@@ -59,8 +58,6 @@ export const CoveragePreview = ({
         users={users}
         desks={desks}
         newsCoverageStatus={newsCoverageStatus}
-        dateFormat={dateFormat}
-        timeFormat={timeFormat}
     />);
 
     let contactId;
@@ -140,7 +137,7 @@ export const CoveragePreview = ({
                 />
             }
 
-            {planningUtils.showXMPFileUIControl(coverage, useXmpFile) && (
+            {planningUtils.showXMPFileUIControl(coverage) && (
                 <PreviewRow
                     label={gettext('Associated XMP File')} >
                     <FileReadOnlyList
@@ -200,8 +197,6 @@ export const CoveragePreview = ({
                             users={users}
                             desks={desks}
                             newsCoverageStatus={newsCoverageStatus}
-                            dateFormat={dateFormat}
-                            timeFormat={timeFormat}
                             forPreview
                             readOnly />
                     ))}
@@ -228,8 +223,6 @@ CoveragePreview.propTypes = {
     users: PropTypes.array,
     desks: PropTypes.array,
     newsCoverageStatus: PropTypes.array,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     formProfile: PropTypes.object,
     noOpen: PropTypes.bool,
     active: PropTypes.bool,
@@ -241,11 +234,4 @@ CoveragePreview.propTypes = {
     planningAllowScheduledUpdates: PropTypes.bool,
     createLink: PropTypes.func,
     files: PropTypes.array,
-    useXmpFile: PropTypes.bool,
-};
-
-
-CoveragePreview.defaultProps = {
-    dateFormat: DEFAULT_DATE_FORMAT,
-    timeFormat: DEFAULT_TIME_FORMAT,
 };

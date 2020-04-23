@@ -3,21 +3,21 @@ import React from 'react';
 import {Provider} from 'react-redux';
 import moment from 'moment';
 
+import {appConfig} from 'appConfig';
+
 import {gettext, planningUtils, iteratePromiseCallbacks} from '../utils';
 
-import {WORKSPACE, MODALS, ASSIGNMENTS, DEFAULT_DATE_FORMAT, DEFAULT_TIME_FORMAT} from '../constants';
+import {WORKSPACE, MODALS, ASSIGNMENTS} from '../constants';
 import {ModalsContainer} from '../components';
 import * as actions from '../actions';
 
 export class AssignmentsService {
-    constructor(api, notify, modal, sdPlanningStore, deployConfig, desks, config) {
+    constructor(api, notify, modal, sdPlanningStore, desks) {
         this.api = api;
         this.notify = notify;
         this.modal = modal;
         this.sdPlanningStore = sdPlanningStore;
-        this.deployConfig = deployConfig;
         this.desks = desks;
-        this.config = config;
 
         this.onPublishFromAuthoring = this.onPublishFromAuthoring.bind(this);
         this.onArchiveRewrite = this.onArchiveRewrite.bind(this);
@@ -27,7 +27,7 @@ export class AssignmentsService {
 
     getAssignmentQuery(slugline, contentType) {
         return actions.assignments.api.constructQuery({
-            systemTimezone: this.config.defaultTimezone,
+            systemTimezone: appConfig.defaultTimezone,
             searchQuery: `planning.slugline.phrase:("${slugline}")`,
             states: ['assigned'],
             type: contentType,
@@ -45,11 +45,7 @@ export class AssignmentsService {
                     return Promise.resolve({});
                 }
 
-                const fulfilFromDesks = get(
-                    this.deployConfig,
-                    'config.planning_fulfil_on_publish_for_desks',
-                    []
-                );
+                const fulfilFromDesks = appConfig.planning_fulfil_on_publish_for_desks;
                 const currentDesk = get(this.desks, 'active.desk');
                 const selectedDeskId = get(archiveItem, 'task.desk') ?
                     archiveItem.task.desk :
@@ -270,7 +266,7 @@ export class AssignmentsService {
                     };
 
                     const time = moment(scheduledUpdate.planning.scheduled).format(
-                        DEFAULT_DATE_FORMAT + ' ' + DEFAULT_TIME_FORMAT);
+                        appConfig.view.dateformat + ' ' + appConfig.view.timeformat);
                     const prompt = gettext('Do you want to link it to that assignment ?');
 
                     store.dispatch(actions.showModal({
@@ -343,4 +339,4 @@ export class AssignmentsService {
     }
 }
 
-AssignmentsService.$inject = ['api', 'notify', 'modal', 'sdPlanningStore', 'deployConfig', 'desks', 'config'];
+AssignmentsService.$inject = ['api', 'notify', 'modal', 'sdPlanningStore', 'desks'];

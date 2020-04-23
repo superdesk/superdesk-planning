@@ -64,8 +64,6 @@ export class CoverageItemComponent extends React.Component {
             coverage,
             users,
             desks,
-            dateFormat,
-            timeFormat,
             workflowStateReasonPrefix,
             index,
         } = props;
@@ -109,8 +107,9 @@ export class CoverageItemComponent extends React.Component {
 
         newState.displayContentType = newState.displayContentType.join('');
 
-        newState.coverageDateText = !coverageDate ? gettext('Not scheduled yet') :
-            planningUtils.getCoverageDateTimeText(coverage, dateFormat, timeFormat);
+        newState.coverageDateText = !coverageDate ?
+            gettext('Not scheduled yet') :
+            planningUtils.getCoverageDateTimeText(coverage);
 
         newState.internalNoteFieldPrefix = workflowStateReasonPrefix || `coverages[${index}]`;
         newState.coverageInWorkflow = planningUtils.isCoverageInWorkflow(coverage);
@@ -150,8 +149,6 @@ export class CoverageItemComponent extends React.Component {
             <Row paddingBottom>
                 <CoverageIcon
                     coverage={this.props.coverage}
-                    dateFormat={this.props.dateFormat}
-                    timeFormat={this.props.timeFormat}
                     users={this.props.users}
                     desks={this.props.desks}
                     contentTypes={this.props.contentTypes}
@@ -264,8 +261,6 @@ CoverageItemComponent.propTypes = {
     coverage: PropTypes.object,
     users: PropTypes.array,
     desks: PropTypes.array,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     onDuplicateCoverage: PropTypes.func,
     onCancelCoverage: PropTypes.func,
     itemActionComponent: PropTypes.node,
@@ -283,9 +278,6 @@ CoverageItemComponent.defaultProps = {isPreview: false};
 const mapStateToProps = (state) => ({
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
-
-    dateFormat: selectors.config.getDateFormat(state),
-    timeFormat: selectors.config.getTimeFormat(state),
     contentTypes: selectors.general.contentTypes(state),
 });
 

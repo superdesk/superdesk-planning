@@ -255,8 +255,6 @@ export class EventScheduleInput extends React.Component {
             diff,
             showRepeat,
             showRepeatToggle,
-            timeFormat,
-            dateFormat,
             readOnly,
             errors,
             showErrors,
@@ -317,7 +315,6 @@ export class EventScheduleInput extends React.Component {
                     <RecurringRulesInput
                         onChange={this.onChange}
                         schedule={diff.dates || {}}
-                        dateFormat={dateFormat}
                         readOnly={readOnly}
                         errors={get(errors, 'dates.recurring_rule')}
                         popupContainer={popupContainer}
@@ -330,8 +327,6 @@ export class EventScheduleInput extends React.Component {
                     component={DateTimeInput}
                     field="dates.start"
                     label={ doesRepeat && showFirstEventLabel ? gettext('First Event Starts') : gettext('Event Starts')}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     row={false}
                     defaultValue={null}
                     popupContainer={popupContainer}
@@ -354,8 +349,6 @@ export class EventScheduleInput extends React.Component {
                     component={DateTimeInput}
                     field="dates.end"
                     label={ doesRepeat && showFirstEventLabel ? gettext('First Event Ends') : gettext('Event Ends')}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     row={false}
                     defaultValue={null}
                     popupContainer={popupContainer}
@@ -413,8 +406,6 @@ EventScheduleInput.propTypes = {
     showRepeat: PropTypes.bool,
     showRepeatSummary: PropTypes.bool,
     showRepeatToggle: PropTypes.bool,
-    timeFormat: PropTypes.string.isRequired,
-    dateFormat: PropTypes.string.isRequired,
     errors: PropTypes.object,
     showErrors: PropTypes.bool,
     dirty: PropTypes.bool,

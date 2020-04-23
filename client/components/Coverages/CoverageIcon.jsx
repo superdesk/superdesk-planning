@@ -5,6 +5,7 @@ import {get} from 'lodash';
 import moment from 'moment-timezone';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
+import {appConfig} from 'appConfig';
 
 import {
     getItemWorkflowStateLabel,
@@ -18,13 +19,13 @@ export const CoverageIcon = ({
     coverage,
     users,
     desks,
-    timeFormat,
-    dateFormat,
     contentTypes,
     contacts,
 }) => {
     const user = getItemInArrayById(users, get(coverage, 'assigned_to.user'));
     const desk = getItemInArrayById(desks, get(coverage, 'assigned_to.desk'));
+    const dateFormat = appConfig.view.dateformat;
+    const timeFormat = appConfig.view.timeformat;
     let provider = get(coverage, 'assigned_to.coverage_provider.name');
 
     if (get(coverage, 'assigned_to.contact') && get(contacts, coverage.assigned_to.contact)) {
@@ -90,8 +91,6 @@ CoverageIcon.propTypes = {
     coverage: PropTypes.object,
     users: PropTypes.array,
     desks: PropTypes.array,
-    timeFormat: PropTypes.string,
-    dateFormat: PropTypes.string,
     contentTypes: PropTypes.array,
     contacts: PropTypes.object,
 };

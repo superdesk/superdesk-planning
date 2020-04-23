@@ -2,6 +2,8 @@ import sinon from 'sinon';
 import moment from 'moment';
 import {omit} from 'lodash';
 
+import {appConfig} from 'appConfig';
+
 import {getTimeZoneOffset, eventUtils, timeUtils, createTestStore} from '../../../utils';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import {WORKFLOW_STATE, SPIKED_STATE, MAIN} from '../../../constants';
@@ -41,7 +43,7 @@ describe('actions.events.api', () => {
         );
 
         sinon.stub(timeUtils, 'localTimeZone').callsFake(
-            () => store.initialState.config.defaultTimezone
+            () => appConfig.defaultTimezone
         );
     });
 
