@@ -1,4 +1,4 @@
-import moment from 'moment';
+import moment from 'moment-timezone';
 import {get, cloneDeep, has, pick} from 'lodash';
 
 import * as selectors from '../../selectors';
@@ -131,7 +131,7 @@ const constructQuery = ({
         }
     });
 
-    let returnQuery = {bool: {must}};
+    let returnQuery: any = {bool: {must}};
 
     if (mustNot.length > 0) {
         returnQuery.bool.must_not = mustNot;
@@ -262,6 +262,7 @@ const queryLockedAssignments = () => (
 const receivedAssignments = (assignments) => (
     (dispatch) => {
         dispatch(actions.contacts.fetchContactsFromAssignments(assignments));
+        dispatch(actions.assignments.api.loadArchiveItems(assignments));
         dispatch({
             type: ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS,
             payload: assignments,
@@ -468,12 +469,55 @@ const receiveAssignmentHistory = (items) => ({
  * Fetch the Event and/or Planning item(s) associated with this Assignment
  * @param {object} assignment - The Assignment to load items for
  */
-const loadPlanningAndEvent = (assignment) => (
-    (dispatch) => (
-        dispatch(planning.api.fetchById(assignment.planning_item))
-    )
-);
+const loadPlanningAndEvent = (assignment) => (dispatch) =>
+    dispatch(planning.api.fetchById(assignment.planning_item));
 
+/**
+ * Loads the Archive items that are linked to the provided Assignment list
+ * The Archive items is then saved to the redux store under
+ * assignment.archive dictionary
+ */
+const loadArchiveItems = (assignments: Array<any>) => (
+    dispatch,
+    getState,
+    {api, notify, search}
+) => {
+    const assignmentIds = assignments.map((a) => a._id);
+
+    const query = search.query();
+    const filter = {
+        bool: {
+            should: assignmentIds.map((id) => ({term: {assignment: id}})),
+        },
+    };
+
+    query.filter(filter);
+
+    const criteria = query.getCriteria(true);
+
+    criteria.repo = 'archive,archived,published';
+
+    return api.query('search', criteria)
+        .then((data) => {
+            const items = data._items;
+
+            if (!items) {
+                const msg = gettext('Content items not found!');
+
+                notify.error(msg);
+                return Promise.reject(msg);
+            }
+
+            dispatch({
+                type: ASSIGNMENTS.ACTIONS.RECEIVED_ARCHIVE,
+                payload: items,
+            });
+        }, (error) => {
+            notify.error(error, 'Failed to load content items');
+
+            return Promise.reject(error);
+        });
+};
 /**
  * Loads the Archive item that is linked to the provided Assignment
  * The Archive item is then saved to the redux store under
@@ -578,6 +622,7 @@ const self = {
     unlock,
     queryLockedAssignments,
     loadPlanningAndEvent,
+    loadArchiveItems,
     loadArchiveItem,
     removeAssignment,
     fetchAssignmentHistory,

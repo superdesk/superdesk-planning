@@ -80,9 +80,9 @@ export const getAssignmentsListView = () =>
     appConfig.assignmentsList || DEFAULT_ASSSIGNMENTS_LIST_VIEW;
 
 // Returns true if assignments list view requrires archive items data
-export const assignmentsViewRequiresArchiveItems = () => {
+export const assignmentsViewRequiresArchiveItems = (): boolean => {
     const listViewConfig = getAssignmentsListView();
     const fields = [...listViewConfig.firstLine, ...listViewConfig.secondLine];
 
-    return listViewConfig.includes('headline');
+    return fields.includes('headline');
 };
