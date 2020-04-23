@@ -572,18 +572,16 @@ describe('actions.assignments.api', () => {
         beforeEach(() => {
             restoreSinonStub(assignmentsApi.receivedAssignments);
             sinon.stub(contactsApi, 'fetchContactsFromAssignments').returns(Promise.resolve([]));
-            sinon.stub(assignmentsApi, 'loadArchiveItems').returns(Promise.resolve([]));
         });
 
         afterEach(() => {
             restoreSinonStub(contactsApi.fetchContactsFromAssignments);
-            restoreSinonStub(assignmentsApi.loadArchiveItems);
         });
 
         it('adds the assignments to the store', () => {
             store.dispatch(assignmentsApi.receivedAssignments(data.assignments));
 
-            expect(store.dispatch.callCount).toBe(4);
+            expect(store.dispatch.callCount).toBe(3);
             expect(store.dispatch.args[2][0]).toEqual({
                 type: ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS,
                 payload: data.assignments,

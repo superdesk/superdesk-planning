@@ -9,6 +9,7 @@ import {ASSIGNMENTS, ALL_DESKS, SORT_DIRECTION} from '../../constants';
 import planningUtils from '../../utils/planning';
 import {lockUtils, getErrorMessage, isExistingItem, gettext} from '../../utils';
 import planning from '../planning';
+import {assignmentsViewRequiresArchiveItems} from '../../components/Assignments/AssignmentItem/fields';
 
 const setBaseQuery = ({must = []}) => ({
     type: ASSIGNMENTS.ACTIONS.SET_BASE_QUERY,
@@ -263,7 +264,9 @@ const queryLockedAssignments = () => (
 const receivedAssignments = (assignments) => (
     (dispatch) => {
         dispatch(actions.contacts.fetchContactsFromAssignments(assignments));
-        dispatch(actions.assignments.api.loadArchiveItems(assignments));
+        if (assignmentsViewRequiresArchiveItems()) {
+            dispatch(actions.assignments.api.loadArchiveItems(assignments));
+        }
         dispatch({
             type: ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS,
             payload: assignments,
