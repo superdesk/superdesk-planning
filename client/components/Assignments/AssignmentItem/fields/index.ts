@@ -10,8 +10,24 @@ import {NameComponent} from './Name';
 import {PriorityComponent} from './Priority';
 import {SluglineComponent} from './Slugline';
 import {StateComponent} from './State';
+import {appConfig} from 'appConfig';
 
-export const getComponentForField = (field: string) => {
+type AssignmentViewField =
+    | 'accepted'
+    | 'content'
+    | 'description_text'
+    | 'desk'
+    | 'due_date'
+    | 'genre'
+    | 'headline'
+    | 'internal'
+    | 'name'
+    | 'priority'
+    | 'slugline'
+    | 'state';
+
+// Returns the React component to render for the given 'field' of an assignment
+export const getComponentForField = (field: AssignmentViewField) => {
     switch (field) {
     case 'accepted':
         return AcceptedComponent;
@@ -37,11 +53,16 @@ export const getComponentForField = (field: string) => {
         return SluglineComponent;
     case 'state':
         return StateComponent;
+    default:
+        console.warn(
+            `There's no component for assignment field '${field}'`
+        );
+        return null;
     }
 };
 
-export const DEFAULT_ASSSIGNMENTS_LIST_VIEW = {
-    firstLine: ['slugline', 'description_text'],
+const DEFAULT_ASSSIGNMENTS_LIST_VIEW = {
+    firstLine: ['slugline', 'headline'],
     secondLine: [
         'priority',
         'state',
@@ -52,4 +73,16 @@ export const DEFAULT_ASSSIGNMENTS_LIST_VIEW = {
         'desk',
         'genre',
     ],
+};
+
+// Get fields config for a single assignment view
+export const getAssignmentsListView = () =>
+    appConfig.assignmentsList || DEFAULT_ASSSIGNMENTS_LIST_VIEW;
+
+// Returns true if assignments list view requrires archive items data
+export const assignmentsViewRequiresArchiveItems = () => {
+    const listViewConfig = getAssignmentsListView();
+    const fields = [...listViewConfig.firstLine, ...listViewConfig.secondLine];
+
+    return listViewConfig.includes('headline');
 };

@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import {get, debounce} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
-import {appConfig} from 'appConfig';
 import * as actions from '../../../actions';
 
 import {
@@ -18,7 +17,7 @@ import {ASSIGNMENTS, CLICK_DELAY} from '../../../constants';
 import {UserAvatar, ItemActionsMenu} from '../../';
 import {Item, Border, Column, Row, ActionMenu} from '../../UI/List';
 
-import {getComponentForField, DEFAULT_ASSSIGNMENTS_LIST_VIEW} from './fields';
+import {getComponentForField, getAssignmentsListView} from './fields';
 
 export class AssignmentItemComponent extends React.Component {
     constructor(props) {
@@ -103,8 +102,7 @@ export class AssignmentItemComponent extends React.Component {
     }
 
     renderContentColumn() {
-        const listViewConfig =
-            appConfig.assignmentsList || DEFAULT_ASSSIGNMENTS_LIST_VIEW;
+        const listViewConfig = getAssignmentsListView();
 
         return (
             <Column grow={true} border={false}>
