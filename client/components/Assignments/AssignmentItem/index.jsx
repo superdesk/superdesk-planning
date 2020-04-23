@@ -19,7 +19,7 @@ import {Item, Border, Column, Row, ActionMenu} from '../../UI/List';
 
 import {getComponentForField, getAssignmentsListView} from './fields';
 
-export class AssignmentItemComponent extends React.Component {
+export class AssignmentItem extends React.Component {
     constructor(props) {
         super(props);
 
@@ -261,7 +261,7 @@ export class AssignmentItemComponent extends React.Component {
     }
 }
 
-AssignmentItemComponent.propTypes = {
+AssignmentItem.propTypes = {
     assignment: PropTypes.object.isRequired,
     onClick: PropTypes.func,
     onDoubleClick: PropTypes.func,
@@ -282,10 +282,4 @@ AssignmentItemComponent.propTypes = {
     contentTypes: PropTypes.array,
     assignedDesk: PropTypes.object,
     contacts: PropTypes.object,
-    loadArchiveItem: PropTypes.func,
 };
-
-export const AssignmentItem = connect(null, (dispatch) => ({
-    loadArchiveItem: (assignment) =>
-        dispatch(actions.assignments.api.loadArchiveItem(assignment)),
-}))(AssignmentItemComponent);
