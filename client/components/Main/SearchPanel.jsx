@@ -97,7 +97,7 @@ export class SearchPanelComponent extends React.Component {
         };
 
         return (
-            <SidePanel shadowLeft={true} transparent={true}>
+            <SidePanel shadowLeft={true}>
                 <Header className="side-panel__header--border-b">
                     <Tools tools={tools}/>
                     <h3 className="side-panel__heading">{gettext('Advanced filters')}</h3>
