@@ -354,23 +354,24 @@ const onAssignmentDeleted = (_e, data) => (
 
 export const onContentUpdate = (_e, data) => (
     (dispatch, getState) => {
-        const updatedIds = Object.keys(data.items);
-        const currentItems = Object.values(getState().assignment.archive);
-        let refetchItems = false;
+        const updatedItems = Object.keys(data.items);
+        const currentItems = Object.values(selectors.getStoredArchiveItems(getState()));
+        const refetchAssignments = [];
 
-        for (const updatedId of updatedIds) {
-            const updatedItemInState = currentItems.find((i) => i._id === updatedId);
+        for (const itemId of updatedItems) {
+            const updatedItemInState = currentItems.find((i) => i._id === itemId);
 
             if (updatedItemInState != null) {
-                refetchItems = true;
+                refetchAssignments.push(updatedItemInState.assignment_id);
                 break;
             }
         }
 
-        if (refetchItems) {
+        if (refetchAssignments.length > 0) {
             const assignments = Object.values(getState().assignment.assignments);
+            const updateAssignments = assignments.filter((a) => refetchAssignments.includes(a._id));
 
-            dispatch(actions.assignments.api.loadArchiveItems(assignments));
+            dispatch(actions.assignments.api.loadArchiveItems(updateAssignments));
         }
     }
 );

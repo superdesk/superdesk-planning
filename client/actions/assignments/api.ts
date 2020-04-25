@@ -491,7 +491,11 @@ const loadArchiveItems = (assignments: Array<any>) => (
     const query = search.query();
     const filter = {
         bool: {
-            should: assignmentIds.map((id) => ({term: {assignment_id: id}})),
+            must: {
+                terms: {
+                    assignment_id: [assignmentIds]
+                }
+            }
         },
     };
 

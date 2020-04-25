@@ -7,7 +7,7 @@ interface IProps {
 }
 
 export const HeadlineComponent = ({assignment, archiveItemForAssignment}: IProps) => {
-    const item = archiveItemForAssignment[assignment._id];
+    const item = archiveItemForAssignment?.[assignment._id];
 
     if (!item) {
         return null;
