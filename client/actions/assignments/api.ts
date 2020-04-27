@@ -493,7 +493,7 @@ const loadArchiveItems = (assignments: Array<any>) => (
         bool: {
             must: {
                 terms: {
-                    assignment_id: [assignmentIds]
+                    assignment_id: assignmentIds
                 }
             }
         },
