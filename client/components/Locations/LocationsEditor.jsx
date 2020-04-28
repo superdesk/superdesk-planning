@@ -171,7 +171,7 @@ export class LocationsEditorComponent extends React.Component {
         ];
 
         return (
-            <SidePanel shadowRight={true} className={this.props.className}>
+            <SidePanel shadowRight={true} bg00={true} className={this.props.className}>
                 <Header className="side-panel__header--border-b" darkBlue={true}>
                     <Tabs
                         tabs={this.tabs}

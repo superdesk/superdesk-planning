@@ -123,7 +123,7 @@ export class PreviewPanelComponent extends React.Component {
         const isEvent = this.props.itemType === ITEM_TYPE.EVENT;
 
         return (
-            <SidePanel shadowRight={true}>
+            <SidePanel shadowRight={true} bg00={true}>
                 <Header darkBlue={isEvent} darker={!isEvent}>
                     <Tools tools={this.tools}/>
                     <Tabs

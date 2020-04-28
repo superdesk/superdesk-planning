@@ -7,12 +7,15 @@ import classNames from 'classnames';
  * @name SidePanel
  * @description SidePanel Component used usually for Advanced Search panels
  */
-export const SidePanel = ({children, shadowRight, shadowLeft, transparent, className}) => (
+export const SidePanel = ({children, shadowRight, shadowLeft, transparent, bg00, className}) => (
     <div className={classNames(
         'side-panel',
-        {'side-panel--shadow-right': shadowRight},
-        {'side-panel--transparent': transparent},
-        {'side-panel--shadow-left': shadowLeft},
+        {
+            'side-panel--shadow-right': shadowRight,
+            'side-panel--transparent': transparent,
+            'side-panel--shadow-left': shadowLeft,
+            'side-panel--bg-00': bg00,
+        },
         className
     )}>
         {children}
@@ -24,6 +27,7 @@ SidePanel.propTypes = {
     shadowRight: PropTypes.bool,
     shadowLeft: PropTypes.bool,
     transparent: PropTypes.bool,
+    bg00: PropTypes.bool,
     className: PropTypes.string,
 };
 
@@ -31,5 +35,6 @@ SidePanel.defaultProps = {
     shadowRight: false,
     shadowLeft: false,
     transparent: false,
+    bg00: false,
     className: '',
 };
