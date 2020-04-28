@@ -366,7 +366,7 @@ export class EditorComponent extends React.Component {
         }
 
         return (
-            <SidePanel shadowRight={true} className={this.props.className}>
+            <SidePanel shadowRight={true} bg00={true} className={this.props.className}>
                 <EditorHeader
                     diff={this.state.diff}
                     initialValues={this.state.initialValues}
