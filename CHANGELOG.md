@@ -1,5 +1,15 @@
 # Superdesk Planning Changelog
 
+## [1.33.0] 2020-04-28 - Released
+### Features
+- None
+
+### Improvements
+- None
+
+### Fixes
+- [SDESK-5199] (fix) Force white background for forms and previews (#1461)
+
 ## [1.33.0-rc2] 2020-04-22
 ### Features
 - None
