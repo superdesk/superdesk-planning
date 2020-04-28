@@ -6,6 +6,7 @@ import planning from '../planning';
 import {ASSIGNMENTS, WORKSPACE, MODALS} from '../../constants';
 import {lockUtils, assignmentUtils, gettext, isExistingItem} from '../../utils';
 import {hideModal, showModal} from '../index';
+import * as actions from '../../actions';
 
 const _notifyAssignmentEdited = (assignmentId) => (
     (dispatch, getState, {notify}) => {
@@ -351,6 +352,30 @@ const onAssignmentDeleted = (_e, data) => (
     }
 );
 
+export const onContentUpdate = (_e, data) => (
+    (dispatch, getState) => {
+        const updatedItems = Object.keys(data.items);
+        const currentItems = Object.values(selectors.getStoredArchiveItems(getState()));
+        const refetchAssignments = [];
+
+        for (const itemId of updatedItems) {
+            const updatedItemInState = currentItems.find((i) => i._id === itemId);
+
+            if (updatedItemInState != null) {
+                refetchAssignments.push(updatedItemInState.assignment_id);
+                break;
+            }
+        }
+
+        if (refetchAssignments.length > 0) {
+            const assignments = Object.values(getState().assignment.assignments);
+            const updateAssignments = assignments.filter((a) => refetchAssignments.includes(a._id));
+
+            dispatch(actions.assignments.api.loadArchiveItems(updateAssignments));
+        }
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     onAssignmentCreated,
@@ -360,6 +385,7 @@ const self = {
     onAssignmentRemoved,
     onAssignmentDeleteFailed,
     onAssignmentDeleted,
+    onContentUpdate,
 };
 
 // Map of notification name and Action Event to execute
@@ -374,6 +400,7 @@ self.events = {
     'assignments:delete:fail': () => (self.onAssignmentDeleteFailed),
     'assignments:delete': () => (self.onAssignmentDeleted),
     'assignments:accepted': () => (self.onAssignmentUpdated),
+    'content:update': () => (self.onContentUpdate),
 };
 
 export default self;

@@ -11,6 +11,7 @@ import {assignmentUtils} from '../../utils';
 import {AssignmentItem} from './AssignmentItem';
 import {Header, Group} from '../UI/List';
 import {OrderDirectionIcon} from '../OrderBar';
+import {assignmentsViewRequiresArchiveItems} from './AssignmentItem/fields';
 
 class AssignmentGroupListComponent extends React.Component {
     constructor(props) {
@@ -117,6 +118,7 @@ class AssignmentGroupListComponent extends React.Component {
                 contentTypes={contentTypes}
                 assignedDesk={assignedDesk}
                 contacts={contacts}
+                archiveItemForAssignment={this.props.archiveItemForAssignment}
             />
         );
     }
@@ -225,6 +227,7 @@ AssignmentGroupListComponent.propTypes = {
     changeListSortOrder: PropTypes.func,
     saveSortPreferences: PropTypes.bool,
     contacts: PropTypes.object,
+    archiveItemForAssignment: PropTypes.object,
 };
 
 AssignmentGroupListComponent.defaultProps = {
@@ -236,7 +239,7 @@ AssignmentGroupListComponent.defaultProps = {
 const mapStateToProps = (state, ownProps) => {
     const assignmentDataSelector = selectors.getAssignmentGroupSelectors[ownProps.groupKey];
 
-    return {
+    const props = {
         filterBy: selectors.getFilterBy(state),
         orderByField: selectors.getOrderByField(state),
         orderDirection: assignmentDataSelector.sortOrder(state),
@@ -253,6 +256,12 @@ const mapStateToProps = (state, ownProps) => {
         desks: selectors.general.desks(state),
         contacts: selectors.general.contactsById(state),
     };
+
+    if (assignmentsViewRequiresArchiveItems()) {
+        props.archiveItemForAssignment = selectors.getStoredArchiveItems(state);
+    }
+
+    return props;
 };
 
 const mapDispatchToProps = (dispatch) => ({

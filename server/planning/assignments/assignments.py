@@ -25,6 +25,7 @@ from apps.publish.enqueue import ITEM_PUBLISH
 from eve.utils import config, ParsedRequest
 from superdesk.utc import utcnow
 from planning.planning import coverage_schema
+from planning.planning.planning import planning_schema
 from superdesk import get_resource_service
 from apps.common.components.utils import get_component
 from planning.item_lock import LockService, LOCK_USER, LOCK_ACTION
@@ -1239,6 +1240,7 @@ assignments_schema = {
     # coverage details
     'planning': deepcopy(coverage_schema['planning']),
     'description_text': metadata_schema['description_text'],
+    'name': planning_schema['name'],
 
     # Field to mark assignment for deletion if a delete operation fails
     '_to_delete': {'type': 'boolean'},

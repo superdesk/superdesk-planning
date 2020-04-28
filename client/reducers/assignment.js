@@ -235,13 +235,27 @@ const assignmentReducer = createReducer(initialState, {
         };
     },
 
-    [ASSIGNMENTS.ACTIONS.RECEIVED_ARCHIVE]: (state, payload) => ({
-        ...state,
-        archive: {
-            ...state.archive,
-            [payload.assignment_id]: payload,
-        },
-    }),
+    [ASSIGNMENTS.ACTIONS.RECEIVED_ARCHIVE]: (state, payload) => {
+        const archiveItems = {};
+
+        if (Array.isArray(payload)) { // Multiple items
+            for (const newItem of payload) {
+                if (newItem.assignment_id) {
+                    archiveItems[newItem.assignment_id] = newItem;
+                }
+            }
+        } else { // One single item
+            archiveItems[payload.assignment_id] = payload;
+        }
+
+        return {
+            ...state,
+            archive: {
+                ...state.archive,
+                ...archiveItems,
+            },
+        };
+    },
 
     [ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT]: (oldState, payload) => {
         const state = cloneDeep(oldState);
