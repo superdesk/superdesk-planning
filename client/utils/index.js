@@ -1034,6 +1034,33 @@ export const sortBasedOnTBC = (days) => {
     return sortBy(sortable, [(e) => (e.date)]);
 };
 
+/**
+ * Utility function to iterate over each callback, expecting a resolved or rejected promise
+ * The function resolves once all promises are resolved, or rejects if a single callback is rejected
+ * @param {Array<function(): Promise>} callbacks - The array of callbacks to run
+ * @returns {Promise}
+ */
+export const iteratePromiseCallbacks = (callbacks) => (
+    new Promise((resolve, reject) => {
+        let index = 0;
+        const runNextCallback = () => {
+            if (index >= callbacks.length) {
+                resolve();
+            } else {
+                const callback = callbacks[index];
+
+                index += 1;
+                callback().then(
+                    () => runNextCallback(),
+                    (error) => reject(error)
+                );
+            }
+        };
+
+        runNextCallback();
+    })
+);
+
 export const sanitizeArrayFields = (item, fields) => {
     if (!item) {
         return;
@@ -1068,34 +1095,6 @@ export const sanitizeItemFields = (item) => {
         }
     }
 };
-
-
-/**
- * Utility function to iterate over each callback, expecting a resolved or rejected promise
- * The function resolves once all promises are resolved, or rejects if a single callback is rejected
- * @param {Array<function(): Promise>} callbacks - The array of callbacks to run
- * @returns {Promise}
- */
-export const iteratePromiseCallbacks = (callbacks) => (
-    new Promise((resolve, reject) => {
-        let index = 0;
-        const runNextCallback = () => {
-            if (index >= callbacks.length) {
-                resolve();
-            } else {
-                const callback = callbacks[index];
-
-                index += 1;
-                callback().then(
-                    () => runNextCallback(),
-                    (error) => reject(error)
-                );
-            }
-        };
-
-        runNextCallback();
-    })
-);
 
 export const getFileDownloadURL = (file) => (
     appConfig.server.url + '/upload/' + file.filemeta.media_id + '/raw'
