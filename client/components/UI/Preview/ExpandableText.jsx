@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
@@ -6,47 +6,61 @@ import {gettext} from '../../../utils';
 
 import './style.scss';
 
-export function ExpandableText({value, className, expandAt}) {
-    const valueRef = useRef();
-    const [expanded, setExpanded] = useState(false);
-
-    const toggleExpanded = () => {
-        setExpanded(!expanded);
-        if (valueRef.current && valueRef.current.parentNode) {
-            valueRef.current.parentNode.scrollIntoView();
-        }
-    };
-
-    if (!value) {
-        return null;
+export class ExpandableText extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {expanded: false};
+        this.dom = {parent: null};
+        this.toggleExpanded = this.toggleExpanded.bind(this);
+        this.setDomRef = this.setDomRef.bind(this);
     }
 
-    let text = value.replace(/\r/g, '')
-        .split('\n');
+    toggleExpanded(expanded) {
+        this.setState({expanded: !this.state.expanded});
+        if (this.dom.parent && this.dom.parent.parentNode) {
+            this.dom.parent.parentNode.scrollIntoView();
+        }
+    }
 
-    if (get(text, 'length', 0) > expandAt) {
-        if (!expanded) {
-            text = text.slice(0, expandAt);
+    setDomRef(ref) {
+        this.dom.parent = ref;
+    }
+
+    render() {
+        const {value, className, expandAt} = this.props;
+        const {expanded} = this.state;
+
+        if (!value) {
+            return null;
         }
 
-        const linkText = expanded ?
-            gettext('Show less') :
-            gettext('Show all');
+        let text = value.replace(/\r/g, '')
+            .split('\n');
 
-        text.push(
-            <a className="sd-text__expandable-link" onClick={toggleExpanded}>
-                ... {linkText}
-            </a>
+        if (get(text, 'length', 0) > expandAt) {
+            if (!expanded) {
+                text = text.slice(0, expandAt);
+            }
+
+            const linkText = expanded ?
+                gettext('Show less') :
+                gettext('Show all');
+
+            text.push(
+                <a className="sd-text__expandable-link" onClick={this.toggleExpanded}>
+                    ... {linkText}
+                </a>
+            );
+        }
+
+        return (
+            <p className={className} ref={this.setDomRef}>
+                {text.map((item, key) => (
+                    <span key={key}>{item}<br/></span>
+                ))}
+            </p>
         );
     }
-
-    return (
-        <p className={className} ref={valueRef}>
-            {text.map((item, key) => (
-                <span key={key}>{item}<br/></span>
-            ))}
-        </p>
-    );
 }
 
 ExpandableText.propTypes = {
