@@ -336,6 +336,7 @@ export class EditorComponent extends React.Component {
                             onChangeHandler={this.onChangeHandler}
                             readOnly={isReadOnly}
                             addNewsItemToPlanning={this.props.addNewsItemToPlanning}
+                            submitting={this.state.submitting}
                             submitFailed={this.state.submitFailed}
                             errors={this.state.errors}
                             dirty={this.state.dirty}

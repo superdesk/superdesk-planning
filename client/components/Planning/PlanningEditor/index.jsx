@@ -268,16 +268,19 @@ export class PlanningEditorComponent extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (this.props.addNewsItemToPlanning && !isExistingItem(this.props.item) &&
+        if (eventUtils.shouldFetchFilesForEvent(nextProps.event)) {
+            this.props.fetchEventFiles(nextProps.event);
+        }
+
+        // No need for partial save features if the editor is in read-only mode
+        if (this.props.readOnly === true) {
+            return;
+        } else if (this.props.addNewsItemToPlanning && !isExistingItem(this.props.item) &&
             get(nextProps, 'diff.coverages.length', 0) === 0) {
             this.handleAddToPlanningLoading(nextProps);
             return;
-        } else if (!isSameItemId(nextProps.item, this.props.item)) {
+        } else if (!isSameItemId(nextProps.item, this.props.item) || nextProps.submitting) {
             return;
-        }
-
-        if (eventUtils.shouldFetchFilesForEvent(nextProps.event)) {
-            this.props.fetchEventFiles(nextProps.event);
         }
 
         // if the assignment associated with the planning item are modified
@@ -789,6 +792,7 @@ PlanningEditorComponent.propTypes = {
     desk: PropTypes.string,
     user: PropTypes.string,
     errors: PropTypes.object,
+    submitting: PropTypes.bool,
     submitFailed: PropTypes.bool,
     dirty: PropTypes.bool,
     planningProfile: PropTypes.object,
@@ -818,6 +822,7 @@ PlanningEditorComponent.propTypes = {
 };
 
 PlanningEditorComponent.defaultProps = {
+    submitting: false,
     readOnly: false,
     navigation: {},
     inModalView: false,

@@ -29,7 +29,7 @@ class MockSlack():
             return {'ok': True}
         elif method == 'users.list':
             return {'ok': True, 'members': [{'name': 'foo', 'id': 'ABCD'}]}
-        elif method == 'im.open':
+        elif method == 'conversations.open':
             return {'ok': True, 'channel': {'id': 'EFGH'}}
 
 
