@@ -493,6 +493,7 @@ EventEditorComponent.propTypes = {
     users: PropTypes.array,
     desks: PropTypes.array,
     readOnly: PropTypes.bool,
+    submitting: PropTypes.bool,
     submitFailed: PropTypes.bool,
     dirty: PropTypes.bool,
     errors: PropTypes.object,
@@ -512,6 +513,7 @@ EventEditorComponent.propTypes = {
 };
 
 EventEditorComponent.defaultProps = {
+    submitting: false,
     readOnly: false,
     submitFailed: false,
     navigation: {},
