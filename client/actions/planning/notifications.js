@@ -176,7 +176,7 @@ const onPlanningPosted = (_e, data) => (
 );
 
 const onPlanningSpiked = (_e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (data && data.item) {
             dispatch({
                 type: PLANNING.ACTIONS.SPIKE_PLANNING,
@@ -190,7 +190,9 @@ const onPlanningSpiked = (_e, data) => (
 
             dispatch(main.closePreviewAndEditorForItems(
                 [{_id: data.item}],
-                gettext('The Planning item was spiked')
+                selectors.general.currentUserId(getState()) === data.user ?
+                    null :
+                    gettext('The Planning item was spiked')
             ));
 
             dispatch(planning.featuredPlanning.removePlanningItemFromSelection(data.item));
@@ -208,7 +210,7 @@ const onPlanningSpiked = (_e, data) => (
 );
 
 const onPlanningUnspiked = (_e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (data && data.item) {
             dispatch({
                 type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
@@ -221,7 +223,9 @@ const onPlanningUnspiked = (_e, data) => (
 
             dispatch(main.closePreviewAndEditorForItems(
                 [{_id: data.item}],
-                gettext('The Planning item was unspiked')
+                selectors.general.currentUserId(getState()) === data.user ?
+                    null :
+                    gettext('The Planning item was unspiked')
             ));
             dispatch(planning.featuredPlanning.addPlanningItemToSelection(data.item));
 

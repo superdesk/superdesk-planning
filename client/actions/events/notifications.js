@@ -93,7 +93,7 @@ const onEventLocked = (_e, data) => (
 );
 
 const onEventSpiked = (_e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (data && data.item) {
             dispatch({
                 type: EVENTS.ACTIONS.SPIKE_EVENT,
@@ -105,7 +105,9 @@ const onEventSpiked = (_e, data) => (
 
             dispatch(main.closePreviewAndEditorForItems(
                 data.spiked_items,
-                gettext('The Event was spiked'),
+                selectors.general.currentUserId(getState()) === data.user ?
+                    null :
+                    gettext('The Event was spiked'),
                 'id'
             ));
 
@@ -120,7 +122,7 @@ const onEventSpiked = (_e, data) => (
 );
 
 const onEventUnspiked = (_e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (data && data.item) {
             dispatch({
                 type: EVENTS.ACTIONS.UNSPIKE_EVENT,
@@ -132,7 +134,9 @@ const onEventUnspiked = (_e, data) => (
 
             dispatch(main.closePreviewAndEditorForItems(
                 data.unspiked_items,
-                gettext('The Event was unspiked'),
+                selectors.general.currentUserId(getState()) === data.user ?
+                    null :
+                    gettext('The Event was unspiked'),
                 'id'
             ));
 
