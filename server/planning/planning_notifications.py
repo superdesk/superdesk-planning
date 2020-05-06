@@ -328,7 +328,7 @@ def _send_to_slack_user(sc, user_id, message):
     user_token = _get_slack_user_id(sc, user)
     # Need to open a direct IM channel to the target user
     if user_token:
-        im = sc.api_call('im.open', user=user_token, return_im=True)
+        im = sc.api_call('conversations.open', users=user_token, return_im=True)
         if im.get('ok', False):
             sent = sc.api_call('chat.postMessage', as_user=False, channel=im.get('channel', {}).get('id'),
                                text=message, link_names=True)
