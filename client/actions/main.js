@@ -639,7 +639,7 @@ const openIgnoreCancelSaveModal = ({
     }
 );
 
-const closePreviewAndEditorForItems = (items, actionMessage = '', field = '_id', unlock = false) => (
+const closePreviewAndEditorForItems = (items, actionMessage = null, field = '_id', unlock = false) => (
     (dispatch, getState, {notify}) => {
         const previewId = selectors.main.previewId(getState());
         const editId = selectors.forms.currentItemId(getState());
@@ -647,7 +647,7 @@ const closePreviewAndEditorForItems = (items, actionMessage = '', field = '_id',
         if (previewId && items.find((i) => get(i, field) === previewId)) {
             dispatch(self.closePreview());
 
-            if (actionMessage !== '') {
+            if (actionMessage != null && actionMessage.length > 0) {
                 notify.warning(actionMessage);
             }
         }
@@ -663,7 +663,7 @@ const closePreviewAndEditorForItems = (items, actionMessage = '', field = '_id',
                 }
             }
 
-            if (actionMessage !== '') {
+            if (actionMessage != null && actionMessage.length > 0) {
                 notify.warning(actionMessage);
             }
         }
