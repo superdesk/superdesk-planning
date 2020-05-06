@@ -15,7 +15,7 @@ export class ExpandableText extends React.Component {
         this.setDomRef = this.setDomRef.bind(this);
     }
 
-    toggleExpanded(expanded) {
+    toggleExpanded() {
         this.setState({expanded: !this.state.expanded});
         if (this.dom.parent && this.dom.parent.parentNode) {
             this.dom.parent.parentNode.scrollIntoView();
