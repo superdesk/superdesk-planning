@@ -126,7 +126,7 @@ const mapStateToProps = (state) => ({
 const cancelBasedLocks = [
     PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.lock_action,
     PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.lock_action
-]
+];
 
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (original: IPlanningItem, updates: IPlanningItem) => {
