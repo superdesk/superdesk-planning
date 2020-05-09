@@ -48,18 +48,6 @@ describe('Planning.Events: create planning action', () => {
         waitForPageLoad();
     });
 
-    function expectListItemText() {
-        list.nestedItem(0)
-            .find('.sd-line-input__input--related-item-link')
-            .contains('(1) Show planning item(s)', {timeout: 30000});
-
-        list.toggleAssociatedPlanning(0);
-
-        list.nestedItem(0)
-            .find('.sd-line-input__input--related-item-link')
-            .contains('(1) Hide planning item(s)', {timeout: 30000});
-    }
-
     function expectEditorValues() {
         editors.planning.waitTillOpen();
         editors.planning.waitLoadingComplete();
@@ -106,7 +94,6 @@ describe('Planning.Events: create planning action', () => {
 
     it('can create from the list', () => {
         list.clickAction(0, 'Create Planning Item');
-        expectListItemText();
         doubleClickPlanningItem();
         expectEditorValues();
     });
@@ -114,12 +101,10 @@ describe('Planning.Events: create planning action', () => {
     it('can create and open from the list', () => {
         list.clickAction(0, 'Create and Open Planning Item');
         expectEditorValues();
-        expectListItemText();
     });
 
     it('can create from preview', () => {
         createFromPreview(false);
-        expectListItemText();
         doubleClickPlanningItem();
         expectEditorValues();
     });
@@ -127,21 +112,18 @@ describe('Planning.Events: create planning action', () => {
     it('can create and open from preview', () => {
         createFromPreview(true);
         expectEditorValues();
-        expectListItemText();
     });
 
     it('can create from the editor', () => {
         createFromEditor(false);
         editors.planning.closeButton.click();
         editors.planning.waitTillClosed();
-        expectListItemText();
         doubleClickPlanningItem();
         expectEditorValues();
     });
 
     it('can create and open from the editor', () => {
         createFromEditor(true);
-        expectListItemText();
         expectEditorValues();
     });
 });
