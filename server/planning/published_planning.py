@@ -14,10 +14,7 @@ from superdesk.utils import ListCursor
 from .events import EventsResource
 from .planning import PlanningResource
 from .planning.planning_featured import PlanningFeaturedResource
-from planning.planning.planning import planning_schema
-from planning.events.events_schema import events_schema
 import logging
-from copy import deepcopy
 
 logger = logging.getLogger(__name__)
 

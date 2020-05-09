@@ -16,7 +16,6 @@ from apps.archive.common import get_user, is_assigned_to_a_desk
 from apps.content import push_content_notification
 from superdesk.notification import push_notification
 import logging
-from bson.objectid import ObjectId
 
 logger = logging.getLogger(__name__)
 
