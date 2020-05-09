@@ -145,7 +145,8 @@ class AssignmentsLinkService(Service):
         if not item.get('rewrite_of'):
             delivery = get_resource_service('delivery').find_one(
                 req=None,
-                assignment_id=ObjectId(doc.get('assignment_id')))
+                assignment_id=doc.get('assignment_id')
+            )
 
             if delivery:
                 raise SuperdeskApiError.badRequestError(
@@ -214,7 +215,7 @@ class AssignmentsLinkResource(Resource):
     url = 'assignments/link'
     schema = {
         'assignment_id': {
-            'type': 'string',
+            'type': 'objectid',
             'required': True
         },
         'item_id': {

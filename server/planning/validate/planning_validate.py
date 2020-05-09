@@ -95,6 +95,10 @@ class PlanningValidateService(Service):
         for field in error_list:
             error = error_list[field]
 
+            # If error is a list, only return the first error
+            if isinstance(error, list):
+                error = error[0]
+
             if error == 'empty values not allowed' or error == 'required field':
                 response.append(REQUIRED_ERROR.format(field.upper()))
             else:

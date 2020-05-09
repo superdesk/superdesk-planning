@@ -705,6 +705,8 @@ class EventsResource(superdesk.Resource):
     privileges = {'POST': 'planning_event_management',
                   'PATCH': 'planning_event_management'}
 
+    merge_nested_documents = True
+
 
 def generate_recurring_dates(start, frequency, interval=1, endRepeatMode='count',
                              until=None, byday=None, count=5, tz=None, date_only=False):

@@ -176,7 +176,8 @@ class AssignmentsUnlinkService(Service):
             )
 
         deliveries = get_resource_service('delivery').get(req=None, lookup={
-            'assignment_id': assignment.get(config.ID_FIELD)})
+            'assignment_id': assignment.get(config.ID_FIELD)
+        })
         # Match the passed item_id in doc or if the item is archived the archived item_id
         delivery = [d for d in deliveries if d.get('item_id') == item.get('item_id', doc.get('item_id'))]
         if len(delivery) <= 0:
@@ -200,7 +201,7 @@ class AssignmentsUnlinkResource(Resource):
     url = 'assignments/unlink'
     schema = {
         'assignment_id': {
-            'type': 'string',
+            'type': 'objectid',
             'required': True
         },
         'item_id': {

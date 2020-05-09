@@ -21,6 +21,9 @@ from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 from apps.common.components.utils import get_component
 from planning.common import ASSIGNMENT_WORKFLOW_STATE
+from planning.assignments.assignments import assignments_schema
+
+from copy import deepcopy
 
 
 CUSTOM_HATEOAS = {'self': {'title': 'Assignments', 'href': '/assignments/{_id}'}}
@@ -37,7 +40,7 @@ def _update_returned_document(doc, item):
 class AssignmentsLockResource(Resource):
     endpoint_name = 'assignments_lock'
     url = 'assignments/<{0}:item_id>/lock'.format(item_url)
-    schema = {'lock_action': {'type': 'string'}}
+    schema = deepcopy(assignments_schema)
     datasource = {'source': 'assignments'}
     resource_methods = ['GET', 'POST']
     resource_title = endpoint_name
@@ -83,7 +86,7 @@ class AssignmentsLockService(BaseService):
 class AssignmentsUnlockResource(Resource):
     endpoint_name = 'assignments_unlock'
     url = 'assignments/<{0}:item_id>/unlock'.format(item_url)
-    schema = {'lock_user': {'type': 'string'}}
+    schema = deepcopy(assignments_schema)
     datasource = {'source': 'assignments'}
     resource_methods = ['GET', 'POST']
     resource_title = endpoint_name

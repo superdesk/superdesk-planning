@@ -38,3 +38,5 @@ class EventAutosaveResource(Resource):
         'event_autosave_user': ([('lock_user', 1)], {'background': True}),
         'event_autosave_session': ([('lock_session', 1)], {'background': True})
     }
+
+    merge_nested_documents = True
