@@ -33,7 +33,7 @@ describe('Planning.Events: event templates', () => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
 
         login();
-        waitForPageLoad();
+        waitForPageLoad.planning();
         subnav.createEvent();
         editor.waitTillOpen();
     });

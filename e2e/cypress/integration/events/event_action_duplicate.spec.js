@@ -35,7 +35,7 @@ describe('Planning.Events: duplicate event', () => {
 
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
         login();
-        waitForPageLoad();
+        waitForPageLoad.planning();
     });
 
     it('can duplicate an event', () => {

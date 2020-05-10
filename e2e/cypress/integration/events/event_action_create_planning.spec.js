@@ -45,7 +45,7 @@ describe('Planning.Events: create planning action', () => {
 
         login();
 
-        waitForPageLoad();
+        waitForPageLoad.planning();
     });
 
     function expectListItemText() {
