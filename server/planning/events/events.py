@@ -16,7 +16,6 @@ import itertools
 import copy
 import pytz
 import re
-from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
 from eve.utils import config, date_to_str
 from flask import current_app as app
@@ -30,7 +29,7 @@ from superdesk.metadata.item import GUID_NEWSML
 from superdesk.notification import push_notification
 from superdesk.utc import utcnow
 from apps.auth import get_user, get_user_id
-from apps.archive.common import get_auth, update_dates_for
+from apps.archive.common import get_auth, update_dates_for, resolve_default_values
 from superdesk.users.services import current_user_has_privilege
 from .events_base_service import EventsBaseService
 from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, get_max_recurrent_events, \
