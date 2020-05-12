@@ -348,5 +348,12 @@ events_schema = {
     '_planning_item': planning_type,
 
     # This is used when event creation was based on `events_template`
-    'template': Resource.rel('events_template', embeddable=False)
+    'template': Resource.rel('events_template', embeddable=False),
+
+    # This is used when enhancing fetch items to add ids of associated Planning items
+    'planning_ids': {
+        'type': 'list',
+        'required': False,
+        'schema': {'type': 'string'}
+    }
 }  # end events_schema

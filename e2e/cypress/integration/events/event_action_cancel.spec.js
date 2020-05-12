@@ -32,7 +32,7 @@ describe('Planning.Events: event cancel action', () => {
 
         login();
 
-        waitForPageLoad();
+        waitForPageLoad.planning();
     });
 
     function cancelEvent() {

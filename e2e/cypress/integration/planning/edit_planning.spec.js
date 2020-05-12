@@ -12,7 +12,7 @@ describe('Planning.Planning: edit metadata', () => {
 
         login();
 
-        waitForPageLoad();
+        waitForPageLoad.planning();
         subnav.createPlanning();
         editor.waitTillOpen();
     });

@@ -39,6 +39,8 @@ class PlanningRescheduleResource(PlanningResource):
 
     schema = planning_reschedule_schema
 
+    merge_nested_documents = True
+
 
 class PlanningRescheduleService(BaseService):
     def update(self, id, updates, original):

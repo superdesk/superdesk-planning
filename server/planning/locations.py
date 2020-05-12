@@ -203,3 +203,5 @@ class LocationsResource(superdesk.Resource):
     privileges = {'POST': 'planning',
                   'PATCH': 'planning_locations_management',
                   'DELETE': 'planning_locations_management'}
+
+    merge_nested_documents = True

@@ -1151,7 +1151,11 @@ class AssignmentsService(superdesk.Service):
                     raise Exception('Attempt to accept assignment by contact that it is not assigned to')
             else:
                 raise Exception(
-                    'Unknown User or Contact accepting assignment {} user/contact'.format(assignment_id, assignee))
+                    'Unknown User or Contact accepting assignment: {}, user/contact: {}'.format(
+                        assignment_id,
+                        assignee
+                    )
+                )
         else:
             # make sure that the assignment is still assigned to the user that is accepting the assignment
             if str(user.get(config.ID_FIELD)) != str(original.get('assigned_to', {}).get('user')):
@@ -1177,6 +1181,10 @@ class AssignmentsService(superdesk.Service):
 
 
 assignments_schema = {
+    config.ID_FIELD: {
+        'type': 'objectid',
+        'nullable': False,
+    },
     # Audit Information
     'original_creator': metadata_schema['original_creator'],
     'version_creator': metadata_schema['version_creator'],
@@ -1272,3 +1280,5 @@ class AssignmentsResource(superdesk.Resource):
     }
 
     etag_ignore_fields = ['planning', 'published_state', 'published_at']
+
+    merge_nested_documents = True

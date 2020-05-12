@@ -44,6 +44,8 @@ class PlanningCancelResource(PlanningResource):
 
     schema = planning_cancel_schema
 
+    merge_nested_documents = True
+
 
 class PlanningCancelService(BaseService):
 
