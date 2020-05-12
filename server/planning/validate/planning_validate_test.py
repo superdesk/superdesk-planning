@@ -78,7 +78,11 @@ class PlanningValidateServiceTest(TestCase):
                     'slugline': 'Test slugger',
                     'calendars': [{'qcode': 'cal1', 'name': 'Calendar 1'}],
                     'definition_short': 'This is an Event',
-                    'dates': {}
+                    'dates': {
+                        'start': '2018-04-09T14:00:53.581Z',
+                        'end': '2018-04-10T13:59:59.999Z',
+                        'tz': 'Australia/Sydney',
+                    }
                 }
             }])[0]
 

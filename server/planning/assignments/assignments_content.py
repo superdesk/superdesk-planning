@@ -22,6 +22,7 @@ from superdesk.utc import utcnow
 from planning.planning_notifications import PlanningNotifications
 from superdesk import get_resource_service
 from flask import request
+from superdesk.metadata.item import get_schema
 
 
 FIELDS_TO_COPY = ('anpa_category', 'subject', 'urgency', 'place')
@@ -258,7 +259,8 @@ class AssignmentsContentResource(superdesk.Resource):
     endpoint_name = 'assignments_content'
     resource_title = endpoint_name
     url = 'assignments/content'
-    schema = {
+    schema = get_schema(versioning=True)
+    schema.update({
         'assignment_id': {
             'type': 'string',
             'required': True
@@ -267,7 +269,7 @@ class AssignmentsContentResource(superdesk.Resource):
             'type': 'string',
             'required': False
         }
-    }
+    })
     resource_methods = ['POST']
     item_methods = []
 

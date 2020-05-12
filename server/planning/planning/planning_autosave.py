@@ -46,6 +46,8 @@ class PlanningAutosaveResource(Resource):
         'planning_autosave_session': ([('lock_session', 1)], {'background': True})
     }
 
+    merge_nested_documents = True
+
 
 class PlanningAutosaveService(AutosaveService):
     def on_assignment_removed(self, planning_id, coverage_id):

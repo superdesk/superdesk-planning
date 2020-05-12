@@ -11,6 +11,7 @@ from superdesk.utc import utc_to_local, get_timezone_offset, utcnow
 from superdesk import get_resource_service
 from bson import ObjectId
 from dateutil import tz
+from superdesk.metadata.item import get_schema
 
 
 PLACEHOLDER_TEXT = r'{{content}}'
@@ -18,7 +19,8 @@ PLACEHOLDER_HTML = '<p>%s</p>' % PLACEHOLDER_TEXT
 
 
 class PlanningArticleExportResource(superdesk.Resource):
-    schema = {
+    schema = get_schema(versioning=True)
+    schema.update({
         'items': {
             'type': 'list',
             'required': True,
@@ -30,7 +32,7 @@ class PlanningArticleExportResource(superdesk.Resource):
             'default': 'planning',
         },
         'article_template': superdesk.Resource.rel('content_templates', nullable=True)
-    }
+    })
 
     item_methods = []
     resource_methods = ['POST']

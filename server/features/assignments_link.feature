@@ -124,7 +124,7 @@ Feature: Assignment link
         When we post to "assignments/link"
         """
         [{
-            "assignment_id": "noidea",
+            "assignment_id": "5eb604dee984f205b6509a6f",
             "item_id": "noidea",
             "reassign": true
         }]

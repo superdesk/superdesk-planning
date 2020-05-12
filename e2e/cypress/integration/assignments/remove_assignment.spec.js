@@ -12,7 +12,7 @@ describe('Planning.Assignment: remove assignment', () => {
 
         login();
 
-        waitForPageLoad();
+        waitForPageLoad.planning();
         subnav.createPlanning();
         editor.waitTillOpen();
     });
@@ -64,7 +64,7 @@ describe('Planning.Assignment: remove assignment', () => {
         list.expectItemCount(0);
 
         changeWorkspace('Planning');
-        waitForPageLoad();
+        waitForPageLoad.planning();
         editor.waitTillOpen();
         coverageEditor.waitTillVisible();
         coverageEditor.element

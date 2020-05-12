@@ -16,7 +16,6 @@ from apps.archive.common import get_user, is_assigned_to_a_desk
 from apps.content import push_content_notification
 from superdesk.notification import push_notification
 import logging
-from bson.objectid import ObjectId
 
 logger = logging.getLogger(__name__)
 
@@ -145,7 +144,8 @@ class AssignmentsLinkService(Service):
         if not item.get('rewrite_of'):
             delivery = get_resource_service('delivery').find_one(
                 req=None,
-                assignment_id=ObjectId(doc.get('assignment_id')))
+                assignment_id=doc.get('assignment_id')
+            )
 
             if delivery:
                 raise SuperdeskApiError.badRequestError(
@@ -214,7 +214,7 @@ class AssignmentsLinkResource(Resource):
     url = 'assignments/link'
     schema = {
         'assignment_id': {
-            'type': 'string',
+            'type': 'objectid',
             'required': True
         },
         'item_id': {

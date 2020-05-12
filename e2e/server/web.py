@@ -1,5 +1,4 @@
-from os import chdir
-import sys
+from os import chdir, path
 import socketserver
 import http.server
 
@@ -10,7 +9,10 @@ class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
 
 chdir('../dist')
 
-# port = int(sys.argv[1])
+if not path.isfile('blank.html'):
+    with open('blank.html', 'w') as f:
+        f.write('<html><head><title>Superdesk E2E</title></head><body></body></html>')
+
 port = 9000
 address = '127.0.0.1'
 server = ThreadedHTTPServer((address, port), http.server.SimpleHTTPRequestHandler)

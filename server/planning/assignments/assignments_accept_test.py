@@ -50,7 +50,7 @@ class AssignmentAcceptTestCase(TestCase):
             activity = self.app.data.find_all('activity')[0]
             self.assertDictEqual(activity.get('data'), {"coverage_type": "picture", "user": "Name McName Face",
                                                         "omit_user": True, "slugline": "Accept Test"})
-            history = self.app.data.find('assignments_history', None, None)
+            history = self.app.data.find('assignments_history', None, None)[0]
             self.assertEqual(history[0].get('operation'), 'accepted')
 
     def test_external(self):
@@ -90,5 +90,5 @@ class AssignmentAcceptTestCase(TestCase):
             get_resource_service('assignments').accept_assignment(ObjectId(assignment_id), contact[0].get('_id'))
             assignment = self.app.data.find_one('assignments', req=None, _id=ObjectId(assignment_id))
             self.assertTrue(assignment.get('accepted'))
-            history = self.app.data.find('assignments_history', None, None)
+            history = self.app.data.find('assignments_history', None, None)[0]
             self.assertEqual(history[0].get('operation'), 'accepted')

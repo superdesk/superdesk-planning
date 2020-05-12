@@ -41,6 +41,8 @@ class EventsRescheduleResource(EventsResource):
 
     schema = event_reschedule_schema
 
+    merge_nested_documents = True
+
 
 class EventsRescheduleService(EventsBaseService):
     ACTION = 'reschedule'

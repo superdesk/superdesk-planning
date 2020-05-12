@@ -45,21 +45,19 @@ describe('Planning.Events: create planning action', () => {
 
         login();
 
-        waitForPageLoad();
+        waitForPageLoad.planning();
     });
 
     function expectListItemText() {
         list.nestedItem(0)
-            .find('.sd-list-item')
-            .eq(0)
-            .should('contain.text', '(1) Show planning item(s)');
+            .find('.sd-line-input__input--related-item-link')
+            .contains('(1) Show planning item(s)', {timeout: 30000});
 
         list.toggleAssociatedPlanning(0);
 
         list.nestedItem(0)
-            .find('.sd-list-item')
-            .eq(0)
-            .should('contain.text', '(1) Hide planning item(s)');
+            .find('.sd-line-input__input--related-item-link')
+            .contains('(1) Hide planning item(s)', {timeout: 30000});
     }
 
     function expectEditorValues() {
