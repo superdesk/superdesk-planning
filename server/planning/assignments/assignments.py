@@ -1181,6 +1181,10 @@ class AssignmentsService(superdesk.Service):
 
 
 assignments_schema = {
+    config.ID_FIELD: {
+        'type': 'objectid',
+        'nullable': False,
+    },
     # Audit Information
     'original_creator': metadata_schema['original_creator'],
     'version_creator': metadata_schema['version_creator'],
@@ -1276,3 +1280,5 @@ class AssignmentsResource(superdesk.Resource):
     }
 
     etag_ignore_fields = ['planning', 'published_state', 'published_at']
+
+    merge_nested_documents = True

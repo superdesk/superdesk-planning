@@ -22,6 +22,11 @@ from superdesk.utc import get_timezone_offset, utcnow
 from planning.common import SPIKED_STATE, WORKFLOW_STATE, sanitize_query_text, get_start_of_next_week
 from superdesk import get_resource_service
 
+from planning.planning.planning import planning_schema
+from planning.events.events_schema import events_schema
+
+from copy import deepcopy
+
 
 logger = logging.getLogger(__name__)
 
@@ -688,3 +693,6 @@ class EventsPlanningResource(superdesk.Resource):
     resource_methods = ['GET']
     item_methods = []
     endpoint_name = 'events_planning_search'
+
+    schema = deepcopy(planning_schema)
+    schema.update(events_schema)

@@ -17,6 +17,8 @@ from planning.item_lock import LockService
 from superdesk import get_resource_service
 from apps.common.components.utils import get_component
 from planning.common import update_returned_document
+from planning.planning.planning import planning_schema
+from copy import deepcopy
 
 CUSTOM_HATEOAS_PLANNING = {'self': {'title': 'Planning', 'href': '/planning/{_id}'}}
 
@@ -24,7 +26,7 @@ CUSTOM_HATEOAS_PLANNING = {'self': {'title': 'Planning', 'href': '/planning/{_id
 class PlanningLockResource(Resource):
     endpoint_name = 'planning_lock'
     url = 'planning/<{0}:item_id>/lock'.format(item_url)
-    schema = {'lock_action': {'type': 'string'}}
+    schema = deepcopy(planning_schema)
     datasource = {'source': 'planning'}
     resource_methods = ['GET', 'POST']
     resource_title = endpoint_name
@@ -57,7 +59,7 @@ class PlanningLockService(BaseService):
 class PlanningUnlockResource(Resource):
     endpoint_name = 'planning_unlock'
     url = 'planning/<{0}:item_id>/unlock'.format(item_url)
-    schema = {'lock_user': {'type': 'string'}}
+    schema = deepcopy(planning_schema)
     datasource = {'source': 'planning'}
     resource_methods = ['GET', 'POST']
     resource_title = endpoint_name

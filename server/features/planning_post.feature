@@ -114,7 +114,6 @@ Feature: Post Planning
                         "_id": "#planning._id#",
                         "agendas": [{
                             "_id": "#agenda._id#",
-                            "_type": "agenda",
                             "name": "TestAgenda"
                         }]
                     }

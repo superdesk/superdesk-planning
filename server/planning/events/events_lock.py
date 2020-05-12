@@ -18,6 +18,8 @@ from planning.item_lock import LockService
 from superdesk import get_resource_service
 from apps.common.components.utils import get_component
 from planning.common import update_returned_document
+from planning.events.events_schema import events_schema
+from copy import deepcopy
 
 
 CUSTOM_HATEOAS_EVENTS = {'self': {'title': 'Events', 'href': '/events/{_id}'}}
@@ -27,7 +29,7 @@ logger = logging.getLogger(__name__)
 class EventsLockResource(Resource):
     endpoint_name = 'events_lock'
     url = 'events/<{0}:item_id>/lock'.format(item_url)
-    schema = {'lock_action': {'type': 'string'}}
+    schema = deepcopy(events_schema)
     datasource = {'source': 'events'}
     resource_methods = ['GET', 'POST']
     resource_title = endpoint_name
@@ -57,7 +59,7 @@ class EventsLockService(BaseService):
 class EventsUnlockResource(Resource):
     endpoint_name = 'events_unlock'
     url = 'events/<{0}:item_id>/unlock'.format(item_url)
-    schema = {'lock_user': {'type': 'string'}}
+    schema = deepcopy(events_schema)
     datasource = {'source': 'events'}
     resource_methods = ['GET', 'POST']
     resource_title = endpoint_name

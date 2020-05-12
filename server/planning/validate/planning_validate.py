@@ -37,7 +37,11 @@ def get_validator_schema(schema):
 
 class SchemaValidator(Validator):
     def _validate_validate_on_post(self, validate, field, value):
-        """Ignore this profile as it's to control logic of client side input of Event date range"""
+        """
+        {'type': 'boolean'}
+        """
+
+        # Ignore this profile as it's to control logic of client side input of Event date range
         pass
 
 
@@ -94,6 +98,10 @@ class PlanningValidateService(Service):
         response = []
         for field in error_list:
             error = error_list[field]
+
+            # If error is a list, only return the first error
+            if isinstance(error, list):
+                error = error[0]
 
             if error == 'empty values not allowed' or error == 'required field':
                 response.append(REQUIRED_ERROR.format(field.upper()))

@@ -7,7 +7,7 @@ Feature: Events Template
         Then we get list with 0 items
 
     @auth
-    Scenario: Create new event template failes with wrong based_on_event value
+    Scenario: Create new event template fails with wrong based_on_event value
         When we post to "/events_template"
         """
         [
@@ -51,7 +51,13 @@ Feature: Events Template
         """
 
     @auth
-    Scenario: Create new event template failes with read only fields
+    Scenario: Create new event template fails with read only fields
+        Given "contacts"
+        """
+        [{"first_name": "Albert", "last_name": "Foo"}]
+        """
+        When we upload a file "bike.jpg" to "/events_files"
+        Then we get an event file reference
         When we post to "/events_template"
         """
         [
@@ -75,10 +81,10 @@ Feature: Events Template
                     "definition_short": "Grand prix formula 1 Prague",
                     "ednote": "THIS IS ED NOTE",
                     "event_contact_info": [
-                        "5cefd99cfe985e0a311bb688"
+                        "#contacts._id#"
                     ],
                     "files": [
-                        "5cefd99cfe985e0a311bb677"
+                        "#events_files._id#"
                     ],
                     "internal_note": "THIS IS INT NOTE",
                     "links": [

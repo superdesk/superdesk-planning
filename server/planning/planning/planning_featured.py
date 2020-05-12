@@ -149,3 +149,5 @@ class PlanningFeaturedResource(superdesk.Resource):
         'POST': 'planning_planning_featured',
         'PATCH': 'planning_planning_featured'
     }
+
+    merge_nested_documents = True

@@ -38,6 +38,8 @@ class PlanningPostponeResource(PlanningResource):
 
     schema = planning_postpone_schema
 
+    merge_nested_documents = True
+
 
 class PlanningPostponeService(BaseService):
     def update(self, id, updates, original):

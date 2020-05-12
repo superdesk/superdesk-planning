@@ -1589,3 +1589,5 @@ class PlanningResource(superdesk.Resource):
     etag_ignore_fields = ['_planning_schedule', '_updates_schedule']
 
     mongo_indexes = {'event_item': ([('event_item', 1)], {'background': True})}
+
+    merge_nested_documents = True

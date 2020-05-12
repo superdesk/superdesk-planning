@@ -45,7 +45,7 @@ describe('MediaContacts: contact input', () => {
 
         login();
 
-        waitForPageLoad();
+        waitForPageLoad.planning();
         subnav.createEvent();
         editors.event.waitTillOpen();
     });
@@ -99,7 +99,7 @@ describe('MediaContacts: contact input', () => {
         contactInput.expect(['Foo Bar']);
         editors.event.waitForAutosave();
         cy.reload();
-        waitForPageLoad();
+        waitForPageLoad.planning();
         editors.event.waitTillOpen();
         contactInput.expect(['Foo Bar']);
     });

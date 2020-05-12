@@ -15,7 +15,7 @@ describe('Planning.Events: autosave', () => {
 
         login();
 
-        waitForPageLoad();
+        waitForPageLoad.planning();
         subnav.createEvent();
         editor.waitTillOpen();
     });
@@ -60,14 +60,14 @@ describe('Planning.Events: autosave', () => {
         // Navigate to Workspace, then back to Planning
         cy.visit('/#/workspace');
         cy.visit('/#/planning');
-        waitForPageLoad();
+        waitForPageLoad.planning();
 
         editor.openAllToggleBoxes();
         editor.expect(expectedEvent);
 
         // Refresh the page while the Event is open in the Editor
         cy.reload();
-        waitForPageLoad();
+        waitForPageLoad.planning();
         editor.openAllToggleBoxes();
         editor.expect(expectedEvent);
 
@@ -75,7 +75,7 @@ describe('Planning.Events: autosave', () => {
         // so the editor is not open when the page opens
         editor.minimiseButton.click();
         cy.reload();
-        waitForPageLoad();
+        waitForPageLoad.planning();
         workqueue.getItem(0).click();
         editor.openAllToggleBoxes();
         editor.expect(expectedEvent);

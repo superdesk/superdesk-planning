@@ -12,7 +12,7 @@ describe('MediaContacts: contacts manager', () => {
 
         login();
 
-        waitForPageLoad();
+        waitForPageLoad.contacts();
     });
 
     it('can create a contact', () => {
