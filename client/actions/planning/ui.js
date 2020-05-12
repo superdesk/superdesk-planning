@@ -230,7 +230,9 @@ const cancelPlanning = (original, updates) => (
         dispatch(planningApi.cancel(original, updates))
             .then((plan) => {
                 notify.success(gettext('Planning Item has been cancelled'));
-                return dispatch(main.closePreviewAndEditorForItems([plan], null, '_id', true));
+                dispatch(main.closePreviewAndEditorForItems([plan], null, '_id', true));
+
+                return plan;
             }, (error) => {
                 notify.error(
                     getErrorMessage(error, gettext('Failed to cancel the Planning Item!'))
