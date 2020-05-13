@@ -47,7 +47,7 @@ class PlanningDetailsWidget extends React.Component<IProps, IState> {
         }
 
         return (
-            <div className="widget">
+            <div className="widget sd-padding-all--2">
                 <Provider store={this.state.store}>
                     <PlanningPreviewContent item={this.state.planning} />
                 </Provider>
