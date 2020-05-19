@@ -1,3 +1,5 @@
+import {appConfig} from 'appConfig';
+
 import planningApi from '../api';
 import featuredPlanning from '../featuredPlanning';
 import moment from 'moment';
@@ -58,7 +60,7 @@ describe('actions.planning.api', () => {
 
     describe('loadFeaturedPlanningsData', () => {
         it('calls query with required parameters', (done) => {
-            store.initialState.config.defaultTimezone = 'Australia/Sydney';
+            appConfig.defaultTimezone = 'Australia/Sydney';
             date = momentTz.tz(moment(data.plannings[0].planning_date), 'Australia/Sydney');
             return store.test(done, featuredPlanning.loadFeaturedPlanningsData(date))
                 .then(() => {
@@ -78,6 +80,7 @@ describe('actions.planning.api', () => {
                         },
                         false,
                         '+11:00',
+                        true,
                     ]);
                     done();
                 })

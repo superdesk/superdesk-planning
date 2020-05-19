@@ -54,7 +54,7 @@
             white-space: nowrap;
         }
 		&:hover {
-			background: $sd-hover;	
+			background: $sd-hover;
 		}
 
 		&--active {
@@ -94,11 +94,16 @@
 .contact-field {
     &--padding-top {
         padding-top: 25px;
-    }   
+    }
 }
 
 .contact-info {
-    margin: 5px;
+    flex-grow: 1;
+
+    .sd-list-item__column {
+        padding: 0;
+    }
+
     .avatar {
         @include border-radius(50%);
         position: relative;
@@ -110,7 +115,7 @@
 }
 
 .contact-metadata {
-    margin-top: 1rem; 
+    margin-top: 1rem;
 }
 
 .contact-popup {
@@ -131,14 +136,14 @@
 
 .contact-details-pane {
     &.contact-details-pane--editor {
-        .action-bar {   
-            position: unset; 
-            padding: unset; 
-            border: none;   
+        .action-bar {
+            position: unset;
+            padding: unset;
+            border: none;
             height: auto;
-            &.show {    
-                top: auto !important;   
-            }   
+            &.show {
+                top: auto !important;
+            }
         }
         .profile-info {
             overflow: unset;

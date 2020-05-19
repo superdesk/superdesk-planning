@@ -14,7 +14,7 @@ Feature: Publish
             "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
             "products": ["#products._id#"],
             "codes": "xyz, abc",
-            "destinations": [{"name":"events", "format": "ntb_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
+            "destinations": [{"name":"events", "format": "json_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
         }
         """
         Given "contacts"
@@ -80,7 +80,7 @@ Feature: Publish
         Then we get list with 1 items
         Then we store "PUBLISHQUEUE" with first item
         When we transmit items
-        Then versioned file exists "/tmp/123-#PUBLISHQUEUE.item_version#-None.txt"
+        Then versioned file exists "/tmp/123-#PUBLISHQUEUE.item_version#-1.txt"
         When we get "published_planning?where={\"item_id\": \"#PUBLISHQUEUE.item_id#\", \"version\": #PUBLISHQUEUE.item_version#}"
         Then we get list with 1 items
         """
@@ -107,7 +107,7 @@ Feature: Publish
                     "type": "event",
                     "published_item": {
                         "_id": "#events._id#",
-                        "files": [{"_id": "#FILE._id#", "media": {"_id": "#FILE.filemeta.media_id#"}}]
+                        "files": [{"_id": "#FILE._id#", "media": {"_id": "#FILE.media._id#"}}]
                     }
                 }
             ]
@@ -210,7 +210,7 @@ Feature: Publish
         "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
         "products": ["#products._id#"],
         "codes": "xyz, abc",
-        "destinations": [{"name":"events", "format": "ntb_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
+        "destinations": [{"name":"events", "format": "json_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
     }
     """
     Given "contacts"
@@ -266,7 +266,7 @@ Feature: Publish
             "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
             "products": ["#products._id#"],
             "codes": "xyz, abc",
-            "destinations": [{"name":"events", "format": "ntb_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
+            "destinations": [{"name":"events", "format": "json_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
         }
         """
         Given "contacts"
@@ -315,7 +315,7 @@ Feature: Publish
         Then we store "PUBLISHQUEUE" with first item
 
         When we transmit items
-        Then versioned file exists "/tmp/123-#PUBLISHQUEUE.item_version#-None.txt"
+        Then versioned file exists "/tmp/123-#PUBLISHQUEUE.item_version#-1.txt"
 
     @auth
     Scenario: Patch state of ingested event (SDNTB-568 regression test)
@@ -331,7 +331,7 @@ Feature: Publish
             "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
             "products": ["#products._id#"],
             "codes": "xyz, abc",
-            "destinations": [{"name":"events", "format": "ntb_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
+            "destinations": [{"name":"events", "format": "json_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
         }
         """
         Given "contacts"

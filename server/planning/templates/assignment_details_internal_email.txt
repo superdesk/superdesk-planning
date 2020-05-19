@@ -1,0 +1,1 @@
+{% include "assignment_details_email.txt" %}

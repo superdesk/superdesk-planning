@@ -1,18 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
 import {get} from 'lodash';
 
-import * as selectors from '../../../selectors';
-import {gettext, stringUtils, timeUtils} from '../../../utils';
+import {appConfig} from 'appConfig';
 
+import {gettext, stringUtils, timeUtils} from '../../../utils';
 import {Datetime} from '../../';
 import {Location} from '../../Location';
+import {FileReadOnlyList} from '../../UI';
 import {Row} from '../../UI/Preview';
-import {FileInput, LinkInput} from '../../UI/Form';
+import {LinkInput} from '../../UI/Form';
 import {ContactsPreviewList} from '../../Contacts';
 
-export const EventPreviewComponent = ({item, formProfile, createLink, streetMapUrl, files}) => {
+export const EventPreview = ({item, formProfile, createLink, files}) => {
     if (!item) {
         return null;
     }
@@ -22,6 +22,7 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
     const formattedAddress = get(location, 'formatted_address', '');
     const contacts = get(item, 'event_contact_info') || [];
     const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(item);
+    const locationDetails = get(location, 'details[0]');
 
     return (
         <div>
@@ -69,8 +70,9 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
                     <Location
                         name={locationName}
                         address={formattedAddress}
-                        mapUrl={streetMapUrl}
+                        mapUrl={appConfig.street_map_url}
                         multiLine={true}
+                        details={locationDetails}
                     />
                 </div>
             </Row>
@@ -113,22 +115,12 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
                 enabled={get(formProfile, 'editor.files.enabled')}
                 label={gettext('Attachments')}
             >
-                {get(item, 'files.length', 0) > 0 ? (
-                    <ul>
-                        {get(item, 'files').map((file, index) =>
-                            (<li key={index}>
-                                <FileInput
-                                    value={file}
-                                    createLink={createLink}
-                                    readOnly={true}
-                                    files={files}
-                                />
-                            </li>)
-                        )}
-                    </ul>
-                ) : (
-                    <p><span className="sd-text__info">{gettext('No attached files added.')}</span></p>
-                )}
+                <FileReadOnlyList
+                    formProfile={formProfile}
+                    files={files}
+                    item={item}
+                    createLink={createLink}
+                    noToggle />
             </Row>
 
             <Row
@@ -154,19 +146,9 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
     );
 };
 
-EventPreviewComponent.propTypes = {
+EventPreview.propTypes = {
     item: PropTypes.object,
     formProfile: PropTypes.object,
     createLink: PropTypes.func,
-    streetMapUrl: PropTypes.string,
     files: PropTypes.object,
 };
-
-const mapStateToProps = (state) => ({
-    createLink: (f) => (selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw'),
-    streetMapUrl: selectors.config.getStreetMapUrl(state),
-    files: selectors.general.files(state),
-});
-
-
-export const EventPreview = connect(mapStateToProps)(EventPreviewComponent);

@@ -1,6 +1,9 @@
 import React from 'react';
 import {mount} from 'enzyme';
 import {Provider} from 'react-redux';
+
+import {appConfig} from 'appConfig';
+
 import {createTestStore} from '../../utils';
 import {Location} from './index';
 
@@ -17,6 +20,7 @@ describe('<Location />', () => {
     });
 
     it('render single line', () => {
+        delete appConfig.street_map_url;
         wrapper = mount(
             <Provider store={store}>
                 <Location name={name} address={address}/>
@@ -36,9 +40,10 @@ describe('<Location />', () => {
     });
 
     it('render single line with map', () => {
+        appConfig.street_map_url = 'http://www.google.com/?q=';
         wrapper = mount(
             <Provider store={store}>
-                <Location name={name} address={address} mapUrl={'http://www.google.com/?q='}/>
+                <Location name={name} address={address} />
             </Provider>
         );
 

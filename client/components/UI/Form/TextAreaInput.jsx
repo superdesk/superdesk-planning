@@ -24,10 +24,13 @@ export const TextAreaInput = ({
     maxLength,
     onFocus,
     initialFocus,
+    refNode,
+    rows,
+    labelIcon,
     ...props
 }) => (
     <LineInput {...props} readOnly={readOnly}>
-        <Label text={label}/>
+        <Label text={label} icon={labelIcon}/>
         <TextArea
             field={field}
             value={value}
@@ -39,6 +42,8 @@ export const TextAreaInput = ({
             readOnly={readOnly}
             onFocus={onFocus}
             initialFocus={initialFocus}
+            refNode={refNode}
+            rows={rows}
         />
 
         {maxLength > 0 &&
@@ -68,6 +73,9 @@ TextAreaInput.propTypes = {
     placeholder: PropTypes.string,
     onFocus: PropTypes.func,
     initialFocus: PropTypes.bool,
+    refNode: PropTypes.func,
+    rows: PropTypes.number,
+    labelIcon: PropTypes.string,
 };
 
 TextAreaInput.defaultProps = {
@@ -81,4 +89,5 @@ TextAreaInput.defaultProps = {
     nativeOnChange: false,
     maxLength: 0,
     initialFocus: false,
+    rows: 1,
 };

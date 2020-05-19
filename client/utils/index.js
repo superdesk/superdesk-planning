@@ -1,9 +1,12 @@
+import {get, set, map, cloneDeep, forEach, pickBy, includes, isEqual, pick, partition, sortBy, isNil} from 'lodash';
 import moment from 'moment-timezone';
 import {createStore as _createStore, applyMiddleware, compose} from 'redux';
-import planningApp from '../reducers';
 import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
-import {get, set, map, cloneDeep, forEach, pickBy, includes, isEqual, pick} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
+import planningApp from '../reducers';
 import {
     POST_STATE,
     WORKFLOW_STATE,
@@ -18,6 +21,8 @@ import {
     AUTOSAVE,
     QUEUE_ITEM_PREFIX,
     FEATURED_PLANNING,
+    TO_BE_CONFIRMED_FIELD,
+    TO_BE_CONFIRMED_SHORT_TEXT,
 } from '../constants/index';
 import * as testData from './testData';
 import {default as lockUtils} from './locks';
@@ -188,6 +193,7 @@ export const createTestStore = (params = {}) => {
  * displaying the error in the console.
  */
 const crashReporter = () => (next) => (action) => {
+    // eslint-disable-next-line no-useless-catch
     try {
         return next(action);
     } catch (err) {
@@ -578,7 +584,8 @@ export const shouldUnLockItem = (
  * @param {moment} date
  * @returns {Array}
  */
-export const getTimeZoneOffset = (date = null) => (moment.isMoment(date) ? date.format('Z') : moment().format('Z'));
+export const getTimeZoneOffset = (date = null, format = 'Z') => (moment.isMoment(date) ? date.format(format) :
+    moment().format(format));
 
 export const getPostedState = (item) => get(item, 'pubstatus', null);
 
@@ -857,7 +864,7 @@ export const generateTempId = () => TEMP_ID_PREFIX + moment().valueOf();
  * @return {object} Autosave item with fields stripped
  */
 export const removeAutosaveFields = (item, stripLockFields = false, keepTime = false) => {
-    let fieldsToKeep = ['_id', '_planning_item'];
+    let fieldsToKeep = ['_id', '_planning_item', TO_BE_CONFIRMED_FIELD];
     let fieldsToIgnore = [...AUTOSAVE.IGNORE_FIELDS];
 
     if (keepTime) {
@@ -872,7 +879,7 @@ export const removeAutosaveFields = (item, stripLockFields = false, keepTime = f
 
     return pickBy(modifiedItem, (value, key) =>
         key.startsWith('_') ?
-            (includes(fieldsToKeep, key) && value) :
+            (includes(fieldsToKeep, key) && !isNil(value)) :
             !includes(fieldsToIgnore, key)
     );
 };
@@ -895,7 +902,7 @@ export const isValidFileInput = (f, includeObjectType = false) =>
 
 export const itemsEqual = (nextItem, currentItem) => {
     const pickField = (value, key) => (
-        !key.startsWith('_') &&
+        (key === TO_BE_CONFIRMED_FIELD || !key.startsWith('_')) &&
         !key.startsWith('lock_') &&
         AUTOSAVE.IGNORE_FIELDS.indexOf(key) < 0 &&
         value !== null &&
@@ -988,3 +995,107 @@ export const isItemLockedForEditing = (item, session, lockedItems) => (
 );
 
 export const getProfileName = (itemType, lockAction = null) => lockAction ? `${itemType}_${lockAction}` : itemType;
+
+export const getTBCDateString = (event, separator = ' @ ', dateOnly = false) => {
+    if (dateOnly || !get(event, TO_BE_CONFIRMED_FIELD)) {
+        return '';
+    }
+
+    const dateFormat = appConfig.view.dateformat;
+
+    if (get(event.dates, 'start', moment()).isSame(get(event.dates, 'end', moment()), 'day')) {
+        return (get(event.dates, 'start').format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT);
+    }
+
+    return (get(event.dates, 'start').format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT) + ' - ' +
+        (get(event.dates, 'end').format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT);
+};
+
+
+export const sortBasedOnTBC = (days) => {
+    let sortable = [];
+    const pushEventsForTheDay = (days) => {
+        for (let day in days) sortable.push({
+            date: day,
+            events: [
+                ...sortBy(days[day][0], [(e) => (e._sortDate)]),
+                ...sortBy(days[day][1], [(e) => (e._sortDate)]),
+            ],
+        });
+    };
+
+    for (let day in days) {
+        const tbcPartioned = partition(days[day], (e) => e[TO_BE_CONFIRMED_FIELD]);
+
+        days[day] = tbcPartioned;
+    }
+
+    pushEventsForTheDay(days);
+    return sortBy(sortable, [(e) => (e.date)]);
+};
+
+/**
+ * Utility function to iterate over each callback, expecting a resolved or rejected promise
+ * The function resolves once all promises are resolved, or rejects if a single callback is rejected
+ * @param {Array<function(): Promise>} callbacks - The array of callbacks to run
+ * @returns {Promise}
+ */
+export const iteratePromiseCallbacks = (callbacks) => (
+    new Promise((resolve, reject) => {
+        let index = 0;
+        const runNextCallback = () => {
+            if (index >= callbacks.length) {
+                resolve();
+            } else {
+                const callback = callbacks[index];
+
+                index += 1;
+                callback().then(
+                    () => runNextCallback(),
+                    (error) => reject(error)
+                );
+            }
+        };
+
+        runNextCallback();
+    })
+);
+
+export const sanitizeArrayFields = (item, fields) => {
+    if (!item) {
+        return;
+    }
+
+    const itemKeys = Object.keys(item);
+
+    (fields || ['calendars', 'place', 'contacts', 'anpa_category', 'subject', 'files', 'links', 'agenda',
+        'coverages']).forEach((f) => {
+        if (itemKeys.includes(f)) {
+            if (!Array.isArray(item[f])) {
+                if (item[f] instanceof Object) {
+                    item[f] = [item[f]];
+                } else {
+                    item[f] = [];
+                }
+            } else {
+                item[f] = item[f].filter((v) => !!v);
+            }
+        }
+    });
+};
+
+export const sanitizeItemFields = (item) => {
+    sanitizeArrayFields(item);
+
+    if (getItemType(item) === ITEM_TYPE.PLANNING) {
+        if (get(item, 'coverages')) {
+            item.coverages.forEach((c) => {
+                sanitizeArrayFields(get(c, 'planning'), ['keyword', 'genre']);
+            });
+        }
+    }
+};
+
+export const getFileDownloadURL = (file) => (
+    appConfig.server.url + '/upload/' + file.filemeta.media_id + '/raw'
+);

@@ -9,12 +9,17 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 """Superdesk Planning Search."""
-from flask import json, current_app as app
-import superdesk
 import logging
+from flask import json, current_app as app
 from eve_elastic.elastic import get_dates, format_doc, ElasticCursor
+from copy import deepcopy
+
+import superdesk
 from superdesk.metadata.utils import item_url
 from superdesk.resource import build_custom_hateoas
+
+from planning.planning.planning import planning_schema
+from planning.events.events_schema import events_schema
 
 logger = logging.getLogger(__name__)
 
@@ -113,3 +118,6 @@ class PlanningSearchResource(superdesk.Resource):
     item_methods = []
     item_url = item_url
     endpoint_name = 'planning_search'
+
+    schema = deepcopy(planning_schema)
+    schema.update(events_schema)

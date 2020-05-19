@@ -1,23 +1,34 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {gettext} from '../../utils/index';
-import {Dropdown} from '../UI/SubNav/index';
 
-export const DesksSubnavDropdown = ({userDesks, selectedDeskId, selectAssignmentsFrom}) => {
+import {gettext} from '../../utils';
+import {ALL_DESKS} from '../../constants';
+import {Dropdown} from '../UI/SubNav';
+
+export const DesksSubnavDropdown = ({userDesks, selectedDeskId, selectAssignmentsFrom, showAllDeskOption}) => {
     if (get(userDesks, 'length', 0) <= 0) {
         return null;
     }
 
     const myAssignmentsText = gettext('My Assignments');
-    const items = [
-        {
-            label: myAssignmentsText,
-            id: 'myAssignments',
-            action: () => selectAssignmentsFrom(null),
-        },
-        {divider: true},
-    ];
+    const allDesksText = gettext('All Desks');
+
+    const items = [{
+        label: myAssignmentsText,
+        id: 'myAssignments',
+        action: () => selectAssignmentsFrom(null),
+    }];
+
+    if (showAllDeskOption) {
+        items.push({
+            label: allDesksText,
+            id: ALL_DESKS,
+            action: () => selectAssignmentsFrom(ALL_DESKS),
+        });
+    }
+
+    items.push({divider: true});
 
     userDesks.forEach((desk) => {
         items.push({
@@ -30,7 +41,13 @@ export const DesksSubnavDropdown = ({userDesks, selectedDeskId, selectAssignment
     let buttonLabel = gettext('Select Assignments From: ');
     let currentDesk = userDesks.find((desk) => desk._id === selectedDeskId || '');
 
-    buttonLabel += currentDesk ? get(currentDesk, 'name') : myAssignmentsText;
+    if (selectedDeskId === ALL_DESKS) {
+        buttonLabel += allDesksText;
+    } else if (currentDesk) {
+        buttonLabel += get(currentDesk, 'name');
+    } else {
+        buttonLabel += myAssignmentsText;
+    }
 
     return (
         <Dropdown
@@ -45,4 +62,7 @@ DesksSubnavDropdown.propTypes = {
     userDesks: PropTypes.array,
     selectedDeskId: PropTypes.string,
     selectAssignmentsFrom: PropTypes.func,
+    showAllDeskOption: PropTypes.bool,
 };
+
+DesksSubnavDropdown.defaultProps = {showAllDeskOption: false};

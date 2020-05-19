@@ -1,33 +1,43 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {get} from 'lodash';
+
 import {RepeatEventSummary} from '../RepeatEventSummary';
 import {Row} from '../../UI/Preview';
 import {gettext, eventUtils, timeUtils} from '../../../utils';
-import {get} from 'lodash';
 import './style.scss';
 
 
-export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPadding, forUpdating, useEventTimezone}) => {
+export const EventScheduleSummary = ({schedule, noPadding, forUpdating, useEventTimezone}) => {
     if (!schedule)
         return null;
 
-    const doesRepeat = get(schedule, 'recurring_rule', null) !== null;
-    const event = {dates: schedule};
-    const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(event);
-    const eventDateText = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat,
-        false, true, isRemoteTimeZone);
+    const eventSchedule = get(schedule, 'dates', {});
+    const doesRepeat = get(eventSchedule, 'recurring_rule', null) !== null;
+    const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(eventSchedule);
+    const eventDateText = eventUtils.getDateStringForEvent(
+        schedule,
+        false,
+        true,
+        isRemoteTimeZone
+    );
     let newDateString, currentDateText, remoteDateText, currentDateLabel;
 
     if (isRemoteTimeZone) {
         const remoteSchedule = {
+            ...schedule,
             dates: {
-                ...schedule,
-                start: timeUtils.getDateInRemoteTimeZone(schedule.start, schedule.tz),
-                end: timeUtils.getDateInRemoteTimeZone(schedule.end, schedule.tz),
+                ...eventSchedule,
+                start: timeUtils.getDateInRemoteTimeZone(eventSchedule.start, eventSchedule.tz),
+                end: timeUtils.getDateInRemoteTimeZone(eventSchedule.end, eventSchedule.tz),
             },
         };
 
-        newDateString = eventUtils.getDateStringForEvent(remoteSchedule, dateFormat, timeFormat, false, false);
+        newDateString = eventUtils.getDateStringForEvent(
+            remoteSchedule,
+            false,
+            false
+        );
     }
 
     currentDateText = eventDateText;
@@ -54,7 +64,7 @@ export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPaddin
             {doesRepeat && (
                 <Row noPadding={noPadding}>
                     <RepeatEventSummary
-                        schedule={schedule}
+                        schedule={eventSchedule}
                         asInputField
                         noMargin={noPadding}
                         forUpdating={forUpdating}
@@ -67,16 +77,12 @@ export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPaddin
 
 EventScheduleSummary.propTypes = {
     schedule: PropTypes.object,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     noPadding: PropTypes.bool,
     forUpdating: PropTypes.bool,
     useEventTimezone: PropTypes.bool,
 };
 
 EventScheduleSummary.defaultProps = {
-    dateFormat: 'DD/MM/YYYY',
-    timeFormat: 'HH:mm',
     noPadding: false,
     useEventTimezone: false,
 };

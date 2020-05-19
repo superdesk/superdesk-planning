@@ -1,3 +1,9 @@
+import moment from 'moment';
+import RRule from 'rrule';
+import {get, map, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
 import {
     PRIVILEGES,
     WORKFLOW_STATE,
@@ -6,6 +12,7 @@ import {
     GENERIC_ITEM_ACTIONS,
     ITEM_TYPE,
     TIME_COMPARISON_GRANULARITY,
+    TO_BE_CONFIRMED_FIELD,
 } from '../constants';
 import {
     getItemWorkflowState,
@@ -27,10 +34,10 @@ import {
     isItemPosted,
     timeUtils,
     getItemInArrayById,
+    getTBCDateString,
+    sortBasedOnTBC,
+    sanitizeItemFields,
 } from './index';
-import moment from 'moment';
-import RRule from 'rrule';
-import {get, map, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten} from 'lodash';
 import {EventUpdateMethods} from '../components/Events';
 
 
@@ -195,18 +202,12 @@ const canCreatePlanningFromEvent = (event, session, privileges, locks) => (
         !isItemCancelled(event) &&
         !isItemRescheduled(event) &&
         !isItemPostponed(event) &&
-        !isItemExpired(event)
+        !isItemExpired(event) &&
+        !isItemKilled(event)
 );
 
 const canCreateAndOpenPlanningFromEvent = (event, session, privileges, locks) => (
-    !isNil(event) &&
-        !isItemSpiked(event) &&
-        !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isEventLockRestricted(event, session, locks) &&
-        !isItemCancelled(event) &&
-        !isItemRescheduled(event) &&
-        !isItemPostponed(event) &&
-        !isItemExpired(event)
+    canCreatePlanningFromEvent(event, session, privileges, locks)
 );
 
 const canPostEvent = (event, session, privileges, locks) => (
@@ -323,6 +324,10 @@ const canAssignEventToCalendar = (event, session, privileges, locks) => (
         !isEventLocked(event, locks)
 );
 
+const canSaveEventAsTemplate = (event, session, privileges, locks) => (
+    !isEventLockRestricted(event, session, locks) && privileges[PRIVILEGES.EVENT_TEMPLATES]
+);
+
 const canMarkEventAsComplete = (event, session, privileges, locks) => {
     const currentDate = moment();
     const precondition = [
@@ -377,6 +382,8 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
             canAssignEventToCalendar(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.label]: () =>
             canMarkEventAsComplete(event, session, privileges, locks),
+        [EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.label]: () =>
+            canSaveEventAsTemplate(event, session, privileges, locks),
     };
 
     actions.forEach((action) => {
@@ -404,11 +411,10 @@ const isEventRecurring = (item) => (
     get(item, 'recurrence_id', null) !== null
 );
 
-const getDateStringForEvent = (
-    event, dateFormat, timeFormat, dateOnly = false,
-    useLocal = true, withTimezone = true
-) => {
+const getDateStringForEvent = (event, dateOnly = false, useLocal = true, withTimezone = true) => {
     // !! Note - expects event dates as instance of moment() !! //
+    const dateFormat = appConfig.view.dateformat;
+    const timeFormat = appConfig.view.timeformat;
     const start = get(event.dates, 'start');
     const end = get(event.dates, 'end');
     const tz = get(event.dates, 'tz');
@@ -418,18 +424,21 @@ const getDateStringForEvent = (
     if (!start || !end)
         return;
 
-    if (start.isSame(end, 'day')) {
-        if (dateOnly) {
-            dateString = start.format(dateFormat);
+    dateString = getTBCDateString(event, ' @ ', dateOnly);
+    if (!dateString) {
+        if (start.isSame(end, 'day')) {
+            if (dateOnly) {
+                dateString = start.format(dateFormat);
+            } else {
+                dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false) + ' - ' +
+                    end.format(timeFormat);
+            }
+        } else if (dateOnly) {
+            dateString = start.format(dateFormat) + ' - ' + end.format(dateFormat);
         } else {
             dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false) + ' - ' +
-                end.format(timeFormat);
+                    getDateTimeString(end, dateFormat, timeFormat, ' @ ', false);
         }
-    } else if (dateOnly) {
-        dateString = start.format(dateFormat) + ' - ' + end.format(dateFormat);
-    } else {
-        dateString = getDateTimeString(start, dateFormat, timeFormat, ' @ ', false) + ' - ' +
-                getDateTimeString(end, dateFormat, timeFormat, ' @ ', false);
     }
 
     if (withTimezone) {
@@ -580,7 +589,15 @@ const getMultiDayPlanningActions = (item, actions, createPlanning, createAndOpen
     }
 };
 
-const getEventActions = ({item, session, privileges, lockedItems, callBacks, withMultiPlanningDate, calendars}) => {
+const getEventActions = ({
+    item,
+    session,
+    privileges,
+    lockedItems,
+    callBacks,
+    withMultiPlanningDate,
+    calendars,
+}) => {
     if (!isExistingItem(item)) {
         return [];
     }
@@ -602,6 +619,10 @@ const getEventActions = ({item, session, privileges, lockedItems, callBacks, wit
         EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName,
         EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName,
     ];
+
+    if (appConfig.event_templates_enabled === true) {
+        alllowedCallBacks.push(EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.actionName);
+    }
 
     if (isExpired && !privileges[PRIVILEGES.EDIT_EXPIRED]) {
         alllowedCallBacks = [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName];
@@ -747,17 +768,12 @@ const getEventsByDate = (events, startDate, endDate) => {
         }
     });
 
-    let sortable = [];
-
-    for (let day in days) sortable.push({
-        date: day,
-        events: sortBy(days[day], [(e) => (e._sortDate)]),
-    });
-
-    return sortBy(sortable, [(e) => (e.date)]);
+    return sortBasedOnTBC(days);
 };
 
 const modifyForClient = (event) => {
+    sanitizeItemFields(event);
+
     if (get(event, 'dates.start')) {
         event.dates.start = timeUtils.getDateInRemoteTimeZone(event.dates.start, timeUtils.localTimeZone());
         event._startTime = timeUtils.getDateInRemoteTimeZone(event.dates.start, timeUtils.localTimeZone());
@@ -809,10 +825,6 @@ const modifyForServer = (event, removeNullLinks = false) => {
         event.links = event.links.filter(
             (link) => link && get(link, 'length', 0) > 0
         );
-
-        if (get(event, 'links.length', 0) < 1) {
-            event.links = null;
-        }
     }
 
     if (timeUtils.isEventInDifferentTimeZone(event)) {
@@ -1047,6 +1059,16 @@ const eventHasPostedPlannings = (event) => {
     return hasPosteditem;
 };
 
+const fillEventTime = (event) => {
+    if (!get(event, TO_BE_CONFIRMED_FIELD) && get(event, 'dates')) {
+        event._startTime = event.dates.start;
+        event._endTime = event.dates.end;
+    } else {
+        event._startTime = null;
+        event._endTime = null;
+    }
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     isEventAllDay,
@@ -1090,6 +1112,7 @@ const self = {
     eventHasPostedPlannings,
     getFlattenedEventsByDate,
     isEventCompleted,
+    fillEventTime,
 };
 
 export default self;

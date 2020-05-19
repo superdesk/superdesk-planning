@@ -1,14 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import * as selectors from '../../selectors';
-import * as actions from '../../actions';
 import Geolookup from 'react-geolookup';
 import DebounceInput from 'react-debounce-input';
 import * as Nominatim from 'nominatim-browser';
+import {get, has} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
+import * as selectors from '../../selectors';
+import * as actions from '../../actions';
 import {formatAddress, gettext, getItemInArrayById} from '../../utils';
 import {KEYCODES} from '../../constants';
-import {get, has} from 'lodash';
+
 import {AddGeoLookupResultsPopUp} from './AddGeoLookupResultsPopUp';
 import {CreateNewGeoLookup} from './CreateNewGeoLookup';
 import {LocationItem} from './LocationItem';
@@ -79,12 +83,19 @@ export class GeoLookupInputComponent extends React.Component {
     }
 
     saveNewLocation(value) {
-        this.props.onChange(this.props.field, value);
-        this.setState({
-            unsavedInput: '',
-            searching: false,
-            searchLocalAlways: true,
-        });
+        this.props.saveLocation(value)
+            .then((newLocation) => {
+                this.onSuggestSelect({
+                    ...newLocation,
+                    existingLocation: true,
+                });
+
+                this.setState({
+                    unsavedInput: '',
+                    searching: false,
+                    searchLocalAlways: true,
+                });
+            });
     }
 
     removeLocation() {
@@ -111,7 +122,7 @@ export class GeoLookupInputComponent extends React.Component {
     }
 
     handleInputChange(event) {
-        if (this.props.allowFreeTextLocation && event.keyCode === KEYCODES.ENTER &&
+        if (appConfig.planning_allow_freetext_location && event.keyCode === KEYCODES.ENTER &&
             get(this.state.unsavedInput, 'length', 0) > 1) {
             this.props.onChange(this.props.field, {name: this.state.unsavedInput});
             this.closeSuggestsPopUp();
@@ -184,8 +195,35 @@ export class GeoLookupInputComponent extends React.Component {
     *    @param  {Object} suggest The suggest
     */
     onSuggestSelect(suggest) {
-        this.props.onChange(this.props.field, this.onGeocodeSuggest(suggest));
-        this.resetSearchResults();
+        const location = this.onGeocodeSuggest(suggest);
+        let promise = get(location, 'existingLocation') ? Promise.resolve(location) :
+            this.props.saveLocation(location);
+
+        promise.then((newLocation) => {
+            let value = {
+                name: newLocation.name,
+                qcode: newLocation.guid,
+                address: newLocation.address,
+                details: newLocation.details,
+            };
+
+            // external address might not be there.
+            if (get(value, 'address.external')) {
+                delete value.address.external;
+            }
+
+            if (newLocation.position) {
+                value = {
+                    ...value,
+                    location: {
+                        lat: get(newLocation, 'position.latitude'),
+                        lon: get(newLocation, 'position.longitude'),
+                    },
+                };
+            }
+
+            this.props.onChange(this.props.field, value);
+        }).finally(() => this.resetSearchResults());
     }
 
     onSuggestsLookup(userInput) {
@@ -217,6 +255,7 @@ export class GeoLookupInputComponent extends React.Component {
                 name: get(suggest, nameField, shortName),
                 boundingbox: get(suggest, 'boundingbox'),
                 type: get(suggest, 'type'),
+                language: this.language,
             };
         }
     }
@@ -233,7 +272,6 @@ export class GeoLookupInputComponent extends React.Component {
     render() {
         const {
             initialValue,
-            streetMapUrl,
             onFocus,
             field,
             disableSearch,
@@ -246,7 +284,6 @@ export class GeoLookupInputComponent extends React.Component {
             <div className="addgeolookup" ref={(node) => this.dom.parent = node}>
                 {get(initialValue, 'name') && <LocationItem
                     location={initialValue}
-                    streetMapUrl={streetMapUrl}
                     onRemoveLocation={this.removeLocation}
                     readOnly={readOnly} />}
                 <DebounceInput
@@ -292,7 +329,7 @@ export class GeoLookupInputComponent extends React.Component {
                         regions={this.props.regions}
                         countries={this.props.countries}
                         defaultCountry={this.props.preferredCountry}
-                        initialAddressIsName={this.props.allowFreeTextLocation}
+                        initialAddressIsName={appConfig.planning_allow_freetext_location}
                         onPopupOpen={onPopupOpen}
                         onPopupClose={onPopupClose}
                     />
@@ -322,7 +359,6 @@ GeoLookupInputComponent.propTypes = {
     searchLocalLocations: PropTypes.func,
     onFocus: PropTypes.func,
     disableSearch: PropTypes.bool,
-    streetMapUrl: PropTypes.string,
     users: PropTypes.array,
     currentUserId: PropTypes.string,
     popupContainer: PropTypes.func,
@@ -331,21 +367,20 @@ GeoLookupInputComponent.propTypes = {
     preferredCountry: PropTypes.object,
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
-    allowFreeTextLocation: PropTypes.bool,
+    saveLocation: PropTypes.func,
 };
 
 const mapStateToProps = (state, ownProps) => ({
-    streetMapUrl: selectors.config.getStreetMapUrl(state),
     currentUserId: selectors.general.currentUserId(state),
     users: selectors.general.users(state),
     regions: selectors.general.regions(state),
     countries: selectors.general.countries(state),
     preferredCountry: selectors.general.preferredCountry(state),
-    allowFreeTextLocation: selectors.config.allowFreeTextLocation(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
     searchLocalLocations: (text) => dispatch(actions.locations.getLocation(text)),
+    saveLocation: (newLocation) => dispatch(actions.locations.saveLocation(newLocation)),
 });
 
 export const AddGeoLookupInput = connect(

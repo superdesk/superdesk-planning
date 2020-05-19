@@ -6,6 +6,8 @@ import classNames from 'classnames';
 import {arrayMove} from 'react-sortable-hoc';
 import {get, difference, xor, isEqual, some} from 'lodash';
 
+import {appConfig} from 'appConfig';
+
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 import {MODALS, TIME_COMPARISON_GRANULARITY, KEYCODES} from '../../../constants';
@@ -311,7 +313,10 @@ export class FeaturedPlanningModalComponent extends React.Component {
     }
 
     isReadOnly() {
-        return this.props.currentSearchDate.isBefore(moment().tz(this.props.defaultTimeZone), 'day');
+        return this.props.currentSearchDate.isBefore(
+            moment().tz(appConfig.defaultTimezone),
+            'day'
+        );
     }
 
     onCloseModal() {
@@ -343,12 +348,9 @@ export class FeaturedPlanningModalComponent extends React.Component {
             inUse,
             currentSearchDate,
             lockedItems,
-            dateFormat,
-            timeFormat,
             loading,
             desks,
             users,
-            defaultTimeZone,
             featuredPlanningItems,
             featuredPlanningItem,
             contentTypes,
@@ -380,8 +382,6 @@ export class FeaturedPlanningModalComponent extends React.Component {
             lockedItems: lockedItems,
             currentSearchDate: currentSearchDate,
             readOnly: readOnly,
-            dateFormat: dateFormat,
-            timeFormat: timeFormat,
             selectedPlanningIds: this.state.selectedPlanningIds,
             loadingIndicator: loading,
             desks: desks,
@@ -401,7 +401,10 @@ export class FeaturedPlanningModalComponent extends React.Component {
                     {<a className="close" onClick={this.onCloseModal}>
                         <i className="icon-close-small" />
                     </a>}
-                    <h3>{gettext('Featured Stories based on timezone: {{tz}}', {tz: gettext(defaultTimeZone)})}</h3>
+                    <h3>{gettext(
+                        'Featured Stories based on timezone: {{tz}}',
+                        {tz: gettext(appConfig.defaultTimezone)}
+                    )}</h3>
                 </Modal.Header>
                 <Modal.Body noPadding fullHeight noScroll>
                     <SubNav className="grid">
@@ -415,10 +418,10 @@ export class FeaturedPlanningModalComponent extends React.Component {
                             <JumpToDropdown
                                 currentStartFilter={currentSearchDate}
                                 setStartFilter={this.onDateChange}
-                                defaultTimeZone={defaultTimeZone}
+                                defaultTimeZone={appConfig.defaultTimezone}
                                 dateFormat="dddd LL"
-                                noBorderNoPadding />
-
+                                noBorderNoPadding
+                            />
                         </div>
                         {this.props.loading && <div className="loading-indicator">{gettext('Loading')}</div>}
                         {itemUpdatedAfterPosting &&
@@ -496,8 +499,6 @@ FeaturedPlanningModalComponent.propTypes = {
     getFeaturedPlanningsForDate: PropTypes.func,
     currentSearchDate: PropTypes.object,
     lockedItems: PropTypes.object,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     loadingIndicator: PropTypes.bool,
     desks: PropTypes.array,
     users: PropTypes.array,
@@ -513,7 +514,6 @@ FeaturedPlanningModalComponent.propTypes = {
     unsetFeaturePlanningInUse: PropTypes.func,
     saveDirtyData: PropTypes.func,
     openCancelModal: PropTypes.func,
-    defaultTimeZone: PropTypes.string,
     notifyValidationErrors: PropTypes.func,
     contentTypes: PropTypes.array,
     removeList: PropTypes.array,
@@ -531,12 +531,9 @@ const mapStateToProps = (state) => ({
     featuredPlanningItems: selectors.featuredPlanning.orderedFeaturedPlanningList(state),
     featuredPlanIdsInList: selectors.featuredPlanning.featuredPlanIdsInList(state),
     lockedItems: selectors.locks.getLockedItems(state),
-    dateFormat: selectors.config.getDateFormat(state),
-    timeFormat: selectors.config.getTimeFormat(state),
     loadingIndicator: selectors.main.loadingIndicator(state),
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
-    defaultTimeZone: selectors.config.defaultTimeZone(state),
     contentTypes: selectors.general.contentTypes(state),
     removeList: selectors.featuredPlanning.featuredPlaningToRemove(state),
 });

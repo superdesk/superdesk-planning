@@ -1,18 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import {get, isEqual, cloneDeep} from 'lodash';
+
+import {appConfig} from 'appConfig';
 
 import * as actions from '../../../actions';
-import '../style.scss';
-import {get, isEqual, cloneDeep} from 'lodash';
 import {EventScheduleSummary, EventScheduleInput} from '../../Events';
 import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY} from '../../../constants';
-import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
 import {Row} from '../../UI/Preview';
 import {Field} from '../../UI/Form';
 import {validateItem} from '../../../validators';
 import {updateFormValues, eventUtils, timeUtils, gettext} from '../../../utils';
+
+import '../style.scss';
 
 export class ConvertToRecurringEventComponent extends React.Component {
     constructor(props) {
@@ -38,8 +40,8 @@ export class ConvertToRecurringEventComponent extends React.Component {
             diff.dates.end = timeUtils.getDateInRemoteTimeZone(diff.dates.end, diff.dates.tz);
         }
 
-        diff._startTime = diff.dates.start;
-        diff._endTime = diff.dates.end;
+        eventUtils.fillEventTime(diff);
+
         diff.dates.recurring_rule = {
             frequency: 'DAILY',
             interval: 1,
@@ -51,6 +53,11 @@ export class ConvertToRecurringEventComponent extends React.Component {
 
     onChange(field, val) {
         const diff = cloneDeep(get(this.state, 'diff') || {});
+
+        if (typeof diff.dates === 'object' && !diff.dates.tz) {
+            // if no timezone use default one
+            diff.dates.tz = appConfig.defaultTimezone;
+        }
 
         if (field === 'dates.recurring_rule' && !val) {
             delete diff.dates.recurring_rule;
@@ -74,12 +81,14 @@ export class ConvertToRecurringEventComponent extends React.Component {
     validateAndSetState(diff) {
         let errors = cloneDeep(this.state.errors);
         let errorsMessages = [];
+        const fieldsToValidate = Object.keys(diff);
 
         this.props.onValidate(
             diff,
             this.props.formProfiles,
             errors,
-            errorsMessages
+            errorsMessages,
+            fieldsToValidate // Validate only those fields which can change while convertToRecurring operation.
         );
 
         this.setState({
@@ -105,8 +114,8 @@ export class ConvertToRecurringEventComponent extends React.Component {
     }
 
     render() {
-        const {original, dateFormat, timeFormat} = this.props;
-        const timeZone = get(original, 'dates.tz');
+        const {original} = this.props;
+        const timeZone = get(original, 'dates.tz') || appConfig.defaultTimezone;
 
         return (
             <div className="MetadataView">
@@ -127,8 +136,6 @@ export class ConvertToRecurringEventComponent extends React.Component {
 
                 <EventScheduleSummary
                     schedule={this.currentDate}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     noPadding={true}
                     forUpdating={true}
                     useEventTimezone={true}
@@ -146,8 +153,6 @@ export class ConvertToRecurringEventComponent extends React.Component {
                     item={this.state.diff}
                     diff={this.state.diff}
                     onChange={this.onChange}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     showRepeatToggle={false}
                     showErrors={true}
                     errors={this.state.errors}
@@ -165,8 +170,6 @@ ConvertToRecurringEventComponent.propTypes = {
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
     disableSaveInModal: PropTypes.func,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
 
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
@@ -177,8 +180,6 @@ ConvertToRecurringEventComponent.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-    timeFormat: getTimeFormat(state),
-    dateFormat: getDateFormat(state),
     formProfiles: selectors.forms.profiles(state),
 });
 
@@ -206,13 +207,14 @@ const mapDispatchToProps = (dispatch) => ({
         }
     },
 
-    onValidate: (item, profile, errors, errorsMessages) => dispatch(validateItem({
+    onValidate: (item, profile, errors, errorsMessages, fieldsToValidate) => dispatch(validateItem({
         profileName: ITEM_TYPE.EVENT,
         diff: item,
         formProfiles: profile,
         errors: errors,
         messages: errorsMessages,
         fields: ['dates'],
+        fieldsToValidate: fieldsToValidate,
     })),
 });
 

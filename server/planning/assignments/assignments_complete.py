@@ -17,11 +17,14 @@ from eve.utils import config
 from copy import deepcopy
 from .assignments import AssignmentsResource, assignments_schema, AssignmentsService
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, remove_lock_information, get_coverage_type_name,\
-    get_next_assignment_status
+    get_next_assignment_status, get_coverage_for_assignment
 from planning.planning_notifications import PlanningNotifications
 
 
 assignments_complete_schema = deepcopy(assignments_schema)
+
+# allow an external application to pass a user
+assignments_complete_schema['proxy_user'] = {'type': 'objectid', 'nullable': True}
 
 
 class AssignmentsCompleteResource(AssignmentsResource):
@@ -44,15 +47,41 @@ class AssignmentsCompleteService(BaseService):
         assignments_service.validate_assignment_action(original)
         text_assignment = assignments_service.is_text_assignment(original)
 
-        if text_assignment and assignment_state != ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
-            raise SuperdeskApiError.forbiddenError('Cannot complete. Assignment not in progress.')
-        elif not text_assignment and \
-                assignment_state not in [ASSIGNMENT_WORKFLOW_STATE.ASSIGNED, ASSIGNMENT_WORKFLOW_STATE.SUBMITTED]:
+        if text_assignment:
+            if original.get('scheduled_update_id'):
+                coverage = get_coverage_for_assignment(original)
+                cov_assigned_to = coverage.get('assigned_to')
+                if cov_assigned_to['state'] != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+                    raise SuperdeskApiError.forbiddenError('Cannot complete a scheduled update unless parent coverage '
+                                                           'is completed.')
+                for s in coverage.get('scheduled_updates'):
+                    if s.get('scheduled_update_id') == original.get('scheduled_update_id'):
+                        break
+
+                    if (s.get('assigned_to') or {}).get('state') != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+                        raise SuperdeskApiError.forbiddenError('Cannot complete a scheduled update unless all '
+                                                               'previous scheduled updates are completed.')
+                if assignment_state not in [ASSIGNMENT_WORKFLOW_STATE.ASSIGNED, ASSIGNMENT_WORKFLOW_STATE.SUBMITTED,
+                                            ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS]:
+                    raise SuperdeskApiError.forbiddenError('Update Assignment not in correct state.')
+            elif not original.get('scheduled_update_id') and assignment_state != ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
+                raise SuperdeskApiError.forbiddenError('Assignment not in progress.')
+        elif assignment_state not in [ASSIGNMENT_WORKFLOW_STATE.ASSIGNED, ASSIGNMENT_WORKFLOW_STATE.SUBMITTED,
+                                      ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS]:
             raise SuperdeskApiError.forbiddenError(
-                'Cannot confirm availability. Assignment should be assigned or submitted.')
+                'Cannot confirm availability. Assignment should be assigned, submitted or in progress.')
 
     def update(self, id, updates, original):
-        user = get_user(required=True).get(config.ID_FIELD, '')
+        # if the completion is being done by an external application then ensure that it is not locked
+        if 'proxy_user' in updates:
+            if original.get('lock_user'):
+                raise SuperdeskApiError.forbiddenError(
+                    'Assignment is locked')
+            user = updates.pop('proxy_user', None)
+            proxy_user = True
+        else:
+            user = get_user(required=True).get(config.ID_FIELD, '')
+            proxy_user = False
         session = get_auth().get(config.ID_FIELD, '')
 
         original_assigned_to = deepcopy(original).get('assigned_to')
@@ -80,6 +109,8 @@ class AssignmentsCompleteService(BaseService):
         if text_assignment:
             get_resource_service('assignments_history').on_item_complete(updates, original)
         else:
+            if proxy_user:
+                updates['proxy_user'] = user
             get_resource_service('assignments_history').on_item_confirm_availability(updates, original)
 
         push_notification(

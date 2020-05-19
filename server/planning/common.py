@@ -80,6 +80,8 @@ ITEM_ACTIONS = namedtuple('ITEM_ACTIONS',
 spiked_state = ['both', 'draft', 'spiked']
 SPIKED_STATE = namedtuple('SPIKED_STATE', ['BOTH', 'NOT_SPIKED', 'SPIKED'])(*spiked_state)
 TEMP_ID_PREFIX = 'tempId-'
+TO_BE_CONFIRMED_FIELD = '_time_to_be_confirmed'
+TO_BE_CONFIRMED_FIELD_SCHEMA = {'type': 'boolean'}
 
 
 def set_item_expiry(doc):
@@ -102,10 +104,52 @@ def planning_auto_assign_to_workflow(current_app=None):
     return app.config.get('PLANNING_AUTO_ASSIGN_TO_WORKFLOW', False)
 
 
+def event_templates_enabled(current_app=None):
+    if current_app is not None:
+        return current_app.config.get('PLANNING_EVENT_TEMPLATES_ENABLED', False)
+    return app.config.get('PLANNING_EVENT_TEMPLATES_ENABLED', False)
+
+
 def get_long_event_duration_threshold(current_app=None):
     if current_app is not None:
         return current_app.config.get('LONG_EVENT_DURATION_THRESHOLD', -1)
     return app.config.get('LONG_EVENT_DURATION_THRESHOLD', -1)
+
+
+def get_planning_allow_scheduled_updates(current_app=None):
+    if current_app is not None:
+        return current_app.config.get('PLANNING_ALLOW_SCHEDULED_UPDATES', True)
+    return app.config.get('PLANNING_ALLOW_SCHEDULED_UPDATES', True)
+
+
+def get_planning_use_xmp_for_pic_assignments(current_app=None):
+    if current_app is not None:
+        return current_app.config.get('PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS', False)
+    return app.config.get('PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS', False)
+
+
+def get_planning_xmp_assignment_mapping(current_app=None):
+    if current_app is not None:
+        return current_app.config.get('PLANNING_XMP_ASSIGNMENT_MAPPING', '')
+    return app.config.get('PLANNING_XMP_ASSIGNMENT_MAPPING', '')
+
+
+def get_planning_use_xmp_for_pic_slugline(current_app=None):
+    if current_app is not None:
+        return current_app.config.get('PLANNING_USE_XMP_FOR_PIC_SLUGLINE', False)
+    return app.config.get('PLANNING_USE_XMP_FOR_PIC_SLUGLINE', False)
+
+
+def get_planning_xmp_slugline_mapping(current_app=None):
+    if current_app is not None:
+        return current_app.config.get('PLANNING_XMP_SLUGLINE_MAPPING', '')
+    return app.config.get('PLANNING_XMP_SLUGLINE_MAPPING', '')
+
+
+def get_assignment_acceptance_email_address(current_app=None):
+    if current_app is not None:
+        return current_app.config.get('PLANNING_ACCEPT_ASSIGNMENT_EMAIL', '')
+    return app.config.get('PLANNING_ACCEPT_ASSIGNMENT_EMAIL', '')
 
 
 def remove_lock_information(item):
@@ -144,7 +188,7 @@ def is_locked_in_this_session(item, user_id=None, session_id=None):
     return str(item.get(LOCK_USER)) == user_id and str(item.get(LOCK_SESSION)) == session_id
 
 
-def format_address(location=None):
+def format_address(location=None, seperator=' '):
     """Location is enhanced with the formatted address
 
     :param dict location:
@@ -162,7 +206,17 @@ def format_address(location=None):
     formatted_address.append(address.get('postal_code'))
     formatted_address.append(address.get('country'))
 
-    location['formatted_address'] = " ".join([a for a in formatted_address if a]).strip()
+    location['formatted_address'] = seperator.join([a for a in formatted_address if a]).strip()
+
+
+def get_formatted_address(location, seperator=' '):
+    """Return the formatted address for the loaction
+
+    :param location:
+    :return:
+    """
+    format_address(location, seperator=seperator)
+    return location.get('name', '') + seperator + location.get('formatted_address', '')
 
 
 def get_street_map_url(current_app=None):
@@ -344,6 +398,36 @@ def set_actioned_date_to_event(updates, original):
             updates['actioned_date'] = original['dates']['start']
 
 
+def get_archive_items_for_assignment(assignment_id, descending_rewrite_seq=True):
+    if not assignment_id:
+        return []
+
+    req = ParsedRequest()
+    req.args = MultiDict()
+    must_not = [{'term': {'state': 'spiked'}}]
+    must = [{'term': {'assignment_id': str(assignment_id)}},
+            {'term': {'type': 'text'}}]
+
+    query = {
+        'query': {
+            'filtered': {
+                'filter': {
+                    'bool': {
+                        'must': must,
+                        'must_not': must_not
+                    }
+                }
+            }
+        }
+    }
+    query['sort'] = [{'rewrite_sequence': 'desc' if descending_rewrite_seq else 'asc'}]
+    query['size'] = 200
+
+    req.args['source'] = json.dumps(query)
+    req.args['repo'] = 'archive,published,archived'
+    return list(get_resource_service('search').get(req, None))
+
+
 def get_related_items(item, assignment=None):
     # If linking updates is not configured, return just this item
     if not planning_link_updates_to_coverage():
@@ -370,6 +454,8 @@ def get_related_items(item, assignment=None):
             }
         }
     }
+    query['sort'] = [{'rewrite_sequence': 'asc'}]
+    query['size'] = 200
 
     req.args['source'] = json.dumps(query)
     req.args['repo'] = 'archive,published,archived'
@@ -388,7 +474,7 @@ def get_related_items(item, assignment=None):
         return list(archive_list.values())
 
 
-def update_assignment_on_link_unlink(assignment_id, item, published_updated):
+def update_assignment_on_link_unlink(assignment_id, item, published_updated=[]):
     published_states = [CONTENT_STATE.SCHEDULED,
                         CONTENT_STATE.PUBLISHED,
                         CONTENT_STATE.KILLED,
@@ -410,8 +496,8 @@ def update_assignment_on_link_unlink(assignment_id, item, published_updated):
         get_resource_service('archive').system_update(item[config.ID_FIELD], {'assignment_id': assignment_id}, item)
 
 
-def planning_link_updates_to_coverage():
-    return app.config.get('PLANNING_LINK_UPDATES_TO_COVERAGES', False)
+def planning_link_updates_to_coverage(current_app=None):
+    return (current_app if current_app else app).config.get('PLANNING_LINK_UPDATES_TO_COVERAGES', False)
 
 
 def is_valid_event_planning_reason(updates, original):
@@ -479,11 +565,56 @@ def get_first_paragraph_text(input_string):
         logger.warning(e)
     else:
         # all non-empty paragraphs: ignores <p><br></p> sections
-        for p in elem.iterfind('.//p'):
-            if p.text:
-                return p.text
+        return get_text_from_elem(elem) or get_text_from_elem(elem, tag=None)
+
+
+def get_text_from_elem(elem, tag='.//p'):
+    if not tag:
+        for t in elem.itertext():
+            return t  # Return first text item
+
+    for p in elem.iterfind(tag):
+        if p.text:
+            return p.text
 
 
 def get_delivery_publish_time(updates, original={}):
     schdl_stngs = (updates.get('schedule_settings') or original.get('schedule_settings', {}))
     return schdl_stngs.get('utc_publish_schedule') or updates.get('firstpublished') or original.get('firstpublished')
+
+
+def get_coverage_for_assignment(assignment):
+    planning_item = get_resource_service('planning').find_one(req=None, _id=assignment.get('planning_item'))
+    return next((c for c in (planning_item or {}).get('coverages', [])
+                 if c['coverage_id'] == assignment['coverage_item']), None)
+
+
+def strip_text_fields(item, fields=['name', 'slugline']):
+    if not item:
+        return
+
+    for f in fields:
+        if item.get(f):
+            item[f] = item[f].strip()
+
+
+def sanitize_array_fields(item, fields=['calendars', 'place', 'contacts', 'anpa_category', 'subject',
+                                        'files', 'links', 'agenda', 'coverages']):
+    for field in fields:
+        if field in item:
+            if not isinstance(item[field], list):
+                item[field] = []
+            else:
+                item[field] = [v for v in item[field] if v is not None]
+
+
+def sanitize_input_data(item):
+    if not item:
+        return
+
+    strip_text_fields(item)
+    sanitize_array_fields(item)
+
+    if item.get('type') == 'planning':
+        for c in item.get('coverages') or []:
+            sanitize_array_fields(c.get('planning') or {}, ['keyword', 'genre'])

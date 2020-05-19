@@ -10,9 +10,16 @@
 
 """Superdesk Planning - Planning Autosaves"""
 
+import logging
+
 from superdesk import Resource
-from .planning import planning_schema
 from superdesk.metadata.utils import item_url
+
+from planning.autosave import AutosaveService
+from planning.common import WORKFLOW_STATE
+from .planning import planning_schema
+
+logger = logging.getLogger(__name__)
 
 
 class PlanningAutosaveResource(Resource):
@@ -38,3 +45,42 @@ class PlanningAutosaveResource(Resource):
         'planning_autosave_user': ([('lock_user', 1)], {'background': True}),
         'planning_autosave_session': ([('lock_session', 1)], {'background': True})
     }
+
+    merge_nested_documents = True
+
+
+class PlanningAutosaveService(AutosaveService):
+    def on_assignment_removed(self, planning_id, coverage_id):
+        item = self.find_one(req=None, _id=planning_id)
+
+        if not item:
+            # Item is not currently being edited (No current autosave item)
+            return
+
+        coverages = item.get('coverages') or []
+        coverage = next(
+            (c for c in coverages if c.get('coverage_id') == coverage_id),
+            None
+        )
+
+        if not coverage:
+            logger.warn('Coverage {} not found in autosave for item {}'.format(
+                coverage_id,
+                planning_id
+            ))
+            return
+
+        # Remove assignment info from the coverage
+        coverage.pop('assigned_to', None)
+        coverage['workflow_status'] = WORKFLOW_STATE.DRAFT
+
+        # Remove assignment info from any child scheduled_updates
+        for coverage_update in coverage.get('scheduled_updates') or []:
+            coverage_update.pop('assigned_to', None)
+            coverage_update['workflow_status'] = WORKFLOW_STATE.DRAFT
+
+        self.system_update(
+            planning_id,
+            {'coverages': coverages},
+            item
+        )

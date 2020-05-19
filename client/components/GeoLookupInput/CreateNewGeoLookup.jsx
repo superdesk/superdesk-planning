@@ -4,7 +4,7 @@ import {omit, get, isObject} from 'lodash';
 import {formatAddress} from '../../utils';
 import {gettext} from '../../utils/gettext';
 import {ButtonList} from '../UI';
-import {Field, TextInput, SelectInput, SelectInputWithFreeText} from '../UI/Form';
+import {Field, TextInput, SelectInput, SelectInputWithFreeText, TextAreaInput} from '../UI/Form';
 import './style.scss';
 
 import {Popup, Content, Footer, Header} from '../UI/Popup';
@@ -19,6 +19,7 @@ export class CreateNewGeoLookup extends React.Component {
             state: '',
             country: (this.props.defaultCountry || ''),
             city: '',
+            details: '',
         };
         this.dom = {name: null};
 
@@ -35,7 +36,7 @@ export class CreateNewGeoLookup extends React.Component {
 
     onChange(field, value) {
         const values = {
-            ...omit(this.state, ['formInvalid', field, 'city', 'state']),
+            ...omit(this.state, ['formInvalid', field, 'city', 'state', 'details']),
             [field]: value,
         };
 
@@ -57,6 +58,7 @@ export class CreateNewGeoLookup extends React.Component {
 
         this.props.onSave({
             name: this.state.name,
+            details: [get(this, 'state.details')],
             address: omit(locationAddress.address, 'external'),
 
         });
@@ -146,6 +148,17 @@ export class CreateNewGeoLookup extends React.Component {
                         required
                         noMargin
                         clearable
+                    />
+                    <Field
+                        component={TextAreaInput}
+                        field="details"
+                        label={gettext('Notes')}
+                        onChange={this.onChange}
+                        value={get(this, 'state.details')}
+                        noMargin
+                        autoHeight={false}
+                        rows={3}
+                        labelIcon="icon-info-sign icon--blue sd-padding-r--3"
                     />
                 </Content>
                 <Footer>

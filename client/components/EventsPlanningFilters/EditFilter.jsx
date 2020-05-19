@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {pick, isEqual, cloneDeep, set, get} from 'lodash';
-import {SlideInPanel, Form} from '../UI';
+import {SlideInPanel, Form, ToggleBox} from '../UI';
 import {gettext, eventPlanningUtils} from '../../utils';
 import {SelectMetaTermsInput} from '../UI/Form';
 
@@ -20,7 +20,7 @@ export class EditFilter extends React.Component {
         this.isPristine = this.isPristine.bind(this);
         this.getPopupContainer = this.getPopupContainer.bind(this);
         this.dom = {popupContainer: null};
-        this.editableFields = ['name', 'calendars', 'agendas'];
+        this.editableFields = ['name', 'calendars', 'agendas', 'places'];
     }
 
     componentWillMount() {
@@ -48,7 +48,7 @@ export class EditFilter extends React.Component {
 
         if (field === 'name') {
             newValue = value.replace(/^\s+/, '');
-        } else if ((field === 'calendars' || field === 'agendas') && !value) {
+        } else if ((field === 'calendars' || field === 'agendas' || field === 'places') && !value) {
             newValue = [];
         }
         set(updates, field, newValue);
@@ -75,8 +75,10 @@ export class EditFilter extends React.Component {
             errors.name = gettext('Name is required.');
         }
 
-        if (get(updates, 'calendars.length', 0) === 0 && get(updates, 'agendas.length', 0) === 0) {
-            errors.agendas = errors.calendars = gettext('Either Calendar or Agenda is required.');
+        if (get(updates, 'calendars.length', 0) === 0 && get(updates, 'agendas.length', 0) === 0 &&
+            get(updates, 'places.length', 0) === 0) {
+            errors.agendas = errors.calendars = errors.places =
+                gettext('One of Calendar, Agenda or Place is required.');
         }
         return {
             invalid: Object.keys(errors).length > 0,
@@ -101,6 +103,7 @@ export class EditFilter extends React.Component {
             onClose,
             enabledCalendars,
             enabledAgendas,
+            locators,
         } = this.props;
         const {pristine, invalid, errors, filter} = this.state;
         let tools = [<a className="btn" key="cancel" onClick={onClose}>{gettext('Cancel')}</a>];
@@ -127,33 +130,56 @@ export class EditFilter extends React.Component {
                             invalid={get(errors, 'name.length', 0) > 0 && invalid}
                         />
                     </Form.Row>
-                    <Form.Row>
-                        <SelectMetaTermsInput
-                            field="calendars"
-                            label={gettext('Calendars')}
-                            defaultValue={[]}
-                            options={enabledCalendars}
-                            onChange={this.onChange}
-                            value={filter.calendars || []}
-                            popupContainer={this.getPopupContainer}
-                            invalid={get(errors, 'calendars.length', 0) > 0 && invalid}
-                            message={get(errors, 'calendars', '')}
-                        />
-                    </Form.Row>
-                    <Form.Row>
-                        <SelectMetaTermsInput
-                            field="agendas"
-                            label={gettext('Agendas')}
-                            defaultValue={[]}
-                            valueKey="_id"
-                            options={enabledAgendas}
-                            onChange={this.onChange}
-                            value={filter.agendas || []}
-                            popupContainer={this.getPopupContainer}
-                            invalid={get(errors, 'agendas.length', 0) > 0 && invalid}
-                            message={get(errors, 'agendas', '')}
-                        />
-                    </Form.Row>
+                    <ToggleBox
+                        isOpen={true}
+                        title={gettext('From Any')}
+                        noMargin={true}>
+                        <Form.Row>
+                            <SelectMetaTermsInput
+                                field="calendars"
+                                label={gettext('Calendars')}
+                                defaultValue={[]}
+                                options={enabledCalendars}
+                                onChange={this.onChange}
+                                value={filter.calendars || []}
+                                popupContainer={this.getPopupContainer}
+                                invalid={get(errors, 'calendars.length', 0) > 0 && invalid}
+                                message={get(errors, 'calendars', '')}
+                            />
+                        </Form.Row>
+                        <Form.Row>
+                            <SelectMetaTermsInput
+                                field="agendas"
+                                label={gettext('Agendas')}
+                                defaultValue={[]}
+                                valueKey="_id"
+                                options={enabledAgendas}
+                                onChange={this.onChange}
+                                value={filter.agendas || []}
+                                popupContainer={this.getPopupContainer}
+                                invalid={get(errors, 'agendas.length', 0) > 0 && invalid}
+                                message={get(errors, 'agendas', '')}
+                            />
+                        </Form.Row>
+                    </ToggleBox>
+                    <ToggleBox
+                        title={gettext('Filtered By')}
+                        isOpen={true}>
+                        <Form.Row>
+                            <SelectMetaTermsInput
+                                field="places"
+                                label={gettext('Places')}
+                                options={locators}
+                                defaultValue={[]}
+                                value={filter.places || []}
+                                onChange={this.onChange}
+                                groupField={'group'}
+                                popupContainer={this.getPopupContainer}
+                                invalid={get(errors, 'places.length', 0) > 0 && invalid}
+                                message={get(errors, 'places', '')}
+                            />
+                        </Form.Row>
+                    </ToggleBox>
                 </SlideInPanel.Content>
                 <div ref={(node) => this.dom.popupContainer = node} />
             </SlideInPanel.Panel>
@@ -167,4 +193,5 @@ EditFilter.propTypes = {
     onSave: PropTypes.func.isRequired,
     enabledCalendars: PropTypes.array.isRequired,
     enabledAgendas: PropTypes.array.isRequired,
+    locators: PropTypes.array.isRequired,
 };

@@ -3,11 +3,19 @@ import Adapter from 'enzyme-adapter-react-16';
 import sinon from 'sinon';
 import moment from 'moment';
 import {get, map, cloneDeep} from 'lodash';
+import {appConfig} from 'appConfig';
 import {ItemActionsMenu} from '../components/index';
 import * as testData from './testData';
 
 // configure enzyme
 Enzyme.configure({adapter: new Adapter()});
+
+Object.assign(appConfig, {
+    server: {url: 'http://server.com'},
+    model: {dateformat: 'DD/MM/YYYY'},
+    shortTimeFormat: 'HH:mm',
+    defaultTimezone: 'Australia/Sydney',
+});
 
 export const getTestActionStore = () => {
     let store = {
@@ -34,6 +42,9 @@ export const getTestActionStore = () => {
                     query: sinon.spy(() => (store.spies.api._query('events'))),
                     save: sinon.spy((ori, item) => (store.spies.api._save('events', ori, item))),
                     getById: sinon.spy((id) => store.spies.api._getById('events', id)),
+                },
+                recent_events_template: {
+                    query: sinon.spy(() => (store.spies.api._query('recent_events_template'))),
                 },
                 events_history: {
                     query: sinon.spy(

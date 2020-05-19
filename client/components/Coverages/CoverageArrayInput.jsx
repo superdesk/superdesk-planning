@@ -25,9 +25,10 @@ export class CoverageArrayInput extends React.Component {
         }
 
         if (get(nextProps, 'value.length', 0) > get(this.props, 'value.length', 0) &&
-            (!nextProps.readOnly || nextProps.addNewsItemToPlanning)) {
+            (!nextProps.readOnly || nextProps.addNewsItemToPlanning) &&
+            (nextProps.value.length - get(this.props, 'value.length', 0) === 1)) {
             const coverageId = nextProps.value[nextProps.value.length - 1].coverage_id;
-            // A coverage was just added, mark it to be opened in the editor
+            // A single coverage was just added, mark it to be opened in the editor
 
             if (!nextProps.useLocalNavigation && !isEmpty(nextProps.navigation)) {
                 nextProps.navigation.onItemOpen(coverageId);
@@ -71,9 +72,7 @@ export class CoverageArrayInput extends React.Component {
             diff,
             navigation,
             useLocalNavigation,
-            autoAssignToWorkflow,
             event,
-            longEventDurationThreshold,
             ...props
         } = this.props;
 
@@ -81,6 +80,15 @@ export class CoverageArrayInput extends React.Component {
             onItemOpen: this.onCoverageOpen,
             onItemClose: this.onCoverageClose,
         };
+
+        const createCoverage = planningUtils.defaultCoverageValues.bind(
+            null,
+            newsCoverageStatus,
+            diff,
+            event
+        );
+
+        const {desks, users, coverageAddAdvancedMode, setCoverageAddAdvancedMode} = this.props;
 
         return (
             <div>
@@ -99,12 +107,18 @@ export class CoverageArrayInput extends React.Component {
                             onPopupOpen,
                             onPopupClose,
                             preferredCoverageDesks,
+                            newsCoverageStatus,
+                            field,
+                            value,
+                            onChange,
+                            createCoverage,
+                            desks,
+                            users,
+                            coverageAddAdvancedMode,
+                            setCoverageAddAdvancedMode,
                         }}
                         element={CoverageEditor}
-                        defaultElement={planningUtils.defaultCoverageValues.bind(null, newsCoverageStatus,
-                            diff,
-                            event,
-                            longEventDurationThreshold)}
+                        defaultElement={createCoverage}
                         readOnly={readOnly}
                         maxCount={maxCoverageCount}
                         addOnly={addOnly}
@@ -122,7 +136,7 @@ export class CoverageArrayInput extends React.Component {
                         diff={diff}
                         navigation={coverageNavigation}
                         openCoverageIds={this.state.openCoverageIds}
-                        autoAssignToWorkflow={autoAssignToWorkflow}
+                        preferredCoverageDesks={preferredCoverageDesks}
                         {...props}
                     />
                 </ContentBlock>
@@ -158,10 +172,12 @@ CoverageArrayInput.propTypes = {
     onPopupClose: PropTypes.func,
     setCoverageDefaultDesk: PropTypes.func,
     preferredCoverageDesks: PropTypes.object,
-    autoAssignToWorkflow: PropTypes.bool,
     event: PropTypes.object,
-    longEventDurationThreshold: PropTypes.number,
     addNewsItemToPlanning: PropTypes.bool,
+    desks: PropTypes.array,
+    users: PropTypes.array,
+    coverageAddAdvancedMode: PropTypes.bool,
+    setCoverageAddAdvancedMode: PropTypes.func,
 };
 
 CoverageArrayInput.defaultProps = {

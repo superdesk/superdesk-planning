@@ -4,12 +4,13 @@ import {connect} from 'react-redux';
 import {get, isEqual, cloneDeep, omit, isEmpty} from 'lodash';
 import moment from 'moment';
 
+import {appConfig} from 'appConfig';
+
 import * as actions from '../../../actions';
 import {formProfile, validateItem} from '../../../validators';
-import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
 import {gettext, eventUtils, getDateTimeString, updateFormValues, timeUtils} from '../../../utils';
-import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY} from '../../../constants';
+import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY, TO_BE_CONFIRMED_FIELD} from '../../../constants';
 
 import {EventScheduleSummary, EventScheduleInput} from '../../Events';
 import {RelatedPlannings} from '../../';
@@ -58,6 +59,7 @@ export class RescheduleEventComponent extends React.Component {
                 dates: dates,
                 _startTime: cloneDeep(dates.start),
                 _endTime: cloneDeep(dates.end),
+                [TO_BE_CONFIRMED_FIELD]: this.props.original[TO_BE_CONFIRMED_FIELD],
             },
             reasonInvalid: reasonInvalid,
         });
@@ -107,6 +109,11 @@ export class RescheduleEventComponent extends React.Component {
         const original = this.props.original;
         let datesInvalid = false;
 
+        if (typeof diff.dates === 'object' && !diff.dates.tz) {
+            // if no timezone use default one
+            diff.dates.tz = appConfig.defaultTimezone;
+        }
+
         if (field === 'dates.recurring_rule' && !val) {
             delete diff.dates.recurring_rule;
         } else {
@@ -115,18 +122,21 @@ export class RescheduleEventComponent extends React.Component {
 
         const errors = cloneDeep(this.state.errors);
         let errorMessages = [];
+        const fieldsToValidate = Object.keys(diff);
 
         this.props.onValidate(
             omit(diff, 'dates.recurring_rule'), // Omit recurring rules as we reschedule only single instance
             this.props.formProfiles,
             errors,
-            errorMessages
+            errorMessages,
+            fieldsToValidate // Validate only those fields which can change while rescheduling.
         );
 
         const multiDayChanged = eventUtils.isEventSameDay(original.dates.start, original.dates.end) &&
             !eventUtils.isEventSameDay(diff.dates.start, diff.dates.end);
 
-        if (eventUtils.eventsDatesSame(diff, original, TIME_COMPARISON_GRANULARITY.MINUTE) ||
+        if ((!diff[TO_BE_CONFIRMED_FIELD] &&
+            eventUtils.eventsDatesSame(diff, original, TIME_COMPARISON_GRANULARITY.MINUTE)) ||
             (diff.dates.recurring_rule &&
             !diff.dates.recurring_rule.until && !diff.dates.recurring_rule.count) ||
             !isEqual(errorMessages, [])
@@ -163,13 +173,15 @@ export class RescheduleEventComponent extends React.Component {
     }
 
     render() {
-        const {original, dateFormat, timeFormat, formProfiles, submitting} = this.props;
+        const {original, formProfiles, submitting} = this.props;
         let reasonLabel = gettext('Reason for rescheduling this event:');
         const numPlannings = get(original, '_plannings.length');
         const afterUntil = moment.isMoment(get(original, 'dates.recurring_rule.until')) &&
             moment.isMoment(get(this.state, 'diff.dates.start')) &&
             this.state.diff.dates.start.isAfter(original.dates.recurring_rule.until);
-        const timeZone = get(original, 'dates.tz');
+        const timeZone = get(original, 'dates.tz') || appConfig.defaultTimezone;
+        const dateFormat = appConfig.view.dateformat;
+        const timeFormat = appConfig.view.timeformat;
 
         return (
             <div className="MetadataView">
@@ -190,8 +202,6 @@ export class RescheduleEventComponent extends React.Component {
 
                 <EventScheduleSummary
                     schedule={this.props.original.dates}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     noPadding={true}
                     forUpdating={true}
                     useEventTimezone={true}
@@ -262,8 +272,6 @@ export class RescheduleEventComponent extends React.Component {
                     item={this.state.diff}
                     diff={this.state.diff}
                     onChange={this.onDatesChange}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     showRepeat={false}
                     showRepeatToggle={false}
                     showErrors={true}
@@ -271,6 +279,8 @@ export class RescheduleEventComponent extends React.Component {
                     formProfile={formProfiles.events}
                     popupContainer={this.getPopupContainer}
                     showFirstEventLabel={false}
+                    showToBeConfirmed
+                    toBeConfirmed={get(this.state.diff, TO_BE_CONFIRMED_FIELD)}
                 />
 
                 <Row>
@@ -297,8 +307,6 @@ RescheduleEventComponent.propTypes = {
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
     disableSaveInModal: PropTypes.func,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
 
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
@@ -314,8 +322,6 @@ RescheduleEventComponent.propTypes = {
 
 
 const mapStateToProps = (state) => ({
-    timeFormat: getTimeFormat(state),
-    dateFormat: getDateFormat(state),
     formProfiles: selectors.forms.profiles(state),
     rescheduleProfile: selectors.forms.eventRescheduleProfile(state),
 });
@@ -358,13 +364,14 @@ const mapDispatchToProps = (dispatch) => ({
         return promise;
     },
 
-    onValidate: (item, profile, errors, errorMessages) => dispatch(validateItem({
+    onValidate: (item, profile, errors, errorMessages, fieldsToValidate) => dispatch(validateItem({
         profileName: ITEM_TYPE.EVENT,
         diff: item,
         formProfiles: profile,
         errors: errors,
         messages: errorMessages,
         fields: ['dates'],
+        fieldsToValidate: fieldsToValidate,
     })),
 });
 

@@ -1,7 +1,10 @@
 import {get, cloneDeep, pickBy, has, every} from 'lodash';
+import moment from 'moment';
+
+import {appConfig} from 'appConfig';
+
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
-import moment from 'moment';
 import {
     getErrorMessage,
     getTimeZoneOffset,
@@ -21,6 +24,7 @@ import {
     MAIN,
     WORKFLOW_STATE,
     WORKSPACE,
+    TO_BE_CONFIRMED_FIELD,
 } from '../../constants';
 import main from '../main';
 
@@ -94,6 +98,7 @@ const getCriteria = ({
     startOfWeek = 0,
     featured,
     timezoneOffset = null,
+    includeScheduledUpdates = false,
 }) => {
     let query = {};
     let mustNot = [];
@@ -207,10 +212,31 @@ const getCriteria = ({
                     }
                 }
 
-                filter.nested = {
+                const planningSchedule = {
                     path: '_planning_schedule',
                     filter: {range: range},
                 };
+
+                if (includeScheduledUpdates) {
+                    let updatesRange = cloneDeep(range);
+
+                    updatesRange['_updates_schedule.scheduled'] = range[fieldName];
+                    delete updatesRange[fieldName];
+
+                    filter.or = [
+                        {and: [{nested: planningSchedule}]},
+                        {
+                            and: [{nested:
+                                {
+                                    path: '_updates_schedule',
+                                    filter: {range: updatesRange},
+                                },
+                            }],
+                        },
+                    ];
+                } else {
+                    filter.nested = planningSchedule;
+                }
             },
         },
         {
@@ -350,24 +376,24 @@ const query = (
         featured,
     },
     storeTotal = true,
-    timeZoneOffset = null
+    timeZoneOffset = null,
+    includeScheduledUpdates = false
 
 ) => (
     (dispatch, getState, {api}) => {
-        const startOfWeek = selectors.config.getStartOfWeek(getState());
         let tzOffset = timeZoneOffset || getTimeZoneOffset();
-        // eslint-disable-next-line object-shorthand
         let criteria = self.getCriteria({
-            spikeState,
-            agendas,
-            noAgendaAssigned,
-            advancedSearch,
-            fulltext,
-            adHocPlanning,
-            excludeRescheduledAndCancelled,
-            startOfWeek,
-            featured,
+            spikeState: spikeState,
+            agendas: agendas,
+            noAgendaAssigned: noAgendaAssigned,
+            advancedSearch: advancedSearch,
+            fulltext: fulltext,
+            adHocPlanning: adHocPlanning,
+            excludeRescheduledAndCancelled: excludeRescheduledAndCancelled,
+            startOfWeek: appConfig.start_of_week,
+            featured: featured,
             timezoneOffset: tzOffset,
+            includeScheduledUpdates: includeScheduledUpdates,
         });
 
         const sortField = '_planning_schedule.scheduled';
@@ -746,7 +772,7 @@ const save = (original, planUpdates) => (
             // remove all properties starting with _ or lock_,
             let updates = pickBy(
                 cloneDeep(planUpdates),
-                (v, k) => (!k.startsWith('_') && !k.startsWith('lock_'))
+                (v, k) => ((k === TO_BE_CONFIRMED_FIELD || !k.startsWith('_')) && !k.startsWith('lock_'))
             );
 
             // remove nested original creator
@@ -776,16 +802,20 @@ const save = (original, planUpdates) => (
                 delete modifiedUpdates.state;
             }
 
+            const addToPlanning = {
+                add_to_planning: selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING,
+            };
+
             return api('planning').save(
                 {},
                 {
                     ...modifiedUpdates,
                     coverages: [],
-                },
-                {add_to_planning: selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING}
+                }, addToPlanning
+
             )
                 .then(
-                    (originalItem) => api('planning').save(originalItem, updates),
+                    (originalItem) => api('planning').save(originalItem, updates, addToPlanning),
                     (error) => Promise.reject(error)
                 );
         });
@@ -842,13 +872,18 @@ const unpost = (original, updates) => (
 
 /**
  * Action for updating the list of planning items in the redux store
+ * Also loads all the associated contacts (if any)
  * @param  {array, object} plannings - An array of planning item objects
- * @return action object
  */
-const receivePlannings = (plannings) => ({
-    type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
-    payload: plannings,
-});
+const receivePlannings = (plannings) => (
+    (dispatch) => {
+        dispatch(actions.contacts.fetchContactsFromPlanning(plannings));
+        dispatch({
+            type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
+            payload: plannings,
+        });
+    }
+);
 
 /**
  * Action dispatcher that attempts to unlock a Planning item through the API
@@ -925,20 +960,27 @@ const fetchFeaturedPlanningItemById = (id) => (
 );
 
 const fetchPlanningFiles = (planning) => (
-    (dispatch, getState, {api}) => {
+    (dispatch, getState) => {
         if (!planningUtils.shouldFetchFilesForPlanning(planning)) {
             return Promise.resolve();
         }
 
+        const filesToFetch = planningUtils.getPlanningFiles(planning);
         const filesInStore = selectors.general.files(getState());
 
-        if (every(planning.files, (f) => f in filesInStore)) {
+        if (every(filesToFetch, (f) => f in filesInStore)) {
             return Promise.resolve();
         }
 
-        return api('planning_files').query(
+        return dispatch(getFiles(filesToFetch));
+    }
+);
+
+const getFiles = (files) => (
+    (dispatch, getState, {api}) => (
+        api('planning_files').query(
             {
-                where: {$and: [{_id: {$in: planning.files}}]},
+                where: {$and: [{_id: {$in: files}}]},
             }
         )
             .then((data) => {
@@ -949,8 +991,8 @@ const fetchPlanningFiles = (planning) => (
                     });
                 }
                 return Promise.resolve();
-            });
-    }
+            })
+    )
 );
 
 
@@ -1033,7 +1075,7 @@ const uploadFiles = (planning) => (
         return Promise.all(filesToUpload.map((file) => (
             upload.start({
                 method: 'POST',
-                url: getState().config.server.url + '/planning_files/',
+                url: appConfig.server.url + '/planning_files/',
                 headers: {'Content-Type': 'multipart/form-data'},
                 data: {media: [file]},
                 arrayKey: '',
@@ -1107,6 +1149,7 @@ const self = {
     fetchPlanningFiles,
     uploadFiles,
     removeFile,
+    getFiles,
 };
 
 export default self;

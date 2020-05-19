@@ -10,7 +10,7 @@ from superdesk import Resource, Service, get_resource_service
 from superdesk.errors import SuperdeskApiError
 from eve.utils import config
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_coverage_type_name, get_related_items, \
-    update_assignment_on_link_unlink
+    update_assignment_on_link_unlink, get_coverage_for_assignment
 from apps.content import push_content_notification
 from planning.item_lock import LOCK_USER, LOCK_SESSION
 from apps.archive.common import get_user, get_auth
@@ -30,7 +30,6 @@ class AssignmentsUnlinkService(Service):
         archived = get_resource_service('archived')
         assignments_service = get_resource_service('assignments')
         updated_items = []
-        actioned_item = {}
         published_updated_items = []
 
         for doc in docs:
@@ -45,64 +44,72 @@ class AssignmentsUnlinkService(Service):
                 actioned_item = archived.find_one(req=None, _id=actioned_item_id)
                 actioned_item_id = actioned_item.get('item_id')
 
-            updates = {'assigned_to': deepcopy(assignment.get('assigned_to'))}
-
-            related_items = get_related_items(actioned_item, assignment)
+            coverage = get_coverage_for_assignment(assignment)
+            related_items = get_related_items(actioned_item, assignment if coverage and
+                                              len(coverage.get('scheduled_updates')) <= 0 else None)
             for item in related_items:
                 # For all items, update news item for unlinking
+                assignment_id = item.get('assignment_id')
                 update_assignment_on_link_unlink(None, item, published_updated_items)
                 ids.append(item[config.ID_FIELD])
                 updated_items.append(item)
-
-            # Update assignment if no other archive item is linked to it
-            doc.update(actioned_item)
-            archive_items = assignments_service.get_archive_items_for_assignment(assignment)
-            other_linked_items = [a for a in archive_items if
-                                  str(a.get(config.ID_FIELD)) != str(actioned_item[config.ID_FIELD])]
-            if len(other_linked_items) <= 0:
-                updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
-                assignments_service.patch(assignment.get(config.ID_FIELD), updates)
+                push_notification(
+                    'content:unlink',
+                    item=str(item[config.ID_FIELD]),
+                    assignment=str(assignment_id)
+                )
 
             # Delete delivery records associated with all the items unlinked
             item_ids = [i.get(config.ID_FIELD) if not i.get('_type') == 'archived' else i.get('item_id') for i in
                         related_items]
             get_resource_service('delivery').delete_action(lookup={'item_id': {'$in': item_ids}})
 
+            # Update assignment if no other archive item is linked to it
+            doc.update(actioned_item)
+
+            assignments = self.get_all_assignments_for_coverage(assignment.get('coverage_item'))
+            for a in assignments:
+                # Update all assignments in the coverage including scheduled_updates
+                updates = {'assigned_to': deepcopy(a.get('assigned_to'))}
+                archive_items = assignments_service.get_archive_items_for_assignment(a)
+                other_linked_items = [a for a in archive_items if
+                                      str(a.get(config.ID_FIELD)) != str(actioned_item[config.ID_FIELD])]
+                if len(other_linked_items) <= 0:
+                    updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+                    assignments_service.patch(a.get(config.ID_FIELD), updates)
+                    assignment_history_service = get_resource_service('assignments_history')
+                    if spike:
+                        get_resource_service('assignments_history') \
+                            .on_item_content_unlink(updates, a, ASSIGNMENT_HISTORY_ACTIONS.SPIKE_UNLINK)
+                    else:
+                        assignment_history_service.on_item_content_unlink(updates, a)
+
+                    if not cancel:
+                        user = get_user()
+                        PlanningNotifications().notify_assignment(target_desk=actioned_item.get('task').get('desk'),
+                                                                  message='assignment_spiked_unlinked_msg',
+                                                                  actioning_user=user.get('display_name',
+                                                                                          user.get('username',
+                                                                                                   'Unknown')),
+                                                                  action='unlinked' if not spike else 'spiked',
+                                                                  coverage_type=get_coverage_type_name(
+                                                                      actioned_item.get('type', '')),
+                                                                  slugline=actioned_item.get('slugline'),
+                                                                  omit_user=True,
+                                                                  assignment_id=a[config.ID_FIELD],
+                                                                  is_link=True,
+                                                                  no_email=True)
+
+            push_content_notification(updated_items)
+            # Update assignment history with all items affected
+            updates['item_ids'] = ids
             # publishing planning item
             assignments_service.publish_planning(assignment['planning_item'])
 
-            if not cancel:
-                user = get_user()
-                PlanningNotifications().notify_assignment(target_desk=actioned_item.get('task').get('desk'),
-                                                          message='assignment_spiked_unlinked_msg',
-                                                          actioning_user=user.get('display_name',
-                                                                                  user.get('username', 'Unknown')),
-                                                          action='unlinked' if not spike else 'spiked',
-                                                          coverage_type=get_coverage_type_name(
-                                                              actioned_item.get('type', '')),
-                                                          slugline=actioned_item.get('slugline'),
-                                                          omit_user=True,
-                                                          assignment_id=assignment[config.ID_FIELD],
-                                                          is_link=True,
-                                                          no_email=True)
-
-            push_content_notification(updated_items)
-            push_notification(
-                'content:unlink',
-                item=str(actioned_item_id),
-                assignment=str(assignment[config.ID_FIELD])
-            )
-
-            # Update assignment history with all items affected
-            updates['item_ids'] = ids
-            assignment_history_service = get_resource_service('assignments_history')
-            if spike:
-                get_resource_service('assignments_history')\
-                    .on_item_content_unlink(updates, assignment, ASSIGNMENT_HISTORY_ACTIONS.SPIKE_UNLINK)
-            else:
-                assignment_history_service.on_item_content_unlink(updates, assignment)
-
         return ids
+
+    def get_all_assignments_for_coverage(self, coverage_id):
+        return get_resource_service('assignments').find(where={'coverage_item': coverage_id})
 
     def _validate(self, doc):
         assignments_service = get_resource_service('assignments')
@@ -169,7 +176,8 @@ class AssignmentsUnlinkService(Service):
             )
 
         deliveries = get_resource_service('delivery').get(req=None, lookup={
-            'assignment_id': assignment.get(config.ID_FIELD)})
+            'assignment_id': assignment.get(config.ID_FIELD)
+        })
         # Match the passed item_id in doc or if the item is archived the archived item_id
         delivery = [d for d in deliveries if d.get('item_id') == item.get('item_id', doc.get('item_id'))]
         if len(delivery) <= 0:
@@ -193,7 +201,7 @@ class AssignmentsUnlinkResource(Resource):
     url = 'assignments/unlink'
     schema = {
         'assignment_id': {
-            'type': 'string',
+            'type': 'objectid',
             'required': True
         },
         'item_id': {

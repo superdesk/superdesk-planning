@@ -2,6 +2,7 @@ import {showModal} from '../index';
 import planningApi from './api';
 import {locks} from '../index';
 import main from '../main';
+import eventsUi from '../events/ui';
 import {ITEM_TYPE} from '../../constants';
 
 import {
@@ -15,9 +16,9 @@ import {
 } from '../../utils';
 
 import * as selectors from '../../selectors';
-import {PLANNING, WORKSPACE, MODALS, MAIN, COVERAGES, ASSIGNMENTS} from '../../constants';
+import {PLANNING, WORKSPACE, MODALS, MAIN, COVERAGES} from '../../constants';
 import * as actions from '../index';
-import {get, set, orderBy, cloneDeep} from 'lodash';
+import {get, orderBy, cloneDeep} from 'lodash';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -207,10 +208,10 @@ const duplicate = (plan) => (
 
                 if (get(plan, 'event_item')) {
                     dispatch(main.unlockAndCancel(plan)).then(() => {
-                        dispatch(main.openForEdit(newPlan, true, openInModal));
+                        dispatch(main.openForEdit(newPlan, !openInModal, openInModal));
                     });
                 } else {
-                    dispatch(main.openForEdit(newPlan, true, openInModal));
+                    dispatch(main.openForEdit(newPlan, !openInModal, openInModal));
                 }
 
                 return Promise.resolve(newPlan);
@@ -229,7 +230,9 @@ const cancelPlanning = (original, updates) => (
         dispatch(planningApi.cancel(original, updates))
             .then((plan) => {
                 notify.success(gettext('Planning Item has been cancelled'));
-                return Promise.resolve(plan);
+                dispatch(main.closePreviewAndEditorForItems([plan], null, '_id', true));
+
+                return plan;
             }, (error) => {
                 notify.error(
                     getErrorMessage(error, gettext('Failed to cancel the Planning Item!'))
@@ -397,6 +400,16 @@ const save = (original, updates) => (
         if (selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING) {
             return dispatch(self.saveFromAuthoring(original, updates));
         } else {
+            if (get(updates, '_post') && get(original, 'recurrence_id')) {
+                return dispatch(eventsUi.openEventPostModal(
+                    original,
+                    updates,
+                    true,
+                    null,
+                    {},
+                    original,
+                    planningApi.save.bind(null, original, updates)));
+            }
             return dispatch(planningApi.save(original, updates));
         }
     }
@@ -504,18 +517,30 @@ const saveFromAuthoring = (original, updates) => (
  */
 const addCoverageToWorkflow = (original, updatedCoverage, index) => (
     (dispatch, getState, {notify}) => {
-        const updates = {coverages: cloneDeep(original.coverages)};
-        const coverage = cloneDeep(updatedCoverage);
-        const newsCoverageStatus = selectors.general.newsCoverageStatus(getState());
+        let updates = {coverages: cloneDeep(original.coverages)};
 
-        set(coverage, 'news_coverage_status', newsCoverageStatus.find((s) => s.qcode === 'ncostat:int'));
-        set(coverage, 'workflow_status', COVERAGES.WORKFLOW_STATE.ACTIVE);
-        set(coverage, 'assigned_to.state', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED);
-        updates.coverages[index] = coverage;
+        updates.coverages[index] = planningUtils.getActiveCoverage(updatedCoverage,
+            selectors.general.newsCoverageStatus(getState()));
 
         return dispatch(planningApi.save(original, updates))
             .then((savedItem) => {
                 notify.success(gettext('Coverage added to workflow.'));
+                return dispatch(self.updateItemOnSave(savedItem));
+            });
+    }
+);
+
+const addScheduledUpdateToWorkflow = (original, coverage, coverageIndex, scheduledUpdate, index) => (
+    (dispatch, getState, {notify}) => {
+        let updates = {coverages: cloneDeep(original.coverages)};
+        let coverage = updates.coverages[coverageIndex];
+
+        coverage.scheduled_updates[index] = planningUtils.getActiveCoverage(scheduledUpdate,
+            selectors.general.newsCoverageStatus(getState()));
+
+        return dispatch(planningApi.save(original, updates))
+            .then((savedItem) => {
+                notify.success(gettext('Scheduled update added to workflow.'));
                 return dispatch(self.updateItemOnSave(savedItem));
             });
     }
@@ -558,7 +583,8 @@ const addNewCoverageToPlanning = (coverageType, item) => (
     })))
 );
 
-const openCancelCoverageModal = (planning, coverage, index, onSubmit, onCancel) => (
+const openCancelCoverageModal = (planning, coverage, index, onSubmit, onCancel,
+    scheduledUpdate, scheduledUpdateIndex) => (
     (dispatch, getState) =>
         dispatch(showModal({
             modalType: MODALS.ITEM_ACTIONS_MODAL,
@@ -569,16 +595,21 @@ const openCancelCoverageModal = (planning, coverage, index, onSubmit, onCancel) 
                 index: index,
                 onSubmit: onSubmit,
                 onCancel: onCancel,
+                scheduledUpdate: scheduledUpdate,
+                scheduledUpdateIndex: scheduledUpdateIndex,
             },
         }))
 );
 
-const cancelCoverage = (original, updatedCoverage, index) => (
+const cancelCoverage = (original, updatedCoverage, index, scheduledUpdate, scheduledUpdateIndex) => (
     (dispatch, getState, {notify}) => {
-        const updates = {coverages: cloneDeep(original.coverages)};
-        const coverage = cloneDeep(updatedCoverage);
+        let updates = {coverages: cloneDeep(original.coverages)};
 
-        updates.coverages[index] = coverage;
+        if (!scheduledUpdate) {
+            updates.coverages[index] = cloneDeep(updatedCoverage);
+        } else {
+            updates.coverages[index].scheduled_updates[scheduledUpdateIndex] = cloneDeep(scheduledUpdate);
+        }
 
         return dispatch(planningApi.save(original, updates))
             .then((savedItem) => {
@@ -621,6 +652,7 @@ const self = {
     addNewCoverageToPlanning,
     openCancelCoverageModal,
     cancelCoverage,
+    addScheduledUpdateToWorkflow,
 };
 
 export default self;

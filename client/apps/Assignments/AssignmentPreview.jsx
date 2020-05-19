@@ -101,7 +101,7 @@ export class AssignmentPreviewComponent extends React.Component {
         const RenderTab = currentTab.render;
 
         return (
-            <SidePanel shadowRight={true}>
+            <SidePanel shadowRight={true} bg00={true}>
                 <Header>
                     <Tools tools={this.tools} />
 

@@ -25,13 +25,15 @@ from apps.publish.enqueue import ITEM_PUBLISH
 from eve.utils import config, ParsedRequest
 from superdesk.utc import utcnow
 from planning.planning import coverage_schema
+from planning.planning.planning import planning_schema
 from superdesk import get_resource_service
 from apps.common.components.utils import get_component
 from planning.item_lock import LockService, LOCK_USER, LOCK_ACTION
 from superdesk.users.services import current_user_has_privilege
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information, \
-    is_locked_in_this_session, get_coverage_type_name, get_version_item_for_post, \
-    enqueue_planning_item, WORKFLOW_STATE, get_next_assignment_status, get_delivery_publish_time
+    is_locked_in_this_session, get_coverage_type_name, get_version_item_for_post, get_related_items, \
+    enqueue_planning_item, WORKFLOW_STATE, get_next_assignment_status, get_delivery_publish_time, \
+    TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA, update_assignment_on_link_unlink
 from flask import request, json, current_app as app
 from planning.planning_notifications import PlanningNotifications
 from apps.content import push_content_notification
@@ -124,6 +126,7 @@ class AssignmentsService(superdesk.Service):
             self.notify('assignments:created', doc, {})
 
             if assignment_state != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+                get_resource_service('planning').set_xmp_file_info(doc)
                 self.send_assignment_notification(doc, {})
 
     def set_assignment(self, updates, original=None):
@@ -140,8 +143,8 @@ class AssignmentsService(superdesk.Service):
             else:
                 updates['assigned_to'] = {}
 
-        assigned_to = updates.get('assigned_to')
-        if assigned_to.get('user') and not assigned_to.get('desk'):
+        assigned_to = updates.get('assigned_to') or {}
+        if (assigned_to.get('user') or assigned_to.get('contact')) and not assigned_to.get('desk'):
             raise SuperdeskApiError.badRequestError(message="Assignment should have a desk.")
 
         # set the assignment information
@@ -205,20 +208,23 @@ class AssignmentsService(superdesk.Service):
 
         doc = deepcopy(original)
         doc.update(updates)
+        assigned_to = doc.get('assigned_to') or {}
         kwargs = {
             'item': doc.get(config.ID_FIELD),
             'coverage': doc.get('coverage_item'),
             'planning': doc.get('planning_item'),
-            'assigned_user': (doc.get('assigned_to') or {}).get('user'),
-            'assigned_date_user': (doc.get('assigned_to') or {}).get('assigned_date_user'),
+            'assigned_user': assigned_to.get('user'),
+            'assigned_date_user': assigned_to.get('assigned_date_user'),
 
-            'assigned_desk': (doc.get('assigned_to') or {}).get('desk'),
-            'assigned_date_desk': (doc.get('assigned_to') or {}).get('assigned_date_desk'),
+            'assigned_desk': assigned_to.get('desk'),
+            'assigned_date_desk': assigned_to.get('assigned_date_desk'),
+
+            'assigned_contact': assigned_to.get('contact'),
 
             'user': doc.get('version_creator', doc.get('original_creator')),
             'original_assigned_desk': (original.get('assigned_to') or {}).get('desk'),
             'original_assigned_user': (original.get('assigned_to') or {}).get('user'),
-            'assignment_state': doc.get('assigned_to')['state'],
+            'assignment_state': assigned_to['state'],
             'lock_user': lock_user,
             'session': get_auth().get('_id')
         }
@@ -252,7 +258,8 @@ class AssignmentsService(superdesk.Service):
         updates_assigned_to = updates.get('assigned_to') or {}
         original_assigned_to = original.get('assigned_to') or {}
         return updates_assigned_to.get('desk') != original_assigned_to.get('desk') or \
-            updates_assigned_to.get('user') != original_assigned_to.get('user')
+            updates_assigned_to.get('user') != original_assigned_to.get('user') or \
+            updates_assigned_to.get('contact') != original_assigned_to.get('contact')
 
     def send_assignment_notification(self, updates, original=None, force=False):
         """Set the assignment information and send notification
@@ -285,11 +292,28 @@ class AssignmentsService(superdesk.Service):
         desk_name = assigned_to_desk.get('name') if assigned_to_desk else 'Unknown'
 
         # Determine the display name of the assignee
-        assigned_to_user = get_resource_service('users').find_one(req=None, _id=assigned_to.get('user'))
-        if assigned_to_user and assigned_to_user.get('slack_username'):
-            assignee = '@' + assigned_to_user.get('slack_username')
-        else:
-            assignee = assigned_to_user.get('display_name') if assigned_to_user else 'Unknown'
+        assignee = None
+        if assigned_to.get('contact'):
+            assigned_to_contact = get_resource_service('contacts').find_one(
+                req=None,
+                _id=assigned_to.get('contact')
+            )
+            if assigned_to_contact and len(assigned_to_contact.get('contact_email') or []):
+                assignee = '{} {} ({})'.format(
+                    assigned_to_contact.get('first_name') or '',
+                    assigned_to_contact.get('last_name') or '',
+                    assigned_to_contact['contact_email'][0]
+                )
+
+        if assignee is None and assigned_to.get('user'):
+            assigned_to_user = get_resource_service('users').find_one(
+                req=None,
+                _id=assigned_to.get('user')
+            )
+            if assigned_to_user and assigned_to_user.get('slack_username'):
+                assignee = '@' + assigned_to_user.get('slack_username')
+            else:
+                assignee = assigned_to_user.get('display_name') if assigned_to_user else 'Unknown'
 
         coverage_type = updates.get('planning', original.get('planning', {})).get('g2_content_type', '')
         slugline = updates.get('planning', original.get('planning', {})).get('slugline', 'with no slugline')
@@ -312,15 +336,16 @@ class AssignmentsService(superdesk.Service):
         else:
             event_item = None
 
-        # The assignment is to a user
-        if assigned_to.get('user'):
+        # The assignment is to an external contact or a user
+        if assigned_to.get('contact') or assigned_to.get('user'):
             # If it is a reassignment
+            meta_msg = 'assignment_details_internal_email' if assigned_to.get('user') else 'assignment_details_email'
             if original.get('assigned_to'):
                 # it is being reassigned by the original assignee, notify the new assignee
                 if original.get('assigned_to', {}).get('user', '') == str(user.get(config.ID_FIELD, None)):
                     PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
                                                               message='assignment_reassigned_1_msg',
-                                                              meta_message='assignment_details_email',
+                                                              meta_message=meta_msg,
                                                               coverage_type=get_coverage_type_name(coverage_type),
                                                               slugline=slugline,
                                                               desk=desk_name,
@@ -328,12 +353,13 @@ class AssignmentsService(superdesk.Service):
                                                               assignment_id=assignment_id,
                                                               assignment=assignment,
                                                               event=event_item,
-                                                              is_link=True)
+                                                              is_link=True,
+                                                              contact_id=assigned_to.get('contact'))
                     # notify the desk
                     if assigned_to.get('desk'):
                         PlanningNotifications().notify_assignment(target_desk=assigned_to.get('desk'),
                                                                   message='assignment_reassigned_3_msg',
-                                                                  meta_message='assignment_details_email',
+                                                                  meta_message=meta_msg,
                                                                   assignee=assignee,
                                                                   client_url=client_url,
                                                                   assignment_id=assignment_id,
@@ -360,7 +386,7 @@ class AssignmentsService(superdesk.Service):
                         PlanningNotifications().notify_assignment(target_desk=assigned_to.get('desk'),
                                                                   target_desk2=original.get('assigned_to').get('desk'),
                                                                   message='assignment_reassigned_2_msg',
-                                                                  meta_message='assignment_details_email',
+                                                                  meta_message=meta_msg,
                                                                   coverage_type=get_coverage_type_name(coverage_type),
                                                                   slugline=slugline,
                                                                   assignee=assignee,
@@ -373,7 +399,8 @@ class AssignmentsService(superdesk.Service):
                                                                   assignment=assignment,
                                                                   event=event_item,
                                                                   omit_user=True,
-                                                                  is_link=True)
+                                                                  is_link=True,
+                                                                  contact_id=assigned_to.get('contact'))
                     else:
                         # it is being reassigned by someone else so notify both the new assignee and the old
                         PlanningNotifications().notify_assignment(target_user=original.get('assigned_to').get('user'),
@@ -381,7 +408,7 @@ class AssignmentsService(superdesk.Service):
                                                                       'desk') if original.get('assigned_to').get(
                                                                       'user') is None else None,
                                                                   message='assignment_reassigned_3_msg',
-                                                                  meta_message='assignment_details_email',
+                                                                  meta_message=meta_msg,
                                                                   coverage_type=get_coverage_type_name(coverage_type),
                                                                   slugline=slugline,
                                                                   assignee=assignee,
@@ -392,7 +419,8 @@ class AssignmentsService(superdesk.Service):
                                                                   assignment=assignment,
                                                                   event=event_item,
                                                                   omit_user=True,
-                                                                  is_link=True)
+                                                                  is_link=True,
+                                                                  contact_id=original.get('assigned_to').get('contact'))
                         # notify the assignee
                         assigned_from = original.get('assigned_to')
                         assigned_from_user = get_resource_service('users').find_one(req=None,
@@ -400,7 +428,7 @@ class AssignmentsService(superdesk.Service):
                         old_assignee = assigned_from_user.get('display_name') if assigned_from_user else None
                         PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
                                                                   message='assignment_reassigned_4_msg',
-                                                                  meta_message='assignment_details_email',
+                                                                  meta_message=meta_msg,
                                                                   coverage_type=get_coverage_type_name(coverage_type),
                                                                   slugline=slugline,
                                                                   assignor=user.get('display_name', ''),
@@ -411,13 +439,15 @@ class AssignmentsService(superdesk.Service):
                                                                   desk=desk_name,
                                                                   event=event_item,
                                                                   assignment=assignment,
-                                                                  is_link=True)
+                                                                  omit_user=True,
+                                                                  is_link=True,
+                                                                  contact_id=assigned_to.get('contact'))
             else:  # A new assignment
                 # Notify the user the assignment has been made to unless assigning to your self
                 if str(user.get(config.ID_FIELD, None)) != assigned_to.get('user', ''):
                     PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
                                                               message='assignment_assigned_msg',
-                                                              meta_message='assignment_details_email',
+                                                              meta_message=meta_msg,
                                                               coverage_type=get_coverage_type_name(coverage_type),
                                                               slugline=slugline,
                                                               client_url=client_url,
@@ -429,7 +459,8 @@ class AssignmentsService(superdesk.Service):
                                                               assignment=assignment,
                                                               event=event_item,
                                                               omit_user=True,
-                                                              is_link=True)
+                                                              is_link=True,
+                                                              contact_id=assigned_to.get('contact'))
         else:  # Assigned/Reassigned to a desk, notify all desk members
             # if it was assigned to a desk before, test if there has been a change of desk
             if original.get('assigned_to') and original.get('assigned_to').get('desk') != updates.get(
@@ -452,7 +483,8 @@ class AssignmentsService(superdesk.Service):
                                                               assignment=assignment,
                                                               event=event_item,
                                                               omit_user=True,
-                                                              is_link=True)
+                                                              is_link=True,
+                                                              contact_id=assigned_to.get('contact'))
                 else:
                     PlanningNotifications().notify_assignment(target_desk=assigned_to.get('desk'),
                                                               target_desk2=original.get('assigned_to').get('desk'),
@@ -466,7 +498,8 @@ class AssignmentsService(superdesk.Service):
                                                               from_desk=desk_from_name,
                                                               assignment=assignment,
                                                               event=event_item,
-                                                              is_link=True)
+                                                              is_link=True,
+                                                              contact_id=assigned_to.get('contact'))
             else:
                 assign_type = 'reassigned' if original.get('assigned_to') else 'assigned'
                 PlanningNotifications().notify_assignment(target_desk=assigned_to.get('desk'),
@@ -482,7 +515,8 @@ class AssignmentsService(superdesk.Service):
                                                           assignment=assignment,
                                                           event=event_item,
                                                           omit_user=True,
-                                                          is_link=True)
+                                                          is_link=True,
+                                                          contact_id=assigned_to.get('contact'))
 
     def send_assignment_cancellation_notification(self, assignment, original_state, event_cancellation=False,
                                                   event_reschedule=False):
@@ -510,7 +544,8 @@ class AssignmentsService(superdesk.Service):
                                                           'user') else None,
                                                       message='assignment_event_cancelled_msg',
                                                       slugline=slugline,
-                                                      coverage_type=get_coverage_type_name(coverage_type))
+                                                      coverage_type=get_coverage_type_name(coverage_type),
+                                                      contact_id=assigned_to.get('contact'))
             return
         PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
                                                   target_desk=assigned_to.get('desk') if not assigned_to.get(
@@ -523,7 +558,41 @@ class AssignmentsService(superdesk.Service):
                                                   slugline=slugline,
                                                   desk=desk.get('name'),
                                                   coverage_type=get_coverage_type_name(coverage_type),
-                                                  assignment_id=assignment.get(config.ID_FIELD))
+                                                  assignment_id=assignment.get(config.ID_FIELD),
+                                                  contact_id=assigned_to.get('contact'))
+
+    def send_acceptance_notification(self, assignment):
+        """
+        On an external acceptance of an assignment send a notification to the assignor
+
+        :param assignment:
+        :return:
+        """
+        assigned_to = assignment.get('assigned_to')
+
+        if assigned_to.get('state') != ASSIGNMENT_WORKFLOW_STATE.ASSIGNED:
+            return
+
+        slugline = assignment.get('planning').get('slugline', '')
+        coverage_type = assignment.get('planning').get('g2_content_type', '')
+        target_user = assigned_to.get('assignor_user')
+
+        assignee_name = ''
+        user_id = assigned_to.get('user')
+        if user_id:
+            assigned_to_user = get_resource_service('users').find_one(req=None, _id=assigned_to.get('user'))
+            assignee_name = assigned_to_user.get('display_name')
+        else:
+            contact = superdesk.get_resource_service('contacts').find_one(req=None,
+                                                                          _id=ObjectId(assigned_to.get('contact')))
+            assignee_name = contact.get('first_name') + ' ' + contact.get('last_name')
+
+        PlanningNotifications().notify_assignment(target_user=target_user,
+                                                  slugline=slugline,
+                                                  coverage_type=coverage_type,
+                                                  message='assignment_accepted_msg',
+                                                  user=assignee_name,
+                                                  omit_user=True)
 
     def cancel_assignment(self, original_assignment, coverage, event_cancellation=False, event_reschedule=False):
         coverage_to_copy = deepcopy(coverage)
@@ -671,6 +740,52 @@ class AssignmentsService(superdesk.Service):
                                                                   no_email=True
                                                                   )
 
+    def on_events_updated(self, updates, original):
+        """Send assignment notifications if any relevant Event metadata has changed"""
+
+        event = deepcopy(original)
+        event.update(updates)
+        plannings = list(get_resource_service('events').get_plannings_for_event(event))
+
+        if not plannings:
+            # If this Event has no associated Planning items
+            # then there is no need to send notifications
+            return
+
+        changed_fields = []
+
+        for field in ['location', 'event_contact_info', 'files', 'links']:
+            if (updates.get(field) or []) != (original.get(field) or []):
+                changed_fields.append(field)
+
+        if not changed_fields:
+            # If no relevant Event fields have changed
+            # then there is no need to send notifications
+            return
+
+        # Add 'assigned_to' details to all the coverages
+        get_resource_service('planning').generate_related_assignments(plannings)
+
+        for planning in plannings:
+            for coverage in planning.get('coverages') or []:
+                assigned_to = coverage.get('assigned_to') or {}
+
+                slugline = (coverage.get('planning') or {}).get('slugline') or ''
+                coverage_type = (coverage.get('planning') or {}).get('g2_content_type') or ''
+
+                PlanningNotifications().notify_assignment(
+                    coverage_status=(coverage.get('assigned_to') or {}).get('state'),
+                    target_user=assigned_to.get('user'),
+                    target_desk=assigned_to.get('desk') if not assigned_to.get('user') else None,
+                    message='assignment_event_metadata_msg',
+                    slugline=slugline,
+                    coverage_type=get_coverage_type_name(coverage_type),
+                    event=event,
+                    client_url=app.config['CLIENT_URL'],
+                    no_email=True,
+                    contact_id=assigned_to.get('contact')
+                )
+
     def create_delivery_for_content_update(self, items):
         """Duplicates the coverage/assignment for the archive rewrite
 
@@ -690,12 +805,6 @@ class AssignmentsService(superdesk.Service):
             if not original_item.get('assignment_id'):
                 continue
 
-            assignment = self.find_one(req=None, _id=str(original_item['assignment_id']))
-            if not assignment:
-                raise SuperdeskApiError.badRequestError(
-                    'Assignment not found.'
-                )
-
             delivery = delivery_service.find_one(req=None, item_id=original_item[config.ID_FIELD])
             if not delivery:
                 raise SuperdeskApiError.badRequestError(
@@ -708,6 +817,7 @@ class AssignmentsService(superdesk.Service):
                     'Planning does not exist'
                 )
 
+            coverage = None
             coverages = planning.get('coverages') or []
             try:
                 coverage = next(c for c in coverages if c.get('coverage_id') == delivery.get('coverage_id'))
@@ -717,12 +827,29 @@ class AssignmentsService(superdesk.Service):
                 )
 
             # Link only if linking updates are enabled
-            if not (coverage.get('flags') or {}).get('no_content_linking'):
-                assignment_link_service.post([{
-                    'assignment_id': str(assignment[config.ID_FIELD]),
-                    'item_id': str(item[config.ID_FIELD]),
-                    'reassign': True
-                }])
+            if (coverage.get('flags') or {}).get('no_content_linking'):
+                return
+
+            # get latest assignment available to link
+            assignment_id = (coverage.get('assigned_to') or {}).get('assignment_id')
+            for s in coverage.get('scheduled_updates'):
+                if (s.get('assigned_to') or {}).get('state') in [ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
+                                                                 ASSIGNMENT_WORKFLOW_STATE.COMPLETED]:
+                    assignment_id = (s.get('assigned_to') or {}).get('assignment_id')
+
+            assignment = self.find_one(req=None, _id=str(assignment_id))
+            if not assignment:
+                raise SuperdeskApiError.badRequestError(
+                    'Assignment not found.'
+                )
+
+            assignment_link_service.post([{
+                'assignment_id': str(assignment[config.ID_FIELD]),
+                'item_id': str(item[config.ID_FIELD]),
+                'reassign': True
+            }])
+
+            doc['assignment_id'] = assignment['_id']
 
     def unlink_assignment_on_delete_archive_rewrite(self):
         # Because this is in response to a Resource level DELETE, we need to get the
@@ -812,21 +939,11 @@ class AssignmentsService(superdesk.Service):
         # Also make sure the Planning item is locked by this user and session
         planning_service = get_resource_service('planning')
         planning_item = planning_service.find_one(req=None, _id=doc.get('planning_item'))
-        planning_item_state = (planning_item or {}).get('state')
 
-        if planning_item_state != WORKFLOW_STATE.SPIKED:
-            if not self.is_associated_planning_or_event_locked(planning_item):
-                raise SuperdeskApiError.forbiddenError(
-                    message='Lock is not obtained on the associated Planning item or Event'
-                )
-
-        # Make sure the Assignment is locked by this user and session
-        assignment_locked = is_locked_in_this_session(doc)
-        if planning_item_state in [WORKFLOW_STATE.KILLED, WORKFLOW_STATE.SPIKED] and\
-                (not doc.get('lock_user') or assignment_locked):
-            assignment_locked = True
-
-        if not assignment_locked:
+        # Make sure the Assignment is locked by this user and session unless when removing
+        # assignments during spiking/unposting planning items
+        if not is_locked_in_this_session(doc) and planning_item.get('state') not in [WORKFLOW_STATE.KILLED,
+                                                                                     WORKFLOW_STATE.SPIKED]:
             raise SuperdeskApiError.forbiddenError(
                 message='Lock is not obtained on the Assignment item'
             )
@@ -846,57 +963,75 @@ class AssignmentsService(superdesk.Service):
                 message='Cannot delete a completed Assignment'
             )
 
-    def on_deleted(self, doc):
-        """Validate we can safely delete the Assignment item
-
+    def archive_delete_assignment(self, doc):
+        """
         Make sure to clean up the Archive, Delivery and Planning items by:
-            * Remove 'assignment_id' from Archive item (if linked)
-            * Delete the Delivery record associated with the Assignment & Archive items (if linked)
-            * Removing 'assigned_to' dictionary from the associated Coverage
+
+        * Remove 'assignment_id' from Archive item (if linked)
+        * Delete the Delivery record associated with the Assignment & Archive items (if linked)
+        * Removing 'assigned_to' dictionary from the associated Coverage
         """
         archive_service = get_resource_service('archive')
         delivery_service = get_resource_service('delivery')
-        planning_service = get_resource_service('planning')
         assignment_id = doc.get(config.ID_FIELD)
 
         # If we have a Content Item linked, then we need to remove the
         # assignment_id from it and remove the delivery record
         # Then send a notification that the content has been updated
+        related_items = []
         archive_item = archive_service.find_one(req=None, assignment_id=assignment_id)
         if archive_item:
-            archive_service.system_update(
-                archive_item[config.ID_FIELD],
-                {'assignment_id': None},
-                archive_item
-            )
+            related_items = get_related_items(archive_item, doc)
+            for item in related_items:
+                update_assignment_on_link_unlink(None, item)
+                push_notification(
+                    'assignments:removed',
+                    item=item[config.ID_FIELD] if item else None,
+                    session=get_auth().get('_id')
+                )
 
-            delivery_service.delete_action(lookup={
-                'assignment_id': ObjectId(assignment_id),
-                'item_id': archive_item[config.ID_FIELD]
-            })
+            if len(related_items) > 0:
+                # Push content nofitication so connected clients can update the
+                # content views (i.e. removes the Calendar icon from Monitoring)
+                push_content_notification(related_items)
 
-            # Push content nofitication so connected clients can update the
-            # content views (i.e. removes the Calendar icon from Monitoring)
-            push_content_notification([archive_item])
+            # Now delete all deliveries for that assignment
+            delivery_service.delete_action(lookup={'assignment_id': ObjectId(assignment_id)})
+
+    def on_deleted(self, doc):
+        deleted_assignments = [doc.get(config.ID_FIELD)]
+        planning_service = get_resource_service('planning')
+        self.archive_delete_assignment(doc)
+        marked_for_delete = False
+        # Delete all assignments in that coverage
+        assignments = list(get_resource_service('assignments').get_from_mongo(
+            req=None, lookup={'coverage_item': doc['coverage_item']}))
+        for a in assignments:
+            if str(a['_id']) != str(doc['_id']):
+                self.delete(lookup={'_id': a['_id']})
+                self.archive_delete_assignment(a)
+                deleted_assignments.append(a.get(config.ID_FIELD))
+                if a.get('_to_delete'):
+                    marked_for_delete = True
 
         # Remove assignment information from coverage
-        updated_planning = planning_service.remove_assignment(doc, unlock_planning=True)
+        updated_planning = planning_service.remove_assignment(doc)
 
         # Finally send a notification to connected clients that the Assignment
         # has been removed
-        if updated_planning and updated_planning.get('state') not in [WORKFLOW_STATE.KILLED, WORKFLOW_STATE.SPIKED]:
+        archive_item = get_resource_service('archive').find_one(req=None, assignment_id=doc.get(config.ID_FIELD))
+        if updated_planning:
             push_notification(
                 'assignments:removed',
                 item=archive_item[config.ID_FIELD] if archive_item else None,
-                assignment=assignment_id,
+                assignments=deleted_assignments,
                 planning=doc.get('planning_item'),
                 coverage=doc.get('coverage_item'),
                 planning_etag=updated_planning.get(config.ETAG),
                 event_item=updated_planning.get('event_item'),
                 session=get_auth().get('_id')
             )
-
-        if not doc.get('_to_delete'):
+        if not doc.get('_to_delete') or marked_for_delete:
             # publish planning
             self.publish_planning(doc.get('planning_item'))
 
@@ -909,6 +1044,10 @@ class AssignmentsService(superdesk.Service):
             updates.get('assigned_to', {}).get('state') == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
 
     def is_text_assignment(self, assignment):
+        # scheduled_update is always for text coverages
+        if assignment.get('scheduled_update_id'):
+            return True
+
         text_assignment = False
         content_types = get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
         if content_types:
@@ -968,7 +1107,7 @@ class AssignmentsService(superdesk.Service):
             except SuperdeskApiError as ex:
                 # planning item is already locked.
                 use_published_planning = True
-                logger.exception(ex.message)
+                logger.exception(str(ex))
 
             if use_published_planning:
                 # use the published planning and enqueue again
@@ -980,8 +1119,72 @@ class AssignmentsService(superdesk.Service):
         except Exception:
             logger.exception('Failed to publish assignment for planning.')
 
+    def accept_assignment(self, assignment_id, assignee):
+        """Mark an assignment as accepted
+
+        Set the accept flag in the assignment to true, assuming the assignment is assigned and the assignee is the one
+        accepting the assignment. The assignee could be either a Superdesk user or a Contact
+
+        :param assignment_id:
+        :param assignee:
+        :return:
+        """
+
+        # Fetch the assignment to ensure that it exists and is in a state that it makes sense to flag as accepted
+        original = self.find_one(req=None, _id=ObjectId(assignment_id))
+        if not original:
+            raise Exception('Accept Assignment unable to locate assignment {}'.format(assignment_id))
+
+        if (original.get('assigned_to') or {}).get('state') != ASSIGNMENT_WORKFLOW_STATE.ASSIGNED:
+            raise Exception('Assignment {} is not in assigned state'.format(assignment_id))
+
+        # try to find a user that the assignment is being accepted by
+        user_service = superdesk.get_resource_service('users')
+        user = user_service.find_one(req=None, _id=ObjectId(assignee))
+        if not user:
+            # no user try to find a contact
+            contact_service = superdesk.get_resource_service('contacts')
+            contact = contact_service.find_one(req=None, _id=ObjectId(assignee))
+            if contact:
+                # make sure it is the assigned contact accepting the assignment
+                if str(contact.get(config.ID_FIELD)) != str(original.get('assigned_to', {}).get('contact')):
+                    raise Exception('Attempt to accept assignment by contact that it is not assigned to')
+            else:
+                raise Exception(
+                    'Unknown User or Contact accepting assignment: {}, user/contact: {}'.format(
+                        assignment_id,
+                        assignee
+                    )
+                )
+        else:
+            # make sure that the assignment is still assigned to the user that is accepting the assignment
+            if str(user.get(config.ID_FIELD)) != str(original.get('assigned_to', {}).get('user')):
+                raise Exception('Attempt to accept assignment by user that it is not assigned to')
+
+        # If the assignment has already been accepted bail out!
+        if original.get('accepted', False):
+            raise Exception('The assignment {} is already accepted'.format(assignment_id))
+
+        update = {'accepted': True}
+
+        # Set flag using system update, bypass locks, etag problems
+        self.system_update(ObjectId(assignment_id), update, original)
+
+        # update the history
+        superdesk.get_resource_service('assignments_history').on_item_updated(
+            update, original, ASSIGNMENT_HISTORY_ACTIONS.ACCEPTED)
+
+        # send notification
+        self.notify('assignments:accepted', update, original)
+
+        self.send_acceptance_notification(original)
+
 
 assignments_schema = {
+    config.ID_FIELD: {
+        'type': 'objectid',
+        'nullable': False,
+    },
     # Audit Information
     'original_creator': metadata_schema['original_creator'],
     'version_creator': metadata_schema['version_creator'],
@@ -1002,6 +1205,10 @@ assignments_schema = {
         'mapping': not_analyzed
     },
     'planning_item': planning_type,
+    'scheduled_update_id': {
+        'type': 'string',
+        'mapping': not_analyzed
+    },
     'lock_user': metadata_schema['lock_user'],
     'lock_time': metadata_schema['lock_time'],
     'lock_session': metadata_schema['lock_session'],
@@ -1012,6 +1219,7 @@ assignments_schema = {
         'schema': {
             'desk': {'type': 'string', 'nullable': True, 'mapping': not_analyzed},
             'user': {'type': 'string', 'nullable': True, 'mapping': not_analyzed},
+            'contact': {'type': 'string', 'nullable': True, 'mapping': not_analyzed},
             'assignor_desk': {'type': 'string', 'mapping': not_analyzed},
             'assignor_user': {'type': 'string', 'mapping': not_analyzed},
             'assigned_date_desk': {'type': 'datetime'},
@@ -1023,12 +1231,14 @@ assignments_schema = {
                 'nullable': True,
                 'schema': {
                     'qcode': {'type': 'string'},
-                    'name': {'type': 'string'}
+                    'name': {'type': 'string'},
+                    'contact_type': {'type': 'string'}
                 },
                 'mapping': {
                     'properties': {
                         'qcode': not_analyzed,
-                        'name': not_analyzed
+                        'name': not_analyzed,
+                        'contact_type': not_analyzed
                     }
                 }
             }
@@ -1036,12 +1246,17 @@ assignments_schema = {
     },
 
     # coverage details
-    'planning': coverage_schema['planning'],
+    'planning': deepcopy(coverage_schema['planning']),
     'description_text': metadata_schema['description_text'],
+    'name': planning_schema['name'],
 
     # Field to mark assignment for deletion if a delete operation fails
-    '_to_delete': {'type': 'boolean'}
+    '_to_delete': {'type': 'boolean'},
+
+    # Flag that indicates the assignment has been accepted
+    'accepted': {'type': 'boolean', 'default': False}
 }
+assignments_schema['planning']['schema'][TO_BE_CONFIRMED_FIELD] = TO_BE_CONFIRMED_FIELD_SCHEMA
 
 
 class AssignmentsResource(superdesk.Resource):
@@ -1065,3 +1280,5 @@ class AssignmentsResource(superdesk.Resource):
     }
 
     etag_ignore_fields = ['planning', 'published_state', 'published_at']
+
+    merge_nested_documents = True

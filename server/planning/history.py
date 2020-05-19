@@ -18,7 +18,7 @@ from superdesk.metadata.item import ITEM_TYPE
 
 
 fields_to_remove = ['_id', '_etag', '_current_version', '_updated', '_created', '_links', 'version_creator', 'guid',
-                    LOCK_ACTION, LOCK_USER, LOCK_TIME, LOCK_SESSION, 'planning_ids',
+                    LOCK_ACTION, LOCK_USER, LOCK_TIME, LOCK_SESSION, 'planning_ids', '_updates_schedule',
                     '_planning_schedule', '_planning_date', '_reschedule_from_schedule', 'versioncreated']
 
 

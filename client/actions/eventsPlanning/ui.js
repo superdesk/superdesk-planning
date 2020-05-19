@@ -303,7 +303,10 @@ const selectFilter = (filterId, params = {}) => (
         };
 
         // reload the list
-        return dispatch(self.fetch(queryParams));
+        dispatch(main.setUnsetUserInitiatedSearch(true));
+        return dispatch(self.fetch(queryParams))
+            .then((data) => Promise.resolve(data))
+            .finally(() => dispatch(main.setUnsetUserInitiatedSearch(false)));
     }
 );
 
@@ -312,7 +315,6 @@ const storeFilter = (filterId) => ({
     type: EVENTS_PLANNING.ACTIONS.SELECT_EVENTS_PLANNING_FILTER,
     payload: filterId,
 });
-
 
 // eslint-disable-next-line consistent-this
 const self = {

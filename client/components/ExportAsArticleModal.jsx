@@ -1,8 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-
 import {get} from 'lodash';
-import {gettext, getItemType, eventUtils, getDateTimeString, timeUtils} from '../utils';
+
+import {appConfig} from 'appConfig';
+
+import {gettext, getItemType, eventUtils, getDateTimeString, timeUtils, planningUtils} from '../utils';
 import {ITEM_TYPE, EVENTS, PLANNING} from '../constants';
 
 import {Button} from './UI';
@@ -31,6 +33,7 @@ export class ExportAsArticleModal extends React.Component {
         this.filterArticleTemplates = this.filterArticleTemplates.bind(this);
         this.getListElement = this.getListElement.bind(this);
         this.handleKeydown = this.handleKeydown.bind(this);
+        this.onCloseItem = this.onCloseItem.bind(this);
     }
 
     componentDidMount() {
@@ -73,6 +76,10 @@ export class ExportAsArticleModal extends React.Component {
         this.setState({items: items});
     }
 
+    onCloseItem(itemId) {
+        this.setState({items: this.state.items.filter((i) => i._id !== itemId)});
+    }
+
     filterArticleTemplates(desk) {
         const newObj = {};
 
@@ -86,18 +93,13 @@ export class ExportAsArticleModal extends React.Component {
     }
 
     getListElement(item) {
-        const {
-            exportListFields,
-            dateFormat,
-            timeFormat,
-            agendas,
-        } = this.props.modalProps;
+        const {exportListFields, agendas} = this.props.modalProps;
         const itemType = getItemType(item);
         const propsToComponent = {
             fieldsProps: {
                 location: {noMargin: true},
                 description: {alternateFieldName: 'definition_short'},
-                agendas: {agendas: agendas},
+                agendas: {agendas: planningUtils.getAgendaNames(item, agendas, true)},
 
             },
         };
@@ -108,15 +110,19 @@ export class ExportAsArticleModal extends React.Component {
             secFields = EVENTS.EXPORT_LIST.SECONDARY_FIELDS;
             dateStr = eventUtils.getDateStringForEvent(
                 item,
-                dateFormat,
-                timeFormat,
                 false,
                 true,
                 timeUtils.isEventInDifferentTimeZone(item));
         } else {
             primaryFields = PLANNING.EXPORT_LIST.PRIMARY_FIELDS;
             secFields = PLANNING.EXPORT_LIST.SECONDARY_FIELDS;
-            dateStr = getDateTimeString(item.planning_date, dateFormat, timeFormat, ' @ ', false) || '';
+            dateStr = getDateTimeString(
+                item.planning_date,
+                appConfig.view.dateformat,
+                appConfig.view.timeformat,
+                ' @ ',
+                false
+            ) || '';
         }
 
         return (<Item>
@@ -126,6 +132,8 @@ export class ExportAsArticleModal extends React.Component {
                         {renderFields(get(exportListFields,
                             `${itemType}.primary_fields`, primaryFields), item, propsToComponent)}
                     </span>
+                    <button className="icon-close-small"
+                        onClick={this.onCloseItem.bind(null, item._id)} />
                 </ListRow>
                 <ListRow>
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
@@ -140,7 +148,6 @@ export class ExportAsArticleModal extends React.Component {
 
     render() {
         const {
-            items,
             desks,
             templates,
             download,
@@ -161,7 +168,7 @@ export class ExportAsArticleModal extends React.Component {
                 <Modal.Body>
                     <Row>
                         <SortItems
-                            items={items}
+                            items={this.state.items}
                             onSortChange={this.onSortChange}
                             getListElement={this.getListElement} />
                     </Row>
@@ -225,8 +232,6 @@ ExportAsArticleModal.propTypes = {
         articleTemplates: PropTypes.array,
         defaultArticleTemplate: PropTypes.object,
         exportListFields: PropTypes.object.isRequired,
-        dateFormat: PropTypes.string,
-        timeFormat: PropTypes.string,
         agendas: PropTypes.array,
     }),
 };

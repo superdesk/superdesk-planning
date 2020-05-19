@@ -163,7 +163,8 @@ DEFAULT_EDITOR = [{
         'links': {'enabled': True},
         'dates': {
             'enabled': True,
-            'default_duration_on_change': 1
+            'default_duration_on_change': 1,
+            'all_day': {'enabled': True}
         },
         'ednote': {'enabled': True}
     },
@@ -197,6 +198,7 @@ DEFAULT_EDITOR = [{
         'news_coverage_status': {'enabled': True},
         'contact_info': {'enabled': False},
         'flags': {'enabled': True},
+        'files': {'enabled': True},
     },
     'schema': dict(CoverageSchema)
 }, {
@@ -384,19 +386,35 @@ planning_types_schema = {
         'empty': False
     },
     # editor controls which fields are visible in the UI
-    'editor':
-        {'type': 'dict'},
+    'editor': {
+        'type': 'dict',
+        'schema': {},
+        'allow_unknown': True,
+        'keysrules': {'type': 'string'},
+    },
     # schema controls the validation of fields at the front end.
-    'schema':
-        {'type': 'dict'},
+    'schema': {
+        'type': 'dict',
+        'schema': {},
+        'allow_unknown': True,
+        'keysrules': {'type': 'string'},
+    },
 
     # postSchema controls the validation of fields when posting.
-    'postSchema':
-        {'type': 'dict'},
+    'postSchema': {
+        'type': 'dict',
+        'schema': {},
+        'allow_unknown': True,
+        'keysrules': {'type': 'string'},
+    },
 
     # list fields config
-    'list':
-        {'type': 'dict'},
+    'list': {
+        'type': 'dict',
+        'schema': {},
+        'allow_unknown': True,
+        'keysrules': {'type': 'string'},
+    },
 
     # list fields when seeing events/planning when exporting or downloading
     'export_list': {
@@ -471,3 +489,4 @@ class PlanningTypesResource(superdesk.Resource):
     endpoint_name = 'planning_types'
     schema = planning_types_schema
     resource_methods = ['GET']
+    merge_nested_documents = True

@@ -18,12 +18,14 @@ export const AssignmentListContainer = ({
     loadMoreAssignments,
     contentTypes,
     listGroups,
+    saveSortPreferences,
 }) => {
     const listProps = {
         loadMoreAssignments,
         setMaxHeight,
         hideItemActions,
         contentTypes,
+        saveSortPreferences,
     };
 
     return (
@@ -66,9 +68,13 @@ AssignmentListContainer.propTypes = {
     hideItemActions: PropTypes.bool,
     contentTypes: PropTypes.array,
     listGroups: PropTypes.arrayOf(PropTypes.string),
+    saveSortPreferences: PropTypes.bool,
 };
 
-AssignmentListContainer.defaultProps = {setMaxHeight: true};
+AssignmentListContainer.defaultProps = {
+    setMaxHeight: true,
+    saveSortPreferences: true,
+};
 
 const mapStateToProps = (state) => ({
     assignmentListSingleGroupView: selectors.getAssignmentListSingleGroupView(state),

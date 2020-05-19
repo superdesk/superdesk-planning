@@ -5,7 +5,7 @@ import {storedEvents} from './events';
 import {storedPlannings} from './planning';
 import {currentDeskId, currentUserId, currentWorkspace} from './general';
 import {getItemsById} from '../utils';
-import {ASSIGNMENTS} from '../constants';
+import {ASSIGNMENTS, SORT_DIRECTION} from '../constants';
 
 export const getStoredAssignments = (state) => get(state, 'assignment.assignments', {});
 export const getStoredArchiveItems = (state) => get(state, 'assignment.archive', {});
@@ -29,6 +29,7 @@ const getList = (state, list) => get(state, `assignment.lists.${list}`, {
 const getListIds = (list) => get(list, 'assignmentIds', []);
 const getListCount = (list) => get(list, 'total', 0);
 const getListLastPage = (list) => get(list, 'lastPage', 1);
+const getListSortOrder = (list) => get(list, 'sortOrder', SORT_DIRECTION.ASCENDING);
 const getListItems = (list, storedAssignments) => getItemsById(
     getListIds(list),
     storedAssignments
@@ -39,6 +40,7 @@ export const getAssignmentsTodo = (state) => getList(state, ASSIGNMENTS.LIST_GRO
 export const getAssignmentsInTodoList = createSelector([getAssignmentsTodo], getListIds);
 export const getAssignmentsToDoListCount = createSelector([getAssignmentsTodo], getListCount);
 export const getAssignmentTodoListPage = createSelector([getAssignmentsTodo], getListLastPage);
+export const getAssignmentTodoListSortOrder = createSelector([getAssignmentsTodo], getListSortOrder);
 export const getTodoAssignments = createSelector(
     [getAssignmentsTodo, getStoredAssignments],
     getListItems
@@ -49,6 +51,7 @@ export const getAssignmentsInProgress = (state) => getList(state, ASSIGNMENTS.LI
 export const getAssignmentsInInProgressList = createSelector([getAssignmentsInProgress], getListIds);
 export const getAssignmentsInProgressListCount = createSelector([getAssignmentsInProgress], getListCount);
 export const getAssignmentInProgressPage = createSelector([getAssignmentsInProgress], getListLastPage);
+export const getAssignmentInProgressListSortOrder = createSelector([getAssignmentsInProgress], getListSortOrder);
 export const getInProgressAssignments = createSelector(
     [getAssignmentsInProgress, getStoredAssignments],
     getListItems
@@ -59,6 +62,7 @@ export const getAssignmentsCompleted = (state) => getList(state, ASSIGNMENTS.LIS
 export const getAssignmentsInCompletedList = createSelector([getAssignmentsCompleted], getListIds);
 export const getAssignmentsCompletedListCount = createSelector([getAssignmentsCompleted], getListCount);
 export const getAssignmentCompletedPage = createSelector([getAssignmentsCompleted], getListLastPage);
+export const getAssignmentCompletedListSortOrder = createSelector([getAssignmentsCompleted], getListSortOrder);
 export const getCompletedAssignments = createSelector(
     [getAssignmentsCompleted, getStoredAssignments],
     getListItems
@@ -69,6 +73,7 @@ export const getAssignmentsCurrent = (state) => getList(state, ASSIGNMENTS.LIST_
 export const getAssignmentsCurrentList = createSelector([getAssignmentsCurrent], getListIds);
 export const getAssignmentsCurrentListCount = createSelector([getAssignmentsCurrent], getListCount);
 export const getAssignmentCurrentPage = createSelector([getAssignmentsCurrent], getListLastPage);
+export const getAssignmentCurrentListSortOrder = createSelector([getAssignmentsCurrent], getListSortOrder);
 export const getCurrentAssignments = createSelector(
     [getAssignmentsCurrent, getStoredAssignments],
     getListItems
@@ -79,6 +84,7 @@ export const getAssignmentsToday = (state) => getList(state, ASSIGNMENTS.LIST_GR
 export const getAssignmentsTodayList = createSelector([getAssignmentsToday], getListIds);
 export const getAssignmentsTodayListCount = createSelector([getAssignmentsToday], getListCount);
 export const getAssignmentTodayPage = createSelector([getAssignmentsToday], getListLastPage);
+export const getAssignmentTodayListSortOrder = createSelector([getAssignmentsToday], getListSortOrder);
 export const getTodayAssignments = createSelector(
     [getAssignmentsToday, getStoredAssignments],
     getListItems
@@ -89,6 +95,7 @@ export const getAssignmentsFuture = (state) => getList(state, ASSIGNMENTS.LIST_G
 export const getAssignmentsFutureList = createSelector([getAssignmentsFuture], getListIds);
 export const getAssignmentsFutureListCount = createSelector([getAssignmentsFuture], getListCount);
 export const getAssignmentFuturePage = createSelector([getAssignmentsFuture], getListLastPage);
+export const getAssignmentFutureListSortOrder = createSelector([getAssignmentsFuture], getListSortOrder);
 export const getFutureAssignments = createSelector(
     [getAssignmentsFuture, getStoredAssignments],
     getListItems
@@ -118,6 +125,7 @@ export const getOrderDirection = (state) => get(state, 'assignment.orderDirectio
 export const getAssignmentFilterByState = (state) => get(state, 'assignment.filterByState', null);
 export const getAssignmentFilterByType = (state) => get(state, 'assignment.filterByType', null);
 export const getSelectedDeskId = (state) => get(state, 'assignment.selectedDeskId', '');
+export const getIgnoreScheduledUpdates = (state) => get(state, 'assignment.ignoreScheduledUpdates', false);
 export const getAssignmentFilterByPriority = (state) =>
     get(state, 'assignment.filterByPriority', null);
 
@@ -130,6 +138,7 @@ export const getAssignmentListSettings = (state) => ({
     filterByType: getAssignmentFilterByType(state),
     filterByPriority: getAssignmentFilterByPriority(state),
     selectedDeskId: getSelectedDeskId(state),
+    ignoreScheduledUpdates: getIgnoreScheduledUpdates(state),
 });
 
 export const getAssignmentListSingleGroupView = (state) => get(state,
@@ -174,6 +183,7 @@ export const getAssignmentSearch = createSelector(
             states: null,
             type: filterByType,
             priority: filterByPriority,
+            ignoreScheduledUpdates: get(listSettings, 'ignoreScheduledUpdates', false),
         };
     }
 );
@@ -209,35 +219,41 @@ export const getAssignmentGroupSelectors = {
         countSelector: getAssignmentsToDoListCount,
         page: getAssignmentTodoListPage,
         assignmentIds: getAssignmentsInTodoList,
+        sortOrder: getAssignmentTodoListSortOrder,
     },
     [ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.id]: {
         assignmentsSelector: getInProgressAssignments,
         countSelector: getAssignmentsInProgressListCount,
         page: getAssignmentInProgressPage,
         assignmentIds: getAssignmentsInInProgressList,
+        sortOrder: getAssignmentInProgressListSortOrder,
     },
     [ASSIGNMENTS.LIST_GROUPS.COMPLETED.id]: {
         assignmentsSelector: getCompletedAssignments,
         countSelector: getAssignmentsCompletedListCount,
         page: getAssignmentCompletedPage,
         assignmentIds: getAssignmentsInCompletedList,
+        sortOrder: getAssignmentCompletedListSortOrder,
     },
     [ASSIGNMENTS.LIST_GROUPS.CURRENT.id]: {
         assignmentsSelector: getCurrentAssignments,
         countSelector: getAssignmentsCurrentListCount,
         page: getAssignmentCurrentPage,
         assignmentIds: getAssignmentsCurrentList,
+        sortOrder: getAssignmentCurrentListSortOrder,
     },
     [ASSIGNMENTS.LIST_GROUPS.TODAY.id]: {
         assignmentsSelector: getTodayAssignments,
         countSelector: getAssignmentsTodayListCount,
         page: getAssignmentTodayPage,
         assignmentIds: getAssignmentsTodayList,
+        sortOrder: getAssignmentTodayListSortOrder,
     },
     [ASSIGNMENTS.LIST_GROUPS.FUTURE.id]: {
         assignmentsSelector: getFutureAssignments,
         countSelector: getAssignmentsFutureListCount,
         page: getAssignmentFuturePage,
         assignmentIds: getAssignmentsFutureList,
+        sortOrder: getAssignmentFutureListSortOrder,
     },
 };

@@ -1,6 +1,10 @@
 import sinon from 'sinon';
 
+import {appConfig} from 'superdesk-core/scripts/appConfig';
+
+import {ALL_DESKS} from '../../constants';
 import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
+import {getTimeZoneOffset} from '../../utils';
 import * as testData from '../../utils/testData';
 
 import {AssignmentsService} from '../AssignmentsService';
@@ -17,14 +21,14 @@ describe('assignments service', () => {
         services = store.services;
         services.api.find = () => (Promise.resolve(testData.archive[0]));
 
+        appConfig.planning_fulfil_on_publish_for_desks = ['desk1'];
+
         assignmentService = new AssignmentsService(
             services.api,
             services.notify,
             services.modal,
             services.sdPlanningStore,
-            {config: {planning_fulfil_on_publish_for_desks: ['desk1']}},
-            {active: {desk: 'desk1'}},
-            testData.config
+            {active: {desk: 'desk1'}}
         );
 
         sinon.stub(actions.assignments.ui, 'preview').returns({type: 'PREVIEW'});
@@ -34,6 +38,8 @@ describe('assignments service', () => {
     });
 
     afterEach(() => {
+        appConfig.planning_fulfil_on_publish_for_desks = [];
+
         restoreSinonStub(actions.assignments.ui.preview);
         restoreSinonStub(actions.assignments.ui.setListGroups);
         restoreSinonStub(actions.assignments.ui.changeListSettings);
@@ -60,7 +66,7 @@ describe('assignments service', () => {
         });
 
         it('returns if no matching assignments found', (done) => {
-            assignmentService.deployConfig.config.planning_fulfil_on_publish_for_desks = [];
+            appConfig.planning_fulfil_on_publish_for_desks = [];
             services.api('assignments').query = sinon.spy(() => Promise.resolve({
                 _items: [],
                 _meta: {total: 0},
@@ -82,7 +88,7 @@ describe('assignments service', () => {
                                                 'planning.scheduled': {
                                                     gte: 'now/d',
                                                     lte: 'now/d',
-                                                    time_zone: '+10:00',
+                                                    time_zone: getTimeZoneOffset(),
                                                 },
                                             },
                                         },
@@ -104,7 +110,7 @@ describe('assignments service', () => {
         });
 
         it('shows FULFIL_ASSIGNMENT modal if assignment(s) found', (done) => {
-            assignmentService.deployConfig.config.planning_fulfil_on_publish_for_desks = [];
+            appConfig.planning_fulfil_on_publish_for_desks = [];
             assignmentService.desks.active.desk = 'desk2';
             store.initialState.assignment.lists.TODAY.assignmentIds = ['as1'];
             store.initialState.assignment.assignments = {as1: testData.assignments[0]};
@@ -134,10 +140,10 @@ describe('assignments service', () => {
                     filterBy: 'Desk',
                     searchQuery: 'planning.slugline.phrase:("test slugline")',
                     orderByField: 'Scheduled',
-                    orderDirection: 'Asc',
                     filterByType: 'text',
                     filterByPriority: null,
-                    selectedDeskId: 'desk2',
+                    selectedDeskId: ALL_DESKS,
+                    ignoreScheduledUpdates: true,
                 }]);
 
                 expect(actions.assignments.ui.preview.callCount).toBe(1);
@@ -181,7 +187,7 @@ describe('assignments service', () => {
 
             it('shows the modal if config is empty', (done) => {
                 assignmentService.desks.active.desk = 'desk2';
-                assignmentService.deployConfig.config.planning_fulfil_on_publish_for_desks = [];
+                appConfig.planning_fulfil_on_publish_for_desks = [];
                 store.initialState.assignment.lists.TODAY.assignmentIds = ['as1'];
                 store.initialState.assignment.assignments = {as1: testData.assignments[0]};
 
@@ -210,10 +216,10 @@ describe('assignments service', () => {
                         filterBy: 'Desk',
                         searchQuery: 'planning.slugline.phrase:("test slugline")',
                         orderByField: 'Scheduled',
-                        orderDirection: 'Asc',
                         filterByType: 'text',
                         filterByPriority: null,
-                        selectedDeskId: 'desk2',
+                        selectedDeskId: ALL_DESKS,
+                        ignoreScheduledUpdates: true,
                     }]);
 
                     expect(actions.assignments.ui.preview.callCount).toBe(1);

@@ -2,6 +2,8 @@ import sinon from 'sinon';
 import moment from 'moment';
 import {omit} from 'lodash';
 
+import {appConfig} from 'appConfig';
+
 import {getTimeZoneOffset, eventUtils, timeUtils, createTestStore} from '../../../utils';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import {WORKFLOW_STATE, SPIKED_STATE, MAIN} from '../../../constants';
@@ -41,7 +43,7 @@ describe('actions.events.api', () => {
         );
 
         sinon.stub(timeUtils, 'localTimeZone').callsFake(
-            () => store.initialState.config.defaultTimezone
+            () => appConfig.defaultTimezone
         );
     });
 
@@ -1089,78 +1091,11 @@ describe('actions.events.api', () => {
 
         afterEach(() => {
             restoreSinonStub(eventsApi.fetchById);
-            restoreSinonStub(eventsApi._saveLocation);
             restoreSinonStub(eventsApi._save);
         });
 
-        it('returns Promise.reject is _saveLocation fails', (done) => {
-            sinon.stub(eventsApi, '_saveLocation').callsFake(() => Promise.reject('Save Location Failed'));
-            sinon.stub(eventsApi, '_save').callsFake(() => Promise.resolve());
-            store.test(done, eventsApi.save(data.events[0]))
-                .then(null, (error) => {
-                    expect(error).toEqual('Save Location Failed');
-
-                    expect(eventsApi._saveLocation.callCount).toBe(1);
-                    expect(eventsApi._save.callCount).toBe(0);
-
-                    done();
-                })
-                .catch(done.fail);
-        });
-
-        it('runs _save with location information', (done) => {
-            sinon.stub(eventsApi, '_saveLocation').callsFake((item) => Promise.resolve(item));
-            sinon.stub(eventsApi, '_save').callsFake((item) => Promise.resolve(item));
-            store.test(done, eventsApi.save(data.events[0], {name: 'New Event'}))
-                .then((item) => {
-                    expect(item).toEqual(data.events[0]);
-                    expect(eventsApi._saveLocation.callCount).toBe(1);
-                    expect(eventsApi._save.callCount).toBe(1);
-                    expect(eventsApi._save.args[0]).toEqual([
-                        data.events[0],
-                        {name: 'New Event'},
-                    ]);
-
-                    done();
-                })
-                .catch(done.fail);
-        });
-
-        it('_save calls api.save', (done) => (
-            store.test(done, eventsApi._save(null, {
-                _id: data.events[0]._id,
-                name: 'New Name',
-                slugline: 'New Slugline',
-            }))
-                .then((item) => {
-                    expect(item).toEqual([data.events[0]]);
-
-                    expect(eventsApi.fetchById.callCount).toBe(1);
-                    expect(eventsApi.fetchById.args[0]).toEqual([
-                        data.events[0]._id,
-                        {saveToStore: false, loadPlanning: false},
-                    ]);
-
-                    expect(services.api('events').save.callCount).toBe(1);
-                    expect(services.api('events').save.args[0]).toEqual([
-                        {
-                            ...data.events[0],
-                            location: null,
-                        },
-                        {
-                            name: 'New Name',
-                            slugline: 'New Slugline',
-                            update_method: 'single',
-                        },
-                    ]);
-
-                    done();
-                })
-                .catch(done.fail)
-        ));
-
         it('doesnt call event.api.fetchById if it is a new Event', (done) => (
-            store.test(done, eventsApi._save(null, {name: 'New Event', slugline: 'New Slugline'}))
+            store.test(done, eventsApi.save(null, {name: 'New Event', slugline: 'New Slugline'}))
                 .then(() => {
                     expect(eventsApi.fetchById.callCount).toBe(0);
 

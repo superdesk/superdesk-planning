@@ -1,11 +1,12 @@
 import * as selectors from '../../selectors';
 import assignments from './index';
 import main from '../main';
-import {get, isEmpty, cloneDeep} from 'lodash';
+import {get, cloneDeep} from 'lodash';
 import planning from '../planning';
-import {ASSIGNMENTS, WORKSPACE, PLANNING, MODALS} from '../../constants';
+import {ASSIGNMENTS, WORKSPACE, MODALS} from '../../constants';
 import {lockUtils, assignmentUtils, gettext, isExistingItem} from '../../utils';
 import {hideModal, showModal} from '../index';
+import * as actions from '../../actions';
 
 const _notifyAssignmentEdited = (assignmentId) => (
     (dispatch, getState, {notify}) => {
@@ -26,7 +27,7 @@ const _notifyAssignmentEdited = (assignmentId) => (
  * @param {object} data - Assignment, User, Desk IDs
  */
 const onAssignmentCreated = (_e, data) => (
-    (dispatch, getState) => {
+    (dispatch, getState, {desks}) => {
         // If this planning item was updated by this user in AddToPlanning Modal
         // Then ignore this notification
         if (selectors.general.sessionId(getState()) === data.session && (
@@ -36,7 +37,7 @@ const onAssignmentCreated = (_e, data) => (
             return;
         }
 
-        const currentDesk = selectors.general.currentDeskId(getState());
+        const currentDesk = assignmentUtils.getCurrentSelectedDeskId(desks, getState());
 
         let querySearchSettings = selectors.getAssignmentSearch(getState());
 
@@ -66,7 +67,7 @@ const onAssignmentCreated = (_e, data) => (
  * @param {object} data - Assignment, User, Desk IDs
  */
 const onAssignmentUpdated = (_e, data) => (
-    (dispatch, getState) => {
+    (dispatch, getState, {desks}) => {
         // If this planning item was updated by this user in AddToPlanning Modal
         // Then ignore this notification
         if (selectors.general.sessionId(getState()) === data.session && (
@@ -76,7 +77,7 @@ const onAssignmentUpdated = (_e, data) => (
             return;
         }
 
-        const currentDesk = selectors.general.currentDeskId(getState());
+        const currentDesk = assignmentUtils.getCurrentSelectedDeskId(desks, getState());
         let querySearchSettings = selectors.getAssignmentSearch(getState());
 
         dispatch(_updatePlannigRelatedToAssignment(data));
@@ -161,7 +162,6 @@ const onAssignmentUpdated = (_e, data) => (
 const _updatePlannigRelatedToAssignment = (data) => (
     (dispatch, getState) => {
         const plans = selectors.planning.storedPlannings(getState());
-        const session = selectors.general.session(getState());
 
         if (!get(data, 'planning')) {
             return Promise.resolve();
@@ -176,35 +176,11 @@ const _updatePlannigRelatedToAssignment = (data) => (
         let coverages = get(planningItem, 'coverages') || [];
         let coverage = coverages.find((cov) => cov.coverage_id === data.coverage);
 
-        if (!coverage || isEmpty(coverage.assigned_to)) {
+        if (!coverage) {
             return Promise.resolve();
         }
 
-        if (get(planningItem, 'lock_action') !== 'edit' && !!get(planningItem, 'lock_user') &&
-                !lockUtils.isItemLockedInThisSession(
-                    planningItem,
-                    session,
-                    selectors.locks.getLockedItems(getState())
-                )) {
-            dispatch({
-                type: PLANNING.ACTIONS.UNLOCK_PLANNING,
-                payload: {plan: planningItem},
-            });
-        }
-
-        coverage.assigned_to.user = data.assigned_user;
-        coverage.assigned_to.assigned_date_user = data.assigned_date_user;
-
-        coverage.assigned_to.desk = data.assigned_desk;
-        coverage.assigned_to.assigned_date_desk = data.assigned_date_desk;
-
-        coverage.assigned_to.state = data.assignment_state;
-
-        if (get(data, 'priority')) {
-            coverage.assigned_to.priority = data.priority;
-        }
-
-        dispatch(planning.api.receivePlannings([planningItem]));
+        dispatch(planning.api.loadPlanningByIds([data.planning]));
         dispatch(main.fetchItemHistory(planningItem));
     }
 );
@@ -299,17 +275,19 @@ const onAssignmentUnlocked = (_e, data) => (
  */
 const onAssignmentRemoved = (_e, data) => (
     (dispatch, getState, {notify}) => {
-        if (get(data, 'assignment')) {
-            dispatch(_notifyAssignmentEdited(data.assignment));
+        if (get(data, 'assignments')) {
             dispatch({
                 type: ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT,
                 payload: data,
             });
 
-            // Though assignment is removed, this is to remove the orphan lock in the store
-            dispatch({
-                type: ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT,
-                payload: {assignment: {_id: data.assignment}},
+            data.assignments.forEach((a) => {
+                dispatch(_notifyAssignmentEdited(a));
+                // Though assignment is removed, this is to remove the orphan lock in the store
+                dispatch({
+                    type: ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT,
+                    payload: {assignment: {_id: a}},
+                });
             });
 
             // Updates my assignment count
@@ -374,6 +352,30 @@ const onAssignmentDeleted = (_e, data) => (
     }
 );
 
+export const onContentUpdate = (_e, data) => (
+    (dispatch, getState) => {
+        const updatedItems = Object.keys(data.items);
+        const currentItems = Object.values(selectors.getStoredArchiveItems(getState()));
+        const refetchAssignments = [];
+
+        for (const itemId of updatedItems) {
+            const updatedItemInState = currentItems.find((i) => i._id === itemId);
+
+            if (updatedItemInState != null) {
+                refetchAssignments.push(updatedItemInState.assignment_id);
+                break;
+            }
+        }
+
+        if (refetchAssignments.length > 0) {
+            const assignments = Object.values(getState().assignment.assignments);
+            const updateAssignments = assignments.filter((a) => refetchAssignments.includes(a._id));
+
+            dispatch(actions.assignments.api.loadArchiveItems(updateAssignments));
+        }
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     onAssignmentCreated,
@@ -383,6 +385,7 @@ const self = {
     onAssignmentRemoved,
     onAssignmentDeleteFailed,
     onAssignmentDeleted,
+    onContentUpdate,
 };
 
 // Map of notification name and Action Event to execute
@@ -396,6 +399,8 @@ self.events = {
     'assignments:removed': () => (self.onAssignmentRemoved),
     'assignments:delete:fail': () => (self.onAssignmentDeleteFailed),
     'assignments:delete': () => (self.onAssignmentDeleted),
+    'assignments:accepted': () => (self.onAssignmentUpdated),
+    'content:update': () => (self.onContentUpdate),
 };
 
 export default self;

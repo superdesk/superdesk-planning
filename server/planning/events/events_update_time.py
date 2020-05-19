@@ -15,7 +15,7 @@ from eve.utils import config
 from copy import deepcopy
 
 from .events import EventsResource, events_schema
-from planning.common import remove_lock_information, UPDATE_FUTURE
+from planning.common import remove_lock_information, UPDATE_FUTURE, TO_BE_CONFIRMED_FIELD
 from .events_base_service import EventsBaseService
 
 from datetime import date, datetime
@@ -32,6 +32,8 @@ class EventsUpdateTimeResource(EventsResource):
     privileges = {'PATCH': 'planning_event_management'}
 
     schema = events_schema
+
+    merge_nested_documents = True
 
 
 class EventsUpdateTimeService(EventsBaseService):
@@ -93,6 +95,9 @@ class EventsUpdateTimeService(EventsBaseService):
             new_updates['dates']['start'] = start_date_time
             new_updates['dates']['end'] = start_date_time + duration
 
+            if event.get(TO_BE_CONFIRMED_FIELD):
+                new_updates[TO_BE_CONFIRMED_FIELD] = False
+
             # Set '_planning_schedule' on the Event item
             self.set_planning_schedule(new_updates)
 
@@ -104,7 +109,7 @@ class EventsUpdateTimeService(EventsBaseService):
     def validate(self, updates, original):
         super().validate(updates, original)
 
-        if not updates.get('dates'):
+        if not updates.get('dates') and not updates.get('_timeToBeConfirmed'):
             raise SuperdeskApiError.badRequestError('No new time was provided')
         elif not updates['dates'].get('start'):
             raise SuperdeskApiError.badRequestError('No start time was provided')

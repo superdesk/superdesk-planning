@@ -13,6 +13,7 @@ import {ItemActionsMenu} from '../index';
 import {PLANNING, EVENTS, MAIN, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
 
 import {
+    eventUtils,
     planningUtils,
     onEventCapture,
     isItemPosted,
@@ -128,8 +129,6 @@ export class PlanningItem extends React.Component {
             item,
             onItemClick,
             lockedItems,
-            dateFormat,
-            timeFormat,
             date,
             onMultiSelectClick,
             multiSelected,
@@ -142,6 +141,7 @@ export class PlanningItem extends React.Component {
             refNode,
             contentTypes,
             agendas,
+            contacts,
         } = this.props;
 
         if (!item) {
@@ -192,11 +192,7 @@ export class PlanningItem extends React.Component {
                         {event &&
                             <span className="sd-no-wrap">
                                 <Icon className="icon-event" color={ICON_COLORS.DARK_BLUE_GREY}/>&nbsp;
-                                <EventDateTime
-                                    item={event}
-                                    dateFormat={dateFormat}
-                                    timeFormat={timeFormat}
-                                />
+                                <EventDateTime item={event}/>
                             </span>
                         }
                     </Row>
@@ -209,6 +205,13 @@ export class PlanningItem extends React.Component {
                             />
                         )}
                         {secondaryFields.includes('state') && renderFields('state', item) }
+                        {eventUtils.isEventCompleted(event) && (
+                            <Label
+                                text={gettext('Event Completed')}
+                                iconType="success"
+                                isHollow={true}
+                            />
+                        )}
                         {secondaryFields.includes('featured') &&
                             renderFields('featured', item, {tooltipFlowDirection: 'right'})}
                         {secondaryFields.includes('agendas') &&
@@ -221,12 +224,11 @@ export class PlanningItem extends React.Component {
                             })}
                         {secondaryFields.includes('coverages') && renderFields('coverages', item, {
                             date,
-                            timeFormat,
-                            dateFormat,
                             users,
                             desks,
                             activeFilter,
                             contentTypes,
+                            contacts,
                         })}
                     </Row>
                 </Column>
@@ -260,8 +262,6 @@ PlanningItem.propTypes = {
     date: PropTypes.string.isRequired,
     onItemClick: PropTypes.func.isRequired,
     lockedItems: PropTypes.object.isRequired,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
     agendas: PropTypes.array.isRequired,
     session: PropTypes.object,
     privileges: PropTypes.object,
@@ -289,4 +289,5 @@ PlanningItem.propTypes = {
     [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]: PropTypes.func,
+    contacts: PropTypes.object,
 };

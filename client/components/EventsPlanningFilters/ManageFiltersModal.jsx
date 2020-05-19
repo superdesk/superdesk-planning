@@ -82,8 +82,8 @@ export class ManageFiltersComponent extends React.Component {
                                 {gettext('Add New Filter')}
                             </Button>}
                         </SubNav>}
-                        <ColumnBox.Box>
-                            <ColumnBox.MainColumn padded={true} verticalScroll={true}>
+                        <ColumnBox.Box verticalScroll={true}>
+                            <ColumnBox.MainColumn padded={true}>
                                 <FiltersList
                                     filters={filters}
                                     privileges={privileges}
@@ -101,6 +101,7 @@ export class ManageFiltersComponent extends React.Component {
                                         onSave={createOrUpdate}
                                         enabledAgendas={this.props.enabledAgendas}
                                         enabledCalendars={this.props.enabledCalendars}
+                                        locators={this.props.locators}
                                     />
                                 </ColumnBox.SlideInColumn>
                             }
@@ -122,6 +123,7 @@ ManageFiltersComponent.propTypes = {
     enabledAgendas: PropTypes.array.isRequired,
     calendars: PropTypes.array.isRequired,
     agendas: PropTypes.array.isRequired,
+    locators: PropTypes.array.isRequired,
 };
 
 const mapStateToProps = (state) => (
@@ -132,6 +134,7 @@ const mapStateToProps = (state) => (
         enabledCalendars: selectors.events.enabledCalendars(state),
         calendars: selectors.events.calendars(state),
         agendas: selectors.planning.agendas(state),
+        locators: selectors.vocabs.locators(state),
     }
 );
 

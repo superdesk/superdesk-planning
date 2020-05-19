@@ -176,7 +176,7 @@ const onPlanningPosted = (_e, data) => (
 );
 
 const onPlanningSpiked = (_e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (data && data.item) {
             dispatch({
                 type: PLANNING.ACTIONS.SPIKE_PLANNING,
@@ -190,7 +190,9 @@ const onPlanningSpiked = (_e, data) => (
 
             dispatch(main.closePreviewAndEditorForItems(
                 [{_id: data.item}],
-                gettext('The Planning item was spiked')
+                selectors.general.currentUserId(getState()) === data.user ?
+                    null :
+                    gettext('The Planning item was spiked')
             ));
 
             dispatch(planning.featuredPlanning.removePlanningItemFromSelection(data.item));
@@ -208,7 +210,7 @@ const onPlanningSpiked = (_e, data) => (
 );
 
 const onPlanningUnspiked = (_e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (data && data.item) {
             dispatch({
                 type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
@@ -221,7 +223,9 @@ const onPlanningUnspiked = (_e, data) => (
 
             dispatch(main.closePreviewAndEditorForItems(
                 [{_id: data.item}],
-                gettext('The Planning item was unspiked')
+                selectors.general.currentUserId(getState()) === data.user ?
+                    null :
+                    gettext('The Planning item was unspiked')
             ));
             dispatch(planning.featuredPlanning.addPlanningItemToSelection(data.item));
 
@@ -359,6 +363,10 @@ const onPlanningFeaturedUnLocked = (_e, data) => (
     }
 );
 
+const onPlanningFilesUpdated = (_e, data) => (
+    (dispatch) => (dispatch(planning.api.getFiles([data.item])))
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     onPlanningCreated,
@@ -375,6 +383,7 @@ const self = {
     onPlanningExpired,
     onPlanningFeaturedLocked,
     onPlanningFeaturedUnLocked,
+    onPlanningFilesUpdated,
 };
 
 // Map of notification name and Action Event to execute
@@ -394,6 +403,7 @@ self.events = {
     'planning:expired': () => self.onPlanningExpired,
     'planning_featured_lock:lock': () => self.onPlanningFeaturedLocked,
     'planning_featured_lock:unlock': () => onPlanningFeaturedUnLocked,
+    'planning_files:updated': () => onPlanningFilesUpdated,
 };
 
 export default self;

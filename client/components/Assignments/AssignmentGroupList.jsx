@@ -10,6 +10,8 @@ import {assignmentUtils} from '../../utils';
 
 import {AssignmentItem} from './AssignmentItem';
 import {Header, Group} from '../UI/List';
+import {OrderDirectionIcon} from '../OrderBar';
+import {assignmentsViewRequiresArchiveItems} from './AssignmentItem/fields';
 
 class AssignmentGroupListComponent extends React.Component {
     constructor(props) {
@@ -19,6 +21,7 @@ class AssignmentGroupListComponent extends React.Component {
 
         this.handleScroll = this.handleScroll.bind(this);
         this.changeAssignmentListSingleGroupView = this.changeAssignmentListSingleGroupView.bind(this);
+        this.changeListOrder = this.changeListOrder.bind(this);
     }
 
     componentWillUpdate(nextProps) {
@@ -57,6 +60,12 @@ class AssignmentGroupListComponent extends React.Component {
         }
     }
 
+    changeListOrder(order) {
+        const {changeListSortOrder, groupKey, saveSortPreferences} = this.props;
+
+        changeListSortOrder(groupKey, order, saveSortPreferences);
+    }
+
     getListMaxHeight() {
         if (this.props.assignmentListSingleGroupView) {
             return UI.ASSIGNMENTS.FULL_LIST_NO_OF_ITEMS *
@@ -74,6 +83,7 @@ class AssignmentGroupListComponent extends React.Component {
             privileges,
             contentTypes,
             desks,
+            contacts,
         } = this.props;
 
         const assignment = this.props.assignments[index];
@@ -107,6 +117,8 @@ class AssignmentGroupListComponent extends React.Component {
                 revertAssignment={this.props.revertAssignment}
                 contentTypes={contentTypes}
                 assignedDesk={assignedDesk}
+                contacts={contacts}
+                archiveItemForAssignment={this.props.archiveItemForAssignment}
             />
         );
     }
@@ -121,12 +133,13 @@ class AssignmentGroupListComponent extends React.Component {
             groupEmptyMessage,
             showCount,
             changeAssignmentListSingleGroupView,
+            orderDirection,
         } = this.props;
         const listStyle = setMaxHeight ? {maxHeight: this.getListMaxHeight() + 'px'} : {};
 
         return (
             <div>
-                {!assignmentListSingleGroupView && (
+                {!assignmentListSingleGroupView ? (
                     <Header>
                         {changeAssignmentListSingleGroupView ? (
                             <a
@@ -140,10 +153,25 @@ class AssignmentGroupListComponent extends React.Component {
                         )}
 
                         {showCount && (
-                            <span className="sd-list-header__number badge">{totalCount}</span>
-                        )}
-                    </Header>
+                            <div className="sd-list-header__number sd-flex-grow">
+                                <span className="badge">{totalCount}</span>
+                            </div>
 
+                        )}
+
+                        <OrderDirectionIcon
+                            direction={orderDirection}
+                            onChange={this.changeListOrder}
+                        />
+                    </Header>
+                ) : (
+                    <Header>
+                        <div className="sd-flex-grow sd-list-header__name" />
+                        <OrderDirectionIcon
+                            direction={orderDirection}
+                            onChange={this.changeListOrder}
+                        />
+                    </Header>
                 )}
 
                 <Group
@@ -192,25 +220,29 @@ AssignmentGroupListComponent.propTypes = {
     setMaxHeight: PropTypes.bool,
     contentTypes: PropTypes.array,
     desks: PropTypes.array,
-
     groupLabel: PropTypes.string,
     groupStates: PropTypes.arrayOf(PropTypes.string),
     groupEmptyMessage: PropTypes.string,
     showCount: PropTypes.bool,
+    changeListSortOrder: PropTypes.func,
+    saveSortPreferences: PropTypes.bool,
+    contacts: PropTypes.object,
+    archiveItemForAssignment: PropTypes.object,
 };
 
 AssignmentGroupListComponent.defaultProps = {
     setMaxHeight: true,
     showCount: true,
+    saveSortPreferences: true,
 };
 
 const mapStateToProps = (state, ownProps) => {
     const assignmentDataSelector = selectors.getAssignmentGroupSelectors[ownProps.groupKey];
 
-    return {
+    const props = {
         filterBy: selectors.getFilterBy(state),
         orderByField: selectors.getOrderByField(state),
-        orderDirection: selectors.getOrderDirection(state),
+        orderDirection: assignmentDataSelector.sortOrder(state),
         assignments: assignmentDataSelector.assignmentsSelector(state),
         totalCount: assignmentDataSelector.countSelector(state),
         previewOpened: selectors.getPreviewAssignmentOpened(state),
@@ -222,7 +254,14 @@ const mapStateToProps = (state, ownProps) => {
         assignmentListSingleGroupView: selectors.getAssignmentListSingleGroupView(state),
         priorities: selectors.getAssignmentPriorities(state),
         desks: selectors.general.desks(state),
+        contacts: selectors.general.contactsById(state),
     };
+
+    if (assignmentsViewRequiresArchiveItems()) {
+        props.archiveItemForAssignment = selectors.getStoredArchiveItems(state);
+    }
+
+    return props;
 };
 
 const mapDispatchToProps = (dispatch) => ({
@@ -231,9 +270,12 @@ const mapDispatchToProps = (dispatch) => ({
     completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
     revertAssignment: (assignment) => dispatch(actions.assignments.ui.revert(assignment)),
     editAssignmentPriority: (assignment) => dispatch(actions.assignments.ui.editPriority(assignment)),
-    startWorking: (assignment) => dispatch(actions.assignments.ui.openSelectTemplateModal(assignment)),
+    startWorking: (assignment) => dispatch(actions.assignments.ui.startWorking(assignment)),
     removeAssignment: (assignment) => dispatch(actions.assignments.ui.showRemoveAssignmentModal(assignment)),
     openArchivePreview: (assignment) => dispatch(actions.assignments.ui.openArchivePreview(assignment)),
+    changeListSortOrder: (list, order, savePreference) => (
+        dispatch(actions.assignments.ui.changeListSortOrder(list, order, savePreference))
+    ),
 });
 
 export const AssignmentGroupList = connect(mapStateToProps, mapDispatchToProps)(AssignmentGroupListComponent);

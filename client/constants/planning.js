@@ -103,6 +103,9 @@ export const PLANNING = {
         LIVE_VIDEO: gettext('live_video'),
         AUDIO: gettext('audio'),
         PICTURE: gettext('picture'),
+        GRAPHIC: gettext('graphic'),
+        LIVE_BLOG: gettext('live_blog'),
+        VIDEO_EXPLAINER: gettext('video_explainer'),
     },
     HISTORY_OPERATIONS: {
         ASSIGN_AGENDA: 'assign_agenda',

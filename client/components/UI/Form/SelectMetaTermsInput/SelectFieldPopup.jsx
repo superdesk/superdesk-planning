@@ -85,11 +85,13 @@ export class SelectFieldPopup extends React.Component {
         if (this.props.multiLevel) {
             if (this.state.activeOptionIndex !== -1) {
                 this.onSelect(this.state.filteredList[this.state.activeOptionIndex]);
-            } else {
-                this.onSelect(this.state.currentParent);
+            } else if (this.state.filteredList.length == 1) {
+                this.onSelect(this.state.filteredList[0]);
             }
         } else if (this.state.activeOptionIndex !== -1) {
             this.onSelect(this.state.filteredList[this.state.activeOptionIndex]);
+        } else if (this.state.filteredList.length == 1) {
+            this.onSelect(this.state.filteredList[0]);
         }
     }
 

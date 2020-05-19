@@ -63,8 +63,6 @@ export class ListGroupItem extends React.Component {
             onDoubleClick,
             onAddCoverageClick,
             lockedItems,
-            dateFormat,
-            timeFormat,
             agendas,
             date,
             session,
@@ -87,6 +85,7 @@ export class ListGroupItem extends React.Component {
             onItemActivate,
             previewItem,
             contentTypes,
+            contacts,
         } = this.props;
         const itemType = getItemType(item);
 
@@ -98,8 +97,6 @@ export class ListGroupItem extends React.Component {
             item: item,
             onItemClick: clickHandler.bind(null, index),
             lockedItems: lockedItems,
-            dateFormat: dateFormat,
-            timeFormat: timeFormat,
             session: session,
             privileges: privileges,
             activeFilter: activeFilter,
@@ -149,6 +146,7 @@ export class ListGroupItem extends React.Component {
 
         let planningProps = {
             ...itemProps,
+            contacts: contacts,
             users: users,
             desks: desks,
             contentTypes: contentTypes,
@@ -236,8 +234,6 @@ ListGroupItem.propTypes = {
     editItem: PropTypes.object,
     previewItem: PropTypes.string,
     lockedItems: PropTypes.object.isRequired,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
     agendas: PropTypes.array.isRequired,
     session: PropTypes.object,
     privileges: PropTypes.object,
@@ -260,4 +256,5 @@ ListGroupItem.propTypes = {
     navigateList: PropTypes.func,
     onItemActivate: PropTypes.func,
     contentTypes: PropTypes.array,
+    contacts: PropTypes.object,
 };

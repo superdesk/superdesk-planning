@@ -17,7 +17,7 @@ from superdesk.metadata.utils import item_url, generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.utc import utcnow, utc_to_local
 from flask import request
-from planning.common import ITEM_STATE, WORKFLOW_STATE
+from planning.common import ITEM_STATE, WORKFLOW_STATE, TEMP_ID_PREFIX
 from copy import deepcopy
 
 
@@ -72,7 +72,7 @@ class PlanningDuplicateService(BaseService):
 
         for f in ('_id', 'guid', 'lock_user', 'lock_time', 'original_creator', '_planning_schedule'
                   'lock_session', 'lock_action', '_created', '_updated', '_etag', 'pubstatus', 'expired',
-                  'featured', 'state_reason'):
+                  'featured', 'state_reason', '_updates_schedule'):
             new_plan.pop(f, None)
 
         new_plan[ITEM_STATE] = WORKFLOW_STATE.DRAFT
@@ -86,8 +86,9 @@ class PlanningDuplicateService(BaseService):
         for cov in new_plan.get('coverages') or []:
             cov.pop('assigned_to', None)
             cov.get('planning', {}).pop('workflow_status_reason', None)
+            cov.pop('scheduled_updates', None)
             cov.get('planning', {})['scheduled'] = new_plan.get('planning_date')
-            cov['coverage_id'] = generate_guid(type=GUID_NEWSML)
+            cov['coverage_id'] = TEMP_ID_PREFIX + 'duplicate'
             cov['workflow_status'] = WORKFLOW_STATE.DRAFT
             cov['news_coverage_status'] = {'qcode': 'ncostat:int'}
 

@@ -78,9 +78,10 @@ def init_app(app):
     app.on_item_lock += assignments_publish_service.validate_assignment_lock
     app.on_item_locked += assignments_publish_service.sync_assignment_lock
     app.on_item_unlocked += assignments_publish_service.sync_assignment_unlock
+    app.on_updated_events += assignments_publish_service.on_events_updated
 
     # Track updates for an assignment if it's news story was updated
-    if app.config.get('PLANNING_LINK_UPDATES_TO_COVERAGES', False):
+    if app.config.get('PLANNING_LINK_UPDATES_TO_COVERAGES', True):
         app.on_inserted_archive_rewrite += assignments_publish_service.create_delivery_for_content_update
 
         # Remove Assignment and Coverage upon deleting an Archive Rewrite
@@ -89,6 +90,9 @@ def init_app(app):
 
     app.client_config['planning_check_for_assignment_on_publish'] = \
         app.config.get('PLANNING_CHECK_FOR_ASSIGNMENT_ON_PUBLISH', False)
+
+    app.client_config['planning_check_for_assignment_on_send'] = \
+        app.config.get('PLANNING_CHECK_FOR_ASSIGNMENT_ON_SEND', False)
 
     if len(app.config.get('PLANNING_FULFIL_ON_PUBLISH_FOR_DESKS', '')) == 0:
         app.client_config['planning_fulfil_on_publish_for_desks'] = []
@@ -105,3 +109,12 @@ def init_app(app):
 
     # Privileges
     superdesk.intrinsic_privilege(AssignmentsUnlockResource.endpoint_name, method=['POST'])
+
+    # User Preferences
+    superdesk.register_default_user_preference('assignments:default_sort', {
+        'type': 'dict',
+        'label': 'Default sort preferences for Assignment lists',
+        'category': 'assignments',
+        'sort': {},
+        'default': None
+    })

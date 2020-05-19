@@ -1,18 +1,21 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
+
+import {appConfig} from 'appConfig';
+
 import {WORKFLOW_STATE} from '../../constants/index';
 
-export const RelatedEvents = ({events, dateFormat}) => (
+export const RelatedEvents = ({events, originalEvent}) => (
     <ul className="related-events">
-        {events.map(({
+        {(originalEvent ? [...events, originalEvent] : events).map(({
             _id, // eslint-disable-line camelcase
             slugline,
             name,
             dates,
             state,
         }) => {
-            let startStr = moment(dates.start).format(dateFormat);
+            let startStr = moment(dates.start).format(appConfig.view.dateformat);
 
             return (
                 <li key={_id}>
@@ -30,5 +33,5 @@ export const RelatedEvents = ({events, dateFormat}) => (
 
 RelatedEvents.propTypes = {
     events: PropTypes.array.isRequired,
-    dateFormat: PropTypes.string.isRequired,
+    originalEvent: PropTypes.object,
 };

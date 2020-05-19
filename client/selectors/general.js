@@ -1,7 +1,7 @@
 import {get, keyBy} from 'lodash';
 import {createSelector} from 'reselect';
 import {getEnabledAgendas, getDisabledAgendas, getItemInArrayById} from '../utils';
-import {ITEM_TYPE} from '../constants/index';
+import {ITEM_TYPE, COVERAGES, ASSIGNMENTS} from '../constants/index';
 
 export const currentWorkspace = (state) => get(state, 'workspace.currentWorkspace', null);
 export const ingestProviders = (state) => get(state, 'ingest.providers');
@@ -45,14 +45,23 @@ export const preferredCountry = createSelector(
 
 export const session = (state) => get(state, 'session');
 export const sessionId = (state) => get(state, 'session.sessionId');
-export const userPreferences = (state) => get(state, 'session.userPreferences');
+export const userPreferences = (state) => get(state, 'session.userPreferences') || {};
 export const defaultPlaceList = (state) => get(state, 'session.userPreferences.article:default:place.place', []);
 export const defaultDesk = createSelector(
     [desks, session],
     (deskList, sessionDetails) => (!get(sessionDetails, 'identity.desk') ? null :
         getItemInArrayById(deskList, sessionDetails.identity.desk))
 );
-export const preferredCoverageDesks = (state) => get(state, 'session.userPreferences.planning:default_coverage_desks');
+
+export const preferredCoverageDesks = (state) => (
+    get(userPreferences(state), COVERAGES.DEFAULT_DESK_PREFERENCE) || {}
+);
+export const preferredAssignmentSort = (state) => (
+    get(userPreferences(state), ASSIGNMENTS.DEFAULT_SORT_PREFERENCE) || {}
+);
+export const coverageAddAdvancedMode = (state) => (
+    !!get(userPreferences(state), COVERAGES.ADD_ADVANCED_MODE_PREFERENCE + '.enabled')
+);
 
 export const currentUserId = createSelector(
     [session],
@@ -60,8 +69,21 @@ export const currentUserId = createSelector(
 );
 
 export const files = (state) => get(state, 'files.files');
+
 export const contacts = (state) => get(state, 'contacts.contacts') || [];
-export const contactsById = (state) => keyBy(get(state, 'contacts.contacts') || [], '_id');
+export const contactsLoading = (state) => get(state, 'contacts.loading', false);
+export const contactsTotal = (state) => get(state, 'contacts.total', 0);
+export const contactsPage = (state) => get(state, 'contacts.page', 1);
+
+export const contactsById = createSelector(
+    [contacts],
+    (contacts) => keyBy(contacts, '_id')
+);
+export const contactIds = createSelector(
+    [contacts],
+    (contacts) => contacts.map((contact) => contact._id)
+);
+
 export const getPlanningExportTemplates = (state) => get(state, 'exportTemplates', []).filter(
     (e) => e.type === ITEM_TYPE.PLANNING);
 export const getEventExportTemplates = (state) => get(state, 'exportTemplates', []).filter(

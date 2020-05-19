@@ -5,7 +5,7 @@ import {get} from 'lodash';
 
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
-import {assignmentUtils, gettext, eventUtils} from '../../../utils';
+import {assignmentUtils, gettext, eventUtils, planningUtils, getFileDownloadURL} from '../../../utils';
 import {ASSIGNMENTS, WORKSPACE} from '../../../constants';
 
 import {AssignmentPreviewHeader} from './AssignmentPreviewHeader';
@@ -19,6 +19,10 @@ class AssignmentPreviewContainerComponent extends React.Component {
     componentWillMount() {
         if (eventUtils.shouldFetchFilesForEvent(this.props.eventItem)) {
             this.props.fetchEventFiles(this.props.eventItem);
+        }
+
+        if (planningUtils.shouldFetchFilesForPlanning(this.props.planningItem)) {
+            this.props.fetchPlanningFiles(this.props.planningItem);
         }
     }
 
@@ -80,6 +84,9 @@ class AssignmentPreviewContainerComponent extends React.Component {
             hideAvatar,
             currentWorkspace,
             contentTypes,
+            session,
+            privileges,
+            files,
         } = this.props;
 
         if (!assignment) {
@@ -87,9 +94,12 @@ class AssignmentPreviewContainerComponent extends React.Component {
         }
 
         const planning = get(assignment, 'planning', {});
-        const assignedTo = get(assignment, 'assigned_to', {});
-        const state = get(assignedTo, 'state');
         const itemActions = this.getItemActions();
+        const canFulfilAssignment = showFulfilAssignment && assignmentUtils.canFulfilAssignment(
+            assignment,
+            session,
+            privileges
+        );
 
         return (
             <div className="AssignmentPreview">
@@ -105,7 +115,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
                     contentTypes={contentTypes}
                 />
 
-                {showFulfilAssignment && state === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
+                {canFulfilAssignment &&
                     <ContentBlock className="AssignmentPreview__fulfil" padSmall={true} flex={true}>
                         <ContentBlockInner grow={true}>
                             <Button
@@ -124,6 +134,8 @@ class AssignmentPreviewContainerComponent extends React.Component {
                         coverageFormProfile={formProfile.coverage}
                         planningFormProfile={formProfile.planning}
                         planningItem={planningItem}
+                        createLink={getFileDownloadURL}
+                        files={files}
                     />
                 </ContentBlock>
 
@@ -156,6 +168,8 @@ class AssignmentPreviewContainerComponent extends React.Component {
                             <EventPreview
                                 item={eventItem}
                                 formProfile={formProfile.event}
+                                createLink={getFileDownloadURL}
+                                files={files}
                             />
                         </ToggleBox>
                     </ContentBlock>
@@ -197,6 +211,8 @@ AssignmentPreviewContainerComponent.propTypes = {
     fetchEventFiles: PropTypes.func,
     currentWorkspace: PropTypes.string,
     contentTypes: PropTypes.array,
+    fetchPlanningFiles: PropTypes.func,
+    files: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({
@@ -218,10 +234,11 @@ const mapStateToProps = (state) => ({
     agendas: selectors.general.agendas(state),
     currentWorkspace: selectors.general.currentWorkspace(state),
     contentTypes: selectors.general.contentTypes(state),
+    files: selectors.general.files(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    startWorking: (assignment) => dispatch(actions.assignments.ui.openSelectTemplateModal(assignment)),
+    startWorking: (assignment) => dispatch(actions.assignments.ui.startWorking(assignment)),
     reassign: (assignment) => dispatch(actions.assignments.ui.reassign(assignment)),
     completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
     revertAssignment: (assignment) => dispatch(actions.assignments.ui.revert(assignment)),
@@ -230,6 +247,7 @@ const mapDispatchToProps = (dispatch) => ({
     removeAssignment: (assignment) => dispatch(actions.assignments.ui.showRemoveAssignmentModal(assignment)),
     openArchivePreview: (assignment) => dispatch(actions.assignments.ui.openArchivePreview(assignment)),
     fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
+    fetchPlanningFiles: (planning) => dispatch(actions.planning.api.fetchPlanningFiles(planning)),
 });
 
 export const AssignmentPreviewContainer = connect(

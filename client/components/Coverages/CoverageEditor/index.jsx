@@ -18,8 +18,6 @@ export const CoverageEditor = ({
     value,
     users,
     desks,
-    dateFormat,
-    timeFormat,
     remove,
     contentTypes,
     genres,
@@ -35,7 +33,6 @@ export const CoverageEditor = ({
     readOnly,
     message,
     invalid,
-    defaultGenre,
     addNewsItemToPlanning,
     navigation,
     popupContainer,
@@ -43,7 +40,6 @@ export const CoverageEditor = ({
     onPopupClose,
     setCoverageDefaultDesk,
     openCoverageIds,
-    autoAssignToWorkflow,
     ...props
 }) => {
     // Coverage item actions
@@ -73,11 +69,11 @@ export const CoverageEditor = ({
         if (planningUtils.canCancelCoverage(value, diff)) {
             itemActions.push({
                 ...COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE,
-                callback: onCancelCoverage.bind(null, value),
+                callback: onCancelCoverage.bind(null, value, index),
             });
         }
 
-        if (planningUtils.canAddCoverageToWorkflow(value, autoAssignToWorkflow, diff)) {
+        if (planningUtils.canAddCoverageToWorkflow(value, diff)) {
             itemActions.push({
                 id: 'addToWorkflow',
                 label: gettext('Add to workflow'),
@@ -124,11 +120,6 @@ export const CoverageEditor = ({
             item={diff}
             index={index}
             coverage={value}
-            users={users}
-            desks={desks}
-            dateFormat={dateFormat}
-            timeFormat={timeFormat}
-            contentTypes={contentTypes}
             itemActionComponent={itemActionComponent}
             readOnly={readOnly}
         />
@@ -141,14 +132,9 @@ export const CoverageEditor = ({
             onChange={onChange}
             users={users}
             desks={desks}
-            coverageProviders={coverageProviders}
-            priorities={priorities}
             readOnly={readOnly}
             addNewsItemToPlanning={addNewsItemToPlanning}
             onRemoveAssignment={onRemoveAssignment.bind(null, value, index)}
-            popupContainer={popupContainer}
-            onPopupOpen={onPopupOpen}
-            onPopupClose={onPopupClose}
             setCoverageDefaultDesk={setCoverageDefaultDesk}
             {...props}
         />
@@ -162,8 +148,6 @@ export const CoverageEditor = ({
             index={index}
             onChange={onChange}
             newsCoverageStatus={newsCoverageStatus}
-            dateFormat={dateFormat}
-            timeFormat={timeFormat}
             contentTypes={contentTypes}
             genres={genres}
             keywords={keywords}
@@ -171,11 +155,17 @@ export const CoverageEditor = ({
             message={message}
             invalid={invalid}
             hasAssignment={planningUtils.isCoverageAssigned(value)}
-            defaultGenre={defaultGenre}
             addNewsItemToPlanning={addNewsItemToPlanning}
             onFieldFocus={onFocus}
             onPopupOpen={onPopupOpen}
             onPopupClose={onPopupClose}
+            onRemoveAssignment={onRemoveAssignment}
+            setCoverageDefaultDesk={setCoverageDefaultDesk}
+            users={users}
+            desks={desks}
+            coverageProviders={coverageProviders}
+            priorities={priorities}
+            onCancelCoverage={onCancelCoverage}
             {...props}
         />
     );
@@ -205,8 +195,6 @@ CoverageEditor.propTypes = {
     users: PropTypes.array,
     desks: PropTypes.array,
     newsCoverageStatus: PropTypes.array,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     remove: PropTypes.func,
     contentTypes: PropTypes.array,
     genres: PropTypes.array,
@@ -227,7 +215,6 @@ CoverageEditor.propTypes = {
     errors: PropTypes.object,
     showErrors: PropTypes.bool,
     invalid: PropTypes.bool,
-    defaultGenre: PropTypes.object,
     addNewsItemToPlanning: PropTypes.object,
     navigation: PropTypes.object,
     onRemoveAssignment: PropTypes.func,
@@ -238,10 +225,4 @@ CoverageEditor.propTypes = {
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
     openCoverageIds: PropTypes.arrayOf(PropTypes.string),
-    autoAssignToWorkflow: PropTypes.bool,
-};
-
-CoverageEditor.defaultProps = {
-    dateFormat: 'DD/MM/YYYY',
-    timeFormat: 'HH:mm',
 };

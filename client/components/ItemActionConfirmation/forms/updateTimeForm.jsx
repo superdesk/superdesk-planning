@@ -3,18 +3,21 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import classNames from 'classnames';
 import moment from 'moment';
+import {get, set, cloneDeep, isEqual} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
 import * as actions from '../../../actions';
-import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
 import {eventUtils, gettext, timeUtils} from '../../../utils';
 import {Label, TimeInput, Row as FormRow, LineInput, Field} from '../../UI/Form/';
 import {Row} from '../../UI/Preview/';
 import {EventUpdateMethods, EventScheduleSummary} from '../../Events';
-import '../style.scss';
-import {get, set, cloneDeep, isEqual} from 'lodash';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
-import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY} from '../../../constants';
+import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY, TO_BE_CONFIRMED_FIELD} from '../../../constants';
 import {validateItem} from '../../../validators';
+
+import '../style.scss';
 
 export class UpdateTimeComponent extends React.Component {
     constructor(props) {
@@ -27,6 +30,7 @@ export class UpdateTimeComponent extends React.Component {
 
         this.onChange = this.onChange.bind(this);
         this.getPopupContainer = this.getPopupContainer.bind(this);
+        this.handleToBeConfirmed = this.handleToBeConfirmed.bind(this);
 
         this.dom = {popupContainer: null};
     }
@@ -61,11 +65,36 @@ export class UpdateTimeComponent extends React.Component {
         });
     }
 
+    handleToBeConfirmed() {
+        let diff = cloneDeep(this.state.diff);
+        const tz = get(this.props.original, 'dates.tz');
+
+        diff._startTime = timeUtils.getDateInRemoteTimeZone(this.props.original._startTime, tz);
+        diff._endTime = timeUtils.getDateInRemoteTimeZone(this.props.original._endTime, tz);
+        diff[TO_BE_CONFIRMED_FIELD] = true;
+
+        const dirty = diff[TO_BE_CONFIRMED_FIELD] !== this.props.original[TO_BE_CONFIRMED_FIELD];
+
+        this.setState({
+            diff: diff,
+            dirty: dirty,
+            errorMessages: [],
+            errors: {},
+        });
+
+        if (dirty) {
+            this.props.enableSaveInModal();
+        } else {
+            this.props.disableSaveInModal();
+        }
+    }
+
     onChange(field, value) {
         const diff = cloneDeep(get(this.state, 'diff') || {});
         const errors = cloneDeep(this.state.errors);
         let relatedEvents = this.state.relatedEvents;
         let errorMessages = [];
+        const fieldsToValidate = Object.keys(diff);
 
         if (field === '_startTime') {
             if (value && moment.isMoment(value) && value.isValid()) {
@@ -93,11 +122,18 @@ export class UpdateTimeComponent extends React.Component {
             set(diff, field, value);
         }
 
+        if (diff.dates != null && !diff.dates.tz) {
+            // if no timezone use default one
+            diff.dates.tz = appConfig.defaultTimezone;
+        }
+
+        diff[TO_BE_CONFIRMED_FIELD] = false;
         this.props.onValidate(
             diff,
             this.props.formProfiles,
             errors,
-            errorMessages
+            errorMessages,
+            fieldsToValidate
         );
 
         this.setState({
@@ -130,7 +166,7 @@ export class UpdateTimeComponent extends React.Component {
     }
 
     render() {
-        const {original, dateFormat, timeFormat, submitting} = this.props;
+        const {original, submitting} = this.props;
         const isRecurring = !!original.recurrence_id;
         const eventsInUse = this.state.relatedEvents.filter((e) => (
             get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
@@ -182,8 +218,6 @@ export class UpdateTimeComponent extends React.Component {
 
                 <EventScheduleSummary
                     schedule={original.dates}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     noPadding={true}
                     forUpdating={true}
                     useEventTimezone={true}
@@ -205,13 +239,15 @@ export class UpdateTimeComponent extends React.Component {
                         component={TimeInput}
                         field="_startTime"
                         value={start}
-                        timeFormat={timeFormat}
                         noMargin={true}
                         popupContainer={this.getPopupContainer}
                         remoteTimeZone={tz}
                         isLocalTimeZoneDifferent={isRemoteTimeZone}
-                        dateFormat={dateFormat}
                         className={classes}
+                        showToBeConfirmed
+                        onToBeConfirmed={this.handleToBeConfirmed}
+                        toBeConfirmed={get(this.state.diff, TO_BE_CONFIRMED_FIELD)}
+                        showDate={true}
                         {...fieldProps}
                     />
                 </FormRow>
@@ -226,13 +262,15 @@ export class UpdateTimeComponent extends React.Component {
                         component={TimeInput}
                         field="_endTime"
                         value={end}
-                        timeFormat={timeFormat}
                         noMargin={true}
                         popupContainer={this.getPopupContainer}
                         remoteTimeZone={tz}
                         isLocalTimeZoneDifferent={isRemoteTimeZone}
-                        dateFormat={dateFormat}
                         className={classes}
+                        showToBeConfirmed
+                        onToBeConfirmed={this.handleToBeConfirmed}
+                        toBeConfirmed={get(this.state.diff, TO_BE_CONFIRMED_FIELD)}
+                        showDate={true}
                         {...fieldProps}
                     />
                 </FormRow>
@@ -264,8 +302,6 @@ UpdateTimeComponent.propTypes = {
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
     disableSaveInModal: PropTypes.func,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
     onValidate: PropTypes.func,
     formProfiles: PropTypes.object,
     submitting: PropTypes.bool,
@@ -273,8 +309,6 @@ UpdateTimeComponent.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-    timeFormat: getTimeFormat(state),
-    dateFormat: getDateFormat(state),
     formProfiles: selectors.forms.profiles(state),
 });
 
@@ -301,13 +335,14 @@ const mapDispatchToProps = (dispatch) => ({
 
         return promise;
     },
-    onValidate: (item, profile, errors, errorMessages) => dispatch(validateItem({
+    onValidate: (item, profile, errors, errorMessages, fieldsToValidate) => dispatch(validateItem({
         profileName: ITEM_TYPE.EVENT,
         diff: item,
         formProfiles: profile,
         errors: errors,
         messages: errorMessages,
         fields: ['dates'],
+        fieldsToValidate: fieldsToValidate,
     })),
 });
 

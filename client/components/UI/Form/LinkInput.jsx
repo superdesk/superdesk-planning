@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import 'whatwg-fetch';
 import {get} from 'lodash';
 
+import {appConfig} from 'appConfig';
+
 import {gettext} from '../../../utils/gettext';
 
 import {Row, LineInput, Label, TextArea} from './';
@@ -72,7 +74,7 @@ export class LinkInput extends React.Component {
 
         const hostName = this.extractHostname(link);
 
-        if (!props.iframelyKey) {
+        if (!appConfig.iframely || !appConfig.iframely.key) {
             this.setState({title: 'www.' + hostName});
             return;
         }
@@ -101,7 +103,7 @@ export class LinkInput extends React.Component {
             return;
         }
 
-        let url = 'https://iframe.ly/api/iframely?url=' + link + '&api_key=' + props.iframelyKey;
+        let url = 'https://iframe.ly/api/iframely?url=' + link + '&api_key=' + appConfig.iframely.key;
 
         fetch(url).then((response) => {
             // Need to do HTTP response status check manually for whatwg-fetch
@@ -123,7 +125,7 @@ export class LinkInput extends React.Component {
     }
 
     render() {
-        const {value, field, remove, onChange, label, readOnly, iframelyKey, noMargin, onFocus, ...props} = this.props;
+        const {value, field, remove, onChange, label, readOnly, noMargin, onFocus, ...props} = this.props;
 
         const showLink = this.state.title &&
             !props.message &&
@@ -166,7 +168,7 @@ export class LinkInput extends React.Component {
                         onFocus={onFocus}
                     />
 
-                    {showLink && iframelyKey && (
+                    {showLink && appConfig.iframely && appConfig.iframely.key && (
                         <a
                             href={this.getAbsoulteURL(value)}
                             target="_blank"
@@ -206,7 +208,6 @@ LinkInput.propTypes = {
     value: PropTypes.string,
     label: PropTypes.string,
     onChange: PropTypes.func,
-    iframelyKey: PropTypes.string,
     readOnly: PropTypes.bool,
     message: PropTypes.string,
     onFocus: PropTypes.func,

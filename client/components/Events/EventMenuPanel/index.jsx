@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+
 import {gettext} from '../../../utils';
 import {get} from 'lodash';
 import * as selectors from '../../../selectors';
@@ -16,8 +17,6 @@ import {Label} from '../../UI/Form';
 export class EventMenuPanelComponent extends React.Component {
     render() {
         const {item,
-            dateFormat,
-            timeFormat,
             onMenuItemClick,
             activeItem,
             users,
@@ -31,8 +30,6 @@ export class EventMenuPanelComponent extends React.Component {
                 <EventInfo
                     item={item}
                     onClick={onMenuItemClick.bind(null, 'event')}
-                    dateFormat={dateFormat}
-                    timeFormat={timeFormat}
                     active={activeItem === 'event'} />
                 <MenuItem label={gettext('Contacts')}
                     onClick={onMenuItemClick.bind(null, 'contacts')}
@@ -56,8 +53,6 @@ export class EventMenuPanelComponent extends React.Component {
                         plan={plan}
                         users={users}
                         desks={desks}
-                        dateFormat={dateFormat}
-                        timeFormat={timeFormat}
                         onClick={onMenuItemClick.bind(null, 'plannings[' + index + ']')}
                         active={activeItem === 'plannings[' + index + ']'}
                         contentTypes={contentTypes}
@@ -72,8 +67,6 @@ export class EventMenuPanelComponent extends React.Component {
 
 EventMenuPanelComponent.propTypes = {
     item: PropTypes.object,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     activeItem: PropTypes.string,
     onMenuItemClick: PropTypes.func,
     plannings: PropTypes.array,
@@ -85,8 +78,6 @@ EventMenuPanelComponent.propTypes = {
 const mapStateToProps = (state, ownProps) => ({
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
-    dateFormat: selectors.config.getDateFormat(state),
-    timeFormat: selectors.config.getTimeFormat(state),
     plannings: selectors.events.getRelatedPlanningsForModalEvent(state),
     contentTypes: selectors.general.contentTypes(state),
 

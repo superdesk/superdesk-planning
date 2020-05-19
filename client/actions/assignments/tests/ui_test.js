@@ -5,7 +5,7 @@ import assignmentsApi from '../api';
 import planningApi from '../../planning/api';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import * as testData from '../../../utils/testData';
-import {ASSIGNMENTS} from '../../../constants';
+import {ASSIGNMENTS, ALL_DESKS} from '../../../constants';
 
 describe('actions.assignments.ui', () => {
     let store;
@@ -115,6 +115,7 @@ describe('actions.assignments.ui', () => {
                         orderDirection: 'Asc',
                         type: null,
                         priority: null,
+                        ignoreScheduledUpdates: false,
                     }]);
 
                     expect(assignmentsApi.receivedAssignments.callCount).toBe(1);
@@ -557,22 +558,22 @@ describe('actions.assignments.ui', () => {
 
     describe('showRemoveAssignmentModal', () => {
         beforeEach(() => {
-            sinon.stub(assignmentsUi, 'lockAssignmentAndPlanning').callsFake(
+            sinon.stub(assignmentsUi, 'lockAssignment').callsFake(
                 (item) => Promise.resolve(item)
             );
         });
 
         afterEach(() => {
-            restoreSinonStub(assignmentsUi.lockAssignmentAndPlanning);
+            restoreSinonStub(assignmentsUi.lockAssignment);
         });
 
-        it('locks both Assignment and Planning and displays the confirmation dialog', (done) => (
+        it('locks only Assignment and displays the confirmation dialog', (done) => (
             store.test(done, assignmentsUi.showRemoveAssignmentModal(data.assignments[0]))
                 .then((item) => {
                     expect(item).toEqual(data.assignments[0]);
 
-                    expect(assignmentsUi.lockAssignmentAndPlanning.callCount).toBe(1);
-                    expect(assignmentsUi.lockAssignmentAndPlanning.args[0]).toEqual([
+                    expect(assignmentsUi.lockAssignment.callCount).toBe(1);
+                    expect(assignmentsUi.lockAssignment.args[0]).toEqual([
                         data.assignments[0],
                         'remove_assignment',
                     ]);
@@ -582,7 +583,8 @@ describe('actions.assignments.ui', () => {
                         type: 'SHOW_MODAL',
                         modalType: 'CONFIRMATION',
                         modalProps: jasmine.objectContaining(
-                            {body: 'Are you sure you want to remove the Assignment?'}
+                            {body: 'This will also remove other linked assignments (if any, for story updates). '
+                                + 'Are you sure?'}
                         ),
                     }]);
 
@@ -591,8 +593,8 @@ describe('actions.assignments.ui', () => {
         ).catch(done.fail));
 
         it('returns Promise.reject on locking error', (done) => {
-            restoreSinonStub(assignmentsUi.lockAssignmentAndPlanning);
-            sinon.stub(assignmentsUi, 'lockAssignmentAndPlanning').returns(
+            restoreSinonStub(assignmentsUi.lockAssignment);
+            sinon.stub(assignmentsUi, 'lockAssignment').returns(
                 Promise.reject(errorMessage)
             );
 
@@ -844,10 +846,10 @@ describe('actions.assignments.ui', () => {
                 filterBy: 'Desk',
                 searchQuery: 'planning.slugline.phrase:("Olympics")',
                 orderByField: 'Scheduled',
-                orderDirection: 'Asc',
                 filterByType: 'text',
                 filterByPriority: null,
-                selectedDeskId: 'desk2',
+                selectedDeskId: ALL_DESKS,
+                ignoreScheduledUpdates: true,
             }]);
         });
 
@@ -867,14 +869,14 @@ describe('actions.assignments.ui', () => {
                 filterBy: 'Desk',
                 searchQuery: null,
                 orderByField: 'Scheduled',
-                orderDirection: 'Asc',
                 filterByType: 'text',
                 filterByPriority: null,
-                selectedDeskId: 'desk2',
+                selectedDeskId: ALL_DESKS,
+                ignoreScheduledUpdates: true,
             }]);
         });
 
-        it('uses the currently selected desk if no desk defined', () => {
+        it('uses the currently selected desk to all desks', () => {
             const item = {
                 slugline: 'Olympics',
                 type: 'text',
@@ -891,10 +893,10 @@ describe('actions.assignments.ui', () => {
                 filterBy: 'Desk',
                 searchQuery: 'planning.slugline.phrase:("Olympics")',
                 orderByField: 'Scheduled',
-                orderDirection: 'Asc',
                 filterByType: 'text',
                 filterByPriority: null,
-                selectedDeskId: 'desk3',
+                selectedDeskId: ALL_DESKS,
+                ignoreScheduledUpdates: true,
             }]);
         });
     });

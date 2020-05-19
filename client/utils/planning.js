@@ -1,4 +1,9 @@
 import moment from 'moment-timezone';
+import {get, set, isNil, uniq, sortBy, isEmpty, cloneDeep, isArray, find, flatten} from 'lodash';
+
+import {appConfig} from 'appConfig';
+import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
+
 import {
     WORKFLOW_STATE,
     GENERIC_ITEM_ACTIONS,
@@ -9,8 +14,9 @@ import {
     POST_STATE,
     COVERAGES,
     ITEM_TYPE,
+    TO_BE_CONFIRMED_FIELD,
+    TO_BE_CONFIRMED_SHORT_TEXT,
 } from '../constants/index';
-import {get, set, isNil, uniq, sortBy, isEmpty, cloneDeep, isArray, find, flatten} from 'lodash';
 import {
     getItemWorkflowState,
     lockUtils,
@@ -30,8 +36,10 @@ import {
     getItemId,
     generateTempId,
     isItemPosted,
+    getDateTimeString,
+    sortBasedOnTBC,
+    sanitizeItemFields,
 } from './index';
-import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
@@ -154,12 +162,16 @@ const canAddAsEvent = (planning, event = null, session, privileges, locks) => (
 const isCoverageCancelled = (coverage) =>
     (get(coverage, 'workflow_status') === WORKFLOW_STATE.CANCELLED);
 
-const canCancelCoverage = (coverage, planning) =>
-    (!isCoverageCancelled(coverage) && isExistingItem(coverage, 'coverage_id') && (!get(coverage, 'assigned_to.state')
+const canCancelCoverage = (coverage, planning, field = 'coverage_id') =>
+    (!isCoverageCancelled(coverage) && isExistingItem(coverage, field) && (!get(coverage, 'assigned_to.state')
         || get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED)) && !isItemExpired(planning);
 
-const canAddCoverageToWorkflow = (coverage, autoAssignToWorkflow, planning) => isExistingItem(coverage, 'coverage_id')
-    && isCoverageDraft(coverage) && isCoverageAssigned(coverage) && !autoAssignToWorkflow && !isItemExpired(planning);
+const canAddCoverageToWorkflow = (coverage, planning) =>
+    isExistingItem(coverage, 'coverage_id') &&
+    isCoverageDraft(coverage) &&
+    isCoverageAssigned(coverage) &&
+    !appConfig.planning_auto_assign_to_workflow &&
+    !isItemExpired(planning);
 
 const canRemoveCoverage = (coverage, planning) => !isItemCancelled(planning) &&
     ([WORKFLOW_STATE.DRAFT, WORKFLOW_STATE.CANCELLED].includes(get(coverage, 'workflow_status')) ||
@@ -450,6 +462,8 @@ const getPlanningActions = ({
 };
 
 export const modifyForClient = (plan) => {
+    sanitizeItemFields(plan);
+
     if (get(plan, 'planning_date')) {
         plan.planning_date = moment(plan.planning_date);
     }
@@ -475,16 +489,24 @@ export const modifyForClient = (plan) => {
 };
 
 const modifyForServer = (plan) => {
-    get(plan, 'coverages', []).forEach((coverage) => {
-        coverage.planning = coverage.planning || {};
-
+    const modifyGenre = (coverage) => {
         if (!get(coverage, 'planning.genre', null)) {
             coverage.planning.genre = null;
         } else if (!isArray(coverage.planning.genre)) {
             coverage.planning.genre = [coverage.planning.genre];
         }
+    };
+
+    get(plan, 'coverages', []).forEach((coverage) => {
+        coverage.planning = coverage.planning || {};
+        modifyGenre(coverage);
 
         delete coverage.planning._scheduledTime;
+
+        get(coverage, 'scheduled_updates', []).forEach((s) => {
+            delete s.planning._scheduledTime;
+            modifyGenre(s);
+        });
     });
 
     return plan;
@@ -496,19 +518,22 @@ const modifyForServer = (plan) => {
  * @return {object} coverage item provided
  */
 const modifyCoverageForClient = (coverage) => {
+    const modifyGenre = (coverage) => {
+        // Convert genre from an Array to an Object
+        if (get(coverage, 'planning.genre[0]')) {
+            coverage.planning.genre = coverage.planning.genre[0];
+        } else if (!get(coverage, 'planning.genre.qcode')) {
+            // only delete when genre not object
+            delete coverage.planning.genre;
+        }
+    };
+
     // Make sure the coverage has a planning field
     if (!get(coverage, 'planning')) {
         coverage.planning = {};
     }
 
-    // Convert genre from an Array to an Object
-    if (get(coverage, 'planning.genre[0]')) {
-        coverage.planning.genre = coverage.planning.genre[0];
-    } else if (!get(coverage, 'planning.genre.qcode')) {
-        // only delete when genre not object
-        delete coverage.planning.genre;
-    }
-
+    modifyGenre(coverage);
     // Convert scheduled into a moment instance
     if (get(coverage, 'planning.scheduled')) {
         coverage.planning.scheduled = moment(coverage.planning.scheduled);
@@ -516,6 +541,14 @@ const modifyCoverageForClient = (coverage) => {
     } else {
         delete coverage.planning.scheduled;
     }
+
+    get(coverage, 'scheduled_updates', []).forEach((s) => {
+        if (s.planning.scheduled) {
+            s.planning.scheduled = moment(s.planning.scheduled);
+            s.planning._scheduledTime = moment(s.planning.scheduled);
+            modifyGenre(s);
+        }
+    });
 
     return coverage;
 };
@@ -600,6 +633,8 @@ const getCoverageReadOnlyFields = (
     newsCoverageStatus,
     addNewsItemToPlanning
 ) => {
+    const scheduledUpdatesExist = get(coverage, 'scheduled_updates.length', 0) > 0;
+
     if (addNewsItemToPlanning) {
         // if newsItem is published, schedule is readOnly
         return {
@@ -611,7 +646,9 @@ const getCoverageReadOnlyFields = (
             genre: true,
             newsCoverageStatus: true,
             scheduled: readOnly || get(addNewsItemToPlanning, 'state') === 'published',
-            flags: false,
+            flags: scheduledUpdatesExist,
+            files: true,
+            xmp_file: true,
         };
     }
 
@@ -636,6 +673,8 @@ const getCoverageReadOnlyFields = (
             newsCoverageStatus: true,
             scheduled: readOnly,
             flags: true,
+            files: readOnly,
+            xmp_file: readOnly,
         };
     case ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS:
     case ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED:
@@ -649,6 +688,8 @@ const getCoverageReadOnlyFields = (
             newsCoverageStatus: true,
             scheduled: readOnly,
             flags: true,
+            files: readOnly,
+            xmp_file: readOnly,
         };
     case ASSIGNMENTS.WORKFLOW_STATE.COMPLETED:
         return {
@@ -661,6 +702,8 @@ const getCoverageReadOnlyFields = (
             newsCoverageStatus: true,
             scheduled: readOnly,
             flags: true,
+            files: readOnly,
+            xmp_file: readOnly,
         };
     case ASSIGNMENTS.WORKFLOW_STATE.CANCELLED:
         return {
@@ -673,6 +716,8 @@ const getCoverageReadOnlyFields = (
             newsCoverageStatus: true,
             scheduled: true,
             flags: true,
+            files: readOnly,
+            xmp_file: readOnly,
         };
     case null:
     default:
@@ -681,11 +726,13 @@ const getCoverageReadOnlyFields = (
             ednote: readOnly,
             keyword: readOnly,
             internal_note: readOnly,
-            g2_content_type: readOnly,
+            g2_content_type: (get(coverage, 'scheduled_updates.length', 0) > 0 ? true : readOnly),
             genre: readOnly,
             newsCoverageStatus: readOnly,
             scheduled: readOnly,
-            flags: false,
+            flags: scheduledUpdatesExist,
+            files: readOnly,
+            xmp_file: readOnly,
         };
     }
 };
@@ -696,7 +743,13 @@ const getFlattenedPlanningByDate = (plansInList, events, startDate, endDate, tim
     return flatten(sortBy(planning, [(e) => (e.date)]).map((e) => e.events.map((k) => [e.date, k._id])));
 };
 
-const getPlanningByDate = (plansInList, events, startDate, endDate, timezone = null) => {
+const getPlanningByDate = (
+    plansInList,
+    events,
+    startDate,
+    endDate,
+    timezone = null,
+    includeScheduledUpdates = false) => {
     if (!plansInList) return [];
 
     const days = {};
@@ -710,11 +763,10 @@ const getPlanningByDate = (plansInList, events, startDate, endDate, timezone = n
     };
 
     plansInList.forEach((plan) => {
-        const dates = {};
+        let dates = {};
         let groupDate = null;
 
-        plan.event = get(events, get(plan, 'event_item'));
-        plan.coverages.forEach((coverage) => {
+        const setCoverageToDate = (coverage) => {
             groupDate = getGroupDate(moment(get(coverage, 'planning.scheduled', plan.planning_date)).clone());
             if (!isDateInRange(groupDate, startDate, endDate)) {
                 return;
@@ -722,6 +774,17 @@ const getPlanningByDate = (plansInList, events, startDate, endDate, timezone = n
 
             if (!get(dates, groupDate.format('YYYY-MM-DD'))) {
                 dates[groupDate.format('YYYY-MM-DD')] = groupDate;
+            }
+        };
+
+        plan.event = get(events, get(plan, 'event_item'));
+        plan.coverages.forEach((coverage) => {
+            setCoverageToDate(coverage);
+
+            if (includeScheduledUpdates) {
+                (get(coverage, 'scheduled_updates') || []).forEach((s) => {
+                    setCoverageToDate(s);
+                });
             }
         });
 
@@ -744,15 +807,7 @@ const getPlanningByDate = (plansInList, events, startDate, endDate, timezone = n
         }
     });
 
-    let sortable = [];
-
-    for (let day in days)
-        sortable.push({
-            date: day,
-            events: sortBy(days[day], [(e) => e._sortDate]),
-        });
-
-    return sortBy(sortable, [(e) => e.date]);
+    return sortBasedOnTBC(days);
 };
 
 const isLockedForAddToPlanning = (item) => get(item, 'lock_action') ===
@@ -763,18 +818,40 @@ const isCoverageInWorkflow = (coverage) => !isEmpty(coverage.assigned_to) &&
     get(coverage, 'assigned_to.state') !== WORKFLOW_STATE.DRAFT;
 const formatAgendaName = (agenda) => agenda.is_enabled ? agenda.name : agenda.name + ` - [${gettext('Disabled')}]`;
 
+const getCoverageDateTimeText = (coverage) =>
+    get(coverage, TO_BE_CONFIRMED_FIELD) ? (
+        get(coverage, 'planning.scheduled').format(appConfig.view.dateformat) +
+        ' @ ' +
+        TO_BE_CONFIRMED_SHORT_TEXT
+    ) :
+        getDateTimeString(
+            get(coverage, 'planning.scheduled'),
+            appConfig.view.dateformat,
+            appConfig.view.timeformat,
+            ' @ ',
+            false
+        );
+
 /**
  * Get the name of associated icon for different coverage types
  * @param {type} coverage types
  * @returns {string} icon name
  */
-const getCoverageIcon = (type) => {
+const getCoverageIcon = (type, coverage) => {
+    if (get(coverage, 'scheduled_updates.length', 0) > 0 ||
+            (get(coverage, 'scheduled_update_id') && get(coverage, 'assignment_id'))) {
+        return 'icon-copy';
+    }
+
     const coverageIcons = {
         [PLANNING.G2_CONTENT_TYPE.TEXT]: 'icon-text',
         [PLANNING.G2_CONTENT_TYPE.VIDEO]: 'icon-video',
         [PLANNING.G2_CONTENT_TYPE.LIVE_VIDEO]: 'icon-video',
         [PLANNING.G2_CONTENT_TYPE.AUDIO]: 'icon-audio',
         [PLANNING.G2_CONTENT_TYPE.PICTURE]: 'icon-photo',
+        [PLANNING.G2_CONTENT_TYPE.GRAPHIC]: 'icon-graphic',
+        [PLANNING.G2_CONTENT_TYPE.LIVE_BLOG]: 'icon-post',
+        [PLANNING.G2_CONTENT_TYPE.VIDEO_EXPLAINER]: 'icon-play',
     };
 
     return get(coverageIcons, type, 'icon-file');
@@ -837,11 +914,12 @@ const defaultPlanningValues = (currentAgenda, defaultPlaceList) => {
     return self.modifyForClient(newPlanning);
 };
 
+const getDefaultCoverageStatus = (newsCoverageStatus) => newsCoverageStatus[0];
+
 const defaultCoverageValues = (
     newsCoverageStatus,
     planningItem,
     eventItem,
-    longEventDurationThreshold,
     g2contentType,
     defaultDesk,
     preferredCoverageDesks) => {
@@ -854,11 +932,13 @@ const defaultCoverageValues = (
             scheduled: get(planningItem, 'planning_date', moment()),
             g2_content_type: g2contentType,
         },
-        news_coverage_status: newsCoverageStatus[0],
+        news_coverage_status: getDefaultCoverageStatus(newsCoverageStatus),
         workflow_status: WORKFLOW_STATE.DRAFT,
     };
 
-    newCoverage.planning._scheduledTime = newCoverage.planning.scheduled;
+    if (get(planningItem, TO_BE_CONFIRMED_FIELD)) {
+        newCoverage[TO_BE_CONFIRMED_FIELD] = planningItem[TO_BE_CONFIRMED_FIELD];
+    }
 
     if (planningItem) {
         let coverageTime = null;
@@ -884,32 +964,35 @@ const defaultCoverageValues = (
             }
             newCoverage.planning.scheduled = coverageTime;
         }
-        if (eventItem && longEventDurationThreshold > -1) {
-            if (longEventDurationThreshold === 0) {
+        if (eventItem && appConfig.long_event_duration_threshold > -1) {
+            if (appConfig.long_event_duration_threshold === 0) {
                 newCoverage.planning.scheduled = get(eventItem, 'dates.end', moment()).clone();
             } else {
                 let duration = parseInt(moment.duration(get(eventItem, 'dates.end').diff(get(eventItem,
                     'dates.start'))).asHours(), 10);
 
-                if (duration > longEventDurationThreshold) {
+                if (duration > appConfig.long_event_duration_threshold) {
                     delete newCoverage.planning.scheduled;
                     delete newCoverage.planning._scheduledTime;
                 }
             }
         }
+        newCoverage.planning._scheduledTime = newCoverage.planning.scheduled;
     }
 
-    if (get(preferredCoverageDesks, g2contentType)) {
-        newCoverage.assigned_to = {desk: preferredCoverageDesks[g2contentType]};
-    } else if (g2contentType === 'text' && defaultDesk) {
-        newCoverage.assigned_to = {desk: defaultDesk._id};
-    } else {
-        delete newCoverage.assigned_to;
-    }
-
+    self.setDefaultAssignment(newCoverage, preferredCoverageDesks, g2contentType, defaultDesk);
     return newCoverage;
 };
 
+const setDefaultAssignment = (coverage, preferredCoverageDesks, g2contentType, defaultDesk) => {
+    if (get(preferredCoverageDesks, g2contentType)) {
+        coverage.assigned_to = {desk: preferredCoverageDesks[g2contentType]};
+    } else if (g2contentType === 'text' && defaultDesk) {
+        coverage.assigned_to = {desk: defaultDesk._id};
+    } else {
+        delete coverage.assigned_to;
+    }
+};
 
 const modifyPlanningsBeingAdded = (state, payload) => {
     // payload must be an array. If not, we transform
@@ -938,14 +1021,90 @@ const isFeaturedPlanningUpdatedAfterPosting = (item) => {
 };
 
 const shouldFetchFilesForPlanning = (planning) => (
-    get(planning, 'files', []).filter((f) => typeof (f) === 'string'
+    self.getPlanningFiles(planning).filter((f) => typeof (f) === 'string'
             || f instanceof String).length > 0
 );
 
-const getAgendaNames = (item = {}, agendas = []) => (
+const getAgendaNames = (item = {}, agendas = [], onlyEnabled = false) => (
     get(item, 'agendas', [])
         .map((agendaId) => agendas.find((agenda) => agenda._id === get(agendaId, '_id', agendaId)))
-        .filter((agenda) => agenda)
+        .filter((agenda) => agenda && (!onlyEnabled || agenda.is_enabled))
+);
+
+const getDateStringForPlanning = (planning) =>
+    get(planning, TO_BE_CONFIRMED_FIELD) ?
+        planning.planning_date.format(appConfig.view.dateformat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT :
+        getDateTimeString(
+            get(planning, 'planning_date'),
+            appConfig.view.dateformat,
+            appConfig.view.timeformat,
+            ' @ ',
+            false
+        );
+
+const getCoverageDateText = (coverage) => {
+    const coverageDate = get(coverage, 'planning.scheduled');
+
+    return !coverageDate ?
+        gettext('Not scheduled yet') :
+        getDateTimeString(
+            coverageDate,
+            appConfig.view.dateformat,
+            appConfig.view.timeformat,
+            ' @ ',
+            false
+        );
+};
+
+const canAddScheduledUpdateToWorkflow = (scheduledUpdate, autoAssignToWorkflow, planning, coverage) =>
+    isExistingItem(scheduledUpdate, 'scheduled_update_id') && isCoverageInWorkflow(coverage) &&
+    isCoverageDraft(scheduledUpdate) && isCoverageAssigned(scheduledUpdate) && !autoAssignToWorkflow &&
+    !isItemExpired(planning);
+
+const setCoverageActiveValues = (coverage, newsCoverageStatus) => {
+    set(coverage, 'news_coverage_status', newsCoverageStatus.find((s) => s.qcode === 'ncostat:int'));
+    set(coverage, 'workflow_status', COVERAGES.WORKFLOW_STATE.ACTIVE);
+    set(coverage, 'assigned_to.state', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED);
+};
+
+const getActiveCoverage = (updatedCoverage, newsCoverageStatus) => {
+    const coverage = cloneDeep(updatedCoverage);
+
+    setCoverageActiveValues(coverage, newsCoverageStatus);
+    (get(coverage, 'scheduled_updates') || []).forEach((s) => {
+        // Add the scheduled_update to workflow if they have an assignment
+        if (get(s, 'assigned_to')) {
+            setCoverageActiveValues(s, newsCoverageStatus);
+        }
+    });
+
+    return coverage;
+};
+
+const getPlanningFiles = (planning) => {
+    let filesToFetch = get(planning, 'files') || [];
+
+    (get(planning, 'coverages') || []).forEach((c) => {
+        if ((c.planning.files || []).length) {
+            filesToFetch = [
+                ...filesToFetch,
+                ...c.planning.files,
+            ];
+        }
+
+        if (c.planning.xmp_file) {
+            filesToFetch.push(c.planning.xmp_file);
+        }
+    });
+
+    return filesToFetch;
+};
+
+const showXMPFileUIControl = (coverage) => (
+    get(coverage, 'planning.g2_content_type') === 'picture' && (
+        appConfig.planning_use_xmp_for_pic_assignments ||
+        appConfig.planning_use_xmp_for_pic_slugline
+    )
 );
 
 // eslint-disable-next-line consistent-this
@@ -992,6 +1151,15 @@ const self = {
     getAgendaNames,
     getFlattenedPlanningByDate,
     canAddCoverageToWorkflow,
+    getCoverageDateTimeText,
+    getDateStringForPlanning,
+    setDefaultAssignment,
+    getCoverageDateText,
+    getActiveCoverage,
+    canAddScheduledUpdateToWorkflow,
+    getDefaultCoverageStatus,
+    getPlanningFiles,
+    showXMPFileUIControl,
 };
 
 export default self;

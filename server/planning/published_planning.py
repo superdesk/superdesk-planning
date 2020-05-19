@@ -89,7 +89,9 @@ class PublishedPlanningResource(Resource):
         },
         # The item as published
         'published_item': {
-            'type': 'dict'
+            'type': 'dict',
+            'schema': {},
+            'allow_unknown': True,
         }
     }
 

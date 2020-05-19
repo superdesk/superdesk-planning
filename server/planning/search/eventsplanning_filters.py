@@ -38,6 +38,9 @@ filters_schema = {
     'calendars': {
         'type': 'list',
     },
+    'places': {
+        'type': 'list',
+    },
     # Audit Information
     'original_creator': Resource.rel('users'),
     'version_creator': Resource.rel('users')
@@ -74,8 +77,8 @@ class EventPlanningFiltersService(superdesk.Service):
 
     def is_valid(self, doc):
         """Check if the filter is valid"""
-        if not doc.get('calendars') and not doc.get('agendas'):
-            raise SuperdeskApiError(message="Either Calendar or Agenda is required.")
+        if not doc.get('calendars') and not doc.get('agendas') and not doc.get('places'):
+            raise SuperdeskApiError(message="Either a Calendar, Agenda or Place is required.")
 
     def _push_notification(self, _id, event_name):
         """Push socket notifiction"""

@@ -1,17 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
-import {connect} from 'react-redux';
 import classNames from 'classnames';
-import {getDateFormat, getTimeFormat} from '../../selectors/config';
+
+import {appConfig} from 'appConfig';
+
 import {timeUtils} from '../../utils';
 import './style.scss';
 
-function Datetime({date, withTime, withDate, withYear, dateFormat, timeFormat, darkText, tz, isRemoteTimeZone}) {
-    let format = withYear ? dateFormat : dateFormat.replace(/y/gi, '');
+function Datetime({date, withTime, withDate, withYear, darkText, tz, isRemoteTimeZone}) {
+    let format = withYear ? appConfig.view.dateformat : appConfig.view.dateformat.replace(/y/gi, '');
     let dateTimeFormat = [
         withDate ? format : null,
-        withTime ? timeFormat : null,
+        withTime ? appConfig.view.timeformat : null,
     ].filter((d) => d).join('\u00a0'); // &nbsp;
     const localTz = timeUtils.localTimeZone();
     const momentDate = moment(date);
@@ -52,8 +53,6 @@ Datetime.propTypes = {
     withTime: PropTypes.bool,
     withYear: PropTypes.bool,
     withDate: PropTypes.bool,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
     darkText: PropTypes.bool,
     tz: PropTypes.string,
     isRemoteTimeZone: PropTypes.bool,
@@ -67,9 +66,4 @@ Datetime.defaultProps = {
     isRemoteTimeZone: false,
 };
 
-const mapStateToProps = (state) => ({
-    dateFormat: getDateFormat(state),
-    timeFormat: getTimeFormat(state),
-});
-
-export default connect(mapStateToProps)(Datetime);
+export default Datetime;

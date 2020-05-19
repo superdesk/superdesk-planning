@@ -1,4 +1,4 @@
-.sd-column-box__main-column--vertical-scroll {
+.sd-column-box--vertical-scroll {
     overflow-y: scroll;
     overflow-x: hidden;
     height: calc(100vh - 250px);
@@ -7,5 +7,6 @@
 .EventsPlanningFilter {
     .sd-column-box__slide-in-column {
         width: 40rem;
+        flex-shrink: 0;
     }
 }

@@ -1,17 +1,18 @@
+import {get, cloneDeep, forEach} from 'lodash';
+import moment from 'moment';
 import {showModal} from '../index';
 import assignments from './index';
+import planningApi from '../planning/api';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
-import {ASSIGNMENTS, MODALS, WORKSPACE} from '../../constants';
+import {ASSIGNMENTS, MODALS, WORKSPACE, ALL_DESKS} from '../../constants';
 import {getErrorMessage, assignmentUtils, gettext} from '../../utils';
-import {get, cloneDeep} from 'lodash';
 
 /**
  * Action dispatcher to load the list of assignments for current list settings.
  * @param {String} filterBy - the filter by desk or user ('Desk', 'User')
  * @param {String} searchQuery - the text used for free text query
  * @param {String} orderByField - the field used to order the assignments ('Created', 'Updated')
- * @param {String} orderDirection - the direction of order ('Asc', 'Desc')
  * @param {String} filterByType - Type of the assignment
  * @param {String} filterByPriority - The priority to filter for
  * @param {String} selectedDeskId - The Desk ID
@@ -20,20 +21,20 @@ const loadAssignments = ({
     filterBy = 'Desk',
     searchQuery = null,
     orderByField = 'Scheduled',
-    orderDirection = 'Asc',
     filterByType = null,
     filterByPriority = null,
     selectedDeskId = null,
+    ignoreScheduledUpdates = false,
 }) => (dispatch) => {
     dispatch(
         self.changeListSettings({
             filterBy,
             searchQuery,
             orderByField,
-            orderDirection,
             filterByType,
             filterByPriority,
             selectedDeskId,
+            ignoreScheduledUpdates,
         })
     );
 
@@ -55,19 +56,14 @@ const loadFulfillModal = (item, groupKeys) => (
             `planning.slugline.phrase:("${item.slugline}")` :
             null;
 
-        const currentDesk = get(desks, 'active.desk');
-        const selectedDeskId = get(item, 'task.desk') ?
-            item.task.desk :
-            currentDesk;
-
         return dispatch(self.loadAssignments({
             filterBy: 'Desk',
             searchQuery: searchQuery,
             orderByField: 'Scheduled',
-            orderDirection: 'Asc',
             filterByType: get(item, 'type'),
             filterByPriority: null,
-            selectedDeskId: selectedDeskId,
+            selectedDeskId: ALL_DESKS,
+            ignoreScheduledUpdates: true,
         }));
     }
 );
@@ -122,17 +118,31 @@ const reloadAssignments = (filterByState = null, resetPage = true) => (
 
         let dispatches = [];
 
-        listGroups.forEach((key) => {
-            const group = ASSIGNMENTS.LIST_GROUPS[key];
-
-            if (resetPage) {
-                dispatch(self.changeLastAssignmentLoadedPage(group));
-            }
-
-            dispatches.push(dispatch(self.queryAndSetAssignmentListGroups(key)));
-        });
+        listGroups.forEach((key) => (
+            dispatches.push(
+                dispatch(self.reloadAssignmentList(key, resetPage))
+            )
+        ));
 
         return Promise.all(dispatches);
+    }
+);
+
+/**
+ * Action dispatcher to reload a single list of Assignments
+ * @param {String} list - The list group key to reload
+ * @param {boolean} resetPage - If true, the page for the list groups are set to 1
+ * @returns {Promise} - A promise containing the result of queryAndSetAssignmentListGroups action
+ */
+const reloadAssignmentList = (list, resetPage = true) => (
+    (dispatch) => {
+        if (resetPage) {
+            dispatch(self.changeLastAssignmentLoadedPage(
+                ASSIGNMENTS.LIST_GROUPS[list]
+            ));
+        }
+
+        return dispatch(self.queryAndSetAssignmentListGroups(list));
     }
 );
 
@@ -182,11 +192,13 @@ const updatePreviewItemOnRouteUpdate = () => (
 const queryAndSetAssignmentListGroups = (groupKey, page = 1) => (
     (dispatch, getState) => {
         let querySearchSettings = cloneDeep(selectors.getAssignmentSearch(getState()));
+        const assignmentListSelectors = selectors.getAssignmentGroupSelectors[groupKey];
         const group = ASSIGNMENTS.LIST_GROUPS[groupKey];
 
         querySearchSettings.states = group.states;
         querySearchSettings.page = page;
         querySearchSettings.dateFilter = group.dateFilter;
+        querySearchSettings.orderDirection = assignmentListSelectors.sortOrder(getState());
 
         return dispatch(assignments.api.query(querySearchSettings))
             .then((data) => {
@@ -265,7 +277,6 @@ const changeLastAssignmentLoadedPage = (listGroup, pageNum = 1) => ({
  * @param {string} filterBy - the filter by desk or user ('Desk', 'User')
  * @param {string} searchQuery - the text used for free text query
  * @param {string} orderByField - the field used to order the assignments ('Created', 'Updated')
- * @param {string} orderDirection - the direction of order ('Asc', 'Desc')
  * @param {string} filterByPriority - Priority of the assignment
  * @param {string} filterByType - Type of the assignment
  * @param {string} selectedDeskId - Desk Id
@@ -275,20 +286,20 @@ const changeListSettings = ({
     filterBy = 'Desk',
     searchQuery = null,
     orderByField = 'Scheduled',
-    orderDirection = 'Asc',
     filterByType = null,
     filterByPriority = null,
     selectedDeskId = null,
+    ignoreScheduledUpdates = false,
 }) => ({
     type: ASSIGNMENTS.ACTIONS.CHANGE_LIST_SETTINGS,
     payload: {
         filterBy,
         searchQuery,
         orderByField,
-        orderDirection,
         filterByType,
         filterByPriority,
         selectedDeskId,
+        ignoreScheduledUpdates,
     },
 });
 
@@ -445,8 +456,10 @@ const complete = (item) => (
                         notify.success('The assignment has been completed.');
                         return Promise.resolve(lockedItem);
                     }, (error) => {
-                        notify.error('Failed to complete the assignment.');
-                        return Promise.reject(error);
+                        notify.error(getErrorMessage(error, 'Failed to complete the assignment.'));
+
+                        // unlock the assignment
+                        return dispatch(self.unlockAssignment(lockedItem));
                     });
             }, (error) => Promise.reject(error))
     )
@@ -541,62 +554,116 @@ const canLinkItem = (item) => (
     )
 );
 
-const openSelectTemplateModal = (assignment) => (
-    (dispatch, getState, {templates, session, desks, notify}) => (
-        dispatch(self.lockAssignment(assignment, 'start_working'))
-            .then((lockedAssignment) => {
-                const currentDesk = desks.getCurrentDesk();
-                const defaultTemplateId = get(currentDesk, 'default_content_template') || null;
+const validateStartWorkingOnScheduledUpdate = (assignment) => (
+    (dispatch, getState, {notify}) => (
+        // Validate the coverage to see if all preceeding scheduled_updates / coverage
+        // is linked to an item
+        dispatch(planningApi.loadPlanningByIds([get(assignment, 'planning_item')], false)).then(
+            (plannings) => {
+                const planning = get(plannings, '[0]');
 
-                return templates.fetchTemplatesByUserDesk(
-                    session.identity._id,
-                    get(currentDesk, '_id') || null,
-                    1,
-                    200,
-                    'create'
-                ).then((data) => {
-                    let defaultTemplate = null;
-                    const publicTemplates = [];
-                    const privateTemplates = [];
+                if (!planning) {
+                    notify.error(gettext('Failed to fetch planning item.'));
+                    return Promise.reject();
+                }
 
-                    (get(data, '_items') || []).forEach((template) => {
-                        if (get(template, '_id') === defaultTemplateId) {
-                            defaultTemplate = template;
-                        } else if (get(template, 'is_public') !== false) {
-                            publicTemplates.push(template);
-                        } else {
-                            privateTemplates.push(template);
-                        }
-                    });
+                const coverage = get(planning, 'coverages', []).find((c) =>
+                    c.coverage_id === assignment.coverage_item);
 
-                    const onSelect = (template) => (
-                        dispatch(assignments.api.createFromTemplateAndShow(
-                            assignment._id,
-                            template.template_name
-                        )).catch((error) => {
-                            dispatch(self.unlockAssignment(assignment));
-                            notify.error(getErrorMessage(error, gettext('Failed to create an archive item.')));
-                            return Promise.reject(error);
-                        })
-                    );
+                if (![ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS, ASSIGNMENTS.WORKFLOW_STATE.COMPLETED].includes(
+                    get(coverage, 'assigned_to.state'))) {
+                    notify.error(gettext('Parent coverage not linked to a news item yet.'));
+                    return Promise.reject();
+                }
 
-                    const onCancel = () => (
-                        dispatch(assignments.api.unlock(lockedAssignment))
-                    );
+                const scheduledUpdate = (get(coverage, 'scheduled_updates') || []).find((s) =>
+                    s.scheduled_update_id === assignment.scheduled_update_id);
+                const previousScheduledUpdateIndex = (get(coverage, 'scheduled_updates') || []).findIndex((s) => {
+                    if (moment.isMoment(get(s, 'planning.scheduled')) && moment.isMoment(
+                        get(scheduledUpdate, 'planning.scheduled'))) {
+                        return s.planning.scheduled >= scheduledUpdate.planning.scheduled;
+                    }
+                    return Promise.reject();
+                }) - 1;
 
-                    return dispatch(showModal({
-                        modalType: MODALS.SELECT_DESK_TEMPLATE,
-                        modalProps: {
-                            onSelect: onSelect,
-                            onCancel: onCancel,
-                            defaultTemplate: defaultTemplate,
-                            publicTemplates: publicTemplates,
-                            privateTemplates: privateTemplates,
-                        },
-                    }));
-                });
-            }, (error) => Promise.reject(error))
+                if (previousScheduledUpdateIndex >= 0 && ![ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS,
+                    ASSIGNMENTS.WORKFLOW_STATE.COMPLETED].includes(get(
+                    coverage, `scheduled_updates[${previousScheduledUpdateIndex}].assigned_to.state`))) {
+                    notify.error(gettext('Previous scheduled update is not linked to a news item yet.'));
+                    return Promise.reject();
+                }
+
+                return Promise.resolve();
+            }
+        )
     )
+);
+
+const startWorking = (assignment) => (
+    (dispatch, getState, {templates, session, desks, notify}) => {
+        let promise = Promise.resolve();
+
+        if (get(assignment, 'scheduled_update_id')) {
+            promise = dispatch(self.validateStartWorkingOnScheduledUpdate(assignment));
+        }
+
+        promise.then(() =>
+            (dispatch(self.lockAssignment(assignment, 'start_working'))
+                .then((lockedAssignment) => {
+                    const currentDesk = assignmentUtils.getCurrentSelectedDesk(desks, getState());
+                    const defaultTemplateId = get(currentDesk, 'default_content_template') || null;
+
+                    return templates.fetchTemplatesByUserDesk(
+                        session.identity._id,
+                        get(currentDesk, '_id') || null,
+                        1,
+                        200,
+                        'create'
+                    ).then((data) => {
+                        let defaultTemplate = null;
+                        const publicTemplates = [];
+                        const privateTemplates = [];
+
+                        (get(data, '_items') || []).forEach((template) => {
+                            if (get(template, '_id') === defaultTemplateId) {
+                                defaultTemplate = template;
+                            } else if (get(template, 'is_public') !== false) {
+                                publicTemplates.push(template);
+                            } else {
+                                privateTemplates.push(template);
+                            }
+                        });
+
+                        const onSelect = (template) => (
+                            dispatch(assignments.api.createFromTemplateAndShow(
+                                assignment._id,
+                                template.template_name
+                            )).catch((error) => {
+                                dispatch(self.unlockAssignment(assignment));
+                                notify.error(getErrorMessage(error, gettext('Failed to create an archive item.')));
+                                return Promise.reject(error);
+                            })
+                        );
+
+                        const onCancel = () => (
+                            dispatch(assignments.api.unlock(lockedAssignment))
+                        );
+
+                        return dispatch(showModal({
+                            modalType: MODALS.SELECT_DESK_TEMPLATE,
+                            modalProps: {
+                                onSelect: onSelect,
+                                onCancel: onCancel,
+                                defaultTemplate: defaultTemplate,
+                                publicTemplates: publicTemplates,
+                                privateTemplates: privateTemplates,
+                            },
+                        }));
+                    });
+                }, (error) => Promise.reject(error))
+            ), (error) => Promise.resolve()
+        );
+    }
 );
 
 const _openActionModal = (assignment, action, lockAction = null) => (
@@ -764,14 +831,18 @@ const unlockAssignmentAndPlanning = (assignment) => (
  */
 const showRemoveAssignmentModal = (assignment) => (
     (dispatch) => (
-        dispatch(self.lockAssignmentAndPlanning(assignment, ASSIGNMENTS.ITEM_ACTIONS.REMOVE.lock_action))
+        dispatch(self.lockAssignment(assignment, ASSIGNMENTS.ITEM_ACTIONS.REMOVE.lock_action))
             .then((lockedAssignment) => {
+                // Set _links to the original otherwise removeAssignment attempts to send
+                // DELETE to the assignments_lock endpoint
+                lockedAssignment._links = assignment._links;
                 dispatch(showModal({
                     modalType: MODALS.CONFIRMATION,
                     modalProps: {
-                        body: 'Are you sure you want to remove the Assignment?',
+                        body: gettext('This will also remove other linked assignments (if any, for story updates). '
+                            + 'Are you sure?'),
                         action: () => dispatch(self.removeAssignment(lockedAssignment)),
-                        onCancel: () => dispatch(self.unlockAssignmentAndPlanning(lockedAssignment)),
+                        onCancel: () => dispatch(self.unlockAssignment(lockedAssignment)),
                         autoClose: true,
                     },
                 }));
@@ -797,7 +868,7 @@ const removeAssignment = (assignment) => (
                 notify.error(
                     getErrorMessage(error, 'Failed to remove the Assignment')
                 );
-
+                dispatch(self.unlockAssignment(assignment));
                 return Promise.reject(error);
             })
     )
@@ -808,6 +879,118 @@ const setListGroups = (groupKeys) => ({
     payload: groupKeys,
 });
 
+/**
+ * Action dispatcher to set the list sort order in redux
+ * @param {String} list - The list group key
+ * @param {String} sortOrder - The sort order to use ('Asc' or 'Desc')
+ */
+const setListSortOrder = (list, sortOrder) => ({
+    type: ASSIGNMENTS.ACTIONS.SET_GROUP_SORT_ORDER,
+    payload: {list, sortOrder},
+});
+
+/**
+ * Action dispatcher to change the list sort order and reload the list of assignments
+ * (optionally saves to user preferences)
+ * @param {String} list - The list group key
+ * @param {String} sortOrder - The sort order to use ('Asc' or 'Desc')
+ * @param {boolean} savePreference - If true, save the list sort order to the current users' preferences
+ */
+const changeListSortOrder = (list, sortOrder, savePreference = true) => (
+    (dispatch) => {
+        dispatch(self.setListSortOrder(list, sortOrder));
+
+        if (savePreference) {
+            dispatch(actions.users.setAssignmentSortOrder(list, sortOrder));
+        }
+
+        return dispatch(self.reloadAssignmentList(list, false));
+    }
+);
+
+/**
+ * Action dispatcher to set the field to sort by for all lists
+ * @param {String} field - The name of the field to sort by
+ */
+const setSortField = (field) => ({
+    type: ASSIGNMENTS.ACTIONS.SET_SORT_FIELD,
+    payload: field,
+});
+
+/**
+ * Action dispatcher to change the field to sort by for all lists and reload all lists of assignments
+ * (optionally saves to user preferences)
+ * @param {String} field - The name of the field to sort by
+ * @param {boolean} savePreference - If true, save the sort field to the current users' preferences
+ * @returns {Promise} - A promise with the result of the reloadAssignments action
+ */
+const changeSortField = (field, savePreference = true) => (
+    (dispatch) => {
+        dispatch(self.setSortField(field));
+
+        if (savePreference) {
+            dispatch(actions.users.setAssignmentSortField(field));
+        }
+
+        return dispatch(self.reloadAssignments(null, false));
+    }
+);
+
+/**
+ * Action dispatcher to load the current users' preferred sort field and list orders
+ * (This assumes the users' preferences have already been loaded into redux)
+ */
+const loadDefaultListSort = () => (
+    (dispatch, getState) => {
+        const defaultSort = get(
+            selectors.general.preferredAssignmentSort(getState()),
+            'sort',
+            {}
+        );
+
+        dispatch(self.setSortField(get(defaultSort, 'field') || 'Scheduled'));
+
+        forEach(get(defaultSort, 'order') || {}, (order, list) => {
+            dispatch(self.setListSortOrder(list, order));
+        });
+    }
+);
+
+/**
+ * Show the Coverage Assignment modal
+ * @param {string} field - The field to edit in the item
+ * @param {Object} value - The item to edit
+ * @param {Function} onChange - onChange callback
+ * @param {string} priorityPrefix - The prefix for the priority field
+ * @param {boolean} disableDeskSelection - If true, disables the Desk input field
+ * @param {boolean} disableUserSelection - If true, disables the User input field
+ * @param {Function} setCoverageDefaultDesk - Callback function to set default desk for coverages
+ */
+const showEditCoverageAssignmentModal = ({
+    field,
+    value,
+    onChange,
+    priorityPrefix,
+    disableDeskSelection,
+    disableUserSelection,
+    setCoverageDefaultDesk,
+}) => (
+    (dispatch) => {
+        dispatch(showModal({
+            modalType: MODALS.EDIT_COVERAGE_ASSIGNMENT,
+            modalProps: {
+                field,
+                value,
+                onChange,
+                priorityPrefix,
+                disableDeskSelection,
+                disableUserSelection,
+                setCoverageDefaultDesk,
+            },
+        }));
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     loadAssignments,
@@ -815,6 +998,7 @@ const self = {
     queryAndSetAssignmentListGroups,
     changeListSettings,
     reloadAssignments,
+    reloadAssignmentList,
     loadMoreAssignments,
     preview,
     closePreview,
@@ -830,7 +1014,7 @@ const self = {
     onAuthoringMenuClick,
     canLinkItem,
     _openActionModal,
-    openSelectTemplateModal,
+    startWorking,
     addToAssignmentListGroup,
     onArchivePreviewImageClick,
     showRemoveAssignmentModal,
@@ -847,6 +1031,13 @@ const self = {
     setListGroups,
     loadFulfillModal,
     previewFirstInListGroup,
+    setListSortOrder,
+    changeListSortOrder,
+    setSortField,
+    loadDefaultListSort,
+    changeSortField,
+    validateStartWorkingOnScheduledUpdate,
+    showEditCoverageAssignmentModal,
 };
 
 export default self;

@@ -7,6 +7,7 @@ import {eventUtils, gettext, timeUtils} from '../../../utils';
 
 import {Row, DateTimeInput, LineInput, ToggleInput, Field, TimeZoneInput} from '../../UI/Form';
 import {RecurringRulesInput} from '../RecurringRulesInput';
+import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
 
 export class EventScheduleInput extends React.Component {
     constructor(props) {
@@ -19,6 +20,7 @@ export class EventScheduleInput extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.handleAllDayChange = this.handleAllDayChange.bind(this);
         this.handleDoesRepeatChange = this.handleDoesRepeatChange.bind(this);
+        this.handleToBeConfirmed = this.handleToBeConfirmed.bind(this);
     }
 
     componentWillMount() {
@@ -123,6 +125,7 @@ export class EventScheduleInput extends React.Component {
             changes['_endTime'] = changes['dates.end'].clone();
         }
         changes['_startTime'] = newStartDate;
+        this.setToBeConfirmed(changes);
         this.props.onChange(changes, null);
     }
 
@@ -158,7 +161,15 @@ export class EventScheduleInput extends React.Component {
             changes['_startTime'] = changes['dates.start'].clone();
         }
         changes['_endTime'] = newEndDate;
+        this.setToBeConfirmed(changes);
         this.props.onChange(changes, null);
+    }
+
+    setToBeConfirmed(changes) {
+        if ((changes['_startTime'] || this.props.diff._startTime) &&
+            (changes['_endTime'] || this.props.diff._endTime)) {
+            changes[TO_BE_CONFIRMED_FIELD] = false;
+        }
     }
 
     componentWillReceiveProps(nextProps) {
@@ -205,6 +216,7 @@ export class EventScheduleInput extends React.Component {
             'dates.end': newEnd,
             _startTime: startTime,
             _endTime: endTime,
+            [TO_BE_CONFIRMED_FIELD]: false,
         }, null);
     }
 
@@ -229,14 +241,20 @@ export class EventScheduleInput extends React.Component {
         }
     }
 
+    handleToBeConfirmed(field) {
+        this.props.onChange({
+            [TO_BE_CONFIRMED_FIELD]: true,
+            _startTime: get(this.props, 'diff._startTime'),
+            _endTime: get(this.props, 'diff._endTime'),
+        }, null);
+    }
+
     render() {
         const {
             item,
             diff,
             showRepeat,
             showRepeatToggle,
-            timeFormat,
-            dateFormat,
             readOnly,
             errors,
             showErrors,
@@ -246,6 +264,7 @@ export class EventScheduleInput extends React.Component {
             onPopupClose,
             showTimeZone,
             refNode,
+            formProfile,
         } = this.props;
         const {isAllDay} = this.state;
 
@@ -296,7 +315,6 @@ export class EventScheduleInput extends React.Component {
                     <RecurringRulesInput
                         onChange={this.onChange}
                         schedule={diff.dates || {}}
-                        dateFormat={dateFormat}
                         readOnly={readOnly}
                         errors={get(errors, 'dates.recurring_rule')}
                         popupContainer={popupContainer}
@@ -309,8 +327,6 @@ export class EventScheduleInput extends React.Component {
                     component={DateTimeInput}
                     field="dates.start"
                     label={ doesRepeat && showFirstEventLabel ? gettext('First Event Starts') : gettext('Event Starts')}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     row={false}
                     defaultValue={null}
                     popupContainer={popupContainer}
@@ -324,14 +340,15 @@ export class EventScheduleInput extends React.Component {
                     allowInvalidTime
                     isLocalTimeZoneDifferent={isRemoteTimeZone}
                     refNode={refNode}
+                    showToBeConfirmed
+                    onToBeConfirmed={this.handleToBeConfirmed}
+                    toBeConfirmed={get(diff, TO_BE_CONFIRMED_FIELD)}
                 />
 
                 <Field
                     component={DateTimeInput}
                     field="dates.end"
                     label={ doesRepeat && showFirstEventLabel ? gettext('First Event Ends') : gettext('Event Ends')}
-                    timeFormat={timeFormat}
-                    dateFormat={dateFormat}
                     row={false}
                     defaultValue={null}
                     popupContainer={popupContainer}
@@ -344,17 +361,20 @@ export class EventScheduleInput extends React.Component {
                     remoteTimeZone={get(diff, 'dates.tz')}
                     allowInvalidTime
                     isLocalTimeZoneDifferent={isRemoteTimeZone}
+                    showToBeConfirmed
+                    onToBeConfirmed={this.handleToBeConfirmed}
+                    toBeConfirmed={get(diff, TO_BE_CONFIRMED_FIELD)}
                 />
 
                 <Row flex={true} noPadding>
-                    <Field
+                    {get(formProfile, 'editor.dates.all_day.enabled') && <Field
                         onChange={this.handleAllDayChange}
                         field="dates.all_day"
                         label={gettext('All Day')}
                         value={isAllDay}
 
                         {...toggleProps}
-                    />
+                    />}
                     {showTimeZone && <Field
                         field="dates.tz"
                         label={gettext('Timezone')}
@@ -362,7 +382,7 @@ export class EventScheduleInput extends React.Component {
                         onChange={this.onChange}
                         row={false}
                         {...fieldProps}
-                        halfWidth />}
+                        halfWidth={get(formProfile, 'editor.dates.all_day.enabled')} />}
                 </Row>
 
                 <Row
@@ -386,8 +406,6 @@ EventScheduleInput.propTypes = {
     showRepeat: PropTypes.bool,
     showRepeatSummary: PropTypes.bool,
     showRepeatToggle: PropTypes.bool,
-    timeFormat: PropTypes.string.isRequired,
-    dateFormat: PropTypes.string.isRequired,
     errors: PropTypes.object,
     showErrors: PropTypes.bool,
     dirty: PropTypes.bool,

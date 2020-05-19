@@ -13,14 +13,10 @@ import email
 import io
 import logging
 
-from superdesk.errors import IngestEmailError
+from superdesk.errors import IngestEmailError, ParserError
 from superdesk.io.feeding_services import FeedingService
 from superdesk.upload import url_for_media
 from superdesk.media.media_operations import process_file_from_stream
-from planning.feed_parsers.ntb_event_xml import NTBEventXMLFeedParser
-from planning.feed_parsers.ics_2_0 import IcsTwoFeedParser
-from xml.etree import ElementTree
-from icalendar import Calendar
 
 
 logger = logging.getLogger(__name__)
@@ -117,22 +113,17 @@ class EventEmailFeedingService(FeedingService):
                                                 content = io.BytesIO(attachment)
                                                 res = process_file_from_stream(content, part.get_content_type())
                                                 file_name, content_type, metadata = res
-                                                if isinstance(parser, NTBEventXMLFeedParser):
-                                                    if content_type != 'text/xml':
+                                                logger.info('Ingesting events with {} parser'.format(
+                                                    parser.__class__.__name__
+                                                ))
+                                                if getattr(parser, 'parse_email'):
+                                                    try:
+                                                        new_items.append(
+                                                            parser.parse_email(content, content_type, provider)
+                                                        )
+                                                    except ParserError.parseMessageError:
                                                         continue
-                                                    content.seek(0)
-                                                    xml = ElementTree.parse(content)
-                                                    logger.info('Ingesting events with xml parser')
-                                                    new_items.append(parser.parse(xml.getroot(), provider))
-                                                elif isinstance(parser, IcsTwoFeedParser):
-                                                    if content_type != 'text/calendar':
-                                                        continue
-                                                    content.seek(0)
-                                                    cal = Calendar.from_ical(content.read())
-                                                    logger.info('Ingesting events with ics parser')
-                                                    new_items.append(parser.parse(cal, provider))
                                                 else:
-                                                    logger.warn('Ingesting events with unknown parser')
                                                     new_items.append(parser.parse(data, provider))
                                 rv, data = imap.store(num, '+FLAGS', '\\Seen')
                             except IngestEmailError:

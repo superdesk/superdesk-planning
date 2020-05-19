@@ -55,7 +55,6 @@ export class RecurringRulesInput extends React.Component {
         const {
             schedule,
             onChange,
-            dateFormat,
             readOnly,
             errors,
             popupContainer,
@@ -122,7 +121,6 @@ export class RecurringRulesInput extends React.Component {
                                 placeholder=""
                                 value={until}
                                 onChange={onChange}
-                                dateFormat={dateFormat}
                                 readOnly={readOnly}
                                 invalid={!!get(errors, 'until')}
                                 message={get(errors, 'until', '')}
@@ -168,7 +166,6 @@ export class RecurringRulesInput extends React.Component {
 RecurringRulesInput.propTypes = {
     onChange: PropTypes.func.isRequired,
     schedule: PropTypes.object.isRequired,
-    dateFormat: PropTypes.string.isRequired,
     readOnly: PropTypes.bool,
     errors: PropTypes.object,
     popupContainer: PropTypes.func,

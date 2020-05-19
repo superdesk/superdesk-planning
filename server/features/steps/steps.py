@@ -175,6 +175,29 @@ def then_we_store_assignment_id(context, tag, index):
     set_placeholder(context, tag, coverage_id)
 
 
+@then('we store scheduled_update id in "{tag}" from scheduled_update {index} of coverage {coverage_index}')
+def then_we_store_assignment_id(context, tag, index, coverage_index):
+    index = int(index)
+    coverage_index = int(coverage_index)
+    response = get_json_data(context.response)
+    assert len(response.get('coverages')), 'Coverage are not defined.'
+    coverage = response.get('coverages')[coverage_index]
+    assert len(coverage.get('scheduled_updates')), 'scheduled_updates are not defined.'
+    scheduled_update = coverage['scheduled_updates'][index]
+    set_placeholder(context, tag, scheduled_update.get('scheduled_update_id'))
+
+
+@then('we store assignment id in "{tag}" from scheduled_update {index} of coverage {coverage_index}')
+def then_we_store_assignment_id(context, tag, index, coverage_index):
+    index = int(index)
+    coverage_index = int(coverage_index)
+    response = get_json_data(context.response)
+    coverage = (response.get('coverages') or [])[coverage_index]
+    assert len(coverage.get('scheduled_updates')), 'scheduled_updates are not defined.'
+    scheduled_update = coverage['scheduled_updates'][index]
+    set_placeholder(context, tag, scheduled_update.get('assigned_to', {}).get('assignment_id'))
+
+
 @then('the assignment not created for coverage {index}')
 def then_we_store_assignment_id(context, index):
     index = int(index)
@@ -323,3 +346,67 @@ def step_impl_when_we_duplicate_event(context, event_id):
 @when('we set auto workflow on')
 def then_set_auto_workflow(context):
     context.app.config['PLANNING_AUTO_ASSIGN_TO_WORKFLOW'] = True
+
+
+@when('we set PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS')
+def then_set_xmp_mapping(context):
+    ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+    BEHAVE_TESTS_FIXTURES_PATH = ABS_PATH + '/steps/fixtures'
+    context.app.settings['BEHAVE_TESTS_FIXTURES_PATH'] = BEHAVE_TESTS_FIXTURES_PATH
+    context.app.config['PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS'] = True
+
+
+@when('we set PLANNING_XMP_ASSIGNMENT_MAPPING')
+def then_set_xmp_mapping(context):
+    ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+    BEHAVE_TESTS_FIXTURES_PATH = ABS_PATH + '/steps/fixtures'
+    context.app.settings['BEHAVE_TESTS_FIXTURES_PATH'] = BEHAVE_TESTS_FIXTURES_PATH
+    context.app.config['PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS'] = True
+    context.app.config['PLANNING_XMP_ASSIGNMENT_MAPPING'] = {
+        'xpath': '//x:xmpmeta/rdf:RDF/rdf:Description',
+        'namespaces': {
+            'x': 'adobe:ns:meta/',
+            'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+            'photoshop': 'http://ns.adobe.com/photoshop/1.0/'
+        },
+        'atribute_key': '{http://ns.adobe.com/photoshop/1.0/}TransmissionReference'
+    }
+
+
+@when('we set PLANNING_XMP_SLUGLINE_MAPPING')
+def then_set_xmp_mapping(context):
+    ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+    BEHAVE_TESTS_FIXTURES_PATH = ABS_PATH + '/steps/fixtures'
+    context.app.settings['BEHAVE_TESTS_FIXTURES_PATH'] = BEHAVE_TESTS_FIXTURES_PATH
+    context.app.config['PLANNING_USE_XMP_FOR_PIC_SLUGLINE'] = True
+    context.app.config['PLANNING_XMP_SLUGLINE_MAPPING'] = {
+        'xpath': '//x:xmpmeta/rdf:RDF/rdf:Description/dc:title/rdf:Alt/rdf:li',
+        'namespaces': {
+            'x': 'adobe:ns:meta/',
+            'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+            'photoshop': 'http://ns.adobe.com/photoshop/1.0/',
+            'dc': 'http://purl.org/dc/elements/1.1/',
+        }
+    }
+
+
+@when('we set PLANNING_USE_XMP_FOR_PIC_SLUGLINE')
+def then_set_xmp_mapping(context):
+    ABS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+    BEHAVE_TESTS_FIXTURES_PATH = ABS_PATH + '/steps/fixtures'
+    context.app.settings['BEHAVE_TESTS_FIXTURES_PATH'] = BEHAVE_TESTS_FIXTURES_PATH
+    context.app.config['PLANNING_USE_XMP_FOR_PIC_SLUGLINE'] = True
+
+
+@then('we have string {check_string} in media stream')
+def step_impl_then_get_media_stream(context, check_string):
+    assert_200(context.response)
+    data = get_json_data(context.response)
+    url = '/upload-raw/%s' % data['filemeta']['media_id']
+    headers = [('Content - Type', 'application / octet - stream')]
+    headers = unique_headers(headers, context.headers)
+    response = context.client.get(get_prefixed_url(context.app, url), headers=headers)
+    assert_200(response)
+    assert len(response.get_data()), response
+    check_string = apply_placeholders(context, check_string)
+    assert check_string in str(response.stream.response.data)

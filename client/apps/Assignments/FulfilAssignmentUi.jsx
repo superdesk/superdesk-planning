@@ -16,11 +16,15 @@ export const FulfilAssignmentUi = ({previewOpen, newsItem}) => (
         subNavProps={{
             archiveItem: newsItem,
             withArchiveItem: true,
+            showAllDeskOption: true,
+            saveSortPreferences: false,
+            ignoreScheduledUpdates: true,
         }}
 
         ListPanel={AssignmentList}
         listProps={{
             hideItemActions: true,
+            saveSortPreferences: false,
         }}
 
         editorOpen={previewOpen}

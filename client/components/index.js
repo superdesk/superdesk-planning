@@ -2,7 +2,6 @@ export {GeoLookupInput} from './GeoLookupInput/index';
 export {StateLabel} from './StateLabel/index';
 export {ModalWithForm} from './ModalWithForm/index';
 export {default as Modal} from './Modal/index';
-export {default as OrderBar} from './OrderBar/index';
 export {ConfirmationModal} from './ConfirmationModal';
 import * as fields from './fields';
 export {fields};
@@ -37,6 +36,7 @@ export {Location} from './Location';
 export {IgnoreCancelSaveModal} from './IgnoreCancelSaveModal';
 export {PublishQueuePreview} from './PublishQueuePreview';
 export {ExportAsArticleModal} from './ExportAsArticleModal';
+export {EditCoverageAssignmentModal} from './Assignments/EditCoverageAssignmentModal';
 
 // This must go last, as it imports Modals from above modules
 export {ModalsContainer} from './ModalsContainer';

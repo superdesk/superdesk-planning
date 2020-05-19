@@ -143,6 +143,7 @@ describe('selectors', () => {
             filterByType: null,
             filterByPriority: null,
             selectedDeskId: '1',
+            ignoreScheduledUpdates: false,
         });
     });
 
@@ -221,6 +222,7 @@ describe('selectors', () => {
             filterByType: null,
             filterByPriority: null,
             selectedDeskId: '',
+            ignoreScheduledUpdates: false,
         });
     });
 });

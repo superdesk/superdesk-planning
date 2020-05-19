@@ -17,8 +17,6 @@ export class PlanningMenuPanelComponent extends React.Component {
             event,
             users,
             formProfile,
-            dateFormat,
-            timeFormat,
             desks,
             newsCoverageStatus,
             lockedItems,
@@ -32,19 +30,17 @@ export class PlanningMenuPanelComponent extends React.Component {
                 <PlanningInfo
                     item={item}
                     onClick={onMenuItemClick.bind(null, 'planning')}
-                    dateFormat={dateFormat}
-                    timeFormat={timeFormat}
-                    active={activeItem === 'planning'} />
+                    active={activeItem === 'planning'}
+                />
                 <MenuItem label={gettext('Details...')}
                     onClick={onMenuItemClick.bind(null, 'details')}
-                    active={activeItem === 'details'}/>
+                    active={activeItem === 'details'}
+                />
                 {event && (<Label row text={gettext('Associated Event')} />)}
                 {event && (
                     <ContentBlock>
                         <EventMetadata
                             event={event}
-                            dateFormat={dateFormat}
-                            timeFormat={timeFormat}
                             lockedItems={lockedItems}
                             onClick={onMenuItemClick.bind(null, 'event')}
                             active={activeItem === 'event'}
@@ -62,8 +58,6 @@ export class PlanningMenuPanelComponent extends React.Component {
                         users= {users}
                         desks= {desks}
                         newsCoverageStatus={newsCoverageStatus}
-                        dateFormat={dateFormat}
-                        timeFormat={timeFormat}
                         formProfile={formProfile.coverage}
                         onClick={onMenuItemClick.bind(null, c.coverage_id)}
                         active={activeItem === c.coverage_id}
@@ -82,8 +76,6 @@ PlanningMenuPanelComponent.propTypes = {
     lockedItems: PropTypes.object,
     formProfile: PropTypes.object,
     event: PropTypes.object,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     newsCoverageStatus: PropTypes.array,
     activeItem: PropTypes.string,
     onMenuItemClick: PropTypes.func,
@@ -93,12 +85,9 @@ const mapStateToProps = (state, ownProps) => ({
     desks: selectors.general.desks(state),
     users: selectors.general.users(state),
     lockedItems: selectors.locks.getLockedItems(state),
-    dateFormat: selectors.config.getDateFormat(state),
-    timeFormat: selectors.config.getTimeFormat(state),
     formProfile: selectors.forms.profiles(state),
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     event: selectors.events.planningEditAssociatedEventModal(state),
-
 });
 
 export const PlanningMenuPanel = connect(mapStateToProps, null)(PlanningMenuPanelComponent);

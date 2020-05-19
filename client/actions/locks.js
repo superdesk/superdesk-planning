@@ -2,7 +2,7 @@ import {get} from 'lodash';
 import * as selectors from '../selectors';
 import {LOCKS, ITEM_TYPE, WORKSPACE, PLANNING, FEATURED_PLANNING} from '../constants';
 import {planning, events, assignments, autosave, main} from './index';
-import {lockUtils, getItemType, gettext, isExistingItem} from '../utils';
+import {lockUtils, getItemType, gettext, isExistingItem, modifyForClient} from '../utils';
 
 /**
  * Action Dispatcher to load all Event and Planning locks
@@ -126,14 +126,16 @@ const lock = (item, lockAction = 'edit') => (
     }
 );
 
-const unlockThenLock = (item) => (
+const unlockThenLock = (item, modal) => (
     (dispatch) => (
         dispatch(self.unlock(item))
             .then(
                 (unlockedItem) => (
-                    dispatch(main.openForEdit(item._id !== unlockedItem._id ?
-                        item :
-                        unlockedItem
+                    dispatch(main.openForEdit(
+                        modifyForClient(item._id !== unlockedItem._id ?
+                            item :
+                            unlockedItem
+                        ), true, modal
                     ))
                 ),
                 (error) => Promise.reject(error)

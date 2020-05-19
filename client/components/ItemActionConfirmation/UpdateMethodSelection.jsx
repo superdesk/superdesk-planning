@@ -13,9 +13,9 @@ export const UpdateMethodSelection = ({
     updateMethodLabel,
     relatedPlannings,
     relatedEvents,
-    dateFormat,
     action,
     showSpace,
+    originalEvent,
     readOnly,
 }) => (
     <div>
@@ -48,7 +48,8 @@ export const UpdateMethodSelection = ({
                 <strong>{gettext('This will also {{action}} the following events', {action})}</strong>
                 <RelatedEvents
                     events={relatedEvents}
-                    dateFormat={dateFormat} />
+                    originalEvent={originalEvent}
+                />
             </div>
         )}
 
@@ -74,8 +75,8 @@ UpdateMethodSelection.propTypes = {
     updateMethodLabel: PropTypes.string,
     relatedPlannings: PropTypes.array,
     relatedEvents: PropTypes.array,
-    dateFormat: PropTypes.string,
     action: PropTypes.string,
     showSpace: PropTypes.bool,
     readOnly: PropTypes.bool,
+    originalEvent: PropTypes.object,
 };

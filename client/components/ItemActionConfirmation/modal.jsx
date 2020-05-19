@@ -80,13 +80,14 @@ export class ItemActionConfirmationModal extends React.Component {
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: {
                 title: gettext('Cancel {{event}}',
                     {event: isRecurring ? gettext('Recurring Event(s)') : gettext('an Event')}),
-                saveText: gettext('OK'),
+                saveText: gettext('Cancel Event'),
                 form: CancelEventForm,
             },
             [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: {
                 title: gettext('Update time of {{event}}',
                     {event: isRecurring ? gettext('Recurring Event(s)') : gettext('an Event')}),
                 form: UpdateTimeForm,
+                saveText: gettext('Update Time'),
             },
             [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label]: {
                 title: gettext('Reschedule {{event}}',
@@ -103,6 +104,7 @@ export class ItemActionConfirmationModal extends React.Component {
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: {
                 title: get(EVENTS, 'ITEM_ACTIONS.CONVERT_TO_RECURRING.label'),
                 form: ConvertToRecurringEventForm,
+                saveText: gettext('Convert to a recurring event'),
             },
             [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.label]: {
                 title: gettext('Update Repetitions of the Series'),
@@ -142,6 +144,7 @@ export class ItemActionConfirmationModal extends React.Component {
             [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label]: {
                 title: get(PLANNING, 'ITEM_ACTIONS.CANCEL_PLANNING.label'),
                 form: CancelPlanningCoveragesForm,
+                saveText: gettext('Cancel Planning'),
             },
             [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label]: {
                 title: get(PLANNING, 'ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label'),
@@ -152,8 +155,10 @@ export class ItemActionConfirmationModal extends React.Component {
                 form: CancelPlanningCoveragesForm,
             },
             [COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE.label]: {
-                title: get(COVERAGES, 'ITEM_ACTIONS.CANCEL_COVERAGE.label'),
-                saveText: gettext('Cancel Coverage'),
+                title: modalProps.scheduledUpdate ? gettext('Cancel Scheduled Update') :
+                    get(COVERAGES, 'ITEM_ACTIONS.CANCEL_COVERAGE.label'),
+                saveText: modalProps.scheduledUpdate ? gettext('Cancel Scheduled Update') :
+                    gettext('Cancel Coverage'),
                 form: CancelCoverageForm,
             },
             [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: {
@@ -204,5 +209,6 @@ ItemActionConfirmationModal.propTypes = {
         large: PropTypes.bool,
         title: PropTypes.string,
         resolve: PropTypes.func,
+        scheduledUpdate: PropTypes.object,
     }),
 };

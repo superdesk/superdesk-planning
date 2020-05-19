@@ -1,6 +1,6 @@
 import {isNil, zipObject, get, isEmpty} from 'lodash';
 import {createStore} from '../utils';
-import {ITEM_TYPE} from '../constants';
+import {COVERAGES, ITEM_TYPE, ASSIGNMENTS} from '../constants';
 import * as selectors from '../selectors';
 import * as actions from '../actions';
 
@@ -8,7 +8,6 @@ export class PlanningStoreService {
     constructor(
         $rootScope,
         api,
-        config,
         $location,
         $timeout,
         vocabularies,
@@ -22,18 +21,17 @@ export class PlanningStoreService {
         templates,
         metadata,
         session,
-        deployConfig,
         gettext,
         authoringWorkspace,
         gettextCatalog,
         $q,
         $interpolate,
         search,
+        modal,
         preferencesService
     ) {
         this.$rootScope = $rootScope;
         this.api = api;
-        this.config = config;
         this.$location = $location;
         this.$timeout = $timeout;
         this.vocabularies = vocabularies;
@@ -47,13 +45,13 @@ export class PlanningStoreService {
         this.templates = templates;
         this.metadata = metadata;
         this.session = session;
-        this.deployConfig = deployConfig;
         this.gettext = gettext;
         this.authoringWorkspace = authoringWorkspace;
         this.gettextCatalog = gettextCatalog;
         this.$q = $q;
         this.$interpolate = $interpolate;
         this.search = search;
+        this.modal = modal;
         this.preferencesService = preferencesService;
 
         this.onSessionChanged = this.onSessionChanged.bind(this);
@@ -155,17 +153,18 @@ export class PlanningStoreService {
                         templates: this.templates,
                         metadata: this.metadata,
                         session: this.session,
-                        deployConfig: this.deployConfig,
                         gettextCatalog: this.gettextCatalog,
                         gettext: this.gettext,
                         authoringWorkspace: this.authoringWorkspace,
                         $interpolate: this.$interpolate,
                         search: this.search,
-                        config: this.config,
+                        modal: this.modal,
                         preferencesService: this.preferencesService,
                         $rootScope: this.$rootScope,
                     },
                 });
+
+                this.registerUserPreferences();
 
                 return Promise.resolve(store);
             });
@@ -202,8 +201,6 @@ export class PlanningStoreService {
                     this.metadata.values.genre;
 
                 const initialState = {
-                    config: this.config,
-                    deployConfig: this.deployConfig.config,
                     vocabularies: zipObject(
                         get(data, 'voc', []).map((cv) => cv._id),
                         get(data, 'voc', []).map((cv) => cv.items)
@@ -259,8 +256,20 @@ export class PlanningStoreService {
 
     onNotificationClick(event, data) {
         // If the notification has an assignment related to it, open that item
-        if (get(data, 'notification.data.assignment_id')) {
-            this.$location.path('/workspace/assignments').search('assignment', data.notification.data.assignment_id);
+        if (!get(data, 'notification.data.assignment_id')) {
+            return;
+        }
+
+        const currentPath = this.$location.path();
+
+        this.$location
+            .path('/workspace/assignments')
+            .search('assignment', data.notification.data.assignment_id);
+
+        if (currentPath.startsWith('/workspace/assignments') && !isNil(this.store)) {
+            this.store.dispatch(
+                actions.assignments.ui.updatePreviewItemOnRouteUpdate()
+            );
         }
     }
 
@@ -302,12 +311,17 @@ export class PlanningStoreService {
             });
         }
     }
+
+    registerUserPreferences() {
+        this.preferencesService.registerUserPreference(COVERAGES.DEFAULT_DESK_PREFERENCE);
+        this.preferencesService.registerUserPreference(COVERAGES.ADD_ADVANCED_MODE_PREFERENCE);
+        this.preferencesService.registerUserPreference(ASSIGNMENTS.DEFAULT_SORT_PREFERENCE);
+    }
 }
 
 PlanningStoreService.$inject = [
     '$rootScope',
     'api',
-    'config',
     '$location',
     '$timeout',
     'vocabularies',
@@ -321,12 +335,12 @@ PlanningStoreService.$inject = [
     'templates',
     'metadata',
     'session',
-    'deployConfig',
     'gettext',
     'authoringWorkspace',
     'gettextCatalog',
     '$q',
     '$interpolate',
     'search',
+    'modal',
     'preferencesService',
 ];

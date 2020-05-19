@@ -117,13 +117,14 @@ const getMoreLocations = () => (
     }
 );
 
-const saveNominatim = (nominatim) => (
+const saveNominatim = (nominatim, language) => (
     (dispatch, getState, {api}) => {
         const {address} = formatAddress(nominatim);
 
         return api('locations').save({}, {
             unique_name: nominatim.display_name,
-            name: nominatim.namedetails.name,
+            name: get(nominatim, 'namedetails.name:' + language,
+                get(nominatim, 'namedetails.name', get(address, 'line[0]'))),
             address: address,
             position: {
                 latitude: nominatim.lat,
@@ -137,7 +138,7 @@ const saveFreeTextLocation = (location) => (
     (dispatch, getState, {api}) => (
         api('locations').save({}, {
             ...location,
-            unique_name: location.name,
+            unique_name: get(location, 'name').concat(' ', get(formatAddress(location), 'formattedAddress')),
         })
     )
 );
@@ -145,7 +146,7 @@ const saveFreeTextLocation = (location) => (
 const saveLocation = (newLocation) => (
     (dispatch) => {
         const uniqueName = get(newLocation, 'nominatim.display_name')
-            || get(newLocation, 'name')
+            || get(newLocation, 'name').concat(' ', get(formatAddress(newLocation), 'formattedAddress'))
             || newLocation;
         // Check if the newLocation is already saved in internal
         // locations resources, if so just return the name and guid as qcode
@@ -159,7 +160,7 @@ const saveLocation = (newLocation) => (
 
                 // this is a new location
                 if (newLocation.nominatim) {
-                    return dispatch(self.saveNominatim(newLocation.nominatim))
+                    return dispatch(self.saveNominatim(newLocation.nominatim, get(newLocation, 'language')))
                         .then(
                             (result) => Promise.resolve(result),
                             () => Promise.reject('Failed to save location.!')
@@ -171,28 +172,6 @@ const saveLocation = (newLocation) => (
                         (result) => Promise.resolve(result),
                         () => Promise.reject('Failed to save location.!')
                     );
-            })
-            .then((data) => {
-                const eventData = {
-                    name: data.name,
-                    qcode: data.guid,
-                };
-
-                if (data.position) {
-                    eventData.location = {
-                        lat: data.position.latitude,
-                        lon: data.position.longitude,
-                    };
-                }
-
-                if (get(data, 'address')) {
-                    eventData.address = data.address;
-                    if (eventData.address.external) {
-                        delete eventData.address.external;
-                    }
-                }
-
-                return eventData;
             });
     }
 );
@@ -220,6 +199,7 @@ const getLocation = (searchText, unique = false, page = 1) => (
                         query: {
                             bool: {
                                 must: [{term: {unique_name: {value: searchText}}}],
+                                must_not: [{term: {is_active: {value: false}}}],
                             },
                         },
                     },
@@ -258,6 +238,7 @@ const getLocation = (searchText, unique = false, page = 1) => (
         } else {
             const terms = (!isEmpty(searchText)) ? searchText.split(' ') : '*';
             const queryString = (terms.length > 1 ? terms.join('* ') : terms[0]) + '*';
+            const sortString = (isEmpty(searchText) ? '[(\'unique_name\', 1)]' : null);
 
             return api('locations')
                 .query({
@@ -280,6 +261,7 @@ const getLocation = (searchText, unique = false, page = 1) => (
                     },
                     max_results: 200,
                     page: page,
+                    sort: sortString,
                 });
         }
     }

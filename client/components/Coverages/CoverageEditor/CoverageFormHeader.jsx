@@ -1,46 +1,44 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
 import {get} from 'lodash';
+
 import {getCreator, getItemInArrayById, gettext, planningUtils, onEventCapture} from '../../../utils';
 import {Item, Border, Column, Row as ListRow} from '../../UI/List';
 import {Button} from '../../UI';
 import {UserAvatar} from '../../';
-import {AssignmentPopup} from '../../Assignments';
 import {StateLabel} from '../../../components';
+import * as actions from '../../../actions';
 
-export class CoverageFormHeader extends React.Component {
+export class CoverageFormHeaderComponent extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {popupOpen: false};
-
-        this.togglePopup = this.togglePopup.bind(this);
+        this.showAssignmentModal = this.showAssignmentModal.bind(this);
     }
 
-    togglePopup(event) {
+    showAssignmentModal(event) {
         onEventCapture(event);
-        this.setState({popupOpen: !this.state.popupOpen});
 
-        if (this.props.onFocus) {
-            this.props.onFocus(this.props.field);
-        }
+        this.props.showEditCoverageAssignmentModal({
+            field: this.props.field,
+            value: this.props.value,
+            onChange: this.props.onChange,
+            disableDeskSelection: !!this.props.addNewsItemToPlanning,
+            disableUserSelection: !!this.props.addNewsItemToPlanning,
+            setCoverageDefaultDesk: this.props.setCoverageDefaultDesk,
+            priorityPrefix: 'assigned_to.',
+        });
     }
 
     render() {
         const {
             field,
             value,
-            onChange,
             users,
             desks,
-            coverageProviders,
-            priorities,
             addNewsItemToPlanning,
             onRemoveAssignment,
             readOnly,
-            popupContainer,
-            onPopupOpen,
-            onPopupClose,
-            setCoverageDefaultDesk,
         } = this.props;
 
         const userAssigned = getCreator(value, 'assigned_to.user', users);
@@ -49,7 +47,7 @@ export class CoverageFormHeader extends React.Component {
         const assignmentState = get(value, 'assigned_to.state');
         const cancelled = get(value, 'workflow_status') === 'cancelled';
         const canEditAssignment = planningUtils.isCoverageDraft(value) ||
-            (!!addNewsItemToPlanning && !get(value, 'coverage_id'));
+            (!!addNewsItemToPlanning && !get(value, 'coverage_id') && !get(value, 'scheduled_update_id'));
 
         if (!deskAssigned && (!userAssigned || !coverageProvider)) {
             return (
@@ -78,29 +76,11 @@ export class CoverageFormHeader extends React.Component {
                                 tabIndex={0}
                                 enterKeyIsClick
                                 className="btn btn--primary btn--small"
-                                onClick={this.togglePopup}
+                                onClick={this.showAssignmentModal}
                                 autoFocus
                             />
                         </ListRow>)}
                     </Column>
-                    {this.state.popupOpen && (
-                        <AssignmentPopup
-                            field={field}
-                            value={value}
-                            onChange={onChange}
-                            users={users}
-                            desks={desks}
-                            coverageProviders={coverageProviders}
-                            priorities={priorities}
-                            onClose={this.togglePopup}
-                            target="btn--primary"
-                            priorityPrefix="assigned_to."
-                            popupContainer={popupContainer}
-                            onPopupOpen={onPopupOpen}
-                            onPopupClose={onPopupClose}
-                            setCoverageDefaultDesk={setCoverageDefaultDesk}
-                        />
-                    )}
                 </Item>
             );
         }
@@ -127,16 +107,18 @@ export class CoverageFormHeader extends React.Component {
                             </span>
                         </span>
                     </ListRow>
-                    <ListRow>
-                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            <span className="sd-list-item__text-label sd-list-item__text-label--normal">
-                                {gettext('Assignee:')}
+                    {userAssigned && (
+                        <ListRow>
+                            <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                                <span className="sd-list-item__text-label sd-list-item__text-label--normal">
+                                    {gettext('Assignee:')}
+                                </span>
+                                <span name={`${field}.assigned_to.user`}>
+                                    {get(userAssigned, 'display_name', '')}
+                                </span>
                             </span>
-                            <span name={`${field}.assigned_to.user`}>
-                                {get(userAssigned, 'display_name', '')}
-                            </span>
-                        </span>
-                    </ListRow>
+                        </ListRow>
+                    )}
                     {coverageProvider && (
                         <ListRow>
                             <span className="sd-overflow-ellipsis sd-list-item--element-grow">
@@ -163,7 +145,7 @@ export class CoverageFormHeader extends React.Component {
                             <Button
                                 text={gettext('Reassign')}
                                 className="btn btn--hollow btn--small"
-                                onClick={this.togglePopup}
+                                onClick={this.showAssignmentModal}
                                 tabIndex={0}
                                 enterKeyIsClick
                                 disabled={!!addNewsItemToPlanning}
@@ -181,43 +163,32 @@ export class CoverageFormHeader extends React.Component {
                         </ListRow>
                     </Column>
                 )}
-                {this.state.popupOpen && (
-                    <AssignmentPopup
-                        field={field}
-                        value={value}
-                        onChange={onChange}
-                        users={users}
-                        desks={desks}
-                        coverageProviders={coverageProviders}
-                        priorities={priorities}
-                        onClose={this.togglePopup}
-                        target="btn--hollow"
-                        priorityPrefix="assigned_to."
-                        disableDeskSelection={!!addNewsItemToPlanning}
-                        disableUserSelection={!!addNewsItemToPlanning}
-                        popupContainer={popupContainer}
-                        setCoverageDefaultDesk={setCoverageDefaultDesk}
-                    />
-                )}
             </Item>
         );
     }
 }
 
-CoverageFormHeader.propTypes = {
+CoverageFormHeaderComponent.propTypes = {
     field: PropTypes.string,
     value: PropTypes.object,
     onChange: PropTypes.func,
     users: PropTypes.array,
     desks: PropTypes.array,
-    coverageProviders: PropTypes.array,
-    priorities: PropTypes.array,
     readOnly: PropTypes.bool,
     addNewsItemToPlanning: PropTypes.object,
     onFocus: PropTypes.func,
     onRemoveAssignment: PropTypes.func,
-    popupContainer: PropTypes.func,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
     setCoverageDefaultDesk: PropTypes.func,
+    showEditCoverageAssignmentModal: PropTypes.func,
 };
+
+const mapDispatchToProps = (dispatch) => ({
+    showEditCoverageAssignmentModal: (props) => dispatch(
+        actions.assignments.ui.showEditCoverageAssignmentModal(props)
+    ),
+});
+
+export const CoverageFormHeader = connect(
+    null,
+    mapDispatchToProps
+)(CoverageFormHeaderComponent);

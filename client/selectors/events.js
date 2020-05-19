@@ -1,9 +1,11 @@
 import {createSelector} from 'reselect';
 import {get, sortBy} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
 import {storedPlannings, currentPlanning} from './planning';
 import {agendas, userPreferences} from './general';
 import {currentItem, currentItemModal} from './forms';
-import {getStartOfWeek} from './config';
 import {eventUtils, getSearchDateRange} from '../utils';
 import {EVENTS, MAIN, SPIKED_STATE} from '../constants';
 
@@ -12,6 +14,7 @@ export const eventIdsInList = (state) => get(state, 'events.eventsInList', []);
 export const eventHistory = (state) => get(state, 'events.eventHistoryItems');
 export const currentSearch = (state) => get(state, 'main.search.EVENTS.currentSearch');
 export const fullText = (state) => get(state, 'main.search.EVENTS.fulltext', '');
+export const eventTemplates = (state) => state.events.eventTemplates;
 const isEventsView = (state) => get(state, 'main.filter', '') === MAIN.FILTERS.EVENTS;
 
 /** Used for the events list */
@@ -27,18 +30,18 @@ export const eventsInList = createSelector(
 * the associated events.
 */
 export const orderedEvents = createSelector(
-    [eventsInList, currentSearch, getStartOfWeek],
-    (events, search, startOfWeek) => {
-        const dateRange = getSearchDateRange(search, startOfWeek);
+    [eventsInList, currentSearch],
+    (events, search) => {
+        const dateRange = getSearchDateRange(search, appConfig.start_of_week);
 
         return eventUtils.getEventsByDate(events, dateRange.startDate, dateRange.endDate);
     }
 );
 
 export const flattenedEventsInList = createSelector(
-    [eventsInList, currentSearch, getStartOfWeek],
-    (events, search, startOfWeek) => {
-        const dateRange = getSearchDateRange(search, startOfWeek);
+    [eventsInList, currentSearch],
+    (events, search) => {
+        const dateRange = getSearchDateRange(search, appConfig.start_of_week);
 
         return eventUtils.getFlattenedEventsByDate(events, dateRange.startDate, dateRange.endDate);
     }

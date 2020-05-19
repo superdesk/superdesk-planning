@@ -1,9 +1,23 @@
 @import '~superdesk-core/styles/sass/mixins.scss';
 @import '~superdesk-core/styles/sass/variables.scss';
 // required for extending .modal__backdrop :
-@import '~superdesk-ui-framework/app/styles/_mixins.scss';
-@import '~superdesk-ui-framework/app/styles/_modals.scss';
+@import '~superdesk-ui-framework/app/styles/_variables.scss';
 
+.modal__backdrop {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1045;
+    background-color: $black;
+    // Fade for backdrop
+    &.fade { opacity: 0; }
+}
+.modal__backdrop,
+.modal__backdrop.fade.in {
+    @include opacity(30);
+}
 
 .modal-backdrop {
     @extend .modal__backdrop;

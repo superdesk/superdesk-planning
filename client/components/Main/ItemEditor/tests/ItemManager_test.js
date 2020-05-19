@@ -2,6 +2,8 @@ import sinon from 'sinon';
 import {cloneDeep} from 'lodash';
 import moment from 'moment-timezone';
 
+import {appConfig} from 'appConfig';
+
 import {main, locks} from '../../../../actions';
 import eventsApi from '../../../../actions/events/api';
 import planningApi from '../../../../actions/planning/api';
@@ -135,10 +137,7 @@ describe('components.Main.ItemManager', () => {
         manager.mounted = true;
 
         sinon.stub(main, 'openEditorAction');
-
-        sinon.stub(timeUtils, 'localTimeZone').callsFake(
-            () => testData.config.defaultTimezone
-        );
+        sinon.stub(timeUtils, 'localTimeZone').returns(appConfig.defaultTimezone);
     });
 
     afterEach(() => {
@@ -1562,7 +1561,7 @@ describe('components.Main.ItemManager', () => {
             manager.unlockThenLock(testData.events[0])
                 .then(() => {
                     expect(locks.unlockThenLock.callCount).toBe(1);
-                    expect(locks.unlockThenLock.args[0]).toEqual([testData.events[0]]);
+                    expect(locks.unlockThenLock.args[0]).toEqual([testData.events[0], false]);
 
                     done();
                 })

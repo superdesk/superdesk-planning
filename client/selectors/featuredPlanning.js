@@ -2,7 +2,9 @@ import moment from 'moment';
 import momentTz from 'moment-timezone';
 import {createSelector} from 'reselect';
 import {get, cloneDeep} from 'lodash';
-import {getStartOfWeek, defaultTimeZone} from './config';
+
+import {appConfig} from 'appConfig';
+
 import {planningUtils, getSearchDateRange} from '../utils';
 import {TIME_COMPARISON_GRANULARITY} from '../constants';
 
@@ -18,7 +20,7 @@ export const currentSearchDate = (state) =>
     get(
         state,
         'featuredPlanning.currentSearch.advancedSearch.dates.start',
-        momentTz.tz(moment(), defaultTimeZone(state))
+        momentTz.tz(moment(), appConfig.defaultTimezone)
     );
 export const total = (state) => get(state, 'featuredPlanning.total', false);
 export const loading = (state) => get(state, 'featuredPlanning.loading', false);
@@ -32,8 +34,8 @@ export const featuredPlansInList = createSelector(
 );
 
 export const orderedFeaturedPlanningList = createSelector(
-    [featuredPlansInList, currentSearchDate, getStartOfWeek, defaultTimeZone],
-    (plansInList, date, startOfWeek, timezone) => {
+    [featuredPlansInList, currentSearchDate],
+    (plansInList, date) => {
         const search = {
             advancedSearch: {
                 dates: {
@@ -52,11 +54,9 @@ export const orderedFeaturedPlanningList = createSelector(
                 },
             },
         };
-        const dateRange = getSearchDateRange(search, startOfWeek);
-
+        const dateRange = getSearchDateRange(search, appConfig.start_of_week);
         const group = planningUtils.getPlanningByDate(
-            plansInList, null, dateRange.startDate, dateRange.endDate, timezone
-        );
+            plansInList, null, dateRange.startDate, dateRange.endDate, appConfig.defaultTimezone, true);
 
         if (group.length > 0) {
             const featuredPlansForDate = group.find((g) => g.date === date.format('YYYY-MM-DD'));

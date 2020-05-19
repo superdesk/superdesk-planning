@@ -123,7 +123,7 @@ export class PreviewPanelComponent extends React.Component {
         const isEvent = this.props.itemType === ITEM_TYPE.EVENT;
 
         return (
-            <SidePanel shadowRight={true}>
+            <SidePanel shadowRight={true} bg00={true}>
                 <Header darkBlue={isEvent} darker={!isEvent}>
                     <Tools tools={this.tools}/>
                     <Tabs
@@ -186,7 +186,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     loadPreviewItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'preview')),
-    edit: (item, modal = false) => dispatch(actions.main.openForEdit(item, true, modal)),
+    edit: (item, modal = false) => dispatch(actions.main.openForEdit(item, !modal, modal)),
     closePreview: () => dispatch(actions.main.closePreview()),
 });
 

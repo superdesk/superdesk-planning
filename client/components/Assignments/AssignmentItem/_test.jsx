@@ -10,7 +10,6 @@ import {cloneDeep} from 'lodash';
 import {AbsoluteDate} from '../../AbsoluteDate';
 import {UserAvatar} from '../../UserAvatar';
 
-
 describe('assignments', () => {
     describe('components', () => {
         describe('<AssignmentItem />', () => {
@@ -30,9 +29,15 @@ describe('assignments', () => {
             };
             let contentTypes = [{qcode: 'text'}];
 
-
-            let [reassign, revertAssignment, editAssignmentPriority,
-                startWorking, removeAssignment, onDoubleClick, completeAssignment] = Array(7).fill(() => true);
+            let [
+                reassign,
+                revertAssignment,
+                editAssignmentPriority,
+                startWorking,
+                removeAssignment,
+                onDoubleClick,
+                completeAssignment,
+            ] = Array(7).fill(() => true);
 
             const getMountedWrapper = () => {
                 const store = createTestStore({});
@@ -44,7 +49,10 @@ describe('assignments', () => {
                             onDoubleClick={onDoubleClick}
                             assignment={assignment}
                             lockedItems={lockedItems}
-                            priorities={store.getState().vocabularies.assignment_priority}
+                            priorities={
+                                store.getState().vocabularies
+                                    .assignment_priority
+                            }
                             reassign={reassign}
                             editAssignmentPriority={editAssignmentPriority}
                             completeAssignment={completeAssignment}
@@ -120,14 +128,18 @@ describe('assignments', () => {
             it('shows red border if assignment is locked', () => {
                 const wrapper = getMountedWrapper();
 
-                expect(wrapper.find(List.Border).props().state).toEqual('locked');
+                expect(wrapper.find(List.Border).props().state).toEqual(
+                    'locked'
+                );
             });
 
             it('displays tooltip for priority', () => {
                 const wrapper = getMountedWrapper();
                 const priorityNode = wrapper.find('.priority-label').first();
 
-                expect(priorityNode.prop('data-sd-tooltip')).toBe('Priority: Medium');
+                expect(priorityNode.prop('data-sd-tooltip')).toBe(
+                    'Priority: Medium'
+                );
             });
 
             it('ActionMenu executes prop functions', () => {

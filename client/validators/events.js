@@ -1,11 +1,14 @@
 import moment from 'moment';
 import {get, set, isEmpty, isEqual, pick} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
 import {gettext, eventUtils} from '../utils';
 import * as selectors from '../selectors';
 import {formProfile} from './profile';
-import {PRIVILEGES, EVENTS} from '../constants';
+import {PRIVILEGES, EVENTS, TO_BE_CONFIRMED_FIELD} from '../constants';
 
-const validateRequiredDates = ({value, errors, messages}) => {
+const validateRequiredDates = ({value, errors, messages, diff}) => {
     if (!get(value, 'start')) {
         set(errors, 'start.date', gettext('This field is required'));
         messages.push(gettext('START DATE is a required field'));
@@ -21,14 +24,16 @@ const validateRequiredDates = ({value, errors, messages}) => {
         messages.push(gettext('TIMEZONE is a required field'));
     }
 
-    if (!get(value, '_startTime')) {
-        set(errors, '_startTime', gettext('This field is required'));
-        messages.push(gettext('START TIME is a required field'));
-    }
+    if (!get(diff, TO_BE_CONFIRMED_FIELD)) {
+        if (!get(value, '_startTime')) {
+            set(errors, '_startTime', gettext('This field is required'));
+            messages.push(gettext('START TIME is a required field'));
+        }
 
-    if (!get(value, '_endTime')) {
-        set(errors, '_endTime', gettext('This field is required'));
-        messages.push(gettext('END TIME is a required field'));
+        if (!get(value, '_endTime')) {
+            set(errors, '_endTime', gettext('This field is required'));
+            messages.push(gettext('END TIME is a required field'));
+        }
     }
 };
 
@@ -76,8 +81,7 @@ const validateDateInPast = ({getState, value, errors, messages}) => {
     }
 };
 
-const validateRecurringRules = ({getState, value, errors, messages}) => {
-    const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
+const validateRecurringRules = ({value, errors, messages}) => {
     const frequency = get(value, 'recurring_rule.frequency');
     const byday = get(value, 'recurring_rule.byday');
     const endRepeatMode = get(value, 'recurring_rule.endRepeatMode');
@@ -108,8 +112,8 @@ const validateRecurringRules = ({getState, value, errors, messages}) => {
         } else {
             count = parseInt(count, 10);
 
-            if (count > maxRecurringEvents) {
-                const maximum = maxRecurringEvents + 1;
+            if (count > appConfig.max_recurrent_events) {
+                const maximum = appConfig.max_recurrent_events + 1;
 
                 recurringErrors.count = gettext('Must be less than {{ maximum }}', {maximum});
                 messages.push(gettext('RECURRING REPEAT COUNT must be less than {{ maximum }}', {maximum}));
@@ -127,7 +131,7 @@ const validateRecurringRules = ({getState, value, errors, messages}) => {
     }
 };
 
-const validateMultiDayDuration = ({getState, value, errors, messages}) => {
+const validateMultiDayDuration = ({value, errors, messages}) => {
     let startDate = moment(value.start);
     let endDate = moment(value.end);
 
@@ -136,7 +140,7 @@ const validateMultiDayDuration = ({getState, value, errors, messages}) => {
     }
 
     const diff = endDate.diff(startDate, 'minutes');
-    const maxDuration = selectors.config.getMaxMultiDayEventDuration(getState());
+    const maxDuration = appConfig.max_multi_day_event_duration;
 
     if (maxDuration > 0 && diff > maxDuration * 1440) {
         const message = gettext('Event duration is greater than {{maxDuration}} days.', {maxDuration});
@@ -146,7 +150,7 @@ const validateMultiDayDuration = ({getState, value, errors, messages}) => {
     }
 };
 
-const validateDates = ({getState, value, errors, messages}) => {
+const validateDates = ({getState, value, errors, messages, diff}) => {
     if (!value) {
         return;
     }
@@ -158,6 +162,7 @@ const validateDates = ({getState, value, errors, messages}) => {
         value: value,
         errors: newErrors,
         messages: messages,
+        diff: diff,
     });
     self.validateDateRange({
         value: value,
@@ -176,14 +181,12 @@ const validateDates = ({getState, value, errors, messages}) => {
             messages: messages,
         });
         self.validateRecurringRules({
-            getState: getState,
             value: value,
             errors: newErrors,
             messages: messages,
         });
         self.validateMultiDayDuration({
             value: value,
-            getState: getState,
             errors: newErrors,
             messages: messages,
         });
@@ -289,7 +292,9 @@ const validateLinks = ({dispatch, getState, field, value, profile, errors, messa
 };
 
 const valdiateStartEndDateValues = (value, startDate, endDate) => {
-    if (!get(value, 'start') || !get(value, 'end') || !moment.isMoment(value.start) || !moment.isMoment(value.end)) {
+    if (!get(value, 'start') || !get(value, 'end') || !moment.isMoment(value.start) || !moment.isMoment(value.end) ||
+        !get(value, '_startTime') || !get(value, '_endTime') || !moment.isMoment(value._startTime) ||
+        !moment.isMoment(value._endTime)) {
         return false;
     }
 

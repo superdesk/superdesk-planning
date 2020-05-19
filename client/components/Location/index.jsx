@@ -1,9 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {gettext, getMapUrl} from '../../utils';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
-export const Location = ({name, address, mapUrl, multiLine}) => {
+import {appConfig} from 'appConfig';
+
+import {gettext, getMapUrl, stringUtils} from '../../utils';
+
+export const Location = ({name, address, multiLine, details}) => {
     if (!name && !address) {
         return null;
     }
@@ -38,17 +41,19 @@ export const Location = ({name, address, mapUrl, multiLine}) => {
     // eslint-disable-next-line react/no-multi-comp
     const renderLocation = () => (multiLine ? renderMultiline() : renderSingleline());
 
-    if (mapUrl) {
+    if (appConfig.street_map_url) {
         return (
-            <a
-                title={gettext('Show on map')}
-                href={getMapUrl(mapUrl, name, address)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="addgeolookup"
-            >
-                {renderLocation()}
-            </a>
+            <span className="addgeolookup">
+                <a
+                    title={gettext('Show on map')}
+                    href={getMapUrl(appConfig.street_map_url, name, address)}
+                    target="_blank"
+                    rel="noopener noreferrer">
+                    {renderLocation()}
+                </a>
+                {details && <div className="sd-padding-t--1"><i className="icon-info-sign icon--blue"/></div>}
+                {details && stringUtils.convertNewlineToBreak(details)}
+            </span>
         );
     }
 
@@ -58,15 +63,15 @@ export const Location = ({name, address, mapUrl, multiLine}) => {
 Location.propTypes = {
     name: PropTypes.string,
     address: PropTypes.string,
-    mapUrl: PropTypes.string,
     classes: PropTypes.string,
     multiLine: PropTypes.bool,
+    details: PropTypes.string,
 };
 
 Location.defaultProps = {
     name: '',
     address: '',
-    mapUrl: '',
     classes: '',
     multiLine: false,
+    details: '',
 };

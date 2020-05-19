@@ -17,6 +17,7 @@ export class AssignmentsSubNavComponent extends React.Component {
         this.getTotalCountForListGroup = this.getTotalCountForListGroup.bind(this);
         this.changeFilter = this.changeFilter.bind(this);
         this.selectAssignmentsFrom = this.selectAssignmentsFrom.bind(this);
+        this.changeSortField = this.changeSortField.bind(this);
     }
 
     componentWillMount() {
@@ -26,13 +27,12 @@ export class AssignmentsSubNavComponent extends React.Component {
     selectAssignmentsFrom(deskId) {
         const {
             orderByField,
-            orderDirection,
         } = this.props;
 
         if (deskId) {
-            this.changeFilter('Desk', orderByField, orderDirection, deskId);
+            this.changeFilter('Desk', orderByField, deskId);
         } else {
-            this.changeFilter('User', orderByField, orderDirection, deskId);
+            this.changeFilter('User', orderByField, deskId);
         }
     }
 
@@ -40,44 +40,51 @@ export class AssignmentsSubNavComponent extends React.Component {
         const {
             filterBy,
             orderByField,
-            orderDirection,
             loadAssignments,
             filterByType,
             filterByPriority,
             selectedDeskId,
+            ignoreScheduledUpdates,
         } = this.props;
 
         loadAssignments({
             filterBy,
             searchQuery,
             orderByField,
-            orderDirection,
             filterByType,
             filterByPriority,
             selectedDeskId,
+            ignoreScheduledUpdates,
         });
 
         // Retrieve 'Assigned to me' count based on recent search.
         this.props.fetchMyAssignmentsCount();
     }
 
-    changeFilter(filterBy, orderByField, orderDirection, selectedDeskId = null) {
+    changeFilter(filterBy, orderByField, selectedDeskId = null) {
         const {
             searchQuery,
             loadAssignments,
             filterByType,
             filterByPriority,
+            ignoreScheduledUpdates,
         } = this.props;
 
         loadAssignments({
             filterBy,
             searchQuery,
             orderByField,
-            orderDirection,
             filterByType,
             filterByPriority,
             selectedDeskId,
+            ignoreScheduledUpdates,
         });
+    }
+
+    changeSortField(field) {
+        const {changeSortField, saveSortPreferences} = this.props;
+
+        changeSortField(field, saveSortPreferences);
     }
 
     getTotalCountForListGroup(groupKey) {
@@ -95,7 +102,6 @@ export class AssignmentsSubNavComponent extends React.Component {
             filterBy,
             myAssignmentsCount,
             orderByField,
-            orderDirection,
             searchQuery,
             assignmentListSingleGroupView,
             changeAssignmentListSingleGroupView,
@@ -105,6 +111,7 @@ export class AssignmentsSubNavComponent extends React.Component {
             workspace,
             userDesks,
             currentDeskId,
+            showAllDeskOption,
         } = this.props;
 
         // Show the Desk selection if we're in Fulfil Assignment or Custom Workspace
@@ -126,12 +133,13 @@ export class AssignmentsSubNavComponent extends React.Component {
                     filterBy={filterBy}
                     myAssignmentsCount={myAssignmentsCount}
                     orderByField={orderByField}
-                    orderDirection={orderDirection}
                     changeFilter={this.changeFilter}
                     selectedDeskId={selectedDeskId}
                     userDesks={showDeskSelection ? userDesks : []}
                     selectAssignmentsFrom={this.selectAssignmentsFrom}
                     showDeskSelection={showDeskSelection}
+                    showAllDeskOption={showAllDeskOption}
+                    changeSortField={this.changeSortField}
                 />
             </div>
         );
@@ -143,7 +151,6 @@ AssignmentsSubNavComponent.propTypes = {
     selectedDeskId: PropTypes.string,
     myAssignmentsCount: PropTypes.number,
     orderByField: PropTypes.string,
-    orderDirection: PropTypes.string,
     fetchMyAssignmentsCount: PropTypes.func,
     searchQuery: PropTypes.string,
     assignmentListSingleGroupView: PropTypes.string,
@@ -161,6 +168,15 @@ AssignmentsSubNavComponent.propTypes = {
     currentDeskId: PropTypes.string,
     listGroups: PropTypes.array,
     assignmentCounts: PropTypes.object,
+    showAllDeskOption: PropTypes.bool,
+    changeSortField: PropTypes.func,
+    saveSortPreferences: PropTypes.bool,
+    ignoreScheduledUpdates: PropTypes.bool,
+};
+
+AssignmentsSubNavComponent.defaultProps = {
+    showAllDeskOption: false,
+    saveSortPreferences: true,
 };
 
 const mapStateToProps = (state) => ({
@@ -169,7 +185,6 @@ const mapStateToProps = (state) => ({
     currentDeskId: selectors.general.currentDeskId(state),
     myAssignmentsCount: selectors.getMyAssignmentsCount(state),
     orderByField: selectors.getOrderByField(state),
-    orderDirection: selectors.getOrderDirection(state),
 
     searchQuery: selectors.getSearchQuery(state),
     assignmentListSingleGroupView: selectors.getAssignmentListSingleGroupView(state),
@@ -199,6 +214,9 @@ const mapDispatchToProps = (dispatch) => ({
         )
     ),
     loadAssignments: (filters) => dispatch(actions.assignments.ui.loadAssignments(filters)),
+    changeSortField: (field, saveSortPreferences) => (
+        dispatch(actions.assignments.ui.changeSortField(field, saveSortPreferences))
+    ),
 });
 
 export const AssignmentsSubNav = connect(

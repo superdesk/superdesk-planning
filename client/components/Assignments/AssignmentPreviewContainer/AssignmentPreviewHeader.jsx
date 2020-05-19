@@ -16,7 +16,9 @@ import {
     Datetime,
     AuditInformation,
     ItemActionsMenu,
+    Label,
 } from '../../';
+import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
 
 export const AssignmentPreviewHeader = ({
     assignment,
@@ -49,7 +51,8 @@ export const AssignmentPreviewHeader = ({
 
     const planningSchedule = get(assignment, 'planning.scheduled');
     const coverageIcon = planningUtils.getCoverageIcon(planningUtils.getCoverageContentType(
-        assignment, contentTypes) || get(assignment, 'planning.g2_content_type'));
+        assignment, contentTypes) || get(assignment, 'planning.g2_content_type'), assignment);
+    const isAccepted = get(assignment, 'accepted');
 
     return (
         <div>
@@ -135,6 +138,7 @@ export const AssignmentPreviewHeader = ({
                                 <AbsoluteDate
                                     date={moment(planningSchedule).format()}
                                     noDateString={gettext('\'not scheduled yet\'')}
+                                    toBeConfirmed={get(assignment, `planning.${TO_BE_CONFIRMED_FIELD}`)}
                                 />
                             </Row>
                             <Row marginTop={true}>
@@ -162,6 +166,7 @@ export const AssignmentPreviewHeader = ({
                                     item={assignedTo}
                                     inline={true}
                                 />
+                                {isAccepted && <Label iconType="highlight" text={gettext('Accepted')} /> }
                             </Row>
                         </Column>
                     </Item>

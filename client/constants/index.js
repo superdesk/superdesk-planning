@@ -1,3 +1,5 @@
+import {gettext} from '../utils/gettext';
+
 export {PRIVILEGES} from './privileges';
 export {PLANNING} from './planning';
 export {AGENDA} from './agenda';
@@ -20,6 +22,8 @@ export {LOCATIONS} from './locations';
 export {EVENTS} from './events';
 
 export const WS_NOTIFICATION = 'WS_NOTIFICATION';
+export const TO_BE_CONFIRMED_FIELD = '_time_to_be_confirmed';
+export const TO_BE_CONFIRMED_SHORT_TEXT = gettext('TBC');
 
 export const DATE_FORMATS = {
     COMPARE_FORMAT: 'YYYY-M-D',
@@ -27,6 +31,8 @@ export const DATE_FORMATS = {
     DISPLAY_CDATE_FORMAT: 'D. MMMM HH:mm',
     DISPLAY_DAY_FORMAT: 'dddd, ',
     DISPLAY_TODAY_FORMAT: '[Today], ',
+    DISPLAY_TBC_FORMAT: `D. MMMM YYYY @ ${TO_BE_CONFIRMED_SHORT_TEXT}`,
+    DISPLAY_CDATE_TBC_FORMAT: `D. MMMM @ ${TO_BE_CONFIRMED_SHORT_TEXT}`,
 };
 
 export const WORKFLOW_STATE = {
@@ -136,4 +142,11 @@ export const TIME_COMPARISON_GRANULARITY = {
     MINUTE: 'minute',
     SECOND: 'second',
     MILLISECOND: 'millisecond',
+};
+
+export const ALL_DESKS = '_all';
+
+export const SORT_DIRECTION = {
+    ASCENDING: 'Asc',
+    DESCENDING: 'Desc',
 };

@@ -129,15 +129,18 @@ export class CollapseBox extends React.Component {
             >
                 {this.state.isOpen && (
                     <div className="sd-collapse-box__content-wraper">
-                        <div className="sd-collapse-box__content">
-                            <div className="sd-collapse-box__tools">
-                                {this.props.tools}
+                        <div className={classNames(
+                            'sd-collapse-box__content',
+                            {'no-border': !this.props.invalid}
+                        )}>
+                            <div className="sd-collapse-box__tools sd-collapse-box__tools--rightFlex">
                                 <IconButton
                                     icon="icon-chevron-up-thin"
                                     tabIndex={this.props.tabEnabled ? 0 : null}
                                     onClick={this.closeBox.bind(null, this.props)}
                                     onKeyDown={this.props.tabEnabled ? this.handleKeyDown : null}
                                 />
+                                {this.props.tools}
                             </div>
                             {this.props.openItemTopBar &&
                             <div className="sd-collapse-box__content-block sd-collapse-box__content-block--top">
@@ -152,6 +155,7 @@ export class CollapseBox extends React.Component {
                         'sd-collapse-box__header',
                         {
                             'sd-collapse-box__inner-header': this.props.inner,
+                            'no-border': !this.props.invalid,
                         }
                     )}
                     >

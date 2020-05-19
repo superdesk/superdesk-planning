@@ -2,12 +2,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
+import {appConfig} from 'appConfig';
+
 import {getDateTimeString} from '../../../utils';
 import {CollapseBox} from '../../UI';
 import {Item, Column, Row, Border} from '../../UI/List';
 import {StateLabel, InternalNoteLabel} from '../../../components';
 
-export const EventInfo = ({item, onClick, timeFormat, dateFormat, active}) => {
+export const EventInfo = ({item, onClick, active}) => {
     const collapsedItem = (<Item noBg={!active} onClick={onClick} activated={active}>
         <Border/>
         <Column grow={true}>
@@ -25,7 +27,11 @@ export const EventInfo = ({item, onClick, timeFormat, dateFormat, active}) => {
                         <InternalNoteLabel item={item} marginRight={true} />
                         <i className="icon-time"/>
                         {get(item, 'dates.start') &&
-                            getDateTimeString(item.dates.start, dateFormat, timeFormat)
+                            getDateTimeString(
+                                item.dates.start,
+                                appConfig.view.dateformat,
+                                appConfig.view.timeformat
+                            )
                         }
                     </time>
                 </span>
@@ -52,6 +58,4 @@ EventInfo.propTypes = {
     item: PropTypes.object,
     onClick: PropTypes.func,
     active: PropTypes.bool,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
 };

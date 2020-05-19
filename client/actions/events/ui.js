@@ -1,10 +1,13 @@
+import {get} from 'lodash';
+import moment from 'moment-timezone';
+
+import {appConfig} from 'appConfig';
+
 import {showModal, main, locks, addEventToCurrentAgenda} from '../index';
 import {EVENTS, MODALS, SPIKED_STATE, MAIN, ITEM_TYPE, POST_STATE} from '../../constants';
 import eventsApi from './api';
 import planningApi from '../planning/api';
 import * as selectors from '../../selectors';
-import {get} from 'lodash';
-import moment from 'moment-timezone';
 import {
     eventUtils,
     getErrorMessage,
@@ -14,6 +17,8 @@ import {
     getItemInArrayById,
     getPostedState,
     timeUtils,
+    getItemId,
+    isItemPublic,
 } from '../../utils';
 
 /**
@@ -126,7 +131,7 @@ const cancelEvent = (original, updates) => (
         dispatch(eventsApi.cancelEvent(original, updates))
             .then(() => {
                 notify.success(gettext('Event has been cancelled'));
-                return Promise.resolve();
+                return dispatch(main.closePreviewAndEditorForItems([original]));
             }, (error) => {
                 notify.error(
                     getErrorMessage(error, gettext('Failed to cancel the Event!'))
@@ -297,6 +302,7 @@ const openRepetitionsModal = (event, fromEditor = true) => {
             event: event,
             action: EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS,
             title: gettext('Save changes before updating Event Repetitions?'),
+            refetchBeforeFinalLock: true,
         });
     } else {
         return self._openActionModal(
@@ -315,12 +321,26 @@ const rescheduleEvent = (original, updates) => (
                 notify.success(gettext('Event has been rescheduled'));
 
                 const duplicatedEvent = get(updatedEvent, 'reschedule_to');
+                const openEditor = (item) => {
+                    const itemId = getItemId(item);
+                    const editorItemId = selectors.forms.currentItemId(getState());
+                    const editorModalItemId = selectors.forms.currentItemIdModal(getState());
+
+                    if (editorItemId === itemId || editorModalItemId === itemId) {
+                        dispatch(main.changeEditorAction(
+                            'edit',
+                            editorModalItemId === itemId
+                        ));
+                    } else {
+                        dispatch(main.openForEdit(item));
+                    }
+                };
 
                 if (isItemRescheduled(updatedEvent) && duplicatedEvent) {
                     return dispatch(eventsApi.fetchById(duplicatedEvent))
                         .then(
                             (newEvent) => {
-                                dispatch(main.openForEdit(newEvent));
+                                openEditor(newEvent);
 
                                 return Promise.resolve(newEvent);
                             },
@@ -334,7 +354,7 @@ const rescheduleEvent = (original, updates) => (
                         );
                 }
 
-                dispatch(main.openForEdit(updatedEvent));
+                openEditor(updatedEvent);
 
                 return Promise.resolve(updatedEvent);
             }, (error) => {
@@ -383,9 +403,9 @@ const _openActionModalFromEditor = ({
                             if (get(previousLock, 'action')) {
                                 promise.then((refetchedEvent) => (
                                     (openInEditor || openInModal) ?
-                                        dispatch(main.openForEdit(refetchedEvent, openInModal)) :
+                                        dispatch(main.openForEdit(refetchedEvent, !openInModal, openInModal)) :
                                         dispatch(locks.lock(refetchedEvent, previousLock.action))
-                                ));
+                                ), () => Promise.reject());
                             }
 
                             return promise;
@@ -498,9 +518,7 @@ const updateRepetitions = (original, updates) => (
 );
 
 const saveWithConfirmation = (original, updates, unlockOnClose, ignoreRecurring = false) => (
-    (dispatch, getState) => {
-        const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
-
+    (dispatch) => {
         // If this is not from a recurring series, then simply post this event
         // Do the same if we need to ignore recurring event selection on purpose
         if (!get(original, 'recurrence_id') || ignoreRecurring) {
@@ -509,7 +527,7 @@ const saveWithConfirmation = (original, updates, unlockOnClose, ignoreRecurring 
 
         return dispatch(eventsApi.query({
             recurrenceId: original.recurrence_id,
-            maxResults: maxRecurringEvents,
+            maxResults: appConfig.max_recurrent_events,
             onlyFuture: false,
         }))
             .then((relatedEvents) => (
@@ -547,44 +565,71 @@ const postWithConfirmation = (original, updates, post) => (
     }
 );
 
-const openEventPostModal = (original, updates, post, unpostAction, modalProps = {}) => (
-    (dispatch) => (
-        dispatch(eventsApi.loadEventDataForAction(
-            original,
-            true,
-            post,
-            true,
-            true
-        )).then((eventWithData) => {
-            if (!post &&
-                !eventWithData.recurrence_id &&
-                !eventUtils.eventHasPostedPlannings(eventWithData)
-            ) {
-                // Not a recurring event and has no posted planning items to confirm unpost
-                // Just unpost
-                return dispatch(!unpostAction ?
-                    eventsApi.unpost(original, updates) :
-                    unpostAction(original, updates)
-                );
+const openEventPostModal = (
+    original,
+    updates,
+    post,
+    unpostAction,
+    modalProps = {},
+    planningItem = null,
+    planningAction = null) => (
+    (dispatch) => {
+        let promise = Promise.resolve(original);
+
+        if (planningItem) {
+            // Actually posting a planning item
+            if (!planningItem.event_item || !planningItem.recurrence_id) {
+                // Adhoc planning item or does not belong to recurring series
+                return dispatch(planningAction()).then((p) => Promise.resolve(p));
             }
 
-            return new Promise((resolve, reject) => {
-                dispatch(showModal({
-                    modalType: MODALS.ITEM_ACTIONS_MODAL,
-                    modalProps: {
-                        resolve: resolve,
-                        reject: reject,
-                        original: eventWithData,
-                        updates: updates,
-                        actionType: modalProps.actionType ?
-                            modalProps.actionType :
-                            EVENTS.ITEM_ACTIONS.POST_EVENT.label,
-                        ...modalProps,
-                    },
-                }));
+            promise = dispatch(eventsApi.fetchById(planningItem.event_item, {force: true, loadPlanning: false}));
+        }
+
+        return promise.then((fetchedEvent) => {
+            if (planningItem && isItemPublic(fetchedEvent)) {
+                return dispatch(planningAction()).then((p) => Promise.resolve(p));
+            }
+
+            return dispatch(eventsApi.loadEventDataForAction(
+                fetchedEvent,
+                true,
+                post,
+                true,
+                true
+            )).then((eventWithData) => {
+                if (!post &&
+                    !eventWithData.recurrence_id &&
+                    !eventUtils.eventHasPostedPlannings(eventWithData)
+                ) {
+                    // Not a recurring event and has no posted planning items to confirm unpost
+                    // Just unpost
+                    return dispatch(!unpostAction ?
+                        eventsApi.unpost(fetchedEvent, updates) :
+                        unpostAction(fetchedEvent, updates)
+                    );
+                }
+
+                return new Promise((resolve, reject) => {
+                    dispatch(showModal({
+                        modalType: MODALS.ITEM_ACTIONS_MODAL,
+                        modalProps: {
+                            resolve: resolve,
+                            reject: reject,
+                            original: eventWithData,
+                            updates: updates,
+                            actionType: modalProps.actionType ?
+                                modalProps.actionType :
+                                EVENTS.ITEM_ACTIONS.POST_EVENT.label,
+                            planningItem: planningItem,
+                            planningAction: planningAction,
+                            ...modalProps,
+                        },
+                    }));
+                }).then((rtn) => Promise.resolve(rtn));
             });
-        })
-    )
+        });
+    }
 );
 
 const openAssignCalendarModal = (original, updates) => (
@@ -732,7 +777,10 @@ const selectCalendar = (calendarId = '', params = {}) => (
         $timeout(() => $location.search('calendar', calendar));
 
         // Reload the Event list
-        return dispatch(self.fetchEvents(params));
+        dispatch(main.setUnsetUserInitiatedSearch(true));
+        return dispatch(self.fetchEvents(params))
+            .then((data) => Promise.resolve(data))
+            .finally(() => dispatch(main.setUnsetUserInitiatedSearch(false)));
     }
 );
 
@@ -856,7 +904,7 @@ const creatAndOpenPlanning = (item, planningDate = null, openPlanningItem = fals
 );
 
 const onMarkEventCompleted = (event, editor = false) => (
-    (dispatch) => {
+    (dispatch, getState, {notify}) => {
         let updates = {
             _id: event._id,
             type: event.type,
@@ -875,34 +923,51 @@ const onMarkEventCompleted = (event, editor = false) => (
                 event,
                 gettext('Save changes before marking event as complete ?'),
                 (unlockedItem, previousLock, openInEditor, openInModal) => (
-                    dispatch(lockAndSaveUpdates(
-                        unlockedItem,
-                        updates,
-                        EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.lock_action,
-                        gettext('Marked event as complete'),
-                        gettext('Failed to mark event as complete'),
-                        null,
-                        false))
-                        .then((result) => {
-                            if (get(previousLock, 'action') && (openInEditor || openInModal)) {
-                                dispatch(main.openForEdit(result, true, openInModal));
-                                dispatch(locks.lock(result, previousLock.action));
-                            }
-                        })
-                )
-            ));
+                    dispatch(locks.lock(unlockedItem, EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.lock_action))
+                        .then((lockedItem) => (
+                            dispatch(showModal({
+                                modalType: MODALS.CONFIRMATION,
+                                modalProps: {
+                                    body: gettext('Are you sure you want to mark this event as complete?'),
+                                    action: () =>
+                                        dispatch(main.saveAndUnlockItem(lockedItem, updates, true)).then((result) => {
+                                            if (get(previousLock, 'action') && (openInEditor || openInModal)) {
+                                                dispatch(main.openForEdit(result, true, openInModal));
+                                                dispatch(locks.lock(result, previousLock.action));
+                                            }
+                                        }, (error) => {
+                                            dispatch(locks.unlock(lockedItem));
+                                        }),
+                                    onCancel: () => dispatch(locks.unlock(lockedItem)).then((result) => {
+                                        if (get(previousLock, 'action') && (openInEditor || openInModal)) {
+                                            dispatch(main.openForEdit(result, true, openInModal));
+                                            dispatch(locks.lock(result, previousLock.action));
+                                        }
+                                    }),
+                                    autoClose: true,
+                                },
+                            }))), (error) => {
+                            notify.error(getErrorMessage(error, gettext('Could not obtain lock on the event.')));
+                        }
+                        ))));
         }
 
         // If actioned on list / preview
-        return dispatch(lockAndSaveUpdates(
-            event,
-            updates,
-            EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.lock_action,
-            gettext('Marked event as complete'),
-            gettext('Failed to mark event as complete'),
-            null,
-            false))
-            .catch(() => dispatch(locks.unlock(event)));
+        return dispatch(locks.lock(event, EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.lock_action))
+            .then((original) => (
+                dispatch(showModal({
+                    modalType: MODALS.CONFIRMATION,
+                    modalProps: {
+                        body: gettext('Are you sure you want to mark this event as complete?'),
+                        action: () => dispatch(main.saveAndUnlockItem(original, updates, true)).catch((error) => {
+                            dispatch(locks.unlock(original));
+                        }),
+                        onCancel: () => dispatch(locks.unlock(original)),
+                        autoClose: true,
+                    },
+                }))), (error) => {
+                notify.error(getErrorMessage(error, gettext('Could not obtain lock on the event.')));
+            });
     }
 );
 

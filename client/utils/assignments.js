@@ -1,7 +1,9 @@
-import {get, includes, isNil} from 'lodash';
+import {get, includes, isNil, find} from 'lodash';
 import moment from 'moment';
+import {gettext} from './index';
 
 import {ASSIGNMENTS, PRIVILEGES} from '../constants';
+import * as selectors from '../selectors';
 import {lockUtils, getCreator, getItemInArrayById, isExistingItem} from './index';
 
 const isNotLockRestricted = (assignment, session) => (
@@ -15,7 +17,20 @@ const isTextAssignment = (assignment, contentTypes = []) => {
     return get(contentType, 'content item type', get(contentType, 'qcode')) === 'text';
 };
 
-const canEditAssignment = (assignment, session, privileges, privilege) => (
+const isPictureAssignment = (assignment, contentTypes = []) => {
+    const contentType = contentTypes.find((c) => get(c, 'qcode') === get(assignment, 'planning.g2_content_type'));
+
+    return get(contentType, 'content item type', get(contentType, 'qcode')) === 'picture';
+};
+
+const canEditAssignment = (assignment, session, privileges, privilege, contentTypes) => (
+    !!privileges[privilege] &&
+        self.isNotLockRestricted(assignment, session) &&
+        self.isAssignmentInEditableState(assignment) &&
+        !self.isPictureAssignment(assignment, contentTypes)
+);
+
+const canRemoveAssignment = (assignment, session, privileges, privilege) => (
     !!privileges[privilege] &&
         self.isNotLockRestricted(assignment, session) &&
         self.isAssignmentInEditableState(assignment)
@@ -29,7 +44,14 @@ const canStartWorking = (assignment, session, privileges, contentTypes) => (
         (
             !get(assignment, 'assigned_to.user') ||
             assignment.assigned_to.user === get(session, 'identity._id')
-        )
+        ) &&
+        !isAssignedToProvider(assignment)
+);
+
+const canFulfilAssignment = (assignment, session, privileges) => (
+    !!privileges[PRIVILEGES.ARCHIVE] &&
+        isNotLockRestricted(assignment, session) &&
+        get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED
 );
 
 const isAssignmentInEditableState = (assignment) => (
@@ -41,7 +63,10 @@ const isAssignmentInEditableState = (assignment) => (
 const canCompleteAssignment = (assignment, session, privileges) => (
     !!privileges[PRIVILEGES.ARCHIVE] &&
         self.isNotLockRestricted(assignment, session) &&
-        get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS
+        (get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS ||
+            ([ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED, ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
+                ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS].includes(
+                get(assignment, 'assigned_to.state'))) && get(assignment, 'scheduled_update_id'))
 );
 
 const canConfirmAvailability = (assignment, session, privileges, contentTypes) => (
@@ -71,6 +96,16 @@ const isDue = (assignment) => (
             ASSIGNMENTS.WORKFLOW_STATE.COMPLETED,
             ASSIGNMENTS.WORKFLOW_STATE.CANCELLED,
         ].indexOf(get(assignment, 'assigned_to.state')) < 0
+);
+
+const isAssignedToProvider = (assignment) => (
+    get(assignment, 'assigned_to.coverage_provider.qcode')
+);
+
+const getContactLabel = (assignment) => (
+    isAssignedToProvider(assignment) ?
+        gettext('Assigned Provider') :
+        gettext('Coverage Contact')
 );
 
 const getAssignmentActions = (assignment, session, privileges, lockedItems, contentTypes, callBacks) => {
@@ -103,6 +138,8 @@ const getAssignmentActions = (assignment, session, privileges, lockedItems, cont
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
                         callback: callBacks[callBackName].bind(null, assignment),
+                        label: get(assignment, 'scheduled_update_id') ? gettext('Mark as completed') :
+                            ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label,
                     });
             break;
 
@@ -158,15 +195,15 @@ const getAssignmentItemActions = (assignment, session, privileges, contentTypes,
 
     const actionsValidator = {
         [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: () =>
-            self.canEditAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE),
+            self.canEditAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE, contentTypes),
         [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label]: () =>
             self.canCompleteAssignment(assignment, session, privileges),
         [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label]: () =>
-            self.canEditAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE),
+            self.canEditAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE, contentTypes),
         [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label]: () =>
             self.canStartWorking(assignment, session, privileges, contentTypes),
         [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.label]: () =>
-            self.canEditAssignment(assignment, session, privileges, PRIVILEGES.PLANNING_MANAGEMENT),
+            self.canRemoveAssignment(assignment, session, privileges, PRIVILEGES.PLANNING_MANAGEMENT),
         [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.label]: () =>
             self.assignmentHasContent(assignment),
         [ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.label]: () =>
@@ -277,24 +314,63 @@ const getAssignmentInfo = (assignment, users, desks) => {
     };
 };
 
+/**
+ * Action dispatcher to get the id of the currently selected desk
+ * This could either be from the workspace dropdown, or if this is a custom workspace,
+ * then return the id of the desk dropdown provided in the Assignments subnav
+ * @param {Object} desks - The Desks service from client-core
+ * @param {Object} state - The redux store's state
+ * @returns {String} - Desk Id
+ */
+const getCurrentSelectedDeskId = (desks, state) => {
+    if (get(desks, 'userDesks.length', 0) < 1) {
+        return null;
+    } else if (!desks.activeDeskId || !find(desks.userDesks, {_id: desks.activeDeskId})) {
+        return selectors.getSelectedDeskId(state);
+    }
+
+    return desks.activeDeskId;
+};
+
+/**
+ * Action dispatcher to get the currently selected desk
+ * This could either be from the workspace dropdown, or if this is a custom workspace,
+ * then return the desk dropdown provided in the Assignments subnav
+ * @param {Object} desks - The Desks service from client-core
+ * @param {Object} state - The redux store's state
+ * @returns {Object} - Desk
+ */
+const getCurrentSelectedDesk = (desks, state) => {
+    const deskId = self.getCurrentSelectedDeskId(desks, state);
+
+    return get(desks.deskLookup, deskId) || null;
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     isNotLockRestricted,
     canEditAssignment,
     canCompleteAssignment,
+    canRemoveAssignment,
     isAssignmentInEditableState,
     getAssignmentActions,
     canStartWorking,
+    canFulfilAssignment,
     getAssignmentGroupsByStates,
     canEditDesk,
     assignmentHasContent,
     isAssignmentLockRestricted,
     getAssignmentInfo,
     isTextAssignment,
+    isPictureAssignment,
     canConfirmAvailability,
     canRevertAssignment,
     isAssignmentLocked,
     isDue,
+    getCurrentSelectedDeskId,
+    getCurrentSelectedDesk,
+    isAssignedToProvider,
+    getContactLabel,
 };
 
 export default self;

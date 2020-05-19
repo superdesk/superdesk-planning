@@ -2,10 +2,10 @@ import React from 'react';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import {defer} from 'lodash';
-import {firstCharUpperCase} from '../utils';
+import {defer, get, groupBy} from 'lodash';
 
 import {Menu, Label, Divider, Dropdown as DropMenu} from '../Dropdown';
+import {gettext} from '../utils';
 
 /**
  * @ngdoc react
@@ -15,7 +15,10 @@ import {Menu, Label, Divider, Dropdown as DropMenu} from '../Dropdown';
 export class Dropdown extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {open: false};
+        this.state = {
+            open: false,
+            filterValue: '',
+        };
         this.toggle = this.toggle.bind(this);
         this.close = this.close.bind(this);
     }
@@ -35,8 +38,11 @@ export class Dropdown extends React.Component {
         });
     }
 
-    close() {
-        if (!this.inToggle && this.state.open) {
+    close(event) {
+        if (event.target.classList.contains('dropdown-filter')) {
+            return;
+        }
+        if (!this.inToggle && this.state.open && !(get(event.target, 'nodeName') === 'UL')) {
             this.setState({open: false});
         }
     }
@@ -47,6 +53,7 @@ export class Dropdown extends React.Component {
         }
     }
 
+    // eslint-disable-next-line complexity
     render() {
         const isCreate = this.props.icon === 'icon-plus-large';
         const buttonClassName = classNames(
@@ -77,6 +84,41 @@ export class Dropdown extends React.Component {
                 )}
             </button>
         );
+
+        const buttonItem = (item, index) => (
+            <li key={index}>
+                <button id={item.id} onMouseDown={() => item.action()}>
+                    {item.icon && (
+                        <i className={classNames(
+                            {'icon--gray': item.disabled},
+                            item.icon
+                        )} />
+                    )}
+
+                    <span className={classNames(
+                        {'dropdown__menu-item--disabled': item.disabled},
+                        item.className
+                    )}>
+                        {item.label}
+                    </span>
+                </button>
+            </li>
+        );
+
+        const filterValueNormalized = this.state.filterValue.trim().toLowerCase();
+
+        let filteredItems;
+
+        if (this.props.group === true) {
+            filteredItems = filterValueNormalized.length < 1 ? this.props.items : this.props.items.filter(
+                (item) => item.label.toLowerCase().includes(filterValueNormalized)
+            );
+            filteredItems = groupBy(filteredItems, 'group');
+        } else {
+            filteredItems = filterValueNormalized.length < 1 ? this.props.items : this.props.items.filter(
+                (item) => item.label.toLowerCase().includes(filterValueNormalized)
+            );
+        }
 
         return (
             <DropMenu
@@ -111,29 +153,35 @@ export class Dropdown extends React.Component {
                         <Divider />
                     )}
 
-                    {this.props.items.map((item, index) => {
+                    {
+                        this.props.searchable === true && this.props.items.length > 2 ? (
+                            <div style={{paddingLeft: 10, paddingRight: 10}}>
+                                <input
+                                    type="text"
+                                    value={this.state.filterValue}
+                                    onChange={(event) => this.setState({filterValue: event.target.value})}
+                                    placeholder={gettext('Filter')}
+                                    className="dropdown-filter"
+                                />
+                            </div>
+                        ) : null
+                    }
+
+                    {
+                        this.props.group === true && Object.keys(filteredItems).map((item, index) => (
+                            <React.Fragment key={index}>
+                                <Divider />
+                                <Label>{item}</Label>
+                                {filteredItems[item].map((item, index) => buttonItem(item, index))}
+                            </React.Fragment>)
+                        )
+                    }
+
+                    {!this.props.group && filteredItems.map((item, index) => {
                         if (item.divider) {
                             return <Divider key={index} />;
                         } else {
-                            return (
-                                <li key={index}>
-                                    <button id={item.id} onMouseDown={() => item.action()}>
-                                        {item.icon && (
-                                            <i className={classNames(
-                                                {'icon--gray': item.disabled},
-                                                item.icon
-                                            )} />
-                                        )}
-
-                                        <span className={classNames(
-                                            {'dropdown__menu-item--disabled': item.disabled},
-                                            item.className
-                                        )}>
-                                            {firstCharUpperCase(item.label)}
-                                        </span>
-                                    </button>
-                                </li>
-                            );
+                            return buttonItem(item, index);
                         }
                     })}
                 </Menu>
@@ -149,6 +197,8 @@ Dropdown.propTypes = {
     label: PropTypes.string,
     items: PropTypes.arrayOf(PropTypes.shape({
         label: PropTypes.string,
+        group: PropTypes.string,
+        searchable: PropTypes.bool,
         divider: PropTypes.bool,
         icon: PropTypes.string,
         action: PropTypes.func,
@@ -156,6 +206,7 @@ Dropdown.propTypes = {
         disabled: PropTypes.bool,
     })),
     alignRight: PropTypes.bool,
+    group: PropTypes.bool,
     disableSelection: PropTypes.bool,
     defaultAction: PropTypes.func,
     dropUp: PropTypes.bool,
@@ -163,6 +214,7 @@ Dropdown.propTypes = {
     className: PropTypes.string,
     tooltip: PropTypes.string,
     scrollable: PropTypes.bool,
+    searchable: PropTypes.bool,
 };
 
 Dropdown.defaultProps = {

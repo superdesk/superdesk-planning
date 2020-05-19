@@ -3,6 +3,7 @@ import {cloneDeep} from 'lodash';
 
 import assignment from '../assignment';
 import * as testData from '../../utils/testData';
+import {ASSIGNMENTS} from '../../constants';
 
 describe('assignment', () => {
     let initialState;
@@ -183,6 +184,7 @@ describe('assignment', () => {
                         assignmentIds: ['1', '2'],
                         total: 4,
                         lastPage: 1,
+                        sortOrder: 'Asc',
                     },
                 },
             });
@@ -206,6 +208,7 @@ describe('assignment', () => {
                         assignmentIds: ['1', '2'],
                         total: 4,
                         lastPage: 1,
+                        sortOrder: 'Desc',
                     },
                 },
             });
@@ -229,6 +232,7 @@ describe('assignment', () => {
                         assignmentIds: ['1', '2'],
                         total: 4,
                         lastPage: 1,
+                        sortOrder: 'Desc',
                     },
                 },
             });
@@ -261,6 +265,7 @@ describe('assignment', () => {
                         assignmentIds: ['1', '2', '3'],
                         total: 3,
                         lastPage: 1,
+                        sortOrder: 'Asc',
                     },
                 },
             });
@@ -293,6 +298,7 @@ describe('assignment', () => {
                         assignmentIds: ['1', '2', '3'],
                         total: 3,
                         lastPage: 1,
+                        sortOrder: 'Desc',
                     },
                 },
             });
@@ -325,6 +331,7 @@ describe('assignment', () => {
                         assignmentIds: ['1', '2', '3'],
                         total: 3,
                         lastPage: 1,
+                        sortOrder: 'Desc',
                     },
                 },
             });
@@ -384,7 +391,7 @@ describe('assignment', () => {
             it('REMOVE_ASSIGNMENT returns if Assignment not loaded', () => {
                 const result = assignment(state, {
                     type: 'REMOVE_ASSIGNMENT',
-                    payload: {assignment: 'as1'},
+                    payload: {assignments: ['as1']},
                 });
 
                 expect(result).toEqual(initialState);
@@ -404,13 +411,14 @@ describe('assignment', () => {
 
                 result = assignment(result, {
                     type: 'REMOVE_ASSIGNMENT',
-                    payload: {assignment: 'as1'},
+                    payload: {assignments: ['as1']},
                 });
 
                 expect(result.lists.IN_PROGRESS).toEqual({
                     assignmentIds: [],
                     total: 0,
                     lastPage: 1,
+                    sortOrder: 'Desc',
                 });
 
                 // Checks to see if TO_DO list is set back to empty
@@ -426,13 +434,14 @@ describe('assignment', () => {
 
                 result = assignment(result, {
                     type: 'REMOVE_ASSIGNMENT',
-                    payload: {assignment: 'as1'},
+                    payload: {assignments: ['as1']},
                 });
 
                 expect(result.lists.TODO).toEqual({
                     assignmentIds: [],
                     total: 0,
                     lastPage: 1,
+                    sortOrder: 'Asc',
                 });
 
                 // Checks to see if COMPLETED list is set back to empty
@@ -448,13 +457,14 @@ describe('assignment', () => {
 
                 result = assignment(result, {
                     type: 'REMOVE_ASSIGNMENT',
-                    payload: {assignment: 'as1'},
+                    payload: {assignments: ['as1']},
                 });
 
                 expect(result.lists.COMPLETED).toEqual({
                     assignmentIds: [],
                     total: 0,
                     lastPage: 1,
+                    sortOrder: 'Desc',
                 });
             });
 
@@ -476,7 +486,7 @@ describe('assignment', () => {
 
                 result = assignment(result, {
                     type: 'REMOVE_ASSIGNMENT',
-                    payload: {assignment: 'as1'},
+                    payload: {assignments: ['as1']},
                 });
 
                 expect(result).toEqual(jasmine.objectContaining({
@@ -503,7 +513,7 @@ describe('assignment', () => {
 
                 result = assignment(result, {
                     type: 'REMOVE_ASSIGNMENT',
-                    payload: {assignment: 'as1'},
+                    payload: {assignments: ['as1']},
                 });
 
                 expect(result).toEqual(jasmine.objectContaining({
@@ -529,6 +539,7 @@ describe('assignment', () => {
                 assignmentIds: ['as1', 'as2'],
                 total: 2,
                 lastPage: 1,
+                sortOrder: 'Asc',
             },
         }));
 
@@ -546,6 +557,7 @@ describe('assignment', () => {
                 assignmentIds: ['as1', 'as2', 'as3'],
                 total: 3,
                 lastPage: 1,
+                sortOrder: 'Asc',
             },
         }));
 
@@ -562,7 +574,36 @@ describe('assignment', () => {
                 assignmentIds: ['as1', 'as2', 'as3'],
                 total: 3,
                 lastPage: 2,
+                sortOrder: 'Asc',
             },
         }));
+    });
+
+    it('SET_GROUP_SORT_ORDER', () => {
+        const result = assignment(initialState, {
+            type: ASSIGNMENTS.ACTIONS.SET_GROUP_SORT_ORDER,
+            payload: {
+                list: 'TODO',
+                sortOrder: 'Desc',
+            },
+        });
+
+        expect(result.lists).toEqual(jasmine.objectContaining({
+            TODO: {
+                assignmentIds: [],
+                total: 0,
+                lastPage: null,
+                sortOrder: 'Desc',
+            },
+        }));
+    });
+
+    it('SET_SORT_FIELD', () => {
+        const result = assignment(initialState, {
+            type: ASSIGNMENTS.ACTIONS.SET_SORT_FIELD,
+            payload: 'Created',
+        });
+
+        expect(result.orderByField).toBe('Created');
     });
 });

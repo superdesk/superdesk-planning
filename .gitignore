@@ -12,6 +12,8 @@ test-server/__pycache__
 e2e-test-results
 templates-cache.generated.js
 .env
+.python-version
+.idea
 npm-debug.log
 dist/
 *.egg-info

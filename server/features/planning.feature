@@ -1052,7 +1052,7 @@ Feature: Planning
             "event": "activity",
             "extra": {
                 "activity": {
-                    "message" : "{{coverage_type}} coverage \"slugline\": {{internal_note}}",
+                    "message" : "{{coverage_type}} coverage \"{{slugline}}\" internal note: \"{{internal_note}}\"",
                     "data" : {
                         "coverage_type" : "Text",
                         "internal_note" : "Mostly harmless",
@@ -2114,12 +2114,12 @@ Feature: Planning
         Then we get error 400
         """
         {
-            "_issues": {"validator exception": "400: Cannot remove coverage of a cancelled planning item."}
+            "_issues": {"validator exception": "400: Cannot remove coverage of a cancelled planning item"}
         }
         """
 
     @auth
-    @notification @test
+    @notification
     Scenario: no_content_linking flag cannot be updated if coverage is active
         Given "desks"
         """
@@ -2235,3 +2235,1979 @@ Feature: Planning
             "_issues": {"validator exception": "400: Cannot edit content linking flag of a coverage already in workflow"}
         }
         """
+
+    @auth
+    @notification
+    Scenario: Can create scheduled updates if PLANNING_ALLOW_SCHEDULED_UPDATES is enabled
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then the assignment not created for coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "scheduled_updates": [{
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-21T14:00:00.000Z"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "scheduled_updates": [{
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-21T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+
+    @auth
+    @notification
+    @no_scheduled_updates
+    Scenario: Error when creating scheduled updates if PLANNING_ALLOW_SCHEDULED_UPDATES is not enabled
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "scheduled_updates": [{
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-21T14:00:00.000Z"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we get error 400
+        """
+        {"_issues": { "validator exception": "400: Not configured to create scheduled updates to a coverage" }}
+        """
+
+    @auth
+    @notification
+    Scenario: Schedule of a coverage updates should always be after parent coverage and previous update
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z"
+                    },
+                    "scheduled_updates": [{
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-20T14:00:00.000Z"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we get error 400
+        """
+        {"_issues": { "validator exception": "400: Scheduled updates must be after the original coverage." }}
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z"
+                    },
+                    "scheduled_updates": [{
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-25T14:00:00.000Z"
+                        }
+                    }, {
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-23T14:00:00.000Z"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we get error 400
+        """
+        {"_issues": { "validator exception": "400: Scheduled updates of a coverage must be after the previous update" }}
+        """
+
+    @auth
+    @notification
+    Scenario: Cannot add a scheduled update to workflow when original coverag is not in workflow
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "assigned_to": {
+                            "desk": "Politic Desk",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "active"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "active",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00.000Z"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we get error 400
+        """
+        {"_issues": { "validator exception": "400: Cannot add a scheduled update to workflow when original coverage is not in workflow" }}
+        """
+
+    @auth
+    @notification
+    Scenario: Can add a scheduled update to workflow when original coverage is in workflow
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "workflow_status": "active",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "state": "active"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "workflow_status": "active",
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "state": "active"
+                    }
+                }
+            ]
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "active",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "assigned_to": {
+                            "desk": "Politic Desk",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "active"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "active",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00.000Z"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "active",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00+0000"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "assigned_to": {
+                            "desk": "Politic Desk",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "active"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "active",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+
+    @auth
+    @notification
+    Scenario: Removes assignment from scheduled_updates when parent coverage is removed
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "state": "draft"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "state": "draft"
+                    }
+                }
+            ]
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "assigned_to": {
+                            "desk": "Politic Desk",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "draft"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00.000Z"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00+0000"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "assigned_to": {
+                            "desk": "Politic Desk",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "draft"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we store assignment id in "firstassignment" from scheduled_update 0 of coverage 0
+        When we get "assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#"
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": []
+        }
+        """
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": []
+        }
+        """
+        When we get "assignments/#firstassignment#"
+        Then we get error 404
+
+
+    @auth
+    @notification
+    Scenario: Can add a coverage to workflow with all its scheduled updates to workflow as well
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "state": "draft"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "state": "draft"
+                    }
+                }
+            ]
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "assigned_to": {
+                            "desk": "Politic Desk",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "draft"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00.000Z"
+                        }
+                    },
+                    {
+                        "assigned_to": {
+                            "desk": "Politic Desk",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "draft"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-28T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00+0000"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "assigned_to": {
+                            "desk": "Politic Desk",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "draft"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00+0000"
+                        }
+                    },
+                    {
+                        "assigned_to": {
+                            "desk": "Politic Desk",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "draft"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-28T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "active",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "assigned_to": {
+                            "desk": "Politic Desk",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "active"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "active",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00.000Z"
+                        }
+                    },
+                    {
+                        "assigned_to": {
+                            "desk": "Politic Desk",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "active"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "active",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-28T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "active",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00+0000"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "assigned_to": {
+                            "desk": "Politic Desk",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "active"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "active",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00+0000"
+                        }
+                    },
+                    {
+                        "assigned_to": {
+                            "desk": "Politic Desk",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "active"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "active",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-28T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Cancelling a coverage will cancel all its scheduled_updates
+        Given "desks"
+        """
+        [{"_id": "desk_123", "name": "Politic Desk"}]
+        """
+        Given "vocabularies"
+        """
+        [{
+          "_id": "newscoveragestatus",
+          "display_name": "News Coverage Status",
+          "type": "manageable",
+          "unique_field": "qcode",
+          "items": [
+              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
+                  "label": "On merit"},
+              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
+                  "label": "Not planned"},
+              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
+                  "label": "On request"}
+          ]
+        }]
+        """
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "desk_123",
+                        "user": "507f191e810c19729de870eb",
+                        "state": "draft"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "assignment_id": "#firstassignment#",
+                        "desk": "desk_123",
+                        "user": "507f191e810c19729de870eb",
+                        "state": "draft"
+                    }
+                }
+            ]
+        }
+        """
+        When we get "assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        { "_id": "#firstassignment#" }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z"
+                    },
+                    "assigned_to": {
+                        "assignment_id": "#firstassignment#",
+                        "desk": "desk_123",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "assigned_to": {
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "draft"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00.000Z"
+                        }
+                    },
+                    {
+                        "assigned_to": {
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "draft"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-28T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we store scheduled_update id in "firstscheduled" from scheduled_update 0 of coverage 0
+        Then we store scheduled_update id in "secondscheduled" from scheduled_update 1 of coverage 0
+        Then we store assignment id in "firstscheduledassignment" from scheduled_update 0 of coverage 0
+        Then we store assignment id in "secondscheduledassignment" from scheduled_update 1 of coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00+0000"
+                    },
+                    "assigned_to": {
+                        "assignment_id": "#firstassignment#",
+                        "desk": "desk_123",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "assigned_to": {
+                            "assignment_id": "#firstscheduledassignment#",
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "draft"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00+0000"
+                        }
+                    },
+                    {
+                        "assigned_to": {
+                            "assignment_id": "#secondscheduledassignment#",
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "draft"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "draft",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-28T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        When we get "assignments/#firstscheduledassignment#"
+        Then we get existing resource
+        """
+        { "_id": "#firstscheduledassignment#" }
+        """
+        When we get "assignments/#secondscheduledassignment#"
+        Then we get existing resource
+        """
+        { "_id": "#secondscheduledassignment#" }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "active",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z"
+                    },
+                    "assigned_to": {
+                        "assignment_id": "#firstassignment#",
+                        "desk": "desk_123",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "scheduled_update_id": "#firstscheduled#",
+                        "assigned_to": {
+                            "assignment_id": "#firstscheduledassignment#",
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "active"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "active",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00.000Z"
+                        }
+                    },
+                    {
+                        "scheduled_update_id": "#secondscheduled#",
+                        "assigned_to": {
+                            "assignment_id": "#secondscheduledassignment#",
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "active"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "active",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-28T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "active",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00+0000"
+                    },
+                    "assigned_to": {
+                        "assignment_id": "#firstassignment#",
+                        "desk": "desk_123",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "scheduled_update_id": "#firstscheduled#",
+                        "assigned_to": {
+                            "assignment_id": "#firstscheduledassignment#",
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "assigned"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "active",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00+0000"
+                        }
+                    },
+                    {
+                        "scheduled_update_id": "#secondscheduled#",
+                        "assigned_to": {
+                            "assignment_id": "#secondscheduledassignment#",
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "assigned"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "active",
+                        "news_coverage_status": {
+                          "qcode": "ncostat:int"
+                        },
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-28T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+        When we get "assignments/#firstscheduledassignment#"
+        Then we get existing resource
+        """
+        { "_id": "#firstscheduledassignment#" }
+        """
+        When we get "assignments/#secondscheduledassignment#"
+        Then we get existing resource
+        """
+        { "_id": "#secondscheduledassignment#" }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "cancelled",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00+0000"
+                    },
+                    "assigned_to": {
+                        "assignment_id": "#firstassignment#",
+                        "desk": "desk_123",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "scheduled_updates": [{
+                        "scheduled_update_id": "#firstscheduled#",
+                        "assigned_to": {
+                            "assignment_id": "#firstscheduledassignment#",
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "cancelled"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "cancelled",
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-27T14:00:00+0000"
+                        }
+                    },
+                    {
+                        "scheduled_update_id": "#secondscheduled#",
+                        "assigned_to": {
+                            "assignment_id": "#secondscheduledassignment#",
+                            "desk": "desk_123",
+                            "user": "507f191e810c19729de870eb",
+                            "state": "cancelled"
+                        },
+                        "coverage_id": "#firstcoverage#",
+                        "workflow_status": "cancelled",
+                        "planning": {
+                            "internal_note": "Int. note",
+                            "scheduled": "2029-11-28T14:00:00+0000"
+                        }
+                    }]
+                }
+            ]
+        }
+        """
+
+    @auth
+    Scenario: Attach XMP file to coverage adds assignment_id to it
+        When we set PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS
+        When we set PLANNING_XMP_ASSIGNMENT_MAPPING
+        When we upload a file "photo.XMP" to "/planning_files"
+        Then we get an event file reference
+        When we get "planning_files/"
+        Then we get list with 1 items
+        """
+        {"_items": [{ "_id": "#planning_files._id#" }]}
+        """
+        When we post to "planning"
+        """
+        {
+            "slugline": "file test",
+            "planning_date": "2016-01-02",
+            "type": "planning",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type": "picture"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type": "picture",
+                        "xmp_file": "#planning_files._id#"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "assignment_id": "#firstassignment#"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+            "slugline": "file test",
+            "type": "planning",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type": "picture",
+                        "xmp_file": "#planning_files._id#"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
+                }
+            ]
+        }
+        """
+        When we get "/planning_files/#planning_files._id#"
+        Then we have string photoshop:TransmissionReference="#firstassignment#" in media stream
+
+    @auth
+    Scenario: Attaching XMP file to coverage adds assignment_id to it only if the config mapping is present
+        When we set PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS
+        When we upload a file "photo.XMP" to "/planning_files"
+        Then we get an event file reference
+        When we get "planning_files/"
+        Then we get list with 1 items
+        """
+        {"_items": [{ "_id": "#planning_files._id#" }]}
+        """
+        When we post to "planning"
+        """
+        {
+            "slugline": "file test",
+            "planning_date": "2016-01-02",
+            "type": "planning",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type": "picture"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type": "picture",
+                        "xmp_file": "#planning_files._id#"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "assignment_id": "#firstassignment#"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+            "slugline": "file test",
+            "type": "planning",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type": "picture",
+                        "xmp_file": "#planning_files._id#"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
+                }
+            ]
+        }
+        """
+        When we get "/planning_files/#planning_files._id#"
+        Then we have string photoshop:TransmissionReference="SYD" in media stream
+
+
+    @auth
+    Scenario: Attach XMP file to coverage adds assignment_id to it by injecting missing tag
+        When we set PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS
+        When we set PLANNING_XMP_ASSIGNMENT_MAPPING
+        When we upload a file "photo_no_tag.XMP" to "/planning_files"
+        Then we get an event file reference
+        When we get "planning_files/"
+        Then we get list with 1 items
+        """
+        {"_items": [{ "_id": "#planning_files._id#" }]}
+        """
+        When we post to "planning"
+        """
+        {
+            "slugline": "file test",
+            "planning_date": "2016-01-02",
+            "type": "planning",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type": "picture"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type": "picture",
+                        "xmp_file": "#planning_files._id#"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "assignment_id": "#firstassignment#"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+            "slugline": "file test",
+            "type": "planning",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type": "picture",
+                        "xmp_file": "#planning_files._id#"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
+                }
+            ]
+        }
+        """
+        When we get "/planning_files/#planning_files._id#"
+        Then we have string photoshop:TransmissionReference="#firstassignment#" in media stream
+
+    @auth
+    Scenario: Attach XMP file to coverage changes coverage slugline
+        When we set PLANNING_USE_XMP_FOR_PIC_SLUGLINE
+        When we set PLANNING_XMP_SLUGLINE_MAPPING
+        When we upload a file "photo.XMP" to "/planning_files"
+        Then we get an event file reference
+        When we get "planning_files/"
+        Then we get list with 1 items
+        """
+        {"_items": [{ "_id": "#planning_files._id#" }]}
+        """
+        When we post to "planning"
+        """
+        {
+            "slugline": "file test",
+            "planning_date": "2016-01-02",
+            "type": "planning",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type": "picture"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type": "picture",
+                        "xmp_file": "#planning_files._id#"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "assignment_id": "#firstassignment#"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+            "slugline": "file test",
+            "type": "planning",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "headline": "test headline",
+                        "slugline": "REMEMBRANCE DAY SYDNEY OPERA HOUSE",
+                        "g2_content_type": "picture",
+                        "xmp_file": "#planning_files._id#"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
+                }
+            ]
+        }
+        """
+
+    @auth
+    Scenario: Changing coverage slugline according to XMP file depends on config
+        When we set PLANNING_USE_XMP_FOR_PIC_SLUGLINE
+        When we upload a file "photo.XMP" to "/planning_files"
+        Then we get an event file reference
+        When we get "planning_files/"
+        Then we get list with 1 items
+        """
+        {"_items": [{ "_id": "#planning_files._id#" }]}
+        """
+        When we post to "planning"
+        """
+        {
+            "slugline": "file test",
+            "planning_date": "2016-01-02",
+            "type": "planning",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type": "picture"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type": "picture",
+                        "xmp_file": "#planning_files._id#"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "assignment_id": "#firstassignment#"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+            "slugline": "file test",
+            "type": "planning",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type": "picture",
+                        "xmp_file": "#planning_files._id#"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
+                }
+            ]
+        }
+        """
+

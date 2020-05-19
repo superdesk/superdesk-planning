@@ -1,3 +1,7 @@
+import {get, omit, isEmpty, isNil, isEqual} from 'lodash';
+
+import {appConfig} from 'appConfig';
+
 import {
     MAIN,
     ITEM_TYPE,
@@ -8,6 +12,7 @@ import {
     EVENTS,
     AGENDA,
     QUEUE_ITEM_PREFIX,
+    WORKSPACE,
 } from '../constants';
 import {activeFilter, lastRequestParams} from '../selectors/main';
 import planningUi from './planning/ui';
@@ -42,7 +47,6 @@ import {
     modifyForClient,
 } from '../utils';
 import eventsPlanningUi from './eventsPlanning/ui';
-import {get, omit, isEmpty, isNil, isEqual} from 'lodash';
 
 import * as selectors from '../selectors';
 import {validateItem} from '../validators';
@@ -94,11 +98,6 @@ const openEditorAction = (item, action, updateUrl = true, modal = false) => (
         });
 
         if (modal) {
-            dispatch(showModal({
-                modalType: MODALS.EDIT_ITEM,
-                modalProps: {item},
-            }));
-
             if (selectors.forms.currentItemId(getState()) === itemId) {
                 dispatch(self.closeEditor());
             }
@@ -219,6 +218,8 @@ const save = (original, updates, withConfirmation = true) => (
 
                 let savedItem = Array.isArray(savedItems) ? savedItems[0] : savedItems;
 
+                savedItem = modifyForClient(savedItem);
+
                 if (!confirmation && [ITEM_TYPE.EVENT, ITEM_TYPE.PLANNING].indexOf(itemType) >= 0) {
                     const typeString = getItemTypeString(savedItem);
 
@@ -237,8 +238,6 @@ const save = (original, updates, withConfirmation = true) => (
                             )
                         );
                     }
-
-                    savedItem = modifyForClient(savedItem);
                 }
 
                 switch (itemType) {
@@ -344,7 +343,14 @@ const post = (original, updates = {}, withConfirmation = true) => (
             break;
         case ITEM_TYPE.PLANNING:
             confirmation = false;
-            promise = dispatch(planningApi.post(original, updates));
+            promise = dispatch(eventsUi.openEventPostModal(
+                original,
+                updates,
+                true,
+                null,
+                {},
+                original,
+                planningApi.post.bind(null, original, updates)));
             break;
         default:
             promise = Promise.reject(
@@ -358,7 +364,7 @@ const post = (original, updates = {}, withConfirmation = true) => (
         return promise
             .then(
                 (rtn) => {
-                    if (!confirmation) {
+                    if (!confirmation && rtn) {
                         notify.success(
                             gettext(
                                 'The {{ itemType }} has been posted',
@@ -483,12 +489,6 @@ const openActionModalFromEditor = (original, title, action) => (
                 ));
         }
 
-        // If the item is currently open in the ItemEditorModal
-        // then hide the modal for now (we will show the modal again later)
-        if (isOpenInModal) {
-            dispatch(hideModal());
-        }
-
         // Check if item has errors
         const isOpenForEditing = isOpenInEditor || isOpenInModal;
         const isKilled = isItemKilled(original);
@@ -517,7 +517,11 @@ const openActionModalFromEditor = (original, title, action) => (
         const onGoTo = !isOpenForEditing ?
             () => {
                 dispatch(hideModal());
-                return dispatch(self.openForEdit(original));
+                return dispatch(self.openForEdit(
+                    original,
+                    !isOpenInModal,
+                    isOpenInModal
+                ));
             } :
             null;
 
@@ -601,11 +605,10 @@ const openIgnoreCancelSaveModal = ({
 
         if (itemType === ITEM_TYPE.EVENT && eventUtils.isEventRecurring(item)) {
             const originalEvent = get(storedItems, itemId, {});
-            const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
 
             promise = dispatch(eventsApi.query({
                 recurrenceId: originalEvent.recurrence_id,
-                maxResults: maxRecurringEvents,
+                maxResults: appConfig.max_recurrent_events,
                 onlyFuture: false,
             }))
                 .then((relatedEvents) => ({
@@ -636,7 +639,7 @@ const openIgnoreCancelSaveModal = ({
     }
 );
 
-const closePreviewAndEditorForItems = (items, actionMessage = '', field = '_id') => (
+const closePreviewAndEditorForItems = (items, actionMessage = null, field = '_id', unlock = false) => (
     (dispatch, getState, {notify}) => {
         const previewId = selectors.main.previewId(getState());
         const editId = selectors.forms.currentItemId(getState());
@@ -644,19 +647,26 @@ const closePreviewAndEditorForItems = (items, actionMessage = '', field = '_id')
         if (previewId && items.find((i) => get(i, field) === previewId)) {
             dispatch(self.closePreview());
 
-            if (actionMessage !== '') {
+            if (actionMessage != null && actionMessage.length > 0) {
                 notify.warning(actionMessage);
             }
         }
 
-        if (editId && items.find((i) => get(i, field) === editId)) {
-            dispatch(self.closeEditor());
+        if (editId) {
+            const itemInEditor = items.find((i) => get(i, field) === editId);
 
-            if (actionMessage !== '') {
+            if (itemInEditor) {
+                if (!unlock) {
+                    dispatch(self.closeEditor());
+                } else {
+                    dispatch(self.unlockAndCancel(itemInEditor));
+                }
+            }
+
+            if (actionMessage != null && actionMessage.length > 0) {
                 notify.warning(actionMessage);
             }
         }
-
 
         items.forEach((item) => {
             const itemType = (get(item, field) in selectors.planning.storedPlannings(getState())) ?
@@ -842,6 +852,7 @@ const search = (fulltext, currentSearch = undefined) => (
             promise = dispatch(eventsPlanningUi.fetch(params));
         }
 
+        dispatch(self.setUnsetUserInitiatedSearch(true));
         return promise
             .then(
                 (results) => Promise.resolve(results),
@@ -851,6 +862,7 @@ const search = (fulltext, currentSearch = undefined) => (
                 }
             )
             .finally(() => {
+                dispatch(self.setUnsetUserInitiatedSearch(false));
                 dispatch(self.setUnsetLoadingIndicator(false));
             });
     }
@@ -887,6 +899,11 @@ const setUnsetLoadingIndicator = (value = false) => ({
     payload: value,
 });
 
+const setUnsetUserInitiatedSearch = (value) => ({
+    type: MAIN.ACTIONS.SET_UNSET_USER_INITIATED_SEARCH,
+    payload: value,
+});
+
 /**
  * Action to close the editor and update the URL
  */
@@ -900,8 +917,6 @@ const closeEditor = (modal = false) => (
         if (!modal) {
             // Update the URL
             $timeout(() => $location.search('edit', null));
-        } else {
-            dispatch(hideModal(true));
         }
     }
 );
@@ -1116,11 +1131,9 @@ const jumpTo = (direction) => (
                     currentStartFilter.clone().subtract(1, 'd') :
                     currentStartFilter.clone().add(1, 'd');
             } else if (jumpInterval === MAIN.JUMP.WEEK) {
-                const startOfWeek = selectors.config.getStartOfWeek(getState());
-
                 newStart = direction === MAIN.JUMP.FORWARD ?
-                    timeUtils.getStartOfNextWeek(currentStartFilter, startOfWeek) :
-                    timeUtils.getStartOfPreviousWeek(currentStartFilter, startOfWeek);
+                    timeUtils.getStartOfNextWeek(currentStartFilter, appConfig.start_of_week) :
+                    timeUtils.getStartOfPreviousWeek(currentStartFilter, appConfig.start_of_week);
             } else if (jumpInterval === MAIN.JUMP.MONTH) {
                 newStart = direction === MAIN.JUMP.FORWARD ?
                     timeUtils.getStartOfNextMonth(currentStartFilter) :
@@ -1236,10 +1249,11 @@ const onItemUnlocked = (data, item, itemType) => (
         const editorModalItemId = selectors.forms.currentItemIdModal(getState());
         const itemId = getItemId(item);
 
-        if (editorItemId === itemId) {
-            dispatch(self.changeEditorAction('read', false));
-        } else if (editorModalItemId === itemId) {
-            dispatch(self.closeEditor(true));
+        if (editorItemId === itemId || editorModalItemId === itemId) {
+            dispatch(self.changeEditorAction(
+                'read',
+                editorModalItemId === itemId
+            ));
         }
 
         // If this is the event item currently being edited, show popup notification
@@ -1264,6 +1278,11 @@ const onItemUnlocked = (data, item, itemType) => (
                         ' "' + user.display_name + '"',
                 },
             }));
+
+            if (getItemType(item) === ITEM_TYPE.PLANNING && selectors.general.currentWorkspace(getState())
+                    === WORKSPACE.AUTHORING) {
+                dispatch(self.closePreviewAndEditorForItems([item]));
+            }
         }
     }
 );
@@ -1382,7 +1401,7 @@ const spikeAfterUnlock = (unlockedItem, previousLock, openInEditor, openInModal)
             if (!isItemSpiked(updatedItem) && get(previousLock, 'action')) {
                 if (openInEditor || openInModal) {
                     return dispatch(
-                        self.openForEdit(updatedItem, true, openInModal)
+                        self.openForEdit(updatedItem, !openInModal, openInModal)
                     );
                 }
 
@@ -1439,7 +1458,7 @@ const saveAndUnlockItem = (original, updates, ignoreRecurring = false) => (
                         return Promise.reject(savedItem);
                     });
             }, (error) => {
-                notify.error(gettext('Could not save the item.'));
+                notify.error(getErrorMessage(error, gettext('Could not save the item.')));
                 return Promise.reject(error);
             });
     }
@@ -1499,6 +1518,7 @@ const self = {
     openEditorAction,
     changeEditorAction,
     notifyPreconditionFailed,
+    setUnsetUserInitiatedSearch,
 };
 
 export default self;

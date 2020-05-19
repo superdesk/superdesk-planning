@@ -1,5 +1,8 @@
+import {appConfig} from 'appConfig';
+
 import * as selectors from '../selectors';
 import {get} from 'lodash';
+import moment from 'moment';
 import {showModal} from './index';
 import {MULTISELECT, ITEM_TYPE, MODALS} from '../constants';
 import eventsUi from './events/ui';
@@ -144,6 +147,40 @@ const itemBulkUnSpikeModal = (items) => (
     }
 );
 
+
+const downloadEvents = (url, data) => {
+    var req = new XMLHttpRequest();
+
+    req.open('POST', url, true);
+    req.responseType = 'blob';
+    req.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+
+    req.onload = function(event) {
+        var blob = req.response;
+        var fileName = '';
+
+        var disposition = req.getResponseHeader('Content-Disposition');
+
+        if (disposition && disposition.indexOf('attachment') !== -1) {
+            var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+            var matches = filenameRegex.exec(disposition);
+
+            if (matches != null && matches[1]) {
+                fileName = matches[1].replace(/['"]/g, '');
+            }
+        }
+
+        var link = document.createElement('a');
+
+        link.href = window.URL.createObjectURL(blob);
+        link.download = fileName;
+        link.click();
+    };
+
+    req.send(JSON.stringify(data));
+};
+
+
 const exportAsArticle = (items = [], download) => (
     (dispatch, getState, {api, notify, gettext, superdesk, $location, $interpolate, desks}) => {
         if (get(items, 'length', 0) <= 0) {
@@ -193,16 +230,17 @@ const exportAsArticle = (items = [], download) => (
             selectors.general.getEventExportTemplates(getState());
         const exportArticlesDispatch = (items, desk, template, type, download, articleTemplate) => {
             const itemIds = items.map((item) => item._id);
-            const url = selectors.config.getServerUrl(getState());
 
             if (download) {
-                let queryString = `${url}/planning_download/events/${itemIds.join(',')}`;
+                const timeZoneOffsetSecs = moment().utcOffset() * 60;
+                let queryString = `${appConfig.server.url}/planning_download/events?tz=${timeZoneOffsetSecs}`;
 
                 if (template) {
-                    queryString = `${queryString}?template=${template}`;
+                    queryString = `${queryString}&template=${template}`;
                 }
 
-                window.open(queryString, '_blank');
+                downloadEvents(queryString, itemIds);
+
                 dispatch(self.deSelectEvents(null, true));
                 return Promise.resolve();
             } else {
@@ -256,8 +294,6 @@ const exportAsArticle = (items = [], download) => (
                 defaultArticleTemplate: articleTemplates.find((t) =>
                     t._id === get(defaultDesk, 'default_content_template')) || articleTemplates[0],
                 exportListFields: selectors.forms.exportListFields(getState()),
-                dateFormat: selectors.config.getDateFormat(state),
-                timeFormat: selectors.config.getTimeFormat(state),
                 agendas: selectors.general.agendas(state),
             },
         }));

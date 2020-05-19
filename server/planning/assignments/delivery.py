@@ -26,7 +26,7 @@ delivery_schema = {
 
     # assignment item id
     'assignment_id': {
-        'type': 'ObjectId'
+        'type': 'objectid'
     },
 
     # item_id
@@ -45,7 +45,11 @@ delivery_schema = {
 
     'publish_time': {
         'type': 'datetime'
-    }
+    },
+
+    'scheduled_update_id': {
+        'type': 'string'
+    },
 }
 
 

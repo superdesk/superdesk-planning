@@ -1,12 +1,14 @@
 import {createSelector} from 'reselect';
 import {get, isEmpty, isBoolean} from 'lodash';
+import moment from 'moment';
+
+import {appConfig} from 'appConfig';
+
 import {MAIN, SPIKED_STATE} from '../constants';
 import {orderedEvents, storedEvents, eventsInList} from './events';
 import {orderedPlanningList, storedPlannings, plansInList} from './planning';
 import {orderedEventsPlanning, getEventsPlanningList} from './eventsplanning';
 import {ITEM_TYPE} from '../constants';
-import moment from 'moment';
-import {getStartOfWeek} from './config';
 import {getSearchDateRange} from '../utils';
 
 
@@ -22,6 +24,7 @@ export const previewId = (state) => get(state, 'main.previewId', null);
 export const previewType = (state) => get(state, 'main.previewType', null);
 export const previewLoading = (state) => get(state, 'main.loadingPreview', false);
 export const previewItemHistory = (state) => get(state, 'main.itemHistory', []);
+export const userInitiatedSearch = (state) => get(state, 'main.userInitiatedSearch', false);
 
 export const getPreviewItem = createSelector(
     [previewLoading, previewId, previewType, storedEvents, storedPlannings],
@@ -72,9 +75,9 @@ export const currentAdvancedSearch = createSelector(
 );
 
 export const currentStartFilter = createSelector(
-    [currentSearch, getStartOfWeek],
-    (search, startOfWeek) =>
-        get(getSearchDateRange(search, startOfWeek), 'startDate') || moment()
+    [currentSearch],
+    (search) =>
+        get(getSearchDateRange(search, appConfig.start_of_week), 'startDate') || moment()
 );
 
 export const eventsTotalItems = (state) => get(state, 'main.search.EVENTS.totalItems', 0);

@@ -8,8 +8,6 @@ export const ListGroup = ({
     name,
     items,
     lockedItems,
-    dateFormat,
-    timeFormat,
     agendas,
     session,
     privileges,
@@ -37,6 +35,7 @@ export const ListGroup = ({
     onItemActivate,
     previewItem,
     contentTypes,
+    contacts,
 }) => {
     const flattenMultiday = (eventId, all, multi) => {
         onMultiSelectClick(eventId, all, multi, name);
@@ -54,8 +53,6 @@ export const ListGroup = ({
                         onDoubleClick: onDoubleClick,
                         onAddCoverageClick: onAddCoverageClick.bind(null, item),
                         lockedItems: lockedItems,
-                        dateFormat: dateFormat,
-                        timeFormat: timeFormat,
                         agendas: agendas,
                         session: session,
                         privileges: privileges,
@@ -77,6 +74,7 @@ export const ListGroup = ({
                         onItemActivate: onItemActivate,
                         previewItem: previewItem,
                         contentTypes: contentTypes,
+                        contacts: contacts,
                     };
 
                     if (indexItems) {
@@ -101,8 +99,6 @@ ListGroup.propTypes = {
     editItem: PropTypes.object,
     previewItem: PropTypes.string,
     lockedItems: PropTypes.object.isRequired,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
     agendas: PropTypes.array.isRequired,
     session: PropTypes.object,
     privileges: PropTypes.object,
@@ -125,6 +121,7 @@ ListGroup.propTypes = {
     navigateList: PropTypes.func,
     onItemActivate: PropTypes.func,
     contentTypes: PropTypes.array,
+    contacts: PropTypes.object,
 };
 
 ListGroup.defaultProps = {

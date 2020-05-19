@@ -1,14 +1,25 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {gettext, getCreator, getItemInArrayById, getDateTimeString, stringUtils} from '../../utils';
+import {get} from 'lodash';
+
+import {
+    gettext,
+    getCreator,
+    getItemInArrayById,
+    stringUtils,
+    eventUtils,
+    planningUtils,
+    getFileDownloadURL,
+} from '../../utils';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
-import {get} from 'lodash';
-import {Row} from '../UI/Preview';
+
+import {Row, ExpandableText} from '../UI/Preview';
 import {
     AuditInformation,
     StateLabel,
+    Label,
 } from '../index';
 import {ToggleBox} from '../UI';
 import {ColouredValueInput, FileInput} from '../UI/Form';
@@ -35,21 +46,18 @@ export class PlanningPreviewContentComponent extends React.Component {
             formProfile,
             agendas,
             event,
-            dateFormat,
-            timeFormat,
             desks,
             newsCoverageStatus,
             urgencies,
-            streetMapUrl,
             onEditEvent,
             lockedItems,
             customVocabularies,
             inner,
             noPadding,
-            createUploadLink,
             hideRelatedItems,
             hideEditIcon,
             files,
+            planningAllowScheduledUpdates,
         } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
@@ -90,6 +98,13 @@ export class PlanningPreviewContentComponent extends React.Component {
                             verbose={true}
                             withExpiredStatus={true}
                         />
+                        {eventUtils.isEventCompleted(event) && (
+                            <Label
+                                text={gettext('Event Completed')}
+                                iconType="success"
+                                isHollow={true}
+                            />
+                        )}
                         <FeatureLabel item={item} />
                     </div>
                 </div>
@@ -112,7 +127,7 @@ export class PlanningPreviewContentComponent extends React.Component {
                 <Row
                     enabled={get(formProfile, 'planning.editor.planning_date.enabled')}
                     label={gettext('Planning Date')}
-                    value={getDateTimeString(item.planning_date, dateFormat, timeFormat, ' @ ', false) || ''}
+                    value={planningUtils.getDateStringForPlanning(item) || ''}
                 />
                 <Row
                     enabled={get(formProfile, 'planning.editor.description_text.enabled')}
@@ -122,8 +137,9 @@ export class PlanningPreviewContentComponent extends React.Component {
                 <Row
                     enabled={get(formProfile, 'planning.editor.internal_note.enabled')}
                     label={gettext('Internal Note')}
-                    value={stringUtils.convertNewlineToBreak(item.internal_note || '-')}
-                />
+                >
+                    <ExpandableText value={item.internal_note || '-'} />
+                </Row>
                 <Row
                     enabled={get(formProfile, 'planning.editor.place.enabled')}
                     label={gettext('Place')}
@@ -156,7 +172,7 @@ export class PlanningPreviewContentComponent extends React.Component {
                     <Row enabled={get(formProfile, 'planning.editor.urgency.enabled')}>
                         <ColouredValueInput
                             value={urgency}
-                            label="Urgency"
+                            label={gettext('Urgency')}
                             iconName="urgency-label"
                             readOnly={true}
                             options={urgencies}
@@ -182,7 +198,7 @@ export class PlanningPreviewContentComponent extends React.Component {
                                     <li key={index}>
                                         <FileInput
                                             value={file}
-                                            createLink={createUploadLink}
+                                            createLink={getFileDownloadURL}
                                             readOnly={true}
                                             files={files} />
                                     </li>
@@ -198,13 +214,10 @@ export class PlanningPreviewContentComponent extends React.Component {
                 )}
                 {!hideRelatedItems && event && (
                     <EventMetadata event={event}
-                        dateFormat={dateFormat}
-                        timeFormat={timeFormat}
                         dateOnly={true}
-                        streetMapUrl={streetMapUrl}
                         onEditEvent={onEditEvent.bind(null, event)}
                         lockedItems={lockedItems}
-                        createUploadLink={createUploadLink}
+                        createUploadLink={getFileDownloadURL}
                         files={files}
                         hideEditIcon={hideEditIcon}
                     />
@@ -220,11 +233,12 @@ export class PlanningPreviewContentComponent extends React.Component {
                         users= {users}
                         desks= {desks}
                         newsCoverageStatus={newsCoverageStatus}
-                        dateFormat={dateFormat}
-                        timeFormat={timeFormat}
                         formProfile={formProfile.coverage}
-                        inner={inner} />)
-                    )
+                        inner={inner}
+                        files={files}
+                        createLink={getFileDownloadURL}
+                        planningAllowScheduledUpdates={planningAllowScheduledUpdates}
+                    />))
                 }
             </ContentBlock>
         );
@@ -240,21 +254,18 @@ PlanningPreviewContentComponent.propTypes = {
     lockedItems: PropTypes.object,
     formProfile: PropTypes.object,
     event: PropTypes.object,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     newsCoverageStatus: PropTypes.array,
     urgencies: PropTypes.array,
-    streetMapUrl: PropTypes.string,
     onEditEvent: PropTypes.func,
     customVocabularies: PropTypes.array,
     inner: PropTypes.bool,
     noPadding: PropTypes.bool,
     fetchEventFiles: PropTypes.func,
     fetchPlanningFiles: PropTypes.func,
-    createUploadLink: PropTypes.func,
     hideRelatedItems: PropTypes.bool,
     files: PropTypes.object,
     hideEditIcon: PropTypes.bool,
+    planningAllowScheduledUpdates: PropTypes.bool,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -266,15 +277,12 @@ const mapStateToProps = (state, ownProps) => ({
     desks: selectors.general.desks(state),
     lockedItems: selectors.locks.getLockedItems(state),
     agendas: selectors.general.agendas(state),
-    dateFormat: selectors.config.getDateFormat(state),
-    timeFormat: selectors.config.getTimeFormat(state),
     formProfile: selectors.forms.profiles(state),
     newsCoverageStatus: selectors.general.newsCoverageStatus(state) || ownProps.item.coverages.news_coverage_status,
     urgencies: selectors.getUrgencies(state),
-    streetMapUrl: selectors.config.getStreetMapUrl(state),
     customVocabularies: state.customVocabularies,
-    createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
     files: selectors.general.files(state),
+    planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

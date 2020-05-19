@@ -6,13 +6,16 @@ import {get, cloneDeep, isEqual} from 'lodash';
 import {getItemInArrayById, getUsersForDesk, getDesksForUser, gettext} from '../../utils';
 import {validateItem} from '../../validators';
 import {ASSIGNMENTS, ITEM_TYPE} from '../../constants';
+import {getContactTypes} from '../../selectors/vocabs';
 
 import {
+    Label,
     Row,
     SelectInput,
     ColouredValueInput,
     SelectUserInput,
 } from '../UI/Form';
+import {ContactsPreviewList, SelectSearchContactsField} from '../Contacts';
 
 export class AssignmentEditorComponent extends React.Component {
     constructor(props) {
@@ -23,6 +26,7 @@ export class AssignmentEditorComponent extends React.Component {
             DESK: 'assigned_to.desk',
             PRIORITY: `${props.priorityPrefix}priority`,
             PROVIDER: 'assigned_to.coverage_provider',
+            CONTACT: 'assigned_to.contact',
         };
 
         const userId = get(props.value, this.FIELDS.USER);
@@ -37,24 +41,32 @@ export class AssignmentEditorComponent extends React.Component {
         const priorityQcode = get(props.value, this.FIELDS.PRIORITY);
         const priority = getItemInArrayById(props.priorities, priorityQcode, 'qcode');
 
+        const contactId = get(props.value, this.FIELDS.CONTACT);
+
         const errors = {};
 
         this.state = {
-            userId,
-            user,
-            deskId,
-            desk,
-            filteredUsers,
-            filteredDesks,
-            priorityQcode,
-            priority,
-            errors,
+            userId: userId,
+            user: user,
+            deskId: deskId,
+            desk: desk,
+            filteredUsers: filteredUsers,
+            filteredDesks: filteredDesks,
+            priorityQcode: priorityQcode,
+            priority: priority,
+            errors: errors,
+            providerQcode: null,
+            contactType: null,
+            contactId: contactId,
         };
 
         this.onChange = this.onChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
         this.onDeskChange = this.onDeskChange.bind(this);
         this.onPriorityChange = this.onPriorityChange.bind(this);
+        this.onProviderChange = this.onProviderChange.bind(this);
+        this.onContactChange = this.onContactChange.bind(this);
+        this.removeContact = this.removeContact.bind(this);
     }
 
     componentWillMount() {
@@ -64,6 +76,13 @@ export class AssignmentEditorComponent extends React.Component {
             this.onPriorityChange(
                 this.FIELDS.PRIORITY,
                 getItemInArrayById(this.props.priorities, ASSIGNMENTS.DEFAULT_PRIORITY, 'qcode')
+            );
+        }
+
+        if (get(this.props.value, this.FIELDS.PROVIDER)) {
+            this.setContactTypeAndId(get(
+                this.props.value,
+                `${this.FIELDS.PROVIDER}.contact_type`)
             );
         }
     }
@@ -86,14 +105,28 @@ export class AssignmentEditorComponent extends React.Component {
         }
     }
 
+    componentDidUpdate(prevProps, prevState) {
+        const currentContactType = get(this.state, 'contactType') || {};
+        const prevContactType = get(prevState, 'contactType') || {};
+
+        if (currentContactType.qcode !== prevContactType.qcode) {
+            if (currentContactType.assignable) {
+                this.onChange(this.FIELDS.USER, null);
+            } else {
+                this.onChange(this.FIELDS.CONTACT, null);
+            }
+        }
+    }
+
     onChange(field, value, state = {}) {
         const errors = cloneDeep(this.state.errors);
-        const newState = {
+        const combinedState = {
             ...this.state,
             ...state,
         };
+        const newState = cloneDeep(state);
 
-        this.props.onValidate(newState, errors);
+        this.props.onValidate(combinedState, errors);
         newState.errors = errors;
         this.setState(newState);
 
@@ -120,6 +153,25 @@ export class AssignmentEditorComponent extends React.Component {
         }
     }
 
+    onContactChange(contact) {
+        const contactId = get(contact, '_id');
+
+        if (contactId !== this.state.contactId) {
+            this.onChange(
+                this.FIELDS.CONTACT,
+                contactId,
+                {contactId: contactId}
+            );
+        }
+    }
+
+    removeContact() {
+        this.onChange(this.FIELDS.CONTACT, null, {
+            contactId: null,
+            contact: null,
+        });
+    }
+
     onDeskChange(field, value) {
         const deskId = get(value, '_id');
 
@@ -140,6 +192,41 @@ export class AssignmentEditorComponent extends React.Component {
                 priorityQcode: priorityQcode,
                 priority: value,
             });
+        }
+    }
+
+    setContactTypeAndId(contactTypeQcode) {
+        if (!contactTypeQcode) {
+            this.setState({
+                contactType: null,
+                contactId: null,
+            });
+            return;
+        }
+
+        let contactId = this.state.contactId;
+        let contactType = getItemInArrayById(
+            this.props.contactTypes,
+            contactTypeQcode,
+            'qcode'
+        ) || null;
+
+        if (this.state.contactType && contactTypeQcode !== this.state.contactType.qcode) {
+            contactId = null;
+        }
+
+        this.setState({
+            contactType,
+            contactId,
+        });
+    }
+
+    onProviderChange(field, value) {
+        const providerQcode = get(value, 'qcode');
+
+        if (providerQcode !== this.state.providerQcode) {
+            this.setContactTypeAndId(get(value, 'contact_type'));
+            this.onChange(this.FIELDS.PROVIDER, value);
         }
     }
 
@@ -182,7 +269,7 @@ export class AssignmentEditorComponent extends React.Component {
                         field={this.FIELDS.PROVIDER}
                         label={gettext('Coverage Provider')}
                         value={get(value, this.FIELDS.PROVIDER, null)}
-                        onChange={this.onChange}
+                        onChange={this.onProviderChange}
                         options={coverageProviders}
                         labelField="name"
                         keyField="qcode"
@@ -190,18 +277,38 @@ export class AssignmentEditorComponent extends React.Component {
                     />
                 </Row>
 
-                <SelectUserInput
-                    field={this.FIELDS.USER}
-                    label={gettext('User')}
-                    value={this.state.user}
-                    onChange={this.onUserChange}
-                    users={this.state.filteredUsers}
-                    popupContainer={popupContainer}
-                    readOnly={disableUserSelection}
-                />
+                {this.state.contactType && this.state.contactType.assignable ? (
+                    <Row>
+                        <Label text={gettext('Assigned Provider')} />
+                        {this.state.contactId && (
+                            <ContactsPreviewList
+                                contactIds={[this.state.contactId]}
+                                onRemoveContact={this.removeContact}
+                            />
+                        )}
+                        <SelectSearchContactsField
+                            field={this.FIELDS.CONTACT}
+                            value={this.state.contactId ? [this.state.contactId] : []}
+                            onChange={this.onContactChange}
+                            contactType={this.state.contactType.qcode}
+                            minLengthPopup={0}
+                            placeholder={gettext('Search provider contacts')}
+                        />
+                    </Row>
+                ) : (
+                    <SelectUserInput
+                        field={this.FIELDS.USER}
+                        label={gettext('User')}
+                        value={this.state.user}
+                        onChange={this.onUserChange}
+                        users={this.state.filteredUsers}
+                        popupContainer={popupContainer}
+                        readOnly={disableUserSelection}
+                    />
+                )}
 
                 {showPriority && (
-                    <Row noPadding={true}>
+                    <Row>
                         <ColouredValueInput
                             field={this.FIELDS.PRIORITY}
                             label={gettext('Assignment Priority')}
@@ -237,6 +344,11 @@ AssignmentEditorComponent.propTypes = {
     className: PropTypes.string,
     onValidate: PropTypes.func,
     setValid: PropTypes.func,
+    contactTypes: PropTypes.arrayOf(PropTypes.shape({
+        qcode: PropTypes.string,
+        name: PropTypes.string,
+        assignable: PropTypes.bool,
+    })),
 };
 
 AssignmentEditorComponent.defaultProps = {
@@ -245,6 +357,10 @@ AssignmentEditorComponent.defaultProps = {
     showDesk: true,
     showPriority: true,
 };
+
+const mapStateToProps = (state) => ({
+    contactTypes: getContactTypes(state),
+});
 
 const mapDispatchToProps = (dispatch) => ({
     onValidate: (diff, errors) => dispatch(validateItem({
@@ -255,6 +371,6 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 export const AssignmentEditor = connect(
-    null,
+    mapStateToProps,
     mapDispatchToProps
 )(AssignmentEditorComponent);

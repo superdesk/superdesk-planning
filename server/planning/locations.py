@@ -45,7 +45,10 @@ class LocationsService(superdesk.Service):
                 events = superdesk.get_resource_service('events').find(
                     where={'location.qcode': str(location.get('guid'))})
                 if events.count():
-                    superdesk.get_resource_service('locations').patch(location[config.ID_FIELD], {'is_active': False})
+                    # patch the unique name in case the location get recreated
+                    superdesk.get_resource_service('locations').patch(location[config.ID_FIELD],
+                                                                      {'is_active': False,
+                                                                       'unique_name': str(location[config.ID_FIELD])})
                     return
         super().delete(lookup)
 
@@ -200,3 +203,5 @@ class LocationsResource(superdesk.Resource):
     privileges = {'POST': 'planning',
                   'PATCH': 'planning_locations_management',
                   'DELETE': 'planning_locations_management'}
+
+    merge_nested_documents = True

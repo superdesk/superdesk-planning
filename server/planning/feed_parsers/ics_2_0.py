@@ -41,6 +41,22 @@ class IcsTwoFeedParser(FileFeedParser):
     def can_parse(self, cal):
         return isinstance(cal, Calendar)
 
+    def parse_email(self, content, content_type, provider):
+        if content_type != 'text/calendar':
+            raise ParserError.parseMessageError('Not supported content type.')
+
+        content.seek(0)
+        cal = Calendar.from_ical(content.read())
+        return self.parse(cal, provider)
+
+    def parse_file(self, fstream, provider):
+        cal = Calendar.from_ical(fstream.read())
+        return self.parse(cal, provider)
+
+    def parse_http(self, content, provider):
+        cal = Calendar.from_ical(content)
+        return self.parse(cal, provider)
+
     def parse(self, cal, provider=None):
 
         try:

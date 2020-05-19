@@ -20,8 +20,6 @@ export const DateTimeInput = ({
     onChange,
     required,
     invalid,
-    timeFormat,
-    dateFormat,
     readOnly,
     canClear,
     item,
@@ -38,6 +36,9 @@ export const DateTimeInput = ({
     allowInvalidTime,
     isLocalTimeZoneDifferent,
     refNode,
+    showToBeConfirmed,
+    onToBeConfirmed,
+    toBeConfirmed,
     ...props
 }) => (
     <Row flex={true} halfWidth={halfWidth} noPadding={!!invalid} className={{
@@ -57,7 +58,6 @@ export const DateTimeInput = ({
             errors={errors}
             showErrors={showErrors}
             noMargin={!invalid}
-            dateFormat={dateFormat}
             label={label}
             required={required}
             popupContainer={popupContainer}
@@ -82,7 +82,6 @@ export const DateTimeInput = ({
             errors={errors}
             showErrors={showErrors}
             noMargin={!invalid}
-            timeFormat={timeFormat}
             popupContainer={popupContainer}
             onFocus={onFocus}
             onPopupOpen={onPopupOpen}
@@ -92,6 +91,9 @@ export const DateTimeInput = ({
             allowInvalidText={allowInvalidTime}
             isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
             halfWidth={!hideTime}
+            showToBeConfirmed={showToBeConfirmed}
+            onToBeConfirmed={onToBeConfirmed}
+            toBeConfirmed={toBeConfirmed}
         />}
         {canClear && <Button
             onClick={() => onChange(field, null)}
@@ -112,8 +114,6 @@ DateTimeInput.propTypes = {
         PropTypes.instanceOf(moment),
     ]),
     onChange: PropTypes.func.isRequired,
-    timeFormat: PropTypes.string.isRequired,
-    dateFormat: PropTypes.string.isRequired,
     timeField: PropTypes.string,
 
     hint: PropTypes.string,
@@ -138,6 +138,9 @@ DateTimeInput.propTypes = {
     allowInvalidTime: PropTypes.bool,
     isLocalTimeZoneDifferent: PropTypes.bool,
     refNode: PropTypes.func,
+    showToBeConfirmed: PropTypes.bool,
+    onToBeConfirmed: PropTypes.func,
+    toBeConfirmed: PropTypes.bool,
 };
 
 DateTimeInput.defaultProps = {

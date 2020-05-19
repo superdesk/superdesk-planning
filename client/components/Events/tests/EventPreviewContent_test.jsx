@@ -2,6 +2,9 @@ import React from 'react';
 import {mount} from 'enzyme';
 import {Provider} from 'react-redux';
 import sinon from 'sinon';
+
+import {appConfig} from 'appConfig';
+
 import {EventPreviewContent} from '../EventPreviewContent';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import {createTestStore, eventUtils, timeUtils} from '../../../utils';
@@ -86,7 +89,7 @@ describe('<EventPreviewContent />', () => {
     };
 
     beforeEach(() => {
-        sinon.stub(timeUtils, 'localTimeZone').callsFake(() => astore.initialState.config.defaultTimezone);
+        sinon.stub(timeUtils, 'localTimeZone').returns(appConfig.defaultTimezone);
     });
 
     afterEach(() => {
@@ -95,8 +98,13 @@ describe('<EventPreviewContent />', () => {
 
     it('renders an event with all its details', () => {
         const wrapper = getWrapper();
-        const dateString = eventUtils.getDateStringForEvent(astore.initialState.events.events.e1,
-            'DD/MM/YYYY', 'HH:mm', false, true, false);
+
+        const dateString = eventUtils.getDateStringForEvent(
+            astore.initialState.events.events.e1,
+            false,
+            true,
+            false
+        );
 
         expect(wrapper.find('EventPreviewContentComponent').length).toBe(1);
         const dataRows = wrapper.find('.form__row');
@@ -124,10 +132,8 @@ describe('<EventPreviewContent />', () => {
 
         let contacts = wrapper.find('.contact-info');
 
-        expect(contacts.length).toBe(1);
         expect(contacts.find('span').first()
             .text()).toBe(`${storeContact.first_name} ${storeContact.last_name} `);
-
 
         let files = wrapper.find('.toggle-box').at(1);
 

@@ -26,8 +26,6 @@ export const PlanningMetaData = (
         showBorder,
         users,
         desks,
-        dateFormat,
-        timeFormat,
         field,
         contentTypes,
     }
@@ -78,9 +76,8 @@ export const PlanningMetaData = (
                                 coverage={coverage}
                                 users={users}
                                 desks={desks}
-                                dateFormat={dateFormat}
-                                timeFormat={timeFormat}
-                                contentTypes={contentTypes} />
+                                contentTypes={contentTypes}
+                            />
                         )}
                     </span>
                 </Row>
@@ -151,8 +148,6 @@ PlanningMetaData.propTypes = {
     showBorder: PropTypes.bool,
     users: PropTypes.array,
     desks: PropTypes.array,
-    dateFormat: PropTypes.string,
-    timeFormat: PropTypes.string,
     field: PropTypes.string,
     contentTypes: PropTypes.array,
 };

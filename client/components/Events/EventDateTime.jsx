@@ -1,18 +1,21 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {get} from 'lodash';
+
 import {DateTime} from '../UI';
 import {eventUtils, timeUtils} from '../../utils';
 import {gettext} from '../../utils/gettext';
+import {TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_SHORT_TEXT} from '../../constants';
 
 import './style.scss';
 
-export const EventDateTime = ({item, timeFormat, dateFormat, ignoreAllDay, displayLocalTimezone}) => {
+export const EventDateTime = ({item, ignoreAllDay, displayLocalTimezone}) => {
     const start = item.dates.start;
     const end = item.dates.end;
     const isAllDay = eventUtils.isEventAllDay(start, end);
-    const withDate = !eventUtils.isEventSameDay(start, end);
+    const multiDay = !eventUtils.isEventSameDay(start, end);
     const isRemoteTimeZone = timeUtils.isEventInDifferentTimeZone(item);
-    const withYear = withDate && start.year() !== end.year();
+    const withYear = multiDay && start.year() !== end.year();
     const localStart = timeUtils.getLocalDate(start, item.dates.tz);
     let remoteStart, remoteEnd, remoteStartWithDate, remoteEndWithDate, remoteStartWithYear, remoteEndWithYear;
 
@@ -25,6 +28,17 @@ export const EventDateTime = ({item, timeFormat, dateFormat, ignoreAllDay, displ
         remoteEndWithYear = remoteEndWithDate && remoteStart.year() !== remoteEnd.year();
     }
 
+    if (get(item, TO_BE_CONFIRMED_FIELD) && !multiDay) {
+        return (<span className="EventDateTime sd-list-item__slugline sd-no-wrap">
+            {`${gettext('Time')} ${TO_BE_CONFIRMED_SHORT_TEXT}`}
+        </span>);
+    }
+
+    const commonProps = {
+        padLeft: false,
+        toBeConfirmed: get(item, TO_BE_CONFIRMED_FIELD),
+    };
+
     return isAllDay && !ignoreAllDay ? (
         <span className="EventDateTime sd-list-item__slugline sd-no-wrap">
             {gettext('All day')}
@@ -36,21 +50,17 @@ export const EventDateTime = ({item, timeFormat, dateFormat, ignoreAllDay, displ
                 {timeUtils.getTimeZoneAbbreviation(localStart.format('z'))}
             </span>}
             <DateTime
-                withDate={withDate}
+                withDate={multiDay}
                 withYear={withYear}
-                padLeft={false}
                 date={start}
-                dateFormat={dateFormat}
-                timeFormat={timeFormat}
+                {...commonProps}
             />
             <span className="EventDateTime__divider">-</span>
             <DateTime
-                withDate={withDate}
-                padLeft={false}
+                withDate={multiDay}
                 withYear={withYear}
                 date={end}
-                dateFormat={dateFormat}
-                timeFormat={timeFormat}
+                {...commonProps}
             />
             {isRemoteTimeZone && (<span>&nbsp;(
                 <span className="EventDateTime__timezone">
@@ -58,20 +68,16 @@ export const EventDateTime = ({item, timeFormat, dateFormat, ignoreAllDay, displ
                 </span>
                 <DateTime
                     withDate={remoteStartWithDate}
-                    padLeft={false}
                     withYear={remoteStartWithYear}
                     date={remoteStart}
-                    dateFormat={dateFormat}
-                    timeFormat={timeFormat}
+                    {...commonProps}
                 />
                 <span className="EventDateTime__divider">-</span>
                 <DateTime
                     withDate={remoteEndWithDate}
-                    padLeft={false}
                     withYear={remoteEndWithYear}
                     date={remoteEnd}
-                    dateFormat={dateFormat}
-                    timeFormat={timeFormat}
+                    {...commonProps}
                 />)
             </span>)}
         </span>
@@ -80,8 +86,6 @@ export const EventDateTime = ({item, timeFormat, dateFormat, ignoreAllDay, displ
 
 EventDateTime.propTypes = {
     item: PropTypes.object.isRequired,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
     ignoreAllDay: PropTypes.bool,
     displayLocalTimezone: PropTypes.bool,
 };

@@ -1,11 +1,16 @@
+import {get, isEqual, cloneDeep, pickBy, has, find, every} from 'lodash';
+import moment from 'moment';
+
+import {appConfig} from 'appConfig';
+
 import {
     EVENTS,
     SPIKED_STATE,
     POST_STATE,
     MAIN,
+    TO_BE_CONFIRMED_FIELD,
 } from '../../constants';
 import {EventUpdateMethods} from '../../components/Events';
-import {get, isEqual, cloneDeep, pickBy, isNil, has, find, every} from 'lodash';
 import * as selectors from '../../selectors';
 import {
     eventUtils,
@@ -21,11 +26,9 @@ import {
     isTemporaryId,
     gettext,
 } from '../../utils';
-import moment from 'moment';
 
 import planningApi from '../planning/api';
 import eventsUi from './ui';
-import locationApi from '../locations';
 import main from '../main';
 
 /**
@@ -679,6 +682,7 @@ const query = (
 
                 for (let i = 0; i < Math.ceil(ids.length / chunkSize); i++) {
                     const args = {
+                        // eslint-disable-next-line no-undef
                         ...arguments[0],
                         ids: ids.slice(i * chunkSize, (i + 1) * chunkSize),
                     };
@@ -692,7 +696,7 @@ const query = (
             }
         }
 
-        const startOfWeek = selectors.config.getStartOfWeek(getState());
+        const startOfWeek = appConfig.start_of_week;
         const criteria = self.getCriteria(
             {
                 calendars,
@@ -773,13 +777,11 @@ const loadRecurringEventsAndPlanningItems = (event, loadPlannings = true,
     loadEvents = true, loadEveryRecurringPlanning = false) => (
     (dispatch, getState) => {
         if (get(event, 'recurrence_id') && loadEvents) {
-            const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
-
             return dispatch(self.loadEventsByRecurrenceId(
                 event.recurrence_id,
                 SPIKED_STATE.BOTH,
                 1,
-                maxRecurringEvents,
+                appConfig.max_recurrent_events,
                 false
             )).then((relatedEvents) => {
                 if (!loadPlannings) {
@@ -1155,16 +1157,24 @@ const unpost = (original, updates) => (
 );
 
 const updateEventTime = (original, updates) => (
-    (dispatch, getState, {api}) => (
-        api.update(
+    (dispatch, getState, {api}) => {
+        if (get(updates, TO_BE_CONFIRMED_FIELD)) {
+            return dispatch(main.saveAndUnlockItem(original, {
+                [TO_BE_CONFIRMED_FIELD]: true,
+                update_method: get(updates, 'update_method'),
+            }, true));
+        }
+
+        return api.update(
             'events_update_time',
             original,
             {
                 update_method: get(updates, 'update_method.value', EventUpdateMethods[0].value),
                 dates: updates.dates,
+                [TO_BE_CONFIRMED_FIELD]: false,
             }
-        )
-    )
+        );
+    }
 );
 
 const markEventCancelled = (eventId, etag, reason, occurStatus, cancelledItems, actionedDate) => ({
@@ -1235,7 +1245,7 @@ const uploadFiles = (event) => (
         return Promise.all(filesToUpload.map((file) => (
             upload.start({
                 method: 'POST',
-                url: getState().config.server.url + '/events_files/',
+                url: appConfig.server.url + '/events_files/',
                 headers: {'Content-Type': 'multipart/form-data'},
                 data: {media: [file]},
                 arrayKey: '',
@@ -1255,58 +1265,15 @@ const uploadFiles = (event) => (
     }
 );
 
-/**
- * Action Dispatcher for saving the location for an event
- * @param {object} event - The event the location is associated with
- * @return arrow function
- */
-const _saveLocation = (event, original) => (
-    (dispatch) => {
-        const location = get(event, 'location');
-
-        if (!location || !location.name) {
-            if (get(original, 'location')) {
-                event.location = null;
-            } else {
-                delete event.location;
-            }
-
-            return Promise.resolve(event);
-        } else if (location.existingLocation) {
-            event.location = {
-                name: location.name,
-                qcode: location.guid,
-                address: location.address,
-            };
-
-            // external address might not be there.
-            if (get(location, 'address.external')) {
-                delete location.address.external;
-            }
-
-            return Promise.resolve(event);
-        } else if (isNil(location.qcode)) {
-            // the location is set, but doesn't have a qcode (not registered in the location collection)
-            return dispatch(locationApi.saveLocation(location))
-                .then((savedLocation) => {
-                    event.location = savedLocation;
-                    return Promise.resolve(event);
-                });
-        } else {
-            return Promise.resolve(event);
-        }
-    }
-);
-
-const _save = (original, eventUpdates) => (
+const save = (original, updates) => (
     (dispatch, getState, {api}) => {
         let promise;
 
         if (original) {
             promise = Promise.resolve(original);
-        } else if (isExistingItem(eventUpdates)) {
+        } else if (isExistingItem(updates)) {
             promise = dispatch(
-                self.fetchById(eventUpdates._id, {saveToStore: false, loadPlanning: false})
+                self.fetchById(updates._id, {saveToStore: false, loadPlanning: false})
             );
         } else {
             promise = Promise.resolve({});
@@ -1316,8 +1283,8 @@ const _save = (original, eventUpdates) => (
             const originalItem = eventUtils.modifyForServer(cloneDeep(originalEvent), true);
 
             // clone the updates as we're going to modify it
-            let updates = eventUtils.modifyForServer(
-                cloneDeep(eventUpdates),
+            let eventUpdates = eventUtils.modifyForServer(
+                cloneDeep(updates),
                 true
             );
 
@@ -1325,34 +1292,26 @@ const _save = (original, eventUpdates) => (
 
             // remove all properties starting with _
             // and updates that are the same as original
-            updates = pickBy(updates, (v, k) => (
-                (k === '_planning_item' || !k.startsWith('_')) &&
-                !isEqual(updates[k], originalItem[k])
+            eventUpdates = pickBy(eventUpdates, (v, k) => (
+                (k === TO_BE_CONFIRMED_FIELD || k === '_planning_item' || !k.startsWith('_')) &&
+                !isEqual(eventUpdates[k], originalItem[k])
             ));
 
             if (get(originalItem, 'lock_action') === EVENTS.ITEM_ACTIONS.EDIT_EVENT.lock_action &&
                 !isTemporaryId(originalItem._id)
             ) {
-                delete updates.dates;
+                delete eventUpdates.dates;
             }
-            updates.update_method = get(updates, 'update_method.value') ||
+            eventUpdates.update_method = get(eventUpdates, 'update_method.value') ||
                 EventUpdateMethods[0].value;
 
-            return api('events').save(originalItem, updates);
+            return api('events').save(originalItem, eventUpdates);
         })
             .then(
                 (data) => Promise.resolve(get(data, '_items') || [data]),
                 (error) => Promise.reject(error)
             );
     }
-);
-
-const save = (original, updates) => (
-    (dispatch) => (
-        // Returns the modified unsaved event with the locations changes
-        dispatch(self._saveLocation(updates, original))
-            .then((modifiedUpdates) => dispatch(self._save(original, modifiedUpdates)))
-    )
 );
 
 const updateRepetitions = (original, updates) => (
@@ -1430,6 +1389,55 @@ const receiveCalendars = (calendars) => ({
     payload: calendars,
 });
 
+const fetchEventTemplates = () => (dispatch, getState, {api}) => {
+    api('recent_events_template').query()
+        .then((res) => {
+            dispatch({type: EVENTS.ACTIONS.RECEIVE_EVENT_TEMPLATES, payload: res._items});
+        });
+};
+
+const createEventTemplate = (itemId) => (dispatch, getState, {api, modal, notify}) => {
+    modal.prompt(gettext('Template name')).then((templateName) => {
+        api('events_template').query({
+            where: {
+                template_name: {
+                    $regex: templateName,
+                    $options: 'i',
+                },
+            },
+        })
+            .then((res) => {
+                const doSave = () => {
+                    api('events_template').save({
+                        template_name: templateName,
+                        based_on_event: itemId,
+                    })
+                        .then(() => {
+                            dispatch(fetchEventTemplates());
+                        }, (error) => {
+                            notify.error(
+                                getErrorMessage(error, gettext('Failed to save the event template'))
+                            );
+                            return Promise.reject(error);
+                        });
+                };
+
+                const templateAlreadyExists = res._meta.total !== 0;
+
+                if (templateAlreadyExists) {
+                    modal.confirm(gettext(
+                        'Template already exists. Do you want to overwrite it?'
+                    ))
+                        .then(() => {
+                            api.remove(res._items[0], {}, 'events_template').then(doSave);
+                        });
+                } else {
+                    doSave();
+                }
+            });
+    });
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     loadEventsByRecurrenceId,
@@ -1457,9 +1465,7 @@ const self = {
     fetchEventHistory,
     unpost,
     uploadFiles,
-    _save,
     save,
-    _saveLocation,
     getCriteria,
     fetchById,
     updateRepetitions,
@@ -1467,6 +1473,8 @@ const self = {
     receiveCalendars,
     fetchEventFiles,
     removeFile,
+    fetchEventTemplates,
+    createEventTemplate,
 };
 
 export default self;

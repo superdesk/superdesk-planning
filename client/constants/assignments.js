@@ -25,6 +25,8 @@ export const ASSIGNMENTS = {
         SET_LIST_ITEMS: 'SET_ASSIGNMENT_LIST_ITEMS',
         ADD_LIST_ITEMS: 'ADD_ASSIGNMENT_LIST_ITEMS',
         SET_GROUP_KEYS: 'SET_ASSIGNMENT_GROUP_KEYS',
+        SET_GROUP_SORT_ORDER: 'SET_ASSIGNMENT_GROUP_SORT_ORDER',
+        SET_SORT_FIELD: 'SET_ASSIGNMENT_SORT_FIELD',
     },
     WORKFLOW_STATE: {
         ASSIGNED: 'assigned',
@@ -127,5 +129,7 @@ export const ASSIGNMENTS = {
         UNLINK: 'unlink',
         START_WORKING: 'start_working',
         ASSIGNMENT_REMOVED: 'assignment_removed',
+        ASSIGNMENT_ACCEPTED: 'accepted',
     },
+    DEFAULT_SORT_PREFERENCE: 'assignments:default_sort',
 };

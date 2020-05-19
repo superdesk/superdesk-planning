@@ -1,13 +1,14 @@
 import sinon from 'sinon';
 
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
-import {createTestStore} from '../../../utils';
+import {createTestStore, assignmentUtils} from '../../../utils';
 import {registerNotifications} from '../../../utils/notifications';
 import * as selectors from '../../../selectors';
 import assignmentsUi from '../ui';
 import assignmentsApi from '../api';
 import main from '../../main';
 import assignmentNotifications from '../notifications';
+import planningApi from '../../planning/api';
 
 describe('actions.assignments.notification', () => {
     let store;
@@ -97,22 +98,25 @@ describe('actions.assignments.notification', () => {
     });
 
     describe('`assignment:created`', () => {
+        beforeEach(() => {
+            sinon.stub(assignmentsApi, 'query').callsFake(() => (Promise.resolve({_items: []})));
+            sinon.stub(assignmentsApi, 'receivedAssignments').callsFake(() => { /* no-op */ });
+            sinon.stub(assignmentUtils, 'getCurrentSelectedDeskId').returns('desk1');
+        });
+
         afterEach(() => {
             restoreSinonStub(assignmentsApi.query);
             restoreSinonStub(assignmentsApi.receivedAssignments);
             restoreSinonStub(assignmentsUi.setInList);
+            restoreSinonStub(assignmentUtils.getCurrentSelectedDeskId);
         });
 
         it('query assignments on create', (done) => {
-            store.initialState.workspace.currentDeskId = 'desk1';
             let payload = {
                 item: 'as1',
                 assigned_desk: 'desk1',
                 assignment_state: 'assigned',
             };
-
-            sinon.stub(assignmentsApi, 'query').callsFake(() => (Promise.resolve({_items: []})));
-            sinon.stub(assignmentsApi, 'receivedAssignments').callsFake(() => { /* no-op */ });
 
             return store.test(done, assignmentNotifications.onAssignmentCreated({}, payload))
                 .then(() => {
@@ -125,12 +129,24 @@ describe('actions.assignments.notification', () => {
     });
 
     describe('`assignment:update`', () => {
+        beforeEach(() => {
+            sinon.stub(assignmentsUi, 'reloadAssignments').callsFake(
+                () => () => Promise.resolve()
+            );
+            sinon.stub(assignmentUtils, 'getCurrentSelectedDeskId').returns('desk1');
+            sinon.stub(planningApi, 'loadPlanningByIds').callsFake(
+                () => () => Promise.resolve()
+            );
+        });
+
         afterEach(() => {
             restoreSinonStub(assignmentsUi.reloadAssignments);
+            restoreSinonStub(assignmentUtils.getCurrentSelectedDeskId);
+            restoreSinonStub(main.fetchItemHistory);
+            restoreSinonStub(planningApi.loadPlanningByIds);
         });
 
         it('update planning on assignment update', (done) => {
-            store.initialState.workspace.currentDeskId = 'desk1';
             setTestStore();
 
             let payload = {
@@ -145,16 +161,13 @@ describe('actions.assignments.notification', () => {
 
             expect(coverage1.assigned_to.desk).toBe('desk1');
             expect(coverage1.assigned_to.state).toBe(undefined);
-            sinon.stub(assignmentsUi, 'reloadAssignments').callsFake(
-                () => () => Promise.resolve()
-            );
 
             testStore.dispatch(assignmentNotifications.onAssignmentUpdated({}, payload))
                 .then(() => {
-                    coverage1 = getCoverage(payload);
-
-                    expect(coverage1.assigned_to.desk).toBe('desk2');
-                    expect(coverage1.assigned_to.state).toBe('assigned');
+                    expect(planningApi.loadPlanningByIds.callCount).toBe(1);
+                    expect(planningApi.loadPlanningByIds.args).toEqual([
+                        [['p1']],
+                    ]);
                     expect(assignmentsUi.reloadAssignments.callCount).toBe(2);
                     expect(assignmentsUi.reloadAssignments.args).toEqual([
                         [['assigned']],
@@ -166,7 +179,6 @@ describe('actions.assignments.notification', () => {
         });
 
         it('assignment list groups are reloaded when assignment moves groups', (done) => {
-            store.initialState.workspace.currentDeskId = 'desk1';
             store.initialState.assignment.assignments.as1.assigned_to.state = 'assigned';
             let payload = {
                 item: 'as1',
@@ -176,8 +188,6 @@ describe('actions.assignments.notification', () => {
                 original_assigned_desk: 'desk1',
                 assignment_state: 'in_progress',
             };
-
-            sinon.stub(assignmentsUi, 'reloadAssignments').callsFake(() => Promise.resolve());
 
             return store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
                 .then(() => {
@@ -207,7 +217,6 @@ describe('actions.assignments.notification', () => {
 
             expect(coverage1.assigned_to.desk).toBe('desk1');
             expect(coverage1.assigned_to.state).toBe(undefined);
-            sinon.stub(assignmentsUi, 'reloadAssignments').callsFake(() => Promise.resolve());
 
             return store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
                 .then(() => {
@@ -216,7 +225,7 @@ describe('actions.assignments.notification', () => {
                         _id: planning1._id,
                         type: planning1.type,
                     })]);
-                    restoreSinonStub(main.fetchItemHistory);
+
                     done();
                 })
                 .catch(done.fail);
@@ -299,15 +308,20 @@ describe('actions.assignments.notification', () => {
             sinon.stub(assignmentsUi, 'queryAndGetMyAssignments').callsFake(
                 () => () => (Promise.resolve())
             );
+            sinon.stub(assignmentUtils, 'getCurrentSelectedDeskId').returns('desk1');
+            sinon.stub(planningApi, 'loadPlanningByIds').callsFake(
+                () => () => (Promise.resolve())
+            );
         });
 
         afterEach(() => {
             restoreSinonStub(assignmentsUi.reloadAssignments);
             restoreSinonStub(assignmentsUi.queryAndGetMyAssignments);
+            restoreSinonStub(assignmentUtils.getCurrentSelectedDeskId);
+            restoreSinonStub(planningApi.loadPlanningByIds);
         });
 
         it('update planning on assignment complete', (done) => {
-            store.initialState.workspace.currentDeskId = 'desk1';
             setTestStore();
 
             let payload = {
@@ -330,8 +344,10 @@ describe('actions.assignments.notification', () => {
                 .then(() => {
                     coverage1 = getCoverage(payload);
 
-                    expect(coverage1.assigned_to.desk).toBe('desk2');
-                    expect(coverage1.assigned_to.state).toBe('completed');
+                    expect(planningApi.loadPlanningByIds.callCount).toBe(1);
+                    expect(planningApi.loadPlanningByIds.args).toEqual([
+                        [['p1']],
+                    ]);
                     expect(assignmentsUi.reloadAssignments.callCount).toBe(2);
                     expect(assignmentsUi.reloadAssignments.args).toEqual([
                         [['completed']],
@@ -390,13 +406,13 @@ describe('actions.assignments.notification', () => {
         it('calls `REMOVE_ASSIGNMENT` action', (done) => (
             store.test(done, assignmentNotifications.onAssignmentRemoved(
                 {},
-                {assignment: 'as1'}
+                {assignments: ['as1']}
             ))
                 .then(() => {
                     expect(store.dispatch.callCount).toBe(5);
-                    expect(store.dispatch.args[1]).toEqual([{
+                    expect(store.dispatch.args[0]).toEqual([{
                         type: 'REMOVE_ASSIGNMENT',
-                        payload: {assignment: 'as1'},
+                        payload: {assignments: ['as1']},
                     }]);
 
                     done();
@@ -408,7 +424,7 @@ describe('actions.assignments.notification', () => {
 
             return store.test(done, assignmentNotifications.onAssignmentRemoved(
                 {},
-                {assignment: 'as1'}
+                {assignments: ['as1']}
             ))
                 .then(() => {
                     expect(store.services.notify.warning.callCount).toBe(1);

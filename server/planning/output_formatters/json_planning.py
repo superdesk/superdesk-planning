@@ -15,9 +15,9 @@ import json
 from superdesk.utils import json_serialize_datetime_objectId
 from copy import deepcopy
 from superdesk import get_resource_service
-from bson.objectid import ObjectId
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, WORKFLOW_STATE
 from superdesk.metadata.item import CONTENT_STATE
+from .utils import expand_contact_info
 
 
 class JsonPlanningFormatter(Formatter):
@@ -35,10 +35,11 @@ class JsonPlanningFormatter(Formatter):
 
     # fields to be removed from the planning item
     remove_fields = ('lock_time', 'lock_action', 'lock_session', 'lock_user', '_etag',
-                     'original_creator', 'version_creator', '_planning_schedule', 'files')
+                     'original_creator', 'version_creator', '_planning_schedule', 'files', '_updates_schedule')
 
     # fields to be removed from coverage
     remove_coverage_fields = ('original_creator', 'version_creator', 'assigned_to', 'flags')
+    remove_coverage_planning_fields = ('contact_info', 'files', 'xmp_file')
 
     def can_format(self, format_type, article):
         if article.get('flags', {}).get('marked_for_not_publication', False):
@@ -56,9 +57,9 @@ class JsonPlanningFormatter(Formatter):
         for f in self.remove_fields:
             output_item.pop(f, None)
         for coverage in output_item.get('coverages', []):
-            assigned_to = coverage.pop('assigned_to', None) or {}
-            coverage['coverage_provider'] = assigned_to.get('coverage_provider')
-            deliveries, workflow_state = self._expand_delivery(assigned_to.get('assignment_id'))
+            self._expand_coverage_contacts(coverage)
+
+            deliveries, workflow_state = self._expand_delivery(coverage)
             if workflow_state:
                 coverage['workflow_status'] = self._get_coverage_workflow_state(workflow_state)
 
@@ -66,8 +67,9 @@ class JsonPlanningFormatter(Formatter):
             for f in self.remove_coverage_fields:
                 coverage.pop(f, None)
 
-            # Remove contacts field in coverage
-            coverage.get('planning').pop('contact_info', None)
+            for key in self.remove_coverage_planning_fields:
+                if key in (coverage.get('planning') or {}):
+                    coverage['planning'].pop(key, None)
 
         output_item['agendas'] = self._expand_agendas(item)
         return output_item
@@ -95,12 +97,16 @@ class JsonPlanningFormatter(Formatter):
                 expanded.append(agenda_details)
         return expanded
 
-    def _expand_delivery(self, assignment_id):
+    def _expand_delivery(self, coverage):
         """Find any deliveries associated with the assignment
 
         :param assignment_id:
         :return:
         """
+        assigned_to = coverage.pop('assigned_to', None) or {}
+        coverage['coverage_provider'] = assigned_to.get('coverage_provider')
+        assignment_id = assigned_to.get('assignment_id')
+
         if not assignment_id:
             return [], None
 
@@ -114,7 +120,7 @@ class JsonPlanningFormatter(Formatter):
 
         delivery_service = get_resource_service('delivery')
         remove_fields = ('coverage_id', 'planning_id', '_created', '_updated', 'assignment_id', '_etag')
-        deliveries = list(delivery_service.get(req=None, lookup={'assignment_id': ObjectId(assignment_id)}))
+        deliveries = list(delivery_service.get(req=None, lookup={'coverage_id': coverage.get('coverage_id')}))
 
         # Check to see if in this delivery chain, whether the item has been published at least once
         item_never_published = True
@@ -128,3 +134,20 @@ class JsonPlanningFormatter(Formatter):
             deliveries = []
 
         return deliveries, assignment.get('assigned_to').get('state')
+
+    def _expand_coverage_contacts(self, coverage):
+        if (coverage.get('assigned_to') or {}).get('contact'):
+            expanded_contacts = expand_contact_info([coverage['assigned_to']['contact']])
+            if expanded_contacts:
+                coverage['coverage_provider_contact_info'] = {
+                    'first_name': expanded_contacts[0]['first_name'],
+                    'last_name': expanded_contacts[0]['last_name']
+                }
+
+        if (coverage.get('assigned_to') or {}).get('user'):
+            user = get_resource_service('users').find_one(req=None, _id=coverage['assigned_to']['user'])
+            if user:
+                coverage['assigned_user'] = {
+                    'first_name': user.get('first_name'),
+                    'last_name': user.get('last_name')
+                }

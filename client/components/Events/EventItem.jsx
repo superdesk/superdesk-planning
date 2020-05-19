@@ -74,10 +74,19 @@ export class EventItem extends React.Component {
                 this.props[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName].bind(null, item),
             [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName],
+            [EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.actionName]:
+                this.props[EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.actionName],
             [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName].bind(null, item),
         };
-        const itemActions = eventUtils.getEventActions({item, session, privileges, lockedItems, callBacks, calendars});
+        const itemActions = eventUtils.getEventActions({
+            item,
+            session,
+            privileges,
+            lockedItems,
+            callBacks,
+            calendars,
+        });
 
         if (get(itemActions, 'length', 0) === 0) {
             return null;
@@ -95,8 +104,6 @@ export class EventItem extends React.Component {
             item,
             onItemClick,
             lockedItems,
-            dateFormat,
-            timeFormat,
             activeFilter,
             toggleRelatedPlanning,
             onMultiSelectClick,
@@ -154,11 +161,7 @@ export class EventItem extends React.Component {
                             {renderFields(get(listFields, 'event.primary_fields',
                                 EVENTS.LIST.PRIMARY_FIELDS), item)}
                         </span>
-                        <EventDateTime
-                            item={item}
-                            dateFormat={dateFormat}
-                            timeFormat={timeFormat}
-                        />
+                        <EventDateTime item={item}/>
                     </Row>
                     <Row>
                         {isExpired && (
@@ -190,8 +193,9 @@ export class EventItem extends React.Component {
                         )}
                         {secondaryFields.includes('calendars') && renderFields('calendars', item, {
                             calendars: calendars,
-                            grow: !get(item, 'location') && !showRelatedPlanningLink,
                         }) }
+
+                        {secondaryFields.includes('files') && renderFields('files', item)}
 
 
                         {(showRelatedPlanningLink) &&
@@ -206,7 +210,6 @@ export class EventItem extends React.Component {
                         }
 
                         {secondaryFields.includes('location') && renderFields('location', item)}
-                        {secondaryFields.includes('files') && renderFields('files', item)}
 
 
                     </Row>
@@ -221,8 +224,6 @@ EventItem.propTypes = {
     item: PropTypes.object.isRequired,
     onItemClick: PropTypes.func.isRequired,
     lockedItems: PropTypes.object.isRequired,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
     session: PropTypes.object,
     privileges: PropTypes.object,
     activeFilter: PropTypes.string,

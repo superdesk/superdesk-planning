@@ -179,13 +179,12 @@ export class EditorComponent extends React.Component {
                     itemId,
                     itemType,
                     addNewsItemToPlanning,
-                    inModalView,
                 } = this.props;
                 const {dirty, errorMessages, initialValues} = this.state;
 
                 this.setState({submitting: true});
 
-                const updateStates = !addNewsItemToPlanning && !inModalView;
+                const updateStates = !addNewsItemToPlanning;
 
                 if (!dirty) {
                     this.onCancel();
@@ -239,9 +238,7 @@ export class EditorComponent extends React.Component {
         if (updateStates) {
             this.setState({submitting: false});
 
-            if (!this.props.inModalView &&
-                (this.tearDownRequired || !isExistingItem(this.state.initialValues))
-            ) {
+            if (this.tearDownRequired || !isExistingItem(this.state.initialValues)) {
                 this.tearDownEditorState();
             }
         }
@@ -339,6 +336,7 @@ export class EditorComponent extends React.Component {
                             onChangeHandler={this.onChangeHandler}
                             readOnly={isReadOnly}
                             addNewsItemToPlanning={this.props.addNewsItemToPlanning}
+                            submitting={this.state.submitting}
                             submitFailed={this.state.submitFailed}
                             errors={this.state.errors}
                             dirty={this.state.dirty}
@@ -369,7 +367,7 @@ export class EditorComponent extends React.Component {
         }
 
         return (
-            <SidePanel shadowRight={true} className={this.props.className}>
+            <SidePanel shadowRight={true} bg00={true} className={this.props.className}>
                 <EditorHeader
                     diff={this.state.diff}
                     initialValues={this.state.initialValues}
@@ -444,7 +442,6 @@ EditorComponent.propTypes = {
     preferredCoverageDesks: PropTypes.object,
     associatedPlannings: PropTypes.arrayOf(PropTypes.object),
     associatedEvent: PropTypes.object,
-    longEventDurationThreshold: PropTypes.number,
     dispatch: PropTypes.func,
     currentWorkspace: PropTypes.string,
 };

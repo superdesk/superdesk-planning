@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 import {WorkqueueContainer, ModalsContainer} from '../components';
+import {PopupEditorPortal} from '../components/Main/ItemEditorModal';
 
 import './style.scss';
 
@@ -129,6 +130,8 @@ export class PageContent extends React.Component {
                 )}
                 {showModals && <ModalsContainer />}
                 {showWorkqueue && <WorkqueueContainer />}
+
+                <PopupEditorPortal />
             </div>
         );
     }

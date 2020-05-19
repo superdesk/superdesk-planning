@@ -59,8 +59,6 @@ export class SearchPanelComponent extends React.Component {
             ingestProviders,
             contentTypes,
             urgencies,
-            dateFormat,
-            timeFormat,
             currentSearch,
             toggleFilterPanel,
             search,
@@ -89,8 +87,6 @@ export class SearchPanelComponent extends React.Component {
             ingestProviders: ingestProviders,
             contentTypes: contentTypes,
             urgencies: urgencies,
-            dateFormat: dateFormat,
-            timeFormat: timeFormat,
             diff: diff,
             currentSearch: currentSearch,
             onChange: this.onChangeHandler,
@@ -101,7 +97,7 @@ export class SearchPanelComponent extends React.Component {
         };
 
         return (
-            <SidePanel shadowLeft={true} transparent={true}>
+            <SidePanel shadowLeft={true}>
                 <Header className="side-panel__header--border-b">
                     <Tools tools={tools}/>
                     <h3 className="side-panel__heading">{gettext('Advanced filters')}</h3>
@@ -138,8 +134,6 @@ SearchPanelComponent.propTypes = {
     urgencies: PropTypes.array,
     contentTypes: PropTypes.array,
     ingestProviders: PropTypes.array,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
     search: PropTypes.func,
     clearSearch: PropTypes.func,
     isViewFiltered: PropTypes.bool,
@@ -158,8 +152,6 @@ const mapStateToProps = (state) => ({
     urgencies: state.urgency.urgency,
     contentTypes: selectors.general.contentTypes(state),
     ingestProviders: state.ingest.providers,
-    dateFormat: selectors.config.getDateFormat(state),
-    timeFormat: selectors.config.getTimeFormat(state),
     isViewFiltered: selectors.main.isViewFiltered(state),
     searchProfile: selectors.forms.searchProfile(state),
     locators: selectors.vocabs.locators(state),

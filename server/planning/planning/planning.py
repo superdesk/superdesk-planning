@@ -25,8 +25,11 @@ from apps.archive.common import get_user, get_auth, update_dates_for
 from copy import deepcopy
 from eve.utils import config, ParsedRequest, date_to_str
 from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, get_coverage_cancellation_state,\
-    remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name,\
-    set_original_creator, list_uniq_with_order, TEMP_ID_PREFIX, DEFAULT_ASSIGNMENT_PRIORITY
+    WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name,\
+    set_original_creator, list_uniq_with_order, TEMP_ID_PREFIX, DEFAULT_ASSIGNMENT_PRIORITY,\
+    get_planning_allow_scheduled_updates, TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_FIELD_SCHEMA, \
+    get_planning_xmp_assignment_mapping, sanitize_input_data, get_planning_xmp_slugline_mapping, \
+    get_planning_use_xmp_for_pic_slugline, get_planning_use_xmp_for_pic_assignments
 from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
@@ -34,6 +37,8 @@ from superdesk.utc import utc_to_local
 from datetime import datetime
 from .planning_types import is_field_enabled
 from superdesk import Resource
+from lxml import etree
+from io import BytesIO
 
 logger = logging.getLogger(__name__)
 
@@ -41,67 +46,77 @@ logger = logging.getLogger(__name__)
 class PlanningService(superdesk.Service):
     """Service class for the planning model."""
 
-    def __generate_related_assignments(self, docs):
+    def generate_related_assignments(self, docs):
+        def _enhance_coverage_entities(coverage_entities, lookup_field='coverage_item'):
+            if not coverage_entities:
+                return
+
+            ids = list(coverage_entities.keys())
+
+            assignments = list(get_resource_service('assignments').get_from_mongo(req=None,
+                                                                                  lookup={lookup_field: {'$in': ids}}))
+
+            for coverage_id, coverage in coverage_entities.items():
+                if not coverage.get('assigned_to'):
+                    coverage['assigned_to'] = {}
+                else:
+                    try:
+                        assignment = [a for a in assignments if str(a.get('_id')) ==
+                                      str(coverage['assigned_to'].get('assignment_id'))][0]
+                    except IndexError:
+                        continue
+
+                    coverage['assigned_to']['assignment_id'] = assignment.get(config.ID_FIELD)
+                    coverage['assigned_to']['desk'] = assignment.get('assigned_to', {}).get('desk')
+                    coverage['assigned_to']['user'] = assignment.get('assigned_to', {}).get('user')
+                    coverage['assigned_to']['contact'] = assignment.get('assigned_to', {}).get('contact')
+                    coverage['assigned_to']['state'] = assignment.get('assigned_to', {}).get('state')
+                    coverage['assigned_to']['assignor_user'] = assignment.get('assigned_to', {}).get('assignor_user')
+                    coverage['assigned_to']['assignor_desk'] = assignment.get('assigned_to', {}).get('assignor_desk')
+                    coverage['assigned_to']['assigned_date_desk'] = \
+                        assignment.get('assigned_to', {}).get('assigned_date_desk')
+                    coverage['assigned_to']['assigned_date_user'] = \
+                        assignment.get('assigned_to', {}).get('assigned_date_user')
+                    coverage['assigned_to']['coverage_provider'] = \
+                        assignment.get('assigned_to', {}).get('coverage_provider')
+                    coverage['assigned_to']['priority'] = assignment.get('priority')
+
         coverages = {}
         for doc in docs:
+            doc.pop('_planning_schedule', None)
+            doc.pop('_updates_schedule', None)
+
             if not doc.get('coverages'):
                 doc['coverages'] = []
 
             for cov in (doc.get('coverages') or []):
+                scheduled_updates = {}
                 coverages[cov.get('coverage_id')] = cov
 
-            doc.pop('_planning_schedule', None)
+                if not cov.get('scheduled_updates'):
+                    cov['scheduled_updates'] = []
 
-        if not coverages:
-            return
+                for s in cov.get('scheduled_updates'):
+                    scheduled_updates[s.get('scheduled_update_id')] = s
 
-        ids = list(coverages.keys())
-
-        assignments = list(get_resource_service('assignments').get_from_mongo(req=None,
-                                                                              lookup={
-                                                                                  'coverage_item': {'$in': ids}
-                                                                              }))
-
-        for coverage_id, coverage in coverages.items():
-            if not coverage.get('assigned_to'):
-                coverage['assigned_to'] = {}
-            else:
-                try:
-                    assignment = [a for a in assignments if str(a.get('_id')) ==
-                                  str(coverage['assigned_to'].get('assignment_id'))][0]
-                except IndexError:
-                    continue
-
-                coverage['assigned_to']['assignment_id'] = assignment.get(config.ID_FIELD)
-                coverage['assigned_to']['desk'] = assignment.get('assigned_to', {}).get('desk')
-                coverage['assigned_to']['user'] = assignment.get('assigned_to', {}).get('user')
-                coverage['assigned_to']['state'] = assignment.get('assigned_to', {}).get('state')
-                coverage['assigned_to']['assignor_user'] = assignment.get('assigned_to', {}).get('assignor_user')
-                coverage['assigned_to']['assignor_desk'] = assignment.get('assigned_to', {}).get('assignor_desk')
-                coverage['assigned_to']['assigned_date_desk'] = \
-                    assignment.get('assigned_to', {}).get('assigned_date_desk')
-                coverage['assigned_to']['assigned_date_user'] = \
-                    assignment.get('assigned_to', {}).get('assigned_date_user')
-                coverage['assigned_to']['coverage_provider'] = \
-                    assignment.get('assigned_to', {}).get('coverage_provider')
-                coverage['assigned_to']['priority'] = assignment.get('priority')
+                _enhance_coverage_entities(coverages)
+                _enhance_coverage_entities(scheduled_updates, lookup_field='scheduled_update_id')
 
     def on_fetched(self, docs):
-        self.__generate_related_assignments(docs.get(config.ITEMS))
+        self.generate_related_assignments(docs.get(config.ITEMS))
 
     def on_fetched_item(self, doc):
-        self.__generate_related_assignments([doc])
+        self.generate_related_assignments([doc])
 
     def find_one(self, req, **lookup):
         item = super().find_one(req, **lookup)
         if item:
-            self.__generate_related_assignments([item])
+            self.generate_related_assignments([item])
             for coverage in item.get('coverages', []):
                 if coverage.get('planning', {}).get('scheduled') and \
                         not isinstance(coverage['planning']['scheduled'], datetime):
                     coverage['planning']['scheduled'] = datetime.strptime(coverage['planning']['scheduled'],
                                                                           '%Y-%m-%dT%H:%M:%S%z')
-
         return item
 
     def on_create(self, docs):
@@ -132,7 +147,7 @@ class PlanningService(superdesk.Service):
                 event_item=doc.get('event_item', None)
             )
             self._update_event_history(doc)
-        self.__generate_related_assignments(docs)
+        self.generate_related_assignments(docs)
 
     def _update_event_history(self, doc):
         if 'event_item' not in doc:
@@ -166,7 +181,7 @@ class PlanningService(superdesk.Service):
         )
 
     def on_locked_planning(self, item, user_id):
-        self.__generate_related_assignments([item])
+        self.generate_related_assignments([item])
 
     def update(self, id, updates, original):
         updates.setdefault('versioncreated', utcnow())
@@ -197,6 +212,8 @@ class PlanningService(superdesk.Service):
                 ('planning_date' in updates and updates['planning_date'] is None):
             raise SuperdeskApiError(message="Planning item should have a date")
 
+        sanitize_input_data(updates)
+
         # Validate if agendas being added are enabled agendas
         agenda_service = get_resource_service('agenda')
         for agenda_id in updates.get('agendas', []):
@@ -210,6 +227,24 @@ class PlanningService(superdesk.Service):
         # Remove duplicate agendas
         if len(updates.get('agendas', [])) > 0:
             updates['agendas'] = list_uniq_with_order(updates['agendas'])
+
+        # Validate scheduled updates
+        for coverage in updates.get('coverages') or []:
+            coverage_schedule = (coverage.get('planning') or {}).get('scheduled')
+            schedule_updates = list(coverage.get('scheduled_updates') or [])
+            schedule_updates.reverse()
+            for i, scheduled_update in enumerate(schedule_updates):
+                scheduled_update_schedule = (scheduled_update.get('planning') or {}).get('scheduled')
+                if not scheduled_update_schedule:
+                    continue
+
+                if (coverage_schedule and scheduled_update_schedule <= coverage_schedule):
+                    raise SuperdeskApiError(message="Scheduled updates must be after the original coverage.")
+
+                next_schedule = next((s for s in schedule_updates[i + 1:len(schedule_updates)]
+                                      if (s.get('planning') or {}).get('scheduled') is not None), None)
+                if next_schedule and next_schedule['planning']['scheduled'] > scheduled_update['planning']['scheduled']:
+                    raise SuperdeskApiError(message="Scheduled updates of a coverage must be after the previous update")
 
     def _set_planning_event_info(self, doc, planning_type):
         """Set the planning event date
@@ -227,6 +262,9 @@ class PlanningService(superdesk.Service):
                 # populate headline using name
                 if event.get('name') and is_field_enabled('headline', planning_type):
                     doc.setdefault('headline', event['name'])
+
+                if event.get(TO_BE_CONFIRMED_FIELD):
+                    doc[TO_BE_CONFIRMED_FIELD] = True
 
     def _get_added_removed_agendas(self, updates, original):
         updated_agendas = [str(a) for a in (updates.get('agendas') or [])]
@@ -248,7 +286,7 @@ class PlanningService(superdesk.Service):
 
         doc = deepcopy(original)
         doc.update(updates)
-        self.__generate_related_assignments([doc])
+        self.generate_related_assignments([doc])
         updates['coverages'] = doc.get('coverages') or []
 
         posted = update_post_item(updates, original)
@@ -296,6 +334,176 @@ class PlanningService(superdesk.Service):
         else:
             return all_items
 
+    def remove_coverages(self, updates, original):
+        for coverage in (original or {}).get('coverages') or []:
+            updated_coverage = next((cov for cov in updates.get('coverages') or []
+                                     if cov.get('coverage_id') == coverage.get('coverage_id')), None)
+
+            if not updated_coverage:
+                for s in (coverage.get('scheduled_updates') or []):
+                    self.remove_coverage_entity(s, original)
+
+                self.remove_coverage_entity(coverage, original)
+
+    def set_coverage_active(self, coverage, planning, parentCoverage=None):
+        # If the coverage is created and assigned to a desk/user and the PLANNING_AUTO_ASSIGN_TO_WORKFLOW is
+        # True the coverage will be created in workflow unless the overide flag is set.
+        if app.config.get('PLANNING_AUTO_ASSIGN_TO_WORKFLOW', False) and \
+                (coverage.get('assigned_to', {}).get('desk') or coverage.get('assigned_to', {}).get(
+                'user')) and not planning.get('flags', {}).get('overide_auto_assign_to_workflow', False) \
+                and coverage['workflow_status'] == WORKFLOW_STATE.DRAFT:
+            coverage['workflow_status'] = WORKFLOW_STATE.ACTIVE
+
+            # set all scheduled_updates to be activated
+            for s in coverage.get('scheduled_updates') or []:
+                if s.get('assigned_to') and s['workflow_status'] == WORKFLOW_STATE.DRAFT:
+                    s['workflow_status'] = WORKFLOW_STATE.ACTIVE
+
+            return
+
+        assigned_to = coverage.get('assigned_to')
+        if (assigned_to and assigned_to.get('state') == ASSIGNMENT_WORKFLOW_STATE.ASSIGNED) or \
+                (parentCoverage or {}).get('workflow_status') == WORKFLOW_STATE.ACTIVE:
+            coverage['workflow_status'] = WORKFLOW_STATE.ACTIVE
+            return
+
+    def remove_coverage_entity(self, coverage_entity, original_planning, entity_type='coverage'):
+        if original_planning.get('state') == WORKFLOW_STATE.CANCELLED:
+            raise SuperdeskApiError.badRequestError('Cannot remove {} of a cancelled planning item'.format(entity_type))
+
+        assignment = coverage_entity.get('assigned_to', None)
+        if assignment and assignment.get('state') not in [WORKFLOW_STATE.DRAFT, WORKFLOW_STATE.CANCELLED]:
+            raise SuperdeskApiError.badRequestError('Assignment already exists. {} cannot be deleted.'
+                                                    .format(entity_type.capitalize()))
+
+        updated_coverage_entity = deepcopy(coverage_entity)
+        updated_coverage_entity.pop('assigned_to', None)
+        self._create_update_assignment(original_planning, {}, updated_coverage_entity, coverage_entity)
+
+    def add_coverages(self, updates, original):
+        for coverage in (updates.get('coverages') or []):
+            coverage_id = coverage.get('coverage_id', '')
+            if not coverage_id or TEMP_ID_PREFIX in coverage_id:
+                if 'duplicate' in coverage_id:
+                    self.duplicate_xmp_file(coverage)
+                # coverage to be created
+                coverage['coverage_id'] = generate_guid(type=GUID_NEWSML)
+                coverage['firstcreated'] = utcnow()
+                set_original_creator(coverage)
+                self.set_coverage_active(coverage, updates)
+                self.set_slugline_from_xmp(coverage, None)
+                self._create_update_assignment(original, updates, coverage)
+                self.add_scheduled_updates(updates, original, coverage)
+
+    def set_scheduled_update_active(self, scheduled_update, planning, coverage):
+        self.set_coverage_active(scheduled_update, planning, coverage)
+
+        if coverage.get('workflow_status') == WORKFLOW_STATE.DRAFT and \
+                scheduled_update.get('workflow_status') == WORKFLOW_STATE.ACTIVE:
+            raise SuperdeskApiError(
+                message='Cannot add a scheduled update to workflow when original coverage is not in workflow')
+
+    def remove_scheduled_updates(self, updates, original, coverage, original_coverage):
+        for s in (original_coverage.get('scheduled_updates') or []):
+            updated_s = next((updated_s for updated_s in coverage.get('scheduled_updates') or []
+                              if updated_s.get('scheduled_update_id') == s.get('scheduled_update_id')), None)
+
+            if not updated_s:
+                self.remove_coverage_entity(s, original)
+
+    def add_scheduled_updates(self, updates, original, coverage):
+        for s in (coverage.get('scheduled_updates') or []):
+            if not get_planning_allow_scheduled_updates():
+                raise SuperdeskApiError(message='Not configured to create scheduled updates to a coverage')
+
+            if not s.get('scheduled_update_id') or TEMP_ID_PREFIX in s['scheduled_update_id']:
+                s['coverage_id'] = coverage['coverage_id']
+                s['scheduled_update_id'] = generate_guid(type=GUID_NEWSML)
+                self.set_scheduled_update_active(s, updates, coverage)
+                self._create_update_assignment(original, updates, s, None, coverage)
+
+    def update_scheduled_updates(self, updates, original, coverage, original_coverage):
+        for s in (coverage.get('scheduled_updates') or []):
+            original_scheduled_update = next((orig_s for orig_s in (original_coverage.get('scheduled_updates') or [])
+                                              if s['scheduled_update_id'] == orig_s.get('scheduled_update_id')), None)
+
+            if original_scheduled_update:
+                if original_scheduled_update.get('workflow_status') == WORKFLOW_STATE.DRAFT and \
+                        s.get('workflow_status') == WORKFLOW_STATE.ACTIVE:
+                    self.set_scheduled_update_active(s, updates, coverage)
+                self._create_update_assignment(original, updates, s, original_scheduled_update, coverage)
+
+    def update_coverages(self, updates, original):
+        for coverage in (updates.get('coverages') or []):
+            coverage_id = coverage.get('coverage_id')
+            original_coverage = next((cov for cov in original.get('coverages') or []
+                                      if cov['coverage_id'] == coverage_id), None)
+            if not original_coverage:
+                continue
+
+            if (original_coverage.get('flags') or {}).get('no_content_linking') != \
+                    (coverage.get('flags') or {}).get('no_content_linking') and \
+                    coverage.get('workflow_status') != WORKFLOW_STATE.DRAFT:
+                raise SuperdeskApiError.badRequestError(
+                    'Cannot edit content linking flag of a coverage already in workflow')
+
+            self.set_coverage_active(coverage, updates)
+            self.set_slugline_from_xmp(coverage, original_coverage)
+            if self.coverage_changed(coverage, original_coverage):
+                user = get_user()
+                coverage['version_creator'] = str(user.get(config.ID_FIELD)) if user else None
+                coverage['versioncreated'] = utcnow()
+
+                contact_id = coverage.get(
+                    'contact',
+                    (original_coverage.get('assigned_to') or {}).get('contact', None)
+                )
+
+                # If the internal note has changed send a notification, except if it's been cancelled
+                if coverage.get('planning', {}).get('internal_note', '') != original_coverage.get('planning',
+                                                                                                  {}).get(
+                    'internal_note', '') \
+                        and coverage.get('news_coverage_status', {}).get('qcode') != 'ncostat:notint':
+                    target_user = coverage.get('assigned_to', original_coverage.get('assigned_to', {})).get('user',
+                                                                                                            None)
+                    target_desk = coverage.get('assigned_to', original_coverage.get('assigned_to', {})).get('desk',
+                                                                                                            None)
+
+                    PlanningNotifications().notify_assignment(
+                        coverage_status=coverage.get('workflow_status'),
+                        target_desk=target_desk if target_user is None else None,
+                        target_user=target_user,
+                        contact_id=contact_id,
+                        message='assignment_internal_note_msg',
+                        coverage_type=get_coverage_type_name(
+                            coverage.get('planning', {}).get('g2_content_type', '')),
+                        slugline=coverage.get('planning', {}).get('slugline', ''),
+                        internal_note=coverage.get('planning', {}).get('internal_note', ''))
+                # If the scheduled time for the coverage changes
+                if coverage.get('planning', {}).get('scheduled', datetime.min).strftime('%c') != \
+                        original_coverage.get('planning', {}).get('scheduled', datetime.min).strftime('%c'):
+                    target_user = coverage.get('assigned_to', original_coverage.get('assigned_to', {})).get('user',
+                                                                                                            None)
+                    target_desk = coverage.get('assigned_to', original_coverage.get('assigned_to', {})).get('desk',
+                                                                                                            None)
+                    PlanningNotifications().notify_assignment(
+                        coverage_status=coverage.get('workflow_status'),
+                        target_desk=target_desk if target_user is None else None,
+                        target_user=target_user,
+                        contact_id=contact_id,
+                        message='assignment_due_time_msg',
+                        due=utc_to_local(app.config['DEFAULT_TIMEZONE'],
+                                         coverage.get('planning', {}).get('scheduled')).strftime('%c'),
+                        coverage_type=get_coverage_type_name(
+                            coverage.get('planning', {}).get('g2_content_type', '')),
+                        slugline=coverage.get('planning', {}).get('slugline', ''))
+
+            self.add_scheduled_updates(updates, original, coverage)
+            self.update_scheduled_updates(updates, original, coverage, original_coverage)
+            self.remove_scheduled_updates(updates, original, coverage, original_coverage)
+
+            self._create_update_assignment(original, updates, coverage, original_coverage)
+
     def _set_coverage(self, updates, original=None):
         if not original:
             original = {}
@@ -310,98 +518,9 @@ class PlanningService(superdesk.Service):
             # return
         # ********* [SDESK-3073]: End revert ***************"""
 
-        for coverage in original.get('coverages') or []:
-            updated_coverage = next((cov for cov in updates.get('coverages') or []
-                                     if cov.get('coverage_id') == coverage.get('coverage_id')), None)
-
-            assignment = coverage.get('assigned_to', None)
-            if not updated_coverage:
-                if original.get('state') == WORKFLOW_STATE.CANCELLED:
-                    raise SuperdeskApiError.badRequestError('Cannot remove coverage of a cancelled planning item.')
-                if assignment and assignment.get('state') not in [WORKFLOW_STATE.DRAFT, WORKFLOW_STATE.CANCELLED]:
-                    raise SuperdeskApiError.badRequestError('Assignment already exists. Coverage cannot be deleted.')
-                else:
-                    updated_coverage = deepcopy(coverage)
-                    updated_coverage.pop('assigned_to', None)
-                    self._create_update_assignment(original, updates, updated_coverage, coverage)
-
-        for coverage in (updates.get('coverages') or []):
-            original_coverage = None
-            coverage_id = coverage.get('coverage_id')
-            if not coverage_id or TEMP_ID_PREFIX in coverage_id:
-                # coverage to be created
-                coverage['coverage_id'] = generate_guid(type=GUID_NEWSML)
-                coverage['firstcreated'] = utcnow()
-                set_original_creator(coverage)
-                # If the coverage is created and assigned to a desk/user and the PLANNING_AUTO_ASSIGN_TO_WORKFLOW is
-                # True the coverage will be created in workflow unless the overide flag is set.
-                if app.config.get('PLANNING_AUTO_ASSIGN_TO_WORKFLOW', False) and \
-                        (coverage.get('assigned_to', {}).get('desk') or coverage.get('assigned_to', {}).get(
-                            'user')) and not updates.get('flags', {}).get('overide_auto_assign_to_workflow', False):
-                    coverage['workflow_status'] = WORKFLOW_STATE.ACTIVE
-            else:
-                original_coverage = next((cov for cov in original.get('coverages') or []
-                                          if cov['coverage_id'] == coverage_id), None)
-                if not original_coverage:
-                    continue
-
-                if (original_coverage.get('flags') or {}).get('no_content_linking') != \
-                        (coverage.get('flags') or {}).get('no_content_linking') and \
-                        coverage.get('workflow_status') != WORKFLOW_STATE.DRAFT:
-                    raise SuperdeskApiError.badRequestError(
-                        'Cannot edit content linking flag of a coverage already in workflow')
-
-                # If PLANNING_AUTO_ASSIGN_TO_WORKFLOW is True and the overide flag has been set to false
-                # Set the workflow state of the item to active if not already
-                if app.config.get('PLANNING_AUTO_ASSIGN_TO_WORKFLOW', False) and \
-                        (coverage.get('assigned_to', {}).get('desk') or coverage.get('assigned_to', {}).get(
-                            'user')) and not updates.get('flags', {}).get('overide_auto_assign_to_workflow', False) \
-                        and coverage['workflow_status'] == WORKFLOW_STATE.DRAFT:
-                    coverage['workflow_status'] = WORKFLOW_STATE.ACTIVE
-
-                if self.coverage_changed(coverage, original_coverage):
-                    user = get_user()
-                    coverage['version_creator'] = str(user.get(config.ID_FIELD)) if user else None
-                    coverage['versioncreated'] = utcnow()
-
-                    # If the internal note has changed send a notification, except if it's been cancelled
-                    if coverage.get('planning', {}).get('internal_note', '') != original_coverage.get('planning',
-                                                                                                      {}).get(
-                        'internal_note', '') \
-                            and coverage.get('news_coverage_status', {}).get('qcode') != 'ncostat:notint':
-                        target_user = coverage.get('assigned_to', original_coverage.get('assigned_to', {})).get('user',
-                                                                                                                None)
-                        target_desk = coverage.get('assigned_to', original_coverage.get('assigned_to', {})).get('desk',
-                                                                                                                None)
-                        PlanningNotifications().notify_assignment(
-                            coverage_status=coverage.get('workflow_status'),
-                            target_desk=target_desk if target_user is None else None,
-                            target_user=target_user,
-                            message='assignment_internal_note_msg',
-                            coverage_type=get_coverage_type_name(
-                                coverage.get('planning', {}).get('g2_content_type', '')),
-                            slugline=coverage.get('planning', {}).get('slugline', ''),
-                            internal_note=coverage.get('planning', {}).get('internal_note', ''),
-                            no_email=True)
-                    # If the scheduled time for the coverage changes
-                    if coverage.get('planning', {}).get('scheduled', datetime.min).strftime('%c') != \
-                            original_coverage.get('planning', {}).get('scheduled', datetime.min).strftime('%c'):
-                        target_user = coverage.get('assigned_to', original_coverage.get('assigned_to', {})).get('user',
-                                                                                                                None)
-                        target_desk = coverage.get('assigned_to', original_coverage.get('assigned_to', {})).get('desk',
-                                                                                                                None)
-                        PlanningNotifications().notify_assignment(
-                            coverage_status=coverage.get('workflow_status'),
-                            target_desk=target_desk if target_user is None else None,
-                            target_user=target_user,
-                            message='assignment_due_time_msg',
-                            due=utc_to_local(app.config['DEFAULT_TIMEZONE'],
-                                             coverage.get('planning', {}).get('scheduled')).strftime('%c'),
-                            coverage_type=get_coverage_type_name(
-                                coverage.get('planning', {}).get('g2_content_type', '')),
-                            slugline=coverage.get('planning', {}).get('slugline', ''))
-
-            self._create_update_assignment(original, updates, coverage, original_coverage)
+        self.remove_coverages(updates, original)
+        self.add_coverages(updates, original)
+        self.update_coverages(updates, original)
 
     @staticmethod
     def coverage_changed(updates, original):
@@ -429,7 +548,9 @@ class PlanningService(superdesk.Service):
         planning_date = updates.get('planning_date') or (original or {}).get('planning_date') or utcnow()
 
         add_default_schedule = True
+        add_default_updates_schedule = True
         schedule = []
+        updates_schedule = []
         for coverage in coverages:
             if coverage.get('planning', {}).get('scheduled'):
                 add_default_schedule = False
@@ -439,15 +560,32 @@ class PlanningService(superdesk.Service):
                 'scheduled': coverage.get('planning', {}).get('scheduled')
             })
 
+            for s in coverage.get('scheduled_updates') or []:
+                if s.get('planning', {}).get('scheduled') and add_default_updates_schedule:
+                    add_default_updates_schedule = False
+
+                updates_schedule.append({
+                    'scheduled_update_id': s.get('scheduled_update_id'),
+                    'scheduled': s.get('planning', {}).get('scheduled')
+                })
+
         if add_default_schedule:
             schedule.append({
                 'coverage_id': None,
                 'scheduled': planning_date or utcnow()
             })
 
-        updates['_planning_schedule'] = schedule
+        if add_default_updates_schedule:
+            updates_schedule.append({
+                'scheduled_update_id': None,
+                'scheduled': planning_date or utcnow()
+            })
 
-    def _create_update_assignment(self, planning_original, planning_updates, updates, original=None):
+        updates['_planning_schedule'] = schedule
+        updates['_updates_schedule'] = updates_schedule
+
+    def _create_update_assignment(self, planning_original, planning_updates, updates, original=None,
+                                  parent_coverage=None):
         """Create or update the assignment.
 
         :param dict planning_original: original parent planning document
@@ -466,6 +604,7 @@ class PlanningService(superdesk.Service):
         doc.update(updates)
         assignment_service = get_resource_service('assignments')
         assigned_to = updates.get('assigned_to') or original.get('assigned_to')
+        new_assignment_id = None
         if not assigned_to:
             return
 
@@ -488,32 +627,47 @@ class PlanningService(superdesk.Service):
                 'assigned_to': {
                     'user': assigned_to.get('user'),
                     'desk': assigned_to.get('desk'),
+                    'contact': assigned_to.get('contact'),
                     'state': assign_state
                 },
                 'planning_item': planning_id,
                 'coverage_item': doc.get('coverage_id'),
-                'planning': doc.get('planning'),
+                'planning': deepcopy(doc.get('planning')),
                 'priority': assigned_to.get('priority', DEFAULT_ASSIGNMENT_PRIORITY),
                 'description_text': planning.get('description_text')
             }
 
+            if doc.get('scheduled_update_id'):
+                assignment['scheduled_update_id'] = doc['scheduled_update_id']
+                assignment['planning'] = deepcopy(parent_coverage.get('planning'))
+                assignment['planning'].update(doc.get('planning'))
+
             if 'coverage_provider' in assigned_to:
                 assignment['assigned_to']['coverage_provider'] = assigned_to.get('coverage_provider')
 
-            assignment_id = assignment_service.post([assignment])
-            updates['assigned_to']['assignment_id'] = str(assignment_id[0])
+            if TO_BE_CONFIRMED_FIELD in doc:
+                assignment['planning'][TO_BE_CONFIRMED_FIELD] = doc[TO_BE_CONFIRMED_FIELD]
+
+            new_assignment_id = str(assignment_service.post([assignment])[0])
+            updates['assigned_to']['assignment_id'] = new_assignment_id
             updates['assigned_to']['state'] = assign_state
         elif assigned_to.get('assignment_id'):
+            self.set_xmp_file_info(updates, original)
+
             if not updates.get('assigned_to'):
-                if planning_original.get('state') == WORKFLOW_STATE.CANCELLED or coverage_status not in\
-                        [WORKFLOW_STATE.CANCELLED, WORKFLOW_STATE.DRAFT]:
-                    raise SuperdeskApiError.badRequestError('Coverage not in correct state to remove assignment.')
+                if planning_original.get('state') == WORKFLOW_STATE.CANCELLED or coverage_status \
+                        not in [WORKFLOW_STATE.CANCELLED, WORKFLOW_STATE.DRAFT]:
+                    raise SuperdeskApiError.badRequestError(
+                        'Coverage not in correct state to remove assignment.')
                 # Removing assignment
                 assignment_service.delete(lookup={'_id': assigned_to.get('assignment_id')})
                 assignment = {
-                    'planning_item': planning_id,
+                    'planning_item': planning_original.get(config.ID_FIELD),
                     'coverage_item': doc.get('coverage_id')
                 }
+                if doc.get('scheduled_update'):
+                    assignment['scheduled_update_id'] = doc.get('scheduled_update_id')
+
                 get_resource_service('assignments_history').on_item_deleted(assignment)
                 return
 
@@ -535,7 +689,10 @@ class PlanningService(superdesk.Service):
 
             assignment = {}
             if self.is_coverage_planning_modified(updates, original):
-                assignment['planning'] = doc.get('planning')
+                assignment['planning'] = deepcopy(doc.get('planning'))
+
+                if TO_BE_CONFIRMED_FIELD in doc:
+                    assignment['planning'][TO_BE_CONFIRMED_FIELD] = doc[TO_BE_CONFIRMED_FIELD]
 
             if original_assignment.get('assigned_to').get('state') == ASSIGNMENT_WORKFLOW_STATE.DRAFT:
                 if self.is_coverage_assignment_modified(updates, original_assignment):
@@ -559,6 +716,10 @@ class PlanningService(superdesk.Service):
             if planning_original.get('description_text') != planning_updates.get('description_text'):
                 assignment['description_text'] = planning['description_text']
 
+            # If the Planning name has been changed
+            if planning_original.get('name') != planning_updates.get('name'):
+                assignment['name'] = planning['name']
+
             # If there has been a change in the planning internal note then notify the assigned users/desk
             if planning_updates.get('internal_note') and planning_original.get('internal_note') != planning_updates.get(
                     'internal_note'):
@@ -566,6 +727,7 @@ class PlanningService(superdesk.Service):
                     coverage_status=updates.get('workflow_status'),
                     target_desk=assigned_to.get('desk') if assigned_to.get('user') is None else None,
                     target_user=assigned_to.get('user'),
+                    contact_id=assigned_to.get('contact'),
                     message='assignment_planning_internal_note_msg',
                     coverage_type=get_coverage_type_name(updates.get('planning', {}).get('g2_content_type', '')),
                     slugline=planning.get('slugline', ''),
@@ -573,15 +735,43 @@ class PlanningService(superdesk.Service):
                     no_email=True)
 
             # Update only if anything got modified
-            if 'planning' in assignment or 'assigned_to' in assignment or 'description_text' in assignment:
+            if ('planning' in assignment or
+                    'assigned_to' in assignment or
+                    'description_text' in assignment or
+                    'name' in assignment):
                 assignment_service.system_update(
                     ObjectId(assigned_to.get('assignment_id')),
                     assignment,
                     original_assignment
                 )
 
+            if self.is_xmp_updated(updates, original):
+                PlanningNotifications().notify_assignment(
+                    coverage_status=updates.get('workflow_status'),
+                    target_desk=assigned_to.get('desk') if assigned_to.get('user') is None else None,
+                    target_user=assigned_to.get('user'),
+                    contact_id=assigned_to.get('contact'),
+                    message='assignment_planning_xmp_file_msg',
+                    meta_message='assignment_details_email',
+                    coverage_type=get_coverage_type_name(updates.get('planning', {}).get('g2_content_type', '')),
+                    slugline=planning.get('slugline', ''),
+                    assignment=assignment)
+
     def cancel_coverage(self, coverage, coverage_cancel_state, original_workflow_status, assignment=None,
                         reason=None, event_cancellation=False, event_reschedule=False):
+        self._perform_coverage_cancel(coverage, coverage_cancel_state, original_workflow_status, assignment,
+                                      reason, event_cancellation, event_reschedule)
+
+        for s in coverage.get('scheduled_updates') or []:
+            self._perform_coverage_cancel(s, coverage_cancel_state, original_workflow_status, None,
+                                          reason, event_cancellation, event_reschedule)
+
+    def _perform_coverage_cancel(self, coverage, coverage_cancel_state, original_workflow_status, assignment,
+                                 reason, event_cancellation, event_reschedule):
+        # If coverage is already cancelled, don't change it's state_reason
+        if coverage.get('previous_status'):
+            return
+
         coverage['news_coverage_status'] = coverage_cancel_state
         coverage['previous_status'] = original_workflow_status
         coverage['workflow_status'] = WORKFLOW_STATE.CANCELLED
@@ -605,7 +795,7 @@ class PlanningService(superdesk.Service):
                 'Planning does not exist'
             )
 
-        self.__generate_related_assignments([planning])
+        self.generate_related_assignments([planning])
         coverages = planning.get('coverages') or []
         try:
             coverage = next(c for c in coverages if c.get('coverage_id') == coverage_id)
@@ -640,7 +830,7 @@ class PlanningService(superdesk.Service):
         planning.update(new_plan)
         return planning, new_coverage
 
-    def remove_assignment(self, assignment_item, unlock_planning=False):
+    def remove_assignment(self, assignment_item):
         coverage_id = assignment_item.get('coverage_item')
         planning_item = self.find_one(req=None, _id=assignment_item.get('planning_item'))
 
@@ -659,6 +849,18 @@ class PlanningService(superdesk.Service):
             # Assignment was already removed (unposting a planning item scenario)
             return planning_item
 
+        for s in coverage_item.get('scheduled_updates'):
+            assigned_to = s.get('assigned_to')
+            PlanningNotifications().notify_assignment(
+                coverage_status=s.get('workflow_status'),
+                target_desk=assigned_to.get('desk') if assigned_to.get('user') is None else None,
+                target_user=assigned_to.get('user'),
+                message='assignment_removed_msg',
+                coverage_type=get_coverage_type_name(coverage_item.get('planning', {}).get('g2_content_type', '')),
+                slugline=planning_item.get('slugline', ''))
+            del s['assigned_to']
+            s['workflow_status'] = WORKFLOW_STATE.DRAFT
+
         assigned_to = assignment_item.get('assigned_to')
         PlanningNotifications().notify_assignment(
             coverage_status=coverage_item.get('workflow_status'),
@@ -667,18 +869,18 @@ class PlanningService(superdesk.Service):
             message='assignment_removed_msg',
             coverage_type=get_coverage_type_name(coverage_item.get('planning', {}).get('g2_content_type', '')),
             slugline=planning_item.get('slugline', ''))
-
         del coverage_item['assigned_to']
         coverage_item['workflow_status'] = WORKFLOW_STATE.DRAFT
 
-        updates = {'coverages': coverages}
-        if unlock_planning:
-            remove_lock_information(updates)
-
-        updated_planning = self.update(
+        updated_planning = self.system_update(
             planning_item[config.ID_FIELD],
-            updates,
+            {'coverages': coverages},
             planning_item
+        )
+
+        get_resource_service('planning_autosave').on_assignment_removed(
+            planning_item[config.ID_FIELD],
+            coverage_id
         )
 
         if planning_item.get('event_item'):
@@ -689,8 +891,12 @@ class PlanningService(superdesk.Service):
     def is_coverage_planning_modified(self, updates, original):
         for key in updates.get('planning').keys():
             if not key.startswith('_') and \
-                    updates.get('planning')[key] != original.get('planning').get(key):
+                    updates.get('planning')[key] != (original.get('planning') or {}).get(key):
                 return True
+
+        if (TO_BE_CONFIRMED_FIELD in original and TO_BE_CONFIRMED_FIELD in updates and
+                original[TO_BE_CONFIRMED_FIELD] != updates[TO_BE_CONFIRMED_FIELD]):
+            return True
 
         return False
 
@@ -853,9 +1059,151 @@ class PlanningService(superdesk.Service):
         for item in items:
             self.patch(item[config.ID_FIELD], {'recurrence_id': updates['recurrence_id']})
 
+    def get_xmp_file_for_updates(self, updates_coverage, original_coverage, for_slugline=False):
+        rv = False
+        if not (updates_coverage['planning'] or {}).get('xmp_file'):
+            return rv
+
+        if not get_coverage_type_name((updates_coverage.get('planning') or {}).get('g2_content_type')) \
+                in ['Picture', 'picture']:
+            return rv
+
+        if not self.is_xmp_updated(updates_coverage, original_coverage):
+            return rv
+
+        assignment_id = updates_coverage.get('_id') or updates_coverage['assigned_to'].get('assignment_id')
+        xmp_file = get_resource_service('planning_files').find_one(req=None,
+                                                                   _id=updates_coverage['planning']['xmp_file'])
+        if not xmp_file:
+            logger.error('Attached xmp_file not found. Assignment: {0}, xmp_file: {1}'.format(
+                assignment_id,
+                updates_coverage['planning']['xmp_file']
+            ))
+            return rv
+
+        xmp_file = app.media.get(xmp_file['media'], resource='planning_files')
+        if not xmp_file:
+            logger.error('xmp_file not found in media storage. Assignment: {0}, xmp_file: {1}'.format(
+                assignment_id,
+                updates_coverage['planning']['xmp_file']
+            ))
+            return rv
+
+        if for_slugline:
+            if not get_planning_use_xmp_for_pic_slugline(app) or not get_planning_xmp_slugline_mapping(app):
+                return rv
+        else:
+            if not (updates_coverage.get('assigned_to') or {}).get('assignment_id'):
+                return rv
+
+            if not get_planning_use_xmp_for_pic_assignments(app) or not get_planning_xmp_assignment_mapping(app):
+                return rv
+
+        return xmp_file
+
+    def set_slugline_from_xmp(self, updates_coverage, original_coverage=None):
+        xmp_file = self.get_xmp_file_for_updates(updates_coverage, original_coverage, for_slugline=True)
+        if not xmp_file:
+            return
+
+        parsed = etree.parse(xmp_file)
+        xmp_slugline_mapping = get_planning_xmp_slugline_mapping(app)
+        tags = parsed.xpath(xmp_slugline_mapping['xpath'], namespaces=xmp_slugline_mapping['namespaces'])
+        if tags:
+            updates_coverage['planning']['slugline'] = tags[0].text
+
+    def is_xmp_updated(self, updates_coverage, original_coverage=None):
+        return (updates_coverage['planning'].get('xmp_file') and ((original_coverage or {}).get('planning') or
+                                                                  {}).get('xmp_file') !=
+                updates_coverage['planning']['xmp_file'])
+
+    def set_xmp_file_info(self, updates_coverage, original_coverage=None):
+        xmp_file = self.get_xmp_file_for_updates(updates_coverage, original_coverage)
+        if not xmp_file:
+            return
+
+        assignment_id = updates_coverage.get('_id') or updates_coverage['assigned_to'].get('assignment_id')
+        try:
+            mapped = False
+            parsed = etree.parse(xmp_file)
+            xmp_assignment_mapping = get_planning_xmp_assignment_mapping(app)
+            tags = parsed.xpath(xmp_assignment_mapping['xpath'], namespaces=xmp_assignment_mapping['namespaces'])
+            if tags:
+                tags[0].attrib[xmp_assignment_mapping['atribute_key']] = assignment_id
+                mapped = True
+
+            if not mapped:
+                parent_xpath = xmp_assignment_mapping['xpath'][0: xmp_assignment_mapping['xpath'].rfind('/')]
+                parent = parsed.xpath(parent_xpath, namespaces=xmp_assignment_mapping['namespaces'])
+                if parent:
+                    elem = etree.SubElement(parent[0],
+                                            "{{{0}}}Description".format(xmp_assignment_mapping['namespaces']['rdf']),
+                                            nsmap=xmp_assignment_mapping['namespaces'])
+                    elem.attrib[xmp_assignment_mapping['atribute_key']] = assignment_id
+                else:
+                    logger.error('Cannot find xmp_mapping path in XMP file for assignment: {}'.format(assignment_id))
+                    return
+
+            buf = BytesIO()
+            buf.write(etree.tostring(parsed.getroot(), pretty_print=True))
+            buf.seek(0)
+            media_id = app.media.put(buf, resource='planning_files', filename=xmp_file.filename,
+                                     content_type='application/octet-stream')
+            get_resource_service('planning_files').patch(updates_coverage['planning']['xmp_file'],
+                                                         {
+                                                             'filemeta': {'media_id': media_id},
+                                                             'media': media_id})
+            push_notification('planning_files:updated', item=updates_coverage['planning']['xmp_file'])
+        except Exception:
+            logger.error('Error while injecting assignment ID to XMP File. Assignment: {0}, xmp_file: {1}'.format(
+                assignment_id,
+                updates_coverage['planning']['xmp_file']
+            ))
+
+    def duplicate_xmp_file(self, coverage):
+        cov_plan = coverage.get('planning') or {}
+        if not (cov_plan.get('xmp_file') and get_coverage_type_name(cov_plan.get('g2_content_type')) in ['Picture',
+                                                                                                         'picture']):
+            return
+
+        file_id = coverage['planning']['xmp_file']
+        xmp_file = get_resource_service('planning_files').find_one(req=None, _id=file_id)
+        coverage_msg = 'Duplicating Coverage: {}'.format(coverage['coverage_id'])
+        if not xmp_file:
+            logger.error('XMP File {} attached to coverage not found. {}'.format(file_id, coverage_msg))
+            return
+
+        xmp_file = app.media.get(xmp_file['media'], resource='planning_files')
+        if not xmp_file:
+            logger.error('Media file for XMP File {} not found. {}'.format(file_id, coverage_msg))
+            return
+
+        try:
+            buf = BytesIO()
+            buf.write(xmp_file.read())
+            buf.seek(0)
+            media_id = app.media.put(buf, resource='planning_files', filename=xmp_file.name,
+                                     content_type='application/octet-stream')
+        except Exception as e:
+            logger.exception('Error creating media file. {}. Exception: {}'.format(coverage_msg, e))
+        planning_file_ids = get_resource_service('planning_files').post([{'media': media_id}])
+        coverage['planning']['xmp_file'] = planning_file_ids[0]
+
 
 event_type = deepcopy(superdesk.Resource.rel('events', type='string'))
 event_type['mapping'] = not_analyzed
+
+assigned_to_schema = {
+    'type': 'dict',
+    'mapping': {
+        'type': 'object',
+        'properties': {
+            'assignment_id': not_analyzed,
+            'state': not_analyzed,
+            'contact': not_analyzed,
+        }
+    }
+}
 
 coverage_schema = {
     # Identifiers
@@ -883,6 +1231,13 @@ coverage_schema = {
             'item_class': {'type': 'string', 'mapping': not_analyzed},
             'item_count': {'type': 'string', 'mapping': not_analyzed},
             'scheduled': {'type': 'datetime'},
+            'files': {
+                'type': 'list',
+                'nullable': True,
+                'schema': Resource.rel('planning_files'),
+                'mapping': not_analyzed,
+            },
+            'xmp_file': Resource.rel('planning_files', nullable=True),
             'service': {
                 'type': 'list',
                 'mapping': {
@@ -967,22 +1322,56 @@ coverage_schema = {
     },
     'workflow_status': {'type': 'string'},
     'previous_status': {'type': 'string'},
-    'assigned_to': {
-        'type': 'dict',
-        'mapping': {
-            'type': 'object',
-            'properties': {
-                'assignment_id': not_analyzed,
-                'state': not_analyzed
-            }
-        }
-    },
+    'assigned_to': assigned_to_schema,
     'flags': {
         'type': 'dict',
         'schema': {
             'no_content_linking': {'type': 'boolean', 'default': False}
         }
     },
+    TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
+    'scheduled_updates': {
+        'type': 'list',
+        'schema': {
+            'type': 'dict',
+            'schema': {
+                'scheduled_update_id': {
+                    'type': 'string',
+                    'mapping': not_analyzed
+                },
+                'coverage_id': {
+                    'type': 'string',
+                    'mapping': not_analyzed
+                },
+                'workflow_status': {'type': 'string'},
+                'assigned_to': assigned_to_schema,
+                'previous_status': {'type': 'string'},
+                'news_coverage_status': {
+                    'type': 'dict',
+                    'schema': {
+                        'qcode': {'type': 'string'},
+                        'name': {'type': 'string'},
+                        'label': {'type': 'string'}
+                    }
+                },
+                'planning': {
+                    'type': 'dict',
+                    'schema': {
+                        'internal_note': {
+                            'type': 'string'
+                        },
+                        'contact_info': Resource.rel('contacts', type='string', nullable=True),
+                        'scheduled': {'type': 'datetime'},
+                        'genre': metadata_schema['genre'],
+                        'workflow_status_reason': {
+                            'type': 'string',
+                            'nullable': True
+                        },
+                    }
+                }
+            }
+        }
+    }  # end scheduled_updates
 }  # end coverage_schema
 
 planning_schema = {
@@ -1088,18 +1477,12 @@ planning_schema = {
 
                     }
                 },
-                'assigned_to': {
-                    'type': 'object',
-                    'properties': {
-                        'assignment_id': not_analyzed,
-                        'state': not_analyzed
-                    }
-                },
+                'assigned_to': assigned_to_schema['mapping'],
                 'original_creator': {
                     'type': 'keyword',
                 },
-            }
-        }
+            },
+        },
     },
     # field to sync coverage scheduled information
     # to be used for sorting/filtering on scheduled
@@ -1109,6 +1492,19 @@ planning_schema = {
             'type': 'nested',
             'properties': {
                 'coverage_id': not_analyzed,
+                'scheduled': {'type': 'date'},
+            }
+        }
+    },
+
+    # field to sync scheduled_updates scheduled information
+    # to be used for sorting/filtering on scheduled
+    '_updates_schedule': {
+        'type': 'list',
+        'mapping': {
+            'type': 'nested',
+            'properties': {
+                'scheduled_update_id': not_analyzed,
                 'scheduled': {'type': 'date'},
             }
         }
@@ -1167,7 +1563,9 @@ planning_schema = {
     'state_reason': {
         'type': 'string',
         'nullable': True
-    }
+    },
+
+    TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA
 
 }  # end planning_schema
 
@@ -1191,6 +1589,8 @@ class PlanningResource(superdesk.Resource):
     privileges = {'POST': 'planning_planning_management',
                   'PATCH': 'planning_planning_management',
                   'DELETE': 'planning'}
-    etag_ignore_fields = ['_planning_schedule']
+    etag_ignore_fields = ['_planning_schedule', '_updates_schedule']
 
     mongo_indexes = {'event_item': ([('event_item', 1)], {'background': True})}
+
+    merge_nested_documents = True

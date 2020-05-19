@@ -1,3 +1,5 @@
+import {appConfig} from 'appConfig';
+
 import eventValidators from '../events';
 import moment from 'moment';
 import {initialState} from '../../utils/testData';
@@ -116,8 +118,12 @@ describe('eventValidators', () => {
     });
 
     describe('validate max multi day duration', () => {
+        afterEach(() => {
+            appConfig.max_multi_day_event_duration = 0;
+        });
+
         it('fail if multi day duration is greater than max duration', () => {
-            state.deployConfig.max_multi_day_event_duration = 7;
+            appConfig.max_multi_day_event_duration = 7;
             event.dates.start = moment('2094-10-15T11:01:11');
             event.dates.end = moment('2094-10-22T12:01:11');
             testValidate(eventValidators.validateDates, 'dates',

@@ -1,13 +1,13 @@
 import sinon from 'sinon';
 import moment from 'moment';
-import {get} from 'lodash';
 
 import assignmentsApi from '../api';
+import contactsApi from '../../contacts';
 import {
     getTestActionStore,
     restoreSinonStub,
 } from '../../../utils/testUtils';
-import {ASSIGNMENTS} from '../../../constants';
+import {ASSIGNMENTS, ALL_DESKS} from '../../../constants';
 
 describe('actions.assignments.api', () => {
     let store;
@@ -36,6 +36,12 @@ describe('actions.assignments.api', () => {
         it('filter by desk', () => {
             expect(assignmentsApi.constructQuery({deskId: 'desk1'})).toEqual({
                 bool: {must: [{term: {'assigned_to.desk': 'desk1'}}]},
+            });
+        });
+
+        it('doesnt filter any desk if deskId is ALL_DESKS', () => {
+            expect(assignmentsApi.constructQuery({deskId: ALL_DESKS})).toEqual({
+                bool: {must: []},
             });
         });
 
@@ -70,12 +76,7 @@ describe('actions.assignments.api', () => {
         });
 
         it('filter by date filter', () => {
-            const systemTimezone = get(
-                store,
-                'initialState.config.defaultTimezone',
-                'Australia/Sydney'
-            );
-
+            const systemTimezone = 'Australia/Sydney';
             const timezoneOffset = moment()
                 .tz(systemTimezone)
                 .format('Z');
@@ -566,4 +567,38 @@ describe('actions.assignments.api', () => {
                 done();
             })
     ).catch(done.fail));
+
+    describe('receivedAssignments', () => {
+        beforeEach(() => {
+            restoreSinonStub(assignmentsApi.receivedAssignments);
+            sinon.stub(contactsApi, 'fetchContactsFromAssignments').returns(Promise.resolve([]));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(contactsApi.fetchContactsFromAssignments);
+        });
+
+        it('adds the assignments to the store', () => {
+            store.dispatch(assignmentsApi.receivedAssignments(data.assignments));
+
+            expect(store.dispatch.callCount).toBe(3);
+            expect(store.dispatch.args[2][0]).toEqual({
+                type: ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS,
+                payload: data.assignments,
+            });
+        });
+
+        it('loads contacts from received assignment items', () => {
+            const items = [
+                {assigned_to: {contact: 'con1'}},
+                {assigned_to: {contact: 'con2'}},
+                {assigned_to: {user: 'ident1'}},
+                {assigned_to: {}},
+            ];
+
+            store.dispatch(assignmentsApi.receivedAssignments(items));
+            expect(contactsApi.fetchContactsFromAssignments.callCount).toBe(1);
+            expect(contactsApi.fetchContactsFromAssignments.args[0]).toEqual([items]);
+        });
+    });
 });

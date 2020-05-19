@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import {get} from 'lodash';
 
+import {appConfig} from 'appConfig';
+
 import {LineInput, Label, Input} from '../';
 import {TimeInputPopup} from './TimeInputPopup';
 import {IconButton} from '../../';
@@ -10,6 +12,8 @@ import {KEYCODES} from '../../constants';
 import {gettext} from '../../../../utils/gettext';
 import {timeUtils} from '../../../../utils';
 import './style.scss';
+
+const TO_BE_CONFIRMED_TEXT = gettext('To Be Confirmed');
 
 /**
  * @ngdoc react
@@ -36,26 +40,36 @@ export class TimeInput extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (this.state.invalid || (!nextProps.value && !nextProps.canClear)) {
+        if ((this.state.invalid && !nextProps.toBeConfirmed) ||
+            (!nextProps.value && !nextProps.canClear && !nextProps.showToBeConfirmed)) {
             return;
         }
 
-        const val = nextProps.value && moment.isMoment(nextProps.value) ?
-            nextProps.value.format(this.props.timeFormat) : '';
+        if (nextProps.toBeConfirmed) {
+            this.setState({
+                viewValue: TO_BE_CONFIRMED_TEXT,
+                previousValidValue: '',
+                invalid: false,
+                showLocalValidation: false,
+            });
+        } else {
+            const val = nextProps.value && moment.isMoment(nextProps.value) ?
+                nextProps.value.format(appConfig.view.timeformat) : '';
 
-        this.setState({
-            viewValue: val,
-            previousValidValue: val,
-            invalid: false,
-            showLocalValidation: false,
-        });
+            this.setState({
+                viewValue: val,
+                previousValidValue: val,
+                invalid: false,
+                showLocalValidation: false,
+            });
+        }
     }
 
     componentDidMount() {
         // After first render, set the value
-        const value = this.props.value;
+        const value = this.props.toBeConfirmed ? TO_BE_CONFIRMED_TEXT : this.props.value;
         const viewValue = value && moment.isMoment(value) ?
-            value.format(this.props.timeFormat) : '';
+            value.format(appConfig.view.timeformat) : (value || '');
 
         this.setState({viewValue});
     }
@@ -146,7 +160,7 @@ export class TimeInput extends React.Component {
     }
 
     onChange(newValue) {
-        const {value, onChange, field, timeFormat, remoteTimeZone} = this.props;
+        const {value, onChange, field, remoteTimeZone, toBeConfirmed} = this.props;
 
         // Takes the time as a string (based on the configured time format)
         // Then parses it and calls parents onChange with new moment object
@@ -159,12 +173,12 @@ export class TimeInput extends React.Component {
         let newMoment;
 
         if (remoteTimeZone) {
-            newTime = moment.tz(newValue, timeFormat, true, remoteTimeZone);
+            newTime = moment.tz(newValue, appConfig.view.timeformat, true, remoteTimeZone);
             newMoment = value && moment.isMoment(value) ?
                 value.clone() :
                 moment.tz(remoteTimeZone);
         } else {
-            newTime = moment(newValue, timeFormat, true);
+            newTime = moment(newValue, appConfig.view.timeformat, true);
             newMoment = value && moment.isMoment(value) ?
                 value.clone() :
                 moment();
@@ -174,7 +188,7 @@ export class TimeInput extends React.Component {
         newMoment.minute(newTime.minute());
         newMoment.second(0);
 
-        if (!newMoment.isSame(value) || !value) {
+        if (!newMoment.isSame(value) || !value || toBeConfirmed) {
             if (this.isValidInput(newValue) && this.state.invalid) {
                 this.setState({
                     invalid: false,
@@ -196,9 +210,10 @@ export class TimeInput extends React.Component {
             readOnly,
             popupContainer,
             onFocus,
-            timeFormat,
-            dateFormat,
             isLocalTimeZoneDifferent,
+            showToBeConfirmed,
+            onToBeConfirmed,
+            showDate,
             ...props
         } = this.props;
 
@@ -207,10 +222,10 @@ export class TimeInput extends React.Component {
 
         if (moment.isMoment(value) && isLocalTimeZoneDifferent && !this.state.invalid && !invalid) {
             const displayDate = timeUtils.getDateInRemoteTimeZone(value, timeUtils.localTimeZone());
-            let displayFormat = timeFormat;
+            let displayFormat = appConfig.view.timeformat;
 
-            if (dateFormat) {
-                displayFormat = dateFormat + ' @ ' + displayFormat;
+            if (showDate) {
+                displayFormat = appConfig.view.dateformat + ' @ ' + displayFormat;
             }
 
             displayDateString = `(${displayDate.format('z')} ${displayDate.format(displayFormat)})`;
@@ -242,14 +257,13 @@ export class TimeInput extends React.Component {
                     type="text"
                     placeholder={placeholder || gettext('Time')}
                     onBlur={this.handleInputBlur}
-                    readOnly={readOnly}
+                    readOnly={readOnly || this.state.viewValue === TO_BE_CONFIRMED_TEXT}
                     onFocus={onFocus}
                     onKeyDown={(event) => {
                         if (event.keyCode === KEYCODES.ENTER) {
                             this.setState({openTimePicker: true});
                         }
-                    }
-                    }
+                    }}
                     refNode={(ref) => this.dom.inputField = ref}
                 />
                 {displayDateString && <span>{displayDateString}</span>}
@@ -262,6 +276,9 @@ export class TimeInput extends React.Component {
                         popupContainer={popupContainer}
                         onPopupOpen={props.onPopupOpen}
                         onPopupClose={props.onPopupClose}
+                        showToBeConfirmed={showToBeConfirmed}
+                        onToBeConfirmed={onToBeConfirmed ? onToBeConfirmed.bind(null, field) : null}
+                        toBeConfirmedText={TO_BE_CONFIRMED_TEXT}
                     />
                 )}
             </LineInput>
@@ -278,7 +295,6 @@ TimeInput.propTypes = {
     ]),
     onChange: PropTypes.func.isRequired,
     placeholder: PropTypes.string,
-    timeFormat: PropTypes.string.isRequired,
 
     hint: PropTypes.string,
     message: PropTypes.string,
@@ -290,11 +306,14 @@ TimeInput.propTypes = {
     popupContainer: PropTypes.func,
     onFocus: PropTypes.func,
     remoteTimeZone: PropTypes.string,
-    dateFormat: PropTypes.string,
     allowInvalidText: PropTypes.bool,
     canClear: PropTypes.bool,
     errors: PropTypes.object,
     isLocalTimeZoneDifferent: PropTypes.bool,
+    showToBeConfirmed: PropTypes.bool,
+    onToBeConfirmed: PropTypes.func,
+    toBeConfirmed: PropTypes.bool,
+    showDate: PropTypes.bool,
 };
 
 TimeInput.defaultProps = {
@@ -304,4 +323,5 @@ TimeInput.defaultProps = {
     boxed: false,
     noMargin: false,
     isLocalTimeZoneDifferent: false,
+    showDate: false,
 };
