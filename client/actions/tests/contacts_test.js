@@ -37,7 +37,6 @@ describe('actions.contacts', () => {
                                 bool: {
                                     must: [{
                                         query_string: {
-                                            default_field: 'first_name',
                                             fields: [],
                                             query: 'bob*',
                                             default_operator: 'AND',
@@ -50,7 +49,7 @@ describe('actions.contacts', () => {
                                 },
                             },
                         },
-                        sort: '[("first_name", 1)]',
+                        sort: '[("first_name.keyword", 1)]',
                         max_results: 200,
                         page: 1,
                     }]);
@@ -72,7 +71,6 @@ describe('actions.contacts', () => {
                                 bool: {
                                     must: [{
                                         query_string: {
-                                            default_field: 'first_name',
                                             fields: ['organisation'],
                                             query: 'bob*',
                                             default_operator: 'AND',
@@ -85,7 +83,7 @@ describe('actions.contacts', () => {
                                 },
                             },
                         },
-                        sort: '[("first_name", 1)]',
+                        sort: '[("first_name.keyword", 1)]',
                         max_results: 200,
                         page: 1,
                     }]);
@@ -107,7 +105,6 @@ describe('actions.contacts', () => {
                                 bool: {
                                     must: [{
                                         query_string: {
-                                            default_field: 'first_name',
                                             fields: [],
                                             query: 'bob*',
                                             default_operator: 'AND',
@@ -122,7 +119,7 @@ describe('actions.contacts', () => {
                                 },
                             },
                         },
-                        sort: '[("first_name", 1)]',
+                        sort: '[("first_name.keyword", 1)]',
                         max_results: 200,
                         page: 1,
                     }]);
