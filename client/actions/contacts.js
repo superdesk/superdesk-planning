@@ -21,7 +21,6 @@ const getContacts = (searchText, searchFields = [], contactType = '', page = 1) 
         if (searchText) {
             bool.must.push({
                 query_string: {
-                    default_field: 'first_name',
                     fields: searchFields,
                     query: searchText + '*',
                     default_operator: 'AND',
@@ -37,7 +36,7 @@ const getContacts = (searchText, searchFields = [], contactType = '', page = 1) 
 
         return api('contacts').query({
             source: {query: {bool: bool}},
-            sort: '[("first_name", 1)]',
+            sort: '[("first_name.keyword", 1)]',
             max_results: 200,
             page: page,
         })
