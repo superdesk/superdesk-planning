@@ -220,8 +220,9 @@ class PlanningService(superdesk.Service):
             agenda = agenda_service.find_one(req=None, _id=str(agenda_id))
             if not agenda:
                 raise SuperdeskApiError.forbiddenError('Agenda \'{}\' does not exist'.format(agenda.get('name')))
+
             if not agenda.get('is_enabled', False) and (
-                    original is None or agenda_id not in original.get('agendas', [])):
+                    original is None or agenda_id not in original.get('agendas', [])) and not updates.get('event_item'):
                 raise SuperdeskApiError.forbiddenError('Agenda \'{}\' is not enabled'.format(agenda.get('name')))
 
         # Remove duplicate agendas
