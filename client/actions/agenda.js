@@ -187,7 +187,7 @@ const addEventToCurrentAgenda = (events, planningDate = null, openInEditor = fal
         if (!agendas) {
             const currentAgenda = selectors.planning.currentAgenda(getState());
 
-            if (currentAgenda) {
+            if (currentAgenda && currentAgenda.is_enabled) {
                 updatesAgendas.push(currentAgenda);
             }
         }
