@@ -3,6 +3,8 @@ import {Provider} from 'react-redux';
 import {connectServices} from 'superdesk-core/scripts/core/helpers/ReactRenderAsync';
 import {PlanningPreviewContent} from './Planning/PlanningPreviewContent';
 import {modifyForClient} from '../utils/planning';
+import {WORKSPACE} from '../constants';
+import {fetchAgendas} from '../actions';
 
 interface IProps {
     api: any;
@@ -33,16 +35,22 @@ class PlanningDetailsWidget extends React.Component<IProps, IState> {
     componentDidMount() {
         const {item, api, sdPlanningStore} = this.props;
 
-        getItemPlanningInfo(item, api)
-            .then((planning) => {
-                sdPlanningStore.createStore().then((store) => {
-                    this.setState({store, planning});
-                });
+        // Allow the Planning item and store to be loaded concurrently
+        getItemPlanningInfo(item, api).then((planning) => {
+            this.setState({planning});
+        });
+
+        sdPlanningStore.initWorkspace(WORKSPACE.AUTHORING, (store) => {
+            // Fetch the agendas before saving the store to the state
+            store.dispatch(fetchAgendas()).then(() => {
+                this.setState({store});
             });
+        });
     }
 
     render() {
-        if (!this.state.planning) {
+        // Only render if we have both the planning item and store
+        if (!this.state.planning || !this.state.store) {
             return null;
         }
 
