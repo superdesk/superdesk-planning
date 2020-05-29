@@ -1456,7 +1456,7 @@ planning_schema = {
         'default': [],
         'schema': {
             'type': 'dict',
-            'schema': coverage_schema
+            'schema': coverage_schema,
         },
         'mapping': {
             'type': 'nested',
@@ -1479,8 +1479,11 @@ planning_schema = {
                     }
                 },
                 'assigned_to': assigned_to_schema['mapping'],
-            }
-        }
+                'original_creator': {
+                    'type': 'keyword',
+                },
+            },
+        },
     },
     # field to sync coverage scheduled information
     # to be used for sorting/filtering on scheduled

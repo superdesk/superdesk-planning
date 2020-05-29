@@ -125,7 +125,7 @@ const getCriteria = ({
                 let queryString = {
                     query_string: {
                         query: '(' + sanitizeTextForQuery(fulltext) + ')',
-                        lenient: false,
+                        lenient: true,
                         default_operator: 'AND',
                     },
                 };

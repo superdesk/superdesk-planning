@@ -165,9 +165,9 @@ class EventsPlanningService(superdesk.Service):
                 or_filters.append(terms_filter)
         if or_filters:
             return {
-                'or': {
-                    'filters': or_filters
-                }
+                'bool': {
+                    'should': or_filters,
+                },
             }
 
         return None
@@ -239,19 +239,19 @@ class EventsPlanningService(superdesk.Service):
         :param request: object representing the HTTP request
         """
         return {
-            'or': {
-                'filters': [
+            'bool': {
+                'should': [
                     {
-                        'and': {
-                            'filters': [
+                        'bool': {
+                            'filter': [
                                 {'term': {'type': 'event'}},
                                 self._get_events_date_filters(request)
                             ]
                         }
                     },
                     {
-                        'and': {
-                            'filters': [
+                        'bool': {
+                            'filter': [
                                 {'term': {'type': 'planning'}},
                                 self._get_planning_date_filters(request)
                             ]
@@ -332,8 +332,8 @@ class EventsPlanningService(superdesk.Service):
             })
 
             filterList.append({
-                'and': {
-                    'filters': [
+                'bool': {
+                    'filter': [
                         {
                             'range': {
                                 'dates.start': {
@@ -417,8 +417,8 @@ class EventsPlanningService(superdesk.Service):
             else:
                 date_filters.extend([
                     {
-                        'and': {
-                            'filters': [
+                        'bool': {
+                            'filter': [
                                 {
                                     'range': {
                                         'dates.start': {
@@ -439,8 +439,8 @@ class EventsPlanningService(superdesk.Service):
                         },
                     },
                     {
-                        'and': {
-                            'filters': [
+                        'bool': {
+                            'filter': [
                                 {
                                     'range': {
                                         'dates.start': {
@@ -461,8 +461,8 @@ class EventsPlanningService(superdesk.Service):
                         },
                     },
                     {
-                        'or': {
-                            'filters': [
+                        'bool': {
+                            'should': [
                                 {
                                     'range': {
                                         'dates.start': {
@@ -487,8 +487,8 @@ class EventsPlanningService(superdesk.Service):
                 ])
 
         return {
-            'or': {
-                'filters': date_filters
+            'bool': {
+                'should': date_filters
             }
         }
 
@@ -683,7 +683,7 @@ class EventsPlanningService(superdesk.Service):
         return {
             'query_string': {
                 'query': query_text,
-                'lenient': False,
+                'lenient': True,
                 'default_operator': 'AND'
             }
         }
