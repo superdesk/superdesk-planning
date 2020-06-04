@@ -1,6 +1,6 @@
 # Superdesk Planning Changelog
 
-## [1.33.0] 2020-04-28 - Released
+## [1.33.1-rc1] 2020-06-04
 ### Features
 - None
 
@@ -8,23 +8,16 @@
 - None
 
 ### Fixes
-- [SDESK-5199] (fix) Force white background for forms and previews (#1461)
+- [SDESK-5189] Ignore Planning partialSave if editor is read-only (#1462)
+- [SDESK-4512] fix: Double notification on spike (#1463)
+- [SDESK-5116] Ignore Planning partialSave if editor is submitting (#1464)
+- fix(slack) change deprecated slack API call (#1466)
+- [SDESK-5245] fix: Planning item not unlocked after cancelling (#1467)
+- [SDESK-5223] Replace React hooks with Class for ExpandableText component (#1465)
+- [SDESK-4479] fix: Cannot create planning item from events after disabling agenda. (#1471)
+- [SDESK-5223] fix: Load agendas before showing authoring widget (#1470)
 
-## [1.33.0-rc2] 2020-04-22
-### Features
-- None
-
-### Improvements
-- None
-
-### Fixes
-- fix(bottom-bar): Refactored bottom-bar structure (#1453)
-- [SDESK-5171] fix: Search in manage events templates cashes the UI (#1457)
-- [SDESK-5112] Update autosave when removing an assignment (#1456)
-- [SDESK-5160] fix: Hide native input button for coverage files (#1458)
-- [SDESK-5132] chore: Replace deployConfig with appConfig (#1460)
-
-## [1.33.0-rc1] 2020-04-15
+## [1.33.0] 2020-04-28
 ### Features
 - None
 
@@ -49,6 +42,12 @@
 - [SDESK-5111] Coverage assignment ok button should not be active if a desk is not selected (#1451)
 - [SDESK-4849] Change event download to post id's rather than pass them on the URL (#1454)
 - [SDESK-5121] (fix): Issue with setting the 'genre' field for coverage (#1455)
+- fix(bottom-bar): Refactored bottom-bar structure (#1453)
+- [SDESK-5171] fix: Search in manage events templates cashes the UI (#1457)
+- [SDESK-5112] Update autosave when removing an assignment (#1456)
+- [SDESK-5160] fix: Hide native input button for coverage files (#1458)
+- [SDESK-5132] chore: Replace deployConfig with appConfig (#1460)
+- [SDESK-5199] (fix) Force white background for forms and previews (#1461)
 
 ## [1.10.2] 2020-02-25
 ### Features
