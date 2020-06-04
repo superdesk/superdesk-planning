@@ -1150,7 +1150,11 @@ class AssignmentsService(superdesk.Service):
                     raise Exception('Attempt to accept assignment by contact that it is not assigned to')
             else:
                 raise Exception(
-                    'Unknown User or Contact accepting assignment {} user/contact'.format(assignment_id, assignee))
+                    'Unknown User or Contact accepting assignment: {}, user/contact: {}'.format(
+                        assignment_id,
+                        assignee
+                    )
+                )
         else:
             # make sure that the assignment is still assigned to the user that is accepting the assignment
             if str(user.get(config.ID_FIELD)) != str(original.get('assigned_to', {}).get('user')):
