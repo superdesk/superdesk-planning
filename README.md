@@ -146,10 +146,16 @@ Below sections include the config options that can be defined in settings.py.
 * PLANNING_EVENT_TEMPLATES_ENABLED:
     * Defaults to False
     * Enables the ability to create templates from an existing Event, and use them for creating new Events.
+* EVENT_EXPORT_BODY_TEMPLATE:
+    * default: https://github.com/superdesk/superdesk-planning/blob/develop/server/planning/planning_export_templates.py#L39
+    * Overrides the default event template used for event exports
 
 ### Planning Config
 * LONG_EVENT_DURATION_THRESHOLD:
     * Defaults to -1 - disabled
+* PLANNING_EXPORT_BODY_TEMPLATE:
+    * Default: https://github.com/superdesk/superdesk-planning/blob/develop/server/planning/planning_export_templates.py#L39
+    * Overrides the default event template used for planning exports
 
 ### Assignments Config
 * SLACK_BOT_TOKEN
