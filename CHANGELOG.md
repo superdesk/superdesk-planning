@@ -1,30 +1,6 @@
 # Superdesk Planning Changelog
 
-## [1.33.0] 2020-04-28 - Released
-### Features
-- None
-
-### Improvements
-- None
-
-### Fixes
-- [SDESK-5199] (fix) Force white background for forms and previews (#1461)
-
-## [1.33.0-rc2] 2020-04-22
-### Features
-- None
-
-### Improvements
-- None
-
-### Fixes
-- fix(bottom-bar): Refactored bottom-bar structure (#1453)
-- [SDESK-5171] fix: Search in manage events templates cashes the UI (#1457)
-- [SDESK-5112] Update autosave when removing an assignment (#1456)
-- [SDESK-5160] fix: Hide native input button for coverage files (#1458)
-- [SDESK-5132] chore: Replace deployConfig with appConfig (#1460)
-
-## [1.33.0-rc1] 2020-04-15
+## [1.32.0-rc1] 2020-06-23 - Released
 ### Features
 - None
 
@@ -34,6 +10,7 @@
 - [SDESK-4864] Add accepted flag (#1441)
 - [SDESK-5006] Expandable textarea input for internal_note (#1443)
 - [SDESK-5072] Derive coverage slugline from XMP for photo coverages (#1448)
+- [SDNTB-633] Ability to define export templates in settings.py #1473
 
 ### Fixes
 - [SDESK-4861] Remove usage of functionPoints (#1411)
@@ -49,6 +26,12 @@
 - [SDESK-5111] Coverage assignment ok button should not be active if a desk is not selected (#1451)
 - [SDESK-4849] Change event download to post id's rather than pass them on the URL (#1454)
 - [SDESK-5121] (fix): Issue with setting the 'genre' field for coverage (#1455)
+- [SDESK-5199] (fix) Force white background for forms and previews (#1461)
+- fix(bottom-bar): Refactored bottom-bar structure (#1453)
+- [SDESK-5171] fix: Search in manage events templates cashes the UI (#1457)
+- [SDESK-5112] Update autosave when removing an assignment (#1456)
+- [SDESK-5160] fix: Hide native input button for coverage files (#1458)
+- [SDESK-5132] chore: Replace deployConfig with appConfig (#1460)
 
 ## [1.10.2] 2020-02-25
 ### Features
