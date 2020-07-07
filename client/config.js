@@ -65,3 +65,11 @@ if (appConfig.start_of_week == null) {
 } else if (typeof appConfig.start_of_week === 'string') {
     appConfig.start_of_week = parseInt(appConfig.start_of_week, 10);
 }
+
+if (appConfig.planning == null) {
+    appConfig.planning = {};
+}
+
+if (appConfig.planning.timeformat == null) {
+    appConfig.planning.timeformat = 'HH:mm';
+}
