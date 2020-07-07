@@ -181,7 +181,7 @@ export class RescheduleEventComponent extends React.Component {
             this.state.diff.dates.start.isAfter(original.dates.recurring_rule.until);
         const timeZone = get(original, 'dates.tz') || appConfig.defaultTimezone;
         const dateFormat = appConfig.view.dateformat;
-        const timeFormat = appConfig.view.timeformat;
+        const timeFormat = appConfig.planning.timeformat;
 
         return (
             <div className="MetadataView">

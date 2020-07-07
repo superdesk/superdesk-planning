@@ -54,7 +54,7 @@ export class TimeInput extends React.Component {
             });
         } else {
             const val = nextProps.value && moment.isMoment(nextProps.value) ?
-                nextProps.value.format(appConfig.view.timeformat) : '';
+                nextProps.value.format(appConfig.planning.timeformat) : '';
 
             this.setState({
                 viewValue: val,
@@ -69,7 +69,7 @@ export class TimeInput extends React.Component {
         // After first render, set the value
         const value = this.props.toBeConfirmed ? TO_BE_CONFIRMED_TEXT : this.props.value;
         const viewValue = value && moment.isMoment(value) ?
-            value.format(appConfig.view.timeformat) : (value || '');
+            value.format(appConfig.planning.timeformat) : (value || '');
 
         this.setState({viewValue});
     }
@@ -84,9 +84,8 @@ export class TimeInput extends React.Component {
     }
 
     isValidInput(val) {
-        let regex = new RegExp('^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$', 'i');
-
-        return val && val.match(regex);
+        return moment(val, appConfig.planning.timeformat, true)
+            .isValid();
     }
 
     validateTimeText(field, val) {
@@ -126,21 +125,32 @@ export class TimeInput extends React.Component {
             const valueLength = get(viewValue, 'length', 0);
 
             if (viewValue.match(regex) && valueLength > 0 && valueLength <= 5) {
+                let newValueText;
+                let valueFormat;
+
                 // Interpret here
                 switch (valueLength) {
                 case 1:
                 case 2:
                     valid = isValidHour(viewValue);
-                    newValue = viewValue + ':00';
+                    newValueText = viewValue;
+                    valueFormat = 'HH';
                     break;
                 case 3:
                     valid = isValidHour(viewValue[0]) && isValidMinute(viewValue.substring(1));
-                    newValue = `0${viewValue[0]}:${viewValue.substring(1)}`;
+                    newValueText = `0${viewValue[0]}:${viewValue.substring(1)}`;
+                    valueFormat = 'HH:mm';
                     break;
                 case 4:
                     valid = isValidHour(viewValue.substring(0, 2)) && isValidMinute(viewValue.substring(2));
-                    newValue = `${viewValue.substring(0, 2)}:${viewValue.substring(2)}`;
+                    newValueText = `${viewValue.substring(0, 2)}:${viewValue.substring(2)}`;
+                    valueFormat = 'HH:mm';
                     break;
+                }
+
+                if (newValueText && valueFormat) {
+                    newValue = moment(newValueText, valueFormat, true)
+                        .format(appConfig.planning.timeformat);
                 }
             }
 
@@ -173,12 +183,12 @@ export class TimeInput extends React.Component {
         let newMoment;
 
         if (remoteTimeZone) {
-            newTime = moment.tz(newValue, appConfig.view.timeformat, true, remoteTimeZone);
+            newTime = moment.tz(newValue, appConfig.planning.timeformat, true, remoteTimeZone);
             newMoment = value && moment.isMoment(value) ?
                 value.clone() :
                 moment.tz(remoteTimeZone);
         } else {
-            newTime = moment(newValue, appConfig.view.timeformat, true);
+            newTime = moment(newValue, appConfig.planning.timeformat, true);
             newMoment = value && moment.isMoment(value) ?
                 value.clone() :
                 moment();
@@ -222,10 +232,10 @@ export class TimeInput extends React.Component {
 
         if (moment.isMoment(value) && isLocalTimeZoneDifferent && !this.state.invalid && !invalid) {
             const displayDate = timeUtils.getDateInRemoteTimeZone(value, timeUtils.localTimeZone());
-            let displayFormat = appConfig.view.timeformat;
+            let displayFormat = appConfig.planning.timeformat;
 
             if (showDate) {
-                displayFormat = appConfig.view.dateformat + ' @ ' + displayFormat;
+                displayFormat = appConfig.planning.dateformat + ' @ ' + displayFormat;
             }
 
             displayDateString = `(${displayDate.format('z')} ${displayDate.format(displayFormat)})`;

@@ -43,7 +43,7 @@ export class UnspikePlanningComponent extends React.Component {
                     value={getDateTimeString(
                         original.planning_date,
                         appConfig.view.dateformat,
-                        appConfig.view.timeformat
+                        appConfig.planning.timeformat
                     ) || ''}
                     noPadding={true} />
             </div>

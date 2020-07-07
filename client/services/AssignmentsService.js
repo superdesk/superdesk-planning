@@ -266,7 +266,7 @@ export class AssignmentsService {
                     };
 
                     const time = moment(scheduledUpdate.planning.scheduled).format(
-                        appConfig.view.dateformat + ' ' + appConfig.view.timeformat);
+                        appConfig.view.dateformat + ' ' + appConfig.planning.timeformat);
                     const prompt = gettext('Do you want to link it to that assignment ?');
 
                     store.dispatch(actions.showModal({

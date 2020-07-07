@@ -113,7 +113,12 @@ export class EventScheduleInput extends React.Component {
         const startDate = get(this.props, 'diff.dates.start');
         const _startTime = get(this.props, 'diff._startTime');
         const defaultDurationOnChange = get(this.props.formProfile, 'editor.dates.default_duration_on_change', 1);
-        const newStartDate = startDate ? startDate.hour(value.hour()).minute(value.minute()) : value;
+        const newStartDate = !startDate ?
+            value :
+            startDate
+                .hour(value.hour())
+                .minute(value.minute())
+                .second(value.second());
 
         const changes = {'dates.start': newStartDate};
 

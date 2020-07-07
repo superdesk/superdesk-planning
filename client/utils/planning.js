@@ -827,7 +827,7 @@ const getCoverageDateTimeText = (coverage) =>
         getDateTimeString(
             get(coverage, 'planning.scheduled'),
             appConfig.view.dateformat,
-            appConfig.view.timeformat,
+            appConfig.planning.timeformat,
             ' @ ',
             false
         );
@@ -1037,7 +1037,7 @@ const getDateStringForPlanning = (planning) =>
         getDateTimeString(
             get(planning, 'planning_date'),
             appConfig.view.dateformat,
-            appConfig.view.timeformat,
+            appConfig.planning.timeformat,
             ' @ ',
             false
         );
@@ -1050,7 +1050,7 @@ const getCoverageDateText = (coverage) => {
         getDateTimeString(
             coverageDate,
             appConfig.view.dateformat,
-            appConfig.view.timeformat,
+            appConfig.planning.timeformat,
             ' @ ',
             false
         );

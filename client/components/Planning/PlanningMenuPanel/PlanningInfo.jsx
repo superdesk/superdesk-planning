@@ -28,7 +28,7 @@ export const PlanningInfo = ({item, onClick, active}) => {
                             getDateTimeString(
                                 item.planning_date,
                                 appConfig.view.dateformat,
-                                appConfig.view.timeformat
+                                appConfig.planning.timeformat
                             )
                         }
                     </time>

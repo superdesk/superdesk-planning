@@ -135,7 +135,7 @@ export class CoverageHistory extends React.Component {
             getDateTimeString(
                 historyData.planning.scheduled,
                 appConfig.view.dateformat,
-                appConfig.view.timeformat
+                appConfig.planning.timeformat
             );
 
         const coverageItem = (

@@ -15,7 +15,7 @@ import {TO_BE_CONFIRMED_SHORT_TEXT} from '../../constants';
  */
 function DateTime({date, withTime, withDate, withYear, padLeft, toBeConfirmed}) {
     const dateFormat = appConfig.view.dateformat;
-    const timeFormat = appConfig.view.timeformat;
+    const timeFormat = appConfig.planning.timeformat;
     const newTimeFormat = toBeConfirmed ? `[${gettext(`Time ${TO_BE_CONFIRMED_SHORT_TEXT}`)}]` : timeFormat;
     let format = withYear ? dateFormat : dateFormat.replace(/([\/\#.-]y+)|(y+[\/\#.-])/gi, '');
     let dateTimeFormat = [

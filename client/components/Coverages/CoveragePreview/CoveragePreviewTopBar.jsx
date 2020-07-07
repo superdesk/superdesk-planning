@@ -30,7 +30,7 @@ export const CoveragePreviewTopBar = ({
     } = get(coverage, 'assigned_to', {});
 
     const dateFormat = appConfig.view.dateformat;
-    const timeFormat = appConfig.view.timeformat;
+    const timeFormat = appConfig.planning.timeformat;
     const deskAssignor = getItemInArrayById(users, assignor_desk);
     const userAssignor = getItemInArrayById(users, assignor_user);
     const assignmentPriority = get(coverage, 'assigned_to.priority');

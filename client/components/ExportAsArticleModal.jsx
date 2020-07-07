@@ -119,7 +119,7 @@ export class ExportAsArticleModal extends React.Component {
             dateStr = getDateTimeString(
                 item.planning_date,
                 appConfig.view.dateformat,
-                appConfig.view.timeformat,
+                appConfig.planning.timeformat,
                 ' @ ',
                 false
             ) || '';
