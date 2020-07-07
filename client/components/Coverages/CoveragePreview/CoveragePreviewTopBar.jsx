@@ -29,7 +29,7 @@ export const CoveragePreviewTopBar = ({
         assigned_date_desk,
     } = get(coverage, 'assigned_to', {});
 
-    const dateFormat = appConfig.view.dateformat;
+    const dateFormat = appConfig.planning.dateformat;
     const timeFormat = appConfig.planning.timeformat;
     const deskAssignor = getItemInArrayById(users, assignor_desk);
     const userAssignor = getItemInArrayById(users, assignor_user);

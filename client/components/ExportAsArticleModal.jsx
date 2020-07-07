@@ -118,7 +118,7 @@ export class ExportAsArticleModal extends React.Component {
             secFields = PLANNING.EXPORT_LIST.SECONDARY_FIELDS;
             dateStr = getDateTimeString(
                 item.planning_date,
-                appConfig.view.dateformat,
+                appConfig.planning.dateformat,
                 appConfig.planning.timeformat,
                 ' @ ',
                 false

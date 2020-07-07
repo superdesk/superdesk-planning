@@ -24,7 +24,7 @@ export const CoverageIcon = ({
 }) => {
     const user = getItemInArrayById(users, get(coverage, 'assigned_to.user'));
     const desk = getItemInArrayById(desks, get(coverage, 'assigned_to.desk'));
-    const dateFormat = appConfig.view.dateformat;
+    const dateFormat = appConfig.planning.dateformat;
     const timeFormat = appConfig.planning.timeformat;
     let provider = get(coverage, 'assigned_to.coverage_provider.name');
 

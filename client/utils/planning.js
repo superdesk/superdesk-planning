@@ -820,13 +820,13 @@ const formatAgendaName = (agenda) => agenda.is_enabled ? agenda.name : agenda.na
 
 const getCoverageDateTimeText = (coverage) =>
     get(coverage, TO_BE_CONFIRMED_FIELD) ? (
-        get(coverage, 'planning.scheduled').format(appConfig.view.dateformat) +
+        get(coverage, 'planning.scheduled').format(appConfig.planning.dateformat) +
         ' @ ' +
         TO_BE_CONFIRMED_SHORT_TEXT
     ) :
         getDateTimeString(
             get(coverage, 'planning.scheduled'),
-            appConfig.view.dateformat,
+            appConfig.planning.dateformat,
             appConfig.planning.timeformat,
             ' @ ',
             false
@@ -1033,10 +1033,10 @@ const getAgendaNames = (item = {}, agendas = [], onlyEnabled = false) => (
 
 const getDateStringForPlanning = (planning) =>
     get(planning, TO_BE_CONFIRMED_FIELD) ?
-        planning.planning_date.format(appConfig.view.dateformat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT :
+        planning.planning_date.format(appConfig.planning.dateformat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT :
         getDateTimeString(
             get(planning, 'planning_date'),
-            appConfig.view.dateformat,
+            appConfig.planning.dateformat,
             appConfig.planning.timeformat,
             ' @ ',
             false
@@ -1049,7 +1049,7 @@ const getCoverageDateText = (coverage) => {
         gettext('Not scheduled yet') :
         getDateTimeString(
             coverageDate,
-            appConfig.view.dateformat,
+            appConfig.planning.dateformat,
             appConfig.planning.timeformat,
             ' @ ',
             false

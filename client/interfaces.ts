@@ -72,6 +72,7 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
     street_map_url?: string;
 
     planning?: {
+        dateformat?: string;
         timeformat?: string;
     };
 }

@@ -14,7 +14,7 @@ import {TO_BE_CONFIRMED_SHORT_TEXT} from '../../constants';
  * @description DateTime component to display text formatted date and time
  */
 function DateTime({date, withTime, withDate, withYear, padLeft, toBeConfirmed}) {
-    const dateFormat = appConfig.view.dateformat;
+    const dateFormat = appConfig.planning.dateformat;
     const timeFormat = appConfig.planning.timeformat;
     const newTimeFormat = toBeConfirmed ? `[${gettext(`Time ${TO_BE_CONFIRMED_SHORT_TEXT}`)}]` : timeFormat;
     let format = withYear ? dateFormat : dateFormat.replace(/([\/\#.-]y+)|(y+[\/\#.-])/gi, '');
