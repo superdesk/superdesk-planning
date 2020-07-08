@@ -1,4 +1,5 @@
 import {get, omit, isEmpty, isNil, isEqual} from 'lodash';
+import moment from 'moment';
 
 import {appConfig} from 'appConfig';
 
@@ -834,6 +835,14 @@ const search = (fulltext, currentSearch = undefined) => (
 
         const previousParams = lastRequestParams(getState());
         const advancedSearch = currentSearch || previousParams.currentSearch || {};
+        const dates = get(advancedSearch, 'advancedSearch.dates');
+
+        // If an end date has been provided without a start date
+        // then default the start date to 1 day before the end date
+        if (!dates.range && !dates.start && dates.end) {
+            dates.start = moment(dates.end).subtract(1, 'days');
+        }
+
         const params = {
             ...previousParams,
             page: 1,
