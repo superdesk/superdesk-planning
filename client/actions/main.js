@@ -835,7 +835,7 @@ const search = (fulltext, currentSearch = undefined) => (
 
         const previousParams = lastRequestParams(getState());
         const advancedSearch = currentSearch || previousParams.currentSearch || {};
-        const dates = get(advancedSearch, 'advancedSearch.dates');
+        const dates = get(advancedSearch, 'advancedSearch.dates') || {};
 
         // If an end date has been provided without a start date
         // then default the start date to 1 day before the end date
