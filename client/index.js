@@ -11,7 +11,7 @@ import PlanningDetailsWidget, {getItemPlanningInfo} from './components/PlanningD
 import {getSuperdeskApiImplementation} from 'superdesk-core/scripts/core/get-superdesk-api-implementation';
 import {superdeskApi} from './superdeskApi';
 import {appConfig, extensions} from 'appConfig';
-import './config';
+import {updateConfigAfterLoad} from './config';
 
 export default angular.module('superdesk-planning', [])
     .directive('sdPlanning',
@@ -112,6 +112,8 @@ export default angular.module('superdesk-planning', [])
             authoringWorkspace,
             metadata
         ) => {
+            updateConfigAfterLoad();
+
             ng.register($injector);
 
             const callback = (extension, scope) => (

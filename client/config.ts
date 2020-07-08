@@ -1,5 +1,9 @@
 import moment from 'moment-timezone';
+
+import {IPlanningConfig} from './interfaces';
 import {appConfig} from 'appConfig';
+
+appConfig = appConfig as IPlanningConfig;
 
 // Set the default values for Planning config entries
 
@@ -64,4 +68,18 @@ if (appConfig.start_of_week == null) {
     appConfig.start_of_week = 0;
 } else if (typeof appConfig.start_of_week === 'string') {
     appConfig.start_of_week = parseInt(appConfig.start_of_week, 10);
+}
+
+if (appConfig.planning == null) {
+    appConfig.planning = {};
+}
+
+export function updateConfigAfterLoad() {
+    if (appConfig?.planning?.dateformat == null) {
+        appConfig.planning.dateformat = appConfig.view.dateformat;
+    }
+
+    if (appConfig?.planning?.timeformat == null) {
+        appConfig.planning.timeformat = 'HH:mm';
+    }
 }

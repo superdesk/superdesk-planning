@@ -20,11 +20,11 @@ cache:
 before_install:
     - |
       if [ "$INSTALL_NODEJS" == "true" ]; then
-        nvm install 10
+        nvm install lts/*
       fi
     - |
       if [ "$INSTALL_NODE_MODULES" == "true" ]; then
-        npm ci
+        npm install
       fi
     - |
       if [ "$INSTALL_PY_MODULES" == "true" ]; then

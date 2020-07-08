@@ -6,7 +6,8 @@ import {
     IExtensionActivationResult,
     onPublishMiddlewareResult,
 } from 'superdesk-api';
-import {IPlanningConfig, IPlanningAssignmentService} from './interfaces';
+import {IPlanningAssignmentService} from './interfaces';
+import {IPlanningConfig} from '../../interfaces';
 import {getAssignmentService} from './utils';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {

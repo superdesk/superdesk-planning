@@ -413,8 +413,8 @@ const isEventRecurring = (item) => (
 
 const getDateStringForEvent = (event, dateOnly = false, useLocal = true, withTimezone = true) => {
     // !! Note - expects event dates as instance of moment() !! //
-    const dateFormat = appConfig.view.dateformat;
-    const timeFormat = appConfig.view.timeformat;
+    const dateFormat = appConfig.planning.dateformat;
+    const timeFormat = appConfig.planning.timeformat;
     const start = get(event.dates, 'start');
     const end = get(event.dates, 'end');
     const tz = get(event.dates, 'tz');

@@ -9,10 +9,10 @@ import {timeUtils} from '../../utils';
 import './style.scss';
 
 function Datetime({date, withTime, withDate, withYear, darkText, tz, isRemoteTimeZone}) {
-    let format = withYear ? appConfig.view.dateformat : appConfig.view.dateformat.replace(/y/gi, '');
+    let format = withYear ? appConfig.planning.dateformat : appConfig.planning.dateformat.replace(/y/gi, '');
     let dateTimeFormat = [
         withDate ? format : null,
-        withTime ? appConfig.view.timeformat : null,
+        withTime ? appConfig.planning.timeformat : null,
     ].filter((d) => d).join('\u00a0'); // &nbsp;
     const localTz = timeUtils.localTimeZone();
     const momentDate = moment(date);

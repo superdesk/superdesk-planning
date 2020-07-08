@@ -134,8 +134,8 @@ export class CoverageHistory extends React.Component {
             gettext('Not scheduled') :
             getDateTimeString(
                 historyData.planning.scheduled,
-                appConfig.view.dateformat,
-                appConfig.view.timeformat
+                appConfig.planning.dateformat,
+                appConfig.planning.timeformat
             );
 
         const coverageItem = (

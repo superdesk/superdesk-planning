@@ -29,8 +29,8 @@ export const EventInfo = ({item, onClick, active}) => {
                         {get(item, 'dates.start') &&
                             getDateTimeString(
                                 item.dates.start,
-                                appConfig.view.dateformat,
-                                appConfig.view.timeformat
+                                appConfig.planning.dateformat,
+                                appConfig.planning.timeformat
                             )
                         }
                     </time>
