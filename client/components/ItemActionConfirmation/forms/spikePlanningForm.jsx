@@ -44,8 +44,8 @@ export class SpikePlanningComponent extends React.Component {
                     label={gettext('Planning Date')}
                     value={getDateTimeString(
                         original.planning_date,
-                        appConfig.view.dateformat,
-                        appConfig.view.timeformat
+                        appConfig.planning.dateformat,
+                        appConfig.planning.timeformat
                     ) || ''}
                     noPadding={true} />
             </div>

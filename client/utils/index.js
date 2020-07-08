@@ -1001,7 +1001,7 @@ export const getTBCDateString = (event, separator = ' @ ', dateOnly = false) => 
         return '';
     }
 
-    const dateFormat = appConfig.view.dateformat;
+    const dateFormat = appConfig.planning.dateformat;
 
     if (get(event.dates, 'start', moment()).isSame(get(event.dates, 'end', moment()), 'day')) {
         return (get(event.dates, 'start').format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT);

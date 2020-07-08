@@ -15,7 +15,7 @@ export const RelatedEvents = ({events, originalEvent}) => (
             dates,
             state,
         }) => {
-            let startStr = moment(dates.start).format(appConfig.view.dateformat);
+            let startStr = moment(dates.start).format(appConfig.planning.dateformat);
 
             return (
                 <li key={_id}>
