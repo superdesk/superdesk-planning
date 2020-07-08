@@ -3,6 +3,10 @@
   "version": "1.33.1-rc2",
   "license": "AGPL-3.0",
   "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/superdesk/superdesk-planning.git"
+  },
   "main": "index.js",
   "scripts": {
     "fix": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec --fix",
