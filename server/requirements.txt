@@ -14,5 +14,4 @@ coveralls
 mock
 httmock>=1.2.3,<1.3
 responses>=0.10.6,<0.11
-
--e git+git://github.com/superdesk/superdesk-core.git@release/1.33.1#egg=Superdesk-Core
+Superdesk-Core>=1.33,<1.34

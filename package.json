@@ -57,7 +57,7 @@
     "simulant": "^0.2.2",
     "sinon": "~4.4.2",
     "superdesk-code-style": "^1.1.1",
-    "superdesk-core": "github:superdesk/superdesk-client-core#release/1.33.2",
+    "superdesk-core": "^1.33.2",
     "ts-node": "~7.0.1"
   }
 }
