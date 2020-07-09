@@ -833,9 +833,6 @@ const showRemoveAssignmentModal = (assignment) => (
     (dispatch) => (
         dispatch(self.lockAssignment(assignment, ASSIGNMENTS.ITEM_ACTIONS.REMOVE.lock_action))
             .then((lockedAssignment) => {
-                // Set _links to the original otherwise removeAssignment attempts to send
-                // DELETE to the assignments_lock endpoint
-                lockedAssignment._links = assignment._links;
                 dispatch(showModal({
                     modalType: MODALS.CONFIRMATION,
                     modalProps: {
