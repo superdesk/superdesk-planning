@@ -37,7 +37,7 @@ class EventsPlanningService(superdesk.Service):
         'start_of_week', 'page',
         'max_results', 'place',
         'calendars', 'agendas',
-        'tz_offset'
+        'tz_offset', 'reference'
     }
 
     default_page_size = 100
@@ -579,6 +579,7 @@ class EventsPlanningService(superdesk.Service):
         """
         arguments = {
             'full_text': None,
+            'reference': 'reference'
         }
 
         filters = []

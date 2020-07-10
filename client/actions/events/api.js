@@ -138,7 +138,7 @@ const getCriteria = (
         {
             condition: () => (fulltext),
             do: () => {
-                must.push({query_string: {query: fulltext}});
+                must.push({query_string: {query: sanitizeTextForQuery(fulltext)}});
             },
         },
         {
@@ -155,6 +155,20 @@ const getCriteria = (
                 must.push({
                     query_string: {
                         query: 'name:(' + queryText + ')',
+                        lenient: false,
+                        default_operator: 'AND',
+                    },
+                });
+            },
+        },
+        {
+            condition: () => (advancedSearch.reference),
+            do: () => {
+                let queryText = sanitizeTextForQuery(advancedSearch.reference);
+
+                must.push({
+                    query_string: {
+                        query: 'reference:(' + queryText + ')',
                         lenient: false,
                         default_operator: 'AND',
                     },
