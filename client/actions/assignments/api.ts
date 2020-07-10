@@ -410,13 +410,7 @@ const lock = (assignment: IAssignmentItem, action: string = 'edit') => (
 
         return api('assignments_lock', assignment).save({}, {lock_action: action})
             .then(
-                (lockedItem: IAssignmentItem) => {
-                    // Set _links to the original item
-                    // otherwise _links will be for the assignments_lock endpoint
-                    lockedItem._links = assignment._links;
-
-                    return lockedItem;
-                },
+                (lockedItem: IAssignmentItem) => lockedItem,
                 (error) => {
                     const msg = get(error, 'data._message') || 'Could not lock the assignment.';
 
@@ -435,13 +429,7 @@ const unlock = (assignment: IAssignmentItem) => (
     (dispatch, getState, {api, notify}) => (
         api('assignments_unlock', assignment).save({})
             .then(
-                (unlockedItem) => {
-                    // Set _links to the original item
-                    // otherwise _links will be for the assignments_lock endpoint
-                    unlockedItem._links = assignment._links;
-
-                    return unlockedItem;
-                },
+                (unlockedItem: IAssignmentItem) => unlockedItem,
                 (error) => {
                     const msg = get(error, 'data._message') || 'Could not unlock the assignment.';
 
