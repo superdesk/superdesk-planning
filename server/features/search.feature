@@ -392,3 +392,48 @@ Feature: Search Feature
             ]
         }
         """
+
+    @auth
+    Scenario: Search events and planning using reference
+        Given "events"
+            """
+            [
+                {
+                    "guid": "event_123",
+                    "unique_id": "123",
+                    "unique_name": "name",
+                    "name": "event",
+                    "slugline": "test slugline",
+                    "definition_short": "short value",
+                    "definition_long": "long value",
+                    "reference": "2020/00195696",
+                    "dates": {
+                        "start": "2016-01-02T00:00:00+0000",
+                        "end": "2016-01-03T00:00:00+0000"
+                    }
+                },
+                {
+                    "guid": "event_456",
+                    "unique_id": "456",
+                    "unique_name": "name 2",
+                    "name": "event 2",
+                    "slugline": "test2 slugline",
+                    "definition_short": "short value",
+                    "definition_long": "long value",
+                    "reference": "2020/00195697",
+                    "dates": {
+                        "start": "2016-01-02T00:00:00+0000",
+                        "end": "2016-01-03T00:00:00+0000"
+                    }
+                }
+            ]
+            """
+        When we get "/events_planning_search?full_text=&max_results=50&page=1&reference=2020%2F00195696&start_date=2016-01-02T00:00:00%2B0000"
+        Then we get list with 1 items
+        """
+        {
+            "_items": [
+                {"_id": "event_123", "type": "event"}
+            ]
+        }
+        """
