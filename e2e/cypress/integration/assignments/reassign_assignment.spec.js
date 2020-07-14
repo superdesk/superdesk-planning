@@ -1,11 +1,12 @@
 import {setup, login, waitForPageLoad, SubNavBar, changeWorkspace, Modal} from '../../support/common';
-import {PlanningList, PlanningEditor, AssignmentEditor} from '../../support/planning';
+import {PlanningList, PlanningEditor, AssignmentEditor, AssignmentPreview} from '../../support/planning';
 
-describe('Planning.Assignment: remove assignment', () => {
+describe('Planning.Assignment: reassign assignment', () => {
     const editor = new PlanningEditor();
     const subnav = new SubNavBar();
     const list = new PlanningList();
     let modal = new Modal();
+    const preview = new AssignmentPreview();
 
     beforeEach(() => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
@@ -17,7 +18,7 @@ describe('Planning.Assignment: remove assignment', () => {
         editor.waitTillOpen();
     });
 
-    it('can remove Assignment', () => {
+    it('can reassign Assignment', () => {
         editor.type({slugline: 'Slugline'});
         editor.addCoverage('Text');
 
@@ -56,21 +57,15 @@ describe('Planning.Assignment: remove assignment', () => {
         list.expectItemCount(1, 180000);
         list.expectItemText(0, 'Slugline');
 
-        list.clickAction(0, 'Remove Assignment');
+        list.clickAction(0, 'Reassign');
         modal.waitTillOpen(30000);
+        assignmentEditor.type({
+            user: 'first name last name',
+        });
         modal.element.find('.btn--primary')
             .click();
         modal.waitTillClosed(30000);
-        list.expectItemCount(0);
 
-        changeWorkspace('calendar');
-        waitForPageLoad();
-        editor.waitTillOpen();
-        coverageEditor.waitTillVisible();
-        coverageEditor.element
-            .should('contain.text', 'Unassigned');
-        coverageEditor.element
-            .find('.label')
-            .should('contain.text', 'Draft');
+        preview.topTools.should('contain.text', 'first name last name');
     });
 });

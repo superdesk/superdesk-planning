@@ -1,11 +1,12 @@
-import {setup, login, waitForPageLoad, SubNavBar, changeWorkspace, Modal} from '../../support/common';
+import {setup, login, waitForPageLoad, SubNavBar, changeWorkspace, Modal, UrgencyInput} from '../../support/common';
 import {PlanningList, PlanningEditor, AssignmentEditor} from '../../support/planning';
 
-describe('Planning.Assignment: remove assignment', () => {
+describe('Planning.Assignment: edit assignment priority', () => {
     const editor = new PlanningEditor();
     const subnav = new SubNavBar();
     const list = new PlanningList();
     let modal = new Modal();
+    const priorityInput = new UrgencyInput(() => modal.element, '.sd-line-input');
 
     beforeEach(() => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
@@ -17,7 +18,7 @@ describe('Planning.Assignment: remove assignment', () => {
         editor.waitTillOpen();
     });
 
-    it('can remove Assignment', () => {
+    it('can edit Assignment priority', () => {
         editor.type({slugline: 'Slugline'});
         editor.addCoverage('Text');
 
@@ -55,22 +56,19 @@ describe('Planning.Assignment: remove assignment', () => {
 
         list.expectItemCount(1, 180000);
         list.expectItemText(0, 'Slugline');
+        list.item(0)
+            .find('.priority-label--2')
+            .should('exist');
 
-        list.clickAction(0, 'Remove Assignment');
+        list.clickAction(0, 'Edit Priority');
         modal.waitTillOpen(30000);
+        priorityInput.type('High');
         modal.element.find('.btn--primary')
             .click();
         modal.waitTillClosed(30000);
-        list.expectItemCount(0);
 
-        changeWorkspace('calendar');
-        waitForPageLoad();
-        editor.waitTillOpen();
-        coverageEditor.waitTillVisible();
-        coverageEditor.element
-            .should('contain.text', 'Unassigned');
-        coverageEditor.element
-            .find('.label')
-            .should('contain.text', 'Draft');
+        list.item(0)
+            .find('.priority-label--1')
+            .should('exist');
     });
 });

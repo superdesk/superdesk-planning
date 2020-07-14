@@ -69,10 +69,14 @@ export function addItems(resource, items) {
 export function login() {
     cy.log('Common.App.login');
     cy.get('#login-username')
-        .type('admin');
+        .clear()
+        .type('admin')
+        .should('have.value', 'admin');
 
     cy.get('#login-password')
-        .type('admin');
+        .clear()
+        .type('admin')
+        .should('have.value', 'admin');
 
     cy.get('#login-btn')
         .click();
@@ -94,7 +98,10 @@ export function setup(params, url) {
  * @param {string} name - The data-test-id attribute for the workspace button
  */
 export function changeWorkspace(name) {
-    cy.get('[data-test-id=workspace-navigation]')
-        .get(`[data-test-id=${name}]`)
+    cy.get('#side-menu')
+        .find(`.big-icon--${name}`)
         .click();
+    // cy.get('[data-test-id=workspace-navigation]')
+    //     .get(`[data-test-id=${name}]`)
+    //     .click();
 }

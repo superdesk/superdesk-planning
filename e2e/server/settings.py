@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from superdesk.default_settings import INSTALLED_APPS
+from superdesk.default_settings import *
 
 
 def env(variable, fallback_value=None):
@@ -47,18 +47,18 @@ WS_PORT = env('WSPORT', '5100')
 
 LOG_CONFIG_FILE = env('LOG_CONFIG_FILE', 'logging_config.yml')
 
-REDIS_URL = env('REDIS_URL', 'redis://localhost:6379')
-if env('REDIS_PORT'):
-    REDIS_URL = env('REDIS_PORT').replace('tcp:', 'redis:')
-BROKER_URL = env('CELERY_BROKER_URL', REDIS_URL)
-
-SECRET_KEY = env('SECRET_KEY', '')
-
-MONGO_DBNAME = 'e2e_superdesk'
-MONGO_URI = 'mongodb://localhost/%s' % MONGO_DBNAME
-
-ARCHIVED_DBNAME = 'e2e_archived'
-ARCHIVED_URI = 'mongodb://localhost/%s' % ARCHIVED_DBNAME
+# REDIS_URL = env('REDIS_URL', 'redis://localhost:6379')
+# if env('REDIS_PORT'):
+#     REDIS_URL = env('REDIS_PORT').replace('tcp:', 'redis:')
+# BROKER_URL = env('CELERY_BROKER_URL', REDIS_URL)
+#
+# SECRET_KEY = env('SECRET_KEY', '')
+#
+# MONGO_DBNAME = 'e2e_superdesk'
+# MONGO_URI = 'mongodb://localhost/%s' % MONGO_DBNAME
+#
+# ARCHIVED_DBNAME = 'e2e_archived'
+# ARCHIVED_URI = 'mongodb://localhost/%s' % ARCHIVED_DBNAME
 
 LEGAL_ARCHIVE = False
 CONTENTAPI_ENABLED = False

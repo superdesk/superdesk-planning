@@ -80,10 +80,10 @@ export class SelectUserInput extends React.Component {
     }
 
     render() {
-        const {value, popupContainer, label, readOnly, inline} = this.props;
+        const {value, popupContainer, label, readOnly, inline, field} = this.props;
 
         return (
-            <div>
+            <div data-test-id={field}>
                 {(!inline || value) && (
                     <Row noPadding={true}>
                         <LineInput noMargin={true} noPadding={inline}>
