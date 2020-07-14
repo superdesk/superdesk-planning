@@ -13,7 +13,7 @@ describe('Planning.Assignment: edit assignment priority', () => {
 
         login();
 
-        waitForPageLoad.planning();
+        waitForPageLoad();
         subnav.createPlanning();
         editor.waitTillOpen();
     });

@@ -13,7 +13,7 @@ describe('Planning.Assignment: reassign assignment', () => {
 
         login();
 
-        waitForPageLoad.planning();
+        waitForPageLoad();
         subnav.createPlanning();
         editor.waitTillOpen();
     });
