@@ -2,7 +2,6 @@ import moment from 'moment';
 import {get, cloneDeep, has, pick} from 'lodash';
 
 import {appConfig} from 'appConfig';
-import {IAssignmentItem} from '../../interfaces';
 
 import * as selectors from '../../selectors';
 import * as actions from '../';
@@ -394,7 +393,7 @@ const revert = (item) => (
  * @param {String} action - The action to assign to the lock
  * @return Promise
  */
-const lock = (assignment: IAssignmentItem, action: string = 'edit') => (
+const lock = (assignment, action = 'edit') => (
     (dispatch, getState, {api, notify}) => {
         if (lockUtils.isItemLockedInThisSession(
             assignment,
@@ -406,7 +405,7 @@ const lock = (assignment: IAssignmentItem, action: string = 'edit') => (
 
         return api('assignments_lock', assignment).save({}, {lock_action: action})
             .then(
-                (lockedItem: IAssignmentItem) => lockedItem,
+                (lockedItem) => lockedItem,
                 (error) => {
                     const msg = get(error, 'data._message') || 'Could not lock the assignment.';
 
@@ -421,11 +420,11 @@ const lock = (assignment: IAssignmentItem, action: string = 'edit') => (
  * @param {IAssignmentItem} assignment - Assignment to be unlocked
  * @return Promise
  */
-const unlock = (assignment: IAssignmentItem) => (
+const unlock = (assignment) => (
     (dispatch, getState, {api, notify}) => (
         api('assignments_unlock', assignment).save({})
             .then(
-                (unlockedItem: IAssignmentItem) => unlockedItem,
+                (unlockedItem) => unlockedItem,
                 (error) => {
                     const msg = get(error, 'data._message') || 'Could not unlock the assignment.';
 
