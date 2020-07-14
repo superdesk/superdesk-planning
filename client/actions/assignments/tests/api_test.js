@@ -520,8 +520,18 @@ describe('actions.assignments.api', () => {
     });
 
     describe('assignments_lock', () => {
+        beforeEach(() => {
+            services.api('assignments_lock').save = sinon.spy(() => Promise.resolve(data.assignments[0]));
+            services.api('assignments_unlock').save = sinon.spy(() => Promise.resolve(data.assignments[0]));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(services.api('assignments_lock').save);
+            restoreSinonStub(services.api('assignments_unlock').save);
+        });
+
         it('calls lock endpoint if assignment not locked', (done) => {
-            store.test(done, assignmentsApi.lock(store.initialState.assignment.assignments['1']))
+            store.test(done, assignmentsApi.lock(data.assignments[0]))
                 .then(() => {
                     expect(services.api('assignments_lock').save.callCount).toBe(1);
                     expect(services.api('assignments_lock').save.args[0]).toEqual([
@@ -549,7 +559,7 @@ describe('actions.assignments.api', () => {
         });
 
         it('calls unlock endpoint', (done) => {
-            store.test(done, assignmentsApi.unlock(store.initialState.assignment.assignments['1']))
+            store.test(done, assignmentsApi.unlock(data.assignments[0]))
                 .then(() => {
                     expect(services.api('assignments_unlock').save.callCount).toBe(1);
                     done();
