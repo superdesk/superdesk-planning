@@ -63,6 +63,9 @@ Feature: Assignments Locking
                 "desk": "Politic Desk",
                 "user": "507f191e810c19729de870eb",
                 "state": "assigned"
+            },
+            "_links": {
+                "self": {"href": "/assignments/a123"}
             }
         }
         """
@@ -172,6 +175,9 @@ Feature: Assignments Locking
                 "desk": "Politic Desk",
                 "user": "507f191e810c19729de870eb",
                 "state": "assigned"
+            },
+            "_links": {
+                "self": {"href": "/assignments/a123"}
             }
         }
         """
@@ -193,6 +199,9 @@ Feature: Assignments Locking
                 "desk": "Politic Desk",
                 "user": "507f191e810c19729de870eb",
                 "state": "assigned"
+            },
+            "_links": {
+                "self": {"href": "/assignments/a123"}
             }
         }
         """

@@ -30,8 +30,7 @@ logger = logging.getLogger(__name__)
 def _update_returned_document(doc, item):
     doc.clear()
     doc.update(item)
-    build_custom_hateoas(CUSTOM_HATEOAS, doc)
-    return [doc['_id']]
+    return [doc[config.ID_FIELD]]
 
 
 class AssignmentsLockResource(Resource):
@@ -63,6 +62,13 @@ class AssignmentsLockService(BaseService):
         updated_item = lock_service.lock(item, user_id, session_id, lock_action, 'assignments')
 
         return _update_returned_document(docs[0], updated_item)
+
+    def on_created(self, docs):
+        build_custom_hateoas(
+            CUSTOM_HATEOAS,
+            docs[0],
+            _id=str(docs[0][config.ID_FIELD])
+        )
 
     def validate(self, item, user_id):
         get_resource_service('assignments').validate_assignment_action(item)
@@ -114,3 +120,10 @@ class AssignmentsUnlockService(BaseService):
                 return True
 
         return False
+
+    def on_created(self, docs):
+        build_custom_hateoas(
+            CUSTOM_HATEOAS,
+            docs[0],
+            _id=str(docs[0][config.ID_FIELD])
+        )

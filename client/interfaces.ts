@@ -1,4 +1,4 @@
-import {ITEM_STATE, ISuperdeskGlobalConfig} from 'superdesk-api';
+import {ITEM_STATE, ISuperdeskGlobalConfig, IBaseRestApiResponse} from 'superdesk-api';
 
 export type IPlanningNewsCoverageStatus = {
     qcode: 'ncostat:int' | 'ncostat:notdec' | 'ncostat:notint' | 'ncostat:onreq';
@@ -222,6 +222,45 @@ export interface IEventItem {
     template: string;
 }
 
+export interface ICoveragePlanningDetails {
+    ednote: string;
+    g2_content_type: string;
+    coverage_provider: string;
+    contact_info: string;
+    item_class: string;
+    item_count: string;
+    scheduled: string | Date;
+    files: Array<File | string>;
+    xmp_file: string;
+    service: Array<{
+        qcode: string;
+        name: string;
+    }>;
+    news_content_characteristics: Array<{
+        qcode: string;
+        name: string;
+    }>;
+    planning_ext_property: Array<{
+        qcode: string;
+        value: string;
+        name: string;
+    }>;
+    by: Array<string>;
+    credit_line: Array<string>;
+    dateline: Array<string>;
+    description_text: string;
+    genre: Array<{
+        qcode: string;
+        name: string;
+    }>;
+    headline: string;
+    keyword: Array<string>;
+    language: Array<string>;
+    slugline: string;
+    internal_note: string;
+    workflow_status_reason: string;
+}
+
 export interface IPlanningCoverageItem {
     coverage_id: string;
     guid: string;
@@ -230,44 +269,7 @@ export interface IPlanningCoverageItem {
     firstcreated: string;
     versioncreated: string;
 
-    planning: {
-        ednote: string;
-        g2_content_type: string;
-        coverage_provider: string;
-        contact_info: string;
-        item_class: string;
-        item_count: string;
-        scheduled: string | Date;
-        files: Array<File | string>;
-        xmp_file: string;
-        service: Array<{
-            qcode: string;
-            name: string;
-        }>;
-        news_content_characteristics: Array<{
-            qcode: string;
-            name: string;
-        }>;
-        planning_ext_property: Array<{
-            qcode: string;
-            value: string;
-            name: string;
-        }>;
-        by: Array<string>;
-        credit_line: Array<string>;
-        dateline: Array<string>;
-        description_text: string;
-        genre: Array<{
-            qcode: string;
-            name: string;
-        }>;
-        headline: string;
-        keyword: Array<string>;
-        language: Array<string>;
-        slugline: string;
-        internal_note: string;
-        workflow_status_reason: string;
-    };
+    planning: ICoveragePlanningDetails;
 
     news_coverage_status: IPlanningNewsCoverageStatus;
     workflow_status: IPlanningWorkflowStatus;
@@ -370,4 +372,52 @@ export interface IPlanningItem {
     reason: string;
     _time_to_be_confirmed: boolean;
     _cancelAllCoverage: boolean;
+}
+
+export enum ASSIGNMENT_STATE {
+    DRAFT = 'draft',
+    ASSIGNED = 'assigned',
+    IN_PROGRESS = 'in_progress',
+    COMPLETED = 'completed',
+    SUBMITTED = 'submitted',
+    CANCELLED = 'cancelled',
+}
+
+export interface IAssignmentItem extends IBaseRestApiResponse {
+    name: string;
+    description_text: string;
+    priority: number;
+    accepted: boolean;
+    planning: ICoveragePlanningDetails;
+
+    coverage_item: string;
+    planning_item: string;
+    scheduled_update_id: string;
+
+    assigned_to: {
+        desk: string;
+        user: string;
+        assignor_desk: string;
+        assignor_user: string;
+        assigned_date_desk: string | Date;
+        assigned_date_user: string | Date;
+        state: ASSIGNMENT_STATE;
+        revert_state: ASSIGNMENT_STATE;
+        coverage_provider: {
+            qcode: string;
+            name: string;
+            contact_type: string;
+        };
+    };
+
+    original_creator: string;
+    version_creator: string;
+    firstcreated: string;
+    versioncreated: string;
+    type: string;
+    lock_user: string;
+    lock_time: string | Date;
+    lock_session: string;
+    lock_action: string;
+    _to_delete: boolean;
 }

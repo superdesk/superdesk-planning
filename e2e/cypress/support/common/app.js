@@ -69,10 +69,14 @@ export function addItems(resource, items) {
 export function login() {
     cy.log('Common.App.login');
     cy.get('#login-username')
-        .type('admin');
+        .clear()
+        .type('admin')
+        .should('have.value', 'admin');
 
     cy.get('#login-password')
-        .type('admin');
+        .clear()
+        .type('admin')
+        .should('have.value', 'admin');
 
     cy.get('#login-btn')
         .click();
