@@ -60,6 +60,7 @@ class EventSchema(BaseSchema):
     definition_long = schema.StringField()
     definition_short = schema.StringField()
     internal_note = schema.StringField()
+    reference = schema.StringField()
     location = schema.StringField()
     name = schema.StringField(required=True)
     occur_status = schema.DictField()
@@ -155,6 +156,7 @@ DEFAULT_EDITOR = [{
         'internal_note': {'enabled': True},
         'location': {'enabled': True},
         'name': {'enabled': True},
+        'reference': {'enabled': False},
         'occur_status': {'enabled': True},
         'subject': {'enabled': True},
         'event_contact_info': {'enabled': True},
@@ -209,49 +211,53 @@ DEFAULT_EDITOR = [{
                 'enabled': True,
                 'index': 1
             },
-            'name': {
-                'enabled': True,
+            'reference': {
+                'enabled': False,
                 'index': 2
             },
-            'anpa_category': {
+            'name': {
                 'enabled': True,
                 'index': 3
             },
-            'subject': {
+            'anpa_category': {
                 'enabled': True,
                 'index': 4
             },
-            'source': {
+            'subject': {
                 'enabled': True,
                 'index': 5
             },
-            'location': {
+            'source': {
                 'enabled': True,
                 'index': 6
             },
-            'state': {
+            'location': {
                 'enabled': True,
                 'index': 7
             },
-            'pub_status': {
+            'state': {
                 'enabled': True,
                 'index': 8
             },
-            'spike_state': {
+            'pub_status': {
                 'enabled': True,
                 'index': 9
             },
-            'start_date_time': {
+            'spike_state': {
                 'enabled': True,
                 'index': 10
             },
-            'end_date_time': {
+            'start_date_time': {
                 'enabled': True,
                 'index': 11
             },
-            'date_filter': {
+            'end_date_time': {
                 'enabled': True,
                 'index': 12
+            },
+            'date_filter': {
+                'enabled': True,
+                'index': 13
             },
         },
         'planning': {
@@ -313,37 +319,41 @@ DEFAULT_EDITOR = [{
                 'enabled': True,
                 'index': 1
             },
-            'anpa_category': {
-                'enabled': True,
+            'reference': {
+                'enabled': False,
                 'index': 2
             },
-            'subject': {
+            'anpa_category': {
                 'enabled': True,
                 'index': 3
             },
-            'state': {
+            'subject': {
                 'enabled': True,
                 'index': 4
             },
-            'pub_status': {
+            'state': {
                 'enabled': True,
                 'index': 5
             },
-            'spike_state': {
+            'pub_status': {
                 'enabled': True,
                 'index': 6
             },
-            'start_date_time': {
+            'spike_state': {
                 'enabled': True,
                 'index': 7
             },
-            'end_date_time': {
+            'start_date_time': {
                 'enabled': True,
                 'index': 8
             },
-            'date_filter': {
+            'end_date_time': {
                 'enabled': True,
                 'index': 9
+            },
+            'date_filter': {
+                'enabled': True,
+                'index': 10
             }
         }
     },
