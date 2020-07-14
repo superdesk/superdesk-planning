@@ -284,6 +284,15 @@ export class EventEditorComponent extends React.Component {
                     />
 
                     <Field
+                        component={TextInput}
+                        field="reference"
+                        label={gettext('External Reference')}
+                        enabled={get(formProfile, 'editor.reference.enabled', false)}
+                        {...fieldProps}
+                        onFocus={onFocusEvent}
+                    />
+
+                    <Field
                         component={SelectMetaTermsInput}
                         field="calendars"
                         label={gettext('Calendars')}

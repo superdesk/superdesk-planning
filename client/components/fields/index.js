@@ -13,6 +13,7 @@ import {files} from './files';
 import {FeatureLabel} from '../Planning/FeaturedPlanning/index';
 import {agendas} from './agendas';
 import {coverages} from './coverages';
+import {reference} from './reference';
 
 let registeredFields = {};
 
@@ -60,3 +61,4 @@ registerField('files', files);
 registerField('featured', FeatureLabel);
 registerField('agendas', agendas);
 registerField('coverages', coverages);
+registerField('reference', reference);

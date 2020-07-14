@@ -35,6 +35,7 @@ const query = (
             place: get(advancedSearch, 'place.length', 0) > 0 ?
                 JSON.stringify(get(advancedSearch, 'place', []).map((p) => p.qcode)) : null,
             slugline: advancedSearch.slugline,
+            reference: advancedSearch.reference,
             state: get(advancedSearch, 'state.length', 0) ?
                 JSON.stringify(get(advancedSearch, 'state', []).map((c) => c.qcode)) : null,
             posted: advancedSearch.posted,

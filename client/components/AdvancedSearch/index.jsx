@@ -137,6 +137,15 @@ export class AdvancedSearch extends React.Component {
                     component: TextInput,
                     ...get(searchProfile, 'name'),
                 },
+                reference: {
+                    props: {
+                        field: 'advancedSearch.reference',
+                        label: gettext('Reference'),
+                        value: get(diff, 'advancedSearch.reference', ''),
+                    },
+                    component: TextInput,
+                    ...get(searchProfile, 'reference'),
+                },
                 slugline: {
                     props: {
                         field: 'advancedSearch.slugline',
@@ -336,13 +345,13 @@ export class AdvancedSearch extends React.Component {
                 [MAIN.FILTERS.COMBINED]: [
                     fields.slugline, fields.anpa_category, fields.subject, fields.state,
                     fields.pubstatus, fields.spikeState, fields.startDateTime,
-                    fields.endDateTime, fields.dateFilters, fields.place,
+                    fields.endDateTime, fields.dateFilters, fields.place, fields.reference,
                 ],
                 [MAIN.FILTERS.EVENTS]: [
                     fields.name, fields.slugline, fields.anpa_category, fields.subject,
                     fields.source, fields.location, fields.state, fields.pubstatus,
                     fields.spikeState, fields.startDateTime, fields.endDateTime,
-                    fields.dateFilters, fields.place,
+                    fields.dateFilters, fields.place, fields.reference,
                 ],
                 [MAIN.FILTERS.PLANNING]: [
                     fields.slugline, fields.contentType, fields.noCoverage, fields.featured,
