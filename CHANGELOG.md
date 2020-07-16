@@ -1,11 +1,34 @@
 # Superdesk Planning Changelog
 
+## [1.33.1-rc3] 2020-07-16
+### Features
+- None
+
+### Improvements
+- [SDESK-5005] Add optional internal reference field to events (#1480)
+
+### Fixes
+- [SDANSA-426] Add planning specific date and time format config (#1476)
+- [SDESK-5372] fix: Providing end date without start crashes the page (#1477)
+- [SDESK-5389] fix: Locking Assignment assigns incorrect _links attribute (#1478)
+
+
 ## [1.33.1-rc2] 2020-06-18
 ### Features
 - None
 
 ### Improvements
 - [SDNTB-633] Ability to define export templates in settings.py (#1473)
+
+### Fixes
+- [SDESK-5345] Force update subscriber_types in initialize_data command (#1474)
+
+## [1.33.1-rc1] 2020-06-04
+### Features
+- None
+
+### Improvements
+- None
 
 ### Fixes
 - [SDESK-5189] Ignore Planning partialSave if editor is read-only (#1462)
@@ -16,7 +39,6 @@
 - [SDESK-5223] Replace React hooks with Class for ExpandableText component (#1465)
 - [SDESK-4479] fix: Cannot create planning item from events after disabling agenda. (#1471)
 - [SDESK-5223] fix: Load agendas before showing authoring widget (#1470)
-- [SDESK-5345] Force update subscriber_types in initialize_data command (#1474)
 
 ## [1.33.0] 2020-04-28
 ### Features
