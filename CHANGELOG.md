@@ -1,5 +1,16 @@
 # Superdesk Planning Changelog
 
+## [1.32.0-rc2] 2020-07-16 - Released
+### Features
+- None
+
+### Improvements
+- None
+
+### Fixes
+- [SDESK-5372] fix: Providing end date without start crashes the page (#1477)
+- [SDESK-5389] fix: Locking Assignment assigns incorrect _links attribute
+
 ## [1.32.0-rc1] 2020-06-23 - Released
 ### Features
 - None
