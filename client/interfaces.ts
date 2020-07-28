@@ -1,4 +1,5 @@
 import {ITEM_STATE, ISuperdeskGlobalConfig, IBaseRestApiResponse} from 'superdesk-api';
+import moment from 'moment';
 
 export type IPlanningNewsCoverageStatus = {
     qcode: 'ncostat:int' | 'ncostat:notdec' | 'ncostat:notint' | 'ncostat:onreq';
@@ -16,6 +17,10 @@ export type IPlanningAssignedTo = {
 };
 
 export type IEventUpdateMethod = 'single' | 'future' | 'all';
+
+export type ISearchSpikeState = 'spiked' | 'draft' | 'both';
+
+export type IDateRange = 'today' | 'tomorrow' | 'this_week' | 'next_week' | 'last24' | 'forDate';
 
 export type IPlanningProfile = {
     name: string;
@@ -77,149 +82,151 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
     };
 }
 
+export interface ILocation {
+    qcode?: string;
+    name?: string;
+    address?: string;
+    geo?: string;
+    location?: string;
+}
+
 
 // The Event, Planning and Coverage interfaces were directly derived from the schema on the Server
 export interface IEventItem {
-    _id: string;
-    guid: string;
-    unique_id: string;
-    unique_name: string;
-    version: number;
-    ingest_id: string;
-    recurrence_id: string;
-    previous_recurrence_id: string;
-    original_creator: string;
-    version_creator: string;
-    firstcreated: string;
-    versioncreated: string;
-    ingest_provider: string;
-    source: string;
-    original_source: string;
-    ingest_provider_sequence: string;
-    event_created: string | Date;
-    event_lastmodified: string | Date;
-    name: string;
-    definition_short: string;
-    definition_long: string;
-    internal_note: string;
-    anpa_category: Array<{
-        qcode: string;
-        name: string;
+    _id?: string;
+    guid?: string;
+    unique_id?: string;
+    unique_name?: string;
+    version?: number;
+    ingest_id?: string;
+    recurrence_id?: string;
+    previous_recurrence_id?: string;
+    original_creator?: string;
+    version_creator?: string;
+    firstcreated?: string;
+    versioncreated?: string;
+    ingest_provider?: string;
+    source?: string;
+    original_source?: string;
+    ingest_provider_sequence?: string;
+    event_created?: string | Date;
+    event_lastmodified?: string | Date;
+    name?: string;
+    definition_short?: string;
+    definition_long?: string;
+    internal_note?: string;
+    anpa_category?: Array<{
+        qcode?: string;
+        name?: string;
     }>;
-    files: Array<File | string>;
-    relationships: {
-        broader: string;
-        narrower: string;
-        related: string;
+    files?: Array<File | string>;
+    relationships?: {
+        broader?: string;
+        narrower?: string;
+        related?: string;
     }
-    links: Array<string>;
-    dates: {
-        start: string | Date;
-        end: string | Date;
-        tz: string;
-        duration: string;
-        confirmation: string;
-        recurring_date: Array<Date>;
-        recurring_rule: {
-            frequency: string;
-            interval: number;
-            endRepeatMode: 'count' | 'until';
-            until: string | Date;
-            count: number;
-            bymonth: string;
-            byday: string;
-            byhour: string;
-            byminute: string;
+    links?: Array<string>;
+    dates?: {
+        start?: string | Date | moment.Moment;
+        end?: string | Date | moment.Moment;
+        tz?: string;
+        duration?: string;
+        confirmation?: string;
+        recurring_date?: Array<Date>;
+        recurring_rule?: {
+            frequency?: string;
+            interval?: number;
+            endRepeatMode?: 'count' | 'until';
+            until?: string | Date;
+            count?: number;
+            bymonth?: string;
+            byday?: string;
+            byhour?: string;
+            byminute?: string;
         };
-        occur_status: {
-            qcode: string;
-            name: string;
+        occur_status?: {
+            qcode?: string;
+            name?: string;
         };
-        ex_date: Array<Date>;
-        ex_rule: {
-            frequency: string;
-            interval: string;
-            until: string | Date;
-            bymonth: string;
-            byday: string;
-            byhour: string;
-            byminute: string;
+        ex_date?: Array<Date>;
+        ex_rule?: {
+            frequency?: string;
+            interval?: string;
+            until?: string | Date;
+            bymonth?: string;
+            byday?: string;
+            byhour?: string;
+            byminute?: string;
         }
     };
-    _planning_schedule: Array<{
-        scheduled: string | Date;
+    _planning_schedule?: Array<{
+        scheduled?: string | Date;
     }>;
-    occur_status: {
-        qcode: string;
-        name: string;
-        label: string;
+    occur_status?: {
+        qcode?: string;
+        name?: string;
+        label?: string;
     };
-    news_coverage_status: {
-        qcode: string;
-        name: string;
+    news_coverage_status?: {
+        qcode?: string;
+        name?: string;
     };
-    registration: string;
-    access_status: Array<{
-        qcode: string;
-        name: string;
+    registration?: string;
+    access_status?: Array<{
+        qcode?: string;
+        name?: string;
     }>;
-    subject: Array<{
-        qcode: string;
-        name: string;
+    subject?: Array<{
+        qcode?: string;
+        name?: string;
     }>;
-    slugline: string;
-    location: Array<{
-        qcode: string;
-        name: string;
-        address: string;
-        geo: string;
-        location: string;
+    slugline?: string;
+    location?: Array<ILocation>;
+    participant?: Array<{
+        qcode?: string;
+        name?: string;
     }>;
-    participant: Array<{
-        qcode: string;
-        name: string;
+    participant_requirement?: Array<{
+        qcode?: string;
+        name?: string;
     }>;
-    participant_requirement: Array<{
-        qcode: string;
-        name: string;
+    organizer?: Array<{
+        qcode?: string;
+        name?: string;
     }>;
-    organizer: Array<{
-        qcode: string;
-        name: string;
+    event_contact_info?: Array<string>;
+    event_language?: Array<{
+        qcode?: string;
+        name?: string;
     }>;
-    event_contact_info: Array<string>;
-    event_language: Array<{
-        qcode: string;
-        name: string;
+    state?: ITEM_STATE;
+    expiry?: string | Date;
+    expired?: boolean;
+    pubstatus?: IPlanningPubstatus;
+    lock_user?: string;
+    lock_time?: string | Date;
+    lock_session?: string;
+    lock_action?: string;
+    update_method?: IEventUpdateMethod;
+    type?: string;
+    calendars?: Array<{
+        qcode?: string;
+        name?: string;
     }>;
-    state: ITEM_STATE;
-    expiry: string | Date;
-    expired: boolean;
-    pubstatus: IPlanningPubstatus;
-    lock_user: string;
-    lock_time: string | Date;
-    lock_session: string;
-    lock_action: string;
-    update_method: IEventUpdateMethod;
-    type: string;
-    calendars: Array<{
-        qcode: string;
-        name: string;
-    }>;
-    revert_state: ITEM_STATE;
-    duplicate_from: string;
-    duplicate_to: Array<string>;
-    reschedule_from: string;
-    reschedule_to: string;
-    _reschedule_from_schedule: string | Date;
-    place: Array<IPlace>;
-    ednote: string;
-    state_reason: string;
-    actioned_date: string | Date;
-    completed: boolean;
-    _time_to_be_confirmed: boolean;
-    _planning_item: string;
-    template: string;
+    revert_state?: ITEM_STATE;
+    duplicate_from?: string;
+    duplicate_to?: Array<string>;
+    reschedule_from?: string;
+    reschedule_to?: string;
+    _reschedule_from_schedule?: string | Date;
+    place?: Array<IPlace>;
+    ednote?: string;
+    state_reason?: string;
+    actioned_date?: string | Date;
+    completed?: boolean;
+    _time_to_be_confirmed?: boolean;
+    _planning_item?: string;
+    template?: string;
 }
 
 export interface ICoveragePlanningDetails {
@@ -420,4 +427,104 @@ export interface IAssignmentItem extends IBaseRestApiResponse {
     lock_session: string;
     lock_action: string;
     _to_delete: boolean;
+}
+
+export interface IDateSearchParams {
+    range?: IDateRange;
+    start?: moment.Moment;
+    end?: moment.Moment;
+}
+
+export interface IEventSearchParams {
+    calendars?: Array<string>;
+    fulltext?: string;
+    ids?: Array<string>;
+    includeKilled?: boolean;
+    itemIds?: Array<string>;
+    maxResults?: number;
+    noCalendarAssigned?: boolean;
+    onlyFuture?: boolean;
+    recurrenceId?: string;
+    page?: number;
+    startOfWeek?: number;
+    spikeState?: ISearchSpikeState;
+    advancedSearch?: {
+        anpa_category?: Array<{
+            qcode?: string;
+            name?: string;
+        }>;
+        dates?: IDateSearchParams;
+        location?: ILocation | string;
+        name?: string;
+        place?: Array<{
+            qcode?: string;
+        }>;
+        posted?: boolean;
+        reference?: string;
+        slugline?: string;
+        source?: Array<{
+            id?: string;
+            name?: string;
+        }>;
+        state?: Array<{
+            qcode?: string;
+            name?: string;
+        }>;
+        subject?: Array<{
+            qcode?: string;
+        }>;
+    };
+}
+
+export interface IPlanningSearchParams {
+    adHocPlanning?: boolean;
+    agendas?: Array<string>;
+    excludeRescheduledAndCancelled?: boolean;
+    featured?: boolean;
+    fulltext?: string;
+    includeScheduledUpdates?: boolean;
+    noAgendaAssigned?: boolean;
+    spikeState?: ISearchSpikeState;
+    startOfWeek?: number;
+    timezoneOffset?: string;
+    advancedSearch?: {
+        anpa_category?: Array<{
+            qcode?: string;
+            name?: string;
+        }>;
+        dates?: IDateSearchParams;
+        featured?: boolean;
+        g2_content_type?: {
+            qcode?: string;
+            name?: string;
+        };
+        noCoverage?: boolean;
+        place?: Array<{
+            qcode?: string;
+            name?: string;
+        }>;
+        posted?: boolean;
+        slugline?: string;
+        state?: Array<{
+            qcode?: string;
+            name?: string;
+        }>;
+        subject?: Array<{
+            qcode?: string;
+            name?: string;
+        }>;
+        urgency?: {
+            qcode?: string;
+            name?: string;
+        };
+    };
+}
+
+export interface IElasticQuery {
+    must?: Array<any>;
+    must_not?: Array<any>;
+    filter?: Array<any>;
+    should?: Array<any>;
+    minimum_should_match?: number;
+    sort?: Array<any>;
 }
