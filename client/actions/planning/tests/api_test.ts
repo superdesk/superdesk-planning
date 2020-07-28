@@ -6,8 +6,8 @@ import {
     restoreSinonStub,
     convertEventDatesToMoment,
 } from '../../../utils/testUtils';
-import {getTimeZoneOffset, createTestStore} from '../../../utils/index';
-import {PLANNING, SPIKED_STATE, WORKFLOW_STATE} from '../../../constants/index';
+import {createTestStore} from '../../../utils';
+import {PLANNING, SPIKED_STATE, WORKFLOW_STATE} from '../../../constants';
 import {MAIN} from '../../../constants';
 import * as selectors from '../../../selectors';
 import contactsApi from '../../contacts';
@@ -100,247 +100,9 @@ describe('actions.planning.api', () => {
     });
 
     describe('query', () => {
-        const mustNotTerms = [{term: {state: WORKFLOW_STATE.KILLED}}];
-
         beforeEach(() => {
             restoreSinonStub(planningApi.query);
         });
-
-        it('list planning items of agendas', (done) => (
-            store.test(done, planningApi.query({agendas: ['a1', 'a2']}
-            ))
-                .then(() => {
-                    expect(services.api('planning').query.callCount).toBe(1);
-                    const source = JSON.parse(services.api('planning').query.args[0][0].source);
-
-                    expect(source.query.bool.must).toEqual([{terms: {agendas: ['a1', 'a2']}}]);
-                    expect(source.filter).toEqual(
-                        {
-                            nested: {
-                                path: '_planning_schedule',
-                                filter: {
-                                    range: {
-                                        '_planning_schedule.scheduled': {
-                                            gte: 'now/d',
-                                            time_zone: getTimeZoneOffset(),
-                                        },
-                                    },
-                                },
-                            },
-                        }
-                    );
-                    expect(source.query.bool.must_not).toEqual(mustNotTerms);
-                    expect(source.sort).toEqual(
-                        [
-                            {
-                                '_planning_schedule.scheduled': {
-                                    order: 'asc',
-                                    nested_path: '_planning_schedule',
-                                    nested_filter: {
-                                        range: {
-                                            '_planning_schedule.scheduled': {
-                                                gte: 'now/d',
-                                                time_zone: getTimeZoneOffset(),
-                                            },
-                                        },
-                                    },
-                                },
-                            },
-                        ]
-                    );
-                    done();
-                })
-        ).catch(done.fail));
-
-        it('by list of planning not in any agendas', (done) => (
-            store.test(done, planningApi.query({
-                noAgendaAssigned: true,
-            }))
-                .then(() => {
-                    let noAgenda = {constant_score: {filter: {exists: {field: 'agendas'}}}};
-
-                    expect(services.api('planning').query.callCount).toBe(1);
-                    const source = JSON.parse(services.api('planning').query.args[0][0].source);
-
-                    expect(source.filter).toEqual(
-                        {
-                            nested: {
-                                path: '_planning_schedule',
-                                filter: {
-                                    range: {
-                                        '_planning_schedule.scheduled': {
-                                            gte: 'now/d',
-                                            time_zone: getTimeZoneOffset(),
-                                        },
-                                    },
-                                },
-                            },
-                        }
-                    );
-
-                    expect(source.query.bool.must_not).toEqual([noAgenda, ...mustNotTerms]);
-
-                    done();
-                })
-        ).catch(done.fail));
-
-        it('by spiked item state', (done) => (
-            store.test(done, planningApi.query({
-                agendas: ['a1', 'a2'],
-                spikeState: SPIKED_STATE.SPIKED,
-            }))
-                .then(() => {
-                    expect(services.api('planning').query.callCount).toBe(1);
-                    const source = JSON.parse(services.api('planning').query.args[0][0].source);
-
-                    expect(source.filter).toEqual(
-                        {
-                            nested: {
-                                path: '_planning_schedule',
-                                filter: {
-                                    range: {
-                                        '_planning_schedule.scheduled': {
-                                            gte: 'now/d',
-                                            time_zone: getTimeZoneOffset(),
-                                        },
-                                    },
-                                },
-                            },
-                        }
-                    );
-
-                    expect(source.query.bool.must).toEqual([
-                        {terms: {agendas: ['a1', 'a2']}},
-                        {term: {state: 'spiked'}},
-                    ]);
-
-                    expect(source.query.bool.must_not).toEqual(mustNotTerms);
-                    done();
-                })
-        ).catch(done.fail));
-
-        it('by non-spiked item state', (done) => (
-            store.test(done, planningApi.query({
-                agendas: ['a1', 'a2'],
-                spikeState: SPIKED_STATE.NOT_SPIKED,
-            }))
-                .then(() => {
-                    expect(services.api('planning').query.callCount).toBe(1);
-                    const source = JSON.parse(services.api('planning').query.args[0][0].source);
-
-                    expect(source.filter).toEqual(
-                        {
-                            nested: {
-                                path: '_planning_schedule',
-                                filter: {
-                                    range: {
-                                        '_planning_schedule.scheduled': {
-                                            gte: 'now/d',
-                                            time_zone: getTimeZoneOffset(),
-                                        },
-                                    },
-                                },
-                            },
-                        }
-                    );
-
-                    expect(source.query.bool.must).toEqual([
-                        {terms: {agendas: ['a1', 'a2']}},
-                    ]);
-
-                    expect(source.query.bool.must_not).toEqual([{term: {state: 'spiked'}}, ...mustNotTerms]);
-
-                    done();
-                })
-        ).catch(done.fail));
-
-        it('by workflow-state in advancedSearch', (done) => (
-            store.test(done, planningApi.query({
-                agendas: ['a1', 'a2'],
-                spikeState: SPIKED_STATE.NOT_SPIKED,
-                advancedSearch: {
-                    state: [{
-                        qcode: 'draft',
-                        name: 'draft',
-                    }, {
-                        qcode: 'postponed',
-                        name: 'postponed',
-                    }]},
-            }))
-                .then(() => {
-                    expect(services.api('planning').query.callCount).toBe(1);
-                    const source = JSON.parse(services.api('planning').query.args[0][0].source);
-
-                    expect(source.filter).toEqual(
-                        {
-                            nested: {
-                                path: '_planning_schedule',
-                                filter: {
-                                    range: {
-                                        '_planning_schedule.scheduled': {
-                                            gte: 'now/d',
-                                            time_zone: getTimeZoneOffset(),
-                                        },
-                                    },
-                                },
-                            },
-                        }
-                    );
-
-                    expect(source.query.bool.must).toEqual([
-                        {terms: {agendas: ['a1', 'a2']}},
-                        {terms: {state: ['draft', 'postponed']}},
-                    ]);
-
-                    expect(source.query.bool.must_not).toEqual([{term: {state: 'spiked'}}, ...mustNotTerms]);
-
-                    done();
-                })
-        ).catch(done.fail));
-
-        it('by workflow-state in advancedSearch including spiked', (done) => (
-            store.test(done, planningApi.query({
-                agendas: ['a1', 'a2'],
-                spikeState: SPIKED_STATE.BOTH,
-                advancedSearch: {
-                    state: [{
-                        qcode: 'draft',
-                        name: 'draft',
-                    }, {
-                        qcode: 'postponed',
-                        name: 'postponed',
-                    }]},
-            }))
-                .then(() => {
-                    expect(services.api('planning').query.callCount).toBe(1);
-                    const source = JSON.parse(services.api('planning').query.args[0][0].source);
-
-                    expect(source.filter).toEqual(
-                        {
-                            nested: {
-                                path: '_planning_schedule',
-                                filter: {
-                                    range: {
-                                        '_planning_schedule.scheduled': {
-                                            gte: 'now/d',
-                                            time_zone: getTimeZoneOffset(),
-                                        },
-                                    },
-                                },
-                            },
-                        }
-                    );
-
-                    expect(source.query.bool.must).toEqual([
-                        {terms: {agendas: ['a1', 'a2']}},
-                        {terms: {state: ['draft', 'postponed', 'spiked']}},
-                    ]);
-
-                    expect(source.query.bool.must_not).toEqual(mustNotTerms);
-
-                    done();
-                })
-        ).catch(done.fail));
 
         it('refetch', (done) => {
             sinon.stub(planningApi, 'query').callsFake(() => (Promise.resolve(['item'])));
@@ -448,9 +210,9 @@ describe('actions.planning.api', () => {
                                         {terms: {_id: ['e1']}},
                                     ],
                                     must_not: [{term: {state: WORKFLOW_STATE.KILLED}}],
+                                    filter: [],
                                 },
                             },
-                            filter: {},
                         }),
                     }]);
 
