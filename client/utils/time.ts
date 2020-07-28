@@ -1,7 +1,6 @@
-import moment from 'moment';
-import momentTz from 'moment-timezone';
-import {get} from 'lodash';
+import moment from 'moment-timezone';
 import {TIME_COMPARISON_GRANULARITY} from '../constants';
+import {IEventItem} from '../interfaces';
 
 /**
  * Returns the start date/time of next week
@@ -9,7 +8,7 @@ import {TIME_COMPARISON_GRANULARITY} from '../constants';
  * @param {int} startOfWeek - Configured start of the week (0=Sunday, 1=Monday, ..., 6=Saturday)
  * @return {moment} Cloned moment instance of the start date/time of next week
  */
-const getStartOfNextWeek = (date = null, startOfWeek = 0) => {
+function getStartOfNextWeek(date: moment.Moment = null, startOfWeek: number = 0): moment.Moment {
     let current = (date ? date.clone() : moment()).set({
         [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
         [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
@@ -31,7 +30,7 @@ const getStartOfNextWeek = (date = null, startOfWeek = 0) => {
         7 - weekDay + startOfWeek;
 
     return current.add(diff, 'd');
-};
+}
 
 /**
  * Returns the start date/time of the previous week.
@@ -41,7 +40,7 @@ const getStartOfNextWeek = (date = null, startOfWeek = 0) => {
  * @param {int} startOfWeek - Configured start of the week (0=Sunday, 1=Monday, ..., 6=Saturday)
  * @return {moment} Cloned moment instance of the start date/time of the previous week
  */
-const getStartOfPreviousWeek = (date = null, startOfWeek = 0) => {
+function getStartOfPreviousWeek(date: moment.Moment = null, startOfWeek: number = 0): moment.Moment {
     let current = (date ? date.clone() : moment()).set({
         [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
         [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
@@ -62,14 +61,14 @@ const getStartOfPreviousWeek = (date = null, startOfWeek = 0) => {
     }
 
     return current.subtract(diff, 'd');
-};
+}
 
 /**
  *  Returns the start date/time of the next month.
  * @param {moment} date - The date/time to calculate the next month from
  * @return {moment} Cloned moment instance of the start date/time of the next month
  */
-const getStartOfNextMonth = (date = null) => {
+function getStartOfNextMonth(date: moment.Moment = null): moment.Moment {
     let current = (date ? date.clone() : moment()).set({
         [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
         [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
@@ -78,7 +77,7 @@ const getStartOfNextMonth = (date = null) => {
     });
 
     return current.add(1, 'M').date(1);
-};
+}
 
 /**
  * Returns the start date/time of the previous month.
@@ -87,7 +86,7 @@ const getStartOfNextMonth = (date = null) => {
  * @param {moment} date - The date/time to calcualte the previous month from
  * @return {moment} Cloned moment instance of the start date/time of the previous month
  */
-const getStartOfPreviousMonth = (date = null) => {
+function getStartOfPreviousMonth(date: moment.Moment = null): moment.Moment {
     let current = (date ? date.clone() : moment()).set({
         [TIME_COMPARISON_GRANULARITY.HOUR]: 0,
         [TIME_COMPARISON_GRANULARITY.MINUTE]: 0,
@@ -98,18 +97,20 @@ const getStartOfPreviousMonth = (date = null) => {
     return current.date() > 1 ?
         current.date(1) :
         current.subtract(1, 'M').date(1);
-};
+}
 
-const isEventInDifferentTimeZone = (event) => {
-    const dateInEventTimeZone = getDateInRemoteTimeZone(get(event, 'dates.start'), get(event, 'dates.tz'));
-    const dateInLocalTimeZone = getDateInRemoteTimeZone(get(event, 'dates.start'));
+function isEventInDifferentTimeZone(event: IEventItem): boolean {
+    const dateInEventTimeZone = getDateInRemoteTimeZone(event?.dates?.start, event?.dates?.tz);
+    const dateInLocalTimeZone = getDateInRemoteTimeZone(event?.dates?.start);
 
     return dateInEventTimeZone.format('Z') !== dateInLocalTimeZone.format('Z');
-};
+}
 
-const localTimeZone = () => moment.tz.guess();
+function localTimeZone(): string {
+    return moment.tz.guess();
+}
 
-const getDateInRemoteTimeZone = (date, tz = self.localTimeZone()) => {
+function getDateInRemoteTimeZone(date: moment.Moment, tz: string = self.localTimeZone()): moment.Moment {
     let dateToCheck;
 
     if (!date) {
@@ -118,29 +119,29 @@ const getDateInRemoteTimeZone = (date, tz = self.localTimeZone()) => {
         dateToCheck = moment.isMoment(date) ? date : moment(date);
     }
 
-    return momentTz.tz(dateToCheck.clone().utc(), tz);
-};
+    return moment.tz(dateToCheck.clone().utc(), tz);
+}
 
-const getLocalDate = (date, tz, localTz) => {
+function getLocalDate(date: moment.Moment, tz: string): moment.Moment {
     const isRemoteTimeZone = self.isEventInDifferentTimeZone({dates: {start: date, tz: tz}});
 
     return self.getDateInRemoteTimeZone(
         date,
         isRemoteTimeZone ? self.localTimeZone() : tz
     );
-};
+}
 
 /**
  * if only offset is available then prefix timezone string with GMT. GMT+04
  * @param timezone
  * @returns {*}
  */
-const getTimeZoneAbbreviation = (timezone) => {
+function getTimeZoneAbbreviation(timezone: string): string {
     if (timezone.match(/[+-]\d{0,4}/)) {
         return `GMT${timezone}`;
     }
     return timezone;
-};
+}
 
 // eslint-disable-next-line consistent-this
 const self = {
