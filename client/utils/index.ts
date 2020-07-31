@@ -23,14 +23,13 @@ import {
     FEATURED_PLANNING,
     TO_BE_CONFIRMED_FIELD,
     TO_BE_CONFIRMED_SHORT_TEXT,
-} from '../constants/index';
+} from '../constants';
 import * as testData from './testData';
 import {default as lockUtils} from './locks';
 import {default as planningUtils} from './planning';
 import {default as eventUtils} from './events';
 import {default as timeUtils} from './time';
 import {default as eventPlanningUtils} from './eventsplanning';
-
 
 export {default as dispatchUtils} from './dispatch';
 export {default as registerNotifications} from './notifications';
@@ -47,6 +46,7 @@ export {planningUtils};
 export {timeUtils};
 export {eventPlanningUtils};
 import {gettext} from './gettext';
+import * as elastic from '../utils/elastic';
 
 // Polyfill Promise.finally function as this was introduced in Chrome 63+
 import promiseFinally from 'promise.prototype.finally';
@@ -582,7 +582,7 @@ export const shouldUnLockItem = (
 /**
  * If date is provided get timezone offset from date else browser the timezone offset
  * @param {moment} date
- * @returns {Array}
+ * @returns {String}
  */
 export const getTimeZoneOffset = (date = null, format = 'Z') => (moment.isMoment(date) ? date.format(format) :
     moment().format(format));
@@ -688,7 +688,7 @@ export const modifyForServer = (item, args) => {
     if (itemType === ITEM_TYPE.EVENT) {
         newItem = eventUtils.modifyForServer(newItem, args);
     } else if (itemType === ITEM_TYPE.PLANNING) {
-        newItem = planningUtils.modifyForServer(newItem, args);
+        newItem = planningUtils.modifyForServer(newItem);
     }
 
     return newItem;
@@ -820,11 +820,15 @@ export const appendStatesQueryForAdvancedSearch = (advancedSearch, spikeState,
 
     switch (spikeState) {
     case SPIKED_STATE.NOT_SPIKED:
-        mustNotTerms.push({term: {state: WORKFLOW_STATE.SPIKED}});
+        mustNotTerms.push(
+            elastic.term('state', WORKFLOW_STATE.SPIKED)
+        );
         break;
 
     case SPIKED_STATE.SPIKED:
-        mustTerms.push({term: {state: WORKFLOW_STATE.SPIKED}});
+        mustTerms.push(
+            elastic.term('state', WORKFLOW_STATE.SPIKED)
+        );
         break;
 
     case SPIKED_STATE.BOTH:
@@ -837,12 +841,16 @@ export const appendStatesQueryForAdvancedSearch = (advancedSearch, spikeState,
     }
 
     if (spikeState !== SPIKED_STATE.SPIKED && states.length > 0) {
-        mustTerms.push({terms: {state: states}});
+        mustTerms.push(
+            elastic.terms('state', states)
+        );
     }
 
     if (!includeKilled) {
         if (!states.includes(WORKFLOW_STATE.KILLED)) {
-            mustNotTerms.push({term: {state: WORKFLOW_STATE.KILLED}});
+            mustNotTerms.push(
+                elastic.term('state', WORKFLOW_STATE.KILLED)
+            );
         }
     }
 };
@@ -1061,7 +1069,7 @@ export const iteratePromiseCallbacks = (callbacks) => (
     })
 );
 
-export const sanitizeArrayFields = (item, fields) => {
+export const sanitizeArrayFields = (item, fields = null) => {
     if (!item) {
         return;
     }
