@@ -178,6 +178,12 @@ Below sections include the config options that can be defined in settings.py.
 * PLANNING_CHECK_FOR_ASSIGNMENT_ON_SEND
     * Defaults to false
     * If true, check for unfulfilled assignments when sending a story from an authoring desk to production desk
+* PLANNING_ALLOWED_COVERAGE_LINK_TYPES
+    * Defaults to []
+    * This is an allow list of content types (text, picture etc) that can be linked to a coverage
+    * If this option is not defined, or is an empty array, then all content types can be linked
+    * Otherwise only the content types in the list are allowed to be linked to a coverage
+    * This includes fulfilment of an Assignment
 
 ## Slack Integration
 There are a couple of steps to take to enable slack for assignment notifications.

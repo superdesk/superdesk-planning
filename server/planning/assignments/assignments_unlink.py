@@ -127,9 +127,6 @@ class AssignmentsUnlinkService(Service):
         if not assignment:
             raise SuperdeskApiError.badRequestError('Assignment not found.')
 
-        if not assignments_service.is_text_assignment(assignment):
-            raise SuperdeskApiError.badRequestError('Cannot unlink media assignments.')
-
         if assignment.get(LOCK_USER):
             if str(assignment.get(LOCK_USER)) != str(user_id):
                 raise SuperdeskApiError.forbiddenError(

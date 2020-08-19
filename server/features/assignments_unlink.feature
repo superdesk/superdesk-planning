@@ -216,7 +216,7 @@ Feature: Assignment Unlink
         """
 
     @auth
-    Scenario: Can unlink only text assignments
+    Scenario: Can unlink any type of assignment
         When we post to "/planning"
         """
         [{
@@ -264,10 +264,7 @@ Feature: Assignment Unlink
             "item_id": "noidea"
         }]
         """
-        Then we get error 400
-        """
-        {"_message": "Cannot unlink media assignments."}
-        """
+        Then we get OK response
 
     @auth
     @vocabularies

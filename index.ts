@@ -1,13 +1,18 @@
 // styles
 import './client/styles/index.scss';
 
+import {IArticle} from 'superdesk-api';
+import {superdeskApi} from './client/superdeskApi';
+
 // scripts
 import planningModule from './client';
 import * as ctrl from './client/controllers';
+import {gettext} from './client/utils/gettext';
+import {isContentLinkToCoverageAllowed} from './client/utils/archive';
 
 
-configurePlanning.$inject = ['superdeskProvider', '$injector'];
-function configurePlanning(superdesk, $injector) {
+configurePlanning.$inject = ['superdeskProvider'];
+function configurePlanning(superdesk) {
     superdesk
         .activity('/planning', {
             label: gettext('Planning'),
@@ -57,12 +62,18 @@ function configurePlanning(superdesk, $injector) {
                 planning_planning_management: 1,
                 archive: 1,
             },
-            additionalCondition: ['lock', 'archiveService', 'item', 'authoring',
-                function(lock, archiveService, item, authoring) {
+            additionalCondition: ['archiveService', 'item', 'authoring',
+                function(archiveService, item: IArticle, authoring) {
                     return !item.assignment_id &&
-                        (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
-                        !archiveService.isPersonal(item) && (authoring.itemActions(item).edit ||
-                        authoring.itemActions(item).correct || authoring.itemActions(item).deschedule);
+                        !archiveService.isPersonal(item) &&
+                        !superdeskApi.entities.article.isLockedInOtherSession(item) &&
+                        hasActionsAvailable() &&
+                        isContentLinkToCoverageAllowed(item) &&
+                        (
+                            authoring.itemActions(item).edit ||
+                            authoring.itemActions(item).correct ||
+                            authoring.itemActions(item).deschedule
+                        );
                 }],
         })
         .activity('planning.fulfil', {
@@ -83,12 +94,14 @@ function configurePlanning(superdesk, $injector) {
             ],
             group: 'Planning',
             privileges: {archive: 1},
-            additionalCondition: ['lock', 'archiveService', 'item', 'authoring',
-                function(lock, archiveService, item, authoring) {
+            additionalCondition: ['archiveService', 'item',
+                function(archiveService, item: IArticle) {
                     return !item.assignment_id &&
-                        (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
-                        !archiveService.isPersonal(item) && !['killed', 'recalled',
-                            'unpublished', 'spiked'].includes(item.state);
+                        !archiveService.isPersonal(item) &&
+                        !superdeskApi.entities.article.isLockedInOtherSession(item) &&
+                        isInCorrectState() &&
+                        isContentLinkToCoverageAllowed(item) &&
+                        !['killed', 'recalled', 'unpublished', 'spiked'].includes(item.state);
                 }],
         })
         .activity('planning.unlink', {
@@ -108,11 +121,16 @@ function configurePlanning(superdesk, $injector) {
             ],
             group: 'Planning',
             privileges: {archive: 1},
-            additionalCondition: ['lock', 'archiveService', 'item', 'authoring',
-                function(lock, archiveService, item, authoring) {
-                    return item.assignment_id && (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
-                        !archiveService.isPersonal(item) && (authoring.itemActions(item).edit ||
-                        authoring.itemActions(item).correct || authoring.itemActions(item).deschedule);
+            additionalCondition: ['archiveService', 'item', 'authoring',
+                function(archiveService, item, authoring) {
+                    return item.assignment_id &&
+                        !archiveService.isPersonal(item) &&
+                        !superdeskApi.entities.article.isLockedInOtherSession(item) &&
+                        (
+                            authoring.itemActions(item).edit ||
+                            authoring.itemActions(item).correct ||
+                            authoring.itemActions(item).deschedule
+                        );
                 }],
         });
 }

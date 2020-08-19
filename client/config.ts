@@ -82,4 +82,8 @@ export function updateConfigAfterLoad() {
     if (appConfig?.planning?.timeformat == null) {
         appConfig.planning.timeformat = 'HH:mm';
     }
+
+    if (appConfig?.planning?.allowed_coverage_link_types == null) {
+        appConfig.planning.allowed_coverage_link_types = [];
+    }
 }
