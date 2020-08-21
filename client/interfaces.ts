@@ -79,6 +79,7 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
     planning?: {
         dateformat?: string;
         timeformat?: string;
+        allowed_coverage_link_types?: Array<string>;
     };
 }
 

@@ -146,6 +146,13 @@ def get_planning_xmp_slugline_mapping(current_app=None):
     return app.config.get('PLANNING_XMP_SLUGLINE_MAPPING', '')
 
 
+def get_planning_allowed_coverage_link_types(current_app=None):
+    return (current_app or app).config.get(
+        'PLANNING_ALLOWED_COVERAGE_LINK_TYPES',
+        []
+    )
+
+
 def get_assignment_acceptance_email_address(current_app=None):
     if current_app is not None:
         return current_app.config.get('PLANNING_ACCEPT_ASSIGNMENT_EMAIL', '')
@@ -618,3 +625,10 @@ def sanitize_input_data(item):
     if item.get('type') == 'planning':
         for c in item.get('coverages') or []:
             sanitize_array_fields(c.get('planning') or {}, ['keyword', 'genre'])
+
+
+def is_content_link_to_coverage_allowed(archive_item):
+    allowed_coverage_link_types = get_planning_allowed_coverage_link_types()
+
+    return True if not len(allowed_coverage_link_types) else \
+        archive_item['type'] in allowed_coverage_link_types

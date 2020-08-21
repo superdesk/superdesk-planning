@@ -6,12 +6,15 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 from copy import deepcopy
+from flask_babel import _
+
 from superdesk import Resource, Service, get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.item import ITEM_STATE, CONTENT_STATE
 from eve.utils import config
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_related_items, get_coverage_for_assignment, \
-    update_assignment_on_link_unlink, get_next_assignment_status, get_delivery_publish_time
+    update_assignment_on_link_unlink, get_next_assignment_status, get_delivery_publish_time, \
+    is_content_link_to_coverage_allowed
 from apps.archive.common import get_user, is_assigned_to_a_desk
 from apps.content import push_content_notification
 from superdesk.notification import push_notification
@@ -130,6 +133,12 @@ class AssignmentsLinkService(Service):
 
         if not item:
             raise SuperdeskApiError.badRequestError('Content item not found.')
+
+        if not is_content_link_to_coverage_allowed(item):
+            raise SuperdeskApiError.badRequestError(_(
+                'Content type "%(content_type)s" is not allowed to be linked to a coverage',
+                content_type=item['type']
+            ))
 
         if not doc.get('force') and item.get('assignment_id'):
             raise SuperdeskApiError.badRequestError(

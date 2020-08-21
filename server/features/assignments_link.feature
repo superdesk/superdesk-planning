@@ -3312,3 +3312,105 @@ Feature: Assignment link
         """
         {"_message": "Previous scheduled-update pending content-linking/completion"}
         """
+
+    @auth
+    Scenario: PLANNING_ALLOWED_COVERAGE_LINK_TYPES controls content links
+        Given config update
+        """
+        {"PLANNING_ALLOWED_COVERAGE_LINK_TYPES": ["text"]}
+        """
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        Then we get OK response
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "slugline": "test slugline",
+            "planning_date": "2016-01-02"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [{
+                "planning": {
+                    "ednote": "text coverage, I want 250 words",
+                    "slugline": "test slugline",
+                    "g2_content_type": "text"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#"
+                }
+            }, {
+                "planning": {
+                    "ednote": "photo coverage, I want 250 words",
+                    "slugline": "test slugline",
+                    "g2_content_type": "photo"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#"
+                }
+            }]
+        }
+        """
+        Then we get OK response
+        Then we store assignment id in "textassignment" from coverage 0
+        Then we store assignment id in "pictureassignment" from coverage 1
+        When we post to "assignments/link"
+        """
+        [{
+            "assignment_id": "#textassignment#",
+            "item_id": "#archive._id#",
+            "reassign": true
+        }]
+        """
+        Then we get OK response
+        When we upload a file "bike.jpg" to "archive"
+        And we patch "/archive/#archive._id#"
+        """
+        {
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }
+        """
+        When we post to "assignments/link"
+        """
+        [{
+            "assignment_id": "#pictureassignment#",
+            "item_id": "#archive._id#",
+            "reassign": true
+        }]
+        """
+        Then we get error 400
+        """
+        {"_message": "Content type \"picture\" is not allowed to be linked to a coverage"}
+        """
+        Given config update
+        """
+        {"PLANNING_ALLOWED_COVERAGE_LINK_TYPES": ["text", "picture"]}
+        """
+        When we post to "assignments/link"
+        """
+        [{
+            "assignment_id": "#pictureassignment#",
+            "item_id": "#archive._id#",
+            "reassign": true
+        }]
+        """
+        Then we get OK response

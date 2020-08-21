@@ -216,7 +216,7 @@ Feature: Assignment Unlink
         """
 
     @auth
-    Scenario: Can unlink only text assignments
+    Scenario: Can unlink any type of assignment
         When we post to "/planning"
         """
         [{
@@ -232,10 +232,10 @@ Feature: Assignment Unlink
         {
             "coverages": [{
                 "planning": {
-                    "ednote": "test coverage, I want 250 words",
+                    "ednote": "photo coverage, I want 250 words",
                     "headline": "test headline",
                     "slugline": "test slugline",
-                    "g2_content_type": "video"
+                    "g2_content_type": "photo"
                 },
                 "assigned_to": {
                     "desk": "#desk._id#",
@@ -257,17 +257,33 @@ Feature: Assignment Unlink
             }
         }
         """
+        When we upload a file "bike.jpg" to "archive"
+        And we patch "/archive/#archive._id#"
+        """
+        {
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }
+        """
+        When we post to "assignments/link" with success
+        """
+        [{
+            "assignment_id": "#assignmentId#",
+            "item_id": "#archive._id#",
+            "reassign": true
+        }]
+        """
+        Then we get OK response
         When we post to "assignments/unlink"
         """
         [{
             "assignment_id": "#assignmentId#",
-            "item_id": "noidea"
+            "item_id": "#archive._id#"
         }]
         """
-        Then we get error 400
-        """
-        {"_message": "Cannot unlink media assignments."}
-        """
+        Then we get OK response
 
     @auth
     @vocabularies
