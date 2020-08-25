@@ -98,7 +98,6 @@ function configurePlanning(superdesk) {
                     return !item.assignment_id &&
                         !archiveService.isPersonal(item) &&
                         !superdeskApi.entities.article.isLockedInOtherSession(item) &&
-                        isInCorrectState() &&
                         isContentLinkToCoverageAllowed(item) &&
                         !['killed', 'recalled', 'unpublished', 'spiked'].includes(item.state);
                 }],
