@@ -27,6 +27,9 @@ class PlanningLockResource(Resource):
     endpoint_name = 'planning_lock'
     url = 'planning/<{0}:item_id>/lock'.format(item_url)
     schema = deepcopy(planning_schema)
+    schema.update({
+        '_links': {'type': 'dict'},
+    })
     datasource = {'source': 'planning'}
     resource_methods = ['GET', 'POST']
     resource_title = endpoint_name
@@ -59,7 +62,7 @@ class PlanningLockService(BaseService):
 class PlanningUnlockResource(Resource):
     endpoint_name = 'planning_unlock'
     url = 'planning/<{0}:item_id>/unlock'.format(item_url)
-    schema = deepcopy(planning_schema)
+    schema = PlanningLockResource.schema
     datasource = {'source': 'planning'}
     resource_methods = ['GET', 'POST']
     resource_title = endpoint_name
