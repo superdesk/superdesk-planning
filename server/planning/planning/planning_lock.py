@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from flask import request
-from superdesk.resource import Resource
+from superdesk.resource import Resource, build_custom_hateoas
 from superdesk.metadata.utils import item_url
 from apps.archive.common import get_user, get_auth
 from superdesk.services import BaseService
@@ -19,6 +19,7 @@ from apps.common.components.utils import get_component
 from planning.common import update_returned_document
 from planning.planning.planning import planning_schema
 from copy import deepcopy
+from eve.utils import config
 
 CUSTOM_HATEOAS_PLANNING = {'self': {'title': 'Planning', 'href': '/planning/{_id}'}}
 
@@ -41,6 +42,13 @@ class PlanningLockService(BaseService):
         item_id = request.view_args['item_id']
         lock_action = docs[0].get('lock_action', 'edit')
         return self.lock_item(item_id, lock_action, docs[0])
+
+    def on_created(self, docs):
+        build_custom_hateoas(
+            CUSTOM_HATEOAS_PLANNING,
+            docs[0],
+            _id=str(docs[0][config.ID_FIELD])
+        )
 
     def lock_item(self, item_id, action, doc):
         user_id = get_user(required=True)['_id']
@@ -70,6 +78,13 @@ class PlanningUnlockService(BaseService):
     def create(self, docs, **kwargs):
         item_id = request.view_args['item_id']
         return self.unlock_item(item_id, docs[0])
+
+    def on_created(self, docs):
+        build_custom_hateoas(
+            CUSTOM_HATEOAS_PLANNING,
+            docs[0],
+            _id=str(docs[0][config.ID_FIELD])
+        )
 
     def unlock_item(self, item_id, doc):
         user_id = get_user(required=True)['_id']
