@@ -1,6 +1,7 @@
 import {gettext} from '../utils/gettext';
 
-export const ASSIGNMENTS = {
+// This needs to be a function, otherwise gettext won't work on top level calls
+export const GET_ASSIGNMENTS = () =>  ({
     ACTIONS: {
         RECEIVED_ASSIGNMENTS: 'RECEIVED_ASSIGNMENTS',
         CHANGE_LIST_SETTINGS: 'CHANGE_LIST_SETTINGS',
@@ -132,4 +133,6 @@ export const ASSIGNMENTS = {
         ASSIGNMENT_ACCEPTED: 'accepted',
     },
     DEFAULT_SORT_PREFERENCE: 'assignments:default_sort',
-};
+});
+
+export const ASSIGNMENTS = GET_ASSIGNMENTS()

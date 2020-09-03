@@ -5,7 +5,7 @@ import {isNil} from 'lodash';
 
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
-import {ASSIGNMENTS} from '../../constants';
+import {GET_ASSIGNMENTS} from '../../constants';
 import {gettext} from '../../utils/gettext';
 
 import {AssignmentGroupList} from '../../components/Assignments';
@@ -27,6 +27,7 @@ export const AssignmentListContainer = ({
         contentTypes,
         saveSortPreferences,
     };
+    const ASSIGNMENTS = GET_ASSIGNMENTS()
 
     return (
         <div className="sd-column-box__main-column__items">
