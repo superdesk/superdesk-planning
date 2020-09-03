@@ -27,7 +27,7 @@ export const AssignmentListContainer = ({
         contentTypes,
         saveSortPreferences,
     };
-    const ASSIGNMENTS = GET_ASSIGNMENTS()
+    const ASSIGNMENTS = GET_ASSIGNMENTS();
 
     return (
         <div className="sd-column-box__main-column__items">
