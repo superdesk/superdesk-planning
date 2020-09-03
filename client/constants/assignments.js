@@ -135,4 +135,5 @@ export const GET_ASSIGNMENTS = () =>  ({
     DEFAULT_SORT_PREFERENCE: 'assignments:default_sort',
 });
 
+// Use this constant if you don't need translations
 export const ASSIGNMENTS = GET_ASSIGNMENTS()
