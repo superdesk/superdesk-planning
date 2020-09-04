@@ -3,7 +3,7 @@ import {gettext} from '../utils/gettext';
 export {PRIVILEGES} from './privileges';
 export {PLANNING} from './planning';
 export {AGENDA} from './agenda';
-export {ASSIGNMENTS} from './assignments';
+export {ASSIGNMENTS, GET_ASSIGNMENTS} from './assignments';
 export {TOOLTIPS} from './tooltips';
 export {LOCKS} from './locks';
 export {WORKSPACE} from './workspace';
