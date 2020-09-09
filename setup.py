@@ -1,8 +1,5 @@
 from setuptools import setup, find_packages
 
-with open('README.md', 'r') as f:
-    long_description = f.read()
-
 DESCRIPTION = 'Superdesk Planning Module'
 
 package_data = {
@@ -16,8 +13,7 @@ setup(
     name="superdesk-planning",
     version="1.33.1",
     description=DESCRIPTION,
-    long_description=long_description,
-    long_description_content_type='text/markdown',
+    long_description=DESCRIPTION,
     package_dir={'': 'server'},
     packages=find_packages('server'),
     package_data=package_data,
