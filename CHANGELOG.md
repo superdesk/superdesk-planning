@@ -1,36 +1,18 @@
 # Superdesk Planning Changelog
 
-## [1.33.1-rc3] 2020-07-16
+## [1.33.1] 2020-09-09
 ### Features
 - None
 
 ### Improvements
 - [SDESK-5005] Add optional internal reference field to events (#1480)
+- [SDNTB-633] Ability to define export templates in settings.py (#1473)
 
 ### Fixes
 - [SDANSA-426] Add planning specific date and time format config (#1476)
 - [SDESK-5372] fix: Providing end date without start crashes the page (#1477)
 - [SDESK-5389] fix: Locking Assignment assigns incorrect _links attribute (#1478)
-
-
-## [1.33.1-rc2] 2020-06-18
-### Features
-- None
-
-### Improvements
-- [SDNTB-633] Ability to define export templates in settings.py (#1473)
-
-### Fixes
 - [SDESK-5345] Force update subscriber_types in initialize_data command (#1474)
-
-## [1.33.1-rc1] 2020-06-04
-### Features
-- None
-
-### Improvements
-- None
-
-### Fixes
 - [SDESK-5189] Ignore Planning partialSave if editor is read-only (#1462)
 - [SDESK-4512] fix: Double notification on spike (#1463)
 - [SDESK-5116] Ignore Planning partialSave if editor is submitting (#1464)
