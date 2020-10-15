@@ -8,7 +8,7 @@ export const agendas = ({item, fieldsProps}) => (
     <Fragment>
         <span className="sd-list-item__text-label">Agenda:</span>
         <span className="sd-overflow-ellipsis sd-list-item__text-strong sd-list-item--element-grow">
-            <AgendaNameList agendas={get(fieldsProps, 'agendas.agendas')}/>
+            <AgendaNameList agendas={get(fieldsProps, 'agendas.agendas')} />
         </span>
     </Fragment>
 

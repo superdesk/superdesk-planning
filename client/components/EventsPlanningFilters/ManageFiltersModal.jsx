@@ -72,16 +72,21 @@ export class ManageFiltersComponent extends React.Component {
                 </Modal.Header>
                 <Modal.Body noPadding={true} noScroll>
                     <div className="EventsPlanningFilter">
-                        {!!privileges[PRIVILEGES.EVENTS_PLANNING_FILTERS_MANAGEMENT] && <SubNav>
-                            <StretchBar />
-                            {!this.state.editorOpen && <Button
-                                right={true}
-                                buttonClassName="btn btn--primary"
-                                onClick={this.toggleEditor}>
-                                <i className="icon-plus-sign icon-white" />
-                                {gettext('Add New Filter')}
-                            </Button>}
-                        </SubNav>}
+                        {!!privileges[PRIVILEGES.EVENTS_PLANNING_FILTERS_MANAGEMENT] && (
+                            <SubNav>
+                                <StretchBar />
+                                {!this.state.editorOpen && (
+                                    <Button
+                                        right={true}
+                                        buttonClassName="btn btn--primary"
+                                        onClick={this.toggleEditor}
+                                    >
+                                        <i className="icon-plus-sign icon-white" />
+                                        {gettext('Add New Filter')}
+                                    </Button>
+                                )}
+                            </SubNav>
+                        )}
                         <ColumnBox.Box verticalScroll={true}>
                             <ColumnBox.MainColumn padded={true}>
                                 <FiltersList
@@ -93,7 +98,7 @@ export class ManageFiltersComponent extends React.Component {
                                     agendas={this.props.agendas}
                                 />
                             </ColumnBox.MainColumn>
-                            {this.state.editorOpen &&
+                            {this.state.editorOpen && (
                                 <ColumnBox.SlideInColumn>
                                     <EditFilter
                                         filter={this.state.selectedFilter}
@@ -104,7 +109,7 @@ export class ManageFiltersComponent extends React.Component {
                                         locators={this.props.locators}
                                     />
                                 </ColumnBox.SlideInColumn>
-                            }
+                            )}
                         </ColumnBox.Box>
                     </div>
                 </Modal.Body>

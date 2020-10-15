@@ -408,12 +408,14 @@ export class FeaturedPlanningModalComponent extends React.Component {
                 </Modal.Header>
                 <Modal.Body noPadding fullHeight noScroll>
                     <SubNav className="grid">
-                        {this.state.notifications.length > 0 && <SlidingToolBar
-                            onCancel={this.onNotificationsAccepted}
-                            innerInfo={this.state.notifications.join(', ')}
-                            cancelText={gettext('Close')}
-                            rightCancelButton
-                        />}
+                        {this.state.notifications.length > 0 && (
+                            <SlidingToolBar
+                                onCancel={this.onNotificationsAccepted}
+                                innerInfo={this.state.notifications.join(', ')}
+                                cancelText={gettext('Close')}
+                                rightCancelButton
+                            />
+                        )}
                         <div className="grid__item">
                             <JumpToDropdown
                                 currentStartFilter={currentSearchDate}
@@ -424,17 +426,20 @@ export class FeaturedPlanningModalComponent extends React.Component {
                             />
                         </div>
                         {this.props.loading && <div className="loading-indicator">{gettext('Loading')}</div>}
-                        {itemUpdatedAfterPosting &&
-                            <div className={classNames(
-                                'sd-alert',
-                                'sd-alert--alert',
-                                'sd-alert--hollow',
-                                'sd-alert--no-padding',
-                                'sd-alert__icon',
-                                'grid__item--col-1'
-                            )}>
+                        {itemUpdatedAfterPosting && (
+                            <div
+                                className={classNames(
+                                    'sd-alert',
+                                    'sd-alert--alert',
+                                    'sd-alert--hollow',
+                                    'sd-alert--no-padding',
+                                    'sd-alert__icon',
+                                    'grid__item--col-1'
+                                )}
+                            >
                                 {gettext('This list contains unposted changes!')}
-                            </div>}
+                            </div>
+                        )}
                     </SubNav>
                     <div className="grid">
                         <FeaturedPlanningListGroup>
@@ -471,21 +476,27 @@ export class FeaturedPlanningModalComponent extends React.Component {
                         text={this.state.dirty ? gettext('Cancel') : gettext('Close')}
                         onClick={this.onCloseModal}
                     />
-                    {canPost &&
+                    {canPost && (
                         <Button
                             color="success"
                             text={postButtonText}
-                            onClick={this.onPost} />}
-                    {canUpdate &&
+                            onClick={this.onPost}
+                        />
+                    )}
+                    {canUpdate && (
                         <Button
                             color="warning"
                             text={postButtonText}
-                            onClick={this.onPost} />}
-                    {this.state.dirty && <Button
-                        color="primary"
-                        text={gettext('Save')}
-                        onClick={this.onSave.bind(null, false)}
-                    />}
+                            onClick={this.onPost}
+                        />
+                    )}
+                    {this.state.dirty && (
+                        <Button
+                            color="primary"
+                            text={gettext('Save')}
+                            onClick={this.onSave.bind(null, false)}
+                        />
+                    )}
                 </Modal.Footer>
             </Modal>
         );

@@ -125,7 +125,7 @@ export class PreviewPanelComponent extends React.Component {
         return (
             <SidePanel shadowRight={true} bg00={true}>
                 <Header darkBlue={isEvent} darker={!isEvent}>
-                    <Tools tools={this.tools}/>
+                    <Tools tools={this.tools} />
                     <Tabs
                         tabs={this.tabs}
                         active={this.state.tab}
@@ -135,16 +135,18 @@ export class PreviewPanelComponent extends React.Component {
                 </Header>
                 {!this.props.previewLoading && this.props.item && (
                     <Content>
-                        {currentTab.label !== 'History' &&
-                        <PreviewHeader
-                            item={this.props.item}
-                            hideItemActions={this.props.hideItemActions}
-                            showUnlock={this.props.showUnlock}/>
-                        }
+                        {currentTab.label !== 'History' && (
+                            <PreviewHeader
+                                item={this.props.item}
+                                hideItemActions={this.props.hideItemActions}
+                                showUnlock={this.props.showUnlock}
+                            />
+                        )}
                         <RenderTab
                             item={this.props.item}
                             hideRelatedItems={this.props.hideRelatedItems}
-                            hideEditIcon={this.props.hideEditIcon} />
+                            hideEditIcon={this.props.hideEditIcon}
+                        />
                     </Content>
                 )}
             </SidePanel>

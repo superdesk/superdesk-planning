@@ -282,10 +282,13 @@ export class GeoLookupInputComponent extends React.Component {
 
         return (
             <div className="addgeolookup" ref={(node) => this.dom.parent = node}>
-                {get(initialValue, 'name') && <LocationItem
-                    location={initialValue}
-                    onRemoveLocation={this.removeLocation}
-                    readOnly={readOnly} />}
+                {get(initialValue, 'name') && (
+                    <LocationItem
+                        location={initialValue}
+                        onRemoveLocation={this.removeLocation}
+                        readOnly={readOnly}
+                    />
+                )}
                 <DebounceInput
                     minLength={2}
                     debounceTimeout={500}

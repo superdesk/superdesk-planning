@@ -179,18 +179,20 @@ export class ExpandableTextArea extends React.Component {
                 />
 
                 {this.state.showExpandedButton && (
-                    <div className={classNames(
-                        'sd-line-input__expand_btn',
-                        {
-                            'sd-line-input__expand_btn--hover': this.state.hover,
-                            'sd-line-input__expand_btn--focus': this.state.focus,
-                        }
-                    )}>
+                    <div
+                        className={classNames(
+                            'sd-line-input__expand_btn',
+                            {
+                                'sd-line-input__expand_btn--hover': this.state.hover,
+                                'sd-line-input__expand_btn--focus': this.state.focus,
+                            }
+                        )}
+                    >
                         <button onClick={this.toggleExpanded}>
                             {this.state.expanded ? (
-                                <i className="icon-chevron-up-thin"/>
+                                <i className="icon-chevron-up-thin" />
                             ) : (
-                                <i className="icon-chevron-down-thin"/>
+                                <i className="icon-chevron-down-thin" />
                             )}
                         </button>
                     </div>

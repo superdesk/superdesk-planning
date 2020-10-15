@@ -8,10 +8,12 @@ import classNames from 'classnames';
  * @description Footer Component of a side panel
  */
 export const Footer = ({children, className}) => (
-    <div className={classNames(
-        'side-panel__footer',
-        className
-    )}>
+    <div
+        className={classNames(
+            'side-panel__footer',
+            className
+        )}
+    >
         {children}
     </div>
 );

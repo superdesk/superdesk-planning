@@ -41,11 +41,16 @@ export const DateTimeInput = ({
     toBeConfirmed,
     ...props
 }) => (
-    <Row flex={true} halfWidth={halfWidth} noPadding={!!invalid} className={{
-        'date-time-input__row': true,
-        'date-time-input__row--required': required,
-        'date-time-input__row--invalid': invalid,
-    }}>
+    <Row
+        flex={true}
+        halfWidth={halfWidth}
+        noPadding={!!invalid}
+        className={{
+            'date-time-input__row': true,
+            'date-time-input__row--required': required,
+            'date-time-input__row--invalid': invalid,
+        }}
+    >
         <Field
             row={false}
             component={DateInput}
@@ -70,39 +75,43 @@ export const DateTimeInput = ({
             halfWidth={!hideTime}
         />
 
-        {!hideTime && <Field
-            row={false}
-            component={TimeInput}
-            field={timeField ? timeField : `${field}.time`}
-            value={timeField ? get(diff, timeField) : value}
-            item={item}
-            diff={diff}
-            readOnly={readOnly}
-            onChange={onChange}
-            errors={errors}
-            showErrors={showErrors}
-            noMargin={!invalid}
-            popupContainer={popupContainer}
-            onFocus={onFocus}
-            onPopupOpen={onPopupOpen}
-            onPopupClose={onPopupClose}
-            remoteTimeZone={remoteTimeZone}
-            canClear={canClear}
-            allowInvalidText={allowInvalidTime}
-            isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
-            halfWidth={!hideTime}
-            showToBeConfirmed={showToBeConfirmed}
-            onToBeConfirmed={onToBeConfirmed}
-            toBeConfirmed={toBeConfirmed}
-        />}
-        {canClear && <Button
-            onClick={() => onChange(field, null)}
-            icon="icon-close-small"
-            size="small"
-            iconOnly={true}
-            title={gettext('Clear date and time')}
-            className="btn--icon-only-circle"
-        />}
+        {!hideTime && (
+            <Field
+                row={false}
+                component={TimeInput}
+                field={timeField ? timeField : `${field}.time`}
+                value={timeField ? get(diff, timeField) : value}
+                item={item}
+                diff={diff}
+                readOnly={readOnly}
+                onChange={onChange}
+                errors={errors}
+                showErrors={showErrors}
+                noMargin={!invalid}
+                popupContainer={popupContainer}
+                onFocus={onFocus}
+                onPopupOpen={onPopupOpen}
+                onPopupClose={onPopupClose}
+                remoteTimeZone={remoteTimeZone}
+                canClear={canClear}
+                allowInvalidText={allowInvalidTime}
+                isLocalTimeZoneDifferent={isLocalTimeZoneDifferent}
+                halfWidth={!hideTime}
+                showToBeConfirmed={showToBeConfirmed}
+                onToBeConfirmed={onToBeConfirmed}
+                toBeConfirmed={toBeConfirmed}
+            />
+        )}
+        {canClear && (
+            <Button
+                onClick={() => onChange(field, null)}
+                icon="icon-close-small"
+                size="small"
+                iconOnly={true}
+                title={gettext('Clear date and time')}
+                className="btn--icon-only-circle"
+            />
+        )}
     </Row>
 );
 

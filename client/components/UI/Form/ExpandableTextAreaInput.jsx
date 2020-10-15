@@ -23,7 +23,7 @@ export const ExpandableTextAreaInput = ({
     ...props
 }) => (
     <LineInput {...props} invalid={invalid} readOnly={readOnly}>
-        <Label text={label} icon={labelIcon}/>
+        <Label text={label} icon={labelIcon} />
         <ExpandableTextArea
             field={field}
             value={value}
@@ -35,11 +35,11 @@ export const ExpandableTextAreaInput = ({
             refNode={refNode}
         />
 
-        {maxLength > 0 &&
+        {maxLength > 0 && (
             <div className="sd-line-input__char-count">
                 {get(value, 'length', 0)}/{maxLength}
             </div>
-        }
+        )}
     </LineInput>
 );
 

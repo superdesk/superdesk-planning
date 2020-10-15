@@ -15,19 +15,30 @@ export const AgendaItem = ({agenda, deleteAgenda, editAgenda, privileges, active
                 <time>{gettext('updated') + ' ' + moment(agenda._updated).fromNow()}</time>
             </List.Row>
         </List.Column>
-        {!!privileges[PRIVILEGES.AGENDA_MANAGEMENT] &&
+        {!!privileges[PRIVILEGES.AGENDA_MANAGEMENT] && (
             <List.ActionMenu>
-                {editAgenda && <button onClick={editAgenda.bind(null, agenda)} className="dropdown__toggle"
-                    data-sd-tooltip={gettext(TOOLTIPS.editAgenda)} data-flow="left">
-                    <i className="icon-pencil"/>
-                </button>}
-                {get(agenda, 'plannings.length', 0) === 0 && !!privileges[PRIVILEGES.DELETE_AGENDA] &&
-                <button onClick={deleteAgenda.bind(null, agenda)} className="dropdown__toggle"
-                    data-sd-tooltip={gettext(TOOLTIPS.deleteAgenda)} data-flow="left">
-                    <i className="icon-trash"/>
-                </button>}
+                {editAgenda && (
+                    <button
+                        onClick={editAgenda.bind(null, agenda)}
+                        className="dropdown__toggle"
+                        data-sd-tooltip={gettext(TOOLTIPS.editAgenda)}
+                        data-flow="left"
+                    >
+                        <i className="icon-pencil" />
+                    </button>
+                )}
+                {get(agenda, 'plannings.length', 0) === 0 && !!privileges[PRIVILEGES.DELETE_AGENDA] && (
+                    <button
+                        onClick={deleteAgenda.bind(null, agenda)}
+                        className="dropdown__toggle"
+                        data-sd-tooltip={gettext(TOOLTIPS.deleteAgenda)}
+                        data-flow="left"
+                    >
+                        <i className="icon-trash" />
+                    </button>
+                )}
             </List.ActionMenu>
-        }
+        )}
     </List.Item>
 );
 

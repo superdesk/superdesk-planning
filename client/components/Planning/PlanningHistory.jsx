@@ -98,69 +98,80 @@ export class PlanningHistory extends React.Component {
                         const historyElement = this.getHistoryActionElement(historyItem);
 
                         if (postElement || historyElement) {
-                            return (<li className="item" key={historyItem._id}>
-                                <div>
-                                    {postElement}
-                                    {historyElement}
+                            return (
+                                <li className="item" key={historyItem._id}>
                                     <div>
-                                        {historyItem.operation === HISTORY_OPERATIONS.EDITED &&
-                                            <div className="more-description">
+                                        {postElement}
+                                        {historyElement}
+                                        <div>
+                                            {historyItem.operation === HISTORY_OPERATIONS.EDITED && (
+                                                <div className="more-description">
                                                 Updated Fields:
-                                                { // List updated fields as comma separated
-                                                    <span>&nbsp;{Object.keys(historyItem.update).map((field) => field)
-                                                        .join(', ')}</span>
-                                                }
-                                            </div>
-                                        }
-                                        {historyItem.operation === HISTORY_OPERATIONS.DUPLICATE && (
-                                            <div className="history-list__link">
-                                                <a onClick={this.closeAndOpenDuplicate.bind(
-                                                    this,
-                                                    historyItem.update.duplicate_id
-                                                )}>
-                                                    {gettext('View duplicate planning item')}
-                                                </a>
-                                            </div>
-                                        )}
-                                        {historyItem.operation === HISTORY_OPERATIONS.DUPLICATE_FROM && (
-                                            <div className="history-list__link">
-                                                <a onClick={this.closeAndOpenDuplicate.bind(
-                                                    this,
-                                                    historyItem.update.duplicate_id
-                                                )}>
-                                                    {gettext('View original planning item')}
-                                                </a>
-                                            </div>
-                                        )}
-                                        {(historyItem.operation === PLANNING.HISTORY_OPERATIONS.CREATE_EVENT ||
+                                                    { // List updated fields as comma separated
+                                                        <span>&nbsp;{Object.keys(historyItem.update)
+                                                            .map((field) => field)
+                                                            .join(', ')
+                                                        }</span>
+                                                    }
+                                                </div>
+                                            )}
+                                            {historyItem.operation === HISTORY_OPERATIONS.DUPLICATE && (
+                                                <div className="history-list__link">
+                                                    <a
+                                                        onClick={this.closeAndOpenDuplicate.bind(
+                                                            this,
+                                                            historyItem.update.duplicate_id
+                                                        )}
+                                                    >
+                                                        {gettext('View duplicate planning item')}
+                                                    </a>
+                                                </div>
+                                            )}
+                                            {historyItem.operation === HISTORY_OPERATIONS.DUPLICATE_FROM && (
+                                                <div className="history-list__link">
+                                                    <a
+                                                        onClick={this.closeAndOpenDuplicate.bind(
+                                                            this,
+                                                            historyItem.update.duplicate_id
+                                                        )}
+                                                    >
+                                                        {gettext('View original planning item')}
+                                                    </a>
+                                                </div>
+                                            )}
+                                            {(historyItem.operation === PLANNING.HISTORY_OPERATIONS.CREATE_EVENT ||
                                             historyItem.operation === HISTORY_OPERATIONS.CREATE) &&
                                             get(historyItem, 'update.event_item') && (
-                                            <div className="history-list__link">
-                                                <a onClick={this.closeAndOpenDuplicate.bind(
-                                                    this,
-                                                    historyItem.update.event_item,
-                                                    ITEM_TYPE.EVENT
-                                                )}>
-                                                    {gettext('View associated event')}
-                                                </a>
-                                            </div>
-                                        )}
+                                                <div className="history-list__link">
+                                                    <a
+                                                        onClick={this.closeAndOpenDuplicate.bind(
+                                                            this,
+                                                            historyItem.update.event_item,
+                                                            ITEM_TYPE.EVENT
+                                                        )}
+                                                    >
+                                                        {gettext('View associated event')}
+                                                    </a>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            </li>);
+                                </li>
+                            );
                         }
 
                         return null;
                     })}
                 </ul>
-                {Object.keys(groupedCoverageHistory).map((historyKey) =>
+                {Object.keys(groupedCoverageHistory).map((historyKey) => (
                     <CoverageHistory
                         key={historyKey}
                         historyData={groupedCoverageHistory[historyKey]}
                         users={this.props.users}
                         desks={this.props.desks}
                         contentTypes={this.props.contentTypes}
-                    />)
+                    />
+                ))
                 }
             </ContentBlock>
         );

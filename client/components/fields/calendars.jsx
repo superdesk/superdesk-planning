@@ -10,25 +10,34 @@ export const calendars = ({item, calendars, grow}) => {
     let tooltipElem = get(item, 'calendars', []).map((c) =>
         <div key={c.qcode}>{c.name}{!isCalendarActive(c) ? ' (Disabled)' : ''}</div>);
 
-    return (<Fragment>
-        <span className="sd-list-item__text-label">{gettext('Calendar:')}</span>
-        {<span className="sd-overflow-ellipsis sd-list-item__text-strong sd-list-item--element-rm-10">
-            {get(item, 'calendars.length', 0) > 0 && (<OverlayTrigger
-                placement="left" overlay={<Tooltip id="location_tooltip" className="tooltip--text-left">
-                    {tooltipElem}
-                </Tooltip>}>
-                <span>
-                    {item.calendars.map((c, index, arr) => (
-                        <span
-                            key={c.qcode}
-                            className={!isCalendarActive(c) ? 'sd-list-item__text--disabled' : ''}>
-                            {c.name}{index === arr.length - 1 ? '' : ', '}
-                        </span>
-                    ))}</span>
-            </OverlayTrigger>)}
-            {get(item, 'calendars.length', 0) === 0 && <span>{gettext('No  calendar assigned')}</span>}
-        </span>}
-    </Fragment>);
+    return (
+        <Fragment>
+            <span className="sd-list-item__text-label">{gettext('Calendar:')}</span>
+            {<span className="sd-overflow-ellipsis sd-list-item__text-strong sd-list-item--element-rm-10">
+                {get(item, 'calendars.length', 0) > 0 && (
+                    <OverlayTrigger
+                        placement="left"
+                        overlay={(
+                            <Tooltip id="location_tooltip" className="tooltip--text-left">
+                                {tooltipElem}
+                            </Tooltip>
+                        )}
+                    >
+                        <span>
+                            {item.calendars.map((c, index, arr) => (
+                                <span
+                                    key={c.qcode}
+                                    className={!isCalendarActive(c) ? 'sd-list-item__text--disabled' : ''}
+                                >
+                                    {c.name}{index === arr.length - 1 ? '' : ', '}
+                                </span>
+                            ))}</span>
+                    </OverlayTrigger>
+                )}
+                {get(item, 'calendars.length', 0) === 0 && <span>{gettext('No  calendar assigned')}</span>}
+            </span>}
+        </Fragment>
+    );
 };
 
 calendars.propTypes = {

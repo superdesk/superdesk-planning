@@ -17,7 +17,8 @@ export default function CustomVocabulariesFields(
     return customVocabularies
         .filter((cv) => get(formProfile, `editor.${cv._id}.enabled`))
         .map((cv) => (
-            <Field key={cv._id}
+            <Field
+                key={cv._id}
                 enabled={true} // avoid further checks in Field
                 component={SelectMetaTermsInput}
                 field={cv.schema_field || 'subject'}

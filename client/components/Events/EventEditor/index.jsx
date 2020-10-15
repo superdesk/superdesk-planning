@@ -335,7 +335,8 @@ export class EventEditorComponent extends React.Component {
                         {...fieldProps}
                         onFocus={onFocusContacts}
                         paddingTop={!!onFocusContacts}
-                        {...popupProps} />
+                        {...popupProps}
+                    />
 
                     <Field
                         component={SelectInput}
@@ -355,7 +356,8 @@ export class EventEditorComponent extends React.Component {
                         scrollInView={true}
                         invalid={detailsErrored && (dirty || submitFailed)}
                         forceScroll={editorMenuUtils.forceScroll(navigation, 'details')}
-                        paddingTop={!!onFocusDetails} >
+                        paddingTop={!!onFocusDetails}
+                    >
                         <Field
                             component={SelectMetaTermsInput}
                             field="anpa_category"
@@ -368,17 +370,19 @@ export class EventEditorComponent extends React.Component {
                             {...popupProps}
                         />
 
-                        {!!get(formProfile, 'editor.subject.enabled') && <Field
-                            component={SelectMetaTermsInput}
-                            field="subject"
-                            label={gettext('Subject')}
-                            options={subjects}
-                            defaultValue={[]}
-                            {...fieldProps}
-                            onFocus={onFocusDetails}
-                            popupContainer={this.props.popupContainer}
-                            {...popupProps}
-                        />}
+                        {!!get(formProfile, 'editor.subject.enabled') && (
+                            <Field
+                                component={SelectMetaTermsInput}
+                                field="subject"
+                                label={gettext('Subject')}
+                                options={subjects}
+                                defaultValue={[]}
+                                {...fieldProps}
+                                onFocus={onFocusDetails}
+                                popupContainer={this.props.popupContainer}
+                                {...popupProps}
+                            />
+                        )}
 
                         <CustomVocabulariesFields
                             customVocabularies={customVocabularies}
@@ -425,19 +429,22 @@ export class EventEditorComponent extends React.Component {
                         invalid={!!errors.files && (dirty || submitFailed)}
                         forceScroll={editorMenuUtils.forceScroll(navigation, 'files')}
                         paddingTop={!!onFocusFiles}
-                        badgeValue={getCountOfProperty('files')} >
+                        badgeValue={getCountOfProperty('files')}
+                    >
                         <div className={this.state.uploading ? 'sd-loader' : ''}>
-                            { !this.state.uploading && <Field
-                                component={FileInput}
-                                field="files"
-                                createLink={getFileDownloadURL}
-                                defaultValue={[]}
-                                {...fieldProps}
-                                onFocus={onFocusFiles}
-                                files={files}
-                                onAddFiles={this.onAddFiles}
-                                onRemoveFile={this.onRemoveFile}
-                            />}
+                            { !this.state.uploading && (
+                                <Field
+                                    component={FileInput}
+                                    field="files"
+                                    createLink={getFileDownloadURL}
+                                    defaultValue={[]}
+                                    {...fieldProps}
+                                    onFocus={onFocusFiles}
+                                    files={files}
+                                    onAddFiles={this.onAddFiles}
+                                    onRemoveFile={this.onRemoveFile}
+                                />
+                            )}
                         </div>
                     </ToggleBox>
 
@@ -450,7 +457,8 @@ export class EventEditorComponent extends React.Component {
                         invalid={!!errors.links && (dirty || submitFailed)}
                         forceScroll={editorMenuUtils.forceScroll(navigation, 'links')}
                         paddingTop={!!onFocusLinks}
-                        badgeValue={getCountOfProperty('links')}>
+                        badgeValue={getCountOfProperty('links')}
+                    >
                         <Field
                             component={InputArray}
                             field="links"

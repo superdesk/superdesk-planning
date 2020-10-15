@@ -95,7 +95,8 @@ export class UnspikeEventComponent extends React.Component {
                     updateMethodLabel={gettext('Unspike all recurring events or just this one?')}
                     showSpace={false}
                     readOnly={submitting}
-                    action="spike" />
+                    action="spike"
+                />
             </div>
         );
     }

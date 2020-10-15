@@ -15,13 +15,16 @@ export const location = ({item, fieldsProps}) => {
     }
 
     return (
-        <span className={classNames('sd-overflow-ellipsis sd-list-item--element-grow',
-            {'sd-list-item__element-lm-10': !get(locationProps, 'noMargin')})}>
+        <span
+            className={classNames('sd-overflow-ellipsis sd-list-item--element-grow',
+                {'sd-list-item__element-lm-10': !get(locationProps, 'noMargin')})}
+        >
             <Location
                 name={get(item, 'location.name')}
                 address={get(item, 'location.formatted_address')}
             />
-        </span>);
+        </span>
+    );
 };
 
 location.propTypes = {

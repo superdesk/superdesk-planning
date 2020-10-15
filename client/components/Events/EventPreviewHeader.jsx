@@ -74,7 +74,7 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
                     doubleSize={true}
                 />
 
-                {lockRestricted &&
+                {lockRestricted && (
                     <div className="side-panel__top-tools-left">
                         <LockContainer
                             lockedUser={lockedUser}
@@ -86,13 +86,13 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
                             noMargin={true}
                         />
                     </div>
-                }
+                )}
 
-                {get(itemActions, 'length', 0) > 0 &&
+                {get(itemActions, 'length', 0) > 0 && (
                     <div className="side-panel__top-tools-right">
-                        <ItemActionsMenu actions={itemActions} wide={true}/>
+                        <ItemActionsMenu actions={itemActions} wide={true} />
                     </div>
-                }
+                )}
             </Tools>
         );
     }

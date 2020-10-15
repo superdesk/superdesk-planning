@@ -90,49 +90,60 @@ export class SelectUserInput extends React.Component {
                             <Label text={label} />
 
                             {value && (
-                                <div className="user-search__popup-user" onClick={this.openPopup}
-                                    style={inline ? {margin: 0} : {}}>
+                                <div
+                                    className="user-search__popup-user"
+                                    onClick={this.openPopup}
+                                    style={inline ? {margin: 0} : {}}
+                                >
                                     <UserAvatar user={value} />
                                     <div className="user-search__popup-item-label">{value.display_name}</div>
-                                    {!readOnly && <button type="button" onClick={this.onUserChange.bind(null, null)}>
-                                        <i className="icon-close-small"/>
-                                    </button>}
+                                    {!readOnly && (
+                                        <button type="button" onClick={this.onUserChange.bind(null, null)}>
+                                            <i className="icon-close-small" />
+                                        </button>
+                                    )}
                                 </div>
                             )}
                         </LineInput>
                     </Row>
                 )}
 
-                {!readOnly && (!inline || !value) && <Row noPadding={inline}>
-                    <LineInput isSelect={true} noLabel={!!value}
-                        onClick={this.openPopup} noPadding={inline}>
-                        <Input
-                            className="sd-line-input--no-label"
-                            value={this.state.searchText}
-                            onChange={this.filterUserList}
+                {!readOnly && (!inline || !value) && (
+                    <Row noPadding={inline}>
+                        <LineInput
+                            isSelect={true}
+                            noLabel={!!value}
                             onClick={this.openPopup}
-                            placeholder="Search"
-                            onKeyDown={(event) => {
-                                if (event.keyCode === KEYCODES.ENTER ||
+                            noPadding={inline}
+                        >
+                            <Input
+                                className="sd-line-input--no-label"
+                                value={this.state.searchText}
+                                onChange={this.filterUserList}
+                                onClick={this.openPopup}
+                                placeholder="Search"
+                                onKeyDown={(event) => {
+                                    if (event.keyCode === KEYCODES.ENTER ||
                                     event.keyCode === KEYCODES.DOWN) {
-                                    onEventCapture(event);
-                                    this.openPopup();
+                                        onEventCapture(event);
+                                        this.openPopup();
+                                    }
                                 }
-                            }
-                            }
-                        />
-
-                        {this.state.openFilterList && (
-                            <SelectUserPopup
-                                onClose={this.closePopup}
-                                target="sd-line-input__input"
-                                popupContainer={popupContainer}
-                                users={this.state.filteredUserList}
-                                onChange={this.onUserChange}
+                                }
                             />
-                        )}
-                    </LineInput>
-                </Row>}
+
+                            {this.state.openFilterList && (
+                                <SelectUserPopup
+                                    onClose={this.closePopup}
+                                    target="sd-line-input__input"
+                                    popupContainer={popupContainer}
+                                    users={this.state.filteredUserList}
+                                    onChange={this.onUserChange}
+                                />
+                            )}
+                        </LineInput>
+                    </Row>
+                )}
             </div>
         );
     }

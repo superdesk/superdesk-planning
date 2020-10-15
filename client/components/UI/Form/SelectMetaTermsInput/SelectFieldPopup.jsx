@@ -321,7 +321,8 @@ export class SelectFieldPopup extends React.Component {
                             <li key={g}>
                                 <div className="Select__popup__group">{g}</div>
                                 {renderList(groupsList[g], g)}
-                            </li>))
+                            </li>
+                        ))
                         }
                         {this.state.filteredList.length === 0 &&
                             <li>{gettext('No items found')}</li>
@@ -353,7 +354,7 @@ export class SelectFieldPopup extends React.Component {
                     <div className="Select__popup__search">
                         { this.state.currentParent && (
                             <div className="search-handler">
-                                <i className="backlink" onClick={this.popParent}/>
+                                <i className="backlink" onClick={this.popParent} />
                                 <button
                                     type="button"
                                     className={classNames(

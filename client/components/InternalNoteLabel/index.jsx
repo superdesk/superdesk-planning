@@ -30,37 +30,41 @@ export const InternalNoteLabel = ({
 
     return !showTooltip ? (
         <div className={className}>
-            <i className={classNames(
-                'internal-note__label',
-                'icon-info-sign',
-                `icon--${iconColor}`,
-                {
-                    'internal-note__label--margin-right': marginRight,
-                    'internal-note__label--margin-left': marginLeft,
-                }
-            )} />{showText && internalNote}</div>
+            <i
+                className={classNames(
+                    'internal-note__label',
+                    'icon-info-sign',
+                    `icon--${iconColor}`,
+                    {
+                        'internal-note__label--margin-right': marginRight,
+                        'internal-note__label--margin-left': marginLeft,
+                    }
+                )}
+            />{showText && internalNote}</div>
     ) : (
         <OverlayTrigger
-            overlay={
+            overlay={(
                 <Tooltip id="internal_note_popup" className="tooltip--text-left">
                     {showHeaderText && gettext('Internal Note:')}
-                    {showHeaderText && <br/>}
+                    {showHeaderText && <br />}
                     {internalNote
                         .split('\n')
-                        .map((item, key) => <span key={key}>{item}<br/></span>)
+                        .map((item, key) => <span key={key}>{item}<br /></span>)
                     }
                 </Tooltip>
-            }
+            )}
         >
-            <i className={classNames(
-                'internal-note__label',
-                'icon-info-sign',
-                `icon--${iconColor}`,
-                {
-                    'internal-note__label--margin-right': marginRight,
-                    'internal-note__label--margin-left': marginLeft,
-                }
-            )} />
+            <i
+                className={classNames(
+                    'internal-note__label',
+                    'icon-info-sign',
+                    `icon--${iconColor}`,
+                    {
+                        'internal-note__label--margin-right': marginRight,
+                        'internal-note__label--margin-left': marginLeft,
+                    }
+                )}
+            />
         </OverlayTrigger>
     );
 };

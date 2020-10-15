@@ -42,23 +42,29 @@ export const EventPreview = ({item, formProfile, createLink, files}) => {
                 <Row
                     rowItem={true}
                     label={gettext('From')}
-                    value={<Datetime
-                        date={get(item, 'dates.start')}
-                        darkText={true}
-                        ignoreAllDay
-                        isRemoteTimeZone={isRemoteTimeZone}
-                        tz={get(item, 'dates.tz')}/>}
+                    value={(
+                        <Datetime
+                            date={get(item, 'dates.start')}
+                            darkText={true}
+                            ignoreAllDay
+                            isRemoteTimeZone={isRemoteTimeZone}
+                            tz={get(item, 'dates.tz')}
+                        />
+                    )}
                 />
 
                 <Row
                     rowItem={true}
                     label={gettext('To')}
-                    value={<Datetime
-                        date={get(item, 'dates.end')}
-                        darkText={true}
-                        ignoreAllDay
-                        isRemoteTimeZone={isRemoteTimeZone}
-                        tz={get(item, 'dates.tz')}/>}
+                    value={(
+                        <Datetime
+                            date={get(item, 'dates.end')}
+                            darkText={true}
+                            ignoreAllDay
+                            isRemoteTimeZone={isRemoteTimeZone}
+                            tz={get(item, 'dates.tz')}
+                        />
+                    )}
                 />
             </Row>
 
@@ -120,24 +126,27 @@ export const EventPreview = ({item, formProfile, createLink, files}) => {
                     files={files}
                     item={item}
                     createLink={createLink}
-                    noToggle />
+                    noToggle
+                />
             </Row>
 
             <Row
                 enabled={get(formProfile, 'editor.links.enabled')}
                 label={gettext('Links')}
             >
-                {get(item, 'links.length', 0) &&
+                {get(item, 'links.length', 0) && (
                     <ul>
-                        {get(item, 'links').map((link, index) =>
+                        {get(item, 'links').map((link, index) => (
                             <li key={index}>
                                 <LinkInput
                                     value={link}
                                     readOnly={true}
                                 />
                             </li>
+                        )
                         )}
                     </ul>
+                )
                 ||
                     <p><span className="sd-text__info">{gettext('No external links added.')}</span></p>
                 }

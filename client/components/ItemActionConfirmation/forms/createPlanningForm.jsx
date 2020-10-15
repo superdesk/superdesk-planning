@@ -40,7 +40,7 @@ export class CreatePlanningComponent extends React.Component {
     render() {
         return (
             <FormRow noPadding>
-                <Label text={gettext('Agenda')} row={true}/>
+                <Label text={gettext('Agenda')} row={true} />
                 <Field
                     component={SelectMetaTermsInput}
                     field="agenda"

@@ -62,16 +62,18 @@ export class FileInput extends React.Component {
 
         return readOnly ? (
             <Row key={index} noPadding>
-                {get(val, 'media') && (<LineInput noMargin={noMargin}>
-                    <a
-                        href={createLink(val)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        {val.media.name}&nbsp;
+                {get(val, 'media') && (
+                    <LineInput noMargin={noMargin}>
+                        <a
+                            href={createLink(val)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {val.media.name}&nbsp;
                         ({Math.round(val.media.length / 1024)}kB)
-                    </a>
-                </LineInput>)}
+                        </a>
+                    </LineInput>
+                )}
             </Row>
         ) : (
             <Row className="file-input" key={index} noPadding>
@@ -136,28 +138,36 @@ export class FileInput extends React.Component {
     render() {
         const {field, readOnly, onFocus, hideInput, label, formats} = this.props;
 
-        return (<Row>
-            <Label text={label} />
-            {this.getFileItems()}
-            {!hideInput && !readOnly && <div onDrop={this.onDrop}
-                onDragEnter={this.onDragEnter} className="basic-drag-block">
-                <i className="big-icon--upload-alt" />
-                <span className="basic-drag-block__text">{gettext('Drag files here or') + ' '}</span>
-                <a className="text-link link" onClick={this.onBrowseClick}>&nbsp;{gettext('browse')}
-                    <Input
-                        className="file-input--hidden"
-                        field={field}
-                        onChange={this.onAdd}
-                        type="file"
-                        accept={formats}
-                        onFocus={onFocus}
-                        autoFocus
-                        refNode={(node) => {
-                            this.dom.fileInput = node;
-                        }} />
-                </a>
-            </div>}
-        </Row>);
+        return (
+            <Row>
+                <Label text={label} />
+                {this.getFileItems()}
+                {!hideInput && !readOnly && (
+                    <div
+                        onDrop={this.onDrop}
+                        onDragEnter={this.onDragEnter}
+                        className="basic-drag-block"
+                    >
+                        <i className="big-icon--upload-alt" />
+                        <span className="basic-drag-block__text">{gettext('Drag files here or') + ' '}</span>
+                        <a className="text-link link" onClick={this.onBrowseClick}>&nbsp;{gettext('browse')}
+                            <Input
+                                className="file-input--hidden"
+                                field={field}
+                                onChange={this.onAdd}
+                                type="file"
+                                accept={formats}
+                                onFocus={onFocus}
+                                autoFocus
+                                refNode={(node) => {
+                                    this.dom.fileInput = node;
+                                }}
+                            />
+                        </a>
+                    </div>
+                )}
+            </Row>
+        );
     }
 }
 

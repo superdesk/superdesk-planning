@@ -56,10 +56,12 @@ export const EventScheduleSummary = ({schedule, noPadding, forUpdating, useEvent
                 value={currentDateText || ''}
                 noPadding={noPadding || isRemoteTimeZone}
             />
-            {isRemoteTimeZone && <Row
-                value={remoteDateText || ''}
-                noPadding={noPadding}
-            />}
+            {isRemoteTimeZone && (
+                <Row
+                    value={remoteDateText || ''}
+                    noPadding={noPadding}
+                />
+            )}
 
             {doesRepeat && (
                 <Row noPadding={noPadding}>

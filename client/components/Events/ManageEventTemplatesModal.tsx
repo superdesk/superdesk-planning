@@ -59,11 +59,13 @@ export class ManageEventTemplatesModal extends React.PureComponent<IProps> {
                     {getFormFieldPreviewComponent(item, nameField)}
                 </ListItemColumn>
                 <ListItemColumn noBorder>
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                    }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                        }}
+                    >
                         <button onClick={() => page.startEditing(item._id)}>
                             <i className="icon-pencil" />
                         </button>

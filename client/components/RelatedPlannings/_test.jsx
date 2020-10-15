@@ -63,8 +63,10 @@ describe('<RelatedPlannings />', () => {
 
         const wrapper = mount(
             <Provider store={store}>
-                <RelatedPlannings plannings={selectors.events.getRelatedPlannings(store.getState())}
-                    openPlanning={true} />
+                <RelatedPlannings
+                    plannings={selectors.events.getRelatedPlannings(store.getState())}
+                    openPlanning={true}
+                />
             </Provider>
         );
 

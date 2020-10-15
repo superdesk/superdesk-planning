@@ -86,7 +86,7 @@ export class AddToPlanningController {
 
         ReactDOM.render(
             <Provider store={this.store}>
-                <ModalsContainer/>
+                <ModalsContainer />
             </Provider>,
             this.$element.get(0)
         );

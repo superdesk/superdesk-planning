@@ -19,13 +19,14 @@ export const AgendaList = ({
             editAgenda={editAgenda ? editAgenda : null}
             deleteAgenda={deleteAgenda.bind(this, agenda)}
             key={agenda._id}
-            active={agenda.is_enabled} />
+            active={agenda.is_enabled}
+        />
     )) :
         <span>{gettext('There are no {{ status }} agendas', {status: gettext(status)})}</span>;
 
     return (
         <div>
-            <List.Header title={gettext(status) + ' ' + gettext('agendas')} marginTop={status === 'disabled'}/>
+            <List.Header title={gettext(status) + ' ' + gettext('agendas')} marginTop={status === 'disabled'} />
             <List.Group spaceBetween={true}>
                 { agendaItems }
             </List.Group>

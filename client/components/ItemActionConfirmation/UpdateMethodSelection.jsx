@@ -19,7 +19,7 @@ export const UpdateMethodSelection = ({
     readOnly,
 }) => (
     <div>
-        { showMethodSelection &&
+        { showMethodSelection && (
             <div className="MethodSelect">
                 <p><strong>{gettext('This event is a recurring event!')}</strong></p>
                 <EventUpdateMethodInput
@@ -27,9 +27,10 @@ export const UpdateMethodSelection = ({
                     value={value}
                     onChange={onChange}
                     disabled={readOnly}
-                    label={updateMethodLabel}/>
+                    label={updateMethodLabel}
+                />
             </div>
-        }
+        )}
 
         { relatedPlannings.length > 0 && (
             <div>
@@ -38,7 +39,8 @@ export const UpdateMethodSelection = ({
                     <RelatedPlannings
                         plannings={relatedPlannings}
                         openPlanningItem={true}
-                        short={true} />
+                        short={true}
+                    />
                 </div>
             </div>
         )}

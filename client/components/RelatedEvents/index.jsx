@@ -19,7 +19,7 @@ export const RelatedEvents = ({events, originalEvent}) => (
 
             return (
                 <li key={_id}>
-                    <i className="icon-list-alt"/>&nbsp;
+                    <i className="icon-list-alt" />&nbsp;
                     {state && state === WORKFLOW_STATE.SPIKED &&
                     <span className="label label--alert">spiked</span>
                     }

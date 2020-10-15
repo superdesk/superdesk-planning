@@ -94,7 +94,7 @@ export class EventItem extends React.Component {
 
         return (
             <ActionMenu>
-                <ItemActionsMenu actions={itemActions} wide={true}/>
+                <ItemActionsMenu actions={itemActions} wide={true} />
             </ActionMenu>
         );
     }
@@ -151,17 +151,21 @@ export class EventItem extends React.Component {
                     onCheckToggle={onMultiSelectClick.bind(null, item)}
                     color={!isExpired && ICON_COLORS.DARK_BLUE_GREY}
                 />
-                <PubStatus item={item} isPublic={isItemPosted(item) &&
-                    getItemWorkflowState(item) !== WORKFLOW_STATE.KILLED}/>
+                <PubStatus
+                    item={item}
+                    isPublic={isItemPosted(item) &&
+                    getItemWorkflowState(item) !== WORKFLOW_STATE.KILLED}
+                />
                 <Column
                     grow={true}
-                    border={false}>
+                    border={false}
+                >
                     <Row>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                             {renderFields(get(listFields, 'event.primary_fields',
                                 EVENTS.LIST.PRIMARY_FIELDS), item)}
                         </span>
-                        <EventDateTime item={item}/>
+                        <EventDateTime item={item} />
                     </Row>
                     <Row>
                         {isExpired && (
@@ -198,16 +202,19 @@ export class EventItem extends React.Component {
                         {secondaryFields.includes('files') && renderFields('files', item)}
 
 
-                        {(showRelatedPlanningLink) &&
+                        {(showRelatedPlanningLink) && (
                             <span
-                                className="sd-overflow-ellipsis sd-list-item__element-lm-10">
-                                <a className="sd-line-input__input--related-item-link"
-                                    onClick={toggleRelatedPlanning} >
+                                className="sd-overflow-ellipsis sd-list-item__element-lm-10"
+                            >
+                                <a
+                                    className="sd-line-input__input--related-item-link"
+                                    onClick={toggleRelatedPlanning}
+                                >
                                     <i className="icon-calendar" />
                                     {this.props.relatedPlanningText}
                                 </a>
                             </span>
-                        }
+                        )}
 
                         {secondaryFields.includes('location') && renderFields('location', item)}
 

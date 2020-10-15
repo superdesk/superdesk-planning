@@ -96,7 +96,7 @@ export class PlanningPreviewHeaderComponent extends React.Component {
 
                 <div className="side-panel__top-tools-right">
                     {get(itemActions, 'length', 0) > 0 &&
-                        <ItemActionsMenu actions={itemActions}/>
+                        <ItemActionsMenu actions={itemActions} />
                     }
                 </div>
             </Tools>

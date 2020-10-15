@@ -148,7 +148,7 @@ export class PlanningPreviewContentComponent extends React.Component {
                 <Row
                     enabled={get(formProfile, 'planning.editor.agendas.enabled')}
                     label={gettext('Agenda')}
-                    value={<AgendaNameList agendas={agendaList}/>}
+                    value={<AgendaNameList agendas={agendaList} />}
                 />
                 <ToggleBox title={gettext('Details')} isOpen={false}>
                     <Row
@@ -180,19 +180,22 @@ export class PlanningPreviewContentComponent extends React.Component {
                             borderBottom={false}
                         />
                     </Row>
-                    <Row enabled={
-                        get(formProfile, 'planning.editor.flags') &&
+                    <Row
+                        enabled={
+                            get(formProfile, 'planning.editor.flags') &&
                         get(item, 'flags.marked_for_not_publication', false)
-                    }>
+                        }
+                    >
                         <span className="state-label not-for-publication">{gettext('Not for Publication')}</span>
                     </Row>
                 </ToggleBox>
-                {get(formProfile, 'planning.editor.files.enabled') &&
+                {get(formProfile, 'planning.editor.files.enabled') && (
                     <ToggleBox
                         title={gettext('Attached Files')}
                         isOpen={false}
-                        badgeValue={get(item, 'files.length', 0) > 0 ? item.files.length : null}>
-                        {get(item, 'files.length') > 0 ?
+                        badgeValue={get(item, 'files.length', 0) > 0 ? item.files.length : null}
+                    >
+                        {get(item, 'files.length') > 0 ? (
                             <ul>
                                 {get(item, 'files', []).map((file, index) => (
                                     <li key={index}>
@@ -200,20 +203,23 @@ export class PlanningPreviewContentComponent extends React.Component {
                                             value={file}
                                             createLink={getFileDownloadURL}
                                             readOnly={true}
-                                            files={files} />
+                                            files={files}
+                                        />
                                     </li>
                                 ))}
-                            </ul> :
+                            </ul>
+                        ) :
                             <span className="sd-text__info">{gettext('No attached files added.')}</span>}
                     </ToggleBox>
-                }
+                )}
                 {!hideRelatedItems && event && (
                     <h3 className="side-panel__heading--big">
                         {gettext('Associated Event')}
                     </h3>
                 )}
                 {!hideRelatedItems && event && (
-                    <EventMetadata event={event}
+                    <EventMetadata
+                        event={event}
                         dateOnly={true}
                         onEditEvent={onEditEvent.bind(null, event)}
                         lockedItems={lockedItems}
@@ -225,20 +231,22 @@ export class PlanningPreviewContentComponent extends React.Component {
                 {hasCoverage &&
                     (<h3 className="side-panel__heading--big">{gettext('Coverages')}</h3>)}
                 {hasCoverage &&
-                    (item.coverages.map((c, index) => <CoveragePreview
-                        item={item}
-                        key={c.coverage_id}
-                        index={index}
-                        coverage={c}
-                        users= {users}
-                        desks= {desks}
-                        newsCoverageStatus={newsCoverageStatus}
-                        formProfile={formProfile.coverage}
-                        inner={inner}
-                        files={files}
-                        createLink={getFileDownloadURL}
-                        planningAllowScheduledUpdates={planningAllowScheduledUpdates}
-                    />))
+                    (item.coverages.map((c, index) => (
+                        <CoveragePreview
+                            item={item}
+                            key={c.coverage_id}
+                            index={index}
+                            coverage={c}
+                            users= {users}
+                            desks= {desks}
+                            newsCoverageStatus={newsCoverageStatus}
+                            formProfile={formProfile.coverage}
+                            inner={inner}
+                            files={files}
+                            createLink={getFileDownloadURL}
+                            planningAllowScheduledUpdates={planningAllowScheduledUpdates}
+                        />
+                    )))
                 }
             </ContentBlock>
         );

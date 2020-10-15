@@ -25,9 +25,11 @@ export default class Body extends React.Component<IProps> {
                         'modal__body--full-height': fullHeight,
                         'modal__body--no-scroll': noScroll,
                     }
-                )}>
+                )}
+            >
                 {children}
-            </_Modal.Body>);
+            </_Modal.Body>
+        );
     }
 }
 

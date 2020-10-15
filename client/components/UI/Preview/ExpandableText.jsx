@@ -56,7 +56,7 @@ export class ExpandableText extends React.Component {
         return (
             <p className={className} ref={this.setDomRef}>
                 {text.map((item, key) => (
-                    <span key={key}>{item}<br/></span>
+                    <span key={key}>{item}<br /></span>
                 ))}
             </p>
         );

@@ -44,7 +44,7 @@ class CreateNewSubnavDropdownFn extends React.Component {
             });
         }
 
-        return (items.length === 0 ? null :
+        return (items.length === 0 ? null : (
             <Dropdown
                 icon="icon-plus-large"
                 items={items}
@@ -56,6 +56,7 @@ class CreateNewSubnavDropdownFn extends React.Component {
                 scrollable
                 searchable
             />
+        )
         );
     }
 }

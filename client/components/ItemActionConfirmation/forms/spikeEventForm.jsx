@@ -100,14 +100,15 @@ export class SpikeEventComponent extends React.Component {
                     showSpace={false}
                     readOnly={submitting}
                     action="spike"
-                    relatedPlannings={this.state.relatedPlannings} />
+                    relatedPlannings={this.state.relatedPlannings}
+                />
 
-                {eventsInUse.length > 0 &&
+                {eventsInUse.length > 0 && (
                     <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">
                         <strong>{gettext('The following Events are in use and will not be spiked:')}</strong>
                         <RelatedEvents events={eventsInUse} />
                     </div>
-                }
+                )}
             </div>
         );
     }

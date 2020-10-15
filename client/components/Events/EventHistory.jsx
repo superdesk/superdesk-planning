@@ -52,13 +52,21 @@ export class EventHistory extends React.Component {
             return (
                 <span>
                     <strong>{text}</strong>
-                    <em><AbsoluteDate
-                        date={get(historyItem, 'update._reschedule_from_schedule')}/></em>
+                    <em>
+                        <AbsoluteDate
+                            date={get(historyItem, 'update._reschedule_from_schedule')}
+                        />
+                    </em>
                     {gettext(' by ')}
-                    <span className="user-name">{historyUtils.getDisplayUser(historyItem.user_id,
-                        this.props.users)}</span>
+                    <span className="user-name">
+                        {historyUtils.getDisplayUser(
+                            historyItem.user_id,
+                            this.props.users
+                        )}
+                    </span>
                     <em> <AbsoluteDate date={historyItem._created} /> </em>
-                </span>);
+                </span>
+            );
 
         case HISTORY_OPERATIONS.PLANNING_CREATED:
             text = gettext('Planning item created');
@@ -116,7 +124,7 @@ export class EventHistory extends React.Component {
                                         {postElement}
                                         {historyElement}
                                         <div>
-                                            {historyItem.operation === HISTORY_OPERATIONS.EDITED &&
+                                            {historyItem.operation === HISTORY_OPERATIONS.EDITED && (
                                                 <div className="more-description">
                                                     {gettext('Updated Fields:')}
                                                     { // List updated fields as comma separated
@@ -125,62 +133,78 @@ export class EventHistory extends React.Component {
                                                             .join(', ')}</span>
                                                     }
                                                 </div>
-                                            }
+                                            )}
                                             {historyItem.operation === HISTORY_OPERATIONS.PLANNING_CREATED && (
                                                 <div className="history-list__link">
-                                                    <a onClick={this.props.openItemPreview.bind(
-                                                        null, historyItem.update.planning_id, ITEM_TYPE.PLANNING)}>
+                                                    <a
+                                                        onClick={this.props.openItemPreview.bind(
+                                                            null, historyItem.update.planning_id, ITEM_TYPE.PLANNING)}
+                                                    >
                                                         {gettext('View planning item')}
                                                     </a>
-                                                </div>)
+                                                </div>
+                                            )
                                             }
 
                                             {historyItem.operation === HISTORY_OPERATIONS.DUPLICATE && (
                                                 <div className="history-list__link">
-                                                    <a onClick={this.closeAndOpenDuplicate.bind(this,
-                                                        historyItem.update.duplicate_id)}>
+                                                    <a
+                                                        onClick={this.closeAndOpenDuplicate.bind(this,
+                                                            historyItem.update.duplicate_id)}
+                                                    >
                                                         {gettext('View duplicate event')}
                                                     </a>
                                                 </div>
                                             )}
                                             {historyItem.operation === HISTORY_OPERATIONS.DUPLICATE_FROM && (
                                                 <div className="history-list__link">
-                                                    <a onClick={this.closeAndOpenDuplicate.bind(this,
-                                                        historyItem.update.duplicate_id)}>
+                                                    <a
+                                                        onClick={this.closeAndOpenDuplicate.bind(this,
+                                                            historyItem.update.duplicate_id)}
+                                                    >
                                                         {gettext('View original event')}
                                                     </a>
                                                 </div>
                                             )}
 
                                             {historyItem.operation === HISTORY_OPERATIONS.RESCHEDULE &&
-                                            get(historyItem, 'update.reschedule_to') &&
+                                            get(historyItem, 'update.reschedule_to') && (
                                                 <div className="history-list__link">
-                                                    <a onClick={this.closeAndOpenDuplicate.bind(this,
-                                                        historyItem.update.reschedule_to)}>
+                                                    <a
+                                                        onClick={this.closeAndOpenDuplicate.bind(this,
+                                                            historyItem.update.reschedule_to)}
+                                                    >
                                                         {gettext('View rescheduled event')}
                                                     </a>
                                                 </div>
-                                            }
+                                            )}
 
                                             {historyItem.operation === HISTORY_OPERATIONS.RESCHEDULE_FROM &&
-                                            get(historyItem, 'update.reschedule_from') &&
+                                            get(historyItem, 'update.reschedule_from') && (
                                                 <div className="history-list__link">
-                                                    <a onClick={this.closeAndOpenDuplicate.bind(this,
-                                                        historyItem.update.reschedule_from)}>
+                                                    <a
+                                                        onClick={this.closeAndOpenDuplicate.bind(this,
+                                                            historyItem.update.reschedule_from)}
+                                                    >
                                                         {gettext('View original event')}
                                                     </a>
                                                 </div>
-                                            }
+                                            )}
 
                                             {historyItem.operation === HISTORY_OPERATIONS.CREATED_FROM_PLANNING &&
-                                            get(historyItem, 'update.created_from_planning') &&
+                                            get(historyItem, 'update.created_from_planning') && (
                                                 <div className="history-list__link">
-                                                    <a onClick={this.props.openItemPreview.bind(this,
-                                                        historyItem.update.created_from_planning, ITEM_TYPE.PLANNING)}>
+                                                    <a
+                                                        onClick={this.props.openItemPreview.bind(
+                                                            this,
+                                                            historyItem.update.created_from_planning,
+                                                            ITEM_TYPE.PLANNING
+                                                        )}
+                                                    >
                                                         {gettext('View planning item')}
                                                     </a>
                                                 </div>
-                                            }
+                                            )}
 
                                         </div>
                                     </div>

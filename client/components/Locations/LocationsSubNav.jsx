@@ -38,15 +38,17 @@ export class LocationsSubNavComponent extends React.Component {
                         {label: 'Browse', action: this.props.browse}]}
                     tooltip={gettext('Select either Search or Browse the locations')}
                 />
-                {!this.props.editOpen &&
-                <Button
-                    className="sd-create-btn"
-                    icon="icon-plus-large"
-                    onClick={this.createLocation}
-                    empty={true}
-                    title={gettext('Create a new location')}>
-                    <span className="circle"/>
-                </Button>}
+                {!this.props.editOpen && (
+                    <Button
+                        className="sd-create-btn"
+                        icon="icon-plus-large"
+                        onClick={this.createLocation}
+                        empty={true}
+                        title={gettext('Create a new location')}
+                    >
+                        <span className="circle" />
+                    </Button>
+                )}
             </SubNav>
         );
     }

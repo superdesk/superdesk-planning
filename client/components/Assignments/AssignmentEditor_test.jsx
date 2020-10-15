@@ -38,7 +38,8 @@ describe('<AssignmentEditor />', () => {
                 desks={desks}
                 users={[]}
                 coverageProviders={[]}
-                priorities={[]} />
+                priorities={[]}
+            />
         </Provider>
     );
 

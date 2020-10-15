@@ -617,17 +617,19 @@ export class PlanningEditorComponent extends React.Component {
                             {...popupProps}
                         />
 
-                        {get(planningProfile, 'editor.subject.enabled') && <Field
-                            component={SelectMetaTermsInput}
-                            field="subject"
-                            label={gettext('Subject')}
-                            options={subjects}
-                            defaultValue={[]}
-                            {...fieldProps}
-                            onFocus={onFocusDetails}
-                            popupContainer={popupContainer}
-                            {...popupProps}
-                        />}
+                        {get(planningProfile, 'editor.subject.enabled') && (
+                            <Field
+                                component={SelectMetaTermsInput}
+                                field="subject"
+                                label={gettext('Subject')}
+                                options={subjects}
+                                defaultValue={[]}
+                                {...fieldProps}
+                                onFocus={onFocusDetails}
+                                popupContainer={popupContainer}
+                                {...popupProps}
+                            />
+                        )}
 
                         <CustomVocabulariesFields
                             customVocabularies={customVocabularies}
@@ -651,56 +653,62 @@ export class PlanningEditorComponent extends React.Component {
                             {...popupProps}
                         />
 
-                        {!get(item, 'pubstatus') && <Field
-                            component={ToggleInput}
-                            field="flags.marked_for_not_publication"
-                            label={gettext('Not for Publication')}
-                            labelLeft={true}
-                            defaultValue={false}
-                            title={gettext('When active, the Planning item will not be publishable')}
-                            {...fieldProps}
-                            onFocus={onFocusDetails}
-                        />}
-                        {appConfig.planning_auto_assign_to_workflow &&
-                        <Field
-                            component={ToggleInput}
-                            field="flags.overide_auto_assign_to_workflow"
-                            label={gettext('Forward Planning')}
-                            title={forwardPlanningTitle}
-                            labelLeft={true}
-                            defaultValue={false}
-                            {...fieldProps}
-                            onFocus={onFocusDetails}
-                        />}
+                        {!get(item, 'pubstatus') && (
+                            <Field
+                                component={ToggleInput}
+                                field="flags.marked_for_not_publication"
+                                label={gettext('Not for Publication')}
+                                labelLeft={true}
+                                defaultValue={false}
+                                title={gettext('When active, the Planning item will not be publishable')}
+                                {...fieldProps}
+                                onFocus={onFocusDetails}
+                            />
+                        )}
+                        {appConfig.planning_auto_assign_to_workflow && (
+                            <Field
+                                component={ToggleInput}
+                                field="flags.overide_auto_assign_to_workflow"
+                                label={gettext('Forward Planning')}
+                                title={forwardPlanningTitle}
+                                labelLeft={true}
+                                defaultValue={false}
+                                {...fieldProps}
+                                onFocus={onFocusDetails}
+                            />
+                        )}
                     </ToggleBox>
 
-                    {get(planningProfile, 'editor.files.enabled') &&
-                    <ToggleBox
-                        title={gettext('Attached Files')}
-                        isOpen={editorMenuUtils.isOpen(navigation, 'files')}
-                        onClose={editorMenuUtils.onItemClose(navigation, 'files')}
-                        onOpen={editorMenuUtils.onItemOpen(navigation, 'files')}
-                        scrollInView={true}
-                        hideUsingCSS={true} // hideUsingCSS so the file data is kept on hide/show
-                        invalid={!!errors.files && (dirty || submitFailed)}
-                        forceScroll={editorMenuUtils.forceScroll(navigation, 'files')}
-                        paddingTop={!!onFocusFiles}
-                        badgeValue={getCountOfProperty('files')}>
-                        <div className={this.state.uploading ? 'sd-loader' : ''}>
-                            { !this.state.uploading && <Field
-                                component={FileInput}
-                                field="files"
-                                createLink={getFileDownloadURL}
-                                defaultValue={[]}
-                                {...fieldProps}
-                                onFocus={onFocusFiles}
-                                files={files}
-                                onAddFiles={this.onAddFiles}
-                                onRemoveFile={this.onRemoveFile}
-                            />}
-                        </div>
-                    </ToggleBox>
-                    }
+                    {get(planningProfile, 'editor.files.enabled') && (
+                        <ToggleBox
+                            title={gettext('Attached Files')}
+                            isOpen={editorMenuUtils.isOpen(navigation, 'files')}
+                            onClose={editorMenuUtils.onItemClose(navigation, 'files')}
+                            onOpen={editorMenuUtils.onItemOpen(navigation, 'files')}
+                            scrollInView={true}
+                            hideUsingCSS={true} // hideUsingCSS so the file data is kept on hide/show
+                            invalid={!!errors.files && (dirty || submitFailed)}
+                            forceScroll={editorMenuUtils.forceScroll(navigation, 'files')}
+                            paddingTop={!!onFocusFiles}
+                            badgeValue={getCountOfProperty('files')}
+                        >
+                            <div className={this.state.uploading ? 'sd-loader' : ''}>
+                                { !this.state.uploading && (
+                                    <Field
+                                        component={FileInput}
+                                        field="files"
+                                        createLink={getFileDownloadURL}
+                                        defaultValue={[]}
+                                        {...fieldProps}
+                                        onFocus={onFocusFiles}
+                                        files={files}
+                                        onAddFiles={this.onAddFiles}
+                                        onRemoveFile={this.onRemoveFile}
+                                    />
+                                )}
+                            </div>
+                        </ToggleBox>
+                    )}
                 </ContentBlock>
 
                 {event && (

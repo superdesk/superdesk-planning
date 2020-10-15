@@ -33,7 +33,8 @@ class PublishQueuePreviewComponent extends React.Component {
                     hideEditIcon={true}
                     inPlanning={false}
                     hideRelatedItems={true}
-                    hideHistory={true}/>
+                    hideHistory={true}
+                />
             </div>
         );
     }

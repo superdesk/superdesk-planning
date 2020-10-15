@@ -10,8 +10,12 @@ export const RepeatEventSummary = ({
     forUpdating,
 }) => (
     <LineInput noMargin={noMargin}>
-        <Label text={forUpdating ? gettext('Current Repeat Summary') :
-            gettext('Repeat Summary')} row={true} light={true} />
+        <Label
+            text={forUpdating ? gettext('Current Repeat Summary') :
+                gettext('Repeat Summary')}
+            row={true}
+            light={true}
+        />
         <p className="sd-text__strong">{eventUtils.getRepeatSummaryForEvent(schedule)}</p>
     </LineInput>
 );

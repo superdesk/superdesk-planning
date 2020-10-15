@@ -107,80 +107,87 @@ export const ScheduledUpdate = ({
         />
     );
 
-    const coverageTopBar = forPreview ? (<CoveragePreviewTopBar
-        item={diff}
-        coverage={value}
-        users={users}
-        desks={desks}
-        newsCoverageStatus={newsCoverageStatus}
-    />) :
-        (<CoverageFormHeader
-            field={fieldName}
-            value={value}
-            onChange={onChange}
+    const coverageTopBar = forPreview ? (
+        <CoveragePreviewTopBar
+            item={diff}
+            coverage={value}
             users={users}
             desks={desks}
-            readOnly={forPreview ? true : readOnly}
-            addNewsItemToPlanning={addNewsItemToPlanning}
-            onRemoveAssignment={!onRemoveAssignment ? null :
-                onRemoveAssignment.bind(null, coverage, coverageIndex, value, index)}
-            setCoverageDefaultDesk={setCoverageDefaultDesk}
-            {...props}
+            newsCoverageStatus={newsCoverageStatus}
         />
+    ) :
+        (
+            <CoverageFormHeader
+                field={fieldName}
+                value={value}
+                onChange={onChange}
+                users={users}
+                desks={desks}
+                readOnly={forPreview ? true : readOnly}
+                addNewsItemToPlanning={addNewsItemToPlanning}
+                onRemoveAssignment={!onRemoveAssignment ? null :
+                    onRemoveAssignment.bind(null, coverage, coverageIndex, value, index)}
+                setCoverageDefaultDesk={setCoverageDefaultDesk}
+                {...props}
+            />
         );
 
     const coverageStatus = get(value, 'news_coverage_status.qcode', '') ===
         PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode ? PLANNING.NEWS_COVERAGE_CANCELLED_STATUS :
         newsCoverageStatus.find((s) => s.qcode === get(value, 'news_coverage_status.qcode', '')) || {};
 
-    const openItem = forPreview ? (<div>
-        <PreviewRow label={assignmentUtils.getContactLabel(coverage)}>
-            <ContactsPreviewList
-                contactIds={get(value, 'planning.contact_info.length', 0) > 0 ?
-                    [value.planning.contact_info] : []}
-                scrollInView={true}
-                scrollIntoViewOptions={{block: 'center'}}
+    const openItem = forPreview ? (
+        <div>
+            <PreviewRow label={assignmentUtils.getContactLabel(coverage)}>
+                <ContactsPreviewList
+                    contactIds={get(value, 'planning.contact_info.length', 0) > 0 ?
+                        [value.planning.contact_info] : []}
+                    scrollInView={true}
+                    scrollIntoViewOptions={{block: 'center'}}
+                />
+            </PreviewRow>
+            <PreviewRow
+                label={gettext('Genre')}
+                value={get(value, 'planning.genre.name')}
             />
-        </PreviewRow>
-        <PreviewRow
-            label={gettext('Genre')}
-            value={get(value, 'planning.genre.name')}
-        />
-        <PreviewRow
-            label={gettext('Internal Note')}
-            value={stringUtils.convertNewlineToBreak(
-                value.planning.internal_note || ''
-            )}
-        />
-        <PreviewRow
-            label={gettext('Coverage Status')}
-            value={coverageStatus.label || ''}
-        />
-        <PreviewRow
-            label={gettext('Due')}
-            value={planningUtils.getCoverageDateText(value)}
-        />
-    </div>) :
-        (<ScheduledUpdateForm
-            field={fieldName}
-            value={value}
-            diff={diff}
-            index={index}
-            coverageIndex={coverageIndex}
-            onChange={onChange}
-            newsCoverageStatus={newsCoverageStatus}
-            contentTypes={contentTypes}
-            genres={genres}
-            readOnly={readOnly}
-            invalid={componentInvalid}
-            hasAssignment={planningUtils.isCoverageAssigned(value)}
-            addNewsItemToPlanning={addNewsItemToPlanning}
-            onFieldFocus={onFocus}
-            onPopupOpen={onPopupOpen}
-            onPopupClose={onPopupClose}
-            onScheduleChanged={onScheduleChanged}
-            {...props}
-        />);
+            <PreviewRow
+                label={gettext('Internal Note')}
+                value={stringUtils.convertNewlineToBreak(
+                    value.planning.internal_note || ''
+                )}
+            />
+            <PreviewRow
+                label={gettext('Coverage Status')}
+                value={coverageStatus.label || ''}
+            />
+            <PreviewRow
+                label={gettext('Due')}
+                value={planningUtils.getCoverageDateText(value)}
+            />
+        </div>
+    ) :
+        (
+            <ScheduledUpdateForm
+                field={fieldName}
+                value={value}
+                diff={diff}
+                index={index}
+                coverageIndex={coverageIndex}
+                onChange={onChange}
+                newsCoverageStatus={newsCoverageStatus}
+                contentTypes={contentTypes}
+                genres={genres}
+                readOnly={readOnly}
+                invalid={componentInvalid}
+                hasAssignment={planningUtils.isCoverageAssigned(value)}
+                addNewsItemToPlanning={addNewsItemToPlanning}
+                onFieldFocus={onFocus}
+                onPopupOpen={onPopupOpen}
+                onPopupClose={onPopupClose}
+                onScheduleChanged={onScheduleChanged}
+                {...props}
+            />
+        );
 
     return (
         <CollapseBox

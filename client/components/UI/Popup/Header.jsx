@@ -10,14 +10,16 @@ import Label from './Label';
  * @description Header Component of a popup
  */
 const Header = ({text, onClose, children, className, noBorder, noPadding, centerText}) => (
-    <div className={classNames(
-        'popup__menu-header',
-        {
-            'popup__menu-header--no-border': noBorder,
-            'popup__menu-header--no-padding': noPadding,
-        },
-        className
-    )}>
+    <div
+        className={classNames(
+            'popup__menu-header',
+            {
+                'popup__menu-header--no-border': noBorder,
+                'popup__menu-header--no-padding': noPadding,
+            },
+            className
+        )}
+    >
         {text && (
             <Label text={text} centerText={centerText}>
                 {onClose && (

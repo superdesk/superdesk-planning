@@ -8,10 +8,12 @@ import {Item, Column} from '../UI/List';
 export const ContactLabel = ({contact}) => (
     <Item className="contact-info">
         <Column border={false} noPadding={true}>
-            <figure className={classNames(
-                'avatar',
-                {organisation: !contact.first_name}
-            )} />
+            <figure
+                className={classNames(
+                    'avatar',
+                    {organisation: !contact.first_name}
+                )}
+            />
         </Column>
         <Column>
             <div>

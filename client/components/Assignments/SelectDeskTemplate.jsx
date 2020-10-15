@@ -45,7 +45,8 @@ export class SelectDeskTemplate extends React.Component {
 
         // eslint-disable-next-line react/no-multi-comp
         const templateItem = (template) => (
-            <button className="btn btn--text-only"
+            <button
+                className="btn btn--text-only"
                 onClick={() => handleSelect(template)}
             >
                 <span className="pull-left">

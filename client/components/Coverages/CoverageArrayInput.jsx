@@ -140,7 +140,8 @@ export class CoverageArrayInput extends React.Component {
                         {...props}
                     />
                 </ContentBlock>
-            </div>);
+            </div>
+        );
     }
 }
 

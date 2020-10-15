@@ -97,7 +97,8 @@ export class CreateNewGeoLookup extends React.Component {
             >
                 <Header
                     text={gettext('Add New Event Location')}
-                    onClose={this.props.onCancel} />
+                    onClose={this.props.onCancel}
+                />
                 <Content className="addgeolookup__suggests-wrapper">
                     <Field
                         component={TextInput}

@@ -30,7 +30,7 @@ export const SelectItemModal = ({handleHide, modalProps}) => {
             </Modal.Header>
             <Modal.Body>
                 <div className="sd-list-item-group sd-list-item-group--space-between-items">
-                    { modalProps.items.map((item, index) =>
+                    { modalProps.items.map((item, index) => (
                         <button
                             className="sd-list-item sd-shadow--z1"
                             key={index}
@@ -44,6 +44,7 @@ export const SelectItemModal = ({handleHide, modalProps}) => {
                                 </div>
                             </div>
                         </button>
+                    )
                     )}
                 </div>
             </Modal.Body>
