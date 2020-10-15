@@ -11,10 +11,12 @@ import {gettextCatalog} from '../utils';
  */
 
 const Label = ({text, children, centerText}) => (
-    <span className={classNames(
-        'popup__menu-label',
-        {'popup__menu-label--center': centerText}
-    )}>
+    <span
+        className={classNames(
+            'popup__menu-label',
+            {'popup__menu-label--center': centerText}
+        )}
+    >
         {gettextCatalog(text)}
         {children}
     </span>

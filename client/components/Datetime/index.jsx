@@ -30,7 +30,7 @@ function Datetime({date, withTime, withDate, withYear, darkText, tz, isRemoteTim
             >
                 {momentDate.format(dateTimeFormat)}
             </time>
-            {isRemoteTimeZone &&
+            {isRemoteTimeZone && (
                 <time
                     title={newDateString}
                     className={classNames(
@@ -38,9 +38,10 @@ function Datetime({date, withTime, withDate, withYear, darkText, tz, isRemoteTim
                         {'Datetime--dark-text': darkText}
                     )}
                 >
-                    <br/>
+                    <br />
                     {newDateString}
-                </time>}
+                </time>
+            )}
         </p>
     );
 }

@@ -40,27 +40,33 @@ export const CoveragePreviewTopBar = ({
         coverageTopBar = (
             <div>
                 <div className="TimeAndAuthor">
-                    { deskAssigned && <div>
-                        {gettext('Desk')}:&nbsp;
-                        <span className="TimeAndAuthor__author">{deskAssigned.name.toUpperCase()}</span>
-                        {' (' + moment(assigned_date_desk).format(timeFormat + ' ' + dateFormat) + ', ' +
+                    { deskAssigned && (
+                        <div>
+                            {gettext('Desk')}:&nbsp;
+                            <span className="TimeAndAuthor__author">{deskAssigned.name.toUpperCase()}</span>
+                            {' (' + moment(assigned_date_desk).format(timeFormat + ' ' + dateFormat) + ', ' +
                             get(deskAssignor, 'display_name', '').toUpperCase() + ')'}
-                    </div> }
-                    { userAssigned && <div>
-                        {gettext('Assignee')}&nbsp;
-                        <span className="TimeAndAuthor__author">
-                            {get(userAssigned, 'display_name', '').toUpperCase()}</span>
-                        {' (' + moment(assigned_date_user).format(timeFormat + ' ' + dateFormat) + ', ' +
+                        </div>
+                    ) }
+                    { userAssigned && (
+                        <div>
+                            {gettext('Assignee')}&nbsp;
+                            <span className="TimeAndAuthor__author">
+                                {get(userAssigned, 'display_name', '').toUpperCase()}</span>
+                            {' (' + moment(assigned_date_user).format(timeFormat + ' ' + dateFormat) + ', ' +
                             get(userAssignor, 'display_name', '').toUpperCase() + ')'}
-                    </div> }
+                        </div>
+                    ) }
                     { coverageProvider && <span> {gettext('Coverage Provider: ') + coverageProvider.name} </span>}
                 </div>
                 <PreviewRow>
                     <span className={'line-input priority-label priority-label--' + assignmentPriority}>
                         {assignmentPriority}</span>
-                    <StateLabel item={coverage.assigned_to}
+                    <StateLabel
+                        item={coverage.assigned_to}
                         verbose={true}
-                        className="pull-right"/>
+                        className="pull-right"
+                    />
                 </PreviewRow>
             </div>
         );

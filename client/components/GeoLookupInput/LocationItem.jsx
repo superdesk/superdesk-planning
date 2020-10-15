@@ -10,7 +10,7 @@ import {onEventCapture, formatAddress} from '../../utils';
 
 export const LocationItem = ({location, active, onRemoveLocation, readOnly}) => (
     <Item noBg={!active} activated={active} className="sd-collapse-box sd-shadow--z2">
-        <Border/>
+        <Border />
         <Column grow={true} border={false}>
             <Row paddingBottom>
                 <Location
@@ -20,18 +20,22 @@ export const LocationItem = ({location, active, onRemoveLocation, readOnly}) => 
                         get(formatAddress(get(location, 'nominatim', location)), 'formattedAddress')
                     }
                     multiLine={true}
-                    details={get(location, 'details[0]')}/>
+                    details={get(location, 'details[0]')}
+                />
                 <ActionMenu className="pull-right">
-                    {!readOnly && <Button
-                        data-sd-tooltip={gettext('Remove Location')}
-                        data-flow="left"
-                        onClick={() => {
-                            onEventCapture(event);
-                            onRemoveLocation();
-                        }}
-                        icon="icon-trash"
-                        pullRight
-                        empty />}
+                    {!readOnly && (
+                        <Button
+                            data-sd-tooltip={gettext('Remove Location')}
+                            data-flow="left"
+                            onClick={() => {
+                                onEventCapture(event);
+                                onRemoveLocation();
+                            }}
+                            icon="icon-trash"
+                            pullRight
+                            empty
+                        />
+                    )}
                 </ActionMenu>
             </Row>
         </Column>

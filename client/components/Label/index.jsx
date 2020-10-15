@@ -27,7 +27,8 @@ export const Label = ({text, iconType, verbose, isHollow, tooltip, onClick, id})
         <span
             id={id}
             name={id}
-            className={labelClasses}>
+            className={labelClasses}
+        >
             {verbose ? verbose : text}
         </span>
     );

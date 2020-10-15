@@ -114,7 +114,8 @@ export class UpdateRecurringEventsComponent extends React.Component {
                     showSpace={false}
                     readOnly={submitting}
                     action="unpost"
-                    relatedPlannings={this.state.relatedPlannings} />
+                    relatedPlannings={this.state.relatedPlannings}
+                />
             </div>
         );
     }

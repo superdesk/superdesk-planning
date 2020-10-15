@@ -43,39 +43,41 @@ export const AuditInformationComponent = ({
 
     return (
         <div className={classNames('TimeAndAuthor', {'TimeAndAuthor--withPadding': withPadding})}>
-            {createdDateTime && creator &&
+            {createdDateTime && creator && (
                 <div className="sd-text__date-and-author">
                     <time>{gettext('Created') + ' ' + createdDateTime + ' ' + gettext('by') + ' '}</time>
                     <span className="sd-text__author">
                         {creator.display_name || creator.name}
                     </span>
                 </div>
-            }
+            )}
 
-            {modifiedDateTime && versionCreator &&
+            {modifiedDateTime && versionCreator && (
                 <div className="sd-text__date-and-author">
                     <time>{gettext('Updated') + ' ' + modifiedDateTime + ' ' + gettext('by') + ' '}</time>
                     <span className="sd-text__author">
                         {versionCreator.display_name}
                     </span>
                 </div>
-            }
+            )}
 
-            {postedDateTime && postCreator &&
+            {postedDateTime && postCreator && (
                 <div className="sd-text__date-and-author">
                     <time>{gettext('Posted') + ' ' + modifiedDateTime + ' ' + gettext('by') + ' '}</time>
                     <span className="sd-text__author">
                         {postCreator.display_name}
                     </span>
                 </div>
-            }
-            {showStateInformation && <InternalNoteLabel
-                item={item}
-                noteField="state_reason"
-                showText
-                showTooltip={false}
-                stateField="state"
-            />}
+            )}
+            {showStateInformation && (
+                <InternalNoteLabel
+                    item={item}
+                    noteField="state_reason"
+                    showText
+                    showTooltip={false}
+                    stateField="state"
+                />
+            )}
         </div>
     );
 };

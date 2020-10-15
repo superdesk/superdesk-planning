@@ -216,76 +216,83 @@ export class ListPanel extends React.Component {
             <div>
                 {loadingIndicator &&
                 <div className="loading-indicator">{gettext('Loading')}</div>}
-                {!loadingIndicator && groups.length <= 0 &&
-                <PanelInfo
-                    heading={gettext('No Event or Planning items found')}
-                    description={gettext('Create new items or change your search filters')}
-                />}
-                {groups.length > 0 &&
-                <div key="groups" className="sd-column-box__main-column__items"
-                    onScroll={this.handleScroll}
-                    ref={(node) => this.dom.list = node}
-                    onKeyDown={this.handleKeyDown}
-                    tabIndex="0" >
-                    {groups.map((group, index) => {
-                        const propsForNestedListItems = {
-                            navigateDown: this.state.navigateDown, // tells the direction of navigation
-                            navigateList: this.navigateListWorker, // transfer navigation control to 'this' component
-                            onItemActivate: this.onItemActivate, // prop to preview nested item on activation
-                            previewItem: previewItem, // prop to tell if item is being previewed currently
-                        };
+                {!loadingIndicator && groups.length <= 0 && (
+                    <PanelInfo
+                        heading={gettext('No Event or Planning items found')}
+                        description={gettext('Create new items or change your search filters')}
+                    />
+                )}
+                {groups.length > 0 && (
+                    <div
+                        key="groups"
+                        className="sd-column-box__main-column__items"
+                        onScroll={this.handleScroll}
+                        ref={(node) => this.dom.list = node}
+                        onKeyDown={this.handleKeyDown}
+                        tabIndex="0"
+                    >
+                        {groups.map((group, index) => {
+                            const propsForNestedListItems = {
+                                navigateDown: this.state.navigateDown, // tells the direction of navigation
+                                navigateList: this.navigateListWorker, // transfer navigation control to this component
+                                onItemActivate: this.onItemActivate, // prop to preview nested item on activation
+                                previewItem: previewItem, // prop to tell if item is being previewed currently
+                            };
 
-                        let listGroupProps = {
-                            name: group.date,
-                            items: group.events,
-                            onItemClick: this.onItemClick,
-                            onDoubleClick: onDoubleClick,
-                            onAddCoverageClick: onAddCoverageClick,
-                            lockedItems: lockedItems,
-                            agendas: agendas,
-                            contentTypes: contentTypes,
-                            session: session,
-                            privileges: privileges,
-                            calendars: calendars,
-                            activeFilter: activeFilter,
-                            showRelatedPlannings: showRelatedPlannings,
-                            relatedPlanningsInList: relatedPlanningsInList,
-                            onMultiSelectClick: onMultiSelectClick,
-                            selectedEventIds: selectedEventIds,
-                            selectedPlanningIds: selectedPlanningIds,
-                            itemActions: itemActions,
-                            users: users,
-                            desks: desks,
-                            showAddCoverage: showAddCoverage,
-                            hideItemActions: hideItemActions,
-                            listFields: listFields,
-                            contacts: contacts,
-                            ...propsForNestedListItems,
-                        };
+                            let listGroupProps = {
+                                name: group.date,
+                                items: group.events,
+                                onItemClick: this.onItemClick,
+                                onDoubleClick: onDoubleClick,
+                                onAddCoverageClick: onAddCoverageClick,
+                                lockedItems: lockedItems,
+                                agendas: agendas,
+                                contentTypes: contentTypes,
+                                session: session,
+                                privileges: privileges,
+                                calendars: calendars,
+                                activeFilter: activeFilter,
+                                showRelatedPlannings: showRelatedPlannings,
+                                relatedPlanningsInList: relatedPlanningsInList,
+                                onMultiSelectClick: onMultiSelectClick,
+                                selectedEventIds: selectedEventIds,
+                                selectedPlanningIds: selectedPlanningIds,
+                                itemActions: itemActions,
+                                users: users,
+                                desks: desks,
+                                showAddCoverage: showAddCoverage,
+                                hideItemActions: hideItemActions,
+                                listFields: listFields,
+                                contacts: contacts,
+                                ...propsForNestedListItems,
+                            };
 
-                        if (indexItems) {
-                            listGroupProps.activeItemIndex = this.state.activeItemIndex;
-                            listGroupProps.indexItems = true;
-                            listGroupProps.indexFrom = indexFrom;
-                            indexFrom = indexFrom + get(group, 'events.length', 0);
-                        }
+                            if (indexItems) {
+                                listGroupProps.activeItemIndex = this.state.activeItemIndex;
+                                listGroupProps.indexItems = true;
+                                listGroupProps.indexFrom = indexFrom;
+                                indexFrom = indexFrom + get(group, 'events.length', 0);
+                            }
 
-                        return <ListGroup key={group.date} {...listGroupProps} />;
-                    })}
-                    {!isAllListItemsLoaded &&
-                        <div className="ListGroup">
-                            <Group>
-                                <Item noBg={true}>
-                                    <Column grow={true}>
-                                        <div className="sd-alert sd-alert--hollow sd-alert--primary sd-alert--align">
-                                            {gettext('loading more items...')}
-                                        </div>
-                                    </Column>
-                                </Item>
-                            </Group>
-                        </div>
-                    }
-                </div>}
+                            return <ListGroup key={group.date} {...listGroupProps} />;
+                        })}
+                        {!isAllListItemsLoaded && (
+                            <div className="ListGroup">
+                                <Group>
+                                    <Item noBg={true}>
+                                        <Column grow={true}>
+                                            <div
+                                                className="sd-alert sd-alert--hollow sd-alert--primary sd-alert--align"
+                                            >
+                                                {gettext('loading more items...')}
+                                            </div>
+                                        </Column>
+                                    </Item>
+                                </Group>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         );
     }

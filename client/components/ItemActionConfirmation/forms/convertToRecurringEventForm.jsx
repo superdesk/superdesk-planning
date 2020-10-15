@@ -141,11 +141,12 @@ export class ConvertToRecurringEventComponent extends React.Component {
                     useEventTimezone={true}
                 />
 
-                {timeUtils.isEventInDifferentTimeZone(original) &&
+                {timeUtils.isEventInDifferentTimeZone(original) && (
                     <div className="sd-alert sd-alert--hollow sd-alert--orange2 sd-alert--flex-direction">
                         <strong>{gettext('This will create new events in the remote ({{timeZone}}) timezone',
                             {timeZone})}</strong>
-                    </div>}
+                    </div>
+                )}
 
                 <Field
                     component={EventScheduleInput}

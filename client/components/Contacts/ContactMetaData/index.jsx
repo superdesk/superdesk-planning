@@ -67,7 +67,8 @@ export const ContactMetaData = ({
                         item={contact}
                         verbose={true}
                         className="pull-right"
-                        fieldName="is_active" />
+                        fieldName="is_active"
+                    />
                 </Column>
                 {contactActions.length > 0 && contactActions.map((actionComponent, index) => (
                     <ActionMenu className="pull-right" key={index}>{actionComponent}</ActionMenu>

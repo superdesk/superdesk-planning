@@ -99,11 +99,11 @@ export class SearchPanelComponent extends React.Component {
         return (
             <SidePanel shadowLeft={true}>
                 <Header className="side-panel__header--border-b">
-                    <Tools tools={tools}/>
+                    <Tools tools={tools} />
                     <h3 className="side-panel__heading">{gettext('Advanced filters')}</h3>
                 </Header>
                 <Content>
-                    <AdvancedSearch {...advancedSearchProps}/>
+                    <AdvancedSearch {...advancedSearchProps} />
                 </Content>
                 <Footer className="side-panel__footer--button-box">
                     <div className="flex-grid flex-grid--boxed-small flex-grid--wrap-items flex-grid--small-2">

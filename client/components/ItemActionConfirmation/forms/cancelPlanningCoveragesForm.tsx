@@ -99,7 +99,7 @@ export class PlanningCoverageCancelComponent extends React.Component<IProps, ISt
 
         return (
             <div className="MetadataView">
-                <Row value={this.props.original?.slugline ?? this.props.original?.name ?? '' } className="strong" />
+                <Row value={this.props.original?.slugline ?? this.props.original?.name ?? ''} className="strong" />
                 <Row>
                     <TextAreaInput
                         field={'reason'}

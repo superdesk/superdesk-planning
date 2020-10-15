@@ -32,19 +32,23 @@ export const StateLabel = ({
         return null;
     }
 
-    const getStateLabel = (state) => <Label
-        id={id}
-        text={gettext(state.label)}
-        iconType={state.iconType}
-        verbose={verbose ? gettext(get(state, 'labelVerbose')) : null}
-        tooltip={!verbose && state.tooltip ? {text: gettext(state.tooltip)} : null}
-    />;
+    const getStateLabel = (state) => (
+        <Label
+            id={id}
+            text={gettext(state.label)}
+            iconType={state.iconType}
+            verbose={verbose ? gettext(get(state, 'labelVerbose')) : null}
+            tooltip={!verbose && state.tooltip ? {text: gettext(state.tooltip)} : null}
+        />
+    );
 
     return (
-        <span className={classNames(
-            {'sd-list-item__inline-icon': inline},
-            className
-        )}>
+        <span
+            className={classNames(
+                {'sd-list-item__inline-icon': inline},
+                className
+            )}
+        >
             {!noState && <div>{getStateLabel(state)}</div>}
             <div>{withPubStatus && pubState && getStateLabel(pubState)}</div>
             {expiredState && (

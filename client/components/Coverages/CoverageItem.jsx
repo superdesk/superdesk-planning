@@ -178,8 +178,10 @@ export class CoverageItemComponent extends React.Component {
         return (
             <Row>
                 {!this.state.userAssigned && !this.state.deskAssigned && (
-                    <span className="sd-list-item__text-label sd-list-item__text-label--normal
-                        sd-overflow-ellipsis sd-list-item--element-grow">
+                    <span
+                        className="sd-list-item__text-label sd-list-item__text-label--normal
+                        sd-overflow-ellipsis sd-list-item--element-grow"
+                    >
                         {gettext('Unassigned')}
                     </span>
                 )}
@@ -204,7 +206,7 @@ export class CoverageItemComponent extends React.Component {
                         showHeaderText={false}
                     />
                     <StateLabel
-                        item={this.state.coverageInWorkflow ? get(coverage, 'assigned_to', {}) : coverage }
+                        item={this.state.coverageInWorkflow ? get(coverage, 'assigned_to', {}) : coverage}
                         fieldName={this.state.coverageInWorkflow ? 'state' : 'workflow_status'}
                     />
                 </span>
@@ -242,16 +244,18 @@ export class CoverageItemComponent extends React.Component {
 
         return (
             <Item noBg={!active} activated={active}>
-                <Border/>
+                <Border />
                 {this.renderAvatar()}
                 <Column grow={true} border={false}>
                     {this.renderFirstRow()}
                     {this.renderSecondRow()}
                     {this.renderThirdRow()}
                 </Column>
-                {itemActionComponent && <ActionMenu>
-                    {itemActionComponent}
-                </ActionMenu>}
+                {itemActionComponent && (
+                    <ActionMenu>
+                        {itemActionComponent}
+                    </ActionMenu>
+                )}
             </Item>
         );
     }

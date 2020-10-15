@@ -15,7 +15,7 @@ export const SubNavBar = ({
     totalCountInListView,
 }) => (
     <SubNav>
-        {assignmentListSingleGroupView &&
+        {assignmentListSingleGroupView && (
             <div className="Assignments-list-container__header__backButton">
                 <div className="navbtn" title="Back to group list view">
                     <button
@@ -25,7 +25,7 @@ export const SubNavBar = ({
                     />
                 </div>
             </div>
-        }
+        )}
         <SearchBar
             value={searchQuery}
             onSearch={changeSearchQuery}

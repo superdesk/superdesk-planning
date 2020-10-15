@@ -10,13 +10,19 @@ export const PreviewContentTab = ({item, hideRelatedItems, hideEditIcon}) => {
 
     switch (itemType) {
     case ITEM_TYPE.EVENT:
-        return (<EventPreviewContent
-            hideRelatedItems={hideRelatedItems}
-            hideEditIcon={hideEditIcon} />);
+        return (
+            <EventPreviewContent
+                hideRelatedItems={hideRelatedItems}
+                hideEditIcon={hideEditIcon}
+            />
+        );
     case ITEM_TYPE.PLANNING:
-        return (<PlanningPreviewContent
-            hideRelatedItems={hideRelatedItems}
-            hideEditIcon={hideEditIcon} />);
+        return (
+            <PlanningPreviewContent
+                hideRelatedItems={hideRelatedItems}
+                hideEditIcon={hideEditIcon}
+            />
+        );
     default:
         return null;
     }

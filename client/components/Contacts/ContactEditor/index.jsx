@@ -73,8 +73,11 @@ export class ContactEditor extends React.Component {
         };
 
         return (
-            <Modal className="contact-details-pane contact-details-pane--editor"
-                large={true} show={this.state.showModal}>
+            <Modal
+                className="contact-details-pane contact-details-pane--editor"
+                large={true}
+                show={this.state.showModal}
+            >
                 <Modal.Header>
                     <a className="close" onClick={this.handleCancel}>
                         <i className="icon-close-small" />
@@ -90,7 +93,8 @@ export class ContactEditor extends React.Component {
                         onValidation={this.onValidation}
                         triggerSave={this.state.triggerSave}
                         onSave={this.onSave}
-                        hideActionBar={true} />
+                        hideActionBar={true}
+                    />
                 </Modal.Body>
                 <Modal.Footer>
                     <ActionBar
@@ -98,7 +102,8 @@ export class ContactEditor extends React.Component {
                         onCancel={this.handleCancel}
                         dirty={this.state.dirty}
                         valid={this.state.valid}
-                        onSave={this.triggerSave} />
+                        onSave={this.triggerSave}
+                    />
                 </Modal.Footer>
             </Modal>
         );

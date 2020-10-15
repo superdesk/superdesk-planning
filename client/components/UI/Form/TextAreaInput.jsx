@@ -30,7 +30,7 @@ export const TextAreaInput = ({
     ...props
 }) => (
     <LineInput {...props} readOnly={readOnly}>
-        <Label text={label} icon={labelIcon}/>
+        <Label text={label} icon={labelIcon} />
         <TextArea
             field={field}
             value={value}

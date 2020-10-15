@@ -233,8 +233,9 @@ export class UpdateTimeComponent extends React.Component {
                 <FormRow
                     flex={true}
                     noPadding={true}
-                    invalid={!!get(this.state, 'errors._startTime')}>
-                    <Label text={gettext('From')} row={true}/>
+                    invalid={!!get(this.state, 'errors._startTime')}
+                >
+                    <Label text={gettext('From')} row={true} />
                     <Field
                         component={TimeInput}
                         field="_startTime"
@@ -275,11 +276,15 @@ export class UpdateTimeComponent extends React.Component {
                     />
                 </FormRow>
 
-                {this.state.error && <FormRow>
-                    <LineInput invalid={this.state.error}
-                        message="To date should be greater than From date"
-                        readOnly={true} />
-                </FormRow>}
+                {this.state.error && (
+                    <FormRow>
+                        <LineInput
+                            invalid={this.state.error}
+                            message="To date should be greater than From date"
+                            readOnly={true}
+                        />
+                    </FormRow>
+                )}
 
                 <Field
                     component={UpdateMethodSelection}

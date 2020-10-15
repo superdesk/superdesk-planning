@@ -316,17 +316,19 @@ export class EditorComponent extends React.Component {
                     />
                 )}
 
-                <div className={classNames(
-                    'side-panel__content-tab-content',
-                    {'editorModal__editor--padding-bottom': !!get(this.props, 'navigation.padContentForNavigation')}
-                )}
-                onScroll={this.onScroll}
-                ref={(ref) => {
-                    this.dom.scrollContainer = ref;
-                    if (ref && ref.style.overflow !== 'hidden') {
-                        this.containerScrollStyle = ref.style.overflow;
-                    }
-                }} >
+                <div
+                    className={classNames(
+                        'side-panel__content-tab-content',
+                        {'editorModal__editor--padding-bottom': !!get(this.props, 'navigation.padContentForNavigation')}
+                    )}
+                    onScroll={this.onScroll}
+                    ref={(ref) => {
+                        this.dom.scrollContainer = ref;
+                        if (ref && ref.style.overflow !== 'hidden') {
+                            this.containerScrollStyle = ref.style.overflow;
+                        }
+                    }}
+                >
                     {(!this.state.loading && this.props.itemType) ? (
                         <currentTab.render
                             original={this.props.item || {}}

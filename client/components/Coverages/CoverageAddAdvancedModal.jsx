@@ -153,10 +153,15 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
 
     render() {
         return (
-            <Modal xLarge={true} show={true} onHide={this.props.close} onClick={(event) => {
-                event.stopPropagation();
-                this.props.close();
-            }}>
+            <Modal
+                xLarge={true}
+                show={true}
+                onHide={this.props.close}
+                onClick={(event) => {
+                    event.stopPropagation();
+                    this.props.close();
+                }}
+            >
                 <Modal.Header>
                     <a className="close" onClick={this.props.close}>
                         <i className="icon-close-small" />
@@ -172,7 +177,10 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                         {this.state.coverages.map((coverage, index) => (
                             <div key={coverage.id} className="sd-list-item sd-shadow--z1">
                                 <div className="sd-list-item__column">
-                                    <input type="checkbox" value={coverage.enabled} checked={coverage.enabled}
+                                    <input
+                                        type="checkbox"
+                                        value={coverage.enabled}
+                                        checked={coverage.enabled}
                                         onChange={() => this.updateCoverage(coverage, {enabled: !coverage.enabled})}
                                     />
                                 </div>
@@ -230,10 +238,15 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="sd-list-item__action-menu
-                                            sd-list-item__action-menu--direction-row">
-                                            <button className="icn-btn" title={gettext('Duplicate')}
-                                                onClick={() => this.duplicate(index, coverage)}>
+                                        <div
+                                            className="sd-list-item__action-menu
+                                            sd-list-item__action-menu--direction-row"
+                                        >
+                                            <button
+                                                className="icn-btn"
+                                                title={gettext('Duplicate')}
+                                                onClick={() => this.duplicate(index, coverage)}
+                                            >
                                                 <i className="icon-plus-sign" />
                                             </button>
                                         </div>
@@ -245,7 +258,9 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                 </Modal.Body>
                 <Modal.Footer>
                     <label style={{float: 'left'}}>
-                        <input type="checkbox" id="advanced-default-mode"
+                        <input
+                            type="checkbox"
+                            id="advanced-default-mode"
                             checked={this.state.advancedMode}
                             onChange={() => this.setState({
                                 advancedMode: !this.state.advancedMode,
@@ -256,7 +271,9 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                         {gettext('make this mode the default')}
                     </label>
                     <button className="btn" type="button" onClick={this.props.close}>{gettext('Cancel')}</button>
-                    <button className="btn btn--primary" type="button"
+                    <button
+                        className="btn btn--primary"
+                        type="button"
                         disabled={
                             !this.state.isDirty
                             || this.state.coverages.some((coverage) => coverage.enabled && isInvalid(coverage))

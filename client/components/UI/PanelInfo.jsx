@@ -8,9 +8,11 @@ import PropTypes from 'prop-types';
  */
 const PanelInfo = ({heading, description, showIcon}) => (
     <div className="panel-info">
-        {showIcon && <div className="panel-info__icon">
-            <i className="big-icon--comments" />
-        </div>}
+        {showIcon && (
+            <div className="panel-info__icon">
+                <i className="big-icon--comments" />
+            </div>
+        )}
         {heading &&
             <h3 className="panel-info__heading">{heading}</h3>
         }

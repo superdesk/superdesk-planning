@@ -177,8 +177,11 @@ export class PlanningItem extends React.Component {
                     onCheckToggle={onMultiSelectClick.bind(null, item)}
                     color={!isExpired && ICON_COLORS.LIGHT_BLUE}
                 />
-                <PubStatus item={item} isPublic={isItemPosted(item) &&
-                    getItemWorkflowState(item) !== WORKFLOW_STATE.KILLED}/>
+                <PubStatus
+                    item={item}
+                    isPublic={isItemPosted(item) &&
+                    getItemWorkflowState(item) !== WORKFLOW_STATE.KILLED}
+                />
                 <Column
                     grow={true}
                     border={false}
@@ -189,12 +192,12 @@ export class PlanningItem extends React.Component {
                                 PLANNING.LIST.PRIMARY_FIELDS), item)}
                         </span>
 
-                        {event &&
+                        {event && (
                             <span className="sd-no-wrap">
-                                <Icon className="icon-event" color={ICON_COLORS.DARK_BLUE_GREY}/>&nbsp;
-                                <EventDateTime item={event}/>
+                                <Icon className="icon-event" color={ICON_COLORS.DARK_BLUE_GREY} />&nbsp;
+                                <EventDateTime item={event} />
                             </span>
-                        }
+                        )}
                     </Row>
                     <Row>
                         {isExpired && (
@@ -232,14 +235,15 @@ export class PlanningItem extends React.Component {
                         })}
                     </Row>
                 </Column>
-                {showAddCoverage && !isItemLocked &&
+                {showAddCoverage && !isItemLocked && (
                     <Column border={false}>
-                        <OverlayTrigger placement="left"
-                            overlay={
+                        <OverlayTrigger
+                            placement="left"
+                            overlay={(
                                 <Tooltip id={getItemId(item)}>
                                     {gettext('Add as coverage')}
                                 </Tooltip>
-                            }
+                            )}
                         >
                             <NavButton
                                 className="dropdown sd-create-btn"
@@ -250,7 +254,7 @@ export class PlanningItem extends React.Component {
                             </NavButton>
                         </OverlayTrigger>
                     </Column>
-                }
+                )}
                 {this.renderItemActions()}
             </Item>
         );

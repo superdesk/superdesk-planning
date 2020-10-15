@@ -41,11 +41,13 @@ export class LockContainer extends React.Component {
 
         return (
             <div className="lock-container">
-                <div className={classNames(
-                    'lock-container__avatar',
-                    'lock-avatar',
-                    {'lock-container__avatar--no-margin': noMargin}
-                )}>
+                <div
+                    className={classNames(
+                        'lock-container__avatar',
+                        'lock-avatar',
+                        {'lock-container__avatar--no-margin': noMargin}
+                    )}
+                >
                     <a onClick={this.toggleOpenUnlockPopup}>
                         <UserAvatar
                             user={user}
@@ -54,7 +56,7 @@ export class LockContainer extends React.Component {
                         />
                     </a>
                 </div>
-                {this.state.openUnlockPopup &&
+                {this.state.openUnlockPopup && (
                     <LockContainerPopup
                         displayText={displayText}
                         user={user}
@@ -63,7 +65,7 @@ export class LockContainer extends React.Component {
                         onUnlock={onUnlock}
                         target="lock-container__avatar"
                     />
-                }
+                )}
             </div>
         );
     }

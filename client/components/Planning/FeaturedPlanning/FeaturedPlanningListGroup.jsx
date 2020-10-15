@@ -4,20 +4,24 @@ import classNames from 'classnames';
 
 
 export const FeaturedPlanningListGroup = ({leftBorder, children}) => (
-    <div className={classNames(
-        'sd-page-content__content-block',
-        'grid__item',
-        'grid__item--col-6',
-        'sd-column-box__main-column',
-        'sd-column-box__main-column__listpanel',
-        'FeatureListGroup',
-        {'FeatureListGroup--left-border': leftBorder}
-    )}>
+    <div
+        className={classNames(
+            'sd-page-content__content-block',
+            'grid__item',
+            'grid__item--col-6',
+            'sd-column-box__main-column',
+            'sd-column-box__main-column__listpanel',
+            'FeatureListGroup',
+            {'FeatureListGroup--left-border': leftBorder}
+        )}
+    >
         <div>
-            <div className={classNames(
-                'sd-column-box__main-column__items',
-                'sd-column-box__main-column__items--featured'
-            )}>
+            <div
+                className={classNames(
+                    'sd-column-box__main-column__items',
+                    'sd-column-box__main-column__items--featured'
+                )}
+            >
                 {children}
             </div>
         </div>

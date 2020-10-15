@@ -13,7 +13,7 @@ describe('<ItemActionsMenu />', () => {
 
     it('render', () => {
         const wrapper = mount(
-            <ItemActionsMenu actions={actions}/>
+            <ItemActionsMenu actions={actions} />
         );
         const menu = new helpers.actionMenu(wrapper);
 

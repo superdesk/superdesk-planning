@@ -10,11 +10,14 @@ export const actionedState = ({item, ...props}) => {
         return null;
     }
 
-    return (<Label
-        text={gettext(itemActionedState.label)}
-        iconType={itemActionedState.iconType}
-        tooltip={itemActionedState.tooltip}
-        {...props} />);
+    return (
+        <Label
+            text={gettext(itemActionedState.label)}
+            iconType={itemActionedState.iconType}
+            tooltip={itemActionedState.tooltip}
+            {...props}
+        />
+    );
 };
 
 actionedState.propTypes = {

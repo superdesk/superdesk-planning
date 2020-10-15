@@ -15,7 +15,7 @@ import './style.scss';
 export const ToggleInput = ({field, label, value, onChange, readOnly, className, labelLeftAuto,
     onFocus, title, ...props}) => (
     <LineInput {...props} readOnly={readOnly} labelLeftAuto={labelLeftAuto} className="sd-line-input__toggle">
-        <Label text={label}/>
+        <Label text={label} />
         <Toggle
             field={field}
             value={value}

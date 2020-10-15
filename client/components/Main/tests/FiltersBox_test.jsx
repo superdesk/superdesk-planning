@@ -36,14 +36,16 @@ describe('components.Main.FiltersBox', () => {
     });
 
     const getWrapper = () => (
-        mount(<FiltersBox
-            activeFilter={activeFilter}
-            setFilter={setFilter}
-            enabledAgendas={enabledAgendas}
-            disabledAgendas={disabledAgendas}
-            selectAgenda={selectAgenda}
-            currentAgendaId={currentAgendaId}
-        />)
+        mount(
+            <FiltersBox
+                activeFilter={activeFilter}
+                setFilter={setFilter}
+                enabledAgendas={enabledAgendas}
+                disabledAgendas={disabledAgendas}
+                selectAgenda={selectAgenda}
+                currentAgendaId={currentAgendaId}
+            />
+        )
     );
 
     it('renders the checkboxes', () => {

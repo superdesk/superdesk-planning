@@ -80,38 +80,48 @@ export class ManageAgendasComponent extends React.Component {
                     <h3 className="modal__heading">{gettext('Manage Agendas')}</h3>
                 </Modal.Header>
                 <Modal.Body noPadding={true} noScroll>
-                    {!!privileges[PRIVILEGES.AGENDA_MANAGEMENT] && <SubNav>
-                        <StretchBar />
-                        {!this.state.editorOpen && <Button
-                            right={true}
-                            buttonClassName="btn btn--primary"
-                            onClick={this.toggleEditorOpen.bind(this)}>
-                            <i className="icon-plus-sign icon-white" />
-                            {gettext('Add New Agenda')}
-                        </Button>}
-                    </SubNav>}
+                    {!!privileges[PRIVILEGES.AGENDA_MANAGEMENT] && (
+                        <SubNav>
+                            <StretchBar />
+                            {!this.state.editorOpen && (
+                                <Button
+                                    right={true}
+                                    buttonClassName="btn btn--primary"
+                                    onClick={this.toggleEditorOpen.bind(this)}
+                                >
+                                    <i className="icon-plus-sign icon-white" />
+                                    {gettext('Add New Agenda')}
+                                </Button>
+                            )}
+                        </SubNav>
+                    )}
                     <ColumnBox.Box verticalScroll={true}>
                         <ColumnBox.MainColumn padded={true}>
-                            <AgendaList privileges={privileges}
+                            <AgendaList
+                                privileges={privileges}
                                 agendas={enabledAgendas}
                                 editAgenda={this.state.editorOpen ? null : this.editAgenda.bind(this)}
                                 deleteAgenda={deleteAgenda}
-                                status={gettext('active')} />
-                            <AgendaList privileges={privileges}
+                                status={gettext('active')}
+                            />
+                            <AgendaList
+                                privileges={privileges}
                                 agendas={disabledAgendas}
                                 editAgenda={this.state.editorOpen ? null : this.editAgenda.bind(this)}
                                 deleteAgenda={deleteAgenda}
-                                status={gettext('disabled')} />
+                                status={gettext('disabled')}
+                            />
                         </ColumnBox.MainColumn>
-                        {this.state.editorOpen &&
+                        {this.state.editorOpen && (
                             <ColumnBox.SlideInColumn>
                                 <EditAgenda
                                     agenda={this.state.selectedAgenda}
                                     onClose={this.toggleEditorOpen.bind(this)}
                                     onSave={this.props.createOrUpdateAgenda}
-                                    openOnSaveModal={this.props.openOnSaveModal} />
+                                    openOnSaveModal={this.props.openOnSaveModal}
+                                />
                             </ColumnBox.SlideInColumn>
-                        }
+                        )}
                     </ColumnBox.Box>
                 </Modal.Body>
                 <Modal.Footer>

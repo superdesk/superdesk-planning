@@ -212,12 +212,12 @@ export class ListGroupItem extends React.Component {
             }
 
             return (
-                <EventItem { ... eventProps } />
+                <EventItem {... eventProps} />
             );
 
         case ITEM_TYPE.PLANNING:
             return (
-                <PlanningItem { ...planningProps } />
+                <PlanningItem {...planningProps} />
             );
         }
         return null;

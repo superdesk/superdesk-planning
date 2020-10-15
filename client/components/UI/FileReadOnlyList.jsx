@@ -23,17 +23,20 @@ const FileReadOnlyList = ({formProfile, item, field, createLink, files, noToggle
     }
 
     const fileList = get(filesInput, 'length', 0) > 0 ?
-        (<ul>
-            {filesInput.map((file, index) => (
-                <li key={index}>
-                    <FileInput
-                        value={file}
-                        createLink={createLink}
-                        readOnly={true}
-                        files={files} />
-                </li>
-            ))}
-        </ul>) :
+        (
+            <ul>
+                {filesInput.map((file, index) => (
+                    <li key={index}>
+                        <FileInput
+                            value={file}
+                            createLink={createLink}
+                            readOnly={true}
+                            files={files}
+                        />
+                    </li>
+                ))}
+            </ul>
+        ) :
         (<div className="sd-text__info">{gettext('No attached files added.')}</div>);
 
     if (noToggle) {
@@ -44,9 +47,11 @@ const FileReadOnlyList = ({formProfile, item, field, createLink, files, noToggle
         <ToggleBox
             title={gettext('Attached Files')}
             isOpen={false}
-            badgeValue={get(item, `${field}.length`, 0) > 0 ? item[field].length : null}>
+            badgeValue={get(item, `${field}.length`, 0) > 0 ? item[field].length : null}
+        >
             {fileList}
-        </ToggleBox>);
+        </ToggleBox>
+    );
 };
 
 FileReadOnlyList.propTypes = {

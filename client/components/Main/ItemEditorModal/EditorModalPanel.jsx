@@ -161,17 +161,22 @@ export class EditorModalPanel extends React.Component {
 
             <Modal.Body noPadding fullHeight noScroll key="modal-body">
                 <div className="editorModal">
-                    <div className="editorModal__menu"
-                        ref={(node) => this.dom.menu = node}>
+                    <div
+                        className="editorModal__menu"
+                        ref={(node) => this.dom.menu = node}
+                    >
                         <ItemMenuPanel
                             item={this.state.diff}
                             onMenuItemClick={this.onMenuItemClick}
-                            activeItem={this.state.activeItem} />
+                            activeItem={this.state.activeItem}
+                        />
                     </div>
-                    <div className={classNames(
-                        'editorModal__editor',
-                        'sd-page-content__content-block',
-                        'sd-page-content__content-block--right')} >
+                    <div
+                        className={classNames(
+                            'editorModal__editor',
+                            'sd-page-content__content-block',
+                            'sd-page-content__content-block--right')}
+                    >
                         <EditorModal
                             navigation={navigation}
                             onChange={this.onEditorItemChange}

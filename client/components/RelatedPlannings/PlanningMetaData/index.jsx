@@ -32,26 +32,32 @@ export const PlanningMetaData = (
 ) => {
     const isItemLocked = lockedItems ? planningUtils.isPlanningLocked(plan, lockedItems) : false;
     const editPlanningComponent = onEditPlanning ?
-        (<button data-sd-tooltip="Edit Planning Item"
-            data-flow="left"
-            onClick={(event) => {
-                onEventCapture(event);
-                onEditPlanning();
-            }}>
-            <i className="icon-pencil" />
-        </button>) : null;
+        (
+            <button
+                data-sd-tooltip="Edit Planning Item"
+                data-flow="left"
+                onClick={(event) => {
+                    onEventCapture(event);
+                    onEditPlanning();
+                }}
+            >
+                <i className="icon-pencil" />
+            </button>
+        ) : null;
 
 
     const planningListView = (
         <Item noBg={!active} activated={active}>
             {showBorder && isItemLocked && <Border state="locked" />}
             <div className="sd-list-item__border" />
-            {showIcon && <Column>
-                <ItemIcon
-                    item={plan}
-                    color={ICON_COLORS.DARK_BLUE_GREY}
-                />
-            </Column>}
+            {showIcon && (
+                <Column>
+                    <ItemIcon
+                        item={plan}
+                        color={ICON_COLORS.DARK_BLUE_GREY}
+                    />
+                </Column>
+            )}
             <Column grow={true} border={false}>
                 <Row>
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
@@ -62,7 +68,7 @@ export const PlanningMetaData = (
                     <span className="no-padding">
                         <span className="sd-list-item__text-label">agenda:</span>
                         <span className="sd-overflow-ellipsis sd-list-item__text-strong sd-list-item--element-grow">
-                            <AgendaNameList agendas={plan._agendas}/>
+                            <AgendaNameList agendas={plan._agendas} />
                         </span>
                     </span>
                 </Row>
@@ -70,7 +76,7 @@ export const PlanningMetaData = (
             <Column>
                 <Row>
                     <span className="sd-no-wrap">
-                        {get(plan, 'coverages.length', 0) > 0 && plan.coverages.map((coverage, i) =>
+                        {get(plan, 'coverages.length', 0) > 0 && plan.coverages.map((coverage, i) => (
                             <CoverageIcon
                                 key={i}
                                 coverage={coverage}
@@ -78,10 +84,11 @@ export const PlanningMetaData = (
                                 desks={desks}
                                 contentTypes={contentTypes}
                             />
+                        )
                         )}
                     </span>
                 </Row>
-                <StateLabel item={plan} verbose={true} className="pull-right"/>
+                <StateLabel item={plan} verbose={true} className="pull-right" />
             </Column>
             {editPlanningComponent && <ActionMenu>{editPlanningComponent}</ActionMenu>}
         </Item>
@@ -117,20 +124,22 @@ export const PlanningMetaData = (
     const forceScroll = editorMenuUtils.forceScroll(navigation, field);
     const isOpen = editorMenuUtils.isOpen(navigation, field);
 
-    return (<CollapseBox
-        collapsedItem={planningListView}
-        openItemTopBar={planningInDetailTopBar}
-        openItem={planningInDetail}
-        scrollInView={scrollInView}
-        tabEnabled={tabEnabled}
-        tools={editPlanningComponent}
-        noOpen={noOpen}
-        isOpen={isOpen}
-        onClose={onClose}
-        onOpen={onOpen}
-        onClick={onClick}
-        forceScroll={forceScroll}
-    />);
+    return (
+        <CollapseBox
+            collapsedItem={planningListView}
+            openItemTopBar={planningInDetailTopBar}
+            openItem={planningInDetail}
+            scrollInView={scrollInView}
+            tabEnabled={tabEnabled}
+            tools={editPlanningComponent}
+            noOpen={noOpen}
+            isOpen={isOpen}
+            onClose={onClose}
+            onOpen={onOpen}
+            onClick={onClick}
+            forceScroll={forceScroll}
+        />
+    );
 };
 
 PlanningMetaData.propTypes = {

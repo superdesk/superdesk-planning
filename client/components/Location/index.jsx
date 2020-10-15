@@ -14,12 +14,16 @@ export const Location = ({name, address, multiLine, details}) => {
     // eslint-disable-next-line react/no-multi-comp
     const renderSingleline = () => (
         <OverlayTrigger
-            overlay={<Tooltip id="location_tooltip" className="tooltip--text-left">
-                {name && <div className="sd-line-input__label">{name}</div>}
-                {address && <div className="sd-line-input__input--address">
-                    {address}
-                </div>}
-            </Tooltip>}
+            overlay={(
+                <Tooltip id="location_tooltip" className="tooltip--text-left">
+                    {name && <div className="sd-line-input__label">{name}</div>}
+                    {address && (
+                        <div className="sd-line-input__input--address">
+                            {address}
+                        </div>
+                    )}
+                </Tooltip>
+            )}
         >
             <span className="sd-list-item__location">
                 {name || address}
@@ -30,11 +34,13 @@ export const Location = ({name, address, multiLine, details}) => {
     // eslint-disable-next-line react/no-multi-comp
     const renderMultiline = () => (
         <span>
-            <i className="icon-map-marker icon--gray"/>
+            <i className="icon-map-marker icon--gray" />
             {name}
-            {address && <div className="sd-line-input__input--address">
-                {address}
-            </div>}
+            {address && (
+                <div className="sd-line-input__input--address">
+                    {address}
+                </div>
+            )}
         </span>
     );
 
@@ -48,10 +54,11 @@ export const Location = ({name, address, multiLine, details}) => {
                     title={gettext('Show on map')}
                     href={getMapUrl(appConfig.street_map_url, name, address)}
                     target="_blank"
-                    rel="noopener noreferrer">
+                    rel="noopener noreferrer"
+                >
                     {renderLocation()}
                 </a>
-                {details && <div className="sd-padding-t--1"><i className="icon-info-sign icon--blue"/></div>}
+                {details && <div className="sd-padding-t--1"><i className="icon-info-sign icon--blue" /></div>}
                 {details && stringUtils.convertNewlineToBreak(details)}
             </span>
         );

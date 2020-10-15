@@ -89,16 +89,20 @@ export class Dropdown extends React.Component {
             <li key={index}>
                 <button id={item.id} onMouseDown={() => item.action()}>
                     {item.icon && (
-                        <i className={classNames(
-                            {'icon--gray': item.disabled},
-                            item.icon
-                        )} />
+                        <i
+                            className={classNames(
+                                {'icon--gray': item.disabled},
+                                item.icon
+                            )}
+                        />
                     )}
 
-                    <span className={classNames(
-                        {'dropdown__menu-item--disabled': item.disabled},
-                        item.className
-                    )}>
+                    <span
+                        className={classNames(
+                            {'dropdown__menu-item--disabled': item.disabled},
+                            item.className
+                        )}
+                    >
                         {item.label}
                     </span>
                 </button>
@@ -128,12 +132,13 @@ export class Dropdown extends React.Component {
                 className={this.props.className}
             >
                 {this.props.tooltip ? (
-                    <OverlayTrigger placement="left"
-                        overlay={
+                    <OverlayTrigger
+                        placement="left"
+                        overlay={(
                             <Tooltip id="create_new_btn">
                                 {this.props.tooltip}
                             </Tooltip>
-                        }
+                        )}
                     >
                         <span>{buttonDropMenu}</span>
                     </OverlayTrigger>
@@ -173,7 +178,8 @@ export class Dropdown extends React.Component {
                                 <Divider />
                                 <Label>{item}</Label>
                                 {filteredItems[item].map((item, index) => buttonItem(item, index))}
-                            </React.Fragment>)
+                            </React.Fragment>
+                        )
                         )
                     }
 

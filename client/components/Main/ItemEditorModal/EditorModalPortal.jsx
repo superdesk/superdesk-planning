@@ -23,7 +23,8 @@ class PopupEditorPortalComponent extends React.Component {
             <Portal>
                 <div role="dialog" style={{display: modalType ? 'none' : 'block'}}>
                     <Draggable handle=".modal__header">
-                        <div role="dialog"
+                        <div
+                            role="dialog"
                             tabIndex="-1"
                             className="fade modal modal--x-large in modal--draggable"
                             style={{display: 'block'}}

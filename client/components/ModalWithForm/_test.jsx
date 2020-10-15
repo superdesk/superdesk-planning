@@ -17,7 +17,8 @@ xdescribe('<ModalWithForm />', () => {
                     title="Title"
                     form={null}
                     initialValues={{field: 'value'}}
-                    show={true} />
+                    show={true}
+                />
             </Provider>
         );
 

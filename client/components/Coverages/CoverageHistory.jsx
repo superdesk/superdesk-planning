@@ -140,7 +140,7 @@ export class CoverageHistory extends React.Component {
 
         const coverageItem = (
             <Item>
-                <Border/>
+                <Border />
                 <Column grow={true} border={false}>
                     <Row paddingBottom>
                         <CoverageIcon
@@ -154,7 +154,7 @@ export class CoverageHistory extends React.Component {
                                 get(historyData, 'planning.g2_content_type', '').replace('_', ' '))}
                         </span>
                         <time>
-                            <i className="icon-time"/>
+                            <i className="icon-time" />
                             {coverageDateText}
                         </time>
                     </Row>
@@ -170,22 +170,26 @@ export class CoverageHistory extends React.Component {
                             <div>
                                 {this.getHistoryActionElement(historyItem)}
                                 <div>
-                                    {historyItem.operation === COVERAGES.HISTORY_OPERATIONS.EDITED &&
+                                    {historyItem.operation === COVERAGES.HISTORY_OPERATIONS.EDITED && (
                                         <div className="more-description">
                                             Updated Fields: {this.getHistoryItemEditedFields(historyItem)}
                                         </div>
-                                    }
+                                    )}
                                 </div>
                             </div>
-                        </li>))}
+                        </li>
+                    ))}
                 </ul>
             </ContentBlock>
         );
 
-        return (<CollapseBox
-            collapsedItem={coverageItem}
-            openItem={coverageHistoryItems}
-            scrollInView />);
+        return (
+            <CollapseBox
+                collapsedItem={coverageItem}
+                openItem={coverageHistoryItems}
+                scrollInView
+            />
+        );
     }
 }
 

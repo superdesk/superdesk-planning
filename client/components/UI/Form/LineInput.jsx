@@ -26,25 +26,27 @@ export const LineInput = ({
     onClick,
     halfWidth,
 }) => (
-    <div className={classNames(
-        'sd-line-input',
-        {
-            'sd-line-input--required': required,
-            'sd-line-input--invalid': invalid,
-            'sd-line-input--disabled': readOnly,
-            'sd-line-input--boxed': boxed,
-            'sd-line-input--is-select': isSelect,
-            'sd-line-input--no-margin': noMargin,
-            'sd-line-input--no-label': noLabel,
-            'sd-line-input--with-button': withButton,
-            'sd-line-input--label-left': labelLeft,
-            'sd-line-input--label-left-auto': labelLeftAuto,
-            'sd-line-input--no-border-bottom': !borderBottom,
-            'sd-line-input--half-width': halfWidth,
-        },
-        className
-    )}
-    onClick={onClick ? onClick : undefined}>
+    <div
+        className={classNames(
+            'sd-line-input',
+            {
+                'sd-line-input--required': required,
+                'sd-line-input--invalid': invalid,
+                'sd-line-input--disabled': readOnly,
+                'sd-line-input--boxed': boxed,
+                'sd-line-input--is-select': isSelect,
+                'sd-line-input--no-margin': noMargin,
+                'sd-line-input--no-label': noLabel,
+                'sd-line-input--with-button': withButton,
+                'sd-line-input--label-left': labelLeft,
+                'sd-line-input--label-left-auto': labelLeftAuto,
+                'sd-line-input--no-border-bottom': !borderBottom,
+                'sd-line-input--half-width': halfWidth,
+            },
+            className
+        )}
+        onClick={onClick ? onClick : undefined}
+    >
         {children}
         {hint && <div className="sd-line-input__hint">{hint}</div>}
         {message && <div className="sd-line-input__message">{message}</div>}

@@ -53,13 +53,13 @@ export const Checkbox = ({
                 <label className={readOnly ? 'sd-label--disabled' : ''}>
                     {label}
                 </label>
-                <span className={className}/>
+                <span className={className} />
             </a>
         );
     } else {
         checkbox = (
             <a className="sd-check__wrapper" onClick={onClick}>
-                <span className={className}/>
+                <span className={className} />
                 <label className={readOnly ? 'sd-label--disabled' : ''}>
                     {label}
                 </label>

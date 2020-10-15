@@ -59,12 +59,13 @@ export const FeaturedPlanningList = ({
         <li>{getItem(item)}</li>
     ));
 
-    const SortableList = SortableContainer(({items}) =>
+    const SortableList = SortableContainer(({items}) => (
         <ul>
             {items.map((item, index) =>
                 item ? <SortableItem key={item._id} index={index} item={item} /> : null
             )}
         </ul>
+    )
     );
 
     const createdBy = getCreator(item, 'original_creator', users);
@@ -78,41 +79,49 @@ export const FeaturedPlanningList = ({
         <div className="ListGroup">
             <Header
                 marginBottom
-                title={header || gettext('Available selections')} />
+                title={header || gettext('Available selections')}
+            />
             <div>
-                {showAuditInformation && item &&
-                        <div className="grid__item grid__item--col-6">
-                            <AuditInformation
-                                createdBy={createdBy}
-                                updatedBy={updatedBy}
-                                postedBy={postedBy}
-                                createdAt={creationDate}
-                                updatedAt={updatedDate}
-                                postedAt={postedDate}
+                {showAuditInformation && item && (
+                    <div className="grid__item grid__item--col-6">
+                        <AuditInformation
+                            createdBy={createdBy}
+                            updatedBy={updatedBy}
+                            postedBy={postedBy}
+                            createdAt={creationDate}
+                            updatedAt={updatedDate}
+                            postedAt={postedDate}
+                        />
+                    </div>
+                )}
+                {!planningUtils.isFeaturedPlanningUpdatedAfterPosting(item) && get(item, 'posted') && (
+                    <div className="grid__item grid__item--col-6">
+                        <div className="pull-right">
+                            <StateLabel
+                                item={{pubstatus: POST_STATE.USABLE}}
+                                verbose={true}
+                                noState
                             />
-                        </div> }
-                {!planningUtils.isFeaturedPlanningUpdatedAfterPosting(item) && get(item, 'posted') &&
-                        <div className="grid__item grid__item--col-6">
-                            <div className="pull-right">
-                                <StateLabel
-                                    item={{pubstatus: POST_STATE.USABLE}}
-                                    verbose={true}
-                                    noState />
-                            </div>
-                        </div>}
+                        </div>
+                    </div>
+                )}
             </div>
             {(get(items, 'length', 0) === 0 && !loadingIndicator) ?
                 (<PanelInfo heading={emptyMsg} />) :
-                (<Group spaceBetween={true}>
-                    {!sortable ?
-                        items.map((item) => (getItem(item))) :
-                        <SortableList
-                            items={items}
-                            onSortEnd={onSortEnd}
-                            onSortStart={onSortStart}
-                            distance={5}
-                            helperClass="FeatureListDraggableItem" />}
-                </Group>)}
+                (
+                    <Group spaceBetween={true}>
+                        {!sortable ?
+                            items.map((item) => (getItem(item))) : (
+                                <SortableList
+                                    items={items}
+                                    onSortEnd={onSortEnd}
+                                    onSortStart={onSortStart}
+                                    distance={5}
+                                    helperClass="FeatureListDraggableItem"
+                                />
+                            )}
+                    </Group>
+                )}
         </div>
     );
 };

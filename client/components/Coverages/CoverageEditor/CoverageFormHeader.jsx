@@ -52,7 +52,7 @@ export class CoverageFormHeaderComponent extends React.Component {
         if (!deskAssigned && (!userAssigned || !coverageProvider)) {
             return (
                 <Item noBg={true} noHover={true}>
-                    <Border/>
+                    <Border />
                     <Column border={false}>
                         <UserAvatar
                             empty={true}
@@ -69,17 +69,19 @@ export class CoverageFormHeaderComponent extends React.Component {
                                 </span>
                             </span>
                         </ListRow>
-                        {!cancelled && !readOnly && (<ListRow>
-                            <Button
-                                id="editAssignment"
-                                text={gettext('Assign')}
-                                tabIndex={0}
-                                enterKeyIsClick
-                                className="btn btn--primary btn--small"
-                                onClick={this.showAssignmentModal}
-                                autoFocus
-                            />
-                        </ListRow>)}
+                        {!cancelled && !readOnly && (
+                            <ListRow>
+                                <Button
+                                    id="editAssignment"
+                                    text={gettext('Assign')}
+                                    tabIndex={0}
+                                    enterKeyIsClick
+                                    className="btn btn--primary btn--small"
+                                    onClick={this.showAssignmentModal}
+                                    autoFocus
+                                />
+                            </ListRow>
+                        )}
                     </Column>
                 </Item>
             );
@@ -87,7 +89,7 @@ export class CoverageFormHeaderComponent extends React.Component {
 
         return (
             <Item noBg={true} noHover={true}>
-                <Border/>
+                <Border />
                 <Column border={false}>
                     <UserAvatar
                         user={userAssigned}
@@ -129,15 +131,16 @@ export class CoverageFormHeaderComponent extends React.Component {
                             </span>
                         </ListRow>
                     )}
-                    {assignmentState &&
+                    {assignmentState && (
                         <ListRow>
                             <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                                 <StateLabel
                                     id={`${field}.assigned_to.state`}
-                                    item={get(value, 'assigned_to', {})}/>
+                                    item={get(value, 'assigned_to', {})}
+                                />
                             </span>
                         </ListRow>
-                    }
+                    )}
                 </Column>
                 {canEditAssignment && !readOnly && (
                     <Column>
@@ -149,7 +152,8 @@ export class CoverageFormHeaderComponent extends React.Component {
                                 tabIndex={0}
                                 enterKeyIsClick
                                 disabled={!!addNewsItemToPlanning}
-                                autoFocus />
+                                autoFocus
+                            />
                         </ListRow>
                         <ListRow>
                             <Button
@@ -159,7 +163,8 @@ export class CoverageFormHeaderComponent extends React.Component {
                                 tabIndex={0}
                                 enterKeyIsClick
                                 disabled={!!addNewsItemToPlanning}
-                                autoFocus />
+                                autoFocus
+                            />
                         </ListRow>
                     </Column>
                 )}

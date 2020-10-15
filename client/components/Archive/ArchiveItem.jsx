@@ -12,7 +12,7 @@ export const ArchiveItemComponent = ({item, priorities, urgencies, urgencyLabel}
         noHover={true}
         className="archive-item"
     >
-        <Border state="locked"/>
+        <Border state="locked" />
         <ItemType
             item={item}
             hasCheck={false}

@@ -52,13 +52,15 @@ export const CoveragePreview = ({
         />
     );
 
-    const coverageTopBar = (<CoveragePreviewTopBar
-        item={item}
-        coverage={coverage}
-        users={users}
-        desks={desks}
-        newsCoverageStatus={newsCoverageStatus}
-    />);
+    const coverageTopBar = (
+        <CoveragePreviewTopBar
+            item={item}
+            coverage={coverage}
+            users={users}
+            desks={desks}
+            newsCoverageStatus={newsCoverageStatus}
+        />
+    );
 
     let contactId;
 
@@ -98,28 +100,28 @@ export const CoveragePreview = ({
                 />
             </PreviewRow>
 
-            {get(formProfile, 'editor.slugline.enabled') &&
+            {get(formProfile, 'editor.slugline.enabled') && (
                 <PreviewRow
                     label={gettext('Slugline')}
                     value={coverage.planning.slugline}
                 />
-            }
+            )}
 
-            {get(formProfile, 'editor.ednote.enabled') &&
+            {get(formProfile, 'editor.ednote.enabled') && (
                 <PreviewRow
                     label={gettext('Ed Note')}
                     value={stringUtils.convertNewlineToBreak(
                         coverage.planning.ednote || ''
                     )}
                 />
-            }
+            )}
 
-            {get(formProfile, 'editor.keyword.enabled') &&
+            {get(formProfile, 'editor.keyword.enabled') && (
                 <PreviewRow
                     label={gettext('Keyword')}
                     value={keywordText}
                 />
-            }
+            )}
 
             <PreviewRow
                 enabled={get(formProfile, 'editor.internal_note.enabled')}
@@ -128,63 +130,67 @@ export const CoveragePreview = ({
                 <ExpandableText value={coverage.planning.internal_note || ''} />
             </PreviewRow>
 
-            {get(formProfile, 'editor.g2_content_type.enabled') &&
+            {get(formProfile, 'editor.g2_content_type.enabled') && (
                 <PreviewRow
                     label={gettext('Type')}
                     value={!coverage.planning.g2_content_type ? '' :
                         stringUtils.firstCharUpperCase(coverage.planning.g2_content_type)
                     }
                 />
-            }
+            )}
 
             {planningUtils.showXMPFileUIControl(coverage) && (
                 <PreviewRow
-                    label={gettext('Associated XMP File')} >
+                    label={gettext('Associated XMP File')}
+                >
                     <FileReadOnlyList
                         field={'xmp_file'}
                         files={files}
                         item={coverage.planning}
                         createLink={createLink}
-                        noToggle />
+                        noToggle
+                    />
                 </PreviewRow>
             )}
 
-            {get(formProfile, 'editor.genre.enabled') && coverage.planning.genre &&
+            {get(formProfile, 'editor.genre.enabled') && coverage.planning.genre && (
                 <PreviewRow
                     label={gettext('Genre')}
                     value={get(coverage, 'planning.genre.name')}
                 />
-            }
+            )}
 
-            {get(formProfile, 'editor.files.enabled') &&
+            {get(formProfile, 'editor.files.enabled') && (
                 <PreviewRow
-                    label={gettext('Attached files')} >
+                    label={gettext('Attached files')}
+                >
                     <FileReadOnlyList
                         formProfile={formProfile}
                         files={files}
                         item={coverage.planning}
                         createLink={createLink}
-                        noToggle />
+                        noToggle
+                    />
                 </PreviewRow>
-            }
+            )}
 
             <PreviewRow
                 label={gettext('Coverage Status')}
                 value={coverageStatus.label || ''}
             />
 
-            {get(formProfile, 'editor.scheduled.enabled') &&
+            {get(formProfile, 'editor.scheduled.enabled') && (
                 <PreviewRow
                     label={gettext('Due')}
                     value={coverageDateText}
                 />
-            }
+            )}
 
-            {get(formProfile, 'editor.flags') && get(coverage, 'flags.no_content_linking') &&
+            {get(formProfile, 'editor.flags') && get(coverage, 'flags.no_content_linking') && (
                 <PreviewRow>
                     <span className="state-label not-for-publication">{gettext('Do not link content updates')}</span>
                 </PreviewRow>
-            }
+            )}
 
             {planningAllowScheduledUpdates && (
                 <PreviewRow label={gettext('SCHEDULED UPDATES')}>
@@ -198,9 +204,11 @@ export const CoveragePreview = ({
                             desks={desks}
                             newsCoverageStatus={newsCoverageStatus}
                             forPreview
-                            readOnly />
+                            readOnly
+                        />
                     ))}
-                </PreviewRow>)}
+                </PreviewRow>
+            )}
 
         </div>
     );
@@ -215,7 +223,8 @@ export const CoveragePreview = ({
             scrollInView={scrollInView}
             forceScroll={active}
             inner={inner}
-        />);
+        />
+    );
 };
 
 CoveragePreview.propTypes = {
