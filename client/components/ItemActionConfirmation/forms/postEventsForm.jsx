@@ -99,7 +99,7 @@ export class PostEventsComponent extends React.Component {
                     className="strong"
                 />
 
-                <EventScheduleSummary schedule={original}/>
+                <EventScheduleSummary schedule={original} />
 
                 <Row
                     enabled={isRecurring}
@@ -123,7 +123,8 @@ export class PostEventsComponent extends React.Component {
                 {postAll && (
                     <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">
                         {msgTxt}
-                    </div>)}
+                    </div>
+                )}
             </div>
         );
     }

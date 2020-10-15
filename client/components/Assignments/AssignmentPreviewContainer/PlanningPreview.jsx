@@ -19,7 +19,7 @@ export const PlanningPreview = ({urgencyLabel, item, formProfile, agendas, urgen
                 label={gettext('Agenda')}
             >
                 {get(agendaAssigned, 'length', 0) > 0 ? (
-                    <AgendaNameList agendas={agendaAssigned}/>
+                    <AgendaNameList agendas={agendaAssigned} />
                 ) : (
                     <p>-</p>
                 )}
@@ -83,7 +83,7 @@ export const PlanningPreview = ({urgencyLabel, item, formProfile, agendas, urgen
                     get(item, 'flags.marked_for_not_publication', false)
                 }
             >
-                <Label text="Not For Publication" iconType="alert"/>
+                <Label text="Not For Publication" iconType="alert" />
             </Row>
         </div>
     );

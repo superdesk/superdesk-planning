@@ -30,35 +30,45 @@ export class EventMenuPanelComponent extends React.Component {
                 <EventInfo
                     item={item}
                     onClick={onMenuItemClick.bind(null, 'event')}
-                    active={activeItem === 'event'} />
-                <MenuItem label={gettext('Contacts')}
+                    active={activeItem === 'event'}
+                />
+                <MenuItem
+                    label={gettext('Contacts')}
                     onClick={onMenuItemClick.bind(null, 'contacts')}
-                    active={activeItem === 'contacts'}/>
-                <MenuItem label={gettext('Details...')}
+                    active={activeItem === 'contacts'}
+                />
+                <MenuItem
+                    label={gettext('Details...')}
                     onClick={onMenuItemClick.bind(null, 'details')}
-                    active={activeItem === 'details'} />
+                    active={activeItem === 'details'}
+                />
                 <EventFiles
                     item={item}
                     onClick={onMenuItemClick.bind(null, 'files')}
-                    active={activeItem === 'files'} />
+                    active={activeItem === 'files'}
+                />
                 <EventLinks
                     item={item}
                     onClick={onMenuItemClick.bind(null, 'links')}
-                    active={activeItem === 'links'}/>
+                    active={activeItem === 'links'}
+                />
                 {get(plannings, 'length', 0) > 0 && <Label row text={gettext('Related Plannings')} />}
                 {plannings && (
-                    plannings.map((plan, index) => (<PlanningMetaData
-                        key={index}
-                        field={`plannings[${index}]`}
-                        plan={plan}
-                        users={users}
-                        desks={desks}
-                        onClick={onMenuItemClick.bind(null, 'plannings[' + index + ']')}
-                        active={activeItem === 'plannings[' + index + ']'}
-                        contentTypes={contentTypes}
-                        noOpen
-                        tabEnabled
-                        scrollInView />)
+                    plannings.map((plan, index) => (
+                        <PlanningMetaData
+                            key={index}
+                            field={`plannings[${index}]`}
+                            plan={plan}
+                            users={users}
+                            desks={desks}
+                            onClick={onMenuItemClick.bind(null, 'plannings[' + index + ']')}
+                            active={activeItem === 'plannings[' + index + ']'}
+                            contentTypes={contentTypes}
+                            noOpen
+                            tabEnabled
+                            scrollInView
+                        />
+                    )
                     ))}
             </ContentBlock>
         );

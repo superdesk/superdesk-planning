@@ -59,13 +59,13 @@ export const FiltersBox = ({
                 {showFilters && <Spacer />}
             </CheckboxGroup>
 
-            {activeFilter === MAIN.FILTERS.COMBINED &&
+            {activeFilter === MAIN.FILTERS.COMBINED && (
                 <EventsPlanningFiltersSubnavDropdown
                     filters={eventsPlanningFilters}
                     selectFilter={selectEventsPlanningFilter}
                     currentFilterId={currentEventsPlanningFilterId}
                 />
-            }
+            )}
 
             {(activeFilter === MAIN.FILTERS.PLANNING) && (
                 <AgendaSubnavDropdown

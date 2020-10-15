@@ -66,7 +66,7 @@ export const AssignmentPreviewHeader = ({
                     />
                 </ContentBlockInner>
                 {get(itemActions, 'length') > 0 && !hideItemActions &&
-                    <div><ItemActionsMenu actions={itemActions}/></div>
+                    <div><ItemActionsMenu actions={itemActions} /></div>
                 }
             </ContentBlock>
             <Tools className="AssignmentPreview__toolbar" topTools={true}>
@@ -99,7 +99,7 @@ export const AssignmentPreviewHeader = ({
                                     {deskAssignor && (
                                         <span>
                                             {gettext('Assigned by {{name}}', {name: deskAssignorName})},
-                                            &nbsp;<Datetime date={assignedDateDesk}/>
+                                            &nbsp;<Datetime date={assignedDateDesk} />
                                         </span>
                                     )}
                                 </span>
@@ -117,12 +117,12 @@ export const AssignmentPreviewHeader = ({
                                     {userAssignor && (
                                         <span>
                                             {gettext('Assigned by {{name}}', {name: userAssignorName})},
-                                            &nbsp;<Datetime date={assignedDateUser}/>
+                                            &nbsp;<Datetime date={assignedDateUser} />
                                         </span>
                                     )}
                                 </span>
                             </Row>
-                            {coverageProvider &&
+                            {coverageProvider && (
                                 <Row margin={false}>
                                     <span className="sd-list-item__normal">
                                         {gettext('Coverage Provider:')}
@@ -130,7 +130,8 @@ export const AssignmentPreviewHeader = ({
                                     <span className="sd-list-item__strong">
                                         {coverageProvider}
                                     </span>
-                                </Row>}
+                                </Row>
+                            )}
                             <Row marginTop={true}>
                                 <span className="sd-list-item__normal">
                                     {gettext('Due:')}

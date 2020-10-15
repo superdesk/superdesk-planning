@@ -14,21 +14,25 @@ import {ICON_COLORS} from './constants';
  */
 const Icon = ({icon, doubleSize, big, className, tooltip, color}) => {
     const iconElement = (
-        <i className={classNames(
-            icon,
-            {
-                'icon--2x': doubleSize,
-                'double-size-icn': big,
-                [color]: color,
-            },
-            className
-        )} />
+        <i
+            className={classNames(
+                icon,
+                {
+                    'icon--2x': doubleSize,
+                    'double-size-icn': big,
+                    [color]: color,
+                },
+                className
+            )}
+        />
     );
 
     return tooltip ? (
-        <OverlayTrigger overlay={
-            <Tooltip id="icon_list_item">{tooltip}</Tooltip>
-        }>
+        <OverlayTrigger
+            overlay={
+                <Tooltip id="icon_list_item">{tooltip}</Tooltip>
+            }
+        >
             {iconElement}
         </OverlayTrigger>
     ) :

@@ -115,7 +115,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
                     contentTypes={contentTypes}
                 />
 
-                {canFulfilAssignment &&
+                {canFulfilAssignment && (
                     <ContentBlock className="AssignmentPreview__fulfil" padSmall={true} flex={true}>
                         <ContentBlockInner grow={true}>
                             <Button
@@ -125,7 +125,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
                             />
                         </ContentBlockInner>
                     </ContentBlock>
-                }
+                )}
 
                 <ContentBlock className="AssignmentPreview__coverage" padSmall={true}>
                     <AssignmentPreview
@@ -157,7 +157,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
                     </ToggleBox>
                 </ContentBlock>
 
-                {eventItem &&
+                {eventItem && (
                     <ContentBlock className="AssignmentPreview__event" padSmall={true}>
                         <ToggleBox
                             title={gettext('Event')}
@@ -173,7 +173,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
                             />
                         </ToggleBox>
                     </ContentBlock>
-                }
+                )}
             </div>
         );
     }

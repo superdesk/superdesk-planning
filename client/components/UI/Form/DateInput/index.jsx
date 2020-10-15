@@ -166,37 +166,41 @@ export class DateInput extends React.Component {
         return (
             <LineInput {...props} readOnly={readOnly} message={message} invalid={invalid}>
                 <Label text={label} />
-                {!inputAsLabel && <IconButton
-                    className="sd-line-input__icon-right"
-                    icon="icon-calendar"
-                    onFocus={onFocus}
-                    onClick={readOnly ? undefined : this.toggleOpenDatePicker}
-                />}
+                {!inputAsLabel && (
+                    <IconButton
+                        className="sd-line-input__icon-right"
+                        icon="icon-calendar"
+                        onFocus={onFocus}
+                        onClick={readOnly ? undefined : this.toggleOpenDatePicker}
+                    />
+                )}
                 {inputAsLabel && value &&
                 <div className="sd-line-input__date-as-label">{`${eventTimeZoneString} ${this.state.viewValue}`}</div>}
-                {!inputAsLabel && <Input
-                    field={field}
-                    value={this.state.viewValue}
-                    placeholder={placeholder || gettext('Date')}
-                    onChange={this.validateDateText}
-                    onFocus={onFocus}
-                    onBlur={this.handleInputBlur}
-                    type="text"
-                    readOnly={readOnly}
-                    onKeyDown={(event) => {
-                        if (event.keyCode === KEYCODES.ENTER) {
-                            onEventCapture(event);
-                            this.setState({openDatePicker: true});
+                {!inputAsLabel && (
+                    <Input
+                        field={field}
+                        value={this.state.viewValue}
+                        placeholder={placeholder || gettext('Date')}
+                        onChange={this.validateDateText}
+                        onFocus={onFocus}
+                        onBlur={this.handleInputBlur}
+                        type="text"
+                        readOnly={readOnly}
+                        onKeyDown={(event) => {
+                            if (event.keyCode === KEYCODES.ENTER) {
+                                onEventCapture(event);
+                                this.setState({openDatePicker: true});
+                            }
                         }
-                    }
-                    }
-                    refNode={(ref) => {
-                        this.dom.inputField = ref;
-                        if (this.props.refNode) {
-                            this.props.refNode(ref);
                         }
-                    }}
-                />}
+                        refNode={(ref) => {
+                            this.dom.inputField = ref;
+                            if (this.props.refNode) {
+                                this.props.refNode(ref);
+                            }
+                        }}
+                    />
+                )}
                 {displayDateString && <span>{displayDateString}</span>}
                 {this.state.openDatePicker && (
                     <DateInputPopup

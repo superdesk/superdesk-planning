@@ -92,7 +92,7 @@ export const AssignmentPreview = ({
                 enabled={get(coverageFormProfile, 'editor.internal_note.enabled')}
                 label={gettext('Internal Note')}
             >
-                <InternalNoteLabel item={planning} showTooltip={false}/>
+                <InternalNoteLabel item={planning} showTooltip={false} />
                 <p>{stringUtils.convertNewlineToBreak(planning.internal_note || '-')}</p>
             </Row>
 
@@ -106,20 +106,24 @@ export const AssignmentPreview = ({
                     files={files}
                     item={planning}
                     createLink={createLink}
-                    noToggle />
+                    noToggle
+                />
             </Row>
 
-            {showXMPFiles && (<Row
-                label={gettext('ASSOCIATED XMP FILE')}
-                noPadding={true}
-            >
-                <FileReadOnlyList
-                    files={files}
-                    item={planning}
-                    createLink={createLink}
-                    field={'xmp_file'}
-                    noToggle />
-            </Row>)}
+            {showXMPFiles && (
+                <Row
+                    label={gettext('ASSOCIATED XMP FILE')}
+                    noPadding={true}
+                >
+                    <FileReadOnlyList
+                        files={files}
+                        item={planning}
+                        createLink={createLink}
+                        field={'xmp_file'}
+                        noToggle
+                    />
+                </Row>
+            )}
         </div>
     );
 };

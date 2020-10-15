@@ -47,7 +47,7 @@ export const PlanningDateTime = ({
 
     return (
         <span className="sd-no-wrap">
-            {coverageToDisplay.map((coverage, i) =>
+            {coverageToDisplay.map((coverage, i) => (
                 <CoverageIcon
                     key={i}
                     users={users}
@@ -56,6 +56,7 @@ export const PlanningDateTime = ({
                     contentTypes={contentTypes}
                     contacts={contacts}
                 />
+            )
             )}
         </span>
     );

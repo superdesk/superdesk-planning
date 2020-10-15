@@ -129,10 +129,12 @@ export class CollapseBox extends React.Component {
             >
                 {this.state.isOpen && (
                     <div className="sd-collapse-box__content-wraper">
-                        <div className={classNames(
-                            'sd-collapse-box__content',
-                            {'no-border': !this.props.invalid}
-                        )}>
+                        <div
+                            className={classNames(
+                                'sd-collapse-box__content',
+                                {'no-border': !this.props.invalid}
+                            )}
+                        >
                             <div className="sd-collapse-box__tools sd-collapse-box__tools--rightFlex">
                                 <IconButton
                                     icon="icon-chevron-up-thin"
@@ -142,22 +144,24 @@ export class CollapseBox extends React.Component {
                                 />
                                 {this.props.tools}
                             </div>
-                            {this.props.openItemTopBar &&
-                            <div className="sd-collapse-box__content-block sd-collapse-box__content-block--top">
-                                {this.props.openItemTopBar}
-                            </div>}
+                            {this.props.openItemTopBar && (
+                                <div className="sd-collapse-box__content-block sd-collapse-box__content-block--top">
+                                    {this.props.openItemTopBar}
+                                </div>
+                            )}
                             {this.props.openItem}
                         </div>
                     </div>
                 )}
                 {!this.state.isOpen && (
-                    <div className={classNames(
-                        'sd-collapse-box__header',
-                        {
-                            'sd-collapse-box__inner-header': this.props.inner,
-                            'no-border': !this.props.invalid,
-                        }
-                    )}
+                    <div
+                        className={classNames(
+                            'sd-collapse-box__header',
+                            {
+                                'sd-collapse-box__inner-header': this.props.inner,
+                                'no-border': !this.props.invalid,
+                            }
+                        )}
                     >
                         {this.props.collapsedItem}
                     </div>

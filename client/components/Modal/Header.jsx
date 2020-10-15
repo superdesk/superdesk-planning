@@ -6,7 +6,8 @@ export default function Header({children}) {
     return (
         <_Modal.Header className="modal__header">
             {children}
-        </_Modal.Header>);
+        </_Modal.Header>
+    );
 }
 
 Header.propTypes = {

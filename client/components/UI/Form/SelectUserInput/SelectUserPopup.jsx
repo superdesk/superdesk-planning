@@ -106,12 +106,17 @@ export class SelectUserPopup extends React.Component {
                 inheritWidth={true}
             >
                 <Content noPadding={true}>
-                    <ul className="user-search__popup-list"
-                        ref={(ref) => this.dom.itemList = ref}>
+                    <ul
+                        className="user-search__popup-list"
+                        ref={(ref) => this.dom.itemList = ref}
+                    >
                         {users.length > 0 && users.map((user, index) => (
-                            <li key={index} className={
-                                classNames('user-search__popup-item',
-                                    {'user-search__popup-item--active': index === this.state.activeIndex})}>
+                            <li
+                                key={index}
+                                className={
+                                    classNames('user-search__popup-item',
+                                        {'user-search__popup-item--active': index === this.state.activeIndex})}
+                            >
                                 <button type="button" onClick={this.handleOnChange.bind(null, user)}>
                                     <UserAvatar user={user} />
                                     <div className="user-search__popup-item-label">{user.display_name}</div>
@@ -122,7 +127,7 @@ export class SelectUserPopup extends React.Component {
                         {users.length === 0 && (
                             <li className="user-search__popup-item">
                                 <button disabled>
-                                    <UserAvatar empty={true} initials={false}/>
+                                    <UserAvatar empty={true} initials={false} />
                                     <div className="user-search__popup-item-label">{gettext('No users found')}</div>
                                 </button>
                             </li>

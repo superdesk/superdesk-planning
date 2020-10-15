@@ -22,22 +22,23 @@ export const Item = (
         onMouseLeave,
         refNode,
     }) => (
-    <div className={classNames(
-        className,
-        'sd-list-item',
-        {
-            'sd-list-item--no-bg': noBg,
-            'sd-list-item--no-hover': noHover,
-            'sd-list-item--margin': margin,
-            'sd-list-item--activated': activated,
-            [`sd-shadow--z${shadow}`]: shadow,
-            'sd-list-item--disabled': disabled,
-        }
-    )}
-    onClick={onClick}
-    onMouseEnter={onMouseEnter}
-    onMouseLeave={onMouseLeave}
-    ref={refNode}
+    <div
+        className={classNames(
+            className,
+            'sd-list-item',
+            {
+                'sd-list-item--no-bg': noBg,
+                'sd-list-item--no-hover': noHover,
+                'sd-list-item--margin': margin,
+                'sd-list-item--activated': activated,
+                [`sd-shadow--z${shadow}`]: shadow,
+                'sd-list-item--disabled': disabled,
+            }
+        )}
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        ref={refNode}
     >
         {children}
     </div>

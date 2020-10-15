@@ -39,15 +39,31 @@ const TestForm = ({formData}) => {
             <Field {...fieldProps} component={FileInput} field="file" />
             <Field {...fieldProps} component={LinkInput} field="link" />
             <Field {...fieldProps} component={SelectInput} field="opts" options={[]} defaultValue={{}} />
-            <Field {...fieldProps} component={ColouredValueInput} field="colour"
-                iconName="test" defaultValue={{}} options={[]}/>
-            <Field {...fieldProps} component={DateInput} field="date" dateFormat=""/>
-            <Field {...fieldProps} component={DateTimeInput} field="datetime" dateFormat="" timeFormat=""/>
+            <Field
+                {...fieldProps}
+                component={ColouredValueInput}
+                field="colour"
+                iconName="test"
+                defaultValue={{}}
+                options={[]}
+            />
+            <Field {...fieldProps} component={DateInput} field="date" dateFormat="" />
+            <Field {...fieldProps} component={DateTimeInput} field="datetime" dateFormat="" timeFormat="" />
             <Field {...fieldProps} component={TimeInput} field="time" />
-            <Field {...fieldProps} component={SelectMetaTermsInput} field="meta"
-                options={[]} defaultValue={{}}/>
-            <Field {...fieldProps} component={SelectTagInput} field="tags"
-                options={[]} defaultValue={[]}/>
+            <Field
+                {...fieldProps}
+                component={SelectMetaTermsInput}
+                field="meta"
+                options={[]}
+                defaultValue={{}}
+            />
+            <Field
+                {...fieldProps}
+                component={SelectTagInput}
+                field="tags"
+                options={[]}
+                defaultValue={[]}
+            />
         </div>
     );
 };
@@ -147,7 +163,7 @@ describe('validators', () => {
             formData.diff = cloneDeep(formData.item);
 
             wrapper = mount(
-                <TestForm formData={formData}/>
+                <TestForm formData={formData} />
             );
 
             inputs = {

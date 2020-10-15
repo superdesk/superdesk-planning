@@ -24,11 +24,14 @@ export const LocationLookupResultItem = ({onClick, active, location}) => {
     }
 
     return (
-        <li onClick={onClick} className={classNames(
-            'sd-list-item__row',
-            'addgeolookup__item',
-            {'addgeolookup__item--active': active}
-        )}>
+        <li
+            onClick={onClick}
+            className={classNames(
+                'sd-list-item__row',
+                'addgeolookup__item',
+                {'addgeolookup__item--active': active}
+            )}
+        >
             <span className="sd-overflow-ellipsis">{name}</span>
         </li>
     );

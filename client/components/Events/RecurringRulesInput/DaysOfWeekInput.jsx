@@ -73,7 +73,7 @@ export class DaysOfWeekInput extends React.Component {
 
         return (
             <div>
-                <Label row={true} text={label} invalid={invalid}/>
+                <Label row={true} text={label} invalid={invalid} />
                 <Row flex={true} noPadding={invalid}>
                     {Object.keys(this.state).map((day) => (
                         <LineInput key={day} noLabel={true} noMargin={true}>

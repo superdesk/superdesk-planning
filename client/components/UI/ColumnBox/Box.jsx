@@ -9,8 +9,10 @@ import classNames from 'classnames';
  */
 
 export const Box = ({children, verticalScroll}) => (
-    <div className={classNames('sd-column-box--2',
-        {'sd-column-box--vertical-scroll': verticalScroll})}>
+    <div
+        className={classNames('sd-column-box--2',
+            {'sd-column-box--vertical-scroll': verticalScroll})}
+    >
         {children}
     </div>
 );

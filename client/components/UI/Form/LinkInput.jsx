@@ -151,7 +151,8 @@ export class LinkInput extends React.Component {
                     readOnly={readOnly}
                     noMargin={noMargin}
                     invalid={get(props, `errors.${field}.length`, 0) > 0}
-                    message={get(props, `errors.${field}`)}>
+                    message={get(props, `errors.${field}`)}
+                >
                     <Label text={label} />
 
                     <TextArea

@@ -19,9 +19,11 @@ export const SlidingToolBar = ({
     rightCancelButton,
     cancelText,
 }) => (
-    <div className={classNames(
-        'subnav__sliding-toolbar',
-        {'ng-hide': hide})} >
+    <div
+        className={classNames(
+            'subnav__sliding-toolbar',
+            {'ng-hide': hide})}
+    >
         <div className="sliding-toolbar__inner">
             {!rightCancelButton && <Button onClick={onCancel} text={gettext('Cancel')} />}
             <span className="sliding-toolbar__info-text">{innerInfo}&nbsp;</span>

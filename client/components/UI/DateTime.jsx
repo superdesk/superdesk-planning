@@ -23,12 +23,14 @@ function DateTime({date, withTime, withDate, withYear, padLeft, toBeConfirmed}) 
         withTime ? newTimeFormat : null,
     ].filter((d) => d).join('\u00a0'); // &nbsp;
 
-    return <time
-        className={!padLeft ? 'Datetime' : null}
-        title={date.toString()}
-    >
-        {moment(date).format(dateTimeFormat)}
-    </time>;
+    return (
+        <time
+            className={!padLeft ? 'Datetime' : null}
+            title={date.toString()}
+        >
+            {moment(date).format(dateTimeFormat)}
+        </time>
+    );
 }
 
 DateTime.propTypes = {

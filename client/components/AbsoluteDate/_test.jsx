@@ -39,7 +39,7 @@ describe('<AbsoluteDate />', () => {
         const store = createTestStore();
         const wrapper = mount(
             <Provider store={store}>
-                <AbsoluteDate date={date}/>
+                <AbsoluteDate date={date} />
             </Provider>
         );
 

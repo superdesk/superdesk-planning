@@ -74,7 +74,7 @@ export class CoveragesMenuPopup extends React.PureComponent {
         return (
             <li key={key}>
                 <button id={action.id} onClick={trigger}>
-                    {action.icon && (<i className={action.icon}/>)}
+                    {action.icon && (<i className={action.icon} />)}
                     {action.label}
                 </button>
             </li>

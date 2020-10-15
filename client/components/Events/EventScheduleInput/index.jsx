@@ -331,7 +331,7 @@ export class EventScheduleInput extends React.Component {
                 <Field
                     component={DateTimeInput}
                     field="dates.start"
-                    label={ doesRepeat && showFirstEventLabel ? gettext('First Event Starts') : gettext('Event Starts')}
+                    label={doesRepeat && showFirstEventLabel ? gettext('First Event Starts') : gettext('Event Starts')}
                     row={false}
                     defaultValue={null}
                     popupContainer={popupContainer}
@@ -353,7 +353,7 @@ export class EventScheduleInput extends React.Component {
                 <Field
                     component={DateTimeInput}
                     field="dates.end"
-                    label={ doesRepeat && showFirstEventLabel ? gettext('First Event Ends') : gettext('Event Ends')}
+                    label={doesRepeat && showFirstEventLabel ? gettext('First Event Ends') : gettext('Event Ends')}
                     row={false}
                     defaultValue={null}
                     popupContainer={popupContainer}
@@ -372,31 +372,38 @@ export class EventScheduleInput extends React.Component {
                 />
 
                 <Row flex={true} noPadding>
-                    {get(formProfile, 'editor.dates.all_day.enabled') && <Field
-                        onChange={this.handleAllDayChange}
-                        field="dates.all_day"
-                        label={gettext('All Day')}
-                        value={isAllDay}
+                    {get(formProfile, 'editor.dates.all_day.enabled') && (
+                        <Field
+                            onChange={this.handleAllDayChange}
+                            field="dates.all_day"
+                            label={gettext('All Day')}
+                            value={isAllDay}
 
-                        {...toggleProps}
-                    />}
-                    {showTimeZone && <Field
-                        field="dates.tz"
-                        label={gettext('Timezone')}
-                        component={TimeZoneInput}
-                        onChange={this.onChange}
-                        row={false}
-                        {...fieldProps}
-                        halfWidth={get(formProfile, 'editor.dates.all_day.enabled')} />}
+                            {...toggleProps}
+                        />
+                    )}
+                    {showTimeZone && (
+                        <Field
+                            field="dates.tz"
+                            label={gettext('Timezone')}
+                            component={TimeZoneInput}
+                            onChange={this.onChange}
+                            row={false}
+                            {...fieldProps}
+                            halfWidth={get(formProfile, 'editor.dates.all_day.enabled')}
+                        />
+                    )}
                 </Row>
 
                 <Row
                     enabled={!!get(errors, 'dates.range')}
                     noPadding={true}
                 >
-                    <LineInput invalid={true}
+                    <LineInput
+                        invalid={true}
                         message={get(errors, 'dates.range')}
-                        readOnly={true} />
+                        readOnly={true}
+                    />
                 </Row>
             </div>
         );

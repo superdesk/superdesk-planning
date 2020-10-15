@@ -11,18 +11,22 @@ import './style.scss';
  */
 export const Row = ({children, flex, noPadding, halfWidth, className, enabled, id}) => (
     !enabled ?
-        null :
-        <div id={id} className={classNames(
-            'form__row',
-            {
-                'form__row--flex': flex,
-                'no-padding': noPadding,
-                'form__row--half-width': halfWidth,
-            },
-            className
-        )}>
-            {children}
-        </div>
+        null : (
+            <div
+                id={id}
+                className={classNames(
+                    'form__row',
+                    {
+                        'form__row--flex': flex,
+                        'no-padding': noPadding,
+                        'form__row--half-width': halfWidth,
+                    },
+                    className
+                )}
+            >
+                {children}
+            </div>
+        )
 );
 
 Row.propTypes = {

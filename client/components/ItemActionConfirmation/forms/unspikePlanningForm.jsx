@@ -29,14 +29,16 @@ export class UnspikePlanningComponent extends React.Component {
                     label={gettext('Slugline')}
                     value={original.slugline || ''}
                     className="slugline"
-                    noPadding={true} />
+                    noPadding={true}
+                />
 
                 <Row
                     enabled={!!original.name}
                     label={gettext('Name')}
                     value={original.name || ''}
                     className="strong"
-                    noPadding={true} />
+                    noPadding={true}
+                />
 
                 <Row
                     label={gettext('Planning Date')}
@@ -45,7 +47,8 @@ export class UnspikePlanningComponent extends React.Component {
                         appConfig.planning.dateformat,
                         appConfig.planning.timeformat
                     ) || ''}
-                    noPadding={true} />
+                    noPadding={true}
+                />
             </div>
         );
     }

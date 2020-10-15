@@ -26,15 +26,16 @@ export const SubNavBar = ({
 }) => (
     <SubNav>
         <MultiSelectActions />
-        <SearchBox label={gettext('Search planning')} value={value} search={search} activeFilter={activeFilter}/>
-        {isViewFiltered &&
-        <Button
-            text={gettext('Clear Filters')}
-            className="btn__clear-filters"
-            hollow={true}
-            color="alert"
-            onClick={clearSearch}
-        />}
+        <SearchBox label={gettext('Search planning')} value={value} search={search} activeFilter={activeFilter} />
+        {isViewFiltered && (
+            <Button
+                text={gettext('Clear Filters')}
+                className="btn__clear-filters"
+                hollow={true}
+                color="alert"
+                onClick={clearSearch}
+            />
+        )}
         <JumpToDropdown
             currentStartFilter={currentStartFilter}
             setStartFilter={setStartFilter}
@@ -43,7 +44,8 @@ export const SubNavBar = ({
             openAgendas={openAgendas}
             openEventsPlanningFiltersModal={openEventsPlanningFiltersModal}
             openFeaturedPlanningModal={openFeaturedPlanningModal}
-            privileges={privileges} />
+            privileges={privileges}
+        />
         <CreateNewSubnavDropdown
             addEvent={addEvent}
             addPlanning={addPlanning}

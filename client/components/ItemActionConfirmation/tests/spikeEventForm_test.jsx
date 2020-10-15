@@ -112,7 +112,8 @@ xdescribe('<SpikeEventForm />', () => {
                 const dateFormat = 'DD/MM/YYYY';
                 const timeFormat = 'HH:mm';
                 const wrapper = mount(
-                    <SpikeEventComponent initialValues={eventDetail}
+                    <SpikeEventComponent
+                        initialValues={eventDetail}
                         dateFormat={dateFormat}
                         timeFormat={timeFormat}
                     />

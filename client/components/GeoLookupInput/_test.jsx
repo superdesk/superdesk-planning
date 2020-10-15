@@ -68,11 +68,14 @@ describe('<AddGeoLookupInput />', () => {
     });
 
     it('external search button can be controlled by disableSearch prop', () => {
-        wrapper = mount(<GeoLookupInputComponent
-            initialValue={initialValue}
-            onChange={onChange}
-            searchLocalLocations={handleSearch}
-            disableSearch={true} />);
+        wrapper = mount(
+            <GeoLookupInputComponent
+                initialValue={initialValue}
+                onChange={onChange}
+                searchLocalLocations={handleSearch}
+                disableSearch={true}
+            />
+        );
 
         wrapper.instance().handleInputChange(inputText);
 

@@ -157,11 +157,13 @@ const EditorItemActionsComponent = (props) => {
     }
 
 
-    return actions.length === 0 ? null : (<ItemActionsMenu
-        className="navbtn"
-        actions={actions}
-        wide={itemType === ITEM_TYPE.EVENT}
-    />);
+    return actions.length === 0 ? null : (
+        <ItemActionsMenu
+            className="navbtn"
+            actions={actions}
+            wide={itemType === ITEM_TYPE.EVENT}
+        />
+    );
 };
 
 EditorItemActionsComponent.propTypes = {

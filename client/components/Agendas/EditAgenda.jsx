@@ -104,36 +104,46 @@ export class EditAgenda extends React.Component {
         let tools = [<a className="btn" key={1} onClick={this.props.onClose}>{gettext('Cancel')}</a>];
 
         if (!this.state.pristine && this.state.agendaName && !this.state.invalid) {
-            tools.push(<a className="btn btn--primary" key={2}
-                onClick={this.onSave.bind(this)}>{gettext('Save')}</a>);
+            tools.push(
+                <a
+                    className="btn btn--primary"
+                    key={2}
+                    onClick={this.onSave.bind(this)}
+                >
+                    {gettext('Save')}
+                </a>
+            );
         }
 
-        return (<SlideInPanel.Panel>
-            <SlideInPanel.Header
-                tools={tools} />
-            <SlideInPanel.Content>
-                <Form.Row>
-                    <Form.TextInput
-                        field="name"
-                        label={gettext('Name')}
-                        required={true}
-                        value={this.state.agendaName}
-                        onChange={this.onChange}
-                        invalid={this.state.invalid}
-                        message={this.state.message}
-                        autoFocus={true}
-                    />
-                </Form.Row>
+        return (
+            <SlideInPanel.Panel>
+                <SlideInPanel.Header
+                    tools={tools}
+                />
+                <SlideInPanel.Content>
+                    <Form.Row>
+                        <Form.TextInput
+                            field="name"
+                            label={gettext('Name')}
+                            required={true}
+                            value={this.state.agendaName}
+                            onChange={this.onChange}
+                            invalid={this.state.invalid}
+                            message={this.state.message}
+                            autoFocus={true}
+                        />
+                    </Form.Row>
 
-                <Form.Row>
-                    <Form.Label text={gettext('Enabled')} />
-                    <Toggle
-                        value={this.state.agendaEnabled}
-                        onChange={this.onEnableChange}
-                    />
-                </Form.Row>
-            </SlideInPanel.Content>
-        </SlideInPanel.Panel>);
+                    <Form.Row>
+                        <Form.Label text={gettext('Enabled')} />
+                        <Toggle
+                            value={this.state.agendaEnabled}
+                            onChange={this.onEnableChange}
+                        />
+                    </Form.Row>
+                </SlideInPanel.Content>
+            </SlideInPanel.Panel>
+        );
     }
 }
 

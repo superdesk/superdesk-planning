@@ -125,25 +125,29 @@ export class ExportAsArticleModal extends React.Component {
             ) || '';
         }
 
-        return (<Item>
-            <Column grow={true} border={false}>
-                <ListRow>
-                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                        {renderFields(get(exportListFields,
-                            `${itemType}.primary_fields`, primaryFields), item, propsToComponent)}
-                    </span>
-                    <button className="icon-close-small"
-                        onClick={this.onCloseItem.bind(null, item._id)} />
-                </ListRow>
-                <ListRow>
-                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                        {renderFields(get(exportListFields,
-                            `${itemType}.secondary_fields`, secFields), item, propsToComponent)}
-                    </span>
-                    {dateStr && <time className="no-padding"><i className="icon-time"/>{dateStr}</time>}
-                </ListRow>
-            </Column>
-        </Item>);
+        return (
+            <Item>
+                <Column grow={true} border={false}>
+                    <ListRow>
+                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                            {renderFields(get(exportListFields,
+                                `${itemType}.primary_fields`, primaryFields), item, propsToComponent)}
+                        </span>
+                        <button
+                            className="icon-close-small"
+                            onClick={this.onCloseItem.bind(null, item._id)}
+                        />
+                    </ListRow>
+                    <ListRow>
+                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                            {renderFields(get(exportListFields,
+                                `${itemType}.secondary_fields`, secFields), item, propsToComponent)}
+                        </span>
+                        {dateStr && <time className="no-padding"><i className="icon-time" />{dateStr}</time>}
+                    </ListRow>
+                </Column>
+            </Item>
+        );
     }
 
     render() {
@@ -170,7 +174,8 @@ export class ExportAsArticleModal extends React.Component {
                         <SortItems
                             items={this.state.items}
                             onSortChange={this.onSortChange}
-                            getListElement={this.getListElement} />
+                            getListElement={this.getListElement}
+                        />
                     </Row>
                     {!download && [<Row key={0}>
                         <SelectInput
@@ -180,7 +185,8 @@ export class ExportAsArticleModal extends React.Component {
                             onChange={this.onChange}
                             options={desks}
                             labelField="name"
-                            keyField="_id" />
+                            keyField="_id"
+                        />
                     </Row>,
                     <Row key={1}>
                         <SelectInput
@@ -191,7 +197,8 @@ export class ExportAsArticleModal extends React.Component {
                             options={articleTemplates}
                             labelField="template_name"
                             keyField="_id"
-                            clearable />
+                            clearable
+                        />
                     </Row>]}
                     <Row>
                         <SelectInput
@@ -202,16 +209,27 @@ export class ExportAsArticleModal extends React.Component {
                             options={templates}
                             labelField="label"
                             keyField="name"
-                            clearable />
+                            clearable
+                        />
                     </Row>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button type="button"
-                        onClick={this.props.handleHide}>{gettext('Cancel')}</Button>
-                    {!download && <Button type="submit" className="btn--primary" disabled={!desk}
-                        onClick={this.onSubmit}>{gettext('Export')}</Button>}
-                    {download && <Button type="submit" className="btn--primary"onClick={this.onSubmit}>
-                        {gettext('Download')}</Button>}
+                    <Button
+                        type="button"
+                        onClick={this.props.handleHide}
+                    >{gettext('Cancel')}</Button>
+                    {!download && (
+                        <Button
+                            type="submit"
+                            className="btn--primary"
+                            disabled={!desk}
+                            onClick={this.onSubmit}
+                        >{gettext('Export')}</Button>
+                    )}
+                    {download && (
+                        <Button type="submit" className="btn--primary"onClick={this.onSubmit}>
+                            {gettext('Download')}</Button>
+                    )}
                 </Modal.Footer>
             </Modal>
         );

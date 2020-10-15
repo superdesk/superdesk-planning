@@ -115,29 +115,37 @@ export class AddGeoLookupResultsPopUp extends React.Component {
             >
                 <Content noPadding={true} className="addgeolookup__suggests-wrapper">
                     <ul className="nav-tabs">
-                        <li className={classNames('nav-tabs__tab',
-                            'nav-tabs--small',
-                            {'nav-tabs__tab--active': this.state.tab === 'localResults'})} >
+                        <li
+                            className={classNames('nav-tabs__tab',
+                                'nav-tabs--small',
+                                {'nav-tabs__tab--active': this.state.tab === 'localResults'})}
+                        >
                             <Button
                                 onClick={this.onTabChange.bind(null, 'localResults')}
-                                className="nav-tabs__link"><span>{gettext('Existing locations')}</span>
+                                className="nav-tabs__link"
+                            ><span>{gettext('Existing locations')}</span>
                             </Button>
                         </li>
-                        {this.props.showExternalSearch &&
-                            <li className={classNames('nav-tabs__tab',
-                                'nav-tabs--small',
-                                {'nav-tabs__tab--active': this.state.tab === 'searchResults'})} >
+                        {this.props.showExternalSearch && (
+                            <li
+                                className={classNames('nav-tabs__tab',
+                                    'nav-tabs--small',
+                                    {'nav-tabs__tab--active': this.state.tab === 'searchResults'})}
+                            >
                                 <Button
                                     onClick={this.onTabChange.bind(null, 'searchResults')}
-                                    className="nav-tabs__link">
+                                    className="nav-tabs__link"
+                                >
                                     <span>&nbsp;{gettext('Search OpenStreetMap')}&nbsp;</span>
                                 </Button>
-                            </li>}
+                            </li>
+                        )}
                     </ul>
                     <div className="nav-tabs__content nav-tabs__content--no-padding">
-                        {this.state.tab === 'localResults' &&
+                        {this.state.tab === 'localResults' && (
                             <div className="nav-tabs__pane">
-                                <ul className="addgeolookup__suggests"
+                                <ul
+                                    className="addgeolookup__suggests"
                                     ref={(node) => this.dom.itemList = node}
                                 >
                                     {localSuggests.map((suggest, index) => (
@@ -155,13 +163,14 @@ export class AddGeoLookupResultsPopUp extends React.Component {
                                     )}
                                 </ul>
                             </div>
-                        }
+                        )}
                         {this.state.tab === 'searchResults' && (
                             <div className="nav-tabs__pane">
                                 {this.props.searching ? (
                                     <div className="spinner-big" />
                                 ) : (
-                                    <ul className="addgeolookup__suggests"
+                                    <ul
+                                        className="addgeolookup__suggests"
                                         ref={(node) => this.dom.itemList = node}
                                     >
                                         {suggests.map((suggest, index) => (
@@ -186,14 +195,15 @@ export class AddGeoLookupResultsPopUp extends React.Component {
                             </div>
                         )}
                     </div>
-                    {this.props.showAddLocation &&
+                    {this.props.showAddLocation && (
                         <Button
                             className="addgeolookup"
                             disabled={this.props.searching}
-                            onClick={this.props.onAddNewLocation} >
+                            onClick={this.props.onAddNewLocation}
+                        >
                             <span>{gettext('Add a new location')}</span>
                         </Button>
-                    }
+                    )}
                 </Content>
             </Popup>
         );

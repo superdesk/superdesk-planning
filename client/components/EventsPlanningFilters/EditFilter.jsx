@@ -133,7 +133,8 @@ export class EditFilter extends React.Component {
                     <ToggleBox
                         isOpen={true}
                         title={gettext('From Any')}
-                        noMargin={true}>
+                        noMargin={true}
+                    >
                         <Form.Row>
                             <SelectMetaTermsInput
                                 field="calendars"
@@ -164,7 +165,8 @@ export class EditFilter extends React.Component {
                     </ToggleBox>
                     <ToggleBox
                         title={gettext('Filtered By')}
-                        isOpen={true}>
+                        isOpen={true}
+                    >
                         <Form.Row>
                             <SelectMetaTermsInput
                                 field="places"

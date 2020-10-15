@@ -44,8 +44,12 @@ export class LocationsListComponent extends React.Component {
                 {get(this.props.locations, 'length') === 0 && (
                     <span className="sd-alert">{gettext('No result')}</span>)}
                 {this.props.locations.map((location, index) => (
-                    <List.Item shadow={1} key={location._id} onClick={this.props.editLocation.bind(null, location)}
-                        activated={location._id === get(this.props.currentLocation, '_id')}>
+                    <List.Item
+                        shadow={1}
+                        key={location._id}
+                        onClick={this.props.editLocation.bind(null, location)}
+                        activated={location._id === get(this.props.currentLocation, '_id')}
+                    >
                         <List.Column grow={false} border={true}>
                             <List.Row>
                                 <a
@@ -53,8 +57,9 @@ export class LocationsListComponent extends React.Component {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     href={getMapUrl(appConfig.street_map_url, get(location, 'name'),
-                                        get(formatAddress(location), 'formattedAddress'))}>
-                                    <i className="sd-list-item__location"/>
+                                        get(formatAddress(location), 'formattedAddress'))}
+                                >
+                                    <i className="sd-list-item__location" />
                                 </a>
                             </List.Row>
                         </List.Column>
@@ -65,30 +70,35 @@ export class LocationsListComponent extends React.Component {
                                 </span>
                                 <span className="sd-list-item__text-label">{gettext('Address')}:</span>
                                 <span
-                                    className="sd-list-item__normal">{get(formatAddress(location), 'address.line[0]')}
+                                    className="sd-list-item__normal"
+                                >{get(formatAddress(location), 'address.line[0]')}
                                 </span>
                                 <span className="sd-list-item__text-label">{gettext('City/Town')}:</span>
                                 <span
-                                    className="sd-list-item__normal">{get(formatAddress(location), 'address.area')}
+                                    className="sd-list-item__normal"
+                                >{get(formatAddress(location), 'address.area')}
                                 </span>
                                 <span className="sd-list-item__text-label">{gettext('State/Province/Region')}:</span>
                                 <span
-                                    className="sd-list-item__normal">{get(formatAddress(location), 'address.locality')}
+                                    className="sd-list-item__normal"
+                                >{get(formatAddress(location), 'address.locality')}
                                 </span>
                                 <span className="sd-list-item__text-label">{gettext('Post Code')}:</span>
                                 <span
-                                    className="sd-list-item__normal">{get(formatAddress(location),
+                                    className="sd-list-item__normal"
+                                >{get(formatAddress(location),
                                         'address.postal_code')}
                                 </span>
                                 <span className="sd-list-item__text-label">{gettext('Country')}:</span>
                                 <span
-                                    className="sd-list-item__normal">{get(formatAddress(location), 'address.country')}
+                                    className="sd-list-item__normal"
+                                >{get(formatAddress(location), 'address.country')}
                                 </span>
                             </List.Row>
                         </List.Column>
                         <List.ActionMenu>
                             <button onClick={this.props.deleteLocation.bind(null, location)}>
-                                <i className="icon-trash"/></button>
+                                <i className="icon-trash" /></button>
                         </List.ActionMenu>
                     </List.Item>
                 ))}

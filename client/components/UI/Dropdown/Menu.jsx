@@ -9,7 +9,7 @@ import classNames from 'classnames';
  */
 
 export const Menu = ({children, className, isOpen, alignRight, scrollable}) => (
-    !isOpen ? null :
+    !isOpen ? null : (
         <ul
             className={classNames(
                 'dropdown__menu',
@@ -22,6 +22,7 @@ export const Menu = ({children, className, isOpen, alignRight, scrollable}) => (
         >
             {children}
         </ul>
+    )
 );
 
 Menu.propTypes = {

@@ -6,7 +6,8 @@ export default function Footer({children}) {
     return (
         <_Modal.Footer className="modal__footer">
             {children}
-        </_Modal.Footer>);
+        </_Modal.Footer>
+    );
 }
 
 Footer.propTypes = {

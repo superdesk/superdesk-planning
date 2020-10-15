@@ -23,7 +23,7 @@ describe('<Location />', () => {
         delete appConfig.street_map_url;
         wrapper = mount(
             <Provider store={store}>
-                <Location name={name} address={address}/>
+                <Location name={name} address={address} />
             </Provider>
         );
 
@@ -31,7 +31,7 @@ describe('<Location />', () => {
         expect(wrapper.html()).toBe('<span class="sd-list-item__location">location_name</span>');
         wrapper = mount(
             <Provider store={store}>
-                <Location address={address}/>
+                <Location address={address} />
             </Provider>
         );
 
@@ -55,7 +55,7 @@ describe('<Location />', () => {
     it('render multi line', () => {
         wrapper = mount(
             <Provider store={store}>
-                <Location name={name} address={address} multiLine={true}/>
+                <Location name={name} address={address} multiLine={true} />
             </Provider>
         );
 

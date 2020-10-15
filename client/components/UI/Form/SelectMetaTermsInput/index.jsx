@@ -136,7 +136,7 @@ export class SelectMetaTermsInput extends React.Component {
                     />
                 </div>
 
-                { this.state.openSelectPopup &&
+                { this.state.openSelectPopup && (
                     <SelectFieldPopup
                         value={selected}
                         multiLevel={this.state.multiLevel}
@@ -155,7 +155,7 @@ export class SelectMetaTermsInput extends React.Component {
                         onPopupOpen={onPopupOpen}
                         onPopupClose={onPopupClose}
                     />
-                }
+                )}
             </LineInput>
         );
     }

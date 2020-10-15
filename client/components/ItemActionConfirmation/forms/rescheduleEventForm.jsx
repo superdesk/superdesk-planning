@@ -221,7 +221,8 @@ export class RescheduleEventComponent extends React.Component {
                             <RelatedPlannings
                                 plannings={original._plannings}
                                 openPlanningItem={false}
-                                short={true} />
+                                short={true}
+                            />
                         </div>
                     </div>
                 )}
@@ -253,18 +254,20 @@ export class RescheduleEventComponent extends React.Component {
                     </div>
                 )}
 
-                {afterUntil &&
-                <div className="sd-alert sd-alert--hollow sd-alert--orange2 sd-alert--flex-direction">
-                    <strong>{gettext(
-                        'This Event is scheduled to occur after the end date of its recurring cycle!'
-                    )}</strong>
-                </div>}
+                {afterUntil && (
+                    <div className="sd-alert sd-alert--hollow sd-alert--orange2 sd-alert--flex-direction">
+                        <strong>{gettext(
+                            'This Event is scheduled to occur after the end date of its recurring cycle!'
+                        )}</strong>
+                    </div>
+                )}
 
-                {timeUtils.isEventInDifferentTimeZone(original) && eventUtils.isEventInUse(original) &&
+                {timeUtils.isEventInDifferentTimeZone(original) && eventUtils.isEventInUse(original) && (
                     <div className="sd-alert sd-alert--hollow sd-alert--orange2 sd-alert--flex-direction">
                         <strong>{gettext('This will create the new event in the remote ({{timeZone}}) timezone',
                             {timeZone})}</strong>
-                    </div>}
+                    </div>
+                )}
 
                 <Field
                     component={EventScheduleInput}

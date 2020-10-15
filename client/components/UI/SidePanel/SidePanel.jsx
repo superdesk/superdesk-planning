@@ -8,16 +8,18 @@ import classNames from 'classnames';
  * @description SidePanel Component used usually for Advanced Search panels
  */
 export const SidePanel = ({children, shadowRight, shadowLeft, transparent, bg00, className}) => (
-    <div className={classNames(
-        'side-panel',
-        {
-            'side-panel--shadow-right': shadowRight,
-            'side-panel--transparent': transparent,
-            'side-panel--shadow-left': shadowLeft,
-            'side-panel--bg-00': bg00,
-        },
-        className
-    )}>
+    <div
+        className={classNames(
+            'side-panel',
+            {
+                'side-panel--shadow-right': shadowRight,
+                'side-panel--transparent': transparent,
+                'side-panel--shadow-left': shadowLeft,
+                'side-panel--bg-00': bg00,
+            },
+            className
+        )}
+    >
         {children}
     </div>
 );

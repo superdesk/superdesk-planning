@@ -10,7 +10,8 @@ export default function CustomVocabulariesPreview({customVocabularies, item}) {
 
         if (values.length) {
             return (
-                <Row key={cv._id}
+                <Row
+                    key={cv._id}
                     enabled={true}
                     label={cv.display_name}
                     value={values.map((item) => item.name).join(', ')}

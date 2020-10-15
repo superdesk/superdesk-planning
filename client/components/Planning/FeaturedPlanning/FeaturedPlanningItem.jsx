@@ -52,24 +52,27 @@ export const FeaturedPlanningItem = ({
             onClick={onClick.bind(null, item._id)}
             margin={withMargin}
         >
-            {!readOnly && selectedPlanningIds.includes(item._id) && <Column>
-                <OverlayTrigger placement="right"
-                    overlay={
-                        <Tooltip id={getItemId(item)}>
-                            {gettext('Remove from Feature Stories')}
-                        </Tooltip>
-                    }
-                >
-                    <NavButton
-                        navbtn={false}
-                        className="dropdown sd-create-btn"
-                        onClick={onRemoveFromSelectedFeaturedPlanning.bind(null, item)}
-                        icon="icon-chevron-left-thin"
+            {!readOnly && selectedPlanningIds.includes(item._id) && (
+                <Column>
+                    <OverlayTrigger
+                        placement="right"
+                        overlay={(
+                            <Tooltip id={getItemId(item)}>
+                                {gettext('Remove from Feature Stories')}
+                            </Tooltip>
+                        )}
                     >
-                        <span className="circle" />
-                    </NavButton>
-                </OverlayTrigger>
-            </Column>}
+                        <NavButton
+                            navbtn={false}
+                            className="dropdown sd-create-btn"
+                            onClick={onRemoveFromSelectedFeaturedPlanning.bind(null, item)}
+                            icon="icon-chevron-left-thin"
+                        >
+                            <span className="circle" />
+                        </NavButton>
+                    </OverlayTrigger>
+                </Column>
+            )}
             <Border state={borderState} />
             <ItemType
                 item={item}
@@ -101,23 +104,26 @@ export const FeaturedPlanningItem = ({
                     />
                 </Row>
             </Column>
-            {!readOnly && !selectedPlanningIds.includes(item._id) && <Column>
-                <OverlayTrigger placement="left"
-                    overlay={
-                        <Tooltip id={getItemId(item)}>
-                            {gettext('Add to Feature Stories')}
-                        </Tooltip>
-                    }
-                >
-                    <NavButton
-                        className="dropdown sd-create-btn"
-                        onClick={onAddToSelectedFeaturedPlanning.bind(null, item)}
-                        icon="icon-chevron-right-thin"
+            {!readOnly && !selectedPlanningIds.includes(item._id) && (
+                <Column>
+                    <OverlayTrigger
+                        placement="left"
+                        overlay={(
+                            <Tooltip id={getItemId(item)}>
+                                {gettext('Add to Feature Stories')}
+                            </Tooltip>
+                        )}
                     >
-                        <span className="circle" />
-                    </NavButton>
-                </OverlayTrigger>
-            </Column>}
+                        <NavButton
+                            className="dropdown sd-create-btn"
+                            onClick={onAddToSelectedFeaturedPlanning.bind(null, item)}
+                            icon="icon-chevron-right-thin"
+                        >
+                            <span className="circle" />
+                        </NavButton>
+                    </OverlayTrigger>
+                </Column>
+            )}
         </Item>
     );
 };

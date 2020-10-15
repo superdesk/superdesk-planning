@@ -183,30 +183,33 @@ export class EventPreviewContentComponent extends React.Component {
                     formProfile={formProfile}
                     files={files}
                     item={item}
-                    createLink={getFileDownloadURL} />
+                    createLink={getFileDownloadURL}
+                />
 
-                {get(formProfile, 'editor.links.enabled') &&
+                {get(formProfile, 'editor.links.enabled') && (
                     <ToggleBox
                         title={gettext('External Links')}
                         isOpen={false}
-                        badgeValue={get(item, 'links.length', 0) > 0 ? item.links.length : null}>
-                        {get(item, 'links.length') > 0 ?
+                        badgeValue={get(item, 'links.length', 0) > 0 ? item.links.length : null}
+                    >
+                        {get(item, 'links.length') > 0 ? (
                             <ul>
                                 {get(item, 'links', []).map((link, index) => (
                                     <li key={index}>
                                         <LinkInput value={link} readOnly={true} />
                                     </li>
                                 ))}
-                            </ul> :
+                            </ul>
+                        ) :
                             <span className="sd-text__info">{gettext('No external links added.')}</span>}
                     </ToggleBox>
-                }
-                {!hideRelatedItems && item._plannings &&
+                )}
+                {!hideRelatedItems && item._plannings && (
                     <h3 className="side-panel__heading side-panel__heading--big">
                         {gettext('Related Planning Items')}
                     </h3>
-                }
-                {!hideRelatedItems && get(item, '_plannings.length') > 0 ?
+                )}
+                {!hideRelatedItems && get(item, '_plannings.length') > 0 ? (
                     <RelatedPlannings
                         className="related-plannings"
                         plannings={item._plannings}
@@ -214,7 +217,9 @@ export class EventPreviewContentComponent extends React.Component {
                         expandable={true}
                         users={users}
                         desks={desks}
-                        allowEditPlanning={true} /> :
+                        allowEditPlanning={true}
+                    />
+                ) :
                     !hideRelatedItems &&
                     <span className="sd-text__info">{gettext('No related planning items.')}</span>
                 }

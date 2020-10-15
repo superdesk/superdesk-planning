@@ -71,11 +71,13 @@ export class ActionsMenuPopup extends React.PureComponent {
             let items = action.callback.map(this.renderItem.bind(this));
 
             if (!items.length) {
-                items = <li>
-                    <button onClick={this.props.closeMenu.bind(this)}>
-                        {gettext('There are no actions available.')}
-                    </button>
-                </li>;
+                items = (
+                    <li>
+                        <button onClick={this.props.closeMenu.bind(this)}>
+                            {gettext('There are no actions available.')}
+                        </button>
+                    </li>
+                );
             }
 
             const submenuDirection = get(action, 'direction', 'left');
@@ -84,7 +86,7 @@ export class ActionsMenuPopup extends React.PureComponent {
                 <li key={'submenu-' + key} onScroll={onEventCapture}>
                     <div className="dropdown dropdown--noarrow">
                         <a className="dropdown__toggle" onClick={this.props.closeMenu.bind(this)}>
-                            {action.icon && (<i className={action.icon}/>)}
+                            {action.icon && (<i className={action.icon} />)}
                             {gettext(action.label)}
                         </a>
                         <ul className={'dropdown__menu dropdown__menu--submenu-' + submenuDirection}>
@@ -109,7 +111,7 @@ export class ActionsMenuPopup extends React.PureComponent {
                     className={classNames({disabled: inactiveOption})}
                     onClick={!inactiveOption ? trigger : undefined}
                 >
-                    {action.icon && (<i className={action.icon}/>)}
+                    {action.icon && (<i className={action.icon} />)}
                     {gettext(action.label)}
                 </button>
             </li>

@@ -81,10 +81,13 @@ class FulFilAssignmentComponent extends React.Component {
                     <h3>{title || gettext('Select an Assignment')}</h3>
                 </Modal.Header>
 
-                <Modal.Body noPadding fullHeight noScroll
+                <Modal.Body
+                    noPadding
+                    fullHeight
+                    noScroll
                 >
                     <div className="planning-app__modal FulfilAssignment">
-                        <FulfilAssignmentApp newsItem={newsItem}/>
+                        <FulfilAssignmentApp newsItem={newsItem} />
                     </div>
                 </Modal.Body>
 

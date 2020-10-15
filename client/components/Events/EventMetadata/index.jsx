@@ -42,25 +42,31 @@ export const EventMetadata = (
     );
     const isItemLocked = eventUtils.isEventLocked(event, lockedItems);
     const editEventComponent = onEditEvent && !hideEditIcon ?
-        (<button data-sd-tooltip="Edit Event"
-            data-flow="left"
-            onClick={(event) => {
-                onEventCapture(event);
-                onEditEvent();
-            }}>
-            <i className="icon-pencil" />
-        </button>) : null;
+        (
+            <button
+                data-sd-tooltip="Edit Event"
+                data-flow="left"
+                onClick={(event) => {
+                    onEventCapture(event);
+                    onEditEvent();
+                }}
+            >
+                <i className="icon-pencil" />
+            </button>
+        ) : null;
 
     const eventListView = (
         <Item noBg={!active} activated={active}>
             {showBorder && isItemLocked && <Border state="locked" />}
             <div className="sd-list-item__border" />
-            {showIcon && <Column>
-                <ItemIcon
-                    item={event}
-                    color={ICON_COLORS.DARK_BLUE_GREY}
-                />
-            </Column>}
+            {showIcon && (
+                <Column>
+                    <ItemIcon
+                        item={event}
+                        color={ICON_COLORS.DARK_BLUE_GREY}
+                    />
+                </Column>
+            )}
             <Column grow={true} border={false}>
                 <Row>
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
@@ -69,7 +75,7 @@ export const EventMetadata = (
                 </Row>
                 <Row>
                     <time className="no-padding">
-                        <i className="icon-time"/>
+                        <i className="icon-time" />
                         {dateStr}
                     </time>
                 </Row>
@@ -130,10 +136,10 @@ export const EventMetadata = (
     const eventInDetail = (
         <div>
             <PreviewRow>
-                <StateLabel item={event} verbose={true}/>
+                <StateLabel item={event} verbose={true} />
             </PreviewRow>
             <PreviewRow label={gettext('Name')} value={event.name} />
-            <EventScheduleSummary schedule={event}/>
+            <EventScheduleSummary schedule={event} />
             <PreviewRow label={gettext('Location')}>
                 <div>
                     <Location
@@ -144,8 +150,10 @@ export const EventMetadata = (
                     />
                 </div>
             </PreviewRow>
-            <PreviewRow label={gettext('Occurrence Status')}
-                value={get(event, 'occur_status.name', '')} />
+            <PreviewRow
+                label={gettext('Occurrence Status')}
+                value={get(event, 'occur_status.name', '')}
+            />
 
             <PreviewRow
                 label={gettext('Description')}
@@ -171,20 +179,24 @@ export const EventMetadata = (
                 title={gettext('Attached Files')}
                 badgeValue={get(event, 'files.length', 0) > 0 ? event.files.length : null}
                 scrollInView={scrollInView}
-                isOpen={false}>
+                isOpen={false}
+            >
                 {get(event, 'files.length') > 0 ?
-                    (<ul>
-                        {get(event, 'files', []).map((file, index) => (
-                            <li key={index}>
-                                <FileInput
-                                    value={file}
-                                    createLink={createUploadLink}
-                                    readOnly={true}
-                                    noMargin={false}
-                                    files={files} />
-                            </li>
-                        ))}
-                    </ul>) :
+                    (
+                        <ul>
+                            {get(event, 'files', []).map((file, index) => (
+                                <li key={index}>
+                                    <FileInput
+                                        value={file}
+                                        createLink={createUploadLink}
+                                        readOnly={true}
+                                        noMargin={false}
+                                        files={files}
+                                    />
+                                </li>
+                            ))}
+                        </ul>
+                    ) :
                     <span className="sd-text__info">{gettext('No attached files added.')}</span>
                 }
             </ToggleBox>
@@ -192,15 +204,17 @@ export const EventMetadata = (
                 title={gettext('External Links')}
                 badgeValue={get(event, 'links.length', 0) > 0 ? event.links.length : null}
                 scrollInView={scrollInView}
-                isOpen={false}>
-                {get(event, 'links.length') > 0 ?
+                isOpen={false}
+            >
+                {get(event, 'links.length') > 0 ? (
                     <ul>
                         {get(event, 'links', []).map((link, index) => (
                             <li key={index}>
                                 <LinkInput value={link} readOnly={true} noMargin={false} />
                             </li>
                         ))}
-                    </ul> :
+                    </ul>
+                ) :
                     <span className="sd-text__info">{gettext('No external links added.')}</span>}
             </ToggleBox>
         </div>
@@ -211,20 +225,22 @@ export const EventMetadata = (
     const onOpen = editorMenuUtils.onItemOpen(navigation, 'event');
     const forceScroll = editorMenuUtils.forceScroll(navigation, 'event');
 
-    return (<CollapseBox
-        collapsedItem={eventListView}
-        openItemTopBar={eventInDetailTopBar}
-        openItem={eventInDetail}
-        scrollInView={scrollInView}
-        tabEnabled={tabEnabled}
-        tools={editEventComponent}
-        noOpen={noOpen}
-        isOpen={isOpen}
-        onClose={onClose}
-        onOpen={onOpen}
-        onClick={onClick}
-        forceScroll={forceScroll}
-    />);
+    return (
+        <CollapseBox
+            collapsedItem={eventListView}
+            openItemTopBar={eventInDetailTopBar}
+            openItem={eventInDetail}
+            scrollInView={scrollInView}
+            tabEnabled={tabEnabled}
+            tools={editEventComponent}
+            noOpen={noOpen}
+            isOpen={isOpen}
+            onClose={onClose}
+            onOpen={onOpen}
+            onClick={onClick}
+            forceScroll={forceScroll}
+        />
+    );
 };
 
 EventMetadata.propTypes = {
