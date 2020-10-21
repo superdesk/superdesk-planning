@@ -11,16 +11,18 @@ import './style.scss';
  */
 export const Label = ({text, row, light, invalid, noMinWidth, padding, marginLeft, icon}) => (
     !text ? null : (
-        <label className={classNames({
-            'sd-line-input__label': !row,
-            'form-label': row,
-            'form-label--light': row && light,
-            'form-label--invalid': row && invalid,
-            'form-label--no-min-width': noMinWidth,
-            'form-label--padding': padding,
-            'form-label--left-margin': marginLeft,
-        })}>
-            {icon && <i className={icon}/>}
+        <label
+            className={classNames({
+                'sd-line-input__label': !row,
+                'form-label': row,
+                'form-label--light': row && light,
+                'form-label--invalid': row && invalid,
+                'form-label--no-min-width': noMinWidth,
+                'form-label--padding': padding,
+                'form-label--left-margin': marginLeft,
+            })}
+        >
+            {icon && <i className={icon} />}
             {text}
         </label>
     )

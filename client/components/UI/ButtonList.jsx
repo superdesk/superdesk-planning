@@ -39,23 +39,27 @@ class ButtonList extends React.PureComponent {
     render() {
         const {buttonList, right} = this.props;
 
-        return (<div>
-            {buttonList.map((buttonProps, index) => <Button
-                className={classNames({'pull-right': right})}
-                key={index}
-                onKeyDown={this.onKeyDown.bind(this, index)}
-                refNode={(ref) => {
-                    if (index === 0) {
-                        this.dom.startButton = ref;
-                    }
+        return (
+            <div>
+                {buttonList.map((buttonProps, index) => (
+                    <Button
+                        className={classNames({'pull-right': right})}
+                        key={index}
+                        onKeyDown={this.onKeyDown.bind(this, index)}
+                        refNode={(ref) => {
+                            if (index === 0) {
+                                this.dom.startButton = ref;
+                            }
 
-                    if (index === buttonList.length - 1) {
-                        this.dom.endButton = ref;
-                    }
-                }}
-                {...buttonProps}
-            />)}
-        </div>);
+                            if (index === buttonList.length - 1) {
+                                this.dom.endButton = ref;
+                            }
+                        }}
+                        {...buttonProps}
+                    />
+                ))}
+            </div>
+        );
     }
 }
 

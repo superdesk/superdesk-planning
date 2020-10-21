@@ -325,7 +325,6 @@ Feature: For posted planning item changes in assignment state post a planning it
                 "user": "#CONTEXT_USER_ID#",
                 "stage": "#desks.working_stage#"
             },
-            "state": "submitted",
             "slugline": "test slugline"
         }
         """

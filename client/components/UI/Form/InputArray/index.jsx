@@ -52,42 +52,47 @@ export const InputArray = ({
     const customButton = addButtonComponent ? React.createElement(addButtonComponent,
         {...addButtonProps, onAdd: add}) : false;
     let addButton = row ? (customButton || <Button onClick={add} text={addButtonText} />) :
-        (customButton || <Button onClick={add} text={addButtonText} tabIndex={0} enterKeyIsClick/>);
+        (customButton || <Button onClick={add} text={addButtonText} tabIndex={0} enterKeyIsClick />);
 
-    const labelComponent = label ?
+    const labelComponent = label ? (
         <div>
             <div className={classNames('InputArray__label', labelClassName)}>{label}</div>
             {buttonWithLabel && showAddButton && addButton}
-        </div> : null;
+        </div>
+    ) : null;
 
     const getComponent = (val, index, row) => {
         const indexReadOnly = isIndexReadOnly(index);
 
         return row ?
-            (<Component
-                key={index}
-                index={index}
-                field={`${field}[${index}]`}
-                onChange={onChange}
-                value={val}
-                remove={remove.bind(null, index)}
-                readOnly={indexReadOnly}
-                message={get(message, `[${index}]`)}
-                invalid={!!get(message, `[${index}]`)}
-                {...props}
-            />) :
-            (<Component
-                key={index}
-                index={index}
-                field={`${field}[${index}]`}
-                onChange={onChange}
-                value={val}
-                remove={remove.bind(null, index)}
-                readOnly={indexReadOnly}
-                message={get(message, `[${index}]`)}
-                invalid={!!get(message, `[${index}]`)}
-                {...props}
-            />);
+            (
+                <Component
+                    key={index}
+                    index={index}
+                    field={`${field}[${index}]`}
+                    onChange={onChange}
+                    value={val}
+                    remove={remove.bind(null, index)}
+                    readOnly={indexReadOnly}
+                    message={get(message, `[${index}]`)}
+                    invalid={!!get(message, `[${index}]`)}
+                    {...props}
+                />
+            ) :
+            (
+                <Component
+                    key={index}
+                    index={index}
+                    field={`${field}[${index}]`}
+                    onChange={onChange}
+                    value={val}
+                    remove={remove.bind(null, index)}
+                    readOnly={indexReadOnly}
+                    message={get(message, `[${index}]`)}
+                    invalid={!!get(message, `[${index}]`)}
+                    {...props}
+                />
+            );
     };
 
     return (

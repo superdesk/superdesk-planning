@@ -5,7 +5,7 @@ import {PublishQueuePreview} from '../components/PublishQueuePreview';
 
 export const PublishQueuePanel = ({store}) => (
     <Provider store={store}>
-        <PublishQueuePreview/>
+        <PublishQueuePreview />
     </Provider>
 );
 

@@ -46,10 +46,12 @@ export class ItemActionsMenu extends React.Component {
         }
 
         return (
-            <button id={`${field}-item-actions`}
+            <button
+                id={`${field}-item-actions`}
                 className={className}
                 onClick={this.toggleMenu}
-                title={gettext('Actions')}>
+                title={gettext('Actions')}
+            >
                 <i className="icon-dots-vertical" />
 
                 {this.state.isOpen && (

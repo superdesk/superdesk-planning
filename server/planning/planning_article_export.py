@@ -1,37 +1,48 @@
-import superdesk
+# This file is part of Superdesk.
+#
+# Copyright 2013, 2020 Sourcefabric z.u. and contributors.
+#
+# For the full copyright and license information, please see the
+# AUTHORS and LICENSE files distributed with this source code, or
+# at https://www.sourcefabric.org/superdesk/license
+
+from dateutil import tz
+
 from flask import render_template_string, current_app, render_template
+from eve.utils import config
+from bson import ObjectId
+
+from superdesk.utc import utc_to_local, get_timezone_offset, utcnow
+from superdesk import get_resource_service, Resource, Service
 from superdesk.errors import SuperdeskApiError
+from superdesk.metadata.item import get_schema
+
 from apps.auth import get_user_id
 from apps.templates.content_templates import get_item_from_template
-from apps.archive.common import insert_into_versions
+
 from planning.common import WORKFLOW_STATE, format_address, get_contacts_from_item, ASSIGNMENT_WORKFLOW_STATE,\
     get_first_paragraph_text
-from eve.utils import config
-from superdesk.utc import utc_to_local, get_timezone_offset, utcnow
-from superdesk import get_resource_service
-from bson import ObjectId
-from dateutil import tz
-from superdesk.metadata.item import get_schema
+from planning.archive import create_item_from_template
 
 
 PLACEHOLDER_TEXT = r'{{content}}'
 PLACEHOLDER_HTML = '<p>%s</p>' % PLACEHOLDER_TEXT
 
 
-class PlanningArticleExportResource(superdesk.Resource):
+class PlanningArticleExportResource(Resource):
     schema = get_schema(versioning=True)
     schema.update({
         'items': {
             'type': 'list',
             'required': True,
         },
-        'desk': superdesk.Resource.rel('desks', nullable=True),
+        'desk': Resource.rel('desks', nullable=True),
         'template': {'type': 'string'},
         'type': {
             'type': 'string',
             'default': 'planning',
         },
-        'article_template': superdesk.Resource.rel('content_templates', nullable=True)
+        'article_template': Resource.rel('content_templates', nullable=True)
     })
 
     item_methods = []
@@ -261,17 +272,16 @@ def set_item_place(item):
     item['place'] = [p.get('name') for p in item['place']] if item.get('place') else None
 
 
-class PlanningArticleExportService(superdesk.Service):
-    def create(self, docs):
+class PlanningArticleExportService(Service):
+    def create(self, docs, **kwargs):
         ids = []
-        production = get_resource_service('archive')
         for doc in docs:
             item_type = doc.pop('type')
             item_list = get_items(doc.pop('items', []), item_type)
             desk = get_resource_service('desks').find_one(req=None, _id=doc.pop('desk')) or {}
             article_template = doc.pop('article_template', None)
             if article_template:
-                content_template = superdesk.get_resource_service('content_templates').find_one(
+                content_template = get_resource_service('content_templates').find_one(
                     req=None, _id=article_template) or {}
             else:
                 content_template = get_desk_template(desk)
@@ -286,14 +296,16 @@ class PlanningArticleExportService(superdesk.Service):
                 'stage': desk.get('working_stage'),
             }
             item_from_template = generate_text_item(item_list, doc.pop('template', None), item_type)
+            fields_to_override = []
             for key, val in item_from_template.items():
                 placeholder = PLACEHOLDER_HTML if '_html' in key else PLACEHOLDER_TEXT
                 if item.get(key) and placeholder in item[key]:
                     item[key] = item[key].replace(placeholder, val)
+                    fields_to_override.append(key)
                 else:
                     item[key] = val
-            ids = production.post([item])
-            insert_into_versions(doc=item)
+
+            item = create_item_from_template(item, fields_to_override)
             doc.update(item)
             ids.append(doc['_id'])
         return ids

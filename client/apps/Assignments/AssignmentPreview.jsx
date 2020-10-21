@@ -129,7 +129,7 @@ export class AssignmentPreviewComponent extends React.Component {
                 </Header>
                 {assignment && (
                     <Content>
-                        <RenderTab {...currentTab.tabProps}/>
+                        <RenderTab {...currentTab.tabProps} />
                     </Content>
                 )}
             </SidePanel>

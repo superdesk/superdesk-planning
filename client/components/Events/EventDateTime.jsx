@@ -29,9 +29,11 @@ export const EventDateTime = ({item, ignoreAllDay, displayLocalTimezone}) => {
     }
 
     if (get(item, TO_BE_CONFIRMED_FIELD) && !multiDay) {
-        return (<span className="EventDateTime sd-list-item__slugline sd-no-wrap">
-            {`${gettext('Time')} ${TO_BE_CONFIRMED_SHORT_TEXT}`}
-        </span>);
+        return (
+            <span className="EventDateTime sd-list-item__slugline sd-no-wrap">
+                {`${gettext('Time')} ${TO_BE_CONFIRMED_SHORT_TEXT}`}
+            </span>
+        );
     }
 
     const commonProps = {
@@ -45,10 +47,11 @@ export const EventDateTime = ({item, ignoreAllDay, displayLocalTimezone}) => {
         </span>
     ) : (
         <span className="EventDateTime sd-list-item__slugline sd-no-wrap">
-            {displayLocalTimezone &&
-            <span className="EventDateTime__timezone">
-                {timeUtils.getTimeZoneAbbreviation(localStart.format('z'))}
-            </span>}
+            {displayLocalTimezone && (
+                <span className="EventDateTime__timezone">
+                    {timeUtils.getTimeZoneAbbreviation(localStart.format('z'))}
+                </span>
+            )}
             <DateTime
                 withDate={multiDay}
                 withYear={withYear}
@@ -62,24 +65,26 @@ export const EventDateTime = ({item, ignoreAllDay, displayLocalTimezone}) => {
                 date={end}
                 {...commonProps}
             />
-            {isRemoteTimeZone && (<span>&nbsp;(
-                <span className="EventDateTime__timezone">
-                    {timeUtils.getTimeZoneAbbreviation(remoteStart.format('z'))}
+            {isRemoteTimeZone && (
+                <span>&nbsp;(
+                    <span className="EventDateTime__timezone">
+                        {timeUtils.getTimeZoneAbbreviation(remoteStart.format('z'))}
+                    </span>
+                    <DateTime
+                        withDate={remoteStartWithDate}
+                        withYear={remoteStartWithYear}
+                        date={remoteStart}
+                        {...commonProps}
+                    />
+                    <span className="EventDateTime__divider">-</span>
+                    <DateTime
+                        withDate={remoteEndWithDate}
+                        withYear={remoteEndWithYear}
+                        date={remoteEnd}
+                        {...commonProps}
+                    />)
                 </span>
-                <DateTime
-                    withDate={remoteStartWithDate}
-                    withYear={remoteStartWithYear}
-                    date={remoteStart}
-                    {...commonProps}
-                />
-                <span className="EventDateTime__divider">-</span>
-                <DateTime
-                    withDate={remoteEndWithDate}
-                    withYear={remoteEndWithYear}
-                    date={remoteEnd}
-                    {...commonProps}
-                />)
-            </span>)}
+            )}
         </span>
     );
 };

@@ -25,23 +25,31 @@ export const TimeZoneInput = ({field, label, value, onChange, invalid, required,
     }));
 
     return (
-        <Row flex={true} halfWidth={halfWidth} className={{
-            'date-time-input__row': true,
-            'date-time-input__row--required': required,
-            'date-time-input__row--invalid': invalid,
-        }}>
+        <Row
+            flex={true}
+            halfWidth={halfWidth}
+            className={{
+                'date-time-input__row': true,
+                'date-time-input__row--required': required,
+                'date-time-input__row--invalid': invalid,
+            }}
+        >
 
             <SelectMetaTermsInput
                 label={label}
-                {...props} invalid={invalid} required={required}
+                {...props}
+                invalid={invalid}
+                required={required}
                 field={field}
                 options={timeZones}
                 onChange={onChangeHandler}
                 value={value ? [{
                     qcode: value,
                     name: value,
-                }] : [] } />
-        </Row>);
+                }] : []}
+            />
+        </Row>
+    );
 };
 
 TimeZoneInput.propTypes = {

@@ -47,44 +47,51 @@ export const CoverageIcon = ({
     const genre = get(coverage, 'planning.genre.name', '');
     const slugline = get(coverage, 'planning.slugline', '');
 
-    return (<OverlayTrigger
-        placement="bottom"
-        overlay={
-            <Tooltip id={coverage.coverage_id} className="tooltip--text-left">
-                {desk && <span>{gettext('Status: ') + state.label}<br /></span>}
-                {assignmentStr}
-                {user && <span><br />{gettext('User: ') + user.display_name}</span>}
-                {provider && <span><br />{gettext('Provider: ') + provider}</span>}
-                {genre && <span><br />{gettext('Genre: ') + genre}</span>}
-                {slugline && <span><br />{gettext('Slugline: ') + slugline}</span>}
-                {scheduledStr && <span><br />{gettext('Due: ') + scheduledStr}</span>}
-                {(get(coverage, 'scheduled_updates') || []).map((s) => {
-                    if (get(s, 'planning.scheduled')) {
-                        scheduledStr = dateFormat && timeFormat ?
-                            moment(s.planning.scheduled).format(dateFormat + ' ' + timeFormat) : null;
-                        return (<span><br />{gettext('Update Due: ') + scheduledStr}</span>);
-                    }
+    return (
+        <OverlayTrigger
+            placement="bottom"
+            overlay={(
+                <Tooltip id={coverage.coverage_id} className="tooltip--text-left">
+                    {desk && <span>{gettext('Status: ') + state.label}<br /></span>}
+                    {assignmentStr}
+                    {user && <span><br />{gettext('User: ') + user.display_name}</span>}
+                    {provider && <span><br />{gettext('Provider: ') + provider}</span>}
+                    {genre && <span><br />{gettext('Genre: ') + genre}</span>}
+                    {slugline && <span><br />{gettext('Slugline: ') + slugline}</span>}
+                    {scheduledStr && <span><br />{gettext('Due: ') + scheduledStr}</span>}
+                    {(get(coverage, 'scheduled_updates') || []).map((s) => {
+                        if (get(s, 'planning.scheduled')) {
+                            scheduledStr = dateFormat && timeFormat ?
+                                moment(s.planning.scheduled).format(dateFormat + ' ' + timeFormat) : null;
+                            return (<span><br />{gettext('Update Due: ') + scheduledStr}</span>);
+                        }
 
-                    return null;
-                })}
-            </Tooltip>
-        }>
-        <span className="sd-list-item__inline-icon icn-mix sd-list-item__item-type">
-            <i className={classNames(
-                planningUtils.getCoverageWorkflowIcon(coverage),
-                'icn-mix__sub-icn',
-                'icn-mix__sub-icn--gray'
-            )} />
-            <i className={classNames(
-                planningUtils.getCoverageIcon(
-                    planningUtils.getCoverageContentType(coverage, contentTypes) ||
+                        return null;
+                    })}
+                </Tooltip>
+            )}
+        >
+            <span className="sd-list-item__inline-icon icn-mix sd-list-item__item-type">
+                <i
+                    className={classNames(
+                        planningUtils.getCoverageWorkflowIcon(coverage),
+                        'icn-mix__sub-icn',
+                        'icn-mix__sub-icn--gray'
+                    )}
+                />
+                <i
+                    className={classNames(
+                        planningUtils.getCoverageIcon(
+                            planningUtils.getCoverageContentType(coverage, contentTypes) ||
                         get(coverage, 'planning.g2_content_type'), coverage
-                ),
-                planningUtils.getCoverageIconColor(coverage),
-                'sd-list-item__inline-icon'
-            )}/>
-        </span>
-    </OverlayTrigger>);
+                        ),
+                        planningUtils.getCoverageIconColor(coverage),
+                        'sd-list-item__inline-icon'
+                    )}
+                />
+            </span>
+        </OverlayTrigger>
+    );
 };
 
 CoverageIcon.propTypes = {

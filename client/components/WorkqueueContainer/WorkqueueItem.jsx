@@ -16,9 +16,11 @@ export const WorkqueueItem = ({
     const isActive = getItemId(item) === currentEditId;
 
     return (
-        <li className={isActive ?
-            'opened-articles-bar__item opened-articles-bar__item--active' :
-            'opened-articles-bar__item'}>
+        <li
+            className={isActive ?
+                'opened-articles-bar__item opened-articles-bar__item--active' :
+                'opened-articles-bar__item'}
+        >
             <a className="opened-articles-bar__item-title" onClick={onOpen.bind(null, item)}>
                 <ItemIcon
                     item={item}

@@ -70,14 +70,16 @@ class ArchivePreviewComponent extends React.Component {
                     </div>
                 </div>
 
-                <div className={classNames(
-                    'ArchivePreview__header',
-                    'side-panel__content-block',
-                    'side-panel__content-block--pad-small',
-                    'side-panel__content-block--flex',
-                    {active: this.state.headerOpen}
-                )}>
-                    {this.state.headerOpen &&
+                <div
+                    className={classNames(
+                        'ArchivePreview__header',
+                        'side-panel__content-block',
+                        'side-panel__content-block--pad-small',
+                        'side-panel__content-block--flex',
+                        {active: this.state.headerOpen}
+                    )}
+                >
+                    {this.state.headerOpen && (
                         <div className="ArchivePreview__header-left side-panel__content-block-inner">
                             <div>
                                 <span
@@ -88,16 +90,16 @@ class ArchivePreviewComponent extends React.Component {
                                 </span>
                             </div>
 
-                            {get(archive, 'priority') &&
+                            {get(archive, 'priority') && (
                                 <div>
                                     <PriorityLabel
                                         item={archive}
                                         priorities={priorities}
                                     />
                                 </div>
-                            }
+                            )}
 
-                            {get(archive, 'urgency') &&
+                            {get(archive, 'urgency') && (
                                 <div>
                                     <UrgencyLabel
                                         item={archive}
@@ -105,35 +107,38 @@ class ArchivePreviewComponent extends React.Component {
                                         label={urgencyLabel}
                                     />
                                 </div>
-                            }
+                            )}
 
-                        </div>}
+                        </div>
+                    )}
 
-                    {this.state.headerOpen &&
-                        <div className="ArchivePreview__header-middle side-panel__content-block-inner
-                        side-panel__content-block-inner--grow">
+                    {this.state.headerOpen && (
+                        <div
+                            className="ArchivePreview__header-middle side-panel__content-block-inner
+                        side-panel__content-block-inner--grow"
+                        >
                             {get(archive, 'slugline') &&
-                                <HtmlPreview className="sd-text__slugline" html={archive.slugline}/>
+                                <HtmlPreview className="sd-text__slugline" html={archive.slugline} />
                             }
 
-                            {get(archive, 'anpa_take_key') &&
+                            {get(archive, 'anpa_take_key') && (
                                 <div>
                                     <span className="metaLabel">takekey: </span>
                                     <span>{archive.anpa_take_key}</span>
                                 </div>
-                            }
-                            {get(archive, 'ednote') &&
+                            )}
+                            {get(archive, 'ednote') && (
                                 <div>
                                     <span className="metaLabel">EdNote: </span>
                                     <span className="sd-text__ednote">{archive.ednote}</span>
                                 </div>
-                            }
-                            {get(archive, 'company_codes.length', 0) > 0 &&
+                            )}
+                            {get(archive, 'company_codes.length', 0) > 0 && (
                                 <div>
                                     <span className="metaLabel">Company Codes: </span>
                                     <span>{map(archive.company_codes, 'qcode').join(', ')}</span>
                                 </div>
-                            }
+                            )}
 
                             <div>
                                 <StateLabel
@@ -157,43 +162,46 @@ class ArchivePreviewComponent extends React.Component {
                                 }
                             </div>
 
-                            {get(archive, '_type') !== 'archived' &&
+                            {get(archive, '_type') !== 'archived' && (
                                 <div>
                                     <span><b>{get(archive, '_deskName')}</b> / {get(archive, '_stageName')}</span>
                                 </div>
-                            }
-                        </div>}
+                            )}
+                        </div>
+                    )}
 
-                    {this.state.headerOpen &&
-                        <div className="ArchivePreview__header-right side-panel__content-block-inner
-                        side-panel__content-block-inner--right">
-                            {archiveType === 'text' &&
+                    {this.state.headerOpen && (
+                        <div
+                            className="ArchivePreview__header-right side-panel__content-block-inner
+                        side-panel__content-block-inner--right"
+                        >
+                            {archiveType === 'text' && (
                                 <div>
                                     <span className="word-count">
                                         <b>{get(archive, 'word_count', 0)}</b> <span>words</span>
                                     </span>
                                 </div>
-                            }
+                            )}
 
-                            {get(archive, 'source') &&
+                            {get(archive, 'source') && (
                                 <div>
                                     <span>{archive.source}</span>
                                 </div>
-                            }
+                            )}
 
-                            {get(archive, 'highlights.length', 0) > 0 &&
+                            {get(archive, 'highlights.length', 0) > 0 && (
                                 <div>
                                     <i className={archive.highlights.length > 1 ? 'icon-multi-star' : 'icon-start'} />
                                 </div>
-                            }
+                            )}
 
-                            {get(archive, 'marked_desks.length', 0) > 0 &&
+                            {get(archive, 'marked_desks.length', 0) > 0 && (
                                 <div>
                                     <i className="icon-bell" />
                                 </div>
-                            }
+                            )}
                         </div>
-                    }
+                    )}
 
                     <button
                         className={classNames(
@@ -206,30 +214,32 @@ class ArchivePreviewComponent extends React.Component {
                     </button>
                 </div>
 
-                <div className="ArchivePreview__content side-panel__content-block
-                side-panel__content-block--pad-small">
-                    {archiveType !== 'composite' && get(archive, 'headline') &&
+                <div
+                    className="ArchivePreview__content side-panel__content-block
+                side-panel__content-block--pad-small"
+                >
+                    {archiveType !== 'composite' && get(archive, 'headline') && (
                         <div>
                             <span className="headline">{archive.headline}</span>
                         </div>
-                    }
+                    )}
 
                     <div className="core-content">
-                        {get(archive, 'associations.featuremedia') &&
+                        {get(archive, 'associations.featuremedia') && (
                             <div>
                                 <ItemRendition item={archive.associations.featuremedia} />
                                 <p>{get(archive, 'associations.featuremedia.description_text')}</p>
                             </div>
-                        }
+                        )}
 
-                        {(archiveType === 'picture' || archiveType === 'graphic') &&
+                        {(archiveType === 'picture' || archiveType === 'graphic') && (
                             <div>
                                 <span>Original</span>
                                 <ItemRendition item={archive} />
                             </div>
-                        }
+                        )}
 
-                        {archiveType === 'audio' &&
+                        {archiveType === 'audio' && (
                             <div>
                                 <audio controls="controls">
                                     <source
@@ -238,9 +248,9 @@ class ArchivePreviewComponent extends React.Component {
                                     />
                                 </audio>
                             </div>
-                        }
+                        )}
 
-                        {archiveType === 'video' &&
+                        {archiveType === 'video' && (
                             <div>
                                 <video controls="controls">
                                     <source
@@ -249,20 +259,20 @@ class ArchivePreviewComponent extends React.Component {
                                     />
                                 </video>
                             </div>
-                        }
+                        )}
 
                         {get(archive, 'abstract') &&
-                        <HtmlPreview className="text abstract" html={archive.abstract}/>}
+                        <HtmlPreview className="text abstract" html={archive.abstract} />}
                         {get(archive, 'byline') &&
-                        <HtmlPreview className="text byline" html={archive.byline}/>}
+                        <HtmlPreview className="text byline" html={archive.byline} />}
                         {get(archive, 'dateline.text') &&
-                        <HtmlPreview className="text dateline" html={archive.dateline.text}/>}
+                        <HtmlPreview className="text dateline" html={archive.dateline.text} />}
                         {get(archive, 'body_html') &&
-                        <HtmlPreview className="text body-text" html={archive.body_html}/>}
+                        <HtmlPreview className="text body-text" html={archive.body_html} />}
                         {get(archive, 'body_footer') &&
-                        <HtmlPreview className="text body-footer" html={archive.body_footer}/>}
+                        <HtmlPreview className="text body-footer" html={archive.body_footer} />}
                         {get(archive, 'sign_off') &&
-                        <HtmlPreview className="text sign-off" html={archive.sign_off}/>}
+                        <HtmlPreview className="text sign-off" html={archive.sign_off} />}
                     </div>
                 </div>
             </div>

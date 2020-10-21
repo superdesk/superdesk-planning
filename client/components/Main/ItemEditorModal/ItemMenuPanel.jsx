@@ -10,14 +10,21 @@ export const ItemMenuPanel = ({item, onMenuItemClick, activeItem}) => {
 
     switch (itemType) {
     case ITEM_TYPE.EVENT:
-        return (<EventMenuPanel item={item}
-            onMenuItemClick={onMenuItemClick}
-            activeItem={activeItem} />);
+        return (
+            <EventMenuPanel
+                item={item}
+                onMenuItemClick={onMenuItemClick}
+                activeItem={activeItem}
+            />
+        );
     case ITEM_TYPE.PLANNING:
-        return (<PlanningMenuPanel
-            item={item}
-            onMenuItemClick={onMenuItemClick}
-            activeItem={activeItem} />);
+        return (
+            <PlanningMenuPanel
+                item={item}
+                onMenuItemClick={onMenuItemClick}
+                activeItem={activeItem}
+            />
+        );
     default:
         return null;
     }

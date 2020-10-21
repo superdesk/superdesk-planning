@@ -129,7 +129,7 @@ Feature: Export planning items with default template
         """
 
     @auth
-    Scenario: Supprt article templates
+    Scenario: Support article templates
         Given "content_templates"
         """
         [{

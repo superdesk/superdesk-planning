@@ -104,15 +104,17 @@ export class ToggleBox extends React.Component {
                     onKeyDown={this.handleKeyDown}
                 >
                     <div className="toggle-box__chevron">
-                        <i className="icon-chevron-right-thin"/>
+                        <i className="icon-chevron-right-thin" />
                     </div>
                     <div className="toggle-box__label">
                         {gettext(title)}
                         {badgeValue && <span className="badge badge--light badge--margined">{badgeValue}</span>}
                     </div>
-                    <div className={classNames(
-                        'toggle-box__line', {'toggle-box__line--badged': badgeValue}
-                    )} />
+                    <div
+                        className={classNames(
+                            'toggle-box__line', {'toggle-box__line--badged': badgeValue}
+                        )}
+                    />
                 </a>
                 <div className="toggle-box__content-wraper">
                     {this.state.isOpen && !hideUsingCSS && (
@@ -122,10 +124,12 @@ export class ToggleBox extends React.Component {
                     )}
 
                     {hideUsingCSS && (
-                        <div className={classNames(
-                            'toggle-box__content',
-                            {'toggle-box__content--hidden': !this.state.isOpen}
-                        )}>
+                        <div
+                            className={classNames(
+                                'toggle-box__content',
+                                {'toggle-box__content--hidden': !this.state.isOpen}
+                            )}
+                        >
                             {children}
                         </div>
                     )}

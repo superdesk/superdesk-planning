@@ -89,20 +89,22 @@ export class TimeInputPopup extends React.Component {
                 onPopupClose={this.props.onPopupClose}
             >
                 <Header noBorder={true}>
-                    {!this.props.showToBeConfirmed && (<div className="time-popup__header-row">
-                        <Button
-                            onClick={this.handleConfirm.bind(this, 30)}
-                            text={gettext('in 30 min')}
-                        />
-                        <Button
-                            onClick={this.handleConfirm.bind(this, 60)}
-                            text={gettext('in 1 hr')}
-                        />
-                        <Button
-                            onClick={this.handleConfirm.bind(this, 120)}
-                            text={gettext('in 2 hrs')}
-                        />
-                    </div>)}
+                    {!this.props.showToBeConfirmed && (
+                        <div className="time-popup__header-row">
+                            <Button
+                                onClick={this.handleConfirm.bind(this, 30)}
+                                text={gettext('in 30 min')}
+                            />
+                            <Button
+                                onClick={this.handleConfirm.bind(this, 60)}
+                                text={gettext('in 1 hr')}
+                            />
+                            <Button
+                                onClick={this.handleConfirm.bind(this, 120)}
+                                text={gettext('in 2 hrs')}
+                            />
+                        </div>
+                    )}
                     {this.props.showToBeConfirmed && (
                         <div className="time-popup__header-row">
                             <Button
@@ -124,7 +126,8 @@ export class TimeInputPopup extends React.Component {
                                 <li
                                     key={index}
                                     className={index === this.state.selectedHourIndex ? 'active' : ''}
-                                    onClick={this.setselectedHourIndex.bind(this, index)}>
+                                    onClick={this.setselectedHourIndex.bind(this, index)}
+                                >
                                     {hour < 10 ? '0' + hour : hour}
                                 </li>
                             ))}
@@ -137,7 +140,8 @@ export class TimeInputPopup extends React.Component {
                                 <li
                                     key={index}
                                     className={index === this.state.selectedMinuteIndex ? 'active' : ''}
-                                    onClick={this.setselectedMinuteIndex.bind(this, index)}>
+                                    onClick={this.setselectedMinuteIndex.bind(this, index)}
+                                >
                                     {minute < 10 ? '0' + minute : minute}
                                 </li>
                             ))}

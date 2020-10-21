@@ -1,6 +1,6 @@
 # This file is part of Superdesk.
 #
-# Copyright 2013, 2014 Sourcefabric z.u. and contributors.
+# Copyright 2013, 2020 Sourcefabric z.u. and contributors.
 #
 # For the full copyright and license information, please see the
 # AUTHORS and LICENSE files distributed with this source code, or
@@ -8,24 +8,36 @@
 
 """Creates content based on the assignment"""
 
-import superdesk
 from copy import deepcopy
+
 from eve.utils import config
-from apps.archive.common import insert_into_versions, BYLINE
+from flask import request
+
+from superdesk import get_resource_service, Resource, Service
+from superdesk.errors import SuperdeskApiError
+from superdesk.utc import utcnow
+from superdesk.metadata.item import get_schema
+
+from apps.archive.common import BYLINE
 from apps.auth import get_user_id, get_user
 from apps.templates.content_templates import get_item_from_template
+
 from planning.planning_article_export import get_desk_template
-from superdesk.errors import SuperdeskApiError
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, get_coverage_type_name, get_next_assignment_status,\
     get_coverage_for_assignment, get_archive_items_for_assignment
-from superdesk.utc import utcnow
 from planning.planning_notifications import PlanningNotifications
-from superdesk import get_resource_service
-from flask import request
-from superdesk.metadata.item import get_schema
+from planning.archive import create_item_from_template
 
 
 FIELDS_TO_COPY = ('anpa_category', 'subject', 'urgency', 'place')
+FIELDS_TO_OVERRIDE = [
+    'urgency',
+    'slugline',
+    'ednote',
+    'abstract',
+    'headline',
+    'ednote',
+]
 
 
 def get_item_from_assignment(assignment, template=None):
@@ -111,13 +123,13 @@ def get_item_from_assignment(assignment, template=None):
     return item
 
 
-class AssignmentsContentService(superdesk.Service):
+class AssignmentsContentService(Service):
 
     def on_create(self, docs):
         for doc in docs:
             self._validate(doc)
 
-    def create(self, docs):
+    def create(self, docs, **kwargs):
         ids = []
         archive_service = get_resource_service('archive')
         assignments_service = get_resource_service('assignments')
@@ -149,8 +161,7 @@ class AssignmentsContentService(superdesk.Service):
                 }])
             else:
                 # create content
-                ids = archive_service.post([item])
-                insert_into_versions(doc=item)
+                item = create_item_from_template(item, FIELDS_TO_OVERRIDE)
 
                 # create delivery references
                 get_resource_service('delivery').post([{
@@ -255,7 +266,7 @@ class AssignmentsContentService(superdesk.Service):
                     raise SuperdeskApiError.badRequestError('Previous scheduled update not linked to news item yet.')
 
 
-class AssignmentsContentResource(superdesk.Resource):
+class AssignmentsContentResource(Resource):
     endpoint_name = 'assignments_content'
     resource_title = endpoint_name
     url = 'assignments/content'

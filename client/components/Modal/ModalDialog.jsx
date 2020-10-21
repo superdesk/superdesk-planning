@@ -22,7 +22,8 @@ export default function ModalDialog({dialogClassName, children, style, className
             tabIndex="-1"
             role="dialog"
             style={modalStyle}
-            className={className}>
+            className={className}
+        >
             <div className={classNames(dialogClassName, 'modal__dialog')}>
                 <div className="modal__content" role="document">
                     {children}

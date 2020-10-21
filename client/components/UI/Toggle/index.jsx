@@ -39,8 +39,9 @@ export default function Toggle({value, onChange, readOnly, onFocus, className, f
             title={title}
             onClick={!readOnly && onChange ? onClick : null}
             onFocus={onFocus}
-            onKeyDown= {!readOnly ? handleKeyDown : null}>
-            <span className="inner"/>
+            onKeyDown= {!readOnly ? handleKeyDown : null}
+        >
+            <span className="inner" />
         </button>
     );
 }

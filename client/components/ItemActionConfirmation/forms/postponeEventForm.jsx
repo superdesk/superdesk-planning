@@ -116,7 +116,8 @@ export class PostponeEventComponent extends React.Component {
                         <RelatedPlannings
                             plannings={original._plannings}
                             openPlanningItem={false}
-                            short={true} />
+                            short={true}
+                        />
                     </div>
                 )}
 

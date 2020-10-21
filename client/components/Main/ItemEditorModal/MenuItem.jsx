@@ -6,7 +6,7 @@ import {Label} from '../../UI/Form';
 
 export const MenuItem = ({label, onClick, active}) => (
     <Item noBg={!active} activated={active} onClick={onClick} className="sd-collapse-box sd-shadow--z2">
-        <Border/>
+        <Border />
         <Column grow={true} border={false}>
             <Row paddingBottom>
                 <Label row text={label} />

@@ -11,8 +11,9 @@ export const EventLinks = ({item, onClick, active}) => (
         className="sd-collapse-box sd-shadow--z2"
         noBg={!active}
         activated={active}
-        onClick={onClick}>
-        <Border/>
+        onClick={onClick}
+    >
+        <Border />
         <Column grow={true} border={false}>
             <Row paddingBottom>
                 <span className="sd-list-item--element-grow">

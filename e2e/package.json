@@ -5,7 +5,7 @@
     "react-geolookup": "github:superdesk/react-geolookup",
     "superdesk-core": "github:superdesk/superdesk-client-core#develop",
     "superdesk-planning": "file:../",
-    "superdesk-ui-framework": "2.2.3"
+    "superdesk-ui-framework": "2.2.6"
   },
   "devDependencies": {
     "cypress": "^4.7.0",

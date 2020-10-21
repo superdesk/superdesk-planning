@@ -42,7 +42,7 @@ describe('<AssignmentPreviewContainer />', () => {
 
     const getWrapper = (props) => mount(
         <Provider store={initStore()}>
-            <AssignmentPreviewContainer {...props}/>
+            <AssignmentPreviewContainer {...props} />
         </Provider>
     );
 

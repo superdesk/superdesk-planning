@@ -337,23 +337,28 @@ export class CoverageFormComponent extends React.Component {
                     refNode={(ref) => this.dom.contentType = ref}
                 />
 
-                {showXmpFileInput && <div
-                    className={this.state.uploading ? 'sd-loader' : 'sd-line-input'}>
-                    {!this.state.uploading && <Field
-                        label={gettext('Associate an XMP file')}
-                        component={FileInput}
-                        field={`${field}.planning.xmp_file`}
-                        createLink={createUploadLink}
-                        defaultValue={[]}
-                        readOnly={roFields.xmp_file}
-                        hideInput={get(this.props, this.xmpFilePath)}
-                        {...fieldProps}
-                        files={files}
-                        onAddFiles={this.onAddXmpFile}
-                        onRemoveFile={this.onRemoveXmpFile}
-                        formats={'*.xmp'}
-                    />}
-                </div>}
+                {showXmpFileInput && (
+                    <div
+                        className={this.state.uploading ? 'sd-loader' : 'sd-line-input'}
+                    >
+                        {!this.state.uploading && (
+                            <Field
+                                label={gettext('Associate an XMP file')}
+                                component={FileInput}
+                                field={`${field}.planning.xmp_file`}
+                                createLink={createUploadLink}
+                                defaultValue={[]}
+                                readOnly={roFields.xmp_file}
+                                hideInput={get(this.props, this.xmpFilePath)}
+                                {...fieldProps}
+                                files={files}
+                                onAddFiles={this.onAddXmpFile}
+                                onRemoveFile={this.onRemoveXmpFile}
+                                formats={'*.xmp'}
+                            />
+                        )}
+                    </div>
+                )}
 
                 <Field
                     component={SelectInput}
@@ -409,22 +414,25 @@ export class CoverageFormComponent extends React.Component {
                     {...fieldProps}
                 />
 
-                {get(formProfile, 'editor.files.enabled') &&
+                {get(formProfile, 'editor.files.enabled') && (
                     <div className={this.state.uploading ? 'sd-loader' : 'sd-line-input'}>
-                        {!this.state.uploading && <Field
-                            label={gettext('Attach files')}
-                            component={FileInput}
-                            field={`${field}.planning.files`}
-                            profileName="files"
-                            createLink={createUploadLink}
-                            defaultValue={[]}
-                            readOnly={roFields.files}
-                            {...fieldProps}
-                            files={files}
-                            onAddFiles={this.onAddFiles}
-                            onRemoveFile={this.onRemoveFile}
-                        />}
-                    </div>}
+                        {!this.state.uploading && (
+                            <Field
+                                label={gettext('Attach files')}
+                                component={FileInput}
+                                field={`${field}.planning.files`}
+                                profileName="files"
+                                createLink={createUploadLink}
+                                defaultValue={[]}
+                                readOnly={roFields.files}
+                                {...fieldProps}
+                                files={files}
+                                onAddFiles={this.onAddFiles}
+                                onRemoveFile={this.onRemoveFile}
+                            />
+                        )}
+                    </div>
+                )}
 
                 <Field
                     component={SelectInput}
@@ -469,7 +477,7 @@ export class CoverageFormComponent extends React.Component {
 
                 {planningAllowScheduledUpdates && contentTypeQcode === 'text' && (
                     <Row>
-                        <LineInput><Label text={gettext('SCHEDULED UPDATES')}/></LineInput>
+                        <LineInput><Label text={gettext('SCHEDULED UPDATES')} /></LineInput>
                         {(value.scheduled_updates || []).map((s, i) => (
                             <ScheduledUpdate
                                 key={i}
@@ -489,14 +497,18 @@ export class CoverageFormComponent extends React.Component {
                                 onOpen={this.onScheduledUpdateOpen}
                                 openScheduledUpdates={this.state.openScheduledUpdates}
                                 {...fieldProps}
-                                {...props} />
+                                {...props}
+                            />
                         ))}
-                        {canCreateScheduledUpdate && <Button
-                            color="primary"
-                            text={gettext('Schedule an update')}
-                            onClick={this.onAddScheduledUpdate}
-                        />}
-                    </Row>)}
+                        {canCreateScheduledUpdate && (
+                            <Button
+                                color="primary"
+                                text={gettext('Schedule an update')}
+                                onClick={this.onAddScheduledUpdate}
+                            />
+                        )}
+                    </Row>
+                )}
 
             </div>
         );

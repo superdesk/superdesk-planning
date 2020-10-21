@@ -51,8 +51,10 @@ class AssignmentHistoryComponent extends React.Component {
                 gettext('Coverage re-assigned to ');
 
             if (user) {
-                return (<span>{prefix}<strong>{desk.name}</strong>
-                    {gettext(' and ')}<strong>{user.display_name}</strong>{suffix}</span>);
+                return (
+                    <span>{prefix}<strong>{desk.name}</strong>
+                        {gettext(' and ')}<strong>{user.display_name}</strong>{suffix}</span>
+                );
             } else {
                 return (<span>{prefix}<strong>{desk.name}</strong>{suffix}</span>);
             }
@@ -77,8 +79,10 @@ class AssignmentHistoryComponent extends React.Component {
 
         case ASSIGNMENTS.HISTORY_OPERATIONS.SUBMITTED:
             desk = getItemInArrayById(this.props.desks, get(update, 'assigned_to.desk'));
-            return (<span>{gettext('Assignment ')}<strong>{gettext('submitted')}</strong>
-                {gettext(' to ')}<strong>{desk.name}</strong>{suffix}</span>);
+            return (
+                <span>{gettext('Assignment ')}<strong>{gettext('submitted')}</strong>
+                    {gettext(' to ')}<strong>{desk.name}</strong>{suffix}</span>
+            );
 
         case ASSIGNMENTS.HISTORY_OPERATIONS.CANCELLED:
             return (<span>{gettext('Coverage ')}<strong>{gettext('cancelled')}</strong>{suffix}</span>);
@@ -87,8 +91,10 @@ class AssignmentHistoryComponent extends React.Component {
             return (<span>{gettext('Content ')}<strong>{gettext('spiked and unlinked')}</strong>{suffix}</span>);
 
         case ASSIGNMENTS.HISTORY_OPERATIONS.UNLINK:
-            return (<span><strong>{gettext('Content unlinked ')}</strong>{gettext('from coverage assignment by ')}
-            </span>);
+            return (
+                <span><strong>{gettext('Content unlinked ')}</strong>{gettext('from coverage assignment by ')}
+                </span>
+            );
 
         case ASSIGNMENTS.HISTORY_OPERATIONS.START_WORKING:
             return (<span><strong>{gettext('Work started ')}</strong>{gettext('on assignment by ')}</span>);

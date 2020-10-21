@@ -19,7 +19,7 @@ export const RadioButtonInput = ({
     <LineInput>
         <Label text={label} />
         <div className="flex-grid flex-grid--boxed-small flex-grid--wrap-items flex-grid--small-2">
-            {options.map((state) =>
+            {options.map((state) => (
                 <Checkbox
                     key={state.value}
                     field={field}
@@ -31,6 +31,7 @@ export const RadioButtonInput = ({
                     labelPosition="inside"
                     readOnly={readOnly}
                 />
+            )
             )}
         </div>
     </LineInput>

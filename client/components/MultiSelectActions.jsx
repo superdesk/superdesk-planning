@@ -89,29 +89,38 @@ export class MultiSelectActionsComponent extends React.PureComponent {
         let tools = [];
 
         if (showExport) {
-            tools.push(<Button
-                key={1}
-                onClick={this.exportArticle}
-                color="primary"
-                text={gettext('Export')} />);
+            tools.push(
+                <Button
+                    key={1}
+                    onClick={this.exportArticle}
+                    color="primary"
+                    text={gettext('Export')}
+                />
+            );
         }
 
         if (showSpike) {
-            tools.push(<Button
-                key={2}
-                onClick={this.itemSpike}
-                color="alert"
-                text={gettext('Spike')}
-                icon="icon-trash" />);
+            tools.push(
+                <Button
+                    key={2}
+                    onClick={this.itemSpike}
+                    color="alert"
+                    text={gettext('Spike')}
+                    icon="icon-trash"
+                />
+            );
         }
 
         if (showUnspike) {
-            tools.push(<Button
-                key={3}
-                onClick={this.itemUnSpike}
-                color="warning"
-                icon="icon-unspike"
-                text={gettext('Unspike')} />);
+            tools.push(
+                <Button
+                    key={3}
+                    onClick={this.itemUnSpike}
+                    color="warning"
+                    icon="icon-unspike"
+                    text={gettext('Unspike')}
+                />
+            );
         }
 
         return tools;
@@ -140,42 +149,55 @@ export class MultiSelectActionsComponent extends React.PureComponent {
             (event) => eventUtils.canCreatePlanningFromEvent(event, session, privileges, lockedItems)
         );
 
-        let tools = [
-            (<Button
+        let tools = [(
+            <Button
                 key={0}
                 onClick={this.exportArticle}
                 color="primary"
-                text={gettext('Export')} />),
-            (<Button
+                text={gettext('Export')}
+            />
+        ), (
+            <Button
                 key={1}
                 onClick={this.exportArticle.bind(null, true)}
                 color="primary"
-                text={gettext('Download')} />)];
+                text={gettext('Download')}
+            />
+        )];
 
         if (showCreatePlan) {
-            tools.push(<Button
-                key={2}
-                onClick={this.createPlanning}
-                color="primary"
-                text={gettext('Create planning')} />);
+            tools.push(
+                <Button
+                    key={2}
+                    onClick={this.createPlanning}
+                    color="primary"
+                    text={gettext('Create planning')}
+                />
+            );
         }
 
         if (showSpike) {
-            tools.push(<Button
-                key={3}
-                onClick={this.itemSpike}
-                color="alert"
-                text={gettext('Spike')}
-                icon="icon-trash" />);
+            tools.push(
+                <Button
+                    key={3}
+                    onClick={this.itemSpike}
+                    color="alert"
+                    text={gettext('Spike')}
+                    icon="icon-trash"
+                />
+            );
         }
 
         if (showUnspike) {
-            tools.push(<Button
-                key={4}
-                onClick={this.itemUnSpike}
-                color="warning"
-                text={gettext('Unspike')}
-                icon="icon-unspike" />);
+            tools.push(
+                <Button
+                    key={4}
+                    onClick={this.itemUnSpike}
+                    color="warning"
+                    text={gettext('Unspike')}
+                    icon="icon-unspike"
+                />
+            );
         }
 
         return tools;
@@ -221,12 +243,15 @@ export class MultiSelectActionsComponent extends React.PureComponent {
             innerTools.unshift(<a key={3} onClick={this.handleSelectAll.bind(this)}>{gettext('Select all')}</a>);
         }
 
-        return (<SlidingToolBar
-            onCancel={this.handleDeSelectAll}
-            hide={hideSlidingToolBar}
-            innerInfo={gettext(this.getCountLabel())}
-            innerTools={innerTools}
-            tools={this.getMultiActionTools()} />);
+        return (
+            <SlidingToolBar
+                onCancel={this.handleDeSelectAll}
+                hide={hideSlidingToolBar}
+                innerInfo={gettext(this.getCountLabel())}
+                innerTools={innerTools}
+                tools={this.getMultiActionTools()}
+            />
+        );
     }
 }
 

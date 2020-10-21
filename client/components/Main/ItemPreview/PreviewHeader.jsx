@@ -10,12 +10,18 @@ export const PreviewHeader = ({item, hideItemActions, showUnlock}) => {
 
     switch (itemType) {
     case ITEM_TYPE.EVENT:
-        return (<EventPreviewHeader
-            hideItemActions={hideItemActions}/>);
+        return (
+            <EventPreviewHeader
+                hideItemActions={hideItemActions}
+            />
+        );
     case ITEM_TYPE.PLANNING:
-        return (<PlanningPreviewHeader
-            hideItemActions={hideItemActions}
-            showUnlock={showUnlock}/>);
+        return (
+            <PlanningPreviewHeader
+                hideItemActions={hideItemActions}
+                showUnlock={showUnlock}
+            />
+        );
     default:
         return null;
     }

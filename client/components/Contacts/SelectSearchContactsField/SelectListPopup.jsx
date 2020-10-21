@@ -188,34 +188,37 @@ export class SelectListPopupComponent extends React.Component {
     }
 
     render() {
-        return (<div>
-            <SearchField
-                minLength={1}
-                onSearchClick={this.openSearchList}
-                onSearch={this.filterSearchResults}
-                ref={(node) => this.dom.searchField = node}
-                onFocus={this.props.onFocus}
-                readOnly={this.props.readOnly}
-                placeholder={this.props.placeholder || gettext('Search for a contact')}
-                autoComplete={false}
-                name="searchFieldInput"
-            />
-            {this.state.openFilterList && (
-                <Popup
-                    close={this.closeSearchList}
-                    target={this.props.target}
-                    onKeyDown={this.onKeyDown}
-                    inheritWidth={true}
-                    noPadding={true}
-                    onPopupOpen={this.props.onPopupOpen}
-                    onPopupClose={this.props.onPopupClose}
-                    ignoreOnClickElement="searchFieldInput"
-                >
-                    <div className="Select__popup__wrapper">
-                        <ul className="Select__popup__list"
-                            ref={(node) => this.dom.listItems = node}
-                            onScroll={this.handleScroll} >
-                            {get(this.state, 'filteredList.length', 0) > 0 &&
+        return (
+            <div>
+                <SearchField
+                    minLength={1}
+                    onSearchClick={this.openSearchList}
+                    onSearch={this.filterSearchResults}
+                    ref={(node) => this.dom.searchField = node}
+                    onFocus={this.props.onFocus}
+                    readOnly={this.props.readOnly}
+                    placeholder={this.props.placeholder || gettext('Search for a contact')}
+                    autoComplete={false}
+                    name="searchFieldInput"
+                />
+                {this.state.openFilterList && (
+                    <Popup
+                        close={this.closeSearchList}
+                        target={this.props.target}
+                        onKeyDown={this.onKeyDown}
+                        inheritWidth={true}
+                        noPadding={true}
+                        onPopupOpen={this.props.onPopupOpen}
+                        onPopupClose={this.props.onPopupClose}
+                        ignoreOnClickElement="searchFieldInput"
+                    >
+                        <div className="Select__popup__wrapper">
+                            <ul
+                                className="Select__popup__list"
+                                ref={(node) => this.dom.listItems = node}
+                                onScroll={this.handleScroll}
+                            >
+                                {get(this.state, 'filteredList.length', 0) > 0 &&
                                 this.state.filteredList.map((opt, index) => (
                                     <li
                                         key={index}
@@ -232,25 +235,26 @@ export class SelectListPopupComponent extends React.Component {
                                         </button>
                                     </li>
                                 ))
-                            }
+                                }
 
-                            {this.props.onAdd && (
-                                <li tabIndex="0">
-                                    <Button
-                                        size="small"
-                                        expanded={true}
-                                        onClick={this.onAdd}
-                                        text={this.props.onAddText}
-                                        icon={this.props.onAddText ? null : 'icon-plus-large'}
-                                        iconOnly={!this.props.onAddText}
-                                    />
-                                </li>
-                            )}
-                        </ul>
-                    </div>
-                </Popup>
-            )}
-        </div>);
+                                {this.props.onAdd && (
+                                    <li tabIndex="0">
+                                        <Button
+                                            size="small"
+                                            expanded={true}
+                                            onClick={this.onAdd}
+                                            text={this.props.onAddText}
+                                            icon={this.props.onAddText ? null : 'icon-plus-large'}
+                                            iconOnly={!this.props.onAddText}
+                                        />
+                                    </li>
+                                )}
+                            </ul>
+                        </div>
+                    </Popup>
+                )}
+            </div>
+        );
     }
 }
 

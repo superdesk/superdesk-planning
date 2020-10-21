@@ -41,20 +41,28 @@ export class SelectInputWithFreeText extends React.Component {
 
         return (
             <Row flex noPadding>
-                {!this.state.enterFreeText && <SelectInput
-                    field={field}
-                    label={label}
-                    onChange={onChange}
-                    value={value}
-                    options={options}
-                    labelField={labelField}
-                    {...props} />}
-                {this.state.enterFreeText &&
+                {!this.state.enterFreeText && (
+                    <SelectInput
+                        field={field}
+                        label={label}
+                        onChange={onChange}
+                        value={value}
+                        options={options}
+                        labelField={labelField}
+                        {...props}
+                    />
+                )}
+                {this.state.enterFreeText && (
                     <LineInput {...props}>
                         <Label text={label} />
-                        <Input placeholder={label} onChange={onChange} field={field} value={get(value, 'name', value)}/>
+                        <Input
+                            placeholder={label}
+                            onChange={onChange}
+                            field={field}
+                            value={get(value, 'name', value)}
+                        />
                     </LineInput>
-                }
+                )}
                 <LineInput {...props}>
                     <Label text="Other" />
                     <Checkbox

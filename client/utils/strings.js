@@ -5,7 +5,7 @@ const firstCharUpperCase = (string) => string && string.toLowerCase().replace(/\
 const convertNewlineToBreak = (string) => !string ? '' :
     string.replace(/\r/g, '')
         .split('\n')
-        .map((item, key) => <span key={key}>{item}<br/></span>);
+        .map((item, key) => <span key={key}>{item}<br /></span>);
 
 // eslint-disable-next-line consistent-this
 const self = {

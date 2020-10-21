@@ -32,7 +32,8 @@ export class PlanningMenuPanelComponent extends React.Component {
                     onClick={onMenuItemClick.bind(null, 'planning')}
                     active={activeItem === 'planning'}
                 />
-                <MenuItem label={gettext('Details...')}
+                <MenuItem
+                    label={gettext('Details...')}
                     onClick={onMenuItemClick.bind(null, 'details')}
                     active={activeItem === 'details'}
                 />
@@ -52,17 +53,20 @@ export class PlanningMenuPanelComponent extends React.Component {
                 )}
                 {hasCoverage && <Label row text={gettext('Coverages')} />}
                 {hasCoverage && (
-                    item.coverages.map((c, index) => <CoveragePreview
-                        key={index}
-                        coverage={c}
-                        users= {users}
-                        desks= {desks}
-                        newsCoverageStatus={newsCoverageStatus}
-                        formProfile={formProfile.coverage}
-                        onClick={onMenuItemClick.bind(null, c.coverage_id)}
-                        active={activeItem === c.coverage_id}
-                        noOpen
-                        scrollInView />)
+                    item.coverages.map((c, index) => (
+                        <CoveragePreview
+                            key={index}
+                            coverage={c}
+                            users= {users}
+                            desks= {desks}
+                            newsCoverageStatus={newsCoverageStatus}
+                            formProfile={formProfile.coverage}
+                            onClick={onMenuItemClick.bind(null, c.coverage_id)}
+                            active={activeItem === c.coverage_id}
+                            noOpen
+                            scrollInView
+                        />
+                    ))
                 )}
             </ContentBlock>
         );

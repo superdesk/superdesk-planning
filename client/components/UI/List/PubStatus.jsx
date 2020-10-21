@@ -20,27 +20,30 @@ export const PubStatus = ({item, isPublic}) => {
         badge = <span className="badge badge--success">P</span>;
     } else if (isNotForPublication(item)) {
         title = gettext(TOOLTIPS.notForPublication);
-        badge = <i
-            className="icon-ban-circle icon--red"
-            style={{
-                width: '22px',
-                height: '22px',
-                fontSize: '22px',
-            }}
-        />;
+        badge = (
+            <i
+                className="icon-ban-circle icon--red"
+                style={{
+                    width: '22px',
+                    height: '22px',
+                    fontSize: '22px',
+                }}
+            />
+        );
     } else {
         badge = <span className="badge badge--light">&nbsp;</span>;
     }
 
     return (
         <Column>
-            {title &&
-                <OverlayTrigger placement="right"
+            {title && (
+                <OverlayTrigger
+                    placement="right"
                     overlay={<Tooltip id="badge_pub_status">{title}</Tooltip>}
                 >
                     {badge}
                 </OverlayTrigger>
-            }
+            )}
             {!title && (badge)}
         </Column>
     );

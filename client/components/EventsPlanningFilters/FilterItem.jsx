@@ -24,7 +24,7 @@ export const FilterItem = ({
                     <time>{gettext('updated') + ' ' + moment(filter._updated).fromNow()}</time>
                 </List.Row>
                 <List.Row>
-                    <Calendars item={filter} calendars={calendars} grow={true}/>
+                    <Calendars item={filter} calendars={calendars} grow={true} />
                 </List.Row>
                 <List.Row>
                     <Agendas
@@ -41,18 +41,28 @@ export const FilterItem = ({
                     </div>
                 </List.Row>
             </List.Column>
-            {!!privileges[PRIVILEGES.EVENTS_PLANNING_FILTERS_MANAGEMENT] &&
+            {!!privileges[PRIVILEGES.EVENTS_PLANNING_FILTERS_MANAGEMENT] && (
                 <List.ActionMenu>
-                    {editFilter && <button onClick={editFilter.bind(null, filter)} className="dropdown__toggle"
-                        data-sd-tooltip={gettext(TOOLTIPS.editFilter)} data-flow="left">
-                        <i className="icon-pencil"/>
-                    </button>}
-                    <button onClick={deleteFilter.bind(null, filter)} className="dropdown__toggle"
-                        data-sd-tooltip={gettext(TOOLTIPS.deleteFilter)} data-flow="left">
-                        <i className="icon-trash"/>
+                    {editFilter && (
+                        <button
+                            onClick={editFilter.bind(null, filter)}
+                            className="dropdown__toggle"
+                            data-sd-tooltip={gettext(TOOLTIPS.editFilter)}
+                            data-flow="left"
+                        >
+                            <i className="icon-pencil" />
+                        </button>
+                    )}
+                    <button
+                        onClick={deleteFilter.bind(null, filter)}
+                        className="dropdown__toggle"
+                        data-sd-tooltip={gettext(TOOLTIPS.deleteFilter)}
+                        data-flow="left"
+                    >
+                        <i className="icon-trash" />
                     </button>
                 </List.ActionMenu>
-            }
+            )}
         </List.Item>
     );
 };

@@ -6,24 +6,31 @@ import {SortableContainer, SortableElement, arrayMove} from 'react-sortable-hoc'
 import './style.scss';
 
 const SortableItem = SortableElement(({item, disabled, getListElement}) =>
-    (<li className={classNames('sortable-list__item',
-        'draggable-list__item',
-        {'sortable-list__item--no-padding': getListElement})}>
-        {getListElement ? getListElement(item) : item.label}
-    </li>)
+    (
+        <li
+            className={classNames('sortable-list__item',
+                'draggable-list__item',
+                {'sortable-list__item--no-padding': getListElement})}
+        >
+            {getListElement ? getListElement(item) : item.label}
+        </li>
+    )
 );
 
-const SortableList = SortableContainer(({items, getListElement}) =>
+const SortableList = SortableContainer(({items, getListElement}) => (
     <ul className="sortable-list">
-        {(items || []).map((item, index, arr) =>
+        {(items || []).map((item, index, arr) => (
             <SortableItem
                 key={item.id}
                 index={index}
                 item={item}
                 disabled={arr.length === 1}
-                getListElement={getListElement} />
+                getListElement={getListElement}
+            />
+        )
         )}
     </ul>
+)
 );
 
 class SortItems extends React.Component {
@@ -50,7 +57,8 @@ class SortItems extends React.Component {
 
     render() {
         return (
-            <SortableList items={this.props.items}
+            <SortableList
+                items={this.props.items}
                 onSortEnd={this.onSortEnd}
                 onSortStart={this.onSortStart}
                 getListElement={this.props.getListElement}
