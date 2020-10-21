@@ -30,6 +30,14 @@ from planning.archive import create_item_from_template
 
 
 FIELDS_TO_COPY = ('anpa_category', 'subject', 'urgency', 'place')
+FIELDS_TO_OVERRIDE = [
+    'urgency',
+    'slugline',
+    'ednote',
+    'abstract',
+    'headline',
+    'ednote',
+]
 
 
 def get_item_from_assignment(assignment, template=None):
@@ -153,7 +161,7 @@ class AssignmentsContentService(Service):
                 }])
             else:
                 # create content
-                item = create_item_from_template(item)
+                item = create_item_from_template(item, FIELDS_TO_OVERRIDE)
 
                 # create delivery references
                 get_resource_service('delivery').post([{
