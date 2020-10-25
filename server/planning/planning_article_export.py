@@ -137,6 +137,34 @@ def generate_text_item(items, template_name, resource_type):
         desks = []
 
         def enhance_coverage(planning, item, users):
+
+            def _enhance_assigned_provider(coverage, item, assigned_to):
+                """
+                Enhances the text_assignees with the contact details if it's assigned to an external provider
+                """
+                if assigned_to.get('contact'):
+                    provider_contact = get_resource_service('contacts').find_one(req=None,
+                                                                                 _id=assigned_to.get('contact'))
+
+                    assignee_str = "{0} - {1} {2} ".format(assigned_to['coverage_provider']['name'],
+                                                           provider_contact.get('first_name', ''),
+                                                           provider_contact.get('last_name', ''))
+                    phone_number = [n.get('number') for n in provider_contact.get('mobile', []) +
+                                    provider_contact.get('contact_phone', [])]
+                    if len(phone_number):
+                        assignee_str += ' ({0})'.format(phone_number[0])
+
+                    # If there is an internal note on the coverage that is different to the internal note
+                    # on the planning
+                    if (coverage.get('planning', {})).get('internal_note', '') \
+                            and item.get('internal_note', '') !=\
+                            (coverage.get('planning', {})).get('internal_note', ''):
+                        assignee_str += ' ({0})'.format((coverage.get('planning', {})).get('internal_note', ''))
+
+                    item['text_assignees'].append(assignee_str)
+                else:
+                    item['text_assignees'].append(assigned_to['coverage_provider']['name'])
+
             for c in (planning.get('coverages') or []):
                 is_text = c.get('planning', {}).get('g2_content_type', '') == 'text'
                 completed = (c.get('assigned_to') or {}).get('state') == ASSIGNMENT_WORKFLOW_STATE.COMPLETED
@@ -146,7 +174,7 @@ def generate_text_item(items, template_name, resource_type):
                 if assigned_to.get('coverage_provider'):
                     item['assignees'].append(assigned_to['coverage_provider']['name'])
                     if is_text and not completed:
-                        item['text_assignees'].append(assigned_to['coverage_provider']['name'])
+                        _enhance_assigned_provider(c, item, assigned_to)
                 elif assigned_to.get('user'):
                     user = assigned_to['user']
                     users.append(user)
@@ -172,7 +200,10 @@ def generate_text_item(items, template_name, resource_type):
                             })
                     elif c.get('news_coverage_status', {}).get('qcode') == 'ncostat:int':
                         if user:
-                            text_users.append(user)
+                            text_users.append({'user': user,
+                                               'note': (c.get('planning', {})).get('internal_note', '') if (c.get(
+                                                   'planning', {})).get('internal_note', '') != item.get(
+                                                   'internal_note') else None})
                         else:
                             text_desks.append(desk)
 
@@ -193,10 +224,12 @@ def generate_text_item(items, template_name, resource_type):
         })
 
         for u in users:
-            name = "{0} {1}".format(u.get('last_name'), u.get('first_name'))
+            name = u.get('display_name', "{0} {1}".format(u.get('first_name'), u.get('last_name')))
             item['assignees'].append(name)
-            if str(u['_id']) in text_users:
-                item['text_assignees'].append(name)
+            text_user = next((_i for _i in text_users if _i['user'] == str(u.get('_id'))) or [], None)
+            if text_user:
+                item['text_assignees'].append(
+                    '{0} ({1})'.format(name, text_user.get('note')) if text_user.get('note') else '{0}'.format(name))
 
         for d in desks:
             item['assignees'].append(d['name'])
