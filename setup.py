@@ -14,7 +14,7 @@ package_data = {
 
 setup(
     name="superdesk-planning",
-    version="1.33.1",
+    version="1.33.2-rc.1",
     description=DESCRIPTION,
     long_description=long_description,
     long_description_content_type='text/markdown',

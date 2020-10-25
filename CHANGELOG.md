@@ -1,5 +1,15 @@
 # Superdesk Planning Changelog
 
+## [1.33.2-rc.1] 2020-10-26
+### Features
+- None
+
+### Improvements
+- [SDESK-5545] Add details to text_assignees for sport Outlook (#1490)
+
+### Fixes
+- None
+
 ## [1.33.1] 2020-09-09
 ### Features
 - None
