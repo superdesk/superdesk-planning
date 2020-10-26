@@ -140,7 +140,8 @@ export class AssignmentItem extends React.Component {
                             marginRight={true}
                             marginLeft={true}
                         />
-                        <span data-sd-tooltip={gettext('Due Date')}
+                        <span
+                            data-sd-tooltip={gettext('Due Date')}
                             data-flow="right"
                             className={clockIconClass}
                         >
@@ -152,7 +153,8 @@ export class AssignmentItem extends React.Component {
                                 <AbsoluteDate
                                     date={moment(planningSchedule).format()}
                                     className="sd-list-item__time__schedule"
-                                    toBeConfirmed={get(assignment, `planning.${TO_BE_CONFIRMED_FIELD}`)} />
+                                    toBeConfirmed={get(assignment, `planning.${TO_BE_CONFIRMED_FIELD}`)}
+                                />
                             ) : (
                                 <span>{gettext('\'not scheduled yet\'')}</span>
                             )}
@@ -165,12 +167,14 @@ export class AssignmentItem extends React.Component {
                             <span>{assignedDeskName}</span>
                         </span>
                     </div>
-                    {genre && (<div className="sd-list-item__element-lm-10">
-                        <span className="sd-list-item__text-label">{gettext('Genre:')}</span>
-                        <span className="sd-overflow-ellipsis sd-list-item__text-strong">
-                            <span>{genre}</span>
-                        </span>
-                    </div>)}
+                    {genre && (
+                        <div className="sd-list-item__element-lm-10">
+                            <span className="sd-list-item__text-label">{gettext('Genre:')}</span>
+                            <span className="sd-overflow-ellipsis sd-list-item__text-strong">
+                                <span>{genre}</span>
+                            </span>
+                        </div>
+                    )}
                 </Row>
             </Column>
         );

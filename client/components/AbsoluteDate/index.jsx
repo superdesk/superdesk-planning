@@ -44,7 +44,11 @@ export const AbsoluteDate = ({date, noDateString, className, asTextInput, toBeCo
             <span>{spanStr}</span>
         </time>
     ) : (
-        <TextInput className={className} value={spanStr} {...props}/>
+        <TextInput
+            className={className}
+            value={spanStr}
+            {...props}
+        />
     );
 };
 
