@@ -1,6 +1,6 @@
 # Superdesk Planning Changelog
 
-## [2.0.0-rc1] 2020-09-09
+## [2.0.0] 2020-10-28
 ### Features
 - None
 
@@ -18,6 +18,16 @@
 - [SDESK-5414] fix: Planning search fails on elastic 7 (#1482)
 - [SDESK-5204] fix errors after eve/flask upgrade (#1468)
 - fix: import resolve_default_values from apps.archive.common (#1469)
+
+## [1.33.2-rc.1] 2020-10-26
+### Features
+- None
+
+### Improvements
+- [SDESK-5545] Add details to text_assignees for sport Outlook (#1490)
+
+### Fixes
+- None
 
 ## [1.33.1] 2020-09-09
 ### Features
