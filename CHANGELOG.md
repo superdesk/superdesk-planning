@@ -1,5 +1,44 @@
 # Superdesk Planning Changelog
 
+## [2.1.0-dev]
+### Features
+- None
+
+### Improvements
+- None
+
+### Fixes
+- [SDESK-5611] fix: Create from assignment fails to override template values (#1493)
+
+## [2.0.0] 2020-10-28
+### Features
+- None
+
+### Improvements
+- [SDESK-5466] New allow list config PLANNING_ALLOWED_COVERAGE_LINK_TYPES for content linking (#1483)
+- support elastic7 (#1472)
+- [SDESK-5155] Config for assignments list fields (#1459)
+
+### Fixes
+- [SDCP-291] Use a function to get assignments when translations are needed (#1488)
+- [SDESK-5457] Assign to agenda or to calendar from three dot menu does not work for events and for planning items. (1487)
+- [SDESK-5456] FIX: Cannot add planning item to featured stories. (#1486)
+- [SDESK-5494] fix: Undefined function in activity additionalCondition (#1485)
+- [SDESK-5494] fix: Failure to get Planning actions in Monitoring (#1484)
+- [SDESK-5414] fix: Planning search fails on elastic 7 (#1482)
+- [SDESK-5204] fix errors after eve/flask upgrade (#1468)
+- fix: import resolve_default_values from apps.archive.common (#1469)
+
+## [1.33.2-rc.1] 2020-10-26
+### Features
+- None
+
+### Improvements
+- [SDESK-5545] Add details to text_assignees for sport Outlook (#1490)
+
+### Fixes
+- None
+
 ## [1.33.1] 2020-09-09
 ### Features
 - None
