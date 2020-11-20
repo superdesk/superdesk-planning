@@ -5,6 +5,8 @@ import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
 
 import {appConfig} from 'appConfig';
+import {IUser} from 'superdesk-api';
+import {IEventItem} from '../interfaces';
 
 import planningApp from '../reducers';
 import {
@@ -360,19 +362,17 @@ export const notifyError = (notify, error, defaultMessage) => {
  * @param {Array} users - The array of users, typically from the redux store
  * @return {object} The user object found or ingest provider id, otherwise nothing is returned
  */
-export const getCreator = (item, creator, users) => {
-    const user = get(item, creator);
+export function getCreator(item: IEventItem, creator: string, users: Array<IUser>): IUser | string | undefined {
+    const user = item?.[creator];
 
-    if (user) {
-        return user.display_name ? user : users.find((u) => u._id === user);
+    if (user?._id != null) {
+        return user.display_name ?
+            user :
+            users.find((u) => u._id === user);
     }
 
-    const ingestProvider = get(item, 'ingest_provider');
-
-    if (ingestProvider) {
-        return ingestProvider;
-    }
-};
+    return item?.ingest_provider;
+}
 
 export const getItemInArrayById = (items, id, field = '_id') => (
     id && Array.isArray(items) ? items.find((item) => get(item, field) === id) : null
