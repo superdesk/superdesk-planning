@@ -1,14 +1,26 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get, forEach} from 'lodash';
+import {get} from 'lodash';
 import moment from 'moment';
 
 import {appConfig} from 'appConfig';
+import {superdeskApi} from '../../../superdeskApi';
+import {
+    ICoverageFormProfile,
+    ICoverageScheduledUpdate,
+    IPlanningCoverageItem,
+    IPlanningItem,
+    IPlanningNewsCoverageStatus,
+    IG2ContentType,
+    IGenre,
+    IKeyword,
+    IFile,
+} from '../../../interfaces';
+import {IArticle, IDesk} from 'superdesk-api';
 
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
-import {getItemInArrayById, gettext, planningUtils, generateTempId, assignmentUtils} from '../../../utils';
+import {getItemInArrayById, planningUtils, generateTempId, assignmentUtils} from '../../../utils';
 import {WORKFLOW_STATE, TO_BE_CONFIRMED_FIELD} from '../../../constants';
 import {Button} from '../../UI';
 import {Row, Label, LineInput, FileInput} from '../../UI/Form';
@@ -30,7 +42,80 @@ import {ContactField, ContactsPreviewList} from '../../Contacts';
 
 import '../style.scss';
 
-export class CoverageFormComponent extends React.Component {
+interface IProps {
+    // Values
+    field: string;
+    value: IPlanningCoverageItem;
+    readOnly: boolean;
+    message: string | {[key: string]: any};
+    item: IPlanningItem;
+    diff: Partial<IPlanningItem>;
+    formProfile: ICoverageFormProfile;
+    errors: {[key: string]: any}
+    showErrors: boolean;
+    hasAssignment: boolean;
+    addNewsItemToPlanning: IArticle;
+    index: number;
+    defaultDesk: IDesk;
+    files: Array<IFile>;
+
+    // Functions
+    onChange(field: string, value: any): void;
+    popupContainer(): HTMLElement;
+    onFieldFocus(): void;
+    onPopupOpen(): void;
+    onPopupClose(): void;
+    onRemoveAssignment(
+        coverage: IPlanningCoverageItem,
+        index: number,
+        scheduledUpdate: any,
+        scheduledUpdateIndex: number
+    ): void;
+    uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
+    createUploadLink(file: IFile): void;
+    removeFile(file: IFile): Promise<void>;
+    notifyValidationErrors(errors: Array<string>): void;
+
+    // Redux States
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
+    contentTypes: Array<IG2ContentType>;
+    languages: Array<string>;
+    genres: Array<IGenre>;
+    keywords: Array<IKeyword>;
+    preferredCoverageDesks: {[key: string]: string};
+    planningAllowScheduledUpdates: boolean;
+
+    // Redux Dispatches
+    setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
+}
+
+interface IState {
+    openScheduledUpdates: Array<any>;
+    uploading: boolean;
+}
+
+const mapStateToProps = (state) => ({
+    newsCoverageStatus: selectors.general.newsCoverageStatus(state),
+    contentTypes: selectors.general.contentTypes(state),
+    languages: selectors.vocabs.getLanguages(state),
+    genres: state.genres,
+    keywords: selectors.general.keywords(state),
+    preferredCoverageDesks: selectors.general.preferredCoverageDesks(state)?.desks ?? {},
+    planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    setCoverageDefaultDesk: (coverage) => dispatch(actions.users.setCoverageDefaultDesk(coverage)),
+});
+
+export class CoverageFormComponent extends React.Component<IProps, IState> {
+    fullFilePath: string;
+    xmpFullFilePath: string;
+    dom: {
+        contentType?: any;
+        popupContainer?: any;
+    };
+
     constructor(props) {
         super(props);
         this.onScheduleChanged = this.onScheduleChanged.bind(this);
@@ -51,13 +136,11 @@ export class CoverageFormComponent extends React.Component {
             openScheduledUpdates: [],
             uploading: false,
         };
-        this.filePath = 'value.planning.files';
-        this.xmpFilePath = 'value.planning.xmp_file';
         this.fullFilePath = `coverages[${this.props.index}].planning.files`;
         this.xmpFullFilePath = `coverages[${this.props.index}].planning.xmp_file`;
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps: IProps) {
         if (!prevProps.hasAssignment && this.props.hasAssignment) {
             this.dom.contentType.focus();
         }
@@ -69,38 +152,50 @@ export class CoverageFormComponent extends React.Component {
         onChange(`coverages[${index}].${TO_BE_CONFIRMED_FIELD}`, true);
     }
 
-    onScheduleChanged(f, v) {
+    getCoverageFiles(): Array<string> {
+        return this.props.value?.planning?.files ?? [];
+    }
+
+    onScheduleChanged(field: string, newValue: moment.Moment) {
         const {value, onChange, index} = this.props;
-        let finalValue = v, fieldStr, relatedFieldStr;
+        const hasSchedule = value?.planning?.scheduled != null;
+        let finalValue = newValue;
+        let fieldStr: string;
+        let relatedFieldStr: string;
 
         // We will be updating scheduled and _scheduledTime together
         // relatedFieldStr will be '_scheduledTime' if date gets changed and vice versa
         // Update time only if date is already set
-        if (f.endsWith('.date')) {
-            fieldStr = f.slice(0, -5);
-            relatedFieldStr = f.replace('scheduled.date', '_scheduledTime');
+        if (field.endsWith('.date')) {
+            fieldStr = field.slice(0, -5);
+            relatedFieldStr = field.replace('scheduled.date', '_scheduledTime');
             // If there is no current scheduled date, then set the time value to end of the day
-            if (!get(value, 'planning.scheduled')) {
-                finalValue = v.add(1, 'hour').startOf('hour');
+            if (hasSchedule) {
+                finalValue = newValue
+                    .add(1, 'hour')
+                    .startOf('hour');
                 relatedFieldStr = null;
             }
-        } else if (f.endsWith('._scheduledTime')) {
+        } else if (field.endsWith('._scheduledTime')) {
             // If there is no current scheduled date, then set the date to today
-            relatedFieldStr = f.replace('_scheduledTime', 'scheduled');
-            fieldStr = f;
+            relatedFieldStr = field.replace('_scheduledTime', 'scheduled');
+            fieldStr = field;
 
             onChange(`coverages[${index}].${TO_BE_CONFIRMED_FIELD}`, false);
 
-            if (!get(value, 'planning.scheduled')) {
-                finalValue = moment().hour(v.hour())
-                    .minute(v.minute());
+            if (hasSchedule) {
+                finalValue = moment()
+                    .hour(newValue.hour())
+                    .minute(newValue.minute());
             } else {
                 // Set the date from the original date
-                finalValue = value.planning.scheduled.clone().hour(v.hour())
-                    .minute(v.minute());
+                finalValue = moment(value.planning.scheduled)
+                    .clone()
+                    .hour(newValue.hour())
+                    .minute(newValue.minute());
             }
         } else {
-            onChange(f, v);
+            onChange(field, newValue);
             return;
         }
 
@@ -112,24 +207,28 @@ export class CoverageFormComponent extends React.Component {
 
     onAddScheduledUpdate() {
         let defaultScheduledUpdate = {
-            coverage_id: get(this.props, 'value.coverage_id'),
+            coverage_id: this.props.value?.coverage_id,
             scheduled_update_id: generateTempId(),
             planning: {
-                internal_note: get(this.props, 'value.planning.internal_note'),
-                genre: ((get(this.props, 'genres') || []).find((g) => g.qcode === 'Update') ||
-                    get(this.props, 'value.planning.genre')),
+                internal_note: this.props.value?.planning?.internal_note,
+                genre: (this.props.genres ?? []).find((g) => g.qcode === 'Update') ||
+                    this.props.value?.planning?.genre,
             },
             news_coverage_status: this.props.newsCoverageStatus[0],
             workflow_status: WORKFLOW_STATE.DRAFT,
         };
 
         // Set default desks for coverage type
-        planningUtils.setDefaultAssignment(defaultScheduledUpdate, this.props.preferredCoverageDesks,
-            get(this.props, 'value.planning.g2_content_type'), this.props.defaultDesk);
+        planningUtils.setDefaultAssignment(
+            defaultScheduledUpdate,
+            this.props.preferredCoverageDesks,
+            this.props.value?.planning?.g2_content_type,
+            this.props.defaultDesk
+        );
 
         this.props.onChange(`${this.props.field}.scheduled_updates`,
             [
-                ...get(this.props, 'value.scheduled_updates', []),
+                ...(this.props.value?.scheduled_updates ?? []),
                 defaultScheduledUpdate,
             ]);
         this.setState({openScheduledUpdates: [
@@ -138,13 +237,17 @@ export class CoverageFormComponent extends React.Component {
         ]});
     }
 
-    onRemoveScheduledUpdate(index) {
+    onRemoveScheduledUpdate(indexToRemove: number) {
         // Remove the scheduled update at the index
-        this.props.onChange(`${this.props.field}.scheduled_updates`,
-            this.props.value.scheduled_updates.filter((s, ind) => ind !== index));
+        this.props.onChange(
+            `${this.props.field}.scheduled_updates`,
+            this.props.value.scheduled_updates.filter(
+                (_, index) => index !== indexToRemove
+            )
+        );
     }
 
-    onScheduledUpdateOpen(scheduledUpdate) {
+    onScheduledUpdateOpen(scheduledUpdate: ICoverageScheduledUpdate) {
         if (!this.state.openScheduledUpdates.includes(scheduledUpdate.scheduled_update_id)) {
             this.setState({openScheduledUpdates: [
                 ...this.state.openScheduledUpdates,
@@ -153,24 +256,25 @@ export class CoverageFormComponent extends React.Component {
         }
     }
 
-    onScheduledUpdateClose(scheduledUpdate) {
+    onScheduledUpdateClose(scheduledUpdate: ICoverageScheduledUpdate) {
         this.setState({
             openScheduledUpdates: this.state.openScheduledUpdates.filter((s) =>
                 s !== scheduledUpdate.scheduled_update_id
             )});
     }
 
-    onAddXmpFile(fileList) {
-        if (get(fileList, 'length', 0) > 1) {
+    onAddXmpFile(fileList: FileList) {
+        const {gettext} = superdeskApi.localization;
+
+        if ((fileList?.length ?? 0) > 1) {
             this.props.notifyValidationErrors([gettext('You can associate only one XMP file')]);
             return;
         }
 
         let error;
 
-        forEach(fileList, (f) => {
-            if (!get(f, 'name').toLowerCase()
-                .endsWith('.xmp')) {
+        Array.from(fileList).forEach((file: File) => {
+            if (!(file.name ?? '').toLowerCase().endsWith('.xmp')) {
                 error = true;
             }
         });
@@ -183,20 +287,20 @@ export class CoverageFormComponent extends React.Component {
         this.onAddFiles(fileList, true);
     }
 
-    onRemoveXmpFile(file) {
+    onRemoveXmpFile(file: IFile) {
         this.onRemoveFile(file, true);
     }
 
-    onAddFiles(fileList, xmpFile = false) {
+    onAddFiles(fileList: FileList, xmpFile: boolean = false) {
         const files = Array.from(fileList).map((f) => [f]);
         const changeFullFilePath = xmpFile ? this.xmpFullFilePath : this.fullFilePath;
 
         this.setState({uploading: true});
         this.props.uploadFiles(files)
             .then((newFiles) => {
-                const value = xmpFile ? get(newFiles, '[0]._id') :
+                const value = xmpFile ? newFiles?.[0]?._id :
                     [
-                        ...get(this.props, this.filePath, []),
+                        ...this.getCoverageFiles(),
                         ...newFiles.map((f) => f._id),
                     ];
 
@@ -208,11 +312,17 @@ export class CoverageFormComponent extends React.Component {
             });
     }
 
-    onRemoveFile(file, xmpFile = false) {
-        const promise = (xmpFile ? file : !get(this.props, this.filePath, []).includes(file._id)) ?
-            this.props.removeFile(file) : Promise.resolve();
-        const changeFullFilePath = xmpFile ? this.xmpFullFilePath : this.fullFilePath;
-        const value = xmpFile ? null : get(this.props, this.filePath, []).filter((f) => f !== file._id);
+    onRemoveFile(file: IFile, xmpFile = false) {
+        const promise = (xmpFile ? file : !this.getCoverageFiles().includes(file._id)) ?
+            this.props.removeFile(file) :
+            Promise.resolve();
+        const changeFullFilePath = xmpFile ?
+            this.xmpFullFilePath :
+            this.fullFilePath;
+        const value = xmpFile ?
+            null :
+            this.getCoverageFiles()
+                .filter((f) => f !== file._id);
 
         promise.then(() => this.props.onChange(changeFullFilePath, value));
     }
@@ -225,6 +335,7 @@ export class CoverageFormComponent extends React.Component {
             onChange,
             newsCoverageStatus,
             contentTypes,
+            languages,
             genres,
             keywords,
             readOnly,
@@ -247,17 +358,18 @@ export class CoverageFormComponent extends React.Component {
             ...props
         } = this.props;
 
-        const contentTypeQcode = get(value, 'planning.g2_content_type') || null;
+        const {gettext} = superdeskApi.localization;
+        const contentTypeQcode = value.planning?.g2_content_type ?? null;
         const contentType = contentTypeQcode ? getItemInArrayById(contentTypes, contentTypeQcode, 'qcode') : null;
         const onContentTypeChange = (f, v) => {
             if (v) {
-                onChange(f, get(v, 'qcode') || null);
+                onChange(f, v?.qcode ?? null);
                 onChange(`${field}.planning.genre`, null);
             }
         };
         const defaultGenre = (appConfig.default_genre || [{}])[0];
 
-        if (contentTypeQcode === 'text' && !get(value, 'planning.genre')) {
+        if (contentTypeQcode === 'text' && value.planning?.genre == null) {
             value.planning.genre = defaultGenre;
         }
 
@@ -283,6 +395,7 @@ export class CoverageFormComponent extends React.Component {
 
         const contactLabel = assignmentUtils.getContactLabel(get(diff, field));
         const showXmpFileInput = planningUtils.showXMPFileUIControl(value);
+        const hideXMPFileInput = this.props.value?.planning?.xmp_file != null;
 
         return (
             <div className="coverage-editor">
@@ -337,6 +450,20 @@ export class CoverageFormComponent extends React.Component {
                     refNode={(ref) => this.dom.contentType = ref}
                 />
 
+                <Field
+                    component={SelectInput}
+                    field={`${field}.planning.language`}
+                    profileName="language"
+                    label={gettext('Language')}
+                    defaultValue={null}
+                    options={languages}
+                    {...fieldProps}
+                    labelField={'name'}
+                    clearable={true}
+                    valueAsString={true}
+                />
+
+
                 {showXmpFileInput && (
                     <div
                         className={this.state.uploading ? 'sd-loader' : 'sd-line-input'}
@@ -349,7 +476,7 @@ export class CoverageFormComponent extends React.Component {
                                 createLink={createUploadLink}
                                 defaultValue={[]}
                                 readOnly={roFields.xmp_file}
-                                hideInput={get(this.props, this.xmpFilePath)}
+                                hideInput={hideXMPFileInput}
                                 {...fieldProps}
                                 files={files}
                                 onAddFiles={this.onAddXmpFile}
@@ -414,7 +541,7 @@ export class CoverageFormComponent extends React.Component {
                     {...fieldProps}
                 />
 
-                {get(formProfile, 'editor.files.enabled') && (
+                {formProfile.editor.files.enabled && (
                     <div className={this.state.uploading ? 'sd-loader' : 'sd-line-input'}>
                         {!this.state.uploading && (
                             <Field
@@ -439,7 +566,7 @@ export class CoverageFormComponent extends React.Component {
                     field={`${field}.news_coverage_status`}
                     profileName="news_coverage_status"
                     label={gettext('Coverage Status')}
-                    defaultValue={planningUtils.defaultCoverageValues(newsCoverageStatus).news_coverage_status}
+                    defaultValue={planningUtils.getDefaultCoverageStatus(newsCoverageStatus)}
                     options={newsCoverageStatus}
                     {...fieldProps}
                     readOnly={roFields.newsCoverageStatus}
@@ -514,56 +641,5 @@ export class CoverageFormComponent extends React.Component {
         );
     }
 }
-
-CoverageFormComponent.propTypes = {
-    field: PropTypes.string,
-    value: PropTypes.object,
-    onChange: PropTypes.func,
-    newsCoverageStatus: PropTypes.array,
-    contentTypes: PropTypes.array,
-    genres: PropTypes.array,
-    keywords: PropTypes.array,
-    readOnly: PropTypes.bool,
-    message: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.object,
-    ]),
-
-    item: PropTypes.object,
-    diff: PropTypes.object,
-    formProfile: PropTypes.object,
-    errors: PropTypes.object,
-    showErrors: PropTypes.bool,
-    hasAssignment: PropTypes.bool,
-    addNewsItemToPlanning: PropTypes.object,
-    popupContainer: PropTypes.func,
-    onFieldFocus: PropTypes.func,
-    index: PropTypes.number,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
-    preferredCoverageDesks: PropTypes.object,
-    defaultDesk: PropTypes.object,
-    planningAllowScheduledUpdates: PropTypes.bool,
-    onRemoveAssignment: PropTypes.func,
-    setCoverageDefaultDesk: PropTypes.func,
-    uploadFiles: PropTypes.func,
-    createUploadLink: PropTypes.func,
-    removeFile: PropTypes.func,
-    files: PropTypes.array,
-    notifyValidationErrors: PropTypes.func,
-};
-
-const mapStateToProps = (state) => ({
-    newsCoverageStatus: selectors.general.newsCoverageStatus(state),
-    contentTypes: selectors.general.contentTypes(state),
-    genres: state.genres,
-    keywords: selectors.general.keywords(state),
-    preferredCoverageDesks: get(selectors.general.preferredCoverageDesks(state), 'desks'),
-    planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-    setCoverageDefaultDesk: (coverage) => dispatch(actions.users.setCoverageDefaultDesk(coverage)),
-});
 
 export const CoverageForm = connect(mapStateToProps, mapDispatchToProps)(CoverageFormComponent);

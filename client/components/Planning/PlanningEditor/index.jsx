@@ -29,7 +29,7 @@ import {
     ColouredValueInput,
     Field,
     FileInput,
-    DateTimeInput,
+    DateTimeInput, SelectInput,
 } from '../../UI/Form';
 import {ToggleBox} from '../../UI';
 
@@ -408,6 +408,7 @@ export class PlanningEditorComponent extends React.Component {
             diff,
             event,
             locators,
+            languages,
             categories,
             subjects,
             users,
@@ -505,6 +506,20 @@ export class PlanningEditorComponent extends React.Component {
                 />
 
                 <ContentBlock>
+                    <Field
+                        component={SelectInput}
+                        field="language"
+                        label={gettext('Language')}
+                        defaultValue={null}
+                        options={languages}
+                        {...fieldProps}
+                        onFocus={onFocusPlanning}
+                        labelField={'name'}
+                        clearable={true}
+                        valueAsString={true}
+                        enabled={get(planningProfile, 'editor.language.enabled', true)}
+                    />
+
                     <Field
                         component={TextInput}
                         field="slugline"
@@ -783,6 +798,7 @@ PlanningEditorComponent.propTypes = {
     event: PropTypes.object,
     onChangeHandler: PropTypes.func,
     locators: PropTypes.array,
+    languages: PropTypes.array,
     categories: PropTypes.array,
     subjects: PropTypes.array,
     users: PropTypes.array,
@@ -837,6 +853,7 @@ PlanningEditorComponent.defaultProps = {
 };
 
 const mapStateToProps = (state) => ({
+    languages: selectors.vocabs.getLanguages(state),
     locators: selectors.vocabs.locators(state),
     categories: selectors.vocabs.categories(state),
     subjects: selectors.vocabs.subjects(state),
