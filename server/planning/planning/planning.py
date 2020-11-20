@@ -1295,12 +1295,7 @@ coverage_schema = {
                     'type': 'string'
                 }
             },
-            'language': {
-                'type': 'list',
-                'mapping': {
-                    'type': 'string'
-                }
-            },
+            'language': metadata_schema['language'],
             'slugline': metadata_schema['slugline'],
             'subject': metadata_schema['subject'],
             'internal_note': {
