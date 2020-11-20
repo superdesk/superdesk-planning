@@ -50,17 +50,39 @@ class StringRequiredForAction(schema.SchemaField):
         self.schema['dependencies'] = dependencies
 
 
+subjectField = schema.ListField(required=False, mandatory_in_list={'scheme': {}}, schema={
+   'type': 'dict',
+   'schema': {
+       'name': {},
+       'qcode': {},
+       'scheme': {
+           'type': 'string',
+           'required': True,
+           'nullable': True,
+           'allowed': []
+       },
+       'service': {'nullable': True},
+       'parent': {'nullable': True}
+   }
+})
+
+
 class EventSchema(BaseSchema):
     """
     The event schema is used for validation of the event edit form
     """
 
-    place = schema.ListField()
     anpa_category = schema.ListField()
+    calendars = schema.ListField()
+    dates = schema.DictField(required=True)
     definition_long = schema.StringField()
     definition_short = schema.StringField()
+    ednote = schema.StringField()
+    event_contact_info = schema.ListField()
+    files = schema.ListField()
     internal_note = schema.StringField()
-    reference = schema.StringField()
+    language = schema.StringField()
+    links = schema.ListField()
     location = schema.StringField()
     name = schema.StringField(required=True)
     occur_status = schema.DictField()
@@ -78,27 +100,10 @@ class EventSchema(BaseSchema):
             "required": False
         }
     }
-    subject = schema.ListField(required=False, mandatory_in_list={'scheme': {}}, schema={
-        'type': 'dict',
-        'schema': {
-            'name': {},
-            'qcode': {},
-            'scheme': {
-                'type': 'string',
-                'required': True,
-                'nullable': True,
-                'allowed': []
-            },
-            'service': {'nullable': True},
-            'parent': {'nullable': True}
-        }
-    })
-    event_contact_info = schema.ListField()
-    calendars = schema.ListField()
-    files = schema.ListField()
-    links = schema.ListField()
-    dates = schema.DictField(required=True)
-    ednote = schema.StringField()
+    place = schema.ListField()
+    reference = schema.StringField()
+    slugline = schema.StringField()
+    subject = subjectField
 
 
 class PlanningSchema(BaseSchema):
@@ -106,101 +111,102 @@ class PlanningSchema(BaseSchema):
     The planning schema used to validate the planning form
     """
 
-    planning_date = DateTimeField(required=True)
-    slugline = schema.StringField(required=True)
-    place = schema.ListField()
+    agendas = schema.ListField()
     anpa_category = schema.ListField()
     description_text = schema.StringField()
     ednote = schema.StringField()
+    files = schema.ListField()
+    flags = schema.DictField()
     headline = schema.StringField()
     internal_note = schema.StringField()
-    subject = schema.ListField(required=False, mandatory_in_list={'scheme': {}}, schema={
-        'type': 'dict',
-        'schema': {
-            'name': {},
-            'qcode': {},
-            'scheme': {
-                'type': 'string',
-                'required': True,
-                'nullable': True,
-                'allowed': []
-            },
-            'service': {'nullable': True},
-            'parent': {'nullable': True}
-        }
-    })
-    agendas = schema.ListField()
-    flags = schema.DictField()
+    language = schema.StringField()
+    name = schema.StringField()
+    place = schema.ListField()
+    planning_date = DateTimeField(required=True)
+    slugline = schema.StringField(required=True)
+    subject = subjectField
+    urgency = schema.IntegerField()
 
 
 class CoverageSchema(BaseSchema):
+    contact_info = schema.StringField()
     ednote = schema.StringField()
+    files = schema.ListField()
+    flags = schema.DictField()
     g2_content_type = schema.ListField(required=True)
     genre = schema.ListField()
-    keyword = schema.ListField()
     headline = schema.StringField()
     internal_note = schema.StringField()
+    keyword = schema.ListField()
+    language = schema.StringField()
     news_coverage_status = schema.ListField()
-    contact_info = schema.StringField()
-    flags = schema.DictField()
+    scheduled = schema.DateTimeField()
+    slugline = schema.StringField()
 
 
 DEFAULT_EDITOR = [{
     'name': 'event',
     'editor': {
-        'slugline': {'enabled': True},
-        'place': {'enabled': False},
         'anpa_category': {'enabled': True},
-        'definition_long': {'enabled': True},
-        'definition_short': {'enabled': True},
-        'internal_note': {'enabled': True},
-        'location': {'enabled': True},
-        'name': {'enabled': True},
-        'reference': {'enabled': False},
-        'occur_status': {'enabled': True},
-        'subject': {'enabled': True},
-        'event_contact_info': {'enabled': True},
         'calendars': {'enabled': True},
-        'files': {'enabled': True},
-        'links': {'enabled': True},
         'dates': {
             'enabled': True,
             'default_duration_on_change': 1,
             'all_day': {'enabled': True}
         },
-        'ednote': {'enabled': True}
+        'definition_long': {'enabled': True},
+        'definition_short': {'enabled': True},
+        'ednote': {'enabled': True},
+        'event_contact_info': {'enabled': True},
+        'files': {'enabled': True},
+        'internal_note': {'enabled': True},
+        'language': {'enabled': False}
+        'links': {'enabled': True},
+        'location': {'enabled': True},
+        'name': {'enabled': True},
+        'occur_status': {'enabled': True},
+        'place': {'enabled': False},
+        'reference': {'enabled': False},
+        'slugline': {'enabled': True},
+        'subject': {'enabled': True},
     },
     'schema': dict(EventSchema)
 }, {
     'name': 'planning',
     'editor': {
-        'planning_date': {'enabled': True},
-        'slugline': {'enabled': True},
-        'place': {'enabled': False},
+        'agendas': {'enabled': True},
         'anpa_category': {'enabled': True},
         'description_text': {'enabled': True},
         'ednote': {'enabled': True},
-        'internal_note': {'enabled': True},
-        'subject': {'enabled': True},
-        'agendas': {'enabled': True},
+        'files': {'enabled': False},
         'flags': {'enabled': True},
-        'urgency': {'enabled': True}
+        'headline': {'enabled': False},
+        'internal_note': {'enabled': True},
+        'language': {'enabled': False},
+        'name': {'enabled': False},
+        'place': {'enabled': False},
+        'planning_date': {'enabled': True},
+        'slugline': {'enabled': True},
+        'subject': {'enabled': True},
+        'urgency': {'enabled': True},
     },
     'schema': dict(PlanningSchema)
 }, {
     'name': 'coverage',
     'editor': {
-        'slugline': {'enabled': True},
-        'keyword': {'enabled': False},
+        'contact_info': {'enabled': False},
         'ednote': {'enabled': True},
+        'files': {'enabled': False},
+        'flags': {'enabled': True},
         'g2_content_type': {'enabled': True},
         'genre': {'enabled': True},
+        'headline': {'enabled': False},
         'internal_note': {'enabled': True},
-        'scheduled': {'enabled': True},
+        'keyword': {'enabled': False},
+        'language': {'enabled': False},
         'news_coverage_status': {'enabled': True},
-        'contact_info': {'enabled': False},
-        'flags': {'enabled': True},
-        'files': {'enabled': True},
+        'scheduled': {'enabled': True},
+        'slugline': {'enabled': True},
     },
     'schema': dict(CoverageSchema)
 }, {
