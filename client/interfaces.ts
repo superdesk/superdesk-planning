@@ -1,10 +1,65 @@
-import {ITEM_STATE, ISuperdeskGlobalConfig, IBaseRestApiResponse} from 'superdesk-api';
+import {ITEM_STATE, ISuperdeskGlobalConfig, IBaseRestApiResponse, ISubject, IUser} from 'superdesk-api';
 import moment from 'moment';
 
-export type IPlanningNewsCoverageStatus = {
+export interface IPlanningNewsCoverageStatus {
     qcode: 'ncostat:int' | 'ncostat:notdec' | 'ncostat:notint' | 'ncostat:onreq';
     name: string;
     label: string;
+}
+
+export interface IG2ContentType {
+    qcode: string;
+    name: string;
+    'content item type': string;
+}
+
+export interface IGenre {
+    qcode: string;
+    name: string;
+}
+
+export interface IKeyword {
+    qcode: string;
+    name: string;
+}
+
+export interface IUrgency {
+    qcode: number;
+    name: string;
+}
+
+export interface IEventOccurStatus {
+    qcode: string;
+    name: string;
+    label: string;
+}
+
+export interface ICalendar {
+    qcode: string;
+    name: string;
+}
+
+export interface IANPACategory {
+    qcode: string;
+    name: string;
+    subject: string;
+}
+
+export type IFile = {
+    _id: string;
+    filemeta: {
+        content_type: string;
+        filename: string;
+        length: number;
+        media_id: string;
+    };
+    media: {
+        content_type: string;
+        file: any;
+        length: number;
+        name: string;
+        _id: string;
+    };
 };
 
 export type IPlanningWorkflowStatus = 'assigned' | 'in_progress' | 'completed' | 'submitted' | 'cancelled' | 'reverted';
@@ -83,18 +138,51 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
     };
 }
 
+export interface ISession {
+    sessionId: string;
+    identity: IUser;
+}
+
 export interface ILocation {
     qcode?: string;
     name?: string;
     address?: string;
     geo?: string;
     location?: string;
+    formatted_address: string;
+    details: Array<string>;
+}
+
+export interface ILock {
+    action: string;
+    item_id: string;
+    item_type: string;
+    session: string;
+    time: string;
+    user: string;
+}
+
+export interface ILockedItems {
+    assignment: {[key: string]: ILock};
+    event: {[key: string]: ILock};
+    planning: {[key: string]: ILock};
+    recurring: {[key: string]: ILock};
 }
 
 
 // The Event, Planning and Coverage interfaces were directly derived from the schema on the Server
+export interface IAgenda {
+    _id: string;
+    name: string;
+    original_creator: string;
+    version_creator: string;
+    is_enabled: boolean;
+}
+
 export interface IEventItem {
     _id?: string;
+    _created?: string;
+    _updated?: string;
     guid?: string;
     unique_id?: string;
     unique_name?: string;
@@ -116,11 +204,8 @@ export interface IEventItem {
     definition_short?: string;
     definition_long?: string;
     internal_note?: string;
-    anpa_category?: Array<{
-        qcode?: string;
-        name?: string;
-    }>;
-    files?: Array<File | string>;
+    anpa_category?: Array<IANPACategory>;
+    files?: Array<string>;
     relationships?: {
         broader?: string;
         narrower?: string;
@@ -163,11 +248,7 @@ export interface IEventItem {
     _planning_schedule?: Array<{
         scheduled?: string | Date;
     }>;
-    occur_status?: {
-        qcode?: string;
-        name?: string;
-        label?: string;
-    };
+    occur_status?: IEventOccurStatus;
     news_coverage_status?: {
         qcode?: string;
         name?: string;
@@ -177,12 +258,9 @@ export interface IEventItem {
         qcode?: string;
         name?: string;
     }>;
-    subject?: Array<{
-        qcode?: string;
-        name?: string;
-    }>;
+    subject?: Array<ISubject>;
     slugline?: string;
-    location?: Array<ILocation>;
+    location?: ILocation;
     participant?: Array<{
         qcode?: string;
         name?: string;
@@ -196,10 +274,7 @@ export interface IEventItem {
         name?: string;
     }>;
     event_contact_info?: Array<string>;
-    event_language?: Array<{
-        qcode?: string;
-        name?: string;
-    }>;
+    language?: string;
     state?: ITEM_STATE;
     expiry?: string | Date;
     expired?: boolean;
@@ -210,10 +285,7 @@ export interface IEventItem {
     lock_action?: string;
     update_method?: IEventUpdateMethod;
     type?: string;
-    calendars?: Array<{
-        qcode?: string;
-        name?: string;
-    }>;
+    calendars?: Array<ICalendar>;
     revert_state?: ITEM_STATE;
     duplicate_from?: string;
     duplicate_to?: Array<string>;
@@ -227,7 +299,10 @@ export interface IEventItem {
     completed?: boolean;
     _time_to_be_confirmed?: boolean;
     _planning_item?: string;
+    planning_ids?: Array<string>;
+    _plannings?: Array<IPlanningItem>;
     template?: string;
+    _sortDate?: string | Date | moment.Moment;
 }
 
 export interface ICoveragePlanningDetails {
@@ -238,7 +313,8 @@ export interface ICoveragePlanningDetails {
     item_class: string;
     item_count: string;
     scheduled: string | Date;
-    files: Array<File | string>;
+    _scheduledTime: string;
+    files: Array<string>;
     xmp_file: string;
     service: Array<{
         qcode: string;
@@ -257,16 +333,35 @@ export interface ICoveragePlanningDetails {
     credit_line: Array<string>;
     dateline: Array<string>;
     description_text: string;
-    genre: Array<{
+    genre: {
         qcode: string;
         name: string;
-    }>;
+    };
     headline: string;
     keyword: Array<string>;
-    language: Array<string>;
+    language: string;
     slugline: string;
     internal_note: string;
     workflow_status_reason: string;
+}
+
+export interface ICoverageScheduledUpdate {
+    scheduled_update_id: string;
+    coverage_id: string;
+    workflow_status: IPlanningWorkflowStatus;
+    assigned_to: IPlanningAssignedTo;
+    previous_status: IPlanningWorkflowStatus;
+    news_coverage_status: IPlanningNewsCoverageStatus;
+    planning: {
+        internal_note: string;
+        contact_info: string;
+        scheduled: string | Date;
+        genre: Array<{
+            qcode: string;
+            name: string;
+        }>;
+        workflow_status_reason: string;
+    };
 }
 
 export interface IPlanningCoverageItem {
@@ -287,28 +382,13 @@ export interface IPlanningCoverageItem {
         no_content_linking: boolean;
     };
     _time_to_be_confirmed: boolean;
-    scheduled_updates: Array<{
-        scheduled_update_id: string;
-        coverage_id: string;
-        workflow_status: IPlanningWorkflowStatus;
-        assigned_to: IPlanningAssignedTo;
-        previous_status: IPlanningWorkflowStatus;
-        news_coverage_status: IPlanningNewsCoverageStatus;
-        planning: {
-            internal_note: string;
-            contact_info: string;
-            scheduled: string | Date;
-            genre: Array<{
-                qcode: string;
-                name: string;
-            }>;
-            workflow_status_reason: string;
-        };
-    }>;
+    scheduled_updates: Array<ICoverageScheduledUpdate>;
 }
 
 export interface IPlanningItem {
     _id: string;
+    _created?: string;
+    _updated?: string;
     guid: string;
     original_creator: string;
     version_creator: string;
@@ -321,14 +401,8 @@ export interface IPlanningItem {
     ednote: string;
     description_text: string;
     internal_note: string;
-    anpa_category: Array<{
-        qcode: string;
-        name: string;
-    }>;
-    subject: Array<{
-        qcode: string;
-        name: string;
-    }>;
+    anpa_category: Array<IANPACategory>;
+    subject: Array<ISubject>;
     genre: Array<{
         qcode: string;
         name: string;
@@ -375,7 +449,7 @@ export interface IPlanningItem {
     unique_id: string;
     place: Array<IPlace>;
     name: string;
-    files: Array<File | string>;
+    files: Array<string>;
     state_reason: string;
     reason: string;
     _time_to_be_confirmed: boolean;
@@ -409,6 +483,7 @@ export interface IAssignmentItem extends IBaseRestApiResponse {
         assignor_user: string;
         assigned_date_desk: string | Date;
         assigned_date_user: string | Date;
+        contact: string;
         state: ASSIGNMENT_STATE;
         revert_state: ASSIGNMENT_STATE;
         coverage_provider: {
@@ -450,10 +525,7 @@ export interface IEventSearchParams {
     startOfWeek?: number;
     spikeState?: ISearchSpikeState;
     advancedSearch?: {
-        anpa_category?: Array<{
-            qcode?: string;
-            name?: string;
-        }>;
+        anpa_category?: Array<IANPACategory>;
         dates?: IDateSearchParams;
         location?: ILocation | string;
         name?: string;
@@ -471,9 +543,7 @@ export interface IEventSearchParams {
             qcode?: string;
             name?: string;
         }>;
-        subject?: Array<{
-            qcode?: string;
-        }>;
+        subject?: Array<ISubject>;
     };
 }
 
@@ -489,10 +559,7 @@ export interface IPlanningSearchParams {
     startOfWeek?: number;
     timezoneOffset?: string;
     advancedSearch?: {
-        anpa_category?: Array<{
-            qcode?: string;
-            name?: string;
-        }>;
+        anpa_category?: Array<IANPACategory>;
         dates?: IDateSearchParams;
         featured?: boolean;
         g2_content_type?: {
@@ -510,10 +577,7 @@ export interface IPlanningSearchParams {
             qcode?: string;
             name?: string;
         }>;
-        subject?: Array<{
-            qcode?: string;
-            name?: string;
-        }>;
+        subject?: Array<ISubject>;
         urgency?: {
             qcode?: string;
             name?: string;
@@ -528,4 +592,156 @@ export interface IElasticQuery {
     should?: Array<any>;
     minimum_should_match?: number;
     sort?: Array<any>;
+}
+
+interface IProfileEditorField {
+    enabled: boolean;
+}
+
+interface IProfileEditorDatesField extends IProfileEditorField {
+    default_duration_on_change: number;
+    all_day: {
+        enabled: boolean;
+    };
+}
+
+interface IProfileSchemaType<T> {
+    type: T;
+    required: boolean;
+    mandatory_in_list?: {[key: string]: any};
+}
+
+interface IProfileSchemaTypeList extends IProfileSchemaType<'list'> {
+    schema?: {[key: string]: any};
+}
+
+interface IProfileSchemaTypeInteger extends IProfileSchemaType<'integer'> {}
+interface IProfileSchemaTypeDict extends IProfileSchemaType<'dict'> {}
+interface IProfileSchemaTypeDateTime extends IProfileSchemaType<'datetime'> {}
+
+interface IProfileSchemaTypeString extends IProfileSchemaType<'string'> {
+    minlength?: number;
+    maxlength?: number;
+}
+
+export interface IEventFormProfile {
+    editor: {
+        anpa_category: IProfileEditorField;
+        calendars: IProfileEditorField;
+        dates: IProfileEditorDatesField;
+        definition_long: IProfileEditorField;
+        definition_short: IProfileEditorField;
+        ednote: IProfileEditorField;
+        event_contact_info: IProfileEditorField;
+        files: IProfileEditorField;
+        internal_note: IProfileEditorField;
+        language: IProfileEditorField;
+        links: IProfileEditorField;
+        location: IProfileEditorField;
+        name: IProfileEditorField;
+        occur_status: IProfileEditorField;
+        place: IProfileEditorField;
+        reference: IProfileEditorField;
+        slugline: IProfileEditorField;
+        subject: IProfileEditorField;
+    };
+    name: 'event';
+    schema: {
+        anpa_category: IProfileSchemaTypeList;
+        calendars: IProfileSchemaTypeList;
+        dates: IProfileSchemaTypeDict;
+        definition_long: IProfileSchemaTypeString;
+        definition_short: IProfileSchemaTypeString;
+        ednote: IProfileSchemaTypeString;
+        event_contact_info: IProfileSchemaTypeList;
+        files: IProfileSchemaTypeList;
+        internal_note: IProfileSchemaTypeString;
+        language: IProfileSchemaTypeString;
+        links: IProfileSchemaTypeList;
+        location: IProfileSchemaTypeString;
+        name: IProfileSchemaTypeString;
+        occur_status: IProfileSchemaTypeDict;
+        place: IProfileSchemaTypeList;
+        reference: IProfileSchemaTypeString;
+        slugline: IProfileSchemaTypeString;
+        subject: IProfileSchemaTypeList;
+    };
+}
+
+export interface IPlanningFormProfile {
+    editor: {
+        agendas: IProfileEditorField;
+        anpa_category: IProfileEditorField;
+        description_text: IProfileEditorField;
+        ednote: IProfileEditorField;
+        files: IProfileEditorField;
+        flags: IProfileEditorField;
+        headline: IProfileEditorField;
+        internal_note: IProfileEditorField;
+        language: IProfileEditorField;
+        name: IProfileEditorField;
+        place: IProfileEditorField;
+        planning_date: IProfileEditorField;
+        slugline: IProfileEditorField;
+        subject: IProfileEditorField;
+        urgency: IProfileEditorField;
+    };
+    name: 'planning';
+    schema: {
+        agendas: IProfileSchemaTypeList;
+        anpa_category: IProfileSchemaTypeList;
+        description_text: IProfileSchemaTypeString;
+        ednote: IProfileSchemaTypeString;
+        files: IProfileSchemaTypeList;
+        flags: IProfileSchemaTypeDict;
+        headline: IProfileSchemaTypeString;
+        internal_note: IProfileSchemaTypeString;
+        language: IProfileSchemaTypeString;
+        name: IProfileSchemaTypeString;
+        place: IProfileSchemaTypeList;
+        planning_date: IProfileSchemaTypeDateTime;
+        slugline: IProfileSchemaTypeString;
+        subject: IProfileSchemaTypeList;
+        urgency: IProfileSchemaTypeInteger;
+    };
+}
+
+export interface ICoverageFormProfile {
+    editor: {
+        contact_info: IProfileEditorField;
+        ednote: IProfileEditorField;
+        files: IProfileEditorField;
+        flags: IProfileEditorField;
+        g2_content_type: IProfileEditorField;
+        genre: IProfileEditorField;
+        headline: IProfileEditorField;
+        internal_note: IProfileEditorField;
+        keyword: IProfileEditorField;
+        language: IProfileEditorField;
+        news_coverage_status: IProfileEditorField;
+        scheduled: IProfileEditorField;
+        slugline: IProfileEditorField;
+    };
+    name: 'coverage';
+    schema: {
+        contact_info: IProfileSchemaTypeString;
+        ednote: IProfileSchemaTypeString;
+        files: IProfileSchemaTypeList;
+        flags: IProfileSchemaTypeDict;
+        g2_content_type: IProfileSchemaTypeList;
+        genre: IProfileSchemaTypeList;
+        headline: IProfileSchemaTypeString;
+        internal_note: IProfileSchemaTypeString;
+        keyword: IProfileSchemaTypeList;
+        language: IProfileSchemaTypeString;
+        news_coverage_status: IProfileSchemaTypeList;
+        scheduled: IProfileSchemaTypeDateTime;
+        slugline: IProfileSchemaTypeString;
+    };
+}
+
+export interface IFormProfiles {
+    coverage: ICoverageFormProfile;
+    event: IEventFormProfile;
+    planning: IPlanningFormProfile;
 }
