@@ -140,7 +140,7 @@ class CoverageSchema(BaseSchema):
     keyword = schema.ListField()
     language = schema.StringField()
     news_coverage_status = schema.ListField()
-    scheduled = schema.DateTimeField()
+    scheduled = DateTimeField()
     slugline = schema.StringField()
 
 
@@ -160,7 +160,7 @@ DEFAULT_EDITOR = [{
         'event_contact_info': {'enabled': True},
         'files': {'enabled': True},
         'internal_note': {'enabled': True},
-        'language': {'enabled': False}
+        'language': {'enabled': False},
         'links': {'enabled': True},
         'location': {'enabled': True},
         'name': {'enabled': True},
