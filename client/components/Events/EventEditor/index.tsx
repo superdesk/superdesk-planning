@@ -1,11 +1,24 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, some, isEqual} from 'lodash';
 
+import {IDesk, ISubject, IUser, IVocabulary} from 'superdesk-api';
+import {superdeskApi} from '../../../superdeskApi';
+import {
+    IEventFormProfile,
+    IEventItem,
+    IEventOccurStatus,
+    ICalendar,
+    IANPACategory,
+    IPlanningItem,
+    IFile,
+    IFormNavigation,
+    IFormItemManager,
+} from '../../../interfaces';
+
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
-import {gettext, editorMenuUtils, getItemId, getFileDownloadURL} from '../../../utils';
+import {editorMenuUtils, getItemId, getFileDownloadURL} from '../../../utils';
 import {TO_BE_CONFIRMED_FIELD} from '../../../constants';
 
 import {ContentBlock} from '../../UI/SidePanel';
@@ -36,7 +49,65 @@ const toggleDetails = [
     'ednote',
 ];
 
-export class EventEditorComponent extends React.Component {
+interface IProps {
+    item?: IEventItem;
+    diff: Partial<IEventItem>;
+    itemExists: boolean;
+    onChangeHandler(field: string, value: any): void;
+    formProfile: IEventFormProfile;
+    occurStatuses: Array<IEventOccurStatus>;
+    enabledCalendars: Array<ICalendar>;
+    defaultCalendar: Array<ICalendar>;
+    locators: Array<any>; // TODO - Change to match code
+    categories: Array<IANPACategory>;
+    subjects: Array<ISubject>;
+    users: Array<IUser>;
+    desks: Array<IDesk>;
+    readOnly: boolean;
+    submitting: boolean;
+    submitFailed: boolean;
+    dirty: boolean;
+    errors: {[key: string]: string};
+    plannings: Array<IPlanningItem>;
+    navigation?: IFormNavigation;
+    fetchEventFiles(event: IEventItem): Promise<void>;
+    customVocabularies: Array<IVocabulary>;
+    files: Array<IFile>;
+    uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
+    removeFile(file: IFile): Promise<void>;
+    popupContainer(): HTMLElement;
+    onPopupOpen(): void;
+    onPopupClose(): void;
+    itemManager: IFormItemManager;
+    original?: IEventItem;
+    notifyValidationErrors(errors: Array<string>): void;
+}
+
+interface IState {
+    uploading: boolean;
+}
+
+const mapStateToProps = (state) => ({
+    formProfile: selectors.forms.eventProfile(state),
+    occurStatuses: selectors.vocabs.eventOccurStatuses(state),
+    enabledCalendars: selectors.events.enabledCalendars(state),
+    defaultCalendar: selectors.events.defaultCalendarValue(state),
+    locators: selectors.vocabs.locators(state),
+    categories: selectors.vocabs.categories(state),
+    subjects: selectors.vocabs.subjects(state),
+    users: selectors.general.users(state),
+    desks: selectors.general.desks(state),
+    customVocabularies: state.customVocabularies,
+    files: selectors.general.files(state),
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
+    uploadFiles: (files) => dispatch(actions.events.api.uploadFiles({files: files})),
+    removeFile: (file) => dispatch(actions.events.api.removeFile(file)),
+});
+
+export class EventEditorComponent extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
 
@@ -55,7 +126,7 @@ export class EventEditorComponent extends React.Component {
         this.props.fetchEventFiles({...this.props.item, ...this.props.diff});
     }
 
-    componentWillUpdate(nextProps) {
+    componentWillUpdate(nextProps: Readonly<IProps>) {
         if (getItemId(this.props.item) !== getItemId(nextProps.item)) {
             this.props.fetchEventFiles({...nextProps.item, ...nextProps.diff});
         } else if (get(this.props, 'diff.files') !== get(nextProps, 'diff.files')) {
@@ -78,7 +149,7 @@ export class EventEditorComponent extends React.Component {
         }
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps: Readonly<IProps>) {
         const prevItemId = getItemId(prevProps.item);
 
         const currentItemId = getItemId(this.props.item);
@@ -106,7 +177,7 @@ export class EventEditorComponent extends React.Component {
         }
     }
 
-    componentWillReceiveProps(nextProps) {
+    componentWillReceiveProps(nextProps: Readonly<IProps>) {
         // If 'Create Planning Item' was actioned while open in the editor
         // Then force update the initial values with the new list of ids
         if (!isEqual(
@@ -119,7 +190,7 @@ export class EventEditorComponent extends React.Component {
         }
     }
 
-    getRelatedPlanningsForEvent() {
+    getRelatedPlanningsForEvent(): Array<IPlanningItem> {
         const {plannings, item} = this.props;
         const itemId = getItemId(item);
 
@@ -128,7 +199,7 @@ export class EventEditorComponent extends React.Component {
         }
     }
 
-    onAddFiles(fileList) {
+    onAddFiles(fileList: FileList) {
         const files = Array.from(fileList).map((f) => [f]);
 
         this.setState({uploading: true});
@@ -146,7 +217,7 @@ export class EventEditorComponent extends React.Component {
             });
     }
 
-    onRemoveFile(file) {
+    onRemoveFile(file: IFile) {
         const promise = !get(this.props, 'item.files', []).includes(file._id) ?
             this.props.removeFile(file) : Promise.resolve();
 
@@ -156,6 +227,7 @@ export class EventEditorComponent extends React.Component {
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const {
             item,
             diff,
@@ -166,9 +238,9 @@ export class EventEditorComponent extends React.Component {
             subjects,
             users,
             desks,
-            readOnly,
+            readOnly = false,
             formProfile,
-            submitFailed,
+            submitFailed = false,
             dirty,
             errors,
             onChangeHandler,
@@ -494,66 +566,5 @@ export class EventEditorComponent extends React.Component {
         );
     }
 }
-
-EventEditorComponent.propTypes = {
-    item: PropTypes.object,
-    diff: PropTypes.object.isRequired,
-    itemExists: PropTypes.bool,
-    onChangeHandler: PropTypes.func.isRequired,
-    formProfile: PropTypes.object.isRequired,
-    occurStatuses: PropTypes.array,
-    enabledCalendars: PropTypes.array,
-    defaultCalendar: PropTypes.array,
-    locators: PropTypes.array,
-    categories: PropTypes.array,
-    subjects: PropTypes.array,
-    users: PropTypes.array,
-    desks: PropTypes.array,
-    readOnly: PropTypes.bool,
-    submitting: PropTypes.bool,
-    submitFailed: PropTypes.bool,
-    dirty: PropTypes.bool,
-    errors: PropTypes.object,
-    plannings: PropTypes.array,
-    navigation: PropTypes.object,
-    fetchEventFiles: PropTypes.func,
-    customVocabularies: PropTypes.array,
-    files: PropTypes.object,
-    uploadFiles: PropTypes.func,
-    removeFile: PropTypes.func,
-    popupContainer: PropTypes.func,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
-    itemManager: PropTypes.object,
-    original: PropTypes.object,
-    notifyValidationErrors: PropTypes.func,
-};
-
-EventEditorComponent.defaultProps = {
-    submitting: false,
-    readOnly: false,
-    submitFailed: false,
-    navigation: {},
-};
-
-const mapStateToProps = (state) => ({
-    formProfile: selectors.forms.eventProfile(state),
-    occurStatuses: selectors.vocabs.eventOccurStatuses(state),
-    enabledCalendars: selectors.events.enabledCalendars(state),
-    defaultCalendar: selectors.events.defaultCalendarValue(state),
-    locators: selectors.vocabs.locators(state),
-    categories: selectors.vocabs.categories(state),
-    subjects: selectors.vocabs.subjects(state),
-    users: selectors.general.users(state),
-    desks: selectors.general.desks(state),
-    customVocabularies: state.customVocabularies,
-    files: selectors.general.files(state),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-    fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
-    uploadFiles: (files) => dispatch(actions.events.api.uploadFiles({files: files})),
-    removeFile: (file) => dispatch(actions.events.api.removeFile(file)),
-});
 
 export const EventEditor = connect(mapStateToProps, mapDispatchToProps)(EventEditorComponent);
