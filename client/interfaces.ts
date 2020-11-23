@@ -28,6 +28,11 @@ export interface IUrgency {
     name: string;
 }
 
+export interface IAssignmentPriority {
+    name: string;
+    qcode: number;
+}
+
 export interface IEventOccurStatus {
     qcode: string;
     name: string;
@@ -43,6 +48,20 @@ export interface IANPACategory {
     qcode: string;
     name: string;
     subject: string;
+}
+
+export interface ILocator {
+    country?: string;
+    group: string;
+    name: string;
+    qcode: string;
+    state?: string;
+    world_region: string;
+}
+
+export interface ICoverageProvider {
+    qcode: string;
+    name: string;
 }
 
 export type IFile = {
@@ -744,4 +763,44 @@ export interface IFormProfiles {
     coverage: ICoverageFormProfile;
     event: IEventFormProfile;
     planning: IPlanningFormProfile;
+}
+
+export interface IFormNavigation {
+    scrollToViewItem?: any;
+    contacts?: any;
+    event?: any;
+    details?: any;
+    files?: any;
+    links?: any;
+    planning?: any;
+}
+
+export interface IFormItemManager {
+    forceUpdateInitialValues(updates: Partial<IEventItem | IPlanningItem>): void;
+    startPartialSave(updates: Partial<IEventItem | IPlanningItem>): void;
+    addCoverageToWorkflow(
+        planning: IPlanningItem,
+        coverage: IPlanningCoverageItem,
+        index: number
+    ): Promise<IPlanningItem>;
+    removeAssignment(
+        planning: IPlanningItem,
+        coverage: IPlanningCoverageItem,
+        index: number
+    ): Promise<IPlanningItem>;
+    cancelCoverage(
+        planning: IPlanningItem,
+        coverage: IPlanningCoverageItem,
+        index: number,
+        scheduledUpdate: ICoverageScheduledUpdate,
+        scheduledUpdateIndex: number
+    ): Promise<void>;
+    addScheduledUpdateToWorkflow(
+        planning: IPlanningItem,
+        coverage: IPlanningCoverageItem,
+        coverageIndex: number,
+        scheduledUpdate: ICoverageScheduledUpdate,
+        index: number
+    ): Promise<IPlanningItem>;
+    finalisePartialSave(diff: Partial<IEventItem | IPlanningItem>, updateDirtyFlag: boolean): Promise<void>;
 }
