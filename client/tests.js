@@ -5,6 +5,7 @@ import './';
 
 import {appConfig, debugInfo} from 'appConfig';
 import {updateConfigAfterLoad} from './config';
+import {superdeskApi} from './superdeskApi';
 
 debugInfo.translationsLoaded = true; // don't print warnings about missing translations when running unit tests
 
@@ -17,6 +18,12 @@ Object.assign(appConfig, {
     model: {dateformat: 'DD/MM/YYYY'},
     shortTimeFormat: 'HH:mm',
     defaultTimezone: 'Australia/Sydney',
+});
+
+Object.assign(superdeskApi, {
+    localization: {
+        gettext: (text) => text,
+    },
 });
 
 moment.tz.setDefault('Australia/Sydney');
