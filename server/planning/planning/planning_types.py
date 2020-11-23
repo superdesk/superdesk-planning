@@ -51,19 +51,19 @@ class StringRequiredForAction(schema.SchemaField):
 
 
 subjectField = schema.ListField(required=False, mandatory_in_list={'scheme': {}}, schema={
-   'type': 'dict',
-   'schema': {
-       'name': {},
-       'qcode': {},
-       'scheme': {
-           'type': 'string',
-           'required': True,
-           'nullable': True,
-           'allowed': []
-       },
-       'service': {'nullable': True},
-       'parent': {'nullable': True}
-   }
+    'type': 'dict',
+    'schema': {
+        'name': {},
+        'qcode': {},
+        'scheme': {
+            'type': 'string',
+            'required': True,
+            'nullable': True,
+            'allowed': []
+        },
+        'service': {'nullable': True},
+        'parent': {'nullable': True}
+    }
 })
 
 
