@@ -108,6 +108,12 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
                 </div>
 
                 <Row
+                    enabled={formProfile?.editor?.language?.enabled}
+                    label={gettext('Language')}
+                    value={item.language || ''}
+                />
+
+                <Row
                     enabled={get(formProfile, 'editor.slugline.enabled')}
                     label={gettext('Slugline')}
                     value={item.slugline || ''}

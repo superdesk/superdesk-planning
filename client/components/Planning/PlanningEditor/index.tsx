@@ -7,13 +7,25 @@ import {IArticle, IDesk, ISubject, IUser, IVocabulary} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {
     IAgenda,
-    IANPACategory, IAssignmentPriority, ICoverageFormProfile, ICoverageProvider,
-    IEventItem, IFormNavigation, IG2ContentType, IGenre, IKeyword,
-    ILocator, ILockedItems, IPlanningFormProfile,
+    IANPACategory,
+    IAssignmentPriority,
+    ICoverageFormProfile,
+    ICoverageProvider,
+    IEventItem,
+    IFormNavigation,
+    IG2ContentType,
+    IGenre,
+    IKeyword,
+    ILocator,
+    ILockedItems,
+    IPlanningFormProfile,
     IPlanningItem,
     IPlanningNewsCoverageStatus,
     IUrgency,
-    IFile, IPlanningCoverageItem, IFormItemManager, ICoverageScheduledUpdate,
+    IFile,
+    IPlanningCoverageItem,
+    IFormItemManager,
+    ICoverageScheduledUpdate,
 } from '../../../interfaces';
 
 import * as selectors from '../../../selectors';
@@ -40,6 +52,7 @@ import {
     Field,
     FileInput,
     DateTimeInput,
+    SelectInput,
 } from '../../UI/Form';
 import {ToggleBox} from '../../UI';
 
@@ -62,6 +75,7 @@ interface IProps {
     event?: IEventItem;
     onChangeHandler(field: string, value: any, formDirty?: boolean): void;
     locators: Array<ILocator>;
+    languages: Array<string>;
     categories: Array<IANPACategory>;
     subjects: Array<ISubject>;
     users: Array<IUser>;
@@ -122,6 +136,7 @@ interface IState {
 // };
 
 const mapStateToProps = (state) => ({
+    languages: selectors.vocabs.getLanguages(state),
     locators: selectors.vocabs.locators(state),
     categories: selectors.vocabs.categories(state),
     subjects: selectors.vocabs.subjects(state),
@@ -534,6 +549,7 @@ export class PlanningEditorComponent extends React.Component<IProps, IState> {
             diff,
             event,
             locators,
+            languages,
             categories,
             subjects,
             users,
@@ -631,6 +647,20 @@ export class PlanningEditorComponent extends React.Component<IProps, IState> {
                 />
 
                 <ContentBlock>
+                    <Field
+                        component={SelectInput}
+                        field="language"
+                        label={gettext('Language')}
+                        defaultValue={null}
+                        options={languages}
+                        {...fieldProps}
+                        onFocus={onFocusPlanning}
+                        labelField={'name'}
+                        clearable={true}
+                        valueAsString={true}
+                        enabled={planningProfile?.editor?.language?.enabled}
+                    />
+
                     <Field
                         component={TextInput}
                         field="slugline"

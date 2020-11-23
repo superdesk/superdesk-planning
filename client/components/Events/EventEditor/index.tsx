@@ -56,6 +56,7 @@ interface IProps {
     onChangeHandler(field: string, value: any): void;
     formProfile: IEventFormProfile;
     occurStatuses: Array<IEventOccurStatus>;
+    languages: Array<string>;
     enabledCalendars: Array<ICalendar>;
     defaultCalendar: Array<ICalendar>;
     locators: Array<any>; // TODO - Change to match code
@@ -89,6 +90,7 @@ interface IState {
 
 const mapStateToProps = (state) => ({
     formProfile: selectors.forms.eventProfile(state),
+    languages: selectors.vocabs.getLanguages(state),
     occurStatuses: selectors.vocabs.eventOccurStatuses(state),
     enabledCalendars: selectors.events.enabledCalendars(state),
     defaultCalendar: selectors.events.defaultCalendarValue(state),
@@ -232,6 +234,7 @@ export class EventEditorComponent extends React.Component<IProps, IState> {
             item,
             diff,
             occurStatuses,
+            languages,
             enabledCalendars,
             locators,
             categories,
@@ -325,6 +328,20 @@ export class EventEditorComponent extends React.Component<IProps, IState> {
                         showTimeZone={!itemExists}
                         {...popupProps}
                         refNode={!itemExists ? (node) => this.dom.initialFocus = node : undefined}
+                    />
+
+                    <Field
+                        component={SelectInput}
+                        field="language"
+                        label={gettext('Language')}
+                        defaultValue={null}
+                        options={languages}
+                        {...fieldProps}
+                        onFocus={onFocusEvent}
+                        labelField={'name'}
+                        clearable={true}
+                        valueAsString={true}
+                        enabled={formProfile?.editor?.language?.enabled}
                     />
 
                     <Field

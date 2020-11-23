@@ -168,6 +168,11 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                     </div>
                 </div>
                 <Row
+                    enabled={formProfile?.planning?.editor?.language?.enabled}
+                    label={gettext('Language')}
+                    value={item.language || ''}
+                />
+                <Row
                     enabled={get(formProfile, 'planning.editor.slugline.enabled')}
                     label={gettext('Slugline')}
                     value={item.slugline || ''}

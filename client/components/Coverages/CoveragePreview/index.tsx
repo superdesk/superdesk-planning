@@ -131,6 +131,12 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                     />
                 </PreviewRow>
 
+                <PreviewRow
+                    label={gettext('Language')}
+                    value={coverage.planning.language}
+                    enabled={formProfile?.editor?.language?.enabled}
+                />
+
                 {get(formProfile, 'editor.slugline.enabled') && (
                     <PreviewRow
                         label={gettext('Slugline')}

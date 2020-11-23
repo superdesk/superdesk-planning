@@ -78,6 +78,11 @@ export class AssignmentPreview extends React.PureComponent<IProps> {
                     />
                 </Row>
                 <Row
+                    enabled={coverageFormProfile?.editor?.language?.enabled}
+                    label={gettext('Language')}
+                    value={planning.language || '-'}
+                />
+                <Row
                     enabled={get(coverageFormProfile, 'editor.slugline.enabled')}
                     label={gettext('Slugline')}
                     value={planning.slugline || '-'}

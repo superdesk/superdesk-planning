@@ -78,6 +78,7 @@ interface IProps {
     // Redux States
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
     contentTypes: Array<IG2ContentType>;
+    languages: Array<string>;
     genres: Array<IGenre>;
     keywords: Array<IKeyword>;
     preferredCoverageDesks: {[key: string]: string};
@@ -95,6 +96,7 @@ interface IState {
 const mapStateToProps = (state) => ({
     newsCoverageStatus: selectors.general.newsCoverageStatus(state),
     contentTypes: selectors.general.contentTypes(state),
+    languages: selectors.vocabs.getLanguages(state),
     genres: state.genres,
     keywords: selectors.general.keywords(state),
     preferredCoverageDesks: selectors.general.preferredCoverageDesks(state)?.desks ?? {},
@@ -320,6 +322,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             onChange,
             newsCoverageStatus,
             contentTypes,
+            languages,
             genres,
             keywords,
             readOnly,
@@ -431,6 +434,19 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     readOnly={roFields.g2_content_type}
                     autoFocus={hasAssignment}
                     refNode={(ref) => this.dom.contentType = ref}
+                />
+
+                <Field
+                    component={SelectInput}
+                    field={`${field}.planning.language`}
+                    profileName="language"
+                    label={gettext('Language')}
+                    defaultValue={null}
+                    options={languages}
+                    {...fieldProps}
+                    labelField={'name'}
+                    clearable={true}
+                    valueAsString={true}
                 />
 
                 {showXmpFileInput && (
