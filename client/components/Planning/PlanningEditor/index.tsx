@@ -127,14 +127,6 @@ interface IState {
     uploading: boolean;
 }
 
-// TODO: Implement defaults in code
-// PlanningEditorComponent.defaultProps = {
-//     submitting: false,
-//     readOnly: false,
-//     navigation: {},
-//     inModalView: false,
-// };
-
 const mapStateToProps = (state) => ({
     languages: selectors.vocabs.getLanguages(state),
     locators: selectors.vocabs.locators(state),
