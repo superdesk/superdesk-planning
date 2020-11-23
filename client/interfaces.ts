@@ -627,11 +627,12 @@ interface IProfileEditorDatesField extends IProfileEditorField {
 interface IProfileSchemaType<T> {
     type: T;
     required: boolean;
-    mandatory_in_list?: {[key: string]: any};
+    validate_on_post?: boolean;
 }
 
 interface IProfileSchemaTypeList extends IProfileSchemaType<'list'> {
     schema?: {[key: string]: any};
+    mandatory_in_list?: {[key: string]: any};
 }
 
 interface IProfileSchemaTypeInteger extends IProfileSchemaType<'integer'> {}
