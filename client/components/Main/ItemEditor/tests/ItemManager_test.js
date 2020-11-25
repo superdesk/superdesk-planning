@@ -40,6 +40,7 @@ describe('components.Main.ItemManager', () => {
             },
             calendars: undefined,
             state: 'draft',
+            language: 'en',
         };
 
         newPlan = {
@@ -54,6 +55,7 @@ describe('components.Main.ItemManager', () => {
             },
             item_class: 'plinat:newscoverage',
             coverages: [],
+            language: 'en',
         };
 
         states = {

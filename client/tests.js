@@ -1,11 +1,13 @@
 import 'angular';
 import 'angular-mocks';
 import moment from 'moment';
+import {cloneDeep} from 'lodash';
 import './';
 
 import {appConfig, debugInfo} from 'appConfig';
 import {updateConfigAfterLoad} from './config';
-import {superdeskApi} from './superdeskApi';
+import {superdeskApi, planningApi} from './superdeskApi';
+import {initialState} from './utils/testData';
 
 debugInfo.translationsLoaded = true; // don't print warnings about missing translations when running unit tests
 
@@ -18,11 +20,20 @@ Object.assign(appConfig, {
     model: {dateformat: 'DD/MM/YYYY'},
     shortTimeFormat: 'HH:mm',
     defaultTimezone: 'Australia/Sydney',
+    profileLanguages: ['en', 'fr_CA'],
 });
 
 Object.assign(superdeskApi, {
     localization: {
         gettext: (text) => text,
+    },
+});
+
+Object.assign(planningApi, {
+    redux: {
+        store: {
+            getState: () => cloneDeep(initialState),
+        },
     },
 });
 
