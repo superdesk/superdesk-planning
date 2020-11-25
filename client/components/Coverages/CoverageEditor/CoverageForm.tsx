@@ -38,6 +38,7 @@ import {
 } from '../../UI/Form';
 import {InternalNoteLabel} from '../../';
 import {ContactField, ContactsPreviewList} from '../../Contacts';
+import {getUsersDefaultLanguage} from '../../../utils/users';
 
 import '../style.scss';
 
@@ -441,11 +442,10 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     field={`${field}.planning.language`}
                     profileName="language"
                     label={gettext('Language')}
-                    defaultValue={null}
+                    defaultValue={diff.language ?? getUsersDefaultLanguage()}
                     options={languages}
                     {...fieldProps}
                     labelField={'name'}
-                    clearable={true}
                     valueAsString={true}
                 />
 

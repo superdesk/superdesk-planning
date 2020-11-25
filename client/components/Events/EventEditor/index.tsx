@@ -40,6 +40,7 @@ import {EventScheduleInput, EventScheduleSummary} from '../';
 import {GeoLookupInput} from '../../index';
 import {EventEditorHeader} from './EventEditorHeader';
 import CustomVocabulariesFields from '../../CustomVocabulariesFields';
+import {getUsersDefaultLanguage} from '../../../utils/users';
 
 const toggleDetails = [
     'anpa_category',
@@ -334,12 +335,11 @@ export class EventEditorComponent extends React.Component<IProps, IState> {
                         component={SelectInput}
                         field="language"
                         label={gettext('Language')}
-                        defaultValue={null}
+                        defaultValue={getUsersDefaultLanguage()}
                         options={languages}
                         {...fieldProps}
                         onFocus={onFocusEvent}
                         labelField={'name'}
-                        clearable={true}
                         valueAsString={true}
                         enabled={formProfile?.editor?.language?.enabled}
                     />

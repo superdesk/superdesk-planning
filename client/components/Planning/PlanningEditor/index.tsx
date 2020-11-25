@@ -61,6 +61,7 @@ import {CoverageArrayInput} from '../../Coverages';
 import {EventMetadata} from '../../Events';
 import {WORKFLOW_STATE, COVERAGES, TO_BE_CONFIRMED_FIELD} from '../../../constants';
 import CustomVocabulariesFields from '../../CustomVocabulariesFields';
+import {getUsersDefaultLanguage} from '../../../utils/users';
 
 const toggleDetails = [
     'ednote',
@@ -643,12 +644,11 @@ export class PlanningEditorComponent extends React.Component<IProps, IState> {
                         component={SelectInput}
                         field="language"
                         label={gettext('Language')}
-                        defaultValue={null}
+                        defaultValue={getUsersDefaultLanguage()}
                         options={languages}
                         {...fieldProps}
                         onFocus={onFocusPlanning}
                         labelField={'name'}
-                        clearable={true}
                         valueAsString={true}
                         enabled={planningProfile?.editor?.language?.enabled}
                     />

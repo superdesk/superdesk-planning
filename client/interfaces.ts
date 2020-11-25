@@ -1,4 +1,5 @@
 import {ITEM_STATE, ISuperdeskGlobalConfig, IBaseRestApiResponse, ISubject, IUser} from 'superdesk-api';
+import {Store} from 'redux';
 import moment from 'moment';
 
 export interface IPlanningNewsCoverageStatus {
@@ -804,4 +805,10 @@ export interface IFormItemManager {
         index: number
     ): Promise<IPlanningItem>;
     finalisePartialSave(diff: Partial<IEventItem | IPlanningItem>, updateDirtyFlag: boolean): Promise<void>;
+}
+
+export interface IPlanningAPI {
+    redux: {
+        store: Store;
+    };
 }
