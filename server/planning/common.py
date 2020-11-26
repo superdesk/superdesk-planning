@@ -9,8 +9,8 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 import re
+import time
 from flask import current_app as app
-from datetime import datetime, timedelta
 from collections import namedtuple
 from superdesk.resource import not_analyzed, build_custom_hateoas
 from superdesk import get_resource_service, logger
@@ -316,7 +316,7 @@ def update_returned_document(doc, item, custom_hateoas):
 
 
 def get_version_item_for_post(item):
-    version = int((datetime.utcnow() - datetime.min).total_seconds() * 100000.0)
+    version = int(time.time())
     item.setdefault(config.VERSION, version)
     item.setdefault('item_id', item['_id'])
     return version, item
