@@ -317,7 +317,7 @@ def update_returned_document(doc, item, custom_hateoas):
 
 
 def get_version_item_for_post(item):
-    version = int(time.time())
+    version = int(time.time() * 1000)
     item.setdefault(config.VERSION, version)
     item.setdefault('item_id', item['_id'])
     return version, item
