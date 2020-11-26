@@ -12,6 +12,7 @@ import re
 import time
 from flask import current_app as app
 from collections import namedtuple
+from datetime import timedelta
 from superdesk.resource import not_analyzed, build_custom_hateoas
 from superdesk import get_resource_service, logger
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_STATE
