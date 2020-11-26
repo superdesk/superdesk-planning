@@ -4211,3 +4211,72 @@ Feature: Planning
         }
         """
 
+    @auth
+    Scenario: Attaching XMP file to coverage on create adds assignment_id on auto workflow
+        When we set PLANNING_USE_XMP_FOR_PIC_ASSIGNMENTS
+        When we set PLANNING_XMP_ASSIGNMENT_MAPPING
+        When we set auto workflow on
+        When we upload a file "photo.XMP" to "/planning_files"
+        Then we get an event file reference
+        When we get "planning_files/"
+        Then we get list with 1 items
+        """
+        {"_items": [{ "_id": "#planning_files._id#" }]}
+        """
+        When we post to "planning"
+        """
+        {
+            "slugline": "file test",
+            "planning_date": "2016-01-02",
+            "type": "planning",
+            "coverages": [
+                {
+                    "workflow_status": "draft",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type": "picture",
+                        "xmp_file": "#planning_files._id#"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+            "slugline": "file test",
+            "type": "planning",
+            "coverages": [
+                {
+                    "workflow_status": "active",
+                    "news_coverage_status": {
+                      "qcode": "ncostat:int"
+                    },
+                    "planning": {
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type": "picture",
+                        "xmp_file": "#planning_files._id#"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
+                }
+            ]
+        }
+        """
+        When we get "/planning_files/#planning_files._id#"
+        Then we have string photoshop:TransmissionReference="#firstassignment#" in media stream
