@@ -1087,7 +1087,8 @@ class PlanningService(superdesk.Service):
             if not get_planning_use_xmp_for_pic_slugline(app) or not get_planning_xmp_slugline_mapping(app):
                 return rv
         else:
-            if not (updates_coverage.get('assigned_to') or {}).get('assignment_id'):
+            if not (updates_coverage.get('assigned_to') or {}).get('assignment_id')\
+                    and not updates_coverage.get('type') == 'assignment':
                 return rv
 
             if not get_planning_use_xmp_for_pic_assignments(app) or not get_planning_xmp_assignment_mapping(app):
