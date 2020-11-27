@@ -13,7 +13,6 @@ describe('Planning.Events: create planning action', () => {
 
     const expectedValues = {
         slugline: 'Original',
-        name: 'Test',
         'planning_date.date': '12/12/2045',
         'planning_date.time': '00:00',
         description_text: 'Desc.',
@@ -26,7 +25,6 @@ describe('Planning.Events: create planning action', () => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
         addItems('events', [{
             slugline: 'Original',
-            name: 'Test',
             definition_short: 'Desc.',
             occur_status: {
                 name: 'Planned, occurs certainly',

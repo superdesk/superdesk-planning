@@ -3,6 +3,7 @@ import {createStore} from '../utils';
 import {COVERAGES, ITEM_TYPE, ASSIGNMENTS} from '../constants';
 import * as selectors from '../selectors';
 import * as actions from '../actions';
+import {planningApi} from '../superdeskApi';
 
 export class PlanningStoreService {
     constructor(
@@ -83,6 +84,8 @@ export class PlanningStoreService {
                         // No Redux store exists, so create it now
                         this.createStore()
                             .then((store) => {
+                                planningApi.redux = {store: store};
+
                                 this.store = store;
                                 resolve();
                             });

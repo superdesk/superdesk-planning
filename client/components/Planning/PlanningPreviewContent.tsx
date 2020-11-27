@@ -1,10 +1,22 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
+import {IDesk, IUser, IVocabulary} from 'superdesk-api';
+import {superdeskApi} from '../../superdeskApi';
 import {
-    gettext,
+    IPlanningItem,
+    IAgenda,
+    ISession,
+    ILockedItems,
+    IFormProfiles,
+    IEventItem,
+    IPlanningNewsCoverageStatus,
+    IUrgency,
+    IFile,
+} from '../../interfaces';
+
+import {
     getCreator,
     getItemInArrayById,
     stringUtils,
@@ -27,10 +39,56 @@ import {CoveragePreview} from '../Coverages';
 import {ContentBlock} from '../UI/SidePanel';
 import {EventMetadata} from '../Events';
 import {AgendaNameList} from '../Agendas';
-import {FeatureLabel} from './FeaturedPlanning/index';
+import {FeatureLabel} from './FeaturedPlanning';
 import CustomVocabulariesPreview from '../CustomVocabulariesPreview';
 
-export class PlanningPreviewContentComponent extends React.Component {
+interface IProps {
+    item: IPlanningItem;
+    users: Array<IUser>;
+    desks: Array<IDesk>;
+    agendas: Array<IAgenda>;
+    session: ISession;
+    lockedItems: ILockedItems;
+    formProfile: IFormProfiles;
+    event?: IEventItem;
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
+    urgencies: Array<IUrgency>;
+    onEditEvent(): void; // TODO - match code
+    customVocabularies: Array<IVocabulary>;
+    inner: boolean;
+    noPadding: boolean;
+    fetchEventFiles(event: IEventItem): void; // TODO - match code
+    fetchPlanningFiles(item: IPlanningItem): void; // TODO - match code
+    hideRelatedItems: boolean;
+    files: Array<IFile>;
+    hideEditIcon: boolean;
+    planningAllowScheduledUpdates: boolean;
+}
+
+const mapStateToProps = (state, ownProps) => ({
+    item: selectors.planning.currentPlanning(state) || ownProps.item,
+    event: selectors.events.planningWithEventDetails(state),
+    session: selectors.general.session(state),
+    privileges: selectors.general.privileges(state),
+    users: selectors.general.users(state),
+    desks: selectors.general.desks(state),
+    lockedItems: selectors.locks.getLockedItems(state),
+    agendas: selectors.general.agendas(state),
+    formProfile: selectors.forms.profiles(state),
+    newsCoverageStatus: selectors.general.newsCoverageStatus(state) || ownProps.item.coverages.news_coverage_status,
+    urgencies: selectors.getUrgencies(state),
+    customVocabularies: state.customVocabularies,
+    files: selectors.general.files(state),
+    planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    onEditEvent: (event) => dispatch(actions.main.openForEdit(event)),
+    fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
+    fetchPlanningFiles: (planning) => dispatch(actions.planning.api.fetchPlanningFiles(planning)),
+});
+
+export class PlanningPreviewContentComponent extends React.PureComponent<IProps> {
     componentWillMount() {
         // If the planning item is associated with an event, get its files
         if (this.props.event) {
@@ -41,6 +99,7 @@ export class PlanningPreviewContentComponent extends React.Component {
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const {item,
             users,
             formProfile,
@@ -108,6 +167,11 @@ export class PlanningPreviewContentComponent extends React.Component {
                         <FeatureLabel item={item} />
                     </div>
                 </div>
+                <Row
+                    enabled={formProfile?.planning?.editor?.language?.enabled}
+                    label={gettext('Language')}
+                    value={item.language || ''}
+                />
                 <Row
                     enabled={get(formProfile, 'planning.editor.slugline.enabled')}
                     label={gettext('Slugline')}
@@ -252,52 +316,5 @@ export class PlanningPreviewContentComponent extends React.Component {
         );
     }
 }
-
-PlanningPreviewContentComponent.propTypes = {
-    item: PropTypes.object,
-    users: PropTypes.array,
-    desks: PropTypes.array,
-    agendas: PropTypes.array,
-    session: PropTypes.object,
-    lockedItems: PropTypes.object,
-    formProfile: PropTypes.object,
-    event: PropTypes.object,
-    newsCoverageStatus: PropTypes.array,
-    urgencies: PropTypes.array,
-    onEditEvent: PropTypes.func,
-    customVocabularies: PropTypes.array,
-    inner: PropTypes.bool,
-    noPadding: PropTypes.bool,
-    fetchEventFiles: PropTypes.func,
-    fetchPlanningFiles: PropTypes.func,
-    hideRelatedItems: PropTypes.bool,
-    files: PropTypes.object,
-    hideEditIcon: PropTypes.bool,
-    planningAllowScheduledUpdates: PropTypes.bool,
-};
-
-const mapStateToProps = (state, ownProps) => ({
-    item: selectors.planning.currentPlanning(state) || ownProps.item,
-    event: selectors.events.planningWithEventDetails(state),
-    session: selectors.general.session(state),
-    privileges: selectors.general.privileges(state),
-    users: selectors.general.users(state),
-    desks: selectors.general.desks(state),
-    lockedItems: selectors.locks.getLockedItems(state),
-    agendas: selectors.general.agendas(state),
-    formProfile: selectors.forms.profiles(state),
-    newsCoverageStatus: selectors.general.newsCoverageStatus(state) || ownProps.item.coverages.news_coverage_status,
-    urgencies: selectors.getUrgencies(state),
-    customVocabularies: state.customVocabularies,
-    files: selectors.general.files(state),
-    planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-    onEditEvent: (event) => dispatch(actions.main.openForEdit(event)),
-    fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
-    fetchPlanningFiles: (planning) => dispatch(actions.planning.api.fetchPlanningFiles(planning)),
-});
-
 
 export const PlanningPreviewContent = connect(mapStateToProps, mapDispatchToProps)(PlanningPreviewContentComponent);

@@ -186,6 +186,6 @@ Event Details
 
     Indicates how to get in contact with the event. This may be a web site, or a temporary office established for the event, not necessarily the organiser or any participant.
 
-``event_language`` *list*
+``language`` *string*
 
-    Optional, repeatable element describes the language(s) associated with the event.
+    Optional, describes the language(s) associated with the event.

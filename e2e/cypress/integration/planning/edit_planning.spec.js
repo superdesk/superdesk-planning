@@ -20,8 +20,6 @@ describe('Planning.Planning: edit metadata', () => {
     it('can create a Planning item', () => {
         const plan = {
             slugline: 'slugline of the planning',
-            headline: 'headline of the planning',
-            name: 'name of the planning',
             'planning_date.date': '12/12/2045',
             'planning_date.time': '12:13',
             description_text: 'Desc. Text',
@@ -55,18 +53,17 @@ describe('Planning.Planning: edit metadata', () => {
         editor.expectCoverages(coverages);
         editor.waitForAutosave();
 
-        workqueue.expectTitle(0, 'headline of the planning*');
+        workqueue.expectTitle(0, 'slugline of the planning*');
         editor.createButton.click();
         editor.waitLoadingComplete();
         list.expectItemCount(1);
         list.expectItemText(0, 'slugline of the planning');
-        workqueue.expectTitle(0, 'headline of the planning');
+        workqueue.expectTitle(0, 'slugline of the planning');
     });
 
     it('can add coverage to workflow', () => {
         editor.type({
             slugline: 'Plan',
-            name: 'Namer',
             'planning_date.date': '12/12/2045',
             'planning_date.time': '12:13',
         });

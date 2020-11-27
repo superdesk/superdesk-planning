@@ -16,7 +16,7 @@ import {
     ITEM_TYPE,
     TO_BE_CONFIRMED_FIELD,
     TO_BE_CONFIRMED_SHORT_TEXT,
-} from '../constants/index';
+} from '../constants';
 import {
     getItemWorkflowState,
     lockUtils,
@@ -40,6 +40,7 @@ import {
     sortBasedOnTBC,
     sanitizeItemFields,
 } from './index';
+import {getUsersDefaultLanguage} from './users';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
@@ -905,6 +906,7 @@ const defaultPlanningValues = (currentAgenda, defaultPlaceList) => {
             [getItemId(currentAgenda)] : [],
         state: 'draft',
         item_class: 'plinat:newscoverage',
+        language: getUsersDefaultLanguage(),
     };
 
     if (defaultPlaceList) {

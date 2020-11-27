@@ -83,9 +83,12 @@ describe('<EventPreviewContent />', () => {
         );
     };
 
-    const verifyDataRow = (row, label, value) => {
+    const verifyDataRow = (row, label, value = null) => {
         expect(row.find('label').text()).toBe(label);
-        expect(row.find('p').text()).toBe(value);
+
+        if (value != null) {
+            expect(row.find('p').text()).toBe(value);
+        }
     };
 
     beforeEach(() => {
@@ -109,13 +112,14 @@ describe('<EventPreviewContent />', () => {
         expect(wrapper.find('EventPreviewContentComponent').length).toBe(1);
         const dataRows = wrapper.find('.form__row');
 
-        verifyDataRow(dataRows.at(0), 'Slugline', 'test slugline');
-        verifyDataRow(dataRows.at(1), 'Event name', 'Event 1');
-        verifyDataRow(dataRows.at(2), 'Description', 'description');
-        verifyDataRow(dataRows.at(3), 'Occurrence Status', 'Planned, occurs certainly');
-        verifyDataRow(dataRows.at(4), 'Date', dateString);
-        verifyDataRow(dataRows.at(5), 'Calendars', 'calender1');
-        verifyDataRow(dataRows.at(6), 'Place', 'ACT');
+        verifyDataRow(dataRows.at(0), 'Language');
+        verifyDataRow(dataRows.at(1), 'Slugline', 'test slugline');
+        verifyDataRow(dataRows.at(2), 'Event name', 'Event 1');
+        verifyDataRow(dataRows.at(3), 'Description', 'description');
+        verifyDataRow(dataRows.at(4), 'Occurrence Status', 'Planned, occurs certainly');
+        verifyDataRow(dataRows.at(5), 'Date', dateString);
+        verifyDataRow(dataRows.at(6), 'Calendars', 'calender1');
+        verifyDataRow(dataRows.at(7), 'Place', 'ACT');
 
         let eventDetails = wrapper.find('.toggle-box').first();
 
