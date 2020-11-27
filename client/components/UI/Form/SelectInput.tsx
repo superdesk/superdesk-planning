@@ -23,11 +23,20 @@ export const SelectInput = ({
     refNode,
     onFocus,
     placeholder,
+    valueAsString,
     ...props
 }) => {
-    const key = clearable ?
-        get(value, keyField, '') :
-        get(value, keyField, get(options, `[0].${keyField}`));
+    let key;
+
+    if (valueAsString) {
+        key = clearable ?
+            (value || '') :
+            get(value, keyField, get(options, `[0].${keyField}`));
+    } else {
+        key = clearable ?
+            get(value, keyField, '') :
+            get(value, keyField, get(options, `[0].${keyField}`));
+    }
 
     const opts = options.map((opt) => ({
         key: get(opt, keyField),
@@ -35,9 +44,15 @@ export const SelectInput = ({
     }));
 
     const onChangeHandler = (field, key) => {
-        const value = options.find(
-            (option) => get(option, keyField) === key
-        ) || null;
+        let value;
+
+        if (valueAsString) {
+            value = key;
+        } else {
+            value = options.find(
+                (option) => get(option, keyField) === key
+            ) || null;
+        }
 
         onChange(field, value);
     };
@@ -94,6 +109,7 @@ SelectInput.propTypes = {
     autoFocus: PropTypes.bool,
     refNode: PropTypes.func,
     onFocus: PropTypes.func,
+    valueAsString: PropTypes.bool,
 };
 
 SelectInput.defaultProps = {
@@ -106,4 +122,5 @@ SelectInput.defaultProps = {
     labelField: 'label',
     clearable: false,
     autoFocus: false,
+    valueAsString: false,
 };

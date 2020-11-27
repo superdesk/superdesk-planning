@@ -37,6 +37,7 @@ FIELDS_TO_OVERRIDE = [
     'abstract',
     'headline',
     'ednote',
+    'language',
 ]
 
 
@@ -61,6 +62,7 @@ def get_item_from_assignment(assignment, template=None):
 
     planning_data = assignment.get('planning') or {}
     slugline = planning_data.get('slugline')
+    language = planning_data.get('language')
 
     if slugline:
         item['slugline'] = slugline
@@ -119,6 +121,11 @@ def get_item_from_assignment(assignment, template=None):
             for key in content_profile.get('schema').keys():
                 if content_profile['schema'][key] is None:
                     item.pop(key, None)
+
+    # Apply the language after stripping non-content-profile fields
+    # as the language field may not be in the content-profile
+    if language:
+        item['language'] = language
 
     return item
 

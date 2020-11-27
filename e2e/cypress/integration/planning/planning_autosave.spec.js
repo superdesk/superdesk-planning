@@ -23,8 +23,6 @@ describe('Planning.Planning: autosave', () => {
     it('creating a new planning item', () => {
         plan = {
             slugline: 'Plan',
-            headline: 'Header',
-            name: 'Namer',
             'planning_date.date': '13/12/2045',
             'planning_date.time': '12:13',
             description_text: 'Desc. Text',

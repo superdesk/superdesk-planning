@@ -1,9 +1,12 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
-import {gettext, getCreator, stringUtils, getFileDownloadURL} from '../../utils';
+import {IDesk, IUser, IVocabulary} from 'superdesk-api';
+import {superdeskApi} from '../../superdeskApi';
+import {IEventFormProfile, IEventItem, IFile} from '../../interfaces';
+
+import {getCreator, stringUtils, getFileDownloadURL} from '../../utils';
 import {TO_BE_CONFIRMED_FIELD} from '../../constants';
 import * as selectors from '../../selectors';
 
@@ -19,15 +22,42 @@ import {ContentBlock} from '../UI/SidePanel';
 import {LinkInput} from '../UI/Form';
 import {Location} from '../Location';
 import * as actions from '../../actions';
-import {ContactsPreviewList} from '../Contacts/index';
+import {ContactsPreviewList} from '../Contacts';
 import CustomVocabulariesPreview from '../CustomVocabulariesPreview';
 
-export class EventPreviewContentComponent extends React.Component {
+interface IProps {
+    item: IEventItem;
+    users: Array<IUser>;
+    desks: Array<IDesk>;
+    formProfile: IEventFormProfile;
+    fetchEventFiles(event: IEventItem): Promise<void>;
+    customVocabularies: Array<IVocabulary>;
+    hideRelatedItems: boolean;
+    files: {[key: string]: IFile};
+}
+
+const mapStateToProps = (state) => ({
+    item: selectors.events.getEventPreviewRelatedDetails(state),
+    privileges: selectors.general.privileges(state),
+    users: selectors.general.users(state),
+    desks: selectors.general.desks(state),
+    formProfile: selectors.forms.eventProfile(state),
+    customVocabularies: state.customVocabularies,
+    files: selectors.general.files(state),
+    contacts: selectors.general.contacts(state),
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
+});
+
+export class EventPreviewContentComponent extends React.PureComponent<IProps> {
     componentWillMount() {
         this.props.fetchEventFiles(this.props.item);
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const {
             item,
             users,
@@ -76,6 +106,12 @@ export class EventPreviewContentComponent extends React.Component {
                         />
                     </div>
                 </div>
+
+                <Row
+                    enabled={formProfile?.editor?.language?.enabled}
+                    label={gettext('Language')}
+                    value={item.language || ''}
+                />
 
                 <Row
                     enabled={get(formProfile, 'editor.slugline.enabled')}
@@ -228,35 +264,5 @@ export class EventPreviewContentComponent extends React.Component {
         );
     }
 }
-
-EventPreviewContentComponent.propTypes = {
-    item: PropTypes.object,
-    users: PropTypes.array,
-    desks: PropTypes.array,
-    session: PropTypes.object,
-    lockedItems: PropTypes.object,
-    formProfile: PropTypes.object,
-    fetchEventFiles: PropTypes.func,
-    customVocabularies: PropTypes.array,
-    hideRelatedItems: PropTypes.bool,
-    files: PropTypes.object,
-};
-
-const mapStateToProps = (state, ownProps) => ({
-    item: selectors.events.getEventPreviewRelatedDetails(state),
-    session: selectors.general.session(state),
-    privileges: selectors.general.privileges(state),
-    users: selectors.general.users(state),
-    desks: selectors.general.desks(state),
-    lockedItems: selectors.locks.getLockedItems(state),
-    formProfile: selectors.forms.eventProfile(state),
-    customVocabularies: state.customVocabularies,
-    files: selectors.general.files(state),
-    contacts: selectors.general.contacts(state),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-    fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
-});
 
 export const EventPreviewContent = connect(mapStateToProps, mapDispatchToProps)(EventPreviewContentComponent);

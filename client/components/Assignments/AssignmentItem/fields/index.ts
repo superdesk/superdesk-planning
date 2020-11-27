@@ -10,6 +10,7 @@ import {NameComponent} from './Name';
 import {PriorityComponent} from './Priority';
 import {SluglineComponent} from './Slugline';
 import {StateComponent} from './State';
+import {LanguageComponent} from './Language';
 import {appConfig} from 'appConfig';
 
 type AssignmentViewField =
@@ -24,7 +25,8 @@ type AssignmentViewField =
     | 'name'
     | 'priority'
     | 'slugline'
-    | 'state';
+    | 'state'
+    | 'language';
 
 // Returns the React component to render for the given 'field' of an assignment
 export const getComponentForField = (field: AssignmentViewField) => {
@@ -53,6 +55,8 @@ export const getComponentForField = (field: AssignmentViewField) => {
         return SluglineComponent;
     case 'state':
         return StateComponent;
+    case 'language':
+        return LanguageComponent;
     default:
         console.warn(
             `There's no component for assignment field '${field}'`
@@ -75,6 +79,7 @@ const DEFAULT_ASSSIGNMENTS_LIST_VIEW: {
         'due_date',
         'desk',
         'genre',
+        'language',
     ],
 };
 

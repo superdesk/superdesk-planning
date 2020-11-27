@@ -39,6 +39,7 @@ import {
     sanitizeItemFields,
 } from './index';
 import {EventUpdateMethods} from '../components/Events';
+import {getUsersDefaultLanguage} from './users';
 
 
 /**
@@ -901,6 +902,7 @@ const defaultEventValues = (occurStatuses, defaultCalendars, defaultPlaceList) =
         state: 'draft',
         _startTime: null,
         _endTime: null,
+        language: getUsersDefaultLanguage(),
     };
 
     if (defaultPlaceList) {

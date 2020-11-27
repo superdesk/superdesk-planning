@@ -1,14 +1,36 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, cloneDeep, some, isEqual, isEmpty} from 'lodash';
 
 import {appConfig} from 'appConfig';
+import {IArticle, IDesk, ISubject, IUser, IVocabulary} from 'superdesk-api';
+import {superdeskApi} from '../../../superdeskApi';
+import {
+    IAgenda,
+    IANPACategory,
+    IAssignmentPriority,
+    ICoverageFormProfile,
+    ICoverageProvider,
+    IEventItem,
+    IFormNavigation,
+    IG2ContentType,
+    IGenre,
+    IKeyword,
+    ILocator,
+    ILockedItems,
+    IPlanningFormProfile,
+    IPlanningItem,
+    IPlanningNewsCoverageStatus,
+    IUrgency,
+    IFile,
+    IPlanningCoverageItem,
+    IFormItemManager,
+    ICoverageScheduledUpdate,
+} from '../../../interfaces';
 
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
 import {
-    gettext,
     getItemInArrayById,
     planningUtils,
     isSameItemId,
@@ -30,6 +52,7 @@ import {
     Field,
     FileInput,
     DateTimeInput,
+    SelectInput,
 } from '../../UI/Form';
 import {ToggleBox} from '../../UI';
 
@@ -38,6 +61,7 @@ import {CoverageArrayInput} from '../../Coverages';
 import {EventMetadata} from '../../Events';
 import {WORKFLOW_STATE, COVERAGES, TO_BE_CONFIRMED_FIELD} from '../../../constants';
 import CustomVocabulariesFields from '../../CustomVocabulariesFields';
+import {getUsersDefaultLanguage} from '../../../utils/users';
 
 const toggleDetails = [
     'ednote',
@@ -45,7 +69,110 @@ const toggleDetails = [
     'subject',
 ];
 
-export class PlanningEditorComponent extends React.Component {
+interface IProps {
+    item?: IPlanningItem;
+    diff: Partial<IPlanningItem>;
+    itemExists: boolean;
+    event?: IEventItem;
+    onChangeHandler(field: string, value: any, formDirty?: boolean): void;
+    locators: Array<ILocator>;
+    languages: Array<string>;
+    categories: Array<IANPACategory>;
+    subjects: Array<ISubject>;
+    users: Array<IUser>;
+    desks: Array<IDesk>;
+    agendas: Array<IAgenda>;
+    readOnly: boolean;
+    urgencies: Array<IUrgency>;
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
+    contentTypes: Array<IG2ContentType>;
+    genres: Array<IGenre>;
+    coverageProviders: Array<ICoverageProvider>;
+    priorities: Array<IAssignmentPriority>;
+    keywords: Array<IKeyword>;
+    addNewsItemToPlanning?: IArticle;
+    desk: string;
+    user: string;
+    errors: {[key: string]: string};
+    submitting: boolean;
+    submitFailed: boolean;
+    dirty: boolean;
+    planningProfile: IPlanningFormProfile;
+    coverageProfile: ICoverageFormProfile;
+    currentAgenda?: IAgenda;
+    lockedItems: ILockedItems;
+    navigation?: IFormNavigation;
+    customVocabularies: Array<IVocabulary>;
+    fetchEventFiles(event: IEventItem): Promise<void>;
+    files: Array<IFile>;
+    popupContainer(): HTMLElement;
+    defaultDesk: IDesk;
+    uploadFiles(files: Array<Array<File>>): Promise<Array<IFile>>;
+    removeFile(file: IFile): Promise<void>;
+    fetchPlanningFiles(item: IPlanningItem): Promise<void>;
+    preferredCoverageDesks: {[key: string]: string};
+    onPopupOpen(): void;
+    onPopupClose(): void;
+    setCoverageDefaultDesk(coverage: IPlanningCoverageItem): void;
+    inModalView: boolean;
+    itemManager: IFormItemManager;
+    original?: IPlanningItem;
+    planningAllowScheduledUpdates: boolean;
+    coverageAddAdvancedMode: boolean;
+    setCoverageAddAdvancedMode(enabled: boolean): Promise<void>;
+    notifyValidationErrors(errors: Array<string>): void;
+}
+
+interface IState {
+    openCoverageIds: Array<string>;
+    uploading: boolean;
+}
+
+const mapStateToProps = (state) => ({
+    languages: selectors.vocabs.getLanguages(state),
+    locators: selectors.vocabs.locators(state),
+    categories: selectors.vocabs.categories(state),
+    subjects: selectors.vocabs.subjects(state),
+    users: selectors.general.users(state),
+    desks: selectors.general.desks(state),
+    agendas: selectors.general.agendas(state),
+    urgencies: state.urgency.urgency,
+    newsCoverageStatus: selectors.general.newsCoverageStatus(state),
+    contentTypes: selectors.general.contentTypes(state),
+    genres: state.genres,
+    coverageProviders: selectors.vocabs.coverageProviders(state),
+    priorities: selectors.getAssignmentPriorities(state),
+    keywords: selectors.general.keywords(state),
+    desk: selectors.general.currentDeskId(state),
+    user: selectors.general.currentUserId(state),
+    planningProfile: selectors.forms.planningProfile(state),
+    coverageProfile: selectors.forms.coverageProfile(state),
+    currentAgenda: selectors.planning.currentAgenda(state),
+    lockedItems: selectors.locks.getLockedItems(state),
+    customVocabularies: state.customVocabularies,
+    files: selectors.general.files(state),
+    defaultDesk: selectors.general.defaultDesk(state),
+    preferredCoverageDesks: get(selectors.general.preferredCoverageDesks(state), 'desks'),
+    planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
+    coverageAddAdvancedMode: selectors.general.coverageAddAdvancedMode(state),
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
+    setCoverageDefaultDesk: (coverage) => dispatch(actions.users.setCoverageDefaultDesk(coverage)),
+    uploadFiles: (files) => dispatch(actions.planning.api.uploadFiles({files: files})),
+    removeFile: (file) => dispatch(actions.planning.api.removeFile(file)),
+    fetchPlanningFiles: (planning) => dispatch(actions.planning.api.fetchPlanningFiles(planning)),
+    setCoverageAddAdvancedMode: (advancedMode) => dispatch(actions.users.setCoverageAddAdvancedMode(advancedMode)),
+});
+
+export class PlanningEditorComponent extends React.Component<IProps, IState> {
+    dom: {
+        slugline: any;
+        top: any;
+        details: any;
+    }
+
     constructor(props) {
         super(props);
 
@@ -171,7 +298,13 @@ export class PlanningEditorComponent extends React.Component {
             scheduledUpdate, scheduledUpdateIndex);
     }
 
-    onPartialSave(coverage, index, action, scheduledUpdate, scheduledUpdateIndex) {
+    onPartialSave(
+        coverage: IPlanningCoverageItem,
+        index: number,
+        action: string,
+        scheduledUpdate?: ICoverageScheduledUpdate,
+        scheduledUpdateIndex?: number
+    ) {
         const updates = cloneDeep(get(this.props, 'item'));
 
         updates.coverages[index] = coverage;
@@ -402,12 +535,14 @@ export class PlanningEditorComponent extends React.Component {
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const {
             item,
             itemExists,
             diff,
             event,
             locators,
+            languages,
             categories,
             subjects,
             users,
@@ -505,6 +640,19 @@ export class PlanningEditorComponent extends React.Component {
                 />
 
                 <ContentBlock>
+                    <Field
+                        component={SelectInput}
+                        field="language"
+                        label={gettext('Language')}
+                        defaultValue={getUsersDefaultLanguage()}
+                        options={languages}
+                        {...fieldProps}
+                        onFocus={onFocusPlanning}
+                        labelField={'name'}
+                        valueAsString={true}
+                        enabled={planningProfile?.editor?.language?.enabled}
+                    />
+
                     <Field
                         component={TextInput}
                         field="slugline"
@@ -775,103 +923,6 @@ export class PlanningEditorComponent extends React.Component {
         );
     }
 }
-
-PlanningEditorComponent.propTypes = {
-    item: PropTypes.object,
-    diff: PropTypes.object,
-    itemExists: PropTypes.bool,
-    event: PropTypes.object,
-    onChangeHandler: PropTypes.func,
-    locators: PropTypes.array,
-    categories: PropTypes.array,
-    subjects: PropTypes.array,
-    users: PropTypes.array,
-    desks: PropTypes.array,
-    agendas: PropTypes.array,
-    readOnly: PropTypes.bool,
-    urgencies: PropTypes.array,
-    newsCoverageStatus: PropTypes.array,
-    contentTypes: PropTypes.array,
-    genres: PropTypes.array,
-    coverageProviders: PropTypes.array,
-    priorities: PropTypes.array,
-    keywords: PropTypes.array,
-    addNewsItemToPlanning: PropTypes.object,
-    desk: PropTypes.string,
-    user: PropTypes.string,
-    errors: PropTypes.object,
-    submitting: PropTypes.bool,
-    submitFailed: PropTypes.bool,
-    dirty: PropTypes.bool,
-    planningProfile: PropTypes.object,
-    coverageProfile: PropTypes.object,
-    currentAgenda: PropTypes.object,
-    lockedItems: PropTypes.object,
-    navigation: PropTypes.object,
-    customVocabularies: PropTypes.array,
-    fetchEventFiles: PropTypes.func,
-    files: PropTypes.object,
-    popupContainer: PropTypes.func,
-    defaultDesk: PropTypes.object,
-    uploadFiles: PropTypes.func,
-    removeFile: PropTypes.func,
-    fetchPlanningFiles: PropTypes.func,
-    preferredCoverageDesks: PropTypes.object,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
-    setCoverageDefaultDesk: PropTypes.func,
-    inModalView: PropTypes.bool,
-    itemManager: PropTypes.object,
-    original: PropTypes.object,
-    planningAllowScheduledUpdates: PropTypes.bool,
-    coverageAddAdvancedMode: PropTypes.bool,
-    setCoverageAddAdvancedMode: PropTypes.func,
-    notifyValidationErrors: PropTypes.func,
-};
-
-PlanningEditorComponent.defaultProps = {
-    submitting: false,
-    readOnly: false,
-    navigation: {},
-    inModalView: false,
-};
-
-const mapStateToProps = (state) => ({
-    locators: selectors.vocabs.locators(state),
-    categories: selectors.vocabs.categories(state),
-    subjects: selectors.vocabs.subjects(state),
-    users: selectors.general.users(state),
-    desks: selectors.general.desks(state),
-    agendas: selectors.general.agendas(state),
-    urgencies: state.urgency.urgency,
-    newsCoverageStatus: selectors.general.newsCoverageStatus(state),
-    contentTypes: selectors.general.contentTypes(state),
-    genres: state.genres,
-    coverageProviders: selectors.vocabs.coverageProviders(state),
-    priorities: selectors.getAssignmentPriorities(state),
-    keywords: selectors.general.keywords(state),
-    desk: selectors.general.currentDeskId(state),
-    user: selectors.general.currentUserId(state),
-    planningProfile: selectors.forms.planningProfile(state),
-    coverageProfile: selectors.forms.coverageProfile(state),
-    currentAgenda: selectors.planning.currentAgenda(state),
-    lockedItems: selectors.locks.getLockedItems(state),
-    customVocabularies: state.customVocabularies,
-    files: selectors.general.files(state),
-    defaultDesk: selectors.general.defaultDesk(state),
-    preferredCoverageDesks: get(selectors.general.preferredCoverageDesks(state), 'desks'),
-    planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
-    coverageAddAdvancedMode: selectors.general.coverageAddAdvancedMode(state),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-    fetchEventFiles: (event) => dispatch(actions.events.api.fetchEventFiles(event)),
-    setCoverageDefaultDesk: (coverage) => dispatch(actions.users.setCoverageDefaultDesk(coverage)),
-    uploadFiles: (files) => dispatch(actions.planning.api.uploadFiles({files: files})),
-    removeFile: (file) => dispatch(actions.planning.api.removeFile(file)),
-    fetchPlanningFiles: (planning) => dispatch(actions.planning.api.fetchPlanningFiles(planning)),
-    setCoverageAddAdvancedMode: (advancedMode) => dispatch(actions.users.setCoverageAddAdvancedMode(advancedMode)),
-});
 
 export const PlanningEditor = connect(
     mapStateToProps,

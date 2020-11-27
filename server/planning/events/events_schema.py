@@ -258,15 +258,7 @@ events_schema = {
         'schema': Resource.rel('contacts'),
         'mapping': not_analyzed
     },
-    'event_language': {  # TODO: this is only placeholder schema
-        'type': 'list',
-        'mapping': {
-            'properties': {
-                'qcode': not_analyzed,
-                'name': not_analyzed
-            }
-        }
-    },
+    'language': metadata_schema['language'],
 
     # These next two are for spiking/unspiking and purging events
     'state': WORKFLOW_STATE_SCHEMA,
