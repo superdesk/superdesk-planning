@@ -1,39 +1,48 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {isEqual, get} from 'lodash';
+import {get, set, isEqual, cloneDeep} from 'lodash';
+
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
+
 import {ASSIGNMENTS} from '../../../constants';
-import {gettext, getItemInArrayById} from '../../../utils';
+import {gettext, getItemInArrayById, assignmentUtils} from '../../../utils';
+
+import {AssignmentEditor} from '../../Assignments';
+
 import {Row, TextInput, ColouredValueInput} from '../../UI/Form';
 import {AbsoluteDate} from '../..';
 
-export class EditPriorityComponent extends React.Component {
+import '../style.scss';
+
+export class UpdateAssignmentComponent extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {priority: {}};
+        this.state = {
+            diff: {},
+            valid: true,
+        };
 
         this.dom = {popupContainer: null};
         this.onChange = this.onChange.bind(this);
+        this.setValid = this.setValid.bind(this);
     }
 
     componentWillMount() {
-        const priorityQcode = get(this.props, 'original.priority');
-        const priority = priorityQcode ?
-            getItemInArrayById(this.props.priorities, priorityQcode, 'qcode') :
-            null;
+        const diff = cloneDeep(this.props.original);
 
-        this.setState({priority});
+        this.setState({diff});
     }
 
     onChange(field, value) {
-        this.setState({priority: value});
+        const diff = cloneDeep(this.state.diff);
 
-        if (isEqual(
-            get(value, 'qcode') || null,
-            get(this.props, 'original.priority') || null)
-        ) {
+        set(diff, field, value);
+
+        this.setState({diff});
+
+        if (isEqual(diff, this.props.original) || !this.state.valid) {
             this.props.disableSaveInModal();
         } else {
             this.props.enableSaveInModal();
@@ -43,28 +52,31 @@ export class EditPriorityComponent extends React.Component {
     submit() {
         return this.props.onSubmit(
             this.props.original,
-            {
-                ...this.props.original,
-                priority: get(this.state.priority, 'qcode') || null,
-            }
+            this.state.diff
         );
+    }
+
+    setValid(valid) {
+        this.setState({valid});
+
+        if (!valid) {
+            this.props.disableSaveInModal();
+        }
     }
 
     render() {
         const slugline = get(this.props, 'original.planning.slugline') || '';
         const scheduled = get(this.props, 'original.planning.scheduled') || '';
 
+        const priorityQcode = get(this.props, 'original.priority');
+        const priority = getItemInArrayById(this.props.priorities, priorityQcode, 'qcode');
+
+        const canEditDesk = assignmentUtils.canEditDesk(this.props.original);
+
         const deskId = get(this.props, 'original.assigned_to.desk') || null;
         const desk = deskId ?
             getItemInArrayById(this.props.desks, deskId) :
             {};
-
-        const userId = get(this.props, 'original.assigned_to.user') || null;
-        const user = userId ?
-            getItemInArrayById(this.props.users, userId) :
-            {};
-
-        const provider = get(this.props, 'original.assigned_to.coverage_provider') || {};
 
         const infoProps = {
             labelLeft: true,
@@ -73,41 +85,17 @@ export class EditPriorityComponent extends React.Component {
         };
 
         return (
-            <div>
+            <div className="update-assignment">
                 <Row noPadding={true}>
                     <TextInput
                         label={gettext('Slugline:')}
-                        value={slugline}
+                        value={slugline || '-'}
                         inputClassName="sd-text__slugline"
                         {...infoProps}
                     />
                 </Row>
 
                 <Row noPadding={true}>
-                    <TextInput
-                        label={gettext('Desk:')}
-                        value={get(desk, 'name') || '-'}
-                        {...infoProps}
-                    />
-                </Row>
-
-                <Row noPadding={true}>
-                    <TextInput
-                        label={gettext('User:')}
-                        value={get(user, 'display_name') || '-'}
-                        {...infoProps}
-                    />
-                </Row>
-
-                <Row noPadding={true}>
-                    <TextInput
-                        label={gettext('Provider:')}
-                        value={get(provider, 'name') || '-'}
-                        {...infoProps}
-                    />
-                </Row>
-
-                <Row>
                     <AbsoluteDate
                         asTextInput={true}
                         label={gettext('Due:')}
@@ -117,18 +105,43 @@ export class EditPriorityComponent extends React.Component {
                     />
                 </Row>
 
-                <Row noPadding={true}>
+                <Row noPadding={!canEditDesk}>
                     <ColouredValueInput
                         field="priority"
                         label={gettext('Priority')}
-                        value={this.state.priority}
+                        value={priority}
                         onChange={this.onChange}
                         options={this.props.priorities}
                         iconName="priority-label"
                         noMargin={true}
-                        popupContainer={() => this.dom.popupContainer}
+                        noValueString="-"
+                        {...infoProps}
                     />
                 </Row>
+
+                {!canEditDesk && (
+                    <Row>
+                        <TextInput
+                            label={gettext('Desk:')}
+                            value={get(desk, 'name') || '-'}
+                            {...infoProps}
+                        />
+                    </Row>
+                )}
+
+                <AssignmentEditor
+                    className="update-assignment__form"
+                    value={this.state.diff}
+                    onChange={this.onChange}
+                    users={this.props.users}
+                    desks={this.props.desks}
+                    coverageProviders={this.props.coverageProviders}
+                    priorities={this.props.priorities}
+                    showDesk={canEditDesk}
+                    showPriority={false}
+                    popupContainer={() => this.dom.popupContainer}
+                    setValid={this.setValid}
+                />
 
                 <div ref={(node) => this.dom.popupContainer = node} />
             </div>
@@ -136,7 +149,7 @@ export class EditPriorityComponent extends React.Component {
     }
 }
 
-EditPriorityComponent.propTypes = {
+UpdateAssignmentComponent.propTypes = {
     original: PropTypes.object,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
@@ -144,12 +157,14 @@ EditPriorityComponent.propTypes = {
     priorities: PropTypes.array,
     desks: PropTypes.array,
     users: PropTypes.array,
+    coverageProviders: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({
     priorities: selectors.getAssignmentPriorities(state),
     desks: selectors.general.desks(state),
     users: selectors.general.users(state),
+    coverageProviders: selectors.vocabs.coverageProviders(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -162,15 +177,15 @@ const mapDispatchToProps = (dispatch) => ({
         })),
 
     onHide: (assignment) => {
-        if (assignment.lock_action === 'edit_priority') {
+        if (assignment.lock_action === 'reassign') {
             dispatch(actions.assignments.api.unlock(assignment));
         }
     },
 });
 
-export const EditPriorityForm = connect(
+export const UpdateAssignmentForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
-    {withRef: true}
-)(EditPriorityComponent);
+    {forwardRef: true}
+)(UpdateAssignmentComponent);

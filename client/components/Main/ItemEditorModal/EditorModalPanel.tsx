@@ -63,7 +63,7 @@ export class EditorModalPanel extends React.Component {
     handleKeydown(event) {
         if (event.keyCode === KEYCODES.ESCAPE) {
             event.preventDefault();
-            this.dom.editor.getWrappedInstance().cancelFromHeader();
+            this.dom.editor.cancelFromHeader();
         }
     }
 
@@ -76,14 +76,14 @@ export class EditorModalPanel extends React.Component {
 
     onCloseModal() {
         if (this.dom.editor) {
-            this.dom.editor.getWrappedInstance().cancelFromHeader();
+            this.dom.editor.cancelFromHeader();
         }
     }
 
     onMenuItemClick(menuItemName) {
         // Change tab to content
         if (this.dom.editor && this.state.currentTab !== UI.EDITOR.CONTENT_TAB_INDEX) {
-            this.dom.editor.getWrappedInstance().setActiveTab(UI.EDITOR.CONTENT_TAB_INDEX);
+            this.dom.editor.setActiveTab(UI.EDITOR.CONTENT_TAB_INDEX);
         }
 
         this.setState({

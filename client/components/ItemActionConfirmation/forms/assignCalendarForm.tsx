@@ -1,17 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get} from 'lodash';
-
 import * as actions from '../../../actions';
-import '../style.scss';
-import {WORKFLOW_STATE} from '../../../constants';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
 import {eventUtils, gettext} from '../../../utils';
 import {Row} from '../../UI/Preview';
+import '../style.scss';
 
-export class UnspikeEventComponent extends React.Component {
+export class AssignCalendarComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -23,23 +20,23 @@ export class UnspikeEventComponent extends React.Component {
     }
 
     componentWillMount() {
-        if (get(this.props, 'original.recurrence_id')) {
-            const event = eventUtils.getRelatedEventsForRecurringEvent(
-                this.props.original,
-                EventUpdateMethods[0]
-            );
+        const event = eventUtils.getRelatedEventsForRecurringEvent(
+            this.props.original,
+            EventUpdateMethods[0],
+            true
+        );
 
-            this.setState({relatedEvents: event._events});
-        }
+        this.setState({relatedEvents: event._events});
 
-        // Enable save so that the user can action on this event.
+        // Enable save so that the user can update just this event.
         this.props.enableSaveInModal();
     }
 
     onEventUpdateMethodChange(field, option) {
         const event = eventUtils.getRelatedEventsForRecurringEvent(
             this.props.original,
-            option
+            option,
+            true
         );
 
         this.setState({
@@ -49,18 +46,19 @@ export class UnspikeEventComponent extends React.Component {
     }
 
     submit() {
-        return this.props.onSubmit({
-            ...this.props.original,
-            update_method: this.state.eventUpdateMethod,
-        });
+        // Send the required fields and calendar only
+        return this.props.onSubmit(
+            this.props.original,
+            {
+                ...this.props.updates,
+                update_method: this.state.eventUpdateMethod,
+            }
+        );
     }
 
     render() {
         const {original, submitting} = this.props;
-        const isRecurring = !!original.recurrence_id;
-        const numEvents = (this.state.relatedEvents.filter(
-            (event) => get(event, 'state') === WORKFLOW_STATE.SPIKED)
-        ).length + 1;
+        const numEvents = this.state.relatedEvents.length + 1;
 
         return (
             <div className="MetadataView">
@@ -68,21 +66,21 @@ export class UnspikeEventComponent extends React.Component {
                     enabled={!!original.slugline}
                     label={gettext('Slugline')}
                     value={original.slugline || ''}
-                    className="slugline"
                     noPadding={true}
+                    className="slugline"
                 />
 
                 <Row
                     label={gettext('Name')}
                     value={original.name || ''}
-                    className="strong"
                     noPadding={true}
+                    className="strong"
                 />
 
-                <EventScheduleSummary schedule={original.dates} />
+                <EventScheduleSummary schedule={original.dates} noPadding={true} />
 
                 <Row
-                    enabled={isRecurring}
+                    enabled={true}
                     label={gettext('No. of Events')}
                     value={numEvents}
                     noPadding={true}
@@ -91,30 +89,37 @@ export class UnspikeEventComponent extends React.Component {
                 <UpdateMethodSelection
                     value={this.state.eventUpdateMethod}
                     onChange={this.onEventUpdateMethodChange}
-                    showMethodSelection={isRecurring}
-                    updateMethodLabel={gettext('Unspike all recurring events or just this one?')}
+                    showMethodSelection={true}
+                    updateMethodLabel={gettext('Update all recurring events or just this one?')}
                     showSpace={false}
                     readOnly={submitting}
-                    action="spike"
                 />
             </div>
         );
     }
 }
 
-UnspikeEventComponent.propTypes = {
+AssignCalendarComponent.propTypes = {
     original: PropTypes.object.isRequired,
+    updates: PropTypes.object.isRequired,
     submitting: PropTypes.bool,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event) => (dispatch(actions.events.ui.unspike(event))),
+    onSubmit: (original, updates) => (
+        dispatch(actions.main.save(original, updates, false))
+            .then((savedItem) => dispatch(actions.events.api.unlock(savedItem)))
+    ),
+    onHide: (event) => {
+        dispatch(actions.events.api.unlock(event));
+    },
 });
 
-export const UnspikeEventForm = connect(
+export const AssignCalendarForm = connect(
     null,
     mapDispatchToProps,
     null,
-    {withRef: true})(UnspikeEventComponent);
+    {forwardRef: true}
+)(AssignCalendarComponent);

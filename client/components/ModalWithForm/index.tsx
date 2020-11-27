@@ -37,10 +37,7 @@ export class ModalWithForm extends React.Component {
     }
 
     getFormInstance() {
-        // Components connected to the redux store require getWrappedInstance
-        // Pure React Components don't
-        return this.dom.form.getWrappedInstance() ||
-            this.dom.form;
+        return this.dom.form;
     }
 
     submit() {

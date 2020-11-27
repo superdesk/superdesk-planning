@@ -1,15 +1,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import * as actions from '../../../actions';
 import {get} from 'lodash';
+
+import * as actions from '../../../actions';
+import '../style.scss';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
+import {RelatedEvents} from '../../index';
 import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
 import {eventUtils, gettext} from '../../../utils';
 import {Row} from '../../UI/Preview';
-import '../style.scss';
 
-export class UpdateRecurringEventsComponent extends React.Component {
+export class SpikeEventComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -22,50 +24,38 @@ export class UpdateRecurringEventsComponent extends React.Component {
     }
 
     componentWillMount() {
-        const isRecurring = get(this.props, 'original.recurrence_id');
+        const event = eventUtils.getRelatedEventsForRecurringEvent(
+            this.props.original,
+            EventUpdateMethods[0]
+        );
 
-        if (isRecurring || eventUtils.eventHasPlanning(this.props.original)) {
-            this.posting = get(this.props.original, '_post', true);
-            const event = isRecurring ?
-                eventUtils.getRelatedEventsForRecurringEvent(
-                    this.props.original,
-                    EventUpdateMethods[0],
-                    true
-                ) :
-                this.props.original;
+        this.setState({
+            relatedEvents: event._events,
+            relatedPlannings: event._relatedPlannings.filter((p) => !p.pubstatus),
+        });
 
-            this.setState({
-                relatedEvents: event._events,
-                relatedPlannings: this.posting ? [] : event._relatedPlannings,
-            });
-        }
-
-        // Enable save so that the user can update just this event.
+        // Enable save so that the user can action on this event.
         this.props.enableSaveInModal();
     }
 
     onEventUpdateMethodChange(field, option) {
         const event = eventUtils.getRelatedEventsForRecurringEvent(
             this.props.original,
-            option,
-            true
+            option
         );
 
         this.setState({
             eventUpdateMethod: option,
             relatedEvents: event._events,
-            relatedPlannings: this.posting ? [] : event._relatedPlannings,
+            relatedPlannings: event._relatedPlannings.filter((p) => !p.pubstatus),
         });
     }
 
     submit() {
-        return this.props.onSubmit(
-            this.props.original,
-            {
-                ...this.props.updates,
-                update_method: this.state.eventUpdateMethod,
-            }
-        );
+        return this.props.onSubmit({
+            ...this.props.original,
+            update_method: this.state.eventUpdateMethod,
+        });
     }
 
     render() {
@@ -82,22 +72,18 @@ export class UpdateRecurringEventsComponent extends React.Component {
                     enabled={!!original.slugline}
                     label={gettext('Slugline')}
                     value={original.slugline || ''}
-                    noPadding={true}
                     className="slugline"
+                    noPadding={true}
                 />
 
                 <Row
                     label={gettext('Name')}
                     value={original.name || ''}
-                    noPadding={true}
                     className="strong"
+                    noPadding={true}
                 />
 
-                <EventScheduleSummary
-                    schedule={original.dates}
-                    forUpdating={true}
-                    useEventTimezone={true}
-                />
+                <EventScheduleSummary schedule={original.dates} />
 
                 <Row
                     enabled={isRecurring}
@@ -110,53 +96,43 @@ export class UpdateRecurringEventsComponent extends React.Component {
                     value={this.state.eventUpdateMethod}
                     onChange={this.onEventUpdateMethodChange}
                     showMethodSelection={isRecurring}
-                    updateMethodLabel={gettext('Update all recurring events or just this one?')}
+                    updateMethodLabel={gettext('Spike all recurring events or just this one?')}
                     showSpace={false}
                     readOnly={submitting}
-                    action="unpost"
+                    action="spike"
                     relatedPlannings={this.state.relatedPlannings}
                 />
+
+                {eventsInUse.length > 0 && (
+                    <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">
+                        <strong>{gettext('The following Events are in use and will not be spiked:')}</strong>
+                        <RelatedEvents events={eventsInUse} />
+                    </div>
+                )}
             </div>
         );
     }
 }
 
-UpdateRecurringEventsComponent.propTypes = {
+SpikeEventComponent.propTypes = {
     original: PropTypes.object.isRequired,
-    updates: PropTypes.object.isRequired,
     submitting: PropTypes.bool,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
-    resolve: PropTypes.func,
 };
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
-    onSubmit: (original, updates) => (
-        dispatch(actions.main.save(original, updates, false))
-            .then((savedItem) => {
-                if (ownProps.modalProps.unlockOnClose) {
-                    dispatch(actions.events.api.unlock(savedItem));
-                }
-
-                if (ownProps.resolve) {
-                    ownProps.resolve(savedItem);
-                }
-            })
-    ),
-    onHide: (event) => {
-        if (ownProps.modalProps.unlockOnClose) {
-            dispatch(actions.events.api.unlock(event));
+const mapDispatchToProps = (dispatch) => ({
+    onSubmit: (event) => dispatch(actions.events.ui.spike(event)),
+    onHide: (event, modalProps) => {
+        if (get(modalProps, 'onCloseModal')) {
+            modalProps.onCloseModal(event);
         }
-
-        if (ownProps.resolve) {
-            ownProps.resolve();
-        }
+        return Promise.resolve(event);
     },
 });
 
-export const UpdateRecurringEventsForm = connect(
+export const SpikeEventForm = connect(
     null,
     mapDispatchToProps,
     null,
-    {withRef: true}
-)(UpdateRecurringEventsComponent);
+    {forwardRef: true})(SpikeEventComponent);

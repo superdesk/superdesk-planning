@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get} from 'lodash';
 
 import {appConfig} from 'appConfig';
 
@@ -10,13 +9,12 @@ import '../style.scss';
 import {gettext, getDateTimeString} from '../../../utils';
 import {Row} from '../../UI/Preview';
 
-export class SpikePlanningComponent extends React.Component {
+export class UnspikePlanningComponent extends React.Component {
     constructor(props) {
         super(props);
         // Initialise with enable save so that the user can action on this plan.
         props.enableSaveInModal();
     }
-
 
     submit() {
         return this.props.onSubmit(this.props.original);
@@ -56,24 +54,18 @@ export class SpikePlanningComponent extends React.Component {
     }
 }
 
-SpikePlanningComponent.propTypes = {
+UnspikePlanningComponent.propTypes = {
     original: PropTypes.object.isRequired,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (plan) => dispatch(actions.planning.ui.spike(plan)),
-    onHide: (plan, modalProps) => {
-        if (get(modalProps, 'onCloseModal')) {
-            modalProps.onCloseModal(plan);
-        }
-        return Promise.resolve(plan);
-    },
+    onSubmit: (plan) => dispatch(actions.planning.ui.unspike(plan)),
 });
 
-export const SpikePlanningForm = connect(
+export const UnspikePlanningForm = connect(
     null,
     mapDispatchToProps,
     null,
-    {withRef: true})(SpikePlanningComponent);
+    {forwardRef: true})(UnspikePlanningComponent);
