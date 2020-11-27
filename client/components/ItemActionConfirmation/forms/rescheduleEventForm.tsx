@@ -382,5 +382,5 @@ export const RescheduleEventForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
-    {withRef: true}
+    {forwardRef: true}
 )(RescheduleEventComponent);

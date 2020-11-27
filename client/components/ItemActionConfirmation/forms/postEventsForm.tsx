@@ -169,5 +169,5 @@ export const PostEventsForm = connect(
     null,
     mapDispatchToProps,
     null,
-    {withRef: true}
+    {forwardRef: true}
 )(PostEventsComponent);

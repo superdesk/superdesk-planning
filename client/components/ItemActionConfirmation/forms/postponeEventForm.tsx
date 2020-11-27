@@ -191,5 +191,5 @@ export const PostponeEventForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
-    {withRef: true}
+    {forwardRef: true}
 )(PostponeEventComponent);

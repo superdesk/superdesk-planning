@@ -138,6 +138,6 @@ export const CancelCoverageForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
-    {withRef: true}
+    {forwardRef: true}
 )(CancelCoverageComponent);
 

@@ -74,4 +74,4 @@ const mapDispatchToPropsModal = (dispatch) => ({
 
 export const Editor = connect(mapStateToProps, mapDispatchToProps)(EditorComponent);
 export const EditorModal = connect(mapStateToPropsModal, mapDispatchToPropsModal, null,
-    {withRef: true})(EditorComponent);
+    {forwardRef: true})(EditorComponent);

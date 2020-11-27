@@ -194,5 +194,5 @@ export const UpdateEventRepetitionsForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
-    {withRef: true}
+    {forwardRef: true}
 )(UpdateEventRepetitionsComponent);
