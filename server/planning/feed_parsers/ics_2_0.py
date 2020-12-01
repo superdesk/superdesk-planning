@@ -8,6 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from typing import Dict, Union
 import logging
 import datetime
 
@@ -22,6 +23,7 @@ from icalendar.parser import tzid_from_dt
 from superdesk import get_resource_service
 import pytz
 from icalendar import Calendar
+from planning.common import get_max_recurrent_events
 
 utc = pytz.UTC
 logger = logging.getLogger(__name__)
@@ -81,57 +83,8 @@ class IcsTwoFeedParser(FileFeedParser):
                                                 x['qcode'] == 'eocstat:eos5' and x.get('is_active', True)][0]
                         item['occur_status'].pop('is_active', None)
 
-                    # add dates
-                    # check if component .dt return date instead of datetime, if so, convert to datetime
-                    dtstart = component.get('dtstart').dt
-                    dates_start = dtstart if isinstance(dtstart, datetime.datetime) \
-                        else datetime.datetime.combine(dtstart, datetime.datetime.min.time())
-                    if not dates_start.tzinfo:
-                        dates_start = local_to_utc(config.DEFAULT_TIMEZONE, dates_start)
-                    try:
-                        dtend = component.get('dtend').dt
-                        if isinstance(dtend, datetime.datetime):
-                            dates_end = dtend
-                        else:  # Date only is non inclusive
-                            dates_end = \
-                                (datetime.datetime.combine(dtend, datetime.datetime.max.time()) -
-                                 datetime.timedelta(days=1)).replace(microsecond=0)
-                        if not dates_end.tzinfo:
-                            dates_end = local_to_utc(config.DEFAULT_TIMEZONE, dates_end)
-                    except AttributeError:
-                        dates_end = None
-                    item['dates'] = {
-                        'start': dates_start,
-                        'end': dates_end,
-                        'tz': ''
-                    }
-                    # parse ics RRULE to fit eventsML recurring_rule
-                    r_rule = component.get('rrule')
-                    if isinstance(r_rule, vRecur):
-                        r_rule_dict = vRecur.from_ical(r_rule)
-                        if 'FREQ' in r_rule_dict.keys():
-                            item['dates'].setdefault('recurring_rule', {})['frequency'] = ''.join(
-                                r_rule_dict.get('FREQ'))
-                        if 'INTERVAL' in r_rule_dict.keys():
-                            item['dates'].setdefault('recurring_rule', {})['interval'] = r_rule_dict.get('INTERVAL')[0]
-                        if 'UNTIL' in r_rule_dict.keys():
-                            item['dates'].setdefault('recurring_rule', {})['until'] = r_rule_dict.get('UNTIL')[0]
-                        if 'COUNT' in r_rule_dict.keys():
-                            item['dates'].setdefault('recurring_rule', {})['count'] = r_rule_dict.get('COUNT')
-                        if 'BYMONTH' in r_rule_dict.keys():
-                            item['dates'].setdefault('recurring_rule', {})['bymonth'] = ' '.join(
-                                r_rule_dict.get('BYMONTH'))
-                        if 'BYDAY' in r_rule_dict.keys():
-                            item['dates'].setdefault('recurring_rule', {})['byday'] = ' '.join(r_rule_dict.get('BYDAY'))
-                        if 'BYHOUR' in r_rule_dict.keys():
-                            item['dates'].setdefault('recurring_rule', {})['byhour'] = ' '.join(
-                                r_rule_dict.get('BYHOUR'))
-                        if 'BYMIN' in r_rule_dict.keys():
-                            item['dates'].setdefault('recurring_rule', {})['bymin'] = ' '.join(r_rule_dict.get('BYMIN'))
-
-                    # set timezone info if date is a datetime
-                    if isinstance(component.get('dtstart').dt, datetime.datetime):
-                        item['dates']['tz'] = tzid_from_dt(component.get('dtstart').dt)
+                    self.parse_dates(item, component)
+                    self.parse_recurring_rules(item, component)
 
                     # add participants
                     item['participant'] = []
@@ -192,3 +145,96 @@ class IcsTwoFeedParser(FileFeedParser):
             return items
         except Exception as ex:
             raise ParserError.parseMessageError(ex, provider)
+
+    def parse_dates(self, item, component):
+        """Extracts date information from ICS into the Event item
+
+        :param item: The Event item
+        :param component: An ICS VEVENT component
+        """
+
+        # add dates
+        # check if component .dt return date instead of datetime, if so, convert to datetime
+        dtstart = component.get('dtstart').dt
+        dates_start = dtstart if isinstance(dtstart, datetime.datetime) \
+            else datetime.datetime.combine(dtstart, datetime.datetime.min.time())
+
+        if not dates_start.tzinfo:
+            dates_start = local_to_utc(config.DEFAULT_TIMEZONE, dates_start)
+
+        try:
+            dtend = component.get('dtend').dt
+            if isinstance(dtend, datetime.datetime):
+                dates_end = dtend
+            else:  # Date only is non inclusive
+                dates_end = \
+                    (datetime.datetime.combine(dtend, datetime.datetime.max.time()) -
+                     datetime.timedelta(days=1)).replace(microsecond=0)
+            if not dates_end.tzinfo:
+                dates_end = local_to_utc(config.DEFAULT_TIMEZONE, dates_end)
+        except AttributeError:
+            dates_end = None
+
+        item['dates'] = {
+            'start': dates_start,
+            'end': dates_end,
+            'tz': ''
+        }
+
+        # set timezone info if date is a datetime
+        if isinstance(component.get('dtstart').dt, datetime.datetime):
+            item['dates']['tz'] = tzid_from_dt(component.get('dtstart').dt)
+
+    def parse_recurring_rules(self, item, component):
+        """Extracts ICS RRULE into the Event item
+
+        :param item: The Event item
+        :param component: An ICS VEVENT component
+        """
+
+        # parse ics RRULE to fit eventsML recurring_rule
+        r_rule = component.get('rrule')
+        if not isinstance(r_rule, vRecur):
+            return
+
+        r_rule_dict = vRecur.from_ical(r_rule)
+        recurring_rule: Dict[str, Union[str, int, datetime.date, datetime.datetime]] = {}
+
+        if r_rule.get('FREQ'):
+            recurring_rule['frequency'] = ''.join(r_rule_dict['FREQ'])
+        if len(r_rule.get('INTERVAL') or []):
+            recurring_rule['interval'] = r_rule_dict['INTERVAL'][0]
+        if len(r_rule.get('UNTIL') or []):
+            recurring_rule['until'] = r_rule_dict['UNTIL'][0]
+        if r_rule.get('COUNT'):
+            recurring_rule['count'] = r_rule_dict['COUNT']
+        if r_rule.get('BYMONTH'):
+            recurring_rule['bymonth'] = ' '.join(r_rule_dict['BYMONTH'])
+        if r_rule.get('BYDAY'):
+            recurring_rule['byday'] = ' '.join(r_rule_dict['BYDAY'])
+        if r_rule.get('BYHOUR'):
+            recurring_rule['byhour'] = ' '.join(r_rule_dict['BYHOUR'])
+        if r_rule.get('BYMIN'):
+            recurring_rule['bymin'] = ' '.join(r_rule_dict['BYMIN'])
+
+        if recurring_rule.get('count'):
+            recurring_rule['endRepeatMode'] = 'count'
+        elif recurring_rule.get('until'):
+            recurring_rule['endRepeatMode'] = 'until'
+
+            # If the `until` attribute is just a date
+            # then copy the time/tzinfo from `dates.end` attribute
+            if isinstance(recurring_rule['until'], datetime.date):
+                end_date = item['dates']['end']
+                recurring_rule['until'] = datetime.datetime.combine(
+                    recurring_rule['until'],
+                    end_date.time(),
+                    end_date.tzinfo
+                )
+        else:
+            # If the calendar does not provide an end date
+            # then set `count` to MAX_RECURRENT_EVENTS settings
+            recurring_rule['count'] = get_max_recurrent_events()
+            recurring_rule['endRepeatMode'] = 'count'
+
+        item['dates']['recurring_rule'] = recurring_rule
