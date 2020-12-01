@@ -1,6 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
+
+import {getUserInterfaceLanguage} from 'appConfig';
+
 import Modal from '../Modal';
 import {SelectInput, SelectUserInput} from '../UI/Form';
 import {gettext, planningUtils, getUsersForDesk, getDesksForUser} from '../../utils';
@@ -152,6 +155,8 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
     }
 
     render() {
+        const language = getUserInterfaceLanguage();
+
         return (
             <Modal
                 xLarge={true}
@@ -234,6 +239,7 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                                                         labelField="label"
                                                         keyField="qcode"
                                                         clearable={true}
+                                                        language={language}
                                                     />
                                                 </div>
                                             </div>

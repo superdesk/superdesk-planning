@@ -719,6 +719,7 @@ export class PlanningEditorComponent extends React.Component<IProps, IState> {
                         {...fieldProps}
                         onFocus={onFocusDetails}
                         popupContainer={popupContainer}
+                        language={diff.language}
                         {...popupProps}
                     />
 
@@ -732,6 +733,7 @@ export class PlanningEditorComponent extends React.Component<IProps, IState> {
                         {...fieldProps}
                         onFocus={onFocusPlanning}
                         popupContainer={popupContainer}
+                        language={diff.language}
                         {...popupProps}
                     />
 
@@ -762,6 +764,7 @@ export class PlanningEditorComponent extends React.Component<IProps, IState> {
                             {...fieldProps}
                             onFocus={onFocusDetails}
                             popupContainer={popupContainer}
+                            language={diff.language}
                             {...popupProps}
                         />
 
@@ -775,6 +778,7 @@ export class PlanningEditorComponent extends React.Component<IProps, IState> {
                                 {...fieldProps}
                                 onFocus={onFocusDetails}
                                 popupContainer={popupContainer}
+                                language={diff.language}
                                 {...popupProps}
                             />
                         )}

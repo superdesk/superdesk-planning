@@ -435,6 +435,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     readOnly={roFields.g2_content_type}
                     autoFocus={hasAssignment}
                     refNode={(ref) => this.dom.contentType = ref}
+                    language={diff.language}
                 />
 
                 <Field
@@ -482,6 +483,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     clearable={true}
                     defaultValue={contentTypeQcode === 'text' ? defaultGenre : null}
                     readOnly={roFields.genre}
+                    language={diff.language}
                     {...fieldProps}
                 />
 
@@ -555,6 +557,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     options={newsCoverageStatus}
                     {...fieldProps}
                     readOnly={roFields.newsCoverageStatus}
+                    language={diff.language}
                 />
 
                 <Field

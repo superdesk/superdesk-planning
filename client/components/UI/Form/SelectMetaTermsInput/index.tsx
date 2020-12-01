@@ -89,6 +89,7 @@ export class SelectMetaTermsInput extends React.Component {
             onPopupOpen,
             onPopupClose,
             maxLength,
+            language,
             ...props
         } = this.props;
         const options = this.removeValuesFromOptions();
@@ -133,10 +134,11 @@ export class SelectMetaTermsInput extends React.Component {
                         displayField={labelKey}
                         onClick={this.removeValue}
                         readOnly={readOnly}
+                        language={language}
                     />
                 </div>
 
-                { this.state.openSelectPopup && (
+                {this.state.openSelectPopup && (
                     <SelectFieldPopup
                         value={selected}
                         multiLevel={this.state.multiLevel}
@@ -154,6 +156,7 @@ export class SelectMetaTermsInput extends React.Component {
                         groupField={groupField}
                         onPopupOpen={onPopupOpen}
                         onPopupClose={onPopupClose}
+                        language={language}
                     />
                 )}
             </LineInput>
@@ -186,6 +189,7 @@ SelectMetaTermsInput.propTypes = {
     onPopupOpen: PropTypes.func,
     onPopupClose: PropTypes.func,
     maxLength: PropTypes.number,
+    language: PropTypes.string,
 };
 
 SelectMetaTermsInput.defaultProps = {
