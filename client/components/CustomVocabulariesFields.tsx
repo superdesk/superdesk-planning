@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
+import {getUserInterfaceLanguage} from 'appConfig';
 import {gettext} from '../utils';
 
 import {
@@ -12,7 +13,11 @@ import {
 export default function CustomVocabulariesFields(
     {customVocabularies, fieldProps, onFocusDetails, formProfile, popupProps, popupContainer}
 ) {
-    const {errors} = fieldProps;
+    const {
+        errors,
+        diff,
+    } = fieldProps;
+    const language = get(diff, 'language') || getUserInterfaceLanguage();
 
     return customVocabularies
         .filter((cv) => get(formProfile, `editor.${cv._id}.enabled`))
@@ -31,6 +36,7 @@ export default function CustomVocabulariesFields(
                 onFocus={onFocusDetails}
                 scheme={cv._id}
                 popupContainer={popupContainer}
+                language={language}
                 {...popupProps}
             />
         ));

@@ -1,6 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get, sortBy} from 'lodash';
+
+import {getUserInterfaceLanguage} from 'appConfig';
+
 import {gettext} from '../../utils';
 import {ContentBlock} from '../UI/SidePanel';
 import {MAIN, SPIKED_STATE} from '../../constants';
@@ -91,6 +94,7 @@ export class AdvancedSearch extends React.Component {
     }
 
     render() {
+        const language = getUserInterfaceLanguage();
         const {
             activeFilter,
             subjects,
@@ -172,6 +176,7 @@ export class AdvancedSearch extends React.Component {
                         value: get(diff, 'advancedSearch.state', []),
                         options: workflowStateOptions,
                         popupContainer: popupContainer,
+                        language: language,
                     },
                     component: SelectMetaTermsInput,
                     ...get(searchProfile, 'state'),
@@ -183,6 +188,7 @@ export class AdvancedSearch extends React.Component {
                         value: get(diff, 'advancedSearch.anpa_category', []),
                         options: categories,
                         popupContainer: popupContainer,
+                        language: language,
                     },
                     component: SelectMetaTermsInput,
                     ...get(searchProfile, 'anpa_category'),
@@ -194,6 +200,7 @@ export class AdvancedSearch extends React.Component {
                         value: get(diff, 'advancedSearch.subject', []),
                         options: subjects,
                         popupContainer: popupContainer,
+                        language: language,
                     },
                     component: SelectMetaTermsInput,
                     ...get(searchProfile, 'subject'),
@@ -205,6 +212,7 @@ export class AdvancedSearch extends React.Component {
                         value: get(diff, 'advancedSearch.source', []),
                         options: ingestProviders,
                         valueKey: 'id',
+                        language: language,
                     },
                     component: SelectMetaTermsInput,
                     ...get(searchProfile, 'source'),
@@ -248,6 +256,7 @@ export class AdvancedSearch extends React.Component {
                         options: contentTypes,
                         labelField: 'name',
                         clearable: true,
+                        language: language,
                     },
                     component: SelectInput,
                     ...get(searchProfile, 'content_type'),
@@ -333,6 +342,7 @@ export class AdvancedSearch extends React.Component {
                         options: locators,
                         popupContainer: popupContainer,
                         groupField: 'group',
+                        language: language,
                     },
                     component: SelectMetaTermsInput,
                     ...get(searchProfile, 'place'),

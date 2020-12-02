@@ -107,6 +107,7 @@ export class ScheduledUpdateForm extends React.Component {
                     options={genres}
                     labelField="name"
                     readOnly={true}
+                    language={diff.language}
                     {...fieldProps}
                 />
 
@@ -129,6 +130,7 @@ export class ScheduledUpdateForm extends React.Component {
                     options={newsCoverageStatus}
                     {...fieldProps}
                     readOnly={roFields.newsCoverageStatus}
+                    language={diff.language}
                 />
 
                 <Field
