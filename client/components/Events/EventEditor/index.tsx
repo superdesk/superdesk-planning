@@ -14,6 +14,7 @@ import {
     IFile,
     IFormNavigation,
     IFormItemManager,
+    ILocator,
 } from '../../../interfaces';
 
 import * as selectors from '../../../selectors';
@@ -60,7 +61,7 @@ interface IProps {
     languages: Array<string>;
     enabledCalendars: Array<ICalendar>;
     defaultCalendar: Array<ICalendar>;
-    locators: Array<any>; // TODO - Change to match code
+    locators: Array<ILocator>;
     categories: Array<IANPACategory>;
     subjects: Array<ISubject>;
     users: Array<IUser>;
@@ -111,6 +112,12 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 export class EventEditorComponent extends React.Component<IProps, IState> {
+    dom: {
+        initialFocus: any;
+        top: any;
+        contacts: any;
+    };
+
     constructor(props) {
         super(props);
 
@@ -390,6 +397,7 @@ export class EventEditorComponent extends React.Component<IProps, IState> {
                         {...fieldProps}
                         onFocus={onFocusEvent}
                         popupContainer={this.props.popupContainer}
+                        language={diff.language}
                         {...popupProps}
                     />
 
@@ -402,6 +410,7 @@ export class EventEditorComponent extends React.Component<IProps, IState> {
                         {...fieldProps}
                         onFocus={onFocusDetails}
                         popupContainer={this.props.popupContainer}
+                        language={diff.language}
                         {...popupProps}
                     />
 
@@ -435,6 +444,7 @@ export class EventEditorComponent extends React.Component<IProps, IState> {
                         options={occurStatuses}
                         {...fieldProps}
                         onFocus={onFocusEvent}
+                        language={diff.language}
                     />
 
                     <ToggleBox
@@ -456,6 +466,7 @@ export class EventEditorComponent extends React.Component<IProps, IState> {
                             {...fieldProps}
                             onFocus={onFocusDetails}
                             popupContainer={this.props.popupContainer}
+                            language={diff.language}
                             {...popupProps}
                         />
 
@@ -469,6 +480,7 @@ export class EventEditorComponent extends React.Component<IProps, IState> {
                                 {...fieldProps}
                                 onFocus={onFocusDetails}
                                 popupContainer={this.props.popupContainer}
+                                language={diff.language}
                                 {...popupProps}
                             />
                         )}

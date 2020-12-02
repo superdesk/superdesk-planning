@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
+import {getUserInterfaceLanguage} from 'appConfig';
+
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 import {gettext} from '../../../utils';
@@ -38,6 +40,8 @@ export class CreatePlanningComponent extends React.Component {
     }
 
     render() {
+        const language = getUserInterfaceLanguage();
+
         return (
             <FormRow noPadding>
                 <Label text={gettext('Agenda')} row={true} />
@@ -48,6 +52,7 @@ export class CreatePlanningComponent extends React.Component {
                     options={this.props.enabledAgendas}
                     valueKey="_id"
                     onChange={this.onChange}
+                    language={language}
                 />
             </FormRow>
         );

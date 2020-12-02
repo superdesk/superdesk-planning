@@ -1,6 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {pick, isEqual, cloneDeep, set, get} from 'lodash';
+
+import {getUserInterfaceLanguage} from 'appConfig';
+
 import {SlideInPanel, Form, ToggleBox} from '../UI';
 import {gettext, eventPlanningUtils} from '../../utils';
 import {SelectMetaTermsInput} from '../UI/Form';
@@ -99,6 +102,7 @@ export class EditFilter extends React.Component {
     }
 
     render() {
+        const language = getUserInterfaceLanguage();
         const {
             onClose,
             enabledCalendars,
@@ -146,6 +150,7 @@ export class EditFilter extends React.Component {
                                 popupContainer={this.getPopupContainer}
                                 invalid={get(errors, 'calendars.length', 0) > 0 && invalid}
                                 message={get(errors, 'calendars', '')}
+                                language={language}
                             />
                         </Form.Row>
                         <Form.Row>
@@ -160,6 +165,7 @@ export class EditFilter extends React.Component {
                                 popupContainer={this.getPopupContainer}
                                 invalid={get(errors, 'agendas.length', 0) > 0 && invalid}
                                 message={get(errors, 'agendas', '')}
+                                language={language}
                             />
                         </Form.Row>
                     </ToggleBox>
@@ -179,6 +185,7 @@ export class EditFilter extends React.Component {
                                 popupContainer={this.getPopupContainer}
                                 invalid={get(errors, 'places.length', 0) > 0 && invalid}
                                 message={get(errors, 'places', '')}
+                                language={language}
                             />
                         </Form.Row>
                     </ToggleBox>

@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {SearchBar} from '../../';
 import {differenceBy, get} from 'lodash';
 import {scrollListItemIfNeeded, onEventCapture, gettext} from '../../utils';
@@ -8,13 +7,45 @@ import './style.scss';
 
 import {Popup} from '../../Popup';
 import {KEYCODES} from '../../constants';
+import {getVocabularyItemFieldTranslated} from '../../../../utils/vocabularies';
+
+interface IProps {
+    options: Array<any>;
+    onCancel(): void;
+    onChange(option: any);
+    labelKey?: string; // defaults to 'name'
+    valueKey?: string; // defaults to 'qcode'
+    searchKey?: string; // defaults to 'name'
+    multiLevel?: boolean;
+    value: any;
+    target: string;
+    groupField?: string;
+    popupContainer(): HTMLElement;
+    onPopupOpen(): void;
+    onPopupClose(): void;
+    language?: string;
+}
+
+interface IState {
+    currentParent?: any;
+    selectedAncestry: Array<any>;
+    search: boolean;
+    activeOptionIndex: number;
+    filteredList: Array<any>;
+}
 
 /**
  * @ngdoc react
  * @name SelectFieldPopup
  * @description Popup component for SelectMetaTermsInput
  */
-export class SelectFieldPopup extends React.Component {
+export class SelectFieldPopup extends React.Component<IProps, IState> {
+    dom: {
+        root: any;
+        list: any;
+        search: any;
+    };
+
     constructor(props) {
         super(props);
 
@@ -23,6 +54,7 @@ export class SelectFieldPopup extends React.Component {
             selectedAncestry: [],
             search: false,
             activeOptionIndex: -1,
+            filteredList: [],
         };
 
         this.onKeyDown = this.onKeyDown.bind(this);
@@ -47,7 +79,7 @@ export class SelectFieldPopup extends React.Component {
             switch (event.keyCode) {
             case KEYCODES.ENTER:
                 onEventCapture(event);
-                this.handleEnterKey(event);
+                this.handleEnterKey();
                 break;
             case KEYCODES.DOWN:
                 onEventCapture(event);
@@ -55,7 +87,7 @@ export class SelectFieldPopup extends React.Component {
                 break;
             case KEYCODES.UP:
                 onEventCapture(event);
-                this.handleUpArrowKey(event);
+                this.handleUpArrowKey();
                 break;
             case KEYCODES.LEFT:
                 onEventCapture(event);
@@ -85,12 +117,12 @@ export class SelectFieldPopup extends React.Component {
         if (this.props.multiLevel) {
             if (this.state.activeOptionIndex !== -1) {
                 this.onSelect(this.state.filteredList[this.state.activeOptionIndex]);
-            } else if (this.state.filteredList.length == 1) {
+            } else if (this.state.filteredList.length === 1) {
                 this.onSelect(this.state.filteredList[0]);
             }
         } else if (this.state.activeOptionIndex !== -1) {
             this.onSelect(this.state.filteredList[this.state.activeOptionIndex]);
-        } else if (this.state.filteredList.length == 1) {
+        } else if (this.state.filteredList.length === 1) {
             this.onSelect(this.state.filteredList[0]);
         }
     }
@@ -107,7 +139,9 @@ export class SelectFieldPopup extends React.Component {
 
             this.setState({activeOptionIndex: 0});
         } else if (this.state.activeOptionIndex < this.state.filteredList.length - 1) {
-            this.setState({activeOptionIndex: this.state.activeOptionIndex + 1});
+            this.setState(
+                (state) => ({activeOptionIndex: state.activeOptionIndex + 1})
+            );
             scrollListItemIfNeeded(this.state.activeOptionIndex, this.dom.list);
         }
     }
@@ -129,7 +163,9 @@ export class SelectFieldPopup extends React.Component {
                 this.setState({activeOptionIndex: -1});
             }
         } else {
-            this.setState({activeOptionIndex: this.state.activeOptionIndex - 1});
+            this.setState(
+                (state) => ({activeOptionIndex: state.activeOptionIndex - 1})
+            );
             scrollListItemIfNeeded(this.state.activeOptionIndex, this.dom.list);
         }
     }
@@ -151,8 +187,9 @@ export class SelectFieldPopup extends React.Component {
      * @name SelectFieldPopup#getFilteredOptionList
      * @description getFilteredOptionList method to filter options list based on search text input
      */
-    getFilteredOptionList(currentParent, searchList) {
+    getFilteredOptionList(currentParent?: any, searchList?: Array<any>) {
         if (this.props.multiLevel) {
+            const valueKey = this.props.valueKey ?? 'qcode';
             let filteredList;
 
             if (searchList) {
@@ -160,7 +197,7 @@ export class SelectFieldPopup extends React.Component {
             } else {
                 filteredList = currentParent ?
                     this.props.options.filter((option) => (
-                        option.parent === get(currentParent, this.props.valueKey)
+                        option.parent === get(currentParent, valueKey)
                     ), this) :
                     this.props.options.filter((option) => !option.parent);
             }
@@ -176,14 +213,16 @@ export class SelectFieldPopup extends React.Component {
      * @description onMutiLevelSelect method handle selection of a parent option
      */
     onMutiLevelSelect(opt, keyDown = false) {
-        if (opt && !this.state.searchList && this.isOptionAParent(opt)) {
-            if (!this.state.selectedAncestry.find((o) => (opt[this.props.valueKey] === o[this.props.valueKey]))) {
-                this.setState({
+        if (opt && this.isOptionAParent(opt)) {
+            const valueKey = this.props.valueKey ?? 'qcode';
+
+            if (!this.state.selectedAncestry.find((o) => (opt[valueKey] === o[valueKey]))) {
+                this.setState((state) => ({
                     currentParent: opt,
-                    selectedAncestry: [...this.state.selectedAncestry, opt],
+                    selectedAncestry: [...state.selectedAncestry, opt],
                     filteredList: this.getFilteredOptionList(opt, null),
                     activeOptionIndex: 0,
-                });
+                }));
             }
         } else if (!keyDown) {
             this.onSelect(opt);
@@ -192,7 +231,7 @@ export class SelectFieldPopup extends React.Component {
 
     isOptionAParent(opt) {
         return this.props.options.filter((option) => (
-            option.parent === get(opt, this.props.valueKey)
+            option.parent === get(opt, this.props.valueKey ?? 'qcode')
         )).length > 0;
     }
 
@@ -211,17 +250,19 @@ export class SelectFieldPopup extends React.Component {
      * @description popParent method traverse up a parent level of options
      */
     popParent(keydown) {
-        const len = this.state.selectedAncestry.length;
-        const opt = len > 1 ? this.state.selectedAncestry[len - 2] : null;
-        const activeOption = keydown === true ? 0 : -1;
-
         onEventCapture(keydown);
 
-        this.setState({
-            currentParent: opt,
-            selectedAncestry: this.state.selectedAncestry.splice(0, len - 1),
-            filteredList: this.getFilteredOptionList(opt, null),
-            activeOptionIndex: activeOption,
+        this.setState((state) => {
+            const len = state.selectedAncestry.length;
+            const opt = len > 1 ? state.selectedAncestry[len - 2] : null;
+            const activeOption = keydown === true ? 0 : -1;
+
+            return {
+                currentParent: opt,
+                selectedAncestry: state.selectedAncestry.splice(0, len - 1),
+                filteredList: this.getFilteredOptionList(opt, null),
+                activeOptionIndex: activeOption,
+            };
         });
 
         return true;
@@ -238,13 +279,14 @@ export class SelectFieldPopup extends React.Component {
         }
 
         const valueNoCase = val.toLowerCase();
+        const searchKey = this.props.searchKey ?? 'name';
         let searchResults = this.props.options.filter((opt) => (
-            opt[this.props.searchKey].toLowerCase().substr(0, val.length) === valueNoCase ||
-                opt[this.props.searchKey].toLowerCase().indexOf(valueNoCase) >= 0
+            opt[searchKey].toLowerCase().substr(0, val.length) === valueNoCase ||
+                opt[searchKey].toLowerCase().indexOf(valueNoCase) >= 0
         ));
 
         if (this.props.multiLevel && this.props.value) {
-            searchResults = differenceBy(searchResults, this.props.value, this.props.valueKey);
+            searchResults = differenceBy(searchResults, this.props.value, this.props.valueKey ?? 'qcode');
         }
 
         this.setState({
@@ -290,7 +332,13 @@ export class SelectFieldPopup extends React.Component {
                             list[index]
                         )}
                     >
-                        <span>{get(opt, this.props.labelKey)}</span>
+                        <span>
+                            {getVocabularyItemFieldTranslated(
+                                opt,
+                                this.props.labelKey ?? 'name',
+                                this.props.language
+                            )}
+                        </span>
                     </button>
                 </li>
             ))
@@ -320,7 +368,7 @@ export class SelectFieldPopup extends React.Component {
                         {Object.keys(groupsList).map((g) => (
                             <li key={g}>
                                 <div className="Select__popup__group">{g}</div>
-                                {renderList(groupsList[g], g)}
+                                {renderList(groupsList[g], !!g)}
                             </li>
                         ))
                         }
@@ -364,7 +412,11 @@ export class SelectFieldPopup extends React.Component {
                                     onClick={this.chooseEntireCategory}
                                 >
                                     <div className="Select__popup__parent">
-                                        {get(this.state.currentParent, this.props.labelKey)}
+                                        {getVocabularyItemFieldTranslated(
+                                            this.state.currentParent,
+                                            this.props.labelKey ?? 'name',
+                                            this.props.language
+                                        )}
                                     </div>
                                     <div className="Select__popup__parent--choose">
                                         Choose entire category
@@ -399,8 +451,14 @@ export class SelectFieldPopup extends React.Component {
                                         false
                                     )}
                                 >
-                                    <span>{get(opt, this.props.labelKey)}</span>
-                                    { !this.state.search && this.isOptionAParent(opt) && (
+                                    <span>
+                                        {getVocabularyItemFieldTranslated(
+                                            opt,
+                                            this.props.labelKey ?? 'name',
+                                            this.props.language
+                                        )}
+                                    </span>
+                                    {!this.state.search && this.isOptionAParent(opt) && (
                                         <i className="icon-chevron-right-thin" />
                                     )}
                                 </button>
@@ -419,28 +477,3 @@ export class SelectFieldPopup extends React.Component {
         return this.props.multiLevel ? this.renderMultiLevelSelect() : this.renderSingleLevelSelect();
     }
 }
-
-SelectFieldPopup.propTypes = {
-    options: PropTypes.array.isRequired,
-    onCancel: PropTypes.func.isRequired,
-    onChange: PropTypes.func.isRequired,
-    labelKey: PropTypes.string,
-    valueKey: PropTypes.string,
-    searchKey: PropTypes.string,
-    multiLevel: PropTypes.bool,
-    value: PropTypes.arrayOf(PropTypes.shape({
-        label: PropTypes.string,
-        value: PropTypes.object,
-    })),
-    target: PropTypes.string,
-    groupField: PropTypes.string,
-    popupContainer: PropTypes.func,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
-};
-
-SelectFieldPopup.defaultProps = {
-    labelKey: 'name',
-    valueKey: 'qcode',
-    searchKey: 'name',
-};

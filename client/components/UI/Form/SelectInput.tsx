@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {LineInput, Label, Select} from './';
 import {get} from 'lodash';
+import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 
 /**
  * @ngdoc react
@@ -24,6 +25,7 @@ export const SelectInput = ({
     onFocus,
     placeholder,
     valueAsString,
+    language,
     ...props
 }) => {
     let key;
@@ -31,7 +33,7 @@ export const SelectInput = ({
     if (valueAsString) {
         key = clearable ?
             (value || '') :
-            get(value, keyField, get(options, `[0].${keyField}`));
+            value;
     } else {
         key = clearable ?
             get(value, keyField, '') :
@@ -40,7 +42,7 @@ export const SelectInput = ({
 
     const opts = options.map((opt) => ({
         key: get(opt, keyField),
-        label: get(opt, labelField),
+        label: getVocabularyItemFieldTranslated(opt, labelField, language),
     }));
 
     const onChangeHandler = (field, key) => {
@@ -110,6 +112,7 @@ SelectInput.propTypes = {
     refNode: PropTypes.func,
     onFocus: PropTypes.func,
     valueAsString: PropTypes.bool,
+    language: PropTypes.string,
 };
 
 SelectInput.defaultProps = {
