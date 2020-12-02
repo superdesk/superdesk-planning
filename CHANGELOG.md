@@ -1,6 +1,6 @@
 # Superdesk Planning Changelog
 
-## [1.33.2-rc.1] 2020-10-26
+## [1.33.2] 2020-12-03
 ### Features
 - None
 
@@ -8,7 +8,8 @@
 - [SDESK-5545] Add details to text_assignees for sport Outlook (#1490)
 
 ### Fixes
-- None
+- fix(XMP update) Write the assignment into the XMP file on create assignment (#1495)
+- Use icalendar>=4.0.3,<4.1 (#1502)
 
 ## [1.33.1] 2020-09-09
 ### Features
