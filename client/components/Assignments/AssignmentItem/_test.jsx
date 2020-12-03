@@ -138,7 +138,7 @@ describe('assignments', () => {
                 const priorityNode = wrapper.find('.priority-label').first();
 
                 expect(priorityNode.prop('data-sd-tooltip')).toBe(
-                    'Priority: Medium'
+                    'Priority: {{ name }}'
                 );
             });
 

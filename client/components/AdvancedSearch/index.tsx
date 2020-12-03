@@ -224,6 +224,8 @@ export class AdvancedSearch extends React.Component {
                         value: get(diff, 'advancedSearch.urgency', null),
                         options: urgencies,
                         iconName: 'urgency-label',
+                        language: language,
+                        clearable: true,
                     },
                     component: ColouredValueInput,
                     ...get(searchProfile, 'urgency'),
