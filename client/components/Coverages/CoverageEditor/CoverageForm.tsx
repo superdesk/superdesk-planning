@@ -136,8 +136,6 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
             openScheduledUpdates: [],
             uploading: false,
         };
-        this.filePath = 'value.planning.files';
-        this.xmpFilePath = 'value.planning.xmp_file';
         this.fullFilePath = `coverages[${this.props.index}].planning.files`;
         this.xmpFullFilePath = `coverages[${this.props.index}].planning.xmp_file`;
     }
@@ -188,7 +186,9 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     .minute(newValue.minute());
             } else {
                 // Set the date from the original date
-                finalValue = value.planning.scheduled.clone().hour(newValue.hour())
+                finalValue = moment(value.planning.scheduled)
+                    .clone()
+                    .hour(newValue.hour())
                     .minute(newValue.minute());
             }
         } else {
@@ -435,7 +435,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     readOnly={roFields.g2_content_type}
                     autoFocus={hasAssignment}
                     refNode={(ref) => this.dom.contentType = ref}
-                    language={diff.language}
+                    language={value.planning.language}
                 />
 
                 <Field
@@ -483,7 +483,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     clearable={true}
                     defaultValue={contentTypeQcode === 'text' ? defaultGenre : null}
                     readOnly={roFields.genre}
-                    language={diff.language}
+                    language={value.planning.language}
                     {...fieldProps}
                 />
 
@@ -557,7 +557,7 @@ export class CoverageFormComponent extends React.Component<IProps, IState> {
                     options={newsCoverageStatus}
                     {...fieldProps}
                     readOnly={roFields.newsCoverageStatus}
-                    language={diff.language}
+                    language={value.planning.language}
                 />
 
                 <Field

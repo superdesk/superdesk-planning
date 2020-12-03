@@ -2,6 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {isEqual, get} from 'lodash';
+
+import {getUserInterfaceLanguage} from 'appConfig';
+
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 import {ASSIGNMENTS} from '../../../constants';
@@ -127,6 +130,8 @@ export class EditPriorityComponent extends React.Component {
                         iconName="priority-label"
                         noMargin={true}
                         popupContainer={() => this.dom.popupContainer}
+                        language={getUserInterfaceLanguage()}
+                        clearable={true}
                     />
                 </Row>
 

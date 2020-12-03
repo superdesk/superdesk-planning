@@ -1,16 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import {gettext, stringUtils} from '../../../utils';
+import {getUserInterfaceLanguage} from 'appConfig';
+
+import {gettext, stringUtils, getItemInArrayById} from '../../../utils';
 
 import {get, keyBy} from 'lodash';
-import {UrgencyLabel, Label} from '../../';
+import {Label} from '../../';
+import {ColouredValueInput} from '../../UI/Form';
 import {AgendaNameList} from '../../Agendas';
 import {Row} from '../../UI/Preview';
 
-export const PlanningPreview = ({urgencyLabel, item, formProfile, agendas, urgencies}) => {
+export const PlanningPreview = ({item, formProfile, agendas, urgencies}) => {
     const agendaMap = keyBy(agendas, '_id');
     const agendaAssigned = (get(item, 'agendas') || []).map((agendaId) => get(agendaMap, agendaId));
+    const urgency = getItemInArrayById(urgencies, item.urgency, 'qcode');
 
     return (
         <div>
@@ -62,19 +66,18 @@ export const PlanningPreview = ({urgencyLabel, item, formProfile, agendas, urgen
                 value={stringUtils.convertNewlineToBreak(item.internal_note || '-')}
             />
 
-            <Row
-                enabled={get(formProfile, 'editor.urgency.enabled')}
-                label={gettext('Urgency')}
-            >
-                {get(item, 'urgency') ? (
-                    <UrgencyLabel
-                        item={item}
-                        urgencies={urgencies}
-                        label={urgencyLabel}
-                    />
-                ) : (
-                    <p>-</p>
-                )}
+            <Row enabled={get(formProfile, 'editor.urgency.enabled')}>
+                <ColouredValueInput
+                    value={urgency}
+                    label={gettext('Urgency')}
+                    iconName="urgency-label"
+                    readOnly={true}
+                    options={urgencies}
+                    row={true}
+                    language={getUserInterfaceLanguage()}
+                    borderBottom={false}
+                    noValueString={'-'}
+                />
             </Row>
 
             <Row
@@ -90,7 +93,6 @@ export const PlanningPreview = ({urgencyLabel, item, formProfile, agendas, urgen
 };
 
 PlanningPreview.propTypes = {
-    urgencyLabel: PropTypes.string,
     item: PropTypes.object,
     formProfile: PropTypes.object,
     agendas: PropTypes.array,

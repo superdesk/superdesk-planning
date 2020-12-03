@@ -2,6 +2,8 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
+import {getUserInterfaceLanguage} from 'appConfig';
+
 import {IDesk, IUser, IVocabulary} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 import {
@@ -127,11 +129,11 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
 
         const agendaList = get(item, 'agendas.length', 0) === 0 ? [] :
             item.agendas.map((a) => getItemInArrayById(agendas, a));
-        const placeText = get(item, 'place.length', 0) === 0 ? '' :
+        const placeText = get(item, 'place.length', 0) === 0 ? '-' :
             item.place.map((c) => c.name).join(', ');
-        const categoryText = get(item, 'anpa_category.length', 0) === 0 ? '' :
+        const categoryText = get(item, 'anpa_category.length', 0) === 0 ? '-' :
             item.anpa_category.map((c) => c.name).join(', ');
-        const subjectText = get(item, 'subject.length', 0) === 0 ? '' :
+        const subjectText = get(item, 'subject.length', 0) === 0 ? '-' :
             item.subject.map((s) => s.name).join(', ');
 
         const hasCoverage = get(item, 'coverages.length', 0) > 0;
@@ -170,28 +172,28 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                 <Row
                     enabled={formProfile?.planning?.editor?.language?.enabled}
                     label={gettext('Language')}
-                    value={item.language || ''}
+                    value={item.language || '-'}
                 />
                 <Row
                     enabled={get(formProfile, 'planning.editor.slugline.enabled')}
                     label={gettext('Slugline')}
-                    value={item.slugline || ''}
+                    value={item.slugline || '-'}
                     className="slugline"
                 />
                 <Row
                     enabled={get(formProfile, 'planning.editor.headline.enabled')}
                     label={gettext('Headline')}
-                    value={item.headline || ''}
+                    value={item.headline || '-'}
                 />
                 <Row
                     enabled={get(formProfile, 'planning.editor.name.enabled')}
                     label={gettext('Name')}
-                    value={item.name || ''}
+                    value={item.name || '-'}
                 />
                 <Row
                     enabled={get(formProfile, 'planning.editor.planning_date.enabled')}
                     label={gettext('Planning Date')}
-                    value={planningUtils.getDateStringForPlanning(item) || ''}
+                    value={planningUtils.getDateStringForPlanning(item) || '-'}
                 />
                 <Row
                     enabled={get(formProfile, 'planning.editor.description_text.enabled')}
@@ -207,7 +209,7 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                 <Row
                     enabled={get(formProfile, 'planning.editor.place.enabled')}
                     label={gettext('Place')}
-                    value={placeText || ''}
+                    value={placeText || '-'}
                 />
                 <Row
                     enabled={get(formProfile, 'planning.editor.agendas.enabled')}
@@ -223,13 +225,13 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                     <Row
                         enabled={get(formProfile, 'planning.editor.anpa_category.enabled')}
                         label={gettext('ANPA Category')}
-                        value={categoryText || ''}
+                        value={categoryText || '-'}
                     />
                     {!!get(formProfile, 'planning.editor.subject.enabled') && (
                         <Row
                             enabled={get(formProfile, 'planning.editor.subject.enabled')}
                             label={gettext('Subject')}
-                            value={subjectText || ''}
+                            value={subjectText || '-'}
                         />
                     )}
                     <CustomVocabulariesPreview customVocabularies={customVocabularies} item={item} />
@@ -241,6 +243,7 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                             readOnly={true}
                             options={urgencies}
                             row={true}
+                            language={getUserInterfaceLanguage()}
                             borderBottom={false}
                         />
                     </Row>

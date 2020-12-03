@@ -802,6 +802,8 @@ export class PlanningEditorComponent extends React.Component<IProps, IState> {
                             defaultValue={null}
                             {...fieldProps}
                             onFocus={onFocusDetails}
+                            language={diff.language}
+                            clearable={true}
                             {...popupProps}
                         />
 
