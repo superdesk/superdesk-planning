@@ -1,14 +1,38 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import classNames from 'classnames';
 
 import {gettext, onEventCapture} from '../../utils';
+import {getVocabularyItemFieldTranslated} from '../../../../utils/vocabularies';
 import {KEYCODES} from '../../constants';
 
 import {Popup, Header, Content, Label} from '../../Popup';
 
 import './style.scss';
+
+interface IProps {
+    title: string;
+    options: Array<any>
+    clearable?: boolean;
+    labelKey?: string; // Defaults to 'name'
+    valueKey?: string; // Defaults to 'qcode'
+    language?: string;
+
+    // Input events
+    onChange(option: any): void;
+    onCancel(): void;
+    getClassNamesForOption(option: any): string;
+
+    // Popup target element & callbacks
+    target: string;
+    popupContainer(): HTMLElement;
+    onPopupOpen(): void;
+    onPopupClose(): void;
+}
+
+interface IState {
+    activeIndex: number;
+}
 
 
 /**
@@ -16,7 +40,7 @@ import './style.scss';
  * @name ColouredValuePopup
  * @description Popup component to show color coded options
  */
-export class ColouredValuePopup extends React.PureComponent {
+export class ColouredValuePopup extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
         this.onKeyDown = this.onKeyDown.bind(this);
@@ -87,11 +111,12 @@ export class ColouredValuePopup extends React.PureComponent {
             onChange,
             getClassNamesForOption,
             options,
-            labelKey,
-            valueKey,
+            labelKey = 'name',
+            valueKey = 'qcode',
             popupContainer,
             onPopupOpen,
             onPopupClose,
+            language,
         } = this.props;
 
         return (
@@ -112,7 +137,7 @@ export class ColouredValuePopup extends React.PureComponent {
 
                 <Content noPadding={true}>
                     <ul>
-                        {clearable && (
+                        {!clearable ? null : (
                             <li>
                                 <button
                                     type="button"
@@ -135,8 +160,13 @@ export class ColouredValuePopup extends React.PureComponent {
                                         'select-coloured-value__popup--activeElement': this.state.activeIndex === index,
                                     })}
                                 >
-                                    <span className={getClassNamesForOption(opt)}>{get(opt, valueKey, '')}</span>
-                                    &nbsp;&nbsp;{get(opt, labelKey, '')}
+                                    <span
+                                        className={getClassNamesForOption(opt)}
+                                        style={{backgroundColor: opt.color}}
+                                    >
+                                        {get(opt, valueKey, '')}
+                                    </span>
+                                    &nbsp;&nbsp;{getVocabularyItemFieldTranslated(opt, labelKey, language)}
                                 </button>
                             </li>
                         ))}
@@ -146,27 +176,3 @@ export class ColouredValuePopup extends React.PureComponent {
         );
     }
 }
-
-ColouredValuePopup.propTypes = {
-    onChange: PropTypes.func,
-    onCancel: PropTypes.func,
-    title: PropTypes.string,
-    options: PropTypes.arrayOf(PropTypes.shape({
-        label: PropTypes.string,
-        value: PropTypes.object,
-    })).isRequired,
-    getClassNamesForOption: PropTypes.func,
-    clearable: PropTypes.bool,
-    target: PropTypes.string.isRequired,
-
-    labelKey: PropTypes.string,
-    valueKey: PropTypes.string,
-    popupContainer: PropTypes.func,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
-};
-
-ColouredValuePopup.defaultProps = {
-    labelKey: 'name',
-    valueKey: 'qcode',
-};

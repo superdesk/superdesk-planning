@@ -113,7 +113,7 @@ describe('<AssignmentPreviewContainer />', () => {
             expect(topTools.contains(
                 <span
                     className="priority-label priority-label--1 sd-list-item__inline-icon"
-                    data-sd-tooltip="Priority: High"
+                    data-sd-tooltip="Priority: {{ name }}"
                     data-flow="right"
                 >
                     {1}

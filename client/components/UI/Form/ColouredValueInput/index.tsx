@@ -1,20 +1,49 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import classNames from 'classnames';
 import {get} from 'lodash';
 
 import {gettext} from '../../utils';
 
-
 import {LineInput, Label} from '../';
 import {ColouredValuePopup} from './ColouredValuePopup';
+import {getVocabularyItemFieldTranslated} from '../../../../utils/vocabularies';
+
+interface IProps {
+    value: any;
+    label: string;
+    labelKey?: string; // defaults to 'name'
+    valueKey?: string; // defaults to 'qcode'
+    field: string;
+    options: Array<any>
+    readOnly?: boolean;
+    required?: boolean;
+    labelLeft?: boolean;
+    clearable?: boolean;
+    noMargin?: string;
+    iconName: string;
+    row?: boolean;
+    noValueString?: string
+    language?: string;
+
+    // Input events
+    onChange(field: string, value: any): void;
+    onFocus?(): void;
+
+    // Popup callbacks
+    popupContainer(): HTMLElement;
+    onPopupOpen?(): void;
+    onPopupClose?(): void;
+}
+
+interface IState {
+    openPopup: boolean;
+}
 
 /**
  * @ngdoc react
  * @name ColouredValueInput
  * @description Component to show color coded values. Eg. Urgency / Priority
  */
-export class ColouredValueInput extends React.Component {
+export class ColouredValueInput extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
         this.state = {openPopup: false};
@@ -40,13 +69,27 @@ export class ColouredValueInput extends React.Component {
      * @returns {string} Icon class-name
      */
     getIconClasses(val) {
-        return val ? classNames('line-input',
-            this.props.iconName,
-            this.props.iconName + '--' + get(val, this.props.valueKey, get(val, this.props.labelKey))) : 'line-input';
+        if (val) {
+            const iconName = this.props.iconName;
+            const icon = get(
+                val,
+                this.props.valueKey ?? 'qcode',
+                get(val, this.props.labelKey ?? 'name')
+            );
+
+            return `line-input ${iconName} ${iconName}--${icon}`;
+        }
+
+        return 'line-input';
     }
 
     onChange(value) {
-        this.props.onChange(this.props.field, get(value, this.props.valueKey) ? value : null);
+        this.props.onChange(
+            this.props.field,
+            get(value, this.props.valueKey ?? 'qcode') ?
+                value :
+                null
+        );
         this.togglePopup();
     }
 
@@ -59,15 +102,18 @@ export class ColouredValueInput extends React.Component {
             labelLeft,
             clearable,
             options,
-            labelKey,
-            valueKey,
+            labelKey = 'name',
+            valueKey = 'qcode',
             noMargin,
             popupContainer,
             row,
             noValueString,
             onFocus,
+            language,
             ...props
         } = this.props;
+
+        const text = getVocabularyItemFieldTranslated(value ?? {}, labelKey, language) ?? '';
 
         return (
             <LineInput
@@ -81,11 +127,14 @@ export class ColouredValueInput extends React.Component {
                 <Label text={label} row={row} light={row && readOnly} />
                 {readOnly ? (
                     <LineInput labelLeft={labelLeft} className="select-coloured-value__input">
-                        <span className={this.getIconClasses(value)}>
+                        <span
+                            className={this.getIconClasses(value)}
+                            style={{backgroundColor: value?.color}}
+                        >
                             {get(value, valueKey, get(value, labelKey, noValueString || gettext('None')))}
                         </span>
                         <span>
-                        &nbsp;&nbsp;{get(value, labelKey, '')}
+                        &nbsp;&nbsp;{text}
                         </span>
                     </LineInput>
                 ) : (
@@ -95,10 +144,13 @@ export class ColouredValueInput extends React.Component {
                         onClick={this.togglePopup}
                         onFocus={onFocus}
                     >
-                        <span className={this.getIconClasses(value)}>
+                        <span
+                            className={this.getIconClasses(value)}
+                            style={{backgroundColor: value?.color}}
+                        >
                             {get(value, valueKey, get(value, labelKey, noValueString || gettext('None')))}
                         </span>
-                        &nbsp;&nbsp;{get(value, labelKey, '')}
+                        &nbsp;&nbsp;{text}
                         <b className="dropdown__caret" />
                     </button>
                 )}
@@ -117,44 +169,10 @@ export class ColouredValueInput extends React.Component {
                         popupContainer={popupContainer}
                         onPopupOpen={props.onPopupOpen}
                         onPopupClose={props.onPopupClose}
+                        language={language}
                     />
                 )}
             </LineInput>
         );
     }
 }
-
-ColouredValueInput.propTypes = {
-    options: PropTypes.arrayOf(PropTypes.shape({
-        label: PropTypes.string,
-        value: PropTypes.object,
-    })).isRequired,
-    readOnly: PropTypes.bool,
-    iconName: PropTypes.string.isRequired,
-    required: PropTypes.bool,
-    labelLeft: PropTypes.bool,
-    clearable: PropTypes.bool,
-
-    field: PropTypes.string,
-    label: PropTypes.string,
-    value: PropTypes.object,
-    onChange: PropTypes.func,
-    labelKey: PropTypes.string,
-    valueKey: PropTypes.string,
-    noMargin: PropTypes.bool,
-    popupContainer: PropTypes.func,
-    row: PropTypes.bool,
-    noValueString: PropTypes.string,
-    onFocus: PropTypes.func,
-};
-
-ColouredValueInput.defaultProps = {
-    required: false,
-    labelLeft: false,
-    clearable: true,
-    labelKey: 'name',
-    valueKey: 'qcode',
-    noMargin: false,
-    readOnly: false,
-    row: false,
-};
