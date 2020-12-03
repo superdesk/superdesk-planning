@@ -438,6 +438,10 @@ planning_types_schema = {
         'schema': {
             'type': 'string'
         }
+    },
+
+    'init_version': {
+        'type': 'integer',
     }
 }
 
