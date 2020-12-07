@@ -1,5 +1,18 @@
 # Superdesk Planning Changelog
 
+## [2.0.1-rc1] 2020-12-04
+### Features
+- None
+
+### Improvements
+- None
+
+### Fixes
+- fix(init): Add init_version to planning_types
+- [SDESK-5654] fix(ingest): ICS failure due to Eve changes (#1498)
+- [SDAN-680] fix updating of events in newshub (#1499)
+- [SDESK-5611] fix: Create from assignment fails to override template values (#1493)
+
 ## [2.0.0] 2020-10-28
 ### Features
 - None
