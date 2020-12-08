@@ -2,6 +2,14 @@ import moment from 'moment-timezone';
 import {get, set, isNil, uniq, sortBy, isEmpty, cloneDeep, isArray, find, flatten} from 'lodash';
 
 import {appConfig} from 'appConfig';
+import {IDesk, IArticle, IUser} from 'superdesk-api';
+import {
+    IPlanningItem,
+    IEventItem,
+    IPlanningCoverageItem,
+    IPlanningNewsCoverageStatus,
+    IG2ContentType,
+} from '../interfaces';
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
 import {
@@ -554,11 +562,22 @@ const modifyCoverageForClient = (coverage) => {
     return coverage;
 };
 
-const createNewPlanningFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, desk, user, contentTypes) => {
-    const newCoverage = self.createCoverageFromNewsItem(addNewsItemToPlanning, newsCoverageStatus,
-        desk, user, contentTypes);
+const createNewPlanningFromNewsItem = (
+    addNewsItemToPlanning: IArticle,
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
+    desk: IDesk['_id'],
+    user: IUser['_id'],
+    contentTypes: Array<IG2ContentType>
+) => {
+    const newCoverage = self.createCoverageFromNewsItem(
+        addNewsItemToPlanning,
+        newsCoverageStatus,
+        desk,
+        user,
+        contentTypes
+    );
 
-    let newPlanning = {
+    let newPlanning: Partial<IPlanningItem> = {
         type: ITEM_TYPE.PLANNING,
         slugline: addNewsItemToPlanning.slugline,
         headline: get(addNewsItemToPlanning, 'headline'),
@@ -569,6 +588,7 @@ const createNewPlanningFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus
         urgency: get(addNewsItemToPlanning, 'urgency'),
         description_text: stripHtmlRaw(get(addNewsItemToPlanning, 'abstract', '')),
         coverages: [newCoverage],
+        language: addNewsItemToPlanning.language,
     };
 
     if (get(addNewsItemToPlanning, 'flags.marked_for_not_publication')) {
@@ -582,7 +602,13 @@ const createNewPlanningFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus
     return newPlanning;
 };
 
-const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, desk, user, contentTypes) => {
+const createCoverageFromNewsItem = (
+    addNewsItemToPlanning: IArticle,
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
+    desk: IDesk['_id'],
+    user: IUser['_id'],
+    contentTypes: Array<IG2ContentType>
+): Partial<IPlanningCoverageItem> => {
     let newCoverage = self.defaultCoverageValues(newsCoverageStatus);
 
     newCoverage.workflow_status = COVERAGES.WORKFLOW_STATE.ACTIVE;
@@ -599,6 +625,10 @@ const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, d
         scheduled: moment().add(1, 'hour')
             .startOf('hour'),
     };
+
+    if (addNewsItemToPlanning.language != null) {
+        newCoverage.planning.language = addNewsItemToPlanning.language;
+    }
 
     if ([WORKFLOW_STATE.SCHEDULED, 'published'].includes(addNewsItemToPlanning.state)) {
         newCoverage.planning.scheduled = get(addNewsItemToPlanning, 'schedule_settings.utc_publish_schedule') ?
@@ -919,13 +949,14 @@ const defaultPlanningValues = (currentAgenda, defaultPlaceList) => {
 const getDefaultCoverageStatus = (newsCoverageStatus) => newsCoverageStatus[0];
 
 const defaultCoverageValues = (
-    newsCoverageStatus,
-    planningItem,
-    eventItem,
-    g2contentType,
-    defaultDesk,
-    preferredCoverageDesks) => {
-    let newCoverage = {
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
+    planningItem?: IPlanningItem,
+    eventItem?: IEventItem,
+    g2contentType?: string,
+    defaultDesk?: IDesk,
+    preferredCoverageDesks?: {[key: string]: IDesk['_id']},
+): Partial<IPlanningCoverageItem> => {
+    let newCoverage: Partial<IPlanningCoverageItem> = {
         coverage_id: generateTempId(),
         planning: {
             slugline: get(planningItem, 'slugline'),
@@ -933,6 +964,7 @@ const defaultCoverageValues = (
             ednote: get(planningItem, 'ednote'),
             scheduled: get(planningItem, 'planning_date', moment()),
             g2_content_type: g2contentType,
+            language: planningItem?.language ?? eventItem?.language,
         },
         news_coverage_status: getDefaultCoverageStatus(newsCoverageStatus),
         workflow_status: WORKFLOW_STATE.DRAFT,

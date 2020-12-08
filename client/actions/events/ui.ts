@@ -2,6 +2,7 @@ import {get} from 'lodash';
 import moment from 'moment-timezone';
 
 import {appConfig} from 'appConfig';
+import {IPlanningItem, IEventItem} from '../../interfaces';
 
 import {showModal, main, locks, addEventToCurrentAgenda} from '../index';
 import {EVENTS, MODALS, SPIKED_STATE, MAIN, ITEM_TYPE, POST_STATE} from '../../constants';
@@ -718,7 +719,7 @@ const receiveEventHistory = (eventHistoryItems) => ({
  * Action to create a new Event from an existing Planning item
  * @param {object} plan - The Planning item to creat the Event from
  */
-const createEventFromPlanning = (plan) => (
+const createEventFromPlanning = (plan: IPlanningItem) => (
     (dispatch, getState) => {
         const defaultDurationOnChange = selectors.forms.defaultEventDuration(getState());
         const occurStatuses = selectors.vocabs.eventOccurStatuses(getState());
@@ -728,7 +729,7 @@ const createEventFromPlanning = (plan) => (
             name: 'Unplanned event',
         };
         const eventProfile = selectors.forms.eventProfile(getState());
-        const newEvent = {
+        const newEvent: Partial<IEventItem> = {
             dates: {
                 start: moment(plan.planning_date).clone(),
                 end: moment(plan.planning_date)
@@ -745,6 +746,7 @@ const createEventFromPlanning = (plan) => (
             place: plan.place,
             occur_status: unplannedStatus,
             _planning_item: plan._id,
+            language: plan.language,
         };
 
         if (get(eventProfile, 'editor.slugline.enabled', false)) {

@@ -1,5 +1,9 @@
 import * as selectors from '../selectors';
 import {cloneDeep, pick, get, sortBy, findIndex} from 'lodash';
+import {Moment} from 'moment';
+
+import {IEventItem, IPlanningItem, IAgenda} from '../interfaces';
+
 import {AGENDA, MODALS, EVENTS} from '../constants';
 import {getErrorMessage, gettext, planningUtils} from '../utils';
 import {planning, showModal, main} from './index';
@@ -175,8 +179,13 @@ const askForAddEventToCurrentAgenda = (events) => (
  * @param {boolean} openInEditor - If true, opens the new Planning item in the Editor
  * @return Promise
  */
-const addEventToCurrentAgenda = (events, planningDate = null, openInEditor = false,
-    agendas = null, openInModal = false) => (
+const addEventToCurrentAgenda = (
+    events: Array<IEventItem>,
+    planningDate: Moment = null,
+    openInEditor: boolean = false,
+    agendas: Array<IAgenda> = null,
+    openInModal: boolean = false
+) => (
     (dispatch, getState, {notify}) => {
         let updatesAgendas = get(agendas, 'length', 0) > 0 ? agendas.map((a) => a._id) : [];
         let eventsList = events;
@@ -235,8 +244,12 @@ const addEventToCurrentAgenda = (events, planningDate = null, openInEditor = fal
  * @param {object} planningDate - The date to set for the new Planning item
  * @return Promise
  */
-const createPlanningFromEvent = (event, planningDate, agendas = []) => (
-    (dispatch, getState, {notify}) => (
+const createPlanningFromEvent = (
+    event: IEventItem,
+    planningDate: Moment = null,
+    agendas: Array<string> = []
+) => (
+    (dispatch) => (
         dispatch(planning.api.save({}, {
             event_item: event._id,
             slugline: event.slugline,
@@ -249,6 +262,7 @@ const createPlanningFromEvent = (event, planningDate, agendas = []) => (
             description_text: event.definition_short,
             ednote: event.ednote,
             agendas: agendas,
+            language: event.language,
         }))
     )
 );
