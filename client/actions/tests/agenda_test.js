@@ -343,6 +343,7 @@ describe('agenda', () => {
                                 }],
                                 internal_note: 'internal note',
                                 ednote: 'Editorial note about this Event',
+                                language: undefined,
                             },
                         ]);
 

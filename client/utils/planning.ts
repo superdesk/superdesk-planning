@@ -624,8 +624,11 @@ const createCoverageFromNewsItem = (
         ednote: get(addNewsItemToPlanning, 'ednote', ''),
         scheduled: moment().add(1, 'hour')
             .startOf('hour'),
-        language: addNewsItemToPlanning.language,
     };
+
+    if (addNewsItemToPlanning.language != null) {
+        newCoverage.planning.language = addNewsItemToPlanning.language;
+    }
 
     if ([WORKFLOW_STATE.SCHEDULED, 'published'].includes(addNewsItemToPlanning.state)) {
         newCoverage.planning.scheduled = get(addNewsItemToPlanning, 'schedule_settings.utc_publish_schedule') ?
