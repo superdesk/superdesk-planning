@@ -332,8 +332,8 @@ export interface ICoveragePlanningDetails {
     contact_info: string;
     item_class: string;
     item_count: string;
-    scheduled: string | Date;
-    _scheduledTime: string;
+    scheduled: string | Date | moment.Moment;
+    _scheduledTime: string | Date | moment.Moment;
     files: Array<string>;
     xmp_file: string;
     service: Array<{
@@ -458,10 +458,10 @@ export interface IPlanningItem {
         scheduled_update_id: string;
         scheduled: string | Date;
     }>;
-    planning_date: string | Date;
-    flags: {
-        marked_for_not_publication: boolean;
-        overide_auto_assign_to_workflow: boolean;
+    planning_date: string | Date | moment.Moment;
+    flags?: {
+        marked_for_not_publication?: boolean;
+        overide_auto_assign_to_workflow?: boolean;
     };
     pubstatus: IPlanningPubstatus;
     revert_state: ITEM_STATE;
