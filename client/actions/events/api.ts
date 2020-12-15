@@ -3,6 +3,7 @@ import moment from 'moment';
 
 import {ISearchSpikeState, IEventSearchParams} from '../../interfaces';
 import {appConfig} from 'appConfig';
+import {planningApis} from '../../api';
 
 import {
     EVENTS,
@@ -22,13 +23,12 @@ import {
     isPublishedItemId,
     isTemporaryId,
     gettext,
+    getTimeZoneOffset,
 } from '../../utils';
-import * as elastic from '../../utils/elastic';
 
 import planningApi from '../planning/api';
 import eventsUi from './ui';
 import main from '../main';
-import {constructEventsSearchQuery} from './search';
 
 /**
  * Action dispatcher to load a series of recurring events into the local store.
@@ -41,20 +41,20 @@ import {constructEventsSearchQuery} from './search';
  */
 const loadEventsByRecurrenceId = (
     rid: string,
-    spikeState: ISearchSpikeState = SPIKED_STATE.BOTH,
+    spikeState: ISearchSpikeState = 'both',
     page: number = 1,
     maxResults: number = 25,
     loadToStore: boolean = true
 ) => (
     (dispatch) => (
-        dispatch(self.query({
-            recurrenceId: rid,
-            spikeState: spikeState,
+        planningApis.events.search({
+            recurrence_id: rid,
+            spike_state: spikeState,
             page: page,
-            maxResults: maxResults,
-            onlyFuture: false,
-            includeKilled: true,
-        }))
+            max_results: maxResults,
+            only_future: false,
+            include_killed: true,
+        })
             .then((items) => {
                 if (loadToStore) {
                     dispatch(self.receiveEvents(items));
@@ -130,7 +130,7 @@ const unspike = (events) => (
  * @param {boolean} storeTotal - True to store total in the store
  * @return arrow function
  */
-const query = (
+function query(
     {
         calendars,
         noCalendarAssigned = false,
@@ -138,16 +138,15 @@ const query = (
         fulltext,
         ids,
         recurrenceId,
-        spikeState = SPIKED_STATE.NOT_SPIKED,
+        spikeState = 'draft',
         onlyFuture = true,
         page = 1,
         maxResults = MAIN.PAGE_SIZE,
         includeKilled = false,
-
     }: IEventSearchParams,
     storeTotal = false
-) => (
-    (dispatch, getState, {api}) => {
+) {
+    return (dispatch) => {
         let itemIds = [];
 
         if (ids) {
@@ -175,41 +174,45 @@ const query = (
             }
         }
 
-        const startOfWeek = appConfig.start_of_week;
-        const sourceQuery = constructEventsSearchQuery({
-            calendars,
-            noCalendarAssigned,
-            advancedSearch,
-            fulltext,
-            recurrenceId,
-            spikeState,
-            onlyFuture,
-            itemIds,
-            startOfWeek,
-            includeKilled,
-        });
-
-        // Query the API and sort by date
-        return api('events').query({
+        return planningApis.events.search({
+            item_ids: itemIds,
+            name: advancedSearch?.name,
+            tz_offset: getTimeZoneOffset(),
+            full_text: fulltext,
+            anpa_category: advancedSearch.anpa_category,
+            subject: advancedSearch.subject,
+            posted: advancedSearch.posted,
+            place: advancedSearch.place,
+            language: advancedSearch.language,
+            state: advancedSearch.state,
+            spike_state: spikeState,
+            include_killed: includeKilled,
+            date_filter: advancedSearch?.dates?.range,
+            start_date: advancedSearch?.dates?.start,
+            end_date: advancedSearch?.dates?.end,
+            start_of_week: appConfig.start_of_week,
+            slugline: advancedSearch?.slugline,
+            recurrence_id: recurrenceId,
+            reference: advancedSearch?.reference,
+            source: advancedSearch?.source,
+            location: typeof advancedSearch.location === 'string' ?
+                advancedSearch.location :
+                advancedSearch.location?.name,
+            calendars: calendars,
+            no_calendar_assigned: noCalendarAssigned,
+            only_future: onlyFuture,
             page: page,
             max_results: maxResults,
-            sort: '[("dates.start",1)]',
-            source: JSON.stringify(sourceQuery),
         })
-        // convert dates to moment objects
-            .then((data) => {
-                const results = {
-                    ...data,
-                    _items: data._items.map((item) => eventUtils.modifyForClient(item)),
-                };
-
+            .then((response) => {
                 if (storeTotal) {
-                    dispatch(main.setTotal(MAIN.FILTERS.EVENTS, get(data, '_meta.total')));
+                    dispatch(main.setTotal(MAIN.FILTERS.EVENTS, response._meta?.total ?? 0));
                 }
-                return get(results, '_items');
-            });
-    }
-);
+
+                return response._items;
+            }, (error) => Promise.reject(error));
+    };
+}
 
 /**
  * Action Dispatcher to re-fetch the current list of events
@@ -248,8 +251,12 @@ const refetch = (skipEvents = []) => (
  * @param {boolean} loadPlannings - If true, loads associated Planning items as well
  * @param {boolean} loadEvents - If true, also loads all Events in the series
  */
-const loadRecurringEventsAndPlanningItems = (event, loadPlannings = true,
-    loadEvents = true, loadEveryRecurringPlanning = false) => (
+const loadRecurringEventsAndPlanningItems = (
+    event,
+    loadPlannings = true,
+    loadEvents = true,
+    loadEveryRecurringPlanning = false
+) => (
     (dispatch, getState) => {
         if (get(event, 'recurrence_id') && loadEvents) {
             return dispatch(self.loadEventsByRecurrenceId(
@@ -266,14 +273,11 @@ const loadRecurringEventsAndPlanningItems = (event, loadPlannings = true,
                     });
                 }
 
-                return dispatch(planningApi.loadPlanningByRecurrenceId(
-                    event.recurrence_id,
-                    false
-                ))
-                    .then((plannings) => (
+                return planningApis.planning.search({recurrence_id: event.recurrence_id})
+                    .then((response) => (
                         Promise.resolve({
                             events: relatedEvents,
-                            plannings: plannings,
+                            plannings: response._items,
                         })
                     ), (error) => Promise.reject(error));
             }, (error) => Promise.reject(error));
@@ -339,24 +343,6 @@ const loadAssociatedPlannings = (event) => (
 
         return dispatch(planningApi.loadPlanningByEventId(event._id));
     }
-);
-
-/**
- * Action dispatcher to query the API for all Events that are currently locked
- * @return Array of locked Events
- */
-const queryLockedEvents = () => (
-    (dispatch, getState, {api}) => (
-        api('events').query({
-            source: JSON.stringify({
-                query: elastic.fieldExists('lock_session'),
-            }),
-        })
-            .then(
-                (data) => Promise.resolve(data._items),
-                (error) => Promise.reject(error)
-            )
-    )
 );
 
 /**
@@ -469,22 +455,22 @@ const unlock = (event) => (
  * @param {boolean} saveToStore - If true, save the Event in the Redux store
  * @return arrow function
  */
-const silentlyFetchEventsById = (ids, spikeState = SPIKED_STATE.NOT_SPIKED, saveToStore = true) => (
-    (dispatch, getState, {api}) => (
+const silentlyFetchEventsById = (ids, spikeState: ISearchSpikeState = 'draft', saveToStore = true) => (
+    (dispatch) => (
         new Promise((resolve, reject) => {
             if (Array.isArray(ids)) {
-                dispatch(self.query({
+                planningApis.events.search({
                     // distinct ids
-                    ids: ids.filter((v, i, a) => (a.indexOf(v) === i)),
-                    spikeState: spikeState,
-                    onlyFuture: false,
-                }))
+                    item_ids: ids.filter((v, i, a) => (a.indexOf(v) === i)),
+                    spike_state: spikeState,
+                    only_future: false,
+                })
                     .then(
-                        (items) => resolve(items),
+                        (response) => resolve(response._items),
                         (error) => reject(error)
                     );
             } else {
-                api('events').getById(ids)
+                planningApis.events.getById(ids)
                     .then(
                         (item) => resolve([item]),
                         (error) => reject(error)
@@ -512,7 +498,7 @@ const silentlyFetchEventsById = (ids, spikeState = SPIKED_STATE.NOT_SPIKED, save
  * @param {boolean} loadPlanning - If true, load associated Planning items as well
  */
 const fetchById = (eventId, {force = false, saveToStore = true, loadPlanning = true} = {}) => (
-    (dispatch, getState, {api}) => {
+    (dispatch, getState) => {
         // Test if the Event item is already loaded into the store
         // If so, return that instance instead
         const storedEvents = selectors.events.storedEvents(getState());
@@ -525,15 +511,13 @@ const fetchById = (eventId, {force = false, saveToStore = true, loadPlanning = t
         if (has(storedEvents, eventId) && !force) {
             promise = Promise.resolve(storedEvents[eventId]);
         } else {
-            promise = api('events').getById(eventId)
+            promise = planningApis.events.getById(eventId)
                 .then((event) => {
-                    const newEvent = eventUtils.modifyForClient(event);
-
                     if (saveToStore) {
-                        dispatch(self.receiveEvents([newEvent]));
+                        dispatch(self.receiveEvents([event]));
                     }
 
-                    return Promise.resolve(newEvent);
+                    return Promise.resolve(event);
                 }, (error) => Promise.reject(error));
         }
 
@@ -933,7 +917,6 @@ const self = {
     markEventPostponed,
     postponeEvent,
     loadEventDataForAction,
-    queryLockedEvents,
     getEvent,
     loadAssociatedPlannings,
     post,

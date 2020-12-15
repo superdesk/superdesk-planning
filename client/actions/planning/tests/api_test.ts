@@ -11,6 +11,7 @@ import {PLANNING, SPIKED_STATE, WORKFLOW_STATE} from '../../../constants';
 import {MAIN} from '../../../constants';
 import * as selectors from '../../../selectors';
 import contactsApi from '../../contacts';
+import {planningApis} from '../../../api';
 
 describe('actions.planning.api', () => {
     let errorMessage;
@@ -33,6 +34,16 @@ describe('actions.planning.api', () => {
         sinon.stub(planningApi, 'fetchPlanningHistory').callsFake(() => (Promise.resolve()));
         sinon.stub(planningApi, 'post').callsFake(() => (Promise.resolve()));
         sinon.stub(planningApi, 'unpost').callsFake(() => (Promise.resolve()));
+
+        sinon.stub(planningApis.planning, 'search').callsFake(
+            () => Promise.resolve({_items: data.plannings})
+        );
+        sinon.stub(planningApis.planning, 'getById').callsFake(
+            () => Promise.resolve(data.plannings[0])
+        );
+        sinon.stub(planningApis.events, 'search').callsFake(
+            () => Promise.resolve({_items: data.events})
+        );
     });
 
     afterEach(() => {
@@ -45,6 +56,9 @@ describe('actions.planning.api', () => {
         restoreSinonStub(planningApi.fetchPlanningHistory);
         restoreSinonStub(planningApi.post);
         restoreSinonStub(planningApi.unpost);
+        restoreSinonStub(planningApis.planning.search);
+        restoreSinonStub(planningApis.planning.getById);
+        restoreSinonStub(planningApis.events.search);
     });
 
     describe('spike', () => {
@@ -151,7 +165,8 @@ describe('actions.planning.api', () => {
         });
 
         it('returns Promise.reject on query error', (done) => {
-            services.api('planning').query = sinon.spy(() => (Promise.reject('Failed!')));
+            restoreSinonStub(planningApis.planning.search);
+            sinon.stub(planningApis.planning, 'search').returns(Promise.reject('Failed!'));
             return store.test(done, planningApi.fetch())
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toBe('Failed!');
@@ -198,22 +213,11 @@ describe('actions.planning.api', () => {
                     expect(items).toEqual(convertEventDatesToMoment(data.events));
 
                     // The API should have been called
-                    expect(services.api('events').query.callCount).toBe(1);
-                    expect(services.api('events').query.args[0]).toEqual([{
-                        page: 1,
-                        max_results: MAIN.PAGE_SIZE,
-                        sort: '[("dates.start",1)]',
-                        source: JSON.stringify({
-                            query: {
-                                bool: {
-                                    must: [
-                                        {terms: {_id: ['e1']}},
-                                    ],
-                                    must_not: [{term: {state: WORKFLOW_STATE.KILLED}}],
-                                    filter: [],
-                                },
-                            },
-                        }),
+                    expect(planningApis.events.search.callCount).toBe(1);
+                    expect(planningApis.events.search.args[0]).toEqual([{
+                        item_ids: ['e1'],
+                        spike_state: 'both',
+                        only_future: false,
                     }]);
 
                     done();
@@ -234,8 +238,8 @@ describe('actions.planning.api', () => {
                 .then((item) => {
                     expect(item).toEqual(data.plannings[0]);
 
-                    expect(services.api('planning').getById.callCount).toBe(1);
-                    expect(services.api('planning').getById.args[0]).toEqual(['p1']);
+                    expect(planningApis.planning.getById.callCount).toBe(1);
+                    expect(planningApis.planning.getById.args[0]).toEqual(['p1']);
 
                     expect(planningApi.fetchPlanningsEvents.callCount).toBe(1);
                     expect(planningApi.fetchPlanningsEvents.args[0]).toEqual([
@@ -256,8 +260,8 @@ describe('actions.planning.api', () => {
                 .then((item) => {
                     expect(item).toEqual(data.plannings[0]);
 
-                    expect(services.api('planning').getById.callCount).toBe(1);
-                    expect(services.api('planning').getById.args[0]).toEqual(['p1']);
+                    expect(planningApis.planning.getById.callCount).toBe(1);
+                    expect(planningApis.planning.getById.args[0]).toEqual(['p1']);
 
                     expect(planningApi.fetchPlanningsEvents.callCount).toBe(1);
                     expect(planningApi.fetchPlanningsEvents.args[0]).toEqual([
@@ -274,7 +278,8 @@ describe('actions.planning.api', () => {
         ).catch(done.fail));
 
         it('returns Promise.reject on error', (done) => {
-            services.api('planning').getById = sinon.spy(() => (Promise.reject(errorMessage)));
+            restoreSinonStub(planningApis.planning.getById);
+            sinon.stub(planningApis.planning, 'getById').returns(Promise.reject(errorMessage));
             store.test(done, planningApi.fetchById('p1', {force: true}))
                 .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
@@ -288,7 +293,7 @@ describe('actions.planning.api', () => {
                 .then((item) => {
                     expect(item).toEqual(data.plannings[0]);
 
-                    expect(services.api('planning').getById.callCount).toBe(0);
+                    expect(planningApis.planning.getById.callCount).toBe(0);
                     expect(planningApi.fetchPlanningsEvents.callCount).toBe(1);
                     expect(planningApi.receivePlannings.callCount).toBe(0);
 
@@ -581,11 +586,11 @@ describe('actions.planning.api', () => {
         it('loads the Planning if it is not in the store', (done) => {
             store.init();
             store.initialState.planning.plannings = {};
-            store.test(done, planningApi.getPlanning(data.plannings[1]._id))
+            store.test(done, planningApi.getPlanning(data.plannings[0]._id))
                 .then((plan) => {
-                    expect(plan).toEqual(data.plannings[1]);
-                    expect(services.api('planning').getById.callCount).toBe(1);
-                    expect(services.api('planning').getById.args[0]).toEqual([data.plannings[1]._id]);
+                    expect(plan).toEqual(data.plannings[0]);
+                    expect(planningApis.planning.getById.callCount).toBe(1);
+                    expect(planningApis.planning.getById.args[0]).toEqual([data.plannings[0]._id]);
 
                     done();
                 })
@@ -595,7 +600,8 @@ describe('actions.planning.api', () => {
         it('returns Promise.reject if getById fails', (done) => {
             store.init();
             store.initialState.planning.plannings = {};
-            services.api('planning').getById = sinon.spy(() => Promise.reject(errorMessage));
+            restoreSinonStub(planningApis.planning.getById);
+            sinon.stub(planningApis.planning, 'getById').returns(Promise.reject(errorMessage));
             store.test(done, planningApi.getPlanning(data.plannings[1]._id))
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
@@ -610,11 +616,9 @@ describe('actions.planning.api', () => {
         it('queries the api for planning items by recurrence_id', (done) => (
             store.test(done, planningApi.loadPlanningByRecurrenceId('rec1'))
                 .then(() => {
-                    expect(services.api('planning').query.callCount).toBe(1);
-                    expect(services.api('planning').query.args[0]).toEqual([{
-                        source: JSON.stringify(
-                            {query: {term: {recurrence_id: 'rec1'}}}
-                        ),
+                    expect(planningApis.planning.search.callCount).toBe(1);
+                    expect(planningApis.planning.search.args[0]).toEqual([{
+                        recurrence_id: 'rec1',
                     }]);
 
                     done();
@@ -622,7 +626,8 @@ describe('actions.planning.api', () => {
         ).catch(done.fail));
 
         it('returns Promise.reject if recurrence_id query fails', (done) => {
-            services.api('planning').query = sinon.spy(() => Promise.reject(errorMessage));
+            restoreSinonStub(planningApis.planning.search);
+            sinon.stub(planningApis.planning, 'search').returns(Promise.reject(errorMessage));
             store.test(done, planningApi.loadPlanningByRecurrenceId('rec1'))
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
