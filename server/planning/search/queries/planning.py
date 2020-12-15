@@ -14,7 +14,7 @@ from copy import deepcopy
 
 from planning.search.queries import elastic
 from planning.common import WORKFLOW_STATE
-from .common import get_date_params, COMMON_SEARCH_FILTERS, strtobool, str_to_array
+from .common import get_date_params, COMMON_SEARCH_FILTERS, COMMON_PARAMS, strtobool, str_to_array
 
 
 def search_planning(_: Dict[str, Any], query: elastic.ElasticQuery):
@@ -83,7 +83,10 @@ def search_slugline(params: Dict[str, Any], query: elastic.ElasticQuery):
                 ], 'coverages')
             )
 
-        query.must.append(elastic.bool_or(conditions))
+        if len(conditions) == 1:
+            query.must.append(conditions[0])
+        elif len(conditions) > 1:
+            query.must.append(elastic.bool_or(conditions))
 
 
 def search_urgency(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -283,8 +286,6 @@ PLANNING_SEARCH_FILTERS = [
     search_featured,
     search_by_events,
     search_dates,
-    # search_date,
-    # search_date_default,
 ]
 
 PLANNING_SEARCH_FILTERS.extend(COMMON_SEARCH_FILTERS)
@@ -301,6 +302,8 @@ PLANNING_PARAMS = [
     'include_scheduled_updates',
     'event_item',
 ]
+
+PLANNING_PARAMS.extend(COMMON_PARAMS)
 
 
 def construct_planning_search_query(params: Dict[str, Any]) -> Dict[str, Any]:

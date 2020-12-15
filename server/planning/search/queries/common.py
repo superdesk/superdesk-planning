@@ -238,4 +238,7 @@ COMMON_PARAMS = [
     'slugline',
     'lock_state',
     'recurrence_id',
+    'repo',
+    'max_results',
+    'page'
 ]

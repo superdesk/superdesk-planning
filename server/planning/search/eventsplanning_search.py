@@ -12,37 +12,29 @@
 
 import logging
 import json
-import superdesk
 import math
+from typing import List
+from copy import deepcopy
+
 from werkzeug.datastructures import MultiDict
 from eve.utils import ParsedRequest
+
+from superdesk import Resource, Service
 from superdesk.errors import SuperdeskApiError
-from .queries.planning import PLANNING_PARAMS, construct_planning_search_query
-from .queries.events import EVENT_PARAMS, construct_events_search_query
-from .queries.combined import construct_combined_search_query, construct_combined_view_data_query
-from .queries.common import COMMON_PARAMS
 from superdesk import get_resource_service
 
 from planning.planning.planning import planning_schema
 from planning.events.events_schema import events_schema
 
-from copy import deepcopy
+from .queries.planning import PLANNING_PARAMS, construct_planning_search_query
+from .queries.events import EVENT_PARAMS, construct_events_search_query
+from .queries.combined import COMBINED_PARAMS, construct_combined_search_query, construct_combined_view_data_query
 
 
 logger = logging.getLogger(__name__)
 
 
-class EventsPlanningService(superdesk.Service):
-
-    allowed_params = [
-        'repo',
-        'max_results',
-        'page'
-    ]
-    allowed_params.extend(COMMON_PARAMS)
-    allowed_params.extend(EVENT_PARAMS)
-    allowed_params.extend(PLANNING_PARAMS)
-
+class EventsPlanningService(Service):
     default_page_size = 100
     date_filters = {'today', 'tomorrow', 'next_week', 'this_week'},
 
@@ -56,10 +48,11 @@ class EventsPlanningService(superdesk.Service):
         :return: database results cursor object
         :rtype: `pymongo.cursor.Cursor`
         """
-        self._check_for_unknown_params(req, whitelist=self.allowed_params)
 
         params = req.args or MultiDict()
         repo = params.get('repo', 'combined')
+
+        self._check_for_unknown_params(params, self._get_whitelist(repo))
 
         if repo == 'events':
             return self._search_events(req)
@@ -154,22 +147,26 @@ class EventsPlanningService(superdesk.Service):
         req.max_results = page_size
         return get_resource_service('planning_search').get(req=req, lookup=None)
 
-    def _check_for_unknown_params(self, request, whitelist):
+    def _get_whitelist(self, repo):
+        if repo == 'events':
+            return EVENT_PARAMS
+        elif repo == 'planning':
+            return PLANNING_PARAMS
+        else:
+            return COMBINED_PARAMS
+
+    def _check_for_unknown_params(self, params: MultiDict, whitelist: List[str]):
         """Check if the request contains only allowed parameters.
 
         :param request: object representing the HTTP request
         :param whitelist: iterable containing the names of allowed parameters.
         """
-        if not request or not getattr(request, 'args'):
-            return
 
-        request_params = request.args or MultiDict()
-
-        for param_name in request_params.keys():
+        for param_name in params.keys():
             if param_name not in whitelist:
                 raise SuperdeskApiError.badRequestError(message="Unexpected parameter ({})".format(param_name))
 
-            if len(request_params.getlist(param_name)) > 1:
+            if len(params.getlist(param_name)) > 1:
                 desc = "Multiple values received for parameter ({})"
                 raise SuperdeskApiError.badRequestError(message=desc.format(param_name))
 
@@ -178,7 +175,9 @@ class EventsPlanningService(superdesk.Service):
         return {
             '_planning_schedule.scheduled': {
                 'order': 'asc',
-                'nested_path': '_planning_schedule'
+                'nested': {
+                    'path': '_planning_schedule'
+                }
             }
         }
 
@@ -187,7 +186,7 @@ class EventsPlanningService(superdesk.Service):
         return request.max_results if request.max_results else self.default_page_size
 
 
-class EventsPlanningResource(superdesk.Resource):
+class EventsPlanningResource(Resource):
     resource_methods = ['GET']
     item_methods = []
     endpoint_name = 'events_planning_search'

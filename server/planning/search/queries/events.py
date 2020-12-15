@@ -11,7 +11,7 @@
 from typing import Any, Dict
 
 from planning.search.queries import elastic
-from .common import get_time_zone, get_date_params, COMMON_SEARCH_FILTERS, strtobool, str_to_array
+from .common import get_time_zone, get_date_params, COMMON_SEARCH_FILTERS, COMMON_PARAMS, strtobool, str_to_array
 
 
 def get_advanced_search(params: Dict[str, Any]):
@@ -379,15 +379,6 @@ EVENT_SEARCH_FILTERS = [
     search_calendars,
     search_no_calendar_assigned,
     search_dates,
-    # search_date_today,
-    # search_date_tomorrow,
-    # search_date_last_24_hours,
-    # search_date_this_week,
-    # search_date_next_week,
-    # search_date_start,
-    # search_date_end,
-    # search_date_range,
-    # search_date_default,
 ]
 
 EVENT_SEARCH_FILTERS.extend(COMMON_SEARCH_FILTERS)
@@ -400,6 +391,8 @@ EVENT_PARAMS = [
     'no_calendar_assigned',
     'only_future',
 ]
+
+EVENT_PARAMS.extend(COMMON_PARAMS)
 
 
 def construct_events_search_query(params: Dict[str, Any]) -> Dict[str, Any]:

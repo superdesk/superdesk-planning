@@ -176,7 +176,7 @@ Feature: Search Feature
             ]
         }
         """
-        When we get "/events_planning_search?subject=%5B%22111%22%5D&start_date=2016-01-02T00:00:00%2B0000"
+        When we get "/events_planning_search?subject=111&start_date=2016-01-02T00:00:00%2B0000"
         Then we get list with 1 items
         """
         {
@@ -187,7 +187,7 @@ Feature: Search Feature
         """
 
 
-    @auth
+    @auth @wip
     Scenario: Search events and planning using calendars and agenda
         Given "agenda"
         """
@@ -327,7 +327,7 @@ Feature: Search Feature
             ]
         }
         """
-        When we get "/events_planning_search?calendars=%5B%22sports%22%5D&start_date=2016-01-02T00:00:00%2B0000"
+        When we get "/events_planning_search?calendars=sports&start_date=2016-01-02T00:00:00%2B0000"
         Then we get list with 2 items
         """
         {
@@ -337,7 +337,7 @@ Feature: Search Feature
             ]
         }
         """
-        When we get "/events_planning_search?agendas=%5B%22sports%22%5D&calendars=%5B%22sports%22%5D&start_date=2016-01-02T00:00:00%2B0000"
+        When we get "/events_planning_search?agendas=sports&calendars=sports&start_date=2016-01-02T00:00:00%2B0000"
         Then we get list with 3 items
         """
         {
@@ -348,7 +348,7 @@ Feature: Search Feature
             ]
         }
         """
-        When we get "/events_planning_search?agendas=%5B%22sports%22%5D&calendars=%5B%22sports%22,%22finance%22%5D&start_date=2016-01-02T00:00:00%2B0000"
+        When we get "/events_planning_search?agendas=sports&calendars=sports,finance&start_date=2016-01-02T00:00:00%2B0000"
         Then we get list with 3 items
         """
         {
@@ -359,7 +359,7 @@ Feature: Search Feature
             ]
         }
         """
-        When we get "/events_planning_search?agendas=%5B%22sports%22,%22finance%22%5D&calendars=%5B%22sports%22,%22finance%22%5D&start_date=2016-01-02T00:00:00%2B0000"
+        When we get "/events_planning_search?agendas=sports,finance&calendars=sports,finance&start_date=2016-01-02T00:00:00%2B0000"
         Then we get list with 4 items
         """
         {
@@ -371,7 +371,7 @@ Feature: Search Feature
             ]
         }
         """
-        When we get "/events_planning_search?agendas=%5B%22entertainment%22%5D&start_date=2016-01-02T00:00:00%2B0000"
+        When we get "/events_planning_search?agendas=entertainment&start_date=2016-01-02T00:00:00%2B0000"
         Then we get list with 2 items
         """
         {
@@ -381,7 +381,7 @@ Feature: Search Feature
             ]
         }
         """
-        When we get "/events_planning_search?agendas=%5B%22sports%22%5D&start_date=2016-01-02T00:00:00%2B0000"
+        When we get "/events_planning_search?agendas=sports&start_date=2016-01-02T00:00:00%2B0000"
         Then we get list with 3 items
         """
         {
