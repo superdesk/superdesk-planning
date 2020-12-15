@@ -1,5 +1,6 @@
 import {ISuperdesk} from 'superdesk-api';
 import {IPlanningAPI} from './interfaces';
+import {planningApis} from './api';
 
 // will be set asynchronously on planning module start
 // members can't be accessed in root module scope synchronously
@@ -9,4 +10,4 @@ import {IPlanningAPI} from './interfaces';
 
 export const superdeskApi = {} as ISuperdesk;
 
-export const planningApi = {} as IPlanningAPI;
+export const planningApi = planningApis as IPlanningAPI;
