@@ -32,14 +32,14 @@ def get_date_params(params: Dict[str, Any]):
         start_date = params.get('start_date')
         if start_date:
             str_to_date(params['start_date'])  # validating if date can be parsed
-    except:  # nopqa
+    except Exception:
         raise SuperdeskApiError.badRequestError('Invalid value for start date')
 
     try:
         end_date = params.get('end_date')
         if end_date:
             str_to_date(params['end_date'])  # validating if date can be parsed
-    except:  # nopqa
+    except Exception:
         raise SuperdeskApiError.badRequestError('Invalid value for end date')
 
     return date_filter, start_date, end_date, tz_offset

@@ -19,7 +19,11 @@ from planning.common import get_start_of_next_week, sanitize_query_text
 
 
 class ElasticQuery:
+    """Utility class to build elastic queries"""
+
     def __init__(self):
+        """Default all filters to empty arrays"""
+
         self.must: List[Dict[str, Any]] = []
         self.must_not: List[Dict[str, Any]] = []
         self.filter: List[Dict[str, Any]] = []
@@ -68,6 +72,8 @@ DATE_RANGE: DateRanges = DateRanges(
 
 
 class ElasticRangeParams:
+    """Class to house elastic range parameters"""
+
     field: str
     gt: str = None
     gte: str = None
@@ -92,6 +98,8 @@ class ElasticRangeParams:
             date_range: DATE_RANGE = None,
             date: str = None
     ):
+        """Allows to easily set fields by name using kwargs"""
+
         self.field = field
         self.gt = gt
         self.gte = gte
