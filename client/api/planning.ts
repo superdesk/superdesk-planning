@@ -7,13 +7,13 @@ import {planningUtils} from '../utils';
 function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
         agendas: arrayToString(params.agendas),
-        no_agenda_assigned: params.no_agenda_assigned == true,
-        ad_hoc_planning: params.ad_hoc_planning == true,
-        exclude_rescheduled_and_cancelled: params.exclude_rescheduled_and_cancelled == true,
-        no_coverage: params.no_coverage == true,
+        no_agenda_assigned: params.no_agenda_assigned,
+        ad_hoc_planning: params.ad_hoc_planning,
+        exclude_rescheduled_and_cancelled: params.exclude_rescheduled_and_cancelled,
+        no_coverage: params.no_coverage,
         urgency: params.urgency?.qcode,
-        featured: params.featured == true,
-        include_scheduled_updates: params.include_scheduled_updates == true,
+        featured: params.featured,
+        include_scheduled_updates: params.include_scheduled_updates,
         event_item: arrayToString(params.event_item),
         g2_content_type: params.g2_content_type?.qcode,
     };

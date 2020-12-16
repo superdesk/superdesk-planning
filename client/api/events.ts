@@ -11,7 +11,6 @@ function convertEventParams(params: ISearchParams): Partial<ISearchAPIParams> {
         location: params.location,
         calendars: cvsToString(params.calendars),
         no_calendar_assigned: params.no_calendar_assigned,
-        only_future: params.only_future,
     };
 }
 
