@@ -132,11 +132,13 @@ def search_place(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_language(params: Dict[str, Any], query: elastic.ElasticQuery):
-    if len(params.get('language') or ''):
+    languages = str_to_array(params.get('language'))
+
+    if len(languages):
         query.must.append(
             elastic.terms(
                 field='language',
-                values=params['language']
+                values=languages
             )
         )
 

@@ -99,7 +99,7 @@ def search_no_calendar_assigned(params: Dict[str, Any], query: elastic.ElasticQu
     num_calendars = len(params.get('calendars') or [])
 
     if not num_calendars and strtobool(params.get('no_calendar_assigned') or ''):
-        query.must.append(
+        query.must_not.append(
             elastic.field_exists('calendars')
         )
 
