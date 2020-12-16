@@ -8,7 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 from flask import current_app as app
 from eve.utils import str_to_date
@@ -45,11 +45,18 @@ def get_date_params(params: Dict[str, Any]):
     return date_filter, start_date, end_date, tz_offset
 
 
-def str_to_array(arg: Optional[str] = None):
+def str_to_array(arg: Optional[str] = None) -> List[str]:
     if len(arg or ''):
         return arg.split(',')
 
     return []
+
+
+def str_to_number(arg: Optional[str] = None) -> Optional[int]:
+    if len(arg or ''):
+        return int(arg)
+
+    return None
 
 
 def search_item_ids(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -236,6 +243,7 @@ COMMON_PARAMS = [
     'date_filter',
     'start_date',
     'end_date',
+    'only_future',
     'start_of_week',
     'slugline',
     'lock_state',

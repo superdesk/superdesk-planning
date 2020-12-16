@@ -120,7 +120,7 @@ Feature: Event Search
         """
 
     @auth
-    Scenario: Search by common paramaters
+    Scenario: Search by common parameters
         When we get "/events_planning_search?repo=events&only_future=false&item_ids=event_123,event_786"
         Then we get list with 2 items
         """
@@ -212,7 +212,7 @@ Feature: Event Search
         """
 
     @auth
-    Scenario: Search by event specific paramaters
+    Scenario: Search by event specific parameters
         When we get "/events_planning_search?repo=events&only_future=false&slugline=test1%20OR%20test2"
         Then we get list with 2 items
         """

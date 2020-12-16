@@ -14,7 +14,7 @@ from copy import deepcopy
 
 from planning.search.queries import elastic
 from planning.common import WORKFLOW_STATE
-from .common import get_date_params, COMMON_SEARCH_FILTERS, COMMON_PARAMS, strtobool, str_to_array
+from .common import get_date_params, COMMON_SEARCH_FILTERS, COMMON_PARAMS, strtobool, str_to_array, str_to_number
 
 
 def search_planning(_: Dict[str, Any], query: elastic.ElasticQuery):
@@ -40,7 +40,7 @@ def search_agendas(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 def search_no_agenda_assigned(params: Dict[str, Any], query: elastic.ElasticQuery):
     if strtobool(params.get('no_agenda_assigned') or ''):
-        query.must.append(
+        query.must_not.append(
             elastic.field_exists('agendas')
         )
 
@@ -90,11 +90,13 @@ def search_slugline(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_urgency(params: Dict[str, Any], query: elastic.ElasticQuery):
-    if len(params.get('urqency') or ''):
+    urgency = str_to_number(params.get('urgency'))
+
+    if urgency is not None:
         query.must.append(
             elastic.term(
                 field='urgency',
-                value=params['urgency']
+                value=urgency
             )
         )
 
@@ -237,8 +239,9 @@ def search_date(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
     date_filter, start_date, end_date, tz_offset = get_date_params(params)
+    only_future = strtobool(params.get('only_future') or 'true')
 
-    if not date_filter and not start_date and not end_date:
+    if not date_filter and not start_date and not end_date and only_future:
         field_name = '_planning_schedule.scheduled'
         query_range = elastic.date_range(elastic.ElasticRangeParams(
             field=field_name,
@@ -296,7 +299,7 @@ PLANNING_PARAMS = [
     'ad_hoc_planning',
     'exclude_rescheduled_and_cancelled',
     'no_coverage',
-    'urqency',
+    'urgency',
     'g2_content_type',
     'featured',
     'include_scheduled_updates',

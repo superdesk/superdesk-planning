@@ -389,7 +389,6 @@ EVENT_PARAMS = [
     'location',
     'calendars',
     'no_calendar_assigned',
-    'only_future',
 ]
 
 EVENT_PARAMS.extend(COMMON_PARAMS)
