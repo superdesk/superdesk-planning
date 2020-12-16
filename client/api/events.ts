@@ -4,7 +4,7 @@ import {IRestApiResponse} from 'superdesk-api';
 import {superdeskApi} from '../superdeskApi';
 import {eventUtils} from '../utils';
 
-export function convertEventParams(params: ISearchParams): Partial<ISearchAPIParams> {
+function convertEventParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
         reference: params.reference,
         source: cvsToString(params.source, 'id'),

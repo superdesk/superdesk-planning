@@ -4,7 +4,7 @@ import {superdeskApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
 import {planningUtils} from '../utils';
 
-export function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams> {
+function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
         agendas: arrayToString(params.agendas),
         no_agenda_assigned: params.no_agenda_assigned == true,
