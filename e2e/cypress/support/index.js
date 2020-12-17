@@ -1,2 +1,2 @@
 
-require('cypress-terminal-report').installSupport();
+require('cypress-terminal-report/src/installLogsCollector')();

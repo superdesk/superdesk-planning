@@ -60,7 +60,8 @@ export class CoverageEditor extends Editor {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get reassignButton() {
-        return this.element.contains('Reassign');
+        return this.element.contains('Reassign')
+            .should('exist');
     }
 
     /**
@@ -68,7 +69,8 @@ export class CoverageEditor extends Editor {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get removeButton() {
-        return this.element.contains('Remove');
+        return this.element.contains('Remove')
+            .should('exist');
     }
 
     /**

@@ -12,5 +12,5 @@
 // the project's config changing)
 
 module.exports = (on, config) => {
-    require('cypress-terminal-report').installPlugin(on);
+    require('cypress-terminal-report/src/installLogsPrinter')(on);
 };
