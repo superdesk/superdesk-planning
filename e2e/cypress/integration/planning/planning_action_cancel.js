@@ -17,7 +17,7 @@ describe('Planning.Planning: cancel planning item', () => {
         }]);
 
         login();
-        waitForPageLoad();
+        waitForPageLoad.planning();
     });
 
     it('can cancel a Planning item', () => {
