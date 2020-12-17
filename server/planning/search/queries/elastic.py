@@ -242,8 +242,8 @@ def range_tomorrow(query: ElasticRangeParams):
         field=query.field,
         time_zone=query.time_zone,
         value_format=query.value_format,
-        gte='now+24/d',
-        lt='now+48/d',
+        gte='now+24h/d',
+        lt='now+48h/d',
     ))
 
 

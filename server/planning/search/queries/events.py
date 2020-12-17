@@ -117,20 +117,18 @@ def search_date_today(params: Dict[str, Any], query: elastic.ElasticQuery):
                 field='dates.end',
                 time_zone=time_zone
             )),
-            {
-                elastic.bool_and([
-                    elastic.field_range(elastic.ElasticRangeParams(
-                        field='dates.start',
-                        lt='now/d',
-                        time_zone=time_zone,
-                    )),
-                    elastic.field_range(elastic.ElasticRangeParams(
-                        field='dates.end',
-                        gt='now+24h/d',
-                        time_zone=time_zone
-                    ))
-                ])
-            }
+            elastic.bool_and([
+                elastic.field_range(elastic.ElasticRangeParams(
+                    field='dates.start',
+                    lt='now/d',
+                    time_zone=time_zone,
+                )),
+                elastic.field_range(elastic.ElasticRangeParams(
+                    field='dates.end',
+                    gt='now+24h/d',
+                    time_zone=time_zone
+                ))
+            ])
         ]))
 
 
@@ -147,20 +145,18 @@ def search_date_tomorrow(params: Dict[str, Any], query: elastic.ElasticQuery):
                 field='dates.end',
                 time_zone=time_zone
             )),
-            {
-                elastic.bool_and([
-                    elastic.field_range(elastic.ElasticRangeParams(
-                        field='dates.start',
-                        lt='now+24h/d',
-                        time_zone=time_zone
-                    )),
-                    elastic.field_range(elastic.ElasticRangeParams(
-                        field='dates.end',
-                        gt='now+48h/d',
-                        time_zone=time_zone
-                    ))
-                ])
-            }
+            elastic.bool_and([
+                elastic.field_range(elastic.ElasticRangeParams(
+                    field='dates.start',
+                    lt='now+24h/d',
+                    time_zone=time_zone
+                )),
+                elastic.field_range(elastic.ElasticRangeParams(
+                    field='dates.end',
+                    gt='now+48h/d',
+                    time_zone=time_zone
+                ))
+            ])
         ]))
 
 
@@ -177,20 +173,18 @@ def search_date_last_24_hours(params: Dict[str, Any], query: elastic.ElasticQuer
                 field='dates.end',
                 time_zone=time_zone
             )),
-            {
-                elastic.bool_and([
-                    elastic.field_range(elastic.ElasticRangeParams(
-                        field='dates.start',
-                        lt='now-24h',
-                        time_zone=time_zone
-                    )),
-                    elastic.field_range(elastic.ElasticRangeParams(
-                        field='dates.end',
-                        gt='now',
-                        time_zone=time_zone
-                    ))
-                ])
-            }
+            elastic.bool_and([
+                elastic.field_range(elastic.ElasticRangeParams(
+                    field='dates.start',
+                    lt='now-24h',
+                    time_zone=time_zone
+                )),
+                elastic.field_range(elastic.ElasticRangeParams(
+                    field='dates.end',
+                    gt='now',
+                    time_zone=time_zone
+                ))
+            ])
         ]))
 
 
@@ -210,20 +204,18 @@ def search_date_this_week(params: Dict[str, Any], query: elastic.ElasticQuery):
                 time_zone=time_zone,
                 start_of_week=start_of_week
             )),
-            {
-                elastic.bool_and([
-                    elastic.field_range(elastic.ElasticRangeParams(
-                        field='dates.start',
-                        lt=elastic.start_of_this_week(start_of_week),
-                        time_zone=time_zone
-                    )),
-                    elastic.field_range(elastic.ElasticRangeParams(
-                        field='dates.end',
-                        gte=elastic.start_of_next_week(start_of_week),
-                        time_zone=time_zone
-                    ))
-                ])
-            }
+            elastic.bool_and([
+                elastic.field_range(elastic.ElasticRangeParams(
+                    field='dates.start',
+                    lt=elastic.start_of_this_week(start_of_week),
+                    time_zone=time_zone
+                )),
+                elastic.field_range(elastic.ElasticRangeParams(
+                    field='dates.end',
+                    gte=elastic.start_of_next_week(start_of_week),
+                    time_zone=time_zone
+                ))
+            ])
         ]))
 
 
@@ -243,20 +235,18 @@ def search_date_next_week(params: Dict[str, Any], query: elastic.ElasticQuery):
                 time_zone=time_zone,
                 start_of_week=start_of_week
             )),
-            {
-                elastic.bool_and([
-                    elastic.field_range(elastic.ElasticRangeParams(
-                        field='dates.start',
-                        lt=elastic.start_of_next_week(start_of_week),
-                        time_zone=time_zone
-                    )),
-                    elastic.field_range(elastic.ElasticRangeParams(
-                        field='dates.end',
-                        gte=elastic.end_of_next_week(start_of_week),
-                        time_zone=time_zone
-                    ))
-                ])
-            }
+            elastic.bool_and([
+                elastic.field_range(elastic.ElasticRangeParams(
+                    field='dates.start',
+                    lt=elastic.start_of_next_week(start_of_week),
+                    time_zone=time_zone
+                )),
+                elastic.field_range(elastic.ElasticRangeParams(
+                    field='dates.end',
+                    gte=elastic.end_of_next_week(start_of_week),
+                    time_zone=time_zone
+                ))
+            ])
         ]))
 
 
@@ -311,36 +301,32 @@ def search_date_range(params: Dict[str, Any], query: elastic.ElasticQuery):
                 lte=end_date,
                 time_zone=tz_offset
             )),
-            {
-                elastic.bool_and([
-                    elastic.date_range(elastic.ElasticRangeParams(
-                        field='dates.start',
-                        lt=start_date,
-                        time_zone=tz_offset
-                    )),
-                    elastic.date_range(elastic.ElasticRangeParams(
-                        field='dates.end',
-                        gt=end_date,
-                        time_zone=tz_offset
-                    ))
-                ])
-            },
-            {
-                elastic.bool_or([
-                    elastic.date_range(elastic.ElasticRangeParams(
-                        field='dates.start',
-                        gte=start_date,
-                        lte=end_date,
-                        time_zone=tz_offset
-                    )),
-                    elastic.date_range(elastic.ElasticRangeParams(
-                        field='dates.end',
-                        gte=start_date,
-                        lte=end_date,
-                        time_zone=tz_offset
-                    ))
-                ])
-            }
+            elastic.bool_and([
+                elastic.date_range(elastic.ElasticRangeParams(
+                    field='dates.start',
+                    lt=start_date,
+                    time_zone=tz_offset
+                )),
+                elastic.date_range(elastic.ElasticRangeParams(
+                    field='dates.end',
+                    gt=end_date,
+                    time_zone=tz_offset
+                ))
+            ]),
+            elastic.bool_or([
+                elastic.date_range(elastic.ElasticRangeParams(
+                    field='dates.start',
+                    gte=start_date,
+                    lte=end_date,
+                    time_zone=tz_offset
+                )),
+                elastic.date_range(elastic.ElasticRangeParams(
+                    field='dates.end',
+                    gte=start_date,
+                    lte=end_date,
+                    time_zone=tz_offset
+                ))
+            ])
         ]))
 
 
