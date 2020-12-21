@@ -23,7 +23,9 @@ export class UrgencyInput extends Input {
         popup.element
             .find('.popup__menu-content')
             .contains(value)
+            .should('exist')
             .parent()
+            .should('exist')
             .click();
         popup.waitTillClosed();
     }

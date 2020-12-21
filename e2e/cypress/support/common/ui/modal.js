@@ -21,6 +21,7 @@ export class Modal extends Popup {
      */
     getFooterButton(label, timeout = 3000) {
         return this.element.find('.modal__footer')
-            .contains(label, {timeout: timeout});
+            .contains(label, {timeout: timeout})
+            .should('exist');
     }
 }

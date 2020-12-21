@@ -49,13 +49,15 @@ describe('Planning.Events: create planning action', () => {
     function expectListItemText() {
         list.nestedItem(0)
             .find('.sd-line-input__input--related-item-link')
-            .contains('(1) Show planning item(s)', {timeout: 30000});
+            .contains('(1) Show planning item(s)', {timeout: 30000})
+            .should('exist');
 
         list.toggleAssociatedPlanning(0);
 
         list.nestedItem(0)
             .find('.sd-line-input__input--related-item-link')
-            .contains('(1) Hide planning item(s)', {timeout: 30000});
+            .contains('(1) Hide planning item(s)', {timeout: 30000})
+            .should('exist');
     }
 
     function expectEditorValues() {

@@ -1,11 +1,13 @@
 import {get, pickBy, isEqual} from 'lodash';
 
 import {appConfig} from 'appConfig';
+import {ICombinedSearchParams} from '../../interfaces';
 
 import {EVENTS_PLANNING, MAIN, SPIKED_STATE} from '../../constants';
-import {planningUtils, eventUtils, getDateTimeElasticFormat, getTimeZoneOffset} from '../../utils';
+import {getTimeZoneOffset} from '../../utils';
 import * as selectors from '../../selectors';
 import main from '../main';
+import {planningApis} from '../../api';
 
 /**
  * Action Dispatcher for query the api for events and planning combined view
@@ -21,61 +23,42 @@ const query = (
         calendars = [],
         agendas = [],
         places = [],
-    },
+    }: ICombinedSearchParams,
     storeTotal = false
 ) => (
-    (dispatch, getState, {api}) => {
-        let search = {
+    (dispatch) => (
+        planningApis.combined.search({
             full_text: fulltext,
             spike_state: spikeState,
-            anpa_category: get(advancedSearch, 'anpa_category.length', 0) ?
-                JSON.stringify(get(advancedSearch, 'anpa_category', []).map((c) => c.qcode)) : null,
-            subject: get(advancedSearch, 'subject.length', 0) ?
-                JSON.stringify(get(advancedSearch, 'subject', []).map((s) => s.qcode)) : null,
-            place: get(advancedSearch, 'place.length', 0) > 0 ?
-                JSON.stringify(get(advancedSearch, 'place', []).map((p) => p.qcode)) : null,
+            anpa_category: advancedSearch.anpa_category,
+            subject: advancedSearch.subject,
+            place: places ?? advancedSearch.place,
             slugline: advancedSearch.slugline,
             reference: advancedSearch.reference,
-            state: get(advancedSearch, 'state.length', 0) ?
-                JSON.stringify(get(advancedSearch, 'state', []).map((c) => c.qcode)) : null,
+            state: advancedSearch.state,
             posted: advancedSearch.posted,
-            date_filter: get(advancedSearch, 'dates.range'),
-            start_date: get(advancedSearch, 'dates.start') ?
-                getDateTimeElasticFormat(get(advancedSearch, 'dates.start')) : null,
-            end_date: get(advancedSearch, 'dates.end') ?
-                getDateTimeElasticFormat(get(advancedSearch, 'dates.end')) : null,
+            date_filter: advancedSearch.dates?.range,
+            start_date: advancedSearch.dates?.start,
+            end_date: advancedSearch.dates?.end,
             start_of_week: appConfig.start_of_week,
-            calendars: get(calendars, 'length', 0) > 0 ? JSON.stringify((calendars || []).map((c) => c.qcode)) : null,
-            agendas: get(agendas, 'length', 0) > 0 ? JSON.stringify((agendas || []).map((a) => a._id)) : null,
+            calendars: calendars,
+            agendas: (agendas ?? []).map((agenda) => agenda._id),
             tz_offset: getTimeZoneOffset(),
             page: page,
             max_results: maxResults,
-        };
-
-        search.place = get(places, 'length', 0) > 0 ? JSON.stringify((places || []).map((a) => a.qcode)) : search.place;
-
-        // Query the API
-        return api('events_planning_search').query(search)
-            .then((data) => {
+        })
+            .then((response) => {
                 if (storeTotal) {
-                    dispatch(main.setTotal(MAIN.FILTERS.COMBINED, get(data, '_meta.total')));
+                    dispatch(main.setTotal(MAIN.FILTERS.COMBINED, response._meta.total ?? 0));
                 }
 
-                if (get(data, '_items')) {
-                    data._items.forEach((item) => {
-                        if (item.type === 'event') {
-                            eventUtils.modifyForClient(item);
-                            return;
-                        }
-                        planningUtils.modifyForClient(item);
-                    });
-
-                    return get(data, '_items', []);
+                if (response._items) {
+                    return response._items;
                 } else {
                     return Promise.reject('Failed to retrieve items');
                 }
-            }, (error) => (Promise.reject(error)));
-    }
+            }, (error) => Promise.reject(error))
+    )
 );
 
 /**

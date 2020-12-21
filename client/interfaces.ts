@@ -1,4 +1,11 @@
-import {ITEM_STATE, ISuperdeskGlobalConfig, IBaseRestApiResponse, ISubject, IUser} from 'superdesk-api';
+import {
+    ITEM_STATE,
+    ISuperdeskGlobalConfig,
+    IBaseRestApiResponse,
+    ISubject,
+    IUser,
+    IRestApiResponse,
+} from 'superdesk-api';
 import {Store} from 'redux';
 import moment from 'moment';
 
@@ -199,10 +206,7 @@ export interface IAgenda {
     is_enabled: boolean;
 }
 
-export interface IEventItem {
-    _id?: string;
-    _created?: string;
-    _updated?: string;
+export interface IEventItem extends IBaseRestApiResponse {
     guid?: string;
     unique_id?: string;
     unique_name?: string;
@@ -304,7 +308,7 @@ export interface IEventItem {
     lock_session?: string;
     lock_action?: string;
     update_method?: IEventUpdateMethod;
-    type?: string;
+    type: 'event';
     calendars?: Array<ICalendar>;
     revert_state?: ITEM_STATE;
     duplicate_from?: string;
@@ -327,7 +331,7 @@ export interface IEventItem {
 
 export interface ICoveragePlanningDetails {
     ednote: string;
-    g2_content_type: string;
+    g2_content_type: IG2ContentType['qcode'];
     coverage_provider: string;
     contact_info: string;
     item_class: string;
@@ -405,10 +409,7 @@ export interface IPlanningCoverageItem {
     scheduled_updates: Array<ICoverageScheduledUpdate>;
 }
 
-export interface IPlanningItem {
-    _id: string;
-    _created?: string;
-    _updated?: string;
+export interface IPlanningItem extends IBaseRestApiResponse {
     guid: string;
     original_creator: string;
     version_creator: string;
@@ -465,7 +466,7 @@ export interface IPlanningItem {
     };
     pubstatus: IPlanningPubstatus;
     revert_state: ITEM_STATE;
-    type: string;
+    type: 'planning';
     unique_id: string;
     place: Array<IPlace>;
     name: string;
@@ -474,6 +475,12 @@ export interface IPlanningItem {
     reason: string;
     _time_to_be_confirmed: boolean;
     _cancelAllCoverage: boolean;
+}
+
+export interface IFeaturedPlanningLock extends IBaseRestApiResponse {
+    lock_user: string;
+    lock_time: string | Date;
+    lock_session: string;
 }
 
 export enum ASSIGNMENT_STATE {
@@ -532,7 +539,7 @@ export interface IDateSearchParams {
 }
 
 export interface IEventSearchParams {
-    calendars?: Array<string>;
+    calendars?: Array<ICalendar['qcode']>;
     fulltext?: string;
     ids?: Array<string>;
     includeKilled?: boolean;
@@ -549,9 +556,7 @@ export interface IEventSearchParams {
         dates?: IDateSearchParams;
         location?: ILocation | string;
         name?: string;
-        place?: Array<{
-            qcode?: string;
-        }>;
+        place?: Array<IPlace>;
         posted?: boolean;
         reference?: string;
         slugline?: string;
@@ -564,6 +569,7 @@ export interface IEventSearchParams {
             name?: string;
         }>;
         subject?: Array<ISubject>;
+        language?: string;
     };
 }
 
@@ -582,15 +588,9 @@ export interface IPlanningSearchParams {
         anpa_category?: Array<IANPACategory>;
         dates?: IDateSearchParams;
         featured?: boolean;
-        g2_content_type?: {
-            qcode?: string;
-            name?: string;
-        };
+        g2_content_type?: IG2ContentType;
         noCoverage?: boolean;
-        place?: Array<{
-            qcode?: string;
-            name?: string;
-        }>;
+        place?: Array<IPlace>;
         posted?: boolean;
         slugline?: string;
         state?: Array<{
@@ -598,10 +598,32 @@ export interface IPlanningSearchParams {
             name?: string;
         }>;
         subject?: Array<ISubject>;
-        urgency?: {
+        urgency?: IUrgency;
+        language?: string;
+        name: string;
+    };
+}
+
+export interface ICombinedSearchParams {
+    fulltext?: string;
+    spikeState?: ISearchSpikeState;
+    page?: number;
+    maxResults?: number;
+    calendars?: Array<ICalendar>;
+    agendas: Array<IAgenda>;
+    places?: Array<IPlace>;
+    advancedSearch?: {
+        anpa_category?: Array<IANPACategory>;
+        subject?: Array<ISubject>;
+        place?: Array<IPlace>;
+        slugline?: string;
+        reference?: string;
+        state?: Array<{
             qcode?: string;
             name?: string;
-        };
+        }>;
+        posted?: boolean;
+        dates?: IDateSearchParams;
     };
 }
 
@@ -807,8 +829,127 @@ export interface IFormItemManager {
     finalisePartialSave(diff: Partial<IEventItem | IPlanningItem>, updateDirtyFlag: boolean): Promise<void>;
 }
 
+export interface ISearchParams {
+    // Common Params
+    item_ids?: Array<string>;
+    name?: string;
+    tz_offset?: string;
+    full_text?: string;
+    anpa_category?: Array<IANPACategory>;
+    subject?: Array<ISubject>;
+    posted?: boolean;
+    place?: Array<IPlace>;
+    language?: string;
+    state?: Array<{
+        qcode?: string;
+        name?: string;
+    }>;
+    spike_state?: ISearchSpikeState;
+    include_killed?: boolean;
+    date_filter?: IDateRange;
+    start_date?: string | Date | moment.Moment;
+    end_date?: string | Date | moment.Moment;
+    start_of_week?: number;
+    slugline?: string;
+    lock_state?: 'locked' | 'unlocked';
+    recurrence_id?: string; // Both Events and Planning have recurrence_id
+
+    // Event Params
+    reference?: string;
+    source?: Array<{
+        id?: string;
+        name?: string;
+    }>;
+    location?: string;
+    calendars?: Array<ICalendar>;
+    no_calendar_assigned?: boolean;
+    only_future?: boolean;
+
+    // Planning Params
+    agendas?: Array<IAgenda['_id']>;
+    no_agenda_assigned?: boolean;
+    ad_hoc_planning?: boolean;
+    exclude_rescheduled_and_cancelled?: boolean;
+    no_coverage?: boolean;
+    urgency?: IUrgency;
+    g2_content_type?: IG2ContentType;
+    featured?: boolean;
+    include_scheduled_updates?: boolean;
+    event_item?: Array<IEventItem['_id']>;
+
+    // Pagination
+    page?: number;
+    max_results?: number;
+    // repo: 'events' | 'planning' | 'combined';
+}
+
+export interface ISearchAPIParams {
+    // Common Params
+    item_ids?: string;
+    name?: string;
+    tz_offset?: string;
+    full_text?: string;
+    anpa_category?: string;
+    subject?: string;
+    posted?: boolean;
+    place?: string;
+    language?: string;
+    state?: string;
+    spike_state?: ISearchSpikeState;
+    include_killed?: boolean;
+    date_filter?: IDateRange;
+    start_date?: string;
+    end_date?: string;
+    start_of_week?: number;
+    slugline?: string;
+    lock_state?: 'locked' | 'unlocked';
+
+    // Event Params
+    recurrence_id?: string;
+    reference?: string;
+    source?: string;
+    location?: string;
+    calendars?: string;
+    no_calendar_assigned?: boolean;
+    only_future?: boolean;
+
+    // Planning Params
+    agendas?: string;
+    no_agenda_assigned?: boolean;
+    ad_hoc_planning?: boolean;
+    exclude_rescheduled_and_cancelled?: boolean;
+    no_coverage?: boolean;
+    urgency?: IUrgency['qcode'];
+    g2_content_type?: IG2ContentType['qcode'];
+    featured?: boolean;
+    include_scheduled_updates?: boolean;
+    event_item?: string;
+
+    // Pagination
+    page?: number;
+    max_results?: number;
+    repo: 'events' | 'planning' | 'combined';
+}
+
 export interface IPlanningAPI {
     redux: {
         store: Store;
     };
+    events: {
+        search(params: ISearchParams): Promise<IRestApiResponse<IEventItem>>;
+        getById(eventId: IEventItem['_id']): Promise<IEventItem>;
+        getByIds(eventIds: Array<IEventItem['_id']>, spikeState?: ISearchSpikeState): Promise<Array<IEventItem>>;
+        getLocked(): Promise<Array<IEventItem>>;
+    };
+    planning: {
+        search(params: ISearchParams): Promise<IRestApiResponse<IPlanningItem>>;
+        getById(planId: IPlanningItem['_id']): Promise<IPlanningItem>;
+        getByIds(planIds: Array<IPlanningItem['_id']>): Promise<Array<IPlanningItem>>;
+        getLocked(): Promise<Array<IPlanningItem>>;
+        getLockedFeatured(): Promise<Array<IFeaturedPlanningLock>>;
+    };
+    combined: {
+        search(params: ISearchParams): Promise<IRestApiResponse<IEventItem | IPlanningItem>>;
+    }
+    search<T>(args: ISearchAPIParams): Promise<IRestApiResponse<T>>;
 }

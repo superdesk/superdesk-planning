@@ -3,14 +3,21 @@ import eventsPlanningApi from '../api';
 import sinon from 'sinon';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import {MAIN} from '../../../constants';
+import {planningApis} from '../../../api';
 
 describe('actions.eventsplanning.api', () => {
     let store;
-    let services;
 
     beforeEach(() => {
         store = getTestActionStore();
-        services = store.services;
+
+        sinon.stub(planningApis.combined, 'search').callsFake(
+            () => Promise.resolve({_items: []})
+        );
+    });
+
+    afterEach(() => {
+        restoreSinonStub(planningApis.combined.search);
     });
 
     describe('query', () => {
@@ -36,20 +43,22 @@ describe('actions.eventsplanning.api', () => {
 
             store.test(done, eventsPlanningApi.query(params))
                 .then(() => {
-                    expect(services.api('events_planning_search').query.callCount).toBe(1);
-                    const args = services.api('events_planning_search').query.args[0][0];
+                    expect(planningApis.combined.search.callCount).toBe(1);
+                    expect(planningApis.combined.search.args[0]).toEqual([jasmine.objectContaining({
+                        max_results: params.maxResults,
+                        full_text: params.fulltext,
+                        page: params.page,
+                        anpa_category: params.advancedSearch.anpa_category,
+                        subject: params.advancedSearch.subject,
+                        state: params.advancedSearch.state,
+                        posted: params.advancedSearch.posted,
+                        slugline: params.advancedSearch.slugline,
+                        date_filter: params.advancedSearch.dates.range,
+                        start_date: params.advancedSearch.dates.start,
+                        end_date: params.advancedSearch.dates.end,
+                        spike_state: params.spikeState,
+                    })]);
 
-                    expect(args.max_results).toBe(50);
-                    expect(args.full_text).toBe('search*');
-                    expect(args.page).toBe(2);
-                    expect(args.anpa_category).toBe('["t","r"]');
-                    expect(args.subject).toBe('["y","x"]');
-                    expect(args.state).toBe('["foo","bar"]');
-                    expect(args.posted).toBe(true);
-                    expect(args.slugline).toBe('slugline');
-                    expect(args.date_filter).toBe('today');
-                    expect(args.start_date).toBe('2018-05-31T14:00:00+0000');
-                    expect(args.end_date).toBe('2018-06-01T14:00:00+0000');
                     done();
                 })
                 .catch(done.fail);

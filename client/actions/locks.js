@@ -3,6 +3,7 @@ import * as selectors from '../selectors';
 import {LOCKS, ITEM_TYPE, WORKSPACE, PLANNING, FEATURED_PLANNING} from '../constants';
 import {planning, events, assignments, autosave, main} from './index';
 import {lockUtils, getItemType, gettext, isExistingItem, modifyForClient} from '../utils';
+import {planningApi} from '../superdeskApi';
 
 /**
  * Action Dispatcher to load all Event and Planning locks
@@ -11,9 +12,12 @@ import {lockUtils, getItemType, gettext, isExistingItem, modifyForClient} from '
 const loadAllLocks = () => (
     (dispatch) => (
         Promise.all([
-            dispatch(events.api.queryLockedEvents()),
-            dispatch(planning.api.queryLockedPlanning()),
-            dispatch(planning.api.queryLockedPlanning({featureLock: true})),
+            planningApi.events.getLocked(),
+            // dispatch(events.api.queryLockedEvents()),
+            planningApi.planning.getLocked(),
+            planningApi.planning.getLockedFeatured(),
+            // dispatch(planning.api.queryLockedPlanning()),
+            // dispatch(planning.api.queryLockedPlanning({featureLock: true})),
         ])
             .then((data) => {
                 const payload = {
