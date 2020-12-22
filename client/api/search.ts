@@ -39,6 +39,7 @@ export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIPa
         recurrence_id: params.recurrence_id,
         place: cvsToString(params.place),
         only_future: params.only_future,
+        filter_id: params.filter_id,
     };
 }
 

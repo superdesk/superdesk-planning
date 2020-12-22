@@ -1,14 +1,15 @@
-import {IEventItem, ISearchAPIParams, ISearchParams, ISearchSpikeState} from '../interfaces';
+import {IEventItem, ISearchAPIParams, ISearchParams, ISearchSpikeState, IPlanningAPI, FILTER_TYPE} from '../interfaces';
 import {cvsToString, convertCommonParams, searchRaw} from './search';
 import {IRestApiResponse} from 'superdesk-api';
-import {superdeskApi} from '../superdeskApi';
+import {superdeskApi, planningApi} from '../superdeskApi';
 import {eventUtils} from '../utils';
+import {eventProfile, eventSearchProfile} from '../selectors/forms';
 
 function convertEventParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
         reference: params.reference,
         source: cvsToString(params.source, 'id'),
-        location: params.location,
+        location: params.location?.name,
         calendars: cvsToString(params.calendars),
         no_calendar_assigned: params.no_calendar_assigned,
     };
@@ -28,7 +29,7 @@ export function searchEvents(params: ISearchParams): Promise<IRestApiResponse<IE
     return searchRaw<IEventItem>({
         ...convertCommonParams(params),
         ...convertEventParams(params),
-        repo: 'events',
+        repo: FILTER_TYPE.EVENTS,
     })
         .then(modifyResponseForClient);
 }
@@ -64,3 +65,20 @@ export function getLockedEvents(): Promise<Array<IEventItem>> {
             response._items
         ));
 }
+
+function getEventEditorProfile() {
+    return eventProfile(planningApi.redux.store.getState());
+}
+
+function getEventSearchProfile() {
+    return eventSearchProfile(planningApi.redux.store.getState());
+}
+
+export const events: IPlanningAPI['events'] = {
+    search: searchEvents,
+    getById: getEventById,
+    getByIds: getEventByIds,
+    getLocked: getLockedEvents,
+    getEditorProfile: getEventEditorProfile,
+    getSearchProfile: getEventSearchProfile,
+};

@@ -1,8 +1,16 @@
-import {IPlanningItem, ISearchAPIParams, ISearchParams, IFeaturedPlanningLock} from '../interfaces';
+import {
+    IPlanningItem,
+    ISearchAPIParams,
+    ISearchParams,
+    IFeaturedPlanningLock,
+    IPlanningAPI,
+    FILTER_TYPE,
+} from '../interfaces';
 import {arrayToString, convertCommonParams, searchRaw} from './search';
-import {superdeskApi} from '../superdeskApi';
+import {superdeskApi, planningApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
 import {planningUtils} from '../utils';
+import {planningProfile, planningSearchProfile} from '../selectors/forms';
 
 function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
@@ -33,7 +41,7 @@ export function searchPlanning(params: ISearchParams) {
     return searchRaw<IPlanningItem>({
         ...convertCommonParams(params),
         ...convertPlanningParams(params),
-        repo: 'planning',
+        repo: FILTER_TYPE.PLANNING,
     })
         .then(modifyResponseForClient);
 }
@@ -75,3 +83,21 @@ export function getLockedFeaturedPlanning(): Promise<Array<IFeaturedPlanningLock
     )
         .then((response) => response._items);
 }
+
+function getPlanningEditorProfile() {
+    return planningProfile(planningApi.redux.store.getState());
+}
+
+function getPlanningSearchProfile() {
+    return planningSearchProfile(planningApi.redux.store.getState());
+}
+
+export const planning: IPlanningAPI['planning'] = {
+    search: searchPlanning,
+    getById: getPlanningById,
+    getByIds: getPlanningByIds,
+    getLocked: getLockedPlanningItems,
+    getLockedFeatured: getLockedFeaturedPlanning,
+    getEditorProfile: getPlanningEditorProfile,
+    getSearchProfile: getPlanningSearchProfile,
+};
