@@ -213,154 +213,473 @@ DEFAULT_EDITOR = [{
     'name': 'advanced_search',
     'editor': {
         'event': {
-            'slugline': {
+            # Common Fields
+            'full_text': {
                 'enabled': True,
-                'index': 1
-            },
-            'reference': {
-                'enabled': False,
-                'index': 2
+                'index': 1,
+                'group': 'common',
+                'search_enabled': False,
+                'filter_enabled': True
             },
             'name': {
                 'enabled': True,
-                'index': 3
+                'index': 2,
+                'group': 'common',
+                'search_enabled': True,
+                'filter_enabled': True
             },
+            'slugline': {
+                'enabled': True,
+                'index': 3,
+                'group': 'common',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'language': {
+                'enabled': True,
+                'index': 4,
+                'group': 'common',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+
+            # Vocabularies
             'anpa_category': {
                 'enabled': True,
-                'index': 4
+                'index': 1,
+                'group': 'vocabularies',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'place': {
+                'enabled': True,
+                'index': 2,
+                'group': 'vocabularies',
+                'search_enabled': True,
+                'filter_enabled': True
             },
             'subject': {
                 'enabled': True,
-                'index': 5
+                'index': 3,
+                'group': 'vocabularies',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+
+            # States
+            'state': {
+                'enabled': True,
+                'index': 1,
+                'group': 'states',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'posted': {
+                'enabled': True,
+                'index': 2,
+                'group': 'states',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'spike_state': {
+                'enabled': True,
+                'index': 3,
+                'group': 'states',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'include_killed': {
+                'enabled': True,
+                'index': 4,
+                'group': 'states',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'lock_state': {
+                'enabled': True,
+                'index': 5,
+                'group': 'states',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+
+            # Dates
+            'start_date': {
+                'enabled': True,
+                'index': 1,
+                'group': 'dates',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'end_date': {
+                'enabled': True,
+                'index': 2,
+                'group': 'dates',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'date_filter': {
+                'enabled': True,
+                'index': 3,
+                'group': 'dates',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+
+            # Events
+            'calendars': {
+                'enabled': True,
+                'index': 1,
+                'group': 'events',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'no_calendar_assigned': {
+                'enalbed': True,
+                'index': 2,
+                'group': 'events',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'reference': {
+                'enabled': True,
+                'index': 3,
+                'group': 'events',
+                'search_enabled': True,
+                'filter_enabled': True
             },
             'source': {
                 'enabled': True,
-                'index': 6
+                'index': 4,
+                'group': 'events',
+                'search_enabled': True,
+                'filter_enabled': True
             },
             'location': {
                 'enabled': True,
-                'index': 7
-            },
-            'state': {
-                'enabled': True,
-                'index': 8
-            },
-            'pub_status': {
-                'enabled': True,
-                'index': 9
-            },
-            'spike_state': {
-                'enabled': True,
-                'index': 10
-            },
-            'start_date_time': {
-                'enabled': True,
-                'index': 11
-            },
-            'end_date_time': {
-                'enabled': True,
-                'index': 12
-            },
-            'date_filter': {
-                'enabled': True,
-                'index': 13
+                'index': 5,
+                'group': 'events',
+                'search_enabled': True,
+                'filter_enabled': True
             },
         },
         'planning': {
+            # Common Fields
+            'full_text': {
+                'enabled': True,
+                'index': 1,
+                'group': 'common',
+                'search_enabled': False,
+                'filter_enabled': True
+            },
+            'name': {
+                'enabled': True,
+                'index': 2,
+                'group': 'common',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
             'slugline': {
                 'enabled': True,
-                'index': 1
+                'index': 3,
+                'group': 'common',
+                'search_enabled': True,
+                'filter_enabled': True
             },
-            'content_type': {
+            'language': {
                 'enabled': True,
-                'index': 2
+                'index': 4,
+                'group': 'common',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+
+            # Vocabularies
+            'anpa_category': {
+                'enabled': True,
+                'index': 1,
+                'group': 'vocabularies',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'place': {
+                'enabled': True,
+                'index': 2,
+                'group': 'vocabularies',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'subject': {
+                'enabled': True,
+                'index': 3,
+                'group': 'vocabularies',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+
+            # States
+            'state': {
+                'enabled': True,
+                'index': 1,
+                'group': 'states',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'posted': {
+                'enabled': True,
+                'index': 2,
+                'group': 'states',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'spike_state': {
+                'enabled': True,
+                'index': 3,
+                'group': 'states',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'include_killed': {
+                'enabled': True,
+                'index': 4,
+                'group': 'states',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'lock_state': {
+                'enabled': True,
+                'index': 5,
+                'group': 'states',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'exclude_rescheduled_and_cancelled': {
+                'enabled': True,
+                'index': 6,
+                'group': 'states',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+
+            # Dates
+            'start_date': {
+                'enabled': True,
+                'index': 1,
+                'group': 'dates',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'end_date': {
+                'enabled': True,
+                'index': 2,
+                'group': 'dates',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'date_filter': {
+                'enabled': True,
+                'index': 3,
+                'group': 'dates',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+
+            # Planning
+            'agendas': {
+                'enabled': True,
+                'index': 1,
+                'group': 'planning',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'no_agenda_assigned': {
+                'enabled': True,
+                'index': 2,
+                'group': 'planning',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'ad_hoc_planning': {
+                'enabled': True,
+                'index': 3,
+                'group': 'planning',
+                'search_enabled': True,
+                'filter_enabled': True
             },
             'no_coverage': {
                 'enabled': True,
-                'index': 3
-            },
-            'featured': {
-                'enabled': True,
-                'index': 4
-            },
-            'anpa_category': {
-                'enabled': True,
-                'index': 5
-            },
-            'subject': {
-                'enabled': True,
-                'index': 6
+                'index': 4,
+                'group': 'planning',
+                'search_enabled': True,
+                'filter_enabled': True
             },
             'urgency': {
                 'enabled': True,
-                'index': 7
+                'index': 5,
+                'group': 'planning',
+                'search_enabled': True,
+                'filter_enabled': True
             },
-            'state': {
+            'g2_content_type': {
                 'enabled': True,
-                'index': 8
+                'index': 6,
+                'group': 'planning',
+                'search_enabled': True,
+                'filter_enabled': True
             },
-            'pub_status': {
+            'featured': {
                 'enabled': True,
-                'index': 9
+                'index': 7,
+                'group': 'planning',
+                'search_enabled': True,
+                'filter_enabled': True
             },
-            'spike_state': {
+            'include_scheduled_updates': {
                 'enabled': True,
-                'index': 10
-            },
-            'start_date_time': {
-                'enabled': True,
-                'index': 11
-            },
-            'end_date_time': {
-                'enabled': True,
-                'index': 12
-            },
-            'date_filter': {
-                'enabled': True,
-                'index': 13
+                'index': 8,
+                'group': 'planning',
+                'search_enabled': True,
+                'filter_enabled': True
             }
         },
         'combined': {
+            # Common Fields
+            'full_text': {
+                'enabled': True,
+                'index': 1,
+                'group': 'common',
+                'search_enabled': False,
+                'filter_enabled': True
+            },
+            'name': {
+                'enabled': True,
+                'index': 2,
+                'group': 'common',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
             'slugline': {
                 'enabled': True,
-                'index': 1
+                'index': 3,
+                'group': 'common',
+                'search_enabled': True,
+                'filter_enabled': True
             },
-            'reference': {
-                'enabled': False,
-                'index': 2
+            'language': {
+                'enabled': True,
+                'index': 4,
+                'group': 'common',
+                'search_enabled': True,
+                'filter_enabled': True
             },
+
+            # Vocabularies
             'anpa_category': {
                 'enabled': True,
-                'index': 3
+                'index': 1,
+                'group': 'vocabularies',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'place': {
+                'enabled': True,
+                'index': 2,
+                'group': 'vocabularies',
+                'search_enabled': True,
+                'filter_enabled': True
             },
             'subject': {
                 'enabled': True,
-                'index': 4
+                'index': 3,
+                'group': 'vocabularies',
+                'search_enabled': True,
+                'filter_enabled': True
             },
+
+            # States
             'state': {
                 'enabled': True,
-                'index': 5
+                'index': 1,
+                'group': 'states',
+                'search_enabled': True,
+                'filter_enabled': True
             },
-            'pub_status': {
+            'posted': {
                 'enabled': True,
-                'index': 6
+                'index': 2,
+                'group': 'states',
+                'search_enabled': True,
+                'filter_enabled': True
             },
             'spike_state': {
                 'enabled': True,
-                'index': 7
+                'index': 3,
+                'group': 'states',
+                'search_enabled': True,
+                'filter_enabled': True
             },
-            'start_date_time': {
+            'include_killed': {
                 'enabled': True,
-                'index': 8
+                'index': 4,
+                'group': 'states',
+                'search_enabled': True,
+                'filter_enabled': True
             },
-            'end_date_time': {
+            'lock_state': {
                 'enabled': True,
-                'index': 9
+                'index': 5,
+                'group': 'states',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+
+            # Dates
+            'start_date': {
+                'enabled': True,
+                'index': 1,
+                'group': 'dates',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'end_date': {
+                'enabled': True,
+                'index': 2,
+                'group': 'dates',
+                'search_enabled': True,
+                'filter_enabled': True
             },
             'date_filter': {
                 'enabled': True,
-                'index': 10
-            }
+                'index': 3,
+                'group': 'dates',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+
+            # Events
+            'calendars': {
+                'enabled': True,
+                'index': 1,
+                'group': 'events',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+            'reference': {
+                'enabled': True,
+                'index': 2,
+                'group': 'events',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
+
+            # Planning
+            'agendas': {
+                'enabled': True,
+                'index': 1,
+                'group': 'planning',
+                'search_enabled': True,
+                'filter_enabled': True
+            },
         }
     },
     'schema': {}
@@ -499,7 +818,13 @@ class PlanningTypesService(superdesk.Service):
         default_type = {'schema': {}, 'editor': {}}
         updated_planning_type = deepcopy(default_planning_type or default_type)
         updated_planning_type['schema'].update(planning_type.get('schema', {}))
-        updated_planning_type['editor'].update(planning_type.get('editor', {}))
+
+        if planning_type.get('name') == 'advanced_search':
+            updated_planning_type['editor']['event'].update((planning_type.get('editor') or {}).get('event'))
+            updated_planning_type['editor']['planning'].update((planning_type.get('editor') or {}).get('planning'))
+            updated_planning_type['editor']['combined'].update((planning_type.get('editor') or {}).get('combined'))
+        else:
+            updated_planning_type['editor'].update(planning_type.get('editor', {}))
 
         planning_type['schema'] = updated_planning_type['schema']
         planning_type['editor'] = updated_planning_type['editor']
