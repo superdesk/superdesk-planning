@@ -8,7 +8,6 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import Dict, Union
 import logging
 import datetime
 
@@ -198,7 +197,7 @@ class IcsTwoFeedParser(FileFeedParser):
             return
 
         r_rule_dict = vRecur.from_ical(r_rule)
-        recurring_rule: Dict[str, Union[str, int, datetime.date, datetime.datetime]] = {}
+        recurring_rule = {}
 
         if r_rule.get('FREQ'):
             recurring_rule['frequency'] = ''.join(r_rule_dict['FREQ'])
