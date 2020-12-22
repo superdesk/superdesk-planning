@@ -814,47 +814,6 @@ export const getWorkFlowStateAsOptions = (activeFilter = null) => {
     return workflowStateOptions;
 };
 
-// export const appendStatesQueryForAdvancedSearch = (advancedSearch, spikeState,
-//     mustNotTerms, mustTerms, includeKilled) => {
-//     let states = (advancedSearch.state || []).map((s) => s.qcode);
-//
-//     switch (spikeState) {
-//     case SPIKED_STATE.NOT_SPIKED:
-//         mustNotTerms.push(
-//             elastic.term('state', WORKFLOW_STATE.SPIKED)
-//         );
-//         break;
-//
-//     case SPIKED_STATE.SPIKED:
-//         mustTerms.push(
-//             elastic.term('state', WORKFLOW_STATE.SPIKED)
-//         );
-//         break;
-//
-//     case SPIKED_STATE.BOTH:
-//     default:
-//         // Push spiked state only if other states are selected
-//         // Else, it will be fetched anyway
-//         if (states.length > 0) {
-//             states.push(WORKFLOW_STATE.SPIKED);
-//         }
-//     }
-//
-//     if (spikeState !== SPIKED_STATE.SPIKED && states.length > 0) {
-//         mustTerms.push(
-//             elastic.terms('state', states)
-//         );
-//     }
-//
-//     if (!includeKilled) {
-//         if (!states.includes(WORKFLOW_STATE.KILLED)) {
-//             mustNotTerms.push(
-//                 elastic.term('state', WORKFLOW_STATE.KILLED)
-//             );
-//         }
-//     }
-// };
-
 export const getEnabledAgendas = (agendas) => (agendas || []).filter((agenda) => get(agenda, 'is_enabled', true));
 
 export const getDisabledAgendas = (agendas) => (agendas || []).filter((agenda) => get(agenda, 'is_enabled') === false);
