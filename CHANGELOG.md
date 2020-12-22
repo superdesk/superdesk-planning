@@ -2,10 +2,10 @@
 
 ## [2.0.1-rc2] 2020-12-22
 ### Features
-[SDCP-387] Add language field to Events and Planning item
-[SDCP-388] Use CV translations in form inputs
-[SDCP-388] Add language attribute to ColouredValueInput component
-[SDCP-387] fix(duplicate): Language not copying to new items
+- [SDCP-387] Add language field to Events and Planning item
+- [SDCP-388] Use CV translations in form inputs
+- [SDCP-388] Add language attribute to ColouredValueInput component
+- [SDCP-387] fix(duplicate): Language not copying to new items
 
 ## [2.0.1-rc1] 2020-12-04
 ### Features
