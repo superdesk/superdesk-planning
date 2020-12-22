@@ -13,22 +13,22 @@
 import logging
 import json
 import math
-from typing import List
+from typing import List, Dict, Any, Optional
 from copy import deepcopy
 
-from werkzeug.datastructures import MultiDict
+from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 from eve.utils import ParsedRequest
 
-from superdesk import Resource, Service
+from superdesk import Resource, Service, get_resource_service
 from superdesk.errors import SuperdeskApiError
-from superdesk import get_resource_service
 
 from planning.planning.planning import planning_schema
 from planning.events.events_schema import events_schema
 
-from .queries.planning import PLANNING_PARAMS, construct_planning_search_query
-from .queries.events import EVENT_PARAMS, construct_events_search_query
-from .queries.combined import COMBINED_PARAMS, construct_combined_search_query, construct_combined_view_data_query
+from .queries.planning import PLANNING_PARAMS, PLANNING_SEARCH_FILTERS
+from .queries.events import EVENT_PARAMS, EVENT_SEARCH_FILTERS
+from .queries.combined import COMBINED_PARAMS, COMBINED_SEARCH_FILTERS, construct_combined_view_data_query
+from .queries.common import construct_search_query
 
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,6 @@ logger = logging.getLogger(__name__)
 
 class EventsPlanningService(Service):
     default_page_size = 100
-    date_filters = {'today', 'tomorrow', 'next_week', 'this_week'},
 
     def get(self, req, lookup):
         """Retrieve a list of events and planning that match the filter criteria (if any) passed along the HTTP request.
@@ -50,54 +49,93 @@ class EventsPlanningService(Service):
         """
 
         params = req.args or MultiDict()
-        repo = params.get('repo', 'combined')
 
-        self._check_for_unknown_params(params, self._get_whitelist(repo))
+        if isinstance(params, ImmutableMultiDict):
+            params = params.copy()
+
+        repo = params.get('repo', 'combined')
+        search_filter = self._get_search_filter(repo, params)
+        self._check_for_unknown_params(params, search_filter, self._get_whitelist(repo))
+        query = self._construct_search_query(repo, params, search_filter)
 
         if repo == 'events':
-            return self._search_events(req)
+            return self._search_events(req, query, search_filter)
         elif repo == 'planning':
-            return self._search_planning(req)
+            return self._search_planning(req, query, search_filter)
         else:
-            items = self._get_events_and_planning(req)
-            return self._get_combined_view_data(items, req)
+            items = self._get_events_and_planning(req, query, search_filter)
+            return self._get_combined_view_data(items, req, params, search_filter)
 
-    def _get_combined_view_data(self, items, request):
+    def _get_search_filter(self, repo: str, params: Dict[str, Any]):
+        filter_id = params.get('filter_id')
+        if not filter_id:
+            return {'params': {}}
+
+        search_filter = get_resource_service('events_planning_filters').find_one(req=None, _id=filter_id)
+        if not search_filter:
+            logger.warning(f'Event filter {filter_id} not found')
+            return {'params': {}}
+
+        item_type = search_filter.get('item_type', 'combined')
+        if item_type != repo:
+            logger.warning(f'Incorrect filter type supplied ({item_type})')
+            return {'params': {}}
+        elif not len(search_filter.get('params') or {}):
+            logger.warning(f'Search filter {filter_id} has no params')
+            return {'params': {}}
+
+        return search_filter
+
+    def _construct_search_query(
+        self,
+        repo: str,
+        params: Dict[str, Any],
+        search_filter: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+
+        if repo == 'events':
+            filters = EVENT_SEARCH_FILTERS
+        elif repo == 'planning':
+            filters = PLANNING_SEARCH_FILTERS
+        else:
+            filters = COMBINED_SEARCH_FILTERS
+
+        return construct_search_query(
+            filters,
+            params,
+            search_filter
+        )
+
+    def _get_combined_view_data(self, items, request, params, search_filter):
         """Get list of event and planning for the combined view
 
         :param items:
         :param request: object representing the HTTP request
         """
-        ids = set()
-        for item in items:
-            # don't want related planing items
-            _id = item.get('event_item') or item.get('_id')
-            ids.add(_id)
-
-        query = construct_combined_view_data_query(request.args or MultiDict(), ids)
+        query = construct_combined_view_data_query(params, search_filter, items)
         page = request.page or 1
-        page_size = self._get_page_size(request)
+        page_size = self._get_page_size(request, search_filter)
         req = ParsedRequest()
         req.args = MultiDict()
         req.args['source'] = json.dumps({
             'query': query['query'],
             'sort': self._get_sort(),
-            'size': self._get_page_size(request),
+            'size': page_size,
             'from': (page - 1) * page_size
         })
         req.page = request.page or 1
-        req.max_results = self._get_page_size(request)
+        req.max_results = page_size
         return get_resource_service('planning_search').get(req=req, lookup=None)
 
-    def _get_events_and_planning(self, request):
+    def _get_events_and_planning(self, request, query, search_filter):
         """Get list of event and planning based on the search criteria
 
         :param request: object representing the HTTP request
         """
-        params = request.args or MultiDict()
-        query = construct_combined_search_query(params)
+        # params = request.args or MultiDict()
+        # query = construct_combined_search_query(params)
         page = request.page or 1
-        max_results = self._get_page_size(request)
+        max_results = self._get_page_size(request, search_filter)
         req = ParsedRequest()
         req.args = MultiDict()
         req.args['source'] = json.dumps({
@@ -111,17 +149,17 @@ class EventsPlanningService(Service):
         req.exec_on_fetched_resource = False  # don't call on_fetched_resource
         return get_resource_service('planning_search').get(req=req, lookup=None)
 
-    def _search_events(self, request):
-        params = request.args or MultiDict()
-        query = construct_events_search_query(params)
+    def _search_events(self, request, query, search_filter):
+        # params = request.args or MultiDict()
+        # query = construct_events_search_query(params, search_filter)
         page = request.page or 1
-        page_size = self._get_page_size(request)
+        page_size = self._get_page_size(request, search_filter)
         req = ParsedRequest()
         req.args = MultiDict()
         req.args['source'] = json.dumps({
             'query': query['query'],
             'sort': query['sort'] if query.get('sort') else {'dates.start': {'order': 'asc'}},
-            'size': self._get_page_size(request),
+            'size': page_size,
             'from': (page - 1) * page_size
         })
         req.args['repos'] = 'events'
@@ -129,17 +167,17 @@ class EventsPlanningService(Service):
         req.max_results = page_size
         return get_resource_service('planning_search').get(req=req, lookup=None)
 
-    def _search_planning(self, request):
-        params = request.args or MultiDict()
-        query = construct_planning_search_query(params)
+    def _search_planning(self, request, query, search_filter):
+        # params = request.args or MultiDict()
+        # query = construct_planning_search_query(params)
         page = request.page or 1
-        page_size = self._get_page_size(request)
+        page_size = self._get_page_size(request, search_filter)
         req = ParsedRequest()
         req.args = MultiDict()
         req.args['source'] = json.dumps({
             'query': query['query'],
             'sort': query['sort'] if query.get('sort') else self._get_sort(),
-            'size': self._get_page_size(request),
+            'size': page_size,
             'from': (page - 1) * page_size
         })
         req.args['repos'] = 'planning'
@@ -155,7 +193,7 @@ class EventsPlanningService(Service):
         else:
             return COMBINED_PARAMS
 
-    def _check_for_unknown_params(self, params: MultiDict, whitelist: List[str]):
+    def _check_for_unknown_params(self, params: MultiDict, search_filter: Dict[str, Any], whitelist: List[str]):
         """Check if the request contains only allowed parameters.
 
         :param request: object representing the HTTP request
@@ -170,6 +208,13 @@ class EventsPlanningService(Service):
                 desc = "Multiple values received for parameter ({})"
                 raise SuperdeskApiError.badRequestError(message=desc.format(param_name))
 
+        # Silently remove parameters from the search filter that are not in the whitelist
+        search_filter_id = search_filter.get('_id')
+        for param_name in search_filter['params'].keys():
+            if param_name not in whitelist:
+                logger.warning(f'Search filter {search_filter_id} contains unsupported param {param_name}')
+                search_filter['params'].pop(param_name, None)
+
     def _get_sort(self):
         """Get the sort"""
         return {
@@ -181,9 +226,15 @@ class EventsPlanningService(Service):
             }
         }
 
-    def _get_page_size(self, request):
+    def _get_page_size(self, request, search_filter):
         """Get the page size"""
-        return request.max_results if request.max_results else self.default_page_size
+
+        if search_filter['params'].get('max_results'):
+            return search_filter['params']['max_results']
+        elif request.max_results:
+            return request.max_results
+        else:
+            return self.default_page_size
 
 
 class EventsPlanningResource(Resource):
