@@ -12,19 +12,35 @@
 
 """
 
+from typing import NamedTuple
+
 from copy import deepcopy
 from eve.utils import config
 import logging
 import superdesk
 from superdesk import Resource
-from superdesk.errors import SuperdeskApiError
 from superdesk.notification import push_notification
+from superdesk.resource import not_analyzed
+from superdesk.metadata.item import metadata_schema
 from apps.auth import get_user_id
-from planning.common import set_original_creator
+from planning.common import set_original_creator, SPIKED_STATE
+from planning.events.events_schema import events_schema
+from planning.planning.planning import planning_schema
 
 
 logger = logging.getLogger(__name__)
 endpoint = 'events_planning_filters'
+
+
+#: item types
+class ItemTypes(NamedTuple):
+    EVENT: str
+    PLANNING: str
+    COMBINED: str
+
+
+ITEM_TYPES: ItemTypes = ItemTypes('events', 'planning', 'combined')
+
 
 filters_schema = {
     'name': {
@@ -32,18 +48,164 @@ filters_schema = {
         'iunique': True,
         'required': True
     },
-    'agendas': {
-        'type': 'list',
-    },
-    'calendars': {
-        'type': 'list',
-    },
-    'places': {
-        'type': 'list',
+    'item_type': {
+        'type': 'string',
+        'allowed': tuple(ITEM_TYPES),
+        'default': ITEM_TYPES.COMBINED,
+        'mapping': not_analyzed,
+        'nullable': False,
     },
     # Audit Information
     'original_creator': Resource.rel('users'),
-    'version_creator': Resource.rel('users')
+    'version_creator': Resource.rel('users'),
+    'params': {
+        'type': 'dict',
+        'schema': {
+            # Common Fields
+            'item_ids': {
+                'type': 'list',
+                'nullable': True,
+                'mapping': not_analyzed
+            },
+            'name': events_schema['name'],
+            'tz_offset': {
+                'type': 'string',
+                'nullable': True,
+                'mapping': not_analyzed
+            },
+            'full_text': {
+                'type': 'string',
+                'nullable': True,
+                'mapping': not_analyzed
+            },
+            'anpa_category': metadata_schema['anpa_category'],
+            'subject': metadata_schema['subject'],
+            'posted': {
+                'type': 'boolean',
+                'nullable': True
+            },
+            'place': metadata_schema['place'],
+            'language': metadata_schema['language'],
+            'state': {
+                'type': 'list',
+                'nullable': True,
+                'mapping': {
+                    'type': 'object',
+                    'properties': {
+                        'qcode': not_analyzed,
+                        'name': not_analyzed
+                    }
+                }
+            },
+            'spike_state': {
+                'type': 'string',
+                'allowed': SPIKED_STATE,
+                'mapping': not_analyzed,
+                'nullable': True
+            },
+            'include_killed': {
+                'type': 'boolean',
+                'nullable': True
+            },
+            'date_filter': {
+                'type': 'string',
+                'allowed': ['today', 'tomorrow', 'this_week', 'next_week', 'last24', 'forDate'],
+                'nullable': True
+            },
+            'start_date': {
+                'type': 'datetime',
+                'nullable': True,
+            },
+            'end_date': {
+                'type': 'datetime',
+                'nullable': True,
+            },
+            'only_future': {
+                'type': 'boolean',
+                'nullable': True
+            },
+            'start_of_week': {
+                'type': 'integer',
+                'nullable': True
+            },
+            'slugline': metadata_schema['slugline'],
+            'lock_state': {
+                'type': 'string',
+                'allowed': ['locked', 'unlocked'],
+                'nullable': True
+            },
+            'recurrence_id': events_schema['recurrence_id'],
+            'max_results': {
+                'type': 'integer',
+                'nullable': True
+            },
+
+            # Event Specific Fields
+            'reference': events_schema['reference'],
+            'source': {
+                'type': 'list',
+                'nullable': True,
+                'schema': metadata_schema['ingest_provider']
+            },
+            'location': {
+                'type': 'string',
+                'nullable': True,
+                'mapping': not_analyzed
+            },
+            'calendars': events_schema['calendars'],
+            'no_calendar_assigned': {
+                'type': 'boolean',
+                'nullable': True
+            },
+
+            # Planning Specific Fields
+            'agendas': planning_schema['agendas'],
+            'no_agenda_assigned': {
+                'type': 'boolean',
+                'nullable': True
+            },
+            'ad_hoc_planning': {
+                'type': 'boolean',
+                'nullable': True
+            },
+            'exclude_rescheduled_and_cancelled': {
+                'type': 'boolean',
+                'nullable': True
+            },
+            'no_coverage': {
+                'type': 'boolean',
+                'nullable': True
+            },
+            'urgency': {
+                'type': 'dict',
+                'schema': {
+                    'qcode': {'type': 'integer'},
+                    'name': {'type': 'string', 'mapping': not_analyzed}
+                }
+            },
+            'g2_content_type': {
+                'type': 'dict',
+                'schema': {
+                    'qcode': {'type': 'string', 'mapping': not_analyzed},
+                    'name': {'type': 'string', 'mapping': not_analyzed},
+                    'content item type': {'type': 'string', 'mapping': not_analyzed}
+                }
+            },
+            'featured': {
+                'type': 'boolean',
+                'nullable': True
+            },
+            'include_scheduled_updates': {
+                'type': 'boolean',
+                'nullable': True
+            },
+            'event_item': {
+                'type': 'list',
+                'nullable': True,
+                'schema': planning_schema['event_item']
+            }
+        }
+    }
 }
 
 
@@ -65,7 +227,6 @@ class EventPlanningFiltersService(superdesk.Service):
 
     def on_create(self, docs):
         for doc in docs:
-            self.is_valid(doc)
             set_original_creator(doc)
 
     def on_created(self, docs):
@@ -75,13 +236,8 @@ class EventPlanningFiltersService(superdesk.Service):
                 'event_planning_filters:created'
             )
 
-    def is_valid(self, doc):
-        """Check if the filter is valid"""
-        if not doc.get('calendars') and not doc.get('agendas') and not doc.get('places'):
-            raise SuperdeskApiError(message="Either a Calendar, Agenda or Place is required.")
-
     def _push_notification(self, _id, event_name):
-        """Push socket notifiction"""
+        """Push socket notification"""
         push_notification(
             event_name,
             item=str(_id),
@@ -91,7 +247,6 @@ class EventPlanningFiltersService(superdesk.Service):
     def on_update(self, updates, original):
         updated = deepcopy(original)
         updated.update(updates)
-        self.is_valid(updated)
         user_id = get_user_id()
         if user_id:
             updates['version_creator'] = user_id
