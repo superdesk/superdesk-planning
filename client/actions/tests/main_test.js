@@ -389,6 +389,7 @@ describe('actions.main', () => {
                         fulltext: '',
                         spikeState: 'draft',
                         eventsPlanningFilter: 'ALL_EVENTS_PLANNING',
+                        filter_id: 'ALL_EVENTS_PLANNING',
                     }]);
                     done();
                 })
