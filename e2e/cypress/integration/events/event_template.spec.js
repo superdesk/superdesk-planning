@@ -66,6 +66,7 @@ describe('Planning.Events: event templates', () => {
         subnav.menuBtn.click();
         subnav.menu
             .contains('Manage event templates')
+            .should('exist')
             .click();
 
         // Make sure our new template is there
@@ -138,6 +139,7 @@ describe('Planning.Events: event templates', () => {
         subnav.menu
             .find('button')
             .contains('Example')
+            .should('exist')
             .click();
 
         // Check the form values are the same as the template (excluding date/time values)

@@ -67,6 +67,7 @@ function configurePlanning(superdesk) {
                     return !item.assignment_id &&
                         !archiveService.isPersonal(item) &&
                         !superdeskApi.entities.article.isLockedInOtherSession(item) &&
+                        !['correction'].includes(item.state)
                         isContentLinkToCoverageAllowed(item) &&
                         (
                             authoring.itemActions(item).edit ||
@@ -99,7 +100,7 @@ function configurePlanning(superdesk) {
                         !archiveService.isPersonal(item) &&
                         !superdeskApi.entities.article.isLockedInOtherSession(item) &&
                         isContentLinkToCoverageAllowed(item) &&
-                        !['killed', 'recalled', 'unpublished', 'spiked'].includes(item.state);
+                        !['killed', 'recalled', 'unpublished', 'spiked', 'correction'].includes(item.state);
                 }],
         })
         .activity('planning.unlink', {

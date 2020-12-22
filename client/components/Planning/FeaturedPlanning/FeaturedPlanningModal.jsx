@@ -123,7 +123,9 @@ export class FeaturedPlanningModalComponent extends React.Component {
                     removedPlannings.forEach((id) => {
                         const item = this.props.featuredPlanningItems.find((p) => p._id === id);
 
-                        notifications.push(`Story with slugline '${item.slugline}' is removed from the list`);
+                        if (item) {
+                            notifications.push(`Story with slugline '${item.slugline}' is removed from the list`);
+                        }
                     });
                 }
 

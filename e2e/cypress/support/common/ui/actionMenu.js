@@ -49,6 +49,8 @@ export class ActionMenu {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     getAction(label) {
-        return this.popup.element.contains(label);
+        return this.popup.element
+            .contains(label)
+            .should('exist');
     }
 }

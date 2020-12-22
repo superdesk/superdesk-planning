@@ -13,7 +13,9 @@ export class ContactEmailInput extends Input {
         return this.parent
             .find('.form__row')
             .contains(this.selector)
-            .parent();
+            .should('exist')
+            .parent()
+            .should('exist');
     }
 
     /**
