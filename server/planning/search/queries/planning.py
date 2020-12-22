@@ -14,7 +14,8 @@ from copy import deepcopy
 
 from planning.search.queries import elastic
 from planning.common import WORKFLOW_STATE
-from .common import get_date_params, COMMON_SEARCH_FILTERS, COMMON_PARAMS, strtobool, str_to_array, str_to_number
+from .common import get_date_params, COMMON_SEARCH_FILTERS, COMMON_PARAMS, \
+    strtobool, str_to_array, str_to_number
 
 
 def search_planning(_: Dict[str, Any], query: elastic.ElasticQuery):
@@ -272,6 +273,9 @@ def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):
+    if params.get('exclude_dates'):
+        return
+
     search_date(params, query)
     search_date_default(params, query)
 
@@ -307,12 +311,3 @@ PLANNING_PARAMS = [
 ]
 
 PLANNING_PARAMS.extend(COMMON_PARAMS)
-
-
-def construct_planning_search_query(params: Dict[str, Any]) -> Dict[str, Any]:
-    query = elastic.ElasticQuery()
-
-    for search_filter in PLANNING_SEARCH_FILTERS:
-        search_filter(params, query)
-
-    return query.build()

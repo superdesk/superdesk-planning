@@ -51,6 +51,17 @@ class ElasticQuery:
 
         return query
 
+    def extend_query(self, query: Dict[str, Any]):
+        def _extend(key: str):
+            conditions = ((query.get('query') or {}).get('bool') or {}).get(key) or []
+            if len(conditions):
+                self.__dict__[key].extend(conditions)
+
+        _extend('must')
+        _extend('must_not')
+        _extend('filter')
+        _extend('should')
+
 
 class DateRanges(NamedTuple):
     TODAY: str
