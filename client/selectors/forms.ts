@@ -53,6 +53,18 @@ export const searchProfile = createSelector(
 
         return null;
     });
+export const combinedSearchProfile = createSelector(
+    [profiles],
+    (p) => get(p, 'advanced_search.editor.combined', {})
+);
+export const eventSearchProfile = createSelector(
+    [profiles],
+    (p) => get(p, 'advanced_search.editor.event', {})
+);
+export const planningSearchProfile = createSelector(
+    [profiles],
+    (p) => get(p, 'advanced_search.editor.planning', {})
+);
 
 export const listFields = createSelector([profiles], (p) => {
     const fields = {};
