@@ -51,6 +51,8 @@ import eventsPlanningUi from './eventsPlanning/ui';
 
 import * as selectors from '../selectors';
 import {validateItem} from '../validators';
+import {ISearchParams} from '../interfaces';
+import {searchParamsToOld} from '../utils/search';
 
 const openForEdit = (item, updateUrl = true, modal = false) => (
     (dispatch, getState) => {
@@ -877,6 +879,14 @@ const search = (fulltext, currentSearch = undefined) => (
     }
 );
 
+function searchAdvancedSearch(params: ISearchParams, activeFilter: string) {
+    return (dispatch) => {
+        const oldParams = searchParamsToOld(params, activeFilter);
+
+        return dispatch(search(params.full_text, oldParams));
+    };
+}
+
 /**
  * Action to clear the search parameters and reload.
  * @return {function(*, *)}
@@ -1495,6 +1505,7 @@ const self = {
     closePreview,
     loadMore,
     search,
+    searchAdvancedSearch,
     clearSearch,
     setTotal,
     closePreviewAndEditorForItems,

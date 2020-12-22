@@ -128,7 +128,7 @@ const mapStateToProps = (state) => ({
     currentCalendarId: selectors.events.currentCalendarId(state),
     currentStartFilter: selectors.main.currentStartFilter(state),
     privileges: selectors.general.privileges(state),
-    eventsPlanningFilters: selectors.eventsPlanning.combinedViewFilters(state),
+    eventsPlanningFilters: selectors.eventsPlanning.eventsPlannignViewFilters(state),
     currentEventsPlanningFilterId: selectors.eventsPlanning.currentFilter(state),
 });
 
