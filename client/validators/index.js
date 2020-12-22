@@ -108,6 +108,7 @@ export const validators = {
     event: {
         anpa_category: [formProfile],
         calendars: [formProfile],
+        language: [formProfile],
         definition_long: [formProfile],
         definition_short: [formProfile],
         event_contact_info: [formProfile],
