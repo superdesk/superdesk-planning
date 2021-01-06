@@ -291,16 +291,18 @@ def search_date_range(params: Dict[str, Any], query: elastic.ElasticQuery):
 
     if not date_filter and start_date and end_date:
         query.filter.append(elastic.bool_or([
-            elastic.date_range(elastic.ElasticRangeParams(
-                field='dates.start',
-                gte=start_date,
-                time_zone=tz_offset
-            )),
-            elastic.date_range(elastic.ElasticRangeParams(
-                field='dates.end',
-                lte=end_date,
-                time_zone=tz_offset
-            )),
+            elastic.bool_and([
+                elastic.date_range(elastic.ElasticRangeParams(
+                    field='dates.start',
+                    gte=start_date,
+                    time_zone=tz_offset
+                )),
+                elastic.date_range(elastic.ElasticRangeParams(
+                    field='dates.end',
+                    lte=end_date,
+                    time_zone=tz_offset
+                )),
+            ]),
             elastic.bool_and([
                 elastic.date_range(elastic.ElasticRangeParams(
                     field='dates.start',
@@ -345,6 +347,9 @@ def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):
+    if params.get('exclude_dates'):
+        return
+
     search_date_today(params, query)
     search_date_tomorrow(params, query)
     search_date_last_24_hours(params, query)
@@ -378,12 +383,3 @@ EVENT_PARAMS = [
 ]
 
 EVENT_PARAMS.extend(COMMON_PARAMS)
-
-
-def construct_events_search_query(params: Dict[str, Any]) -> Dict[str, Any]:
-    query = elastic.ElasticQuery()
-
-    for search_filter in EVENT_SEARCH_FILTERS:
-        search_filter(params, query)
-
-    return query.build()

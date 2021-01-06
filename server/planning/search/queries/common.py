@@ -8,16 +8,20 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Callable, Union
 
+import logging
+from datetime import datetime
 from flask import current_app as app
-from eve.utils import str_to_date
+from eve.utils import str_to_date as _str_to_date, date_to_str
 
 from superdesk.utc import get_timezone_offset, utcnow
 from superdesk.errors import SuperdeskApiError
-from superdesk.default_settings import strtobool
+from superdesk.default_settings import strtobool as _strtobool
 from planning.search.queries import elastic
 from planning.common import POST_STATE, WORKFLOW_STATE
+
+logger = logging.getLogger(__name__)
 
 
 def get_time_zone(params: Dict[str, Any]):
@@ -31,23 +35,36 @@ def get_date_params(params: Dict[str, Any]):
     try:
         start_date = params.get('start_date')
         if start_date:
-            str_to_date(params['start_date'])  # validating if date can be parsed
-    except Exception:
+            if isinstance(start_date, str):
+                str_to_date(params['start_date'])  # validating if date can be parsed
+            elif isinstance(start_date, datetime):
+                start_date = date_to_str(start_date)
+    except Exception as e:
+        logger.exception(e)
         raise SuperdeskApiError.badRequestError('Invalid value for start date')
 
     try:
         end_date = params.get('end_date')
         if end_date:
-            str_to_date(params['end_date'])  # validating if date can be parsed
-    except Exception:
+            if isinstance(end_date, str):
+                str_to_date(params['end_date'])  # validating if date can be parsed
+            elif isinstance(end_date, datetime):
+                end_date = date_to_str(end_date)
+    except Exception as e:
+        logger.exception(e)
         raise SuperdeskApiError.badRequestError('Invalid value for end date')
 
     return date_filter, start_date, end_date, tz_offset
 
 
-def str_to_array(arg: Optional[str] = None) -> List[str]:
-    if len(arg or ''):
-        return arg.split(',')
+def str_to_array(arg: Optional[Union[List[str], str]] = None) -> List[str]:
+    if arg is None:
+        return []
+    elif len(arg):
+        if isinstance(arg, list):
+            return arg
+        if isinstance(arg, str):
+            return arg.split(',')
 
     return []
 
@@ -57,6 +74,20 @@ def str_to_number(arg: Optional[str] = None) -> Optional[int]:
         return int(arg)
 
     return None
+
+
+def strtobool(value: Union[bool, str]):
+    if isinstance(value, bool):
+        return value
+
+    return _strtobool(value)
+
+
+def str_to_date(value: Union[datetime, str]):
+    if isinstance(value, datetime):
+        return value
+
+    return _str_to_date(value)
 
 
 def search_item_ids(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -173,6 +204,9 @@ def search_recurrence_id(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def append_states_query_for_advanced_search(params: Dict[str, Any], query: elastic.ElasticQuery):
+    if params.get('exclude_states'):
+        return
+
     spike_state = params.get('spike_state')
     states = str_to_array(params.get('state'))
 
@@ -210,6 +244,85 @@ def append_states_query_for_advanced_search(params: Dict[str, Any], query: elast
                 value=WORKFLOW_STATE.KILLED
             )
         )
+
+
+def construct_query(
+    params: Dict[str, Any],
+    filters: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]]
+) -> Dict[str, Any]:
+    query = elastic.ElasticQuery()
+
+    for search_filter in filters:
+        search_filter(params, query)
+
+    return query.build()
+
+
+def exclude_default_param_dates(filter_params: Dict[str, Any], params: Dict[str, Any]):
+    return (
+        filter_params.get('start_date') or
+        filter_params.get('end_date') or
+        filter_params.get('date_filter')
+    ) and (
+        not params.get('start_date') and
+        not params.get('end_date') and
+        not params.get('date_filter')
+    )
+
+
+def remove_filter_params_from_query(filter_params: Dict[str, Any], params: Dict[str, Any]):
+    if exclude_default_param_dates(filter_params, params):
+        params['exclude_dates'] = True
+
+    if filter_params.get('spike_state') == params.get('spike_state'):
+        params['exclude_states'] = True
+
+
+def construct_search_query(
+    filters: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]],
+    params: Dict[str, Any],
+    search_params: Optional[Dict[str, Any]]
+) -> Dict[str, Any]:
+    filter_params = get_params_from_search_filter(search_params)
+
+    if len(filter_params):
+        query = elastic.ElasticQuery()
+        filter_query = construct_query(filter_params, filters)
+
+        remove_filter_params_from_query(filter_params, params)
+
+        param_query = construct_query(params, filters)
+        query.sort = param_query.pop('sort', [])
+
+        if len(param_query['query']['bool']):
+            query.extend_query(filter_query)
+            query.extend_query(param_query)
+
+            return query.build()
+        else:
+            filter_query['sort'] = query.sort
+            return filter_query
+    else:
+        return construct_query(params, filters)
+
+
+def get_params_from_search_filter(search_filter: Dict[str, Any]) -> Dict[str, Any]:
+    if not search_filter:
+        return {}
+
+    filter_params = {}
+
+    # Now that we have the search filter, construct params with the ones from the DB
+    for key, value in search_filter['params'].items():
+        if key in ['anpa_category', 'subject', 'state', 'place', 'source', 'calendars']:
+            filter_params[key] = [
+                item['qcode']
+                for item in value
+            ]
+        else:
+            filter_params[key] = value
+
+    return filter_params
 
 
 COMMON_SEARCH_FILTERS = [
@@ -250,5 +363,6 @@ COMMON_PARAMS = [
     'recurrence_id',
     'repo',
     'max_results',
-    'page'
+    'page',
+    'filter_id',
 ]
