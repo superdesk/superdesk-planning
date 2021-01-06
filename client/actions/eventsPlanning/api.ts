@@ -17,7 +17,7 @@ const query = (
     {
         advancedSearch = {},
         fulltext,
-        spikeState = SPIKED_STATE.NOT_SPIKED,
+        spikeState = 'draft',
         page = 1,
         maxResults = MAIN.PAGE_SIZE,
         calendars = [],
@@ -30,6 +30,7 @@ const query = (
     (dispatch, getState) => (
         planningApis.combined.search({
             full_text: fulltext,
+            name: advancedSearch?.name,
             spike_state: spikeState,
             anpa_category: advancedSearch.anpa_category,
             subject: advancedSearch.subject,
