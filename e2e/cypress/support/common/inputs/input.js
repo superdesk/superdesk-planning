@@ -50,4 +50,9 @@ export class Input {
         this.element
             .should('have.value', value);
     }
+
+    clear() {
+        cy.log('Common.Input.clear');
+        this.element.clear();
+    }
 }
