@@ -7,7 +7,7 @@ import classNames from 'classnames';
  * @name SidePanel
  * @description SidePanel Component used usually for Advanced Search panels
  */
-export const SidePanel = ({children, shadowRight, shadowLeft, transparent, bg00, className}) => (
+export const SidePanel = ({children, shadowRight, shadowLeft, transparent, bg00, className, testId}) => (
     <div
         className={classNames(
             'side-panel',
@@ -19,6 +19,7 @@ export const SidePanel = ({children, shadowRight, shadowLeft, transparent, bg00,
             },
             className
         )}
+        data-test-id={testId}
     >
         {children}
     </div>
@@ -31,6 +32,7 @@ SidePanel.propTypes = {
     transparent: PropTypes.bool,
     bg00: PropTypes.bool,
     className: PropTypes.string,
+    testId: PropTypes.string,
 };
 
 SidePanel.defaultProps = {

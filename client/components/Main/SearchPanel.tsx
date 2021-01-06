@@ -106,7 +106,10 @@ export class SearchPanelComponent extends React.Component<IProps, IState> {
         const {gettext} = superdeskApi.localization;
 
         return (
-            <SidePanel shadowLeft={true}>
+            <SidePanel
+                shadowLeft={true}
+                testId="search-panel"
+            >
                 <Header className="side-panel__header--border-b">
                     <Tools
                         tools={[{

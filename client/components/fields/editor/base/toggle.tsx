@@ -11,7 +11,7 @@ export class EditorFieldToggle extends React.PureComponent<IEditorFieldProps> {
         const value = get(this.props.item, field, this.props.defaultValue);
 
         return (
-            <Row>
+            <Row testId={this.props.testId}>
                 <Switch
                     value={value}
                     onChange={(newValue) => this.props.onChange(this.props.field, newValue)}

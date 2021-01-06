@@ -7,7 +7,7 @@ import classNames from 'classnames';
  * @name Subnav
  * @description Main Sub Nav component
  */
-export const SubNav = ({children, className, darkBlue, darker, responsive, compact}) => (
+export const SubNav = ({children, className, darkBlue, darker, responsive, compact, testId}) => (
     <div
         className={classNames(
             'subnav',
@@ -19,6 +19,7 @@ export const SubNav = ({children, className, darkBlue, darker, responsive, compa
             },
             className
         )}
+        data-test-id={testId}
     >
         {children}
     </div>
@@ -31,6 +32,7 @@ SubNav.propTypes = {
     darker: PropTypes.bool,
     responsive: PropTypes.bool,
     compact: PropTypes.bool,
+    testId: PropTypes.string,
 };
 
 SubNav.defaultProps = {

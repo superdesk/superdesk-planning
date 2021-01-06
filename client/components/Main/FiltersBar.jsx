@@ -5,7 +5,11 @@ import {ToggleFiltersButton, FiltersBox, CalendarNavigation} from '.';
 import {MAIN} from '../../constants/main';
 
 export const FiltersBar = (props) => (
-    <SubNav responsive={true} compact={props.activeFilter !== MAIN.FILTERS.COMBINED}>
+    <SubNav
+        responsive={true}
+        compact={props.activeFilter !== MAIN.FILTERS.COMBINED}
+        testId="subnav-filters"
+    >
         <ToggleFiltersButton
             filterPanelOpen={props.filterPanelOpen}
             toggleFilterPanel={props.toggleFilterPanel}

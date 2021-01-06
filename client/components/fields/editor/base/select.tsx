@@ -19,7 +19,7 @@ export class EditorFieldSelect extends React.PureComponent<IProps> {
         const error = get(this.props.errors ?? {}, field);
 
         return (
-            <Row>
+            <Row testId={this.props.testId}>
                 <SelectInput
                     {...this.props}
                     field={field}

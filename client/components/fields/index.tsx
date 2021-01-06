@@ -86,12 +86,12 @@ export function renderFieldsForPanel(
     const fields: {[key: string]: IRenderFieldItem} = {};
 
     Object.keys(profile).forEach((fieldName) => {
-        // fields[fieldName] = {
         const newField: IRenderFieldItem = {
             component: fieldComponents[fieldName],
             props: {
                 ...globalProps,
                 ...fieldProps[fieldName],
+                testId: `field-${fieldName}`
             },
             name: fieldName,
             ...profile[fieldName],
@@ -99,7 +99,10 @@ export function renderFieldsForPanel(
 
         if (newField.component == null) {
             console.error(`Component for field ${fieldName} not registered`);
-        } else if (profile[fieldName][enabledField] && (!groupName || newField.group === groupName)) {
+        } else if (profile[fieldName].enabled &&
+            profile[fieldName][enabledField] &&
+            (!groupName || newField.group === groupName)
+        ) {
             newField.enabled = true;
             fields[fieldName] = newField;
         }
@@ -174,6 +177,7 @@ export function renderGroupedFieldsForPanel(
                     key={group.name}
                     isOpen={false}
                     title={group.title}
+                    testId={`toggle-${group.name}`}
                 >
                     {renderedFields}
                 </ToggleBox>

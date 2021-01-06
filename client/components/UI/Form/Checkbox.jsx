@@ -16,6 +16,7 @@ export const Checkbox = ({
     readOnly,
     onChange,
     type,
+    testId,
 }) => {
     const isRadio = type === 'radio';
     const onClick = readOnly ?
@@ -39,7 +40,11 @@ export const Checkbox = ({
 
     if (labelPosition === 'inside') {
         checkbox = (
-            <a className="sd-check__wrapper" onClick={onClick}>
+            <a
+                className="sd-check__wrapper"
+                onClick={onClick}
+                data-test-id={testId}
+            >
                 <span className={className}>
                     <label className={readOnly ? 'sd-label--disabled' : ''}>
                         {label}
@@ -49,7 +54,11 @@ export const Checkbox = ({
         );
     } else if (labelPosition === 'left') {
         checkbox = (
-            <a className="sd-check__wrapper" onClick={onClick}>
+            <a
+                className="sd-check__wrapper"
+                onClick={onClick}
+                data-test-id={testId}
+            >
                 <label className={readOnly ? 'sd-label--disabled' : ''}>
                     {label}
                 </label>
@@ -58,7 +67,11 @@ export const Checkbox = ({
         );
     } else {
         checkbox = (
-            <a className="sd-check__wrapper" onClick={onClick}>
+            <a
+                className="sd-check__wrapper"
+                onClick={onClick}
+                data-test-id={testId}
+            >
                 <span className={className} />
                 <label className={readOnly ? 'sd-label--disabled' : ''}>
                     {label}
@@ -82,6 +95,7 @@ Checkbox.propTypes = {
     onChange: PropTypes.func.isRequired,
     readOnly: PropTypes.bool,
     type: PropTypes.oneOf(['radio', 'checkbox']),
+    testId: PropTypes.string,
 };
 
 Checkbox.defaultProps = {
