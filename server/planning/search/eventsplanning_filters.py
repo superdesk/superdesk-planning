@@ -17,15 +17,18 @@ from typing import NamedTuple
 from copy import deepcopy
 from eve.utils import config
 import logging
+
 import superdesk
 from superdesk import Resource
 from superdesk.notification import push_notification
-from superdesk.resource import not_analyzed
 from superdesk.metadata.item import metadata_schema
+
 from apps.auth import get_user_id
+
 from planning.common import set_original_creator, SPIKED_STATE
 from planning.events.events_schema import events_schema
 from planning.planning.planning import planning_schema
+from planning.search.queries.elastic import DATE_RANGE
 
 
 logger = logging.getLogger(__name__)
@@ -52,7 +55,6 @@ filters_schema = {
         'type': 'string',
         'allowed': tuple(ITEM_TYPES),
         'default': ITEM_TYPES.COMBINED,
-        'mapping': not_analyzed,
         'nullable': False,
     },
     # Audit Information
@@ -65,18 +67,15 @@ filters_schema = {
             'item_ids': {
                 'type': 'list',
                 'nullable': True,
-                'mapping': not_analyzed
             },
             'name': events_schema['name'],
             'tz_offset': {
                 'type': 'string',
                 'nullable': True,
-                'mapping': not_analyzed
             },
             'full_text': {
                 'type': 'string',
                 'nullable': True,
-                'mapping': not_analyzed
             },
             'anpa_category': metadata_schema['anpa_category'],
             'subject': metadata_schema['subject'],
@@ -89,18 +88,14 @@ filters_schema = {
             'state': {
                 'type': 'list',
                 'nullable': True,
-                'mapping': {
-                    'type': 'object',
-                    'properties': {
-                        'qcode': not_analyzed,
-                        'name': not_analyzed
-                    }
+                'schema': {
+                    'qcode': {'type': 'string'},
+                    'name': {'type': 'string'}
                 }
             },
             'spike_state': {
                 'type': 'string',
                 'allowed': SPIKED_STATE,
-                'mapping': not_analyzed,
                 'nullable': True
             },
             'include_killed': {
@@ -109,7 +104,7 @@ filters_schema = {
             },
             'date_filter': {
                 'type': 'string',
-                'allowed': ['today', 'tomorrow', 'this_week', 'next_week', 'last24', 'forDate'],
+                'allowed': tuple(DATE_RANGE),
                 'nullable': True
             },
             'start_date': {
@@ -150,7 +145,6 @@ filters_schema = {
             'location': {
                 'type': 'string',
                 'nullable': True,
-                'mapping': not_analyzed
             },
             'calendars': events_schema['calendars'],
             'no_calendar_assigned': {
@@ -180,15 +174,15 @@ filters_schema = {
                 'type': 'dict',
                 'schema': {
                     'qcode': {'type': 'integer'},
-                    'name': {'type': 'string', 'mapping': not_analyzed}
+                    'name': {'type': 'string'}
                 }
             },
             'g2_content_type': {
                 'type': 'dict',
                 'schema': {
-                    'qcode': {'type': 'string', 'mapping': not_analyzed},
-                    'name': {'type': 'string', 'mapping': not_analyzed},
-                    'content item type': {'type': 'string', 'mapping': not_analyzed}
+                    'qcode': {'type': 'string'},
+                    'name': {'type': 'string'},
+                    'content item type': {'type': 'string'}
                 }
             },
             'featured': {

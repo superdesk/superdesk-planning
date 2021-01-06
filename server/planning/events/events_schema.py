@@ -362,6 +362,7 @@ events_schema = {
             'properties': {
                 'planning': {
                     'type': 'object',
+                    'dynamic': False,
                     'properties': {
                         'slugline': {
                             'type': 'string',
