@@ -99,16 +99,17 @@ export const fullText = createSelector(
 export const isViewFiltered = createSelector(
     [activeFilter, searchParams],
     (filter, params) => {
-        const currentParams = get(params, `${filter}.currentSearch`, {});
+        const advancedSearch = get(params, `${filter}.currentSearch.advancedSearch`, {});
+        const spikedState = get(params, `${filter}.currentSearch.spikeState`, SPIKED_STATE.NOT_SPIKED);
         const fullText = get(params, `${filter}.fulltext`, '');
 
-        if (!isEmpty(fullText)) {
+        if (spikedState !== SPIKED_STATE.NOT_SPIKED || !isEmpty(fullText)) {
             return true;
         }
 
-        return Object.keys(currentParams)
+        return Object.keys(advancedSearch)
             .some((key) => {
-                const value = currentParams[key];
+                const value = advancedSearch[key];
 
                 if (key === 'spikeState') {
                     return value !== SPIKED_STATE.NOT_SPIKED;
