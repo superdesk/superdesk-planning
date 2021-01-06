@@ -236,7 +236,7 @@ DEFAULT_EDITOR = [{
                 'filter_enabled': True
             },
             'language': {
-                'enabled': True,
+                'enabled': False,
                 'index': 4,
                 'group': 'common',
                 'search_enabled': True,
@@ -252,7 +252,7 @@ DEFAULT_EDITOR = [{
                 'filter_enabled': True
             },
             'place': {
-                'enabled': True,
+                'enabled': False,
                 'index': 2,
                 'group': 'vocabularies',
                 'search_enabled': True,
@@ -335,14 +335,14 @@ DEFAULT_EDITOR = [{
                 'filter_enabled': True
             },
             'no_calendar_assigned': {
-                'enalbed': True,
+                'enabled': True,
                 'index': 2,
                 'group': 'events',
                 'search_enabled': True,
                 'filter_enabled': True
             },
             'reference': {
-                'enabled': True,
+                'enabled': False,
                 'index': 3,
                 'group': 'events',
                 'search_enabled': True,
@@ -373,7 +373,7 @@ DEFAULT_EDITOR = [{
                 'filter_enabled': True
             },
             'name': {
-                'enabled': True,
+                'enabled': False,
                 'index': 2,
                 'group': 'common',
                 'search_enabled': True,
@@ -387,7 +387,7 @@ DEFAULT_EDITOR = [{
                 'filter_enabled': True
             },
             'language': {
-                'enabled': True,
+                'enabled': False,
                 'index': 4,
                 'group': 'common',
                 'search_enabled': True,
@@ -403,7 +403,7 @@ DEFAULT_EDITOR = [{
                 'filter_enabled': True
             },
             'place': {
-                'enabled': True,
+                'enabled': False,
                 'index': 2,
                 'group': 'vocabularies',
                 'search_enabled': True,
@@ -566,7 +566,7 @@ DEFAULT_EDITOR = [{
                 'filter_enabled': True
             },
             'language': {
-                'enabled': True,
+                'enabled': False,
                 'index': 4,
                 'group': 'common',
                 'search_enabled': True,
@@ -582,7 +582,7 @@ DEFAULT_EDITOR = [{
                 'filter_enabled': True
             },
             'place': {
-                'enabled': True,
+                'enabled': False,
                 'index': 2,
                 'group': 'vocabularies',
                 'search_enabled': True,
@@ -665,7 +665,7 @@ DEFAULT_EDITOR = [{
                 'filter_enabled': True
             },
             'reference': {
-                'enabled': True,
+                'enabled': False,
                 'index': 2,
                 'group': 'events',
                 'search_enabled': True,
