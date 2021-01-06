@@ -106,7 +106,7 @@ export class PlanningList {
      */
     expectItemText(index, text, options = {}) {
         cy.log('Planning.List.expectItemText');
-        this.item(0, options)
+        this.item(index, options)
             .should('contain.text', text);
     }
 

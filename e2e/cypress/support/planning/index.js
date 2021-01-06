@@ -1,5 +1,6 @@
 export {PlanningList} from './planningList';
 export {PlanningPreview} from './planningPreview';
+export {AdvancedSearch} from './advancedSearch';
 
 export * from './assignments';
 export * from './events';
