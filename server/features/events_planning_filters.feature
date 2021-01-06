@@ -6,8 +6,11 @@ Feature: Events And Planing View Filters
         """
         [{
             "name": "Test",
-            "calendars": [{"name": "finance", "qcode": "finance"}],
-            "agendas": []
+            "item_type": "combined",
+            "params": {
+                "calendars": [{"name": "finance", "qcode": "finance"}],
+                "agendas": []
+            }
         }]
         """
         Then we get OK response
@@ -15,9 +18,12 @@ Feature: Events And Planing View Filters
         """
         {
             "name": "Test",
+            "item_type": "combined",
             "original_creator": "#CONTEXT_USER_ID#",
-            "calendars": [{"name": "finance", "qcode": "finance"}],
-            "agendas": []
+            "params": {
+                "calendars": [{"name": "finance", "qcode": "finance"}],
+                "agendas": []
+            }
         }
         """
         And we get notifications
@@ -38,8 +44,11 @@ Feature: Events And Planing View Filters
         """
         [{
             "name": "Test",
-            "calendars": [{"name": "finance", "qcode": "finance"}],
-            "agendas": []
+            "item_type": "combined",
+            "params": {
+                "calendars": [{"name": "finance", "qcode": "finance"}],
+                "agendas": []
+            }
         }]
         """
         Then we get OK response
@@ -47,9 +56,12 @@ Feature: Events And Planing View Filters
         """
         {
             "name": "Test",
+            "item_type": "combined",
             "original_creator": "#CONTEXT_USER_ID#",
-            "calendars": [{"name": "finance", "qcode": "finance"}],
-            "agendas": []
+            "params": {
+                "calendars": [{"name": "finance", "qcode": "finance"}],
+                "agendas": []
+            }
         }
         """
         When we patch "events_planning_filters/#events_planning_filters._id#"
@@ -63,9 +75,12 @@ Feature: Events And Planing View Filters
         """
         {
             "name": "Test2",
+            "item_type": "combined",
             "original_creator": "#CONTEXT_USER_ID#",
-            "calendars": [{"name": "finance", "qcode": "finance"}],
-            "agendas": []
+            "params": {
+                "calendars": [{"name": "finance", "qcode": "finance"}],
+                "agendas": []
+            }
         }
         """
         And we get notifications
@@ -86,8 +101,11 @@ Feature: Events And Planing View Filters
         """
         [{
             "name": "Test",
-            "calendars": [{"name": "finance", "qcode": "finance"}],
-            "agendas": []
+            "item_type": "combined",
+            "params": {
+                "calendars": [{"name": "finance", "qcode": "finance"}],
+                "agendas": []
+            }
         }]
         """
         Then we get OK response
@@ -95,9 +113,12 @@ Feature: Events And Planing View Filters
         """
         {
             "name": "Test",
+            "item_type": "combined",
             "original_creator": "#CONTEXT_USER_ID#",
-            "calendars": [{"name": "finance", "qcode": "finance"}],
-            "agendas": []
+            "params": {
+                "calendars": [{"name": "finance", "qcode": "finance"}],
+                "agendas": []
+            }
         }
         """
         When we delete "events_planning_filters/#events_planning_filters._id#"
@@ -122,16 +143,22 @@ Feature: Events And Planing View Filters
         """
         [{
             "name": "Foo",
-            "calendars": [{"name": "finance", "qcode": "finance"}],
-            "agendas": []
+            "item_type": "combined",
+            "params": {
+                "calendars": [{"name": "finance", "qcode": "finance"}],
+                "agendas": []
+            }
         }]
         """
         When we post to "events_planning_filters"
         """
         {
             "name": "FOO",
-            "calendars": [{"name": "finance", "qcode": "finance"}],
-            "agendas": []
+            "item_type": "combined",
+            "params": {
+                "calendars": [{"name": "finance", "qcode": "finance"}],
+                "agendas": []
+            }
         }
         """
         Then we get error 400
@@ -142,8 +169,11 @@ Feature: Events And Planing View Filters
         """
         {
             "name": "Bar",
-            "calendars": [{"name": "finance", "qcode": "finance"}],
-            "agendas": []
+            "item_type": "combined",
+            "params": {
+                "calendars": [{"name": "finance", "qcode": "finance"}],
+                "agendas": []
+            }
         }
         """
         Then we get OK response
@@ -168,8 +198,11 @@ Feature: Events And Planing View Filters
          [
             {
                 "name": "Foo",
-                "calendars": [{"name": "finance", "qcode": "finance"}],
-                "agendas": []
+                "item_type": "combined",
+                "params": {
+                    "calendars": [{"name": "finance", "qcode": "finance"}],
+                    "agendas": []
+                }
             }
          ]
         """
@@ -185,8 +218,11 @@ Feature: Events And Planing View Filters
          [
             {
                 "name": "Foo",
-                "calendars": [{"name": "finance", "qcode": "finance"}],
-                "agendas": []
+                "item_type": "combined",
+                "params": {
+                    "calendars": [{"name": "finance", "qcode": "finance"}],
+                    "agendas": []
+                }
             }
          ]
         """
@@ -199,8 +235,11 @@ Feature: Events And Planing View Filters
          [
             {
                 "name": "Foo",
-                "calendars": [{"name": "finance", "qcode": "finance"}],
-                "agendas": []
+                "item_type": "combined",
+                "params": {
+                    "calendars": [{"name": "finance", "qcode": "finance"}],
+                    "agendas": []
+                }
             }
          ]
         """

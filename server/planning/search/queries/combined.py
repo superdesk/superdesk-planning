@@ -1,12 +1,28 @@
-from typing import Dict, Any, Set
+from typing import Dict, Any, List
 
 from planning.search.queries import elastic, events, planning, common
 
 
-def construct_combined_view_data_query(params: Dict[str, Any], ids: Set[str]) -> Dict[str, Any]:
+def construct_combined_view_data_query(
+    params: Dict[str, Any],
+    search_filter: Dict[str, Any],
+    items: List[Dict[str, Any]]
+) -> Dict[str, Any]:
+    ids = set()
+    for item in items:
+        # Combined search prioritises Events over Planning items
+        # therefore if the Planning item is linked to an Event
+        # then we want to return that Event instead
+        _id = item.get('event_item') or item.get('_id')
+        ids.add(_id)
+
     query = elastic.ElasticQuery()
 
+    if len(search_filter['params']):
+        search_dates(search_filter['params'], query)
+
     search_dates(params, query)
+
     query.must.append(
         elastic.terms(
             field='_id',
@@ -38,6 +54,9 @@ def search_calendars_and_agendas(params: Dict[str, Any], query: elastic.ElasticQ
 
 
 def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):
+    if params.get('exclude_dates'):
+        return
+
     event_query = elastic.ElasticQuery()
     events.search_events(params, event_query)
     events.search_dates(params, event_query)
@@ -72,12 +91,3 @@ COMBINED_PARAMS = [
 ]
 
 COMBINED_PARAMS.extend(common.COMMON_PARAMS)
-
-
-def construct_combined_search_query(params: Dict[str, Any]) -> Dict[str, Any]:
-    query = elastic.ElasticQuery()
-
-    for search_filter in COMBINED_SEARCH_FILTERS:
-        search_filter(params, query)
-
-    return query.build()
