@@ -68,7 +68,7 @@ class EventsPlanningService(Service):
 
     def _get_search_filter(self, repo: str, params: Dict[str, Any]):
         filter_id = params.get('filter_id')
-        if not filter_id:
+        if not filter_id or filter_id == 'ALL_EVENTS_PLANNING':
             return {'params': {}}
 
         search_filter = get_resource_service('events_planning_filters').find_one(req=None, _id=filter_id)
