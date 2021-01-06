@@ -692,6 +692,7 @@ export interface ICombinedSearchParams {
     places?: Array<IPlace>;
     filter_id?: ISearchFilter['_id'];
     advancedSearch?: {
+        name?: string;
         anpa_category?: Array<IANPACategory>;
         subject?: Array<ISubject>;
         place?: Array<IPlace>;
@@ -704,15 +705,6 @@ export interface ICombinedSearchParams {
         posted?: boolean;
         dates?: IDateSearchParams;
     };
-}
-
-export interface IElasticQuery {
-    must?: Array<any>;
-    must_not?: Array<any>;
-    filter?: Array<any>;
-    should?: Array<any>;
-    minimum_should_match?: number;
-    sort?: Array<any>;
 }
 
 interface IProfileEditorField {
@@ -922,17 +914,6 @@ export interface IAdvancedSearchFormProfile {
     };
 }
 
-export interface IEventsPlanningFilterProfile {
-    name: boolean;
-    calendars: boolean;
-    agendas: boolean;
-    places: boolean;
-    item_type: boolean;
-    anpa_category: boolean;
-    subjects: boolean;
-    state: boolean;
-}
-
 export type ISearchProfile = {[key: string]: IAdvancedSearchFormProfileField};
 
 export interface IFormProfiles {
@@ -1033,7 +1014,6 @@ export interface ISearchParams {
     // Pagination
     page?: number;
     max_results?: number;
-    // repo: 'events' | 'planning' | 'combined';
 }
 
 export interface ISearchAPIParams {
@@ -1103,39 +1083,11 @@ export interface ICommonFilterProfile {
     lock_state: IAdvancedSearchFormProfileField;
 }
 
-export interface IEventFilterProfile extends ICommonFilterProfile {
-
-}
-
-export interface IPlanningFilterProfile extends ICommonFilterProfile {
-
-}
-
-export interface ICombinedFilterProfile extends ICommonFilterProfile {
-
-}
-
 export interface ISearchFilter extends IBaseRestApiResponse {
     name: string;
     item_type: FILTER_TYPE;
     params: ISearchParams;
-
-    // agendas?: Array<IAgenda>;
-    // calendars?: Array<ICalendar>;
-    // name: string;
-    // places?: Array<IPlace>;
-    // item_type: 'events' | 'planning' | 'combined';
-    // anpa_category: Array<IANPACategory>;
-    // subjects: Array<ISubject>;
-    // state: Array<{
-    //     qcode: IWorkflowState,
-    //     name: string,
-    // }>;
 }
-
-// export interface IPreviewFieldProps {
-//     filter: ISearchFilter;
-// }
 
 export interface IEditFilterFieldProps {
     filter: ISearchFilter;
@@ -1156,6 +1108,7 @@ export interface IEditorFieldProps {
     errors?: {[key: string]: string};
     invalid?: boolean;
     language?: string;
+    testId?: string;
 
     onChange(field: string, value: any): void;
     popupContainer?(): HTMLElement;
@@ -1165,12 +1118,6 @@ export interface IListFieldProps {
     item: any;
     field?: string;
 }
-
-// export interface IListFilterFieldProps {
-//     filter: ISearchFilter;
-//     agendas?: Array<IAgenda>;
-//     calendars?: Array<ICalendar>;
-// }
 
 export type IRenderPanelType =
     | 'editor'

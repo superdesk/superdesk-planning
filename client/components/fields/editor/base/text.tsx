@@ -11,7 +11,7 @@ export class EditorFieldText extends React.PureComponent<IEditorFieldProps> {
         const error = get(this.props.errors ?? {}, field);
 
         return (
-            <Row>
+            <Row testId={this.props.testId}>
                 <TextInput
                     {...this.props}
                     field={field}

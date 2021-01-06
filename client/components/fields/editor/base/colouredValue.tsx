@@ -20,7 +20,7 @@ export class EditorFieldColouredValue extends React.PureComponent<IProps> {
         const error = get(this.props.errors ?? {}, field);
 
         return (
-            <Row>
+            <Row testId={this.props.testId}>
                 <ColouredValueInput
                     {...this.props}
                     field={field}

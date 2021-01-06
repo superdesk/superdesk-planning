@@ -80,6 +80,7 @@ export class ToggleBox extends React.Component {
             noMargin,
             paddingTop,
             badgeValue,
+            testId,
         } = this.props;
 
         return (
@@ -95,6 +96,7 @@ export class ToggleBox extends React.Component {
                     }
                 )}
                 ref={(node) => this.dom.node = node}
+                data-test-id={testId}
             >
                 <a
                     className="toggle-box__header"
@@ -157,6 +159,7 @@ ToggleBox.propTypes = {
         PropTypes.string,
         PropTypes.number,
     ]),
+    testId: PropTypes.string,
 };
 
 ToggleBox.defaultProps = {

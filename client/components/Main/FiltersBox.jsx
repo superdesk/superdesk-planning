@@ -54,6 +54,7 @@ export const FiltersBox = ({
                         onChange={(field, value) => setFilter(value)}
                         type="radio"
                         labelPosition="inside"
+                        testId={`view-${filter.filter}`}
                     />
                 ))}
                 {showFilters && <Spacer />}
