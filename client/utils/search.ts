@@ -169,6 +169,7 @@ export function searchParamsToCombinedParams(params: ISearchParams): ICombinedSe
         agendas: params.agendas,
         places: params.place,
         advancedSearch: {
+            name: params.name,
             anpa_category: params.anpa_category,
             subject: params.subject,
             place: params.place,

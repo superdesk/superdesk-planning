@@ -99,31 +99,24 @@ export const fullText = createSelector(
 export const isViewFiltered = createSelector(
     [activeFilter, searchParams],
     (filter, params) => {
-        const advancedSearch = get(params, `${filter}.currentSearch.advancedSearch`, {});
-        const spikedState = get(params, `${filter}.currentSearch.spikeState`, SPIKED_STATE.NOT_SPIKED);
+        const currentParams = get(params, `${filter}.currentSearch`, {});
         const fullText = get(params, `${filter}.fulltext`, '');
 
-        if (spikedState !== SPIKED_STATE.NOT_SPIKED || !isEmpty(fullText)) {
+        if (!isEmpty(fullText)) {
             return true;
         }
 
-        if (isEmpty(advancedSearch)) {
-            return false;
-        }
-
-        return Object.keys(advancedSearch)
+        return Object.keys(currentParams)
             .some((key) => {
-                if (key === 'dates') {
-                    return !isEmpty(get(advancedSearch, 'dates.start')) ||
-                        !isEmpty(get(advancedSearch, 'dates.end')) ||
-                        !isEmpty(get(advancedSearch, 'dates.range'));
-                }
+                const value = currentParams[key];
 
-                if (isBoolean(get(advancedSearch, key))) {
-                    return get(advancedSearch, key);
+                if (key === 'spikeState') {
+                    return value !== SPIKED_STATE.NOT_SPIKED;
+                } else if (isBoolean(value)) {
+                    return value;
+                } else {
+                    return !isEmpty(value);
                 }
-
-                return !isEmpty(get(advancedSearch, key));
             });
     }
 );
