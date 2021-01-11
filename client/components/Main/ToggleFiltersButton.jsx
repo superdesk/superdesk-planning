@@ -13,6 +13,7 @@ export const ToggleFiltersButton = ({filterPanelOpen, toggleFilterPanel}) => (
         onClick={toggleFilterPanel}
         data-sd-tooltip={gettext('Advanced filters')}
         data-flow="right"
+        data-test-id="toggle-filters"
     >
         <i className="icon-filter-large" />
     </NavButton>

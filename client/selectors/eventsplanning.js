@@ -30,6 +30,11 @@ export const currentFilter = createSelector(
     (userDefault, selectedId) => (selectedId || get(userDefault, '_id') || EVENTS_PLANNING.FILTER.ALL_EVENTS_PLANNING)
 );
 
+export const eventsPlannignViewFilters = createSelector(
+    [combinedViewFilters],
+    (filters) => filters.filter((filter) => filter.item_type === 'combined')
+);
+
 /**
  * Selector for Ordered Events and adHoc Planning.
  * @type {Reselect.Selector<any, any>}

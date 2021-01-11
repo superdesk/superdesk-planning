@@ -36,4 +36,10 @@ export class SelectMetaTerms extends Input {
             this.element.should('contain.text', value);
         });
     }
+
+    clear() {
+        cy.log('Common.SelectMetaTerms.clear: Currently does not work');
+        // cy.get(this.selector + ' .terms-list .icon-close-small')
+        //     .click({multiple: true});
+    }
 }

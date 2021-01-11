@@ -107,23 +107,17 @@ export const isViewFiltered = createSelector(
             return true;
         }
 
-        if (isEmpty(advancedSearch)) {
-            return false;
-        }
-
         return Object.keys(advancedSearch)
             .some((key) => {
-                if (key === 'dates') {
-                    return !isEmpty(get(advancedSearch, 'dates.start')) ||
-                        !isEmpty(get(advancedSearch, 'dates.end')) ||
-                        !isEmpty(get(advancedSearch, 'dates.range'));
-                }
+                const value = advancedSearch[key];
 
-                if (isBoolean(get(advancedSearch, key))) {
-                    return get(advancedSearch, key);
+                if (key === 'spikeState') {
+                    return value !== SPIKED_STATE.NOT_SPIKED;
+                } else if (isBoolean(value)) {
+                    return value;
+                } else {
+                    return !isEmpty(value);
                 }
-
-                return !isEmpty(get(advancedSearch, key));
             });
     }
 );

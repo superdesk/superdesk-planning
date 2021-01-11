@@ -95,7 +95,7 @@ const cancelAllCoverage = (original, updates) => (
  */
 function query(
     {
-        spikeState = SPIKED_STATE.BOTH,
+        spikeState = 'draft',
         agendas = [],
         noAgendaAssigned = false,
         page = 1,

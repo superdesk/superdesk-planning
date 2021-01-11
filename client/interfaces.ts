@@ -89,8 +89,24 @@ export type IFile = {
     };
 };
 
+export enum JUMP_INTERVAL {
+    DAY = 'DAY',
+    WEEK = 'WEEK',
+    MONTH = 'MONTH'
+}
+
 export type IPlanningWorkflowStatus = 'assigned' | 'in_progress' | 'completed' | 'submitted' | 'cancelled' | 'reverted';
 export type IPlanningPubstatus = 'usable' | 'cancelled';
+export type IWorkflowState =
+    | 'draft'
+    | 'active'
+    | 'ingested'
+    | 'scheduled'
+    | 'killed'
+    | 'cancelled'
+    | 'rescheduled'
+    | 'postponed'
+    | 'spiked';
 
 export type IPlanningAssignedTo = {
     assignment_id: string;
@@ -99,6 +115,27 @@ export type IPlanningAssignedTo = {
 };
 
 export type IEventUpdateMethod = 'single' | 'future' | 'all';
+
+export enum SEARCH_SPIKE_STATE {
+    SPIKED = 'spiked',
+    NOT_SPIKED = 'draft',
+    BOTH = 'both'
+}
+
+export enum FILTER_TYPE {
+    EVENTS = 'events',
+    PLANNING = 'planning',
+    COMBINED = 'combined',
+}
+
+export enum DATE_RANGE {
+    TODAY = 'today',
+    TOMORROW = 'tomorrow',
+    THIS_WEEK = 'this_week',
+    NEXT_WEEK = 'next_week',
+    LAST_24 = 'last24',
+    FOR_DATE = 'forDate',
+}
 
 export type ISearchSpikeState = 'spiked' | 'draft' | 'both';
 
@@ -299,7 +336,7 @@ export interface IEventItem extends IBaseRestApiResponse {
     }>;
     event_contact_info?: Array<string>;
     language?: string;
-    state?: ITEM_STATE;
+    state?: IWorkflowState;
     expiry?: string | Date;
     expired?: boolean;
     pubstatus?: IPlanningPubstatus;
@@ -310,7 +347,7 @@ export interface IEventItem extends IBaseRestApiResponse {
     update_method?: IEventUpdateMethod;
     type: 'event';
     calendars?: Array<ICalendar>;
-    revert_state?: ITEM_STATE;
+    revert_state?: IWorkflowState;
     duplicate_from?: string;
     duplicate_to?: Array<string>;
     reschedule_from?: string;
@@ -442,7 +479,7 @@ export interface IPlanningItem extends IBaseRestApiResponse {
     priority: number;
     urgency: number;
     profile: string;
-    state: ITEM_STATE;
+    state: IWorkflowState;
     expiry: string | Date;
     expired: boolean;
     featured: boolean;
@@ -465,7 +502,7 @@ export interface IPlanningItem extends IBaseRestApiResponse {
         overide_auto_assign_to_workflow?: boolean;
     };
     pubstatus: IPlanningPubstatus;
-    revert_state: ITEM_STATE;
+    revert_state: IWorkflowState;
     type: 'planning';
     unique_id: string;
     place: Array<IPlace>;
@@ -565,7 +602,7 @@ export interface IEventSearchParams {
             name?: string;
         }>;
         state?: Array<{
-            qcode?: string;
+            qcode?: IWorkflowState;
             name?: string;
         }>;
         subject?: Array<ISubject>;
@@ -594,7 +631,7 @@ export interface IPlanningSearchParams {
         posted?: boolean;
         slugline?: string;
         state?: Array<{
-            qcode?: string;
+            qcode?: IWorkflowState;
             name?: string;
         }>;
         subject?: Array<ISubject>;
@@ -602,6 +639,47 @@ export interface IPlanningSearchParams {
         language?: string;
         name: string;
     };
+}
+
+export interface IAdvancedSearchParams {
+    // Combined
+    anpa_category?: Array<IANPACategory>;
+    dates?: IDateSearchParams;
+    item_type: FILTER_TYPE;
+    maxResults?: number;
+    name?: string;
+    place?: Array<IPlace>;
+    posted?: boolean;
+    slugline?: string;
+    spikeState?: SEARCH_SPIKE_STATE;
+    state?: Array<{
+        qcode: IWorkflowState;
+        name: string;
+    }>;
+    subject?: Array<ISubject>;
+
+    // Events Only
+    event?: {
+        calendars?: Array<ICalendar['qcode']>;
+        location?: Array<ILocation | string>;
+        noCalendarAssigned?: boolean;
+        reference?: string;
+        source?: Array<{
+            id?: string;
+            name?: string;
+        }>;
+    }
+
+    // Planning Only
+    planning?: {
+        adHocPlanning?: boolean;
+        agendas?: Array<IAgenda['_id']>;
+        featured?: boolean;
+        g2_content_type?: IG2ContentType;
+        noAgendaAssigned?: boolean;
+        noCoverage?: boolean;
+        urgency?: IUrgency;
+    }
 }
 
 export interface ICombinedSearchParams {
@@ -612,28 +690,21 @@ export interface ICombinedSearchParams {
     calendars?: Array<ICalendar>;
     agendas: Array<IAgenda>;
     places?: Array<IPlace>;
+    filter_id?: ISearchFilter['_id'];
     advancedSearch?: {
+        name?: string;
         anpa_category?: Array<IANPACategory>;
         subject?: Array<ISubject>;
         place?: Array<IPlace>;
         slugline?: string;
         reference?: string;
         state?: Array<{
-            qcode?: string;
+            qcode?: IWorkflowState;
             name?: string;
         }>;
         posted?: boolean;
         dates?: IDateSearchParams;
     };
-}
-
-export interface IElasticQuery {
-    must?: Array<any>;
-    must_not?: Array<any>;
-    filter?: Array<any>;
-    should?: Array<any>;
-    minimum_should_match?: number;
-    sort?: Array<any>;
 }
 
 interface IProfileEditorField {
@@ -665,6 +736,11 @@ interface IProfileSchemaTypeDateTime extends IProfileSchemaType<'datetime'> {}
 interface IProfileSchemaTypeString extends IProfileSchemaType<'string'> {
     minlength?: number;
     maxlength?: number;
+}
+
+export interface IAdvancedSearchFormProfileField {
+    enabled: boolean;
+    index: number;
 }
 
 export interface IEventFormProfile {
@@ -711,6 +787,22 @@ export interface IEventFormProfile {
     };
 }
 
+export interface IEventSearchProfile {
+    slugline: IAdvancedSearchFormProfileField,
+    reference: IAdvancedSearchFormProfileField,
+    name: IAdvancedSearchFormProfileField,
+    anpa_category: IAdvancedSearchFormProfileField,
+    subject: IAdvancedSearchFormProfileField,
+    source: IAdvancedSearchFormProfileField,
+    location: IAdvancedSearchFormProfileField,
+    state: IAdvancedSearchFormProfileField,
+    pub_status: IAdvancedSearchFormProfileField,
+    spike_state: IAdvancedSearchFormProfileField,
+    start_date_time: IAdvancedSearchFormProfileField,
+    end_date_time: IAdvancedSearchFormProfileField,
+    date_filter: IAdvancedSearchFormProfileField,
+}
+
 export interface IPlanningFormProfile {
     editor: {
         agendas: IProfileEditorField;
@@ -749,6 +841,22 @@ export interface IPlanningFormProfile {
     };
 }
 
+export interface IPlanningSearchProfile {
+    slugline: IAdvancedSearchFormProfileField;
+    content_type: IAdvancedSearchFormProfileField;
+    no_coverage: IAdvancedSearchFormProfileField;
+    featured: IAdvancedSearchFormProfileField;
+    anpa_category: IAdvancedSearchFormProfileField;
+    subject: IAdvancedSearchFormProfileField;
+    urgency: IAdvancedSearchFormProfileField;
+    state: IAdvancedSearchFormProfileField;
+    pub_status: IAdvancedSearchFormProfileField;
+    spike_state: IAdvancedSearchFormProfileField;
+    start_date_time: IAdvancedSearchFormProfileField;
+    end_date_time: IAdvancedSearchFormProfileField;
+    date_filter: IAdvancedSearchFormProfileField;
+}
+
 export interface ICoverageFormProfile {
     editor: {
         contact_info: IProfileEditorField;
@@ -782,6 +890,31 @@ export interface ICoverageFormProfile {
         slugline: IProfileSchemaTypeString;
     };
 }
+
+export interface ICombinedSearchProfile {
+    slugline: IAdvancedSearchFormProfileField;
+    reference: IAdvancedSearchFormProfileField;
+    anpa_category: IAdvancedSearchFormProfileField;
+    subject: IAdvancedSearchFormProfileField;
+    state: IAdvancedSearchFormProfileField;
+    pub_status: IAdvancedSearchFormProfileField;
+    spike_state: IAdvancedSearchFormProfileField;
+    start_date_time: IAdvancedSearchFormProfileField;
+    end_date_time: IAdvancedSearchFormProfileField;
+    date_filter: IAdvancedSearchFormProfileField;
+}
+
+export interface IAdvancedSearchFormProfile {
+    name: 'advanced_search';
+    schema: {};
+    editor: {
+        event: IEventSearchProfile;
+        planning: IPlanningSearchProfile;
+        combined: ICombinedSearchProfile;
+    };
+}
+
+export type ISearchProfile = {[key: string]: IAdvancedSearchFormProfileField};
 
 export interface IFormProfiles {
     coverage: ICoverageFormProfile;
@@ -849,10 +982,12 @@ export interface ISearchParams {
     date_filter?: IDateRange;
     start_date?: string | Date | moment.Moment;
     end_date?: string | Date | moment.Moment;
+    only_future?: boolean;
     start_of_week?: number;
     slugline?: string;
     lock_state?: 'locked' | 'unlocked';
     recurrence_id?: string; // Both Events and Planning have recurrence_id
+    filter_id?: ISearchFilter['_id'];
 
     // Event Params
     reference?: string;
@@ -860,10 +995,9 @@ export interface ISearchParams {
         id?: string;
         name?: string;
     }>;
-    location?: string;
+    location?: ILocation;
     calendars?: Array<ICalendar>;
     no_calendar_assigned?: boolean;
-    only_future?: boolean;
 
     // Planning Params
     agendas?: Array<IAgenda['_id']>;
@@ -880,7 +1014,6 @@ export interface ISearchParams {
     // Pagination
     page?: number;
     max_results?: number;
-    // repo: 'events' | 'planning' | 'combined';
 }
 
 export interface ISearchAPIParams {
@@ -903,12 +1036,13 @@ export interface ISearchAPIParams {
     start_of_week?: number;
     slugline?: string;
     lock_state?: 'locked' | 'unlocked';
+    recurrence_id?: string;
+    filter_id?: ISearchFilter['_id'];
 
     // Event Params
-    recurrence_id?: string;
     reference?: string;
     source?: string;
-    location?: string;
+    location?: ILocation['name'];
     calendars?: string;
     no_calendar_assigned?: boolean;
     only_future?: boolean;
@@ -928,7 +1062,83 @@ export interface ISearchAPIParams {
     // Pagination
     page?: number;
     max_results?: number;
-    repo: 'events' | 'planning' | 'combined';
+    repo: FILTER_TYPE;
+}
+
+export interface ICommonFilterProfile {
+    name: IAdvancedSearchFormProfileField;
+    full_text: IAdvancedSearchFormProfileField;
+    anpa_category: IAdvancedSearchFormProfileField;
+    subject: IAdvancedSearchFormProfileField;
+    posted: IAdvancedSearchFormProfileField;
+    place: IAdvancedSearchFormProfileField;
+    language: IAdvancedSearchFormProfileField;
+    state: IAdvancedSearchFormProfileField;
+    spike_state: IAdvancedSearchFormProfileField;
+    include_killed: IAdvancedSearchFormProfileField;
+    date_filter: IAdvancedSearchFormProfileField;
+    start_date: IAdvancedSearchFormProfileField;
+    end_date: IAdvancedSearchFormProfileField;
+    slugline: IAdvancedSearchFormProfileField;
+    lock_state: IAdvancedSearchFormProfileField;
+}
+
+export interface ISearchFilter extends IBaseRestApiResponse {
+    name: string;
+    item_type: FILTER_TYPE;
+    params: ISearchParams;
+}
+
+export interface IEditFilterFieldProps {
+    filter: ISearchFilter;
+    invalid: boolean;
+    errors: {[key: string]: string};
+    onChange<T extends keyof ISearchFilter>(field: T, value: ISearchFilter[T]): void;
+    getPopupContainer(): any;
+    language: string;
+}
+
+export interface IEditorFieldProps {
+    item: any;
+    field: string;
+    label: string;
+    required?: boolean;
+    defaultValue?: any;
+    autoFocus?: boolean;
+    errors?: {[key: string]: string};
+    invalid?: boolean;
+    language?: string;
+    testId?: string;
+
+    onChange(field: string, value: any): void;
+    popupContainer?(): HTMLElement;
+}
+
+export interface IListFieldProps {
+    item: any;
+    field?: string;
+}
+
+export type IRenderPanelType =
+    | 'editor'
+    | 'list'
+    | 'simple-preview';
+
+export type IEventsPlanningField =
+    | 'calendars'
+    | 'agendas'
+    | 'places'
+    | 'name'
+    | 'item_type'
+    | 'anpa_category'
+    | 'subjects'
+    | 'state';
+
+export interface IEventsPlanningContentPanelProps {
+    filter?: Partial<ISearchFilter>;
+    onClose(): void;
+    onSave(filter: Partial<ISearchFilter>): Promise<void>;
+    editFilter(filter: ISearchFilter): void;
 }
 
 export interface IPlanningAPI {
@@ -940,6 +1150,8 @@ export interface IPlanningAPI {
         getById(eventId: IEventItem['_id']): Promise<IEventItem>;
         getByIds(eventIds: Array<IEventItem['_id']>, spikeState?: ISearchSpikeState): Promise<Array<IEventItem>>;
         getLocked(): Promise<Array<IEventItem>>;
+        getEditorProfile(): IEventFormProfile;
+        getSearchProfile(): IEventSearchProfile;
     };
     planning: {
         search(params: ISearchParams): Promise<IRestApiResponse<IPlanningItem>>;
@@ -947,9 +1159,15 @@ export interface IPlanningAPI {
         getByIds(planIds: Array<IPlanningItem['_id']>): Promise<Array<IPlanningItem>>;
         getLocked(): Promise<Array<IPlanningItem>>;
         getLockedFeatured(): Promise<Array<IFeaturedPlanningLock>>;
+        getEditorProfile(): IPlanningFormProfile;
+        getSearchProfile(): IPlanningSearchProfile;
+    };
+    coverages: {
+        getEditorProfile(): ICoverageFormProfile;
     };
     combined: {
         search(params: ISearchParams): Promise<IRestApiResponse<IEventItem | IPlanningItem>>;
+        getSearchProfile(): ICombinedSearchProfile;
     }
     search<T>(args: ISearchAPIParams): Promise<IRestApiResponse<T>>;
 }

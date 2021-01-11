@@ -17,18 +17,20 @@ const query = (
     {
         advancedSearch = {},
         fulltext,
-        spikeState = SPIKED_STATE.NOT_SPIKED,
+        spikeState = 'draft',
         page = 1,
         maxResults = MAIN.PAGE_SIZE,
         calendars = [],
         agendas = [],
         places = [],
+        filter_id = null,
     }: ICombinedSearchParams,
     storeTotal = false
 ) => (
-    (dispatch) => (
+    (dispatch, getState) => (
         planningApis.combined.search({
             full_text: fulltext,
+            name: advancedSearch?.name,
             spike_state: spikeState,
             anpa_category: advancedSearch.anpa_category,
             subject: advancedSearch.subject,
@@ -42,10 +44,11 @@ const query = (
             end_date: advancedSearch.dates?.end,
             start_of_week: appConfig.start_of_week,
             calendars: calendars,
-            agendas: (agendas ?? []).map((agenda) => agenda._id),
+            agendas: agendas,
             tz_offset: getTimeZoneOffset(),
             page: page,
             max_results: maxResults,
+            filter_id: filter_id || selectors.eventsPlanning.currentFilter(getState()),
         })
             .then((response) => {
                 if (storeTotal) {
@@ -77,15 +80,10 @@ const refetch = (page = 1, items = [], updateFilter = false) => (
 
         if (updateFilter) {
             const filterId = selectors.eventsPlanning.currentFilter(getState());
-            const filters = selectors.eventsPlanning.combinedViewFilters(getState());
-            const filter = filterId !== EVENTS_PLANNING.FILTER.ALL_EVENTS_PLANNING ?
-                filters.find((f) => f._id === filterId) : {};
 
             params = {
                 ...params,
-                agendas: get(filter, 'agendas', []),
-                calendars: get(filter, 'calendars', []),
-                places: get(filter, 'places', []),
+                filter_id: filterId,
             };
         }
 

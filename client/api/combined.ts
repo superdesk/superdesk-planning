@@ -1,7 +1,9 @@
-import {IEventItem, IPlanningItem, ISearchAPIParams, ISearchParams} from '../interfaces';
+import {IEventItem, IPlanningItem, ISearchAPIParams, ISearchParams, IPlanningAPI, FILTER_TYPE} from '../interfaces';
 import {IRestApiResponse} from 'superdesk-api';
 import {searchRaw, convertCommonParams, cvsToString, arrayToString} from './search';
 import {eventUtils, planningUtils} from '../utils';
+import {planningApi} from '../superdeskApi';
+import {combinedSearchProfile} from '../selectors/forms';
 
 type IResponse = IRestApiResponse<IEventItem | IPlanningItem>;
 
@@ -33,7 +35,17 @@ export function searchCombined(params: ISearchParams): Promise<IResponse> {
     return searchRaw<IEventItem | IPlanningItem>({
         ...convertCommonParams(params),
         ...convertCombinedParams(params),
-        repo: 'combined',
+        repo: FILTER_TYPE.COMBINED,
     })
         .then(modifyResponseForClient);
 }
+
+function getCombinedSearchProfile() {
+    return combinedSearchProfile(planningApi.redux.store.getState());
+}
+
+export const combined: IPlanningAPI['combined'] = {
+    search: searchCombined,
+    getSearchProfile: getCombinedSearchProfile,
+};
+
