@@ -152,7 +152,18 @@ def step_imp_when_action_resource(context, action, resource, item_id):
 @then('we get text in "{field}"')
 def then_we_get_text_in_response_field(context, field):
     response = get_json_data(context.response)[field]
-    assert context.text in response, response
+
+    # Remove blank lines to make testing easier
+    response_text = '\n'.join([
+        line
+        for line in response.split('\n')
+        if len(line)
+    ])
+
+    assert context.text.strip() in response_text, '"{}" not in "{}"'.format(
+        context.text.strip(),
+        response_text
+    )
 
 
 @then('we store assignment id in "{tag}" from coverage {index}')

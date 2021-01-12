@@ -66,7 +66,8 @@ Feature: Export planning items with default template
         """
         {
             "items": ["#planning._id#"],
-            "desk": "#desks._id#"
+            "desk": "#desks._id#",
+            "type": "planning"
         }
         """
         Then we get new resource
@@ -107,7 +108,8 @@ Feature: Export planning items with default template
         {
             "items": ["#planning._id#"],
             "desk": "#desks._id#",
-            "template": "#planning_export_templates.name#"
+            "template": "#planning_export_templates.name#",
+            "type": "planning"
         }
         """
         Then we get new resource
@@ -167,7 +169,8 @@ Feature: Export planning items with default template
             "items": ["#planning._id#"],
             "desk": "#desks._id#",
             "template": "#planning_export_templates.name#",
-            "article_template": "#content_templates._id#"
+            "article_template": "#content_templates._id#",
+            "type": "planning"
         }
         """
         Then we get new resource
@@ -200,7 +203,8 @@ Feature: Export planning items with default template
         """
         {
             "items": ["#planning._id#"],
-            "desk": "#desks._id#"
+            "desk": "#desks._id#",
+            "type": "planning"
         }
         """
         Then we get new resource
