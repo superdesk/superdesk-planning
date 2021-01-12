@@ -34,8 +34,8 @@ export class LocationsSubNavComponent extends React.Component {
                 />
                 <Dropdown
                     buttonLabel={this.props.searchType ? gettext('Search') : gettext('Browse')}
-                    items={[{label: 'Search', action: this.props.search},
-                        {label: 'Browse', action: this.props.browse}]}
+                    items={[{label: gettext('Search'), action: this.props.search},
+                        {label: gettext('Browse'), action: this.props.browse}]}
                     tooltip={gettext('Select either Search or Browse the locations')}
                 />
                 {!this.props.editOpen && (
