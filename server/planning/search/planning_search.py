@@ -16,7 +16,6 @@ from copy import deepcopy
 
 import superdesk
 from superdesk.metadata.utils import item_url
-from superdesk.resource import build_custom_hateoas
 
 from planning.planning.planning import planning_schema
 from planning.events.events_schema import events_schema

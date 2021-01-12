@@ -9,7 +9,7 @@
 from datetime import datetime
 import logging
 
-from flask import current_app as app, json
+from flask import current_app as app
 
 from superdesk import Command, command, Option, get_resource_service
 from superdesk.utc import utcnow, local_to_utc, utc_to_local

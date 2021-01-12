@@ -11,18 +11,13 @@
 from datetime import datetime
 from dateutil.rrule import rrule, HOURLY
 import pytz
-from os import urandom
-from base64 import b64encode, b64decode
 
 from flask import current_app as app
 
-from superdesk import get_resource_service
 from superdesk.utc import local_to_utc
 
 from planning.tests import TestCase
 from planning.commands.export_scheduled_filters import ExportScheduledFilters
-
-from unittest import mock
 
 
 def to_naive(date_str):
