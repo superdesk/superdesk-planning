@@ -50,19 +50,27 @@ class PlanningArticleExportResource(Resource):
     privileges = {'POST': 'planning'}
 
 
-def get_item(_id, resource):
-    item = get_resource_service(resource).find_one(None, _id=_id) or {}
-    if item.get('event_item'):
-        item['event'] = get_resource_service('events').find_one(None, _id=item['event_item'])
-    elif resource == 'events':
-        item['plannings'] = get_resource_service('events').get_plannings_for_event(item)
-
-    return item
-
-
 def get_items(ids, resource_type):
-    resource = 'planning' if resource_type == 'planning' else 'events'
-    return [get_item(_id, resource) for _id in ids]
+    items = list(get_resource_service('events_planning_search').search_repos(
+        resource_type,
+        {
+            'item_ids': ','.join(str(item_id) for item_id in ids),
+            'only_future': False
+        }
+    ))
+
+    events_service = get_resource_service('events')
+    for item in items:
+        item_type = item.get('type')
+        if item_type == 'planning' and item.get('event_item'):
+            item['event'] = events_service.find_one(req=None, _id=item['event_item'])
+        elif item_type == 'event':
+            item['plannings'] = events_service.get_plannings_for_event(item)
+            item['coverages'] = []
+            for plan in item['plannings']:
+                item['coverages'].extend(plan.get('coverages') or [])
+
+    return items
 
 
 def group_items_by_agenda(items):
@@ -80,6 +88,9 @@ def group_items_by_agenda(items):
 
     agendas = [{'_id': 'unassigned', 'name': 'No Agenda Assigned', 'items': []}]
     for item in items:
+        if item['_type'] != 'planning':
+            continue
+
         item_agendas = item.get('agendas', [])
         if len(item_agendas) == 0:
             item_agendas = ['unassigned']
@@ -95,6 +106,9 @@ def group_items_by_agenda(items):
 
     # replace each agenda id with the actual object
     for item in items:
+        if item['_type'] != 'planning':
+            continue
+
         item_agendas_ids = item.get('agendas', [])
         item_agendas = []
         for agenda_id in item_agendas_ids:
@@ -106,7 +120,7 @@ def group_items_by_agenda(items):
     return agendas
 
 
-def inject_internal_converages(items):
+def inject_internal_coverages(items):
     coverage_labels = {}
     cv = get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
     if cv:
@@ -132,9 +146,85 @@ def inject_internal_converages(items):
                     item['internal_coverages'].append({"type": label})
 
 
+def _enhance_assigned_provider(coverage, item, assigned_to):
+    """
+    Enhances the text_assignees with the contact details if it's assigned to an external provider
+    """
+
+    if assigned_to.get('contact'):
+        provider_contact = get_resource_service('contacts').find_one(req=None,
+                                                                     _id=assigned_to.get('contact'))
+
+        assignee_str = "{0} - {1} {2} ".format(assigned_to['coverage_provider']['name'],
+                                               provider_contact.get('first_name', ''),
+                                               provider_contact.get('last_name', ''))
+        phone_number = [n.get('number') for n in provider_contact.get('mobile', []) +
+                        provider_contact.get('contact_phone', [])]
+        if len(phone_number):
+            assignee_str += ' ({0})'.format(phone_number[0])
+
+        # If there is an internal note on the coverage that is different to the internal note
+        # on the planning
+        if (coverage.get('planning', {})).get('internal_note', '') \
+                and item.get('internal_note', '') != \
+                (coverage.get('planning', {})).get('internal_note', ''):
+            assignee_str += ' ({0})'.format((coverage.get('planning', {})).get('internal_note', ''))
+
+        item['text_assignees'].append(assignee_str)
+    else:
+        item['text_assignees'].append(assigned_to['coverage_provider']['name'])
+
+
+def enhance_coverage(planning, item, users, desks, text_users, text_desks):
+    for c in (planning.get('coverages') or []):
+        is_text = c.get('planning', {}).get('g2_content_type', '') == 'text'
+        completed = (c.get('assigned_to') or {}).get('state') == ASSIGNMENT_WORKFLOW_STATE.COMPLETED
+        assigned_to = c.get('assigned_to') or {}
+        user = None
+        desk = None
+        if assigned_to.get('coverage_provider'):
+            item['assignees'].append(assigned_to['coverage_provider']['name'])
+            if is_text and not completed:
+                _enhance_assigned_provider(c, item, assigned_to)
+        elif assigned_to.get('user'):
+            user = assigned_to['user']
+            users.append(user)
+        elif assigned_to.get('desk'):
+            desk = assigned_to.get('desk')
+            desks.append(desk)
+
+        # Get abstract from related text item if coverage is 'complete'
+        if is_text:
+            if completed:
+                results = list(get_resource_service('archive').get_from_mongo(
+                    req=None,
+                    lookup={
+                        'assignment_id': ObjectId(c['assigned_to']['assignment_id']),
+                        'state': {'$in': ['published', 'corrected']},
+                        'pubstatus': 'usable',
+                        'rewrite_of': None
+                    }
+                ))
+                if len(results) > 0:
+                    item['published_archive_items'].append({
+                        'archive_text': get_first_paragraph_text(results[0].get('abstract')) or '',
+                        'archive_slugline': results[0].get('slugline') or ''
+                    })
+            elif c.get('news_coverage_status', {}).get('qcode') == 'ncostat:int':
+                if user:
+                    internal_note = (c.get('planning') or {}).get('internal_note') or ''
+                    text_users.append({
+                        'user': user,
+                        'note': internal_note if internal_note != item.get('internal_note') else None
+                    })
+                else:
+                    text_desks.append(desk)
+
+    item['contacts'] = get_contacts_from_item(item)
+
+
 def generate_text_item(items, template_name, resource_type):
     template = get_resource_service('planning_export_templates').get_export_template(template_name, resource_type)
-    archive_service = get_resource_service('archive')
     if not template:
         raise SuperdeskApiError.badRequestError('Invalid template selected')
 
@@ -149,84 +239,11 @@ def generate_text_item(items, template_name, resource_type):
         users = []
         desks = []
 
-        def enhance_coverage(planning, item, users):
-
-            def _enhance_assigned_provider(coverage, item, assigned_to):
-                """
-                Enhances the text_assignees with the contact details if it's assigned to an external provider
-                """
-                if assigned_to.get('contact'):
-                    provider_contact = get_resource_service('contacts').find_one(req=None,
-                                                                                 _id=assigned_to.get('contact'))
-
-                    assignee_str = "{0} - {1} {2} ".format(assigned_to['coverage_provider']['name'],
-                                                           provider_contact.get('first_name', ''),
-                                                           provider_contact.get('last_name', ''))
-                    phone_number = [n.get('number') for n in provider_contact.get('mobile', []) +
-                                    provider_contact.get('contact_phone', [])]
-                    if len(phone_number):
-                        assignee_str += ' ({0})'.format(phone_number[0])
-
-                    # If there is an internal note on the coverage that is different to the internal note
-                    # on the planning
-                    if (coverage.get('planning', {})).get('internal_note', '') \
-                            and item.get('internal_note', '') !=\
-                            (coverage.get('planning', {})).get('internal_note', ''):
-                        assignee_str += ' ({0})'.format((coverage.get('planning', {})).get('internal_note', ''))
-
-                    item['text_assignees'].append(assignee_str)
-                else:
-                    item['text_assignees'].append(assigned_to['coverage_provider']['name'])
-
-            for c in (planning.get('coverages') or []):
-                is_text = c.get('planning', {}).get('g2_content_type', '') == 'text'
-                completed = (c.get('assigned_to') or {}).get('state') == ASSIGNMENT_WORKFLOW_STATE.COMPLETED
-                assigned_to = c.get('assigned_to') or {}
-                user = None
-                desk = None
-                if assigned_to.get('coverage_provider'):
-                    item['assignees'].append(assigned_to['coverage_provider']['name'])
-                    if is_text and not completed:
-                        _enhance_assigned_provider(c, item, assigned_to)
-                elif assigned_to.get('user'):
-                    user = assigned_to['user']
-                    users.append(user)
-                elif assigned_to.get('desk'):
-                    desk = assigned_to.get('desk')
-                    desks.append(desk)
-
-                # Get abstract from related text item if coverage is 'complete'
-                if is_text:
-                    if completed:
-                        results = list(archive_service.get_from_mongo(req=None,
-                                                                      lookup={
-                                                                          'assignment_id': ObjectId(
-                                                                              c['assigned_to']['assignment_id']),
-                                                                          'state': {'$in': ['published', 'corrected']},
-                                                                          'pubstatus': 'usable',
-                                                                          'rewrite_of': None
-                                                                      }))
-                        if len(results) > 0:
-                            item['published_archive_items'].append({
-                                'archive_text': get_first_paragraph_text(results[0].get('abstract')) or '',
-                                'archive_slugline': results[0].get('slugline') or ''
-                            })
-                    elif c.get('news_coverage_status', {}).get('qcode') == 'ncostat:int':
-                        if user:
-                            text_users.append({'user': user,
-                                               'note': (c.get('planning', {})).get('internal_note', '') if (c.get(
-                                                   'planning', {})).get('internal_note', '') != item.get(
-                                                   'internal_note') else None})
-                        else:
-                            text_desks.append(desk)
-
-            item['contacts'] = get_contacts_from_item(item)
-
-        if resource_type == 'planning':
-            enhance_coverage(item, item, users)
+        if item['_type'] == 'planning':
+            enhance_coverage(item, item, users, desks, text_users, text_desks)
         else:
             for p in (item.get('plannings') or []):
-                enhance_coverage(p, item, users)
+                enhance_coverage(p, item, users, desks, text_users, text_desks)
 
         users = get_resource_service('users').find(where={
             '_id': {'$in': users}
@@ -265,9 +282,9 @@ def generate_text_item(items, template_name, resource_type):
                 item['schedule'] = item['schedule'].strftime('%H%M')
 
     agendas = []
-    if resource_type == 'planning':
+    if resource_type in ['planning', 'combined']:
         agendas = group_items_by_agenda(items)
-        inject_internal_converages(items)
+        inject_internal_coverages(items)
 
         labels = {}
         cv = get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
@@ -275,11 +292,15 @@ def generate_text_item(items, template_name, resource_type):
             labels = {_type['qcode']: _type['name'] for _type in cv['items']}
 
         for item in items:
-            item['coverages'] = [labels.get(coverage.get('planning').get('g2_content_type'),
-                                            coverage.get('planning').get('g2_content_type')) +
-                                 (' (cancelled)' if coverage.get('workflow_status', '') == 'cancelled' else '')
-                                 for coverage in item.get('coverages', [])
-                                 if (coverage.get('planning') or {}).get('g2_content_type')]
+            item['coverages'] = [
+                labels.get(
+                    coverage.get('planning').get('g2_content_type'),
+                    coverage.get('planning').get('g2_content_type')
+                ) +
+                (' (cancelled)' if coverage.get('workflow_status', '') == 'cancelled' else '')
+                for coverage in item.get('coverages', [])
+                if (coverage.get('planning') or {}).get('g2_content_type')
+            ]
 
     article = {}
 
@@ -322,7 +343,14 @@ class PlanningArticleExportService(Service):
             item = get_item_from_template(content_template)
             item[current_app.config['VERSION']] = 1
             item.setdefault('type', 'text')
-            item.setdefault('slugline', 'Planning' if item_type == 'planning' else 'Event')
+
+            if item_type == 'planning':
+                item.setdefault('slugline', 'Planning')
+            elif item_type == 'event':
+                item.setdefault('slugline', 'Event')
+            else:
+                item.setdefault('slugline', 'Events and Planning')
+
             item['task'] = {
                 'desk': desk.get('_id'),
                 'user': get_user_id(),
