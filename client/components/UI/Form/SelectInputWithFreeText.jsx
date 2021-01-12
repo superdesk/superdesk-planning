@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
+import {gettext} from '../../../utils/gettext';
 
 import {SelectInput, Checkbox, Input, LineInput, Label, Row} from './index';
 
@@ -64,7 +65,7 @@ export class SelectInputWithFreeText extends React.Component {
                     </LineInput>
                 )}
                 <LineInput {...props}>
-                    <Label text="Other" />
+                    <Label text={gettext('Other')} />
                     <Checkbox
                         value={this.state.enterFreeText}
                         onChange={this.onFreeTextToggle}
