@@ -39,7 +39,7 @@ from datetime import timedelta
 from superdesk import register_jinja_filter
 from .common import get_formatted_address
 
-from .commands import FlagExpiredItems, DeleteSpikedItems, DeleteMarkedAssignments
+from .commands import FlagExpiredItems, DeleteSpikedItems, DeleteMarkedAssignments, ExportScheduledFilters
 import planning.commands  # noqa
 import planning.feeding_services # noqa
 import planning.feed_parsers  # noqa
@@ -237,6 +237,8 @@ def init_app(app):
             'schedule': timedelta(seconds=60)  # Runs once every minute
         }
 
+    init_scheduled_exports_task(app)
+
     # Create 'type' required for planning module if not already preset
     with app.app_context():
         vocabulary_service = superdesk.get_resource_service('vocabularies')
@@ -268,6 +270,22 @@ def init_app(app):
         register_jinja_filter('formatted_address', get_formatted_address)
 
 
+def init_scheduled_exports_task(app):
+    # If the celery task is not configured, then set the default now
+    if not app.config['CELERY_BEAT_SCHEDULE'].get('planning.export_scheduled_filters'):
+        app.config['CELERY_TASK_ROUTES']['planning.export_scheduled_filters'] = {
+            'queue': celery_queue('default'),
+            'routing_key': 'planning.exports'
+        }
+
+    # If the celery schedule is not configured, then set the default now
+    if not app.config['CELERY_BEAT_SCHEDULE'].get('planning:export_scheduled_filters'):
+        app.config['CELERY_BEAT_SCHEDULE']['planning:export_scheduled_filters'] = {
+            'task': 'planning.export_scheduled_filters',
+            'schedule': crontab(minute=0)
+        }
+
+
 @celery.task(soft_time_limit=600)
 def flag_expired():
     FlagExpiredItems().run()
@@ -281,3 +299,8 @@ def delete_spiked():
 @celery.task(soft_time_limit=600)
 def delete_assignments():
     DeleteMarkedAssignments().run()
+
+
+@celery.task(soft_time_limit=600)
+def export_scheduled_filters():
+    ExportScheduledFilters().run()
