@@ -13,13 +13,12 @@
 """
 
 from typing import NamedTuple
-
 from copy import deepcopy
-from eve.utils import config
 import logging
 
-import superdesk
-from superdesk import Resource
+from eve.utils import config
+
+from superdesk import Resource, Service
 from superdesk.notification import push_notification
 from superdesk.metadata.item import metadata_schema
 
@@ -43,6 +42,42 @@ class ItemTypes(NamedTuple):
 
 
 ITEM_TYPES: ItemTypes = ItemTypes('events', 'planning', 'combined')
+
+
+class ScheduleFrequency(NamedTuple):
+    HOURLY: str
+    DAILY: str
+    WEEKLY: str
+    MONTHLY: str
+
+
+SCHEDULE_FREQUENCY: ScheduleFrequency = ScheduleFrequency(
+    'hourly',
+    'daily',
+    'weekly',
+    'monthly'
+)
+
+
+class WeekDay(NamedTuple):
+    SUNDAY: str
+    MONDAY: str
+    TUESDAY: str
+    WEDNESDAY: str
+    THURSDAY: str
+    FRIDAY: str
+    SATURDAY: str
+
+
+WEEK_DAY: WeekDay = WeekDay(
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday'
+)
 
 
 filters_schema = {
@@ -199,11 +234,40 @@ filters_schema = {
                 'schema': planning_schema['event_item']
             }
         }
+    },
+    'schedules': {
+        'type': 'list',
+        'nullable': True,
+        'schema': {
+            'desk': Resource.rel('desks'),
+            'article_template': Resource.rel('content_templates', nullable=True),
+            'template': {'type': 'string'},
+            '_last_sent': {
+                'type': 'datetime'
+            },
+            'frequency': {
+                'type': 'string',
+                'allowed': tuple(SCHEDULE_FREQUENCY),
+                'required': True
+            },
+            'hour': {
+                'type': 'integer',
+                'default': -1
+            },
+            'day': {
+                'type': 'integer',
+                'default': -1
+            },
+            'week_days': {
+                'type': 'list',
+                'allowed': tuple(WEEK_DAY)
+            }
+        }
     }
 }
 
 
-class EventPlanningFiltersResource(superdesk.Resource):
+class EventPlanningFiltersResource(Resource):
     """Resource for Event and Planning Filters"""
 
     endpoint_name = endpoint
@@ -216,12 +280,13 @@ class EventPlanningFiltersResource(superdesk.Resource):
                   'DELETE': 'planning_eventsplanning_filters_management'}
 
 
-class EventPlanningFiltersService(superdesk.Service):
+class EventPlanningFiltersService(Service):
     """Service for Event and Planning Filters"""
 
     def on_create(self, docs):
         for doc in docs:
             set_original_creator(doc)
+            self.set_schedule(doc)
 
     def on_created(self, docs):
         for doc in docs:
@@ -239,6 +304,7 @@ class EventPlanningFiltersService(superdesk.Service):
         )
 
     def on_update(self, updates, original):
+        self.set_schedule(updates)
         updated = deepcopy(original)
         updated.update(updates)
         user_id = get_user_id()
@@ -256,3 +322,42 @@ class EventPlanningFiltersService(superdesk.Service):
             doc.get(config.ID_FIELD),
             'event_planning_filters:deleted'
         )
+
+    def set_schedule(self, updates):
+        if not len(updates.get('schedules') or []):
+            return
+
+        for schedule in updates['schedules']:
+            hour = schedule.get('hour', -1)
+            day = schedule.get('day', -1)
+            week_days = schedule.get('week_days') or []
+            frequency = schedule.get('frequency') or 'hourly'
+
+            if frequency == 'hourly':
+                schedule.update({
+                    'frequency': 'hourly',
+                    'hour': -1,
+                    'day': -1,
+                    'week_days': []
+                })
+            elif frequency == 'daily':
+                schedule.update({
+                    'frequency': 'daily',
+                    'hour': hour,
+                    'day': -1,
+                    'week_days': []
+                })
+            elif frequency == 'weekly':
+                schedule.update({
+                    'frequency': 'weekly',
+                    'hour': hour,
+                    'day': -1,
+                    'week_days': week_days
+                })
+            elif frequency == 'monthly':
+                schedule.update({
+                    'frequency': 'monthly',
+                    'hour': hour,
+                    'day': day,
+                    'week_days': []
+                })
