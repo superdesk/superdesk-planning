@@ -57,7 +57,7 @@ function configurePlanning(superdesk) {
                     type: 'addto-planning',
                 },
             ],
-            group: 'Planning',
+            group: gettext('Planning'),
             privileges: {
                 planning_planning_management: 1,
                 archive: 1,
@@ -92,7 +92,7 @@ function configurePlanning(superdesk) {
                     type: 'fulfill-assignment',
                 },
             ],
-            group: 'Planning',
+            group: gettext('Planning'),
             privileges: {archive: 1},
             additionalCondition: ['archiveService', 'item',
                 function(archiveService, item: IArticle) {
@@ -118,7 +118,7 @@ function configurePlanning(superdesk) {
                     type: 'unlink-assignment',
                 },
             ],
-            group: 'Planning',
+            group: gettext('Planning'),
             privileges: {archive: 1},
             additionalCondition: ['archiveService', 'item', 'authoring',
                 function(archiveService, item, authoring) {

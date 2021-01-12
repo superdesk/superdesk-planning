@@ -63,7 +63,7 @@ export default angular.module('superdesk-planning', [])
             href: '/planning',
             icon: 'calendar',
             label: gettext('Planning'),
-            group: 'planning',
+            group: gettext('Planning'),
             if: 'workspaceConfig.planning && privileges.planning',
             order: 1100,
             shortcut: 'ctrl+alt+p',
