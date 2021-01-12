@@ -98,7 +98,7 @@ def search_calendars(params: Dict[str, Any], query: elastic.ElasticQuery):
 def search_no_calendar_assigned(params: Dict[str, Any], query: elastic.ElasticQuery):
     num_calendars = len(params.get('calendars') or [])
 
-    if not num_calendars and strtobool(params.get('no_calendar_assigned') or ''):
+    if not num_calendars and strtobool(params.get('no_calendar_assigned', False)):
         query.must_not.append(
             elastic.field_exists('calendars')
         )
@@ -334,7 +334,7 @@ def search_date_range(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
     date_filter, start_date, end_date, tz_offset = get_date_params(params)
-    only_future = strtobool(params.get('only_future') or 'true')
+    only_future = strtobool(params.get('only_future', True))
 
     if not date_filter and not start_date and not end_date and only_future:
         query.filter.append(

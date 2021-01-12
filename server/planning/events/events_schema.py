@@ -353,6 +353,8 @@ events_schema = {
         'schema': {'type': 'string'}
     },
 
+    '_type': {'type': 'string', 'mapping': None},
+
     # HACK: Add coverages.planning.slugline to elastic mapping
     # Otherwise searching slugline in combined view fails on events type
     'coverages': {
