@@ -141,7 +141,7 @@ jobs:
         working-directory: ./e2e
         run: npm run cypress-ci -- --spec "cypress/integration/!(events)/*.spec.js"
         env:
-          CYPRESS_SCREENSHOTS_FOLDER: /tmp
+          CYPRESS_SCREENSHOTS_FOLDER: /tmp/cypress
       - name: Upload screenshots
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
