@@ -37,10 +37,14 @@ describe('Planning.Planning: cancel planning item', () => {
             .dblclick();
         editor.waitTillOpen();
         editor.waitLoadingComplete();
-        editor.postButton.click();
+        editor.postButton
+            .should('exist')
+            .click();
         editor.waitForAutosave();
         editor.waitLoadingComplete();
-        editor.closeButton.click();
+        editor.closeButton
+            .should('exist')
+            .click();
 
         // Make sure the list item shows the 'Scheduled' badge
         // and is no longer locked
@@ -104,6 +108,7 @@ describe('Planning.Planning: cancel planning item', () => {
             .parent()
             .should('contain.text', reason);
         editor.closeButton
+            .should('exist')
             .click();
     });
 });

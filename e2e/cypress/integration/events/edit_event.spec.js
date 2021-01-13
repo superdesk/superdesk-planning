@@ -55,7 +55,9 @@ describe('Planning.Events: edit metadata', () => {
         editor.waitForAutosave();
 
         workqueue.expectTitle(0, 'slugline of the event*');
-        editor.createButton.click();
+        editor.createButton
+            .should('exist')
+            .click();
         list.expectItemCount(1);
         list.expectItemText(0, 'slugline of the event');
         workqueue.expectTitle(0, 'slugline of the event');
@@ -87,13 +89,17 @@ describe('Planning.Events: edit metadata', () => {
         editor.expect(expectedEvent);
 
         editor.waitForAutosave();
-        editor.createButton.click();
+        editor.createButton
+            .should('exist')
+            .click();
         list.expectItemCount(2);
         list.expectItemText(0, 'slugline of the recurring event');
         list.expectItemText(1, 'slugline of the recurring event');
 
         // Test cancelling the Post modal
-        editor.postButton.click();
+        editor.postButton
+            .should('exist')
+            .click();
         modal.waitTillOpen(30000);
         modal.getFooterButton('Cancel')
             .click();
@@ -101,7 +107,9 @@ describe('Planning.Events: edit metadata', () => {
 
         // Test posting the series
         editor.waitForAutosave();
-        editor.postButton.click();
+        editor.postButton
+            .should('exist')
+            .click();
         modal.waitTillOpen(30000);
         modal.getFooterButton('Post')
             .click();

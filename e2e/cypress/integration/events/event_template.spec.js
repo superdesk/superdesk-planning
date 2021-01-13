@@ -44,7 +44,9 @@ describe('Planning.Events: event templates', () => {
         editor.type(event);
         editor.expect(expectedEvent);
         editor.waitForAutosave();
-        editor.createButton.click();
+        editor.createButton
+            .should('exist')
+            .click();
         editor.waitLoadingComplete();
 
         // Now create the Template
@@ -55,11 +57,13 @@ describe('Planning.Events: event templates', () => {
         modal.waitTillOpen(30000);
         modal.element
             .find('textarea')
-            .type('Example')
+            .type('Example');
         modal.getFooterButton('Submit')
             .click();
         modal.waitTillClosed(30000);
-        editor.closeButton.click();
+        editor.closeButton
+            .should('exist')
+            .click();
         editor.waitTillClosed();
 
         // Open Manage Templates modal

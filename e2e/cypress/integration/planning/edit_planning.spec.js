@@ -54,7 +54,9 @@ describe('Planning.Planning: edit metadata', () => {
         editor.waitForAutosave();
 
         workqueue.expectTitle(0, 'slugline of the planning*');
-        editor.createButton.click();
+        editor.createButton
+            .should('exist')
+            .click();
         editor.waitLoadingComplete();
         list.expectItemCount(1);
         list.expectItemText(0, 'slugline of the planning');
@@ -81,7 +83,9 @@ describe('Planning.Planning: edit metadata', () => {
         assignmentEditor.waitTillClosed();
 
         editor.waitForAutosave();
-        editor.createButton.click();
+        editor.createButton
+            .should('exist')
+            .click();
         editor.waitLoadingComplete();
 
         coverageEditor.element.click();
@@ -104,14 +108,16 @@ describe('Planning.Planning: edit metadata', () => {
         editor.expect(plan);
 
         editor.waitForAutosave();
-        editor.createButton.click();
+        editor.createButton
+            .should('exist')
+            .click();
         editor.waitLoadingComplete();
 
         editor.openAllToggleBoxes();
         editor.type({description_text: 'Desc. Text'});
         editor.expect({description_text: 'Desc. Text'});
         editor.waitForAutosave();
-        editor.waitTillOpen()
+        editor.waitTillOpen();
         editor.postButton.should('exist');
 
 
