@@ -134,7 +134,17 @@ jobs:
         if: matrix.e2e == 'a'
         working-directory: ./e2e
         run: npm run cypress-ci -- --spec "cypress/integration/events/*.spec.js"
+        env:
+          CYPRESS_SCREENSHOTS_FOLDER: /tmp
       - name: E2E Suite B
         if: matrix.e2e == 'b'
         working-directory: ./e2e
         run: npm run cypress-ci -- --spec "cypress/integration/!(events)/*.spec.js"
+        env:
+          CYPRESS_SCREENSHOTS_FOLDER: /tmp
+      - name: Upload screenshots
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: screenshots-e2e-${{ matrix.e2e }}
+          path: /tmp/**/*.png
