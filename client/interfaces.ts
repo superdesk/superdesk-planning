@@ -1011,6 +1011,9 @@ export interface ISearchParams {
     include_scheduled_updates?: boolean;
     event_item?: Array<IEventItem['_id']>;
 
+    // Combined Params
+    include_associated_planning?: boolean;
+
     // Pagination
     page?: number;
     max_results?: number;
@@ -1058,6 +1061,9 @@ export interface ISearchAPIParams {
     featured?: boolean;
     include_scheduled_updates?: boolean;
     event_item?: string;
+
+    // Combined Params
+    include_associated_planning?: boolean;
 
     // Pagination
     page?: number;
@@ -1155,6 +1161,7 @@ export interface IPlanningAPI {
     };
     planning: {
         search(params: ISearchParams): Promise<IRestApiResponse<IPlanningItem>>;
+        searchGetAll(params: ISearchParams): Promise<Array<IPlanningItem>>;
         getById(planId: IPlanningItem['_id']): Promise<IPlanningItem>;
         getByIds(planIds: Array<IPlanningItem['_id']>): Promise<Array<IPlanningItem>>;
         getLocked(): Promise<Array<IPlanningItem>>;
@@ -1167,7 +1174,20 @@ export interface IPlanningAPI {
     };
     combined: {
         search(params: ISearchParams): Promise<IRestApiResponse<IEventItem | IPlanningItem>>;
+        searchGetAll(params: ISearchParams): Promise<Array<IEventItem | IPlanningItem>>;
+        getRecurringEventsAndPlanningItems(
+            event: IEventItem,
+            loadPlannings?: boolean,
+            loadEvents?: boolean,
+        ): Promise<{
+            events: Array<IEventItem>;
+            plannings: Array<IPlanningItem>;
+        }>
         getSearchProfile(): ICombinedSearchProfile;
+        getEventsAndPlanning(params: ISearchParams): Promise<{
+            events: Array<IEventItem>;
+            plannings: Array<IPlanningItem>;
+        }>;
     }
     search<T>(args: ISearchAPIParams): Promise<IRestApiResponse<T>>;
 }

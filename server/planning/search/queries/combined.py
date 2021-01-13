@@ -10,11 +10,17 @@ def construct_combined_view_data_query(
 ) -> Dict[str, Any]:
     ids = set()
     for item in items:
-        # Combined search prioritises Events over Planning items
-        # therefore if the Planning item is linked to an Event
-        # then we want to return that Event instead
-        _id = item.get('event_item') or item.get('_id')
-        ids.add(_id)
+        item_id = item.get('_id')
+        event_id = item.get('event_item')
+        if common.strtobool(params.get('include_associated_planning', False)):
+            ids.add(item_id)
+            if event_id:
+                ids.add(event_id)
+        else:
+            # Combined search prioritises Events over Planning items
+            # therefore if the Planning item is linked to an Event
+            # then we want to return that Event instead
+            ids.add(event_id or item_id)
 
     query = elastic.ElasticQuery()
 
@@ -88,6 +94,7 @@ COMBINED_PARAMS = [
     'slugline',
     'calendars',
     'agendas',
+    'include_associated_planning'
 ]
 
 COMBINED_PARAMS.extend(common.COMMON_PARAMS)
