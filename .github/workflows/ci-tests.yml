@@ -135,7 +135,7 @@ jobs:
         working-directory: ./e2e
         run: npm run cypress-ci -- --spec "cypress/integration/events/*.spec.js"
         env:
-          CYPRESS_SCREENSHOTS_FOLDER: /tmp
+          CYPRESS_SCREENSHOTS_FOLDER: /tmp/cypress
       - name: E2E Suite B
         if: matrix.e2e == 'b'
         working-directory: ./e2e
@@ -147,4 +147,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: screenshots-e2e-${{ matrix.e2e }}
-          path: /tmp/**/*.png
+          path: /tmp/cypress/**/*.png
