@@ -61,6 +61,10 @@ describe('Planning.Events: event templates', () => {
         modal.getFooterButton('Submit')
             .click();
         modal.waitTillClosed(30000);
+
+        // Wait for the Editor to re-render
+        // otherwise the close button may re-render during attempts to click it
+        cy.wait(3500);
         editor.closeButton
             .should('exist')
             .click();
