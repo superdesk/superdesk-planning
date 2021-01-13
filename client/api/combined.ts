@@ -5,6 +5,7 @@ import {eventUtils, planningUtils} from '../utils';
 import {planningApi} from '../superdeskApi';
 import {combinedSearchProfile} from '../selectors/forms';
 import {searchPlanningGetAll} from './planning';
+import {searchEventsGetAll} from './events';
 
 type IResponse = IRestApiResponse<IEventItem | IPlanningItem>;
 
@@ -107,10 +108,14 @@ function getRecurringEventsAndPlanningItems(
             plannings: items,
         }));
     } else {
-        return Promise.resolve({
-            events: [],
+        return searchEventsGetAll({
+            recurrence_id: event.recurrence_id,
+            spike_state: 'both',
+            only_future: false
+        }).then((items) => ({
+            events: items,
             plannings: [],
-        });
+        }));
     }
 }
 

@@ -1153,6 +1153,7 @@ export interface IPlanningAPI {
     };
     events: {
         search(params: ISearchParams): Promise<IRestApiResponse<IEventItem>>;
+        searchGetAll(params: ISearchParams): Promise<Array<IEventItem>>;
         getById(eventId: IEventItem['_id']): Promise<IEventItem>;
         getByIds(eventIds: Array<IEventItem['_id']>, spikeState?: ISearchSpikeState): Promise<Array<IEventItem>>;
         getLocked(): Promise<Array<IEventItem>>;
