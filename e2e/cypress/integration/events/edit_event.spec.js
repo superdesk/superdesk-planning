@@ -1,4 +1,4 @@
-import {setup, login, waitForPageLoad, SubNavBar, Workqueue} from '../../support/common';
+import {setup, login, waitForPageLoad, SubNavBar, Workqueue, Modal} from '../../support/common';
 import {EventEditor, PlanningList} from '../../support/planning';
 
 describe('Planning.Events: edit metadata', () => {
@@ -6,6 +6,7 @@ describe('Planning.Events: edit metadata', () => {
     const subnav = new SubNavBar();
     const list = new PlanningList();
     const workqueue = new Workqueue();
+    const modal = new Modal();
     let event;
     let expectedEvent;
 
@@ -90,5 +91,29 @@ describe('Planning.Events: edit metadata', () => {
         list.expectItemCount(2);
         list.expectItemText(0, 'slugline of the recurring event');
         list.expectItemText(1, 'slugline of the recurring event');
+
+        // Test cancelling the Post modal
+        editor.postButton.click();
+        modal.waitTillOpen(30000);
+        modal.getFooterButton('Cancel')
+            .click();
+        modal.waitTillClosed();
+
+        // Test posting the series
+        editor.waitForAutosave();
+        editor.postButton.click();
+        modal.waitTillOpen(30000);
+        modal.getFooterButton('Post')
+            .click();
+        modal.waitTillClosed();
+        editor.waitForAutosave();
+
+        // Make sure both recurring Events now have the 'Scheduled' badge
+        list.item(0)
+            .find('.label--success')
+            .should('contain.text', 'Scheduled');
+        list.item(1)
+            .find('.label--success')
+            .should('contain.text', 'Scheduled');
     });
 });
