@@ -9,6 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 import superdesk
+from flask_babel import lazy_gettext
 from .events import EventsResource, EventsService
 from .events_spike import EventsSpikeResource, EventsSpikeService, EventsUnspikeResource, EventsUnspikeService
 from .events_files import EventsFilesResource, EventsFilesService
@@ -143,38 +144,38 @@ def init_app(app):
     # Privileges
     superdesk.privilege(
         name='planning_event_management',
-        label='Planning - Event Management',
-        description='Ability to create and modify Events'
+        label=lazy_gettext('Planning - Event Management'),
+        description=lazy_gettext('Ability to create and modify Events'),
     )
 
     superdesk.privilege(
         name='planning_event_spike',
-        label='Planning - Spike Event Items',
-        description='Ability to spike an Event'
+        label=lazy_gettext('Planning - Spike Event Items'),
+        description=lazy_gettext('Ability to spike an Event'),
     )
 
     superdesk.privilege(
         name='planning_event_unspike',
-        label='Planning - Unspike Event Items',
-        description='Ability to unspike an Event'
+        label=lazy_gettext('Planning - Unspike Event Items'),
+        description=lazy_gettext('Ability to unspike an Event'),
     )
 
     superdesk.privilege(
         name='planning_event_post',
-        label='Planning - Post Event Items',
-        description='Ability to post an Event'
+        label=lazy_gettext('Planning - Post Event Items'),
+        description=lazy_gettext('Ability to post an Event'),
     )
 
     superdesk.privilege(
         name='planning_event_unpost',
-        label='Planning - Unpost Event Items',
-        description='Ability to unpost an Event'
+        label=lazy_gettext('Planning - Unpost Event Items'),
+        description=lazy_gettext('Ability to unpost an Event'),
     )
 
     superdesk.privilege(
         name='planning_event_templates',
-        label='Planning - Event Templates',
-        description='Ability to create and manage Event templates'
+        label=lazy_gettext('Planning - Event Templates'),
+        description=lazy_gettext('Ability to create and manage Event templates'),
     )
 
     superdesk.intrinsic_privilege(EventsUnlockResource.endpoint_name, method=['POST'])
