@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 import superdesk
-from flask_babel import lazy_gettext
+from flask_babel import _
 from superdesk.services import BaseService
 from .assignments import AssignmentsResource, AssignmentsService
 from .assignments_content import AssignmentsContentResource, AssignmentsContentService
@@ -114,8 +114,8 @@ def init_app(app):
     # User Preferences
     superdesk.register_default_user_preference('assignments:default_sort', {
         'type': 'dict',
-        'label': lazy_gettext('Default sort preferences for Assignment lists'),
-        'category': lazy_gettext('Assignments'),
+        'label': _('Default sort preferences for Assignment lists'),
+        'category': _('Assignments'),
         'sort': {},
         'default': None
     })

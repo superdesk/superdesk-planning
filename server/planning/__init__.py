@@ -12,7 +12,7 @@
 
 import superdesk
 from eve.utils import config
-from flask_babel import lazy_gettext
+from flask_babel import lazy_gettext, _
 from .locations import LocationsResource, LocationsService
 from .agendas import AgendasResource, AgendasService
 from .planning_export_templates import PlanningExportTemplatesResource, PlanningExportTemplatesService
@@ -138,37 +138,37 @@ def init_app(app):
         'type': 'bool',
         'enabled': True,
         'default': False,
-        'label': lazy_gettext('Allow Notifications To Slack'),
-        'category': lazy_gettext('Notifications'),
+        'label': _('Allow Notifications To Slack'),
+        'category': _('Notifications'),
     })
 
     superdesk.register_default_user_preference('planning:calendar', {
         'type': 'dict',
-        'label': lazy_gettext('Default Calendar'),
-        'category': lazy_gettext('Planning'),
+        'label': _('Default Calendar'),
+        'category': _('Planning'),
         'calendar': {}
     })
 
     superdesk.register_default_user_preference('planning:agenda', {
         'type': 'dict',
-        'label': lazy_gettext('Default Agenda'),
-        'category': lazy_gettext('Planning'),
+        'label': _('Default Agenda'),
+        'category': _('Planning'),
         'agenda': {},
         'default': None
     })
 
     superdesk.register_default_user_preference('planning:events_planning_filter', {
         'type': 'dict',
-        'label': lazy_gettext('Default Events Planning Filter'),
-        'category': lazy_gettext('Planning'),
+        'label': _('Default Events Planning Filter'),
+        'category': _('Planning'),
         'filter': {},
         'default': None
     })
 
     superdesk.register_default_user_preference('planning:default_coverage_desks', {
         'type': 'dict',
-        'label': lazy_gettext('Default desk for coverage types'),
-        'category': lazy_gettext('Planning'),
+        'label': _('Default desk for coverage types'),
+        'category': _('Planning'),
         'desks': {},
         'default': None
     })
@@ -177,8 +177,8 @@ def init_app(app):
         'type': 'bool',
         'enabled': False,
         'default': False,
-        'label': lazy_gettext('Open advanced mode when adding coverages'),
-        'category': lazy_gettext('Planning'),
+        'label': _('Open advanced mode when adding coverages'),
+        'category': _('Planning'),
     })
 
     app.client_config['max_recurrent_events'] = get_max_recurrent_events(app)
