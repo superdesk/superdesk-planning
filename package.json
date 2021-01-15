@@ -67,7 +67,7 @@
     "simulant": "^0.2.2",
     "sinon": "^4.5.0",
     "superdesk-code-style": "^1.3.0",
-    "superdesk-core": "github:superdesk/superdesk-client-core#develop",
+    "superdesk-core": "github:tomaskikutis/superdesk-client-core#improve-patch-package-to-work-with-planning",
     "ts-node": "~7.0.1"
   }
 }
