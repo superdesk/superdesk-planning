@@ -132,13 +132,13 @@ const getRelatedEventsForRecurringEvent = (recurringEvent, filter, postedPlannin
 
     switch (filter.value) {
     case EventUpdateMethods[1].value: // Selected & Future Events
-        events = eventsInSeries.filter((e) => (
+        events = eventsInSeries._items.filter((e) => (
             moment(e.dates.start).isSameOrAfter(moment(recurringEvent.dates.start)) &&
                 e._id !== recurringEvent._id
         ));
         break;
     case EventUpdateMethods[2].value: // All Events
-        events = eventsInSeries.filter((e) => e._id !== recurringEvent._id);
+        events = eventsInSeries._items.filter((e) => e._id !== recurringEvent._id);
         break;
     case EventUpdateMethods[0].value: // Selected Event Only
     default:
