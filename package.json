@@ -37,7 +37,7 @@
     "whatwg-fetch": "~2.0.4"
   },
   "devDependencies": {
-    "@types/classnames": "^2.2.10",
+    "@types/classnames": "2.2.10",
     "@types/jasmine": "^3.5.11",
     "@types/lodash": "4.14.117",
     "@types/moment-timezone": "^0.5.13",
