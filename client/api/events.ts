@@ -1,5 +1,5 @@
 import {IEventItem, ISearchAPIParams, ISearchParams, ISearchSpikeState, IPlanningAPI, FILTER_TYPE} from '../interfaces';
-import {cvsToString, convertCommonParams, searchRaw} from './search';
+import {cvsToString, convertCommonParams, searchRaw, searchRawGetAll} from './search';
 import {IRestApiResponse} from 'superdesk-api';
 import {superdeskApi, planningApi} from '../superdeskApi';
 import {eventUtils} from '../utils';
@@ -32,6 +32,18 @@ export function searchEvents(params: ISearchParams): Promise<IRestApiResponse<IE
         repo: FILTER_TYPE.EVENTS,
     })
         .then(modifyResponseForClient);
+}
+
+export function searchEventsGetAll(params: ISearchParams): Promise<Array<IEventItem>> {
+    return searchRawGetAll<IEventItem>({
+        ...convertCommonParams(params),
+        ...convertEventParams(params),
+        repo: FILTER_TYPE.EVENTS,
+    }).then((items) => {
+        items.forEach(modifyItemForClient);
+
+        return items;
+    });
 }
 
 export function getEventById(eventId: IEventItem['_id']): Promise<IEventItem> {
@@ -76,6 +88,7 @@ function getEventSearchProfile() {
 
 export const events: IPlanningAPI['events'] = {
     search: searchEvents,
+    searchGetAll: searchEventsGetAll,
     getById: getEventById,
     getByIds: getEventByIds,
     getLocked: getLockedEvents,

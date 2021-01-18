@@ -43,17 +43,50 @@ export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIPa
     };
 }
 
-export function searchRaw<T>(args: ISearchAPIParams) {
-    Object.keys(args).forEach((field) => {
-        if (args[field] == null) {
-            delete args[field];
-        } else if (typeof args[field] === 'string' && !args[field]?.length) {
-            delete args[field];
+function excludeNullParams(args: ISearchAPIParams): ISearchAPIParams {
+    // Copy the args so that we don't modify the original
+    const params: ISearchAPIParams = Object.assign({}, args);
+
+    Object.keys(params).forEach((field) => {
+        if (params[field] == null) {
+            delete params[field];
+        } else if (typeof params[field] === 'string' && !params[field]?.length) {
+            delete params[field];
         }
     });
 
+    return params;
+}
+
+export function searchRaw<T>(args: ISearchAPIParams): Promise<IRestApiResponse<T>> {
     return superdeskApi.dataApi.queryRawJson<IRestApiResponse<T>>(
         'events_planning_search',
-        args
+        excludeNullParams(args)
     );
+}
+
+export function searchRawGetAll<T>(args: ISearchAPIParams): Promise<Array<T>> {
+    const params = excludeNullParams(args);
+    let items: Array<T> = [];
+
+    return new Promise((resolve, reject) => {
+        function query() {
+            superdeskApi.dataApi.queryRawJson<IRestApiResponse<T>>(
+                'events_planning_search',
+                params
+            )
+                .then((response) => {
+                    items = items.concat(response._items);
+
+                    if (response._links.next != null) {
+                        params.page += 1;
+                        query();
+                    } else {
+                        resolve(items);
+                    }
+                });
+        }
+
+        query();
+    });
 }

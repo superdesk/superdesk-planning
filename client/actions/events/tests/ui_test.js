@@ -24,10 +24,6 @@ describe('actions.events.ui', () => {
             () => (Promise.resolve(data.events))
         );
 
-        sinon.stub(eventsApi, 'loadRecurringEventsAndPlanningItems').callsFake(
-            () => (Promise.resolve(data.events[0]))
-        );
-
         sinon.stub(eventsApi, 'spike').callsFake(
             () => (Promise.resolve(data.events))
         );
@@ -68,7 +64,6 @@ describe('actions.events.ui', () => {
         restoreSinonStub(eventsApi.spike);
         restoreSinonStub(eventsApi.unspike);
         restoreSinonStub(eventsApi.loadEventsByRecurrenceId);
-        restoreSinonStub(eventsApi.loadRecurringEventsAndPlanningItems);
         restoreSinonStub(eventsApi.refetch);
         restoreSinonStub(eventsUi._openActionModal);
         restoreSinonStub(eventsUi.refetch);
@@ -200,8 +195,8 @@ describe('actions.events.ui', () => {
                     true,
                 ]);
 
-                expect(store.dispatch.callCount).toBe(3);
-                expect(store.dispatch.args[2]).toEqual([{
+                expect(store.dispatch.callCount).toBe(2);
+                expect(store.dispatch.args[1]).toEqual([{
                     type: 'SHOW_MODAL',
                     modalType: 'ITEM_ACTIONS_MODAL',
                     modalProps: {

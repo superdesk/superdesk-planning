@@ -41,6 +41,7 @@ export function resetApp(profile) {
         method: 'POST',
         timeout: 40000,
         json: {profile: profile},
+        retryOnStatusCodeFailure: true,
     });
 }
 
@@ -88,7 +89,7 @@ export function login() {
  * @param {string} url - The initial URL to visit
  */
 export function setup(params, url) {
-    // cy.visit('/blank.html');
+    cy.visit('/blank.html');
     cy.log('Common.App.setup');
     resetApp(params.fixture_profile);
     cy.visit(url);

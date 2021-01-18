@@ -54,7 +54,9 @@ describe('Planning.Planning: autosave', () => {
         editor.typeCoverages(coverages);
         editor.expect(plan);
         editor.expectCoverages(coverages);
-        editor.minimiseButton.click();
+        editor.minimiseButton
+            .should('exist')
+            .click();
 
         workqueue.getItem(0).click();
         editor.openAllToggleBoxes();
@@ -82,7 +84,9 @@ describe('Planning.Planning: autosave', () => {
 
         // Now minimize the item and reload the page
         // so the editor is not open when the page opens
-        editor.minimiseButton.click();
+        editor.minimiseButton
+            .should('exist')
+            .click();
         cy.reload();
         waitForPageLoad.planning();
         workqueue.getItem(0).click();
@@ -92,6 +96,8 @@ describe('Planning.Planning: autosave', () => {
         editor.expectCoverages(coverages);
 
         // Now save the Event
-        editor.createButton.click();
+        editor.createButton
+            .should('exist')
+            .click();
     });
 });

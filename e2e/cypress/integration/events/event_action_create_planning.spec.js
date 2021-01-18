@@ -132,7 +132,9 @@ describe('Planning.Events: create planning action', () => {
 
     it('can create from the editor', () => {
         createFromEditor(false);
-        editors.planning.closeButton.click();
+        editors.planning.closeButton
+            .should('exist')
+            .click();
         editors.planning.waitTillClosed();
         expectListItemText();
         doubleClickPlanningItem();
