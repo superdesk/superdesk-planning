@@ -17,6 +17,7 @@ export const UpdateMethodSelection = ({
     showSpace,
     originalEvent,
     readOnly,
+    eventsInUse,
 }) => (
     <div>
         { showMethodSelection && (
@@ -32,7 +33,7 @@ export const UpdateMethodSelection = ({
             </div>
         )}
 
-        { relatedPlannings.length > 0 && (
+        { relatedPlannings.length > 0 && eventsInUse.length <= 0 && (
             <div>
                 <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">
                     <strong>{gettext('This will also {{action}} the following planning items', {action})}</strong>
@@ -81,4 +82,5 @@ UpdateMethodSelection.propTypes = {
     showSpace: PropTypes.bool,
     readOnly: PropTypes.bool,
     originalEvent: PropTypes.object,
+    eventsInUse: PropTypes.array,
 };

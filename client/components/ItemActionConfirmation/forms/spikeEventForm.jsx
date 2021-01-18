@@ -101,6 +101,7 @@ export class SpikeEventComponent extends React.Component {
                     readOnly={submitting}
                     action="spike"
                     relatedPlannings={this.state.relatedPlannings}
+                    eventsInUse={eventsInUse}
                 />
 
                 {eventsInUse.length > 0 && (
