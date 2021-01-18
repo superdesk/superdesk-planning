@@ -87,7 +87,9 @@ describe('MediaContacts: contact input', () => {
         contactInput.expect(['Elder Bower']);
 
         // Minimize then open the item to test autosave
-        editors.event.minimiseButton.click();
+        editors.event.minimiseButton
+            .should('exist')
+            .click();
         editors.event.waitTillClosed();
         workqueue.getItem(0).click();
         editors.event.waitTillOpen();

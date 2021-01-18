@@ -6,7 +6,7 @@ import {
     IPlanningAPI,
     FILTER_TYPE,
 } from '../interfaces';
-import {arrayToString, convertCommonParams, searchRaw} from './search';
+import {arrayToString, convertCommonParams, searchRaw, searchRawGetAll} from './search';
 import {superdeskApi, planningApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
 import {planningUtils} from '../utils';
@@ -44,6 +44,18 @@ export function searchPlanning(params: ISearchParams) {
         repo: FILTER_TYPE.PLANNING,
     })
         .then(modifyResponseForClient);
+}
+
+export function searchPlanningGetAll(params: ISearchParams): Promise<Array<IPlanningItem>> {
+    return searchRawGetAll<IPlanningItem>({
+        ...convertCommonParams(params),
+        ...convertPlanningParams(params),
+        repo: FILTER_TYPE.PLANNING,
+    }).then((items) => {
+        items.forEach(modifyItemForClient);
+
+        return items;
+    });
 }
 
 export function getPlanningById(planId: IPlanningItem['_id']): Promise<IPlanningItem> {
@@ -94,6 +106,7 @@ function getPlanningSearchProfile() {
 
 export const planning: IPlanningAPI['planning'] = {
     search: searchPlanning,
+    searchGetAll: searchPlanningGetAll,
     getById: getPlanningById,
     getByIds: getPlanningByIds,
     getLocked: getLockedPlanningItems,

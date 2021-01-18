@@ -34,7 +34,9 @@ describe('Planning.Assignment: edit assignment priority', () => {
         assignmentEditor.waitTillClosed();
 
         editor.waitForAutosave();
-        editor.createButton.click();
+        editor.createButton
+            .should('exist')
+            .click();
         editor.waitLoadingComplete();
 
         coverageEditor.element.click();

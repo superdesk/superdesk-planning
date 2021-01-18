@@ -9,7 +9,10 @@ export const waitForPageLoad = {
         cy.wait('@getPlanningEventsSearch', {timeout: 360000});
 
         // Now wait for the plus icon to be present
-        cy.get('.icon-plus-large');
+        // Sometimes there are more API requests still pending
+        // so wait up to a further 30 seconds
+        cy.get('.icon-plus-large', {timeout: 30000})
+            .should('exist');
     },
     contacts: () => {
         cy.log('UI.waitForPageLoad');
@@ -20,7 +23,10 @@ export const waitForPageLoad = {
         cy.wait('@getContactsSearch', {timeout: 360000});
 
         // Now wait for the plus icon to be present
-        cy.get('.icon-plus-large');
+        // Sometimes there are more API requests still pending
+        // so wait up to a further 30 seconds
+        cy.get('.icon-plus-large', {timeout: 30000})
+            .should('exist');
     },
 };
 
