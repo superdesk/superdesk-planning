@@ -239,28 +239,31 @@ filters_schema = {
         'type': 'list',
         'nullable': True,
         'schema': {
-            'desk': Resource.rel('desks'),
-            'article_template': Resource.rel('content_templates', nullable=True),
-            'template': {'type': 'string'},
-            '_last_sent': {
-                'type': 'datetime'
-            },
-            'frequency': {
-                'type': 'string',
-                'allowed': tuple(SCHEDULE_FREQUENCY),
-                'required': True
-            },
-            'hour': {
-                'type': 'integer',
-                'default': -1
-            },
-            'day': {
-                'type': 'integer',
-                'default': -1
-            },
-            'week_days': {
-                'type': 'list',
-                'allowed': tuple(WEEK_DAY)
+            'type': 'dict',
+            'schema': {
+                'desk': Resource.rel('desks'),
+                'article_template': Resource.rel('content_templates', nullable=True),
+                'template': {'type': 'string'},
+                '_last_sent': {
+                    'type': 'datetime'
+                },
+                'frequency': {
+                    'type': 'string',
+                    'allowed': tuple(SCHEDULE_FREQUENCY),
+                    'required': True
+                },
+                'hour': {
+                    'type': 'integer',
+                    'default': -1
+                },
+                'day': {
+                    'type': 'integer',
+                    'default': -1
+                },
+                'week_days': {
+                    'type': 'list',
+                    'allowed': tuple(WEEK_DAY)
+                }
             }
         }
     }

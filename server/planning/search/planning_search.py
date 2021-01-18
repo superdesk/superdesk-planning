@@ -84,7 +84,7 @@ class PlanningSearchService(superdesk.Service):
         return docs
 
     def _format_nested_dates(self, doc):
-        if doc.get('_type') == 'events' and doc.get('dates'):
+        if (doc.get('_type') == 'events' or doc.get('type') == 'event') and doc.get('dates'):
             if doc['dates'].get('start'):
                 doc['dates']['start'] = parse_date(doc['dates']['start'])
             if doc['dates'].get('end'):
