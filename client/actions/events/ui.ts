@@ -159,13 +159,13 @@ const postponeEvent = (original, updates) => (
 
 const openSpikeModal = (event, post = false, modalProps = {}) => (
     (dispatch) => (
-        dispatch(eventsApi.loadEventDataForAction(
+        eventsApi.loadEventDataForAction(
             event,
             true,
             post,
             true,
             true
-        )).then((eventWithData) => {
+        ).then((eventWithData) => {
             dispatch(self._openActionModal(
                 eventWithData,
                 {},
@@ -433,7 +433,7 @@ const _openActionModal = (
     (dispatch, getState, {notify}) => (
         dispatch(eventsApi.lock(original, lockAction))
             .then((lockedEvent) => (
-                dispatch(eventsApi.loadEventDataForAction(lockedEvent, loadPlannings, post, loadEvents))
+                eventsApi.loadEventDataForAction(lockedEvent, loadPlannings, post, loadEvents)
                     .then((eventDetail) => (
                         dispatch(showModal({
                             modalType: MODALS.ITEM_ACTIONS_MODAL,
@@ -592,13 +592,13 @@ const openEventPostModal = (
                 return dispatch(planningAction()).then((p) => Promise.resolve(p));
             }
 
-            return dispatch(eventsApi.loadEventDataForAction(
+            return eventsApi.loadEventDataForAction(
                 fetchedEvent,
                 true,
                 post,
                 true,
                 true
-            )).then((eventWithData) => {
+            ).then((eventWithData) => {
                 if (!post &&
                     !eventWithData.recurrence_id &&
                     !eventUtils.eventHasPostedPlannings(eventWithData)
