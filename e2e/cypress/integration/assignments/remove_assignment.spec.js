@@ -33,7 +33,9 @@ describe('Planning.Assignment: remove assignment', () => {
         assignmentEditor.waitTillClosed();
 
         editor.waitForAutosave();
-        editor.createButton.click();
+        editor.createButton
+            .should('exist')
+            .click();
         editor.waitLoadingComplete();
 
         coverageEditor.element.click();

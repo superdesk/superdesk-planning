@@ -1,7 +1,7 @@
 import {get, isEqual, cloneDeep, pickBy, has, find, every} from 'lodash';
 import moment from 'moment';
 
-import {ISearchSpikeState, IEventSearchParams} from '../../interfaces';
+import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem} from '../../interfaces';
 import {appConfig} from 'appConfig';
 import {planningApis} from '../../api';
 
@@ -244,91 +244,35 @@ const refetch = (skipEvents = []) => (
     }
 );
 
-/**
- * Action dispatcher to load all events from the series of events,
- * then load their associated planning items.
- * @param {object} event - Any event from the series of recurring events
- * @param {boolean} loadPlannings - If true, loads associated Planning items as well
- * @param {boolean} loadEvents - If true, also loads all Events in the series
- */
-const loadRecurringEventsAndPlanningItems = (
-    event,
-    loadPlannings = true,
-    loadEvents = true,
-    loadEveryRecurringPlanning = false
-) => (
-    (dispatch, getState) => {
-        if (get(event, 'recurrence_id') && loadEvents) {
-            return dispatch(self.loadEventsByRecurrenceId(
-                event.recurrence_id,
-                SPIKED_STATE.BOTH,
-                1,
-                appConfig.max_recurrent_events,
-                false
-            )).then((relatedEvents) => {
-                if (!loadPlannings) {
-                    return Promise.resolve({
-                        events: relatedEvents,
-                        plannings: [],
-                    });
-                }
-
-                return planningApis.planning.search({recurrence_id: event.recurrence_id})
-                    .then((response) => (
-                        Promise.resolve({
-                            events: relatedEvents,
-                            plannings: response._items,
-                        })
-                    ), (error) => Promise.reject(error));
-            }, (error) => Promise.reject(error));
-        } else {
-            // In csae of unenhanced event (unlockedItem), the locally stored event
-            // might have the planning_ids
-            let storedEvent;
-
-            if (loadPlannings && get(event, 'planning_ids.length', 0) === 0) {
-                storedEvent = selectors.events.storedEvents(getState())[event._id];
-            }
-
-            if (!loadPlannings || (get(event, 'planning_ids.length', 0) === 0 &&
-                    get(storedEvent, 'planning_ids.length', 0)) === 0) {
-                return Promise.resolve({
-                    events: [],
-                    plannings: [],
-                });
-            }
-
-            return dispatch(planningApi.loadPlanningByEventId(event._id))
-                .then((plannings) => (
-                    Promise.resolve({
-                        events: [],
-                        plannings: plannings,
-                    })
-                ));
-        }
-    }
-);
-
-const loadEventDataForAction = (event, loadPlanning = true, post = false,
-    loadEvents = true, loadEveryRecurringPlanning = false) => (
-    (dispatch) => (
-        dispatch(self.loadRecurringEventsAndPlanningItems(event, loadPlanning, loadEvents, loadEveryRecurringPlanning))
-            .then((relatedEvents) => (Promise.resolve({
-                ...event,
-                _recurring: relatedEvents.events,
-                _post: post,
-                _events: [],
-                _originalEvent: event,
-                _plannings: relatedEvents.plannings,
-                _relatedPlannings: loadEveryRecurringPlanning ? relatedEvents.plannings :
-                    relatedEvents.plannings.filter(
-                        (p) => p.event_item === event._id
-                    ),
-            })
-            ), (error) => Promise.reject(error)
-            )
-    )
-);
+function loadEventDataForAction(
+    event: IEventItem,
+    loadPlanning: boolean = true,
+    post: boolean = false,
+    loadEvents: boolean = true,
+    loadEveryRecurringPlanning: boolean = false
+): Promise<IEventItem & {
+    _recurring: Array<IEventItem>;
+    _post: boolean;
+    _events: Array<IEventItem>;
+    _originalEvent: IEventItem;
+    _plannings: Array<IPlanningItem>;
+    _relatedPlannings: Array<IPlanningItem>;
+}> {
+    return planningApis.combined.getRecurringEventsAndPlanningItems(event, loadPlanning, loadEvents)
+        .then((items) => ({
+            ...event,
+            _recurring: items.events,
+            _post: post,
+            _events: [],
+            _originalEvent: event,
+            _plannings: items.plannings,
+            _relatedPlannings: loadEveryRecurringPlanning ?
+                items.plannings :
+                items.plannings.filter(
+                    (item) => item.event_item === event._id
+                ),
+        }));
+}
 
 /**
  * Action dispatcher to load all Planning items associated with an Event
@@ -905,7 +849,6 @@ const self = {
     query,
     refetch,
     receiveEvents,
-    loadRecurringEventsAndPlanningItems,
     lock,
     unlock,
     silentlyFetchEventsById,

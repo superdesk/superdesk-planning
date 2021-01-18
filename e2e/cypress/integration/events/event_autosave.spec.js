@@ -51,7 +51,9 @@ describe('Planning.Events: autosave', () => {
         editor.openAllToggleBoxes();
         editor.type(event);
         editor.expect(expectedEvent);
-        editor.minimiseButton.click();
+        editor.minimiseButton
+            .should('exist')
+            .click();
 
         workqueue.getItem(0).click();
         editor.openAllToggleBoxes();
@@ -73,7 +75,9 @@ describe('Planning.Events: autosave', () => {
 
         // Now minimize the item and reload the page
         // so the editor is not open when the page opens
-        editor.minimiseButton.click();
+        editor.minimiseButton
+            .should('exist')
+            .click();
         cy.reload();
         waitForPageLoad.planning();
         workqueue.getItem(0).click();
@@ -81,6 +85,8 @@ describe('Planning.Events: autosave', () => {
         editor.expect(expectedEvent);
 
         // Now save the Event
-        editor.createButton.click();
+        editor.createButton
+            .should('exist')
+            .click();
     });
 });

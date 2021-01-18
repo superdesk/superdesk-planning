@@ -107,7 +107,7 @@ xdescribe('<SpikeEventForm />', () => {
     });
 
     it('renders and updates on update_method change', (done) => (
-        store.dispatch(eventsApi.loadEventDataForAction(data.events[2], true))
+        eventsApi.loadEventDataForAction(data.events[2], true)
             .then((eventDetail) => {
                 const dateFormat = 'DD/MM/YYYY';
                 const timeFormat = 'HH:mm';
