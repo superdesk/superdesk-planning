@@ -87,7 +87,7 @@ class PlanningSearchService(superdesk.Service):
         if doc.get('_type') == 'events' and doc.get('dates'):
             if doc['dates'].get('start'):
                 doc['dates']['start'] = parse_date(doc['dates']['start'])
-            if doc['dates']['end']:
+            if doc['dates'].get('end'):
                 doc['dates']['end'] = parse_date(doc['dates']['end'])
             if (doc['dates'].get('recurring_rule') or {}).get('until'):
                 doc['dates']['recurring_rule']['until'] = parse_date(doc['dates']['recurring_rule']['until'])
