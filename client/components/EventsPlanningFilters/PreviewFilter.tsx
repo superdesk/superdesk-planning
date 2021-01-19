@@ -3,7 +3,9 @@ import * as React from 'react';
 import {superdeskApi} from '../../superdeskApi';
 import {IEventsPlanningContentPanelProps} from '../../interfaces';
 
+import {ButtonGroup, Button} from 'superdesk-ui-framework/react';
 import * as SidePanel from '../UI/SidePanel';
+import {Label} from '../UI/Form';
 import {renderFieldsForPanel} from '../fields';
 
 export class PreviewFilter extends React.PureComponent<IEventsPlanningContentPanelProps> {
@@ -11,10 +13,15 @@ export class PreviewFilter extends React.PureComponent<IEventsPlanningContentPan
         super(props);
 
         this.editFilter = this.editFilter.bind(this);
+        this.editSchedule = this.editSchedule.bind(this);
     }
 
     editFilter() {
         this.props.editFilter(this.props.filter);
+    }
+
+    editSchedule() {
+        this.props.editFilterSchedule(this.props.filter);
     }
 
     render() {
@@ -62,7 +69,10 @@ export class PreviewFilter extends React.PureComponent<IEventsPlanningContentPan
                                 )}
                             </ul>
 
-                            <h3>{gettext('Filtered By')}</h3>
+                            <Label
+                                text={gettext('Filtered By')}
+                                row={true}
+                            />
                             <ul className="simple-list simple-list--dotted">
                                 {renderFieldsForPanel(
                                     'simple-preview',
@@ -90,7 +100,10 @@ export class PreviewFilter extends React.PureComponent<IEventsPlanningContentPan
                                 )}
                             </ul>
 
-                            <h3>{gettext('Date Filters')}</h3>
+                            <Label
+                                text={gettext('Date Filters')}
+                                row={true}
+                            />
                             <ul className="simple-list simple-list--dotted">
                                 {renderFieldsForPanel(
                                     'simple-preview',
@@ -106,9 +119,47 @@ export class PreviewFilter extends React.PureComponent<IEventsPlanningContentPan
                                     }
                                 )}
                             </ul>
+
+                            {!this.props.filter.schedules?.length ? null : (
+                                <React.Fragment>
+                                    <Label
+                                        text={gettext('Scheduled Export')}
+                                        row={true}
+                                    />
+                                    {renderFieldsForPanel(
+                                        'simple-preview',
+                                        {
+                                            filter_schedule: {enabled: true, index: 1},
+                                        },
+                                        {
+                                            item: this.props.filter,
+                                        },
+                                        {
+                                            filter_schedule: {
+                                                editSchedule: this.props.editFilterSchedule,
+                                                deleteSchedule: this.props.deleteFilterSchedule,
+                                            },
+                                        }
+                                    )}
+                                </React.Fragment>
+                            )}
                         </SidePanel.ContentBlockInner>
                     </SidePanel.ContentBlock>
                 </SidePanel.Content>
+                <SidePanel.Footer className="side-panel__footer--button-box">
+                    <ButtonGroup orientation="vertical">
+                        <Button
+                            text={!this.props.filter.schedules?.length ?
+                                gettext('Create Scheduled Export') :
+                                gettext('Edit Scheduled Export')
+                            }
+                            onClick={this.editSchedule}
+                            type="primary"
+                            style="hollow"
+                            data-test-id="manage-filters--preview--edit-schedule"
+                        />
+                    </ButtonGroup>
+                </SidePanel.Footer>
             </React.Fragment>
         );
     }

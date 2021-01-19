@@ -17,6 +17,14 @@ export const preferredVocabularies = (state) => get(state, 'session.userPreferen
 
 export const currentDeskId = (state) => get(state, 'workspace.currentDeskId', null);
 export const desks = (state) => get(state, 'desks', []);
+export const getDesksById = (state) => get(state, 'desks', []).reduce(
+    (deskList, desk) => {
+        deskList[desk._id] = desk;
+
+        return deskList;
+    },
+    {}
+);
 export const templates = (state) => get(state, 'templates', []);
 export const userDesks = (state) => get(state, 'userDesks', []);
 
@@ -88,3 +96,4 @@ export const getPlanningExportTemplates = (state) => get(state, 'exportTemplates
     (e) => e.type === ITEM_TYPE.PLANNING);
 export const getEventExportTemplates = (state) => get(state, 'exportTemplates', []).filter(
     (e) => e.type === ITEM_TYPE.EVENT);
+export const getExportTemplates = (state) => get(state, 'exportTemplates', []);

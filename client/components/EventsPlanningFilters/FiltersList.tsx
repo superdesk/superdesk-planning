@@ -16,6 +16,8 @@ interface IProps {
     editFilter(filter: ISearchFilter): void;
     deleteFilter(filter: ISearchFilter): void;
     previewFilter(filter: ISearchFilter): void;
+    editFilterSchedule(filter: ISearchFilter): void;
+    deleteFilterSchedule(filter: ISearchFilter): void;
 
     filters: Array<ISearchFilter>;
     calendars: Array<ICalendar>;
@@ -39,6 +41,8 @@ export class FiltersListComponent extends React.PureComponent<IProps> {
             calendars,
             agendas,
             previewFilter,
+            editFilterSchedule,
+            deleteFilterSchedule,
         } = this.props;
 
         return (
@@ -56,6 +60,8 @@ export class FiltersListComponent extends React.PureComponent<IProps> {
                             calendars={calendars}
                             agendas={agendas}
                             previewFilter={previewFilter}
+                            editFilterSchedule={editFilterSchedule}
+                            deleteFilterSchedule={deleteFilterSchedule}
                         />
                     ))
                 )}

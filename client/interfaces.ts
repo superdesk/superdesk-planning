@@ -5,6 +5,8 @@ import {
     ISubject,
     IUser,
     IRestApiResponse,
+    IDesk,
+    IContentProfile,
 } from 'superdesk-api';
 import {Store} from 'redux';
 import moment from 'moment';
@@ -1089,10 +1091,39 @@ export interface ICommonFilterProfile {
     lock_state: IAdvancedSearchFormProfileField;
 }
 
+export enum WEEK_DAY {
+    SUNDAY = 'Sunday',
+    MONDAY = 'Monday',
+    TUESDAY = 'Tuesday',
+    WEDNESDAY = 'Wednesday',
+    THURSDAY = 'Thursday',
+    FRIDAY = 'Friday',
+    SATURDAY = 'Saturday',
+}
+
+export enum SCHEDULE_FREQUENCY {
+    HOURLY = 'hourly',
+    DAILY = 'daily',
+    WEEKLY = 'weekly',
+    MONTHLY = 'monthly',
+}
+
+export interface ISearchFilterSchedule {
+    desk: IDesk['_id'];
+    article_template?: string;
+    template?: string;
+    _last_sent?: string;
+    frequency: SCHEDULE_FREQUENCY;
+    hour: number;
+    day: number;
+    week_days: Array<WEEK_DAY>;
+}
+
 export interface ISearchFilter extends IBaseRestApiResponse {
     name: string;
     item_type: FILTER_TYPE;
     params: ISearchParams;
+    schedules?: Array<ISearchFilterSchedule>;
 }
 
 export interface IEditFilterFieldProps {
@@ -1145,6 +1176,37 @@ export interface IEventsPlanningContentPanelProps {
     onClose(): void;
     onSave(filter: Partial<ISearchFilter>): Promise<void>;
     editFilter(filter: ISearchFilter): void;
+    editFilterSchedule(filter: ISearchFilter): void;
+    deleteFilterSchedule(filter: ISearchFilter): void;
+    previewFilter(filter: ISearchFilter): void;
+}
+
+export interface IPlanningExportTemplate extends IBaseRestApiResponse {
+    name: string;
+    type: 'event' | 'planning' | 'combined';
+    data: {[key: string]: any};
+    label: string;
+    download?: boolean;
+}
+
+export interface IContentTemplate extends IBaseRestApiResponse {
+    is_public: boolean;
+    template_name: string;
+    template_type: string;
+    template_desks: Array<IDesk['_id']>;
+    user: IUser['_id'];
+    data: {
+        flags: {
+            marked_archived_only: boolean;
+            marked_for_legal: boolean;
+            marked_for_not_publication: boolean;
+            marked_for_sms: boolean;
+        };
+        format: string;
+        profile: IContentProfile['_id'];
+        pubstatus: string;
+        type: string;
+    };
 }
 
 export interface IPlanningAPI {
