@@ -14,7 +14,7 @@ module.exports = function(grunt) {
             },
             planning: {
                 files: {
-                    'po/planning.pot': ['index.js', 'client/**/*.{html,js,jsx}'],
+                    'po/planning.pot': ['index.ts', 'client/**/*.{html,js,jsx}'],
                 },
             },
         },

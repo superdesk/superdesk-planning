@@ -9,6 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 import superdesk
+from flask_babel import lazy_gettext
 from .planning import PlanningResource, PlanningService, coverage_schema # noqa
 from .planning_spike import PlanningSpikeResource, PlanningSpikeService, PlanningUnspikeResource, PlanningUnspikeService
 from .planning_history import PlanningHistoryResource, PlanningHistoryService
@@ -116,38 +117,38 @@ def init_app(app):
 
     superdesk.privilege(
         name='planning_planning_management',
-        label='Planning - Planning Item Management',
-        description='Ability to create and modify Planning items'
+        label=lazy_gettext('Planning - Planning Item Management'),
+        description=lazy_gettext('Ability to create and modify Planning items'),
     )
 
     superdesk.privilege(
         name='planning_planning_spike',
-        label='Planning - Spike Planning Items',
-        description='Ability to spike a Planning Item'
+        label=lazy_gettext('Planning - Spike Planning Items'),
+        description=lazy_gettext('Ability to spike a Planning Item'),
     )
 
     superdesk.privilege(
         name='planning_planning_unspike',
-        label='Planning - Unspike Planning Items',
-        description='Ability to unspike a Planning Item'
+        label=lazy_gettext('Planning - Unspike Planning Items'),
+        description=lazy_gettext('Ability to unspike a Planning Item'),
     )
 
     superdesk.privilege(
         name='planning_planning_post',
-        label='Planning - Post Planning Items',
-        description='Ability to post a Planning Item'
+        label=lazy_gettext('Planning - Post Planning Items'),
+        description=lazy_gettext('Ability to post a Planning Item'),
     )
 
     superdesk.privilege(
         name='planning_planning_unpost',
-        label='Planning - Unpost Planning Items',
-        description='Ability to unpost a Planning Item'
+        label=lazy_gettext('Planning - Unpost Planning Items'),
+        description=lazy_gettext('Ability to unpost a Planning Item'),
     )
 
     superdesk.privilege(
         name='planning_planning_featured',
-        label='Planning - Featured Stories',
-        description='Ability to create and modify a featured stories list from planning items'
+        label=lazy_gettext('Planning - Featured Stories'),
+        description=lazy_gettext('Ability to create and modify a featured stories list from planning items'),
     )
 
     superdesk.intrinsic_privilege(PlanningUnlockResource.endpoint_name, method=['POST'])
