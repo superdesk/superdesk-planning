@@ -8,8 +8,10 @@ interface IProps extends IEditorFieldProps {
     options: Array<any>;
     labelField?: string; // label
     keyField?: string; // qcode
+    placeholder?: string; // qcode
     valueAsString?: boolean;
     clearable?: boolean;
+    readOnly?: boolean;
 }
 
 export class EditorFieldSelect extends React.PureComponent<IProps> {

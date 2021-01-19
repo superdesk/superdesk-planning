@@ -90,8 +90,8 @@ export function renderFieldsForPanel(
             component: fieldComponents[fieldName],
             props: {
                 ...globalProps,
+                testId: `field-${fieldName}`,
                 ...fieldProps[fieldName],
-                testId: `field-${fieldName}`
             },
             name: fieldName,
             ...profile[fieldName],
