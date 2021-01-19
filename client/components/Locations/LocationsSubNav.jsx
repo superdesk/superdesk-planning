@@ -5,7 +5,7 @@ import {SearchBox, Button} from '../UI';
 import {connect} from 'react-redux';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
-import {gettext} from '../../utils';
+import {superdeskApi} from '../../superdeskApi';
 
 
 export class LocationsSubNavComponent extends React.Component {
@@ -23,6 +23,8 @@ export class LocationsSubNavComponent extends React.Component {
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
+
         return (
             <SubNav>
                 <SearchBox

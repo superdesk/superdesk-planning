@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {gettext} from '../../../utils/gettext';
+import {superdeskApi} from '../../../superdeskApi';
 
 import {SelectInput, Checkbox, Input, LineInput, Label, Row} from './index';
 
@@ -39,6 +39,8 @@ export class SelectInputWithFreeText extends React.Component {
             labelField,
             ...props
         } = this.props;
+
+        const {gettext} = superdeskApi.localization;
 
         return (
             <Row flex noPadding>
