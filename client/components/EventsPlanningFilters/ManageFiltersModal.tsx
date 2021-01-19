@@ -34,25 +34,33 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    deleteFilter: (filter) => dispatch(actions.showModal({
-        modalType: MODALS.CONFIRMATION,
-        modalProps: {
-            body: `Do you want to delete "${filter.name}" filter ?`,
-            action: () => dispatch(actions.eventsPlanning.ui.deleteFilter(filter)),
-            autoClose: true,
-        },
-    })),
-    deleteFilterSchedule: (filter) => dispatch(actions.showModal({
-        modalType: MODALS.CONFIRMATION,
-        modalProps: {
-            body: 'Are you sure you want to delete this schedule?',
-            action: () => dispatch(actions.eventsPlanning.ui.saveFilter({
-                ...filter,
-                schedules: [],
-            })),
-            autoClose: true,
-        },
-    })),
+    deleteFilter: (filter) => {
+        const {gettext} = superdeskApi.localization;
+
+        dispatch(actions.showModal({
+            modalType: MODALS.CONFIRMATION,
+            modalProps: {
+                body: gettext('Do you want to delete "{{ name }}" filter?', {name: filter.name}),
+                action: () => dispatch(actions.eventsPlanning.ui.deleteFilter(filter)),
+                autoClose: true,
+            },
+        }));
+    },
+    deleteFilterSchedule: (filter) => {
+        const {gettext} = superdeskApi.localization;
+
+        dispatch(actions.showModal({
+            modalType: MODALS.CONFIRMATION,
+            modalProps: {
+                body: gettext('Are you sure you want to delete this schedule?'),
+                action: () => dispatch(actions.eventsPlanning.ui.saveFilter({
+                    ...filter,
+                    schedules: [],
+                })),
+                autoClose: true,
+            },
+        }));
+    },
     createOrUpdate: (filter) => dispatch(actions.eventsPlanning.ui.saveFilter(filter)),
 });
 
