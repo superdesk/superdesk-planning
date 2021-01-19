@@ -1,45 +1,78 @@
 import {get, isBoolean} from 'lodash';
 
-import {Input, SelectMetaTerms, RadioInputs, SpikeStateInput, ToggleInput} from '../common/inputs';
+import {Input, SelectMetaTerms, RadioInputs, SpikeStateInput, ToggleInput, SelectInput} from '../common/inputs';
 import {PlanningList} from './planningList';
 
 interface ISearchTest {
-    params: {[key: string]: any},
-    expectedCount?: number,
-    expectedText?: Array<string>,
-    clearAfter?: boolean,
+    params: {[key: string]: any};
+    expectedCount?: number;
+    expectedText?: Array<string>;
+    clearAfter?: boolean;
 }
 
 export class AdvancedSearch {
     fields: {[key: string]: any};
     list: PlanningList;
+    getParent?(): Cypress.Chainable;
 
-    constructor() {
+    constructor(getParent: () => Cypress.Chainable = null) {
+        this.getParent = getParent;
+        const getSearchPanel = () => this.searchPanel;
+
         this.fields = {
-            name: new Input(() => this.searchPanel, 'input[name="name"]'),
-            slugline: new Input(() => this.searchPanel, 'input[name="slugline"]'),
-            anpa_category: new SelectMetaTerms(() => this.searchPanel, '[data-test-id=field-anpa_category]'),
-            subject: new SelectMetaTerms(() => this.searchPanel, '[data-test-id=field-subject]'),
-            state: new SelectMetaTerms(() => this.searchPanel, '[data-test-id=field-state]'),
-            spike_state: new SpikeStateInput(() => this.searchPanel, '[data-test-id=field-spike_state]'),
+            name: new Input(getSearchPanel, '[data-test-id=field-name] input'),
+            slugline: new Input(getSearchPanel, '[data-test-id=field-slugline] input'),
+            anpa_category: new SelectMetaTerms(getSearchPanel, '[data-test-id=field-anpa_category]'),
+            subject: new SelectMetaTerms(getSearchPanel, '[data-test-id=field-subject]'),
+            state: new SelectMetaTerms(getSearchPanel, '[data-test-id=field-state]'),
+            spike_state: new SpikeStateInput(getSearchPanel, '[data-test-id=field-spike_state]'),
             start_date: {
-                date: new Input(() => this.searchPanel, 'input[name="start_date.date"]'),
-                time: new Input(() => this.searchPanel, 'input[name="start_date.time"]'),
+                date: new Input(getSearchPanel, 'input[name="start_date.date"]'),
+                time: new Input(getSearchPanel, 'input[name="start_date.time"]'),
             },
             end_date: {
-                date: new Input(() => this.searchPanel, 'input[name="end_date.date"]'),
-                time: new Input(() => this.searchPanel, 'input[name="end_date.time"]'),
+                date: new Input(getSearchPanel, 'input[name="end_date.date"]'),
+                time: new Input(getSearchPanel, 'input[name="end_date.time"]'),
             },
-            calendars: new SelectMetaTerms(() => this.searchPanel, '[data-test-id=field-calendars]'),
-            date_filter: new RadioInputs(() => this.searchPanel, '[data-test-id=field-date_filter]'),
+            calendars: new SelectMetaTerms(getSearchPanel, '[data-test-id=field-calendars]'),
+            date_filter: new RadioInputs(getSearchPanel, '[data-test-id=field-date_filter]'),
             no_calendar_assigned: new ToggleInput(
-                () => this.searchPanel,
+                getSearchPanel,
                 '[data-test-id=field-no_calendar_assigned] .sd-toggle'
             ),
             featured: new ToggleInput(
-                () => this.searchPanel,
+                getSearchPanel,
                 '[data-test-id=field-featured] .sd-toggle'
-            )
+            ),
+            filter_name: new Input(
+                getSearchPanel,
+                '[data-test-id=field-filter_name] input'
+            ),
+            item_type: new SelectInput(
+                getSearchPanel,
+                '[data-test-id=field-item_type] select'
+            ),
+            frequency: new RadioInputs(
+                getSearchPanel,
+                '[data-test-id=field-frequency]'
+            ),
+            week_days: new RadioInputs(
+                getSearchPanel,
+                '[data-test-id=field-week_days]',
+                '.sd-check-button'
+            ),
+            hour: new SelectInput(
+                getSearchPanel,
+                '[data-test-id=field-hour] select'
+            ),
+            desk: new SelectInput(
+                getSearchPanel,
+                '[data-test-id=field-desk] select'
+            ),
+            month_day: new SelectInput(
+                getSearchPanel,
+                '[data-test-id=field-month_day] select'
+            ),
         };
         this.list = new PlanningList();
     }
@@ -49,7 +82,11 @@ export class AdvancedSearch {
     }
 
     get searchPanel() {
-        return cy.get('[data-test-id=search-panel]');
+        if (this.getParent != null) {
+            return this.getParent();
+        } else {
+            return cy.get('[data-test-id=search-panel]');
+        }
     }
 
     get searchPanelFooter() {
@@ -111,24 +148,27 @@ export class AdvancedSearch {
         this.waitForSearch();
     }
 
+    enterSearchParams(params: ISearchTest['params']) {
+        Object.keys(params).forEach(
+            (name: string) => {
+                const value = params[name];
+                const field: Input = get(this.fields, name);
+
+                if (!field) {
+                    throw new Error(`Field "${name}" not registered with e2e search helper`);
+                } else if (value?.length || isBoolean(value)) {
+                    field.type(value);
+                } else {
+                    field.clear();
+                }
+            }
+        );
+    }
+
     expectSearchResultCount(run: ISearchTest) {
         cy.log('Search: ' + JSON.stringify(run.params));
         if (Object.keys(run.params).length > 0) {
-            Object.keys(run.params).forEach(
-                (name: string) => {
-                    const value = run.params[name];
-                    const field: Input = get(this.fields, name);
-
-                    if (!field) {
-                        throw new Error(`Field "${name}" not registered with e2e search helper`);
-                    } else if (value?.length || isBoolean(value)) {
-                        field.type(value);
-                    } else {
-                        field.clear();
-                    }
-                }
-            );
-
+            this.enterSearchParams(run.params);
             this.clickSearch();
         }
 

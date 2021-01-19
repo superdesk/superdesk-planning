@@ -184,6 +184,7 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
                                 key="save"
                                 onClick={this.onSaveHandler}
                                 disabled={pristine || invalid}
+                                data-test-id="manage-filters--save-filter"
                             >
                                 {this.props.filter?._id == null ?
                                     gettext('Create') :
@@ -213,6 +214,7 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
                                         label: gettext('Filter Name'),
                                         autoFocus: true,
                                         required: true,
+                                        testId: 'field-filter_name',
                                     },
                                     item_type: {
                                         onChange: this.onTypeChanged,
