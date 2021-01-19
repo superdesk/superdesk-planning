@@ -5,7 +5,9 @@ DESCRIPTION = 'Superdesk Planning Module'
 package_data = {
     'planning': [
         'templates/*.txt',
-        'templates/*.html'
+        'templates/*.html',
+        '*.po',
+        '*.mo',
     ]
 }
 
