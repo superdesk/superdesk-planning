@@ -40,21 +40,21 @@ def search_agendas(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_no_agenda_assigned(params: Dict[str, Any], query: elastic.ElasticQuery):
-    if strtobool(params.get('no_agenda_assigned') or ''):
+    if strtobool(params.get('no_agenda_assigned', False)):
         query.must_not.append(
             elastic.field_exists('agendas')
         )
 
 
 def search_ad_hoc_planning(params: Dict[str, Any], query: elastic.ElasticQuery):
-    if strtobool(params.get('ad_hoc_planning') or ''):
+    if strtobool(params.get('ad_hoc_planning', False)):
         query.must_not.append(
             elastic.field_exists('event_item')
         )
 
 
 def search_exclude_rescheduled_and_cancelled(params: Dict[str, Any], query: elastic.ElasticQuery):
-    if strtobool(params.get('exclude_rescheduled_and_cancelled') or ''):
+    if strtobool(params.get('exclude_rescheduled_and_cancelled', False)):
         query.must_not.append(
             elastic.terms(
                 field='state',
@@ -73,7 +73,7 @@ def search_slugline(params: Dict[str, Any], query: elastic.ElasticQuery):
             )
         ]
 
-        if not strtobool(params.get('no_coverage') or ''):
+        if not strtobool(params.get('no_coverage', False)):
             conditions.append(
                 elastic.bool_and([
                     elastic.query_string(
@@ -115,7 +115,7 @@ def search_g2_content_type(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_no_coverage(params: Dict[str, Any], query: elastic.ElasticQuery):
-    if strtobool(params.get('no_coverage') or ''):
+    if strtobool(params.get('no_coverage', False)):
         query.must_not.append(
             elastic.bool_and([
                 elastic.field_exists('coverages.coverage_id')
@@ -124,7 +124,7 @@ def search_no_coverage(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_featured(params: Dict[str, Any], query: elastic.ElasticQuery):
-    if strtobool(params.get('featured') or ''):
+    if strtobool(params.get('featured', False)):
         query.must.append(
             elastic.term(
                 field='featured',
@@ -189,7 +189,7 @@ def search_date(params: Dict[str, Any], query: elastic.ElasticQuery):
             }
         }
 
-        if strtobool(params.get('include_scheduled_updates') or ''):
+        if strtobool(params.get('include_scheduled_updates', False)):
             updates_range = {
                 'range': {
                     '_updates_schedule.scheduled': deepcopy(query_range['range'][field_name])
@@ -240,7 +240,7 @@ def search_date(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
     date_filter, start_date, end_date, tz_offset = get_date_params(params)
-    only_future = strtobool(params.get('only_future') or 'false')
+    only_future = strtobool(params.get('only_future', False))
 
     if not date_filter and not start_date and not end_date and only_future:
         field_name = '_planning_schedule.scheduled'

@@ -148,7 +148,7 @@ def search_subject(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_posted(params: Dict[str, Any], query: elastic.ElasticQuery):
-    if strtobool(params.get('posted') or ''):
+    if strtobool(params.get('posted', False)):
         query.must.append(
             elastic.term(
                 field='pubstatus',
@@ -237,7 +237,7 @@ def append_states_query_for_advanced_search(params: Dict[str, Any], query: elast
             )
         )
 
-    if not strtobool(params.get('include_killed') or '') and WORKFLOW_STATE.KILLED not in states:
+    if not strtobool(params.get('include_killed', False)) and WORKFLOW_STATE.KILLED not in states:
         query.must_not.append(
             elastic.term(
                 field='state',
@@ -365,4 +365,5 @@ COMMON_PARAMS = [
     'max_results',
     'page',
     'filter_id',
+    'projections',
 ]

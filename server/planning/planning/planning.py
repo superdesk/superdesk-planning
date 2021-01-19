@@ -1562,7 +1562,9 @@ planning_schema = {
         'nullable': True
     },
 
-    TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA
+    TO_BE_CONFIRMED_FIELD: TO_BE_CONFIRMED_FIELD_SCHEMA,
+
+    '_type': {'type': 'string', 'mapping': None},
 
 }  # end planning_schema
 

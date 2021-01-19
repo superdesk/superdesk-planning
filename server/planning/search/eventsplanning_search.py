@@ -18,8 +18,10 @@ from copy import deepcopy
 
 from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 from eve.utils import ParsedRequest
+from flask import current_app as app
 
 from superdesk import Resource, Service, get_resource_service
+from superdesk.resource import build_custom_hateoas
 from superdesk.errors import SuperdeskApiError
 
 from planning.planning.planning import planning_schema
@@ -58,13 +60,33 @@ class EventsPlanningService(Service):
         self._check_for_unknown_params(params, search_filter, self._get_whitelist(repo))
         query = self._construct_search_query(repo, params, search_filter)
 
-        if repo == 'events':
-            return self._search_events(req, query, search_filter)
+        if repo == 'events' or repo == 'event':
+            return self._search_events(req, params, query, search_filter)
         elif repo == 'planning':
-            return self._search_planning(req, query, search_filter)
+            return self._search_planning(req, params, query, search_filter)
         else:
             items = self._get_events_and_planning(req, query, search_filter)
             return self._get_combined_view_data(items, req, params, search_filter)
+
+    def on_fetched(self, doc):
+        """
+        Overriding to set HATEOAS to specific resource endpoint for each individual item in the response.
+
+        :param doc: response doc
+        :type doc: dict
+        """
+
+        docs = doc[app.config['ITEMS']]
+        for item in docs:
+            build_custom_hateoas(
+                {
+                    'self': {
+                        'title': item['_type'],
+                        'href': '/{}/{{_id}}'.format(item['_type'])
+                    }
+                },
+                item
+            )
 
     def _get_search_filter(self, repo: str, params: Dict[str, Any]):
         filter_id = params.get('filter_id')
@@ -125,6 +147,8 @@ class EventsPlanningService(Service):
         })
         req.page = request.page or 1
         req.max_results = page_size
+        if params.get('projections'):
+            req.args['projections'] = params['projections']
         return get_resource_service('planning_search').get(req=req, lookup=None)
 
     def _get_events_and_planning(self, request, query, search_filter):
@@ -149,9 +173,7 @@ class EventsPlanningService(Service):
         req.exec_on_fetched_resource = False  # don't call on_fetched_resource
         return get_resource_service('planning_search').get(req=req, lookup=None)
 
-    def _search_events(self, request, query, search_filter):
-        # params = request.args or MultiDict()
-        # query = construct_events_search_query(params, search_filter)
+    def _search_events(self, request, params, query, search_filter):
         page = request.page or 1
         page_size = self._get_page_size(request, search_filter)
         req = ParsedRequest()
@@ -165,9 +187,11 @@ class EventsPlanningService(Service):
         req.args['repos'] = 'events'
         req.page = page
         req.max_results = page_size
+        if params.get('projections'):
+            req.args['projections'] = params['projections']
         return get_resource_service('planning_search').get(req=req, lookup=None)
 
-    def _search_planning(self, request, query, search_filter):
+    def _search_planning(self, request, params, query, search_filter):
         # params = request.args or MultiDict()
         # query = construct_planning_search_query(params)
         page = request.page or 1
@@ -183,6 +207,8 @@ class EventsPlanningService(Service):
         req.args['repos'] = 'planning'
         req.page = page
         req.max_results = page_size
+        if params.get('projections'):
+            req.args['projections'] = params['projections']
         return get_resource_service('planning_search').get(req=req, lookup=None)
 
     def _get_whitelist(self, repo):
@@ -235,6 +261,39 @@ class EventsPlanningService(Service):
             return request.max_results
         else:
             return self.default_page_size
+
+    # Helper methods for use with other internal services or commands
+    def search_repos(self, repo, args, page=1, page_size=None, projections=None):
+        req = ParsedRequest()
+        req.args = MultiDict()
+        req.args['repo'] = repo
+        req.args.update(args)
+
+        if projections is not None:
+            req.args['projections'] = json.dumps(projections)
+
+        req.page = page
+        req.max_results = page_size or self.default_page_size
+        return self.get(req=req, lookup=None)
+
+    def search_by_filter_id(self, filter_id, args=None, page=1, page_size=None, projections=None):
+        search_filter = get_resource_service('events_planning_filters').find_one(req=None, _id=filter_id)
+
+        if not search_filter:
+            raise SuperdeskApiError.notFoundError('EventPlanning Filter {} not found'.format(filter_id))
+
+        if args is None:
+            args = {}
+
+        args['filter_id'] = filter_id
+
+        return self.search_repos(
+            search_filter['item_type'],
+            args,
+            page,
+            page_size,
+            projections
+        )
 
 
 class EventsPlanningResource(Resource):

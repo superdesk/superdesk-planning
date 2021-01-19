@@ -26,7 +26,7 @@ class PlanningExportTemplatesResource(superdesk.Resource):
         },
         'type': {
             'type': 'string',
-            'allowed': ['event', 'planning']
+            'allowed': ['event', 'planning', 'combined']
         },
         'data': {'type': 'dict'},
         'label': {'type': 'string'},
@@ -38,13 +38,7 @@ class PlanningExportTemplatesResource(superdesk.Resource):
     resource_methods = ['GET']
 
 
-default_export_templates = [{
-    'name': 'default_planning',
-    'label': 'Default Planning Template',
-    'type': 'planning',
-    'data': {
-        'body_html': '''
-{% for item in items %}
+DEFAULT_PLANNING_ITEM_BODY = '''
 <p><b>{{ item.name or item.headline or item.slugline }}</b></p>
 {% if item.description_text %}
 <p>{{ item.description_text }}</p>
@@ -60,7 +54,27 @@ default_export_templates = [{
 <p>Planned coverage: {{ item.coverages | join(', ') }}
 {% endif %}
 <p>---</p>
-{% endfor %}
+'''
+
+DEFAULT_EVENT_ITEM_BODY = '''
+<p><b>{{ item.name }}</b>{% if item.get('location') %}{{ ', ' + item.location[0].name }}
+{% endif %}, {{ item.schedule }}{% if item.assignees|length %} - {{ item.assignees|join(', ') }}{% endif %}</p>
+{% if item.coverages %}
+<p><b>Planned coverage:</b> {{ item.coverages | join(', ') }}</p>
+{% endif %}
+<p>---</p>
+'''
+
+
+default_export_templates = [{
+    'name': 'default_planning',
+    'label': 'Default Planning Template',
+    'type': 'planning',
+    'data': {
+        'body_html': f'''
+{{% for item in items %}}
+{DEFAULT_PLANNING_ITEM_BODY}
+{{% endfor %}}
 '''
     }
 }, {
@@ -68,12 +82,26 @@ default_export_templates = [{
     'label': 'Default Event Template',
     'type': 'event',
     'data': {
-        'body_html': '''
-{% for item in items %}
-<p><b>{{ item.name }}</b>{% if item.get('location') %}{{ ', ' + item.location[0].name }}
-{% endif %}, {{ item.schedule }}{% if item.assignees|length %} - {{ item.assignees|join(', ') }}{% endif %}</p>
-<p>---</p>
-{% endfor %}
+        'body_html': f'''
+{{% for item in items %}}
+{DEFAULT_EVENT_ITEM_BODY}
+{{% endfor %}}
+'''
+    }
+}, {
+    'name': 'default_combined',
+    'label': 'Default Combined Template',
+    'type': 'combined',
+    'data': {
+        'body_html': f'''
+<h2>Events</h2>
+{{% for item in items if item._type == 'events' %}}
+{DEFAULT_EVENT_ITEM_BODY}
+{{% endfor %}}
+<h2>Planning</h2>
+{{% for item in items if item._type == 'planning' %}}
+{DEFAULT_PLANNING_ITEM_BODY}
+{{% endfor %}}
 '''
     }
 }]
