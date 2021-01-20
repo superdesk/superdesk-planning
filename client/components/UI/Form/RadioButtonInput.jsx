@@ -15,10 +15,12 @@ export const RadioButtonInput = ({
     label,
     options,
     readOnly,
+    size,
+    noMargin,
 }) => (
-    <LineInput>
+    <LineInput noMargin={noMargin}>
         <Label text={label} />
-        <div className="flex-grid flex-grid--boxed-small flex-grid--wrap-items flex-grid--small-2">
+        <div className={`flex-grid flex-grid--boxed-small flex-grid--wrap-items flex-grid--${size}`}>
             {options.map((state) => (
                 <Checkbox
                     key={state.value}
@@ -44,10 +46,14 @@ RadioButtonInput.propTypes = {
     onChange: PropTypes.func.isRequired,
     options: PropTypes.array.isRequired,
     readOnly: PropTypes.bool,
+    size: PropTypes.string,
+    noMargin: PropTypes.bool,
 };
 
 RadioButtonInput.defaultProps = {
     value: '',
     options: [],
     readOnly: false,
+    size: 'small-2',
+    noMargin: false,
 };

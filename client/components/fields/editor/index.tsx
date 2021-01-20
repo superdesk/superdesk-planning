@@ -30,6 +30,13 @@ import {EditorFieldExcludeRescheduledAndCancelled} from './ExcludeRescheduledAnd
 import {EditorFieldNoAgendaAssigned} from './NoAgendaAssigned';
 import {EditorFieldAdHocPlanning} from './AdHocPlanning';
 import {EditorFieldIncludeScheduledUpdates} from './IncludeScheduledUpdates';
+import {EditorFieldDeskId} from './DeskId';
+import {EditorFieldScheduleFrequency} from './ScheduleFrequency';
+import {EditorFieldDays} from './Days';
+import {EditorFieldExportTemplate} from './ExportTemplate';
+import {EditorFieldContentTemplate} from './ContentTemplate';
+import {EditorFieldScheduleHour} from './ScheduleHour';
+import {EditorFieldScheduleMonthDay} from './ScheduleMonthDay';
 
 export const FIELD_TO_EDITOR_COMPONENT = {
     anpa_category: EditorFieldCategories,
@@ -87,4 +94,12 @@ export const FIELD_TO_EDITOR_COMPONENT = {
     no_agenda_assigned: EditorFieldNoAgendaAssigned,
     ad_hoc_planning: EditorFieldAdHocPlanning,
     include_scheduled_updates: EditorFieldIncludeScheduledUpdates,
+
+    desk: EditorFieldDeskId,
+    frequency: EditorFieldScheduleFrequency,
+    week_days: EditorFieldDays,
+    export_template: EditorFieldExportTemplate,
+    content_template: EditorFieldContentTemplate,
+    hour: EditorFieldScheduleHour,
+    month_day: EditorFieldScheduleMonthDay,
 };

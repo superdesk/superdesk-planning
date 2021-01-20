@@ -7,6 +7,7 @@ import {ListFieldCalendars} from './Calendars';
 import {ListFieldAgendas} from './Agendas';
 import {ListFieldPlaces} from './Places';
 import {ListFieldSubjects} from './Subject';
+import {PreviewFieldFilterSchedule} from '../common/PreviewFilterSchedule';
 
 export const FIELD_TO_LIST_COMPONENT = {
     item_type: ListFieldItemType,
@@ -16,4 +17,5 @@ export const FIELD_TO_LIST_COMPONENT = {
     agendas: ListFieldAgendas,
     place: ListFieldPlaces,
     subject: ListFieldSubjects,
+    filter_schedule: PreviewFieldFilterSchedule,
 };

@@ -6,6 +6,8 @@ import {IEditorFieldProps} from '../../../../interfaces';
 
 interface IProps extends IEditorFieldProps {
     options: Array<any>;
+    size?: string;
+    noMargin: boolean;
 }
 
 export class EditorFieldRadio extends React.PureComponent<IProps> {

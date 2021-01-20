@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 
 import {superdeskApi} from '../../superdeskApi';
@@ -15,17 +14,19 @@ import * as actions from '../../actions';
 import {FiltersList} from './FiltersList';
 import {EditFilter} from './EditFilter';
 import {PreviewFilter} from './PreviewFilter';
+import {EditFilterSchedule} from './EditFilterSchedule';
 
 interface IProps {
     handleHide(): void;
     privileges: {[key: string]: number};
     deleteFilter(filter: ISearchFilter): void;
+    deleteFilterSchedule(filter: ISearchFilter): void;
     createOrUpdate(filter: Partial<ISearchFilter>): Promise<void>;
 }
 
 interface IState {
     selectedFilter?: Partial<ISearchFilter>;
-    contentPanelState: null | 'preview' | 'edit';
+    contentPanelState: null | 'preview' | 'edit' | 'schedule';
 }
 
 const mapStateToProps = (state) => ({
@@ -33,14 +34,33 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    deleteFilter: (filter) => dispatch(actions.showModal({
-        modalType: MODALS.CONFIRMATION,
-        modalProps: {
-            body: `Do you want to delete "${filter.name}" filter ?`,
-            action: () => dispatch(actions.eventsPlanning.ui.deleteFilter(filter)),
-            autoClose: true,
-        },
-    })),
+    deleteFilter: (filter) => {
+        const {gettext} = superdeskApi.localization;
+
+        dispatch(actions.showModal({
+            modalType: MODALS.CONFIRMATION,
+            modalProps: {
+                body: gettext('Do you want to delete "{{ name }}" filter?', {name: filter.name}),
+                action: () => dispatch(actions.eventsPlanning.ui.deleteFilter(filter)),
+                autoClose: true,
+            },
+        }));
+    },
+    deleteFilterSchedule: (filter) => {
+        const {gettext} = superdeskApi.localization;
+
+        dispatch(actions.showModal({
+            modalType: MODALS.CONFIRMATION,
+            modalProps: {
+                body: gettext('Are you sure you want to delete this schedule?'),
+                action: () => dispatch(actions.eventsPlanning.ui.saveFilter({
+                    ...filter,
+                    schedules: [],
+                })),
+                autoClose: true,
+            },
+        }));
+    },
     createOrUpdate: (filter) => dispatch(actions.eventsPlanning.ui.saveFilter(filter)),
 });
 
@@ -55,6 +75,7 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
 
         this.editFilter = this.editFilter.bind(this);
         this.previewFilter = this.previewFilter.bind(this);
+        this.editFilterSchedule = this.editFilterSchedule.bind(this);
         this.closeEditor = this.closeEditor.bind(this);
         this.handleKeydown = this.handleKeydown.bind(this);
     }
@@ -88,6 +109,13 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
         });
     }
 
+    editFilterSchedule(filter: ISearchFilter) {
+        this.setState({
+            selectedFilter: filter,
+            contentPanelState: 'schedule',
+        });
+    }
+
     closeEditor() {
         this.setState({
             selectedFilter: null,
@@ -101,6 +129,8 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
             return EditFilter;
         case 'preview':
             return PreviewFilter;
+        case 'schedule':
+            return EditFilterSchedule;
         }
 
         return null;
@@ -148,6 +178,7 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
                                         right={true}
                                         buttonClassName="btn btn--primary"
                                         onClick={() => this.editFilter()}
+                                        testId="manage-filters--add-new-filter"
                                     >
                                         <i className="icon-plus-sign icon-white" />
                                         {gettext('Add New Filter')}
@@ -160,12 +191,14 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
                                         privileges={privileges}
                                         deleteFilter={deleteFilter}
                                         editFilter={this.state.contentPanelState === 'edit' ? null : this.editFilter}
+                                        editFilterSchedule={this.editFilterSchedule}
+                                        deleteFilterSchedule={this.props.deleteFilterSchedule}
                                         previewFilter={this.previewFilter}
                                     />
                                 </ColumnBox.MainColumn>
                             </ColumnBox.Box>
                         </div>
-                        <div className={rightPanelClasses}>
+                        <div className={rightPanelClasses} data-test-id="manage-filters--content-panel">
                             <div className="side-panel__container">
                                 <SidePanel className="side-panel--right">
                                     {ContentPanel == null ? (
@@ -176,6 +209,9 @@ export class ManageFiltersComponent extends React.Component<IProps, IState> {
                                             onClose={this.closeEditor}
                                             onSave={createOrUpdate}
                                             editFilter={this.editFilter}
+                                            editFilterSchedule={this.editFilterSchedule}
+                                            previewFilter={this.previewFilter}
+                                            deleteFilterSchedule={this.props.deleteFilterSchedule}
                                         />
                                     )}
                                 </SidePanel>

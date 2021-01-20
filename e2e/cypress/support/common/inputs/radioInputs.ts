@@ -1,13 +1,29 @@
 import {Input} from './index';
 
 export class RadioInputs extends Input {
-    type(value) {
+    buttonSelector: string;
+
+    constructor(getParent, selector: string, buttonSelector: string = '.sd-check__wrapper') {
+        super(getParent, selector);
+
+        this.buttonSelector = buttonSelector;
+    }
+
+    type(value: Array<string> | string) {
         cy.log('Common.RadioInputs.type');
 
-        cy.get(this.selector + ' .sd-check__wrapper')
-            .contains(value)
-            .should('exist')
-            .click();
+        const enterValue = (singleValue: string) => {
+            cy.get(this.selector + ' ' + this.buttonSelector)
+                .contains(singleValue)
+                .should('exist')
+                .click();
+        };
+
+        if (Array.isArray(value)) {
+            cy.wrap(value).each(enterValue);
+        } else {
+            enterValue(value);
+        }
     }
 
     expect(value) {

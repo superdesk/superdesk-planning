@@ -29,6 +29,7 @@ import {PreviewFieldNoCalendarAssigned} from './NoCalendarAssigned';
 import {PreviewFieldNoAgendaAssigned} from './NoAgendaAssigned';
 import {PreviewFieldAdHocPlanning} from './AdHocPlanning';
 import {PreviewFieldIncludeScheduledUpdates} from './IncludeScheduledUpdates';
+import {PreviewFieldFilterSchedule} from '../../common/PreviewFilterSchedule';
 
 export const FIELD_TO_PREVIEW_COMPONENT = {
     agendas: PreviewFieldAgendas,
@@ -60,4 +61,5 @@ export const FIELD_TO_PREVIEW_COMPONENT = {
     no_agenda_assigned: PreviewFieldNoAgendaAssigned,
     ad_hoc_planning: PreviewFieldAdHocPlanning,
     include_scheduled_updates: PreviewFieldIncludeScheduledUpdates,
+    filter_schedule: PreviewFieldFilterSchedule,
 };
