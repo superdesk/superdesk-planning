@@ -254,8 +254,8 @@ export class AssignmentsService {
                                 force: true,
                             })
                                 .then((item) => {
-                                    newsItem.assignment_id = item.assignment_id;
-                                    this.onUnloadModal(store, closeModal, resolve, item);
+                                    this.onUnloadModal(store, closeModal, resolve,
+                                        {...newsItem, assignment_id: item.assignment_id});
                                 }, () => {
                                     this.notify.warning(gettext('Failed to link to requested assignment!'));
                                     this.onUnloadModal(store, closeModal, resolve, newsItem);
