@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {get, set} from 'lodash';
 
 import {superdeskApi} from '../../../superdeskApi';
 import {IEditorFieldProps} from '../../../interfaces';
@@ -8,13 +9,22 @@ import {EditorFieldSelect} from './base/select';
 export class EditorFieldScheduleMonthDay extends React.PureComponent<IEditorFieldProps> {
     render() {
         const {gettext} = superdeskApi.localization;
+
+        // Use our own item here so we can convert the supplied value
+        // from a number to a string (as Select inputs require a string)
+        const field = this.props.field ?? 'month_day';
+        const value = get(this.props.item, field, -1);
+        const item = {};
+
+        set(item, field, value.toString());
+
         const onChange = (field: string, value: string) => {
             this.props.onChange(field, parseInt(value, 10));
         };
 
         return (
             <EditorFieldSelect
-                field={this.props.field ?? 'month_day'}
+                field={field}
                 label={this.props.label ?? gettext('Day of the Month')}
                 labelField="label"
                 keyField="value"
@@ -53,6 +63,7 @@ export class EditorFieldScheduleMonthDay extends React.PureComponent<IEditorFiel
 
                 ]}
                 {...this.props}
+                item={item}
                 onChange={onChange}
             />
         );

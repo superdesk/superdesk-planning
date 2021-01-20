@@ -1,6 +1,8 @@
+import {getUserInterfaceLanguage, appConfig} from 'appConfig';
 import {superdeskApi} from '../superdeskApi';
-import {ISearchFilterSchedule, SCHEDULE_FREQUENCY} from '../interfaces';
+import {ISearchFilterSchedule, SCHEDULE_FREQUENCY, WEEK_DAY} from '../interfaces';
 import {IDesk} from 'superdesk-api';
+import {getLocalTimezoneOffsetString} from './time';
 
 export function getSearchFilterScheduleText(schedule: ISearchFilterSchedule, desks: {[key: string]: IDesk}) {
     const {gettext} = superdeskApi.localization;
@@ -102,61 +104,73 @@ export function translateMonthDay(hour: number) {
     return '';
 }
 
-export function translateHour(hour: number) {
+export function getLocalizedWeekDayOptions(): Array<{value: WEEK_DAY; label: string}> {
     const {gettext} = superdeskApi.localization;
 
-    switch (hour) {
-    case -1:
-        return gettext('Every Hour');
-    case 0:
-        return gettext('12:00am');
-    case 1:
-        return gettext('01:00am');
-    case 2:
-        return gettext('02:00am');
-    case 3:
-        return gettext('03:00am');
-    case 4:
-        return gettext('04:00am');
-    case 5:
-        return gettext('05:00am');
-    case 6:
-        return gettext('06:00am');
-    case 7:
-        return gettext('07:00am');
-    case 8:
-        return gettext('08:00am');
-    case 9:
-        return gettext('09:00am');
-    case 10:
-        return gettext('10:00am');
-    case 11:
-        return gettext('11:00am');
-    case 12:
-        return gettext('12:00pm');
-    case 13:
-        return gettext('01:00pm');
-    case 14:
-        return gettext('02:00pm');
-    case 15:
-        return gettext('03:00pm');
-    case 16:
-        return gettext('04:00pm');
-    case 17:
-        return gettext('05:00pm');
-    case 18:
-        return gettext('06:00pm');
-    case 19:
-        return gettext('07:00pm');
-    case 20:
-        return gettext('08:00pm');
-    case 21:
-        return gettext('09:00pm');
-    case 22:
-        return gettext('10:00pm');
-    case 23:
-        return gettext('11:00pm');
+    const options = [{
+        value: WEEK_DAY.SUNDAY,
+        label: gettext('Su'),
+    }, {
+        value: WEEK_DAY.MONDAY,
+        label: gettext('Mo'),
+    }, {
+        value: WEEK_DAY.TUESDAY,
+        label: gettext('Tu'),
+    }, {
+        value: WEEK_DAY.WEDNESDAY,
+        label: gettext('We'),
+    }, {
+        value: WEEK_DAY.THURSDAY,
+        label: gettext('Th'),
+    }, {
+        value: WEEK_DAY.FRIDAY,
+        label: gettext('Fr'),
+    }, {
+        value: WEEK_DAY.SATURDAY,
+        label: gettext('Sa'),
+    }];
+
+    return appConfig.start_of_week === 0 ?
+        options :
+        [].concat(
+            options.slice(appConfig.start_of_week),
+            options.slice(0, appConfig.start_of_week)
+        );
+}
+
+export function getLocalizedHourOptions(): Array<{value: string; label: string;}> {
+    const {gettext} = superdeskApi.localization;
+    const offset = getLocalTimezoneOffsetString();
+    const date = new Date(`2020-01-01T00:00:00${offset}`);
+    const locale = getUserInterfaceLanguage();
+    const options = [{
+        value: '-1',
+        label: gettext('Every Hour'),
+    }];
+
+    for (let i: number = 0; i < 24; i++) {
+        date.setHours(i);
+        options.push({
+            value: i.toString(10),
+            label: date.toLocaleTimeString(locale, {hour: 'numeric', minute: 'numeric'}),
+        });
     }
 
-    return '';
+    return options;
+}
+
+export function translateHour(hour: number) {
+    if (hour === -1) {
+        const {gettext} = superdeskApi.localization;
+
+        return gettext('Every Hour');
+    } else {
+        const offset = getLocalTimezoneOffsetString();
+        const date = new Date(`2020-01-01T00:00:00${offset}`);
+        const locale = getUserInterfaceLanguage();
+
+        date.setHours(hour);
+
+        return date.toLocaleTimeString(locale, {hour: 'numeric', minute: 'numeric'});
+    }
 }

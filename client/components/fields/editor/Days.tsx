@@ -4,12 +4,24 @@ import {superdeskApi} from '../../../superdeskApi';
 import {WEEK_DAY, IEditorFieldProps} from '../../../interfaces';
 
 import {EditorFieldCheckboxGroup} from './base/checkButtonGroup';
+import {getLocalizedWeekDayOptions} from '../../../utils/filters';
 
 interface IProps extends IEditorFieldProps {
     defaultAllOn?: boolean;
 }
 
 export class EditorFieldDays extends React.PureComponent<IProps> {
+    options: Array<{
+        value: WEEK_DAY,
+        label: string,
+    }>;
+
+    constructor(props) {
+        super(props);
+
+        this.options = getLocalizedWeekDayOptions();
+    }
+
     render() {
         const {gettext} = superdeskApi.localization;
 
@@ -17,28 +29,7 @@ export class EditorFieldDays extends React.PureComponent<IProps> {
             <EditorFieldCheckboxGroup
                 field={this.props.field ?? 'week_days'}
                 label={this.props.label ?? gettext('Week Days')}
-                options={[{
-                    value: WEEK_DAY.SUNDAY,
-                    label: gettext('Su'),
-                }, {
-                    value: WEEK_DAY.MONDAY,
-                    label: gettext('Mo'),
-                }, {
-                    value: WEEK_DAY.TUESDAY,
-                    label: gettext('Tu'),
-                }, {
-                    value: WEEK_DAY.WEDNESDAY,
-                    label: gettext('We'),
-                }, {
-                    value: WEEK_DAY.THURSDAY,
-                    label: gettext('Th'),
-                }, {
-                    value: WEEK_DAY.FRIDAY,
-                    label: gettext('Fr'),
-                }, {
-                    value: WEEK_DAY.SATURDAY,
-                    label: gettext('Sa'),
-                }]}
+                options={this.options}
                 defaultValue={!this.props.defaultAllOn ?
                     [] :
                     [
