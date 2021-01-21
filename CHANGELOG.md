@@ -8,7 +8,24 @@
 - None
 
 ### Fixes
+- None
+
+## [2.0.1] 2021-01-21
+### Features
+- [SDCP-387] Add language field to Events and Planning item (#1497)
+
+### Improvements
+- [SDCP-388] Use CV translations in form inputs (#1501)
+
+### Fixes
+- fix(init): Add init_version to planning_types
+- [SDESK-5654] fix(ingest): ICS failure due to Eve changes (#1498)
+- [SDAN-680] fix updating of events in newshub (#1499)
 - [SDESK-5611] fix: Create from assignment fails to override template values (#1493)
+- [SDCP-388] Add language attribute to ColouredValueInput component (#1503)
+- [SDCP-387] fix(duplicate): Language not copying to new items (#1505)
+- Remove type hints to support python 3.5
+- [SDESK-5699] return unfrozen linked item (#1510)
 
 ## [2.0.0] 2020-10-28
 ### Features
@@ -29,7 +46,7 @@
 - [SDESK-5204] fix errors after eve/flask upgrade (#1468)
 - fix: import resolve_default_values from apps.archive.common (#1469)
 
-## [1.33.2-rc.1] 2020-10-26
+## [1.33.2] 2020-12-03
 ### Features
 - None
 
@@ -37,7 +54,8 @@
 - [SDESK-5545] Add details to text_assignees for sport Outlook (#1490)
 
 ### Fixes
-- None
+- fix(XMP update) Write the assignment into the XMP file on create assignment (#1495)
+- Use icalendar>=4.0.3,<4.1 (#1502)
 
 ## [1.33.1] 2020-09-09
 ### Features
