@@ -1,14 +1,22 @@
 # Superdesk Planning Changelog
 
-## [2.1.0-dev]
+## [2.1.0-rc.1] 2021-01-21
 ### Features
-- None
+- [SDCP-408] [Server] Scheduled exports of event and planning filters (#1513)
+- [SDCP-409] [Client] Scheduled exports of search filters (#1519)
 
 ### Improvements
-- None
+- [SDCP-408] Move elastic queries to the server (#1506)
+- [SDCP-404] [Server] Support new search params in planning types and filters (#1511)
+- [SDCP-407] Unify search and filter panel components and search (#1512)
+- Improve translations for CP (#1515)
+- setup server translations on planning (#1516)
 
 ### Fixes
-- None
+- [SDCP-391] fix: Remove 'Add to Planning' option for correction items (#1507)
+- [SDESK-5708] fix: Cannot update event times. (#1508)
+- [SDESK-5739] fix: Cannot Post recurring series of Events (#1514)
+- [SDESK-5733] fix: When spiking a series of recurring events some were not affected (#1517)
 
 ## [2.0.1] 2021-01-21
 ### Features
