@@ -7,6 +7,7 @@ import momentTz from 'moment-timezone';
 import sinon from 'sinon';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import {FEATURED_PLANNING, MAIN, TIME_COMPARISON_GRANULARITY} from '../../../constants';
+import {planningApis} from '../../../api';
 
 
 describe('actions.planning.api', () => {
@@ -52,10 +53,15 @@ describe('actions.planning.api', () => {
             _items: [data.plannings[0]],
             total: 1,
         })));
+
+        sinon.stub(planningApis.planning, 'searchGetAll').callsFake(
+            () => Promise.resolve([data.plannings[0]])
+        );
     });
 
     afterEach(() => {
         restoreSinonStub(planningApi.query);
+        restoreSinonStub(planningApis.planning.searchGetAll);
     });
 
     describe('loadFeaturedPlanningsData', () => {
@@ -64,43 +70,27 @@ describe('actions.planning.api', () => {
             date = momentTz.tz(moment(data.plannings[0].planning_date), 'Australia/Sydney');
             return store.test(done, featuredPlanning.loadFeaturedPlanningsData(date))
                 .then(() => {
-                    expect(planningApi.query.callCount).toBe(1);
-                    expect(planningApi.query.args[0]).toEqual([
-                        {
-                            advancedSearch: {
-                                dates: {
-                                    start: date,
-                                    range: MAIN.DATE_RANGE.FOR_DATE,
-                                },
-                                featured: true,
-                            },
-                            page: 1,
-                            spikeState: 'draft',
-                            excludeRescheduledAndCancelled: true,
-                        },
-                        false,
-                        '+11:00',
-                        true,
-                    ]);
+                    expect(planningApis.planning.searchGetAll.callCount).toBe(1);
+                    expect(planningApis.planning.searchGetAll.args[0]).toEqual([{
+                        featured: true,
+                        start_date: date,
+                        date_filter: 'forDate',
+                        only_future: false,
+                        spike_state: 'draft',
+                        exclude_rescheduled_and_cancelled: true,
+                        include_scheduled_updates: true,
+                        tz_offset: '+11:00'
+                    }]);
                     done();
                 })
                 .catch(done.fail);
         });
 
-        it('calls planning_featured end point to get the featured record for the day', (done) => (
-            store.test(done, featuredPlanning.getFeaturedPlanningItem(date))
-                .then(() => {
-                    expect(services.api.find.callCount).toBe(1);
-                    expect(services.api.find.args[0][0]).toEqual('planning_featured');
-                    done();
-                })
-        ).catch(done.fail));
-
         it('onPlanningUpdatedNotification will add an item to feature list', (done) => {
             sinon.stub(planningApi, 'fetchById').callsFake(() => (Promise.resolve(data.plannings[1])));
             sinon.stub(featuredPlanning, 'receivePlannings').callsFake(() => (Promise.resolve()));
             store.initialState.featuredPlanning.plannings[data.plannings[0]._id] = data.plannings[0];
-            store.initialState.featuredPlanning.currentSearch.advancedSearch.dates.start =
+            store.initialState.featuredPlanning.currentSearch.start_date =
                 moment(data.plannings[1].coverages[0].planning.scheduled);
 
             return store.test(done, featuredPlanning.onPlanningUpdatedNotification(data.plannings[1]._id))
@@ -124,7 +114,7 @@ describe('actions.planning.api', () => {
                 featured: false,
             })));
             store.initialState.featuredPlanning.plannings[data.plannings[0]._id] = data.plannings[0];
-            store.initialState.featuredPlanning.currentSearch.advancedSearch.dates.start =
+            store.initialState.featuredPlanning.currentSearch.start_date =
                 moment(data.plannings[0].coverages[0].planning.scheduled);
 
             return store.test(done, featuredPlanning.onPlanningUpdatedNotification(data.plannings[0]._id))
