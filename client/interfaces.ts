@@ -516,6 +516,20 @@ export interface IPlanningItem extends IBaseRestApiResponse {
     _cancelAllCoverage: boolean;
 }
 
+export interface IFeaturedPlanningItem extends IBaseRestApiResponse {
+    date: string;
+    items: Array<IPlanningItem['_id']>;
+    tz: string;
+    posted: boolean;
+    last_posted_time: string;
+    last_posted_by: IUser['_id'];
+    original_creator: IUser['_id'];
+    version_creator: IUser['_id'];
+    firstcreated: string;
+    versioncreated: string;
+    type: 'planning_featured';
+}
+
 export interface IFeaturedPlanningLock extends IBaseRestApiResponse {
     lock_user: string;
     lock_time: string | Date;
@@ -1231,6 +1245,12 @@ export interface IPlanningAPI {
         getLockedFeatured(): Promise<Array<IFeaturedPlanningLock>>;
         getEditorProfile(): IPlanningFormProfile;
         getSearchProfile(): IPlanningSearchProfile;
+        featured: {
+            lock(): Promise<Partial<IFeaturedPlanningLock>>;
+            unlock(): Promise<undefined>;
+            getById(id: string): Promise<IFeaturedPlanningItem>;
+            getByDate(date: moment.Moment): Promise<IFeaturedPlanningItem>;
+        };
     };
     coverages: {
         getEditorProfile(): ICoverageFormProfile;

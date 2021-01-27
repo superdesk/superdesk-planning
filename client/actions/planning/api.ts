@@ -607,22 +607,19 @@ const lock = (planning, lockAction = 'edit') => (
  * Locks featured stories action
  * @return Promise
  */
-const lockFeaturedPlanning = () => (
-    (dispatch, getState, {api}) => (
-        api('planning_featured_lock').save({}, {})
-            .then((lockedItem) => lockedItem)
-    )
-);
-
-
-/**
- * Fetches featured stories record
- * @param {string} id - id of the record
- * @return Promise
- */
-const fetchFeaturedPlanningItemById = (id) => (
-    (dispatch, getState, {api}) => api.find('planning_featured', id).then((item) => item)
-);
+function lockFeaturedPlanning() {
+    return (dispatch, getState, {notify}) => (
+        planningApi.planning.featured.lock()
+            .catch((error) => {
+                notify.error(
+                    getErrorMessage(
+                        error,
+                        gettext('Failed to lock featured story action!')
+                    )
+                );
+            })
+    );
+}
 
 const fetchPlanningFiles = (planning) => (
     (dispatch, getState) => {
@@ -680,15 +677,15 @@ const saveFeaturedPlanning = (updates) => (
  * Unlocks featured planning action
  * @return Promise
  */
-const unlockFeaturedPlanning = () => (
-    (dispatch, getState, {api, notify}) => (
-        api('planning_featured_unlock').save({}, {})
+function unlockFeaturedPlanning() {
+    return (dispatch, getState, {notify}) => (
+        planningApi.planning.featured.unlock()
             .catch((error) => {
                 notify.error(
                     getErrorMessage(error, gettext('Failed to unlock featured story action!')));
             })
-    )
-);
+    );
+}
 
 const markPlanningCancelled = (plan, reason, coverageState, eventCancellation) => ({
     type: PLANNING.ACTIONS.MARK_PLANNING_CANCELLED,
@@ -808,7 +805,6 @@ const self = {
     lockFeaturedPlanning,
     unlockFeaturedPlanning,
     saveFeaturedPlanning,
-    fetchFeaturedPlanningItemById,
     fetchPlanningFiles,
     uploadFiles,
     removeFile,

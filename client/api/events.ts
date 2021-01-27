@@ -56,6 +56,10 @@ export function getEventByIds(
     eventIds: Array<IEventItem['_id']>,
     spikeState: ISearchSpikeState = 'draft'
 ): Promise<Array<IEventItem>> {
+    if (eventIds.length === 0) {
+        return Promise.resolve([]);
+    }
+
     return searchEvents({
         item_ids: eventIds.filter(
             (eventId, index, ids) => ids.indexOf(eventId) === index
