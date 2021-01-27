@@ -3,6 +3,8 @@ import moment from 'moment';
 import momentTz from 'moment-timezone';
 
 import {appConfig} from 'appConfig';
+import {ISearchParams, IFeaturedPlanningItem} from '../../interfaces';
+import {planningApi as planningApis} from '../../superdeskApi';
 
 import {showModal, hideModal} from '../index';
 import planningApi from './api';
@@ -33,10 +35,12 @@ const clearList = () => ({type: FEATURED_PLANNING.ACTIONS.CLEAR_LIST});
  * param {object} params - Search parameters
  * @return Dispatch object
  */
-const requestFeaturedPlannings = (params) => ({
-    type: FEATURED_PLANNING.ACTIONS.REQUEST,
-    payload: params,
-});
+function requestFeaturedPlannings(params: ISearchParams) {
+    return {
+        type: FEATURED_PLANNING.ACTIONS.REQUEST,
+        payload: params,
+    };
+}
 
 
 /**
@@ -44,10 +48,12 @@ const requestFeaturedPlannings = (params) => ({
  * param {integer} total - Total count number of items returned from backend
  * @return Dispatch object
  */
-const total = (total) => ({
-    type: FEATURED_PLANNING.ACTIONS.TOTAL,
-    payload: total,
-});
+function total(total: number) {
+    return {
+        type: FEATURED_PLANNING.ACTIONS.TOTAL,
+        payload: total,
+    };
+}
 
 
 /**
@@ -121,30 +127,29 @@ const receivePlannings = (plannings, append = false) => (
  * @param {object} date - moment date object to load the data for
  * @return Promise
  */
-const loadFeaturedPlanningsData = (date) => (
-    (dispatch, getState, {notify}) => {
+function loadFeaturedPlanningsData(date) {
+    return (dispatch, getState, {notify}) => {
         let startDate = momentTz.tz(date ? date : moment(), appConfig.defaultTimezone);
-        const params = {
-            advancedSearch: {
-                dates: {
-                    start: startDate,
-                    range: MAIN.DATE_RANGE.FOR_DATE,
-                },
-                featured: true,
-            },
-            page: 1,
-            spikeState: SPIKED_STATE.NOT_SPIKED,
-            excludeRescheduledAndCancelled: true,
+        const params: ISearchParams = {
+            featured: true,
+            start_date: startDate,
+            date_filter: 'forDate',
+            only_future: false,
+            spike_state: 'draft',
+            exclude_rescheduled_and_cancelled: true,
+            include_scheduled_updates: true,
+            tz_offset: getTimeZoneOffset(
+                momentTz.tz(startDate, appConfig.defaultTimezone)
+            ),
         };
 
         dispatch({type: FEATURED_PLANNING.ACTIONS.LOADING_START});
-        dispatch(self.requestFeaturedPlannings(params));
         return dispatch(self.getFeaturedPlanningItem(startDate))
             .then(
-                (featuredItem) => dispatch(self.fetchToList(params, false, featuredItem)),
+                (featuredItem) => dispatch(self.fetchToList(params, featuredItem)),
                 (error) => {
-                    if (get(error, 'status') === 404) {
-                        return dispatch(self.fetchToList(params, false, null));
+                    if (error._error?.code === 404) {
+                        return dispatch(self.fetchToList(params));
                     }
 
                     notify.error(
@@ -155,8 +160,8 @@ const loadFeaturedPlanningsData = (date) => (
                 }
             )
             .finally(() => dispatch({type: FEATURED_PLANNING.ACTIONS.LOADING_COMPLETE}));
-    }
-);
+    };
+}
 
 /**
  * Requests api to find the featured stories for a given date
@@ -164,69 +169,58 @@ const loadFeaturedPlanningsData = (date) => (
  * @param {object} date - moment date object to load the data for
  * @return Promise
  */
-const getFeaturedPlanningItem = (date) => (
-    (dispatch) => (
-        dispatch(planningApi.fetchFeaturedPlanningItemById(getIdForFeauturedPlanning(date)))
+function getFeaturedPlanningItem(date) {
+    return (dispatch) => (
+        planningApis.planning.featured.getByDate(date)
             .then((item) => {
                 dispatch({
                     type: FEATURED_PLANNING.ACTIONS.RECEIVE_FEATURED_PLANNING_ITEM,
                     payload: item,
                 });
                 return Promise.resolve(item);
-            }
-            ))
-);
+            })
+    );
+}
 
 
 /**
  * Recursively requests backend to query and fetch the featured planning items
  * until the total number of items are received
  * @param {object} params - search parameters for the request
- * @param {boolean} append - if true updates list else sets entire list
  * @param {Object} featuredItem - The featured planning item to load items for
  * @return Promise
  */
-const fetchToList = (params = {}, append = false, featuredItem = null) => (
-    (dispatch, getState) => {
-        const currentItemCount = Object.keys(selectors.featuredPlanning.storedPlannings(getState())).length;
-
+function fetchToList(params: ISearchParams = {}, featuredItem: IFeaturedPlanningItem = null) {
+    return (dispatch) => {
         dispatch(self.requestFeaturedPlannings(params));
-        return dispatch(planningApi.query(
-            params,
-            false,
-            getTimeZoneOffset(
-                momentTz.tz(
-                    get(params, 'advancedSearch.dates.start') || moment(),
-                    appConfig.defaultTimezone
-                )
-            ),
-            true
-        ))
-            .then((data) => {
-                dispatch(self.total(data.total));
-                dispatch(self.receivePlannings(data._items, append));
-                if (data.total > currentItemCount + data._items.length) {
-                    params.page += 1;
-                    return dispatch(self.fetchToList(params, true));
-                }
 
-                const itemIds = get(featuredItem, 'items', [])
+        return planningApis.planning.searchGetAll(params)
+            .then((planningItems) => {
+                dispatch(self.total(planningItems.length));
+                dispatch(self.receivePlannings(planningItems, false));
+
+                const planIds = planningItems.map(
+                    (item) => item._id
+                );
+                const itemIds = (featuredItem?.items ?? [])
                     .filter((itemId) => (
-                        !data._items.find((item) => item._id === itemId)
+                        !planIds.includes(itemId)
                     ));
 
-                dispatch(planningApi.loadPlanningByIds(itemIds, false))
-                    .then((items) => {
-                        dispatch({
-                            type: FEATURED_PLANNING.ACTIONS.SET_REMOVE_LIST,
-                            payload: items,
+                if (itemIds.length > 0) {
+                    return planningApis.planning.getByIds(itemIds)
+                        .then((items) => {
+                            dispatch({
+                                type: FEATURED_PLANNING.ACTIONS.SET_REMOVE_LIST,
+                                payload: items,
+                            });
                         });
-                    });
+                }
 
                 return Promise.resolve();
             });
-    }
-);
+    };
+}
 
 
 /**
