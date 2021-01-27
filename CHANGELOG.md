@@ -1,5 +1,11 @@
 # Superdesk Planning Changelog
 
+## [2.1.0-rc.2] 2021-01-27
+### Fixes
+- fix(flake8): Add newline at end of file ics_2_0
+- fix(rebase): Merge master reverted changes to search and filters
+- [SDESK-5745] fix: FeaturedPlanning modal excluding planning items on load (#1520)
+
 ## [2.1.0-rc.1] 2021-01-21
 ### Features
 - [SDCP-408] [Server] Scheduled exports of event and planning filters (#1513)
