@@ -214,8 +214,7 @@ function fetchToList(params: ISearchParams = {}, featuredItem: IFeaturedPlanning
                                 type: FEATURED_PLANNING.ACTIONS.SET_REMOVE_LIST,
                                 payload: items,
                             });
-                        })
-                        .then(() => Promise.resolve());
+                        });
                 }
 
                 return Promise.resolve();
