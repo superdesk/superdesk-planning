@@ -408,7 +408,7 @@ export const getItemWorkflowStateLabel = (item, field = 'state') => {
         return {label: gettext('Inactive')};
     }
 
-    switch (getItemWorkflowState(item, field)) {
+    switch (getItemWorkflowState(item, field) || WORKFLOW_STATE.DRAFT) {
     case WORKFLOW_STATE.DRAFT:
         return {
             label: gettext('Draft'),
