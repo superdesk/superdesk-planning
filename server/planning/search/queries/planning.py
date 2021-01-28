@@ -240,7 +240,7 @@ def search_date(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
     date_filter, start_date, end_date, tz_offset = get_date_params(params)
-    only_future = strtobool(params.get('only_future', False))
+    only_future = strtobool(params.get('only_future', True))
 
     if not date_filter and not start_date and not end_date and only_future:
         field_name = '_planning_schedule.scheduled'
