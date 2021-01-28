@@ -1,5 +1,9 @@
 # Superdesk Planning Changelog
 
+## [2.0.2] 2021-01-29
+### Fixes
+- [SDESK-5780] fix(security): Require authentication for all API endpoints (#1526)
+
 ## [2.0.1] 2021-01-21
 ### Features
 - [SDCP-387] Add language field to Events and Planning item (#1497)
