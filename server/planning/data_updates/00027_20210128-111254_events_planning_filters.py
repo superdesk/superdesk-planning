@@ -7,7 +7,7 @@
 # Author  : MarkLark86
 # Creation: 2021-01-28 11:12
 
-from superdesk.commands.data_updates import BaseDataUpdate
+from superdesk.commands.data_updates import DataUpdate as BaseDataUpdate
 from eve.utils import config
 
 
