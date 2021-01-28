@@ -199,7 +199,6 @@ class LocationsResource(superdesk.Resource):
         'search_backend': 'elastic'
     }
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
-    public_methods = ['GET']
     privileges = {'POST': 'planning',
                   'PATCH': 'planning_locations_management',
                   'DELETE': 'planning_locations_management'}
