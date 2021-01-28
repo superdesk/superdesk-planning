@@ -1,5 +1,10 @@
 # Superdesk Planning Changelog
 
+## [2.1.0-rc.3] 2021-01-28
+### Fixes
+- [SDESK-5777] Data update script for events_planning_filters (#1522)
+- [SDESK-5746] fix: Dont return historic planning items by default (#1525)
+
 ## [2.1.0-rc.2] 2021-01-27
 ### Fixes
 - fix(flake8): Add newline at end of file ics_2_0
