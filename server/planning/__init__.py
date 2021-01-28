@@ -275,6 +275,9 @@ def init_app(app):
     # add planning translations directory
     app.config['BABEL_TRANSLATION_DIRECTORIES'] += ";" + os.path.join(_SERVER_PATH, "translations")
 
+    app.config.setdefault('APPS_DATA_UPDATES_PATHS', [])
+    app.config['APPS_DATA_UPDATES_PATHS'].append(os.path.join(_SERVER_PATH, 'data_updates'))
+
 
 def init_scheduled_exports_task(app):
     # If the celery task is not configured, then set the default now
