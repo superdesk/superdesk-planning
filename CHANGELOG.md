@@ -1,5 +1,9 @@
 # Superdesk Planning Changelog
 
+## [1.32.0] 2021-01-29
+### Fixes
+- [SDESK-5780] fix(security): Require authentication for all API endpoints (#1526)
+
 ## [1.32.0-rc2] 2020-07-16 - Released
 ### Features
 - None
