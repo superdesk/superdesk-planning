@@ -35,7 +35,6 @@ class PlanningFilesResource(superdesk.Resource):
     }
     url = 'planning_files'
     item_methods = ['GET', 'DELETE']
-    public_methods = ['GET']
     resource_methods = ['GET', 'POST']
     privileges = {'POST': 'planning_planning_management', 'DELETE': 'planning_planning_management'}
 
