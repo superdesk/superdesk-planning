@@ -693,7 +693,6 @@ class EventsResource(superdesk.Resource):
         'default_sort': [('dates.start', 1)],
     }
     item_methods = ['GET', 'PATCH']
-    public_methods = ['GET']
     mongo_indexes = {
         'recurrence_id_1': ([('recurrence_id', 1)], {'background': True}),
         'state': ([('state', 1)], {'background': True}),

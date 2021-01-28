@@ -36,7 +36,6 @@ class EventsFilesResource(superdesk.Resource):
     }
     url = 'events_files'
     item_methods = ['GET', 'DELETE']
-    public_methods = ['GET']
     resource_methods = ['GET', 'POST']
     privileges = {'POST': 'planning_event_management', 'DELETE': 'planning_event_management'}
 
