@@ -1,5 +1,10 @@
 # Superdesk Planning Changelog
 
+## [1.33.3] 2021-01-29
+### Fixes
+- [SDESK-5699] return unfrozen linked item (#1510)
+- [SDESK-5780] fix(security): Require authentication for all API endpoints (#1526)
+
 ## [1.33.2] 2020-12-03
 ### Features
 - None

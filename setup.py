@@ -11,7 +11,7 @@ package_data = {
 
 setup(
     name="superdesk-planning",
-    version="1.33.2",
+    version="1.33.3",
     description=DESCRIPTION,
     long_description=DESCRIPTION,
     package_dir={'': 'server'},
