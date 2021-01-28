@@ -32,7 +32,6 @@ class PlanningFeaturedLockResource(Resource):
     }
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
-    public_methods = ['GET']
     resource_title = endpoint_name
     privileges = {'POST': 'planning',
                   'DELETE': 'planning'}
@@ -87,7 +86,6 @@ class PlanningFeaturedUnlockResource(Resource):
     resource_methods = ['GET', 'POST']
     resource_title = endpoint_name
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
-    public_methods = ['GET']
     privileges = {'POST': 'planning',
                   'DELETE': 'planning'}
 
