@@ -24,11 +24,7 @@ interface IState {
 }
 
 export class EditFilter extends React.Component<IEventsPlanningContentPanelProps, IState> {
-    dom: {
-        popupContainer: any;
-    };
-
-    editableFields: Array<keyof ISearchFilter>;
+    private popupContainer: React.RefObject<HTMLDivElement>;
 
     constructor(props) {
         super(props);
@@ -51,7 +47,8 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
         this.isPristine = this.isPristine.bind(this);
         this.getPopupContainer = this.getPopupContainer.bind(this);
         this.onTypeChanged = this.onTypeChanged.bind(this);
-        this.dom = {popupContainer: null};
+
+        this.popupContainer = React.createRef();
     }
 
     getProfile(itemType: FILTER_TYPE = FILTER_TYPE.COMBINED) {
@@ -71,7 +68,7 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
     }
 
     getPopupContainer() {
-        return this.dom.popupContainer;
+        return this.popupContainer.current;
     }
 
     isPristine(updates: Partial<ISearchFilter> = null) {
@@ -236,6 +233,7 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
                         </SidePanel.ContentBlockInner>
                     </SidePanel.ContentBlock>
                 </SidePanel.Content>
+                <div ref={this.popupContainer} />
             </React.Fragment>
         );
     }
