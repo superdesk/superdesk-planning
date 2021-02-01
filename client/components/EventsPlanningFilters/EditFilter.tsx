@@ -105,7 +105,20 @@ export class EditFilter extends React.Component<IEventsPlanningContentPanelProps
     }
 
     onParamChange(field: string, value: any) {
-        this.onFilterChange(`params.${field}`, value);
+        let newValue = value;
+
+        if (typeof value === 'string') {
+            // Remove whitespace from the string
+            newValue = value.replace(/^\s+/, '');
+
+            if (newValue.length === 0) {
+                newValue = null;
+            }
+        } else if (Array.isArray(value) && value.length === 0) {
+            newValue = null;
+        }
+
+        this.onFilterChange(`params.${field}`, newValue);
     }
 
     onMultiParamChange(updates: ISearchParams) {
