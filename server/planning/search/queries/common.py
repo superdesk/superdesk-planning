@@ -290,6 +290,9 @@ def construct_search_query(
 
     if len(filter_params):
         query = elastic.ElasticQuery()
+
+        # Set `only_future` to False as `construct_query` with request params will add this if neccessary
+        filter_params['only_future'] = False
         filter_query = construct_query(filter_params, filters)
 
         remove_filter_params_from_query(filter_params, params)
@@ -324,9 +327,6 @@ def get_params_from_search_filter(search_filter: Dict[str, Any]) -> Dict[str, An
             ]
         else:
             filter_params[key] = value
-
-    # Set `only_future` to False as `construct_query` with request params will add this if neccessary
-    filter_params['only_future'] = False
 
     return filter_params
 
