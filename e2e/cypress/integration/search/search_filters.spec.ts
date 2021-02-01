@@ -88,12 +88,12 @@ describe('Search.Filters: creating search filters', () => {
         searchFilters.editScheduleButton.click();
         searchFilters.editor.enterSearchParams({
             week_days: ['Su', 'Sa'],
-            hour: '11:00am',
+            hour: '11:00',
             desk: 'Sports Desk',
         });
         searchFilters.saveScheduleButton.click();
         searchFilters.waitForContentPanelToClose();
-        searchFilters.expectItemText(1, 'Scheduled export: Weekly @ 11:00am to Sports Desk');
+        searchFilters.expectItemText(1, 'Scheduled export: Weekly @ 11:00 to Sports Desk');
 
         searchFilters.preview(1);
         searchFilters.waitForContentPanelToOpen();
@@ -101,10 +101,10 @@ describe('Search.Filters: creating search filters', () => {
         searchFilters.editor.enterSearchParams({
             frequency: 'Monthly',
             month_day: '4th',
-            hour: '02:00pm',
+            hour: '14:00',
         });
         searchFilters.saveScheduleButton.click();
         searchFilters.waitForContentPanelToClose();
-        searchFilters.expectItemText(1, 'Scheduled export: Monthly on the 4th day @ 02:00pm to Sports Desk');
+        searchFilters.expectItemText(1, 'Scheduled export: Monthly on the 4th day @ 14:00 to Sports Desk');
     });
 });
