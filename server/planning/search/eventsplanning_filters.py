@@ -207,6 +207,7 @@ filters_schema = {
             },
             'urgency': {
                 'type': 'dict',
+                'allow_unknown': True,
                 'schema': {
                     'qcode': {'type': 'integer'},
                     'name': {'type': 'string'}
@@ -214,6 +215,7 @@ filters_schema = {
             },
             'g2_content_type': {
                 'type': 'dict',
+                'allow_unknown': True,
                 'schema': {
                     'qcode': {'type': 'string'},
                     'name': {'type': 'string'},
