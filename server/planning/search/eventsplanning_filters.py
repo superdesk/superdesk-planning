@@ -178,8 +178,13 @@ filters_schema = {
                 'schema': metadata_schema['ingest_provider']
             },
             'location': {
-                'type': 'string',
+                'type': 'dict',
                 'nullable': True,
+                'allow_unknown': True,
+                'schema': {
+                    'qcode': {'type': 'string'},
+                    'name': {'type': 'string'}
+                }
             },
             'calendars': events_schema['calendars'],
             'no_calendar_assigned': {
