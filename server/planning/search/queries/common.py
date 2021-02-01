@@ -325,6 +325,9 @@ def get_params_from_search_filter(search_filter: Dict[str, Any]) -> Dict[str, An
         else:
             filter_params[key] = value
 
+    # Set `only_future` to False as `construct_query` with request params will add this if neccessary
+    filter_params['only_future'] = False
+
     return filter_params
 
 

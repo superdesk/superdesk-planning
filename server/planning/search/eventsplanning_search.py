@@ -106,9 +106,6 @@ class EventsPlanningService(Service):
             logger.warning(f'Search filter {filter_id} has no params')
             return {'params': {}}
 
-        # Allow the supplied params to override the `only_future` attribute of the filter
-        search_filter['params']['only_future'] = params.get('only_future', True)
-
         return search_filter
 
     def _construct_search_query(
