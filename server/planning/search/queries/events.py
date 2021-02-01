@@ -54,7 +54,10 @@ def search_reference(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_source(params: Dict[str, Any], query: elastic.ElasticQuery):
-    sources = str_to_array(params.get('source'))
+    sources = [
+        str(source_id)
+        for source_id in str_to_array(params.get('source'))
+    ]
 
     if len(sources):
         query.must.append(

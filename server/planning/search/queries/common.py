@@ -91,7 +91,10 @@ def str_to_date(value: Union[datetime, str]):
 
 
 def search_item_ids(params: Dict[str, Any], query: elastic.ElasticQuery):
-    ids = str_to_array(params.get('item_ids'))
+    ids = [
+        str(item_id)
+        for item_id in str_to_array(params.get('item_ids'))
+    ]
     if len(ids):
         query.must.append(
             elastic.terms(

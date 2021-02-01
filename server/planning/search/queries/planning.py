@@ -28,7 +28,10 @@ def search_planning(_: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_agendas(params: Dict[str, Any], query: elastic.ElasticQuery):
-    agendas = str_to_array(params.get('agendas'))
+    agendas = [
+        str(agenda_id)
+        for agenda_id in str_to_array(params.get('agendas'))
+    ]
 
     if len(agendas):
         query.must.append(
@@ -134,7 +137,10 @@ def search_featured(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_by_events(params: Dict[str, Any], query: elastic.ElasticQuery):
-    event_ids = str_to_array(params.get('event_item'))
+    event_ids = [
+        str(event_id)
+        for event_id in str_to_array(params.get('event_item'))
+    ]
     num_ids = len(event_ids)
 
     if num_ids == 1:
