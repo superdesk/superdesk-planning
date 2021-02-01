@@ -131,18 +131,6 @@ function getLocalDate(date: moment.Moment, tz: string): moment.Moment {
     );
 }
 
-export function getLocalTimezoneOffsetString(): string {
-    const offsetInMinutes = (new Date()).getTimezoneOffset() * -1;
-
-    const hours = Math.floor(offsetInMinutes / 60);
-    const minutes = offsetInMinutes % 60;
-    const prefix = offsetInMinutes >= 0 ? '+' : '-';
-
-    return minutes < 10 ?
-        `${prefix}${hours}:0${minutes}` :
-        `${prefix}${hours}:${minutes}`;
-}
-
 /**
  * if only offset is available then prefix timezone string with GMT. GMT+04
  * @param timezone
