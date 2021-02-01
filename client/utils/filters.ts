@@ -1,8 +1,9 @@
-import {getUserInterfaceLanguage, appConfig} from 'appConfig';
+import moment from 'moment';
+
+import {appConfig} from 'appConfig';
 import {superdeskApi} from '../superdeskApi';
 import {ISearchFilterSchedule, SCHEDULE_FREQUENCY, WEEK_DAY} from '../interfaces';
 import {IDesk} from 'superdesk-api';
-import {getLocalTimezoneOffsetString} from './time';
 
 export function getSearchFilterScheduleText(schedule: ISearchFilterSchedule, desks: {[key: string]: IDesk}) {
     const {gettext} = superdeskApi.localization;
@@ -140,19 +141,15 @@ export function getLocalizedWeekDayOptions(): Array<{value: WEEK_DAY; label: str
 
 export function getLocalizedHourOptions(): Array<{value: string; label: string;}> {
     const {gettext} = superdeskApi.localization;
-    const offset = getLocalTimezoneOffsetString();
-    const date = new Date(`2020-01-01T00:00:00${offset}`);
-    const locale = getUserInterfaceLanguage();
     const options = [{
         value: '-1',
         label: gettext('Every Hour'),
     }];
 
     for (let i: number = 0; i < 24; i++) {
-        date.setHours(i);
         options.push({
             value: i.toString(10),
-            label: date.toLocaleTimeString(locale, {hour: 'numeric', minute: 'numeric'}),
+            label: moment(`${i}:00`, 'HH:mm').format(appConfig.view.timeformat)
         });
     }
 
@@ -165,12 +162,6 @@ export function translateHour(hour: number) {
 
         return gettext('Every Hour');
     } else {
-        const offset = getLocalTimezoneOffsetString();
-        const date = new Date(`2020-01-01T00:00:00${offset}`);
-        const locale = getUserInterfaceLanguage();
-
-        date.setHours(hour);
-
-        return date.toLocaleTimeString(locale, {hour: 'numeric', minute: 'numeric'});
+        return moment(`${hour}:00`, 'HH:mm').format(appConfig.view.timeformat);
     }
 }
