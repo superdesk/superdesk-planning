@@ -112,14 +112,5 @@ export class SearchFilters extends Modal {
         menu.open()
             .getAction(label)
             .click();
-
-        // this.item(index)
-        //     .find('.icon-filter-large')
-        //     .should('exist')
-        //     .click();
-        // this.getActionMenu(index)
-        //     .open()
-        //     .getAction(label)
-        //     .click();
     }
 }
