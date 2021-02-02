@@ -39,7 +39,17 @@ export class SelectMetaTerms extends Input {
 
     clear() {
         cy.log('Common.SelectMetaTerms.clear: Currently does not work');
-        // cy.get(this.selector + ' .terms-list .icon-close-small')
-        //     .click({multiple: true});
+        cy.get(this.selector + ' .sd-line-input__input li')
+            .then(($list) => {
+                const values = Cypress.$.map($list, (element) => element.innerText);
+
+                cy.wrap(values)
+                    .each((value) => {
+                        cy.get(this.selector + ' .sd-line-input__input li')
+                            .contains(value)
+                            .should('exist')
+                            .click();
+                    });
+            });
     }
 }

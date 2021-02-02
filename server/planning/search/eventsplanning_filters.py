@@ -20,13 +20,10 @@ from eve.utils import config
 
 from superdesk import Resource, Service
 from superdesk.notification import push_notification
-from superdesk.metadata.item import metadata_schema
 
 from apps.auth import get_user_id
 
 from planning.common import set_original_creator, SPIKED_STATE
-from planning.events.events_schema import events_schema
-from planning.planning.planning import planning_schema
 from planning.search.queries.elastic import DATE_RANGE
 
 
@@ -80,6 +77,87 @@ WEEK_DAY: WeekDay = WeekDay(
 )
 
 
+def list_cvs():
+    return {
+        'type': 'list',
+        'nullable': True,
+        'allow_unknown': True,
+        'schema': {
+            'type': 'dict',
+            'allow_unknown': True,
+            'schema': {
+                'qcode': {'type': 'string'},
+                'name': {'type': 'string'}
+            },
+        }
+    }
+
+
+def list_strings():
+    return {
+        'type': 'list',
+        'nullable': True
+    }
+
+
+def string(allowed=None):
+    field = {
+        'type': 'string',
+        'nullable': True
+    }
+
+    if allowed:
+        field['allowed'] = allowed
+
+    return field
+
+
+def boolean():
+    return {
+        'type': 'boolean',
+        'nullable': True
+    }
+
+
+def datetime():
+    return {
+        'type': 'datetime',
+        'nullable': True
+    }
+
+
+def integer():
+    return {
+        'type': 'integer',
+        'nullable': True
+    }
+
+
+def list_rel(resource, id_type='objectid'):
+    return {
+        'type': 'list',
+        'nullable': True,
+        'schema': Resource.rel(resource, type=id_type)
+    }
+
+
+def cv(qcode_type='string', extra_fields=None):
+    schema = {
+        'qcode': {'type': qcode_type},
+        'name': {'type': 'string'}
+    }
+
+    if extra_fields:
+        schema.update(extra_fields)
+
+    return {
+        'type': 'dict',
+        'nullable': True,
+        'allow_unknown': True,
+        'schema': schema
+    }
+
+
 filters_schema = {
     'name': {
         'type': 'string',
@@ -99,150 +177,58 @@ filters_schema = {
         'type': 'dict',
         'schema': {
             # Common Fields
-            'item_ids': {
+            'item_ids': list_strings(),
+            'name': string(),
+            'tz_offset': string(),
+            'full_text': string(),
+            'anpa_category': list_cvs(),
+            'subject': list_cvs(),
+            'posted': boolean(),
+            'place': list_cvs(),
+            'language': string(),
+            'state': list_cvs(),
+            'spike_state': string(allowed=SPIKED_STATE),
+            'include_killed': boolean(),
+            'date_filter': string(allowed=tuple(DATE_RANGE)),
+            'start_date': datetime(),
+            'end_date': datetime(),
+            'only_future': boolean(),
+            'start_of_week': integer(),
+            'slugline': string(),
+            'lock_state': string(allowed=['locked', 'unlocked']),
+            'recurrence_id': string(),
+            'max_results': integer(),
+
+            # Event Specific Fields
+            'reference': string(),
+            'source': {
                 'type': 'list',
                 'nullable': True,
-            },
-            'name': events_schema['name'],
-            'tz_offset': {
-                'type': 'string',
-                'nullable': True,
-            },
-            'full_text': {
-                'type': 'string',
-                'nullable': True,
-            },
-            'anpa_category': metadata_schema['anpa_category'],
-            'subject': metadata_schema['subject'],
-            'posted': {
-                'type': 'boolean',
-                'nullable': True
-            },
-            'place': metadata_schema['place'],
-            'language': metadata_schema['language'],
-            'state': {
-                'type': 'list',
-                'nullable': True,
+                'allow_unknown': True,
                 'schema': {
                     'type': 'dict',
+                    'allow_unknown': True,
                     'schema': {
-                        'qcode': {'type': 'string'},
+                        'id': Resource.rel('ingest_providers'),
                         'name': {'type': 'string'}
                     }
                 }
             },
-            'spike_state': {
-                'type': 'string',
-                'allowed': SPIKED_STATE,
-                'nullable': True
-            },
-            'include_killed': {
-                'type': 'boolean',
-                'nullable': True
-            },
-            'date_filter': {
-                'type': 'string',
-                'allowed': tuple(DATE_RANGE),
-                'nullable': True
-            },
-            'start_date': {
-                'type': 'datetime',
-                'nullable': True,
-            },
-            'end_date': {
-                'type': 'datetime',
-                'nullable': True,
-            },
-            'only_future': {
-                'type': 'boolean',
-                'nullable': True
-            },
-            'start_of_week': {
-                'type': 'integer',
-                'nullable': True
-            },
-            'slugline': metadata_schema['slugline'],
-            'lock_state': {
-                'type': 'string',
-                'allowed': ['locked', 'unlocked'],
-                'nullable': True
-            },
-            'recurrence_id': events_schema['recurrence_id'],
-            'max_results': {
-                'type': 'integer',
-                'nullable': True
-            },
-
-            # Event Specific Fields
-            'reference': events_schema['reference'],
-            'source': {
-                'type': 'list',
-                'nullable': True,
-                'schema': metadata_schema['ingest_provider']
-            },
-            'location': {
-                'type': 'dict',
-                'nullable': True,
-                'allow_unknown': True,
-                'schema': {
-                    'qcode': {'type': 'string'},
-                    'name': {'type': 'string'}
-                }
-            },
-            'calendars': events_schema['calendars'],
-            'no_calendar_assigned': {
-                'type': 'boolean',
-                'nullable': True
-            },
+            'location': cv(),
+            'calendars': list_cvs(),
+            'no_calendar_assigned': boolean(),
 
             # Planning Specific Fields
-            'agendas': planning_schema['agendas'],
-            'no_agenda_assigned': {
-                'type': 'boolean',
-                'nullable': True
-            },
-            'ad_hoc_planning': {
-                'type': 'boolean',
-                'nullable': True
-            },
-            'exclude_rescheduled_and_cancelled': {
-                'type': 'boolean',
-                'nullable': True
-            },
-            'no_coverage': {
-                'type': 'boolean',
-                'nullable': True
-            },
-            'urgency': {
-                'type': 'dict',
-                'allow_unknown': True,
-                'schema': {
-                    'qcode': {'type': 'integer'},
-                    'name': {'type': 'string'}
-                }
-            },
-            'g2_content_type': {
-                'type': 'dict',
-                'allow_unknown': True,
-                'schema': {
-                    'qcode': {'type': 'string'},
-                    'name': {'type': 'string'},
-                    'content item type': {'type': 'string'}
-                }
-            },
-            'featured': {
-                'type': 'boolean',
-                'nullable': True
-            },
-            'include_scheduled_updates': {
-                'type': 'boolean',
-                'nullable': True
-            },
-            'event_item': {
-                'type': 'list',
-                'nullable': True,
-                'schema': planning_schema['event_item']
-            }
+            'agendas': list_rel('agenda'),
+            'no_agenda_assigned': boolean(),
+            'ad_hoc_planning': boolean(),
+            'exclude_rescheduled_and_cancelled': boolean(),
+            'no_coverage': boolean(),
+            'urgency': cv(qcode_type='integer'),
+            'g2_content_type': cv(extra_fields={'content item type': {'type': 'string'}}),
+            'featured': boolean(),
+            'include_scheduled_updates': boolean(),
+            'event_item': list_rel('events', id_type='string')
         }
     },
     'schedules': {
