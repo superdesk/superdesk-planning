@@ -1,5 +1,21 @@
 import {getDateStringFor} from '../support/utils/time';
 
+export const LOCATIONS = {
+    sydney_opera_house: {
+        name: 'Sydney Opera House',
+        address: {
+            area: 'Sydney',
+            country: 'Australia',
+            line: ['2 Macquarie Street'],
+            locality: 'New South Wales',
+            postal_code: '2000',
+            type: 'arts_centre',
+        },
+        type: 'Unclassified',
+        unique_name: 'Sydney Opera House 2 Macquarie Street, Sydney, New South Wales, 2000, Australia',
+    },
+};
+
 const BASE_EVENT = {
     type: 'event',
     occur_status: {
