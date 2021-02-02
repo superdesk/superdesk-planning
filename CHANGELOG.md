@@ -1,5 +1,15 @@
 # Superdesk Planning Changelog
 
+## [2.1.0-rc.4] 2021-02-03
+### Fixes
+- [SDCP-440] fix: Incorrect schema for state param in filters (#1528)
+- [SDCP-449] fix(filter-schema): Allow unknown fields for dictionary attributes (#1532)
+- [SDCP-439] fix: Search fields in Filters editor doesnt work (#1527)
+- [SDCP-409] fix(search): Filters fail with Agenda ObjectId query (#1530)
+- [SDCP-446] fix(filters): Set param value to null if value is empty (#1531)
+- [SDCP-437] fix: Use appConfig timeformat for Schedules Hour values (#1529)
+- [SDCP-449] fix(filters): Fix issues with schema (#1533)
+
 ## [2.1.0-rc.3] 2021-01-28
 ### Fixes
 - [SDESK-5777] Data update script for events_planning_filters (#1522)
