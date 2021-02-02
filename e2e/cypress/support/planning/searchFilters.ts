@@ -48,7 +48,7 @@ export class SearchFilters extends Modal {
     }
 
     waitForContentPanelToOpen() {
-        this.editor.searchPanel
+        return this.editor.searchPanel
             .find('.side-panel__content')
             .should('exist');
     }
@@ -86,6 +86,18 @@ export class SearchFilters extends Modal {
             .click();
     }
 
+    edit(index: number, timeout?: number) {
+        cy.log('SearchFilter.List.edit');
+        this.preview(index, timeout);
+
+        this.editor.searchPanel
+            .find('.side-panel__header')
+            .should('exist')
+            .find('.icon-pencil')
+            .should('exist')
+            .click();
+    }
+
     getActionMenu(index: number) {
         return new ActionMenu(
             () => this.item(index)
@@ -94,13 +106,20 @@ export class SearchFilters extends Modal {
 
     clickAction(index: number, label: string) {
         cy.log('SearchFilter.List.clickAction');
-        this.item(index)
-            .find('.icon-filter-large')
-            .should('exist')
-            .click();
-        this.getActionMenu(index)
-            .open()
+        this.preview(index);
+        const menu = new ActionMenu(() => this.waitForContentPanelToOpen());
+
+        menu.open()
             .getAction(label)
             .click();
+
+        // this.item(index)
+        //     .find('.icon-filter-large')
+        //     .should('exist')
+        //     .click();
+        // this.getActionMenu(index)
+        //     .open()
+        //     .getAction(label)
+        //     .click();
     }
 }

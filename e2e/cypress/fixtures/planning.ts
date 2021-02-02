@@ -1,5 +1,10 @@
 import {getDateStringFor} from '../support/utils/time';
 
+export const AGENDAS = {
+    sports: {name: 'Sports'},
+    politics: {name: 'Politics'},
+};
+
 const BASE_PLANNING = {
     type: 'planning',
     state: 'draft',

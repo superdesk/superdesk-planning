@@ -27,4 +27,9 @@ export class SelectInput extends Input {
             .find(':checked')
             .should('contain.text', value);
     }
+
+    clear() {
+        cy.log('Common.SelectInput.clear');
+        this.element.select('');
+    }
 }
