@@ -171,7 +171,7 @@ def search_date(params: Dict[str, Any], query: elastic.ElasticQuery):
         )
 
         if date_filter:
-            base_query.range = date_filter
+            base_query.date_range = date_filter
             base_query.date = start_date
 
             query_range = elastic.date_range(base_query)

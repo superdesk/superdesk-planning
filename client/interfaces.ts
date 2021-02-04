@@ -1,5 +1,4 @@
 import {
-    ITEM_STATE,
     ISuperdeskGlobalConfig,
     IBaseRestApiResponse,
     ISubject,
@@ -136,12 +135,12 @@ export enum DATE_RANGE {
     THIS_WEEK = 'this_week',
     NEXT_WEEK = 'next_week',
     LAST_24 = 'last24',
-    FOR_DATE = 'forDate',
+    FOR_DATE = 'for_date',
 }
 
 export type ISearchSpikeState = 'spiked' | 'draft' | 'both';
 
-export type IDateRange = 'today' | 'tomorrow' | 'this_week' | 'next_week' | 'last24' | 'forDate';
+export type IDateRange = 'today' | 'tomorrow' | 'this_week' | 'next_week' | 'last24' | 'for_date';
 
 export type IPlanningProfile = {
     name: string;
