@@ -3,6 +3,7 @@ import RRule from 'rrule';
 import {get, map, isNil, sortBy, cloneDeep, omitBy, find, isEqual, pickBy, flatten} from 'lodash';
 
 import {appConfig} from 'appConfig';
+import {IEventItem} from '../interfaces';
 
 import {
     PRIVILEGES,
@@ -807,6 +808,11 @@ const modifyForClient = (event) => {
     return event;
 };
 
+function modifyEventsForClient(events: Array<IEventItem>): Array<IEventItem> {
+    events.forEach(modifyForClient);
+    return events;
+}
+
 const modifyLocationForServer = (event) => {
     if (!('location' in event) || Array.isArray(event.location)) {
         return;
@@ -1106,6 +1112,7 @@ const self = {
     getMultiDayPlanningActions,
     generateMultiDayPlanningActions,
     modifyForClient,
+    modifyEventsForClient,
     modifyForServer,
     defaultEventValues,
     shouldFetchFilesForEvent,

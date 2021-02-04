@@ -297,25 +297,18 @@ const loadAssociatedPlannings = (event) => (
  * @param {string} eventId - The ID of the Event to retrieve
  * @param {boolean} saveToStore - If true, save the Event in the Redux store
  */
-const getEvent = (eventId, saveToStore = true) => (
-    (dispatch, getState) => {
+function getEvent(eventId: IEventItem['_id'], saveToStore: boolean = true) {
+    return (dispatch, getState) => {
         const events = selectors.events.storedEvents(getState());
 
-        if (eventId in events) {
+        if (events?.[eventId] != undefined) {
             return Promise.resolve(events[eventId]);
         }
 
-        return dispatch(self.silentlyFetchEventsById(eventId, SPIKED_STATE.BOTH, saveToStore))
-            .then((items) => (Promise.resolve({
-                ...items[0],
-                dates: {
-                    ...items[0].dates,
-                    start: moment(items[0].dates.start),
-                    end: moment(items[0].dates.end),
-                },
-            })), (error) => Promise.reject(error));
-    }
-);
+        return dispatch(self.silentlyFetchEventsById([eventId], 'both', saveToStore))
+            .then((items) => items[0]);
+    };
+}
 
 /**
  * Action to receive the list of Events and store them in the store
@@ -399,39 +392,25 @@ const unlock = (event) => (
  * @param {boolean} saveToStore - If true, save the Event in the Redux store
  * @return arrow function
  */
-const silentlyFetchEventsById = (ids, spikeState: ISearchSpikeState = 'draft', saveToStore = true) => (
-    (dispatch) => (
-        new Promise((resolve, reject) => {
-            if (Array.isArray(ids)) {
-                planningApis.events.search({
-                    // distinct ids
-                    item_ids: ids.filter((v, i, a) => (a.indexOf(v) === i)),
-                    spike_state: spikeState,
-                    only_future: false,
-                })
-                    .then(
-                        (response) => resolve(response._items),
-                        (error) => reject(error)
-                    );
-            } else {
-                planningApis.events.getById(ids)
-                    .then(
-                        (item) => resolve([item]),
-                        (error) => reject(error)
-                    );
-            }
-        })
+function silentlyFetchEventsById(
+    ids: Array<IEventItem['_id']>,
+    spikeState: ISearchSpikeState = 'draft',
+    saveToStore: boolean = true
+) {
+    return (dispatch) => (
+        planningApis.events.getByIds(
+            ids.filter((v, i, a) => (a.indexOf(v) === i)),
+            spikeState
+        )
             .then((items) => {
-                if (saveToStore) {
+                if (saveToStore && items.length > 0) {
                     dispatch(self.receiveEvents(items));
                 }
 
-                return Promise.resolve(items);
-            }, (error) => (
-                Promise.reject(error)
-            ))
-    )
-);
+                return items;
+            })
+    );
+}
 
 /**
  * Action Dispatcher to fetch a single event using its ID
