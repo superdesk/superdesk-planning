@@ -133,7 +133,7 @@ function loadFeaturedPlanningsData(date) {
         const params: ISearchParams = {
             featured: true,
             start_date: startDate,
-            date_filter: 'forDate',
+            date_filter: 'for_date',
             only_future: false,
             spike_state: 'draft',
             exclude_rescheduled_and_cancelled: true,

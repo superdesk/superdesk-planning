@@ -13,6 +13,7 @@ import {IRestApiResponse} from 'superdesk-api';
 import {planningUtils} from '../utils';
 import {planningProfile, planningSearchProfile} from '../selectors/forms';
 import {featured} from './featured';
+import {PLANNING} from '../constants';
 
 function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
@@ -72,6 +73,27 @@ export function getPlanningByIds(
 ): Promise<Array<IPlanningItem>> {
     if (planIds.length === 0) {
         return Promise.resolve([]);
+    } else if (planIds.length > PLANNING.FETCH_IDS_CHUNK_SIZE) {
+        // chunk the requests (otherwise URL may become too long)
+        const requests: Array<Promise<Array<IPlanningItem>>> = [];
+
+        for (let i = 0; i < Math.ceil(planIds.length / PLANNING.FETCH_IDS_CHUNK_SIZE); i++) {
+            requests.push(
+                getPlanningByIds(
+                    planIds.slice(
+                        i * PLANNING.FETCH_IDS_CHUNK_SIZE,
+                        (i + 1) * PLANNING.FETCH_IDS_CHUNK_SIZE
+                    ),
+                    spikeState
+                )
+            );
+        }
+
+        return Promise
+            .all(requests)
+            .then((responses) => (
+                Array.prototype.concat.apply([], responses)
+            ));
     }
 
     return searchPlanning({
