@@ -2,6 +2,7 @@ import {get, omit, isEmpty, isNil, isEqual} from 'lodash';
 import moment from 'moment';
 
 import {appConfig} from 'appConfig';
+import {planningApi as planningApis} from '../superdeskApi';
 
 import {
     MAIN,
@@ -14,6 +15,7 @@ import {
     AGENDA,
     QUEUE_ITEM_PREFIX,
     WORKSPACE,
+    EVENTS_PLANNING,
 } from '../constants';
 import {activeFilter, lastRequestParams} from '../selectors/main';
 import planningUi from './planning/ui';
@@ -51,7 +53,7 @@ import eventsPlanningUi from './eventsPlanning/ui';
 
 import * as selectors from '../selectors';
 import {validateItem} from '../validators';
-import {ISearchParams} from '../interfaces';
+import {ISearchFilter, ISearchParams} from '../interfaces';
 import {searchParamsToOld} from '../utils/search';
 
 const openForEdit = (item, updateUrl = true, modal = false) => (
@@ -739,48 +741,40 @@ const _filter = (filterType, params = {}) => (
     (dispatch, getState, {$location, notify}) => {
         let promise = Promise.resolve();
         const lastParams = selectors.main.lastRequestParams(getState());
+        const currentFilterId = $location.search().eventsPlanningFilter;
 
-        dispatch(self.setUnsetLoadingIndicator(true));
-        if (filterType === MAIN.FILTERS.EVENTS) {
-            dispatch(eventsPlanningUi.clearList());
-            dispatch(planningUi.clearList());
+        if (currentFilterId != undefined || filterType === MAIN.FILTERS.COMBINED) {
+            promise = planningApis.ui.list.changeFilterId(currentFilterId, params);
+        } else if (filterType === MAIN.FILTERS.EVENTS) {
             const calender = $location.search().calendar ||
                 get(lastParams, 'calendars[0]', null) ||
-                (get(lastParams, 'noCalendarAssigned', false) ? EVENTS.FILTER.NO_CALENDAR_ASSIGNED : null);
+                (get(lastParams, 'noCalendarAssigned', false) ?
+                    EVENTS.FILTER.NO_CALENDAR_ASSIGNED :
+                    EVENTS.FILTER.ALL_CALENDARS
+                );
 
-            promise = dispatch(eventsUi.selectCalendar(calender, params));
+            promise = planningApis.ui.list.changeCalendarId(
+                calender,
+                params
+            );
         } else if (filterType === MAIN.FILTERS.PLANNING) {
-            dispatch(eventsPlanningUi.clearList());
-            dispatch(eventsUi.clearList());
             const searchAgenda = $location.search().agenda ||
                 get(lastParams, 'agendas[0]', null) ||
-                (get(lastParams, 'noAgendaAssigned', false) ? AGENDA.FILTER.NO_AGENDA_ASSIGNED : null);
+                (get(lastParams, 'noAgendaAssigned', false) ?
+                    AGENDA.FILTER.NO_AGENDA_ASSIGNED :
+                    AGENDA.FILTER.ALL_PLANNING
+                );
 
-            if (searchAgenda) {
-                promise = dispatch(selectAgenda(searchAgenda, params));
-            } else {
-                promise = dispatch(fetchSelectedAgendaPlannings(params));
-            }
-        } else if (filterType === MAIN.FILTERS.COMBINED) {
-            dispatch(eventsUi.clearList());
-            dispatch(planningUi.clearList());
-            let eventsPlanningFilter = $location.search().eventsPlanningFilter ||
-                get(lastParams, 'eventsPlanningFilter', null);
-
-            promise = dispatch(eventsPlanningUi.selectFilter(eventsPlanningFilter, params));
+            promise = planningApis.ui.list.changeAgendaId(
+                searchAgenda,
+                params
+            );
         }
 
-        return promise
-            .then(
-                (results) => Promise.resolve(results),
-                (error) => {
-                    notify.error(gettext('Failed to run the query.'));
-                    return Promise.reject(error);
-                }
-            )
-            .finally(() => {
-                dispatch(self.setUnsetLoadingIndicator(false));
-            });
+        return promise.catch((error) => {
+            notify.error(gettext('Failed to run the query'));
+            return Promise.reject(error);
+        });
     }
 );
 
