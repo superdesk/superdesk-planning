@@ -293,6 +293,7 @@ describe('agenda', () => {
                                 spikeState: 'draft',
                                 fulltext: 'hello world',
                                 excludeRescheduledAndCancelled: false,
+                                filter_id: undefined,
                             },
                         ]);
 
@@ -412,6 +413,7 @@ describe('agenda', () => {
                             spikeState: 'draft',
                             fulltext: 'hello world',
                             excludeRescheduledAndCancelled: false,
+                            filter_id: undefined,
                         }]);
                         done();
                     })
@@ -432,6 +434,7 @@ describe('agenda', () => {
                             spikeState: 'draft',
                             fulltext: '',
                             excludeRescheduledAndCancelled: false,
+                            filter_id: undefined,
                         }]);
                         done();
                     })

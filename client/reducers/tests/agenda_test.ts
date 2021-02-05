@@ -19,6 +19,7 @@ describe('agenda', () => {
                 agendas: [],
                 currentPlanningId: undefined,
                 currentAgendaId: null,
+                currentFilterId: null,
                 agendasAreLoading: false,
             });
         });
