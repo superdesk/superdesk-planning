@@ -143,10 +143,11 @@ function query(
         page = 1,
         maxResults = MAIN.PAGE_SIZE,
         includeKilled = false,
+        filter_id = null,
     }: IEventSearchParams,
     storeTotal = false
 ) {
-    return (dispatch) => {
+    return (dispatch, getState) => {
         let itemIds = [];
 
         if (ids) {
@@ -203,6 +204,7 @@ function query(
             only_future: onlyFuture,
             page: page,
             max_results: maxResults,
+            filter_id: filter_id || selectors.main.currentSearchFilterId(getState()),
         })
             .then((response) => {
                 if (storeTotal) {

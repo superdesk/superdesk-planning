@@ -2,6 +2,7 @@ import {createSelector} from 'reselect';
 import {get, sortBy} from 'lodash';
 
 import {appConfig} from 'appConfig';
+import {IPlanningAppState} from '../interfaces';
 
 import {storedPlannings, currentPlanning} from './planning';
 import {agendas, userPreferences} from './general';
@@ -15,6 +16,7 @@ export const eventHistory = (state) => get(state, 'events.eventHistoryItems');
 export const currentSearch = (state) => get(state, 'main.search.EVENTS.currentSearch');
 export const fullText = (state) => get(state, 'main.search.EVENTS.fulltext', '');
 export const eventTemplates = (state) => state.events.eventTemplates;
+export const currentEventFilterId = (state: IPlanningAppState) => state?.events?.currentFilterId;
 const isEventsView = (state) => get(state, 'main.filter', '') === MAIN.FILTERS.EVENTS;
 
 /** Used for the events list */
@@ -148,15 +150,15 @@ export const disabledCalendars = createSelector(
 );
 
 export const getEventFilterParams = createSelector(
-    [currentCalendarId, currentSearch, fullText],
-    (calendarId, currentSearch, fullText) => {
+    [currentCalendarId, currentSearch, fullText, currentEventFilterId],
+    (calendarId, currentSearch, fullText, filterId) => {
         let calendars = null;
 
         if (calendarId &&
             calendarId !== EVENTS.FILTER.NO_CALENDAR_ASSIGNED &&
             calendarId !== EVENTS.FILTER.ALL_CALENDARS
         ) {
-            calendars = [calendarId];
+            calendars = [{qcode: calendarId}];
         }
 
         return {
@@ -165,6 +167,7 @@ export const getEventFilterParams = createSelector(
             advancedSearch: get(currentSearch, 'advancedSearch', {}),
             spikeState: get(currentSearch, 'spikeState', SPIKED_STATE.NOT_SPIKED),
             fulltext: fullText,
+            filter_id: filterId,
             page: 1,
         };
     }

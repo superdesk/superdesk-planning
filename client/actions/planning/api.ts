@@ -105,6 +105,7 @@ function query(
         adHocPlanning = false,
         excludeRescheduledAndCancelled = false,
         featured = false,
+        filter_id = null,
     }: IPlanningSearchParams,
     storeTotal = true,
     timeZoneOffset = null,
@@ -139,7 +140,8 @@ function query(
             featured: featured,
             include_scheduled_updates: includeScheduledUpdates,
             max_results: maxResults,
-            page: page
+            page: page,
+            filter_id: filter_id || selectors.main.currentSearchFilterId(getState()),
         })
             .then((response) => {
                 if (storeTotal) {
