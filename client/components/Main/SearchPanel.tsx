@@ -2,14 +2,13 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {set, get, cloneDeep, isEqual} from 'lodash';
 
-import {superdeskApi} from '../../superdeskApi';
+import {superdeskApi, planningApi} from '../../superdeskApi';
 import {ISearchParams} from '../../interfaces';
 
 import {Button} from '../UI';
 import {Content, Footer, Header, SidePanel, Tools, ContentBlock, ContentBlockInner} from '../UI/SidePanel';
 import {AdvancedSearch} from '../AdvancedSearch';
 import * as selectors from '../../selectors';
-import * as actions from '../../actions';
 import {currentSearchParams} from '../../selectors/search';
 
 interface IProps {
@@ -19,8 +18,6 @@ interface IProps {
     searchProfile: any;
 
     toggleFilterPanel(): void;
-    search(activeFilter: string, searchParams: ISearchParams): void;
-    clearSearch(): void;
     popupContainer?(): HTMLElement;
 }
 
@@ -33,11 +30,6 @@ const mapStateToProps = (state) => ({
     currentParams: currentSearchParams(state),
     isViewFiltered: selectors.main.isViewFiltered(state),
     searchProfile: selectors.forms.searchProfile(state),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-    clearSearch: () => dispatch(actions.main.clearSearch()),
-    search: (activeFilter, params) => dispatch(actions.main.searchAdvancedSearch(params, activeFilter)),
 });
 
 export class SearchPanelComponent extends React.Component<IProps, IState> {
@@ -56,7 +48,7 @@ export class SearchPanelComponent extends React.Component<IProps, IState> {
         }
 
         this.setState({params: {}});
-        this.props.clearSearch();
+        planningApi.ui.list.clearSearch();
     }
 
     componentWillReceiveProps(nextProps) {
@@ -99,7 +91,7 @@ export class SearchPanelComponent extends React.Component<IProps, IState> {
     }
 
     search() {
-        this.props.search(this.props.activeFilter, this.state.params);
+        planningApi.ui.list.search(this.state.params);
     }
 
     render() {
@@ -155,44 +147,4 @@ export class SearchPanelComponent extends React.Component<IProps, IState> {
     }
 }
 
-// SearchPanelComponent.propTypes = {
-//     activeFilter: PropTypes.string,
-//     toggleFilterPanel: PropTypes.func,
-//     currentSearch: PropTypes.object,
-//     categories: PropTypes.array,
-//     subjects: PropTypes.array,
-//     urgencies: PropTypes.array,
-//     contentTypes: PropTypes.array,
-//     ingestProviders: PropTypes.array,
-//     search: PropTypes.func,
-//     clearSearch: PropTypes.func,
-//     isViewFiltered: PropTypes.bool,
-//     workflowStateOptions: PropTypes.array,
-//     popupContainer: PropTypes.func,
-//     searchProfile: PropTypes.object,
-//     locators: PropTypes.arrayOf(PropTypes.object),
-// };
-//
-//
-// const mapStateToProps = (state) => ({
-//     activeFilter: selectors.main.activeFilter(state),
-//     currentSearch: selectors.main.currentSearch(state),
-//     categories: state.vocabularies.categories,
-//     subjects: state.subjects,
-//     urgencies: state.urgency.urgency,
-//     contentTypes: selectors.general.contentTypes(state),
-//     ingestProviders: state.ingest.providers,
-//     isViewFiltered: selectors.main.isViewFiltered(state),
-//     searchProfile: selectors.forms.searchProfile(state),
-//     locators: selectors.vocabs.locators(state),
-// });
-//
-// const mapDispatchToProps = (dispatch) => ({
-//     clearSearch: () => dispatch(actions.main.clearSearch()),
-//     search: (params) => dispatch(actions.main.search(null, params)),
-// });
-
-export const SearchPanel = connect(
-    mapStateToProps,
-    mapDispatchToProps
-)(SearchPanelComponent);
+export const SearchPanel = connect(mapStateToProps)(SearchPanelComponent);
