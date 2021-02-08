@@ -67,6 +67,11 @@ export class PlanningStoreService {
         $rootScope.$watch(() => this.desks.active, this.onDeskChanged);
         $rootScope.$on('vocabularies:updated', this._reloadVocabularies);
         $rootScope.$on('notification:click', this.onNotificationClick);
+
+        // Adding here until Superdesk 2.2 where this functionality is available
+        planningApi.$location = {
+            search: (name: string, values: any) => $timeout(() => $location.search(name, values)),
+        };
     }
 
     initWorkspace(workspaceName, onLoadWorkspace = null) {

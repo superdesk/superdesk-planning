@@ -1,16 +1,19 @@
 import {orderBy, cloneDeep, uniq, get} from 'lodash';
 import moment from 'moment';
-import {EVENTS, RESET_STORE, INIT_STORE, LOCKS} from '../constants';
-import {createReducer} from './createReducer';
-import {WORKFLOW_STATE} from '../constants';
 
-const initialState = {
+import {IEventState} from '../interfaces';
+
+import {EVENTS, RESET_STORE, INIT_STORE, LOCKS, WORKFLOW_STATE} from '../constants';
+import {createReducer} from './createReducer';
+
+const initialState: IEventState = {
     events: {},
     eventsInList: [],
     readOnly: true,
     eventHistoryItems: [],
     calendars: [],
     currentCalendarId: undefined,
+    currentFilterId: undefined,
     eventTemplates: [],
 };
 
@@ -284,6 +287,12 @@ const eventsReducer = createReducer(initialState, {
     [EVENTS.ACTIONS.SELECT_CALENDAR]: (state, payload) => ({
         ...state,
         currentCalendarId: payload,
+        currentFilterId: null,
+    }),
+    [EVENTS.ACTIONS.SELECT_FILTER]: (state, payload) => ({
+        ...state,
+        currentCalendarId: null,
+        currentFilterId: payload,
     }),
 
     [EVENTS.ACTIONS.EXPIRE_EVENTS]: (state, payload) => {

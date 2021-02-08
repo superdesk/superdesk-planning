@@ -6,6 +6,7 @@ import {get, map, cloneDeep} from 'lodash';
 import {appConfig} from 'appConfig';
 import {ItemActionsMenu} from '../components/index';
 import * as testData from './testData';
+import {planningApi} from '../superdeskApi';
 
 // configure enzyme
 Enzyme.configure({adapter: new Adapter()});
@@ -304,6 +305,16 @@ export const getTestActionStore = () => {
 
     store.services.api.update = store.spies.api.update;
     store.services.api.save = store.spies.api.save;
+
+    planningApi.redux = {
+        store: {
+            dispatch: store.dispatch,
+            getState: store.getState,
+        },
+    };
+    planningApi.$location = {
+        search: store.services.$location.search,
+    };
 
     return store;
 };

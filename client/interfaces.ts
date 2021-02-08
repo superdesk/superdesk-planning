@@ -51,6 +51,7 @@ export interface IEventOccurStatus {
 export interface ICalendar {
     qcode: string;
     name: string;
+    is_active?: boolean;
 }
 
 export interface IANPACategory {
@@ -367,6 +368,14 @@ export interface IEventItem extends IBaseRestApiResponse {
     _sortDate?: string | Date | moment.Moment;
 }
 
+export interface IEventTemplate extends IBaseRestApiResponse{
+    is_public: boolean;
+    template_name: string;
+    template_type: string;
+    user: IUser['_id'];
+    data: Partial<IEventItem>;
+}
+
 export interface ICoveragePlanningDetails {
     ednote: string;
     g2_content_type: IG2ContentType['qcode'];
@@ -603,6 +612,7 @@ export interface IEventSearchParams {
     page?: number;
     startOfWeek?: number;
     spikeState?: ISearchSpikeState;
+    filter_id?: ISearchFilter['_id'];
     advancedSearch?: {
         anpa_category?: Array<IANPACategory>;
         dates?: IDateSearchParams;
@@ -636,6 +646,7 @@ export interface IPlanningSearchParams {
     spikeState?: ISearchSpikeState;
     startOfWeek?: number;
     timezoneOffset?: string;
+    filter_id?: ISearchFilter['_id'];
     advancedSearch?: {
         anpa_category?: Array<IANPACategory>;
         dates?: IDateSearchParams;
@@ -1222,6 +1233,30 @@ export interface IContentTemplate extends IBaseRestApiResponse {
     };
 }
 
+export interface IAgendaState {
+    agendas: Array<IAgenda>;
+    currentPlanningId?: IPlanningItem['_id'];
+    currentAgendaId?: IAgenda['_id'];
+    currentFilterId?: ISearchFilter['_id'];
+    agendasAreLoading: boolean;
+}
+
+export interface IEventState {
+    events: {[key: string]: IEventItem};
+    eventsInList: Array<IEventItem['_id']>;
+    readOnly: boolean;
+    eventHistoryItems: Array<any>;
+    calendars: Array<ICalendar>;
+    currentCalendarId?: ICalendar['qcode'];
+    currentFilterId?: ISearchFilter['_id'];
+    eventTemplates: Array<IEventItem>;
+}
+
+export interface IPlanningAppState {
+    agenda: IAgendaState;
+    events: IEventState;
+}
+
 export interface IPlanningAPI {
     redux: {
         store: Store;
@@ -1272,4 +1307,15 @@ export interface IPlanningAPI {
         }>;
     }
     search<T>(args: ISearchAPIParams): Promise<IRestApiResponse<T>>;
+    ui: {
+        list: {
+            changeFilterId(id: ISearchFilter['_id'], params?: any): Promise<any>;
+            changeCalendarId(id: ICalendar['qcode'], params?: any): Promise<any>;
+            changeAgendaId(id: IAgenda['_id'], params?: any): Promise<any>;
+        };
+    };
+    // Adding here until Superdesk 2.2 where this functionality is available
+    $location: {
+        search(name: string, values: any): void;
+    }
 }

@@ -327,7 +327,9 @@ def get_params_from_search_filter(search_filter: Dict[str, Any]) -> Dict[str, An
 
     # Now that we have the search filter, construct params with the ones from the DB
     for key, value in search_filter['params'].items():
-        if key in ['anpa_category', 'subject', 'state', 'place', 'source', 'calendars']:
+        if not value:
+            continue
+        elif key in ['anpa_category', 'subject', 'state', 'place', 'source', 'calendars']:
             filter_params[key] = [
                 item['qcode']
                 for item in value

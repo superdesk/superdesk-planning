@@ -48,7 +48,7 @@ const query = (
             tz_offset: getTimeZoneOffset(),
             page: page,
             max_results: maxResults,
-            filter_id: filter_id || selectors.eventsPlanning.currentFilter(getState()),
+            filter_id: filter_id || selectors.main.currentSearchFilterId(getState()),
         })
             .then((response) => {
                 if (storeTotal) {
