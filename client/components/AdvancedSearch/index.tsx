@@ -2,7 +2,7 @@ import React from 'react';
 import moment from 'moment';
 
 import {getUserInterfaceLanguage} from 'appConfig';
-import {SEARCH_SPIKE_STATE, IDateRange, ISearchParams} from '../../interfaces';
+import {SEARCH_SPIKE_STATE, IDateRange, ISearchParams, IWorkflowState} from '../../interfaces';
 
 import {renderGroupedFieldsForPanel} from '../fields';
 
@@ -16,6 +16,12 @@ interface IProps {
     enabledField: string;
 }
 
+const NON_PUBLISHED_STATES: Array<IWorkflowState> = [
+    'draft',
+    'ingested',
+    'spiked',
+];
+
 export class AdvancedSearch extends React.PureComponent<IProps> {
     constructor(props: IProps) {
         super(props);
@@ -25,12 +31,28 @@ export class AdvancedSearch extends React.PureComponent<IProps> {
     }
 
     componentWillReceiveProps(nextProps: Readonly<IProps>) {
-        if (nextProps.params.posted && !this.props.params.posted) {
-            this.props.onChange('spike_state', SEARCH_SPIKE_STATE.NOT_SPIKED);
-        } else if (nextProps.params.state?.length > 0 &&
-            nextProps.params.spike_state === SEARCH_SPIKE_STATE.SPIKED
-        ) {
-            this.props.onChange('spike_state', SEARCH_SPIKE_STATE.NOT_SPIKED);
+        const updates: ISearchParams = {};
+
+        if (!this.props.params.state?.length && nextProps.params.state?.length) {
+            updates.spike_state = SEARCH_SPIKE_STATE.BOTH;
+            updates.include_killed = true;
+        } else if (this.props.params.state?.length && !nextProps.params.state?.length) {
+            updates.spike_state = SEARCH_SPIKE_STATE.NOT_SPIKED;
+            updates.include_killed = false;
+        }
+
+        if (!this.props.params.posted && nextProps.params.posted && nextProps.params.state?.length) {
+            const newStates = nextProps.params.state.filter(
+                (state) => !NON_PUBLISHED_STATES.includes(state.qcode)
+            );
+
+            if (newStates.length != nextProps.params.state.length) {
+                updates.state = newStates;
+            }
+        }
+
+        if (Object.keys(updates).length) {
+            this.props.onChangeMultiple(updates);
         }
     }
 
@@ -91,7 +113,28 @@ export class AdvancedSearch extends React.PureComponent<IProps> {
                     onChange: this.onRelativeDateTimeChange,
                 },
                 spike_state: {
-                    readOnly: this.props.params.posted == true,
+                    enabled: (
+                        !this.props.params.posted &&
+                        !this.props.params.state?.length
+                    ),
+                },
+                agendas: {
+                    enabled: !this.props.params.no_agenda_assigned,
+                },
+                g2_content_type: {
+                    enabled: !this.props.params.no_coverage,
+                },
+                calendars: {
+                    enabled: !this.props.params.no_calendar_assigned,
+                },
+                include_killed: {
+                    enabled: !this.props.params.state?.length,
+                },
+                exclude_rescheduled_and_cancelled: {
+                    enabled: !this.props.params.state?.length,
+                },
+                state: {
+                    excludeOptions: !this.props.params.posted ? [] : NON_PUBLISHED_STATES,
                 },
             },
             null,

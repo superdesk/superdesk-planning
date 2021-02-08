@@ -101,7 +101,8 @@ export function renderFieldsForPanel(
             console.error(`Component for field ${fieldName} not registered`);
         } else if (profile[fieldName].enabled &&
             profile[fieldName][enabledField] &&
-            (!groupName || newField.group === groupName)
+            (!groupName || newField.group === groupName) &&
+            fieldProps[fieldName]?.enabled != false
         ) {
             newField.enabled = true;
             fields[fieldName] = newField;

@@ -220,40 +220,31 @@ def append_states_query_for_advanced_search(params: Dict[str, Any], query: elast
     spike_state = params.get('spike_state')
     states = str_to_array(params.get('state'))
 
-    if spike_state == WORKFLOW_STATE.DRAFT:
-        query.must_not.append(
-            elastic.term(
-                field='state',
-                value=WORKFLOW_STATE.SPIKED
-            )
-        )
-    elif spike_state == WORKFLOW_STATE.SPIKED:
-        query.must.append(
-            elastic.term(
-                field='state',
-                value=WORKFLOW_STATE.SPIKED
-            )
-        )
-    elif len(states):
-        # Push spiked state only if other states are selected
-        # Else, it will be fetched anyway
-        states.append(WORKFLOW_STATE.SPIKED)
-
-    if spike_state != WORKFLOW_STATE.SPIKED and len(states):
+    if len(states):
+        # If any states are selected, then filter for these ONLY
         query.must.append(
             elastic.terms(
                 field='state',
                 values=states
             )
         )
-
-    if not strtobool(params.get('include_killed', False)) and WORKFLOW_STATE.KILLED not in states:
-        query.must_not.append(
-            elastic.term(
-                field='state',
-                value=WORKFLOW_STATE.KILLED
+    else:
+        # Otherwise include/exclude Spiked/Killed based on the params provided
+        if spike_state == WORKFLOW_STATE.DRAFT:
+            query.must_not.append(
+                elastic.term(
+                    field='state',
+                    value=WORKFLOW_STATE.SPIKED
+                )
             )
-        )
+
+        if not strtobool(params.get('include_killed', False)):
+            query.must_not.append(
+                elastic.term(
+                    field='state',
+                    value=WORKFLOW_STATE.KILLED
+                )
+            )
 
 
 def construct_query(
