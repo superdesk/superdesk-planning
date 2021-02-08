@@ -43,7 +43,10 @@ export class AdvancedSearch {
                 getSearchPanel,
                 '[data-test-id=field-include_killed] .sd-toggle'
             ),
-            spike_state: new SpikeStateInput(getSearchPanel, '[data-test-id=field-spike_state]'),
+            spike_state: new ToggleInput(
+                getSearchPanel,
+                '[data-test-id=field-spike_state] .sd-toggle'
+            ),
             lock_state: new SelectInput(
                 getSearchPanel,
                 '[data-test-id=field-lock_state] select'
