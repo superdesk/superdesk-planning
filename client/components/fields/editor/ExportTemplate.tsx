@@ -5,6 +5,7 @@ import {superdeskApi} from '../../../superdeskApi';
 import {IEditorFieldProps, IPlanningExportTemplate} from '../../../interfaces';
 import {EditorFieldSelect} from './base/select';
 import {getExportTemplates} from '../../../selectors/general';
+import {ITEM_TYPE} from '../../../constants/index';
 
 interface IProps extends IEditorFieldProps {
     templates: Array<IPlanningExportTemplate>;
@@ -23,6 +24,7 @@ export class EditorFieldExportTemplateComponent extends React.PureComponent<IPro
             this.props.templates :
             this.props.templates.filter(
                 (filter) => filter.type === this.props.itemType
+                    || ITEM_TYPE.EVENT || ITEM_TYPE.PLANNING
             );
         const field = this.props.field ?? 'export_template';
 
