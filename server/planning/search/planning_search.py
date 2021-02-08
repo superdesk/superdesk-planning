@@ -75,7 +75,6 @@ class PlanningSearchService(superdesk.Service):
                     app.config['ITEMS']: [
                         doc
                         for doc in docs
-                        if doc['_type'] == resource
                     ]
                 }
                 getattr(app, 'on_fetched_resource')(resource, response)
