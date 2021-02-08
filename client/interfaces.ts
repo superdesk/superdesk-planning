@@ -368,6 +368,14 @@ export interface IEventItem extends IBaseRestApiResponse {
     _sortDate?: string | Date | moment.Moment;
 }
 
+export interface IEventTemplate extends IBaseRestApiResponse{
+    is_public: boolean;
+    template_name: string;
+    template_type: string;
+    user: IUser['_id'];
+    data: Partial<IEventItem>;
+}
+
 export interface ICoveragePlanningDetails {
     ednote: string;
     g2_content_type: IG2ContentType['qcode'];
@@ -1241,7 +1249,7 @@ export interface IEventState {
     calendars: Array<ICalendar>;
     currentCalendarId?: ICalendar['qcode'];
     currentFilterId?: ISearchFilter['_id'];
-    eventTemplates: Array<any>;
+    eventTemplates: Array<IEventItem>;
 }
 
 export interface IPlanningAppState {

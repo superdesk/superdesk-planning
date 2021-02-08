@@ -11,16 +11,7 @@ import {calendars, currentCalendarId} from '../../selectors/events';
 import {agendas, currentAgendaId} from '../../selectors/planning';
 import {combinedViewFilters} from '../../selectors/eventsplanning';
 
-import {Dropdown} from '../UI/SubNav';
-
-interface IDropdownItem {
-    id?: string;
-    label?: string;
-    action?(): void;
-    disabled?: boolean;
-    icon?: string;
-    divider?: boolean;
-}
+import {Dropdown, IDropdownItem} from '../UI/SubNav';
 
 interface IProps {
     currentView: 'COMBINED' | 'EVENTS' | 'PLANNING';
@@ -69,6 +60,7 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
     }
 
     getSearchFilters(): Array<IDropdownItem> {
+        const {gettext} = superdeskApi.localization;
         const filterType = this.getCurrentFilterType();
 
         const filters = (this.props.filters ?? []).filter((filter) => (
@@ -76,9 +68,10 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
         ));
 
         return filters.map((filter) => ({
-            label: filter.name,
             id: filter._id,
+            label: filter.name,
             action: () => planningApi.ui.list.changeFilterId(filter._id),
+            group: gettext('Search Filters'),
         }));
     }
 
@@ -87,8 +80,10 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
 
         return [
             {
+                id: 'all',
                 label: gettext('All Events & Planning'),
                 action: () => planningApi.ui.list.changeFilterId(EVENTS_PLANNING.FILTER.ALL_EVENTS_PLANNING),
+                group: '',
             }
         ];
     }
@@ -97,11 +92,15 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
         const {gettext} = superdeskApi.localization;
 
         const items: Array<IDropdownItem> = [{
+            id: 'all',
             label: gettext('All Events'),
             action: () => planningApi.ui.list.changeCalendarId(EVENTS.FILTER.ALL_CALENDARS),
+            group: '',
         }, {
+            id: 'no_calendar',
             label: gettext('No Calendar Assigned'),
             action: () => planningApi.ui.list.changeCalendarId(EVENTS.FILTER.NO_CALENDAR_ASSIGNED),
+            group: '',
         }];
 
         const enabledCalendars = (this.props.calendars ?? []).filter(
@@ -113,20 +112,19 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
         );
 
         if (enabledCalendars.length) {
-            items.push({divider: true});
             enabledCalendars.forEach(
                 (calendar) => {
                     items.push({
                         label: calendar.name,
                         id: calendar.qcode,
                         action: () => planningApi.ui.list.changeCalendarId(calendar.qcode),
+                        group: gettext('Calendars'),
                     });
                 }
             );
         }
 
         if (disabledCalendars.length) {
-            items.push({divider: true});
             disabledCalendars.forEach(
                 (calendar) => {
                     items.push({
@@ -135,6 +133,7 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
                         action: () => planningApi.ui.list.changeCalendarId(calendar.qcode),
                         disabled: true,
                         icon: 'icon-lock',
+                        group: gettext('Disabled Calendars'),
                     });
                 }
             );
@@ -147,36 +146,39 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
         const {gettext} = superdeskApi.localization;
 
         const items: Array<IDropdownItem> = [{
+            id: 'all',
             label: gettext('All Planning Items'),
             action: () => planningApi.ui.list.changeAgendaId(AGENDA.FILTER.ALL_PLANNING),
+            group: '',
         }, {
+            id: 'no_agenda',
             label: gettext('No Agenda Assigned'),
             action: () => planningApi.ui.list.changeAgendaId(AGENDA.FILTER.NO_AGENDA_ASSIGNED),
+            group: '',
         }];
 
-        const enabledAgenads = (this.props.agendas ?? []).filter(
+        const enabledAgendas = (this.props.agendas ?? []).filter(
             (agenda) => agenda.is_enabled
         );
-        const disabledAgenads = (this.props.agendas ?? []).filter(
+        const disabledAgendas = (this.props.agendas ?? []).filter(
             (agenda) => !agenda.is_enabled
         );
 
-        if (enabledAgenads.length) {
-            items.push({divider: true});
-            enabledAgenads.forEach(
+        if (enabledAgendas.length) {
+            enabledAgendas.forEach(
                 (agenda) => {
                     items.push({
                         label: agenda.name,
                         id: agenda._id,
                         action: () => planningApi.ui.list.changeAgendaId(agenda._id),
+                        group: gettext('Agendas'),
                     });
                 }
             );
         }
 
-        if (disabledAgenads.length) {
-            items.push({divider: true});
-            disabledAgenads.forEach(
+        if (disabledAgendas.length) {
+            disabledAgendas.forEach(
                 (agenda) => {
                     items.push({
                         label: agenda.name,
@@ -184,6 +186,7 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
                         action: () => planningApi.ui.list.changeAgendaId(agenda._id),
                         disabled: true,
                         icon: 'icon-lock',
+                        group: gettext('Disabled Agendas'),
                     });
                 }
             );
@@ -248,7 +251,6 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
         const filters = this.getSearchFilters();
 
         if (filters.length) {
-            items.push({divider: true});
             items.push(...filters);
         }
 
@@ -258,6 +260,8 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
                 buttonLabel={buttonProps.label}
                 items={items}
                 scrollable={true}
+                searchable={true}
+                group={true}
             />
         );
     }
