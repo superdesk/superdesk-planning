@@ -46,6 +46,7 @@ describe('events', () => {
                 eventHistoryItems: [],
                 calendars: [],
                 currentCalendarId: undefined,
+                currentFilterId: undefined,
                 eventTemplates: [],
             });
         });
@@ -405,6 +406,7 @@ describe('events', () => {
             expect(result).toEqual({
                 ...initialState,
                 currentCalendarId: 'cal1',
+                currentFilterId: null,
             });
         });
     });

@@ -1,5 +1,8 @@
-import {AGENDA, RESET_STORE, INIT_STORE} from '../constants';
 import {sortBy} from 'lodash';
+
+import {IAgendaState} from '../interfaces';
+import {AGENDA, RESET_STORE, INIT_STORE} from '../constants';
+
 /**
  * Creates a new agenda if it doesn't exist, otherwise updates the existing one
  * @param {array, object} agendas - Array of current loaded Agendas
@@ -20,10 +23,11 @@ const replaceOrAddInAgendas = (agendas, agenda) => {
     ]);
 };
 
-const initialState = {
+const initialState: IAgendaState = {
     agendas: [],
     currentPlanningId: undefined,
     currentAgendaId: null,
+    currentFilterId: null,
     agendasAreLoading: false,
 };
 
@@ -48,6 +52,13 @@ const agendaReducer = (state = initialState, action) => {
         return {
             ...state,
             currentAgendaId: action.payload,
+            currentFilterId: null,
+        };
+    case AGENDA.ACTIONS.SELECT_FILTER:
+        return {
+            ...state,
+            currentAgendaId: null,
+            currentFilterId: action.payload,
         };
     case AGENDA.ACTIONS.ADD_OR_REPLACE_AGENDA:
         return {

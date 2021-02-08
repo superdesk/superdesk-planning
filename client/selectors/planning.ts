@@ -2,6 +2,7 @@ import {createSelector} from 'reselect';
 import {get, cloneDeep} from 'lodash';
 
 import {appConfig} from 'appConfig';
+import {IPlanningAppState} from '../interfaces';
 
 import {session, userPreferences} from './general';
 import {planningUtils, lockUtils, getSearchDateRange} from '../utils';
@@ -16,6 +17,7 @@ export const agendas = (state) => get(state, 'agenda.agendas', []);
 export const currentPlanningId = (state) => get(state, 'planning.currentPlanningId');
 export const currentSearch = (state) => get(state, 'main.search.PLANNING.currentSearch');
 export const selectedAgendaId = (state) => get(state, 'agenda.currentAgendaId', null);
+export const currentPlanningFilterId = (state: IPlanningAppState) => state?.agenda?.currentFilterId;
 const fullText = (state) => get(state, 'main.search.PLANNING.fulltext', '');
 const previewId = (state) => get(state, 'main.previewId', null);
 
@@ -87,8 +89,8 @@ export const FlattenedPlanningList = createSelector(
 
 
 export const getPlanningFilterParams = createSelector(
-    [currentAgendaId, currentSearch, fullText],
-    (agendaId, currentSearch, fullText) => {
+    [currentAgendaId, currentSearch, fullText, currentPlanningFilterId],
+    (agendaId, currentSearch, fullText, filterId) => {
         let agendas = null;
 
         if (agendaId && agendaId !== AGENDA.FILTER.NO_AGENDA_ASSIGNED &&
@@ -103,6 +105,7 @@ export const getPlanningFilterParams = createSelector(
             spikeState: get(currentSearch, 'spikeState', SPIKED_STATE.NOT_SPIKED),
             fulltext: fullText,
             excludeRescheduledAndCancelled: get(currentSearch, 'excludeRescheduledAndCancelled', false),
+            filter_id: filterId,
             page: 1,
         };
     }

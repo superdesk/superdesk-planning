@@ -4,7 +4,7 @@ import moment from 'moment';
 import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
 import {removeAutosaveFields, modifyForClient} from '../../utils';
 import {main} from '../';
-import {AGENDA, MAIN, POST_STATE} from '../../constants';
+import {AGENDA, POST_STATE} from '../../constants';
 import eventsUi from '../events/ui';
 import eventsApi from '../events/api';
 import planningUi from '../planning/ui';
@@ -16,7 +16,6 @@ describe('actions.main', () => {
     let store;
     let services;
     let data;
-    // const errorMessage = {data: {_message: 'Failed!'}};
 
     beforeEach(() => {
         store = getTestActionStore();
@@ -52,88 +51,6 @@ describe('actions.main', () => {
 
             expect(services.$location.search.callCount).toBe(0);
         });
-    });
-
-    describe('filter', () => {
-        beforeEach(() => {
-            sinon.stub(eventsUi, 'fetchEvents').returns(Promise.resolve());
-            sinon.stub(eventsUi, 'clearList');
-            sinon.stub(planningUi, 'clearList');
-            sinon.stub(eventsPlanningUi, 'clearList');
-            sinon.stub(eventsPlanningUi, 'selectFilter').returns(Promise.resolve());
-        });
-
-        afterEach(() => {
-            restoreSinonStub(eventsUi.fetchEvents);
-            restoreSinonStub(eventsUi.clearList);
-            restoreSinonStub(planningUi.clearList);
-            restoreSinonStub(eventsPlanningUi.clearList);
-            restoreSinonStub(eventsPlanningUi.selectFilter);
-        });
-
-        it('filter combined', (done) => (
-            store.test(done, main.filter(MAIN.FILTERS.COMBINED))
-                .then(() => {
-                    expect(store.dispatch.args[0]).toEqual([{
-                        type: 'MAIN_FILTER',
-                        payload: 'COMBINED',
-                    }]);
-                    expect(store.dispatch.callCount).toBe(7);
-                    expect(services.$timeout.callCount).toBe(1);
-                    expect(services.$location.search.callCount).toBe(5);
-                    expect(services.$location.search.args).toEqual(
-                        [[], [], [], ['filter', 'COMBINED'], []]
-                    );
-
-                    expect(eventsPlanningUi.selectFilter.callCount).toBe(1);
-                    expect(planningUi.clearList.callCount).toBe(1);
-                    expect(eventsUi.clearList.callCount).toBe(1);
-                    done();
-                })
-        ).catch(done.fail));
-
-        it('filter events', (done) => (
-            store.test(done, main.filter(MAIN.FILTERS.EVENTS))
-                .then(() => {
-                    expect(store.dispatch.args[0]).toEqual([{
-                        type: 'MAIN_FILTER',
-                        payload: 'EVENTS',
-                    }]);
-
-                    expect(store.dispatch.callCount).toBe(11);
-                    expect(services.$timeout.callCount).toBe(2);
-                    expect(services.$location.search.callCount).toBe(6);
-                    expect(services.$location.search.args).toEqual(
-                        [[], [], [], ['filter', 'EVENTS'], [], ['calendar', 'ALL_CALENDARS']]
-                    );
-
-                    expect(planningUi.clearList.callCount).toBe(1);
-                    expect(eventsPlanningUi.clearList.callCount).toBe(1);
-                    expect(eventsUi.fetchEvents.callCount).toBe(1);
-
-                    done();
-                })
-        ).catch(done.fail));
-
-        it('filter planning', (done) => (
-            store.test(done, main.filter(MAIN.FILTERS.PLANNING))
-                .then(() => {
-                    expect(store.dispatch.args[0]).toEqual([{
-                        type: 'MAIN_FILTER',
-                        payload: 'PLANNING',
-                    }]);
-
-                    expect(store.dispatch.callCount).toBe(17);
-                    expect(services.$location.search.args).toEqual(
-                        [[], [], [], ['filter', 'PLANNING'], [], ['searchParams', '{}']]
-                    );
-
-                    expect(eventsUi.clearList.callCount).toBe(1);
-                    expect(eventsPlanningUi.clearList.callCount).toBe(1);
-
-                    done();
-                })
-        ).catch(done.fail));
     });
 
     describe('post', () => {
@@ -350,7 +267,15 @@ describe('actions.main', () => {
             store.test(done, main.clearSearch())
                 .then(() => {
                     expect(eventsUi.fetchEvents.callCount).toBe(1);
-                    expect(eventsUi.fetchEvents.args[0]).toEqual([{}]);
+                    expect(eventsUi.fetchEvents.args[0]).toEqual([{
+                        noCalendarAssigned: false,
+                        calendars: null,
+                        advancedSearch: {},
+                        spikeState: 'draft',
+                        fulltext: '',
+                        filter_id: undefined,
+                        page: 1,
+                    }]);
                     done();
                 })
                 .catch(done.fail);
@@ -369,7 +294,9 @@ describe('actions.main', () => {
                         spikeState: 'draft',
                         fulltext: '',
                         excludeRescheduledAndCancelled: false,
-                        page: 1}]);
+                        page: 1,
+                        filter_id: undefined,
+                    }]);
                     done();
                 })
                 .catch(done.fail);
@@ -383,13 +310,10 @@ describe('actions.main', () => {
                     expect(eventsPlanningUi.fetch.args[0]).toEqual([{
                         advancedSearch: {},
                         page: 1,
-                        calendars: [],
-                        agendas: [],
-                        places: [],
                         fulltext: '',
                         spikeState: 'draft',
                         eventsPlanningFilter: 'ALL_EVENTS_PLANNING',
-                        filter_id: 'ALL_EVENTS_PLANNING',
+                        filter_id: null,
                     }]);
                     done();
                 })

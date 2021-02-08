@@ -5,9 +5,9 @@ import moment from 'moment';
 import {appConfig} from 'appConfig';
 
 import {MAIN, SPIKED_STATE} from '../constants';
-import {orderedEvents, storedEvents, eventsInList} from './events';
-import {orderedPlanningList, storedPlannings, plansInList} from './planning';
-import {orderedEventsPlanning, getEventsPlanningList} from './eventsplanning';
+import {orderedEvents, storedEvents, eventsInList, currentEventFilterId} from './events';
+import {orderedPlanningList, storedPlannings, plansInList, currentPlanningFilterId} from './planning';
+import {orderedEventsPlanning, getEventsPlanningList, selectedFilter} from './eventsplanning';
 import {ITEM_TYPE} from '../constants';
 import {getSearchDateRange} from '../utils';
 
@@ -78,6 +78,20 @@ export const currentStartFilter = createSelector(
     [currentSearch],
     (search) =>
         get(getSearchDateRange(search, appConfig.start_of_week), 'startDate') || moment()
+);
+
+export const currentSearchFilterId = createSelector(
+    [activeFilter, selectedFilter, currentEventFilterId, currentPlanningFilterId],
+    (view, combinedFilterId, eventsFilterId, planningFilterId) => {
+        switch (view) {
+        case MAIN.FILTERS.COMBINED:
+            return combinedFilterId;
+        case MAIN.FILTERS.EVENTS:
+            return eventsFilterId;
+        case MAIN.FILTERS.PLANNING:
+            return planningFilterId;
+        }
+    }
 );
 
 export const eventsTotalItems = (state) => get(state, 'main.search.EVENTS.totalItems', 0);

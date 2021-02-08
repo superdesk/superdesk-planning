@@ -106,29 +106,13 @@ export const getRelatedPlanningsInList = createSelector(
  * @type {Reselect.Selector<any, any>}
  */
 export const getEventsPlanningViewParams = createSelector(
-    [currentFilter, currentSearch, fullText, combinedViewFilters],
-    (filterId, search, fullTextParam, filters) => {
-        let agendas = [], calendars = [], places = [];
-
-        if (filterId !== EVENTS_PLANNING.FILTER.ALL_EVENTS_PLANNING) {
-            const filter = filters.find((f) => f._id === filterId);
-
-            agendas = get(filter, 'agendas') || [];
-            calendars = get(filter, 'calendars') || [];
-            places = get(filter, 'places') || [];
-        }
-
-        const queryParams = {
-            advancedSearch: get(search, 'advancedSearch', {}),
-            spikeState: get(search, 'spikeState', SPIKED_STATE.NOT_SPIKED),
-            fulltext: fullTextParam,
-            eventsPlanningFilter: filterId || EVENTS_PLANNING.FILTER.ALL_EVENTS_PLANNING,
-            agendas: agendas,
-            calendars: calendars,
-            places: places,
-            page: 1,
-        };
-
-        return queryParams;
-    }
+    [selectedFilter, currentSearch, fullText],
+    (filterId, search, fullTextParam) => ({
+        advancedSearch: get(search, 'advancedSearch', {}),
+        spikeState: get(search, 'spikeState', SPIKED_STATE.NOT_SPIKED),
+        fulltext: fullTextParam,
+        eventsPlanningFilter: filterId || EVENTS_PLANNING.FILTER.ALL_EVENTS_PLANNING,
+        filter_id: filterId,
+        page: 1,
+    })
 );

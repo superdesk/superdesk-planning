@@ -11,4 +11,3 @@ export {EventEditor} from './EventEditor';
 export {EventUpdateMethodInput, EventUpdateMethods} from './EventUpdateMethodInput';
 export {EventItemWithPlanning} from './EventItemWithPlanning';
 export {EventMenuPanel} from './EventMenuPanel';
-export {CalendarSubnavDropdown} from './CalendarSubnavDropdown';
