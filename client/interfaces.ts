@@ -641,12 +641,15 @@ export interface IPlanningSearchParams {
     excludeRescheduledAndCancelled?: boolean;
     featured?: boolean;
     fulltext?: string;
+    includeKilled?: boolean;
     includeScheduledUpdates?: boolean;
     noAgendaAssigned?: boolean;
     spikeState?: ISearchSpikeState;
     startOfWeek?: number;
     timezoneOffset?: string;
     filter_id?: ISearchFilter['_id'];
+    maxResults?: number;
+    page?: number;
     advancedSearch?: {
         anpa_category?: Array<IANPACategory>;
         dates?: IDateSearchParams;
@@ -717,6 +720,7 @@ export interface ICombinedSearchParams {
     agendas: Array<IAgenda>;
     places?: Array<IPlace>;
     filter_id?: ISearchFilter['_id'];
+    includeKilled?: boolean;
     advancedSearch?: {
         name?: string;
         anpa_category?: Array<IANPACategory>;
@@ -1000,7 +1004,7 @@ export interface ISearchParams {
     place?: Array<IPlace>;
     language?: string;
     state?: Array<{
-        qcode?: string;
+        qcode?: IWorkflowState;
         name?: string;
     }>;
     spike_state?: ISearchSpikeState;
@@ -1312,6 +1316,8 @@ export interface IPlanningAPI {
             changeFilterId(id: ISearchFilter['_id'], params?: any): Promise<any>;
             changeCalendarId(id: ICalendar['qcode'], params?: any): Promise<any>;
             changeAgendaId(id: IAgenda['_id'], params?: any): Promise<any>;
+            search(params: ISearchParams): Promise<any>;
+            clearSearch(): Promise<any>;
         };
     };
     // Adding here until Superdesk 2.2 where this functionality is available

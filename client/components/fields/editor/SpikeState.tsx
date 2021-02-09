@@ -1,31 +1,37 @@
 import * as React from 'react';
+import {get, set} from 'lodash';
 
 import {superdeskApi} from '../../../superdeskApi';
-import {SEARCH_SPIKE_STATE} from '../../../interfaces';
+import {SEARCH_SPIKE_STATE, IEditorFieldProps} from '../../../interfaces';
 
-import {IEditorFieldProps} from './base';
-import {EditorFieldRadio} from './base/radio';
+import {EditorFieldToggle} from './base/toggle';
 
 export class EditorFieldSpikeState extends React.PureComponent<IEditorFieldProps> {
     render() {
         const {gettext} = superdeskApi.localization;
+        const field = this.props.field ?? 'spike_state';
+        const item = {};
+        const value = (get(this.props.item, field) ?? SEARCH_SPIKE_STATE.NOT_SPIKED) === SEARCH_SPIKE_STATE.BOTH;
+
+        const onChange = (_: string, newValue: boolean) => {
+            this.props.onChange(
+                field,
+                newValue ?
+                    SEARCH_SPIKE_STATE.BOTH :
+                    SEARCH_SPIKE_STATE.NOT_SPIKED
+            );
+        };
+
+        set(item, field, value);
 
         return (
-            <EditorFieldRadio
-                field={this.props.field ?? 'spike_state'}
-                label={this.props.label ?? gettext('Spike State')}
-                defaultValue={SEARCH_SPIKE_STATE.NOT_SPIKED}
-                options={[{
-                    value: SEARCH_SPIKE_STATE.NOT_SPIKED,
-                    label: gettext('Exclude Spike'),
-                }, {
-                    value: SEARCH_SPIKE_STATE.BOTH,
-                    label: gettext('Include Spike'),
-                }, {
-                    value: SEARCH_SPIKE_STATE.SPIKED,
-                    label: gettext('Spiked Only'),
-                }]}
+            <EditorFieldToggle
+                field={field}
+                label={this.props.label ?? gettext('Include Spiked')}
+                defaultValue={false}
                 {...this.props}
+                item={item}
+                onChange={onChange}
             />
         );
     }

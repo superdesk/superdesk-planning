@@ -63,8 +63,8 @@ describe('Search.Events: searching events', () => {
             expectedCount: 0,
             clearAfter: true,
         }, {
-            params: {spike_state: 'Spiked Only'},
-            expectedCount: 1,
+            params: {spike_state: true},
+            expectedCount: 2,
             clearAfter: true,
         }, {
             params: {calendars: ['Finance']},
