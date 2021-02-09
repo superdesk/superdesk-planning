@@ -24,6 +24,7 @@ const query = (
         agendas = [],
         places = [],
         filter_id = null,
+        includeKilled = false,
     }: ICombinedSearchParams,
     storeTotal = false
 ) => (
@@ -49,6 +50,7 @@ const query = (
             page: page,
             max_results: maxResults,
             filter_id: filter_id || selectors.main.currentSearchFilterId(getState()),
+            include_killed: includeKilled,
         })
             .then((response) => {
                 if (storeTotal) {

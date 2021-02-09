@@ -1,11 +1,14 @@
-import {IAgenda, ICalendar, IPlanningAPI, ISearchFilter} from '../../interfaces';
+import moment from 'moment';
+
+import {IAgenda, ICalendar, IPlanningAPI, ISearchFilter, ISearchParams} from '../../interfaces';
 import {planningApi} from '../../superdeskApi';
 import {AGENDA, EVENTS, EVENTS_PLANNING, MAIN} from '../../constants';
 
-import {activeFilter} from '../../selectors/main';
+import {activeFilter, lastRequestParams} from '../../selectors/main';
 import {getEventFilterParams} from '../../selectors/events';
 import {getPlanningFilterParams} from '../../selectors/planning';
 import {getEventsPlanningViewParams} from '../../selectors/eventsplanning';
+import {searchParamsToOld} from '../../utils/search';
 
 import * as actions from '../../actions';
 
@@ -99,8 +102,50 @@ function changeAgendaId(id: IAgenda['_id'], params = {}) {
     });
 }
 
+function search(newParams: ISearchParams) {
+    const {dispatch, getState} = planningApi.redux.store;
+    const currentSearch = searchParamsToOld(newParams, activeFilter(getState()));
+    const previousParams = lastRequestParams(getState());
+    const advancedSearch = currentSearch || previousParams.currentSearch || {};
+    const dates = advancedSearch?.advancedSearch?.dates || {};
+
+    // If an end date had been provided without a start date
+    // then default the start date to 1 day before the end date
+    if (!dates.range && !dates.start && !dates.end) {
+        dates.start = moment(dates.end).subtract(1, 'days');
+    }
+
+    const params = {
+        ...previousParams,
+        page: 1,
+        fulltext: newParams.full_text?.length ? newParams.full_text : previousParams.fulltext,
+        ...advancedSearch,
+    };
+
+    dispatch(actions.main.setUnsetLoadingIndicator(true));
+    return reloadList(params).finally(() => {
+        dispatch(actions.main.setUnsetLoadingIndicator(false));
+    });
+}
+
+function clearSearch() {
+    const {dispatch, getState} = planningApi.redux.store;
+
+    dispatch({
+        type: MAIN.ACTIONS.CLEAR_SEARCH,
+        payload: activeFilter(getState()),
+    });
+
+    dispatch(actions.main.setUnsetLoadingIndicator(true));
+    return reloadList().finally(() => {
+        dispatch(actions.main.setUnsetLoadingIndicator(false));
+    });
+}
+
 export const list: IPlanningAPI['ui']['list'] = {
     changeFilterId,
     changeCalendarId,
     changeAgendaId,
+    search,
+    clearSearch,
 };
