@@ -1207,7 +1207,7 @@ export interface IEventsPlanningContentPanelProps {
 
 export interface IPlanningExportTemplate extends IBaseRestApiResponse {
     name: string;
-    type: 'event' | 'planning' | 'combined';
+    type: 'events' | 'planning' | 'combined';
     data: {[key: string]: any};
     label: string;
     download?: boolean;
