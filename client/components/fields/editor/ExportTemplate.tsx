@@ -23,8 +23,10 @@ export class EditorFieldExportTemplateComponent extends React.PureComponent<IPro
         const templates = this.props.itemType == null ?
             this.props.templates :
             this.props.templates.filter(
-                (filter) => filter.type === this.props.itemType
-                    || ITEM_TYPE.EVENT || ITEM_TYPE.PLANNING
+                (filter) => (
+                    filter.type === this.props.itemType ||
+                    (filter.type === ITEM_TYPE.EVENT && this.props.itemType === 'events')
+                )
             );
         const field = this.props.field ?? 'export_template';
 
