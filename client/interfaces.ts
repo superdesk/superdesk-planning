@@ -1178,12 +1178,14 @@ export interface IEditorFieldProps {
 export interface IListFieldProps {
     item: any;
     field?: string;
+    language?: string;
 }
 
 export type IRenderPanelType =
     | 'editor'
     | 'list'
-    | 'simple-preview';
+    | 'simple-preview'
+    | 'form-preview';
 
 export type IEventsPlanningField =
     | 'calendars'
