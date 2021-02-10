@@ -41,6 +41,7 @@ export function resetApp(profile) {
         method: 'POST',
         timeout: 40000,
         json: {profile: profile},
+        retryOnStatusCodeFailure: true,
     });
 }
 

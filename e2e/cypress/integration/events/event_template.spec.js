@@ -44,7 +44,9 @@ describe('Planning.Events: event templates', () => {
         editor.type(event);
         editor.expect(expectedEvent);
         editor.waitForAutosave();
-        editor.createButton.click();
+        editor.createButton
+            .should('exist')
+            .click();
         editor.waitLoadingComplete();
 
         // Now create the Template
@@ -55,17 +57,24 @@ describe('Planning.Events: event templates', () => {
         modal.waitTillOpen(30000);
         modal.element
             .find('textarea')
-            .type('Example')
+            .type('Example');
         modal.getFooterButton('Submit')
             .click();
         modal.waitTillClosed(30000);
-        editor.closeButton.click();
+
+        // Wait for the Editor to re-render
+        // otherwise the close button may re-render during attempts to click it
+        cy.wait(3500);
+        editor.closeButton
+            .should('exist')
+            .click();
         editor.waitTillClosed();
 
         // Open Manage Templates modal
         subnav.menuBtn.click();
         subnav.menu
             .contains('Manage event templates')
+            .should('exist')
             .click();
 
         // Make sure our new template is there
@@ -138,6 +147,7 @@ describe('Planning.Events: event templates', () => {
         subnav.menu
             .find('button')
             .contains('Example')
+            .should('exist')
             .click();
 
         // Check the form values are the same as the template (excluding date/time values)

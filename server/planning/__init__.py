@@ -12,6 +12,7 @@
 
 import superdesk
 from eve.utils import config
+from flask_babel import lazy_gettext, _
 from .locations import LocationsResource, LocationsService
 from .agendas import AgendasResource, AgendasService
 from .planning_export_templates import PlanningExportTemplatesResource, PlanningExportTemplatesService
@@ -39,14 +40,16 @@ from datetime import timedelta
 from superdesk import register_jinja_filter
 from .common import get_formatted_address
 
-from .commands import FlagExpiredItems, DeleteSpikedItems, DeleteMarkedAssignments
+from .commands import FlagExpiredItems, DeleteSpikedItems, DeleteMarkedAssignments, ExportScheduledFilters
 import planning.commands  # noqa
 import planning.feeding_services # noqa
 import planning.feed_parsers  # noqa
 import planning.output_formatters  # noqa
 from planning.planning_download import init_app as init_planning_download_app
 
-__version__ = '2.0.2'
+__version__ = '2.1.0'
+
+_SERVER_PATH = os.path.dirname(os.path.realpath(__file__))
 
 
 def init_app(app):
@@ -89,44 +92,44 @@ def init_app(app):
 
     superdesk.privilege(
         name='planning',
-        label='Planning',
-        description='Create, update, and delete  events, planning items, and coverages'
+        label=lazy_gettext('Planning'),
+        description=lazy_gettext('Create, update, and delete  events, planning items, and coverages'),
     )
 
     superdesk.privilege(
         name='planning_agenda_management',
-        label='Planning - Agenda Management',
-        description='Ability to create and modify Agendas'
+        label=lazy_gettext('Planning - Agenda Management'),
+        description=lazy_gettext('Ability to create and modify Agendas'),
     )
 
     superdesk.privilege(
         name='planning_agenda_delete',
-        label='Planning - Delete Agendas',
-        description='Ability to delete an Agenda'
+        label=lazy_gettext('Planning - Delete Agendas'),
+        description=lazy_gettext('Ability to delete an Agenda'),
     )
 
     superdesk.privilege(
         name='planning_edit_expired',
-        label='Planning - Edit Expired Items',
-        description='Ability to edit expired Event and Planning items'
+        label=lazy_gettext('Planning - Edit Expired Items'),
+        description=lazy_gettext('Ability to edit expired Event and Planning items'),
     )
 
     superdesk.privilege(
         name='planning_create_past',
-        label='Planning - Create Event/Planning in the past',
-        description='Ability to create an Event or Planning item in the past'
+        label=lazy_gettext('Planning - Create Event/Planning in the past'),
+        description=lazy_gettext('Ability to create an Event or Planning item in the past'),
     )
 
     superdesk.privilege(
         name='planning_locations_management',
-        label='Planning - Manage locations',
-        decsription='Ability to create, edit and delete locations'
+        label=lazy_gettext('Planning - Manage locations'),
+        decsription=lazy_gettext('Ability to create, edit and delete locations'),
     )
 
     superdesk.privilege(
         name='planning_assignments_view',
-        label='Planning - Assignments view',
-        decsription='Ability to access assignments view'
+        label=lazy_gettext('Planning - Assignments view'),
+        decsription=lazy_gettext('Ability to access assignments view'),
     )
 
     app.on_update_users += PlanningNotifications().user_update
@@ -135,37 +138,37 @@ def init_app(app):
         'type': 'bool',
         'enabled': True,
         'default': False,
-        'label': 'Allow Notifications To Slack',
-        'category': 'notifications'
+        'label': _('Allow Notifications To Slack'),
+        'category': _('Notifications'),
     })
 
     superdesk.register_default_user_preference('planning:calendar', {
         'type': 'dict',
-        'label': 'Default Calendar',
-        'category': 'planning',
+        'label': _('Default Calendar'),
+        'category': _('Planning'),
         'calendar': {}
     })
 
     superdesk.register_default_user_preference('planning:agenda', {
         'type': 'dict',
-        'label': 'Default Agenda',
-        'category': 'planning',
+        'label': _('Default Agenda'),
+        'category': _('Planning'),
         'agenda': {},
         'default': None
     })
 
     superdesk.register_default_user_preference('planning:events_planning_filter', {
         'type': 'dict',
-        'label': 'Default Events Planning Filter',
-        'category': 'planning',
+        'label': _('Default Events Planning Filter'),
+        'category': _('Planning'),
         'filter': {},
         'default': None
     })
 
     superdesk.register_default_user_preference('planning:default_coverage_desks', {
         'type': 'dict',
-        'label': 'Default desk for coverage types',
-        'category': 'planning',
+        'label': _('Default desk for coverage types'),
+        'category': _('Planning'),
         'desks': {},
         'default': None
     })
@@ -174,8 +177,8 @@ def init_app(app):
         'type': 'bool',
         'enabled': False,
         'default': False,
-        'label': 'Open advanced mode when adding coverages',
-        'category': 'planning',
+        'label': _('Open advanced mode when adding coverages'),
+        'category': _('Planning'),
     })
 
     app.client_config['max_recurrent_events'] = get_max_recurrent_events(app)
@@ -237,6 +240,8 @@ def init_app(app):
             'schedule': timedelta(seconds=60)  # Runs once every minute
         }
 
+    init_scheduled_exports_task(app)
+
     # Create 'type' required for planning module if not already preset
     with app.app_context():
         vocabulary_service = superdesk.get_resource_service('vocabularies')
@@ -262,10 +267,32 @@ def init_app(app):
                 })
 
         custom_loaders = jinja2.ChoiceLoader(app.jinja_loader.loaders + [jinja2.FileSystemLoader(
-            os.path.join(os.path.dirname(os.path.realpath(__file__)), 'templates'))])
+            os.path.join(_SERVER_PATH, 'templates'))])
         app.jinja_loader = custom_loaders
 
         register_jinja_filter('formatted_address', get_formatted_address)
+
+    # add planning translations directory
+    app.config['BABEL_TRANSLATION_DIRECTORIES'] += ";" + os.path.join(_SERVER_PATH, "translations")
+
+    app.config.setdefault('APPS_DATA_UPDATES_PATHS', [])
+    app.config['APPS_DATA_UPDATES_PATHS'].append(os.path.join(_SERVER_PATH, 'data_updates'))
+
+
+def init_scheduled_exports_task(app):
+    # If the celery task is not configured, then set the default now
+    if not app.config['CELERY_BEAT_SCHEDULE'].get('planning.export_scheduled_filters'):
+        app.config['CELERY_TASK_ROUTES']['planning.export_scheduled_filters'] = {
+            'queue': celery_queue('default'),
+            'routing_key': 'planning.exports'
+        }
+
+    # If the celery schedule is not configured, then set the default now
+    if not app.config['CELERY_BEAT_SCHEDULE'].get('planning:export_scheduled_filters'):
+        app.config['CELERY_BEAT_SCHEDULE']['planning:export_scheduled_filters'] = {
+            'task': 'planning.export_scheduled_filters',
+            'schedule': crontab(minute=0)
+        }
 
 
 @celery.task(soft_time_limit=600)
@@ -281,3 +308,8 @@ def delete_spiked():
 @celery.task(soft_time_limit=600)
 def delete_assignments():
     DeleteMarkedAssignments().run()
+
+
+@celery.task(soft_time_limit=600)
+def export_scheduled_filters():
+    ExportScheduledFilters().run()

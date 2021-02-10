@@ -17,6 +17,7 @@ export const UpdateMethodSelection = ({
     showSpace,
     originalEvent,
     readOnly,
+    eventsInUse,
 }) => (
     <div>
         { showMethodSelection && (
@@ -81,4 +82,5 @@ UpdateMethodSelection.propTypes = {
     showSpace: PropTypes.bool,
     readOnly: PropTypes.bool,
     originalEvent: PropTypes.object,
+    eventsInUse: PropTypes.array,
 };

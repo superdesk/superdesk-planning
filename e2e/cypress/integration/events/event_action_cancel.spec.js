@@ -102,7 +102,9 @@ describe('Planning.Events: event cancel action', () => {
         list.item(0)
             .dblclick();
         expectCancelledInEditor();
-        editor.closeButton.click();
+        editor.closeButton
+            .should('exist')
+            .click();
     });
 
     it('can cancel from the preview', () => {
@@ -126,7 +128,9 @@ describe('Planning.Events: event cancel action', () => {
         list.item(0)
             .dblclick();
         expectCancelledInEditor();
-        editor.closeButton.click();
+        editor.closeButton
+            .should('exist')
+            .click();
     });
 
     it('can cancel from the editor', () => {
@@ -157,7 +161,9 @@ describe('Planning.Events: event cancel action', () => {
         list.item(0)
             .dblclick();
         expectCancelledInEditor();
-        editor.closeButton.click();
+        editor.closeButton
+            .should('exist')
+            .click();
     });
 
     it('can cancel from the editor ignoring changes', () => {

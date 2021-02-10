@@ -1,59 +1,92 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {pick, isEqual, cloneDeep, set, get} from 'lodash';
 
 import {getUserInterfaceLanguage} from 'appConfig';
+import {superdeskApi, planningApi} from '../../superdeskApi';
+import {
+    ISearchFilter,
+    IEventsPlanningContentPanelProps,
+    FILTER_TYPE,
+    ISearchParams,
+} from '../../interfaces';
 
-import {SlideInPanel, Form, ToggleBox} from '../UI';
+import {SidePanel} from '../UI';
 import {gettext, eventPlanningUtils} from '../../utils';
-import {SelectMetaTermsInput} from '../UI/Form';
+import {AdvancedSearch} from '../AdvancedSearch';
+import {renderFieldsForPanel} from '../fields';
 
-export class EditFilter extends React.Component {
+interface IState {
+    pristine: boolean;
+    filter: Partial<ISearchFilter>;
+    invalid: boolean;
+    errors: {[key: string]: string};
+    profile: any;
+}
+
+export class EditFilter extends React.Component<IEventsPlanningContentPanelProps, IState> {
+    private popupContainer: React.RefObject<HTMLDivElement>;
+
     constructor(props) {
         super(props);
+        const filter = this.props.filter != null ?
+            cloneDeep(this.props.filter) :
+            eventPlanningUtils.defaultFilterValues();
+
         this.state = {
             pristine: true,
-            filter: eventPlanningUtils.defaultFilterValues(),
+            filter: filter,
             invalid: false,
             errors: {},
+            profile: this.getProfile(filter.item_type),
         };
 
-        this.onChange = this.onChange.bind(this);
+        this.onFilterChange = this.onFilterChange.bind(this);
+        this.onParamChange = this.onParamChange.bind(this);
+        this.onMultiParamChange = this.onMultiParamChange.bind(this);
         this.onSaveHandler = this.onSaveHandler.bind(this);
         this.isPristine = this.isPristine.bind(this);
         this.getPopupContainer = this.getPopupContainer.bind(this);
-        this.dom = {popupContainer: null};
-        this.editableFields = ['name', 'calendars', 'agendas', 'places'];
+        this.onTypeChanged = this.onTypeChanged.bind(this);
+
+        this.popupContainer = React.createRef();
     }
 
-    componentWillMount() {
-        const {filter} = this.props;
-
-        if (filter) {
-            this.setState({filter: cloneDeep(filter)});
+    getProfile(itemType: FILTER_TYPE = FILTER_TYPE.COMBINED) {
+        switch (itemType) {
+        case FILTER_TYPE.EVENTS:
+            return planningApi.events.getSearchProfile();
+        case FILTER_TYPE.PLANNING:
+            return planningApi.planning.getSearchProfile();
+        case FILTER_TYPE.COMBINED:
+            return planningApi.combined.getSearchProfile();
         }
     }
 
+    onTypeChanged(field: string, value: FILTER_TYPE) {
+        this.setState({profile: this.getProfile(value)});
+        this.onFilterChange(field, value);
+    }
+
     getPopupContainer() {
-        return this.dom.popupContainer;
+        return this.popupContainer.current;
     }
 
-    isPristine(updates = null) {
-        const updated = pick(updates || this.state.filter, this.editableFields);
-        const original = pick(this.props.filter || eventPlanningUtils.defaultFilterValues(), this.editableFields);
-
-        return isEqual(updated, original);
+    isPristine(updates: Partial<ISearchFilter> = null) {
+        return this.state.filter.name == updates?.name &&
+            this.state.filter.item_type == updates?.item_type &&
+            isEqual(this.state.filter.params, updates?.params);
     }
 
-    onChange(field, value) {
+    onFilterChange(field: string, value: any) {
         const updates = cloneDeep(this.state.filter);
         let newValue = value;
 
         if (field === 'name') {
             newValue = value.replace(/^\s+/, '');
-        } else if ((field === 'calendars' || field === 'agendas' || field === 'places') && !value) {
+        } else if (Array.isArray(value) && value.length === 0) {
             newValue = [];
         }
+
         set(updates, field, newValue);
 
         const pristine = this.isPristine(updates);
@@ -71,18 +104,58 @@ export class EditFilter extends React.Component {
         });
     }
 
+    onParamChange(field: string, value: any) {
+        let newValue = value;
+
+        if (typeof value === 'string') {
+            // Remove whitespace from the string
+            newValue = value.replace(/^\s+/, '');
+
+            if (newValue.length === 0) {
+                newValue = null;
+            }
+        } else if (Array.isArray(value) && value.length === 0) {
+            newValue = null;
+        }
+
+        this.onFilterChange(`params.${field}`, newValue);
+    }
+
+    onMultiParamChange(updates: ISearchParams) {
+        const filter = cloneDeep(this.state.filter);
+
+        Object.keys(updates).forEach((field) => {
+            const value = get(updates, field);
+
+            if (Array.isArray(value) && value.length === 0) {
+                set(filter.params, field, null);
+            } else {
+                set(filter.params, field, value);
+            }
+        });
+
+        const pristine = this.isPristine(filter);
+        let invalid = false, errors = {};
+
+        if (!pristine) {
+            ({invalid, errors} = this.isInValid(filter));
+        }
+
+        this.setState({
+            filter,
+            pristine,
+            invalid,
+            errors,
+        });
+    }
+
     isInValid(updates) {
-        const errors = {};
+        const errors: {[key: string]: string} = {};
 
         if ((get(updates, 'name') || '').replace(/^\s+/, '').length === 0) {
             errors.name = gettext('Name is required.');
         }
 
-        if (get(updates, 'calendars.length', 0) === 0 && get(updates, 'agendas.length', 0) === 0 &&
-            get(updates, 'places.length', 0) === 0) {
-            errors.agendas = errors.calendars = errors.places =
-                gettext('One of Calendar, Agenda or Place is required.');
-        }
         return {
             invalid: Object.keys(errors).length > 0,
             errors: errors,
@@ -91,116 +164,90 @@ export class EditFilter extends React.Component {
 
     onSaveHandler() {
         const {onClose, onSave, filter} = this.props;
-        const updates = pick(this.state.filter, this.editableFields);
-        const updateFilter = {
-            ...filter,
+        const updates = pick(this.state.filter, ['name', 'item_type', 'params']);
+        const updateFilter: Partial<ISearchFilter> = {
+            ...filter ?? {},
             ...updates,
         };
 
-        onSave(updateFilter)
-            .then(() => onClose());
+        onSave(updateFilter).then(() => onClose());
     }
 
     render() {
-        const language = getUserInterfaceLanguage();
-        const {
-            onClose,
-            enabledCalendars,
-            enabledAgendas,
-            locators,
-        } = this.props;
-        const {pristine, invalid, errors, filter} = this.state;
-        let tools = [<a className="btn" key="cancel" onClick={onClose}>{gettext('Cancel')}</a>];
-
-        if (!pristine && !invalid) {
-            tools.push(
-                <a className="btn btn--primary" key="save" onClick={this.onSaveHandler}>{gettext('Save')}</a>
-            );
-        }
+        const {gettext} = superdeskApi.localization;
+        const {onClose} = this.props;
+        const {pristine, invalid, profile} = this.state;
 
         return (
-            <SlideInPanel.Panel>
-                <SlideInPanel.Header tools={tools} />
-                <SlideInPanel.Content>
-                    <Form.Row>
-                        <Form.TextInput
-                            field="name"
-                            label={gettext('Name')}
-                            required={true}
-                            value={filter.name}
-                            onChange={this.onChange}
-                            autoFocus={true}
-                            message={get(errors, 'name', '')}
-                            invalid={get(errors, 'name.length', 0) > 0 && invalid}
-                        />
-                    </Form.Row>
-                    <ToggleBox
-                        isOpen={true}
-                        title={gettext('From Any')}
-                        noMargin={true}
-                    >
-                        <Form.Row>
-                            <SelectMetaTermsInput
-                                field="calendars"
-                                label={gettext('Calendars')}
-                                defaultValue={[]}
-                                options={enabledCalendars}
-                                onChange={this.onChange}
-                                value={filter.calendars || []}
+            <React.Fragment>
+                <SidePanel.Header className="side-panel__header--border-b">
+                    <div className="subnav__sliding-toolbar">
+                        <h3 className="side-panel__heading">
+                            {gettext('Filter Details')}
+                        </h3>
+                        <div className="button-group button-group--right">
+                            <button
+                                className="btn"
+                                key="cancel"
+                                onClick={onClose}
+                            >
+                                {gettext('Cancel')}
+                            </button>
+                            <button
+                                className="btn btn--primary"
+                                key="save"
+                                onClick={this.onSaveHandler}
+                                disabled={pristine || invalid}
+                                data-test-id="manage-filters--save-filter"
+                            >
+                                {this.props.filter?._id == null ?
+                                    gettext('Create') :
+                                    gettext('Save')
+                                }
+                            </button>
+                        </div>
+                    </div>
+                </SidePanel.Header>
+                <SidePanel.Content>
+                    <SidePanel.ContentBlock flex={true}>
+                        <SidePanel.ContentBlockInner grow={true}>
+                            {renderFieldsForPanel(
+                                'editor',
+                                {
+                                    name: {enabled: true, index: 1},
+                                    item_type: {enabled: true, index: 2},
+                                },
+                                {
+                                    onChange: this.onFilterChange,
+                                    popupContainer: this.getPopupContainer,
+                                    language: getUserInterfaceLanguage(),
+                                    item: this.state.filter,
+                                },
+                                {
+                                    name: {
+                                        label: gettext('Filter Name'),
+                                        autoFocus: true,
+                                        required: true,
+                                        testId: 'field-filter_name',
+                                    },
+                                    item_type: {
+                                        onChange: this.onTypeChanged,
+                                    },
+                                }
+                            )}
+                            <AdvancedSearch
+                                params={this.state.filter.params}
+                                onChange={this.onParamChange}
+                                onChangeMultiple={this.onMultiParamChange}
+                                searchProfile={profile}
                                 popupContainer={this.getPopupContainer}
-                                invalid={get(errors, 'calendars.length', 0) > 0 && invalid}
-                                message={get(errors, 'calendars', '')}
-                                language={language}
+                                enabledField="filter_enabled"
                             />
-                        </Form.Row>
-                        <Form.Row>
-                            <SelectMetaTermsInput
-                                field="agendas"
-                                label={gettext('Agendas')}
-                                defaultValue={[]}
-                                valueKey="_id"
-                                options={enabledAgendas}
-                                onChange={this.onChange}
-                                value={filter.agendas || []}
-                                popupContainer={this.getPopupContainer}
-                                invalid={get(errors, 'agendas.length', 0) > 0 && invalid}
-                                message={get(errors, 'agendas', '')}
-                                language={language}
-                            />
-                        </Form.Row>
-                    </ToggleBox>
-                    <ToggleBox
-                        title={gettext('Filtered By')}
-                        isOpen={true}
-                    >
-                        <Form.Row>
-                            <SelectMetaTermsInput
-                                field="places"
-                                label={gettext('Places')}
-                                options={locators}
-                                defaultValue={[]}
-                                value={filter.places || []}
-                                onChange={this.onChange}
-                                groupField={'group'}
-                                popupContainer={this.getPopupContainer}
-                                invalid={get(errors, 'places.length', 0) > 0 && invalid}
-                                message={get(errors, 'places', '')}
-                                language={language}
-                            />
-                        </Form.Row>
-                    </ToggleBox>
-                </SlideInPanel.Content>
-                <div ref={(node) => this.dom.popupContainer = node} />
-            </SlideInPanel.Panel>
+                        </SidePanel.ContentBlockInner>
+                    </SidePanel.ContentBlock>
+                </SidePanel.Content>
+                <div ref={this.popupContainer} />
+            </React.Fragment>
         );
     }
 }
-
-EditFilter.propTypes = {
-    filter: PropTypes.object,
-    onClose: PropTypes.func.isRequired,
-    onSave: PropTypes.func.isRequired,
-    enabledCalendars: PropTypes.array.isRequired,
-    enabledAgendas: PropTypes.array.isRequired,
-    locators: PropTypes.array.isRequired,
-};

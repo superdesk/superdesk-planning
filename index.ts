@@ -57,7 +57,7 @@ function configurePlanning(superdesk) {
                     type: 'addto-planning',
                 },
             ],
-            group: 'Planning',
+            group: gettext('Planning'),
             privileges: {
                 planning_planning_management: 1,
                 archive: 1,
@@ -67,6 +67,7 @@ function configurePlanning(superdesk) {
                     return !item.assignment_id &&
                         !archiveService.isPersonal(item) &&
                         !superdeskApi.entities.article.isLockedInOtherSession(item) &&
+                        !['correction'].includes(item.state)
                         isContentLinkToCoverageAllowed(item) &&
                         (
                             authoring.itemActions(item).edit ||
@@ -91,7 +92,7 @@ function configurePlanning(superdesk) {
                     type: 'fulfill-assignment',
                 },
             ],
-            group: 'Planning',
+            group: gettext('Planning'),
             privileges: {archive: 1},
             additionalCondition: ['archiveService', 'item',
                 function(archiveService, item: IArticle) {
@@ -99,7 +100,7 @@ function configurePlanning(superdesk) {
                         !archiveService.isPersonal(item) &&
                         !superdeskApi.entities.article.isLockedInOtherSession(item) &&
                         isContentLinkToCoverageAllowed(item) &&
-                        !['killed', 'recalled', 'unpublished', 'spiked'].includes(item.state);
+                        !['killed', 'recalled', 'unpublished', 'spiked', 'correction'].includes(item.state);
                 }],
         })
         .activity('planning.unlink', {
@@ -117,7 +118,7 @@ function configurePlanning(superdesk) {
                     type: 'unlink-assignment',
                 },
             ],
-            group: 'Planning',
+            group: gettext('Planning'),
             privileges: {archive: 1},
             additionalCondition: ['archiveService', 'item', 'authoring',
                 function(archiveService, item, authoring) {

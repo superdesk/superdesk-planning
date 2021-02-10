@@ -5,13 +5,15 @@ DESCRIPTION = 'Superdesk Planning Module'
 package_data = {
     'planning': [
         'templates/*.txt',
-        'templates/*.html'
+        'templates/*.html',
+        '*.po',
+        '*.mo',
     ]
 }
 
 setup(
     name="superdesk-planning",
-    version="2.0.2",
+    version="2.1.0",
     description=DESCRIPTION,
     long_description=DESCRIPTION,
     package_dir={'': 'server'},

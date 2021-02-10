@@ -1,0 +1,11 @@
+<h1>Planned Coverages</h1>
+<p></p>
+{% for item in items if item.coverages %}
+{% if item._type == 'events' %}
+<p><b>Event:</b> {{ item.name }}</p>
+{% else %}
+<p><b>Planning:</b> {{item.headline}}</p>
+{% endif %}
+<p><b>Coverages:</b> {{ item.coverages | join(', ') }}</p>
+<p>---</p>
+{% endfor %}

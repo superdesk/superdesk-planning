@@ -300,6 +300,7 @@ const selectFilter = (filterId, params = {}) => (
         const queryParams = {
             ...selectors.eventsPlanning.getEventsPlanningViewParams(getState()),
             ...params,
+            filter_id: selectedFilterID,
         };
 
         // reload the list

@@ -60,7 +60,9 @@ describe('Planning.Events: duplicate event', () => {
         editor.expect(expectedValues);
         editor.type({slugline: 'Duplicate2'});
         editor.waitForAutosave();
-        editor.closeButton.click();
+        editor.closeButton
+            .should('exist')
+            .click();
         modal.waitTillOpen(30000);
         modal.getFooterButton('Ignore')
             .click();
@@ -77,7 +79,9 @@ describe('Planning.Events: duplicate event', () => {
             'dates.end.time': '03:00',
         });
         editor.waitForAutosave();
-        editor.closeButton.click();
+        editor.closeButton
+            .should('exist')
+            .click();
         modal.waitTillOpen(30000);
         modal.getFooterButton('Create')
             .click();

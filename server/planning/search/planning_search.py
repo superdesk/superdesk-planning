@@ -11,12 +11,11 @@
 """Superdesk Planning Search."""
 import logging
 from flask import json, current_app as app
-from eve_elastic.elastic import get_dates, format_doc, ElasticCursor
+from eve_elastic.elastic import parse_date
 from copy import deepcopy
 
 import superdesk
 from superdesk.metadata.utils import item_url
-from superdesk.resource import build_custom_hateoas
 
 from planning.planning.planning import planning_schema
 from planning.events.events_schema import events_schema
@@ -57,9 +56,15 @@ class PlanningSearchService(superdesk.Service):
 
         params = {}
         if fields:
+            # If projections are provided, make sure `type` is always included
+            if 'type' not in fields:
+                fields += ',type'
+
             params['_source'] = fields
 
         docs = self.elastic.search(query, types, params)
+        for doc in docs:
+            self._format_nested_dates(doc)
 
         # to avoid call on_fetched_resource callback from some internal resource
         on_fetched_resource = True
@@ -70,35 +75,26 @@ class PlanningSearchService(superdesk.Service):
 
         if on_fetched_resource:
             for resource in types:
-                response = {app.config['ITEMS']: [doc for doc in docs if doc['_type'] == resource]}
+                response = {
+                    app.config['ITEMS']: [
+                        doc
+                        for doc in docs
+                        if doc['type'] == resource or (resource == 'events' and doc['type'] == 'event')
+                    ]
+                }
                 getattr(app, 'on_fetched_resource')(resource, response)
                 getattr(app, 'on_fetched_resource_%s' % resource)(response)
 
         return docs
 
-    def _get_resource_schema(self, resource):
-        datasource = self.elastic.get_datasource(resource)
-        schema = {}
-        schema.update(superdesk.config.DOMAIN[datasource[0]].get('schema', {}))
-        schema.update(superdesk.config.DOMAIN[resource].get('schema', {}))
-        return schema
-
-    def _parse_hits(self, hits):
-        schemas = {
-            'planning': self._get_resource_schema('planning'),
-            'events': self._get_resource_schema('events')
-        }
-
-        docs = []
-        for hit in hits.get('hits', {}).get('hits', []):
-            item_type = hit.get('_type')
-            schema = schemas.get(item_type)
-            dates = get_dates(schema)
-            doc = format_doc(hit, schema, dates)
-            build_custom_hateoas({'self': {'title': doc['_type'], 'href': '/{}/{{_id}}'.format(doc['_type'])}}, doc)
-            docs.append(doc)
-
-        return ElasticCursor(hits, docs)
+    def _format_nested_dates(self, doc):
+        if (doc.get('_type') == 'events' or doc.get('type') == 'event') and doc.get('dates'):
+            if doc['dates'].get('start'):
+                doc['dates']['start'] = parse_date(doc['dates']['start'])
+            if doc['dates'].get('end'):
+                doc['dates']['end'] = parse_date(doc['dates']['end'])
+            if (doc['dates'].get('recurring_rule') or {}).get('until'):
+                doc['dates']['recurring_rule']['until'] = parse_date(doc['dates']['recurring_rule']['until'])
 
     def _get_projected_fields(self, req):
         """Get elastic projected fields."""

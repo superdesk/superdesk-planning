@@ -46,7 +46,7 @@ export {planningUtils};
 export {timeUtils};
 export {eventPlanningUtils};
 import {gettext} from './gettext';
-import * as elastic from '../utils/elastic';
+// import * as elastic from '../utils/elastic';
 
 // Polyfill Promise.finally function as this was introduced in Chrome 63+
 import promiseFinally from 'promise.prototype.finally';
@@ -408,7 +408,7 @@ export const getItemWorkflowStateLabel = (item, field = 'state') => {
         return {label: gettext('Inactive')};
     }
 
-    switch (getItemWorkflowState(item, field)) {
+    switch (getItemWorkflowState(item, field) || WORKFLOW_STATE.DRAFT) {
     case WORKFLOW_STATE.DRAFT:
         return {
             label: gettext('Draft'),
@@ -812,47 +812,6 @@ export const getWorkFlowStateAsOptions = (activeFilter = null) => {
     });
 
     return workflowStateOptions;
-};
-
-export const appendStatesQueryForAdvancedSearch = (advancedSearch, spikeState,
-    mustNotTerms, mustTerms, includeKilled) => {
-    let states = (advancedSearch.state || []).map((s) => s.qcode);
-
-    switch (spikeState) {
-    case SPIKED_STATE.NOT_SPIKED:
-        mustNotTerms.push(
-            elastic.term('state', WORKFLOW_STATE.SPIKED)
-        );
-        break;
-
-    case SPIKED_STATE.SPIKED:
-        mustTerms.push(
-            elastic.term('state', WORKFLOW_STATE.SPIKED)
-        );
-        break;
-
-    case SPIKED_STATE.BOTH:
-    default:
-        // Push spiked state only if other states are selected
-        // Else, it will be fetched anyway
-        if (states.length > 0) {
-            states.push(WORKFLOW_STATE.SPIKED);
-        }
-    }
-
-    if (spikeState !== SPIKED_STATE.SPIKED && states.length > 0) {
-        mustTerms.push(
-            elastic.terms('state', states)
-        );
-    }
-
-    if (!includeKilled) {
-        if (!states.includes(WORKFLOW_STATE.KILLED)) {
-            mustNotTerms.push(
-                elastic.term('state', WORKFLOW_STATE.KILLED)
-            );
-        }
-    }
 };
 
 export const getEnabledAgendas = (agendas) => (agendas || []).filter((agenda) => get(agenda, 'is_enabled', true));

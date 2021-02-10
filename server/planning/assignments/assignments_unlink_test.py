@@ -84,6 +84,24 @@ class AssignmentUnlinkTestCase(TestCase):
             flask.g.user = {'_id': ObjectId()}
             user_id = ObjectId()
             desk_id = ObjectId()
+
+            # Make sure users a members of the desks
+            self.app.data.insert('desks', [{
+                '_id': 'desk1',
+                'name': 'desk1',
+                'members': [
+                    {'user': flask.g.user['_id']},
+                    {'user': user_id}
+                ]
+            }, {
+                '_id': desk_id,
+                'name': 'desk2',
+                'members': [
+                    {'user': flask.g.user['_id']},
+                    {'user': user_id}
+                ]
+            }])
+
             self.app.data.insert('vocabularies', [{
                 "_id": "g2_content_type",
                 "display_name": "Coverage content types",
@@ -156,6 +174,24 @@ class AssignmentUnlinkTestCase(TestCase):
             flask.g.user = {'_id': ObjectId()}
             user_id = ObjectId()
             desk_id = ObjectId()
+
+            # Make sure users a members of the desks
+            self.app.data.insert('desks', [{
+                '_id': 'desk1',
+                'name': 'desk1',
+                'members': [
+                    {'user': flask.g.user['_id']},
+                    {'user': user_id}
+                ]
+            }, {
+                '_id': desk_id,
+                'name': 'desk2',
+                'members': [
+                    {'user': flask.g.user['_id']},
+                    {'user': user_id}
+                ]
+            }])
+
             self.app.data.insert('vocabularies', [{
                 "_id": "g2_content_type",
                 "display_name": "Coverage content types",

@@ -1,8 +1,9 @@
 import {get, isEqual, cloneDeep, pickBy, has, find, every} from 'lodash';
 import moment from 'moment';
 
-import {ISearchSpikeState, IEventSearchParams} from '../../interfaces';
+import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem} from '../../interfaces';
 import {appConfig} from 'appConfig';
+import {planningApis} from '../../api';
 
 import {
     EVENTS,
@@ -22,13 +23,12 @@ import {
     isPublishedItemId,
     isTemporaryId,
     gettext,
+    getTimeZoneOffset,
 } from '../../utils';
-import * as elastic from '../../utils/elastic';
 
 import planningApi from '../planning/api';
 import eventsUi from './ui';
 import main from '../main';
-import {constructEventsSearchQuery} from './search';
 
 /**
  * Action dispatcher to load a series of recurring events into the local store.
@@ -41,20 +41,20 @@ import {constructEventsSearchQuery} from './search';
  */
 const loadEventsByRecurrenceId = (
     rid: string,
-    spikeState: ISearchSpikeState = SPIKED_STATE.BOTH,
+    spikeState: ISearchSpikeState = 'both',
     page: number = 1,
     maxResults: number = 25,
     loadToStore: boolean = true
 ) => (
     (dispatch) => (
-        dispatch(self.query({
-            recurrenceId: rid,
-            spikeState: spikeState,
+        planningApis.events.search({
+            recurrence_id: rid,
+            spike_state: spikeState,
             page: page,
-            maxResults: maxResults,
-            onlyFuture: false,
-            includeKilled: true,
-        }))
+            max_results: maxResults,
+            only_future: false,
+            include_killed: true,
+        })
             .then((items) => {
                 if (loadToStore) {
                     dispatch(self.receiveEvents(items));
@@ -130,7 +130,7 @@ const unspike = (events) => (
  * @param {boolean} storeTotal - True to store total in the store
  * @return arrow function
  */
-const query = (
+function query(
     {
         calendars,
         noCalendarAssigned = false,
@@ -138,16 +138,16 @@ const query = (
         fulltext,
         ids,
         recurrenceId,
-        spikeState = SPIKED_STATE.NOT_SPIKED,
+        spikeState = 'draft',
         onlyFuture = true,
         page = 1,
         maxResults = MAIN.PAGE_SIZE,
         includeKilled = false,
-
+        filter_id = null,
     }: IEventSearchParams,
     storeTotal = false
-) => (
-    (dispatch, getState, {api}) => {
+) {
+    return (dispatch, getState) => {
         let itemIds = [];
 
         if (ids) {
@@ -175,41 +175,46 @@ const query = (
             }
         }
 
-        const startOfWeek = appConfig.start_of_week;
-        const sourceQuery = constructEventsSearchQuery({
-            calendars,
-            noCalendarAssigned,
-            advancedSearch,
-            fulltext,
-            recurrenceId,
-            spikeState,
-            onlyFuture,
-            itemIds,
-            startOfWeek,
-            includeKilled,
-        });
-
-        // Query the API and sort by date
-        return api('events').query({
+        return planningApis.events.search({
+            item_ids: itemIds,
+            name: advancedSearch?.name,
+            tz_offset: getTimeZoneOffset(),
+            full_text: fulltext,
+            anpa_category: advancedSearch.anpa_category,
+            subject: advancedSearch.subject,
+            posted: advancedSearch.posted,
+            place: advancedSearch.place,
+            language: advancedSearch.language,
+            state: advancedSearch.state,
+            spike_state: spikeState,
+            include_killed: includeKilled,
+            date_filter: advancedSearch?.dates?.range,
+            start_date: advancedSearch?.dates?.start,
+            end_date: advancedSearch?.dates?.end,
+            start_of_week: appConfig.start_of_week,
+            slugline: advancedSearch?.slugline,
+            recurrence_id: recurrenceId,
+            reference: advancedSearch?.reference,
+            source: advancedSearch?.source,
+            location: typeof advancedSearch.location === 'string' ?
+                advancedSearch.location :
+                advancedSearch.location?.name,
+            calendars: calendars,
+            no_calendar_assigned: noCalendarAssigned,
+            only_future: onlyFuture,
             page: page,
             max_results: maxResults,
-            sort: '[("dates.start",1)]',
-            source: JSON.stringify(sourceQuery),
+            filter_id: filter_id || selectors.main.currentSearchFilterId(getState()),
         })
-        // convert dates to moment objects
-            .then((data) => {
-                const results = {
-                    ...data,
-                    _items: data._items.map((item) => eventUtils.modifyForClient(item)),
-                };
-
+            .then((response) => {
                 if (storeTotal) {
-                    dispatch(main.setTotal(MAIN.FILTERS.EVENTS, get(data, '_meta.total')));
+                    dispatch(main.setTotal(MAIN.FILTERS.EVENTS, response._meta?.total ?? 0));
                 }
-                return get(results, '_items');
-            });
-    }
-);
+
+                return response._items;
+            }, (error) => Promise.reject(error));
+    };
+}
 
 /**
  * Action Dispatcher to re-fetch the current list of events
@@ -241,90 +246,35 @@ const refetch = (skipEvents = []) => (
     }
 );
 
-/**
- * Action dispatcher to load all events from the series of events,
- * then load their associated planning items.
- * @param {object} event - Any event from the series of recurring events
- * @param {boolean} loadPlannings - If true, loads associated Planning items as well
- * @param {boolean} loadEvents - If true, also loads all Events in the series
- */
-const loadRecurringEventsAndPlanningItems = (event, loadPlannings = true,
-    loadEvents = true, loadEveryRecurringPlanning = false) => (
-    (dispatch, getState) => {
-        if (get(event, 'recurrence_id') && loadEvents) {
-            return dispatch(self.loadEventsByRecurrenceId(
-                event.recurrence_id,
-                SPIKED_STATE.BOTH,
-                1,
-                appConfig.max_recurrent_events,
-                false
-            )).then((relatedEvents) => {
-                if (!loadPlannings) {
-                    return Promise.resolve({
-                        events: relatedEvents,
-                        plannings: [],
-                    });
-                }
-
-                return dispatch(planningApi.loadPlanningByRecurrenceId(
-                    event.recurrence_id,
-                    false
-                ))
-                    .then((plannings) => (
-                        Promise.resolve({
-                            events: relatedEvents,
-                            plannings: plannings,
-                        })
-                    ), (error) => Promise.reject(error));
-            }, (error) => Promise.reject(error));
-        } else {
-            // In csae of unenhanced event (unlockedItem), the locally stored event
-            // might have the planning_ids
-            let storedEvent;
-
-            if (loadPlannings && get(event, 'planning_ids.length', 0) === 0) {
-                storedEvent = selectors.events.storedEvents(getState())[event._id];
-            }
-
-            if (!loadPlannings || (get(event, 'planning_ids.length', 0) === 0 &&
-                    get(storedEvent, 'planning_ids.length', 0)) === 0) {
-                return Promise.resolve({
-                    events: [],
-                    plannings: [],
-                });
-            }
-
-            return dispatch(planningApi.loadPlanningByEventId(event._id))
-                .then((plannings) => (
-                    Promise.resolve({
-                        events: [],
-                        plannings: plannings,
-                    })
-                ));
-        }
-    }
-);
-
-const loadEventDataForAction = (event, loadPlanning = true, post = false,
-    loadEvents = true, loadEveryRecurringPlanning = false) => (
-    (dispatch) => (
-        dispatch(self.loadRecurringEventsAndPlanningItems(event, loadPlanning, loadEvents, loadEveryRecurringPlanning))
-            .then((relatedEvents) => (Promise.resolve({
-                ...event,
-                _recurring: relatedEvents.events,
-                _post: post,
-                _events: [],
-                _originalEvent: event,
-                _plannings: relatedEvents.plannings,
-                _relatedPlannings: loadEveryRecurringPlanning ? relatedEvents.plannings :
-                    relatedEvents.plannings.filter(
-                        (p) => p.event_item === event._id
-                    ),
-            })
-            ), (error) => Promise.reject(error)
-            )
-    )
-);
+function loadEventDataForAction(
+    event: IEventItem,
+    loadPlanning: boolean = true,
+    post: boolean = false,
+    loadEvents: boolean = true,
+    loadEveryRecurringPlanning: boolean = false
+): Promise<IEventItem & {
+    _recurring: Array<IEventItem>;
+    _post: boolean;
+    _events: Array<IEventItem>;
+    _originalEvent: IEventItem;
+    _plannings: Array<IPlanningItem>;
+    _relatedPlannings: Array<IPlanningItem>;
+}> {
+    return planningApis.combined.getRecurringEventsAndPlanningItems(event, loadPlanning, loadEvents)
+        .then((items) => ({
+            ...event,
+            _recurring: items.events,
+            _post: post,
+            _events: [],
+            _originalEvent: event,
+            _plannings: items.plannings,
+            _relatedPlannings: loadEveryRecurringPlanning ?
+                items.plannings :
+                items.plannings.filter(
+                    (item) => item.event_item === event._id
+                ),
+        }));
+}
 
 /**
  * Action dispatcher to load all Planning items associated with an Event
@@ -342,24 +292,6 @@ const loadAssociatedPlannings = (event) => (
 );
 
 /**
- * Action dispatcher to query the API for all Events that are currently locked
- * @return Array of locked Events
- */
-const queryLockedEvents = () => (
-    (dispatch, getState, {api}) => (
-        api('events').query({
-            source: JSON.stringify({
-                query: elastic.fieldExists('lock_session'),
-            }),
-        })
-            .then(
-                (data) => Promise.resolve(data._items),
-                (error) => Promise.reject(error)
-            )
-    )
-);
-
-/**
  * Action dispatcher to get a single Event
  * If the Event is already stored in the Redux store, then return that
  * Otherwise fetch the Event from the server and optionally
@@ -367,25 +299,18 @@ const queryLockedEvents = () => (
  * @param {string} eventId - The ID of the Event to retrieve
  * @param {boolean} saveToStore - If true, save the Event in the Redux store
  */
-const getEvent = (eventId, saveToStore = true) => (
-    (dispatch, getState) => {
+function getEvent(eventId: IEventItem['_id'], saveToStore: boolean = true) {
+    return (dispatch, getState) => {
         const events = selectors.events.storedEvents(getState());
 
-        if (eventId in events) {
+        if (events?.[eventId] != undefined) {
             return Promise.resolve(events[eventId]);
         }
 
-        return dispatch(self.silentlyFetchEventsById(eventId, SPIKED_STATE.BOTH, saveToStore))
-            .then((items) => (Promise.resolve({
-                ...items[0],
-                dates: {
-                    ...items[0].dates,
-                    start: moment(items[0].dates.start),
-                    end: moment(items[0].dates.end),
-                },
-            })), (error) => Promise.reject(error));
-    }
-);
+        return dispatch(self.silentlyFetchEventsById([eventId], 'both', saveToStore))
+            .then((items) => items[0]);
+    };
+}
 
 /**
  * Action to receive the list of Events and store them in the store
@@ -469,39 +394,25 @@ const unlock = (event) => (
  * @param {boolean} saveToStore - If true, save the Event in the Redux store
  * @return arrow function
  */
-const silentlyFetchEventsById = (ids, spikeState = SPIKED_STATE.NOT_SPIKED, saveToStore = true) => (
-    (dispatch, getState, {api}) => (
-        new Promise((resolve, reject) => {
-            if (Array.isArray(ids)) {
-                dispatch(self.query({
-                    // distinct ids
-                    ids: ids.filter((v, i, a) => (a.indexOf(v) === i)),
-                    spikeState: spikeState,
-                    onlyFuture: false,
-                }))
-                    .then(
-                        (items) => resolve(items),
-                        (error) => reject(error)
-                    );
-            } else {
-                api('events').getById(ids)
-                    .then(
-                        (item) => resolve([item]),
-                        (error) => reject(error)
-                    );
-            }
-        })
+function silentlyFetchEventsById(
+    ids: Array<IEventItem['_id']>,
+    spikeState: ISearchSpikeState = 'draft',
+    saveToStore: boolean = true
+) {
+    return (dispatch) => (
+        planningApis.events.getByIds(
+            ids.filter((v, i, a) => (a.indexOf(v) === i)),
+            spikeState
+        )
             .then((items) => {
-                if (saveToStore) {
+                if (saveToStore && items.length > 0) {
                     dispatch(self.receiveEvents(items));
                 }
 
-                return Promise.resolve(items);
-            }, (error) => (
-                Promise.reject(error)
-            ))
-    )
-);
+                return items;
+            })
+    );
+}
 
 /**
  * Action Dispatcher to fetch a single event using its ID
@@ -512,7 +423,7 @@ const silentlyFetchEventsById = (ids, spikeState = SPIKED_STATE.NOT_SPIKED, save
  * @param {boolean} loadPlanning - If true, load associated Planning items as well
  */
 const fetchById = (eventId, {force = false, saveToStore = true, loadPlanning = true} = {}) => (
-    (dispatch, getState, {api}) => {
+    (dispatch, getState) => {
         // Test if the Event item is already loaded into the store
         // If so, return that instance instead
         const storedEvents = selectors.events.storedEvents(getState());
@@ -525,15 +436,13 @@ const fetchById = (eventId, {force = false, saveToStore = true, loadPlanning = t
         if (has(storedEvents, eventId) && !force) {
             promise = Promise.resolve(storedEvents[eventId]);
         } else {
-            promise = api('events').getById(eventId)
+            promise = planningApis.events.getById(eventId)
                 .then((event) => {
-                    const newEvent = eventUtils.modifyForClient(event);
-
                     if (saveToStore) {
-                        dispatch(self.receiveEvents([newEvent]));
+                        dispatch(self.receiveEvents([event]));
                     }
 
-                    return Promise.resolve(newEvent);
+                    return Promise.resolve(event);
                 }, (error) => Promise.reject(error));
         }
 
@@ -921,7 +830,6 @@ const self = {
     query,
     refetch,
     receiveEvents,
-    loadRecurringEventsAndPlanningItems,
     lock,
     unlock,
     silentlyFetchEventsById,
@@ -933,7 +841,6 @@ const self = {
     markEventPostponed,
     postponeEvent,
     loadEventDataForAction,
-    queryLockedEvents,
     getEvent,
     loadAssociatedPlannings,
     post,

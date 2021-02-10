@@ -1,6 +1,6 @@
 import {get, cloneDeep, pickBy, has, every} from 'lodash';
 
-import {IPlanningSearchParams} from '../../interfaces';
+import {IEventItem, IPlanningSearchParams, IPlanningItem} from '../../interfaces';
 import {appConfig} from 'appConfig';
 
 import * as actions from '../../actions';
@@ -15,7 +15,6 @@ import {
     isValidFileInput,
     gettext,
 } from '../../utils';
-import * as elastic from '../../utils/elastic';
 import {
     PLANNING,
     POST_STATE,
@@ -25,7 +24,7 @@ import {
     TO_BE_CONFIRMED_FIELD,
 } from '../../constants';
 import main from '../main';
-import {constructPlanningSearchQuery} from './search';
+import {planningApi} from '../../superdeskApi';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -94,10 +93,10 @@ const cancelAllCoverage = (original, updates) => (
  * @param {int} page - The page number to query for
  * @return Promise
  */
-const query = (
+function query(
     {
-        spikeState = SPIKED_STATE.BOTH,
-        agendas,
+        spikeState = 'draft',
+        agendas = [],
         noAgendaAssigned = false,
         page = 1,
         advancedSearch = {},
@@ -105,61 +104,71 @@ const query = (
         maxResults = MAIN.PAGE_SIZE,
         adHocPlanning = false,
         excludeRescheduledAndCancelled = false,
-        featured,
+        featured = false,
+        filter_id = null,
+        includeKilled = false,
     }: IPlanningSearchParams,
     storeTotal = true,
     timeZoneOffset = null,
     includeScheduledUpdates = false
-
-) => (
-    (dispatch, getState, {api}) => {
-        const sourceQuery = constructPlanningSearchQuery({
-            spikeState: spikeState,
+) {
+    return (dispatch, getState) => (
+        planningApi.planning.search({
+            item_ids: [],
+            name: advancedSearch.name,
+            tz_offset: timeZoneOffset ?? getTimeZoneOffset(),
+            full_text: fulltext,
+            anpa_category: advancedSearch.anpa_category,
+            subject: advancedSearch.subject,
+            posted: advancedSearch.posted,
+            place: advancedSearch.place,
+            language: advancedSearch.language,
+            state: advancedSearch.state,
+            spike_state: spikeState,
+            include_killed: includeKilled,
+            date_filter: advancedSearch?.dates?.range,
+            start_date: advancedSearch?.dates?.start,
+            end_date: advancedSearch?.dates?.end,
+            start_of_week: appConfig.start_of_week,
+            slugline: advancedSearch.slugline,
             agendas: agendas,
-            noAgendaAssigned: noAgendaAssigned,
-            advancedSearch: advancedSearch,
-            fulltext: fulltext,
-            adHocPlanning: adHocPlanning,
-            excludeRescheduledAndCancelled: excludeRescheduledAndCancelled,
-            startOfWeek: appConfig.start_of_week,
+            no_agenda_assigned: noAgendaAssigned,
+            ad_hoc_planning: adHocPlanning,
+            exclude_rescheduled_and_cancelled: excludeRescheduledAndCancelled,
+            no_coverage: advancedSearch.noCoverage,
+            urgency: advancedSearch.urgency,
+            g2_content_type: advancedSearch?.g2_content_type,
             featured: featured,
-            timezoneOffset: timeZoneOffset ?? getTimeZoneOffset(),
-            includeScheduledUpdates: includeScheduledUpdates,
-        });
-
-        // Query the API
-        return api('planning').query({
-            page: page,
+            include_scheduled_updates: includeScheduledUpdates,
             max_results: maxResults,
-            source: JSON.stringify(sourceQuery),
-            timestamp: new Date(),
+            page: page,
+            filter_id: filter_id || selectors.main.currentSearchFilterId(getState()),
         })
-            .then((data) => {
+            .then((response) => {
                 if (storeTotal) {
-                    dispatch(main.setTotal(MAIN.FILTERS.PLANNING, data?._meta?.total ?? 0));
+                    dispatch(main.setTotal(MAIN.FILTERS.PLANNING, response._meta?.total ?? 0));
                 }
 
-                if (data?._items != null) {
-                    data._items.forEach(planningUtils.modifyForClient);
+                if (response?._items != null) {
                     if (selectors.featuredPlanning.inUse(getState()) &&
                         get(advancedSearch, 'dates.range') === MAIN.DATE_RANGE.FOR_DATE) {
                         // For featuredstories modal, we get all items in a loop
                         // So, send the total along with the result for loop calculation
                         const result = {
-                            _items: data._items,
-                            total: data._meta.total,
+                            _items: response._items,
+                            total: response._meta.total,
                         };
 
                         return Promise.resolve(result);
                     }
 
-                    return Promise.resolve(data._items);
+                    return Promise.resolve(response._items);
                 } else {
                     return Promise.reject('Failed to retrieve items');
                 }
-            }, (error) => (Promise.reject(error)));
-    }
-);
+            }, (error) => Promise.reject(error))
+    );
+}
 
 /**
  * Action dispatcher for requesting a fetch of planning items
@@ -229,8 +238,10 @@ const fetchPlanningsEvents = (plannings) => (
 
         // load missing events, if there are any
         if (get(linkedEvents, 'length', 0) > 0) {
-            return dispatch(actions.events.api.silentlyFetchEventsById(linkedEvents,
-                SPIKED_STATE.BOTH));
+            return dispatch(actions.events.api.silentlyFetchEventsById(
+                linkedEvents,
+                'both'
+            ));
         }
 
         return Promise.resolve([]);
@@ -249,7 +260,7 @@ const fetchPlanningsEvents = (plannings) => (
  * @return Promise
  */
 const fetchById = (pid, {force = false, saveToStore = true, loadEvents = true} = {}) => (
-    (dispatch, getState, {api}) => {
+    (dispatch, getState) => {
         // Test if the Planning item is already loaded into the store
         // If so, return that instance instead
         const storedPlannings = selectors.planning.storedPlannings(getState());
@@ -262,10 +273,8 @@ const fetchById = (pid, {force = false, saveToStore = true, loadEvents = true} =
         if (has(storedPlannings, pid) && !force) {
             promise = Promise.resolve(storedPlannings[pid]);
         } else {
-            promise = api('planning').getById(pid)
+            promise = planningApi.planning.getById(pid)
                 .then((item) => {
-                    planningUtils.modifyForClient(item);
-
                     if (saveToStore) {
                         dispatch(self.receivePlannings([item]));
                     }
@@ -325,9 +334,8 @@ const receivePlanningHistory = (planningHistoryItems) => ({
  * @return Promise
  */
 const loadPlanningById = (id, spikeState = SPIKED_STATE.BOTH, saveToStore = true) => (
-    (dispatch, getState, {api}) => api('planning').getById(id)
+    (dispatch) => planningApi.planning.getById(id)
         .then((item) => {
-            planningUtils.modifyForClient(item);
             if (saveToStore) {
                 dispatch(self.receivePlannings([item]));
             }
@@ -336,50 +344,30 @@ const loadPlanningById = (id, spikeState = SPIKED_STATE.BOTH, saveToStore = true
         }, (error) => (Promise.reject(error)))
 );
 
-const loadPlanningByIds = (ids, saveToStore = true) => (
-    (dispatch, getState, {api}) => (
-        api('planning').query({
-            source: JSON.stringify({
-                query: elastic.terms('_id', ids),
-            }),
-        })
-            .then((data) => {
-                let items = get(data, '_items', []);
-
-                items.forEach((item) => {
-                    planningUtils.modifyForClient((item));
-                });
-
-                if (saveToStore) {
+function loadPlanningByIds(ids: Array<IPlanningItem['_id']>, saveToStore: boolean = true) {
+    return (dispatch) => (
+        planningApi.planning.getByIds(ids)
+            .then((items) => {
+                if (saveToStore && items.length > 0) {
                     dispatch(self.receivePlannings(items));
                 }
 
-                return Promise.resolve(items);
-            }, (error) => Promise.reject(error))
-    )
-);
+                return items;
+            })
+    );
+}
 
 /**
  * Action dispatcher to load Planning items by Event ID from the API, and place them
  * in the local store. This does not update the list of visible Planning items
- * @param {Array, string} eventIds - The Event ID used to query the API
+ * @param {string} eventId - The Event ID used to query the API
  * @param {boolean} loadToStore - If true, save the Planning Items to the Redux Store
  * @return Promise
  */
-const loadPlanningByEventId = (eventIds, loadToStore = true) => (
-    (dispatch, getState, {api}) => (
-        api('planning').query({
-            source: JSON.stringify({
-                query: Array.isArray(eventIds) ?
-                    elastic.terms('event_item', eventIds) :
-                    elastic.term('event_item', eventIds),
-            }),
-        })
+const loadPlanningByEventId = (eventId: IEventItem['_id'], loadToStore: boolean = true) => (
+    (dispatch) => (
+        planningApi.planning.search({event_item: [eventId]})
             .then((data) => {
-                data._items.forEach((item) => {
-                    planningUtils.modifyForClient(item);
-                });
-
                 if (loadToStore) {
                     dispatch(self.receivePlannings(data._items));
                 }
@@ -390,42 +378,15 @@ const loadPlanningByEventId = (eventIds, loadToStore = true) => (
 );
 
 const loadPlanningByRecurrenceId = (recurrenceId, loadToStore = true) => (
-    (dispatch, getState, {api}) => (
-        api('planning').query({
-            source: JSON.stringify({
-                query: elastic.term('recurrence_id', recurrenceId),
-            }),
-        })
+    (dispatch) => (
+        planningApi.planning.search({recurrence_id: recurrenceId})
             .then((data) => {
-                data._items.forEach((item) => {
-                    planningUtils.modifyForClient(item);
-                });
-
                 if (loadToStore) {
                     dispatch(self.receivePlannings(data._items));
                 }
 
                 return Promise.resolve(data._items);
             }, (error) => Promise.reject(error))
-    )
-);
-
-/**
- * Action dispatcher to query the API for all Planning items
- * that are currently locked
- * @return Array of locked Planning items
- */
-const queryLockedPlanning = (params = {featureLock: false}) => (
-    (dispatch, getState, {api}) => (
-        api(params.featureLock ? 'planning_featured_lock' : 'planning').query({
-            source: JSON.stringify({
-                query: elastic.fieldExists('lock_session'),
-            }),
-        })
-            .then(
-                (data) => Promise.resolve(data._items),
-                (error) => Promise.reject(error)
-            )
     )
 );
 
@@ -649,22 +610,19 @@ const lock = (planning, lockAction = 'edit') => (
  * Locks featured stories action
  * @return Promise
  */
-const lockFeaturedPlanning = () => (
-    (dispatch, getState, {api}) => (
-        api('planning_featured_lock').save({}, {})
-            .then((lockedItem) => lockedItem)
-    )
-);
-
-
-/**
- * Fetches featured stories record
- * @param {string} id - id of the record
- * @return Promise
- */
-const fetchFeaturedPlanningItemById = (id) => (
-    (dispatch, getState, {api}) => api.find('planning_featured', id).then((item) => item)
-);
+function lockFeaturedPlanning() {
+    return (dispatch, getState, {notify}) => (
+        planningApi.planning.featured.lock()
+            .catch((error) => {
+                notify.error(
+                    getErrorMessage(
+                        error,
+                        gettext('Failed to lock featured story action!')
+                    )
+                );
+            })
+    );
+}
 
 const fetchPlanningFiles = (planning) => (
     (dispatch, getState) => {
@@ -722,15 +680,15 @@ const saveFeaturedPlanning = (updates) => (
  * Unlocks featured planning action
  * @return Promise
  */
-const unlockFeaturedPlanning = () => (
-    (dispatch, getState, {api, notify}) => (
-        api('planning_featured_unlock').save({}, {})
+function unlockFeaturedPlanning() {
+    return (dispatch, getState, {notify}) => (
+        planningApi.planning.featured.unlock()
             .catch((error) => {
                 notify.error(
                     getErrorMessage(error, gettext('Failed to unlock featured story action!')));
             })
-    )
-);
+    );
+}
 
 const markPlanningCancelled = (plan, reason, coverageState, eventCancellation) => ({
     type: PLANNING.ACTIONS.MARK_PLANNING_CANCELLED,
@@ -843,7 +801,6 @@ const self = {
     markPlanningCancelled,
     markCoverageCancelled,
     markPlanningPostponed,
-    queryLockedPlanning,
     getPlanning,
     loadPlanningByRecurrenceId,
     cancel,
@@ -851,7 +808,6 @@ const self = {
     lockFeaturedPlanning,
     unlockFeaturedPlanning,
     saveFeaturedPlanning,
-    fetchFeaturedPlanningItemById,
     fetchPlanningFiles,
     uploadFiles,
     removeFile,

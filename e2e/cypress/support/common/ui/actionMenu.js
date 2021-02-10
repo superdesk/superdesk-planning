@@ -46,9 +46,14 @@ export class ActionMenu {
     /**
      * Returns the dom node for the menu action based on the label
      * @param {string} label - The text of the label to look for
+     * @param {boolean} checkExists - If true, makes sure the element exists
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
-    getAction(label) {
-        return this.popup.element.contains(label);
+    getAction(label, checkExists = true) {
+        return checkExists ?
+            this.popup.element
+                .contains(label)
+                .should('exist') :
+            this.popup.element.contains(label);
     }
 }

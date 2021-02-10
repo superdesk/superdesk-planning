@@ -274,10 +274,12 @@ export const vocabularies = {
         {
             name: 'Sport',
             qcode: 'sport',
+            is_active: true,
         },
         {
             name: 'Finance',
             qcode: 'finance',
+            is_active: true,
         },
     ],
     eventoccurstatus: [
@@ -478,6 +480,7 @@ export const eventsInitialState = {
     eventsInList: [],
     readOnly: true,
     eventHistoryItems: [],
+    calendars: vocabularies.event_calendars,
 };
 
 export const agendaInitialState = {

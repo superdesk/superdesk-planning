@@ -10,6 +10,7 @@ import {gettext, planningUtils, iteratePromiseCallbacks} from '../utils';
 import {WORKSPACE, MODALS, ASSIGNMENTS} from '../constants';
 import {ModalsContainer} from '../components';
 import * as actions from '../actions';
+import {planningApi} from '../superdeskApi';
 
 export class AssignmentsService {
     constructor(api, notify, modal, sdPlanningStore, desks) {
@@ -143,11 +144,14 @@ export class AssignmentsService {
 
         return this.api('assignments').getById(item.assignment_id)
             .then((assignment) => (
-                this.api('planning').query({
-                    source: JSON.stringify({
-                        query: {terms: {_id: [get(assignment, 'planning_item')]}},
-                    }),
+                planningApi.planning.search({
+                    item_ids: [get(assignment, 'planning_item')],
                 })
+                // this.api('planning').query({
+                //     source: JSON.stringify({
+                //         query: {terms: {_id: [get(assignment, 'planning_item')]}},
+                //     }),
+                // })
                     .then((data) => {
                         let items = get(data, '_items', []);
 

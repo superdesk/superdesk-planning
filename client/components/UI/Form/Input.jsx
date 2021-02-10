@@ -18,6 +18,7 @@ export const Input = ({
     readOnly,
     refNode,
     className,
+    testId,
     ...props
 }) => {
     const onInputChanged = (e) => {
@@ -42,6 +43,7 @@ export const Input = ({
             onClick={onClick}
             onFocus={onFocus}
             disabled={readOnly}
+            data-test-id={testId}
             ref={refNode}
             {...props}
         />
@@ -63,6 +65,7 @@ Input.propTypes = {
     refNode: PropTypes.func,
     onFocus: PropTypes.func,
     className: PropTypes.string,
+    testId: PropTypes.string,
 };
 
 Input.defaultProps = {

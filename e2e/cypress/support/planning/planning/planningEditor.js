@@ -62,6 +62,7 @@ export class PlanningEditor extends Editor {
         popup.waitTillOpen();
         popup.element
             .contains(coverageType)
+            .should('exist')
             .click();
         popup.waitTillClosed();
     }

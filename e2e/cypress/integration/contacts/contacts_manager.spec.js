@@ -29,10 +29,14 @@ describe('MediaContacts: contacts manager', () => {
         editor.waitTillOpen();
         editor.type(contact);
         editor.expect(contact);
-        editor.createButton.click();
+        editor.createButton
+            .should('exist')
+            .click();
 
         list.expectItemCount(1);
-        editor.closeButton.click();
+        editor.closeButton
+            .should('exist')
+            .click();
         editor.waitTillClosed();
 
         list.item(0)
@@ -44,7 +48,9 @@ describe('MediaContacts: contacts manager', () => {
             .click();
         editor.waitTillOpen();
         editor.expect(contact);
-        editor.closeButton.click();
+        editor.closeButton
+            .should('exist')
+            .click();
         editor.waitTillClosed();
 
         contact = {
@@ -56,10 +62,14 @@ describe('MediaContacts: contacts manager', () => {
         editor.waitTillOpen();
         editor.type(contact);
         editor.expect(contact);
-        editor.createButton.click();
+        editor.createButton
+            .should('exist')
+            .click();
 
         list.expectItemCount(2);
-        editor.closeButton.click();
+        editor.closeButton
+            .should('exist')
+            .click();
         editor.waitTillClosed();
 
         list.item(1)
