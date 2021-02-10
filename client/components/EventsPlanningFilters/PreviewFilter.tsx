@@ -1,5 +1,6 @@
 import * as React from 'react';
 
+import {getUserInterfaceLanguage} from 'appConfig';
 import {superdeskApi} from '../../superdeskApi';
 import {IEventsPlanningContentPanelProps} from '../../interfaces';
 
@@ -26,6 +27,7 @@ export class PreviewFilter extends React.PureComponent<IEventsPlanningContentPan
 
     render() {
         const {gettext} = superdeskApi.localization;
+        const language = getUserInterfaceLanguage();
 
         return (
             <React.Fragment>
@@ -59,7 +61,8 @@ export class PreviewFilter extends React.PureComponent<IEventsPlanningContentPan
                                         state: {enabled: true, index: 4},
                                     },
                                     {
-                                        item: this.props.filter
+                                        item: this.props.filter,
+                                        language: language,
                                     },
                                     {
                                         calendars: {field: 'params.calendars'},
@@ -93,7 +96,8 @@ export class PreviewFilter extends React.PureComponent<IEventsPlanningContentPan
                                         urgency: {enabled: true, index: 14},
                                     },
                                     {
-                                        item: this.props.filter.params
+                                        item: this.props.filter.params,
+                                        language: language,
                                     },
                                     {
                                     }
@@ -113,7 +117,8 @@ export class PreviewFilter extends React.PureComponent<IEventsPlanningContentPan
                                         end_date: {enabled: true, index: 3},
                                     },
                                     {
-                                        item: this.props.filter.params
+                                        item: this.props.filter.params,
+                                        language: language,
                                     },
                                     {
                                     }
@@ -133,6 +138,7 @@ export class PreviewFilter extends React.PureComponent<IEventsPlanningContentPan
                                         },
                                         {
                                             item: this.props.filter,
+                                            language: language,
                                         },
                                         {
                                             filter_schedule: {

@@ -55,7 +55,7 @@ const TestForm = ({formData}) => {
                 component={SelectMetaTermsInput}
                 field="meta"
                 options={[]}
-                defaultValue={{}}
+                defaultValue={[]}
             />
             <Field
                 {...fieldProps}

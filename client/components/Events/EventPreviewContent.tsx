@@ -2,6 +2,7 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
+import {getUserInterfaceLanguage} from 'appConfig';
 import {IDesk, IUser, IVocabulary} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 import {IEventFormProfile, IEventItem, IFile} from '../../interfaces';
@@ -24,6 +25,8 @@ import {Location} from '../Location';
 import * as actions from '../../actions';
 import {ContactsPreviewList} from '../Contacts';
 import CustomVocabulariesPreview from '../CustomVocabulariesPreview';
+
+import {renderFieldsForPanel} from '../fields';
 
 interface IProps {
     item: IEventItem;
@@ -74,8 +77,6 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
         const versionCreator = get(updatedBy, 'display_name') ? updatedBy :
             users.find((user) => user._id === updatedBy);
 
-        const calendarsText = get(item, 'calendars.length', 0) === 0 ? gettext('No calendars assigned.') :
-            item.calendars.map((c) => c.name).join(', ');
         const placeText = get(item, 'place.length', 0) === 0 ? '' :
             item.place.map((c) => c.name).join(', ');
         const categoryText = get(item, 'anpa_category.length', 0) === 0 ? '' :
@@ -83,6 +84,7 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
         const subjectText = get(item, 'subject.length', 0) === 0 ? '' :
             item.subject.map((s) => s.name).join(', ');
         const contacts = get(item, 'event_contact_info') || [];
+        const language = getUserInterfaceLanguage();
 
         return (
             <ContentBlock>
@@ -141,11 +143,18 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
                         [TO_BE_CONFIRMED_FIELD]: get(item, TO_BE_CONFIRMED_FIELD),
                     }}
                 />
-                <Row
-                    enabled={get(formProfile, 'editor.calendars.enabled')}
-                    label={gettext('Calendars')}
-                    value={calendarsText}
-                />
+
+                {renderFieldsForPanel(
+                    'form-preview',
+                    {
+                        calendars: {enabled: true, index: 1},
+                    },
+                    {
+                        item: item,
+                        language: language,
+                    },
+                    {}
+                )}
 
                 <Row
                     enabled={get(formProfile, 'editor.place.enabled')}

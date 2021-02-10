@@ -25,6 +25,7 @@ class ListFieldCalendarsComponent extends React.PureComponent<IProps> {
                     item={this.props.item}
                     calendars={this.props.calendars}
                     field={field}
+                    language={this.props.language}
                 />
             );
         }

@@ -1,28 +1,20 @@
 import * as React from 'react';
-import {get} from 'lodash';
 
 import {superdeskApi} from '../../../../superdeskApi';
-import {IListFieldProps} from '../../../../interfaces';
-
 import {PreviewSimpleListItem} from './PreviewSimpleListItem';
+import {ICalendarPreviewProps, calendarPreviewHoc} from '../CalendarPreviewHoc';
 
-export class PreviewFieldCalendars extends React.PureComponent<IListFieldProps> {
+class PreviewFieldCalendarsComponent extends React.PureComponent<ICalendarPreviewProps> {
     render() {
         const {gettext} = superdeskApi.localization;
-        const field = this.props.field ?? 'calendars';
-        const calendarNames = (get(this.props.item, field) || [])
-            .map((calendar) => calendar.name)
-            .join(', ');
-
-        if (!calendarNames.length) {
-            return null;
-        }
 
         return (
             <PreviewSimpleListItem
                 label={gettext('Calendars:')}
-                data={calendarNames}
+                data={this.props.calendarNames}
             />
         );
     }
 }
+
+export const PreviewFieldCalendars = calendarPreviewHoc(PreviewFieldCalendarsComponent);
