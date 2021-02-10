@@ -69,7 +69,10 @@ class ExportScheduledFiltersTestCase(TestCase):
     def test_send_report_hourly(self):
         # Test every hour
         self._test(
-            report={'schedule': {'frequency': 'hourly', 'hour': -1}},
+            report={
+                'frequency': 'hourly',
+                'hour': -1
+            },
             start='2018-06-30T00',
             end='2018-06-30T23',
             expected_hits=[to_local(f'2018-06-30T{hour}') for hour in range(0, 24)]
@@ -78,7 +81,8 @@ class ExportScheduledFiltersTestCase(TestCase):
         # Test every hour, already sent this hour
         self._test(
             report={
-                'schedule': {'frequency': 'hourly', 'hour': -1},
+                'frequency': 'hourly',
+                'hour': -1,
                 '_last_sent': to_utc('2018-06-30T13')
             },
             start='2018-06-30T00',
@@ -89,7 +93,10 @@ class ExportScheduledFiltersTestCase(TestCase):
     def test_send_report_hour_of_the_day(self):
         # Test exact hour
         self._test(
-            report={'schedule': {'frequency': 'daily', 'hour': 10}},
+            report={
+                'frequency': 'daily',
+                'hour': 10
+            },
             start='2018-06-30T00',
             end='2018-06-30T23',
             expected_hits=[to_local('2018-06-30T10')]
@@ -97,7 +104,8 @@ class ExportScheduledFiltersTestCase(TestCase):
 
         # Test exact hour, not sent this hour
         report = {
-            'schedule': {'frequency': 'daily', 'hour': 10},
+            'frequency': 'daily',
+            'hour': 10,
             '_last_sent': to_local('2018-06-30T09')
         }
         self._test(
@@ -117,7 +125,8 @@ class ExportScheduledFiltersTestCase(TestCase):
         # Test exact hour, already sent this hour
         self._test(
             report={
-                'schedule': {'frequency': 'daily', 'hour': 10},
+                'frequency': 'daily',
+                'hour': 10,
                 '_last_sent': to_local('2018-06-30T10')
             },
             start='2018-06-30T00',
@@ -128,7 +137,10 @@ class ExportScheduledFiltersTestCase(TestCase):
     def test_send_report_daily(self):
         # Every day at 8am
         self._test(
-            report={'schedule': {'frequency': 'daily', 'hour': 8}},
+            report={
+                'frequency': 'daily',
+                'hour': 8
+            },
             start='2018-06-01T00',
             end='2018-06-30T23',
             expected_hits=[
@@ -140,11 +152,9 @@ class ExportScheduledFiltersTestCase(TestCase):
         # Every Monday and Wednesday @ 4pm
         self._test(
             report={
-                'schedule': {
-                    'frequency': 'weekly',
-                    'hour': 16,
-                    'week_days': ['Monday', 'Wednesday']
-                }
+                'frequency': 'weekly',
+                'hour': 16,
+                'week_days': ['Monday', 'Wednesday']
             },
             start='2018-06-01T00',
             end='2018-06-30T23',
@@ -163,11 +173,11 @@ class ExportScheduledFiltersTestCase(TestCase):
     def test_send_report_week_days(self):
         # Every Monday->Frday @ 2pm
         self._test(
-            report={'schedule': {
+            report={
                 'frequency': 'weekly',
                 'hour': 14,
                 'week_days': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-            }},
+            },
             start='2018-06-01T00',
             end='2018-06-30T23',
             expected_hits=[
@@ -199,11 +209,9 @@ class ExportScheduledFiltersTestCase(TestCase):
         # Every Saturday and Sunday @ 9am
         self._test(
             report={
-                'schedule': {
-                    'frequency': 'weekly',
-                    'hour': 9,
-                    'week_days': ['Saturday', 'Sunday']
-                }
+                'frequency': 'weekly',
+                'hour': 9,
+                'week_days': ['Saturday', 'Sunday']
             },
             start='2018-06-01T00',
             end='2018-07-01T00',
@@ -223,11 +231,9 @@ class ExportScheduledFiltersTestCase(TestCase):
     def test_send_report_monthly(self):
         self._test(
             report={
-                'schedule': {
-                    'frequency': 'monthly',
-                    'hour': 0,
-                    'day': 1
-                }
+                'frequency': 'monthly',
+                'hour': 0,
+                'day': 1
             },
             start='2018-01-01T00',
             end='2018-12-31T23',
