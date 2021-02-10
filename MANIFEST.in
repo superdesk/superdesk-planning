@@ -1,0 +1,2 @@
+recursive-include server/planning *.mo
+recursive-include server/planning *.po

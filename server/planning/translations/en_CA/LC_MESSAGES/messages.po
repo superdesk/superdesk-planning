@@ -1,0 +1,226 @@
+# English (Canada) translations for superdesk-planning.
+# Copyright (C) 2021 ORGANIZATION
+# This file is distributed under the same license as the superdesk-planning
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: superdesk-planning 2.1.0.dev0\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2021-01-14 17:52+0100\n"
+"PO-Revision-Date: 2021-01-14 17:53+0100\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en_CA\n"
+"Language-Team: en_CA <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.0\n"
+
+#: server/planning/__init__.py:95 server/planning/__init__.py:148
+#: server/planning/__init__.py:155 server/planning/__init__.py:163
+#: server/planning/__init__.py:171 server/planning/__init__.py:181
+msgid "Planning"
+msgstr ""
+
+#: server/planning/__init__.py:96
+msgid "Create, update, and delete  events, planning items, and coverages"
+msgstr ""
+
+#: server/planning/__init__.py:101
+msgid "Planning - Agenda Management"
+msgstr ""
+
+#: server/planning/__init__.py:102
+msgid "Ability to create and modify Agendas"
+msgstr ""
+
+#: server/planning/__init__.py:107
+msgid "Planning - Delete Agendas"
+msgstr ""
+
+#: server/planning/__init__.py:108
+msgid "Ability to delete an Agenda"
+msgstr ""
+
+#: server/planning/__init__.py:113
+msgid "Planning - Edit Expired Items"
+msgstr ""
+
+#: server/planning/__init__.py:114
+msgid "Ability to edit expired Event and Planning items"
+msgstr ""
+
+#: server/planning/__init__.py:119
+msgid "Planning - Create Event/Planning in the past"
+msgstr ""
+
+#: server/planning/__init__.py:120
+msgid "Ability to create an Event or Planning item in the past"
+msgstr ""
+
+#: server/planning/__init__.py:125
+msgid "Planning - Manage locations"
+msgstr ""
+
+#: server/planning/__init__.py:126
+msgid "Ability to create, edit and delete locations"
+msgstr ""
+
+#: server/planning/__init__.py:131
+msgid "Planning - Assignments view"
+msgstr ""
+
+#: server/planning/__init__.py:132
+msgid "Ability to access assignments view"
+msgstr ""
+
+#: server/planning/__init__.py:141
+msgid "Allow Notifications To Slack"
+msgstr ""
+
+#: server/planning/__init__.py:142
+msgid "Notifications"
+msgstr ""
+
+#: server/planning/__init__.py:147
+msgid "Default Calendar"
+msgstr ""
+
+#: server/planning/__init__.py:154
+msgid "Default Agenda"
+msgstr ""
+
+#: server/planning/__init__.py:162
+msgid "Default Events Planning Filter"
+msgstr ""
+
+#: server/planning/__init__.py:170
+msgid "Default desk for coverage types"
+msgstr ""
+
+#: server/planning/__init__.py:180
+msgid "Open advanced mode when adding coverages"
+msgstr ""
+
+#: server/planning/assignments/__init__.py:117
+msgid "Default sort preferences for Assignment lists"
+msgstr ""
+
+#: server/planning/assignments/__init__.py:118
+msgid "Assignments"
+msgstr ""
+
+#: server/planning/assignments/assignments_link.py:138
+#, python-format
+msgid ""
+"Content type \"%(content_type)s\" is not allowed to be linked to a "
+"coverage"
+msgstr ""
+
+#: server/planning/events/__init__.py:147
+msgid "Planning - Event Management"
+msgstr ""
+
+#: server/planning/events/__init__.py:148
+msgid "Ability to create and modify Events"
+msgstr ""
+
+#: server/planning/events/__init__.py:153
+msgid "Planning - Spike Event Items"
+msgstr ""
+
+#: server/planning/events/__init__.py:154
+msgid "Ability to spike an Event"
+msgstr ""
+
+#: server/planning/events/__init__.py:159
+msgid "Planning - Unspike Event Items"
+msgstr ""
+
+#: server/planning/events/__init__.py:160
+msgid "Ability to unspike an Event"
+msgstr ""
+
+#: server/planning/events/__init__.py:165
+msgid "Planning - Post Event Items"
+msgstr ""
+
+#: server/planning/events/__init__.py:166
+msgid "Ability to post an Event"
+msgstr ""
+
+#: server/planning/events/__init__.py:171
+msgid "Planning - Unpost Event Items"
+msgstr ""
+
+#: server/planning/events/__init__.py:172
+msgid "Ability to unpost an Event"
+msgstr ""
+
+#: server/planning/events/__init__.py:177
+msgid "Planning - Event Templates"
+msgstr ""
+
+#: server/planning/events/__init__.py:178
+msgid "Ability to create and manage Event templates"
+msgstr ""
+
+#: server/planning/planning/__init__.py:120
+msgid "Planning - Planning Item Management"
+msgstr ""
+
+#: server/planning/planning/__init__.py:121
+msgid "Ability to create and modify Planning items"
+msgstr ""
+
+#: server/planning/planning/__init__.py:126
+msgid "Planning - Spike Planning Items"
+msgstr ""
+
+#: server/planning/planning/__init__.py:127
+msgid "Ability to spike a Planning Item"
+msgstr ""
+
+#: server/planning/planning/__init__.py:132
+msgid "Planning - Unspike Planning Items"
+msgstr ""
+
+#: server/planning/planning/__init__.py:133
+msgid "Ability to unspike a Planning Item"
+msgstr ""
+
+#: server/planning/planning/__init__.py:138
+msgid "Planning - Post Planning Items"
+msgstr ""
+
+#: server/planning/planning/__init__.py:139
+msgid "Ability to post a Planning Item"
+msgstr ""
+
+#: server/planning/planning/__init__.py:144
+msgid "Planning - Unpost Planning Items"
+msgstr ""
+
+#: server/planning/planning/__init__.py:145
+msgid "Ability to unpost a Planning Item"
+msgstr ""
+
+#: server/planning/planning/__init__.py:150
+msgid "Planning - Featured Stories"
+msgstr ""
+
+#: server/planning/planning/__init__.py:151
+msgid "Ability to create and modify a featured stories list from planning items"
+msgstr ""
+
+#: server/planning/search/__init__.py:36
+msgid "Planning - Events & Planning View Filters Management"
+msgstr ""
+
+#: server/planning/search/__init__.py:37
+msgid "Create/Update/Delete Events & Planning View Filters"
+msgstr ""
+
