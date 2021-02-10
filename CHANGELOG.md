@@ -1,5 +1,18 @@
 # Superdesk Planning Changelog
 
+## * Release v2.1.0 - 2021-02-11
+
+## [2.1.0-rc.5] 2021-02-11
+- [SDESK-5745] fix(search): Fails to search Planning by dates (#1534)
+- [SDCP-443] Support search filters in all views (#1535)
+- fix: Custom layout button was disabled (#1538)
+- [SDESK-5510] fix: Planning items belonging to events disappear once event repetitions are updated. (#1537)
+- [SDCP-450] Dynamically hide contradicting search param inputs (#1536)
+- [SDCP-464] fix(translation): Use CV not item value to show names #(1539)
+- [SDCP-468] fix(projections): Make sure type is always included (#1540)
+- chore(translations): update canadian french translations (#1541)
+- [SDCP-469] fix: Scheduled exports sent every hour regardless of schedule (#1542)
+
 ## [2.1.0-rc.4] 2021-02-03
 ### Fixes
 - [SDCP-440] fix: Incorrect schema for state param in filters (#1528)
