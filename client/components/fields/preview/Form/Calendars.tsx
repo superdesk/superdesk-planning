@@ -1,42 +1,21 @@
 import * as React from 'react';
-import {connect} from 'react-redux';
-import {get} from 'lodash';
 
 import {superdeskApi} from '../../../../superdeskApi';
-import {IListFieldProps, ICalendar} from '../../../../interfaces';
-import {calendars as getCalendars} from '../../../../selectors/events';
-
 import {FormPreviewItem} from './FormPreviewItem';
-import {getVocabularyItemNames} from '../../../../utils/vocabularies';
+import {ICalendarPreviewProps, calendarPreviewHoc} from '../CalendarPreviewHoc';
 
-interface IProps extends IListFieldProps {
-    calendars: Array<ICalendar>;
-}
-
-const mapStateToProps = (state) => ({
-    calendars: getCalendars(state),
-});
-
-class FormPreviewCalendarsComponent extends React.PureComponent<IProps> {
+class FormPreviewCalendarsComponent extends React.PureComponent<ICalendarPreviewProps> {
     render() {
         const {gettext} = superdeskApi.localization;
-        const field = this.props.field ?? 'calendars';
-        const calendarNames = getVocabularyItemNames(
-            get(this.props.item, field) || [],
-            this.props.calendars,
-            'qcode',
-            'name',
-            this.props.language
-        );
 
         return (
             <FormPreviewItem
                 label={gettext('Calendars')}
-                value={calendarNames.join(', ')}
+                value={this.props.calendarNames}
                 light={true}
             />
         );
     }
 }
 
-export const FormPreviewCalendars = connect(mapStateToProps)(FormPreviewCalendarsComponent);
+export const FormPreviewCalendars = calendarPreviewHoc(FormPreviewCalendarsComponent);
