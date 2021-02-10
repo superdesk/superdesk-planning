@@ -1,6 +1,7 @@
 import React from 'react';
 import {sortBy} from 'lodash';
 
+import {getUserInterfaceLanguage} from 'appConfig';
 import {IRenderPanelType, ISearchProfile} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
 
@@ -22,6 +23,7 @@ import {reference} from './reference';
 import {FIELD_TO_EDITOR_COMPONENT} from './editor';
 import {FIELD_TO_LIST_COMPONENT} from './list';
 import {FIELD_TO_PREVIEW_COMPONENT} from './preview/SimpleList';
+import {FIELD_TO_FORM_PREVIEW_COMPONENT} from './preview/Form';
 import {ToggleBox} from '../UI/ToggleBox';
 
 let registeredFields = {};
@@ -42,11 +44,20 @@ export function registerField(id, component) {
  * @param {Object} props
  */
 export function renderFields(fields, item, props = {}) {
+    const language = getUserInterfaceLanguage();
+
     return (Array.isArray(fields) ? fields : [fields]).map((id) => {
         const Component = registeredFields[id];
 
         if (Component) {
-            return <Component key={id} item={item} {...props} />;
+            return (
+                <Component
+                    key={id}
+                    item={item}
+                    language={language}
+                    {...props}
+                />
+            );
         }
 
         return null;
@@ -61,6 +72,8 @@ function getFieldsForPanel(panelType: IRenderPanelType) {
         return FIELD_TO_LIST_COMPONENT;
     case 'simple-preview':
         return FIELD_TO_PREVIEW_COMPONENT;
+    case 'form-preview':
+        return FIELD_TO_FORM_PREVIEW_COMPONENT;
     }
 }
 

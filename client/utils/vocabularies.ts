@@ -12,3 +12,21 @@ export function getVocabularyItemFieldTranslated(
         item.translations?.[field]?.[language.replace('_', '-')] ??
         item[field];
 }
+
+export function getVocabularyItemNames<T>(
+    selected: Array<T>,
+    options: Array<T>,
+    valueField: keyof T,
+    nameField: keyof T,
+    language: string
+): Array<string> {
+    const qcodes = selected.map((calendar) => calendar[valueField]);
+
+    return options
+        .filter((calendar) => qcodes.includes(calendar[valueField]))
+        .map((calendar) => getVocabularyItemFieldTranslated(
+            calendar,
+            nameField as string,
+            language,
+        ));
+}

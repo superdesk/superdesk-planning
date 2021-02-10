@@ -94,7 +94,12 @@ export class SelectMetaTermsInput extends React.Component {
         } = this.props;
         const options = this.removeValuesFromOptions();
         const disabled = options.length === 0 || (maxLength && Array.isArray(value) && value.length >= maxLength);
-        let selected = value;
+        const selectedIds: Array<string> = (value || []).map(
+            (option) => option[valueKey]
+        );
+        let selected = this.props.options.filter(
+            (option) => selectedIds.includes(option[valueKey])
+        );
 
         if (scheme) {
             selected = selected.filter((val) => val.scheme === scheme);
