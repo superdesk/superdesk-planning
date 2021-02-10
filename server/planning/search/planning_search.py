@@ -56,6 +56,10 @@ class PlanningSearchService(superdesk.Service):
 
         params = {}
         if fields:
+            # If projections are provided, make sure `type` is always included
+            if 'type' not in fields:
+                fields += ',type'
+
             params['_source'] = fields
 
         docs = self.elastic.search(query, types, params)

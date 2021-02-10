@@ -236,7 +236,7 @@ class EventsPlanningService(Service):
 
         # Silently remove parameters from the search filter that are not in the whitelist
         search_filter_id = search_filter.get('_id')
-        for param_name in search_filter['params'].keys():
+        for param_name in list(search_filter['params'].keys()):
             if param_name not in whitelist:
                 logger.warning(f'Search filter {search_filter_id} contains unsupported param {param_name}')
                 search_filter['params'].pop(param_name, None)
