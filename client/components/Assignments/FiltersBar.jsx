@@ -20,19 +20,22 @@ export const FiltersBar = ({
     selectAssignmentsFrom,
     showDeskSelection,
     showAllDeskOption,
+    showDeskAssignmentView,
 }) => (
     <SubNav>
         <StretchBar>
             {!showDeskSelection ? (
                 <Fragment>
-                    <Checkbox
-                        label={gettext('Desk Assignments')}
-                        onChange={() => changeFilter('Desk', orderByField, selectedDeskId)}
-                        value={'Desk'}
-                        checkedValue={filterBy}
-                        type="radio"
-                        labelPosition="inside"
-                    />
+                    {showDeskAssignmentView && (
+                        <Checkbox
+                            label={gettext('Desk Assignments')}
+                            onChange={() => changeFilter('Desk', orderByField, selectedDeskId)}
+                            value={'Desk'}
+                            checkedValue={filterBy}
+                            type="radio"
+                            labelPosition="inside"
+                        />
+                    )}
                     <div className="element-with-badge">
                         <Checkbox
                             label={gettext('My Assignments')}
@@ -85,6 +88,7 @@ FiltersBar.propTypes = {
     selectAssignmentsFrom: PropTypes.func,
     showDeskSelection: PropTypes.bool,
     showAllDeskOption: PropTypes.bool,
+    showDeskAssignmentView: PropTypes.bool,
 };
 
 FiltersBar.defaultProps = {
@@ -96,4 +100,6 @@ FiltersBar.defaultProps = {
     workspace: '',
     showDeskSelection: false,
     showAllDeskOption: false,
+    showDeskAssignmentView: false,
 };
+

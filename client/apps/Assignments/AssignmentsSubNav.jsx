@@ -112,11 +112,14 @@ export class AssignmentsSubNavComponent extends React.Component {
             userDesks,
             currentDeskId,
             showAllDeskOption,
+            privileges,
         } = this.props;
 
         // Show the Desk selection if we're in Fulfil Assignment or Custom Workspace
         const showDeskSelection = workspace === WORKSPACE.AUTHORING ||
             (workspace === WORKSPACE.ASSIGNMENTS && !currentDeskId);
+
+        const showDeskAssignmentView = !!privileges.planning_assignments_desk;
 
         return (
             <div>
@@ -140,6 +143,7 @@ export class AssignmentsSubNavComponent extends React.Component {
                     showDeskSelection={showDeskSelection}
                     showAllDeskOption={showAllDeskOption}
                     changeSortField={this.changeSortField}
+                    showDeskAssignmentView={showDeskAssignmentView}
                 />
             </div>
         );
@@ -172,6 +176,7 @@ AssignmentsSubNavComponent.propTypes = {
     changeSortField: PropTypes.func,
     saveSortPreferences: PropTypes.bool,
     ignoreScheduledUpdates: PropTypes.bool,
+    privileges: PropTypes.object,
 };
 
 AssignmentsSubNavComponent.defaultProps = {
@@ -202,6 +207,9 @@ const mapStateToProps = (state) => ({
     workspace: selectors.general.currentWorkspace(state),
 
     listGroups: selectors.getAssignmentGroups(state),
+
+    privileges: selectors.general.privileges(state),
+
 });
 
 const mapDispatchToProps = (dispatch) => ({
