@@ -1,6 +1,6 @@
 {
   "name": "superdesk-planning",
-  "version": "2.1.0-dev",
+  "version": "2.2.0.dev",
   "license": "AGPL-3.0",
   "description": "",
   "repository": {
@@ -66,8 +66,8 @@
     "react-test-renderer": "16.2.0",
     "simulant": "^0.2.2",
     "sinon": "^4.5.0",
-    "superdesk-code-style": "^1.3.0",
-    "superdesk-core": "github:superdesk/superdesk-client-core#develop",
+    "superdesk-code-style": "1.5.0",
+    "superdesk-core": "github:superdesk/superdesk-client-core#master",
     "ts-node": "~7.0.1"
   }
 }
