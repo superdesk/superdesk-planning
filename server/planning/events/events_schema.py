@@ -217,7 +217,7 @@ events_schema = {
         'type': 'list',
         'mapping': {
             'properties': {
-                'qcode': {'type': 'string'},
+                'qcode': not_analyzed,
                 'name': {'type': 'string'},
                 'address': {'type': 'object'},
                 'geo': {'type': 'string'},
