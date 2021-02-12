@@ -30,7 +30,8 @@ class LocationsService(superdesk.Service):
         """Set default metadata."""
 
         for doc in docs:
-            doc['guid'] = generate_guid(type=GUID_NEWSML)
+            if not doc.get('guid'):
+                doc['guid'] = generate_guid(type=GUID_NEWSML)
             set_original_creator(doc)
 
     def delete(self, lookup):

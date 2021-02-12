@@ -1,9 +1,11 @@
 import {setup, login, addItems, waitForPageLoad} from '../../support/common';
-import {AdvancedSearch} from '../../support/planning';
+import {AdvancedSearch, PlanningList, PlanningEditor} from '../../support/planning';
 import {TEST_PLANNINGS, createPlanningFor} from '../../fixtures/planning';
 
 describe('Search.Planning: searching planning items', () => {
     const search = new AdvancedSearch();
+    const list = new PlanningList();
+    const editor = new PlanningEditor();
 
     beforeEach(() => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
@@ -65,6 +67,33 @@ describe('Search.Planning: searching planning items', () => {
             params: {featured: true},
             expectedCount: 1,
             expectedText: ['Featured Planning'],
+            clearAfter: true,
+        }]);
+
+        list.item(0)
+            .dblclick();
+        editor.waitTillOpen();
+        editor.waitForAutosave();
+        search.runSearchTests([{
+            params: {lock_state: 'Locked'},
+            expectedCount: 1,
+            clearAfter: true,
+        }, {
+            params: {lock_state: 'Not Locked'},
+            expectedCount: 1,
+            clearAfter: true,
+        }]);
+        editor.closeButton
+            .should('exist')
+            .click();
+        editor.waitTillClosed();
+        search.runSearchTests([{
+            params: {lock_state: 'Locked'},
+            expectedCount: 0,
+            clearAfter: true,
+        }, {
+            params: {lock_state: 'Not Locked'},
+            expectedCount: 2,
             clearAfter: true,
         }]);
     });
