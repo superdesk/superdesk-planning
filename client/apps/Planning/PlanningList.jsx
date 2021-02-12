@@ -148,7 +148,7 @@ const mapStateToProps = (state) => ({
     loadingIndicator: selectors.main.loadingIndicator(state),
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
-    calendars: selectors.events.enabledCalendars(state),
+    calendars: selectors.events.calendars(state),
     listFields: selectors.forms.listFields(state),
     isAllListItemsLoaded: selectors.main.isAllListItemsLoaded(state),
     previewId: selectors.main.previewId(state),

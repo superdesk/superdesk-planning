@@ -1,6 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 
+import {getUserInterfaceLanguage} from 'appConfig';
 import {PRIVILEGES} from '../../constants';
 import {List} from '../UI';
 import {ItemActionsMenu} from '../ItemActionsMenu';
@@ -48,6 +49,7 @@ export class FilterItem extends React.PureComponent<IProps> {
 
     render() {
         const {gettext} = superdeskApi.localization;
+        const language = getUserInterfaceLanguage();
         const actions = !this.props.privileges[PRIVILEGES.EVENTS_PLANNING_FILTERS_MANAGEMENT] ?
             [] :
             [{
@@ -89,6 +91,7 @@ export class FilterItem extends React.PureComponent<IProps> {
                             },
                             {
                                 item: this.props.filter,
+                                language: language,
                             },
                             {}
                         )}
@@ -103,7 +106,8 @@ export class FilterItem extends React.PureComponent<IProps> {
                                 place: {enabled: true, index: 2},
                             },
                             {
-                                item: this.props.filter.params
+                                item: this.props.filter.params,
+                                language: language,
                             },
                             {}
                         )}
@@ -116,7 +120,8 @@ export class FilterItem extends React.PureComponent<IProps> {
                                 subject: {enabled: true, index: 2},
                             },
                             {
-                                item: this.props.filter.params
+                                item: this.props.filter.params,
+                                language: language,
                             },
                             {}
                         )}
@@ -130,6 +135,7 @@ export class FilterItem extends React.PureComponent<IProps> {
                                 },
                                 {
                                     item: this.props.filter,
+                                    language: language,
                                 },
                                 {
                                     filter_schedule: {

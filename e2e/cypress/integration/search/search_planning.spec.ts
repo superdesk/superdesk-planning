@@ -58,8 +58,8 @@ describe('Search.Planning: searching planning items', () => {
             expectedCount: 0,
             clearAfter: true,
         }, {
-            params: {spike_state: 'Spiked Only'},
-            expectedCount: 1,
+            params: {spike_state: true},
+            expectedCount: 3,
             clearAfter: true,
         }, {
             params: {featured: true},

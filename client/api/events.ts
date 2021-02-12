@@ -4,6 +4,7 @@ import {IRestApiResponse} from 'superdesk-api';
 import {superdeskApi, planningApi} from '../superdeskApi';
 import {eventUtils} from '../utils';
 import {eventProfile, eventSearchProfile} from '../selectors/forms';
+import {EVENTS} from '../constants';
 
 function convertEventParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
@@ -58,12 +59,31 @@ export function getEventByIds(
 ): Promise<Array<IEventItem>> {
     if (eventIds.length === 0) {
         return Promise.resolve([]);
+    } else if (eventIds.length > EVENTS.FETCH_IDS_CHUNK_SIZE) {
+        // chunk the requests (otherwise URL may become too long)
+        const requests: Array<Promise<Array<IEventItem>>> = [];
+
+        for (let i = 0; i < Math.ceil(eventIds.length / EVENTS.FETCH_IDS_CHUNK_SIZE); i++) {
+            requests.push(
+                getEventByIds(
+                    eventIds.slice(
+                        i * EVENTS.FETCH_IDS_CHUNK_SIZE,
+                        (i + 1) * EVENTS.FETCH_IDS_CHUNK_SIZE
+                    ),
+                    spikeState
+                )
+            );
+        }
+
+        return Promise
+            .all(requests)
+            .then((responses) => (
+                Array.prototype.concat.apply([], responses)
+            ));
     }
 
     return searchEvents({
-        item_ids: eventIds.filter(
-            (eventId, index, ids) => ids.indexOf(eventId) === index
-        ),
+        item_ids: eventIds,
         spike_state: spikeState,
         only_future: false,
     })

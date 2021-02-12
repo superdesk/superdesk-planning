@@ -74,7 +74,7 @@ describe('actions.planning.api', () => {
                     expect(planningApis.planning.searchGetAll.args[0]).toEqual([{
                         featured: true,
                         start_date: date,
-                        date_filter: 'forDate',
+                        date_filter: 'for_date',
                         only_future: false,
                         spike_state: 'draft',
                         exclude_rescheduled_and_cancelled: true,

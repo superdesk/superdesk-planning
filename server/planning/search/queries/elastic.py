@@ -78,7 +78,7 @@ DATE_RANGE: DateRanges = DateRanges(
     'this_week',
     'next_week',
     'last24',
-    'forDate'
+    'for_date'
 )
 
 

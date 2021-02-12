@@ -4,11 +4,13 @@ import {events} from './events';
 import {planning} from './planning';
 import {coverages} from './coverages';
 import {combined} from './combined';
+import {ui} from './ui';
 
-export const planningApis: Omit<IPlanningAPI, 'redux'> = {
+export const planningApis: Omit<IPlanningAPI, 'redux' | '$location'> = {
     events,
     planning,
     combined,
     coverages,
     search,
+    ui,
 };

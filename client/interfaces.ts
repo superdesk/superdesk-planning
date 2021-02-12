@@ -1,5 +1,4 @@
 import {
-    ITEM_STATE,
     ISuperdeskGlobalConfig,
     IBaseRestApiResponse,
     ISubject,
@@ -52,6 +51,7 @@ export interface IEventOccurStatus {
 export interface ICalendar {
     qcode: string;
     name: string;
+    is_active?: boolean;
 }
 
 export interface IANPACategory {
@@ -136,12 +136,12 @@ export enum DATE_RANGE {
     THIS_WEEK = 'this_week',
     NEXT_WEEK = 'next_week',
     LAST_24 = 'last24',
-    FOR_DATE = 'forDate',
+    FOR_DATE = 'for_date',
 }
 
 export type ISearchSpikeState = 'spiked' | 'draft' | 'both';
 
-export type IDateRange = 'today' | 'tomorrow' | 'this_week' | 'next_week' | 'last24' | 'forDate';
+export type IDateRange = 'today' | 'tomorrow' | 'this_week' | 'next_week' | 'last24' | 'for_date';
 
 export type IPlanningProfile = {
     name: string;
@@ -366,6 +366,14 @@ export interface IEventItem extends IBaseRestApiResponse {
     _plannings?: Array<IPlanningItem>;
     template?: string;
     _sortDate?: string | Date | moment.Moment;
+}
+
+export interface IEventTemplate extends IBaseRestApiResponse{
+    is_public: boolean;
+    template_name: string;
+    template_type: string;
+    user: IUser['_id'];
+    data: Partial<IEventItem>;
 }
 
 export interface ICoveragePlanningDetails {
@@ -604,6 +612,7 @@ export interface IEventSearchParams {
     page?: number;
     startOfWeek?: number;
     spikeState?: ISearchSpikeState;
+    filter_id?: ISearchFilter['_id'];
     advancedSearch?: {
         anpa_category?: Array<IANPACategory>;
         dates?: IDateSearchParams;
@@ -632,11 +641,15 @@ export interface IPlanningSearchParams {
     excludeRescheduledAndCancelled?: boolean;
     featured?: boolean;
     fulltext?: string;
+    includeKilled?: boolean;
     includeScheduledUpdates?: boolean;
     noAgendaAssigned?: boolean;
     spikeState?: ISearchSpikeState;
     startOfWeek?: number;
     timezoneOffset?: string;
+    filter_id?: ISearchFilter['_id'];
+    maxResults?: number;
+    page?: number;
     advancedSearch?: {
         anpa_category?: Array<IANPACategory>;
         dates?: IDateSearchParams;
@@ -707,6 +720,7 @@ export interface ICombinedSearchParams {
     agendas: Array<IAgenda>;
     places?: Array<IPlace>;
     filter_id?: ISearchFilter['_id'];
+    includeKilled?: boolean;
     advancedSearch?: {
         name?: string;
         anpa_category?: Array<IANPACategory>;
@@ -990,7 +1004,7 @@ export interface ISearchParams {
     place?: Array<IPlace>;
     language?: string;
     state?: Array<{
-        qcode?: string;
+        qcode?: IWorkflowState;
         name?: string;
     }>;
     spike_state?: ISearchSpikeState;
@@ -1168,12 +1182,14 @@ export interface IEditorFieldProps {
 export interface IListFieldProps {
     item: any;
     field?: string;
+    language?: string;
 }
 
 export type IRenderPanelType =
     | 'editor'
     | 'list'
-    | 'simple-preview';
+    | 'simple-preview'
+    | 'form-preview';
 
 export type IEventsPlanningField =
     | 'calendars'
@@ -1197,7 +1213,7 @@ export interface IEventsPlanningContentPanelProps {
 
 export interface IPlanningExportTemplate extends IBaseRestApiResponse {
     name: string;
-    type: 'event' | 'planning' | 'combined';
+    type: 'events' | 'planning' | 'combined';
     data: {[key: string]: any};
     label: string;
     download?: boolean;
@@ -1221,6 +1237,30 @@ export interface IContentTemplate extends IBaseRestApiResponse {
         pubstatus: string;
         type: string;
     };
+}
+
+export interface IAgendaState {
+    agendas: Array<IAgenda>;
+    currentPlanningId?: IPlanningItem['_id'];
+    currentAgendaId?: IAgenda['_id'];
+    currentFilterId?: ISearchFilter['_id'];
+    agendasAreLoading: boolean;
+}
+
+export interface IEventState {
+    events: {[key: string]: IEventItem};
+    eventsInList: Array<IEventItem['_id']>;
+    readOnly: boolean;
+    eventHistoryItems: Array<any>;
+    calendars: Array<ICalendar>;
+    currentCalendarId?: ICalendar['qcode'];
+    currentFilterId?: ISearchFilter['_id'];
+    eventTemplates: Array<IEventItem>;
+}
+
+export interface IPlanningAppState {
+    agenda: IAgendaState;
+    events: IEventState;
 }
 
 export interface IPlanningAPI {
@@ -1273,4 +1313,17 @@ export interface IPlanningAPI {
         }>;
     }
     search<T>(args: ISearchAPIParams): Promise<IRestApiResponse<T>>;
+    ui: {
+        list: {
+            changeFilterId(id: ISearchFilter['_id'], params?: any): Promise<any>;
+            changeCalendarId(id: ICalendar['qcode'], params?: any): Promise<any>;
+            changeAgendaId(id: IAgenda['_id'], params?: any): Promise<any>;
+            search(params: ISearchParams): Promise<any>;
+            clearSearch(): Promise<any>;
+        };
+    };
+    // Adding here until Superdesk 2.2 where this functionality is available
+    $location: {
+        search(name: string, values: any): void;
+    }
 }

@@ -4,6 +4,7 @@ import {IEditorFieldProps} from '../../../interfaces';
 
 import {superdeskApi} from '../../../superdeskApi';
 import {GeoLookupInput} from '../../GeoLookupInput';
+import {Row} from '../../UI/Form';
 
 export class EditorFieldLocation extends React.PureComponent<IEditorFieldProps> {
     render() {
@@ -11,13 +12,15 @@ export class EditorFieldLocation extends React.PureComponent<IEditorFieldProps> 
         const field = this.props.field ?? 'location';
 
         return (
-            <GeoLookupInput
-                field={field}
-                label={this.props.label ?? gettext('Location')}
-                value={get(this.props.item, field, this.props.defaultValue)}
-                disableSearch={true}
-                {...this.props}
-            />
+            <Row testId={this.props.testId}>
+                <GeoLookupInput
+                    field={field}
+                    label={this.props.label ?? gettext('Location')}
+                    value={get(this.props.item, field, this.props.defaultValue)}
+                    disableSearch={true}
+                    {...this.props}
+                />
+            </Row>
         );
     }
 }

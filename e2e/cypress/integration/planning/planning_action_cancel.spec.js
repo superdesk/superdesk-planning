@@ -29,7 +29,7 @@ describe('Planning.Planning: cancel planning item', () => {
         // Planning items that haven't been published
         menu = list.getActionMenu(0);
         menu.open();
-        menu.getAction('Cancel Planning')
+        menu.getAction('Cancel Planning', false)
             .should('not.exist');
 
         // Post the Planning item
@@ -62,7 +62,6 @@ describe('Planning.Planning: cancel planning item', () => {
         menu = list.getActionMenu(0);
         menu.open();
         menu.getAction('Cancel Planning')
-            .should('exist')
             .click();
         modal.waitTillOpen(30000);
 

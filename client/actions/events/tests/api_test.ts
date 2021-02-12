@@ -48,10 +48,13 @@ describe('actions.events.api', () => {
         );
 
         sinon.stub(planningApis.events, 'search').callsFake(
-            () => Promise.resolve({_items: data.events})
+            () => Promise.resolve({_items: eventUtils.modifyEventsForClient(data.events)})
         );
         sinon.stub(planningApis.events, 'getById').callsFake(
-            () => Promise.resolve(data.events[0])
+            () => Promise.resolve(eventUtils.modifyEventsForClient(data.events)[0])
+        );
+        sinon.stub(planningApis.events, 'getByIds').callsFake(
+            () => Promise.resolve(eventUtils.modifyEventsForClient(data.events))
         );
     });
 
@@ -66,17 +69,17 @@ describe('actions.events.api', () => {
         restoreSinonStub(timeUtils.localTimeZone);
         restoreSinonStub(planningApis.events.search);
         restoreSinonStub(planningApis.events.getById);
+        restoreSinonStub(planningApis.events.getByIds);
     });
 
     it('silentlyFetchEventsById', (done) => {
-        store.test(done, eventsApi.silentlyFetchEventsById(['e1', 'e2', 'e3'], SPIKED_STATE.BOTH))
+        store.test(done, eventsApi.silentlyFetchEventsById(['e1', 'e2', 'e3'], 'both'))
             .then(() => {
-                expect(planningApis.events.search.callCount).toBe(1);
-                expect(planningApis.events.search.args[0]).toEqual([{
-                    item_ids: ['e1', 'e2', 'e3'],
-                    spike_state: SPIKED_STATE.BOTH,
-                    only_future: false,
-                }]);
+                expect(planningApis.events.getByIds.callCount).toBe(1);
+                expect(planningApis.events.getByIds.args[0]).toEqual([
+                    ['e1', 'e2', 'e3'],
+                    'both',
+                ]);
 
                 expect(eventsApi.receiveEvents.callCount).toBe(1);
                 expect(eventsApi.receiveEvents.args[0]).toEqual([data.events]);
@@ -538,8 +541,11 @@ describe('actions.events.api', () => {
                         },
                     });
 
-                    expect(planningApis.events.getById.callCount).toBe(1);
-                    expect(planningApis.events.getById.args[0]).toEqual([data.events[0]._id]);
+                    expect(planningApis.events.getByIds.callCount).toBe(1);
+                    expect(planningApis.events.getByIds.args[0]).toEqual([
+                        [data.events[0]._id],
+                        'both',
+                    ]);
 
                     done();
                 })
@@ -549,14 +555,16 @@ describe('actions.events.api', () => {
         it('returns Promise.reject if getById fails', (done) => {
             store.init();
             store.initialState.events.events = {};
-            restoreSinonStub(planningApis.events.getById);
-            sinon.stub(planningApis.events, 'getById').returns(Promise.reject(errorMessage));
+            restoreSinonStub(planningApis.events.getByIds);
+            sinon.stub(planningApis.events, 'getByIds').returns(Promise.reject(errorMessage));
             store.test(done, eventsApi.getEvent(data.events[0]._id))
-                .then(() => { /* no-op */ }, (error) => {
-                    expect(error).toEqual(errorMessage);
-
-                    done();
-                })
+                .then(
+                    done.fail,
+                    (error) => {
+                        expect(error).toEqual(errorMessage);
+                        done();
+                    }
+                )
                 .catch(done.fail);
         });
     });

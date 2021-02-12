@@ -1,14 +1,60 @@
 # Superdesk Planning Changelog
 
-## [2.1.0-dev]
+## * Release v2.1.0 - 2021-02-11
+
+## [2.1.0-rc.5] 2021-02-11
+- [SDESK-5745] fix(search): Fails to search Planning by dates (#1534)
+- [SDCP-443] Support search filters in all views (#1535)
+- fix: Custom layout button was disabled (#1538)
+- [SDESK-5510] fix: Planning items belonging to events disappear once event repetitions are updated. (#1537)
+- [SDCP-450] Dynamically hide contradicting search param inputs (#1536)
+- [SDCP-464] fix(translation): Use CV not item value to show names #(1539)
+- [SDCP-468] fix(projections): Make sure type is always included (#1540)
+- chore(translations): update canadian french translations (#1541)
+- [SDCP-469] fix: Scheduled exports sent every hour regardless of schedule (#1542)
+
+## [2.1.0-rc.4] 2021-02-03
+### Fixes
+- [SDCP-440] fix: Incorrect schema for state param in filters (#1528)
+- [SDCP-449] fix(filter-schema): Allow unknown fields for dictionary attributes (#1532)
+- [SDCP-439] fix: Search fields in Filters editor doesnt work (#1527)
+- [SDCP-409] fix(search): Filters fail with Agenda ObjectId query (#1530)
+- [SDCP-446] fix(filters): Set param value to null if value is empty (#1531)
+- [SDCP-437] fix: Use appConfig timeformat for Schedules Hour values (#1529)
+- [SDCP-449] fix(filters): Fix issues with schema (#1533)
+
+## [2.1.0-rc.3] 2021-01-28
+### Fixes
+- [SDESK-5777] Data update script for events_planning_filters (#1522)
+- [SDESK-5746] fix: Dont return historic planning items by default (#1525)
+
+## [2.1.0-rc.2] 2021-01-27
+### Fixes
+- fix(flake8): Add newline at end of file ics_2_0
+- fix(rebase): Merge master reverted changes to search and filters
+- [SDESK-5745] fix: FeaturedPlanning modal excluding planning items on load (#1520)
+
+## [2.1.0-rc.1] 2021-01-21
 ### Features
-- None
+- [SDCP-408] [Server] Scheduled exports of event and planning filters (#1513)
+- [SDCP-409] [Client] Scheduled exports of search filters (#1519)
 
 ### Improvements
-- None
+- [SDCP-408] Move elastic queries to the server (#1506)
+- [SDCP-404] [Server] Support new search params in planning types and filters (#1511)
+- [SDCP-407] Unify search and filter panel components and search (#1512)
+- Improve translations for CP (#1515)
+- setup server translations on planning (#1516)
 
 ### Fixes
-- None
+- [SDCP-391] fix: Remove 'Add to Planning' option for correction items (#1507)
+- [SDESK-5708] fix: Cannot update event times. (#1508)
+- [SDESK-5739] fix: Cannot Post recurring series of Events (#1514)
+- [SDESK-5733] fix: When spiking a series of recurring events some were not affected (#1517)
+
+## [2.0.2] 2021-01-29
+### Fixes
+- [SDESK-5780] fix(security): Require authentication for all API endpoints (#1526)
 
 ## [2.0.1] 2021-01-21
 ### Features

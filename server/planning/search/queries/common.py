@@ -36,6 +36,10 @@ def get_date_params(params: Dict[str, Any]):
         start_date = params.get('start_date')
         if start_date:
             if isinstance(start_date, str):
+                if not start_date.endswith('+0000'):
+                    params['start_date'] += '+0000'
+                    start_date = params['start_date']
+
                 str_to_date(params['start_date'])  # validating if date can be parsed
             elif isinstance(start_date, datetime):
                 start_date = date_to_str(start_date)
@@ -47,6 +51,9 @@ def get_date_params(params: Dict[str, Any]):
         end_date = params.get('end_date')
         if end_date:
             if isinstance(end_date, str):
+                if not end_date.endswith('+0000'):
+                    params['end_date'] += '+0000'
+                    end_date = params['end_date']
                 str_to_date(params['end_date'])  # validating if date can be parsed
             elif isinstance(end_date, datetime):
                 end_date = date_to_str(end_date)
@@ -213,40 +220,31 @@ def append_states_query_for_advanced_search(params: Dict[str, Any], query: elast
     spike_state = params.get('spike_state')
     states = str_to_array(params.get('state'))
 
-    if spike_state == WORKFLOW_STATE.DRAFT:
-        query.must_not.append(
-            elastic.term(
-                field='state',
-                value=WORKFLOW_STATE.SPIKED
-            )
-        )
-    elif spike_state == WORKFLOW_STATE.SPIKED:
-        query.must.append(
-            elastic.term(
-                field='state',
-                value=WORKFLOW_STATE.SPIKED
-            )
-        )
-    elif len(states):
-        # Push spiked state only if other states are selected
-        # Else, it will be fetched anyway
-        states.append(WORKFLOW_STATE.SPIKED)
-
-    if spike_state != WORKFLOW_STATE.SPIKED and len(states):
+    if len(states):
+        # If any states are selected, then filter for these ONLY
         query.must.append(
             elastic.terms(
                 field='state',
                 values=states
             )
         )
-
-    if not strtobool(params.get('include_killed', False)) and WORKFLOW_STATE.KILLED not in states:
-        query.must_not.append(
-            elastic.term(
-                field='state',
-                value=WORKFLOW_STATE.KILLED
+    else:
+        # Otherwise include/exclude Spiked/Killed based on the params provided
+        if spike_state == WORKFLOW_STATE.DRAFT:
+            query.must_not.append(
+                elastic.term(
+                    field='state',
+                    value=WORKFLOW_STATE.SPIKED
+                )
             )
-        )
+
+        if not strtobool(params.get('include_killed', False)):
+            query.must_not.append(
+                elastic.term(
+                    field='state',
+                    value=WORKFLOW_STATE.KILLED
+                )
+            )
 
 
 def construct_query(
@@ -320,7 +318,9 @@ def get_params_from_search_filter(search_filter: Dict[str, Any]) -> Dict[str, An
 
     # Now that we have the search filter, construct params with the ones from the DB
     for key, value in search_filter['params'].items():
-        if key in ['anpa_category', 'subject', 'state', 'place', 'source', 'calendars']:
+        if not value:
+            continue
+        elif key in ['anpa_category', 'subject', 'state', 'place', 'source', 'calendars']:
             filter_params[key] = [
                 item['qcode']
                 for item in value

@@ -1,6 +1,6 @@
 import {get, cloneDeep, pickBy, has, every} from 'lodash';
 
-import {IEventItem, IPlanningSearchParams} from '../../interfaces';
+import {IEventItem, IPlanningSearchParams, IPlanningItem} from '../../interfaces';
 import {appConfig} from 'appConfig';
 
 import * as actions from '../../actions';
@@ -105,6 +105,8 @@ function query(
         adHocPlanning = false,
         excludeRescheduledAndCancelled = false,
         featured = false,
+        filter_id = null,
+        includeKilled = false,
     }: IPlanningSearchParams,
     storeTotal = true,
     timeZoneOffset = null,
@@ -123,7 +125,7 @@ function query(
             language: advancedSearch.language,
             state: advancedSearch.state,
             spike_state: spikeState,
-            include_killed: false,
+            include_killed: includeKilled,
             date_filter: advancedSearch?.dates?.range,
             start_date: advancedSearch?.dates?.start,
             end_date: advancedSearch?.dates?.end,
@@ -139,7 +141,8 @@ function query(
             featured: featured,
             include_scheduled_updates: includeScheduledUpdates,
             max_results: maxResults,
-            page: page
+            page: page,
+            filter_id: filter_id || selectors.main.currentSearchFilterId(getState()),
         })
             .then((response) => {
                 if (storeTotal) {
@@ -237,7 +240,7 @@ const fetchPlanningsEvents = (plannings) => (
         if (get(linkedEvents, 'length', 0) > 0) {
             return dispatch(actions.events.api.silentlyFetchEventsById(
                 linkedEvents,
-                SPIKED_STATE.BOTH
+                'both'
             ));
         }
 
@@ -341,18 +344,18 @@ const loadPlanningById = (id, spikeState = SPIKED_STATE.BOTH, saveToStore = true
         }, (error) => (Promise.reject(error)))
 );
 
-const loadPlanningByIds = (ids, saveToStore = true) => (
-    (dispatch) => (
+function loadPlanningByIds(ids: Array<IPlanningItem['_id']>, saveToStore: boolean = true) {
+    return (dispatch) => (
         planningApi.planning.getByIds(ids)
             .then((items) => {
-                if (saveToStore) {
+                if (saveToStore && items.length > 0) {
                     dispatch(self.receivePlannings(items));
                 }
 
-                return Promise.resolve(items);
-            }, (error) => Promise.reject(error))
-    )
-);
+                return items;
+            })
+    );
+}
 
 /**
  * Action dispatcher to load Planning items by Event ID from the API, and place them

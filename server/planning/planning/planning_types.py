@@ -327,14 +327,14 @@ DEFAULT_EDITOR = [{
             },
 
             # Events
-            'calendars': {
+            'no_calendar_assigned': {
                 'enabled': True,
                 'index': 1,
                 'group': 'events',
                 'search_enabled': True,
                 'filter_enabled': True
             },
-            'no_calendar_assigned': {
+            'calendars': {
                 'enabled': True,
                 'index': 2,
                 'group': 'events',
@@ -485,28 +485,28 @@ DEFAULT_EDITOR = [{
             },
 
             # Planning
-            'agendas': {
+            'no_agenda_assigned': {
                 'enabled': True,
                 'index': 1,
                 'group': 'planning',
                 'search_enabled': True,
                 'filter_enabled': True
             },
-            'no_agenda_assigned': {
+            'agendas': {
                 'enabled': True,
                 'index': 2,
                 'group': 'planning',
                 'search_enabled': True,
                 'filter_enabled': True
             },
-            'ad_hoc_planning': {
+            'no_coverage': {
                 'enabled': True,
                 'index': 3,
                 'group': 'planning',
                 'search_enabled': True,
                 'filter_enabled': True
             },
-            'no_coverage': {
+            'g2_content_type': {
                 'enabled': True,
                 'index': 4,
                 'group': 'planning',
@@ -520,7 +520,7 @@ DEFAULT_EDITOR = [{
                 'search_enabled': True,
                 'filter_enabled': True
             },
-            'g2_content_type': {
+            'ad_hoc_planning': {
                 'enabled': True,
                 'index': 6,
                 'group': 'planning',

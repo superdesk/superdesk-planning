@@ -44,6 +44,9 @@ describe('actions.planning.api', () => {
         sinon.stub(planningApis.events, 'search').callsFake(
             () => Promise.resolve({_items: data.events})
         );
+        sinon.stub(planningApis.events, 'getByIds').callsFake(
+            () => Promise.resolve(data.events)
+        );
     });
 
     afterEach(() => {
@@ -59,6 +62,7 @@ describe('actions.planning.api', () => {
         restoreSinonStub(planningApis.planning.search);
         restoreSinonStub(planningApis.planning.getById);
         restoreSinonStub(planningApis.events.search);
+        restoreSinonStub(planningApis.events.getByIds);
     });
 
     describe('spike', () => {
@@ -213,12 +217,11 @@ describe('actions.planning.api', () => {
                     expect(items).toEqual(convertEventDatesToMoment(data.events));
 
                     // The API should have been called
-                    expect(planningApis.events.search.callCount).toBe(1);
-                    expect(planningApis.events.search.args[0]).toEqual([{
-                        item_ids: ['e1'],
-                        spike_state: 'both',
-                        only_future: false,
-                    }]);
+                    expect(planningApis.events.getByIds.callCount).toBe(1);
+                    expect(planningApis.events.getByIds.args[0]).toEqual([
+                        ['e1'],
+                        'both',
+                    ]);
 
                     done();
                 })

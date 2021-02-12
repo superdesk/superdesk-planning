@@ -27,9 +27,10 @@ export function planningParamsToSearchParams(params: IPlanningSearchParams): ISe
         urgency: params.advancedSearch?.urgency,
         g2_content_type: params.advancedSearch?.g2_content_type,
         featured: params.advancedSearch?.featured,
+        include_killed: params.includeKilled,
         include_scheduled_updates: params.includeScheduledUpdates,
-        // max_results: params.maxResults,
-        // page: params.page,
+        max_results: params.maxResults,
+        page: params.page,
     };
 }
 
@@ -40,6 +41,7 @@ export function searchParamsToPlanningParams(params: ISearchParams): IPlanningSe
         excludeRescheduledAndCancelled: params.exclude_rescheduled_and_cancelled,
         featured: params.featured,
         fulltext: params.full_text,
+        includeKilled: params.include_killed,
         includeScheduledUpdates: params.include_scheduled_updates,
         noAgendaAssigned: params.no_agenda_assigned,
         spikeState: params.spike_state,
@@ -153,6 +155,7 @@ export function combinedParamsToSearchParams(params: ICombinedSearchParams): ISe
         reference: params.advancedSearch?.reference,
         calendars: params.calendars,
         agendas: (params.agendas ?? []).map((agenda) => agenda._id),
+        include_killed: params.includeKilled,
 
         max_results: params.maxResults,
         page: params.page,
@@ -168,6 +171,7 @@ export function searchParamsToCombinedParams(params: ISearchParams): ICombinedSe
         calendars: params.calendars,
         agendas: params.agendas,
         places: params.place,
+        includeKilled: params.include_killed,
         advancedSearch: {
             name: params.name,
             anpa_category: params.anpa_category,
