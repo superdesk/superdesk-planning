@@ -2,6 +2,7 @@ import {getDateStringFor} from '../support/utils/time';
 
 export const LOCATIONS = {
     sydney_opera_house: {
+        guid: 'urn:newsml:localhost:5000:2021-02-12T15:32:23.084235:e7d57d5d-2b07-4937-9a1b-db81a3c5dcdc',
         name: 'Sydney Opera House',
         address: {
             area: 'Sydney',
@@ -13,6 +14,20 @@ export const LOCATIONS = {
         },
         type: 'Unclassified',
         unique_name: 'Sydney Opera House 2 Macquarie Street, Sydney, New South Wales, 2000, Australia',
+    },
+    woy_woy_train_station: {
+        guid: 'urn:newsml:localhost:5000:2021-02-12T15:43:25.134704:f20fb2e4-f44d-4cca-83cb-b11983678543',
+        name: 'Woy Woy Train Station',
+        address: {
+            area: 'Woy Woy',
+            country: 'Australia',
+            line: ['Railway Street'],
+            locality: 'New South Wales',
+            postal_code: '2256',
+            type: 'roof'
+        },
+        type: 'Unclassified',
+        unique_name: 'Woy Woy Train Station, Railway Street, Woy Woy, New South Wales, 2256, Australia',
     },
 };
 
@@ -47,6 +62,11 @@ export const TEST_EVENTS = {
         calendars: [
             {qcode: 'sport', name: 'Sport'},
         ],
+        location: [{
+            qcode: LOCATIONS.sydney_opera_house.guid,
+            name: LOCATIONS.sydney_opera_house.name,
+            address: LOCATIONS.sydney_opera_house.address,
+        }],
     },
     spiked: {
         ...BASE_EVENT,

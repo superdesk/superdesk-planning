@@ -1,9 +1,11 @@
 import {setup, login, addItems, waitForPageLoad} from '../../support/common';
-import {AdvancedSearch} from '../../support/planning';
-import {TEST_EVENTS, createEventFor} from '../../fixtures/events';
+import {AdvancedSearch, PlanningList, EventEditor} from '../../support/planning';
+import {TEST_EVENTS, createEventFor, LOCATIONS} from '../../fixtures/events';
 
 describe('Search.Events: searching events', () => {
     const search = new AdvancedSearch();
+    const list = new PlanningList();
+    const editor = new EventEditor();
 
     beforeEach(() => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
@@ -12,6 +14,10 @@ describe('Search.Events: searching events', () => {
     });
 
     it('can search event metadata', () => {
+        addItems('locations', [
+            LOCATIONS.sydney_opera_house,
+            LOCATIONS.woy_woy_train_station,
+        ]);
         addItems('events', [
             TEST_EVENTS.draft,
             TEST_EVENTS.spiked,
@@ -81,6 +87,40 @@ describe('Search.Events: searching events', () => {
             params: {no_calendar_assigned: false},
             expectedCount: 1,
             clearAfter: true
+        }, {
+            params: {location: LOCATIONS.sydney_opera_house.name},
+            expectedCount: 1,
+            clearAfter: true,
+        }, {
+            params: {location: LOCATIONS.woy_woy_train_station.name},
+            expectedCount: 0,
+            clearAfter: true,
+        }]);
+
+        list.item(0)
+            .dblclick();
+        editor.waitTillOpen();
+        search.runSearchTests([{
+            params: {lock_state: 'Locked'},
+            expectedCount: 1,
+            clearAfter: true,
+        }, {
+            params: {lock_state: 'Not Locked'},
+            expectedCount: 0,
+            clearAfter: true,
+        }]);
+        editor.closeButton
+            .should('exist')
+            .click();
+        editor.waitTillClosed();
+        search.runSearchTests([{
+            params: {lock_state: 'Locked'},
+            expectedCount: 0,
+            clearAfter: true,
+        }, {
+            params: {lock_state: 'Not Locked'},
+            expectedCount: 1,
+            clearAfter: true,
         }]);
     });
 

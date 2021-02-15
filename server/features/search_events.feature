@@ -235,7 +235,7 @@ Feature: Event Search
             {"_id": "event_123"}
         ]}
         """
-        When we get "/events_planning_search?repo=events&only_future=false&location=test%20name"
+        When we get "/events_planning_search?repo=events&only_future=false&location=test%20qcode"
         Then we get list with 2 items
         """
         {"_items": [

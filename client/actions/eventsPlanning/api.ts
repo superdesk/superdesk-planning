@@ -1,57 +1,27 @@
 import {get, pickBy, isEqual} from 'lodash';
 
-import {appConfig} from 'appConfig';
 import {ICombinedSearchParams} from '../../interfaces';
 
-import {EVENTS_PLANNING, MAIN, SPIKED_STATE} from '../../constants';
+import {MAIN} from '../../constants';
 import {getTimeZoneOffset} from '../../utils';
 import * as selectors from '../../selectors';
 import main from '../main';
 import {planningApis} from '../../api';
+import {combinedParamsToSearchParams} from '../../utils/search';
 
 /**
  * Action Dispatcher for query the api for events and planning combined view
  * You can provide one of the following parameters to fetch from the server
  */
 const query = (
-    {
-        advancedSearch = {},
-        fulltext,
-        spikeState = 'draft',
-        page = 1,
-        maxResults = MAIN.PAGE_SIZE,
-        calendars = [],
-        agendas = [],
-        places = [],
-        filter_id = null,
-        includeKilled = false,
-    }: ICombinedSearchParams,
+    params: ICombinedSearchParams = {},
     storeTotal = false
 ) => (
     (dispatch, getState) => (
-        planningApis.combined.search({
-            full_text: fulltext,
-            name: advancedSearch?.name,
-            spike_state: spikeState,
-            anpa_category: advancedSearch.anpa_category,
-            subject: advancedSearch.subject,
-            place: places ?? advancedSearch.place,
-            slugline: advancedSearch.slugline,
-            reference: advancedSearch.reference,
-            state: advancedSearch.state,
-            posted: advancedSearch.posted,
-            date_filter: advancedSearch.dates?.range,
-            start_date: advancedSearch.dates?.start,
-            end_date: advancedSearch.dates?.end,
-            start_of_week: appConfig.start_of_week,
-            calendars: calendars,
-            agendas: agendas,
-            tz_offset: getTimeZoneOffset(),
-            page: page,
-            max_results: maxResults,
-            filter_id: filter_id || selectors.main.currentSearchFilterId(getState()),
-            include_killed: includeKilled,
-        })
+        planningApis.combined.search(combinedParamsToSearchParams({
+            ...params,
+            filter_id: params.filter_id || selectors.main.currentSearchFilterId(getState()),
+        }))
             .then((response) => {
                 if (storeTotal) {
                     dispatch(main.setTotal(MAIN.FILTERS.COMBINED, response._meta.total ?? 0));

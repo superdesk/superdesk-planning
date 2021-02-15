@@ -10,7 +10,7 @@ function convertEventParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
         reference: params.reference,
         source: cvsToString(params.source, 'id'),
-        location: params.location?.name,
+        location: params.location?.qcode,
         calendars: cvsToString(params.calendars),
         no_calendar_assigned: params.no_calendar_assigned,
     };
