@@ -1311,6 +1311,7 @@ coverage_schema = {
 
     'news_coverage_status': {
         'type': 'dict',
+        'allow_unknown': True,
         'schema': {
             'qcode': {'type': 'string'},
             'name': {'type': 'string'},
@@ -1345,6 +1346,7 @@ coverage_schema = {
                 'previous_status': {'type': 'string'},
                 'news_coverage_status': {
                     'type': 'dict',
+                    'allow_unknown': True,
                     'schema': {
                         'qcode': {'type': 'string'},
                         'name': {'type': 'string'},

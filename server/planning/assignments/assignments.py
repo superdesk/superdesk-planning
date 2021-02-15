@@ -1229,6 +1229,7 @@ assignments_schema = {
             'coverage_provider': {
                 'type': 'dict',
                 'nullable': True,
+                'allow_unknown': True,
                 'schema': {
                     'qcode': {'type': 'string'},
                     'name': {'type': 'string'},
