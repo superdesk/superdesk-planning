@@ -28,12 +28,24 @@ def search_planning(_: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_agendas(params: Dict[str, Any], query: elastic.ElasticQuery):
+    if strtobool(params.get('no_agenda_assigned', False)):
+        # The `no_agenda_assigned` param should override the `agendas` param
+        return
+
     agendas = [
         str(agenda_id)
         for agenda_id in str_to_array(params.get('agendas'))
     ]
+    num_agendas = len(agendas)
 
-    if len(agendas):
+    if num_agendas == 1:
+        query.must.append(
+            elastic.term(
+                field='agendas',
+                value=agendas[0]
+            )
+        )
+    elif num_agendas > 1:
         query.must.append(
             elastic.terms(
                 field='agendas',

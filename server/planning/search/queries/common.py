@@ -320,12 +320,22 @@ def get_params_from_search_filter(search_filter: Dict[str, Any]) -> Dict[str, An
     for key, value in search_filter['params'].items():
         if not value:
             continue
-        elif key in ['anpa_category', 'subject', 'state', 'place', 'source', 'calendars']:
-            filter_params[key] = [
+        elif key in ['anpa_category', 'subject', 'state', 'place', 'calendars']:
+            value = [
                 item['qcode']
                 for item in value
+                if item.get('qcode')
             ]
-        else:
+        elif key == 'source':
+            value = [
+                item['id']
+                for item in value
+                if item.get('id')
+            ]
+        elif key in ['location', 'urgency', 'g2_content_type']:
+            value = value.get('qcode')
+
+        if value:
             filter_params[key] = value
 
     return filter_params

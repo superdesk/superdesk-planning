@@ -1,6 +1,15 @@
 import moment from 'moment';
 
-import {IAgenda, ICalendar, IPlanningAPI, ISearchFilter, ISearchParams} from '../../interfaces';
+import {
+    IAgenda,
+    ICalendar,
+    IPlanningAPI,
+    ISearchFilter,
+    ISearchParams,
+    ICombinedEventOrPlanningSearchParams,
+    IEventSearchParams,
+    IPlanningSearchParams,
+} from '../../interfaces';
 import {planningApi} from '../../superdeskApi';
 import {AGENDA, EVENTS, EVENTS_PLANNING, MAIN} from '../../constants';
 
@@ -12,7 +21,7 @@ import {searchParamsToOld} from '../../utils/search';
 
 import * as actions from '../../actions';
 
-function reloadList(params = {}) {
+function reloadList(params: ICombinedEventOrPlanningSearchParams = {}) {
     const {getState, dispatch} = planningApi.redux.store;
     const currentView = activeFilter(getState());
 
@@ -43,7 +52,7 @@ function reloadList(params = {}) {
     }));
 }
 
-function changeFilterId(id: ISearchFilter['_id'], params = {}) {
+function changeFilterId(id: ISearchFilter['_id'], params: ICombinedEventOrPlanningSearchParams = {}) {
     const {getState, dispatch} = planningApi.redux.store;
     const currentView = activeFilter(getState());
 
@@ -72,7 +81,7 @@ function changeFilterId(id: ISearchFilter['_id'], params = {}) {
     });
 }
 
-function changeCalendarId(id: ICalendar['qcode'], params = {}) {
+function changeCalendarId(id: ICalendar['qcode'], params: IEventSearchParams = {}) {
     const {dispatch} = planningApi.redux.store;
 
     dispatch(actions.main.setUnsetLoadingIndicator(true));
@@ -87,7 +96,7 @@ function changeCalendarId(id: ICalendar['qcode'], params = {}) {
     });
 }
 
-function changeAgendaId(id: IAgenda['_id'], params = {}) {
+function changeAgendaId(id: IAgenda['_id'], params: IPlanningSearchParams = {}) {
     const {dispatch} = planningApi.redux.store;
 
     dispatch(actions.main.setUnsetLoadingIndicator(true));

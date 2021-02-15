@@ -1,4 +1,12 @@
-import {IEventItem, IPlanningItem, ISearchAPIParams, ISearchParams, IPlanningAPI, FILTER_TYPE} from '../interfaces';
+import {
+    IEventItem,
+    IPlanningItem,
+    ISearchAPIParams,
+    ISearchParams,
+    IPlanningAPI,
+    FILTER_TYPE,
+    IEventOrPlanningItem,
+} from '../interfaces';
 import {IRestApiResponse} from 'superdesk-api';
 import {searchRaw, searchRawGetAll, convertCommonParams, cvsToString, arrayToString} from './search';
 import {eventUtils, planningUtils} from '../utils';
@@ -7,7 +15,7 @@ import {combinedSearchProfile} from '../selectors/forms';
 import {searchPlanningGetAll} from './planning';
 import {searchEventsGetAll} from './events';
 
-type IResponse = IRestApiResponse<IEventItem | IPlanningItem>;
+type IResponse = IRestApiResponse<IEventOrPlanningItem>;
 
 function convertCombinedParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
@@ -24,7 +32,7 @@ function modifyResponseForClient(response: IResponse): IResponse {
     return response;
 }
 
-function modifyItemForClient(item: IEventItem | IPlanningItem): IEventItem | IPlanningItem {
+function modifyItemForClient(item: IEventOrPlanningItem): IEventOrPlanningItem {
     if (item.type === 'event') {
         eventUtils.modifyForClient(item);
     } else {
@@ -35,7 +43,7 @@ function modifyItemForClient(item: IEventItem | IPlanningItem): IEventItem | IPl
 }
 
 export function searchCombined(params: ISearchParams): Promise<IResponse> {
-    return searchRaw<IEventItem | IPlanningItem>({
+    return searchRaw<IEventOrPlanningItem>({
         ...convertCommonParams(params),
         ...convertCombinedParams(params),
         repo: FILTER_TYPE.COMBINED,
@@ -43,8 +51,8 @@ export function searchCombined(params: ISearchParams): Promise<IResponse> {
         .then(modifyResponseForClient);
 }
 
-export function searchCombinedGetAll(params: ISearchParams): Promise<Array<IEventItem | IPlanningItem>> {
-    return searchRawGetAll<IEventItem | IPlanningItem>({
+export function searchCombinedGetAll(params: ISearchParams): Promise<Array<IEventOrPlanningItem>> {
+    return searchRawGetAll<IEventOrPlanningItem>({
         ...convertCommonParams(params),
         ...convertCombinedParams(params),
         repo: FILTER_TYPE.COMBINED,
