@@ -96,11 +96,7 @@ function query(
     return (dispatch, getState) => (
         planningApi.planning.search(planningParamsToSearchParams({
             ...params,
-            timezoneOffset: timeZoneOffset ?? params.timezoneOffset ?? getTimeZoneOffset(),
-            spikeState: params.spikeState ?? 'draft',
-            onlyFuture: params.onlyFuture ?? true,
-            page: params.page ?? 1,
-            maxResults: params.maxResults ?? MAIN.PAGE_SIZE,
+            timezoneOffset: timeZoneOffset ?? params.timezoneOffset,
             filter_id: params.filter_id || selectors.main.currentSearchFilterId(getState()),
             includeScheduledUpdates: includeScheduledUpdates || params.includeScheduledUpdates,
         }))

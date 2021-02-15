@@ -20,11 +20,6 @@ const query = (
     (dispatch, getState) => (
         planningApis.combined.search(combinedParamsToSearchParams({
             ...params,
-            timezoneOffset: params.timezoneOffset ?? getTimeZoneOffset(),
-            spikeState: params.spikeState ?? 'draft',
-            onlyFuture: params.onlyFuture ?? true,
-            page: params.page ?? 1,
-            maxResults: params.maxResults ?? MAIN.PAGE_SIZE,
             filter_id: params.filter_id || selectors.main.currentSearchFilterId(getState()),
         }))
             .then((response) => {

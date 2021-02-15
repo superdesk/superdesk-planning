@@ -9,20 +9,21 @@ import {
     IEventOrPlanningItem,
 } from '../interfaces';
 import {MAIN} from '../constants';
+import {getTimeZoneOffset} from './index';
 
 function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanningItem>): ISearchParams {
     return {
         item_ids: params.itemIds,
         full_text: params.fulltext,
         include_killed: params.includeKilled,
-        max_results: params.maxResults,
-        page: params.page,
-        only_future: params.onlyFuture,
+        max_results: params.maxResults ?? MAIN.PAGE_SIZE,
+        page: params.page ?? 1,
+        only_future: params.onlyFuture ?? true,
         start_of_week: params.startOfWeek,
-        spike_state: params.spikeState,
+        spike_state: params.spikeState ?? 'draft',
         filter_id: params.filter_id,
         lock_state: params.lock_state,
-        tz_offset: params.timezoneOffset,
+        tz_offset: params.timezoneOffset ?? getTimeZoneOffset(),
         anpa_category: params.advancedSearch?.anpa_category,
         date_filter: params.advancedSearch?.dates?.range,
         start_date: params.advancedSearch?.dates?.start,

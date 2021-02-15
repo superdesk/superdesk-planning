@@ -148,11 +148,6 @@ function query(
         return planningApis.events.search(eventParamsToSearchParams({
             ...params,
             itemIds: itemIds,
-            timezoneOffset: getTimeZoneOffset(),
-            spikeState: params.spikeState ?? 'draft',
-            onlyFuture: params.onlyFuture ?? true,
-            page: params.page ?? 1,
-            maxResults: params.maxResults ?? MAIN.PAGE_SIZE,
             filter_id: params.filter_id || selectors.main.currentSearchFilterId(getState()),
         }))
             .then((response) => {
