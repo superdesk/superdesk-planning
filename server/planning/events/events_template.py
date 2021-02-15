@@ -74,6 +74,7 @@ class EventsTemplateResource(Resource):
         },
         'occur_status': {
             'type': 'dict',
+            'allow_unknown': True,
             'schema': {
                 'qcode': {
                     'type': 'string'
@@ -96,6 +97,7 @@ class EventsTemplateResource(Resource):
             'type': 'list',
             'schema': {
                 'type': 'dict',
+                'allow_unknown': True,
                 'schema': {
                     'qcode': {
                         'type': 'string'
