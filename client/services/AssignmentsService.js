@@ -146,12 +146,8 @@ export class AssignmentsService {
             .then((assignment) => (
                 planningApi.planning.search({
                     item_ids: [get(assignment, 'planning_item')],
+                    only_future: false,
                 })
-                // this.api('planning').query({
-                //     source: JSON.stringify({
-                //         query: {terms: {_id: [get(assignment, 'planning_item')]}},
-                //     }),
-                // })
                     .then((data) => {
                         let items = get(data, '_items', []);
 

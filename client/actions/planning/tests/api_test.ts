@@ -622,6 +622,7 @@ describe('actions.planning.api', () => {
                     expect(planningApis.planning.search.callCount).toBe(1);
                     expect(planningApis.planning.search.args[0]).toEqual([{
                         recurrence_id: 'rec1',
+                        only_future: false,
                     }]);
 
                     done();
