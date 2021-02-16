@@ -88,7 +88,7 @@ def group_items_by_agenda(items):
 
     agendas = [{'_id': 'unassigned', 'name': 'No Agenda Assigned', 'items': []}]
     for item in items:
-        if item['_type'] != 'planning':
+        if item['type'] != 'planning':
             continue
 
         item_agendas = item.get('agendas', [])
@@ -106,7 +106,7 @@ def group_items_by_agenda(items):
 
     # replace each agenda id with the actual object
     for item in items:
-        if item['_type'] != 'planning':
+        if item['type'] != 'planning':
             continue
 
         item_agendas_ids = item.get('agendas', [])
@@ -239,7 +239,7 @@ def generate_text_item(items, template_name, resource_type):
         users = []
         desks = []
 
-        if item['_type'] == 'planning':
+        if item['type'] == 'planning':
             enhance_coverage(item, item, users, desks, text_users, text_desks)
         else:
             for p in (item.get('plannings') or []):
@@ -281,26 +281,24 @@ def generate_text_item(items, template_name, resource_type):
             else:
                 item['schedule'] = item['schedule'].strftime('%H%M')
 
-    agendas = []
-    if resource_type in ['planning', 'combined']:
-        agendas = group_items_by_agenda(items)
-        inject_internal_coverages(items)
+    agendas = group_items_by_agenda(items)
+    inject_internal_coverages(items)
 
-        labels = {}
-        cv = get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
-        if cv:
-            labels = {_type['qcode']: _type['name'] for _type in cv['items']}
+    labels = {}
+    cv = get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
+    if cv:
+        labels = {_type['qcode']: _type['name'] for _type in cv['items']}
 
-        for item in items:
-            item['coverages'] = [
-                labels.get(
-                    coverage.get('planning').get('g2_content_type'),
-                    coverage.get('planning').get('g2_content_type')
-                ) +
-                (' (cancelled)' if coverage.get('workflow_status', '') == 'cancelled' else '')
-                for coverage in item.get('coverages', [])
-                if (coverage.get('planning') or {}).get('g2_content_type')
-            ]
+    for item in items:
+        item['coverages'] = [
+            labels.get(
+                coverage.get('planning').get('g2_content_type'),
+                coverage.get('planning').get('g2_content_type')
+            ) +
+            (' (cancelled)' if coverage.get('workflow_status', '') == 'cancelled' else '')
+            for coverage in item.get('coverages', [])
+            if (coverage.get('planning') or {}).get('g2_content_type')
+        ]
 
     article = {}
 
@@ -359,10 +357,17 @@ class PlanningArticleExportService(Service):
             item_from_template = generate_text_item(item_list, doc.pop('template', None), item_type)
             fields_to_override = []
             for key, val in item_from_template.items():
-                placeholder = PLACEHOLDER_HTML if '_html' in key else PLACEHOLDER_TEXT
-                if item.get(key) and placeholder in item[key]:
-                    item[key] = item[key].replace(placeholder, val)
+                if item.get(key):
                     fields_to_override.append(key)
+
+                    placeholder = PLACEHOLDER_HTML if '_html' in key else PLACEHOLDER_TEXT
+                    if placeholder in item[key]:
+                        # The placeholder is found in the current field
+                        # So replace {{content}} with the generated text
+                        item[key] = item[key].replace(placeholder, val)
+                    else:
+                        # Otherwise append the generated text to the field
+                        item[key] += val
                 else:
                     item[key] = val
 
