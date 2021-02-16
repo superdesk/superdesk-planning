@@ -292,8 +292,8 @@ def generate_text_item(items, template_name, resource_type):
     for item in items:
         item['coverages'] = [
             labels.get(
-                coverage.get('planning').get('g2_content_type'),
-                coverage.get('planning').get('g2_content_type')
+                (coverage.get('planning') or {}).get('g2_content_type'),
+                (coverage.get('planning') or {}).get('g2_content_type')
             ) +
             (' (cancelled)' if coverage.get('workflow_status', '') == 'cancelled' else '')
             for coverage in item.get('coverages', [])
