@@ -123,13 +123,19 @@ def init_app(app):
     superdesk.privilege(
         name='planning_locations_management',
         label=lazy_gettext('Planning - Manage locations'),
-        decsription=lazy_gettext('Ability to create, edit and delete locations'),
+        description=lazy_gettext('Ability to create, edit and delete locations'),
     )
 
     superdesk.privilege(
         name='planning_assignments_view',
-        label=lazy_gettext('Planning - Assignments view'),
-        decsription=lazy_gettext('Ability to access assignments view'),
+        label=lazy_gettext('Planning - Assignments'),
+        description=lazy_gettext('User can access assignments view and see their own assignments'),
+    )
+
+    superdesk.privilege(
+        name='planning_assignments_desk',
+        label=lazy_gettext('Planning - Assignments desk'),
+        description=lazy_gettext('User can see desk assignments'),
     )
 
     app.on_update_users += PlanningNotifications().user_update
