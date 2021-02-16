@@ -322,7 +322,10 @@ function loadPlanningByIds(ids: Array<IPlanningItem['_id']>, saveToStore: boolea
  */
 const loadPlanningByEventId = (eventId: IEventItem['_id'], loadToStore: boolean = true) => (
     (dispatch) => (
-        planningApi.planning.search({event_item: [eventId]})
+        planningApi.planning.search({
+            event_item: [eventId],
+            only_future: false,
+        })
             .then((data) => {
                 if (loadToStore) {
                     dispatch(self.receivePlannings(data._items));
@@ -335,7 +338,10 @@ const loadPlanningByEventId = (eventId: IEventItem['_id'], loadToStore: boolean 
 
 const loadPlanningByRecurrenceId = (recurrenceId, loadToStore = true) => (
     (dispatch) => (
-        planningApi.planning.search({recurrence_id: recurrenceId})
+        planningApi.planning.search({
+            recurrence_id: recurrenceId,
+            only_future: false,
+        })
             .then((data) => {
                 if (loadToStore) {
                     dispatch(self.receivePlannings(data._items));
