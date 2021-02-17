@@ -1,5 +1,14 @@
 # Superdesk Planning Changelog
 
+## [2.1.1] 2021-02-17
+### Fixes
+- chore(fireq): Use planning-master branch (418c83c)
+- [SDCP-467][SDESK-5792] fix(search): Location and lock_state not filtering results (#1544)
+- [SDESK-5819] fix(schema): Allow translations for event & coverage status (#1545)
+- [SDESK-5820] fix(search): Show historic associated Planning items in combined view (#1547)
+- [SDCP-474] fix(export): Append text if placeholder not found in template (#1546)
+- fix(nosetests): Update country in json event output test (30dece1)
+
 ## * Release v2.1.0 - 2021-02-11
 
 ## [2.1.0-rc.5] 2021-02-11
