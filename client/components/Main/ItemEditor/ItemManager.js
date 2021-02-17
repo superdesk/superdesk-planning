@@ -14,7 +14,6 @@ import {EventUpdateMethods} from '../../Events';
 import {appConfig} from 'appConfig';
 
 
-
 export class ItemManager {
     constructor(editor) {
         this.editor = editor;
@@ -394,7 +393,7 @@ export class ItemManager {
         //  * Creating/Editing an item from Authoring
         return ((isTemporaryId(this.props.itemId) && this.props.inModalView)
             || this.props.currentWorkspace === WORKSPACE.AUTHORING)
-            && appConfig?.planning_auto_close_popup_editor
+            && appConfig.planning_auto_close_popup_editor;
     }
 
     post() {
@@ -434,8 +433,8 @@ export class ItemManager {
                                 true,
                                 true
                             ),
-                        }, null, true)
-                    if (!appConfig?.planning_auto_close_popup_editor) {
+                        }, null, true);
+                    if (!appConfig.planning_auto_close_popup_editor) {
                         return this.editor.closeEditor();
                     }
                 },
@@ -476,8 +475,8 @@ export class ItemManager {
                                 true,
                                 true
                             ),
-                        }, null, true)
-                    if (!appConfig?.planning_auto_close_popup_editor) {
+                        }, null, true);
+                    if (!appConfig.planning_auto_close_popup_editor) {
                         return this.editor.closeEditor();
                     }
                 },

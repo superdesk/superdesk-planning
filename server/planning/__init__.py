@@ -17,10 +17,19 @@ from .locations import LocationsResource, LocationsService
 from .agendas import AgendasResource, AgendasService
 from .planning_export_templates import PlanningExportTemplatesResource, PlanningExportTemplatesService
 from .planning_article_export import PlanningArticleExportResource, PlanningArticleExportService
-from .common import get_max_recurrent_events, get_street_map_url, get_event_max_multi_day_duration,\
-    planning_auto_assign_to_workflow, get_long_event_duration_threshold, get_planning_allow_scheduled_updates,\
-    event_templates_enabled, planning_link_updates_to_coverage, get_planning_use_xmp_for_pic_assignments, \
-    get_planning_use_xmp_for_pic_slugline, get_planning_allowed_coverage_link_types, get_planning_auto_close_popup_editor
+from .common import (
+    get_max_recurrent_events,
+    get_street_map_url,
+    get_event_max_multi_day_duration,
+    planning_auto_assign_to_workflow,
+    get_long_event_duration_threshold,
+    get_planning_allow_scheduled_updates,
+    event_templates_enabled,
+    planning_link_updates_to_coverage,
+    get_planning_use_xmp_for_pic_assignments,
+    get_planning_use_xmp_for_pic_slugline,
+    get_planning_allowed_coverage_link_types,
+    get_planning_auto_close_popup_editor)
 from apps.common.components.utils import register_component
 from .item_lock import LockService
 from .planning_notifications import PlanningNotifications
