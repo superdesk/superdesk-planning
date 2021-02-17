@@ -20,7 +20,7 @@ from .planning_article_export import PlanningArticleExportResource, PlanningArti
 from .common import get_max_recurrent_events, get_street_map_url, get_event_max_multi_day_duration,\
     planning_auto_assign_to_workflow, get_long_event_duration_threshold, get_planning_allow_scheduled_updates,\
     event_templates_enabled, planning_link_updates_to_coverage, get_planning_use_xmp_for_pic_assignments, \
-    get_planning_use_xmp_for_pic_slugline, get_planning_allowed_coverage_link_types
+    get_planning_use_xmp_for_pic_slugline, get_planning_allowed_coverage_link_types, get_planning_auto_close_popup_editor
 from apps.common.components.utils import register_component
 from .item_lock import LockService
 from .planning_notifications import PlanningNotifications
@@ -197,6 +197,7 @@ def init_app(app):
     app.client_config['planning_link_updates_to_coverage'] = planning_link_updates_to_coverage(app)
     app.client_config['planning_use_xmp_for_pic_assignments'] = get_planning_use_xmp_for_pic_assignments(app)
     app.client_config['planning_use_xmp_for_pic_slugline'] = get_planning_use_xmp_for_pic_slugline(app)
+    app.client_config['planning_auto_close_popup_editor'] = get_planning_auto_close_popup_editor(app)
 
     app.client_config.setdefault('planning', {})
     app.client_config['planning']['allowed_coverage_link_types'] = get_planning_allowed_coverage_link_types(app)

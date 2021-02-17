@@ -11,6 +11,8 @@ import {validateItem} from '../../../validators';
 import {cloneDeep, get, set, isEqual} from 'lodash';
 import * as actions from '../../../actions';
 import {EventUpdateMethods} from '../../Events';
+import {appConfig} from 'appConfig';
+
 
 
 export class ItemManager {
@@ -390,8 +392,9 @@ export class ItemManager {
         // Determines if the Editor should close
         //  * Creating a new item from the Modal Editor
         //  * Creating/Editing an item from Authoring
-        return (isTemporaryId(this.props.itemId) && this.props.inModalView) ||
-            this.props.currentWorkspace === WORKSPACE.AUTHORING;
+        return ((isTemporaryId(this.props.itemId) && this.props.inModalView)
+            || this.props.currentWorkspace === WORKSPACE.AUTHORING)
+            && appConfig?.planning_auto_close_popup_editor
     }
 
     post() {
@@ -417,20 +420,25 @@ export class ItemManager {
                 actions.main.post(this.state.initialValues)
             ))
             .then(
-                (updatedItem) => this.setState(!updatedItem ?
-                    // updatedItem === undefined if the user clicks 'Cancel'
-                    // from an 'Ignore/Cancel/Save' dialog
-                    {submitting: false} :
-                    {
-                        submitting: false,
-                        dirty: false,
-                        initialValues: updatedItem,
-                        diff: removeAutosaveFields(
-                            cloneDeep(updatedItem),
-                            true,
-                            true
-                        ),
-                    }, null, true),
+                (updatedItem) => {
+                    this.setState(!updatedItem ?
+                        // updatedItem === undefined if the user clicks 'Cancel'
+                        // from an 'Ignore/Cancel/Save' dialog
+                        {submitting: false} :
+                        {
+                            submitting: false,
+                            dirty: false,
+                            initialValues: updatedItem,
+                            diff: removeAutosaveFields(
+                                cloneDeep(updatedItem),
+                                true,
+                                true
+                            ),
+                        }, null, true)
+                    if (!appConfig?.planning_auto_close_popup_editor) {
+                        return this.editor.closeEditor();
+                    }
+                },
                 (error) => {
                     if (get(error, 'status') === 412) {
                         // If etag error, then notify user and change editor to read-only
@@ -454,20 +462,25 @@ export class ItemManager {
                 actions.main.unpost(this.state.initialValues)
             ))
             .then(
-                (updatedItem) => this.setState(!updatedItem ?
+                (updatedItem) => {
+                    this.setState(!updatedItem ?
                     // updatedItem === undefined if the user clicks 'Cancel'
                     // from an 'Ignore/Cancel/Save' dialog
-                    {submitting: false} :
-                    {
-                        submitting: false,
-                        dirty: false,
-                        initialValues: updatedItem,
-                        diff: removeAutosaveFields(
-                            cloneDeep(updatedItem),
-                            true,
-                            true
-                        ),
-                    }, null, true),
+                        {submitting: false} :
+                        {
+                            submitting: false,
+                            dirty: false,
+                            initialValues: updatedItem,
+                            diff: removeAutosaveFields(
+                                cloneDeep(updatedItem),
+                                true,
+                                true
+                            ),
+                        }, null, true)
+                    if (!appConfig?.planning_auto_close_popup_editor) {
+                        return this.editor.closeEditor();
+                    }
+                },
                 (error) => {
                     if (get(error, 'status') === 412) {
                         // If etag error, then notify user and change editor to read-only
