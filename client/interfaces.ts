@@ -191,12 +191,12 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
     planning_check_for_assignment_on_publish?: boolean;
     planning_check_for_assignment_on_send?: boolean;
     planning_fulfil_on_publish_for_desks: Array<string>;
-    planning_auto_close_popup_editor?: boolean;
     planning_link_updates_to_coverage?: boolean;
     planning_use_xmp_for_pic_assignments?: boolean;
     planning_use_xmp_for_pic_slugline?: boolean;
     planning_xmp_assignment_mapping?: string;
     street_map_url?: string;
+    planning_auto_close_popup_editor?: boolean;
 
     planning?: {
         dateformat?: string;
