@@ -7,7 +7,7 @@ import classNames from 'classnames';
  * @name Row
  * @description Row Component to be used in an item preview to show an item's detail
  */
-export const Row = ({label, value, className, children, noPadding, enabled, flex, rowItem}) => (
+export const Row = ({label, value, className, children, noPadding, enabled, flex, rowItem, dataTestId}) => (
     enabled ? (
         <div
             className={classNames(
@@ -19,6 +19,7 @@ export const Row = ({label, value, className, children, noPadding, enabled, flex
                     [className]: className && !value,
                 }
             )}
+            data-test-id={dataTestId}
         >
             {label && <label className="form-label form-label--light">{label}</label>}
             {value && <p className={'sd-text__' + className}>{value}</p>}
@@ -41,6 +42,7 @@ Row.propTypes = {
     enabled: PropTypes.bool,
     flex: PropTypes.bool,
     rowItem: PropTypes.bool,
+    dataTestId: PropTypes.string,
 };
 
 Row.defaultProps = {

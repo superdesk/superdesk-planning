@@ -78,6 +78,7 @@ export const formsProfile = {
             dates: {enabled: true},
             place: {enabled: true},
             ednote: {enabled: true},
+            event_contact_info: {enabled: true},
         },
         schema: {
             files: {
@@ -388,6 +389,16 @@ export const vocabularies = {
         {qcode: 'Motoring', name: 'Motoring'},
         {qcode: 'Soccer', name: 'Soccer'},
         {qcode: 'Property', name: 'Property'},
+    ],
+    locators: [
+        {
+            country: 'Australia',
+            group: 'Australia',
+            name: 'ACT',
+            qcode: 'ACT',
+            state: 'Australian Capital Territory',
+            world_region: 'Oceania',
+        },
     ],
 };
 
