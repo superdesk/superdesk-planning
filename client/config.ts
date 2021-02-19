@@ -63,6 +63,10 @@ if (appConfig.planning_fulfil_on_publish_for_desks == null) {
     appConfig.planning_fulfil_on_publish_for_desks = [];
 }
 
+if (appConfig?.planning_auto_close_popup_editor == null) {
+    appConfig.planning_auto_close_popup_editor = true;
+}
+
 // Configured start of the week (0=Sunday, 1=Monday, ..., 6=Saturday)
 if (appConfig.start_of_week == null) {
     appConfig.start_of_week = 0;

@@ -196,6 +196,7 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
     planning_use_xmp_for_pic_slugline?: boolean;
     planning_xmp_assignment_mapping?: string;
     street_map_url?: string;
+    planning_auto_close_popup_editor?: boolean;
 
     planning?: {
         dateformat?: string;
