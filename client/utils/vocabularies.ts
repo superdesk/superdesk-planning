@@ -1,15 +1,21 @@
 export function getVocabularyItemFieldTranslated(
     item: {[key: string]: any},
     field: string,
-    language?: string
+    language?: string,
+    fallbackField?: string
 ): string {
     if (language == null) {
         return item[field];
     }
 
+    function getTranslation(lookupField: string) {
+        return item.translations?.[lookupField]?.[language.replace('-', '_')] ??
+            item.translations?.[lookupField]?.[language.replace('_', '-')];
+    }
+
     return item.translations?.[field]?.[language] ??
-        item.translations?.[field]?.[language.replace('-', '_')] ??
-        item.translations?.[field]?.[language.replace('_', '-')] ??
+        getTranslation(field) ??
+        getTranslation(fallbackField) ??
         item[field];
 }
 
