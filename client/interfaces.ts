@@ -130,6 +130,13 @@ export enum FILTER_TYPE {
     COMBINED = 'combined',
 }
 
+export enum PREVIEW_PANEL {
+    EVENT = 'event',
+    PLANNING = 'planning',
+    COVERAGE = 'coverage',
+    ASSOCIATED_EVENT = 'associated_event',
+}
+
 export enum DATE_RANGE {
     TODAY = 'today',
     TOMORROW = 'tomorrow',
@@ -137,6 +144,11 @@ export enum DATE_RANGE {
     NEXT_WEEK = 'next_week',
     LAST_24 = 'last24',
     FOR_DATE = 'for_date',
+}
+
+export enum LOCK_STATE {
+    LOCKED = 'locked',
+    UNLOCKED = 'unlocked',
 }
 
 export type ISearchSpikeState = 'spiked' | 'draft' | 'both';
@@ -626,7 +638,7 @@ export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
     startOfWeek?: number;
     spikeState?: ISearchSpikeState;
     filter_id?: ISearchFilter['_id'];
-    lock_state?: 'locked' | 'unlocked';
+    lock_state?: LOCK_STATE;
     timezoneOffset?: string;
     advancedSearch?: ICommonAdvancedSearchParams;
 }
@@ -703,6 +715,7 @@ interface IProfileSchemaTypeString extends IProfileSchemaType<'string'> {
 export interface IAdvancedSearchFormProfileField {
     enabled: boolean;
     index: number;
+    group?: string;
 }
 
 export interface IEventFormProfile {
@@ -947,7 +960,7 @@ export interface ISearchParams {
     only_future?: boolean;
     start_of_week?: number;
     slugline?: string;
-    lock_state?: 'locked' | 'unlocked';
+    lock_state?: LOCK_STATE;
     recurrence_id?: string; // Both Events and Planning have recurrence_id
     filter_id?: ISearchFilter['_id'];
 
@@ -1000,7 +1013,7 @@ export interface ISearchAPIParams {
     end_date?: string;
     start_of_week?: number;
     slugline?: string;
-    lock_state?: 'locked' | 'unlocked';
+    lock_state?: LOCK_STATE;
     recurrence_id?: string;
     filter_id?: ISearchFilter['_id'];
 
