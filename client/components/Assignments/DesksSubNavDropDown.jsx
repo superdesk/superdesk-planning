@@ -11,8 +11,8 @@ export const DesksSubnavDropdown = ({
     selectedDeskId,
     selectAssignmentsFrom,
     showAllDeskOption,
-    showDeskAssignmentView}) => {
-
+    showDeskAssignmentView,
+}) => {
     if (get(userDesks, 'length', 0) <= 0) {
         return null;
     }
@@ -24,7 +24,7 @@ export const DesksSubnavDropdown = ({
         label: myAssignmentsText,
         id: 'myAssignments',
         action: () => selectAssignmentsFrom(null),
-        disabled: !showDeskAssignmentView
+        disabled: !showDeskAssignmentView,
     }];
 
     if (showAllDeskOption) {
@@ -76,6 +76,7 @@ DesksSubnavDropdown.propTypes = {
     selectedDeskId: PropTypes.string,
     selectAssignmentsFrom: PropTypes.func,
     showAllDeskOption: PropTypes.bool,
+    showDeskAssignmentView: PropTypes.bool,
 };
 
 DesksSubnavDropdown.defaultProps = {showAllDeskOption: false};
