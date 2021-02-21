@@ -1,11 +1,16 @@
 export function getVocabularyItemFieldTranslated(
-    item: {[key: string]: any},
+    item: {
+        translations?: {[key: string]: any},
+        [key: string]: any,
+    } | null,
     field: string,
     language?: string,
     fallbackField?: string
 ): string {
-    if (language == null) {
-        return item[field];
+    if (item?.[field] == null && item?.[fallbackField] == null) {
+        return null;
+    } else if (language == null) {
+        return item[field] ?? item[fallbackField];
     }
 
     function getTranslation(lookupField: string) {
@@ -16,7 +21,8 @@ export function getVocabularyItemFieldTranslated(
     return item.translations?.[field]?.[language] ??
         getTranslation(field) ??
         getTranslation(fallbackField) ??
-        item[field];
+        item[field] ??
+        item[fallbackField];
 }
 
 export function getVocabularyItemNames<T>(
@@ -26,6 +32,10 @@ export function getVocabularyItemNames<T>(
     nameField: keyof T,
     language: string
 ): Array<string> {
+    if (!selected?.length) {
+        return null;
+    }
+
     const values = selected.map((item) => item[valueField]);
 
     return options

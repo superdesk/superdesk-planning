@@ -35,11 +35,11 @@ export function getPreviewBooleanString(value?: boolean): string | null {
 }
 
 export function getG2ContentTypeString(
-    value: IG2ContentType['qcode'] | IG2ContentType,
+    value: IG2ContentType['qcode'] | IG2ContentType | undefined,
     props: {[key: string]: any}
 ): string | null {
     const name = getVocabularyItemNameFromString(
-        typeof value === 'string' ? value : value.qcode,
+        typeof value === 'string' ? value : value?.qcode,
         props.contentTypes,
         'qcode',
         'name',
@@ -57,10 +57,6 @@ export function getValuesFromCV(
     nameField: string = 'name'
 ) {
     return function(value: any | undefined, props: {[key: string]: any}): string | null {
-        if (!value?.length) {
-            return null;
-        }
-
         const names = getVocabularyItemNames(
             value,
             props[propName],
