@@ -56,6 +56,7 @@ export const FiltersBar = ({
                     selectedDeskId={selectedDeskId}
                     selectAssignmentsFrom={selectAssignmentsFrom}
                     showAllDeskOption={showAllDeskOption}
+                    showDeskAssignmentView={showDeskAssignmentView}
                 />
             )}
         </StretchBar>

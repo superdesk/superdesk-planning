@@ -6,7 +6,13 @@ import {gettext} from '../../utils';
 import {ALL_DESKS} from '../../constants';
 import {Dropdown} from '../UI/SubNav';
 
-export const DesksSubnavDropdown = ({userDesks, selectedDeskId, selectAssignmentsFrom, showAllDeskOption}) => {
+export const DesksSubnavDropdown = ({
+    userDesks,
+    selectedDeskId,
+    selectAssignmentsFrom,
+    showAllDeskOption,
+    showDeskAssignmentView}) => {
+
     if (get(userDesks, 'length', 0) <= 0) {
         return null;
     }
@@ -18,6 +24,7 @@ export const DesksSubnavDropdown = ({userDesks, selectedDeskId, selectAssignment
         label: myAssignmentsText,
         id: 'myAssignments',
         action: () => selectAssignmentsFrom(null),
+        disabled: !showDeskAssignmentView
     }];
 
     if (showAllDeskOption) {
@@ -28,21 +35,27 @@ export const DesksSubnavDropdown = ({userDesks, selectedDeskId, selectAssignment
         });
     }
 
-    items.push({divider: true});
+    if (showDeskAssignmentView) {
+        items.push({divider: true});
+    }
 
-    userDesks.forEach((desk) => {
-        items.push({
-            label: desk.name,
-            id: desk._id,
-            action: () => selectAssignmentsFrom(desk._id),
+    if (showDeskAssignmentView) {
+        userDesks.forEach((desk) => {
+            items.push({
+                label: desk.name,
+                id: desk._id,
+                action: () => selectAssignmentsFrom(desk._id),
+            });
         });
-    });
+    }
 
     let buttonLabel = gettext('Select Assignments From: ');
     let currentDesk = userDesks.find((desk) => desk._id === selectedDeskId || '');
 
     if (selectedDeskId === ALL_DESKS) {
         buttonLabel += allDesksText;
+    } else if (!showDeskAssignmentView) {
+        buttonLabel += myAssignmentsText;
     } else if (currentDesk) {
         buttonLabel += get(currentDesk, 'name');
     } else {
