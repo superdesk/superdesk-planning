@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
+import {get} from 'lodash';
 
 import {superdeskApi} from '../../../superdeskApi';
 import {IDesk} from 'superdesk-api';
@@ -9,7 +10,7 @@ import {templates as getTemplates} from '../../../selectors/general';
 
 interface IProps extends IEditorFieldProps {
     templates: Array<IContentTemplate>;
-    desk?: IDesk;
+    deskId?: IDesk['_id'];
     clearable?: boolean;
 }
 
@@ -18,20 +19,65 @@ const mapStatToProps = (state) => ({
 });
 
 export class EditorFieldContentTemplateComponent extends React.PureComponent<IProps> {
-    render() {
-        const {gettext} = superdeskApi.localization;
-        const deskId = this.props.desk?._id;
-        const templates = deskId == null ?
+    get field(): string {
+        return this.props.field ?? 'content_template';
+    }
+
+    getAvailableTemplates(): Array<IContentTemplate> {
+        return this.props.deskId == null ?
             this.props.templates :
             this.props.templates.filter(
                 (template) => (
-                    (template.template_desks ?? []).includes(deskId)
+                    (template.template_desks ?? []).includes(this.props.deskId)
                 )
             );
+    }
+
+    isCurrentTemplateAvailable(): boolean {
+        const value: IContentTemplate['_id'] = get(
+            this.props.item,
+            this.field,
+            this.props.defaultValue
+        );
+
+        if (value == null) {
+            return true;
+        }
+
+        const index = this.getAvailableTemplates()
+            .findIndex((template) => template._id === value);
+
+        return index !== -1;
+    }
+
+    componentDidUpdate(prevProps: Readonly<IProps>, prevState: Readonly<{}>, snapshot?: any) {
+        if (prevProps.deskId !== this.props.deskId && !this.isCurrentTemplateAvailable()) {
+            // If the desk changes and the currently selected template is no longer available
+            // then set the value to `null`
+            this.props.onChange(this.field, null);
+        }
+    }
+
+    render() {
+        const {gettext} = superdeskApi.localization;
+        const templates = this.getAvailableTemplates();
+
+        if (!templates.length) {
+            return (
+                <EditorFieldSelect
+                    {...this.props}
+                    options={[]}
+                    placeholder={gettext('No Templates Available')}
+                    readOnly={true}
+                    valueAsString={true}
+                    defaultValue={''}
+                />
+            );
+        }
 
         return (
             <EditorFieldSelect
-                field={this.props.field ?? 'content_template'}
+                field={this.field}
                 label={this.props.label ?? gettext('Content Template')}
                 options={templates}
                 labelField="template_name"
