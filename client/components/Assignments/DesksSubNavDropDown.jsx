@@ -37,9 +37,6 @@ export const DesksSubnavDropdown = ({
 
     if (showDeskAssignmentView) {
         items.push({divider: true});
-    }
-
-    if (showDeskAssignmentView) {
         userDesks.forEach((desk) => {
             items.push({
                 label: desk.name,
