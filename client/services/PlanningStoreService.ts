@@ -186,7 +186,7 @@ export class PlanningStoreService {
             metadata: this.metadata.initialize(),
             users: this.userList.getAll(),
             desks: this.desks.initialize(),
-            all_templates: this.templates.fetchAllTemplates(1, 50, 'create'),
+            all_templates: this.templates.fetchAllTemplates(1, 200, 'create'),
             formsProfile: this.api('planning_types').query({
                 max_results: 200,
                 page: 1,
