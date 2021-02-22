@@ -3,11 +3,11 @@ import {connect} from 'react-redux';
 import {cloneDeep} from 'lodash';
 
 import {superdeskApi} from '../../superdeskApi';
+import {IDesk} from 'superdesk-api';
 import {IEventsPlanningContentPanelProps, ISearchFilterSchedule, SCHEDULE_FREQUENCY, WEEK_DAY} from '../../interfaces';
 
 import {SidePanel, ToggleBox} from '../UI';
 import {renderFieldsForPanel} from '../fields';
-import {IDesk} from 'superdesk-api';
 import {desks as getDesks} from '../../selectors/general';
 
 interface IProps extends IEventsPlanningContentPanelProps {
@@ -198,7 +198,8 @@ export class EditFilterScheduleComponent extends React.Component<IProps, IState>
                                         content_template: {
                                             field: 'article_template',
                                             label: gettext('Article Template'),
-                                            desk: this.state.schedule.desk,
+                                            deskId: this.state.schedule.desk,
+                                            clearable: true,
                                         },
                                         export_template: {
                                             field: 'template',
