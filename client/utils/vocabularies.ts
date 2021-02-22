@@ -33,7 +33,7 @@ export function getVocabularyItemNames<T>(
     language: string
 ): Array<string> {
     if (!selected?.length) {
-        return null;
+        return [];
     }
 
     const values = selected.map((item) => item[valueField]);
