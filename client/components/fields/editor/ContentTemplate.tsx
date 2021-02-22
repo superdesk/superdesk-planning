@@ -19,7 +19,7 @@ const mapStatToProps = (state) => ({
 });
 
 export class EditorFieldContentTemplateComponent extends React.PureComponent<IProps> {
-    get field(): string {
+    getFieldName(): string {
         return this.props.field ?? 'content_template';
     }
 
@@ -36,7 +36,7 @@ export class EditorFieldContentTemplateComponent extends React.PureComponent<IPr
     isCurrentTemplateAvailable(): boolean {
         const value: IContentTemplate['_id'] = get(
             this.props.item,
-            this.field,
+            this.getFieldName(),
             this.props.defaultValue
         );
 
@@ -54,7 +54,7 @@ export class EditorFieldContentTemplateComponent extends React.PureComponent<IPr
         if (prevProps.deskId !== this.props.deskId && !this.isCurrentTemplateAvailable()) {
             // If the desk changes and the currently selected template is no longer available
             // then set the value to `null`
-            this.props.onChange(this.field, null);
+            this.props.onChange(this.getFieldName(), null);
         }
     }
 
@@ -77,7 +77,7 @@ export class EditorFieldContentTemplateComponent extends React.PureComponent<IPr
 
         return (
             <EditorFieldSelect
-                field={this.field}
+                field={this.getFieldName()}
                 label={this.props.label ?? gettext('Content Template')}
                 options={templates}
                 labelField="template_name"
