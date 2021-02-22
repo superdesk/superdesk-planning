@@ -1,5 +1,9 @@
 # Superdesk Planning Changelog
 
+## [2.1.2] 2021-02-23
+### Fixes
+- [SDCP-479] fix(filters): Filter schedule templates by desk (#1551)
+
 ## [2.1.1] 2021-02-17
 ### Fixes
 - chore(fireq): Use planning-master branch (418c83c)
