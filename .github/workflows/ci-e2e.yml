@@ -1,0 +1,71 @@
+name: "CI-E2E"
+
+on: [push, pull_request]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.6]
+        node-version: [12.x]
+        e2e: [a, b]
+    env:
+      INSTALL_NODE_MODULES: true
+      RUN_SERVICES: true
+      E2E: true
+      TZ: Australia/Sydney
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Set up NodeJS ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Cache NPM
+        uses: actions/cache@v2
+        with:
+          # npm cache files are stored in `~/.npm on Linux/MacOS
+          path: ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('package.json') }}
+          restore-keys: |
+            ${{ runner.OS }}-node-
+            ${{ runner.OS }}-
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('server/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip
+            ${{ runner.os }}-
+      - name: Setup Environment
+        run: ./scripts/ci-install.sh
+      - name: Build Client
+        working-directory: ./e2e
+        run: npm run build
+      - name: Start Services
+        run: ./scripts/ci-start-services.sh
+      - name: E2E Suite A
+        if: matrix.e2e == 'a'
+        working-directory: ./e2e
+        run: npm run cypress-ci -- --spec "cypress/integration/events/*.spec.*"
+        env:
+          CYPRESS_SCREENSHOTS_FOLDER: /tmp/cypress
+      - name: E2E Suite B
+        if: matrix.e2e == 'b'
+        working-directory: ./e2e
+        run: npm run cypress-ci -- --spec "cypress/integration/!(events)/*.spec.*"
+        env:
+          CYPRESS_SCREENSHOTS_FOLDER: /tmp/cypress
+      - name: Upload screenshots
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: screenshots-e2e-${{ matrix.e2e }}
+          path: /tmp/cypress/**/*.png

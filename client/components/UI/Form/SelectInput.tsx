@@ -42,7 +42,7 @@ export const SelectInput = ({
 
     const opts = options.map((opt) => ({
         key: get(opt, keyField),
-        label: getVocabularyItemFieldTranslated(opt, labelField, language),
+        label: getVocabularyItemFieldTranslated(opt, labelField, language, 'name'),
     }));
 
     const onChangeHandler = (field, key) => {

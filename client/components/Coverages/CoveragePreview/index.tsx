@@ -1,24 +1,29 @@
 import React from 'react';
 import {get} from 'lodash';
 
+import {getUserInterfaceLanguage} from 'appConfig';
 import {IDesk, IUser} from 'superdesk-api';
 import {superdeskApi} from '../../../superdeskApi';
 import {
-    IPlanningItem,
-    IPlanningCoverageItem,
-    IPlanningNewsCoverageStatus,
     ICoverageFormProfile,
     IFile,
+    IPlanningCoverageItem,
+    IPlanningItem,
+    IPlanningNewsCoverageStatus,
+    PREVIEW_PANEL,
 } from '../../../interfaces';
 
-import {Row as PreviewRow, ExpandableText} from '../../UI/Preview';
+import {Row as PreviewRow} from '../../UI/Preview';
 import {CollapseBox, FileReadOnlyList} from '../../UI';
-import {stringUtils, planningUtils, assignmentUtils} from '../../../utils';
+import {assignmentUtils, planningUtils} from '../../../utils';
 import {ContactsPreviewList} from '../../Contacts';
 import {PLANNING, WORKFLOW_STATE} from '../../../constants';
 import {CoverageItem} from '../';
 import {CoveragePreviewTopBar} from './CoveragePreviewTopBar';
 import {ScheduledUpdate} from '../ScheduledUpdate';
+
+import {previewGroupToProfile, renderFieldsForPanel} from '../../fields';
+
 import {InternalNoteLabel} from '../../index';
 import '../style.scss';
 
@@ -68,9 +73,6 @@ export class CoveragePreview extends React.PureComponent<IProps> {
         const coverageDateText = !get(coverage, 'planning.scheduled') ?
             gettext('Not scheduled yet') :
             planningUtils.getCoverageDateTimeText(coverage);
-
-        const keywordText = get(coverage, 'planning.keyword.length', 0) === 0 ? '' :
-            coverage.planning.keyword.join(', ');
 
         const coverageListItem = (
             <CoverageItem
@@ -131,49 +133,15 @@ export class CoveragePreview extends React.PureComponent<IProps> {
                     />
                 </PreviewRow>
 
-                <PreviewRow
-                    label={gettext('Language')}
-                    value={coverage.planning.language}
-                    enabled={formProfile?.editor?.language?.enabled}
-                />
-
-                {get(formProfile, 'editor.slugline.enabled') && (
-                    <PreviewRow
-                        label={gettext('Slugline')}
-                        value={coverage.planning.slugline}
-                    />
-                )}
-
-                {get(formProfile, 'editor.ednote.enabled') && (
-                    <PreviewRow
-                        label={gettext('Ed Note')}
-                        value={stringUtils.convertNewlineToBreak(
-                            coverage.planning.ednote || ''
-                        )}
-                    />
-                )}
-
-                {get(formProfile, 'editor.keyword.enabled') && (
-                    <PreviewRow
-                        label={gettext('Keyword')}
-                        value={keywordText}
-                    />
-                )}
-
-                <PreviewRow
-                    enabled={get(formProfile, 'editor.internal_note.enabled')}
-                    label={gettext('Internal Note')}
-                >
-                    <ExpandableText value={coverage.planning.internal_note || ''} />
-                </PreviewRow>
-
-                {get(formProfile, 'editor.g2_content_type.enabled') && (
-                    <PreviewRow
-                        label={gettext('Type')}
-                        value={!coverage.planning.g2_content_type ? '' :
-                            stringUtils.firstCharUpperCase(coverage.planning.g2_content_type)
-                        }
-                    />
+                {renderFieldsForPanel(
+                    'form-preview',
+                    previewGroupToProfile(PREVIEW_PANEL.COVERAGE, formProfile),
+                    {
+                        item: coverage.planning,
+                        language: getUserInterfaceLanguage(),
+                        renderEmpty: true,
+                    },
+                    {}
                 )}
 
                 {planningUtils.showXMPFileUIControl(coverage) && (

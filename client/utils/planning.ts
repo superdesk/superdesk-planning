@@ -3,6 +3,7 @@ import {get, set, isNil, uniq, sortBy, isEmpty, cloneDeep, isArray, find, flatte
 
 import {appConfig} from 'appConfig';
 import {IDesk, IArticle, IUser} from 'superdesk-api';
+import {superdeskApi} from '../superdeskApi';
 import {
     IPlanningItem,
     IEventItem,
@@ -23,7 +24,6 @@ import {
     COVERAGES,
     ITEM_TYPE,
     TO_BE_CONFIRMED_FIELD,
-    TO_BE_CONFIRMED_SHORT_TEXT,
 } from '../constants';
 import {
     getItemWorkflowState,
@@ -849,19 +849,25 @@ const isCoverageInWorkflow = (coverage) => !isEmpty(coverage.assigned_to) &&
     get(coverage, 'assigned_to.state') !== WORKFLOW_STATE.DRAFT;
 const formatAgendaName = (agenda) => agenda.is_enabled ? agenda.name : agenda.name + ` - [${gettext('Disabled')}]`;
 
-const getCoverageDateTimeText = (coverage) =>
-    get(coverage, TO_BE_CONFIRMED_FIELD) ? (
-        get(coverage, 'planning.scheduled').format(appConfig.planning.dateformat) +
+function getCoverageDateTimeText(coverage: IPlanningCoverageItem) {
+    const {gettext} = superdeskApi.localization;
+    const coverage_date = moment.isMoment(coverage.planning?.scheduled) ?
+        coverage.planning.scheduled :
+        moment(coverage.planning.scheduled);
+
+    return coverage._time_to_be_confirmed ? (
+        coverage_date.format(appConfig.planning.dateformat) +
         ' @ ' +
-        TO_BE_CONFIRMED_SHORT_TEXT
+        gettext('TBC')
     ) :
         getDateTimeString(
-            get(coverage, 'planning.scheduled'),
+            coverage_date,
             appConfig.planning.dateformat,
             appConfig.planning.timeformat,
             ' @ ',
             false
         );
+}
 
 /**
  * Get the name of associated icon for different coverage types
@@ -1065,16 +1071,25 @@ const getAgendaNames = (item = {}, agendas = [], onlyEnabled = false, field = 'a
         .filter((agenda) => agenda && (!onlyEnabled || agenda.is_enabled))
 );
 
-const getDateStringForPlanning = (planning) =>
-    get(planning, TO_BE_CONFIRMED_FIELD) ?
-        planning.planning_date.format(appConfig.planning.dateformat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT :
+function getDateStringForPlanning(planning: IPlanningItem): string {
+    const {gettext} = superdeskApi.localization;
+    const planning_date = moment.isMoment(planning.planning_date) ?
+        planning.planning_date :
+        moment(planning.planning_date);
+
+    return planning._time_to_be_confirmed ? (
+        planning_date.format(appConfig.planning.dateformat) +
+        ' @ ' +
+        gettext('TBC')
+    ) :
         getDateTimeString(
-            get(planning, 'planning_date'),
+            planning_date,
             appConfig.planning.dateformat,
             appConfig.planning.timeformat,
             ' @ ',
             false
         );
+}
 
 const getCoverageDateText = (coverage) => {
     const coverageDate = get(coverage, 'planning.scheduled');

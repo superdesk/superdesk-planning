@@ -50,21 +50,26 @@ export const EventScheduleSummary = ({schedule, noPadding, forUpdating, useEvent
     }
 
     return (
-        <div>
+        <React.Fragment>
             <Row
-                label={forUpdating ? currentDateLabel : gettext('Date')}
+                label={forUpdating ? currentDateLabel : gettext('Date:')}
                 value={currentDateText || ''}
                 noPadding={noPadding || isRemoteTimeZone}
+                dataTestId="field-dates"
             />
             {isRemoteTimeZone && (
                 <Row
                     value={remoteDateText || ''}
                     noPadding={noPadding}
+                    dataTestId="field-dates_timezone"
                 />
             )}
 
             {doesRepeat && (
-                <Row noPadding={noPadding}>
+                <Row
+                    noPadding={noPadding}
+                    dataTestId="field-dates_repeat"
+                >
                     <RepeatEventSummary
                         schedule={eventSchedule}
                         asInputField
@@ -73,7 +78,7 @@ export const EventScheduleSummary = ({schedule, noPadding, forUpdating, useEvent
                     />
                 </Row>
             )}
-        </div>
+        </React.Fragment>
     );
 };
 

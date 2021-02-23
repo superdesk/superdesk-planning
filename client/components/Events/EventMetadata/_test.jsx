@@ -4,7 +4,6 @@ import {EventMetadata} from '../index';
 import moment from 'moment';
 import {createTestStore, eventUtils} from '../../../utils';
 import {Provider} from 'react-redux';
-import {Location} from '../../Location';
 
 describe('<EventMetadata />', () => {
     it('renders metadata of an event', () => {
@@ -20,7 +19,10 @@ describe('<EventMetadata />', () => {
                 formatted_address: 'address1',
             },
             name: 'name1',
-            occur_status: {name: 'Planned, occurs certainly'},
+            occur_status: {
+                name: 'Planned, occurs certainly',
+                qcode: 'eocstat:eos5',
+            },
             type: 'event',
         };
         let store = createTestStore();
@@ -37,15 +39,12 @@ describe('<EventMetadata />', () => {
 
         const eventDateText = eventUtils.getDateStringForEvent(event, false, true, false);
 
-        expect(metaDataTexts.length).toBe(4);
-        expect(metaDataTexts.at(0).text()).toBe('name1');
-        expect(metaDataTexts.at(1).text()).toBe(eventDateText);
-        expect(metaDataTexts.at(2).text()).toBe('Planned, occurs certainly');
-        expect(metaDataTexts.at(3).text()).toBe('definition_short 1');
-
-        const loc = content.find(Location);
-
-        expect(loc.at(0).text()).toBe('location1');
-        expect(loc.at(1).text()).toBe('location1address1');
+        expect(metaDataTexts.length).toBe(5);
+        expect(content.find('[data-test-id="field-name"] > p').text()).toBe('name1');
+        expect(content.find('[data-test-id="field-dates"] > p').text()).toBe(eventDateText);
+        expect(content.find('[data-test-id="field-occur_status"] > p').text()).toBe('Planned, occurs certainly');
+        expect(content.find('[data-test-id="field-definition_short"] > p').text()).toBe('definition_short 1');
+        expect(content.find('[data-test-id="field-event_contact_info"] > p').text()).toBe('-');
+        expect(content.find('[data-test-id="field-location"] a').text()).toBe('location1address1');
     });
 });
