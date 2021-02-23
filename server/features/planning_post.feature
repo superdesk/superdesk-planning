@@ -39,6 +39,7 @@ Feature: Post Planning
             "planning_date": "2016-01-02"
         }
         """
+        And we save etag
         Then we get OK response
         When we post to "/products" with success
         """
@@ -64,6 +65,7 @@ Feature: Post Planning
         }
         """
         Then we get OK response
+        And we get different etag
         When we get "/planning/#planning._id#"
         Then we get existing resource
         """
