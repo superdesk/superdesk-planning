@@ -191,5 +191,5 @@ export const UpdateAssignmentForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
-    {withRef: true}
+    {forwardRef: true}
 )(UpdateAssignmentComponent);

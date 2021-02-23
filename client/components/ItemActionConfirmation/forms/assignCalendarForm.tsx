@@ -1,23 +1,19 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get} from 'lodash';
-
 import * as actions from '../../../actions';
-import '../style.scss';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
-import {RelatedEvents} from '../../index';
 import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
 import {eventUtils, gettext} from '../../../utils';
 import {Row} from '../../UI/Preview';
+import '../style.scss';
 
-export class SpikeEventComponent extends React.Component {
+export class AssignCalendarComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             eventUpdateMethod: EventUpdateMethods[0],
             relatedEvents: [],
-            relatedPlannings: [],
         };
 
         this.onEventUpdateMethodChange = this.onEventUpdateMethodChange.bind(this);
@@ -26,45 +22,43 @@ export class SpikeEventComponent extends React.Component {
     componentWillMount() {
         const event = eventUtils.getRelatedEventsForRecurringEvent(
             this.props.original,
-            EventUpdateMethods[0]
+            EventUpdateMethods[0],
+            true
         );
 
-        this.setState({
-            relatedEvents: event._events,
-            relatedPlannings: event._relatedPlannings.filter((p) => !p.pubstatus),
-        });
+        this.setState({relatedEvents: event._events});
 
-        // Enable save so that the user can action on this event.
+        // Enable save so that the user can update just this event.
         this.props.enableSaveInModal();
     }
 
     onEventUpdateMethodChange(field, option) {
         const event = eventUtils.getRelatedEventsForRecurringEvent(
             this.props.original,
-            option
+            option,
+            true
         );
 
         this.setState({
             eventUpdateMethod: option,
             relatedEvents: event._events,
-            relatedPlannings: event._relatedPlannings.filter((p) => !p.pubstatus),
         });
     }
 
     submit() {
-        return this.props.onSubmit({
-            ...this.props.original,
-            update_method: this.state.eventUpdateMethod,
-        });
+        // Send the required fields and calendar only
+        return this.props.onSubmit(
+            this.props.original,
+            {
+                ...this.props.updates,
+                update_method: this.state.eventUpdateMethod,
+            }
+        );
     }
 
     render() {
         const {original, submitting} = this.props;
-        const isRecurring = !!original.recurrence_id;
-        const eventsInUse = this.state.relatedEvents.filter((e) => (
-            get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
-        ));
-        const numEvents = this.state.relatedEvents.length + 1 - eventsInUse.length;
+        const numEvents = this.state.relatedEvents.length + 1;
 
         return (
             <div className="MetadataView">
@@ -72,21 +66,21 @@ export class SpikeEventComponent extends React.Component {
                     enabled={!!original.slugline}
                     label={gettext('Slugline')}
                     value={original.slugline || ''}
-                    className="slugline"
                     noPadding={true}
+                    className="slugline"
                 />
 
                 <Row
                     label={gettext('Name')}
                     value={original.name || ''}
-                    className="strong"
                     noPadding={true}
+                    className="strong"
                 />
 
-                <EventScheduleSummary schedule={original.dates} />
+                <EventScheduleSummary schedule={original.dates} noPadding={true} />
 
                 <Row
-                    enabled={isRecurring}
+                    enabled={true}
                     label={gettext('No. of Events')}
                     value={numEvents}
                     noPadding={true}
@@ -95,43 +89,37 @@ export class SpikeEventComponent extends React.Component {
                 <UpdateMethodSelection
                     value={this.state.eventUpdateMethod}
                     onChange={this.onEventUpdateMethodChange}
-                    showMethodSelection={isRecurring}
-                    updateMethodLabel={gettext('Spike all recurring events or just this one?')}
+                    showMethodSelection={true}
+                    updateMethodLabel={gettext('Update all recurring events or just this one?')}
                     showSpace={false}
                     readOnly={submitting}
-                    action="spike"
                 />
-
-                {eventsInUse.length > 0 && (
-                    <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">
-                        <strong>{gettext('The following Events are in use and will not be spiked:')}</strong>
-                        <RelatedEvents events={eventsInUse} />
-                    </div>
-                )}
             </div>
         );
     }
 }
 
-SpikeEventComponent.propTypes = {
+AssignCalendarComponent.propTypes = {
     original: PropTypes.object.isRequired,
+    updates: PropTypes.object.isRequired,
     submitting: PropTypes.bool,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event) => dispatch(actions.events.ui.spike(event)),
-    onHide: (event, modalProps) => {
-        if (get(modalProps, 'onCloseModal')) {
-            modalProps.onCloseModal(event);
-        }
-        return Promise.resolve(event);
+    onSubmit: (original, updates) => (
+        dispatch(actions.main.save(original, updates, false))
+            .then((savedItem) => dispatch(actions.events.api.unlock(savedItem)))
+    ),
+    onHide: (event) => {
+        dispatch(actions.events.api.unlock(event));
     },
 });
 
-export const SpikeEventForm = connect(
+export const AssignCalendarForm = connect(
     null,
     mapDispatchToProps,
     null,
-    {withRef: true})(SpikeEventComponent);
+    {forwardRef: true}
+)(AssignCalendarComponent);

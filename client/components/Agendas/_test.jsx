@@ -28,7 +28,9 @@ describe('ManageAgendas', () => {
                 </Provider>);
             }
 
-            const dialog = wrapper.find('Portal');
+            const dialog = wrapper
+                .find('Portal')
+                .first();
 
             modal = new ReactWrapper(<Provider store={store}>{dialog.getElement()}</Provider>);
             return modal;

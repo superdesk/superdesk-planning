@@ -355,5 +355,5 @@ export const UpdateTimeForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
-    {withRef: true}
+    {forwardRef: true}
 )(UpdateTimeComponent);

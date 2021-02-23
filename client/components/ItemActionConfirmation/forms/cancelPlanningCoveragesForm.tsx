@@ -165,5 +165,5 @@ export const CancelPlanningCoveragesForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
-    {withRef: true}
+    {forwardRef: true}
 )(PlanningCoverageCancelComponent);

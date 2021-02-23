@@ -223,5 +223,5 @@ export const ConvertToRecurringEventForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
-    {withRef: true}
+    {forwardRef: true}
 )(ConvertToRecurringEventComponent);
