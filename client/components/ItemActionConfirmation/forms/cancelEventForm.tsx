@@ -214,5 +214,5 @@ export const CancelEventForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
-    {withRef: true}
+    {forwardRef: true}
 )(CancelEventComponent);

@@ -5,32 +5,34 @@ import {get} from 'lodash';
 
 import * as actions from '../../../actions';
 import '../style.scss';
-import {WORKFLOW_STATE} from '../../../constants';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
+import {RelatedEvents} from '../../index';
 import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
 import {eventUtils, gettext} from '../../../utils';
 import {Row} from '../../UI/Preview';
 
-export class UnspikeEventComponent extends React.Component {
+export class SpikeEventComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             eventUpdateMethod: EventUpdateMethods[0],
             relatedEvents: [],
+            relatedPlannings: [],
         };
 
         this.onEventUpdateMethodChange = this.onEventUpdateMethodChange.bind(this);
     }
 
     componentWillMount() {
-        if (get(this.props, 'original.recurrence_id')) {
-            const event = eventUtils.getRelatedEventsForRecurringEvent(
-                this.props.original,
-                EventUpdateMethods[0]
-            );
+        const event = eventUtils.getRelatedEventsForRecurringEvent(
+            this.props.original,
+            EventUpdateMethods[0]
+        );
 
-            this.setState({relatedEvents: event._events});
-        }
+        this.setState({
+            relatedEvents: event._events,
+            relatedPlannings: event._relatedPlannings.filter((p) => !p.pubstatus),
+        });
 
         // Enable save so that the user can action on this event.
         this.props.enableSaveInModal();
@@ -45,6 +47,7 @@ export class UnspikeEventComponent extends React.Component {
         this.setState({
             eventUpdateMethod: option,
             relatedEvents: event._events,
+            relatedPlannings: event._relatedPlannings.filter((p) => !p.pubstatus),
         });
     }
 
@@ -58,9 +61,10 @@ export class UnspikeEventComponent extends React.Component {
     render() {
         const {original, submitting} = this.props;
         const isRecurring = !!original.recurrence_id;
-        const numEvents = (this.state.relatedEvents.filter(
-            (event) => get(event, 'state') === WORKFLOW_STATE.SPIKED)
-        ).length + 1;
+        const eventsInUse = this.state.relatedEvents.filter((e) => (
+            get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
+        ));
+        const numEvents = this.state.relatedEvents.length + 1 - eventsInUse.length;
 
         return (
             <div className="MetadataView">
@@ -92,17 +96,24 @@ export class UnspikeEventComponent extends React.Component {
                     value={this.state.eventUpdateMethod}
                     onChange={this.onEventUpdateMethodChange}
                     showMethodSelection={isRecurring}
-                    updateMethodLabel={gettext('Unspike all recurring events or just this one?')}
+                    updateMethodLabel={gettext('Spike all recurring events or just this one?')}
                     showSpace={false}
                     readOnly={submitting}
                     action="spike"
                 />
+
+                {eventsInUse.length > 0 && (
+                    <div className="sd-alert sd-alert--hollow sd-alert--alert sd-alert--flex-direction">
+                        <strong>{gettext('The following Events are in use and will not be spiked:')}</strong>
+                        <RelatedEvents events={eventsInUse} />
+                    </div>
+                )}
             </div>
         );
     }
 }
 
-UnspikeEventComponent.propTypes = {
+SpikeEventComponent.propTypes = {
     original: PropTypes.object.isRequired,
     submitting: PropTypes.bool,
     onSubmit: PropTypes.func,
@@ -110,11 +121,17 @@ UnspikeEventComponent.propTypes = {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event) => (dispatch(actions.events.ui.unspike(event))),
+    onSubmit: (event) => dispatch(actions.events.ui.spike(event)),
+    onHide: (event, modalProps) => {
+        if (get(modalProps, 'onCloseModal')) {
+            modalProps.onCloseModal(event);
+        }
+        return Promise.resolve(event);
+    },
 });
 
-export const UnspikeEventForm = connect(
+export const SpikeEventForm = connect(
     null,
     mapDispatchToProps,
     null,
-    {withRef: true})(UnspikeEventComponent);
+    {forwardRef: true})(SpikeEventComponent);

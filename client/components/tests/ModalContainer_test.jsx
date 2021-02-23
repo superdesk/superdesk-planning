@@ -33,7 +33,9 @@ describe('<ModalsContainer />', () => {
         wrapper.update();
 
         const confirmationModal = wrapper.find('ConfirmationModal');
-        const dialog = wrapper.find('Portal');
+        const dialog = wrapper
+            .find('Portal')
+            .first();
         const modal = new ReactWrapper(<Provider store={store}>{dialog.getElement()}</Provider>);
 
         expect(confirmationModal.length).toBe(1);
