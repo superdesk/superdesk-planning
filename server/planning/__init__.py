@@ -17,10 +17,19 @@ from .locations import LocationsResource, LocationsService
 from .agendas import AgendasResource, AgendasService
 from .planning_export_templates import PlanningExportTemplatesResource, PlanningExportTemplatesService
 from .planning_article_export import PlanningArticleExportResource, PlanningArticleExportService
-from .common import get_max_recurrent_events, get_street_map_url, get_event_max_multi_day_duration,\
-    planning_auto_assign_to_workflow, get_long_event_duration_threshold, get_planning_allow_scheduled_updates,\
-    event_templates_enabled, planning_link_updates_to_coverage, get_planning_use_xmp_for_pic_assignments, \
-    get_planning_use_xmp_for_pic_slugline, get_planning_allowed_coverage_link_types
+from .common import (
+    get_max_recurrent_events,
+    get_street_map_url,
+    get_event_max_multi_day_duration,
+    planning_auto_assign_to_workflow,
+    get_long_event_duration_threshold,
+    get_planning_allow_scheduled_updates,
+    event_templates_enabled,
+    planning_link_updates_to_coverage,
+    get_planning_use_xmp_for_pic_assignments,
+    get_planning_use_xmp_for_pic_slugline,
+    get_planning_allowed_coverage_link_types,
+    get_planning_auto_close_popup_editor)
 from apps.common.components.utils import register_component
 from .item_lock import LockService
 from .planning_notifications import PlanningNotifications
@@ -47,7 +56,7 @@ import planning.feed_parsers  # noqa
 import planning.output_formatters  # noqa
 from planning.planning_download import init_app as init_planning_download_app
 
-__version__ = '2.1.0-dev'
+__version__ = '2.2.0-dev'
 
 _SERVER_PATH = os.path.dirname(os.path.realpath(__file__))
 
@@ -123,13 +132,19 @@ def init_app(app):
     superdesk.privilege(
         name='planning_locations_management',
         label=lazy_gettext('Planning - Manage locations'),
-        decsription=lazy_gettext('Ability to create, edit and delete locations'),
+        description=lazy_gettext('Ability to create, edit and delete locations'),
     )
 
     superdesk.privilege(
         name='planning_assignments_view',
-        label=lazy_gettext('Planning - Assignments view'),
-        decsription=lazy_gettext('Ability to access assignments view'),
+        label=lazy_gettext('Planning - Assignments'),
+        description=lazy_gettext('User can access assignments view and see their own assignments'),
+    )
+
+    superdesk.privilege(
+        name='planning_assignments_desk',
+        label=lazy_gettext('Planning - Assignments desk'),
+        description=lazy_gettext('User can see desk assignments'),
     )
 
     app.on_update_users += PlanningNotifications().user_update
@@ -197,6 +212,7 @@ def init_app(app):
     app.client_config['planning_link_updates_to_coverage'] = planning_link_updates_to_coverage(app)
     app.client_config['planning_use_xmp_for_pic_assignments'] = get_planning_use_xmp_for_pic_assignments(app)
     app.client_config['planning_use_xmp_for_pic_slugline'] = get_planning_use_xmp_for_pic_slugline(app)
+    app.client_config['planning_auto_close_popup_editor'] = get_planning_auto_close_popup_editor(app)
 
     app.client_config.setdefault('planning', {})
     app.client_config['planning']['allowed_coverage_link_types'] = get_planning_allowed_coverage_link_types(app)
@@ -280,6 +296,9 @@ def init_app(app):
 
     # add planning translations directory
     app.config['BABEL_TRANSLATION_DIRECTORIES'] += ";" + os.path.join(_SERVER_PATH, "translations")
+
+    app.config.setdefault('APPS_DATA_UPDATES_PATHS', [])
+    app.config['APPS_DATA_UPDATES_PATHS'].append(os.path.join(_SERVER_PATH, 'data_updates'))
 
 
 def init_scheduled_exports_task(app):

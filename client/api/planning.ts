@@ -5,12 +5,15 @@ import {
     IFeaturedPlanningLock,
     IPlanningAPI,
     FILTER_TYPE,
+    ISearchSpikeState,
 } from '../interfaces';
 import {arrayToString, convertCommonParams, searchRaw, searchRawGetAll} from './search';
 import {superdeskApi, planningApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
 import {planningUtils} from '../utils';
 import {planningProfile, planningSearchProfile} from '../selectors/forms';
+import {featured} from './featured';
+import {PLANNING} from '../constants';
 
 function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
@@ -64,8 +67,40 @@ export function getPlanningById(planId: IPlanningItem['_id']): Promise<IPlanning
         .then(modifyItemForClient);
 }
 
-export function getPlanningByIds(planIds: Array<IPlanningItem['_id']>): Promise<Array<IPlanningItem>> {
-    return searchPlanning({item_ids: planIds})
+export function getPlanningByIds(
+    planIds: Array<IPlanningItem['_id']>,
+    spikeState: ISearchSpikeState = 'draft'
+): Promise<Array<IPlanningItem>> {
+    if (planIds.length === 0) {
+        return Promise.resolve([]);
+    } else if (planIds.length > PLANNING.FETCH_IDS_CHUNK_SIZE) {
+        // chunk the requests (otherwise URL may become too long)
+        const requests: Array<Promise<Array<IPlanningItem>>> = [];
+
+        for (let i = 0; i < Math.ceil(planIds.length / PLANNING.FETCH_IDS_CHUNK_SIZE); i++) {
+            requests.push(
+                getPlanningByIds(
+                    planIds.slice(
+                        i * PLANNING.FETCH_IDS_CHUNK_SIZE,
+                        (i + 1) * PLANNING.FETCH_IDS_CHUNK_SIZE
+                    ),
+                    spikeState
+                )
+            );
+        }
+
+        return Promise
+            .all(requests)
+            .then((responses) => (
+                Array.prototype.concat.apply([], responses)
+            ));
+    }
+
+    return searchPlanning({
+        item_ids: planIds,
+        spike_state: spikeState,
+        only_future: false,
+    })
         .then(modifyResponseForClient)
         .then((response) => response._items);
 }
@@ -113,4 +148,5 @@ export const planning: IPlanningAPI['planning'] = {
     getLockedFeatured: getLockedFeaturedPlanning,
     getEditorProfile: getPlanningEditorProfile,
     getSearchProfile: getPlanningSearchProfile,
+    featured: featured,
 };

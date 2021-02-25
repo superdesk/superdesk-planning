@@ -28,9 +28,24 @@ def search_planning(_: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_agendas(params: Dict[str, Any], query: elastic.ElasticQuery):
-    agendas = str_to_array(params.get('agendas'))
+    if strtobool(params.get('no_agenda_assigned', False)):
+        # The `no_agenda_assigned` param should override the `agendas` param
+        return
 
-    if len(agendas):
+    agendas = [
+        str(agenda_id)
+        for agenda_id in str_to_array(params.get('agendas'))
+    ]
+    num_agendas = len(agendas)
+
+    if num_agendas == 1:
+        query.must.append(
+            elastic.term(
+                field='agendas',
+                value=agendas[0]
+            )
+        )
+    elif num_agendas > 1:
         query.must.append(
             elastic.terms(
                 field='agendas',
@@ -134,7 +149,10 @@ def search_featured(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_by_events(params: Dict[str, Any], query: elastic.ElasticQuery):
-    event_ids = str_to_array(params.get('event_item'))
+    event_ids = [
+        str(event_id)
+        for event_id in str_to_array(params.get('event_item'))
+    ]
     num_ids = len(event_ids)
 
     if num_ids == 1:
@@ -165,7 +183,7 @@ def search_date(params: Dict[str, Any], query: elastic.ElasticQuery):
         )
 
         if date_filter:
-            base_query.range = date_filter
+            base_query.date_range = date_filter
             base_query.date = start_date
 
             query_range = elastic.date_range(base_query)
@@ -240,7 +258,7 @@ def search_date(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
     date_filter, start_date, end_date, tz_offset = get_date_params(params)
-    only_future = strtobool(params.get('only_future', False))
+    only_future = strtobool(params.get('only_future', True))
 
     if not date_filter and not start_date and not end_date and only_future:
         field_name = '_planning_schedule.scheduled'

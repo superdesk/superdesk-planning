@@ -154,6 +154,12 @@ def get_planning_allowed_coverage_link_types(current_app=None):
     )
 
 
+def get_planning_auto_close_popup_editor(current_app=None):
+    if current_app is not None:
+        return current_app.config.get('PLANNING_AUTO_CLOSE_POPUP_EDITOR', True)
+    return app.config.get('PLANNING_AUTO_CLOSE_POPUP_EDITOR', True)
+
+
 def get_assignment_acceptance_email_address(current_app=None):
     if current_app is not None:
         return current_app.config.get('PLANNING_ACCEPT_ASSIGNMENT_EMAIL', '')

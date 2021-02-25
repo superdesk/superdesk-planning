@@ -1,5 +1,4 @@
 import {get, isEqual, cloneDeep, pickBy, has, find, every} from 'lodash';
-import moment from 'moment';
 
 import {ISearchSpikeState, IEventSearchParams, IEventItem, IPlanningItem} from '../../interfaces';
 import {appConfig} from 'appConfig';
@@ -7,7 +6,6 @@ import {planningApis} from '../../api';
 
 import {
     EVENTS,
-    SPIKED_STATE,
     POST_STATE,
     MAIN,
     TO_BE_CONFIRMED_FIELD,
@@ -29,6 +27,7 @@ import {
 import planningApi from '../planning/api';
 import eventsUi from './ui';
 import main from '../main';
+import {eventParamsToSearchParams} from '../../utils/search';
 
 /**
  * Action dispatcher to load a series of recurring events into the local store.
@@ -113,97 +112,44 @@ const unspike = (events) => (
     }
 );
 
-/**
- * Action Dispatcher for query the api for events
- * You can provide one of the following parameters to fetch from the server
- * @param {Array} calendars - List of Calendars to filter
- * @param {boolean} noCalendarAssigned - Search for Events that have no Calendar assigned
- * @param {object} advancedSearch - Query parameters to send to the server
- * @param {object} fulltext - Full text search parameters
- * @param {Array} ids - An array of Event IDs to fetch
- * @param {string} recurrenceId - The recurrence_id to fetch recurring events
- * @param {string} spikeState - The item state to filter by
- * @param {boolean} onlyFuture - Get future events. Onlyfuture is ignored if advancedSearch.dates specified.
- * @param {int} page - The page number to fetch
- * @param {int} maxResults - The number to events per page
- * @param {boolean} includeKilled - If true, includes killed items
- * @param {boolean} storeTotal - True to store total in the store
- * @return arrow function
- */
+// Action Dispatcher for query the api for events
 function query(
-    {
-        calendars,
-        noCalendarAssigned = false,
-        advancedSearch = {},
-        fulltext,
-        ids,
-        recurrenceId,
-        spikeState = 'draft',
-        onlyFuture = true,
-        page = 1,
-        maxResults = MAIN.PAGE_SIZE,
-        includeKilled = false,
-    }: IEventSearchParams,
+    params: IEventSearchParams = {},
     storeTotal = false
 ) {
-    return (dispatch) => {
+    return (dispatch, getState) => {
         let itemIds = [];
 
-        if (ids) {
+        if (params.ids) {
             const chunkSize = EVENTS.FETCH_IDS_CHUNK_SIZE;
 
-            if (ids.length <= chunkSize) {
-                itemIds = ids;
+            if (params.ids.length <= chunkSize) {
+                itemIds = params.ids;
             } else {
                 // chunk the requests
                 const requests = [];
 
-                for (let i = 0; i < Math.ceil(ids.length / chunkSize); i++) {
+                for (let i = 0; i < Math.ceil(params.ids.length / chunkSize); i++) {
                     const args = {
                         // eslint-disable-next-line no-undef
-                        ...arguments[0],
-                        ids: ids.slice(i * chunkSize, (i + 1) * chunkSize),
+                        ...params,
+                        ids: params.ids.slice(i * chunkSize, (i + 1) * chunkSize),
                     };
 
                     requests.push(dispatch(self.query(args)));
                 }
-                // flattern responses and return a response-like object
+                // flatten responses and return a response-like object
                 return Promise.all(requests).then((responses) => (
                     Array.prototype.concat.apply([], responses)
                 ));
             }
         }
 
-        return planningApis.events.search({
-            item_ids: itemIds,
-            name: advancedSearch?.name,
-            tz_offset: getTimeZoneOffset(),
-            full_text: fulltext,
-            anpa_category: advancedSearch.anpa_category,
-            subject: advancedSearch.subject,
-            posted: advancedSearch.posted,
-            place: advancedSearch.place,
-            language: advancedSearch.language,
-            state: advancedSearch.state,
-            spike_state: spikeState,
-            include_killed: includeKilled,
-            date_filter: advancedSearch?.dates?.range,
-            start_date: advancedSearch?.dates?.start,
-            end_date: advancedSearch?.dates?.end,
-            start_of_week: appConfig.start_of_week,
-            slugline: advancedSearch?.slugline,
-            recurrence_id: recurrenceId,
-            reference: advancedSearch?.reference,
-            source: advancedSearch?.source,
-            location: typeof advancedSearch.location === 'string' ?
-                advancedSearch.location :
-                advancedSearch.location?.name,
-            calendars: calendars,
-            no_calendar_assigned: noCalendarAssigned,
-            only_future: onlyFuture,
-            page: page,
-            max_results: maxResults,
-        })
+        return planningApis.events.search(eventParamsToSearchParams({
+            ...params,
+            itemIds: itemIds,
+            filter_id: params.filter_id || selectors.main.currentSearchFilterId(getState()),
+        }))
             .then((response) => {
                 if (storeTotal) {
                     dispatch(main.setTotal(MAIN.FILTERS.EVENTS, response._meta?.total ?? 0));
@@ -297,25 +243,18 @@ const loadAssociatedPlannings = (event) => (
  * @param {string} eventId - The ID of the Event to retrieve
  * @param {boolean} saveToStore - If true, save the Event in the Redux store
  */
-const getEvent = (eventId, saveToStore = true) => (
-    (dispatch, getState) => {
+function getEvent(eventId: IEventItem['_id'], saveToStore: boolean = true) {
+    return (dispatch, getState) => {
         const events = selectors.events.storedEvents(getState());
 
-        if (eventId in events) {
+        if (events?.[eventId] != undefined) {
             return Promise.resolve(events[eventId]);
         }
 
-        return dispatch(self.silentlyFetchEventsById(eventId, SPIKED_STATE.BOTH, saveToStore))
-            .then((items) => (Promise.resolve({
-                ...items[0],
-                dates: {
-                    ...items[0].dates,
-                    start: moment(items[0].dates.start),
-                    end: moment(items[0].dates.end),
-                },
-            })), (error) => Promise.reject(error));
-    }
-);
+        return dispatch(self.silentlyFetchEventsById([eventId], 'both', saveToStore))
+            .then((items) => items[0]);
+    };
+}
 
 /**
  * Action to receive the list of Events and store them in the store
@@ -399,39 +338,25 @@ const unlock = (event) => (
  * @param {boolean} saveToStore - If true, save the Event in the Redux store
  * @return arrow function
  */
-const silentlyFetchEventsById = (ids, spikeState: ISearchSpikeState = 'draft', saveToStore = true) => (
-    (dispatch) => (
-        new Promise((resolve, reject) => {
-            if (Array.isArray(ids)) {
-                planningApis.events.search({
-                    // distinct ids
-                    item_ids: ids.filter((v, i, a) => (a.indexOf(v) === i)),
-                    spike_state: spikeState,
-                    only_future: false,
-                })
-                    .then(
-                        (response) => resolve(response._items),
-                        (error) => reject(error)
-                    );
-            } else {
-                planningApis.events.getById(ids)
-                    .then(
-                        (item) => resolve([item]),
-                        (error) => reject(error)
-                    );
-            }
-        })
+function silentlyFetchEventsById(
+    ids: Array<IEventItem['_id']>,
+    spikeState: ISearchSpikeState = 'draft',
+    saveToStore: boolean = true
+) {
+    return (dispatch) => (
+        planningApis.events.getByIds(
+            ids.filter((v, i, a) => (a.indexOf(v) === i)),
+            spikeState
+        )
             .then((items) => {
-                if (saveToStore) {
+                if (saveToStore && items.length > 0) {
                     dispatch(self.receiveEvents(items));
                 }
 
-                return Promise.resolve(items);
-            }, (error) => (
-                Promise.reject(error)
-            ))
-    )
-);
+                return items;
+            })
+    );
+}
 
 /**
  * Action Dispatcher to fetch a single event using its ID

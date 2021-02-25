@@ -2,28 +2,25 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 
-import {IDesk, IUser, IVocabulary} from 'superdesk-api';
+import {getUserInterfaceLanguage} from 'appConfig';
+import {IDesk, IUser} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
-import {IEventFormProfile, IEventItem, IFile} from '../../interfaces';
+import {IEventFormProfile, IEventItem, IFile, PREVIEW_PANEL} from '../../interfaces';
 
-import {getCreator, stringUtils, getFileDownloadURL} from '../../utils';
-import {TO_BE_CONFIRMED_FIELD} from '../../constants';
+import {getCreator, getFileDownloadURL} from '../../utils';
 import * as selectors from '../../selectors';
 
-import {Row, ExpandableText} from '../UI/Preview';
 import {
     AuditInformation,
     RelatedPlannings,
     StateLabel,
 } from '../index';
-import {EventScheduleSummary} from './';
 import {ToggleBox, FileReadOnlyList} from '../UI';
 import {ContentBlock} from '../UI/SidePanel';
 import {LinkInput} from '../UI/Form';
-import {Location} from '../Location';
 import * as actions from '../../actions';
-import {ContactsPreviewList} from '../Contacts';
-import CustomVocabulariesPreview from '../CustomVocabulariesPreview';
+
+import {renderGroupedFieldsForPanel, previewGroupToProfile} from '../fields';
 
 interface IProps {
     item: IEventItem;
@@ -31,8 +28,7 @@ interface IProps {
     desks: Array<IDesk>;
     formProfile: IEventFormProfile;
     fetchEventFiles(event: IEventItem): Promise<void>;
-    customVocabularies: Array<IVocabulary>;
-    hideRelatedItems: boolean;
+    hideRelatedItems?: boolean;
     files: {[key: string]: IFile};
 }
 
@@ -42,7 +38,6 @@ const mapStateToProps = (state) => ({
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
     formProfile: selectors.forms.eventProfile(state),
-    customVocabularies: state.customVocabularies,
     files: selectors.general.files(state),
     contacts: selectors.general.contacts(state),
 });
@@ -63,7 +58,6 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
             users,
             desks,
             formProfile,
-            customVocabularies,
             hideRelatedItems,
             files,
         } = this.props;
@@ -73,16 +67,6 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
         const updatedDate = get(item, '_updated');
         const versionCreator = get(updatedBy, 'display_name') ? updatedBy :
             users.find((user) => user._id === updatedBy);
-
-        const calendarsText = get(item, 'calendars.length', 0) === 0 ? gettext('No calendars assigned.') :
-            item.calendars.map((c) => c.name).join(', ');
-        const placeText = get(item, 'place.length', 0) === 0 ? '' :
-            item.place.map((c) => c.name).join(', ');
-        const categoryText = get(item, 'anpa_category.length', 0) === 0 ? '' :
-            item.anpa_category.map((c) => c.name).join(', ');
-        const subjectText = get(item, 'subject.length', 0) === 0 ? '' :
-            item.subject.map((s) => s.name).join(', ');
-        const contacts = get(item, 'event_contact_info') || [];
 
         return (
             <ContentBlock>
@@ -107,113 +91,16 @@ export class EventPreviewContentComponent extends React.PureComponent<IProps> {
                     </div>
                 </div>
 
-                <Row
-                    enabled={formProfile?.editor?.language?.enabled}
-                    label={gettext('Language')}
-                    value={item.language || ''}
-                />
-
-                <Row
-                    enabled={get(formProfile, 'editor.slugline.enabled')}
-                    label={gettext('Slugline')}
-                    value={item.slugline || ''}
-                    className="slugline"
-                />
-                <Row
-                    enabled={get(formProfile, 'editor.name.enabled')}
-                    label={gettext('Event name')}
-                    value={item.name || ''}
-                    className="strong"
-                />
-                <Row
-                    enabled={get(formProfile, 'editor.definition_short.enabled')}
-                    label={gettext('Description')}
-                    value={stringUtils.convertNewlineToBreak(item.definition_short || '-')}
-                />
-                <Row
-                    enabled={get(formProfile, 'editor.occur_status.enabled')}
-                    label={gettext('Occurrence Status')}
-                    value={get(item, 'occur_status.name', '')}
-                />
-                <EventScheduleSummary
-                    schedule={{
-                        dates: item.dates,
-                        [TO_BE_CONFIRMED_FIELD]: get(item, TO_BE_CONFIRMED_FIELD),
-                    }}
-                />
-                <Row
-                    enabled={get(formProfile, 'editor.calendars.enabled')}
-                    label={gettext('Calendars')}
-                    value={calendarsText}
-                />
-
-                <Row
-                    enabled={get(formProfile, 'editor.place.enabled')}
-                    label={gettext('Place')}
-                    value={placeText}
-                />
-
-                <Row
-                    enabled={get(formProfile, 'editor.location.enabled')}
-                    label={gettext('Location')}
-                >
-                    <div>
-                        <Location
-                            name={get(item, 'location.name')}
-                            address={get(item, 'location.formatted_address')}
-                            multiLine={true}
-                            details={get(item, 'location.details[0]')}
-                        />
-                    </div>
-                </Row>
-
-                <Row
-                    enabled={get(formProfile, 'editor.event_contact_info.enabled')}
-                    label={gettext('Contacts')}
-                >
-                    {contacts.length > 0 ? (
-                        <ContactsPreviewList
-                            contactIds={contacts}
-                            scrollInView={true}
-                            scrollIntoViewOptions={{block: 'center'}}
-                            tabEnabled={true}
-                        />
-                    ) : (
-                        <div>-</div>
-                    )}
-                </Row>
-
-                <ToggleBox title={gettext('Details')} isOpen={false}>
-                    <Row
-                        enabled={get(formProfile, 'editor.anpa_category.enabled')}
-                        label={gettext('ANPA Category')}
-                        value={categoryText}
-                    />
-                    {!!get(formProfile, 'editor.subject.enabled') && (
-                        <Row
-                            enabled={get(formProfile, 'planning.editor.subject.enabled')}
-                            label={gettext('Subject')}
-                            value={subjectText || ''}
-                        />
-                    )}
-                    <CustomVocabulariesPreview customVocabularies={customVocabularies} item={item} />
-                    <Row
-                        enabled={get(formProfile, 'editor.definition_long.enabled')}
-                        label={gettext('Long Description')}
-                        value={stringUtils.convertNewlineToBreak(item.definition_long || '-')}
-                    />
-                    <Row
-                        enabled={get(formProfile, 'editor.internal_note.enabled')}
-                        label={gettext('Internal Note')}
-                    >
-                        <ExpandableText value={item.internal_note || '-'} />
-                    </Row>
-                    <Row
-                        enabled={get(formProfile, 'editor.ednote.enabled')}
-                        label={gettext('Ed Note')}
-                        value={stringUtils.convertNewlineToBreak(item.ednote || '-')}
-                    />
-                </ToggleBox>
+                {renderGroupedFieldsForPanel(
+                    'form-preview',
+                    previewGroupToProfile(PREVIEW_PANEL.EVENT, formProfile),
+                    {
+                        item: item,
+                        language: getUserInterfaceLanguage(),
+                        renderEmpty: true,
+                    },
+                    {},
+                )}
 
                 <FileReadOnlyList
                     formProfile={formProfile}

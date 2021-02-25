@@ -56,6 +56,10 @@ class PlanningSearchService(superdesk.Service):
 
         params = {}
         if fields:
+            # If projections are provided, make sure `type` is always included
+            if 'type' not in fields:
+                fields += ',type'
+
             params['_source'] = fields
 
         docs = self.elastic.search(query, types, params)
@@ -75,7 +79,7 @@ class PlanningSearchService(superdesk.Service):
                     app.config['ITEMS']: [
                         doc
                         for doc in docs
-                        if doc['_type'] == resource
+                        if doc['type'] == resource or (resource == 'events' and doc['type'] == 'event')
                     ]
                 }
                 getattr(app, 'on_fetched_resource')(resource, response)

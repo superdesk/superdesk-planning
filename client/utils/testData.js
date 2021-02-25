@@ -78,6 +78,7 @@ export const formsProfile = {
             dates: {enabled: true},
             place: {enabled: true},
             ednote: {enabled: true},
+            event_contact_info: {enabled: true},
         },
         schema: {
             files: {
@@ -274,10 +275,12 @@ export const vocabularies = {
         {
             name: 'Sport',
             qcode: 'sport',
+            is_active: true,
         },
         {
             name: 'Finance',
             qcode: 'finance',
+            is_active: true,
         },
     ],
     eventoccurstatus: [
@@ -387,6 +390,16 @@ export const vocabularies = {
         {qcode: 'Soccer', name: 'Soccer'},
         {qcode: 'Property', name: 'Property'},
     ],
+    locators: [
+        {
+            country: 'Australia',
+            group: 'Australia',
+            name: 'ACT',
+            qcode: 'ACT',
+            state: 'Australian Capital Territory',
+            world_region: 'Oceania',
+        },
+    ],
 };
 
 export const subjects = [
@@ -478,6 +491,7 @@ export const eventsInitialState = {
     eventsInList: [],
     readOnly: true,
     eventHistoryItems: [],
+    calendars: vocabularies.event_calendars,
 };
 
 export const agendaInitialState = {

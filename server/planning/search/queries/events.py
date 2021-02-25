@@ -54,7 +54,10 @@ def search_reference(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_source(params: Dict[str, Any], query: elastic.ElasticQuery):
-    sources = str_to_array(params.get('source'))
+    sources = [
+        str(source_id)
+        for source_id in str_to_array(params.get('source'))
+    ]
 
     if len(sources):
         query.must.append(
@@ -68,14 +71,18 @@ def search_source(params: Dict[str, Any], query: elastic.ElasticQuery):
 def search_location(params: Dict[str, Any], query: elastic.ElasticQuery):
     if len(params.get('location') or ''):
         query.must.append(
-            elastic.match_phrase(
-                field='location.name',
+            elastic.term(
+                field='location.qcode',
                 value=params['location']
             )
         )
 
 
 def search_calendars(params: Dict[str, Any], query: elastic.ElasticQuery):
+    if strtobool(params.get('no_calendar_assigned', False)):
+        # The `no_calendar_assigned` param should override the `calendars` param
+        return
+
     calendars = str_to_array(params.get('calendars'))
     num_calendars = len(calendars)
 
@@ -96,9 +103,7 @@ def search_calendars(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_no_calendar_assigned(params: Dict[str, Any], query: elastic.ElasticQuery):
-    num_calendars = len(params.get('calendars') or [])
-
-    if not num_calendars and strtobool(params.get('no_calendar_assigned', False)):
+    if strtobool(params.get('no_calendar_assigned', False)):
         query.must_not.append(
             elastic.field_exists('calendars')
         )

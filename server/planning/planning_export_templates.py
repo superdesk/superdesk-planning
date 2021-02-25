@@ -95,11 +95,11 @@ default_export_templates = [{
     'data': {
         'body_html': f'''
 <h2>Events</h2>
-{{% for item in items if item._type == 'events' %}}
+{{% for item in items if item.type == 'event' %}}
 {DEFAULT_EVENT_ITEM_BODY}
 {{% endfor %}}
 <h2>Planning</h2>
-{{% for item in items if item._type == 'planning' %}}
+{{% for item in items if item.type == 'planning' %}}
 {DEFAULT_PLANNING_ITEM_BODY}
 {{% endfor %}}
 '''

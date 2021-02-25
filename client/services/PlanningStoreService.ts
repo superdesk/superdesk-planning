@@ -67,6 +67,11 @@ export class PlanningStoreService {
         $rootScope.$watch(() => this.desks.active, this.onDeskChanged);
         $rootScope.$on('vocabularies:updated', this._reloadVocabularies);
         $rootScope.$on('notification:click', this.onNotificationClick);
+
+        // Adding here until Superdesk 2.2 where this functionality is available
+        planningApi.$location = {
+            search: (name: string, values: any) => $timeout(() => $location.search(name, values)),
+        };
     }
 
     initWorkspace(workspaceName, onLoadWorkspace = null) {
@@ -181,7 +186,7 @@ export class PlanningStoreService {
             metadata: this.metadata.initialize(),
             users: this.userList.getAll(),
             desks: this.desks.initialize(),
-            all_templates: this.templates.fetchAllTemplates(1, 50, 'create'),
+            all_templates: this.templates.fetchAllTemplates(1, 200, 'create'),
             formsProfile: this.api('planning_types').query({
                 max_results: 200,
                 page: 1,

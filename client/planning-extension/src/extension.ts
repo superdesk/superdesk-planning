@@ -98,7 +98,6 @@ function onSendBefore(superdesk: ISuperdesk, items: Array<IArticle>, desk: IDesk
 }
 
 const extension: IExtension = {
-    id: 'superdesk-planning',
     activate: (superdesk: ISuperdesk) => {
         const result: IExtensionActivationResult = {
             contributions: {

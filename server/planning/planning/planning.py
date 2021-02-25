@@ -1311,6 +1311,7 @@ coverage_schema = {
 
     'news_coverage_status': {
         'type': 'dict',
+        'allow_unknown': True,
         'schema': {
             'qcode': {'type': 'string'},
             'name': {'type': 'string'},
@@ -1345,6 +1346,7 @@ coverage_schema = {
                 'previous_status': {'type': 'string'},
                 'news_coverage_status': {
                     'type': 'dict',
+                    'allow_unknown': True,
                     'schema': {
                         'qcode': {'type': 'string'},
                         'name': {'type': 'string'},
@@ -1584,7 +1586,6 @@ class PlanningResource(superdesk.Resource):
     }
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
-    public_methods = ['GET']
     privileges = {'POST': 'planning_planning_management',
                   'PATCH': 'planning_planning_management',
                   'DELETE': 'planning'}

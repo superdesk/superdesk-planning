@@ -1,7 +1,8 @@
 import React from 'react';
 import {sortBy} from 'lodash';
 
-import {IRenderPanelType, ISearchProfile} from '../../interfaces';
+import {getUserInterfaceLanguage} from 'appConfig';
+import {IRenderPanelType, ISearchProfile, PREVIEW_PANEL} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
 
 import {name} from './name';
@@ -21,7 +22,9 @@ import {reference} from './reference';
 
 import {FIELD_TO_EDITOR_COMPONENT} from './editor';
 import {FIELD_TO_LIST_COMPONENT} from './list';
-import {FIELD_TO_PREVIEW_COMPONENT} from './preview/SimpleList';
+
+import {FIELD_TO_PREVIEW_COMPONENT, FIELD_TO_FORM_PREVIEW_COMPONENT} from './preview';
+
 import {ToggleBox} from '../UI/ToggleBox';
 
 let registeredFields = {};
@@ -42,11 +45,20 @@ export function registerField(id, component) {
  * @param {Object} props
  */
 export function renderFields(fields, item, props = {}) {
+    const language = getUserInterfaceLanguage();
+
     return (Array.isArray(fields) ? fields : [fields]).map((id) => {
         const Component = registeredFields[id];
 
         if (Component) {
-            return <Component key={id} item={item} {...props} />;
+            return (
+                <Component
+                    key={id}
+                    item={item}
+                    language={language}
+                    {...props}
+                />
+            );
         }
 
         return null;
@@ -61,6 +73,8 @@ function getFieldsForPanel(panelType: IRenderPanelType) {
         return FIELD_TO_LIST_COMPONENT;
     case 'simple-preview':
         return FIELD_TO_PREVIEW_COMPONENT;
+    case 'form-preview':
+        return FIELD_TO_FORM_PREVIEW_COMPONENT;
     }
 }
 
@@ -101,7 +115,8 @@ export function renderFieldsForPanel(
             console.error(`Component for field ${fieldName} not registered`);
         } else if (profile[fieldName].enabled &&
             profile[fieldName][enabledField] &&
-            (!groupName || newField.group === groupName)
+            (!groupName || newField.group === groupName) &&
+            fieldProps[fieldName]?.enabled != false
         ) {
             newField.enabled = true;
             fields[fieldName] = newField;
@@ -141,6 +156,8 @@ export function renderGroupedFieldsForPanel(
     const {gettext} = superdeskApi.localization;
 
     const groups = [{
+        name: 'no_group',
+    }, {
         name: 'common',
         title: gettext('Common'),
     }, {
@@ -158,6 +175,9 @@ export function renderGroupedFieldsForPanel(
     }, {
         name: 'planning',
         title: gettext('Planning'),
+    }, {
+        name: 'details',
+        title: gettext('Details'),
     }];
 
     return groups.map((group) => {
@@ -172,7 +192,7 @@ export function renderGroupedFieldsForPanel(
         );
 
         if (renderedFields != null) {
-            return (
+            return group.name == 'no_group' ? renderedFields : (
                 <ToggleBox
                     key={group.name}
                     isOpen={false}
@@ -187,6 +207,108 @@ export function renderGroupedFieldsForPanel(
         return null;
     })
         .filter((group) => group != null);
+}
+
+type IPreviewGroups = {[key: string]: Array<{
+    name: 'no_group'
+        | 'common'
+        | 'vocabularies'
+        | 'states'
+        | 'dates'
+        | 'events'
+        | 'planning'
+        | 'details';
+    fields: Array<string>;
+}>};
+
+const PREVIEW_GROUPS: IPreviewGroups = {
+    [PREVIEW_PANEL.EVENT]: [{
+        name: 'no_group',
+        fields: [
+            'language',
+            'slugline',
+            'name',
+            'definition_short',
+            'occur_status',
+            'dates',
+            'calendars',
+            'place',
+            'location',
+            'event_contact_info',
+        ],
+    }, {
+        name: 'details',
+        fields: [
+            'anpa_category',
+            'subject',
+            'custom_vocabularies',
+            'definition_long',
+            'internal_note',
+            'ednote',
+        ],
+    }],
+    [PREVIEW_PANEL.PLANNING]: [{
+        name: 'no_group',
+        fields: [
+            'language',
+            'slugline',
+            'headline',
+            'name',
+            'planning_date',
+            'description_text',
+            'internal_note',
+            'place',
+            'agendas',
+        ],
+    }, {
+        name: 'details',
+        fields: [
+            'ednote',
+            'anpa_category',
+            'subject',
+            'custom_vocabularies',
+            'urgency',
+            'flags',
+        ]
+    }],
+    [PREVIEW_PANEL.COVERAGE]: [{
+        name: 'no_group',
+        fields: [
+            'language',
+            'slugline',
+            'ednote',
+            'keyword',
+            'internal_note',
+            'g2_content_type',
+        ],
+    }],
+    [PREVIEW_PANEL.ASSOCIATED_EVENT]: [{
+        name: 'no_group',
+        fields: [
+            'name',
+            'dates',
+            'location',
+            'occur_status',
+            'definition_short',
+            'event_contact_info',
+        ],
+    }]
+};
+
+export function previewGroupToProfile(groupName: PREVIEW_PANEL, profile) {
+    const previewProfile = {};
+
+    PREVIEW_GROUPS[groupName]?.forEach((group) => {
+        group.fields.forEach((field, index) => {
+            previewProfile[field] = {
+                index: index,
+                group: group.name,
+                enabled: profile?.editor?.[field]?.enabled,
+            };
+        });
+    });
+
+    return previewProfile;
 }
 
 // populate core fields

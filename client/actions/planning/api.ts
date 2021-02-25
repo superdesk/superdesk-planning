@@ -1,6 +1,6 @@
 import {get, cloneDeep, pickBy, has, every} from 'lodash';
 
-import {IEventItem, IPlanningSearchParams} from '../../interfaces';
+import {IEventItem, IPlanningSearchParams, IPlanningItem} from '../../interfaces';
 import {appConfig} from 'appConfig';
 
 import * as actions from '../../actions';
@@ -25,6 +25,7 @@ import {
 } from '../../constants';
 import main from '../main';
 import {planningApi} from '../../superdeskApi';
+import {planningParamsToSearchParams} from '../../utils/search';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -85,62 +86,20 @@ const cancelAllCoverage = (original, updates) => (
     )
 );
 
-/**
- * Action dispatcher to perform fetch the list of planning items from the server.
- * @param {string} eventIds - An event ID to fetch Planning items for that event
- * @param {string} spikeState - Planning item's spiked state (SPIKED, NOT_SPIKED or BOTH)
- * @param {agendas} list of agenda ids
- * @param {int} page - The page number to query for
- * @return Promise
- */
+// Action dispatcher to perform fetch the list of planning items from the server.
 function query(
-    {
-        spikeState = 'draft',
-        agendas = [],
-        noAgendaAssigned = false,
-        page = 1,
-        advancedSearch = {},
-        fulltext,
-        maxResults = MAIN.PAGE_SIZE,
-        adHocPlanning = false,
-        excludeRescheduledAndCancelled = false,
-        featured = false,
-    }: IPlanningSearchParams,
+    params: IPlanningSearchParams = {},
     storeTotal = true,
     timeZoneOffset = null,
     includeScheduledUpdates = false
 ) {
     return (dispatch, getState) => (
-        planningApi.planning.search({
-            item_ids: [],
-            name: advancedSearch.name,
-            tz_offset: timeZoneOffset ?? getTimeZoneOffset(),
-            full_text: fulltext,
-            anpa_category: advancedSearch.anpa_category,
-            subject: advancedSearch.subject,
-            posted: advancedSearch.posted,
-            place: advancedSearch.place,
-            language: advancedSearch.language,
-            state: advancedSearch.state,
-            spike_state: spikeState,
-            include_killed: false,
-            date_filter: advancedSearch?.dates?.range,
-            start_date: advancedSearch?.dates?.start,
-            end_date: advancedSearch?.dates?.end,
-            start_of_week: appConfig.start_of_week,
-            slugline: advancedSearch.slugline,
-            agendas: agendas,
-            no_agenda_assigned: noAgendaAssigned,
-            ad_hoc_planning: adHocPlanning,
-            exclude_rescheduled_and_cancelled: excludeRescheduledAndCancelled,
-            no_coverage: advancedSearch.noCoverage,
-            urgency: advancedSearch.urgency,
-            g2_content_type: advancedSearch?.g2_content_type,
-            featured: featured,
-            include_scheduled_updates: includeScheduledUpdates,
-            max_results: maxResults,
-            page: page
-        })
+        planningApi.planning.search(planningParamsToSearchParams({
+            ...params,
+            timezoneOffset: timeZoneOffset ?? params.timezoneOffset,
+            filter_id: params.filter_id || selectors.main.currentSearchFilterId(getState()),
+            includeScheduledUpdates: includeScheduledUpdates || params.includeScheduledUpdates,
+        }))
             .then((response) => {
                 if (storeTotal) {
                     dispatch(main.setTotal(MAIN.FILTERS.PLANNING, response._meta?.total ?? 0));
@@ -148,7 +107,7 @@ function query(
 
                 if (response?._items != null) {
                     if (selectors.featuredPlanning.inUse(getState()) &&
-                        get(advancedSearch, 'dates.range') === MAIN.DATE_RANGE.FOR_DATE) {
+                        params.advancedSearch?.dates?.range === 'for_date') {
                         // For featuredstories modal, we get all items in a loop
                         // So, send the total along with the result for loop calculation
                         const result = {
@@ -237,7 +196,7 @@ const fetchPlanningsEvents = (plannings) => (
         if (get(linkedEvents, 'length', 0) > 0) {
             return dispatch(actions.events.api.silentlyFetchEventsById(
                 linkedEvents,
-                SPIKED_STATE.BOTH
+                'both'
             ));
         }
 
@@ -341,18 +300,18 @@ const loadPlanningById = (id, spikeState = SPIKED_STATE.BOTH, saveToStore = true
         }, (error) => (Promise.reject(error)))
 );
 
-const loadPlanningByIds = (ids, saveToStore = true) => (
-    (dispatch) => (
+function loadPlanningByIds(ids: Array<IPlanningItem['_id']>, saveToStore: boolean = true) {
+    return (dispatch) => (
         planningApi.planning.getByIds(ids)
             .then((items) => {
-                if (saveToStore) {
+                if (saveToStore && items.length > 0) {
                     dispatch(self.receivePlannings(items));
                 }
 
-                return Promise.resolve(items);
-            }, (error) => Promise.reject(error))
-    )
-);
+                return items;
+            })
+    );
+}
 
 /**
  * Action dispatcher to load Planning items by Event ID from the API, and place them
@@ -363,7 +322,10 @@ const loadPlanningByIds = (ids, saveToStore = true) => (
  */
 const loadPlanningByEventId = (eventId: IEventItem['_id'], loadToStore: boolean = true) => (
     (dispatch) => (
-        planningApi.planning.search({event_item: [eventId]})
+        planningApi.planning.search({
+            event_item: [eventId],
+            only_future: false,
+        })
             .then((data) => {
                 if (loadToStore) {
                     dispatch(self.receivePlannings(data._items));
@@ -376,7 +338,10 @@ const loadPlanningByEventId = (eventId: IEventItem['_id'], loadToStore: boolean 
 
 const loadPlanningByRecurrenceId = (recurrenceId, loadToStore = true) => (
     (dispatch) => (
-        planningApi.planning.search({recurrence_id: recurrenceId})
+        planningApi.planning.search({
+            recurrence_id: recurrenceId,
+            only_future: false,
+        })
             .then((data) => {
                 if (loadToStore) {
                     dispatch(self.receivePlannings(data._items));
@@ -607,22 +572,19 @@ const lock = (planning, lockAction = 'edit') => (
  * Locks featured stories action
  * @return Promise
  */
-const lockFeaturedPlanning = () => (
-    (dispatch, getState, {api}) => (
-        api('planning_featured_lock').save({}, {})
-            .then((lockedItem) => lockedItem)
-    )
-);
-
-
-/**
- * Fetches featured stories record
- * @param {string} id - id of the record
- * @return Promise
- */
-const fetchFeaturedPlanningItemById = (id) => (
-    (dispatch, getState, {api}) => api.find('planning_featured', id).then((item) => item)
-);
+function lockFeaturedPlanning() {
+    return (dispatch, getState, {notify}) => (
+        planningApi.planning.featured.lock()
+            .catch((error) => {
+                notify.error(
+                    getErrorMessage(
+                        error,
+                        gettext('Failed to lock featured story action!')
+                    )
+                );
+            })
+    );
+}
 
 const fetchPlanningFiles = (planning) => (
     (dispatch, getState) => {
@@ -680,15 +642,15 @@ const saveFeaturedPlanning = (updates) => (
  * Unlocks featured planning action
  * @return Promise
  */
-const unlockFeaturedPlanning = () => (
-    (dispatch, getState, {api, notify}) => (
-        api('planning_featured_unlock').save({}, {})
+function unlockFeaturedPlanning() {
+    return (dispatch, getState, {notify}) => (
+        planningApi.planning.featured.unlock()
             .catch((error) => {
                 notify.error(
                     getErrorMessage(error, gettext('Failed to unlock featured story action!')));
             })
-    )
-);
+    );
+}
 
 const markPlanningCancelled = (plan, reason, coverageState, eventCancellation) => ({
     type: PLANNING.ACTIONS.MARK_PLANNING_CANCELLED,
@@ -808,7 +770,6 @@ const self = {
     lockFeaturedPlanning,
     unlockFeaturedPlanning,
     saveFeaturedPlanning,
-    fetchFeaturedPlanningItemById,
     fetchPlanningFiles,
     uploadFiles,
     removeFile,

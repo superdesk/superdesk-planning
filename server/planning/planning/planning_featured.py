@@ -141,7 +141,6 @@ class PlanningFeaturedResource(superdesk.Resource):
     item_url = r'regex("[-_\w]+")'
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
-    public_methods = ['GET', 'PATCH']
     schema = planning_featured_schema
     datasource = {'source': 'planning_featured'}
 

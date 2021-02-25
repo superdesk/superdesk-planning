@@ -32,23 +32,23 @@ describe('<EventPreviewContent />', () => {
         }],
         anpa_category: [{
             name: 'cat1',
-            qcode: 'cat1',
+            qcode: 'qcode1',
         }],
         occur_status: {
             name: 'Planned, occurs certainly',
-            qcode: 'qcode1',
+            qcode: 'eocstat:eos5',
         },
         location: {
             name: 'location',
             formatted_address: 'address',
         },
         calendars: [{
-            name: 'calender1',
-            qcode: 'calender1',
+            name: 'Sport',
+            qcode: 'sport',
         }],
         subject: [{
             name: 'sub1',
-            qcode: 'sub1',
+            qcode: 'qcode1',
         }],
         files: ['file1'],
         links: ['https://www.google.com'],
@@ -112,14 +112,13 @@ describe('<EventPreviewContent />', () => {
         expect(wrapper.find('EventPreviewContentComponent').length).toBe(1);
         const dataRows = wrapper.find('.form__row');
 
-        verifyDataRow(dataRows.at(0), 'Language');
-        verifyDataRow(dataRows.at(1), 'Slugline', 'test slugline');
-        verifyDataRow(dataRows.at(2), 'Event name', 'Event 1');
-        verifyDataRow(dataRows.at(3), 'Description', 'description');
-        verifyDataRow(dataRows.at(4), 'Occurrence Status', 'Planned, occurs certainly');
-        verifyDataRow(dataRows.at(5), 'Date', dateString);
-        verifyDataRow(dataRows.at(6), 'Calendars', 'calender1');
-        verifyDataRow(dataRows.at(7), 'Place', 'ACT');
+        verifyDataRow(dataRows.at(0), 'Slugline:', 'test slugline');
+        verifyDataRow(dataRows.at(1), 'Name:', 'Event 1');
+        verifyDataRow(dataRows.at(2), 'Description:', 'description');
+        verifyDataRow(dataRows.at(3), 'Occurrence Status:', 'Planned, occurs certainly');
+        verifyDataRow(dataRows.at(4), 'Date:', dateString);
+        verifyDataRow(dataRows.at(5), 'Calendars:', 'Sport');
+        verifyDataRow(dataRows.at(6), 'Places:', 'ACT');
 
         let eventDetails = wrapper.find('.toggle-box').first();
 
@@ -129,10 +128,10 @@ describe('<EventPreviewContent />', () => {
             .find('.toggle-box__content')
             .find('.form__row');
 
-        verifyDataRow(eventDetailRows.at(0), 'ANPA Category', 'cat1');
-        verifyDataRow(eventDetailRows.at(1), 'Subject', 'sub1');
-        verifyDataRow(eventDetailRows.at(2), 'Long Description', 'long description');
-        verifyDataRow(eventDetailRows.at(3), 'Internal Note', 'internal note');
+        verifyDataRow(eventDetailRows.at(0), 'ANPA Category:', 'cat1');
+        verifyDataRow(eventDetailRows.at(1), 'Subjects:', 'sub1');
+        verifyDataRow(eventDetailRows.at(2), 'Long Description:', 'long description');
+        verifyDataRow(eventDetailRows.at(3), 'Internal Note:', 'internal note');
 
         let contacts = wrapper.find('.contact-info');
 

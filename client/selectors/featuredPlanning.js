@@ -19,7 +19,7 @@ export const previousFilter = (state) => get(state, 'featuredPlanning.previousFi
 export const currentSearchDate = (state) =>
     get(
         state,
-        'featuredPlanning.currentSearch.advancedSearch.dates.start',
+        'featuredPlanning.currentSearch.start_date',
         momentTz.tz(moment(), appConfig.defaultTimezone)
     );
 export const total = (state) => get(state, 'featuredPlanning.total', false);

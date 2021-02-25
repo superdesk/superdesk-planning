@@ -1,6 +1,15 @@
 import {get, isBoolean} from 'lodash';
 
-import {Input, SelectMetaTerms, RadioInputs, SpikeStateInput, ToggleInput, SelectInput} from '../common/inputs';
+import {
+    Input,
+    SelectMetaTerms,
+    RadioInputs,
+    SpikeStateInput,
+    ToggleInput,
+    SelectInput,
+    LocationInput,
+    UrgencyInput,
+} from '../common/inputs';
 import {PlanningList} from './planningList';
 
 interface ISearchTest {
@@ -20,12 +29,28 @@ export class AdvancedSearch {
         const getSearchPanel = () => this.searchPanel;
 
         this.fields = {
+            full_text: new Input(getSearchPanel, '[data-test-id=field-full_text] input'),
             name: new Input(getSearchPanel, '[data-test-id=field-name] input'),
             slugline: new Input(getSearchPanel, '[data-test-id=field-slugline] input'),
             anpa_category: new SelectMetaTerms(getSearchPanel, '[data-test-id=field-anpa_category]'),
             subject: new SelectMetaTerms(getSearchPanel, '[data-test-id=field-subject]'),
             state: new SelectMetaTerms(getSearchPanel, '[data-test-id=field-state]'),
-            spike_state: new SpikeStateInput(getSearchPanel, '[data-test-id=field-spike_state]'),
+            only_posted: new ToggleInput(
+                getSearchPanel,
+                '[data-test-id=field-posted] .sd-toggle'
+            ),
+            include_killed: new ToggleInput(
+                getSearchPanel,
+                '[data-test-id=field-include_killed] .sd-toggle'
+            ),
+            spike_state: new ToggleInput(
+                getSearchPanel,
+                '[data-test-id=field-spike_state] .sd-toggle'
+            ),
+            lock_state: new SelectInput(
+                getSearchPanel,
+                '[data-test-id=field-lock_state] select'
+            ),
             start_date: {
                 date: new Input(getSearchPanel, 'input[name="start_date.date"]'),
                 time: new Input(getSearchPanel, 'input[name="start_date.time"]'),
@@ -35,14 +60,38 @@ export class AdvancedSearch {
                 time: new Input(getSearchPanel, 'input[name="end_date.time"]'),
             },
             calendars: new SelectMetaTerms(getSearchPanel, '[data-test-id=field-calendars]'),
+            agendas: new SelectMetaTerms(getSearchPanel, '[data-test-id=field-agendas]'),
             date_filter: new RadioInputs(getSearchPanel, '[data-test-id=field-date_filter]'),
             no_calendar_assigned: new ToggleInput(
                 getSearchPanel,
                 '[data-test-id=field-no_calendar_assigned] .sd-toggle'
             ),
+            source: new SelectMetaTerms(getSearchPanel, '[data-test-id=field-source]'),
+            location: new LocationInput(getSearchPanel, '[data-test-id=field-location]'),
             featured: new ToggleInput(
                 getSearchPanel,
                 '[data-test-id=field-featured] .sd-toggle'
+            ),
+            urgency: new UrgencyInput(getSearchPanel, '[data-test-id=field-urgency]'),
+            g2_content_type: new SelectInput(
+                getSearchPanel,
+                '[data-test-id=field-g2_content_type] select'
+            ),
+            no_agenda_assigned: new ToggleInput(
+                getSearchPanel,
+                '[data-test-id=field-no_agenda_assigned] .sd-toggle'
+            ),
+            ad_hoc_planning: new ToggleInput(
+                getSearchPanel,
+                '[data-test-id=field-ad_hoc_planning] .sd-toggle'
+            ),
+            no_coverage: new ToggleInput(
+                getSearchPanel,
+                '[data-test-id=field-no_coverage] .sd-toggle'
+            ),
+            include_scheduled_updates: new ToggleInput(
+                getSearchPanel,
+                '[data-test-id=field-include_scheduled_updates] .sd-toggle'
             ),
             filter_name: new Input(
                 getSearchPanel,
@@ -194,5 +243,12 @@ export class AdvancedSearch {
             cy.wrap(run)
                 .then(() => this.expectSearchResultCount(run));
         });
+    }
+
+    clearDate(field: 'start' | 'end') {
+        this.searchPanel.find(`[data-test-id=field-${field}_date]`)
+            .find('.icon-close-small')
+            .should('exist')
+            .click();
     }
 }

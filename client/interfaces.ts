@@ -1,5 +1,4 @@
 import {
-    ITEM_STATE,
     ISuperdeskGlobalConfig,
     IBaseRestApiResponse,
     ISubject,
@@ -52,6 +51,7 @@ export interface IEventOccurStatus {
 export interface ICalendar {
     qcode: string;
     name: string;
+    is_active?: boolean;
 }
 
 export interface IANPACategory {
@@ -130,18 +130,30 @@ export enum FILTER_TYPE {
     COMBINED = 'combined',
 }
 
+export enum PREVIEW_PANEL {
+    EVENT = 'event',
+    PLANNING = 'planning',
+    COVERAGE = 'coverage',
+    ASSOCIATED_EVENT = 'associated_event',
+}
+
 export enum DATE_RANGE {
     TODAY = 'today',
     TOMORROW = 'tomorrow',
     THIS_WEEK = 'this_week',
     NEXT_WEEK = 'next_week',
     LAST_24 = 'last24',
-    FOR_DATE = 'forDate',
+    FOR_DATE = 'for_date',
+}
+
+export enum LOCK_STATE {
+    LOCKED = 'locked',
+    UNLOCKED = 'unlocked',
 }
 
 export type ISearchSpikeState = 'spiked' | 'draft' | 'both';
 
-export type IDateRange = 'today' | 'tomorrow' | 'this_week' | 'next_week' | 'last24' | 'forDate';
+export type IDateRange = 'today' | 'tomorrow' | 'this_week' | 'next_week' | 'last24' | 'for_date';
 
 export type IPlanningProfile = {
     name: string;
@@ -196,6 +208,7 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
     planning_use_xmp_for_pic_slugline?: boolean;
     planning_xmp_assignment_mapping?: string;
     street_map_url?: string;
+    planning_auto_close_popup_editor?: boolean;
 
     planning?: {
         dateformat?: string;
@@ -368,6 +381,14 @@ export interface IEventItem extends IBaseRestApiResponse {
     _sortDate?: string | Date | moment.Moment;
 }
 
+export interface IEventTemplate extends IBaseRestApiResponse{
+    is_public: boolean;
+    template_name: string;
+    template_type: string;
+    user: IUser['_id'];
+    data: Partial<IEventItem>;
+}
+
 export interface ICoveragePlanningDetails {
     ednote: string;
     g2_content_type: IG2ContentType['qcode'];
@@ -516,6 +537,20 @@ export interface IPlanningItem extends IBaseRestApiResponse {
     _cancelAllCoverage: boolean;
 }
 
+export interface IFeaturedPlanningItem extends IBaseRestApiResponse {
+    date: string;
+    items: Array<IPlanningItem['_id']>;
+    tz: string;
+    posted: boolean;
+    last_posted_time: string;
+    last_posted_by: IUser['_id'];
+    original_creator: IUser['_id'];
+    version_creator: IUser['_id'];
+    firstcreated: string;
+    versioncreated: string;
+    type: 'planning_featured';
+}
+
 export interface IFeaturedPlanningLock extends IBaseRestApiResponse {
     lock_user: string;
     lock_time: string | Date;
@@ -577,137 +612,75 @@ export interface IDateSearchParams {
     end?: moment.Moment;
 }
 
-export interface IEventSearchParams {
-    calendars?: Array<ICalendar['qcode']>;
-    fulltext?: string;
-    ids?: Array<string>;
-    includeKilled?: boolean;
-    itemIds?: Array<string>;
-    maxResults?: number;
-    noCalendarAssigned?: boolean;
-    onlyFuture?: boolean;
-    recurrenceId?: string;
-    page?: number;
-    startOfWeek?: number;
-    spikeState?: ISearchSpikeState;
-    advancedSearch?: {
-        anpa_category?: Array<IANPACategory>;
-        dates?: IDateSearchParams;
-        location?: ILocation | string;
-        name?: string;
-        place?: Array<IPlace>;
-        posted?: boolean;
-        reference?: string;
-        slugline?: string;
-        source?: Array<{
-            id?: string;
-            name?: string;
-        }>;
-        state?: Array<{
-            qcode?: IWorkflowState;
-            name?: string;
-        }>;
-        subject?: Array<ISubject>;
-        language?: string;
-    };
-}
+export type IEventOrPlanningItem = IEventItem | IPlanningItem;
 
-export interface IPlanningSearchParams {
-    adHocPlanning?: boolean;
-    agendas?: Array<string>;
-    excludeRescheduledAndCancelled?: boolean;
-    featured?: boolean;
-    fulltext?: string;
-    includeScheduledUpdates?: boolean;
-    noAgendaAssigned?: boolean;
-    spikeState?: ISearchSpikeState;
-    startOfWeek?: number;
-    timezoneOffset?: string;
-    advancedSearch?: {
-        anpa_category?: Array<IANPACategory>;
-        dates?: IDateSearchParams;
-        featured?: boolean;
-        g2_content_type?: IG2ContentType;
-        noCoverage?: boolean;
-        place?: Array<IPlace>;
-        posted?: boolean;
-        slugline?: string;
-        state?: Array<{
-            qcode?: IWorkflowState;
-            name?: string;
-        }>;
-        subject?: Array<ISubject>;
-        urgency?: IUrgency;
-        language?: string;
-        name: string;
-    };
-}
-
-export interface IAdvancedSearchParams {
-    // Combined
+export interface ICommonAdvancedSearchParams {
     anpa_category?: Array<IANPACategory>;
     dates?: IDateSearchParams;
-    item_type: FILTER_TYPE;
-    maxResults?: number;
     name?: string;
     place?: Array<IPlace>;
     posted?: boolean;
     slugline?: string;
-    spikeState?: SEARCH_SPIKE_STATE;
     state?: Array<{
-        qcode: IWorkflowState;
-        name: string;
+        qcode?: IWorkflowState;
+        name?: string;
     }>;
     subject?: Array<ISubject>;
+    language?: string;
+}
 
-    // Events Only
-    event?: {
-        calendars?: Array<ICalendar['qcode']>;
-        location?: Array<ILocation | string>;
-        noCalendarAssigned?: boolean;
+export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
+    itemIds?: Array<T['_id']>;
+    fulltext?: string;
+    includeKilled?: boolean;
+    maxResults?: number;
+    page?: number;
+    onlyFuture?: boolean;
+    startOfWeek?: number;
+    spikeState?: ISearchSpikeState;
+    filter_id?: ISearchFilter['_id'];
+    lock_state?: LOCK_STATE;
+    timezoneOffset?: string;
+    advancedSearch?: ICommonAdvancedSearchParams;
+}
+
+export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
+    ids?: Array<IEventItem['_id']>;
+    calendars?: Array<ICalendar>;
+    noCalendarAssigned?: boolean;
+    recurrenceId?: string;
+    advancedSearch?: ICommonAdvancedSearchParams & {
+        location?: ILocation;
         reference?: string;
         source?: Array<{
             id?: string;
             name?: string;
         }>;
-    }
-
-    // Planning Only
-    planning?: {
-        adHocPlanning?: boolean;
-        agendas?: Array<IAgenda['_id']>;
-        featured?: boolean;
-        g2_content_type?: IG2ContentType;
-        noAgendaAssigned?: boolean;
-        noCoverage?: boolean;
-        urgency?: IUrgency;
-    }
-}
-
-export interface ICombinedSearchParams {
-    fulltext?: string;
-    spikeState?: ISearchSpikeState;
-    page?: number;
-    maxResults?: number;
-    calendars?: Array<ICalendar>;
-    agendas: Array<IAgenda>;
-    places?: Array<IPlace>;
-    filter_id?: ISearchFilter['_id'];
-    advancedSearch?: {
-        name?: string;
-        anpa_category?: Array<IANPACategory>;
-        subject?: Array<ISubject>;
-        place?: Array<IPlace>;
-        slugline?: string;
-        reference?: string;
-        state?: Array<{
-            qcode?: IWorkflowState;
-            name?: string;
-        }>;
-        posted?: boolean;
-        dates?: IDateSearchParams;
     };
 }
+
+export interface IPlanningSearchParams extends ICommonSearchParams<IPlanningItem> {
+    adHocPlanning?: boolean;
+    agendas?: Array<IAgenda['_id']>;
+    excludeRescheduledAndCancelled?: boolean;
+    featured?: boolean;
+    includeScheduledUpdates?: boolean;
+    noAgendaAssigned?: boolean;
+    advancedSearch?: ICommonAdvancedSearchParams & {
+        featured?: boolean;
+        g2_content_type?: IG2ContentType;
+        noCoverage?: boolean;
+        urgency?: IUrgency;
+    };
+}
+
+export interface ICombinedSearchParams extends ICommonSearchParams<IEventOrPlanningItem>{
+    advancedSearch?: ICommonAdvancedSearchParams & {
+        reference?: string;
+    };
+}
+
+export type ICombinedEventOrPlanningSearchParams = IEventSearchParams | IPlanningSearchParams | ICombinedSearchParams;
 
 interface IProfileEditorField {
     enabled: boolean;
@@ -743,6 +716,7 @@ interface IProfileSchemaTypeString extends IProfileSchemaType<'string'> {
 export interface IAdvancedSearchFormProfileField {
     enabled: boolean;
     index: number;
+    group?: string;
 }
 
 export interface IEventFormProfile {
@@ -935,8 +909,8 @@ export interface IFormNavigation {
 }
 
 export interface IFormItemManager {
-    forceUpdateInitialValues(updates: Partial<IEventItem | IPlanningItem>): void;
-    startPartialSave(updates: Partial<IEventItem | IPlanningItem>): void;
+    forceUpdateInitialValues(updates: Partial<IEventOrPlanningItem>): void;
+    startPartialSave(updates: Partial<IEventOrPlanningItem>): void;
     addCoverageToWorkflow(
         planning: IPlanningItem,
         coverage: IPlanningCoverageItem,
@@ -961,7 +935,7 @@ export interface IFormItemManager {
         scheduledUpdate: ICoverageScheduledUpdate,
         index: number
     ): Promise<IPlanningItem>;
-    finalisePartialSave(diff: Partial<IEventItem | IPlanningItem>, updateDirtyFlag: boolean): Promise<void>;
+    finalisePartialSave(diff: Partial<IEventOrPlanningItem>, updateDirtyFlag: boolean): Promise<void>;
 }
 
 export interface ISearchParams {
@@ -976,7 +950,7 @@ export interface ISearchParams {
     place?: Array<IPlace>;
     language?: string;
     state?: Array<{
-        qcode?: string;
+        qcode?: IWorkflowState;
         name?: string;
     }>;
     spike_state?: ISearchSpikeState;
@@ -987,7 +961,7 @@ export interface ISearchParams {
     only_future?: boolean;
     start_of_week?: number;
     slugline?: string;
-    lock_state?: 'locked' | 'unlocked';
+    lock_state?: LOCK_STATE;
     recurrence_id?: string; // Both Events and Planning have recurrence_id
     filter_id?: ISearchFilter['_id'];
 
@@ -1040,7 +1014,7 @@ export interface ISearchAPIParams {
     end_date?: string;
     start_of_week?: number;
     slugline?: string;
-    lock_state?: 'locked' | 'unlocked';
+    lock_state?: LOCK_STATE;
     recurrence_id?: string;
     filter_id?: ISearchFilter['_id'];
 
@@ -1154,12 +1128,14 @@ export interface IEditorFieldProps {
 export interface IListFieldProps {
     item: any;
     field?: string;
+    language?: string;
 }
 
 export type IRenderPanelType =
     | 'editor'
     | 'list'
-    | 'simple-preview';
+    | 'simple-preview'
+    | 'form-preview';
 
 export type IEventsPlanningField =
     | 'calendars'
@@ -1183,7 +1159,7 @@ export interface IEventsPlanningContentPanelProps {
 
 export interface IPlanningExportTemplate extends IBaseRestApiResponse {
     name: string;
-    type: 'event' | 'planning' | 'combined';
+    type: 'events' | 'planning' | 'combined';
     data: {[key: string]: any};
     label: string;
     download?: boolean;
@@ -1209,6 +1185,30 @@ export interface IContentTemplate extends IBaseRestApiResponse {
     };
 }
 
+export interface IAgendaState {
+    agendas: Array<IAgenda>;
+    currentPlanningId?: IPlanningItem['_id'];
+    currentAgendaId?: IAgenda['_id'];
+    currentFilterId?: ISearchFilter['_id'];
+    agendasAreLoading: boolean;
+}
+
+export interface IEventState {
+    events: {[key: string]: IEventItem};
+    eventsInList: Array<IEventItem['_id']>;
+    readOnly: boolean;
+    eventHistoryItems: Array<any>;
+    calendars: Array<ICalendar>;
+    currentCalendarId?: ICalendar['qcode'];
+    currentFilterId?: ISearchFilter['_id'];
+    eventTemplates: Array<IEventItem>;
+}
+
+export interface IPlanningAppState {
+    agenda: IAgendaState;
+    events: IEventState;
+}
+
 export interface IPlanningAPI {
     redux: {
         store: Store;
@@ -1231,13 +1231,19 @@ export interface IPlanningAPI {
         getLockedFeatured(): Promise<Array<IFeaturedPlanningLock>>;
         getEditorProfile(): IPlanningFormProfile;
         getSearchProfile(): IPlanningSearchProfile;
+        featured: {
+            lock(): Promise<Partial<IFeaturedPlanningLock>>;
+            unlock(): Promise<undefined>;
+            getById(id: string): Promise<IFeaturedPlanningItem>;
+            getByDate(date: moment.Moment): Promise<IFeaturedPlanningItem>;
+        };
     };
     coverages: {
         getEditorProfile(): ICoverageFormProfile;
     };
     combined: {
-        search(params: ISearchParams): Promise<IRestApiResponse<IEventItem | IPlanningItem>>;
-        searchGetAll(params: ISearchParams): Promise<Array<IEventItem | IPlanningItem>>;
+        search(params: ISearchParams): Promise<IRestApiResponse<IEventOrPlanningItem>>;
+        searchGetAll(params: ISearchParams): Promise<Array<IEventOrPlanningItem>>;
         getRecurringEventsAndPlanningItems(
             event: IEventItem,
             loadPlannings?: boolean,
@@ -1253,4 +1259,17 @@ export interface IPlanningAPI {
         }>;
     }
     search<T>(args: ISearchAPIParams): Promise<IRestApiResponse<T>>;
+    ui: {
+        list: {
+            changeFilterId(id: ISearchFilter['_id'], params?: ICombinedEventOrPlanningSearchParams): Promise<any>;
+            changeCalendarId(id: ICalendar['qcode'], params?: IEventSearchParams): Promise<any>;
+            changeAgendaId(id: IAgenda['_id'], params?: IPlanningSearchParams): Promise<any>;
+            search(params: ISearchParams): Promise<any>;
+            clearSearch(): Promise<any>;
+        };
+    };
+    // Adding here until Superdesk 2.2 where this functionality is available
+    $location: {
+        search(name: string, values: any): void;
+    }
 }

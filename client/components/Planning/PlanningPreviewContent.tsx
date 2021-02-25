@@ -4,66 +4,53 @@ import {get} from 'lodash';
 
 import {getUserInterfaceLanguage} from 'appConfig';
 
-import {IDesk, IUser, IVocabulary} from 'superdesk-api';
+import {IDesk, IUser} from 'superdesk-api';
 import {superdeskApi} from '../../superdeskApi';
 import {
-    IPlanningItem,
-    IAgenda,
-    ISession,
-    ILockedItems,
-    IFormProfiles,
     IEventItem,
-    IPlanningNewsCoverageStatus,
-    IUrgency,
     IFile,
+    IFormProfiles,
+    ILockedItems,
+    IPlanningItem,
+    IPlanningNewsCoverageStatus,
+    ISession,
+    PREVIEW_PANEL,
 } from '../../interfaces';
 
-import {
-    getCreator,
-    getItemInArrayById,
-    stringUtils,
-    eventUtils,
-    planningUtils,
-    getFileDownloadURL,
-} from '../../utils';
+import {eventUtils, getCreator, getFileDownloadURL} from '../../utils';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 
-import {Row, ExpandableText} from '../UI/Preview';
 import {
     AuditInformation,
     StateLabel,
     Label,
 } from '../index';
 import {ToggleBox} from '../UI';
-import {ColouredValueInput, FileInput} from '../UI/Form';
+import {FileInput} from '../UI/Form';
 import {CoveragePreview} from '../Coverages';
 import {ContentBlock} from '../UI/SidePanel';
 import {EventMetadata} from '../Events';
-import {AgendaNameList} from '../Agendas';
 import {FeatureLabel} from './FeaturedPlanning';
-import CustomVocabulariesPreview from '../CustomVocabulariesPreview';
+import {previewGroupToProfile, renderGroupedFieldsForPanel} from '../fields';
 
 interface IProps {
     item: IPlanningItem;
     users: Array<IUser>;
     desks: Array<IDesk>;
-    agendas: Array<IAgenda>;
     session: ISession;
     lockedItems: ILockedItems;
     formProfile: IFormProfiles;
     event?: IEventItem;
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
-    urgencies: Array<IUrgency>;
     onEditEvent(): void; // TODO - match code
-    customVocabularies: Array<IVocabulary>;
     inner: boolean;
     noPadding: boolean;
     fetchEventFiles(event: IEventItem): void; // TODO - match code
     fetchPlanningFiles(item: IPlanningItem): void; // TODO - match code
-    hideRelatedItems: boolean;
+    hideRelatedItems?: boolean;
     files: Array<IFile>;
-    hideEditIcon: boolean;
+    hideEditIcon?: boolean;
     planningAllowScheduledUpdates: boolean;
 }
 
@@ -75,11 +62,8 @@ const mapStateToProps = (state, ownProps) => ({
     users: selectors.general.users(state),
     desks: selectors.general.desks(state),
     lockedItems: selectors.locks.getLockedItems(state),
-    agendas: selectors.general.agendas(state),
     formProfile: selectors.forms.profiles(state),
     newsCoverageStatus: selectors.general.newsCoverageStatus(state) || ownProps.item.coverages.news_coverage_status,
-    urgencies: selectors.getUrgencies(state),
-    customVocabularies: state.customVocabularies,
     files: selectors.general.files(state),
     planningAllowScheduledUpdates: selectors.forms.getPlanningAllowScheduledUpdates(state),
 });
@@ -105,14 +89,11 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
         const {item,
             users,
             formProfile,
-            agendas,
             event,
             desks,
             newsCoverageStatus,
-            urgencies,
             onEditEvent,
             lockedItems,
-            customVocabularies,
             inner,
             noPadding,
             hideRelatedItems,
@@ -126,18 +107,7 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
         const updatedDate = get(item, '_updated');
         const versionCreator = get(updatedBy, 'display_name') ? updatedBy :
             users.find((user) => user._id === updatedBy);
-
-        const agendaList = get(item, 'agendas.length', 0) === 0 ? [] :
-            item.agendas.map((a) => getItemInArrayById(agendas, a));
-        const placeText = get(item, 'place.length', 0) === 0 ? '-' :
-            item.place.map((c) => c.name).join(', ');
-        const categoryText = get(item, 'anpa_category.length', 0) === 0 ? '-' :
-            item.anpa_category.map((c) => c.name).join(', ');
-        const subjectText = get(item, 'subject.length', 0) === 0 ? '-' :
-            item.subject.map((s) => s.name).join(', ');
-
         const hasCoverage = get(item, 'coverages.length', 0) > 0;
-        const urgency = getItemInArrayById(urgencies, item.urgency, 'qcode');
 
         return (
             <ContentBlock noPadding={noPadding}>
@@ -169,93 +139,16 @@ export class PlanningPreviewContentComponent extends React.PureComponent<IProps>
                         <FeatureLabel item={item} />
                     </div>
                 </div>
-                <Row
-                    enabled={formProfile?.planning?.editor?.language?.enabled}
-                    label={gettext('Language')}
-                    value={item.language || '-'}
-                />
-                <Row
-                    enabled={get(formProfile, 'planning.editor.slugline.enabled')}
-                    label={gettext('Slugline')}
-                    value={item.slugline || '-'}
-                    className="slugline"
-                />
-                <Row
-                    enabled={get(formProfile, 'planning.editor.headline.enabled')}
-                    label={gettext('Headline')}
-                    value={item.headline || '-'}
-                />
-                <Row
-                    enabled={get(formProfile, 'planning.editor.name.enabled')}
-                    label={gettext('Name')}
-                    value={item.name || '-'}
-                />
-                <Row
-                    enabled={get(formProfile, 'planning.editor.planning_date.enabled')}
-                    label={gettext('Planning Date')}
-                    value={planningUtils.getDateStringForPlanning(item) || '-'}
-                />
-                <Row
-                    enabled={get(formProfile, 'planning.editor.description_text.enabled')}
-                    label={gettext('Description')}
-                    value={stringUtils.convertNewlineToBreak(item.description_text || '-')}
-                />
-                <Row
-                    enabled={get(formProfile, 'planning.editor.internal_note.enabled')}
-                    label={gettext('Internal Note')}
-                >
-                    <ExpandableText value={item.internal_note || '-'} />
-                </Row>
-                <Row
-                    enabled={get(formProfile, 'planning.editor.place.enabled')}
-                    label={gettext('Place')}
-                    value={placeText || '-'}
-                />
-                <Row
-                    enabled={get(formProfile, 'planning.editor.agendas.enabled')}
-                    label={gettext('Agenda')}
-                    value={<AgendaNameList agendas={agendaList} />}
-                />
-                <ToggleBox title={gettext('Details')} isOpen={false}>
-                    <Row
-                        enabled={get(formProfile, 'planning.editor.ednote.enabled')}
-                        label={gettext('Ed Note')}
-                        value={stringUtils.convertNewlineToBreak(item.ednote || '-')}
-                    />
-                    <Row
-                        enabled={get(formProfile, 'planning.editor.anpa_category.enabled')}
-                        label={gettext('ANPA Category')}
-                        value={categoryText || '-'}
-                    />
-                    {!!get(formProfile, 'planning.editor.subject.enabled') && (
-                        <Row
-                            enabled={get(formProfile, 'planning.editor.subject.enabled')}
-                            label={gettext('Subject')}
-                            value={subjectText || '-'}
-                        />
-                    )}
-                    <CustomVocabulariesPreview customVocabularies={customVocabularies} item={item} />
-                    <Row enabled={get(formProfile, 'planning.editor.urgency.enabled')}>
-                        <ColouredValueInput
-                            value={urgency}
-                            label={gettext('Urgency')}
-                            iconName="urgency-label"
-                            readOnly={true}
-                            options={urgencies}
-                            row={true}
-                            language={getUserInterfaceLanguage()}
-                            borderBottom={false}
-                        />
-                    </Row>
-                    <Row
-                        enabled={
-                            get(formProfile, 'planning.editor.flags') &&
-                        get(item, 'flags.marked_for_not_publication', false)
-                        }
-                    >
-                        <span className="state-label not-for-publication">{gettext('Not for Publication')}</span>
-                    </Row>
-                </ToggleBox>
+                {renderGroupedFieldsForPanel(
+                    'form-preview',
+                    previewGroupToProfile(PREVIEW_PANEL.PLANNING, formProfile?.planning),
+                    {
+                        item: item,
+                        language: getUserInterfaceLanguage(),
+                        renderEmpty: true,
+                    },
+                    {},
+                )}
                 {get(formProfile, 'planning.editor.files.enabled') && (
                     <ToggleBox
                         title={gettext('Attached Files')}

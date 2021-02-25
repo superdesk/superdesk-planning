@@ -78,7 +78,7 @@ class ExportScheduledFilters(Command):
             return
 
         for search_filter in filters:
-            for schedule in search_filter.get('schedules'):
+            for schedule in search_filter.get('schedules') or []:
                 try:
                     self.export_filter(search_filter, schedule, now_local, now_utc)
                 except Exception as err:
@@ -110,19 +110,18 @@ class ExportScheduledFilters(Command):
             lookup={'schedules': {'$exists': True, '$ne': []}}
         )
 
-    def should_export(self, scheduled_export, now_local):
+    def should_export(self, schedule, now_local):
         last_sent = None
-        if scheduled_export.get('_last_sent'):
+        if schedule.get('_last_sent'):
             last_sent = utc_to_local(
                 app.config['DEFAULT_TIMEZONE'],
-                scheduled_export['_last_sent']
+                schedule['_last_sent']
             ).replace(
                 minute=0,
                 second=0,
                 microsecond=0
             )
 
-        schedule = scheduled_export.get('schedule') or {}
         schedule_hour = schedule.get('hour', -1)
         schedule_day = schedule.get('day', -1)
         schedule_week_days = schedule.get('week_days') or []

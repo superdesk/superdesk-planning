@@ -16,12 +16,14 @@ export class AssignmentController {
         desks,
         sdPlanningStore,
         pageTitle,
-        gettext
+        gettext,
+        privileges
     ) {
         this.$element = $element;
         this.$scope = $scope;
         this.$location = $location;
         this.desks = desks;
+        this.isPlanningAssignmentsDeskPrivilege = privileges.userHasPrivileges({planning_assignments_desk: 1});
 
         this.render = this.render.bind(this);
         this.loadWorkspace = this.loadWorkspace.bind(this);
@@ -97,7 +99,9 @@ export class AssignmentController {
         const listSettings = cloneDeep(selectors.getAssignmentListSettings(this.store.getState()));
 
         listSettings.selectedDeskId = this.desks.getCurrentDeskId();
-        listSettings.filterBy = listSettings.selectedDeskId ? 'Desk' : 'User';
+        listSettings.filterBy = listSettings.selectedDeskId
+        && this.isPlanningAssignmentsDeskPrivilege ? 'Desk' : 'User';
+
         this.store.dispatch(
             actions.assignments.ui.changeListSettings(listSettings)
         );
@@ -121,4 +125,5 @@ AssignmentController.$inject = [
     'sdPlanningStore',
     'pageTitle',
     'gettext',
+    'privileges',
 ];

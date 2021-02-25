@@ -136,6 +136,7 @@ events_schema = {
             'occur_status': {
                 'nullable': True,
                 'type': 'dict',
+                'allow_unknown': True,
                 'mapping': {
                     'properties': {
                         'qcode': not_analyzed,
@@ -182,6 +183,7 @@ events_schema = {
     'occur_status': {
         'nullable': True,
         'type': 'dict',
+        'allow_unknown': True,
         'schema': {
             'qcode': {'type': 'string'},
             'name': {'type': 'string'},
@@ -190,6 +192,7 @@ events_schema = {
     },
     'news_coverage_status': {
         'type': 'dict',
+        'allow_unknown': True,
         'schema': {
             'qcode': {'type': 'string'},
             'name': {'type': 'string'}
@@ -217,7 +220,7 @@ events_schema = {
         'type': 'list',
         'mapping': {
             'properties': {
-                'qcode': {'type': 'string'},
+                'qcode': not_analyzed,
                 'name': {'type': 'string'},
                 'address': {'type': 'object'},
                 'geo': {'type': 'string'},
