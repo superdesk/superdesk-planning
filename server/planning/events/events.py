@@ -136,7 +136,7 @@ class EventsService(superdesk.Service):
             event[config.ID_FIELD] = event['guid']
 
             # Allow behave tests to define created/updated dates
-            if app.config['TESTING_BEHAVE']:
+            if app.config.get('TESTING_BEHAVE'):
                 if '_created' in event:
                     event['_created'] = str_to_date(event['_created'])
                 if '_updated' in event:

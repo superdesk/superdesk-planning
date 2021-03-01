@@ -128,7 +128,7 @@ class PlanningService(superdesk.Service):
             doc[config.ID_FIELD] = doc['guid']
 
             # Allow behave tests to define created/updated dates
-            if app.config['TESTING_BEHAVE']:
+            if app.config.get('TESTING_BEHAVE'):
                 if '_created' in doc:
                     doc['_created'] = str_to_date(doc['_created'])
                 if '_updated' in doc:
