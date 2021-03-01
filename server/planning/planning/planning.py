@@ -23,7 +23,7 @@ from superdesk.users.services import current_user_has_privilege
 from superdesk.notification import push_notification
 from apps.archive.common import get_user, get_auth, update_dates_for
 from copy import deepcopy
-from eve.utils import config, ParsedRequest, date_to_str
+from eve.utils import config, ParsedRequest, date_to_str, str_to_date
 from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, get_coverage_cancellation_state,\
     WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name,\
     set_original_creator, list_uniq_with_order, TEMP_ID_PREFIX, DEFAULT_ASSIGNMENT_PRIORITY,\
@@ -126,6 +126,14 @@ class PlanningService(superdesk.Service):
             if 'guid' not in doc:
                 doc['guid'] = generate_guid(type=GUID_NEWSML)
             doc[config.ID_FIELD] = doc['guid']
+
+            # Allow behave tests to define created/updated dates
+            if app.config['TESTING_BEHAVE']:
+                if '_created' in doc:
+                    doc['_created'] = str_to_date(doc['_created'])
+                if '_updated' in doc:
+                    doc['_updated'] = str_to_date(doc['_updated'])
+
             self.validate_planning(doc)
             set_original_creator(doc)
             self._set_planning_event_info(doc, planning_type)
@@ -157,7 +165,13 @@ class PlanningService(superdesk.Service):
 
         events_service.system_update(
             doc['event_item'],
-            {'expiry': None},
+            {
+                'expiry': None,
+                # Event hasn't actually been updated
+                # So we leave these version dates alone
+                '_updated': original_event['_updated'],
+                'versioncreated': original_event['versioncreated'],
+            },
             original_event
         )
 

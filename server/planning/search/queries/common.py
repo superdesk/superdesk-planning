@@ -76,8 +76,10 @@ def str_to_array(arg: Optional[Union[List[str], str]] = None) -> List[str]:
     return []
 
 
-def str_to_number(arg: Optional[str] = None) -> Optional[int]:
-    if len(arg or ''):
+def str_to_number(arg: Optional[Union[str, int]] = None) -> Optional[int]:
+    if isinstance(arg, int):
+        return arg
+    elif len(arg or ''):
         return int(arg)
 
     return None
@@ -247,6 +249,46 @@ def append_states_query_for_advanced_search(params: Dict[str, Any], query: elast
             )
 
 
+def search_date_non_schedule(params: Dict[str, Any], query: elastic.ElasticQuery):
+    sort_field = params.get('sort_field', 'created')
+    field_name = '_created' if sort_field == 'created' else '_updated'
+    date_filter, start_date, end_date, tz_offset = get_date_params(params)
+
+    if not date_filter and not start_date and not end_date:
+        query.filter.append(
+            elastic.date_range(elastic.ElasticRangeParams(
+                field=field_name,
+                lte='now/d',
+                time_zone=tz_offset
+            ))
+        )
+    else:
+        base_query = elastic.ElasticRangeParams(
+            field=field_name,
+            time_zone=tz_offset,
+            start_of_week=int(params.get('start_of_week') or 0)
+        )
+
+        if date_filter:
+            base_query.date_range = date_filter
+            base_query.date = start_date
+
+            query_range = elastic.date_range(base_query)
+        elif start_date and not end_date:
+            base_query.lte = start_date
+            query_range = elastic.date_range(base_query)
+        else:
+            base_query.gte = start_date
+            base_query.lte = end_date
+
+            query_range = elastic.date_range(base_query)
+
+            if not query_range['range'][field_name].get('gte') and not query_range['range'][field_name].get('lte'):
+                query_range['range'][field_name]['lte'] = 'now/d'
+
+        query.filter.append(query_range)
+
+
 def construct_query(
     params: Dict[str, Any],
     filters: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]]
@@ -382,4 +424,6 @@ COMMON_PARAMS = [
     'page',
     'filter_id',
     'projections',
+    'sort_order',
+    'sort_field'
 ]

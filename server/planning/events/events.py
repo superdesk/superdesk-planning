@@ -17,7 +17,7 @@ import copy
 import pytz
 import re
 from eve.methods.common import resolve_document_etag
-from eve.utils import config, date_to_str
+from eve.utils import config, date_to_str, str_to_date
 from flask import current_app as app
 from copy import deepcopy
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
@@ -134,6 +134,13 @@ class EventsService(superdesk.Service):
             if 'guid' not in event:
                 event['guid'] = generate_guid(type=GUID_NEWSML)
             event[config.ID_FIELD] = event['guid']
+
+            # Allow behave tests to define created/updated dates
+            if app.config['TESTING_BEHAVE']:
+                if '_created' in event:
+                    event['_created'] = str_to_date(event['_created'])
+                if '_updated' in event:
+                    event['_updated'] = str_to_date(event['_updated'])
 
             # family_id get on ingest we don't need it planning
             event.pop('family_id', None)
