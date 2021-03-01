@@ -434,5 +434,3 @@ def step_impl_then_get_response_order(context):
     expected_order = json.loads(context.text)
 
     assert ids == expected_order, '{} != {}'.format(','.join(ids), ','.join(expected_order))
-
-
