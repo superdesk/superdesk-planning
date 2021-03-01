@@ -86,6 +86,7 @@ export class ListGroupItem extends React.Component {
             previewItem,
             contentTypes,
             contacts,
+            listViewType,
         } = this.props;
         const itemType = getItemType(item);
 
@@ -103,6 +104,7 @@ export class ListGroupItem extends React.Component {
             onMultiSelectClick: onMultiSelectClick,
             listFields: listFields,
             active: active,
+            listViewType: listViewType,
             refNode: (node) => {
                 this.dom.item = node;
             },
@@ -207,6 +209,7 @@ export class ListGroupItem extends React.Component {
                         navigateList={navigateList}
                         onItemActivate={onItemActivate}
                         previewItem={previewItem}
+                        listViewType={this.props.listViewType}
                     />
                 );
             }
@@ -226,7 +229,7 @@ export class ListGroupItem extends React.Component {
 
 ListGroupItem.propTypes = {
     item: PropTypes.object.isRequired,
-    date: PropTypes.string.isRequired,
+    date: PropTypes.string,
     users: PropTypes.array,
     desks: PropTypes.array,
     onItemClick: PropTypes.func.isRequired,
@@ -257,4 +260,5 @@ ListGroupItem.propTypes = {
     onItemActivate: PropTypes.func,
     contentTypes: PropTypes.array,
     contacts: PropTypes.object,
+    listViewType: PropTypes.string,
 };

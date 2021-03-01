@@ -3,11 +3,17 @@ import {forEach, get} from 'lodash';
 import * as actions from '../actions';
 import {EVENTS, PLANNING} from '../constants';
 
+interface IArgs {
+    dispatch: any;
+    eventOnly?: boolean;
+    planningOnly?: boolean;
+}
+
 const getActionDispatches = ({
     dispatch,
-    eventOnly,
-    planningOnly,
-}) => {
+    eventOnly = false,
+    planningOnly = false,
+}: IArgs) => {
     const dispatches = {
         // Event Actions
         [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:

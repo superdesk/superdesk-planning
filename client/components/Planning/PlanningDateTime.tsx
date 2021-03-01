@@ -20,7 +20,7 @@ export const PlanningDateTime = ({
     const coverages = get(item, 'coverages', []);
     const coverageTypes = planningUtils.mapCoverageByDate(coverages);
     const hasAssociatedEvent = !!get(item, 'event_item');
-    const isSameDay = (scheduled) => scheduled && (moment(scheduled).format('YYYY-MM-DD') === date);
+    const isSameDay = (scheduled) => scheduled && (date == null || moment(scheduled).format('YYYY-MM-DD') === date);
     const coverageToDisplay = coverageTypes.filter((coverage) => {
         const scheduled = get(coverage, 'planning.scheduled');
 
@@ -64,7 +64,7 @@ export const PlanningDateTime = ({
 
 PlanningDateTime.propTypes = {
     item: PropTypes.object.isRequired,
-    date: PropTypes.string.isRequired,
+    date: PropTypes.string,
     users: PropTypes.array,
     desks: PropTypes.array,
     activeFilter: PropTypes.string,

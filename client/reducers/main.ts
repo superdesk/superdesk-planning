@@ -1,5 +1,8 @@
-import {MAIN, RESET_STORE, TIME_COMPARISON_GRANULARITY} from '../constants';
 import {cloneDeep, get, omit, set} from 'lodash';
+
+import {IMainState, LIST_VIEW_TYPE} from '../interfaces';
+
+import {MAIN, RESET_STORE, TIME_COMPARISON_GRANULARITY} from '../constants';
 import {createReducer} from './createReducer';
 
 const search = {
@@ -10,7 +13,7 @@ const search = {
     jumpInterval: MAIN.JUMP.WEEK,
 };
 
-const initialState = {
+const initialState: IMainState = {
     previewId: null,
     previewType: null,
     loadingPreview: false,
@@ -22,6 +25,7 @@ const initialState = {
     },
     loadingIndicator: false,
     itemHistory: [],
+    listViewType: LIST_VIEW_TYPE.SCHEDULE,
 };
 
 const modifyParams = (state, payload) => {
@@ -93,6 +97,11 @@ export default createReducer(initialState, {
     [MAIN.ACTIONS.SET_UNSET_USER_INITIATED_SEARCH]: (state, payload) => ({
         ...state,
         userInitiatedSearch: payload,
+    }),
+
+    [MAIN.ACTIONS.SET_LIST_VIEW_TYPE]: (state, payload) => ({
+        ...state,
+        listViewType: payload,
     }),
 
     [MAIN.ACTIONS.CLEAR_SEARCH]: (state, payload) => {

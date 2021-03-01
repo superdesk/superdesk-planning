@@ -1,7 +1,7 @@
 import {orderBy, cloneDeep, uniq, get} from 'lodash';
 import moment from 'moment';
 
-import {IEventState} from '../interfaces';
+import {IEventState, LIST_VIEW_TYPE} from '../interfaces';
 
 import {EVENTS, RESET_STORE, INIT_STORE, LOCKS, WORKFLOW_STATE} from '../constants';
 import {createReducer} from './createReducer';
@@ -90,11 +90,13 @@ const eventsReducer = createReducer(initialState, {
     [EVENTS.ACTIONS.SET_EVENTS_LIST]: (state, payload) => (
         {
             ...state,
-            eventsInList: orderBy(
-                uniq([...payload]),
-                (e) => state.events[e].dates.start,
-                ['desc']
-            ),
+            eventsInList: payload.listViewType === LIST_VIEW_TYPE.LIST ?
+                uniq([...payload.ids]) :
+                orderBy(
+                    uniq([...payload.ids]),
+                    (e) => state.events[e].dates.start,
+                    ['desc']
+                ),
         }
     ),
     [EVENTS.ACTIONS.CLEAR_LIST]: (state) => (
@@ -107,7 +109,10 @@ const eventsReducer = createReducer(initialState, {
     [EVENTS.ACTIONS.ADD_TO_EVENTS_LIST]: (state, payload) => (
         eventsReducer(state, {
             type: EVENTS.ACTIONS.SET_EVENTS_LIST,
-            payload: [...state.eventsInList, ...payload],
+            payload: {
+                ids: [...state.eventsInList, ...payload.ids],
+                listViewType: payload.listViewType,
+            },
         })
     ),
     [EVENTS.ACTIONS.RECEIVE_EVENT_HISTORY]: (state, payload) => (

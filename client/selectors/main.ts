@@ -1,18 +1,30 @@
 import {createSelector} from 'reselect';
-import {get, isEmpty, isBoolean} from 'lodash';
+import {get, isBoolean, isEmpty} from 'lodash';
 import moment from 'moment';
 
 import {appConfig} from 'appConfig';
+import {
+    IPlanningAppState,
+    LIST_VIEW_TYPE,
+    PLANNING_VIEW,
+    SORT_FIELD,
+    SORT_ORDER,
+    ICombinedEventOrPlanningSearchParams,
+} from '../interfaces';
 
-import {MAIN, SPIKED_STATE} from '../constants';
-import {orderedEvents, storedEvents, eventsInList, currentEventFilterId} from './events';
-import {orderedPlanningList, storedPlannings, plansInList, currentPlanningFilterId} from './planning';
-import {orderedEventsPlanning, getEventsPlanningList, selectedFilter} from './eventsplanning';
-import {ITEM_TYPE} from '../constants';
+import {ITEM_TYPE, MAIN, SPIKED_STATE} from '../constants';
+import {currentEventFilterId, eventsInList, orderedEvents, storedEvents} from './events';
+import {currentPlanningFilterId, orderedPlanningList, plansInList, storedPlannings} from './planning';
+import {getEventsPlanningList, orderedEventsPlanning, selectedFilter} from './eventsplanning';
 import {getSearchDateRange} from '../utils';
 
 
-export const activeFilter = (state) => get(state, 'main.filter', MAIN.FILTERS.COMBINED);
+export const getCurrentListViewType = (state?: IPlanningAppState) => (
+    state?.main?.listViewType ?? LIST_VIEW_TYPE.SCHEDULE
+);
+export const activeFilter = (state: IPlanningAppState) => (
+    state?.main?.filter ?? PLANNING_VIEW.COMBINED
+);
 export const isEventsPlanningView = (state) =>
     get(state, 'main.filter', '') === MAIN.FILTERS.COMBINED;
 export const isEventsView = (state) =>
@@ -64,6 +76,16 @@ export const currentSearch = createSelector(
     (filter, params) => get(params, `${filter}.currentSearch`, {})
 );
 
+export const getCurrentSortOrder = createSelector(
+    [currentSearch],
+    (params) => params.sortOrder ?? SORT_ORDER.ASCENDING
+);
+
+export const getCurrentSortField = createSelector(
+    [currentSearch],
+    (params) => params.sortField ?? SORT_FIELD.SCHEDULE,
+);
+
 export const currentJumpInterval = createSelector(
     [activeFilter, searchParams],
     (filter, params) => get(params, `${filter}.jumpInterval`) || MAIN.JUMP.WEEK
@@ -100,7 +122,12 @@ export const combinedTotalItems = (state) => get(state, 'main.search.COMBINED.to
 export const featuredPlanningTotalItems = (state) => get(state, 'main.search.FEATURED_PLANNING.totalItems', 0);
 export const loadingIndicator = (state) => get(state, 'main.loadingIndicator', false);
 
-export const lastRequestParams = createSelector(
+export const lastRequestParams = createSelector<
+    IPlanningAppState,
+    PLANNING_VIEW,
+    IPlanningAppState['main']['search'],
+    ICombinedEventOrPlanningSearchParams
+>(
     [activeFilter, searchParams],
     (filter, params) => get(params, `${filter}.lastRequestParams`, {})
 );

@@ -1,12 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get, findIndex} from 'lodash';
+
+import {LIST_VIEW_TYPE} from '../../interfaces';
+import {superdeskApi} from '../../superdeskApi';
+
+import {onEventCapture} from '../../utils';
+import {KEYCODES} from '../../constants';
+
 import {EventItem} from '.';
 import {PlanningItem} from '../Planning';
 import {NestedItem} from '../UI/List';
-import {gettext} from '../../utils/gettext';
-import {onEventCapture} from '../../utils';
-import {KEYCODES} from '../../constants';
 
 
 export class EventItemWithPlanning extends React.Component {
@@ -177,6 +181,7 @@ export class EventItemWithPlanning extends React.Component {
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const planningItems = get(this.props, 'eventProps.item.planning_ids', []).length;
         const relatedPlanningText = gettext('({{ count }}) {{ action }} planning item(s)', {
             count: planningItems,
@@ -210,6 +215,7 @@ export class EventItemWithPlanning extends React.Component {
                 collapsed={!this.state.openPlanningItems}
                 expanded={this.state.openPlanningItems}
                 nestedChildren={getPlannings(eventProps.item)}
+                noMarginTop={this.props.listViewType === LIST_VIEW_TYPE.LIST}
                 refNode={this.props.refNode}
             />
         );
@@ -226,4 +232,5 @@ EventItemWithPlanning.propTypes = {
     navigateList: PropTypes.func,
     onItemActivate: PropTypes.func,
     previewItem: PropTypes.string,
+    listViewType: PropTypes.string,
 };

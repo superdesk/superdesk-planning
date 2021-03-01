@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import {ListGroupItem} from './';
 import {Group, Header} from '../UI/List';
+import {LIST_VIEW_TYPE} from '../../interfaces';
 
 export const ListGroup = ({
     name,
@@ -36,6 +37,7 @@ export const ListGroup = ({
     previewItem,
     contentTypes,
     contacts,
+    listViewType,
 }) => {
     const flattenMultiday = (eventId, all, multi) => {
         onMultiSelectClick(eventId, all, multi, name);
@@ -43,8 +45,10 @@ export const ListGroup = ({
 
     return (
         <div className="ListGroup">
-            <Header title={moment(name).format('dddd LL')} />
-            <Group spaceBetween={true}>
+            {name == null ? null : (
+                <Header title={moment(name).format('dddd LL')} />
+            )}
+            <Group spaceBetween={listViewType === LIST_VIEW_TYPE.SCHEDULE}>
                 {items.map((item, index) => {
                     let itemProps = {
                         date: name,
@@ -75,6 +79,7 @@ export const ListGroup = ({
                         previewItem: previewItem,
                         contentTypes: contentTypes,
                         contacts: contacts,
+                        listViewType: listViewType,
                     };
 
                     if (indexItems) {
@@ -122,6 +127,7 @@ ListGroup.propTypes = {
     onItemActivate: PropTypes.func,
     contentTypes: PropTypes.array,
     contacts: PropTypes.object,
+    listViewType: PropTypes.string,
 };
 
 ListGroup.defaultProps = {

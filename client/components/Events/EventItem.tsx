@@ -1,8 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {Label} from '../';
+
+import {appConfig} from 'appConfig';
+import {superdeskApi} from '../../superdeskApi';
+import {LIST_VIEW_TYPE} from '../../interfaces';
+
 import {EVENTS, MAIN, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
+
+import {Label} from '../';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
 import {EventDateTime} from './';
 import {ItemActionsMenu} from '../index';
@@ -14,8 +20,8 @@ import {
     isItemDifferent,
     getItemWorkflowState,
 } from '../../utils';
-import {gettext} from '../../utils/gettext';
 import {renderFields} from '../fields';
+import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
 
 
 export class EventItem extends React.Component {
@@ -100,6 +106,7 @@ export class EventItem extends React.Component {
     }
 
     render() {
+        const {gettext, longFormatDateTime, getRelativeOrAbsoluteDateTime} = superdeskApi.localization;
         const {
             item,
             onItemClick,
@@ -111,6 +118,7 @@ export class EventItem extends React.Component {
             listFields,
             active,
             refNode,
+            listViewType,
         } = this.props;
 
         if (!item) {
@@ -120,13 +128,14 @@ export class EventItem extends React.Component {
         const hasPlanning = eventUtils.eventHasPlanning(item);
         const isItemLocked = eventUtils.isEventLocked(item, lockedItems);
         const showRelatedPlanningLink = activeFilter === MAIN.FILTERS.COMBINED && hasPlanning;
+        const datetimeFormat = appConfig.view.dateformat + ' @ ' + appConfig.view.timeformat;
+        let borderState: 'locked' | 'active' | false = false;
 
-        let borderState = false;
-
-        if (isItemLocked)
+        if (isItemLocked) {
             borderState = 'locked';
-        else if (hasPlanning)
+        } else if (hasPlanning) {
             borderState = 'active';
+        }
 
 
         const isExpired = isItemExpired(item);
@@ -217,10 +226,11 @@ export class EventItem extends React.Component {
                         )}
 
                         {secondaryFields.includes('location') && renderFields('location', item)}
-
-
                     </Row>
                 </Column>
+                {listViewType === LIST_VIEW_TYPE.SCHEDULE ? null : (
+                    <CreatedUpdatedColumn item={item} />
+                )}
                 {this.renderItemActions()}
             </Item>
         );
@@ -242,6 +252,7 @@ EventItem.propTypes = {
     listFields: PropTypes.object,
     refNode: PropTypes.func,
     active: PropTypes.bool,
+    listViewType: PropTypes.string,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName]: PropTypes.func,

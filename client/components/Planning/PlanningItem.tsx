@@ -4,13 +4,17 @@ import PropTypes from 'prop-types';
 import {get, isEqual} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
+import {superdeskApi} from '../../superdeskApi';
+import {LIST_VIEW_TYPE} from '../../interfaces';
+import {PLANNING, EVENTS, MAIN, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
+
 import {Label} from '../';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
 import {Button as NavButton} from '../UI/Nav';
 import Icon from '../UI/IconMix';
 import {EventDateTime} from '../Events';
 import {ItemActionsMenu} from '../index';
-import {PLANNING, EVENTS, MAIN, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
+import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
 
 import {
     eventUtils,
@@ -22,7 +26,6 @@ import {
     isItemDifferent,
     getItemWorkflowState,
 } from '../../utils';
-import {gettext} from '../../utils/gettext';
 import {renderFields} from '../fields';
 
 
@@ -142,20 +145,17 @@ export class PlanningItem extends React.Component {
             contentTypes,
             agendas,
             contacts,
+            listViewType,
         } = this.props;
 
         if (!item) {
             return null;
         }
 
+        const {gettext} = superdeskApi.localization;
         const isItemLocked = planningUtils.isPlanningLocked(item, lockedItems);
         const event = get(item, 'event');
-
-        let borderState = false;
-
-        if (isItemLocked)
-            borderState = 'locked';
-
+        const borderState = isItemLocked ? 'locked' : false;
         const isExpired = isItemExpired(item);
         const secondaryFields = get(listFields, 'planning.secondary_fields', PLANNING.LIST.SECONDARY_FIELDS);
 
@@ -235,6 +235,9 @@ export class PlanningItem extends React.Component {
                         })}
                     </Row>
                 </Column>
+                {listViewType === LIST_VIEW_TYPE.SCHEDULE ? null : (
+                    <CreatedUpdatedColumn item={item} />
+                )}
                 {showAddCoverage && !isItemLocked && (
                     <Column border={false}>
                         <OverlayTrigger
@@ -263,7 +266,7 @@ export class PlanningItem extends React.Component {
 
 PlanningItem.propTypes = {
     item: PropTypes.object.isRequired,
-    date: PropTypes.string.isRequired,
+    date: PropTypes.string,
     onItemClick: PropTypes.func.isRequired,
     lockedItems: PropTypes.object.isRequired,
     agendas: PropTypes.array.isRequired,
@@ -282,6 +285,7 @@ PlanningItem.propTypes = {
     refNode: PropTypes.func,
     active: PropTypes.bool,
     contentTypes: PropTypes.array,
+    listViewType: PropTypes.string,
     [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
