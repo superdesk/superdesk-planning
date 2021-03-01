@@ -1,4 +1,4 @@
-import {ISearchParams, ISearchAPIParams} from '../interfaces';
+import {ISearchAPIParams, ISearchParams} from '../interfaces';
 import {superdeskApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
 import {getDateTimeElasticFormat} from '../utils';
@@ -40,6 +40,8 @@ export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIPa
         place: cvsToString(params.place),
         only_future: params.only_future,
         filter_id: params.filter_id,
+        sort_order: params.sort_order,
+        sort_field: params.sort_field,
     };
 }
 

@@ -2,11 +2,13 @@ import moment from 'moment';
 
 import {
     ICombinedSearchParams,
+    ICommonSearchParams,
+    IEventOrPlanningItem,
     IEventSearchParams,
     IPlanningSearchParams,
     ISearchParams,
-    ICommonSearchParams,
-    IEventOrPlanningItem,
+    SORT_FIELD,
+    SORT_ORDER,
 } from '../interfaces';
 import {MAIN} from '../constants';
 import {getTimeZoneOffset} from './index';
@@ -35,6 +37,8 @@ function commonParamsToSearchParams(params: ICommonSearchParams<IEventOrPlanning
         state: params.advancedSearch?.state,
         subject: params.advancedSearch?.subject,
         language: params.advancedSearch?.language,
+        sort_order: params.sortOrder ?? SORT_ORDER.ASCENDING,
+        sort_field: params.sortField ?? SORT_FIELD.SCHEDULE,
     };
 }
 
@@ -51,6 +55,8 @@ function searchParamsToCommonParams(params: ISearchParams): ICommonSearchParams<
         filter_id: params.filter_id,
         lock_state: params.lock_state,
         timezoneOffset: params.tz_offset,
+        sortOrder: params.sort_order,
+        sortField: params.sort_field,
         advancedSearch: {
             anpa_category: params.anpa_category,
             dates: {
