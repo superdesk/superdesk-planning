@@ -137,9 +137,9 @@ class EventsService(superdesk.Service):
 
             # Allow behave tests to define created/updated dates
             if app.config.get('TESTING_BEHAVE'):
-                if '_created' in event:
+                if isinstance(event.get('_created'), str):
                     event['_created'] = str_to_date(event['_created'])
-                if '_updated' in event:
+                if isinstance(event.get('_updated'), str):
                     event['_updated'] = str_to_date(event['_updated'])
 
             # family_id get on ingest we don't need it planning

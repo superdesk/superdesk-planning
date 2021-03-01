@@ -129,9 +129,9 @@ class PlanningService(superdesk.Service):
 
             # Allow behave tests to define created/updated dates
             if app.config.get('TESTING_BEHAVE'):
-                if '_created' in doc:
+                if isinstance(doc.get('_created'), str):
                     doc['_created'] = str_to_date(doc['_created'])
-                if '_updated' in doc:
+                if isinstance(doc.get('_updated'), str):
                     doc['_updated'] = str_to_date(doc['_updated'])
 
             self.validate_planning(doc)
