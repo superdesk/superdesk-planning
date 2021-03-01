@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 import {WorkqueueContainer, ModalsContainer} from '../components';
@@ -7,7 +6,50 @@ import {PopupEditorPortal} from '../components/Main/ItemEditorModal';
 
 import './style.scss';
 
-export class PageContent extends React.Component {
+export interface IBasePanelProps {
+    toggleFilterPanel(): void;
+}
+
+export interface ISubNavPanelProps extends IBasePanelProps {
+    filtersOpen: boolean;
+}
+
+export interface IListPanelProps extends IBasePanelProps {
+    previewOpen: boolean;
+}
+
+interface IProps<SubnavProps = {}, EditorProps = {}, FilterProps = {}, ListProps = {}, PreviewProps = {}> {
+    SubNavPanel?: React.ComponentType<ISubNavPanelProps & SubnavProps>;
+    subNavProps?: SubnavProps;
+
+    EditorPanel?: React.ComponentType<IBasePanelProps & EditorProps>;
+    editorProps?: EditorProps;
+
+    FilterPanel?: React.ComponentType<IBasePanelProps & FilterProps>;
+    filterProps?: FilterProps;
+
+    ListPanel?: React.ComponentType<IListPanelProps & ListProps>;
+    listProps?: ListProps;
+
+    PreviewPanel?: React.ComponentType<PreviewProps>;
+    previewProps?: PreviewProps;
+
+    marginBottom?: boolean; // defaults to true
+    editorOpen?: boolean;
+    previewOpen?: boolean;
+    widePreviewPanel?: boolean;
+    showModals?: boolean; // defaults to true
+    showWorkqueue?: boolean; // defaults to true
+    splitView?: boolean;
+    fullPreview?: boolean;
+    fullPreviewOpen?: boolean;
+}
+
+interface IState {
+    filtersOpen: boolean;
+}
+
+export class PageContent<T> extends React.Component<IProps<T>, IState> {
     constructor(props) {
         super(props);
         this.state = {filtersOpen: false};
@@ -47,7 +89,7 @@ export class PageContent extends React.Component {
             {
                 'sd-page-content--slide-in': !splitView,
                 'sd-page-content--split': splitView,
-                'sd-content--margin-b30': marginBottom,
+                'sd-content--margin-b30': marginBottom ?? true,
                 'sd-page-content--slide-in--open': mountEditorInMainPage && editorOpen,
             }
         );
@@ -128,45 +170,15 @@ export class PageContent extends React.Component {
                         />
                     </div>
                 )}
-                {showModals && <ModalsContainer />}
-                {showWorkqueue && <WorkqueueContainer />}
+                {!(showModals ?? true) ? null : (
+                    <ModalsContainer />
+                )}
+                {!(showWorkqueue ?? true) ? null : (
+                    <WorkqueueContainer />
+                )}
 
                 <PopupEditorPortal />
             </div>
         );
     }
 }
-
-PageContent.propTypes = {
-    marginBottom: PropTypes.bool,
-    editorOpen: PropTypes.bool,
-    previewOpen: PropTypes.bool,
-    SubNavPanel: PropTypes.func,
-    subNavProps: PropTypes.object,
-    EditorPanel: PropTypes.func,
-    editorProps: PropTypes.object,
-    FilterPanel: PropTypes.func,
-    filterProps: PropTypes.object,
-    ListPanel: PropTypes.func,
-    listProps: PropTypes.object,
-    PreviewPanel: PropTypes.func,
-    previewProps: PropTypes.object,
-    widePreviewPanel: PropTypes.bool,
-    showModals: PropTypes.bool,
-    showWorkqueue: PropTypes.bool,
-    splitView: PropTypes.bool,
-    fullPreview: PropTypes.bool,
-    fullPreviewOpen: PropTypes.bool,
-};
-
-PageContent.defaultProps = {
-    marginBottom: true,
-    editorOpen: false,
-    previewOpen: false,
-    showModals: true,
-    showWorkqueue: true,
-    widePreviewPanel: false,
-    splitView: false,
-    fullPreview: false,
-    fullPreviewOpen: false,
-};

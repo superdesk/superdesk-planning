@@ -1,106 +1,229 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import * as React from 'react';
 import {connect} from 'react-redux';
 
-import * as actions from '../../actions';
-import * as selectors from '../../selectors';
+import {IArticle} from 'superdesk-api';
+import {planningApi, superdeskApi} from '../../superdeskApi';
+import {FILTER_TYPE, LIST_VIEW_TYPE, SORT_FIELD, SORT_ORDER} from '../../interfaces';
+import {ISubNavPanelProps} from '../PageContent';
+
 import {ITEM_TYPE} from '../../constants';
-import {SubNavBar, FiltersBar} from '../../components/Main';
+import * as selectors from '../../selectors';
+import * as actions from '../../actions';
+
+import {ButtonGroup, Dropdown, IconButton, NavButton, SubNav, Tooltip} from 'superdesk-ui-framework/react';
+import {FilterSubnavDropdown} from '../../components/Main/FilterSubnavDropdown';
 import {ArchiveItem} from '../../components/Archive';
+import {MultiSelectActions} from '../../components';
+import {Button, SearchBox} from '../../components/UI';
+import {ActionsSubnavDropdown, CreateNewSubnavDropdown, FiltersBox} from '../../components/Main';
 
-export const PlanningSubNavComponent = ({
-    filtersOpen,
-    toggleFilterPanel,
-    addEvent,
-    addPlanning,
-    openAgendas,
-    openFeaturedPlanningModal,
-    openEventsPlanningFiltersModal,
-    fullText,
-    search,
-    activeFilter,
-    filter,
-    isViewFiltered,
-    clearSearch,
-    withArchiveItem,
-    archiveItem,
-    showFilters,
-    createPlanningOnly,
-    currentStartFilter,
-    setStartFilter,
-    privileges,
-}) => (
-    <div>
-        {withArchiveItem && <ArchiveItem item={archiveItem} />}
-        <SubNavBar
-            addEvent={addEvent}
-            addPlanning={addPlanning}
-            openAgendas={openAgendas}
-            openFeaturedPlanningModal={openFeaturedPlanningModal}
-            openEventsPlanningFiltersModal={openEventsPlanningFiltersModal}
-            value={fullText}
-            search={search}
-            activeFilter={activeFilter}
-            isViewFiltered={isViewFiltered}
-            clearSearch={clearSearch}
-            createPlanningOnly={createPlanningOnly}
-            currentStartFilter={currentStartFilter}
-            setStartFilter={setStartFilter}
-            privileges={privileges}
-        />
-        <FiltersBar
-            filterPanelOpen={filtersOpen}
-            toggleFilterPanel={toggleFilterPanel}
-            activeFilter={activeFilter}
-            setFilter={filter}
-            showFilters={showFilters}
-        />
-    </div>
-);
+interface IProps extends ISubNavPanelProps {
+    withArchiveItem?: boolean;
+    archiveItem?: IArticle
+    fullText?: string;
+    currentView?: FILTER_TYPE;
+    isViewFiltered: boolean;
+    createPlanningOnly?: boolean;
+    privileges: {[key: string]: number};
+    showFilters?: boolean; // defaults to true
+    sortOrder: SORT_ORDER;
+    sortField: SORT_FIELD;
+    listViewType: LIST_VIEW_TYPE;
 
-PlanningSubNavComponent.propTypes = {
-    filtersOpen: PropTypes.bool,
-    toggleFilterPanel: PropTypes.func,
-    addEvent: PropTypes.func,
-    addPlanning: PropTypes.func,
-    openAgendas: PropTypes.func,
-    openEventsPlanningFiltersModal: PropTypes.func,
-    fullText: PropTypes.string,
-    search: PropTypes.func.isRequired,
-    activeFilter: PropTypes.string.isRequired,
-    filter: PropTypes.func.isRequired,
-    isViewFiltered: PropTypes.bool,
-    clearSearch: PropTypes.func,
-    withArchiveItem: PropTypes.bool,
-    showFilters: PropTypes.bool,
-    createPlanningOnly: PropTypes.bool,
-    archiveItem: PropTypes.object,
-    currentStartFilter: PropTypes.object,
-    setStartFilter: PropTypes.func,
-    privileges: PropTypes.object,
-    openFeaturedPlanningModal: PropTypes.func,
-};
-
-PlanningSubNavComponent.defaultProps = {showFilters: true};
+    addEvent(): void;
+    addPlanning(): void;
+    setFilter(view: FILTER_TYPE): void;
+    openAgendas(): void;
+    openEventsPlanningFiltersModal(): void;
+    openFeaturedPlanningModal(): void;
+}
 
 const mapStateToProps = (state) => ({
     fullText: selectors.main.fullText(state),
-    activeFilter: selectors.main.activeFilter(state),
+    currentView: selectors.main.activeFilter(state),
     isViewFiltered: selectors.main.isViewFiltered(state),
-    currentStartFilter: selectors.main.currentStartFilter(state),
     privileges: selectors.general.privileges(state),
+    sortOrder: selectors.main.getCurrentSortOrder(state),
+    sortField: selectors.main.getCurrentSortField(state),
+    listViewType: selectors.main.getCurrentListViewType(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    openAgendas: () => dispatch(actions.openAgenda()),
-    search: (searchText) => dispatch(actions.main.search(searchText)),
-    filter: (filterType) => dispatch(actions.main.filter(filterType)),
-    clearSearch: () => dispatch(actions.main.clearSearch()),
     addEvent: () => dispatch(actions.main.createNew(ITEM_TYPE.EVENT)),
     addPlanning: () => dispatch(actions.main.createNew(ITEM_TYPE.PLANNING)),
-    setStartFilter: (start) => dispatch(actions.main.setStartFilter(start)),
-    openFeaturedPlanningModal: () => dispatch(actions.planning.featuredPlanning.openFeaturedPlanningModal()),
+    setFilter: (view) => dispatch(actions.main.filter(view)),
+    openAgendas: () => dispatch(actions.openAgenda()),
     openEventsPlanningFiltersModal: () => dispatch(actions.eventsPlanning.ui.openFilters()),
+    openFeaturedPlanningModal: () => dispatch(actions.planning.featuredPlanning.openFeaturedPlanningModal()),
 });
 
-export const PlanningSubNav = connect(mapStateToProps, mapDispatchToProps)(PlanningSubNavComponent);
+export class PlanningSubNavComponent extends React.PureComponent<IProps> {
+    sortFieldOptions: Array<{label: string, onSelect(): void}>
+    viewOptions: Array<{label: string, onSelect(): void, icon: string}>
+
+    constructor(props) {
+        super(props);
+
+        this.search = this.search.bind(this);
+        this.toggleSortOrder = this.toggleSortOrder.bind(this);
+
+        const {gettext} = superdeskApi.localization;
+
+        this.sortFieldOptions = [{
+            label: gettext('Schedule'),
+            onSelect: this.changeSortField.bind(this, SORT_FIELD.SCHEDULE),
+        }, {
+            label: gettext('Created'),
+            onSelect: this.changeSortField.bind(this, SORT_FIELD.CREATED),
+        }, {
+            label: gettext('Updated'),
+            onSelect: this.changeSortField.bind(this, SORT_FIELD.UPDATED),
+        }];
+
+        this.viewOptions = [{
+            label: gettext('Schedule'),
+            onSelect: () => planningApi.ui.list.setViewType(LIST_VIEW_TYPE.SCHEDULE),
+            icon: 'list-view',
+        }, {
+            label: gettext('List'),
+            onSelect: () => planningApi.ui.list.setViewType(LIST_VIEW_TYPE.LIST),
+            icon: 'stream',
+        }];
+    }
+
+    search(searchText) {
+        planningApi.ui.list.search({full_text: searchText});
+    }
+
+    toggleSortOrder() {
+        planningApi.ui.list.search({
+            sort_order: this.props.sortOrder === SORT_ORDER.ASCENDING ?
+                SORT_ORDER.DESCENDING :
+                SORT_ORDER.ASCENDING,
+        });
+    }
+
+    changeSortField(field: SORT_FIELD) {
+        planningApi.ui.list.search({sort_field: field});
+    }
+
+    render() {
+        const {gettext} = superdeskApi.localization;
+        const iconTooltipText = this.props.sortOrder === SORT_ORDER.ASCENDING ?
+            gettext('Ascending') :
+            gettext('Descending');
+        const listViewIcon = this.props.listViewType === LIST_VIEW_TYPE.SCHEDULE ?
+            'icon-list-view' :
+            'icon-stream';
+        let dropdownText: string;
+
+        switch (this.props.sortField) {
+        case SORT_FIELD.SCHEDULE:
+            dropdownText = gettext('Schedule');
+            break;
+        case SORT_FIELD.CREATED:
+            dropdownText = gettext('Created');
+            break;
+        case SORT_FIELD.UPDATED:
+            dropdownText = gettext('Updated');
+            break;
+        }
+
+        return (
+            <React.Fragment>
+                {this.props.withArchiveItem !== true ? null : (
+                    <ArchiveItem item={this.props.archiveItem} />
+                )}
+                <SubNav zIndex={3}>
+                    <MultiSelectActions />
+                    <ButtonGroup align="inline">
+                        <FilterSubnavDropdown />
+                    </ButtonGroup>
+                    <SearchBox
+                        label={gettext('Search planning')}
+                        value={this.props.fullText}
+                        search={this.search}
+                        activeFilter={this.props.currentView}
+                    />
+                    {!this.props.isViewFiltered ? null : (
+                        <Button
+                            text={gettext('Clear Filters')}
+                            className="btn__clear-filters"
+                            hollow={true}
+                            color="alert"
+                            onClick={planningApi.ui.list.clearSearch}
+                        />
+                    )}
+                    <CreateNewSubnavDropdown
+                        addEvent={this.props.addEvent}
+                        addPlanning={this.props.addPlanning}
+                        createPlanningOnly={this.props.createPlanningOnly}
+                        privileges={this.props.privileges}
+                    />
+                </SubNav>
+                <SubNav zIndex={2}>
+                    <ButtonGroup align="inline">
+                        <NavButton
+                            icon="filter-large"
+                            onClick={this.props.toggleFilterPanel}
+                            type={this.props.filtersOpen === true ?
+                                'primary' :
+                                'default'
+                            }
+                        />
+                    </ButtonGroup>
+                    <FiltersBox
+                        activeFilter={this.props.currentView}
+                        setFilter={this.props.setFilter}
+                        showFilters={this.props.showFilters ?? true}
+                    />
+                    <ButtonGroup align="right">
+                        {this.props.listViewType === LIST_VIEW_TYPE.SCHEDULE ? null : (
+                            <div className="subnav__content-bar">
+                                <Dropdown items={this.sortFieldOptions}>
+                                    <span className="sd-margin-r--1">
+                                        <span className="sd-text__normal">
+                                            {gettext('Sort by:')}
+                                        </span>
+                                        &nbsp;
+                                        <span className="sd-text__strong">
+                                            {dropdownText}
+                                        </span>
+                                        <span className="dropdown__caret" />
+                                    </span>
+                                </Dropdown>
+                                <Tooltip
+                                    key={iconTooltipText}
+                                    text={iconTooltipText}
+                                    flow="down"
+                                >
+                                    <IconButton
+                                        ariaValue={iconTooltipText}
+                                        onClick={this.toggleSortOrder}
+                                        icon={this.props.sortOrder ?? SORT_ORDER.ASCENDING}
+                                    />
+                                </Tooltip>
+                            </div>
+                        )}
+                        <Dropdown items={this.viewOptions}>
+                            <button className="sd-navbtn">
+                                <i className={listViewIcon} />
+                            </button>
+                        </Dropdown>
+                        <ActionsSubnavDropdown
+                            openAgendas={this.props.openAgendas}
+                            openEventsPlanningFiltersModal={this.props.openEventsPlanningFiltersModal}
+                            openFeaturedPlanningModal={this.props.openFeaturedPlanningModal}
+                            privileges={this.props.privileges}
+                        />
+                    </ButtonGroup>
+                </SubNav>
+            </React.Fragment>
+        );
+    }
+}
+
+export const PlanningSubNav = connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(PlanningSubNavComponent);

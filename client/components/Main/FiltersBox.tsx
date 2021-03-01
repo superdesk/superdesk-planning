@@ -46,10 +46,7 @@ export const FiltersBox = ({
                         testId={`view-${filter.filter}`}
                     />
                 ))}
-                {showFilters && <Spacer />}
             </CheckboxGroup>
-
-            <FilterSubnavDropdown />
         </StretchBar>
     );
 };

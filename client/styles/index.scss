@@ -85,3 +85,10 @@
     width: 41rem;
   }
 }
+
+// Fix second subnav's z-index in Planning page
+#sd-planning-react-container {
+  .subnav + .subnav {
+    z-index: 1002 !important;
+  }
+}
