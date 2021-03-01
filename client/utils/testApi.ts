@@ -15,6 +15,14 @@ Object.assign(superdeskApi, {
         })),
         findOne: sinon.stub().returns(Promise.resolve({})),
     },
+    browser: {
+        location: {
+            urlParams: {
+                getString: () => undefined,
+                setString: () => undefined,
+            }
+        }
+    },
 });
 
 Object.assign(planningApi, {
