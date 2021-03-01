@@ -18,6 +18,7 @@ def before_all(context):
     config = {
         'INSTALLED_APPS': INSTALLED_APPS,
         'ELASTICSEARCH_FORCE_REFRESH': True,
+        'TESTING_BEHAVE': True,
     }
     setup_before_all(context, config, app_factory=get_app)
 
@@ -26,6 +27,7 @@ def before_scenario(context, scenario):
     config = {
         'INSTALLED_APPS': INSTALLED_APPS,
         'ELASTICSEARCH_FORCE_REFRESH': True,
+        'TESTING_BEHAVE': True,
     }
 
     if 'link_updates' in scenario.tags:
