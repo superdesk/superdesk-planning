@@ -3,24 +3,28 @@ import {connect} from 'react-redux';
 import moment from 'moment';
 
 import {superdeskApi} from '../../superdeskApi';
+import {LIST_VIEW_TYPE} from '../../interfaces';
 
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 
-import {ButtonGroup, Dropdown, SubNav, Button} from 'superdesk-ui-framework/react';
-import {JumpToDropdown} from '../../components/Main';
+import {Button, ButtonGroup, Dropdown, SubNav} from 'superdesk-ui-framework/react';
+import {FilterSubnavDropdown, JumpToDropdown} from '../../components/Main';
 
 interface IProps {
     currentStartFilter?: moment.Moment;
+    listViewType: LIST_VIEW_TYPE;
+    currentInterval: 'DAY' | 'WEEK' | 'MONTH';
+
     setStartFilter(value?: moment.Moment): void;
     jumpTo(interval: 'TODAY' | 'BACK' | 'FORWARD'): void;
-    currentInterval: 'DAY' | 'WEEK' | 'MONTH';
     setJumpInterval(interval: 'DAY' | 'WEEK' | 'MONTH'): void;
 }
 
 const mapStateToProps = (state) => ({
     currentStartFilter: selectors.main.currentStartFilter(state),
     currentInterval: selectors.main.currentJumpInterval(state),
+    listViewType: selectors.main.getCurrentListViewType(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -69,38 +73,42 @@ class PlanningListSubNavComponent extends React.PureComponent<IProps> {
         return (
             <SubNav zIndex={1}>
                 <ButtonGroup align="inline">
-                    <JumpToDropdown
-                        currentStartFilter={this.props.currentStartFilter}
-                        setStartFilter={this.props.setStartFilter}
-                    />
-                    <Button
-                        text={gettext('Today')}
-                        onClick={() => this.props.jumpTo('TODAY')}
-                        disabled={!currentStartFilter || moment(currentStartFilter).isSame(moment(), 'day')}
-                    />
+                    <FilterSubnavDropdown />
                 </ButtonGroup>
-                <ButtonGroup align="right">
-                    <Button
-                        icon="chevron-left-thin"
-                        text="back"
-                        shape="round"
-                        iconOnly={true}
-                        onClick={() => this.props.jumpTo('BACK')}
-                    />
-                    <Dropdown items={this.intervalOptions}>
-                        <span className="sd-margin-l--1">
-                            {intervalText}
-                            <span className="dropdown__caret" />
-                        </span>
-                    </Dropdown>
-                    <Button
-                        icon="chevron-right-thin"
-                        text="forward"
-                        shape="round"
-                        iconOnly={true}
-                        onClick={() => this.props.jumpTo('FORWARD')}
-                    />
-                </ButtonGroup>
+                {this.props.listViewType === LIST_VIEW_TYPE.LIST ? null : (
+                    <ButtonGroup align="right">
+                        <JumpToDropdown
+                            currentStartFilter={this.props.currentStartFilter}
+                            setStartFilter={this.props.setStartFilter}
+                        />
+                        <Button
+                            text={gettext('Today')}
+                            onClick={() => this.props.jumpTo('TODAY')}
+                            disabled={!currentStartFilter || moment(currentStartFilter).isSame(moment(), 'day')}
+                        />
+
+                        <Button
+                            icon="chevron-left-thin"
+                            text="back"
+                            shape="round"
+                            iconOnly={true}
+                            onClick={() => this.props.jumpTo('BACK')}
+                        />
+                        <Dropdown items={this.intervalOptions}>
+                            <span className="sd-margin-l--1">
+                                {intervalText}
+                                <span className="dropdown__caret" />
+                            </span>
+                        </Dropdown>
+                        <Button
+                            icon="chevron-right-thin"
+                            text="forward"
+                            shape="round"
+                            iconOnly={true}
+                            onClick={() => this.props.jumpTo('FORWARD')}
+                        />
+                    </ButtonGroup>
+                )}
             </SubNav>
         );
     }

@@ -11,7 +11,6 @@ import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 
 import {ButtonGroup, Dropdown, IconButton, NavButton, SubNav, Tooltip} from 'superdesk-ui-framework/react';
-import {FilterSubnavDropdown} from '../../components/Main/FilterSubnavDropdown';
 import {ArchiveItem} from '../../components/Archive';
 import {MultiSelectActions} from '../../components';
 import {Button, SearchBox} from '../../components/UI';
@@ -136,9 +135,6 @@ export class PlanningSubNavComponent extends React.PureComponent<IProps> {
                 )}
                 <SubNav zIndex={3}>
                     <MultiSelectActions />
-                    <ButtonGroup align="inline">
-                        <FilterSubnavDropdown />
-                    </ButtonGroup>
                     <SearchBox
                         label={gettext('Search planning')}
                         value={this.props.fullText}

@@ -1356,11 +1356,8 @@ export interface IPlanningAPI {
             changeAgendaId(id: IAgenda['_id'], params?: IPlanningSearchParams): Promise<any>;
             search(params: ISearchParams): Promise<any>;
             clearSearch(): Promise<any>;
+            clearList(): void;
             setViewType(viewType: LIST_VIEW_TYPE): Promise<any>;
         };
     };
-    // Adding here until Superdesk 2.2 where this functionality is available
-    $location: {
-        search(name: string, values: any): void;
-    }
 }

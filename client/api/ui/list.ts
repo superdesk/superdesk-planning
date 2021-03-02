@@ -62,6 +62,23 @@ function reloadList(params: ICombinedEventOrPlanningSearchParams = {}) {
     });
 }
 
+function clearList() {
+    const {getState, dispatch} = planningApi.redux.store;
+    const currentView = activeFilter(getState());
+
+    switch (currentView) {
+    case MAIN.FILTERS.COMBINED:
+        dispatch(actions.eventsPlanning.ui.clearList());
+        break;
+    case MAIN.FILTERS.EVENTS:
+        dispatch(actions.events.ui.clearList());
+        break;
+    case MAIN.FILTERS.PLANNING:
+        dispatch(actions.planning.ui.clearList());
+        break;
+    }
+}
+
 function changeFilterId(id: ISearchFilter['_id'], params: ICombinedEventOrPlanningSearchParams = {}) {
     const {getState, dispatch} = planningApi.redux.store;
     const {urlParams} = superdeskApi.browser.location;
@@ -117,7 +134,7 @@ function changeAgendaId(id: IAgenda['_id'], params: IPlanningSearchParams = {}) 
 }
 
 function search(newParams: ISearchParams) {
-    const {dispatch, getState} = planningApi.redux.store;
+    const {getState} = planningApi.redux.store;
     const currentSearch = searchParamsToOld(newParams, activeFilter(getState()));
     const previousParams = lastRequestParams(getState());
     const advancedSearch = currentSearch || previousParams.currentSearch || {};
@@ -159,6 +176,9 @@ function setViewType(viewType: LIST_VIEW_TYPE) {
         return Promise.resolve();
     }
 
+    // For performance reasons, clear the list before changing list view type
+    // otherwise the list will try and re-render with the currently loaded items
+    clearList();
     dispatch({
         type: MAIN.ACTIONS.SET_LIST_VIEW_TYPE,
         payload: viewType,
@@ -184,5 +204,6 @@ export const list: IPlanningAPI['ui']['list'] = {
     changeAgendaId,
     search,
     clearSearch,
+    clearList,
     setViewType,
 };
