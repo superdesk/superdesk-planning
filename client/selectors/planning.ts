@@ -71,7 +71,9 @@ export const plansInList = createSelector(
 export const orderedPlanningList = createSelector(
     [currentAgenda, plansInList, storedEvents, currentSearch, getCurrentListViewType],
     (currentAgenda, plansInList, events, search, viewType) => {
-        if (viewType === LIST_VIEW_TYPE.LIST) {
+        if (!plansInList?.length) {
+            return [];
+        } if (viewType === LIST_VIEW_TYPE.LIST) {
             return [{
                 date: null,
                 events: plansInList,

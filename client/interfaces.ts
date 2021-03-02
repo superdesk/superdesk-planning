@@ -1358,6 +1358,7 @@ export interface IPlanningAPI {
             clearSearch(): Promise<any>;
             clearList(): void;
             setViewType(viewType: LIST_VIEW_TYPE): Promise<any>;
+            changeCurrentView(view: PLANNING_VIEW): Promise<any>;
         };
     };
 }

@@ -10,6 +10,7 @@ import {
     ISearchFilter,
     ISearchParams,
     LIST_VIEW_TYPE,
+    PLANNING_VIEW,
     SORT_FIELD,
     SORT_ORDER,
 } from '../../interfaces';
@@ -133,6 +134,18 @@ function changeAgendaId(id: IAgenda['_id'], params: IPlanningSearchParams = {}) 
     return reloadList(params);
 }
 
+function changeCurrentView(view: PLANNING_VIEW) {
+    const {dispatch} = planningApi.redux.store;
+    const {urlParams} = superdeskApi.browser.location;
+
+    dispatch({
+        type: MAIN.ACTIONS.FILTER,
+        payload: view,
+    });
+    urlParams.setString('filter', view);
+    return reloadList();
+}
+
 function search(newParams: ISearchParams) {
     const {getState} = planningApi.redux.store;
     const currentSearch = searchParamsToOld(newParams, activeFilter(getState()));
@@ -185,14 +198,21 @@ function setViewType(viewType: LIST_VIEW_TYPE) {
     });
     superdeskApi.browser.location.urlParams.setString('listViewType', viewType);
 
+    const lastParams: ICombinedEventOrPlanningSearchParams = lastRequestParams(getState());
     const params: ICombinedEventOrPlanningSearchParams = viewType === LIST_VIEW_TYPE.SCHEDULE ?
         {
             sortField: SORT_FIELD.SCHEDULE,
             sortOrder: SORT_ORDER.ASCENDING,
+            page: 1,
         } :
         {
             sortField: SORT_FIELD.CREATED,
             sortOrder: SORT_ORDER.DESCENDING,
+            page: 1,
+            advancedSearch: {
+                ...lastParams.advancedSearch,
+                dates: {},
+            },
         };
 
     return reloadList(params);
@@ -206,4 +226,5 @@ export const list: IPlanningAPI['ui']['list'] = {
     clearSearch,
     clearList,
     setViewType,
+    changeCurrentView,
 };

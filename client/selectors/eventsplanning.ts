@@ -46,7 +46,9 @@ export const eventsPlannignViewFilters = createSelector(
 export const orderedEventsPlanning = createSelector(
     [storedEvents, storedPlannings, getEventsPlanningList, currentSearch, getCurrentListViewType],
     (events, plannings, eventPlanningList, search, viewType) => {
-        if (viewType === LIST_VIEW_TYPE.LIST) {
+        if (!eventPlanningList?.length) {
+            return [];
+        } else if (viewType === LIST_VIEW_TYPE.LIST) {
             return [{
                 date: null,
                 events: eventPlanningList.map((itemId) => (

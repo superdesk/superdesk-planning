@@ -37,7 +37,9 @@ export const eventsInList = createSelector(
 export const orderedEvents = createSelector(
     [eventsInList, currentSearch, getCurrentListViewType],
     (events, search, viewType) => {
-        if (viewType === LIST_VIEW_TYPE.LIST) {
+        if (!events?.length) {
+            return [];
+        } else if (viewType === LIST_VIEW_TYPE.LIST) {
             return [{
                 date: null,
                 events: events,

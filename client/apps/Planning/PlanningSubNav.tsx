@@ -3,7 +3,7 @@ import {connect} from 'react-redux';
 
 import {IArticle} from 'superdesk-api';
 import {planningApi, superdeskApi} from '../../superdeskApi';
-import {FILTER_TYPE, LIST_VIEW_TYPE, SORT_FIELD, SORT_ORDER} from '../../interfaces';
+import {LIST_VIEW_TYPE, SORT_FIELD, SORT_ORDER, PLANNING_VIEW} from '../../interfaces';
 import {ISubNavPanelProps} from '../PageContent';
 
 import {ITEM_TYPE} from '../../constants';
@@ -20,7 +20,7 @@ interface IProps extends ISubNavPanelProps {
     withArchiveItem?: boolean;
     archiveItem?: IArticle
     fullText?: string;
-    currentView?: FILTER_TYPE;
+    currentView?: PLANNING_VIEW;
     isViewFiltered: boolean;
     createPlanningOnly?: boolean;
     privileges: {[key: string]: number};
@@ -31,7 +31,6 @@ interface IProps extends ISubNavPanelProps {
 
     addEvent(): void;
     addPlanning(): void;
-    setFilter(view: FILTER_TYPE): void;
     openAgendas(): void;
     openEventsPlanningFiltersModal(): void;
     openFeaturedPlanningModal(): void;
@@ -50,7 +49,6 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
     addEvent: () => dispatch(actions.main.createNew(ITEM_TYPE.EVENT)),
     addPlanning: () => dispatch(actions.main.createNew(ITEM_TYPE.PLANNING)),
-    setFilter: (view) => dispatch(actions.main.filter(view)),
     openAgendas: () => dispatch(actions.openAgenda()),
     openEventsPlanningFiltersModal: () => dispatch(actions.eventsPlanning.ui.openFilters()),
     openFeaturedPlanningModal: () => dispatch(actions.planning.featuredPlanning.openFeaturedPlanningModal()),
@@ -168,11 +166,7 @@ export class PlanningSubNavComponent extends React.PureComponent<IProps> {
                             }
                         />
                     </ButtonGroup>
-                    <FiltersBox
-                        activeFilter={this.props.currentView}
-                        setFilter={this.props.setFilter}
-                        showFilters={this.props.showFilters ?? true}
-                    />
+                    <FiltersBox showFilters={this.props.showFilters ?? true} />
                     <ButtonGroup align="right">
                         {this.props.listViewType === LIST_VIEW_TYPE.SCHEDULE ? null : (
                             <div className="subnav__content-bar">
