@@ -140,11 +140,11 @@ describe('Planning.Events: event templates', () => {
 
         // Create a new Event from this template
         subnav.plusBtn.click();
-        subnav.menu
+        subnav.createMenu
             .find('input')
             .type('Example');
 
-        subnav.menu
+        subnav.createMenu
             .find('button')
             .contains('Example')
             .should('exist')
