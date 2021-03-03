@@ -1,8 +1,9 @@
 import * as React from 'react';
 
-import {appConfig} from 'appConfig';
 import {IEventOrPlanningItem} from '../../../interfaces';
 import {superdeskApi} from '../../../superdeskApi';
+
+import {timeUtils} from '../../../utils';
 
 import {Column} from './Column';
 import {Row} from './Row';
@@ -13,29 +14,13 @@ interface IProps {
 
 export class CreatedUpdatedColumn extends React.PureComponent<IProps> {
     render() {
-        const {gettext, longFormatDateTime, getRelativeOrAbsoluteDateTime} = superdeskApi.localization;
-        const datetimeFormat = appConfig.view.dateformat + ' @ ' + appConfig.view.timeformat;
+        const {longFormatDateTime} = superdeskApi.localization;
 
         return (
             <Column>
                 <Row>
-                    <time
-                        title={longFormatDateTime(this.props.item._created)}
-                        style={{minWidth: '170px'}}
-                    >
-                        {gettext('Created {{ datetime }}', {
-                            datetime: getRelativeOrAbsoluteDateTime(this.props.item._created, datetimeFormat),
-                        })}
-                    </time>
-                </Row>
-                <Row>
-                    <time
-                        title={longFormatDateTime(this.props.item.versioncreated)}
-                        style={{minWidth: '170px'}}
-                    >
-                        {gettext('Updated {{ datetime }}', {
-                            datetime: getRelativeOrAbsoluteDateTime(this.props.item.versioncreated, datetimeFormat),
-                        })}
+                    <time title={longFormatDateTime(this.props.item._created)}>
+                        {timeUtils.getDateForVersionInList(this.props.item._updated)}
                     </time>
                 </Row>
             </Column>

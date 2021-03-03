@@ -4,7 +4,7 @@ import {get} from 'lodash';
 
 import {appConfig} from 'appConfig';
 import {superdeskApi} from '../../superdeskApi';
-import {LIST_VIEW_TYPE} from '../../interfaces';
+import {IEventItem, LIST_VIEW_TYPE} from '../../interfaces';
 
 import {EVENTS, MAIN, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
 
@@ -220,7 +220,9 @@ export class EventItem extends React.Component {
                                     onClick={toggleRelatedPlanning}
                                 >
                                     <i className="icon-calendar" />
-                                    {this.props.relatedPlanningText}
+                                    <span className="sd-margin-l--0-5">
+                                        {this.props.relatedPlanningText}
+                                    </span>
                                 </a>
                             </span>
                         )}
