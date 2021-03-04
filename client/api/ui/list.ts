@@ -21,7 +21,7 @@ import {activeFilter, getCurrentListViewType, lastRequestParams} from '../../sel
 import {getEventFilterParams} from '../../selectors/events';
 import {getPlanningFilterParams} from '../../selectors/planning';
 import {getEventsPlanningViewParams} from '../../selectors/eventsplanning';
-import {searchParamsToOld} from '../../utils/search';
+import {searchParamsToOld, removeUndefinedParams} from '../../utils/search';
 
 import * as actions from '../../actions';
 
@@ -148,25 +148,21 @@ function changeCurrentView(view: PLANNING_VIEW) {
 
 function search(newParams: ISearchParams) {
     const {getState} = planningApi.redux.store;
-    const currentSearch = searchParamsToOld(newParams, activeFilter(getState()));
-    const previousParams = lastRequestParams(getState());
-    const advancedSearch = currentSearch || previousParams.currentSearch || {};
-    const dates = advancedSearch?.advancedSearch?.dates || {};
-
-    // If an end date had been provided without a start date
-    // then default the start date to 1 day before the end date
-    if (!dates.range && !dates.start && !dates.end) {
-        dates.start = moment(dates.end).subtract(1, 'days');
-    }
+    const currentSearch = removeUndefinedParams(searchParamsToOld(newParams, activeFilter(getState())));
+    const previousParams = removeUndefinedParams(lastRequestParams(getState()));
 
     const params: ICombinedEventOrPlanningSearchParams = {
         ...previousParams,
+        ...currentSearch,
         page: 1,
-        fulltext: newParams.full_text?.length ? newParams.full_text : previousParams.fulltext,
-        ...advancedSearch,
-        sortField: currentSearch.sortField ?? previousParams.sortField,
-        sortOrder: currentSearch.sortOrder ?? previousParams.sortOrder,
     };
+    const dates = params.advancedSearch?.dates ?? {};
+
+    // If an end date had been provided without a start date
+    // then default the start date to 1 day before the end date
+    if (!dates.range && !dates.start && dates.end) {
+        dates.start = moment(dates.end).subtract(1, 'days');
+    }
 
     return reloadList(params);
 }

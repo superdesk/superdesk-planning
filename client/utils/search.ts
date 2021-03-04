@@ -1,12 +1,14 @@
 import moment from 'moment';
 
 import {
+    ICombinedEventOrPlanningSearchParams,
     ICombinedSearchParams,
     ICommonSearchParams,
     IEventOrPlanningItem,
     IEventSearchParams,
     IPlanningSearchParams,
     ISearchParams,
+    PLANNING_VIEW,
     SORT_FIELD,
     SORT_ORDER,
 } from '../interfaces';
@@ -159,14 +161,40 @@ export function searchParamsToCombinedParams(params: ISearchParams): ICombinedSe
     };
 }
 
-type IAnySearchParams = IEventSearchParams | IPlanningSearchParams | ICombinedSearchParams;
-export function searchParamsToOld(params: ISearchParams, filter: string): IAnySearchParams {
+export function removeUndefinedParams(
+    params: ICombinedEventOrPlanningSearchParams
+): ICombinedEventOrPlanningSearchParams {
+    function removeUndefined(arg) {
+        Object.keys(arg).forEach((key) => {
+            // Explicitly remove `undefined`, but keep `null`
+            if (arg[key] === undefined) {
+                delete arg[key];
+            }
+        });
+    }
+
+    removeUndefined(params.advancedSearch?.dates ?? {});
+    if (!Object.keys(params.advancedSearch.dates).length) {
+        delete params.advancedSearch.dates;
+    }
+
+    removeUndefined(params.advancedSearch ?? {});
+    if (!Object.keys(params.advancedSearch).length) {
+        delete params.advancedSearch;
+    }
+
+    removeUndefined(params);
+
+    return params;
+}
+
+export function searchParamsToOld(params: ISearchParams, filter: PLANNING_VIEW): ICombinedEventOrPlanningSearchParams {
     switch (filter) {
-    case MAIN.FILTERS.PLANNING:
+    case PLANNING_VIEW.PLANNING:
         return searchParamsToPlanningParams(params);
-    case MAIN.FILTERS.EVENTS:
+    case PLANNING_VIEW.EVENTS:
         return searchParamsToEventParams(params);
-    case MAIN.FILTERS.COMBINED:
+    case PLANNING_VIEW.COMBINED:
     default:
         return searchParamsToCombinedParams(params);
     }
