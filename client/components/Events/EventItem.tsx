@@ -1,15 +1,9 @@
 import React from 'react';
 import {get} from 'lodash';
-
-import {appConfig} from 'appConfig';
 import {superdeskApi} from '../../superdeskApi';
-import {
-    IEventListItemProps,
-    LIST_VIEW_TYPE,
-    SORT_FIELD,
-} from '../../interfaces';
+import {IEventListItemProps, LIST_VIEW_TYPE, PLANNING_VIEW, SORT_FIELD} from '../../interfaces';
 
-import {EVENTS, ICON_COLORS, MAIN, WORKFLOW_STATE} from '../../constants';
+import {EVENTS, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
 
 import {Label} from '../';
 import {ActionMenu, Border, Column, Item, ItemType, PubStatus, Row} from '../UI/List';
@@ -25,6 +19,7 @@ import {
 } from '../../utils';
 import {renderFields} from '../fields';
 import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
+import {EventDateTimeColumn} from './EventDateTimeColumn';
 
 interface IState {
     hover: boolean;
@@ -133,8 +128,7 @@ export class EventItem extends React.Component<IEventListItemProps, IState> {
 
         const hasPlanning = eventUtils.eventHasPlanning(item);
         const isItemLocked = eventUtils.isEventLocked(item, lockedItems);
-        const showRelatedPlanningLink = activeFilter === MAIN.FILTERS.COMBINED && hasPlanning;
-        const datetimeFormat = appConfig.view.dateformat + ' @ ' + appConfig.view.timeformat;
+        const showRelatedPlanningLink = activeFilter === PLANNING_VIEW.COMBINED && hasPlanning;
         let borderState: 'locked' | 'active' | false = false;
 
         if (isItemLocked) {
@@ -161,7 +155,7 @@ export class EventItem extends React.Component<IEventListItemProps, IState> {
                 <Border state={borderState} />
                 <ItemType
                     item={item}
-                    hasCheck={activeFilter !== MAIN.FILTERS.COMBINED}
+                    hasCheck={activeFilter !== PLANNING_VIEW.COMBINED}
                     checked={this.props.multiSelected}
                     onCheckToggle={onMultiSelectClick.bind(null, item)}
                     color={!isExpired && ICON_COLORS.DARK_BLUE_GREY}
@@ -169,7 +163,8 @@ export class EventItem extends React.Component<IEventListItemProps, IState> {
                 <PubStatus
                     item={item}
                     isPublic={isItemPosted(item) &&
-                    getItemWorkflowState(item) !== WORKFLOW_STATE.KILLED}
+                        getItemWorkflowState(item) !== WORKFLOW_STATE.KILLED
+                    }
                 />
                 <Column
                     grow={true}
@@ -180,7 +175,6 @@ export class EventItem extends React.Component<IEventListItemProps, IState> {
                             {renderFields(get(listFields, 'event.primary_fields',
                                 EVENTS.LIST.PRIMARY_FIELDS), item)}
                         </span>
-                        <EventDateTime item={item} />
                     </Row>
                     <Row>
                         {isExpired && (
@@ -236,6 +230,10 @@ export class EventItem extends React.Component<IEventListItemProps, IState> {
                         {secondaryFields.includes('location') && renderFields('location', item)}
                     </Row>
                 </Column>
+                <EventDateTimeColumn
+                    item={item}
+                    multiRow={listViewType === LIST_VIEW_TYPE.LIST}
+                />
                 {listViewType === LIST_VIEW_TYPE.SCHEDULE ? null : (
                     <CreatedUpdatedColumn
                         item={item}

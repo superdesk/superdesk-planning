@@ -151,8 +151,8 @@ function getDateForVersionInList(date: moment.Moment | string, tz?: string): str
     const localDate = moment.tz(date, timezone);
     const localNow = moment.tz(timezone);
     const timeFormat = appConfig.shortTimeFormat || 'hh:mm';
-    const weekFormat = appConfig.shortWeekFormat || 'dddd, ' + timeFormat;
     const dateFormat = appConfig.shortDateFormat || 'MM/DD';
+    const weekFormat = dateFormat + ' @ ' + timeFormat;
     const archiveFormat = appConfig.ArchivedDateFormat || dateFormat;
     const isArchiveYear = (appConfig.ArchivedDateOnCalendarYear === 1) ?
         localDate.isSame(localNow, 'year') :

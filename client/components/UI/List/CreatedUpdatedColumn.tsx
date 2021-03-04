@@ -1,7 +1,8 @@
 import * as React from 'react';
+import moment from 'moment-timezone';
 
+import {appConfig} from 'appConfig';
 import {IEventOrPlanningItem} from '../../../interfaces';
-import {superdeskApi} from '../../../superdeskApi';
 
 import {timeUtils} from '../../../utils';
 
@@ -15,12 +16,15 @@ interface IProps {
 
 export class CreatedUpdatedColumn extends React.PureComponent<IProps> {
     render() {
-        const {longFormatDateTime} = superdeskApi.localization;
+        const tooltip = moment.tz(
+            this.props.item._created,
+            timeUtils.localTimeZone()
+        ).format(appConfig.longDateFormat || 'LLL');
 
         return (
-            <Column>
-                <Row>
-                    <time title={longFormatDateTime(this.props.item._created)}>
+            <Column className="flex-justify--start sd-padding-t--1">
+                <Row classes="sd-margin-t--0 sd-margin-r--0-5">
+                    <time title={tooltip}>
                         {timeUtils.getDateForVersionInList(this.props.item[this.props.field])}
                     </time>
                 </Row>
