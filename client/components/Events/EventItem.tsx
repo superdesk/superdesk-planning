@@ -1,30 +1,36 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
 import {appConfig} from 'appConfig';
 import {superdeskApi} from '../../superdeskApi';
-import {IEventItem, LIST_VIEW_TYPE} from '../../interfaces';
+import {
+    IEventListItemProps,
+    LIST_VIEW_TYPE,
+    SORT_FIELD,
+} from '../../interfaces';
 
-import {EVENTS, MAIN, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
+import {EVENTS, ICON_COLORS, MAIN, WORKFLOW_STATE} from '../../constants';
 
 import {Label} from '../';
-import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
+import {ActionMenu, Border, Column, Item, ItemType, PubStatus, Row} from '../UI/List';
 import {EventDateTime} from './';
 import {ItemActionsMenu} from '../index';
 import {
     eventUtils,
-    onEventCapture,
-    isItemPosted,
-    isItemExpired,
-    isItemDifferent,
     getItemWorkflowState,
+    isItemDifferent,
+    isItemExpired,
+    isItemPosted,
+    onEventCapture,
 } from '../../utils';
 import {renderFields} from '../fields';
 import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
 
+interface IState {
+    hover: boolean;
+}
 
-export class EventItem extends React.Component {
+export class EventItem extends React.Component<IEventListItemProps, IState> {
     constructor(props) {
         super(props);
         this.state = {hover: false};
@@ -106,7 +112,7 @@ export class EventItem extends React.Component {
     }
 
     render() {
-        const {gettext, longFormatDateTime, getRelativeOrAbsoluteDateTime} = superdeskApi.localization;
+        const {gettext} = superdeskApi.localization;
         const {
             item,
             onItemClick,
@@ -231,44 +237,16 @@ export class EventItem extends React.Component {
                     </Row>
                 </Column>
                 {listViewType === LIST_VIEW_TYPE.SCHEDULE ? null : (
-                    <CreatedUpdatedColumn item={item} />
+                    <CreatedUpdatedColumn
+                        item={item}
+                        field={this.props.sortField === SORT_FIELD.CREATED ?
+                            '_created' :
+                            '_updated'
+                        }
+                    />
                 )}
                 {this.renderItemActions()}
             </Item>
         );
     }
 }
-
-EventItem.propTypes = {
-    item: PropTypes.object.isRequired,
-    onItemClick: PropTypes.func.isRequired,
-    lockedItems: PropTypes.object.isRequired,
-    session: PropTypes.object,
-    privileges: PropTypes.object,
-    activeFilter: PropTypes.string,
-    toggleRelatedPlanning: PropTypes.func,
-    relatedPlanningText: PropTypes.string,
-    multiSelected: PropTypes.bool,
-    onMultiSelectClick: PropTypes.func,
-    calendars: PropTypes.array,
-    listFields: PropTypes.object,
-    refNode: PropTypes.func,
-    active: PropTypes.bool,
-    listViewType: PropTypes.string,
-    [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]: PropTypes.func,
-};
-
-EventItem.defaultProps = {
-    togglePlanningItem: () => { /* no-op */ },
-};

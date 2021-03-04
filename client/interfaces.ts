@@ -666,6 +666,42 @@ export interface IAssignmentItem extends IBaseRestApiResponse {
     _to_delete: boolean;
 }
 
+export interface IBaseListItemProps<T> {
+    item: T;
+    lockedItems: ILockedItems;
+    session: ISession;
+    privileges: {[key: string]: number};
+    activeFilter: PLANNING_VIEW;
+    multiSelected: boolean;
+    listFields: any;
+    active: boolean;
+    listViewType: LIST_VIEW_TYPE;
+    sortField: SORT_FIELD;
+
+    onItemClick(item: T): void;
+    onMultiSelectClick(item: T): void;
+    refNode(node: HTMLElement): void;
+}
+
+export interface IEventListItemProps extends IBaseListItemProps<IEventItem> {
+    relatedPlanningText?: string;
+    calendars: Array<ICalendar>;
+    toggleRelatedPlanning?(event: React.MouseEvent): void;
+}
+
+export interface IPlanningListItemProps extends IBaseListItemProps<IPlanningItem> {
+    date: string; // The date for this group, in the format YYYY-MM-DD
+    agendas: Array<IAgenda>;
+    users: Array<IUser>;
+    desks: Array<IDesk>;
+    // showUnlock?: boolean; // Is this used anymore?
+    hideItemActions: boolean;
+    showAddCoverage: boolean;
+    contentTypes: Array<IG2ContentType>;
+    contacts: {[key: string]: IContactItem};
+    onAddCoverageClick(): void;
+}
+
 export interface IDateSearchParams {
     range?: IDateRange;
     start?: moment.Moment;

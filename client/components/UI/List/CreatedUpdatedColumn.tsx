@@ -10,6 +10,7 @@ import {Row} from './Row';
 
 interface IProps {
     item: IEventOrPlanningItem;
+    field: '_created' | '_updated';
 }
 
 export class CreatedUpdatedColumn extends React.PureComponent<IProps> {
@@ -20,7 +21,7 @@ export class CreatedUpdatedColumn extends React.PureComponent<IProps> {
             <Column>
                 <Row>
                     <time title={longFormatDateTime(this.props.item._created)}>
-                        {timeUtils.getDateForVersionInList(this.props.item._updated)}
+                        {timeUtils.getDateForVersionInList(this.props.item[this.props.field])}
                     </time>
                 </Row>
             </Column>

@@ -38,6 +38,7 @@ export const ListGroup = ({
     contentTypes,
     contacts,
     listViewType,
+    sortField,
 }) => {
     const flattenMultiday = (eventId, all, multi) => {
         onMultiSelectClick(eventId, all, multi, name);
@@ -80,6 +81,7 @@ export const ListGroup = ({
                         contentTypes: contentTypes,
                         contacts: contacts,
                         listViewType: listViewType,
+                        sortField: sortField,
                     };
 
                     if (indexItems) {
@@ -128,6 +130,7 @@ ListGroup.propTypes = {
     contentTypes: PropTypes.array,
     contacts: PropTypes.object,
     listViewType: PropTypes.string,
+    sortField: PropTypes.string,
 };
 
 ListGroup.defaultProps = {

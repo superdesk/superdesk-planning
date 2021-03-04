@@ -1,11 +1,13 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-
 import {get, isEqual} from 'lodash';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
 import {superdeskApi} from '../../superdeskApi';
-import {LIST_VIEW_TYPE} from '../../interfaces';
+import {
+    IPlanningListItemProps,
+    LIST_VIEW_TYPE,
+    SORT_FIELD
+} from '../../interfaces';
 import {PLANNING, EVENTS, MAIN, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
 
 import {Label} from '../';
@@ -28,8 +30,11 @@ import {
 } from '../../utils';
 import {renderFields} from '../fields';
 
+interface IState {
+    hover: boolean;
+}
 
-export class PlanningItem extends React.Component {
+export class PlanningItem extends React.Component<IPlanningListItemProps, IState> {
     constructor(props) {
         super(props);
         this.state = {hover: false};
@@ -236,7 +241,13 @@ export class PlanningItem extends React.Component {
                     </Row>
                 </Column>
                 {listViewType === LIST_VIEW_TYPE.SCHEDULE ? null : (
-                    <CreatedUpdatedColumn item={item} />
+                    <CreatedUpdatedColumn
+                        item={item}
+                        field={this.props.sortField === SORT_FIELD.CREATED ?
+                            '_created' :
+                            '_updated'
+                        }
+                    />
                 )}
                 {showAddCoverage && !isItemLocked && (
                     <Column border={false}>
@@ -263,39 +274,3 @@ export class PlanningItem extends React.Component {
         );
     }
 }
-
-PlanningItem.propTypes = {
-    item: PropTypes.object.isRequired,
-    date: PropTypes.string,
-    onItemClick: PropTypes.func.isRequired,
-    lockedItems: PropTypes.object.isRequired,
-    agendas: PropTypes.array.isRequired,
-    session: PropTypes.object,
-    privileges: PropTypes.object,
-    onAddCoverageClick: PropTypes.func,
-    onMultiSelectClick: PropTypes.func,
-    multiSelected: PropTypes.bool,
-    activeFilter: PropTypes.string,
-    users: PropTypes.array,
-    desks: PropTypes.array,
-    showUnlock: PropTypes.bool,
-    hideItemActions: PropTypes.bool,
-    showAddCoverage: PropTypes.bool,
-    listFields: PropTypes.object,
-    refNode: PropTypes.func,
-    active: PropTypes.bool,
-    contentTypes: PropTypes.array,
-    listViewType: PropTypes.string,
-    [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
-    [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
-    [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
-    [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]: PropTypes.func,
-    [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]: PropTypes.func,
-    [PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]: PropTypes.func,
-    contacts: PropTypes.object,
-};

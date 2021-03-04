@@ -1,8 +1,14 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {get, findIndex} from 'lodash';
 
-import {LIST_VIEW_TYPE} from '../../interfaces';
+import {
+    LIST_VIEW_TYPE,
+    IEventListItemProps,
+    IPlanningListItemProps,
+    IEventItem,
+    IEventOrPlanningItem,
+    IPlanningItem,
+} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
 
 import {onEventCapture} from '../../utils';
@@ -12,8 +18,26 @@ import {EventItem} from '.';
 import {PlanningItem} from '../Planning';
 import {NestedItem} from '../UI/List';
 
+interface IProps {
+    eventProps: IEventListItemProps;
+    planningProps: IPlanningListItemProps;
+    relatedPlanningsInList: {[key: string]: Array<IPlanningItem>};
+    navigateDown?: boolean;
+    previewItem: IEventOrPlanningItem['_id'];
+    listViewType: LIST_VIEW_TYPE;
 
-export class EventItemWithPlanning extends React.Component {
+    showRelatedPlannings(item: IEventItem): void;
+    refNode?(node: HTMLElement): void;
+    navigateList(increment?: boolean): void;
+    onItemActivate(item: IEventItem, forceActivate?: boolean): void;
+}
+
+interface IState {
+    openPlanningItems: boolean;
+    activeIndex: number;
+}
+
+export class EventItemWithPlanning extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
         this.state = {
@@ -221,16 +245,3 @@ export class EventItemWithPlanning extends React.Component {
         );
     }
 }
-
-EventItemWithPlanning.propTypes = {
-    eventProps: PropTypes.object.isRequired,
-    planningProps: PropTypes.object.isRequired,
-    showRelatedPlannings: PropTypes.func.isRequired,
-    relatedPlanningsInList: PropTypes.object.isRequired,
-    refNode: PropTypes.func,
-    navigateDown: PropTypes.bool,
-    navigateList: PropTypes.func,
-    onItemActivate: PropTypes.func,
-    previewItem: PropTypes.string,
-    listViewType: PropTypes.string,
-};

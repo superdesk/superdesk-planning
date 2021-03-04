@@ -11,7 +11,11 @@ import {
     ILockedItems,
     IPlanningItem,
     ISession,
-    IEventOrPlanningItem, IG2ContentType, LIST_VIEW_TYPE, IContactItem,
+    IEventOrPlanningItem,
+    IG2ContentType,
+    LIST_VIEW_TYPE,
+    IContactItem,
+    SORT_FIELD,
 } from '../../interfaces';
 
 import * as actions from '../../actions';
@@ -54,6 +58,7 @@ interface IProps {
     userInitiatedSearch?: boolean;
     contacts: {[key: string]: IContactItem};
     listViewType: LIST_VIEW_TYPE;
+    sortField: SORT_FIELD;
 
     openPreview(item: IEventOrPlanningItem): void;
     edit(item: IEventOrPlanningItem): void;
@@ -86,6 +91,7 @@ const mapStateToProps = (state) => ({
     userInitiatedSearch: selectors.main.userInitiatedSearch(state),
     contacts: selectors.general.contactsById(state),
     listViewType: selectors.main.getCurrentListViewType(state),
+    sortField: selectors.main.getCurrentSortField(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -161,6 +167,7 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
             userInitiatedSearch,
             contacts,
             listViewType,
+            sortField,
         } = this.props;
 
         return (
@@ -197,6 +204,7 @@ export class PlanningListComponent extends React.PureComponent<IProps> {
                     userInitiatedSearch={userInitiatedSearch}
                     contacts={contacts}
                     listViewType={listViewType}
+                    sortField={sortField}
                     indexItems
                 />
             </React.Fragment>

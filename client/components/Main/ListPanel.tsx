@@ -10,7 +10,7 @@ import {
     IEventOrPlanningItem, IG2ContentType,
     ILockedItems,
     IPlanningItem,
-    ISession, LIST_VIEW_TYPE
+    ISession, LIST_VIEW_TYPE, SORT_FIELD
 } from '../../interfaces';
 
 import {KEYCODES, MAIN} from '../../constants';
@@ -52,6 +52,7 @@ interface IProps {
     contentTypes: Array<IG2ContentType>;
     contacts: {[key: string]: IContactItem};
     listViewType: LIST_VIEW_TYPE;
+    sortField: SORT_FIELD;
     userInitiatedSearch?: boolean;
 
     onItemClick(item: IEventOrPlanningItem): void;
@@ -273,6 +274,7 @@ export class ListPanel extends React.Component<IProps, IState> {
             contentTypes,
             contacts,
             listViewType,
+            sortField,
         } = this.props;
 
         let indexFrom = 0;
@@ -330,6 +332,7 @@ export class ListPanel extends React.Component<IProps, IState> {
                                 listFields: listFields,
                                 contacts: contacts,
                                 listViewType: listViewType,
+                                sortField: sortField,
                                 ...propsForNestedListItems,
                             };
 
