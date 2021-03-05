@@ -11,7 +11,7 @@
 """Superdesk Planning Search."""
 import logging
 from flask import json, current_app as app
-from eve_elastic.elastic import parse_date
+from eve_elastic.elastic import parse_date, get_dates
 from copy import deepcopy
 
 import superdesk
@@ -63,8 +63,7 @@ class PlanningSearchService(superdesk.Service):
             params['_source'] = fields
 
         docs = self.elastic.search(query, types, params)
-        for doc in docs:
-            self._format_nested_dates(doc)
+        self._format_docs(docs)
 
         # to avoid call on_fetched_resource callback from some internal resource
         on_fetched_resource = True
@@ -87,14 +86,35 @@ class PlanningSearchService(superdesk.Service):
 
         return docs
 
-    def _format_nested_dates(self, doc):
-        if (doc.get('_type') == 'events' or doc.get('type') == 'event') and doc.get('dates'):
-            if doc['dates'].get('start'):
-                doc['dates']['start'] = parse_date(doc['dates']['start'])
-            if doc['dates'].get('end'):
-                doc['dates']['end'] = parse_date(doc['dates']['end'])
-            if (doc['dates'].get('recurring_rule') or {}).get('until'):
-                doc['dates']['recurring_rule']['until'] = parse_date(doc['dates']['recurring_rule']['until'])
+    def _get_date_fields(self, resource: str):
+        datasource = self.elastic.get_datasource(resource)
+        schema = {}
+        schema.update(app.config['DOMAIN'][datasource[0]].get('schema', {}))
+        schema.update(app.config['DOMAIN'][resource].get('schema', {}))
+        return get_dates(schema)
+
+    def _format_docs(self, docs):
+        date_fields = {}
+
+        for doc in docs:
+            resource = 'events' if doc['type'] == 'event' else doc['type']
+
+            if not date_fields.get(resource):
+                date_fields[resource] = self._get_date_fields(resource)
+
+            # Format root level date types
+            for field in date_fields[resource]:
+                if isinstance(doc.get(field), str):
+                    doc[field] = parse_date(doc[field])
+
+            # Format nested date types
+            if resource == 'events' and doc.get('dates'):
+                if doc['dates'].get('start'):
+                    doc['dates']['start'] = parse_date(doc['dates']['start'])
+                if doc['dates'].get('end'):
+                    doc['dates']['end'] = parse_date(doc['dates']['end'])
+                if (doc['dates'].get('recurring_rule') or {}).get('until'):
+                    doc['dates']['recurring_rule']['until'] = parse_date(doc['dates']['recurring_rule']['until'])
 
     def _get_projected_fields(self, req):
         """Get elastic projected fields."""
