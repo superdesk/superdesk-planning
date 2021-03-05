@@ -174,12 +174,12 @@ export function removeUndefinedParams(
     }
 
     removeUndefined(params.advancedSearch?.dates ?? {});
-    if (!Object.keys(params.advancedSearch.dates).length) {
+    if (!Object.keys(params.advancedSearch?.dates ?? {}).length) {
         delete params.advancedSearch.dates;
     }
 
     removeUndefined(params.advancedSearch ?? {});
-    if (!Object.keys(params.advancedSearch).length) {
+    if (!Object.keys(params.advancedSearch ?? {}).length) {
         delete params.advancedSearch;
     }
 
