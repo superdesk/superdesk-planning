@@ -17,7 +17,7 @@ import copy
 import pytz
 import re
 from eve.methods.common import resolve_document_etag
-from eve.utils import config, date_to_str, str_to_date
+from eve.utils import config, date_to_str
 from flask import current_app as app
 from copy import deepcopy
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU

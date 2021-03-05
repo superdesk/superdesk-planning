@@ -23,7 +23,7 @@ from superdesk.users.services import current_user_has_privilege
 from superdesk.notification import push_notification
 from apps.archive.common import get_user, get_auth, update_dates_for
 from copy import deepcopy
-from eve.utils import config, ParsedRequest, date_to_str, str_to_date
+from eve.utils import config, ParsedRequest, date_to_str
 from planning.common import WORKFLOW_STATE_SCHEMA, POST_STATE_SCHEMA, get_coverage_cancellation_state,\
     WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_post_item, get_coverage_type_name,\
     set_original_creator, list_uniq_with_order, TEMP_ID_PREFIX, DEFAULT_ASSIGNMENT_PRIORITY,\
