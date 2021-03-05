@@ -1,6 +1,7 @@
 import moment from 'moment';
 
 import {
+    ICombinedEventOrPlanningSearchParams,
     ICombinedSearchParams,
     IEventSearchParams,
     IPlanningSearchParams,
@@ -153,8 +154,34 @@ export function searchParamsToCombinedParams(params: ISearchParams): ICombinedSe
     };
 }
 
-type IAnySearchParams = IEventSearchParams | IPlanningSearchParams | ICombinedSearchParams;
-export function searchParamsToOld(params: ISearchParams, filter: string): IAnySearchParams {
+export function removeUndefinedParams(
+    params: ICombinedEventOrPlanningSearchParams
+): ICombinedEventOrPlanningSearchParams {
+    function removeUndefined(arg) {
+        Object.keys(arg).forEach((key) => {
+            // Explicitly remove `undefined`, but keep `null`
+            if (arg[key] === undefined) {
+                delete arg[key];
+            }
+        });
+    }
+
+    removeUndefined(params.advancedSearch?.dates ?? {});
+    if (!Object.keys(params.advancedSearch?.dates ?? {}).length) {
+        delete params.advancedSearch.dates;
+    }
+
+    removeUndefined(params.advancedSearch ?? {});
+    if (!Object.keys(params.advancedSearch ?? {}).length) {
+        delete params.advancedSearch;
+    }
+
+    removeUndefined(params);
+
+    return params;
+}
+
+export function searchParamsToOld(params: ISearchParams, filter: string): ICombinedEventOrPlanningSearchParams {
     switch (filter) {
     case MAIN.FILTERS.PLANNING:
         return searchParamsToPlanningParams(params);
