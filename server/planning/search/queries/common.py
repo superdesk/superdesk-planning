@@ -76,8 +76,10 @@ def str_to_array(arg: Optional[Union[List[str], str]] = None) -> List[str]:
     return []
 
 
-def str_to_number(arg: Optional[str] = None) -> Optional[int]:
-    if len(arg or ''):
+def str_to_number(arg: Optional[Union[str, int]] = None) -> Optional[int]:
+    if isinstance(arg, int):
+        return arg
+    elif len(arg or ''):
         return int(arg)
 
     return None
