@@ -249,9 +249,29 @@ def append_states_query_for_advanced_search(params: Dict[str, Any], query: elast
             )
 
 
+def get_sort_field(params: Dict[str, Any], default: str) -> Optional[str]:
+    field = params.get('sort_field') or default
+
+    if field == 'schedule':
+        return 'schedule'
+    elif field == 'created':
+        return 'firstcreated'
+    elif field == 'updated':
+        return 'versioncreated'
+
+    # This means the provided sort filter has invalid an invalid value
+    return None
+
+
+def get_sort_order(params: Dict[str, Any], default: str) -> str:
+    return 'asc' if (params.get('sort_order') or default) == 'ascending' else 'desc'
+
+
 def search_date_non_schedule(params: Dict[str, Any], query: elastic.ElasticQuery):
-    sort_field = params.get('sort_field', 'created')
-    field_name = '_created' if sort_field == 'created' else '_updated'
+    field_name = get_sort_field(params, 'created')
+    if not field_name or field_name == 'schedule':
+        return
+
     date_filter, start_date, end_date, tz_offset = get_date_params(params)
 
     if not date_filter and not start_date and not end_date:

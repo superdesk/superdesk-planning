@@ -12,7 +12,7 @@ from typing import Any, Dict
 
 from planning.search.queries import elastic
 from .common import get_time_zone, get_date_params, COMMON_SEARCH_FILTERS, COMMON_PARAMS, \
-    strtobool, str_to_array, search_date_non_schedule
+    strtobool, str_to_array, search_date_non_schedule, get_sort_field, get_sort_order
 
 
 def get_advanced_search(params: Dict[str, Any]):
@@ -353,10 +353,9 @@ def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):
-    sort_field = params.get('sort_field', 'schedule')
     if params.get('exclude_dates'):
         return
-    elif sort_field != 'schedule':
+    elif get_sort_field(params, 'schedule') != 'schedule':
         search_date_non_schedule(params, query)
     else:
         search_date_today(params, query)
@@ -371,15 +370,11 @@ def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def set_search_sort(params: Dict[str, Any], query: elastic.ElasticQuery):
-    field = params.get('sort_field', 'schedule')
-    order = 'asc' if params.get('sort_order', 'ascending') == 'ascending' else 'desc'
+    field = get_sort_field(params, 'schedule')
+    order = get_sort_order(params, 'ascending')
 
     if field == 'schedule':
         field = 'dates.start'
-    elif field == 'created':
-        field = '_created'
-    elif field == 'updated':
-        field = '_updated'
 
     query.sort.append({field: {'order': order}})
 

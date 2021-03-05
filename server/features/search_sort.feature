@@ -3,28 +3,28 @@ Feature: Event Search
         Given "events"
         """
         [{
-            "_created": "2016-01-01T00:00:00+0000", "_updated": "2016-01-04T00:00:00+0000",
+            "firstcreated": "2016-01-01T00:00:00+0000", "versioncreated": "2016-01-04T00:00:00+0000",
             "guid": "event_1", "name": "event 1", "slugline": "test1 slugline",
             "dates": {
                 "start": "2016-01-03T00:00:00+0000",
                 "end": "2016-01-04T00:00:00+0000"
             }
         }, {
-            "_created": "2016-01-02T00:00:00+0000", "_updated": "2016-01-03T00:00:00+0000",
+            "firstcreated": "2016-01-02T00:00:00+0000", "versioncreated": "2016-01-03T00:00:00+0000",
             "guid": "event_2", "name": "event 2", "slugline": "test1 slugline",
             "dates": {
                 "start": "2016-01-01T00:00:00+0000",
                 "end": "2016-01-02T00:00:00+0000"
             }
         }, {
-            "_created": "2016-01-03T00:00:00+0000", "_updated": "2016-01-02T00:00:00+0000",
+            "firstcreated": "2016-01-03T00:00:00+0000", "versioncreated": "2016-01-02T00:00:00+0000",
             "guid": "event_3", "name": "event 3", "slugline": "test1 slugline",
             "dates": {
                 "start": "2016-01-04T00:00:00+0000",
                 "end": "2016-01-05T00:00:00+0000"
             }
         }, {
-            "_created": "2016-01-04T00:00:00+0000", "_updated": "2016-01-01T00:00:00+0000",
+            "firstcreated": "2016-01-04T00:00:00+0000", "versioncreated": "2016-01-01T00:00:00+0000",
             "guid": "event_4", "name": "event 4", "slugline": "test1 slugline",
             "dates": {
                 "start": "2016-01-02T00:00:00+0000",
@@ -35,20 +35,20 @@ Feature: Event Search
         And "planning"
         """
         [{
-            "_created": "2016-01-01T01:00:00+0000", "_updated": "2016-01-04T01:00:00+0000",
+            "firstcreated": "2016-01-01T01:00:00+0000", "versioncreated": "2016-01-04T01:00:00+0000",
             "guid": "plan_1", "name": "plan 1", "slugline": "test1 slugline",
             "planning_date": "2016-01-03T01:00:00+0000"
         }, {
-            "_created": "2016-01-02T01:00:00+0000", "_updated": "2016-01-03T01:00:00+0000",
+            "firstcreated": "2016-01-02T01:00:00+0000", "versioncreated": "2016-01-03T01:00:00+0000",
             "guid": "plan_2", "name": "plan 2", "slugline": "test2 slugline",
             "planning_date": "2016-01-01T01:00:00+0000",
             "event_item": "event_2"
         }, {
-            "_created": "2016-01-03T01:00:00+0000", "_updated": "2016-01-02T01:00:00+0000",
+            "firstcreated": "2016-01-03T01:00:00+0000", "versioncreated": "2016-01-02T01:00:00+0000",
             "guid": "plan_3", "name": "plan 3", "slugline": "test3 slugline",
             "planning_date": "2016-01-04T01:00:00+0000"
         }, {
-            "_created": "2016-01-04T01:00:00+0000", "_updated": "2016-01-01T01:00:00+0000",
+            "firstcreated": "2016-01-04T01:00:00+0000", "versioncreated": "2016-01-01T01:00:00+0000",
             "guid": "plan_4", "name": "plan 4", "slugline": "test4 slugline",
             "planning_date": "2016-01-02T01:00:00+0000",
             "event_item": "event_4"

@@ -15,7 +15,8 @@ from copy import deepcopy
 from planning.search.queries import elastic
 from planning.common import WORKFLOW_STATE
 from .common import get_date_params, COMMON_SEARCH_FILTERS, COMMON_PARAMS, \
-    strtobool, str_to_array, str_to_number, search_date_non_schedule
+    strtobool, str_to_array, str_to_number, search_date_non_schedule, \
+    get_sort_field, get_sort_order
 
 
 def search_planning(_: Dict[str, Any], query: elastic.ElasticQuery):
@@ -265,10 +266,9 @@ def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):
-    sort_field = params.get('sort_field', 'schedule')
     if params.get('exclude_dates'):
         return
-    elif sort_field != 'schedule':
+    elif get_sort_field(params, 'schedule') != 'schedule':
         search_date_non_schedule(params, query)
     else:
         search_date(params, query)
@@ -276,8 +276,8 @@ def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):
 
 
 def set_search_sort(params: Dict[str, Any], query: elastic.ElasticQuery):
-    field = params.get('sort_field', 'schedule')
-    order = 'asc' if params.get('sort_order', 'ascending') == 'ascending' else 'desc'
+    field = get_sort_field(params, 'schedule')
+    order = get_sort_order(params, 'ascending')
 
     if field == 'schedule':
         query.sort.append({
@@ -290,8 +290,7 @@ def set_search_sort(params: Dict[str, Any], query: elastic.ElasticQuery):
             }
         })
     else:
-        sort_field = '_created' if field == 'created' else '_updated'
-        query.sort.append({sort_field: {'order': order}})
+        query.sort.append({field: {'order': order}})
 
 
 PLANNING_SEARCH_FILTERS = [

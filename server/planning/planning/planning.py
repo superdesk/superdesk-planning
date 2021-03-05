@@ -127,13 +127,6 @@ class PlanningService(superdesk.Service):
                 doc['guid'] = generate_guid(type=GUID_NEWSML)
             doc[config.ID_FIELD] = doc['guid']
 
-            # Allow behave tests to define created/updated dates
-            if app.config.get('TESTING_BEHAVE'):
-                if isinstance(doc.get('_created'), str):
-                    doc['_created'] = str_to_date(doc['_created'])
-                if isinstance(doc.get('_updated'), str):
-                    doc['_updated'] = str_to_date(doc['_updated'])
-
             self.validate_planning(doc)
             set_original_creator(doc)
             self._set_planning_event_info(doc, planning_type)
