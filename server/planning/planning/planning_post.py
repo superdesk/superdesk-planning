@@ -117,14 +117,16 @@ class PlanningPostService(BaseService):
         """Post a Planning item
 
         """
-        updates = deepcopy(plan)
-        updates['state'] = get_item_post_state(plan, new_post_state)
-        updates['pubstatus'] = new_post_state
+        updates = {
+            'state': get_item_post_state(plan, new_post_state),
+            'pubstatus': new_post_state,
+        }
         if updates['state'] in [WORKFLOW_STATE.SCHEDULED, WORKFLOW_STATE.KILLED]:
             updates['state_reason'] = None
 
-        if new_post_state == POST_STATE.CANCELLED:
-            for coverage in updates.get('coverages', []):
+        if new_post_state == POST_STATE.CANCELLED and len(plan.get('coverages', [])):
+            updates['coverages'] = plan['coverages']
+            for coverage in updates['coverages']:
                 if coverage.get('assigned_to', {}).get('assignment_id'):
                     assignments_to_delete.append(deepcopy(coverage))
                     coverage['assigned_to'] = {}
@@ -133,12 +135,12 @@ class PlanningPostService(BaseService):
                     if coverage.get('planning', {}).pop('workflow_status_reason', None):
                         coverage['planning']['workflow_status_reason'] = None
 
-        updates['pubstatus'] = new_post_state
-        get_resource_service('planning').update(plan['_id'], updates, plan)
+        updated_plan = get_resource_service('planning').update(plan['_id'], updates, plan)
+        plan.update(updated_plan)
 
         # Set a version number
-        version, updates = get_version_item_for_post(updates)
-        self.publish_planning(updates, version)
+        version, plan = get_version_item_for_post(plan)
+        self.publish_planning(plan, version)
 
         # Save the version into the history
         updates['version'] = version
