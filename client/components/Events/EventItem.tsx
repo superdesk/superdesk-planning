@@ -34,8 +34,10 @@ export class EventItem extends React.Component<IEventListItemProps, IState> {
         this.renderItemActions = this.renderItemActions.bind(this);
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
-        return isItemDifferent(this.props, nextProps) || this.state.hover !== nextState.hover;
+    shouldComponentUpdate(nextProps: Readonly<IEventListItemProps>, nextState: Readonly<IState>) {
+        return isItemDifferent(this.props, nextProps) ||
+            this.state.hover !== nextState.hover ||
+            this.props.minTimeWidth !== nextProps.minTimeWidth;
     }
 
     onItemHoverOn() {
@@ -238,9 +240,10 @@ export class EventItem extends React.Component<IEventListItemProps, IState> {
                     <CreatedUpdatedColumn
                         item={item}
                         field={this.props.sortField === SORT_FIELD.CREATED ?
-                            '_created' :
-                            '_updated'
+                            'firstcreated' :
+                            'versioncreated'
                         }
+                        minTimeWidth={this.props.minTimeWidth}
                     />
                 )}
                 {this.renderItemActions()}

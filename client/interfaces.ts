@@ -677,6 +677,7 @@ export interface IBaseListItemProps<T> {
     active: boolean;
     listViewType: LIST_VIEW_TYPE;
     sortField: SORT_FIELD;
+    minTimeWidth: string;
 
     onItemClick(item: T): void;
     onMultiSelectClick(item: T): void;

@@ -50,13 +50,14 @@ export class PlanningItem extends React.Component<IPlanningListItemProps, IState
         this.props.onAddCoverageClick();
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
+    shouldComponentUpdate(nextProps: Readonly<IPlanningListItemProps>, nextState: Readonly<IState>) {
         return isItemDifferent(this.props, nextProps) ||
             this.state.hover !== nextState.hover ||
             !isEqual(
                 planningUtils.getAgendaNames(this.props.item, this.props.agendas),
                 planningUtils.getAgendaNames(nextProps.item, nextProps.agendas)
-            );
+            ) ||
+            this.props.minTimeWidth !== nextProps.minTimeWidth;
     }
 
     onItemHoverOn() {
@@ -244,9 +245,10 @@ export class PlanningItem extends React.Component<IPlanningListItemProps, IState
                     <CreatedUpdatedColumn
                         item={item}
                         field={this.props.sortField === SORT_FIELD.CREATED ?
-                            '_created' :
-                            '_updated'
+                            'firstcreated' :
+                            'versioncreated'
                         }
+                        minTimeWidth={this.props.minTimeWidth}
                     />
                 )}
                 {showAddCoverage && !isItemLocked && (

@@ -26,6 +26,7 @@ interface IProps extends Omit<
     itemActions: {[key: string]: () => void}; // List of item action dispatches (i.e. Cancel Event)
     index: number;
     navigateDown?: boolean;
+    minTimeWidth?: string;
 
     onDoubleClick(item: IEventOrPlanningItem): void;
     showRelatedPlannings(item: IEventItem): void;
@@ -120,6 +121,7 @@ export class ListGroupItem extends React.Component<IProps, IState> {
             contacts,
             listViewType,
             sortField,
+            minTimeWidth,
         } = this.props;
         const itemType = getItemType(item);
 
@@ -139,6 +141,7 @@ export class ListGroupItem extends React.Component<IProps, IState> {
             active: active,
             listViewType: listViewType,
             sortField: sortField,
+            minTimeWidth: minTimeWidth,
             refNode: (node) => {
                 this.dom.item = node;
             },

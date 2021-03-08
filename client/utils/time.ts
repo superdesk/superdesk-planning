@@ -150,23 +150,17 @@ function getDateForVersionInList(date: moment.Moment | string, tz?: string): str
     const timezone = tz ?? localTimeZone();
     const localDate = moment.tz(date, timezone);
     const localNow = moment.tz(timezone);
-    const timeFormat = appConfig.shortTimeFormat || 'hh:mm';
-    const dateFormat = appConfig.shortDateFormat || 'MM/DD';
-    const weekFormat = dateFormat + ' @ ' + timeFormat;
-    const archiveFormat = appConfig.ArchivedDateFormat || dateFormat;
-    const isArchiveYear = (appConfig.ArchivedDateOnCalendarYear === 1) ?
-        localDate.isSame(localNow, 'year') :
-        localNow.diff(localDate, 'year') >= 1;
+    const shortTimeFormat = appConfig.shortTimeFormat || 'hh:mm';
+    const shortDateFormat = appConfig.shortDateFormat || 'DD.MM';
+    const dateFormat = appConfig.view.dateformat || 'DD.MM.YYYY';
 
     if (localDate.isSame(localNow, 'day')) {
-        return localDate.format(timeFormat);
-    } else if (localDate.isSame(localNow, 'week')) {
-        return localDate.format(weekFormat);
-    } else if (isArchiveYear) {
-        return localDate.format(archiveFormat);
+        return localDate.format(shortTimeFormat);
+    } else if (localDate.isSame(localNow, 'year')) {
+        return localDate.format(shortDateFormat + ' @ ' + shortTimeFormat);
     }
 
-    return localDate.format(dateFormat);
+    return localDate.format(dateFormat + ' @ ' + shortTimeFormat);
 }
 
 // eslint-disable-next-line consistent-this

@@ -1,9 +1,47 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import {ListGroupItem} from './';
 import {Group, Header} from '../UI/List';
-import {LIST_VIEW_TYPE} from '../../interfaces';
+import {IEventOrPlanningItem, LIST_VIEW_TYPE, SORT_FIELD} from '../../interfaces';
+import {timeUtils} from '../../utils';
+
+const TIME_COLUMN_MIN_WIDTH = {
+    WITH_YEAR: '11rem',
+    WITH_DATE: '8.5rem',
+    TIME_ONLY: undefined,
+};
+
+function getMinTimeWidth(
+    items: Array<IEventOrPlanningItem>,
+    listViewType: LIST_VIEW_TYPE,
+    sortField: SORT_FIELD
+): string | undefined {
+    if (listViewType === LIST_VIEW_TYPE.SCHEDULE) {
+        return TIME_COLUMN_MIN_WIDTH.TIME_ONLY;
+    }
+
+    const field: keyof IEventOrPlanningItem = sortField === SORT_FIELD.CREATED ?
+        'firstcreated' :
+        'versioncreated';
+    const timezone = timeUtils.localTimeZone();
+    const localNow = moment.tz(timezone);
+    let isTodayOnly = true;
+
+    for (let i = 0; i < items.length; i++) {
+        const localDate = moment.tz(items[i][field], timezone);
+
+        if (!localDate.isSame(localNow, 'year')) {
+            return TIME_COLUMN_MIN_WIDTH.WITH_YEAR;
+        } else if (!localDate.isSame(localNow, 'day')) {
+            isTodayOnly = false;
+        }
+    }
+
+    return isTodayOnly ?
+        TIME_COLUMN_MIN_WIDTH.TIME_ONLY :
+        TIME_COLUMN_MIN_WIDTH.WITH_DATE;
+}
 
 export const ListGroup = ({
     name,
@@ -43,6 +81,7 @@ export const ListGroup = ({
     const flattenMultiday = (eventId, all, multi) => {
         onMultiSelectClick(eventId, all, multi, name);
     };
+    const minTimeWidth = getMinTimeWidth(items, listViewType, sortField);
 
     return (
         <div className="ListGroup">
@@ -82,6 +121,7 @@ export const ListGroup = ({
                         contacts: contacts,
                         listViewType: listViewType,
                         sortField: sortField,
+                        minTimeWidth: minTimeWidth,
                     };
 
                     if (indexItems) {
