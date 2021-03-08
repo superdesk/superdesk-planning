@@ -157,10 +157,11 @@ function search(newParams: ISearchParams) {
         page: 1,
     };
     const dates = params.advancedSearch?.dates ?? {};
+    const listViewType = getCurrentListViewType(getState());
 
     // If an end date had been provided without a start date
     // then default the start date to 1 day before the end date
-    if (!dates.range && !dates.start && dates.end) {
+    if (listViewType === LIST_VIEW_TYPE.SCHEDULE && !dates.range && !dates.start && dates.end) {
         dates.start = moment(dates.end).subtract(1, 'days');
     }
 
@@ -194,7 +195,6 @@ function setViewType(viewType: LIST_VIEW_TYPE) {
     });
     superdeskApi.browser.location.urlParams.setString('listViewType', viewType);
 
-    const lastParams: ICombinedEventOrPlanningSearchParams = lastRequestParams(getState());
     const params: ICombinedEventOrPlanningSearchParams = viewType === LIST_VIEW_TYPE.SCHEDULE ?
         {
             sortField: SORT_FIELD.SCHEDULE,
@@ -202,13 +202,7 @@ function setViewType(viewType: LIST_VIEW_TYPE) {
             page: 1,
         } :
         {
-            sortField: SORT_FIELD.CREATED,
-            sortOrder: SORT_ORDER.DESCENDING,
             page: 1,
-            advancedSearch: {
-                ...lastParams.advancedSearch,
-                dates: {},
-            },
         };
 
     return reloadList(params);

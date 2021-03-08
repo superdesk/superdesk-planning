@@ -292,20 +292,15 @@ def search_date_non_schedule(params: Dict[str, Any], query: elastic.ElasticQuery
         if date_filter:
             base_query.date_range = date_filter
             base_query.date = start_date
-
-            query_range = elastic.date_range(base_query)
-        elif start_date and not end_date:
-            base_query.lte = start_date
-            query_range = elastic.date_range(base_query)
-        else:
+        elif start_date and end_date:
             base_query.gte = start_date
             base_query.lte = end_date
+        elif start_date:
+            base_query.gte = start_date
+        elif end_date:
+            base_query.lte = end_date
 
-            query_range = elastic.date_range(base_query)
-
-            if not query_range['range'][field_name].get('gte') and not query_range['range'][field_name].get('lte'):
-                query_range['range'][field_name]['lte'] = 'now/d'
-
+        query_range = elastic.date_range(base_query)
         query.filter.append(query_range)
 
 
