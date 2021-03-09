@@ -15,7 +15,8 @@ from copy import deepcopy
 from planning.search.queries import elastic
 from planning.common import WORKFLOW_STATE
 from .common import get_date_params, COMMON_SEARCH_FILTERS, COMMON_PARAMS, \
-    strtobool, str_to_array, str_to_number
+    strtobool, str_to_array, str_to_number, search_date_non_schedule, \
+    get_sort_field, get_sort_order
 
 
 def search_planning(_: Dict[str, Any], query: elastic.ElasticQuery):
@@ -230,30 +231,14 @@ def search_date(params: Dict[str, Any], query: elastic.ElasticQuery):
                 ])
             )
 
-            query.sort.append({
-                field_name: {
-                    'order': 'asc',
-                    'nested': {
-                        'path': '_planning_schedule',
-                        'filter': elastic.date_range(elastic.ElasticRangeParams(
-                            field=field_name,
-                            gte='now/d',
-                            time_zone=tz_offset
-                        ))
-                    }
-                }
-            })
+            query.extra['sort_filter'] = elastic.date_range(elastic.ElasticRangeParams(
+                field=field_name,
+                gte='now/d',
+                time_zone=tz_offset
+            ))
         else:
             query.filter.append(planning_schedule)
-            query.sort.append({
-                field_name: {
-                    'order': 'asc',
-                    'nested': {
-                        'path': '_planning_schedule',
-                        'filter': query_range
-                    }
-                }
-            })
+            query.extra['sort_filter'] = query_range
 
 
 def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
@@ -279,23 +264,33 @@ def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
             }
         })
 
-        query.sort.append({
-            field_name: {
-                'order': 'asc',
-                'nested': {
-                    'path': '_planning_schedule',
-                    'filter': query_range
-                }
-            }
-        })
-
 
 def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):
     if params.get('exclude_dates'):
         return
+    elif get_sort_field(params, 'schedule') != 'schedule':
+        search_date_non_schedule(params, query)
+    else:
+        search_date(params, query)
+        search_date_default(params, query)
 
-    search_date(params, query)
-    search_date_default(params, query)
+
+def set_search_sort(params: Dict[str, Any], query: elastic.ElasticQuery):
+    field = get_sort_field(params, 'schedule')
+    order = get_sort_order(params, 'ascending')
+
+    if field == 'schedule':
+        query.sort.append({
+            '_planning_schedule.scheduled': {
+                'order': order,
+                'nested': {
+                    'path': '_planning_schedule',
+                    'filter': query.extra.get('sort_filter', None)
+                }
+            }
+        })
+    else:
+        query.sort.append({field: {'order': order}})
 
 
 PLANNING_SEARCH_FILTERS = [
@@ -311,6 +306,7 @@ PLANNING_SEARCH_FILTERS = [
     search_featured,
     search_by_events,
     search_dates,
+    set_search_sort,
 ]
 
 PLANNING_SEARCH_FILTERS.extend(COMMON_SEARCH_FILTERS)

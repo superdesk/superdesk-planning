@@ -312,9 +312,6 @@ export const getTestActionStore = () => {
             getState: store.getState,
         },
     };
-    planningApi.$location = {
-        search: store.services.$location.search,
-    };
 
     return store;
 };

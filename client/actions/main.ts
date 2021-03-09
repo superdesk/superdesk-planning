@@ -1,21 +1,27 @@
-import {get, omit, isEmpty, isNil, isEqual} from 'lodash';
+import {get, isEmpty, isEqual, isNil, omit} from 'lodash';
 import moment from 'moment';
 
 import {appConfig} from 'appConfig';
-import {planningApi as planningApis} from '../superdeskApi';
+import {planningApi as planningApis, superdeskApi} from '../superdeskApi';
+import {
+    ISearchFilter,
+    ISearchParams,
+    LIST_VIEW_TYPE,
+    PLANNING_VIEW,
+    ICombinedEventOrPlanningSearchParams,
+} from '../interfaces';
 
 import {
-    MAIN,
-    ITEM_TYPE,
-    MODALS,
-    WORKFLOW_STATE,
-    POST_STATE,
-    PLANNING,
-    EVENTS,
     AGENDA,
+    EVENTS,
+    ITEM_TYPE,
+    MAIN,
+    MODALS,
+    PLANNING,
+    POST_STATE,
     QUEUE_ITEM_PREFIX,
+    WORKFLOW_STATE,
     WORKSPACE,
-    EVENTS_PLANNING,
 } from '../constants';
 import {activeFilter, lastRequestParams} from '../selectors/main';
 import planningUi from './planning/ui';
@@ -23,37 +29,36 @@ import planningApi from './planning/api';
 import eventsUi from './events/ui';
 import eventsApi from './events/api';
 import autosave from './autosave';
-import {actionUtils} from '../utils';
-import {locks, showModal, hideModal} from './';
-import {selectAgenda, fetchSelectedAgendaPlannings} from './agenda';
 import {
-    getErrorMessage,
-    notifyError,
-    getItemType,
-    gettext,
+    actionUtils,
     eventUtils,
+    generateTempId,
+    getAutosaveItem,
+    getErrorMessage,
+    getItemId,
+    getItemType,
+    getItemTypeString,
+    gettext,
+    isExistingItem,
+    isItemKilled,
+    isItemSameAsAutosave,
+    isItemSpiked,
+    isPublishedItemId,
+    isTemporaryId,
+    lockUtils,
+    modifyForClient,
+    notifyError,
     planningUtils,
     shouldLockItemForEdit,
     shouldUnLockItem,
-    getItemTypeString,
-    timeUtils,
-    isExistingItem,
-    lockUtils,
-    isItemKilled,
-    getItemId,
-    isTemporaryId,
-    getAutosaveItem,
-    isPublishedItemId,
-    isItemSpiked,
-    isItemSameAsAutosave,
-    generateTempId,
-    modifyForClient,
+    timeUtils
 } from '../utils';
+import {hideModal, locks, showModal} from './';
+import {fetchSelectedAgendaPlannings} from './agenda';
 import eventsPlanningUi from './eventsPlanning/ui';
 
 import * as selectors from '../selectors';
 import {validateItem} from '../validators';
-import {ISearchFilter, ISearchParams} from '../interfaces';
 import {searchParamsToOld} from '../utils/search';
 
 const openForEdit = (item, updateUrl = true, modal = false) => (
@@ -690,32 +695,37 @@ const closePreviewAndEditorForItems = (items, actionMessage = null, field = '_id
     }
 );
 
-/**
- * Action to fetch data from events, planning or both.
- * @param {string} ftype - type of filter
-  * @return {Object} - returns Promise
- */
-const filter = (ftype = null) => (
-    (dispatch, getState, {$timeout, $location}) => {
-        const isNewSearch = $location.search().isNewSearch || false;
-        let filterType = ftype;
+// Action to fetch data from events, planning or both.
+function filter(ftype?: PLANNING_VIEW) {
+    return (dispatch, getState) => {
+        const {urlParams} = superdeskApi.browser.location;
+        const isNewSearch = urlParams.getBoolean('isNewSearch', false);
+        const listViewType = (urlParams.getString('listViewType') as LIST_VIEW_TYPE) ||
+            LIST_VIEW_TYPE.SCHEDULE;
+        const filterType = ftype ||
+            (urlParams.getString('filter') as PLANNING_VIEW) ||
+            activeFilter(getState()) ||
+            PLANNING_VIEW.COMBINED;
 
-        if (filterType === null) {
-            filterType = $location.search().filter ||
-                activeFilter(getState()) ||
-                MAIN.FILTERS.COMBINED;
-        }
-
+        // Set the Redux/URL params for `filter`
         dispatch({
             type: MAIN.ACTIONS.FILTER,
             payload: filterType,
         });
+        urlParams.setString('filter', filterType);
+
+        // Set the Redux/URL params for `listViewType`
+        dispatch({
+            type: MAIN.ACTIONS.SET_LIST_VIEW_TYPE,
+            payload: listViewType,
+        });
+        urlParams.setString('listViewType', listViewType);
 
         const previousParams = omit(lastRequestParams(getState()) || {}, 'page');
-        const searchParams = omit(JSON.parse($location.search().searchParams || '{}'), 'page');
+        const searchParams = omit(urlParams.getJson('searchParams', {}), 'page');
         let params = previousParams;
 
-        if (filterType === $location.search().filter && isEmpty(previousParams) || isNewSearch) {
+        if (filterType === urlParams.getString('filter') && isEmpty(previousParams) || isNewSearch) {
             params = searchParams;
         }
 
@@ -723,13 +733,10 @@ const filter = (ftype = null) => (
             params.advancedSearch = eventUtils.modifyForClient(get(params, 'advancedSearch'));
         }
 
-        // Update the url (deep linking)
-        $timeout(() => $location.search('filter', filterType));
-
 
         return dispatch(self._filter(filterType, params));
-    }
-);
+    };
+}
 
 /**
  * Action to fetch data from events, planning or both.
@@ -737,15 +744,23 @@ const filter = (ftype = null) => (
  * @param {Object} params - Search params from advanced search
  * @return {Object} - returns Promise
  */
-const _filter = (filterType, params = {}) => (
-    (dispatch, getState, {$location, notify}) => {
+function _filter(filterType: PLANNING_VIEW, params: ICombinedEventOrPlanningSearchParams = {}) {
+    return (dispatch, getState, {$location, notify}) => {
+        const {urlParams} = superdeskApi.browser.location;
         let promise = Promise.resolve();
         const lastParams = selectors.main.lastRequestParams(getState());
-        const currentFilterId = $location.search().eventsPlanningFilter;
+        const currentFilterId: ISearchFilter['_id'] = urlParams.getString('eventsPlanningFilter');
 
-        if (currentFilterId != undefined || filterType === MAIN.FILTERS.COMBINED) {
+        if (currentFilterId != undefined || filterType === PLANNING_VIEW.COMBINED) {
             promise = planningApis.ui.list.changeFilterId(currentFilterId, params);
-        } else if (filterType === MAIN.FILTERS.EVENTS) {
+        } else if (filterType === PLANNING_VIEW.EVENTS) {
+            const calendar = urlParams.getString('calendar') ||
+                lastParams?.calendars?.[0] ||
+                (lastParams?.noCalendarAssigned ?
+                    EVENTS.FILTER.NO_CALENDAR_ASSIGNED :
+                    EVENTS.FILTER.ALL_CALENDARS
+                );
+
             const calender = $location.search().calendar ||
                 get(lastParams, 'calendars[0]', null) ||
                 (get(lastParams, 'noCalendarAssigned', false) ?
@@ -757,7 +772,7 @@ const _filter = (filterType, params = {}) => (
                 calender,
                 params
             );
-        } else if (filterType === MAIN.FILTERS.PLANNING) {
+        } else if (filterType === PLANNING_VIEW.PLANNING) {
             const searchAgenda = $location.search().agenda ||
                 get(lastParams, 'agendas[0]', null) ||
                 (get(lastParams, 'noAgendaAssigned', false) ?
@@ -775,8 +790,8 @@ const _filter = (filterType, params = {}) => (
             notify.error(gettext('Failed to run the query'));
             return Promise.reject(error);
         });
-    }
-);
+    };
+}
 
 const loadMore = (filterType) => (
     (dispatch, getState, {notify}) => {

@@ -2,14 +2,17 @@ import {createSelector} from 'reselect';
 import {get, sortBy} from 'lodash';
 
 import {appConfig} from 'appConfig';
-import {IPlanningAppState} from '../interfaces';
+import {IEventItem, IPlanningAppState, LIST_VIEW_TYPE} from '../interfaces';
 
-import {storedPlannings, currentPlanning} from './planning';
+import {currentPlanning, storedPlannings} from './planning';
 import {agendas, userPreferences} from './general';
 import {currentItem, currentItemModal} from './forms';
 import {eventUtils, getSearchDateRange} from '../utils';
 import {EVENTS, MAIN, SPIKED_STATE} from '../constants';
 
+function getCurrentListViewType(state?: IPlanningAppState) {
+    return state?.main?.listViewType ?? LIST_VIEW_TYPE.SCHEDULE;
+}
 export const storedEvents = (state) => get(state, 'events.events', {});
 export const eventIdsInList = (state) => get(state, 'events.eventsInList', []);
 export const eventHistory = (state) => get(state, 'events.eventHistoryItems');
@@ -32,12 +35,28 @@ export const eventsInList = createSelector(
 * the associated events.
 */
 export const orderedEvents = createSelector(
-    [eventsInList, currentSearch],
-    (events, search) => {
+    [eventsInList, currentSearch, getCurrentListViewType],
+    (events, search, viewType) => {
+        if (!events?.length) {
+            return [];
+        } else if (viewType === LIST_VIEW_TYPE.LIST) {
+            return [{
+                date: null,
+                events: events,
+            }];
+        }
+
         const dateRange = getSearchDateRange(search, appConfig.start_of_week);
 
         return eventUtils.getEventsByDate(events, dateRange.startDate, dateRange.endDate);
     }
+);
+
+export const orderedEventsList = createSelector(
+    [storedEvents, eventIdsInList],
+    (events: {[key: string]: IEventItem}, eventIds: Array<IEventItem['_id']>) => (
+        eventIds.map((eventId) => events[eventId])
+    )
 );
 
 export const flattenedEventsInList = createSelector(

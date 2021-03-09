@@ -21,8 +21,14 @@ export class SubNavBar {
             .should('exist');
     }
 
-    get menuBtn() {
+    get createMenu() {
         return this.element
+            .find('ul.dropdown__menu')
+            .should('exist');
+    }
+
+    get menuBtn() {
+        return cy.get('.subnav + .subnav')
             .find('.icon-dots-vertical')
             .should('exist');
     }
@@ -32,7 +38,7 @@ export class SubNavBar {
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
     get menu() {
-        return this.element
+        return cy.get('.subnav + .subnav')
             .find('ul.dropdown__menu')
             .should('exist');
     }
@@ -43,7 +49,7 @@ export class SubNavBar {
     createEvent() {
         cy.log('Common.UI.SubNavBar.createEvent');
         this.plusBtn.click();
-        this.menu
+        this.createMenu
             .find('#create_event')
             .should('exist')
             .click();
@@ -55,7 +61,7 @@ export class SubNavBar {
     createPlanning() {
         cy.log('Common.UI.SubNavBar.createPlanning');
         this.plusBtn.click();
-        this.menu
+        this.createMenu
             .find('#create_planning')
             .should('exist')
             .click();

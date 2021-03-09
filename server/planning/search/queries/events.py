@@ -11,7 +11,8 @@
 from typing import Any, Dict
 
 from planning.search.queries import elastic
-from .common import get_time_zone, get_date_params, COMMON_SEARCH_FILTERS, COMMON_PARAMS, strtobool, str_to_array
+from .common import get_time_zone, get_date_params, COMMON_SEARCH_FILTERS, COMMON_PARAMS, \
+    strtobool, str_to_array, search_date_non_schedule, get_sort_field, get_sort_order
 
 
 def get_advanced_search(params: Dict[str, Any]):
@@ -346,7 +347,7 @@ def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
             elastic.date_range(elastic.ElasticRangeParams(
                 field='dates.end',
                 gte='now/d',
-                time_zone=get_time_zone(params)
+                time_zone=tz_offset
             ))
         )
 
@@ -354,16 +355,28 @@ def search_date_default(params: Dict[str, Any], query: elastic.ElasticQuery):
 def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):
     if params.get('exclude_dates'):
         return
+    elif get_sort_field(params, 'schedule') != 'schedule':
+        search_date_non_schedule(params, query)
+    else:
+        search_date_today(params, query)
+        search_date_tomorrow(params, query)
+        search_date_last_24_hours(params, query)
+        search_date_this_week(params, query)
+        search_date_next_week(params, query)
+        search_date_start(params, query)
+        search_date_end(params, query)
+        search_date_range(params, query)
+        search_date_default(params, query)
 
-    search_date_today(params, query)
-    search_date_tomorrow(params, query)
-    search_date_last_24_hours(params, query)
-    search_date_this_week(params, query)
-    search_date_next_week(params, query)
-    search_date_start(params, query)
-    search_date_end(params, query)
-    search_date_range(params, query)
-    search_date_default(params, query)
+
+def set_search_sort(params: Dict[str, Any], query: elastic.ElasticQuery):
+    field = get_sort_field(params, 'schedule')
+    order = get_sort_order(params, 'ascending')
+
+    if field == 'schedule':
+        field = 'dates.start'
+
+    query.sort.append({field: {'order': order}})
 
 
 EVENT_SEARCH_FILTERS = [
@@ -375,6 +388,7 @@ EVENT_SEARCH_FILTERS = [
     search_calendars,
     search_no_calendar_assigned,
     search_dates,
+    set_search_sort,
 ]
 
 EVENT_SEARCH_FILTERS.extend(COMMON_SEARCH_FILTERS)

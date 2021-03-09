@@ -1,11 +1,14 @@
+import {omit} from 'lodash';
+import sinon from 'sinon';
+import moment from 'moment';
+
+import {LIST_VIEW_TYPE} from '../../../interfaces';
 import eventsApi from '../api';
 import eventsUi from '../ui';
 import planningApi from '../../planning/api';
 import {main} from '../../';
 import {MAIN, EVENTS, ITEM_TYPE} from '../../../constants';
-import {omit} from 'lodash';
-import sinon from 'sinon';
-import moment from 'moment';
+
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 
 describe('actions.events.ui', () => {
@@ -320,12 +323,19 @@ describe('actions.events.ui', () => {
         });
     });
 
-    it('setEventsList', () => {
+    it('setEventsList', (done) => {
         restoreSinonStub(eventsUi.setEventsList);
-        expect(eventsUi.setEventsList(['e1', 'e2'])).toEqual({
+        store.test(done, eventsUi.setEventsList(['e1', 'e2']));
+        expect(store.dispatch.callCount).toBe(1);
+        expect(store.dispatch.args[0]).toEqual([{
             type: 'SET_EVENTS_LIST',
-            payload: ['e1', 'e2'],
-        });
+            payload: {
+                listViewType: LIST_VIEW_TYPE.SCHEDULE,
+                ids: ['e1', 'e2'],
+            },
+        }]);
+
+        done();
     });
 
     describe('refetchEvents', () => {

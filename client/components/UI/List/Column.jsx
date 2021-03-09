@@ -7,7 +7,7 @@ import classNames from 'classnames';
  * @name Column
  * @description Column Component of a list item
  */
-export const Column = ({children, grow, border, noPadding, hasCheck, checked}) => (
+export const Column = ({children, grow, border, noPadding, hasCheck, checked, className}) => (
     <div
         className={classNames(
             'sd-list-item__column',
@@ -17,7 +17,8 @@ export const Column = ({children, grow, border, noPadding, hasCheck, checked}) =
                 'sd-list-item__column--no-padding': noPadding,
                 'sd-list-item__column--has-check': hasCheck,
                 'sd-list-item__column--checked': checked,
-            }
+            },
+            className
         )}
     >
         {children}
@@ -31,6 +32,7 @@ Column.propTypes = {
     noPadding: PropTypes.bool,
     hasCheck: PropTypes.bool,
     checked: PropTypes.bool,
+    className: PropTypes.string,
 };
 
 Column.defaultProps = {

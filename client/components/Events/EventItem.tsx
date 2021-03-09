@@ -1,24 +1,31 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {get} from 'lodash';
+import {superdeskApi} from '../../superdeskApi';
+import {IEventListItemProps, LIST_VIEW_TYPE, PLANNING_VIEW, SORT_FIELD} from '../../interfaces';
+
+import {EVENTS, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
+
 import {Label} from '../';
-import {EVENTS, MAIN, ICON_COLORS, WORKFLOW_STATE} from '../../constants';
-import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
+import {ActionMenu, Border, Column, Item, ItemType, PubStatus, Row} from '../UI/List';
 import {EventDateTime} from './';
 import {ItemActionsMenu} from '../index';
 import {
     eventUtils,
-    onEventCapture,
-    isItemPosted,
-    isItemExpired,
-    isItemDifferent,
     getItemWorkflowState,
+    isItemDifferent,
+    isItemExpired,
+    isItemPosted,
+    onEventCapture,
 } from '../../utils';
-import {gettext} from '../../utils/gettext';
 import {renderFields} from '../fields';
+import {CreatedUpdatedColumn} from '../UI/List/CreatedUpdatedColumn';
+import {EventDateTimeColumn} from './EventDateTimeColumn';
 
+interface IState {
+    hover: boolean;
+}
 
-export class EventItem extends React.Component {
+export class EventItem extends React.Component<IEventListItemProps, IState> {
     constructor(props) {
         super(props);
         this.state = {hover: false};
@@ -27,8 +34,10 @@ export class EventItem extends React.Component {
         this.renderItemActions = this.renderItemActions.bind(this);
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
-        return isItemDifferent(this.props, nextProps) || this.state.hover !== nextState.hover;
+    shouldComponentUpdate(nextProps: Readonly<IEventListItemProps>, nextState: Readonly<IState>) {
+        return isItemDifferent(this.props, nextProps) ||
+            this.state.hover !== nextState.hover ||
+            this.props.minTimeWidth !== nextProps.minTimeWidth;
     }
 
     onItemHoverOn() {
@@ -100,6 +109,7 @@ export class EventItem extends React.Component {
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const {
             item,
             onItemClick,
@@ -111,6 +121,7 @@ export class EventItem extends React.Component {
             listFields,
             active,
             refNode,
+            listViewType,
         } = this.props;
 
         if (!item) {
@@ -119,14 +130,14 @@ export class EventItem extends React.Component {
 
         const hasPlanning = eventUtils.eventHasPlanning(item);
         const isItemLocked = eventUtils.isEventLocked(item, lockedItems);
-        const showRelatedPlanningLink = activeFilter === MAIN.FILTERS.COMBINED && hasPlanning;
+        const showRelatedPlanningLink = activeFilter === PLANNING_VIEW.COMBINED && hasPlanning;
+        let borderState: 'locked' | 'active' | false = false;
 
-        let borderState = false;
-
-        if (isItemLocked)
+        if (isItemLocked) {
             borderState = 'locked';
-        else if (hasPlanning)
+        } else if (hasPlanning) {
             borderState = 'active';
+        }
 
 
         const isExpired = isItemExpired(item);
@@ -146,7 +157,7 @@ export class EventItem extends React.Component {
                 <Border state={borderState} />
                 <ItemType
                     item={item}
-                    hasCheck={activeFilter !== MAIN.FILTERS.COMBINED}
+                    hasCheck={activeFilter !== PLANNING_VIEW.COMBINED}
                     checked={this.props.multiSelected}
                     onCheckToggle={onMultiSelectClick.bind(null, item)}
                     color={!isExpired && ICON_COLORS.DARK_BLUE_GREY}
@@ -154,7 +165,8 @@ export class EventItem extends React.Component {
                 <PubStatus
                     item={item}
                     isPublic={isItemPosted(item) &&
-                    getItemWorkflowState(item) !== WORKFLOW_STATE.KILLED}
+                        getItemWorkflowState(item) !== WORKFLOW_STATE.KILLED
+                    }
                 />
                 <Column
                     grow={true}
@@ -165,7 +177,6 @@ export class EventItem extends React.Component {
                             {renderFields(get(listFields, 'event.primary_fields',
                                 EVENTS.LIST.PRIMARY_FIELDS), item)}
                         </span>
-                        <EventDateTime item={item} />
                     </Row>
                     <Row>
                         {isExpired && (
@@ -211,51 +222,32 @@ export class EventItem extends React.Component {
                                     onClick={toggleRelatedPlanning}
                                 >
                                     <i className="icon-calendar" />
-                                    {this.props.relatedPlanningText}
+                                    <span className="sd-margin-l--0-5">
+                                        {this.props.relatedPlanningText}
+                                    </span>
                                 </a>
                             </span>
                         )}
 
                         {secondaryFields.includes('location') && renderFields('location', item)}
-
-
                     </Row>
                 </Column>
+                <EventDateTimeColumn
+                    item={item}
+                    multiRow={listViewType === LIST_VIEW_TYPE.LIST}
+                />
+                {listViewType === LIST_VIEW_TYPE.SCHEDULE ? null : (
+                    <CreatedUpdatedColumn
+                        item={item}
+                        field={this.props.sortField === SORT_FIELD.CREATED ?
+                            'firstcreated' :
+                            'versioncreated'
+                        }
+                        minTimeWidth={this.props.minTimeWidth}
+                    />
+                )}
                 {this.renderItemActions()}
             </Item>
         );
     }
 }
-
-EventItem.propTypes = {
-    item: PropTypes.object.isRequired,
-    onItemClick: PropTypes.func.isRequired,
-    lockedItems: PropTypes.object.isRequired,
-    session: PropTypes.object,
-    privileges: PropTypes.object,
-    activeFilter: PropTypes.string,
-    toggleRelatedPlanning: PropTypes.func,
-    relatedPlanningText: PropTypes.string,
-    multiSelected: PropTypes.bool,
-    onMultiSelectClick: PropTypes.func,
-    calendars: PropTypes.array,
-    listFields: PropTypes.object,
-    refNode: PropTypes.func,
-    active: PropTypes.bool,
-    [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]: PropTypes.func,
-};
-
-EventItem.defaultProps = {
-    togglePlanningItem: () => { /* no-op */ },
-};

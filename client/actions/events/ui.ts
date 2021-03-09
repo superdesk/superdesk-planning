@@ -679,15 +679,18 @@ const requestEvents = (params = {}) => ({
     payload: {[MAIN.FILTERS.EVENTS]: params},
 });
 
-/**
- * Action to set the list of events in the current list
- * @param {Array} idsList - An array of Event IDs to assign to the current list
- * @return object
- */
-const setEventsList = (idsList) => ({
-    type: EVENTS.ACTIONS.SET_EVENTS_LIST,
-    payload: idsList,
-});
+// Action to set the list of events in the current list
+function setEventsList(ids: Array<IEventItem['_id']>) {
+    return (dispatch, getState) => {
+        dispatch({
+            type: EVENTS.ACTIONS.SET_EVENTS_LIST,
+            payload: {
+                ids: ids,
+                listViewType: selectors.main.getCurrentListViewType(getState()),
+            },
+        });
+    };
+}
 
 /**
  * Clears the Events List
@@ -697,13 +700,18 @@ const clearList = () => ({type: EVENTS.ACTIONS.CLEAR_LIST});
 /**
  * Action to add events to the current list
  * This action makes sure the list of events are unique, no duplicates
- * @param {array} eventsIds - An array of Event IDs to add
- * @return {{type: string, payload: *}}
  */
-const addToList = (eventsIds) => ({
-    type: EVENTS.ACTIONS.ADD_TO_EVENTS_LIST,
-    payload: eventsIds,
-});
+function addToList(ids: Array<IEventItem['_id']>) {
+    return (dispatch, getState) => {
+        dispatch({
+            type: EVENTS.ACTIONS.ADD_TO_EVENTS_LIST,
+            payload: {
+                ids: ids,
+                listViewType: selectors.main.getCurrentListViewType(getState()),
+            },
+        });
+    };
+}
 
 /**
  * Action to receive the history of actions on Event and store them in the store

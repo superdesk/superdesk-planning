@@ -1,6 +1,9 @@
 import moment from 'moment-timezone';
-import {TIME_COMPARISON_GRANULARITY} from '../constants';
+
+import {appConfig} from 'appConfig';
 import {IEventItem} from '../interfaces';
+
+import {TIME_COMPARISON_GRANULARITY} from '../constants';
 
 /**
  * Returns the start date/time of next week
@@ -143,6 +146,23 @@ function getTimeZoneAbbreviation(timezone: string): string {
     return timezone;
 }
 
+function getDateForVersionInList(date: moment.Moment | string, tz?: string): string {
+    const timezone = tz ?? localTimeZone();
+    const localDate = moment.tz(date, timezone);
+    const localNow = moment.tz(timezone);
+    const shortTimeFormat = appConfig.shortTimeFormat || 'hh:mm';
+    const shortDateFormat = appConfig.shortDateFormat || 'DD.MM';
+    const dateFormat = appConfig.view.dateformat || 'DD.MM.YYYY';
+
+    if (localDate.isSame(localNow, 'day')) {
+        return localDate.format(shortTimeFormat);
+    } else if (localDate.isSame(localNow, 'year')) {
+        return localDate.format(shortDateFormat + ' @ ' + shortTimeFormat);
+    }
+
+    return localDate.format(dateFormat + ' @ ' + shortTimeFormat);
+}
+
 // eslint-disable-next-line consistent-this
 const self = {
     getStartOfNextWeek,
@@ -154,6 +174,7 @@ const self = {
     getDateInRemoteTimeZone,
     getLocalDate,
     getTimeZoneAbbreviation,
+    getDateForVersionInList,
 };
 
 export default self;

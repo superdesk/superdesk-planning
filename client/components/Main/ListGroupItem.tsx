@@ -1,6 +1,12 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {debounce, indexOf} from 'lodash';
+
+import {
+    IEventListItemProps,
+    IPlanningListItemProps,
+    IEventOrPlanningItem,
+    IEventItem, IPlanningItem, IBaseListItemProps
+} from '../../interfaces';
 
 import {EventItem, EventItemWithPlanning} from '../Events';
 import {PlanningItem} from '../Planning';
@@ -8,8 +14,35 @@ import {PlanningItem} from '../Planning';
 import {ITEM_TYPE, EVENTS, PLANNING, MAIN, CLICK_DELAY} from '../../constants';
 import {getItemType, eventUtils} from '../../utils';
 
+interface IProps extends Omit<
+    IEventListItemProps & IPlanningListItemProps,
+    'item' | 'multiSelected' | 'refNode' | 'onItemClick'
+> {
+    item: IEventOrPlanningItem;
+    previewItem?: IEventOrPlanningItem['_id'];
+    relatedPlanningsInList: {[key: string]: Array<IPlanningItem>};
+    selectedEventIds: Array<IEventItem['_id']>;
+    selectedPlanningIds: Array<IPlanningItem['_id']>;
+    itemActions: {[key: string]: () => void}; // List of item action dispatches (i.e. Cancel Event)
+    index: number;
+    navigateDown?: boolean;
+    minTimeWidth?: string;
 
-export class ListGroupItem extends React.Component {
+    onDoubleClick(item: IEventOrPlanningItem): void;
+    showRelatedPlannings(item: IEventItem): void;
+    navigateList(increment?: boolean): void;
+    onItemActivate(item: IEventItem, forceActivate?: boolean): void;
+    onItemClick(index: number, item: IEventOrPlanningItem): void;
+}
+
+interface IState {
+    clickedOnce?: boolean;
+}
+
+export class ListGroupItem extends React.Component<IProps, IState> {
+    dom: {item: HTMLElement};
+    _delayedClick: any | undefined;
+
     constructor(props) {
         super(props);
         this.state = {clickedOnce: undefined};
@@ -86,6 +119,9 @@ export class ListGroupItem extends React.Component {
             previewItem,
             contentTypes,
             contacts,
+            listViewType,
+            sortField,
+            minTimeWidth,
         } = this.props;
         const itemType = getItemType(item);
 
@@ -93,7 +129,7 @@ export class ListGroupItem extends React.Component {
         const clickHandler = onItemClick && onDoubleClick ? this.handleSingleAndDoubleClick :
             this.onSingleClick;
 
-        let itemProps = {
+        let itemProps: Omit<IBaseListItemProps<IEventOrPlanningItem>, 'multiSelected'> = {
             item: item,
             onItemClick: clickHandler.bind(null, index),
             lockedItems: lockedItems,
@@ -103,13 +139,17 @@ export class ListGroupItem extends React.Component {
             onMultiSelectClick: onMultiSelectClick,
             listFields: listFields,
             active: active,
+            listViewType: listViewType,
+            sortField: sortField,
+            minTimeWidth: minTimeWidth,
             refNode: (node) => {
                 this.dom.item = node;
             },
         };
 
-        let eventProps = {
+        let eventProps: IEventListItemProps = {
             ...itemProps,
+            item: item as IEventItem,
             calendars: calendars,
             multiSelected: indexOf(selectedEventIds, item._id) !== -1,
             [EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName]:
@@ -144,8 +184,9 @@ export class ListGroupItem extends React.Component {
                 itemActions[EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName],
         };
 
-        let planningProps = {
+        let planningProps: IPlanningListItemProps = {
             ...itemProps,
+            item: item as IPlanningItem,
             contacts: contacts,
             users: users,
             desks: desks,
@@ -207,6 +248,7 @@ export class ListGroupItem extends React.Component {
                         navigateList={navigateList}
                         onItemActivate={onItemActivate}
                         previewItem={previewItem}
+                        listViewType={this.props.listViewType}
                     />
                 );
             }
@@ -223,38 +265,3 @@ export class ListGroupItem extends React.Component {
         return null;
     }
 }
-
-ListGroupItem.propTypes = {
-    item: PropTypes.object.isRequired,
-    date: PropTypes.string.isRequired,
-    users: PropTypes.array,
-    desks: PropTypes.array,
-    onItemClick: PropTypes.func.isRequired,
-    onDoubleClick: PropTypes.func,
-    editItem: PropTypes.object,
-    previewItem: PropTypes.string,
-    lockedItems: PropTypes.object.isRequired,
-    agendas: PropTypes.array.isRequired,
-    session: PropTypes.object,
-    privileges: PropTypes.object,
-    activeFilter: PropTypes.string,
-    showRelatedPlannings: PropTypes.func,
-    relatedPlanningsInList: PropTypes.object,
-    onAddCoverageClick: PropTypes.func,
-    onMultiSelectClick: PropTypes.func,
-    selectedEventIds: PropTypes.array,
-    selectedPlanningIds: PropTypes.array,
-    itemActions: PropTypes.object,
-    showAddCoverage: PropTypes.bool,
-    hideItemActions: PropTypes.bool,
-    listField: PropTypes.object,
-    calendars: PropTypes.array,
-    listFields: PropTypes.object,
-    active: PropTypes.bool,
-    index: PropTypes.number,
-    navigateDown: PropTypes.bool,
-    navigateList: PropTypes.func,
-    onItemActivate: PropTypes.func,
-    contentTypes: PropTypes.array,
-    contacts: PropTypes.object,
-};

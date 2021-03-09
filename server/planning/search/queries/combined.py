@@ -70,6 +70,7 @@ def search_dates(params: Dict[str, Any], query: elastic.ElasticQuery):
     planning_query = elastic.ElasticQuery()
     planning.search_planning(params, planning_query)
     planning.search_dates(params, planning_query)
+    planning.set_search_sort(params, planning_query)
     query.sort = planning_query.sort
     planning_query.sort = []
 

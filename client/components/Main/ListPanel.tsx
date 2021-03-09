@@ -1,15 +1,79 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {get} from 'lodash';
+
+import {superdeskApi} from '../../superdeskApi';
+import {IDesk, IUser} from 'superdesk-api';
+import {
+    FILTER_TYPE,
+    IAgenda, ICalendar, IContactItem,
+    IEventItem,
+    IEventOrPlanningItem, IG2ContentType,
+    ILockedItems,
+    IPlanningItem,
+    ISession, LIST_VIEW_TYPE, SORT_FIELD
+} from '../../interfaces';
+
+import {KEYCODES, MAIN} from '../../constants';
+import {onEventCapture} from '../../utils';
+
 import {ListGroup} from '.';
 import {PanelInfo} from '../UI';
 import {Item, Column, Group} from '../UI/List';
-import {gettext} from '../../utils/gettext';
-import {onEventCapture} from '../../utils';
-import {KEYCODES, MAIN} from '../../constants';
 import './style.scss';
 
-export class ListPanel extends React.Component {
+
+interface IProps {
+    groups: Array<{
+        date?: string;
+        events: Array<IEventOrPlanningItem>;
+    }>;
+    desks: Array<IDesk>;
+    users: Array<IUser>;
+    lockedItems: ILockedItems;
+    previewItem: IEventOrPlanningItem['_id'];
+    agendas: Array<IAgenda>;
+    session: ISession;
+    privileges: {[key: string]: number};
+    activeFilter: FILTER_TYPE;
+    relatedPlanningsInList?: {[key: string]: Array<IPlanningItem>}; // Map Event Ids to Related Plannings
+    selectedEventIds?: Array<IEventItem['_id']>;
+    selectedPlanningIds?: Array<IPlanningItem['_id']>;
+    itemActions: {[key: string]: () => void}; // List of item action dispatches (i.e. Cancel Event)
+    loadingIndicator: boolean;
+    showAddCoverage?: boolean;
+    hideItemActions?: boolean;
+    listFields?: {[key: string]: { // List fields from planning_types collection (i.e. Planning Profiles)
+        primary_fields?: Array<string>;
+        secondary_fields?: Array<string>;
+    }};
+    calendars: Array<ICalendar>;
+    isAllListItemsLoaded: boolean;
+    indexItems?: boolean;
+    contentTypes: Array<IG2ContentType>;
+    contacts: {[key: string]: IContactItem};
+    listViewType: LIST_VIEW_TYPE;
+    sortField: SORT_FIELD;
+    userInitiatedSearch?: boolean;
+
+    onItemClick(item: IEventOrPlanningItem): void;
+    onDoubleClick(item: IEventOrPlanningItem): void;
+    onAddCoverageClick(item: IPlanningItem): void;
+    onMultiSelectClick(item: IEventOrPlanningItem, value: boolean, shiftKey: boolean, name: string): void;
+    showRelatedPlannings(item: IEventItem): void;
+    loadMore(viewType: FILTER_TYPE): Promise<any>;
+    filter(viewType: FILTER_TYPE): Promise<any>;
+}
+
+interface IState {
+    isNextPageLoading: boolean;
+    scrollTop: number;
+    activeItemIndex: number;
+    navigateDown: boolean;
+}
+
+export class ListPanel extends React.Component<IProps, IState> {
+    dom: {list?: any};
+
     constructor(props) {
         super(props);
         this.state = {
@@ -174,13 +238,14 @@ export class ListPanel extends React.Component {
     }
 
     // Function to preview the item once activated
-    onItemActivate(item, force) {
+    onItemActivate(item: IEventOrPlanningItem, force?: boolean) {
         if ((this.props.previewItem || force) && item && this.props.previewItem !== item._id) {
             this.props.onItemClick(item);
         }
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const {
             groups,
             onDoubleClick,
@@ -208,6 +273,8 @@ export class ListPanel extends React.Component {
             previewItem,
             contentTypes,
             contacts,
+            listViewType,
+            sortField,
         } = this.props;
 
         let indexFrom = 0;
@@ -229,9 +296,9 @@ export class ListPanel extends React.Component {
                         onScroll={this.handleScroll}
                         ref={(node) => this.dom.list = node}
                         onKeyDown={this.handleKeyDown}
-                        tabIndex="0"
+                        tabIndex={0}
                     >
-                        {groups.map((group, index) => {
+                        {groups.map((group) => {
                             const propsForNestedListItems = {
                                 navigateDown: this.state.navigateDown, // tells the direction of navigation
                                 navigateList: this.navigateListWorker, // transfer navigation control to this component
@@ -239,7 +306,7 @@ export class ListPanel extends React.Component {
                                 previewItem: previewItem, // prop to tell if item is being previewed currently
                             };
 
-                            let listGroupProps = {
+                            let listGroupProps: {[key: string]: any} = {
                                 name: group.date,
                                 items: group.events,
                                 onItemClick: this.onItemClick,
@@ -264,6 +331,8 @@ export class ListPanel extends React.Component {
                                 hideItemActions: hideItemActions,
                                 listFields: listFields,
                                 contacts: contacts,
+                                listViewType: listViewType,
+                                sortField: sortField,
                                 ...propsForNestedListItems,
                             };
 
@@ -274,7 +343,12 @@ export class ListPanel extends React.Component {
                                 indexFrom = indexFrom + get(group, 'events.length', 0);
                             }
 
-                            return <ListGroup key={group.date} {...listGroupProps} />;
+                            return (
+                                <ListGroup
+                                    key={group.date}
+                                    {...listGroupProps}
+                                />
+                            );
                         })}
                         {!isAllListItemsLoaded && (
                             <div className="ListGroup">
@@ -297,39 +371,3 @@ export class ListPanel extends React.Component {
         );
     }
 }
-
-ListPanel.propTypes = {
-    groups: PropTypes.array,
-    users: PropTypes.array,
-    desks: PropTypes.array,
-    onItemClick: PropTypes.func.isRequired,
-    onDoubleClick: PropTypes.func,
-    lockedItems: PropTypes.object.isRequired,
-    editItem: PropTypes.object,
-    previewItem: PropTypes.string,
-    agendas: PropTypes.array.isRequired,
-    session: PropTypes.object,
-    privileges: PropTypes.object,
-    activeFilter: PropTypes.string,
-    showRelatedPlannings: PropTypes.func,
-    relatedPlanningsInList: PropTypes.object,
-    loadMore: PropTypes.func.isRequired,
-    onAddCoverageClick: PropTypes.func,
-    onMultiSelectClick: PropTypes.func,
-    selectedEventIds: PropTypes.array,
-    selectedPlanningIds: PropTypes.array,
-    itemActions: PropTypes.object,
-    filter: PropTypes.func,
-    loadingIndicator: PropTypes.bool,
-    showAddCoverage: PropTypes.bool,
-    hideItemActions: PropTypes.bool,
-    listFields: PropTypes.object,
-    calendars: PropTypes.array,
-    isAllListItemsLoaded: PropTypes.bool,
-    indexItems: PropTypes.bool,
-    navigateDown: PropTypes.bool,
-    navigateList: PropTypes.func,
-    onItemActivate: PropTypes.func,
-    contentTypes: PropTypes.array,
-    contacts: PropTypes.object,
-};

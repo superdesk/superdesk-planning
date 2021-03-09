@@ -1,15 +1,43 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {get, findIndex} from 'lodash';
-import {EventItem} from '.';
-import {PlanningItem} from '../Planning';
-import {NestedItem} from '../UI/List';
-import {gettext} from '../../utils/gettext';
+
+import {
+    LIST_VIEW_TYPE,
+    IEventListItemProps,
+    IPlanningListItemProps,
+    IEventItem,
+    IEventOrPlanningItem,
+    IPlanningItem,
+} from '../../interfaces';
+import {superdeskApi} from '../../superdeskApi';
+
 import {onEventCapture} from '../../utils';
 import {KEYCODES} from '../../constants';
 
+import {EventItem} from '.';
+import {PlanningItem} from '../Planning';
+import {NestedItem} from '../UI/List';
 
-export class EventItemWithPlanning extends React.Component {
+interface IProps {
+    eventProps: IEventListItemProps;
+    planningProps: IPlanningListItemProps;
+    relatedPlanningsInList: {[key: string]: Array<IPlanningItem>};
+    navigateDown?: boolean;
+    previewItem: IEventOrPlanningItem['_id'];
+    listViewType: LIST_VIEW_TYPE;
+
+    showRelatedPlannings(item: IEventItem): void;
+    refNode?(node: HTMLElement): void;
+    navigateList(increment?: boolean): void;
+    onItemActivate(item: IEventItem, forceActivate?: boolean): void;
+}
+
+interface IState {
+    openPlanningItems: boolean;
+    activeIndex: number;
+}
+
+export class EventItemWithPlanning extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
         this.state = {
@@ -177,6 +205,7 @@ export class EventItemWithPlanning extends React.Component {
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const planningItems = get(this.props, 'eventProps.item.planning_ids', []).length;
         const relatedPlanningText = gettext('({{ count }}) {{ action }} planning item(s)', {
             count: planningItems,
@@ -210,20 +239,9 @@ export class EventItemWithPlanning extends React.Component {
                 collapsed={!this.state.openPlanningItems}
                 expanded={this.state.openPlanningItems}
                 nestedChildren={getPlannings(eventProps.item)}
+                noMarginTop={this.props.listViewType === LIST_VIEW_TYPE.LIST}
                 refNode={this.props.refNode}
             />
         );
     }
 }
-
-EventItemWithPlanning.propTypes = {
-    eventProps: PropTypes.object.isRequired,
-    planningProps: PropTypes.object.isRequired,
-    showRelatedPlannings: PropTypes.func.isRequired,
-    relatedPlanningsInList: PropTypes.object.isRequired,
-    refNode: PropTypes.func,
-    navigateDown: PropTypes.bool,
-    navigateList: PropTypes.func,
-    onItemActivate: PropTypes.func,
-    previewItem: PropTypes.string,
-};
