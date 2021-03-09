@@ -111,7 +111,6 @@ export const getEventsPlanningViewParams = createSelector(
         advancedSearch: get(search, 'advancedSearch', {}),
         spikeState: get(search, 'spikeState', SPIKED_STATE.NOT_SPIKED),
         fulltext: fullTextParam,
-        eventsPlanningFilter: filterId || EVENTS_PLANNING.FILTER.ALL_EVENTS_PLANNING,
         filter_id: filterId,
         page: 1,
     })

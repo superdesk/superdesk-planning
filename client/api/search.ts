@@ -19,7 +19,6 @@ export function convertCommonParams(params: ISearchParams): Partial<ISearchAPIPa
     return {
         item_ids: arrayToString(params.item_ids),
         name: params.name,
-        tz_offset: params.tz_offset,
         full_text: params.full_text,
         anpa_category: cvsToString(params.anpa_category),
         subject: cvsToString(params.subject),

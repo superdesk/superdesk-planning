@@ -130,6 +130,12 @@ export enum FILTER_TYPE {
     COMBINED = 'combined',
 }
 
+export enum PLANNING_VIEW {
+    EVENTS = 'EVENTS',
+    PLANNING = 'PLANNING',
+    COMBINED = 'COMBINED',
+}
+
 export enum DATE_RANGE {
     TODAY = 'today',
     TOMORROW = 'tomorrow',
@@ -1171,6 +1177,28 @@ export interface IContentTemplate extends IBaseRestApiResponse {
     };
 }
 
+interface IMainStateSearch<T> {
+    lastRequestParams: T;
+    fulltext?: string;
+    currentSearch?: T;
+    totalItems: number;
+    jumpInterval: JUMP_INTERVAL;
+}
+
+export interface IMainState {
+    previewId?: IEventItem['_id'] | IPlanningItem['_id'];
+    previewType?: IEventItem['type'] | IPlanningItem['type'];
+    loadingPreview: boolean;
+    filter?: PLANNING_VIEW;
+    loadingIndicator: boolean;
+    itemHistory: Array<any>;
+    search: {
+        EVENTS: IMainStateSearch<IEventSearchParams>;
+        PLANNING: IMainStateSearch<IPlanningSearchParams>;
+        COMBINED: IMainStateSearch<ICombinedSearchParams>;
+    };
+}
+
 export interface IAgendaState {
     agendas: Array<IAgenda>;
     currentPlanningId?: IPlanningItem['_id'];
@@ -1191,6 +1219,7 @@ export interface IEventState {
 }
 
 export interface IPlanningAppState {
+    main: IMainState;
     agenda: IAgendaState;
     events: IEventState;
 }
