@@ -1,37 +1,30 @@
-import {MAIN} from '../constants';
 import {createSelector} from 'reselect';
-import {ICombinedSearchParams, IEventSearchParams, IPlanningSearchParams, ISearchParams} from '../interfaces';
+import {IPlanningAppState, ISearchParams, PLANNING_VIEW} from '../interfaces';
 import {planningParamsToSearchParams, eventParamsToSearchParams, combinedParamsToSearchParams} from '../utils/search';
 
-export function activeFilter(state): string {
-    return state.main?.filter ?? MAIN.FILTERS.COMBINED;
+export function activeFilter(state: IPlanningAppState): PLANNING_VIEW {
+    return state.main?.filter ?? PLANNING_VIEW.COMBINED;
 }
 
-interface IStoredSearchParams {
-    COMBINED: ICombinedSearchParams;
-    EVENTS: IEventSearchParams;
-    PLANNING: IPlanningSearchParams;
-}
-
-export function allSearchParams(state): IStoredSearchParams {
+export function allSearchParams(state: IPlanningAppState): IPlanningAppState['main']['search'] {
     return state.main?.search;
 }
 
 export const currentSearchParams = createSelector<
-    any,
-    string,
-    IStoredSearchParams,
+    IPlanningAppState,
+    PLANNING_VIEW,
+    IPlanningAppState['main']['search'],
     ISearchParams
 >(
     [activeFilter, allSearchParams],
     (currentFilter, params) => {
         switch (currentFilter) {
-        case MAIN.FILTERS.EVENTS:
-            return eventParamsToSearchParams(params.EVENTS);
-        case MAIN.FILTERS.PLANNING:
-            return planningParamsToSearchParams(params.PLANNING);
-        case MAIN.FILTERS.COMBINED:
-            return combinedParamsToSearchParams(params.COMBINED);
+        case PLANNING_VIEW.EVENTS:
+            return eventParamsToSearchParams(params.EVENTS.currentSearch);
+        case PLANNING_VIEW.PLANNING:
+            return planningParamsToSearchParams(params.PLANNING.currentSearch);
+        case PLANNING_VIEW.COMBINED:
+            return combinedParamsToSearchParams(params.COMBINED.currentSearch);
         }
     }
 );
