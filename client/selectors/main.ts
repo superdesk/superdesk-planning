@@ -1,18 +1,30 @@
 import {createSelector} from 'reselect';
-import {get, isEmpty, isBoolean} from 'lodash';
+import {get, isBoolean, isEmpty, cloneDeep} from 'lodash';
 import moment from 'moment';
 
 import {appConfig} from 'appConfig';
+import {
+    IPlanningAppState,
+    LIST_VIEW_TYPE,
+    PLANNING_VIEW,
+    SORT_FIELD,
+    SORT_ORDER,
+    ICombinedEventOrPlanningSearchParams,
+} from '../interfaces';
 
-import {MAIN, SPIKED_STATE} from '../constants';
-import {orderedEvents, storedEvents, eventsInList, currentEventFilterId} from './events';
-import {orderedPlanningList, storedPlannings, plansInList, currentPlanningFilterId} from './planning';
-import {orderedEventsPlanning, getEventsPlanningList, selectedFilter} from './eventsplanning';
-import {ITEM_TYPE} from '../constants';
+import {ITEM_TYPE, MAIN, SPIKED_STATE} from '../constants';
+import {currentEventFilterId, eventsInList, orderedEvents, storedEvents} from './events';
+import {currentPlanningFilterId, orderedPlanningList, plansInList, storedPlannings} from './planning';
+import {getEventsPlanningList, orderedEventsPlanning, selectedFilter} from './eventsplanning';
 import {getSearchDateRange} from '../utils';
 
 
-export const activeFilter = (state) => get(state, 'main.filter', MAIN.FILTERS.COMBINED);
+export const getCurrentListViewType = (state?: IPlanningAppState) => (
+    state?.main?.listViewType ?? LIST_VIEW_TYPE.SCHEDULE
+);
+export const activeFilter = (state: IPlanningAppState) => (
+    state?.main?.filter ?? PLANNING_VIEW.COMBINED
+);
 export const isEventsPlanningView = (state) =>
     get(state, 'main.filter', '') === MAIN.FILTERS.COMBINED;
 export const isEventsView = (state) =>
@@ -64,6 +76,16 @@ export const currentSearch = createSelector(
     (filter, params) => get(params, `${filter}.currentSearch`, {})
 );
 
+export const getCurrentSortOrder = createSelector(
+    [currentSearch],
+    (params) => params.sortOrder ?? SORT_ORDER.ASCENDING
+);
+
+export const getCurrentSortField = createSelector(
+    [currentSearch],
+    (params) => params.sortField ?? SORT_FIELD.SCHEDULE,
+);
+
 export const currentJumpInterval = createSelector(
     [activeFilter, searchParams],
     (filter, params) => get(params, `${filter}.jumpInterval`) || MAIN.JUMP.WEEK
@@ -100,7 +122,12 @@ export const combinedTotalItems = (state) => get(state, 'main.search.COMBINED.to
 export const featuredPlanningTotalItems = (state) => get(state, 'main.search.FEATURED_PLANNING.totalItems', 0);
 export const loadingIndicator = (state) => get(state, 'main.loadingIndicator', false);
 
-export const lastRequestParams = createSelector(
+export const lastRequestParams = createSelector<
+    IPlanningAppState,
+    PLANNING_VIEW,
+    IPlanningAppState['main']['search'],
+    ICombinedEventOrPlanningSearchParams
+>(
     [activeFilter, searchParams],
     (filter, params) => get(params, `${filter}.lastRequestParams`, {})
 );
@@ -110,20 +137,56 @@ export const fullText = createSelector(
     (filter, params) => get(params, `${filter}.fulltext`, '')
 );
 
-export const isViewFiltered = createSelector(
+export const isViewFiltered = createSelector<
+    IPlanningAppState,
+    PLANNING_VIEW,
+    IPlanningAppState['main']['search'],
+    boolean
+>(
     [activeFilter, searchParams],
-    (filter, params) => {
-        const advancedSearch = get(params, `${filter}.currentSearch.advancedSearch`, {});
-        const spikedState = get(params, `${filter}.currentSearch.spikeState`, SPIKED_STATE.NOT_SPIKED);
-        const fullText = get(params, `${filter}.fulltext`, '');
+    (filter, searchParams) => {
+        // Clone the params so we aren't affecting the original
+        const params = cloneDeep(searchParams[filter].currentSearch ?? {});
+        const advancedSearch = cloneDeep(params.advancedSearch ?? {});
 
-        if (spikedState !== SPIKED_STATE.NOT_SPIKED || !isEmpty(fullText)) {
-            return true;
-        }
+        // Remove fields that we don't want to calculate
+        const exclude: Array<keyof ICombinedEventOrPlanningSearchParams> = [
+            'filter_id',
+            'timezoneOffset',
+            'advancedSearch',
+            'itemIds',
+            'page',
+            'startOfWeek',
+            'sortField',
+            'sortOrder',
+        ];
 
-        return Object.keys(advancedSearch)
+        exclude.forEach((field) => {
+            delete params[field];
+        });
+
+        // Remove params that are the same as the defaults
+        const defaults: Partial<ICombinedEventOrPlanningSearchParams> = {
+            spikeState: 'draft',
+            maxResults: 50,
+            onlyFuture: true,
+        };
+
+        Object.keys(defaults).forEach((field) => {
+            if (params[field] === defaults[field]) {
+                delete params[field];
+            }
+        });
+
+        // Flatten all params into a single dictionary
+        const allParams = {
+            ...params,
+            ...advancedSearch,
+        };
+
+        return Object.keys(allParams)
             .some((key) => {
-                const value = advancedSearch[key];
+                const value = allParams[key];
 
                 if (key === 'spikeState') {
                     return value !== SPIKED_STATE.NOT_SPIKED;

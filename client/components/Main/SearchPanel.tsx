@@ -3,7 +3,7 @@ import {connect} from 'react-redux';
 import {set, get, cloneDeep, isEqual} from 'lodash';
 
 import {superdeskApi, planningApi} from '../../superdeskApi';
-import {ISearchParams} from '../../interfaces';
+import {ISearchParams, PLANNING_VIEW} from '../../interfaces';
 
 import {Button} from '../UI';
 import {Content, Footer, Header, SidePanel, Tools, ContentBlock, ContentBlockInner} from '../UI/SidePanel';
@@ -12,7 +12,7 @@ import * as selectors from '../../selectors';
 import {currentSearchParams} from '../../selectors/search';
 
 interface IProps {
-    activeFilter: string;
+    activeFilter: PLANNING_VIEW;
     currentParams: ISearchParams;
     isViewFiltered: boolean;
     searchProfile: any;
@@ -52,10 +52,9 @@ export class SearchPanelComponent extends React.Component<IProps, IState> {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.activeFilter !== this.props.activeFilter || (
-            nextProps.activeFilter === this.props.activeFilter &&
+        if (nextProps.activeFilter !== this.props.activeFilter ||
             !isEqual(nextProps.currentParams, this.props.currentParams)
-        )) {
+        ) {
             this.setState({
                 params: cloneDeep(nextProps.currentParams),
             });

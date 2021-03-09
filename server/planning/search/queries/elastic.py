@@ -31,6 +31,8 @@ class ElasticQuery:
         self.should: List[Dict[str, Any]] = []
         self.sort: List[Any] = []
 
+        self.extra: Dict[str, Any] = {}
+
     def build(self) -> Dict[str, Any]:
         query = {'query': {'bool': {}}}
 

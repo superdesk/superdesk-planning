@@ -32,19 +32,19 @@ describe('main selectors', () => {
 
         it('if fulltext is set for events', () => {
             state.main.filter = MAIN.FILTERS.EVENTS;
-            state.main.search.EVENTS.fulltext = 'test';
+            state.main.search.EVENTS.currentSearch.fulltext = 'test';
             expect(selectors.main.isViewFiltered(state)).toBe(true);
         });
 
         it('if fulltext is set for planning', () => {
             state.main.filter = MAIN.FILTERS.PLANNING;
-            state.main.search.PLANNING.fulltext = '';
+            state.main.search.PLANNING.currentSearch.fulltext = '';
             expect(selectors.main.isViewFiltered(state)).toBe(false);
         });
 
         it('if fulltext is set for combined', () => {
             state.main.filter = MAIN.FILTERS.COMBINED;
-            state.main.search.COMBINED.fulltext = 'test';
+            state.main.search.COMBINED.currentSearch.fulltext = 'test';
             expect(selectors.main.isViewFiltered(state)).toBe(true);
         });
 

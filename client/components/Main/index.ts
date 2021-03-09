@@ -1,7 +1,6 @@
 export {ActionsSubnavDropdown} from './ActionsSubnavDropdown';
 export {CreateNewSubnavDropdown} from './CreateNewSubnavDropdown';
 export {ToggleFiltersButton} from './ToggleFiltersButton';
-export {FiltersBar} from './FiltersBar';
 export {FiltersBox} from './FiltersBox';
 export {SearchPanel} from './SearchPanel';
 export {HistoryTab} from './HistoryTab';
@@ -15,3 +14,4 @@ export {ListPanel} from './ListPanel';
 export {SubNavBar} from './SubNavBar';
 export {CalendarNavigation} from './CalendarNavigation';
 export {JumpToDropdown} from './JumpToDropdown';
+export {FilterSubnavDropdown} from './FilterSubnavDropdown';

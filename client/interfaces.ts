@@ -130,6 +130,12 @@ export enum FILTER_TYPE {
     COMBINED = 'combined',
 }
 
+export enum PLANNING_VIEW {
+    EVENTS = 'EVENTS',
+    PLANNING = 'PLANNING',
+    COMBINED = 'COMBINED',
+}
+
 export enum PREVIEW_PANEL {
     EVENT = 'event',
     PLANNING = 'planning',
@@ -154,6 +160,22 @@ export enum LOCK_STATE {
 export type ISearchSpikeState = 'spiked' | 'draft' | 'both';
 
 export type IDateRange = 'today' | 'tomorrow' | 'this_week' | 'next_week' | 'last24' | 'for_date';
+
+export enum SORT_ORDER {
+    ASCENDING = 'ascending',
+    DESCENDING = 'descending',
+}
+
+export enum SORT_FIELD {
+    SCHEDULE = 'schedule',
+    CREATED = 'created',
+    UPDATED = 'updated'
+}
+
+export enum LIST_VIEW_TYPE {
+    SCHEDULE = 'schedule',
+    LIST = 'list',
+}
 
 export type IPlanningProfile = {
     name: string;
@@ -558,6 +580,44 @@ export interface IFeaturedPlanningLock extends IBaseRestApiResponse {
     lock_session: string;
 }
 
+export interface IContactItem extends IBaseRestApiResponse {
+    is_active: boolean;
+    public: boolean;
+    organisation?: string;
+    first_name?: string;
+    last_name?: string;
+    honorific?: string;
+    job_title?: string;
+    mobile?: Array<{
+        number: string;
+        usage?: string;
+        public?: boolean;
+    }>;
+    contact_phone?: Array<{
+        number: string;
+        usage?: string;
+        public?: boolean;
+    }>;
+    fax?: string;
+    contact_email?: Array<string>;
+    twitter?: string;
+    facebook?: string;
+    instagram?: string;
+    website?: string;
+    contact_address?: Array<string>;
+    locality?: string;
+    city?: string;
+    contact_state?: string;
+    postcode?: string;
+    country?: {
+        name?: string;
+        qcode?: string;
+        translations: {[key: string]: string};
+    };
+    notes?: string;
+    contact_type?: string;
+}
+
 export enum ASSIGNMENT_STATE {
     DRAFT = 'draft',
     ASSIGNED = 'assigned',
@@ -607,6 +667,43 @@ export interface IAssignmentItem extends IBaseRestApiResponse {
     _to_delete: boolean;
 }
 
+export interface IBaseListItemProps<T> {
+    item: T;
+    lockedItems: ILockedItems;
+    session: ISession;
+    privileges: {[key: string]: number};
+    activeFilter: PLANNING_VIEW;
+    multiSelected: boolean;
+    listFields: any;
+    active: boolean;
+    listViewType: LIST_VIEW_TYPE;
+    sortField: SORT_FIELD;
+    minTimeWidth: string;
+
+    onItemClick(item: T): void;
+    onMultiSelectClick(item: T): void;
+    refNode(node: HTMLElement): void;
+}
+
+export interface IEventListItemProps extends IBaseListItemProps<IEventItem> {
+    relatedPlanningText?: string;
+    calendars: Array<ICalendar>;
+    toggleRelatedPlanning?(event: React.MouseEvent): void;
+}
+
+export interface IPlanningListItemProps extends IBaseListItemProps<IPlanningItem> {
+    date: string; // The date for this group, in the format YYYY-MM-DD
+    agendas: Array<IAgenda>;
+    users: Array<IUser>;
+    desks: Array<IDesk>;
+    // showUnlock?: boolean; // Is this used anymore?
+    hideItemActions: boolean;
+    showAddCoverage: boolean;
+    contentTypes: Array<IG2ContentType>;
+    contacts: {[key: string]: IContactItem};
+    onAddCoverageClick(): void;
+}
+
 export interface IDateSearchParams {
     range?: IDateRange;
     start?: moment.Moment;
@@ -643,6 +740,8 @@ export interface ICommonSearchParams<T extends IEventOrPlanningItem> {
     lock_state?: LOCK_STATE;
     timezoneOffset?: string;
     advancedSearch?: ICommonAdvancedSearchParams;
+    sortOrder?: SORT_ORDER;
+    sortField?: SORT_FIELD;
 }
 
 export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
@@ -965,6 +1064,8 @@ export interface ISearchParams {
     lock_state?: LOCK_STATE;
     recurrence_id?: string; // Both Events and Planning have recurrence_id
     filter_id?: ISearchFilter['_id'];
+    sort_order?: SORT_ORDER;
+    sort_field?: SORT_FIELD;
 
     // Event Params
     reference?: string;
@@ -1046,6 +1147,8 @@ export interface ISearchAPIParams {
     page?: number;
     max_results?: number;
     repo: FILTER_TYPE;
+    sort_order?: SORT_ORDER;
+    sort_field?: SORT_FIELD;
 }
 
 export interface ICommonFilterProfile {
@@ -1186,6 +1289,29 @@ export interface IContentTemplate extends IBaseRestApiResponse {
     };
 }
 
+interface IMainStateSearch<T> {
+    lastRequestParams: T;
+    fulltext?: string;
+    currentSearch?: T;
+    totalItems: number;
+    jumpInterval: JUMP_INTERVAL;
+}
+
+export interface IMainState {
+    previewId?: IEventItem['_id'] | IPlanningItem['_id'];
+    previewType?: IEventItem['type'] | IPlanningItem['type'];
+    listViewType: LIST_VIEW_TYPE;
+    loadingPreview: boolean;
+    filter?: PLANNING_VIEW;
+    loadingIndicator: boolean;
+    itemHistory: Array<any>;
+    search: {
+        EVENTS: IMainStateSearch<IEventSearchParams>;
+        PLANNING: IMainStateSearch<IPlanningSearchParams>;
+        COMBINED: IMainStateSearch<ICombinedSearchParams>;
+    };
+}
+
 export interface IAgendaState {
     agendas: Array<IAgenda>;
     currentPlanningId?: IPlanningItem['_id'];
@@ -1206,6 +1332,7 @@ export interface IEventState {
 }
 
 export interface IPlanningAppState {
+    main: IMainState;
     agenda: IAgendaState;
     events: IEventState;
 }
@@ -1267,10 +1394,9 @@ export interface IPlanningAPI {
             changeAgendaId(id: IAgenda['_id'], params?: IPlanningSearchParams): Promise<any>;
             search(params: ISearchParams): Promise<any>;
             clearSearch(): Promise<any>;
+            clearList(): void;
+            setViewType(viewType: LIST_VIEW_TYPE): Promise<any>;
+            changeCurrentView(view: PLANNING_VIEW): Promise<any>;
         };
     };
-    // Adding here until Superdesk 2.2 where this functionality is available
-    $location: {
-        search(name: string, values: any): void;
-    }
 }

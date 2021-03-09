@@ -141,7 +141,7 @@ class EventsPlanningService(Service):
         req.args = MultiDict()
         req.args['source'] = json.dumps({
             'query': query['query'],
-            'sort': self._get_sort(),
+            'sort': query['sort'] if query.get('sort') else self._get_sort(),
             'size': page_size,
             'from': (page - 1) * page_size
         })

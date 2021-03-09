@@ -1,5 +1,7 @@
-import events, {spikeEvent, unspikeEvent} from '../events';
 import {cloneDeep} from 'lodash';
+
+import events, {spikeEvent, unspikeEvent} from '../events';
+import {LIST_VIEW_TYPE} from '../../interfaces';
 
 describe('events', () => {
     describe('reducers', () => {
@@ -72,7 +74,10 @@ describe('events', () => {
             initialState.events = items;
             const result = events(initialState, {
                 type: 'SET_EVENTS_LIST',
-                payload: ['e1', 'e2', 'e3'],
+                payload: {
+                    listViewType: LIST_VIEW_TYPE.SCHEDULE,
+                    ids: ['e1', 'e2', 'e3'],
+                },
             });
 
             expect(result.eventsInList).toEqual(['e1', 'e3', 'e2']);
@@ -85,7 +90,10 @@ describe('events', () => {
                 eventsInList: ['e1', 'e2'],
             }, {
                 type: 'ADD_TO_EVENTS_LIST',
-                payload: ['e3', 'e1'],
+                payload: {
+                    listViewType: LIST_VIEW_TYPE.SCHEDULE,
+                    ids: ['e3', 'e1'],
+                },
             });
 
             expect(result.eventsInList).toEqual(['e1', 'e3', 'e2']);
