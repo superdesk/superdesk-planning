@@ -1,10 +1,19 @@
-import {AUTOSAVE} from '../../../constants';
-import {throttle, isNil, get, cloneDeep} from 'lodash';
+import {isNil, get, cloneDeep, debounce} from 'lodash';
+import {Dispatch} from 'redux';
+
+import {appConfig} from 'appConfig';
+import {IEventOrPlanningItem} from '../../../interfaces';
+import {ItemManager} from './ItemManager';
+
 import * as actions from '../../../actions';
 
-
 export class AutoSave {
-    constructor(editor) {
+    editor: ItemManager;
+    dispatch: Dispatch;
+    throttledSave: any | null;
+    autosaveItem?: IEventOrPlanningItem;
+
+    constructor(editor: ItemManager) {
         this.editor = editor;
         this.dispatch = this.editor.props.dispatch;
 
@@ -36,7 +45,7 @@ export class AutoSave {
         return this.editor.state;
     }
 
-    setState(state, cb) {
+    setState(state: any, cb?: () => Promise<any>) {
         let promise = Promise.resolve();
 
         if (this.editor && this.editor.setState) {
@@ -54,9 +63,9 @@ export class AutoSave {
 
     _initThrottle() {
         if (!this.throttledSave) {
-            this.throttledSave = throttle(
+            this.throttledSave = debounce(
                 this._saveAutosave,
-                AUTOSAVE.INTERVAL,
+                appConfig.planning?.autosave_timeout ?? 1500,
                 {leading: false, trailing: true}
             );
         }
@@ -87,7 +96,7 @@ export class AutoSave {
             this.setState({submitting: true});
 
         return promise.then(() => (
-            this.dispatch(actions.autosave.save(this.autosaveItem, updates))
+            this.dispatch<any>(actions.autosave.save(this.autosaveItem, updates))
                 .then((autosaveItem) => {
                     this.autosaveItem = autosaveItem;
 
@@ -117,12 +126,10 @@ export class AutoSave {
             return Promise.resolve();
         }
 
-        return this.dispatch(
+        return this.dispatch<any>(
             actions.autosave.fetchById(
                 itemType,
-                itemId,
-                false,
-                true
+                itemId
             )
         )
             .then((autosaveItem) => {
@@ -160,7 +167,7 @@ export class AutoSave {
 
                 this.cancelAutosave();
                 if (autosaveItem !== null) {
-                    return this.dispatch(
+                    return this.dispatch<any>(
                         actions.autosave.remove(autosaveItem)
                     );
                 }

@@ -12,8 +12,7 @@ export class ToggleInput extends Input {
     type(value) {
         cy.log('Common.ToggleInput.type');
         this.element
-            .click()
-            .should(value ? 'have.class' : 'not.have.class', 'checked');
+            .click();
     }
 
     /**

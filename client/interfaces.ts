@@ -214,6 +214,7 @@ export interface IPlanningConfig extends ISuperdeskGlobalConfig {
         dateformat?: string;
         timeformat?: string;
         allowed_coverage_link_types?: Array<string>;
+        autosave_timeout?: number;
     };
 }
 
