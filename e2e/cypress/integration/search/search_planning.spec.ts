@@ -73,7 +73,7 @@ describe('Search.Planning: searching planning items', () => {
         list.item(0)
             .dblclick();
         editor.waitTillOpen();
-        editor.waitForAutosave();
+        editor.waitForAutosavePost();
         search.runSearchTests([{
             params: {lock_state: 'Locked'},
             expectedCount: 1,
