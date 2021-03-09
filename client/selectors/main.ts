@@ -1,5 +1,5 @@
 import {createSelector} from 'reselect';
-import {get, isBoolean, isEmpty} from 'lodash';
+import {get, isBoolean, isEmpty, cloneDeep} from 'lodash';
 import moment from 'moment';
 
 import {appConfig} from 'appConfig';
@@ -137,20 +137,56 @@ export const fullText = createSelector(
     (filter, params) => get(params, `${filter}.fulltext`, '')
 );
 
-export const isViewFiltered = createSelector(
+export const isViewFiltered = createSelector<
+    IPlanningAppState,
+    PLANNING_VIEW,
+    IPlanningAppState['main']['search'],
+    boolean
+>(
     [activeFilter, searchParams],
-    (filter, params) => {
-        const advancedSearch = get(params, `${filter}.currentSearch.advancedSearch`, {});
-        const spikedState = get(params, `${filter}.currentSearch.spikeState`, SPIKED_STATE.NOT_SPIKED);
-        const fullText = get(params, `${filter}.fulltext`, '');
+    (filter, searchParams) => {
+        // Clone the params so we aren't affecting the original
+        const params = cloneDeep(searchParams[filter].currentSearch ?? {});
+        const advancedSearch = cloneDeep(params.advancedSearch ?? {});
 
-        if (spikedState !== SPIKED_STATE.NOT_SPIKED || !isEmpty(fullText)) {
-            return true;
-        }
+        // Remove fields that we don't want to calculate
+        const exclude: Array<keyof ICombinedEventOrPlanningSearchParams> = [
+            'filter_id',
+            'timezoneOffset',
+            'advancedSearch',
+            'itemIds',
+            'page',
+            'startOfWeek',
+            'sortField',
+            'sortOrder',
+        ];
 
-        return Object.keys(advancedSearch)
+        exclude.forEach((field) => {
+            delete params[field];
+        });
+
+        // Remove params that are the same as the defaults
+        const defaults: Partial<ICombinedEventOrPlanningSearchParams> = {
+            spikeState: 'draft',
+            maxResults: 50,
+            onlyFuture: true,
+        };
+
+        Object.keys(defaults).forEach((field) => {
+            if (params[field] === defaults[field]) {
+                delete params[field];
+            }
+        });
+
+        // Flatten all params into a single dictionary
+        const allParams = {
+            ...params,
+            ...advancedSearch,
+        };
+
+        return Object.keys(allParams)
             .some((key) => {
-                const value = advancedSearch[key];
+                const value = allParams[key];
 
                 if (key === 'spikeState') {
                     return value !== SPIKED_STATE.NOT_SPIKED;
