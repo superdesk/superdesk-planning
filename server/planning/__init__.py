@@ -47,7 +47,7 @@ import planning.feed_parsers  # noqa
 import planning.output_formatters  # noqa
 from planning.planning_download import init_app as init_planning_download_app
 
-__version__ = '2.1.2'
+__version__ = '2.1.3'
 
 _SERVER_PATH = os.path.dirname(os.path.realpath(__file__))
 
