@@ -167,7 +167,7 @@ export class Editor {
 
     waitForAutosavePost() {
         cy.log('Common.Editor.waitForAutosavePost');
-        cy.intercept('POST', `**/api/${this.autosavePrefix}_autosave/*`).as('postAutosave');
+        cy.intercept('POST', `**/api/${this.autosavePrefix}_autosave`).as('postAutosave');
         cy.wait('@postAutosave', {timeout: 3500});
     }
 
