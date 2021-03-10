@@ -1,5 +1,12 @@
 # Superdesk Planning Changelog
 
+## [2.1.3] 2021-03-10
+### Fixes
+- [SDCP-480] fix(search): Exceptions raised when search by urgency (#1556)
+- [SDCP-484] fix(search): Convert string fields to datetime (#1557)
+- [SDESK-5827] fix: Search panel params not persisting (#1558)
+- [SDESK-5827] fix: Search param selector returning incorrect data (#1560)
+
 ## [2.1.2] 2021-02-23
 ### Fixes
 - [SDCP-479] fix(filters): Filter schedule templates by desk (#1551)
