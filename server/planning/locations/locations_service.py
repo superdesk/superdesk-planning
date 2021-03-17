@@ -58,12 +58,17 @@ class LocationsService(Service):
             location = get_resource_service('locations').find_one(req=None, _id=lookup.get(config.ID_FIELD))
             if location:
                 events = get_resource_service('events').find(
-                    where={'location.qcode': str(location.get('guid'))})
+                    where={'location.qcode': str(location.get('guid'))}
+                )
                 if events.count():
                     # patch the unique name in case the location get recreated
-                    get_resource_service('locations').patch(location[config.ID_FIELD],
-                                                                      {'is_active': False,
-                                                                       'unique_name': str(location[config.ID_FIELD])})
+                    get_resource_service('locations').patch(
+                        location[config.ID_FIELD],
+                        {
+                            'is_active': False,
+                            'unique_name': str(location[config.ID_FIELD])
+                        }
+                    )
                     return
         super().delete(lookup)
 
