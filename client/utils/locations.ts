@@ -140,8 +140,9 @@ export function formatLocationToAddress(item: Partial<ILocation> | IEventLocatio
 
 export function getLocationsShortName(location: Partial<ILocation>) {
     const formattedAddress = formatLocationToAddress(location);
+    const title = location.address?.title ?? location.name;
 
-    return location.address?.title?.length ?
-        `${location.address.title}, ${formattedAddress}` :
+    return title ?
+        `${title}, ${formattedAddress}` :
         formattedAddress;
 }
