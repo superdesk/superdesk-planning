@@ -8,8 +8,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.6]
-        node-version: [12.x]
+        python-version: [3.6, 3.8]
+        node-version: [12.x, 14.x]
         e2e: [a, b]
     env:
       INSTALL_NODE_MODULES: true
