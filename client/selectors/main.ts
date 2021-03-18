@@ -144,9 +144,9 @@ export const isViewFiltered = createSelector<
     boolean
 >(
     [activeFilter, searchParams],
-    (filter, searchParams) => {
+    (filter, mainSearch) => {
         // Clone the params so we aren't affecting the original
-        const params = cloneDeep(searchParams[filter].currentSearch ?? {});
+        const params = cloneDeep(mainSearch[filter].currentSearch ?? {});
         const advancedSearch = cloneDeep(params.advancedSearch ?? {});
 
         // Remove fields that we don't want to calculate
