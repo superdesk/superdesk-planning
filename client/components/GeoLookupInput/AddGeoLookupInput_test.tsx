@@ -1,8 +1,11 @@
 import React from 'react';
 import {mount} from 'enzyme';
-import {GeoLookupInputComponent} from './AddGeoLookupInput';
 import sinon from 'sinon';
+
+import {planningApis} from '../../api';
+import {GeoLookupInputComponent} from './AddGeoLookupInput';
 import * as helpers from '../tests/helpers';
+import {restoreSinonStub} from '../../utils/testUtils';
 
 describe('<AddGeoLookupInput />', () => {
     let inputText;
@@ -24,15 +27,28 @@ describe('<AddGeoLookupInput />', () => {
         handleSearch = sinon.stub().returns(Promise.resolve());
 
         onChange = sinon.spy((field, value) => { /* no-op */ });
+        sinon.stub(planningApis.locations, 'search').callsFake(
+            () => Promise.resolve({_items: []})
+        );
+        sinon.stub(planningApis.locations, 'searchExternal').callsFake(
+            () => Promise.resolve([])
+        );
+    });
+
+    afterEach(() => {
+        restoreSinonStub(planningApis.locations.search);
+        restoreSinonStub(planningApis.locations.searchExternal);
     });
 
     const setWrapper = () => {
         wrapper = mount(
             <GeoLookupInputComponent
+                field="location"
                 initialValue={initialValue}
                 onChange={onChange}
-                searchLocalLocations={handleSearch}
                 users={[]}
+                regions={[]}
+                countries={[]}
             />
         );
         return wrapper;
@@ -42,21 +58,13 @@ describe('<AddGeoLookupInput />', () => {
         setWrapper();
         wrapper.instance().handleInputChange(inputText);
 
-        expect(handleSearch.callCount).toBe(1);
-        expect(handleSearch.args[0]).toEqual(['Syd']);
+        expect(planningApis.locations.search.callCount).toBe(1);
+        expect(planningApis.locations.search.args[0]).toEqual(['Syd']);
     });
 
     it('invokes external search', () => {
         setWrapper();
         wrapper.instance().handleInputChange(inputText);
-        const externalSearchSpy = sinon.stub(wrapper.instance(),
-            'handleSearchClick').callsFake(() => { /* no-op */ });
-
-
-        // See https://github.com/airbnb/enzyme/issues/586
-        // Force the component and wrapper to update so that the stub is used
-        // ONLY works when both of these are present
-        wrapper.instance().forceUpdate();
         wrapper.update();
 
         const popup = new helpers.ui.Popup(wrapper);
@@ -64,25 +72,26 @@ describe('<AddGeoLookupInput />', () => {
         const searchBtn = searchTab.find('.btn');
 
         searchBtn.simulate('click');
-        expect(externalSearchSpy.callCount).toBe(1);
+        expect(planningApis.locations.searchExternal.callCount).toBe(2);
+        // There's a bug in the library `react-geoloookup` that causes
+        // our `searchExternal` to be called twice
+        expect(planningApis.locations.searchExternal.args[0]).toEqual([]);
+        expect(planningApis.locations.searchExternal.args[1]).toEqual(['Syd']);
     });
 
     it('external search button can be controlled by disableSearch prop', () => {
         wrapper = mount(
             <GeoLookupInputComponent
+                field="location"
                 initialValue={initialValue}
                 onChange={onChange}
-                searchLocalLocations={handleSearch}
                 disableSearch={true}
+                users={[]}
+                regions={[]}
+                countries={[]}
             />
         );
-
         wrapper.instance().handleInputChange(inputText);
-
-        // See https://github.com/airbnb/enzyme/issues/586
-        // Force the component and wrapper to update so that the stub is used
-        // ONLY works when both of these are present
-        wrapper.instance().forceUpdate();
         wrapper.update();
 
         const popup = new helpers.ui.Popup(wrapper);

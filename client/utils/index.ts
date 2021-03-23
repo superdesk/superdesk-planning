@@ -5,6 +5,7 @@ import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
 
 import {appConfig} from 'appConfig';
+import {INominatimItem} from '../interfaces';
 
 import planningApp from '../reducers';
 import {
@@ -16,7 +17,6 @@ import {
     GENERIC_ITEM_ACTIONS,
     WORKSPACE,
     MAIN,
-    SPIKED_STATE,
     TEMP_ID_PREFIX, PRIVILEGES,
     AUTOSAVE,
     QUEUE_ITEM_PREFIX,
@@ -46,7 +46,6 @@ export {planningUtils};
 export {timeUtils};
 export {eventPlanningUtils};
 import {gettext} from './gettext';
-// import * as elastic from '../utils/elastic';
 
 // Polyfill Promise.finally function as this was introduced in Chrome 63+
 import promiseFinally from 'promise.prototype.finally';
@@ -231,94 +230,6 @@ export const createStore = (params = {}, app = planningApp) => {
         initialState,
         _compose(applyMiddleware(...middlewares))
     );
-};
-
-export const formatAddress = (nominatim) => {
-    let address = nominatim.address;
-
-    if (!address) {
-        return;
-    }
-
-    if (!get(address, 'line[0]')) {
-        // Address from nominatim search
-        const localityHierarchy = [
-            'city',
-            'state',
-            'state_district',
-            'region',
-            'county',
-            'island',
-            'town',
-            'moor',
-            'waterways',
-            'village',
-            'district',
-            'borough',
-        ];
-
-        const localityField = localityHierarchy.find((locality) =>
-            nominatim.address.hasOwnProperty(locality)
-        );
-        // Map nominatim fields to NewsML area
-        const areaHierarchy = [
-            'island',
-            'town',
-            'moor',
-            'waterways',
-            'village',
-            'hamlet',
-            'municipality',
-            'district',
-            'borough',
-            'airport',
-            'national_park',
-            'suburb',
-            'croft',
-            'subdivision',
-            'farm',
-            'locality',
-            'islet',
-        ];
-        const areaField = areaHierarchy.find((area) =>
-            get(nominatim, 'address', {}).hasOwnProperty(area)
-        );
-
-        address = {
-            title: (localityHierarchy.indexOf(nominatim.type) === -1 &&
-                areaHierarchy.indexOf(nominatim.type) === -1) ?
-                get(nominatim.address, nominatim.type) : null,
-            line: [
-                (`${get(nominatim.address, 'house_number', '')} ` +
-                `${get(nominatim.address, 'road', '')}`)
-                    .trim(),
-            ],
-            locality: get(nominatim.address, localityField),
-            area: get(nominatim.address, areaField),
-            country: nominatim.address.country,
-            postal_code: nominatim.address.postcode,
-            external: {nominatim},
-            type: nominatim.type,
-            boundingbox: nominatim.boundingbox,
-        };
-    }
-
-    const formattedAddress = [
-        get(address, 'line[0]'),
-        get(address, 'area'),
-        get(address, 'locality'),
-        get(address, 'postal_code'),
-        get(address, 'country'),
-    ].filter((d) => d).join(', ');
-
-    const shortName = get(address, 'title') ? get(address, 'title') + ', ' + formattedAddress :
-        formattedAddress;
-
-    return {
-        address,
-        formattedAddress,
-        shortName,
-    };
 };
 
 /**

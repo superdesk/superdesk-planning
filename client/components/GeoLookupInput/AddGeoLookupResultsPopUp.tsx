@@ -1,27 +1,57 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import * as React from 'react';
 import classNames from 'classnames';
-import {uiUtils, onEventCapture} from '../../utils';
-import {gettext} from '../../utils/gettext';
-import {KEYCODES} from '../../constants';
 import {get} from 'lodash';
-import {Button} from '../UI';
-import './style.scss';
 
+import {superdeskApi} from '../../superdeskApi';
+import {ILocation} from '../../interfaces';
+import {KEYCODES} from '../../constants';
+
+import {uiUtils, onEventCapture} from '../../utils';
+
+import {Button} from '../UI';
 import {Popup, Content} from '../UI/Popup';
 import {LocationLookupResultItem} from './LocationLookupResultItem';
 
-export class AddGeoLookupResultsPopUp extends React.Component {
+import './style.scss';
+
+interface IProps {
+    suggests?: Array<Partial<ILocation>>;
+    localSuggests?: Array<ILocation>;
+    showExternalSearch?: boolean;
+    showAddLocation?: boolean;
+    target: string;
+    searching?: boolean;
+    onChange(location: Partial<ILocation>): void;
+    onCancel(): void;
+    handleSearchClick(): void;
+    onLocalSearchOnly(): void;
+    onAddNewLocation(): void;
+    onPopupOpen?(): void;
+    onPopupClose?(): void;
+}
+
+interface IState {
+    activeOptionIndex: number;
+    tab: 'localResults' | 'searchResults';
+}
+
+export class AddGeoLookupResultsPopUp extends React.Component<IProps, IState> {
+    dom: {
+        itemList: React.RefObject<HTMLUListElement>;
+    };
+
     constructor(props) {
         super(props);
+
         this.state = {
             activeOptionIndex: -1,
             tab: 'localResults',
         };
+
         this.handleKeyBoardEvent = this.handleKeyBoardEvent.bind(this);
         this.onTabChange = this.onTabChange.bind(this);
 
-        this.dom = {itemList: null};
+        this.dom = {itemList: React.createRef<HTMLUListElement>()};
     }
 
     handleKeyBoardEvent(event) {
@@ -29,15 +59,15 @@ export class AddGeoLookupResultsPopUp extends React.Component {
             switch (event.keyCode) {
             case KEYCODES.ENTER:
                 onEventCapture(event);
-                this.handleEnterKey(event);
+                this.handleEnterKey();
                 break;
             case KEYCODES.DOWN:
                 onEventCapture(event);
-                this.handleDownArrowKey(event);
+                this.handleDownArrowKey();
                 break;
             case KEYCODES.UP:
                 onEventCapture(event);
-                this.handleUpArrowKey(event);
+                this.handleUpArrowKey();
                 break;
             }
         }
@@ -66,16 +96,23 @@ export class AddGeoLookupResultsPopUp extends React.Component {
         if (this.state.activeOptionIndex <
             (1 + // External search button
             get(this.props.localSuggests, 'length', 0) +
-            get(this.props.suggests, 'length', 0)) - 1) {
+            get(this.props.suggests, 'length', 0)) - 1
+        ) {
             this.setState({activeOptionIndex: this.state.activeOptionIndex + 1});
-            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.dom.itemList);
+
+            if (this.dom.itemList.current != null) {
+                uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.dom.itemList.current);
+            }
         }
     }
 
     handleUpArrowKey() {
         if (this.state.activeOptionIndex > 0) {
             this.setState({activeOptionIndex: this.state.activeOptionIndex - 1});
-            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.dom.itemList);
+
+            if (this.dom.itemList.current != null) {
+                uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.dom.itemList.current);
+            }
         }
     }
 
@@ -96,6 +133,7 @@ export class AddGeoLookupResultsPopUp extends React.Component {
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const localSuggests = get(this.props.localSuggests, 'length') > 0 ?
             this.props.localSuggests : [];
         const suggests = get(this.props.suggests, 'length') > 0 ?
@@ -146,7 +184,7 @@ export class AddGeoLookupResultsPopUp extends React.Component {
                             <div className="nav-tabs__pane">
                                 <ul
                                     className="addgeolookup__suggests"
-                                    ref={(node) => this.dom.itemList = node}
+                                    ref={this.dom.itemList}
                                 >
                                     {localSuggests.map((suggest, index) => (
                                         <LocationLookupResultItem
@@ -171,7 +209,7 @@ export class AddGeoLookupResultsPopUp extends React.Component {
                                 ) : (
                                     <ul
                                         className="addgeolookup__suggests"
-                                        ref={(node) => this.dom.itemList = node}
+                                        ref={this.dom.itemList}
                                     >
                                         {suggests.map((suggest, index) => (
                                             <LocationLookupResultItem
@@ -209,19 +247,3 @@ export class AddGeoLookupResultsPopUp extends React.Component {
         );
     }
 }
-
-AddGeoLookupResultsPopUp.propTypes = {
-    suggests: PropTypes.array,
-    localSuggests: PropTypes.array,
-    onChange: PropTypes.func.isRequired,
-    onCancel: PropTypes.func,
-    handleSearchClick: PropTypes.func,
-    onLocalSearchOnly: PropTypes.func,
-    onAddNewLocation: PropTypes.func,
-    showExternalSearch: PropTypes.bool,
-    showAddLocation: PropTypes.bool,
-    target: PropTypes.string.isRequired,
-    searching: PropTypes.bool,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
-};

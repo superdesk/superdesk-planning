@@ -13,7 +13,6 @@
 import superdesk
 from eve.utils import config
 from flask_babel import lazy_gettext
-from .locations import LocationsResource, LocationsService
 from .agendas import AgendasResource, AgendasService
 from .planning_export_templates import PlanningExportTemplatesResource, PlanningExportTemplatesService
 from .planning_article_export import PlanningArticleExportResource, PlanningArticleExportService
@@ -38,6 +37,7 @@ from planning.planning import init_app as init_planning_app
 from planning.assignments import init_app as init_assignments_app
 from planning.search import init_app as init_search_app
 from planning.validate import init_app as init_validator_app
+from planning.locations import init_app as init_locations_app
 from superdesk.celery_app import celery
 from .published_planning import PublishedPlanningResource, PublishedPlanningService
 from superdesk.default_settings import celery_queue, CELERY_TASK_ROUTES as CTR, \
@@ -69,9 +69,6 @@ def init_app(app):
     agendas_service = AgendasService('agenda', backend=superdesk.get_backend())
     AgendasResource('agenda', app=app, service=agendas_service)
 
-    locations_search_service = LocationsService('locations', backend=superdesk.get_backend())
-    LocationsResource('locations', app=app, service=locations_search_service)
-
     export_template_service = PlanningExportTemplatesService(PlanningExportTemplatesResource.endpoint_name,
                                                              backend=superdesk.get_backend())
     PlanningExportTemplatesResource(PlanningExportTemplatesResource.endpoint_name,
@@ -80,6 +77,7 @@ def init_app(app):
 
     register_component(LockService(app))
 
+    init_locations_app(app)
     init_events_app(app)
     init_planning_app(app)
     init_assignments_app(app)
@@ -127,12 +125,6 @@ def init_app(app):
         name='planning_create_past',
         label=lazy_gettext('Planning - Create Event/Planning in the past'),
         description=lazy_gettext('Ability to create an Event or Planning item in the past'),
-    )
-
-    superdesk.privilege(
-        name='planning_locations_management',
-        label=lazy_gettext('Planning - Manage locations'),
-        description=lazy_gettext('Ability to create, edit and delete locations'),
     )
 
     superdesk.privilege(

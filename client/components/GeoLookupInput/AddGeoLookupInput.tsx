@@ -1,16 +1,16 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import Geolookup from 'react-geolookup';
 import DebounceInput from 'react-debounce-input';
-import * as Nominatim from 'nominatim-browser';
-import {get, has} from 'lodash';
 
 import {appConfig} from 'appConfig';
+import {IUser, IVocabularyItem, IRestApiResponse} from 'superdesk-api';
+import {ILocation, IEventLocation} from '../../interfaces';
+
+import {superdeskApi, planningApi} from '../../superdeskApi';
 
 import * as selectors from '../../selectors';
-import * as actions from '../../actions';
-import {formatAddress, gettext, getItemInArrayById} from '../../utils';
+import {formatLocationToAddress} from '../../utils/locations';
 import {KEYCODES} from '../../constants';
 
 import {AddGeoLookupResultsPopUp} from './AddGeoLookupResultsPopUp';
@@ -23,7 +23,51 @@ import './style.scss';
 * Modal for adding/editing a location with nominatim search
 */
 
-export class GeoLookupInputComponent extends React.Component {
+interface INominatimItemResponse {
+    isFixture: boolean;
+    label: string;
+    placeId: number;
+    raw: Partial<ILocation>;
+}
+
+interface IProps {
+    field: string;
+    initialValue?: ILocation | IEventLocation;
+    readOnly?: boolean;
+    disableSearch?: boolean;
+    users: Array<IUser>;
+    regions: Array<IVocabularyItem>;
+    countries: Array<IVocabularyItem>;
+    preferredCountry?: IVocabularyItem['name'];
+    onChange(field: string, value?: Partial<ILocation>): void;
+    onFocus?(): void;
+    popupContainer?(): HTMLElement;
+    onPopupOpen?(): void;
+    onPopupClose?(): void;
+}
+
+interface IState {
+    searchResults?: Array<Partial<ILocation>>;
+    openSuggestsPopUp: boolean;
+    openNewLocationPopup: boolean;
+    unsavedInput: string;
+    localSearchResults?: Array<ILocation>;
+    searchLocalAlways: boolean;
+    searching: boolean;
+}
+
+const mapStateToProps = (state) => ({
+    users: selectors.general.users(state),
+    regions: selectors.general.regions(state),
+    countries: selectors.general.countries(state),
+    preferredCountry: selectors.general.preferredCountry(state),
+});
+
+export class GeoLookupInputComponent extends React.Component<IProps, IState> {
+    dom: {
+        geolookup: React.RefObject<Geolookup>;
+    };
+
     constructor(props) {
         super(props);
         this.state = {
@@ -49,10 +93,8 @@ export class GeoLookupInputComponent extends React.Component {
         this.removeLocation = this.removeLocation.bind(this);
 
         this.dom = {
-            geolookup: null,
-            parent: null,
+            geolookup: React.createRef<Geolookup>(),
         };
-        this.language = get(getItemInArrayById(this.props.users, this.props.currentUserId), 'language', 'en');
     }
 
     closeSuggestsPopUp() {
@@ -82,14 +124,10 @@ export class GeoLookupInputComponent extends React.Component {
         });
     }
 
-    saveNewLocation(value) {
-        this.props.saveLocation(value)
+    saveNewLocation(value: Partial<ILocation>) {
+        planningApi.locations.getOrCreate(value)
             .then((newLocation) => {
-                this.onSuggestSelect({
-                    ...newLocation,
-                    existingLocation: true,
-                });
-
+                this.onSuggestSelect(newLocation);
                 this.setState({
                     unsavedInput: '',
                     searching: false,
@@ -102,37 +140,37 @@ export class GeoLookupInputComponent extends React.Component {
         this.props.onChange(this.props.field, null);
     }
 
-    setLocalLocations(data = null) {
-        let results = null;
-
-        if (get(data, '_items.length', 0) > 0) {
-            results = data._items.map((location) => ({
-                ...location,
-                existingLocation: true,
-            }));
-        }
-
-        this.setState({localSearchResults: results});
+    setLocalLocations(data?: IRestApiResponse<ILocation> | undefined) {
+        this.setState({localSearchResults: data?._items?.length ?
+            data._items :
+            null,
+        });
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (!get(nextProps.initialValue, 'name')) {
+    componentDidUpdate(prevProps: Readonly<IProps>) {
+        if (prevProps.initialValue?.name?.length && !this.props.initialValue?.name?.length) {
             this.resetSearchResults();
         }
     }
 
-    handleInputChange(event) {
-        if (appConfig.planning_allow_freetext_location && event.keyCode === KEYCODES.ENTER &&
-            get(this.state.unsavedInput, 'length', 0) > 1) {
+    handleInputChange(event: React.ChangeEvent<HTMLInputElement> & React.KeyboardEvent<HTMLInputElement>) {
+        if (appConfig.planning_allow_freetext_location &&
+            event.keyCode === KEYCODES.ENTER &&
+            this.state.unsavedInput?.length
+        ) {
             this.props.onChange(this.props.field, {name: this.state.unsavedInput});
             this.closeSuggestsPopUp();
             return;
         }
 
-        this.dom.geolookup.onInputChange(event.target.value.replace(/(?:\r\n|\r|\n)/g, ' '));
+        if (this.dom.geolookup.current != undefined) {
+            this.dom.geolookup.current.onInputChange(
+                event.target.value.replace(/(?:\r\n|\r|\n)/g, ' ')
+            );
+        }
 
         // Open pop-up to show external search option
-        if (get(event.target, 'value.length') > 1) {
+        if ((event.target?.value?.length ?? 0) > 1) {
             this.setState({
                 openSuggestsPopUp: true,
                 openNewLocationPopup: false,
@@ -149,14 +187,16 @@ export class GeoLookupInputComponent extends React.Component {
         }
     }
 
-    searchLocalLocations(name = this.state.unsavedInput) {
-        this.props.searchLocalLocations(name.trim())
+    searchLocalLocations(name?: string) {
+        planningApi.locations.search((name ?? this.state.unsavedInput).trim())
             .then(this.setLocalLocations);
     }
 
     searchGeoLookupComponent() {
-        this.dom.geolookup.hideSuggests();
-        this.dom.geolookup.onButtonClick();
+        if (this.dom.geolookup.current != undefined) {
+            this.dom.geolookup.current.hideSuggests();
+            this.dom.geolookup.current.onButtonClick();
+        }
     }
 
     handleSearchClick() {
@@ -170,9 +210,11 @@ export class GeoLookupInputComponent extends React.Component {
         }
     }
 
-    onSuggestResults(suggests) {
+    onSuggestResults(suggests: Array<INominatimItemResponse>) {
         this.setState({
-            searchResults: suggests,
+            searchResults: suggests.map(
+                (item) => item.raw
+            ),
             openSuggestsPopUp: true,
             openNewLocationPopup: false,
             searching: false,
@@ -184,41 +226,35 @@ export class GeoLookupInputComponent extends React.Component {
             unsavedInput: '',
             searchLocalAlways: true,
             openSuggestsPopUp: false,
+            localSearchResults: null,
         });
-        if (get(this.state, 'localSearchResults.length', 0) > 0) {
-            this.setLocalLocations();
-        }
     }
 
     /**
     * When a suggest got selected
     *    @param  {Object} suggest The suggest
     */
-    onSuggestSelect(suggest) {
-        const location = this.onGeocodeSuggest(suggest);
-        let promise = get(location, 'existingLocation') ? Promise.resolve(location) :
-            this.props.saveLocation(location);
-
-        promise.then((newLocation) => {
-            let value = {
-                name: newLocation.name,
-                qcode: newLocation.guid,
-                address: newLocation.address,
-                details: newLocation.details,
+    onSuggestSelect(suggest: Partial<ILocation>) {
+        (suggest.guid != null ?
+            Promise.resolve(suggest as ILocation) :
+            planningApi.locations.getOrCreate(suggest)
+        ).then((location) => {
+            const value: IEventLocation = {
+                name: location.name,
+                qcode: location.guid,
+                address: location.address,
+                details: location.details,
             };
 
             // external address might not be there.
-            if (get(value, 'address.external')) {
+            if (location.address.external != null) {
                 delete value.address.external;
             }
 
-            if (newLocation.position) {
-                value = {
-                    ...value,
-                    location: {
-                        lat: get(newLocation, 'position.latitude'),
-                        lon: get(newLocation, 'position.longitude'),
-                    },
+            if (location.position != null) {
+                value.location = {
+                    lat: location.position.latitude,
+                    lon: location.position.longitude,
                 };
             }
 
@@ -226,42 +262,8 @@ export class GeoLookupInputComponent extends React.Component {
         }).finally(() => this.resetSearchResults());
     }
 
-    onSuggestsLookup(userInput) {
-        return Nominatim.geocode({
-            q: userInput,
-            addressdetails: true,
-            extratags: true,
-            namedetails: true,
-        });
-    }
-
-    onGeocodeSuggest(suggest) {
-        if (!suggest) return null;
-
-        if (suggest.existingLocation) {
-            return {...suggest};
-        } else {
-            const {shortName} = has(suggest, 'raw') ? formatAddress(suggest.raw) : {};
-            const nameField = get(suggest, `raw.namedetails.name:${this.language}`) ?
-                `raw.namedetails.name:${this.language}` : 'raw.namedetails.name';
-
-            return {
-                nominatim: get(suggest, 'raw', {}),
-                location: {
-                    lat: get(suggest, 'raw.lat'),
-                    lon: get(suggest, 'raw.lon'),
-                },
-                placeId: get(suggest, 'placeId'),
-                name: get(suggest, nameField, shortName),
-                boundingbox: get(suggest, 'boundingbox'),
-                type: get(suggest, 'type'),
-                language: this.language,
-            };
-        }
-    }
-
-    getSuggestLabel(suggest) {
-        return formatAddress(suggest).shortName;
+    getSuggestLabel(location: Partial<ILocation>) {
+        return formatLocationToAddress(location);
     }
 
     onLocalSearchOnly() {
@@ -270,6 +272,7 @@ export class GeoLookupInputComponent extends React.Component {
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const {
             initialValue,
             onFocus,
@@ -281,8 +284,8 @@ export class GeoLookupInputComponent extends React.Component {
         } = this.props;
 
         return (
-            <div className="addgeolookup" ref={(node) => this.dom.parent = node}>
-                {get(initialValue, 'name') && (
+            <div className="addgeolookup">
+                {initialValue?.name == null ? null : (
                     <LocationItem
                         location={initialValue}
                         onRemoveLocation={this.removeLocation}
@@ -341,52 +344,17 @@ export class GeoLookupInputComponent extends React.Component {
                 <Geolookup
                     disableAutoLookup={true}
                     onSuggestSelect={this.onSuggestSelect}
-                    onSuggestsLookup={this.onSuggestsLookup}
-                    onGeocodeSuggest={this.onGeocodeSuggest}
+                    onSuggestsLookup={planningApi.locations.searchExternal}
+                    // onGeocodeSuggest={this.onGeocodeSuggest}
                     onSuggestResults={this.onSuggestResults}
                     getSuggestLabel={this.getSuggestLabel}
                     readOnly={false}
                     ignoreTab
-                    ref={(node) => this.dom.geolookup = node}
+                    ref={this.dom.geolookup}
                 />
             </div>
         );
     }
 }
 
-GeoLookupInputComponent.propTypes = {
-    field: PropTypes.string,
-    initialValue: PropTypes.object,
-    onChange: PropTypes.func,
-    readOnly: PropTypes.bool,
-    searchLocalLocations: PropTypes.func,
-    onFocus: PropTypes.func,
-    disableSearch: PropTypes.bool,
-    users: PropTypes.array,
-    currentUserId: PropTypes.string,
-    popupContainer: PropTypes.func,
-    regions: PropTypes.array,
-    countries: PropTypes.array,
-    preferredCountry: PropTypes.object,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
-    saveLocation: PropTypes.func,
-};
-
-const mapStateToProps = (state, ownProps) => ({
-    currentUserId: selectors.general.currentUserId(state),
-    users: selectors.general.users(state),
-    regions: selectors.general.regions(state),
-    countries: selectors.general.countries(state),
-    preferredCountry: selectors.general.preferredCountry(state),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-    searchLocalLocations: (text) => dispatch(actions.locations.getLocation(text)),
-    saveLocation: (newLocation) => dispatch(actions.locations.saveLocation(newLocation)),
-});
-
-export const AddGeoLookupInput = connect(
-    mapStateToProps,
-    mapDispatchToProps
-)(GeoLookupInputComponent);
+export const AddGeoLookupInput = connect(mapStateToProps)(GeoLookupInputComponent);
