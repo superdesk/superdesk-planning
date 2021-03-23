@@ -2,6 +2,8 @@ import {get, includes, isNil, find} from 'lodash';
 import moment from 'moment';
 import {gettext} from './index';
 
+import {IAssignmentItem, ISession, IPrivileges, ASSIGNMENT_STATE} from '../interfaces';
+
 import {ASSIGNMENTS, PRIVILEGES} from '../constants';
 import * as selectors from '../selectors';
 import {lockUtils, getCreator, getItemInArrayById, isExistingItem} from './index';
@@ -60,14 +62,25 @@ const isAssignmentInEditableState = (assignment) => (
     get(assignment, 'assigned_to.state')))
 );
 
-const canCompleteAssignment = (assignment, session, privileges) => (
-    !!privileges[PRIVILEGES.ARCHIVE] &&
+function canCompleteAssignment(
+    assignment: IAssignmentItem,
+    session: ISession,
+    privileges: IPrivileges
+): boolean {
+    return !!privileges[PRIVILEGES.ARCHIVE] &&
         self.isNotLockRestricted(assignment, session) &&
-        (get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS ||
-            ([ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED, ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
-                ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS].includes(
-                get(assignment, 'assigned_to.state'))) && get(assignment, 'scheduled_update_id'))
-);
+        (
+            assignment.assigned_to?.state === ASSIGNMENT_STATE.IN_PROGRESS ||
+            (
+                [
+                    ASSIGNMENT_STATE.SUBMITTED,
+                    ASSIGNMENT_STATE.ASSIGNED,
+                    ASSIGNMENT_STATE.IN_PROGRESS
+                ].includes(assignment.assigned_to?.state) &&
+                assignment.scheduled_update_id != null
+            )
+        );
+}
 
 const canConfirmAvailability = (assignment, session, privileges, contentTypes) => (
     !!privileges[PRIVILEGES.ARCHIVE] &&

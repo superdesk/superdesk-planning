@@ -245,6 +245,8 @@ export interface ISession {
     identity: IUser;
 }
 
+export type IPrivileges = {[key: string]: number};
+
 export interface ILocation extends IBaseRestApiResponse {
     guid: string;
     original_creator: IUser['_id'];
@@ -795,7 +797,7 @@ export interface IEventSearchParams extends ICommonSearchParams<IEventItem> {
     noCalendarAssigned?: boolean;
     recurrenceId?: string;
     advancedSearch?: ICommonAdvancedSearchParams & {
-        location?: ILocation;
+        location?: IEventLocation;
         reference?: string;
         source?: Array<{
             id?: string;
@@ -1118,7 +1120,7 @@ export interface ISearchParams {
         id?: string;
         name?: string;
     }>;
-    location?: ILocation;
+    location?: IEventLocation;
     calendars?: Array<ICalendar>;
     no_calendar_assigned?: boolean;
 
@@ -1168,7 +1170,7 @@ export interface ISearchAPIParams {
     // Event Params
     reference?: string;
     source?: string;
-    location?: ILocation['name'];
+    location?: IEventLocation['qcode'];
     calendars?: string;
     no_calendar_assigned?: boolean;
     only_future?: boolean;
