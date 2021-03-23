@@ -9,6 +9,7 @@ import {
 import {IPlanningAssignmentService} from './interfaces';
 import {IPlanningConfig} from '../../interfaces';
 import {getAssignmentService} from './utils';
+import {AssignmentsList} from './assignments-overview';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -110,6 +111,7 @@ const extension: IExtension = {
                         onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
                     },
                 },
+                globalMenuHorizontal: [AssignmentsList],
             },
         };
 
