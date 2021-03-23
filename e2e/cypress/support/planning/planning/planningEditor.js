@@ -9,7 +9,7 @@ import {Popup} from '../../common/ui';
  */
 export class PlanningEditor extends Editor {
     constructor() {
-        super('.icon-calendar.icon--2x.icon--light-blue');
+        super('.icon-calendar.icon--2x.icon--light-blue', 'planning');
 
         this.fields = {
             name: new Input(() => this.element, 'input[name="name"]'),

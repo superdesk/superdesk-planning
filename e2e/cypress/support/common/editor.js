@@ -9,9 +9,10 @@ export class Editor {
      * Creates an instance of the Editor instance. This is designed to be inherited from
      * @param {string} itemIcon - The selector used to identify the type of Editor based on the icon
      */
-    constructor(itemIcon) {
+    constructor(itemIcon, autosavePrefix) {
         this.itemIcon = itemIcon;
         this.fields = {};
+        this.autosavePrefix = autosavePrefix;
     }
 
     /**
@@ -156,13 +157,18 @@ export class Editor {
     }
 
     /**
-     * Waits for autosave to occur
-     * This method is throttled at 3 seconds, so waits for 3.5 seconds
-     * This ensures we're at least half a second beyond the autosave
+     * Wait for the autosave network request
      */
     waitForAutosave() {
         cy.log('Common.Editor.waitForAutosave');
-        cy.wait(3500);
+        cy.intercept('PATCH', `**/api/${this.autosavePrefix}_autosave/*`).as('patchAutosave');
+        cy.wait('@patchAutosave', {timeout: 3500});
+    }
+
+    waitForAutosavePost() {
+        cy.log('Common.Editor.waitForAutosavePost');
+        cy.intercept('POST', `**/api/${this.autosavePrefix}_autosave`).as('postAutosave');
+        cy.wait('@postAutosave', {timeout: 3500});
     }
 
     /**

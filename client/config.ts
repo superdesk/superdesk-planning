@@ -90,4 +90,8 @@ export function updateConfigAfterLoad() {
     if (appConfig?.planning?.allowed_coverage_link_types == null) {
         appConfig.planning.allowed_coverage_link_types = [];
     }
+
+    if (appConfig?.planning?.autosave_timeout == null) {
+        appConfig.planning.autosave_timeout = 1500;
+    }
 }
