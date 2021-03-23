@@ -8,12 +8,14 @@
 
 """Superdesk Locations"""
 
-import superdesk
 import logging
+
+from eve.utils import config
+
+from superdesk import Service, Resource, get_resource_service
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
-from .common import set_original_creator
-from eve.utils import config
+from planning.common import set_original_creator, format_address
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +24,10 @@ not_indexed = {'type': 'string', 'index': 'no'}
 venue_types = {
 }
 
+# TODO: set firstcreated, versioncreated, version_creator
 
-class LocationsService(superdesk.Service):
+
+class LocationsService(Service):
     """Service class for the events model."""
 
     def on_create(self, docs):
@@ -34,6 +38,16 @@ class LocationsService(superdesk.Service):
                 doc['guid'] = generate_guid(type=GUID_NEWSML)
             set_original_creator(doc)
 
+    def on_fetched(self, docs):
+        for doc in docs['_items']:
+            self._enhance_item(doc)
+
+    def on_fetched_item(self, doc):
+        self._enhance_item(doc)
+
+    def _enhance_item(self, doc):
+        format_address(doc)
+
     def delete(self, lookup):
         """If the document to be deleted is reference in an event then flag it as inactive otherwise just delete it.
 
@@ -41,15 +55,20 @@ class LocationsService(superdesk.Service):
         :return:
         """
         if lookup:
-            location = superdesk.get_resource_service('locations').find_one(req=None, _id=lookup.get(config.ID_FIELD))
+            location = get_resource_service('locations').find_one(req=None, _id=lookup.get(config.ID_FIELD))
             if location:
-                events = superdesk.get_resource_service('events').find(
-                    where={'location.qcode': str(location.get('guid'))})
+                events = get_resource_service('events').find(
+                    where={'location.qcode': str(location.get('guid'))}
+                )
                 if events.count():
                     # patch the unique name in case the location get recreated
-                    superdesk.get_resource_service('locations').patch(location[config.ID_FIELD],
-                                                                      {'is_active': False,
-                                                                       'unique_name': str(location[config.ID_FIELD])})
+                    get_resource_service('locations').patch(
+                        location[config.ID_FIELD],
+                        {
+                            'is_active': False,
+                            'unique_name': str(location[config.ID_FIELD])
+                        }
+                    )
                     return
         super().delete(lookup)
 
@@ -79,8 +98,8 @@ locations_schema = {
     },
 
     # Audit Information
-    'original_creator': superdesk.Resource.rel('users'),
-    'version_creator': superdesk.Resource.rel('users'),
+    'original_creator': Resource.rel('users'),
+    'version_creator': Resource.rel('users'),
     'firstcreated': {
         'type': 'datetime'
     },
@@ -89,7 +108,7 @@ locations_schema = {
     },
 
     # Ingest Details
-    'ingest_provider': superdesk.Resource.rel('ingest_providers'),
+    'ingest_provider': Resource.rel('ingest_providers'),
     'source': {     # The value is copied from the ingest_providers vocabulary
         'type': 'string',
         'mapping': not_analyzed
@@ -112,6 +131,14 @@ locations_schema = {
     # for the same address
     'name': {
         'type': 'string'
+    },
+    'translations': {
+        'type': 'dict',
+        'required': False,
+        'mapping': {
+            'type': 'object',
+            'enabled': False
+        },
     },
     'type': {
         'type': 'string',
@@ -140,10 +167,13 @@ locations_schema = {
                 'type': 'list',
                 'mapping': {'type': 'string'}
             },
-            'locality': {'type': 'string'},
-            'area': {'type': 'string'},
-            'country': {'type': 'string'},
+            'suburb': {'type': 'string'},
+            'city': {'type': 'string'},
+            'state': {'type': 'string'},
             'postal_code': {'type': 'string'},
+            'country': {'type': 'string'},
+            'locality': {'type': 'string'},  # aka city
+            'area': {'type': 'string'},
             'external': {
                 'type': 'dict',
                 'mapping': {
@@ -186,7 +216,7 @@ locations_schema = {
 }
 
 
-class LocationsResource(superdesk.Resource):
+class LocationsResource(Resource):
     """Resource for locations data model
 
     See IPTC-G2-Implementation_Guide (version 2.21) Section 12.6.1.2 for schema details
