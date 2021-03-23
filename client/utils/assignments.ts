@@ -214,7 +214,7 @@ const getAssignmentItemActions = (assignment, session, privileges, contentTypes,
 
     actions.forEach((action) => {
         if (actionsValidator[action.label] &&
-                !actionsValidator[action.label](assignment, session)) {
+                !actionsValidator[action.label]()) {
             return;
         }
 
