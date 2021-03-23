@@ -9,7 +9,7 @@ import {LinkInput} from './linkInput';
  */
 export class EventEditor extends Editor {
     constructor() {
-        super('.icon-event');
+        super('.icon-event', 'event');
         this.fields = {
             name: new Input(() => this.element, 'input[name="name"]'),
             slugline: new Input(() => this.element, 'input[name="slugline"]'),

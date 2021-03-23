@@ -37,8 +37,7 @@ export class Input {
         cy.log('Common.Input.type');
         this.element
             .clear()
-            .type(value)
-            .should('have.value', value);
+            .type(value);
     }
 
     /**
