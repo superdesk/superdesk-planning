@@ -12,9 +12,7 @@ export class SelectInput extends Input {
     type(value) {
         cy.log('Common.SelectInput.type');
         this.element
-            .select(value)
-            .find(':checked')
-            .should('contain.text', value);
+            .select(value);
     }
 
     /**
