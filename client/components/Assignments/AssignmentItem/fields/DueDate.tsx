@@ -1,13 +1,13 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import moment from 'moment';
 import {get} from 'lodash';
 import {assignmentUtils, gettext} from '../../../../utils';
 import {AbsoluteDate} from '../../../AbsoluteDate';
 import {TO_BE_CONFIRMED_FIELD} from '../../../../constants';
+import {IAssignmentItem} from 'interfaces';
 
 interface IProps {
-    assignment: any;
+    assignment: IAssignmentItem;
 }
 
 export const DueDateComponent = ({assignment}: IProps) => {

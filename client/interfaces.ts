@@ -8,7 +8,7 @@ import {
     IContentProfile,
 } from 'superdesk-api';
 import {Store} from 'redux';
-import moment from 'moment';
+import * as moment from 'moment';
 
 export interface IPlanningNewsCoverageStatus {
     qcode: 'ncostat:int' | 'ncostat:notdec' | 'ncostat:notint' | 'ncostat:onreq';
