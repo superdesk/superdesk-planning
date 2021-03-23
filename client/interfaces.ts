@@ -244,6 +244,8 @@ export interface ISession {
     identity: IUser;
 }
 
+export type IPrivileges = {[key: string]: number};
+
 export interface ILocation {
     qcode?: string;
     name?: string;
