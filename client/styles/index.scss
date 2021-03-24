@@ -19,24 +19,36 @@
     }
 }
 
-.AssignmentItem {
+.assignment--due-date {
+  padding: 0;
+
+  > * {
+    margin: 0!important;
+  }
+
+  > * + * {
+    margin-left: 6px!important;
+  }
+
+  .sd-list-item__time__schedule {
+    color: $sd-blueDark !important;
+    font-weight: 500;
+    vertical-align: text-top;
+    padding-left: 0!important;
+  }
+  
+  &.label-icon--warning {
     .sd-list-item__time__schedule {
-        color: $sd-blueDark !important;
-        font-weight: 500;
-        vertical-align: text-top;
-        padding-left: 0;
+        color: $orange !important;
     }
-
-    .label-icon--warning {
-        .sd-list-item__time__schedule {
-            color: $orange !important;
-        }
-
-        .label {
-            margin-left: 0.75rem;
-        }
+  
+    .label {
+        margin-left: 0.75rem;
     }
+  }
+}
 
+.AssignmentItem {
     .icon-ingest {
         margin-top: -0.2rem;
     }
