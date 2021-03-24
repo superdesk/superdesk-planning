@@ -3,6 +3,7 @@ node_modules
 nbproject
 bower
 dist
+dist/*
 templates-cache.generated.js
 .tmp
 __pycache__
@@ -15,7 +16,6 @@ templates-cache.generated.js
 .python-version
 .idea
 npm-debug.log
-dist/
 *.egg-info
 *.pyc
 yarn.lock
