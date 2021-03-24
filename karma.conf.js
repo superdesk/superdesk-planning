@@ -15,7 +15,7 @@ module.exports = function(config) {
         frameworks: ['jasmine'],
         // list of files / patterns to load in the browser
         files: [
-            'tests.js',
+            'tests.ts',
         ],
         // list of files to exclude
         exclude: [
@@ -23,7 +23,7 @@ module.exports = function(config) {
         // preprocess matching files before serving them to the browser
         // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
         preprocessors: {
-            'tests.js': ['webpack', 'sourcemap'],
+            'tests.ts': ['webpack', 'sourcemap'],
         },
         coverageReporter: {
             type : 'lcov',
@@ -56,5 +56,10 @@ module.exports = function(config) {
         // how many browser should be started simultaneous
         concurrency: Infinity,
         webpack: webpackConfig,
-    })
-}
+
+        // Allow typescript files
+        mime: {
+            'text/x-typescript': ['ts', 'tsx'],
+        },
+    });
+};

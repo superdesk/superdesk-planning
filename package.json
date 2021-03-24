@@ -9,6 +9,7 @@
   },
   "main": "index.js",
   "scripts": {
+    "ts_lint": "tsc -p . --noEmit && tslint -c tslint.json './**/*.{ts,tsx}' && eslint --parser=@typescript-eslint/parser --ext .js --ext .jsx --ext .ts --ext .tsx scripts spec tasks *.js",
     "fix": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec --fix",
     "hint": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec",
     "lint": "eslint client --ext=jsx --ext=js --ext=tsx --ext=ts --ext=spec --quiet",
@@ -68,6 +69,8 @@
     "sinon": "^4.5.0",
     "superdesk-code-style": "1.5.0",
     "superdesk-core": "github:superdesk/superdesk-client-core#develop",
-    "ts-node": "~7.0.1"
+    "tslint": "5.11.0",
+    "ts-node": "~7.0.1",
+    "typescript-eslint-parser": "^18.0.0"
   }
 }
