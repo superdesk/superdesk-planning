@@ -13,6 +13,7 @@ export class AssignmentController {
         $element,
         $scope,
         $location,
+        $route,
         desks,
         sdPlanningStore,
         pageTitle,
@@ -22,6 +23,7 @@ export class AssignmentController {
         this.$element = $element;
         this.$scope = $scope;
         this.$location = $location;
+        this.$route = $route;
         this.desks = desks;
         this.isPlanningAssignmentsDeskPrivilege = privileges.userHasPrivileges({planning_assignments_desk: 1});
 
@@ -30,11 +32,15 @@ export class AssignmentController {
         this.onDestroy = this.onDestroy.bind(this);
         this.onDeskChange = this.onDeskChange.bind(this);
 
+        this.currentRouteParams = $route.current.params;
+        this.handleRouteUpdate = this.handleRouteUpdate.bind(this);
+
         this.store = null;
         this.rendered = false;
 
         pageTitle.setUrl(gettext('Assignments'));
 
+        $scope.$on('$routeUpdate', this.handleRouteUpdate);
         $scope.$on('$destroy', this.onDestroy);
         $scope.$watch(() => desks.active, this.onDeskChange);
 
@@ -80,7 +86,19 @@ export class AssignmentController {
         ]);
     }
 
+    handleRouteUpdate(angularEvent, nextRoute) {
+        if (
+            nextRoute.params.assignment != null
+            && nextRoute.params.assignment !== this.currentRouteParams.assignment
+        ) {
+            this.currentRouteParams = nextRoute.params;
+            this.store.dispatch(actions.assignments.ui.updatePreviewItemOnRouteUpdate());
+        }
+    }
+
     onDestroy() {
+        this.$scope.$off('$routeUpdate', this.handleRouteUpdate);
+
         if (this.rendered && this.$element) {
             // Unmount the React application
             ReactDOM.unmountComponentAtNode(this.$element.get(0));
@@ -121,6 +139,7 @@ AssignmentController.$inject = [
     '$element',
     '$scope',
     '$location',
+    '$route',
     'desks',
     'sdPlanningStore',
     'pageTitle',
