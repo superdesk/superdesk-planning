@@ -23,7 +23,7 @@ interface IState {
     currentUser: IUser;
     desks: {[key: string]: IDesk}; // desks by _id
     contentTypes: Array<IVocabularyItem>;
-    items: Array<IAssignmentItem>;
+    assignments: Array<IAssignmentItem>;
 }
 
 interface IResourceChange {
@@ -49,7 +49,7 @@ function fetchContentTypes(): Promise<IState['contentTypes']> {
     return findOne<IVocabulary>('vocabularies', 'g2_content_type').then(({items}) => (items));
 }
 
-function fetchAssignments(userId: IUser['_id']): Promise<IState['items']> {
+function fetchAssignments(userId: IUser['_id']): Promise<IState['assignments']> {
     return queryRawJson<IRestApiResponse<IAssignmentItem>>(
         'assignments',
         {
@@ -127,7 +127,7 @@ export class AssignmentsList extends React.PureComponent<{}, {loading: true} | I
             return;
         }
 
-        const {items} = state;
+        const {assignments} = state;
 
         const refetchDesks = changes.find(({resource}) => resource === 'desks');
         const refetchContentTypes = changes.find(
@@ -139,20 +139,20 @@ export class AssignmentsList extends React.PureComponent<{}, {loading: true} | I
                 || (
                     resource === 'assignments'
                     && changeType === 'updated'
-                    && items.find(({_id}) => _id === itemId) != null
+                    && assignments.find(({_id}) => _id === itemId) != null
                 ),
         );
 
         Promise.all([
             refetchDesks ? fetchDesks() : Promise.resolve(state.desks),
             refetchContentTypes ? fetchContentTypes() : Promise.resolve(state.contentTypes),
-            refetchAssignments ? fetchAssignments(state.currentUser._id) : Promise.resolve(state.items),
-        ]).then(([desks, contentTypes, items]) => {
+            refetchAssignments ? fetchAssignments(state.currentUser._id) : Promise.resolve(state.assignments),
+        ]).then(([desks, contentTypes, assignments]) => {
             this.setState({
                 loading: false,
                 desks: desks,
                 contentTypes: contentTypes,
-                items: items,
+                assignments: assignments,
             });
         });
     }
@@ -164,13 +164,13 @@ export class AssignmentsList extends React.PureComponent<{}, {loading: true} | I
                     fetchDesks(),
                     fetchContentTypes(),
                     fetchAssignments(currentUser._id),
-                ]).then(([desks, contentTypes, items]) => {
+                ]).then(([desks, contentTypes, assignments]) => {
                     this.setState({
                         loading: false,
                         currentUser: currentUser,
                         desks: desks,
                         contentTypes: contentTypes,
-                        items: items,
+                        assignments: assignments,
                     });
                 })
             );
@@ -187,9 +187,9 @@ export class AssignmentsList extends React.PureComponent<{}, {loading: true} | I
             return null;
         }
 
-        const {items, desks, contentTypes} = this.state;
-        const itemsCount = items.length;
-        const grouped = groupBy(items, (item) => item.assigned_to.desk);
+        const {assignments, desks, contentTypes} = this.state;
+        const itemsCount = assignments.length;
+        const grouped = groupBy(assignments, (item) => item.assigned_to.desk);
 
         return (
             <DropdownTree
