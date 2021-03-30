@@ -19,7 +19,7 @@ export class AssignmentsOverviewListItem extends React.PureComponent<IProps> {
     render() {
         const {assignment, contentTypes, onClick} = this.props;
         const {className, tooltip} = getAssignmentTypeInfo(assignment, contentTypes);
-        
+
         return (
             <button
                 className={getClass('assignments-overview--item')}
