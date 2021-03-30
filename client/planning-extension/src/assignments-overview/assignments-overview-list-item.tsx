@@ -5,6 +5,7 @@ import {extensionBridge} from '../extension_bridge';
 import {superdesk} from '../superdesk';
 
 const {ListItem, ListItemColumn, ListItemRow} = superdesk.components;
+const {getClass} = superdesk.utilities.CSS;
 const {getAssignmentTypeInfo} = extensionBridge.assignments.utils;
 const {SluglineComponent, DueDateComponent, StateComponent} = extensionBridge.assignments.components;
 
@@ -21,7 +22,7 @@ export class AssignmentsOverviewListItem extends React.PureComponent<IProps> {
         
         return (
             <button
-                style={{display: 'block', width: '100%', padding: 0, textAlign: 'left'}}
+                className={getClass('assignments-overview--item')}
                 onClick={() => {
                     onClick();
                     superdesk.browser.location.setPage(`/workspace/assignments?assignment=${assignment._id}`);

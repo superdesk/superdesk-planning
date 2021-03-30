@@ -1,0 +1,14 @@
+/* ASSIGNMENTS OVERVIEW START */
+
+.assignments-overview--item {
+    display: block;
+    width: 100%;
+    padding: 0;
+    text-align: left;
+}
+
+.assignments-overview--item + .assignments-overview--item {
+    margin-top: 6px;
+}
+
+/* ASSIGNMENTS OVERVIEW END */
