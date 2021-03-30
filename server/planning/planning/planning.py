@@ -126,6 +126,7 @@ class PlanningService(superdesk.Service):
             if 'guid' not in doc:
                 doc['guid'] = generate_guid(type=GUID_NEWSML)
             doc[config.ID_FIELD] = doc['guid']
+
             self.validate_planning(doc)
             set_original_creator(doc)
             self._set_planning_event_info(doc, planning_type)
@@ -157,7 +158,13 @@ class PlanningService(superdesk.Service):
 
         events_service.system_update(
             doc['event_item'],
-            {'expiry': None},
+            {
+                'expiry': None,
+                # Event hasn't actually been updated
+                # So we leave these version dates alone
+                '_updated': original_event['_updated'],
+                'versioncreated': original_event['versioncreated'],
+            },
             original_event
         )
 

@@ -127,7 +127,7 @@ export class AdvancedSearch {
     }
 
     get filtersBar() {
-        return cy.get('[data-test-id=subnav-filters]');
+        return cy.get('.subnav + .subnav');
     }
 
     get searchPanel() {
@@ -149,7 +149,7 @@ export class AdvancedSearch {
 
     toggleSearchPanel() {
         this.filtersBar
-            .find('[data-test-id=toggle-filters]')
+            .find('.icon-filter-large')
             .click();
     }
 

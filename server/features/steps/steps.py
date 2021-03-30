@@ -421,3 +421,16 @@ def step_impl_then_get_media_stream(context, check_string):
     assert len(response.get_data()), response
     check_string = apply_placeholders(context, check_string)
     assert check_string in str(response.stream.response.data)
+
+
+@then('we get the following order')
+def step_impl_then_get_response_order(context):
+    assert_200(context.response)
+    response_data = (get_json_data(context.response) or {}).get('_items')
+    ids = [
+        item['_id']
+        for item in response_data
+    ]
+    expected_order = json.loads(context.text)
+
+    assert ids == expected_order, '{} != {}'.format(','.join(ids), ','.join(expected_order))

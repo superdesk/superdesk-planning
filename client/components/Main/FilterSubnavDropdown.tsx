@@ -12,6 +12,7 @@ import {agendas, currentAgendaId} from '../../selectors/planning';
 import {combinedViewFilters} from '../../selectors/eventsplanning';
 
 import {Dropdown, IDropdownItem} from '../UI/SubNav';
+import {ButtonGroup} from 'superdesk-ui-framework/react';
 
 interface IProps {
     currentView: 'COMBINED' | 'EVENTS' | 'PLANNING';
@@ -255,14 +256,16 @@ class FilterSubnavDropdownComponent extends React.PureComponent<IProps> {
         }
 
         return (
-            <Dropdown
-                buttonLabelClassName={buttonProps.disabled ? 'dropdown__menu-item--disabled' : ''}
-                buttonLabel={buttonProps.label}
-                items={items}
-                scrollable={true}
-                searchable={true}
-                group={true}
-            />
+            <React.Fragment>
+                <Dropdown
+                    buttonLabelClassName={buttonProps.disabled ? 'dropdown__menu-item--disabled' : ''}
+                    buttonLabel={buttonProps.label}
+                    items={items}
+                    scrollable={true}
+                    searchable={true}
+                    group={true}
+                />
+            </React.Fragment>
         );
     }
 }

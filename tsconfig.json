@@ -1,6 +1,6 @@
 {
     "files": [
-        "index.js"
+        "index.ts"
     ],
     "include": [
         "client"
@@ -18,6 +18,12 @@
             "es2017",
             "es2018.promise"
         ],
-        "jsx": "react"
+        "jsx": "react",
+        "paths": {
+            "core/*": ["../node_modules/superdesk-core/scripts/core/*"],
+            "apps/*": ["../node_modules/superdesk-core/scripts/apps/*"],
+            "superdesk-interfaces/*": ["../node_modules/superdesk-core/scripts/superdesk-interfaces/*"],
+            "appConfig": ["../node_modules/superdesk-core/scripts/appConfig"]
+        }
     }
 }

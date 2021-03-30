@@ -249,6 +249,61 @@ def append_states_query_for_advanced_search(params: Dict[str, Any], query: elast
             )
 
 
+def get_sort_field(params: Dict[str, Any], default: str) -> Optional[str]:
+    field = params.get('sort_field') or default
+
+    if field == 'schedule':
+        return 'schedule'
+    elif field == 'created':
+        return 'firstcreated'
+    elif field == 'updated':
+        return 'versioncreated'
+
+    # This means the provided sort filter has invalid an invalid value
+    return None
+
+
+def get_sort_order(params: Dict[str, Any], default: str) -> str:
+    return 'asc' if (params.get('sort_order') or default) == 'ascending' else 'desc'
+
+
+def search_date_non_schedule(params: Dict[str, Any], query: elastic.ElasticQuery):
+    field_name = get_sort_field(params, 'created')
+    if not field_name or field_name == 'schedule':
+        return
+
+    date_filter, start_date, end_date, tz_offset = get_date_params(params)
+
+    if not date_filter and not start_date and not end_date:
+        query.filter.append(
+            elastic.date_range(elastic.ElasticRangeParams(
+                field=field_name,
+                lte='now/d',
+                time_zone=tz_offset
+            ))
+        )
+    else:
+        base_query = elastic.ElasticRangeParams(
+            field=field_name,
+            time_zone=tz_offset,
+            start_of_week=int(params.get('start_of_week') or 0)
+        )
+
+        if date_filter:
+            base_query.date_range = date_filter
+            base_query.date = start_date
+        elif start_date and end_date:
+            base_query.gte = start_date
+            base_query.lte = end_date
+        elif start_date:
+            base_query.gte = start_date
+        elif end_date:
+            base_query.lte = end_date
+
+        query_range = elastic.date_range(base_query)
+        query.filter.append(query_range)
+
+
 def construct_query(
     params: Dict[str, Any],
     filters: List[Callable[[Dict[str, Any], elastic.ElasticQuery], None]]
@@ -384,4 +439,6 @@ COMMON_PARAMS = [
     'page',
     'filter_id',
     'projections',
+    'sort_order',
+    'sort_field'
 ]

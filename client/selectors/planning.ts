@@ -1,13 +1,16 @@
 import {createSelector} from 'reselect';
-import {get, cloneDeep} from 'lodash';
+import {cloneDeep, get} from 'lodash';
 
 import {appConfig} from 'appConfig';
-import {IPlanningAppState} from '../interfaces';
+import {IPlanningAppState, LIST_VIEW_TYPE} from '../interfaces';
 
 import {session, userPreferences} from './general';
-import {planningUtils, lockUtils, getSearchDateRange} from '../utils';
+import {getSearchDateRange, lockUtils, planningUtils} from '../utils';
 import {AGENDA, SPIKED_STATE} from '../constants';
 
+function getCurrentListViewType(state?: IPlanningAppState) {
+    return state?.main?.listViewType ?? LIST_VIEW_TYPE.SCHEDULE;
+}
 const storedEvents = (state) => get(state, 'events.events', {});
 
 export const planningHistory = (state) => get(state, 'planning.planningHistoryItems');
@@ -66,8 +69,17 @@ export const plansInList = createSelector(
 );
 
 export const orderedPlanningList = createSelector(
-    [currentAgenda, plansInList, storedEvents, currentSearch],
-    (currentAgenda, plansInList, events, search) => {
+    [currentAgenda, plansInList, storedEvents, currentSearch, getCurrentListViewType],
+    (currentAgenda, plansInList, events, search, viewType) => {
+        if (!plansInList?.length) {
+            return [];
+        } if (viewType === LIST_VIEW_TYPE.LIST) {
+            return [{
+                date: null,
+                events: plansInList,
+            }];
+        }
+
         const dateRange = getSearchDateRange(search, appConfig.start_of_week);
 
         return planningUtils.getPlanningByDate(

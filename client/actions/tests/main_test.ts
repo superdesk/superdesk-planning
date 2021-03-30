@@ -312,7 +312,6 @@ describe('actions.main', () => {
                         page: 1,
                         fulltext: '',
                         spikeState: 'draft',
-                        eventsPlanningFilter: 'ALL_EVENTS_PLANNING',
                         filter_id: null,
                     }]);
                     done();
