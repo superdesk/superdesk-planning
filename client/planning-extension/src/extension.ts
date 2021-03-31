@@ -10,6 +10,7 @@ import {IPlanningAssignmentService} from './interfaces';
 import {IPlanningConfig} from '../../interfaces';
 import {getAssignmentService} from './utils';
 import {AssignmentsList} from './assignments-overview';
+import {IPlanningExtensionConfigurationOptions} from './extension_configuration_options';
 
 function onSpike(superdesk: ISuperdesk, item: IArticle) {
     const {gettext} = superdesk.localization;
@@ -100,6 +101,8 @@ function onSendBefore(superdesk: ISuperdesk, items: Array<IArticle>, desk: IDesk
 
 const extension: IExtension = {
     activate: (superdesk: ISuperdesk) => {
+        const extensionConfig: IPlanningExtensionConfigurationOptions = superdesk.getExtensionConfig();
+
         const result: IExtensionActivationResult = {
             contributions: {
                 entities: {
@@ -111,7 +114,7 @@ const extension: IExtension = {
                         onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
                     },
                 },
-                globalMenuHorizontal: [AssignmentsList],
+                globalMenuHorizontal: extensionConfig?.assignmentsTopBarWidget === true ? [AssignmentsList] : [],
             },
         };
 
