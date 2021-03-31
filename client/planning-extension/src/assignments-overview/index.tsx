@@ -60,7 +60,7 @@ function fetchAssignments(userId: IUser['_id']): Promise<IState['assignments']> 
                     bool: {
                         must: [
                             {term: {'assigned_to.user': userId}},
-                            {terms: {'assigned_to.state': ['in_progress', 'submitted']}},
+                            {terms: {'assigned_to.state': ['assigned', 'submitted', 'in_progress']}},
                         ],
                     },
                 },
