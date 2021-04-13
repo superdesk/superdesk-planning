@@ -10,7 +10,7 @@
 
 from superdesk.io.registry import register_feed_parser
 from .ics_2_0 import IcsTwoFeedParser
-from .superdesk_event_json import SuperdeskFeedParser
+from .superdesk_event_json import EventJsonFeedParser
 
 register_feed_parser(IcsTwoFeedParser.NAME, IcsTwoFeedParser())
-register_feed_parser(SuperdeskFeedParser.NAME, SuperdeskFeedParser())
+register_feed_parser(EventJsonFeedParser.NAME, EventJsonFeedParser())

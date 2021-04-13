@@ -1,24 +1,27 @@
 import logging
-import datetime
 
 from superdesk.io.feed_parsers import FileFeedParser
+from superdesk import get_resource_service
+from superdesk.utc import utcnow
+from planning.common import WORKFLOW_STATE
 import pytz
 import json
+import datetime
 
 utc = pytz.UTC
 logger = logging.getLogger(__name__)
 
 
-class SuperdeskFeedParser(FileFeedParser):
+class EventJsonFeedParser(FileFeedParser):
     """Superdesk event specific parser.
 
     Feed Parser which can parse the Superdesk Event feed and convert to internal event format,
     but the firstcreated and versioncreated times are localised.
     """
 
-    NAME = 'SuperdeskEventJson'
+    NAME = 'json_event'
 
-    label = 'Superdesk Event Json'
+    label = 'Json Event'
 
     def can_parse(self, file_path):
         try:
@@ -38,116 +41,80 @@ class SuperdeskFeedParser(FileFeedParser):
         return self.items
 
     def _transform_from_superdesk_event(self, superdesk_event):
-        item = {}
-        if superdesk_event.get('_current_version'):
-            item['current_version'] = superdesk_event['_current_version']
+        ignore_fields = [
+            'files',
+            'state_reason',
+            'schedule_settings',
+            'pubstatus',
+            '_current_version',
+            '_id',
+            'item_id',
+            'actioned_date'
+        ]
 
-        if superdesk_event.get('_time_to_be_confirmed'):
-            item['_time_to_be_confirmed'] = superdesk_event['_time_to_be_confirmed']
+        assign_from_local_cv = [
+            'anpa_category',
+            'subject',
+            'calendars',
+            'place',
+            'occur_status'
+        ]
 
-        if superdesk_event.get('internal_note'):
-            item['internal_note'] = superdesk_event['internal_note']
+        add_to_local_db = [
+            'event_contact_info',
+            'location'
+        ]
 
-        if superdesk_event.get('name'):
-            item['name'] = superdesk_event['name']
+        for field in ignore_fields:
+            superdesk_event.pop(field, '')
 
-        if superdesk_event.get('state'):
-            item['state'] = superdesk_event['state']
+        superdesk_event['_created'] = utcnow()
+        superdesk_event['_updated'] = utcnow()
+        superdesk_event['state'] = WORKFLOW_STATE.INGESTED
 
-        if superdesk_event.get('definition_short'):
-            item['definition_short'] = superdesk_event['definition_short']
+        for field in assign_from_local_cv:
+            if field == 'occur_status':
+                items = (
+                    get_resource_service("vocabularies").find_one(
+                        req=None, _id="eventoccurstatus"
+                    )
+                    or {}
+                ).get("items", [])
+                for item in items:
+                    if item['qcode'] in [item['qcode'] for item in items]:
+                        superdesk_event[field] = item
+                    else:
+                        superdesk_event[field] = superdesk_event[field]
 
-        if superdesk_event.get('links'):
-            item['links'] = self._format_links(superdesk_event['links'])
+            else:
+                items = (get_resource_service('vocabularies').find_one(req=None, _id=field) or {}).get('items', [])
+                for item in items:
+                    if item['qcode'] in [item['qcode'] for item in items]:
+                        superdesk_event[field] = item
+                    else:
+                        superdesk_event[field] = {}
 
-        if superdesk_event.get('definition_long'):
-            item['definition_long'] = superdesk_event['definition_long']
+        for field in add_to_local_db:
+            items = []
+            if field == 'event_contact_info':
+                items = superdesk_event.get('event_contact_info', [])
+                category = 'contacts'
 
-        if superdesk_event.get('guid'):
-            item['guid'] = superdesk_event['guid']
+            elif field == 'location':
+                items = superdesk_event.get('location', [])
+                category = 'locations'
+                for item in items:
+                    item['_id'] = item.get('qcode')
 
-        if superdesk_event.get('type'):
-            item['type'] = superdesk_event['type']
+            for item in items:
+                if item.get('_id'):
+                    contact = get_resource_service(category).find_one(req=None, _id=item.get('_id'))
+                    if not contact:
+                        get_resource_service(category).post([item])
 
-        if superdesk_event.get('occur_status'):
-            item['occur_status'] = superdesk_event['occur_status']
+        superdesk_event['versioncreated'] = self.datetime(superdesk_event['versioncreated'])
 
-        if superdesk_event.get('slugline'):
-            item['slugline'] = superdesk_event['slugline']
-
-        if superdesk_event.get('ednote'):
-            item['ednote'] = superdesk_event['ednote']
-
-        if superdesk_event.get('type'):
-            item['type'] = superdesk_event['type']
-
-        if superdesk_event.get('event_contact_info'):
-            item['event_contact_info'] = superdesk_event['event_contact_info']
-
-        if superdesk_event.get('item_id'):
-            item['item_id'] = superdesk_event['item_id']
-
-        if superdesk_event.get('anpa_category'):
-            item['anpa_category'] = superdesk_event['anpa_category']
-
-        if superdesk_event.get('dates'):
-            dates = superdesk_event['dates']
-            item['dates'] = {
-                'tz': dates['tz'],
-                'start': self.datetime(dates['start']),
-                'end': self.datetime(dates['end']),
-            }
-
-        if superdesk_event.get('subject'):
-            item['subject'] = self._format_qcodes(superdesk_event['subject'])
-
-        if superdesk_event.get('_created'):
-            item['_created'] = superdesk_event['_created']
-
-        if superdesk_event.get('_updated'):
-            item['_updated'] = superdesk_event['_updated']
-
-        if superdesk_event.get('versioncreated'):
-            item['versioncreated'] = self.datetime(
-                superdesk_event.get('versioncreated')
-            )
-
-        if superdesk_event.get('firstcreated'):
-            item['firstcreated'] = self.datetime(superdesk_event['firstcreated'])
-
-        if superdesk_event.get('place'):
-            item['place'] = self._format_qcodes(superdesk_event['place'])
-
-        return item
-
-    def _format_qcodes(self, items):
-        subjects = []
-        for item in items:
-            subject = {'name': item.get('name'), 'qcode': item.get('qcode')}
-            if item.get('scheme'):
-                subject['scheme'] = item.get('scheme')
-            if item.get('service'):
-                subject['service'] = item.get('service')
-            subjects.append(subject)
-
-        return subjects
-
-    def _format_calendars(self, items):
-        calendars = []
-        for item in items:
-            calendar = {'name': item.get('name'), 'qcode': item.get('qcode')}
-            if item.get('is_active'):
-                calendar['is_active'] = item.get('is_active')
-            calendars.append(calendar)
-
-        return calendars
-
-    def _format_links(self, links):
-        links = []
-        for link in links:
-            links.append(link)
-
-        return links
+        return superdesk_event
 
     def datetime(self, string):
         try:
@@ -158,14 +125,3 @@ class SuperdeskFeedParser(FileFeedParser):
             return datetime.datetime.strptime(string, '%Y-%m-%dT%H:%M:%SZ').replace(
                 tzinfo=utc
             )
-
-    def _parse_locations(self, items):
-        locations = []
-        for item in items:
-            location = {'name': item.get('name'), 'qcode': item.get('qcode')}
-            if item.get('address'):
-                location['address'] = item.get('address')
-            if item.get('address'):
-                location['location'] = item.get('location')
-            locations.append(location)
-        return locations
