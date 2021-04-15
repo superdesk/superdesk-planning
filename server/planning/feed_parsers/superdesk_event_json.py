@@ -60,10 +60,10 @@ class EventJsonFeedParser(FileFeedParser):
             'occur_status': 'eventoccurstatus'
         }
 
-        add_to_local_db = [
-            'event_contact_info',
-            'location'
-        ]
+        add_to_local_db = {
+            'event_contact_info': 'contacts',
+            'location': 'locations'
+        }
 
         for field in ignore_fields:
             superdesk_event.pop(field, '')
@@ -105,23 +105,18 @@ class EventJsonFeedParser(FileFeedParser):
                         superdesk_event_subject.append(subject_item)
             superdesk_event['subject'] = superdesk_event_subject
 
-        for field in add_to_local_db:
-            items = []
-            if field == 'event_contact_info':
-                items = superdesk_event.get('event_contact_info', [])
-                category = 'contacts'
-
-            elif field == 'location':
-                items = superdesk_event.get('location', [])
-                category = 'locations'
-                for item in items:
-                    item['_id'] = item.get('qcode')
+        for field in add_to_local_db.keys():
+            items = superdesk_event.get(field, [])
 
             for item in items:
+                if field == 'location':
+                    item['_id'] = item.get('qcode')
                 if item.get('_id'):
-                    contact = get_resource_service(category).find_one(req=None, _id=item.get('_id'))
-                    if not contact:
-                        get_resource_service(category).post([item])
+                    field_in_database = get_resource_service(
+                        add_to_local_db[field]
+                    ).find_one(req=None, _id=item.get('_id'))
+                    if not field_in_database:
+                        get_resource_service(add_to_local_db[field]).post([item])
 
         superdesk_event['versioncreated'] = self.datetime(superdesk_event['versioncreated'])
 
