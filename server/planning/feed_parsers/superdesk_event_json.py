@@ -2,6 +2,7 @@ import logging
 
 from superdesk.io.feed_parsers import FileFeedParser
 from superdesk import get_resource_service
+from superdesk.io.subjectcodes import get_subjectcodeitems
 from superdesk.utc import utcnow
 from planning.common import WORKFLOW_STATE
 import pytz
@@ -52,13 +53,12 @@ class EventJsonFeedParser(FileFeedParser):
             'actioned_date'
         ]
 
-        assign_from_local_cv = [
-            'anpa_category',
-            'subject',
-            'calendars',
-            'place',
-            'occur_status'
-        ]
+        assign_from_local_cv = {
+            'anpa_category': 'categories',
+            'calendars': 'event_calendars',
+            'place': 'locators',
+            'occur_status': 'eventoccurstatus'
+        }
 
         add_to_local_db = [
             'event_contact_info',
@@ -72,27 +72,38 @@ class EventJsonFeedParser(FileFeedParser):
         superdesk_event['_updated'] = utcnow()
         superdesk_event['state'] = WORKFLOW_STATE.INGESTED
 
-        for field in assign_from_local_cv:
-            if field == 'occur_status':
+        for field in assign_from_local_cv.keys():
+            if superdesk_event.get(field):
                 items = (
-                    get_resource_service("vocabularies").find_one(
-                        req=None, _id="eventoccurstatus"
+                    get_resource_service('vocabularies').find_one(
+                        req=None, _id=assign_from_local_cv[field]
                     )
                     or {}
-                ).get("items", [])
-                for item in items:
-                    if item['qcode'] in [item['qcode'] for item in items]:
-                        superdesk_event[field] = item
-                    else:
-                        superdesk_event[field] = superdesk_event[field]
+                ).get('items', [])
 
-            else:
-                items = (get_resource_service('vocabularies').find_one(req=None, _id=field) or {}).get('items', [])
-                for item in items:
-                    if item['qcode'] in [item['qcode'] for item in items]:
-                        superdesk_event[field] = item
-                    else:
-                        superdesk_event[field] = {}
+                if field == 'occur_status':
+                    for item in items:
+                        if superdesk_event[field]['qcode'] == item['qcode']:
+                            superdesk_event[field] = item
+                        else:
+                            superdesk_event[field] = superdesk_event[field]
+                else:
+                    superdesk_event_field = []
+                    for event in superdesk_event[field]:
+                        for item in items:
+                            if event['qcode'] == item['qcode']:
+                                superdesk_event_field.append(item)
+                    superdesk_event[field] = superdesk_event_field
+
+        if superdesk_event.get('subject'):
+            superdesk_event_subject = []
+            subject_code_items = get_subjectcodeitems()
+
+            for item in superdesk_event['subject']:
+                for subject_item in subject_code_items:
+                    if item.get('qcode') == subject_item['qcode']:
+                        superdesk_event_subject.append(subject_item)
+            superdesk_event['subject'] = superdesk_event_subject
 
         for field in add_to_local_db:
             items = []
