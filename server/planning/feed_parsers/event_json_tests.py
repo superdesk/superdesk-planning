@@ -34,7 +34,7 @@ class EventJsonFeedParserTestCase(TestCase):
                 or {}
             )
 
-            items.get('items').append(random_event)
+            items.get('items', []).append(random_event)
 
             # add the random event into database.
             get_resource_service('vocabularies').patch(assign_from_local_cv[field], items)
