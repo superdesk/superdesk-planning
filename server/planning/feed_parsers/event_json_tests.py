@@ -34,7 +34,7 @@ class EventJsonFeedParserTestCase(TestCase):
                 or {}
             )
 
-            items['items'].append(random_event)
+            items.get('items').append(random_event)
 
             # add the random event into database.
             get_resource_service('vocabularies').patch(assign_from_local_cv[field], items)
@@ -58,7 +58,7 @@ class EventJsonFeedParserTestCase(TestCase):
 
             items['items'].remove(random_event)
 
-            # remove the random event added.
+            # remove the random event added into database while testing.
             get_resource_service('vocabularies').patch(assign_from_local_cv[field], items)
 
         # check if locations and contacts are created.
