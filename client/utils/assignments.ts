@@ -7,7 +7,6 @@ import {IAssignmentItem, ISession, IPrivileges, ASSIGNMENT_STATE} from '../inter
 import {ASSIGNMENTS, PRIVILEGES} from '../constants';
 import * as selectors from '../selectors';
 import {lockUtils, getCreator, getItemInArrayById, isExistingItem} from './index';
-import {IAssignmentItem} from 'interfaces';
 import {IVocabularyItem} from 'superdesk-api';
 
 const isNotLockRestricted = (assignment, session) => (
