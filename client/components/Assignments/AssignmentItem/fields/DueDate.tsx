@@ -18,8 +18,7 @@ export const DueDateComponent = ({assignment}: IProps) => {
 
     return (
         <span
-            data-sd-tooltip={gettext('Due Date')}
-            data-flow="right"
+            title={gettext('Due Date')}
             className={classNames('assignment--due-date', 'label-icon', {'label-icon--warning': isOverdue})}
         >
             {assignedToProvider && <i className="icon-ingest" />}
