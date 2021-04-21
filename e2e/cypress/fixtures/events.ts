@@ -1,4 +1,4 @@
-import {getDateStringFor} from '../support/utils/time';
+import {getDateStringFor, TIME_STRINGS} from '../support/utils/time';
 
 export const LOCATIONS = {
     sydney_opera_house: {
@@ -45,8 +45,8 @@ export const TEST_EVENTS = {
     draft: {
         ...BASE_EVENT,
         dates: {
-            start: '2045-12-11T13:00:00+0000',
-            end: '2045-12-11T14:00:00+0000',
+            start: '2045-12-11' + TIME_STRINGS[0],
+            end: '2045-12-11' + TIME_STRINGS[1],
             tz: 'Australia/Sydney',
         },
         name: 'Test',
@@ -71,8 +71,8 @@ export const TEST_EVENTS = {
     spiked: {
         ...BASE_EVENT,
         dates: {
-            start: '2045-12-11T13:00:00+0000',
-            end: '2045-12-11T14:00:00+0000',
+            start: '2045-12-11' + TIME_STRINGS[0],
+            end: '2045-12-11' + TIME_STRINGS[1],
             tz: 'Australia/Sydney',
         },
         state: 'spiked',
@@ -82,8 +82,8 @@ export const TEST_EVENTS = {
     date_01_02_2045: {
         ...BASE_EVENT,
         dates: {
-            start: '2045-01-31T13:00:00+0000',
-            end: '2045-01-31T14:00:00+0000',
+            start: '2045-01-31' + TIME_STRINGS[0],
+            end: '2045-01-31' + TIME_STRINGS[1],
             tz: 'Australia/Sydney',
         },
         name: 'February 1st 2045',
@@ -92,8 +92,8 @@ export const TEST_EVENTS = {
     date_02_02_2045: {
         ...BASE_EVENT,
         dates: {
-            start: '2045-02-01T13:00:00+0000',
-            end: '2045-02-01T14:00:00+0000',
+            start: '2045-02-01' + TIME_STRINGS[0],
+            end: '2045-02-01' + TIME_STRINGS[1],
             tz: 'Australia/Sydney',
         },
         name: 'February 2nd 2045',
@@ -102,8 +102,8 @@ export const TEST_EVENTS = {
     date_03_02_2045: {
         ...BASE_EVENT,
         dates: {
-            start: '2045-02-02T13:00:00+0000',
-            end: '2045-02-02T14:00:00+0000',
+            start: '2045-02-02' + TIME_STRINGS[0],
+            end: '2045-02-02' + TIME_STRINGS[1],
             tz: 'Australia/Sydney',
         },
         name: 'February 3rd 2045',
@@ -112,8 +112,8 @@ export const TEST_EVENTS = {
     date_04_02_2045: {
         ...BASE_EVENT,
         dates: {
-            start: '2045-02-03T13:00:00+0000',
-            end: '2045-02-03T14:00:00+0000',
+            start: '2045-02-03' + TIME_STRINGS[0],
+            end: '2045-02-03' + TIME_STRINGS[1],
             tz: 'Australia/Sydney',
         },
         name: 'February 4th 2045',
@@ -125,8 +125,8 @@ function getEventForDate(dateString: string, metadata: {[key: string]: any} = {}
     return {
         ...BASE_EVENT,
         dates: {
-            start: dateString + 'T13:00:00+0000',
-            end: dateString + 'T14:00:00+0000',
+            start: dateString + TIME_STRINGS[0],
+            end: dateString + TIME_STRINGS[1],
             tz: 'Australia/Sydney',
         },
         ...metadata,

@@ -46,3 +46,16 @@ export const getDateStringFor = {
     next_week: () => getStartOfNextWeek()
         .format('YYYY-MM-DD'),
 };
+
+export function getTimeStringForHour(hour: number): string {
+    return moment()
+        .tz('Australia/Sydney')
+        .set({hour: hour})
+        .utc()
+        .format('THH:00:00+0000');
+}
+
+export const TIME_STRINGS = {
+    0: getTimeStringForHour(0),
+    1: getTimeStringForHour(1),
+};

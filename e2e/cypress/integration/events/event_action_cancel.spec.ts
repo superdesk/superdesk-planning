@@ -1,4 +1,5 @@
 import {setup, login, addItems, waitForPageLoad, Modal} from '../../support/common';
+import {TIME_STRINGS} from '../../support/utils/time';
 import {PlanningList, EventEditor, PlanningPreview} from '../../support/planning';
 
 describe('Planning.Events: event cancel action', () => {
@@ -19,8 +20,8 @@ describe('Planning.Events: event cancel action', () => {
                 qcode: 'eocstat:eos5',
             },
             dates: {
-                start: '2045-12-11T13:00:00+0000',
-                end: '2045-12-11T14:00:00+0000',
+                start: '2045-12-11' + TIME_STRINGS[0],
+                end: '2045-12-11' + TIME_STRINGS[1],
                 tz: 'Australia/Sydney',
             },
             calendars: [],
