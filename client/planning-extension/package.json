@@ -1,6 +1,9 @@
 {
-  "private": true,
-  "name": "superdesk-planning-extension",
+  "name": "@superdesk/planning-extension",
+  "version": "1.0.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "/dist"
   ],
@@ -8,6 +11,7 @@
   "scripts": {
     "compile": "tsc -p src",
     "compile-e2e": "echo 'No end-to-end tests defined'",
+    "prepublish": "rm -rf dist && npm run compile",
     "watch": "tsc -watch -p src"
   },
   "devDependencies": {
