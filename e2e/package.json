@@ -7,8 +7,8 @@
     "superdesk-planning": "file:../"
   },
   "devDependencies": {
-    "cypress": "^7.1.0",
-    "cypress-terminal-report": "^3.0.0",
+    "cypress": "~6.6.0",
+    "cypress-terminal-report": "^2.4.0",
     "extract-text-webpack-plugin": "3.0.2",
     "gettext.js": "0.9.0",
     "grunt": "1.0.2",
