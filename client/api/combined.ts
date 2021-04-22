@@ -100,7 +100,7 @@ function getRecurringEventsAndPlanningItems(
     if (loadEvents && loadPlannings) {
         return getEventsAndPlanning({
             recurrence_id: event.recurrence_id,
-            event_item: event.recurrence_id != null ? null : [event._id],
+            item_ids: event.recurrence_id != null ? null : [event._id],
             spike_state: 'both',
             only_future: false,
             include_associated_planning: true,
@@ -115,6 +115,11 @@ function getRecurringEventsAndPlanningItems(
             events: [],
             plannings: items,
         }));
+    } else if (event.recurrence_id == null) {
+        return Promise.resolve({
+            events: [],
+            plannings: [],
+        });
     } else {
         return searchEventsGetAll({
             recurrence_id: event.recurrence_id,
