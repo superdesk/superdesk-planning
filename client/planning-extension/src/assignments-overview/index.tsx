@@ -66,7 +66,14 @@ function fetchAssignments(userId: IUser['_id']): Promise<IState['assignments']> 
                 },
             }),
         },
-    ).then(({_items}) => _items);
+    ).then(({_items}) => {
+        superdesk.dispatchEvent(
+            'menuItemBadgeValueChange',
+            {menuId: 'MENU_ITEM_PLANNING_ASSIGNMENTS', badgeValue: _items.length.toString()},
+        );
+
+        return _items;
+    });
 }
 
 export class AssignmentsList extends React.PureComponent<{}, {loading: true} | IState> {
