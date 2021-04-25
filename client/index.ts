@@ -61,6 +61,7 @@ export default angular.module('superdesk-planning', [])
     .service('assignments', svc.AssignmentsService)
     .config(['workspaceMenuProvider', (workspaceMenuProvider) => {
         workspaceMenuProvider.item({
+            id: 'MENU_ITEM_PLANNING_ASSIGNMENTS',
             href: '/workspace/assignments',
             icon: 'tasks',
             label: gettext('Assignments'),
