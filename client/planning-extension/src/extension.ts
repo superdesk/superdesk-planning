@@ -103,22 +103,27 @@ const extension: IExtension = {
     activate: (superdesk: ISuperdesk) => {
         const extensionConfig: IPlanningExtensionConfigurationOptions = superdesk.getExtensionConfig();
 
-        const result: IExtensionActivationResult = {
-            contributions: {
-                entities: {
-                    article: {
-                        onSpike: (item: IArticle) => onSpike(superdesk, item),
-                        onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
-                        onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
-                        onRewriteAfter: (item: IArticle) => onArticleRewriteAfter(superdesk, item),
-                        onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
-                    },
-                },
-                globalMenuHorizontal: extensionConfig?.assignmentsTopBarWidget === true ? [AssignmentsList] : [],
-            },
-        };
+        return superdesk.privileges.getOwnPrivileges().then((privileges) => {
+            const displayTopbarWidget = privileges['planning_assignments_view'] === 1
+                && extensionConfig?.assignmentsTopBarWidget === true;
 
-        return Promise.resolve(result);
+            const result: IExtensionActivationResult = {
+                contributions: {
+                    entities: {
+                        article: {
+                            onSpike: (item: IArticle) => onSpike(superdesk, item),
+                            onSpikeMultiple: (items: Array<IArticle>) => onSpikeMultiple(superdesk, items),
+                            onPublish: (item: IArticle) => onPublishArticle(superdesk, item),
+                            onRewriteAfter: (item: IArticle) => onArticleRewriteAfter(superdesk, item),
+                            onSendBefore: (items: Array<IArticle>, desk: IDesk) => onSendBefore(superdesk, items, desk),
+                        },
+                    },
+                    globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
+                },
+            };
+    
+            return result;
+        });
     },
 };
 
