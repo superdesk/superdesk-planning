@@ -1,4 +1,4 @@
-import {getDateStringFor} from '../support/utils/time';
+import {getDateStringFor, TIME_STRINGS} from '../support/utils/time';
 
 export const AGENDAS = {
     sports: {name: 'Sports'},
@@ -14,7 +14,7 @@ export const TEST_PLANNINGS = {
     draft: {
         ...BASE_PLANNING,
         slugline: 'Original',
-        planning_date: '2045-12-11T14:00:00+0000',
+        planning_date: '2045-12-11' + TIME_STRINGS[1],
         anpa_category: [
             {name: 'Overseas Sport', qcode: 's'},
             {name: 'International News', qcode: 'i'},
@@ -27,41 +27,41 @@ export const TEST_PLANNINGS = {
     spiked: {
         ...BASE_PLANNING,
         slugline: 'Spiker',
-        planning_date: '2045-12-11T14:00:00+0000',
+        planning_date: '2045-12-11' + TIME_STRINGS[1],
         state: 'spiked',
     },
     featured: {
         ...BASE_PLANNING,
         slugline: 'Featured Planning',
-        planning_date: '2045-12-12T14:00:00+0000',
+        planning_date: '2045-12-12' + TIME_STRINGS[1],
         featured: true,
     },
     plan_date_01_02_2045: {
         ...BASE_PLANNING,
         slugline: 'Plan Feb 1',
-        planning_date: '2045-01-31T14:00:00+0000'
+        planning_date: '2045-01-31' + TIME_STRINGS[1],
     },
     plan_date_02_02_2045: {
         ...BASE_PLANNING,
         slugline: 'Plan Feb 2',
-        planning_date: '2045-02-01T14:00:00+0000'
+        planning_date: '2045-02-01' + TIME_STRINGS[1],
     },
     plan_date_03_02_2045: {
         ...BASE_PLANNING,
         slugline: 'Plan Feb 3',
-        planning_date: '2045-02-02T14:00:00+0000'
+        planning_date: '2045-02-02' + TIME_STRINGS[1],
     },
     plan_date_04_02_2045: {
         ...BASE_PLANNING,
         slugline: 'Plan Feb 4',
-        planning_date: '2045-02-03T14:00:00+0000'
+        planning_date: '2045-02-03' + TIME_STRINGS[1],
     },
 };
 
 function getPlanningForDate(dateString: string, metadata: {[key: string]: any}) {
     return {
         ...BASE_PLANNING,
-        planning_date: dateString + 'T14:00:00+0000',
+        planning_date: dateString + TIME_STRINGS[1],
         ...metadata,
     };
 }
