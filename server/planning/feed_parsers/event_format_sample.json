@@ -1,0 +1,178 @@
+{
+	"_current_version": 6374718192158218,
+	"_time_to_be_confirmed": false,
+	"event_contact_info": [
+		{
+			"is_active": true,
+			"_updated": "2019-08-29T13:01:54+0000",
+			"mobile": [],
+			"first_name": "Jan",
+			"last_name": "Christian Kolst\u00f8",
+			"_created": "2019-08-29T13:01:54+0000",
+			"public": true,
+			"_id": "5d67ccc2fdf5baac5c93745c",
+			"contact_phone": [
+				{
+					"is_active": true,
+					"usage": "",
+					"number": "92056081",
+					"public": true
+				}
+			],
+			"contact_email": [
+				"jck@kud.dep.no"
+			]
+		}
+	],
+	"state_reason": null,
+	"place": [
+		{
+			"qcode": "random123",
+			"name": "random123"
+		}
+	],
+	"item_id": "835d5175-a2bc-41ad-a906-baf3f2281a5c",
+	"schedule_settings": {
+		"time_zone": null,
+		"utc_publish_schedule": null
+	},
+	"internal_note": "TEST Internal note",
+	"plans": [],
+	"pubstatus": "usable",
+	"name": "TEST Event name",
+	"_created": "2021-01-25T14:31:52+0000",
+	"calendars": [
+		{
+			"is_active": true,
+			"qcode": "sport",
+			"name": "Sport"
+		},
+		{
+			"is_active": true,
+			"qcode": "finance",
+			"name": "Finance"
+		},
+		{
+			"qcode": "random123",
+			"name": "random123"
+		}
+	],
+	"firstcreated": "2021-01-25T14:31:52+0000",
+	"files": [
+		"600ed567b481422b366e9063",
+		"600ed573209d2bdea5bdc35a"
+	],
+	"definition_short": "TEST Description",
+	"subject": [
+		{
+			"service": {
+				"s": 1,
+				"t": 1,
+				"e": 1,
+				"m": 1,
+				"n": 1,
+				"i": 1
+			},
+			"scheme": "category",
+			"qcode": "Sport",
+			"name": "Sport"
+		},
+		{
+			"parent": "05000000",
+			"scheme": "subject_custom",
+			"qcode": "05005000",
+			"name": "Skoler"
+		},
+		{
+			"parent": null,
+			"scheme": "subject_custom",
+			"qcode": "05000000",
+			"name": "Utdanning"
+		},
+		{
+			"parent": "15000000",
+			"scheme": "subject_custom",
+			"qcode": "15054000",
+			"name": "Fotball"
+		},
+		{
+			"service": {
+				"s": 1,
+				"j": 1,
+				"t": 1,
+				"e": 1,
+				"m": 1,
+				"n": 1,
+				"i": 1
+			},
+			"scheme": "category",
+			"qcode": "Innenriks",
+			"name": "Innenriks"
+		},
+		{
+			"qcode": "random123",
+			"name": "random123"
+		}
+	],
+	"links": [
+		"https://www.ntb.no",
+		"https://www.sourcefabric.org"
+	],
+	"definition_long": "TEST Long description",
+	"_updated": "2021-01-25T14:32:01+0000",
+	"state": "scheduled",
+	"_id": "835d5175-a2bc-41ad-a906-baf3f2281a5c",
+	"actioned_date": null,
+	"location": [
+		{
+			"qcode": "835d5175-a2bc-41ad-a906-baf3f2281a5c",
+			"address": {
+				"area": "Oslo",
+				"line": [
+					"Operagata"
+				],
+				"locality": "Oslo",
+				"postal_code": "0194",
+				"type": "unclassified",
+				"boundingbox": [
+					"59.9072822",
+					"59.9075653",
+					"10.755855",
+					"10.7570023"
+				],
+				"country": "Norway"
+			},
+			"name": "Operagata",
+			"location": {
+				"lon": 10.756074,
+				"lat": 59.9075113
+			}
+		}
+	],
+	"anpa_category": [
+		{
+			"qcode": "n",
+			"language": "nb-NO",
+			"name": "Nyhetstjenesten",
+			"selection_type": "multi selection"
+		},
+		{
+			"qcode": "random123",
+			"name": "random123"
+		}
+	],
+	"guid": "835d5175-a2bc-41ad-a906-baf3f2281a5c",
+	"dates": {
+		"tz": "Europe/Prague",
+		"start": "2021-03-01T14:00:41+0000",
+		"end": "2021-03-01T15:00:41+0000"
+	},
+	"type": "event",
+	"versioncreated": "2021-01-25T14:32:01+0000",
+	"occur_status": {
+		"qcode": "random123",
+		"name": "random123"
+	},
+	"slugline": "TEST slugline",
+	"ednote": "TEST editorial note"
+}

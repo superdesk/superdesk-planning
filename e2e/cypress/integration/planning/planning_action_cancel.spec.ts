@@ -1,4 +1,5 @@
-import {setup, addItems, login, waitForPageLoad, SubNavBar, Workqueue, Modal} from '../../support/common';
+import {setup, addItems, login, waitForPageLoad, Modal} from '../../support/common';
+import {TIME_STRINGS} from '../../support/utils/time';
 import {PlanningList, PlanningEditor, PlanningPreview} from '../../support/planning';
 
 describe('Planning.Planning: cancel planning item', () => {
@@ -13,7 +14,7 @@ describe('Planning.Planning: cancel planning item', () => {
         setup({fixture_profile: 'planning_prepopulate_data'}, '/#/planning');
         addItems('planning', [{
             slugline: 'Test Planning Item',
-            planning_date: '2045-12-11T13:00:00+0000',
+            planning_date: '2045-12-11' + TIME_STRINGS[0],
         }]);
 
         login();

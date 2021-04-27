@@ -1,4 +1,5 @@
 import {setup, login, addItems, waitForPageLoad} from '../../support/common';
+import {TIME_STRINGS} from '../../support/utils/time';
 import {PlanningList, PlanningPreview, EventEditor, PlanningEditor} from '../../support/planning';
 
 describe('Planning.Events: create planning action', () => {
@@ -14,7 +15,7 @@ describe('Planning.Events: create planning action', () => {
     const expectedValues = {
         slugline: 'Original',
         'planning_date.date': '12/12/2045',
-        'planning_date.time': '00:00',
+        'planning_date.time': '01:00',
         description_text: 'Desc.',
         ednote: 'Ed. Note',
         anpa_category: ['Finance'],
@@ -32,8 +33,8 @@ describe('Planning.Events: create planning action', () => {
                 qcode: 'eocstat:eos5',
             },
             dates: {
-                start: '2045-12-11T13:00:00+0000',
-                end: '2045-12-11T14:00:00+0000',
+                start: '2045-12-11' + TIME_STRINGS[0],
+                end: '2045-12-11' + TIME_STRINGS[1],
                 tz: 'Australia/Sydney',
             },
             anpa_category: [{is_active: true, name: 'Finance', qcode: 'f', subject: '04000000'}],
