@@ -2,6 +2,7 @@ import {groupBy} from 'lodash';
 import * as React from 'react';
 import {
     IDesk,
+    IResourceChange,
     IRestApiResponse,
     IUser,
     IVocabulary,
@@ -15,7 +16,7 @@ import {AssignmentsOverviewListItem} from './assignments-overview-list-item';
 const {addWebsocketMessageListener} = superdesk;
 
 const DropdownTree = superdesk.components.getDropdownTree<IAssignmentItem>();
-const {queryRawJson, findOne} = superdesk.dataApi;
+const {queryRawJson, findOne, fetchChangedResources} = superdesk.dataApi;
 const {GroupLabel, IconBig, TopMenuDropdownButton} = superdesk.components;
 
 interface IState {
@@ -24,13 +25,6 @@ interface IState {
     desks: {[key: string]: IDesk}; // desks by _id
     contentTypes: Array<IVocabularyItem>;
     assignments: Array<IAssignmentItem>;
-}
-
-interface IResourceChange {
-    changeType: 'created' | 'updated' | 'deleted';
-    resource: string;
-    itemId: string;
-    fields?: {[key: string]: 1};
 }
 
 function fetchDesks(): Promise<IState['desks']> {
@@ -136,11 +130,11 @@ export class AssignmentsList extends React.PureComponent<{}, {loading: true} | I
 
         const {assignments} = state;
 
-        const refetchDesks = changes.find(({resource}) => resource === 'desks');
-        const refetchContentTypes = changes.find(
+        const refetchContentTypes: boolean = changes.find(
             ({resource, itemId}) => resource === 'vocabularies' && itemId === 'g2_content_type',
-        );
-        const refetchAssignments = changes.find(
+        ) != null;
+
+        const refetchAssignments: boolean = changes.find(
             ({changeType, resource, itemId}) =>
                 (resource === 'assignments' && (changeType === 'created' || changeType === 'deleted'))
                 || (
@@ -148,10 +142,10 @@ export class AssignmentsList extends React.PureComponent<{}, {loading: true} | I
                     && changeType === 'updated'
                     && assignments.find(({_id}) => _id === itemId) != null
                 ),
-        );
+        ) != null;
 
         Promise.all([
-            refetchDesks ? fetchDesks() : Promise.resolve(state.desks),
+            fetchChangedResources<IDesk>('desks', changes, state.desks),
             refetchContentTypes ? fetchContentTypes() : Promise.resolve(state.contentTypes),
             refetchAssignments ? fetchAssignments(state.currentUser._id) : Promise.resolve(state.assignments),
         ]).then(([desks, contentTypes, assignments]) => {
