@@ -24,6 +24,12 @@ interface IExtensionBridge {
     };
 }
 
+/**
+ * Importing files to planning extension directly often doesn't work
+ * because of either stricter TypeScript compiler settings
+ * or due to imports being handled differently in webpack
+ * (I don't remember the exact issue, but it's something related to esModuleInterop and __importStar).
+ */
 export const extensionBridge:IExtensionBridge = {
     assignments: {
         utils: {

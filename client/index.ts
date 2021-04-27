@@ -15,12 +15,6 @@ import {updateConfigAfterLoad} from './config';
 
 import {extensionBridge} from './extension_bridge';
 
-/**
- * Importing files to planning extension directly often doesn't work
- * because of either stricter TypeScript compiler settings
- * or due to imports being handled differently in webpack
- * (I don't remember the exact issue, but it's something related to esModuleInterop and __importStar).
- */
 window['extension_bridge'] = extensionBridge;
 
 export default angular.module('superdesk-planning', [])
