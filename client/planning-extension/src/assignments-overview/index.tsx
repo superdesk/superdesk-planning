@@ -19,6 +19,10 @@ const DropdownTree = superdesk.components.getDropdownTree<IAssignmentItem>();
 const {queryRawJson, findOne, fetchChangedResources} = superdesk.dataApi;
 const {GroupLabel, IconBig, TopMenuDropdownButton} = superdesk.components;
 
+interface IProps {
+    // empty
+}
+
 interface IState {
     loading: false;
     currentUser: IUser;
@@ -60,17 +64,10 @@ function fetchAssignments(userId: IUser['_id']): Promise<IState['assignments']> 
                 },
             }),
         },
-    ).then(({_items}) => {
-        superdesk.dispatchEvent(
-            'menuItemBadgeValueChange',
-            {menuId: 'MENU_ITEM_PLANNING_ASSIGNMENTS', badgeValue: _items.length.toString()},
-        );
-
-        return _items;
-    });
+    ).then(({_items}) => _items);
 }
 
-export class AssignmentsList extends React.PureComponent<{}, {loading: true} | IState> {
+export class AssignmentsList extends React.PureComponent<IProps, {loading: true} | IState> {
     private eventListenersToRemoveBeforeUnmounting: Array<() => void>;
 
     constructor(props: {}) {
@@ -81,6 +78,7 @@ export class AssignmentsList extends React.PureComponent<{}, {loading: true} | I
         this.eventListenersToRemoveBeforeUnmounting = [];
 
         this.handleContentChanges = this.handleContentChanges.bind(this);
+        this.setBadgeValue = this.setBadgeValue.bind(this);
 
         this.eventListenersToRemoveBeforeUnmounting.push(
             addWebsocketMessageListener(
@@ -146,7 +144,25 @@ export class AssignmentsList extends React.PureComponent<{}, {loading: true} | I
         });
     }
 
+    setBadgeValue(prevState?: {loading: true} | IState) {
+        if (this.state.loading) {
+            return;
+        }
+
+        const countCurrent = this.state.assignments.length;
+        const countPrevious = prevState == null || prevState.loading ? -1 : prevState.assignments.length;
+
+        if (countCurrent !== countPrevious) {
+            superdesk.dispatchEvent(
+                'menuItemBadgeValueChange',
+                {menuId: 'MENU_ITEM_PLANNING_ASSIGNMENTS', badgeValue: countCurrent.toString()},
+            );
+        }
+    }
+
     componentDidMount() {
+        this.setBadgeValue();
+
         superdesk.session.getCurrentUser()
             .then((currentUser) =>
                 Promise.all([
@@ -163,6 +179,10 @@ export class AssignmentsList extends React.PureComponent<{}, {loading: true} | I
                     });
                 })
             );
+    }
+
+    componentDidUpdate(_: IProps, prevState: {loading: true} | IState) {
+        this.setBadgeValue(prevState);
     }
 
     componentWillUnmount() {
