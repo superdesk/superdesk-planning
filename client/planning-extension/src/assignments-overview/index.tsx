@@ -4,6 +4,7 @@ import {
     IDesk,
     IResourceChange,
     IRestApiResponse,
+    ISuperdeskQuery,
     IUser,
     IVocabulary,
     IVocabularyItem,
@@ -16,9 +17,10 @@ import {AssignmentsOverviewListItem} from './assignments-overview-list-item';
 const {addWebsocketMessageListener} = superdesk;
 
 const DropdownTree = superdesk.components.getDropdownTree<IAssignmentItem>();
-const {queryRawJson, findOne, fetchChangedResources, fetchChangedResourcesObj} = superdesk.dataApi;
-const {GroupLabel, IconBig, TopMenuDropdownButton} = superdesk.components;
+const {queryRawJson, findOne, fetchChangedResourcesObj} = superdesk.dataApi;
+const {GroupLabel, IconBig, TopMenuDropdownButton, getLiveQueryHOC} = superdesk.components;
 const {throttleAndCombineArray} = superdesk.utilities;
+const LiveAssignmentsHOC = getLiveQueryHOC<IAssignmentItem>();
 
 interface IProps {
     // empty
@@ -29,7 +31,22 @@ interface IState {
     currentUser: IUser;
     desks: {[key: string]: IDesk}; // desks by _id
     contentTypes: Array<IVocabularyItem>;
-    assignments: Array<IAssignmentItem>;
+}
+
+function getAssignmentsQuery(userId: IUser['_id']): ISuperdeskQuery {
+    const query: ISuperdeskQuery = {
+        filter: {
+            $and: [
+                {'assigned_to.user': {$eq: userId}},
+                {'assigned_to.state': {$in: ['assigned', 'submitted', 'in_progress']}},
+            ],
+        },
+        sort: [{'planning.scheduled': 'asc'}],
+        page: 0,
+        max_results: 100,
+    };
+
+    return query;
 }
 
 function fetchDesks(): Promise<IState['desks']> {
@@ -48,26 +65,6 @@ function fetchContentTypes(): Promise<IState['contentTypes']> {
     return findOne<IVocabulary>('vocabularies', 'g2_content_type').then(({items}) => (items));
 }
 
-function fetchAssignments(userId: IUser['_id']): Promise<IState['assignments']> {
-    return queryRawJson<IRestApiResponse<IAssignmentItem>>(
-        'assignments',
-        {
-            page: '1',
-            sort: '[("planning.scheduled", 1)]',
-            source: JSON.stringify({
-                query: {
-                    bool: {
-                        must: [
-                            {term: {'assigned_to.user': userId}},
-                            {terms: {'assigned_to.state': ['assigned', 'submitted', 'in_progress']}},
-                        ],
-                    },
-                },
-            }),
-        },
-    ).then(({_items}) => _items);
-}
-
 export class AssignmentsList extends React.PureComponent<IProps, {loading: true} | IState> {
     private eventListenersToRemoveBeforeUnmounting: Array<() => void>;
     handleContentChangesThrottled: (changes: Array<IResourceChange>) => void;
@@ -79,7 +76,6 @@ export class AssignmentsList extends React.PureComponent<IProps, {loading: true}
 
         this.eventListenersToRemoveBeforeUnmounting = [];
 
-        this.setBadgeValue = this.setBadgeValue.bind(this);
         this.handleContentChanges = this.handleContentChanges.bind(this);
 
         this.handleContentChangesThrottled = throttleAndCombineArray(
@@ -142,62 +138,30 @@ export class AssignmentsList extends React.PureComponent<IProps, {loading: true}
         Promise.all([
             fetchChangedResourcesObj<IDesk>('desks', changes, state.desks),
             refetchContentTypes ? fetchContentTypes() : Promise.resolve(state.contentTypes),
-            fetchChangedResources<IAssignmentItem>('assignments', changes, state.assignments).then((res) => {
-                if (res === 'requires-refetching-all') {
-                    return fetchAssignments(state.currentUser._id);
-                } else {
-                    return res;
-                }
-            }),
-        ]).then(([desks, contentTypes, assignments]) => {
+        ]).then(([desks, contentTypes]) => {
             this.setState({
                 loading: false,
                 desks: desks,
                 contentTypes: contentTypes,
-                assignments: assignments,
             });
         });
     }
 
-    setBadgeValue(prevState?: {loading: true} | IState) {
-        if (this.state.loading) {
-            return;
-        }
-
-        const countCurrent = this.state.assignments.length;
-        const countPrevious = prevState == null || prevState.loading ? -1 : prevState.assignments.length;
-
-        if (countCurrent !== countPrevious) {
-            superdesk.dispatchEvent(
-                'menuItemBadgeValueChange',
-                {menuId: 'MENU_ITEM_PLANNING_ASSIGNMENTS', badgeValue: countCurrent.toString()},
-            );
-        }
-    }
-
     componentDidMount() {
-        this.setBadgeValue();
-
         superdesk.session.getCurrentUser()
             .then((currentUser) =>
                 Promise.all([
                     fetchDesks(),
                     fetchContentTypes(),
-                    fetchAssignments(currentUser._id),
-                ]).then(([desks, contentTypes, assignments]) => {
+                ]).then(([desks, contentTypes]) => {
                     this.setState({
                         loading: false,
                         currentUser: currentUser,
                         desks: desks,
                         contentTypes: contentTypes,
-                        assignments: assignments,
                     });
                 })
             );
-    }
-
-    componentDidUpdate(_: IProps, prevState: {loading: true} | IState) {
-        this.setBadgeValue(prevState);
     }
 
     componentWillUnmount() {
@@ -211,52 +175,67 @@ export class AssignmentsList extends React.PureComponent<IProps, {loading: true}
             return null;
         }
 
-        const {assignments, desks, contentTypes} = this.state;
-        const itemsCount = assignments.length;
-        const grouped = groupBy(assignments, (item) => item.assigned_to.desk);
+        const {desks, contentTypes, currentUser} = this.state;
 
         return (
-            <DropdownTree
-                groups={Object.keys(grouped).map((deskId) => ({
-                    render: () => (
-                        <GroupLabel>
-                            <Badge type="highlight" text={grouped[deskId].length.toString()} />
-                            <span style={{marginLeft: 6}}>{desks[deskId].name}</span>
-                        </GroupLabel>
-                    ),
-                    items: grouped[deskId],
-                }))}
-                getToggleElement={
-                    (isOpen, onClick) => (
-                        <TopMenuDropdownButton
-                            onClick={() => {
-                                if (itemsCount > 0) {
-                                    onClick();
+            <LiveAssignmentsHOC resource="assignments" query={getAssignmentsQuery(currentUser._id)}>
+                {
+                    (data) => {
+                        const assignments = data._items;
+                        const itemsCount = assignments.length;
+                        const grouped = groupBy(assignments, (item) => item.assigned_to.desk);
+
+                        superdesk.dispatchEvent(
+                            'menuItemBadgeValueChange',
+                            {menuId: 'MENU_ITEM_PLANNING_ASSIGNMENTS', badgeValue: data._meta.total.toString()},
+                        );
+
+                        return (
+                            <DropdownTree
+                                groups={Object.keys(grouped).map((deskId) => ({
+                                    render: () => (
+                                        <GroupLabel>
+                                            <Badge type="highlight" text={grouped[deskId].length.toString()} />
+                                            <span style={{marginLeft: 6}}>{desks[deskId].name}</span>
+                                        </GroupLabel>
+                                    ),
+                                    items: grouped[deskId],
+                                }))}
+                                getToggleElement={
+                                    (isOpen, onClick) => (
+                                        <TopMenuDropdownButton
+                                            onClick={() => {
+                                                if (itemsCount > 0) {
+                                                    onClick();
+                                                }
+                                            }}
+                                            active={isOpen}
+                                            disabled={itemsCount < 1}
+                                            pulsate={false}
+                                            data-test-id="toggle-button"
+                                        >
+                                            <Badge type="highlight" text={itemsCount.toString()}>
+                                                <span style={{color: isOpen ? '#3783A2' : 'white'}}>
+                                                    <IconBig name="tasks" />
+                                                </span>
+                                            </Badge>
+                                        </TopMenuDropdownButton>
+                                    )
                                 }
-                            }}
-                            active={isOpen}
-                            disabled={itemsCount < 1}
-                            pulsate={false}
-                            data-test-id="toggle-button"
-                        >
-                            <Badge type="highlight" text={itemsCount.toString()}>
-                                <span style={{color: isOpen ? '#3783A2' : 'white'}}>
-                                    <IconBig name="tasks" />
-                                </span>
-                            </Badge>
-                        </TopMenuDropdownButton>
-                    )
+                                renderItem={(key, assignment, closeDropdown) => (
+                                    <AssignmentsOverviewListItem
+                                        key={key}
+                                        assignment={assignment}
+                                        contentTypes={contentTypes}
+                                        onClick={closeDropdown}
+                                    />
+                                )}
+                                wrapperStyles={{whiteSpace: 'nowrap', padding: 15, paddingTop: 0}}
+                            />
+                        );
+                    }
                 }
-                renderItem={(key, assignment, closeDropdown) => (
-                    <AssignmentsOverviewListItem
-                        key={key}
-                        assignment={assignment}
-                        contentTypes={contentTypes}
-                        onClick={closeDropdown}
-                    />
-                )}
-                wrapperStyles={{whiteSpace: 'nowrap', padding: 15, paddingTop: 0}}
-            />
+            </LiveAssignmentsHOC>
         );
     }
 }
