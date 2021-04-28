@@ -18,6 +18,7 @@ const {addWebsocketMessageListener} = superdesk;
 const DropdownTree = superdesk.components.getDropdownTree<IAssignmentItem>();
 const {queryRawJson, findOne, fetchChangedResources, fetchChangedResourcesObj} = superdesk.dataApi;
 const {GroupLabel, IconBig, TopMenuDropdownButton} = superdesk.components;
+const {throttleAndCombineArray} = superdesk.utilities;
 
 interface IProps {
     // empty
@@ -69,6 +70,7 @@ function fetchAssignments(userId: IUser['_id']): Promise<IState['assignments']> 
 
 export class AssignmentsList extends React.PureComponent<IProps, {loading: true} | IState> {
     private eventListenersToRemoveBeforeUnmounting: Array<() => void>;
+    handleContentChangesThrottled: (changes: Array<IResourceChange>) => void;
 
     constructor(props: {}) {
         super(props);
@@ -77,8 +79,15 @@ export class AssignmentsList extends React.PureComponent<IProps, {loading: true}
 
         this.eventListenersToRemoveBeforeUnmounting = [];
 
-        this.handleContentChanges = this.handleContentChanges.bind(this);
         this.setBadgeValue = this.setBadgeValue.bind(this);
+        this.handleContentChanges = this.handleContentChanges.bind(this);
+
+        this.handleContentChangesThrottled = throttleAndCombineArray(
+            (changes: Array<IResourceChange>) => {
+                this.handleContentChanges(changes);
+            },
+            300,
+        );
 
         this.eventListenersToRemoveBeforeUnmounting.push(
             addWebsocketMessageListener(
@@ -86,7 +95,7 @@ export class AssignmentsList extends React.PureComponent<IProps, {loading: true}
                 (event) => {
                     const {resource, _id} = event.detail.extra;
 
-                    this.handleContentChanges([{changeType: 'created', resource: resource, itemId: _id}]);
+                    this.handleContentChangesThrottled([{changeType: 'created', resource: resource, itemId: _id}]);
                 },
             ),
         );
@@ -97,7 +106,7 @@ export class AssignmentsList extends React.PureComponent<IProps, {loading: true}
                 (event) => {
                     const {resource, _id, fields} = event.detail.extra;
 
-                    this.handleContentChanges([{
+                    this.handleContentChangesThrottled([{
                         changeType: 'updated',
                         resource: resource,
                         itemId: _id,
@@ -113,7 +122,7 @@ export class AssignmentsList extends React.PureComponent<IProps, {loading: true}
                 (event) => {
                     const {resource, _id} = event.detail.extra;
 
-                    this.handleContentChanges([{changeType: 'deleted', resource: resource, itemId: _id}]);
+                    this.handleContentChangesThrottled([{changeType: 'deleted', resource: resource, itemId: _id}]);
                 },
             ),
         );
