@@ -1,4 +1,4 @@
-import {groupBy} from 'lodash';
+import {groupBy, keyBy} from 'lodash';
 import * as React from 'react';
 import {
     IDesk,
@@ -128,32 +128,20 @@ export class AssignmentsList extends React.PureComponent<{}, {loading: true} | I
             return;
         }
 
-        const {assignments} = state;
-
         const refetchContentTypes: boolean = changes.find(
             ({resource, itemId}) => resource === 'vocabularies' && itemId === 'g2_content_type',
-        ) != null;
-
-        const refetchAssignments: boolean = changes.find(
-            ({changeType, resource, itemId}) =>
-                (resource === 'assignments' && (changeType === 'created' || changeType === 'deleted'))
-                || (
-                    resource === 'assignments'
-                    && changeType === 'updated'
-                    && assignments.find(({_id}) => _id === itemId) != null
-                ),
         ) != null;
 
         Promise.all([
             fetchChangedResources<IDesk>('desks', changes, state.desks),
             refetchContentTypes ? fetchContentTypes() : Promise.resolve(state.contentTypes),
-            refetchAssignments ? fetchAssignments(state.currentUser._id) : Promise.resolve(state.assignments),
-        ]).then(([desks, contentTypes, assignments]) => {
+            fetchChangedResources<IAssignmentItem>('assignments', changes, keyBy(state.assignments, ({_id}) => _id)),
+        ]).then(([desks, contentTypes, assignmentsObj]) => {
             this.setState({
                 loading: false,
                 desks: desks,
                 contentTypes: contentTypes,
-                assignments: assignments,
+                assignments: Object.values(assignmentsObj),
             });
         });
     }
