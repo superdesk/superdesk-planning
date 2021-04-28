@@ -1,4 +1,4 @@
-import {groupBy, keyBy} from 'lodash';
+import {groupBy} from 'lodash';
 import * as React from 'react';
 import {
     IDesk,
@@ -16,7 +16,7 @@ import {AssignmentsOverviewListItem} from './assignments-overview-list-item';
 const {addWebsocketMessageListener} = superdesk;
 
 const DropdownTree = superdesk.components.getDropdownTree<IAssignmentItem>();
-const {queryRawJson, findOne, fetchChangedResources} = superdesk.dataApi;
+const {queryRawJson, findOne, fetchChangedResources, fetchChangedResourcesObj} = superdesk.dataApi;
 const {GroupLabel, IconBig, TopMenuDropdownButton} = superdesk.components;
 
 interface IProps {
@@ -131,15 +131,21 @@ export class AssignmentsList extends React.PureComponent<IProps, {loading: true}
         ) != null;
 
         Promise.all([
-            fetchChangedResources<IDesk>('desks', changes, state.desks),
+            fetchChangedResourcesObj<IDesk>('desks', changes, state.desks),
             refetchContentTypes ? fetchContentTypes() : Promise.resolve(state.contentTypes),
-            fetchChangedResources<IAssignmentItem>('assignments', changes, keyBy(state.assignments, ({_id}) => _id)),
-        ]).then(([desks, contentTypes, assignmentsObj]) => {
+            fetchChangedResources<IAssignmentItem>('assignments', changes, state.assignments).then((res) => {
+                if (res === 'requires-refetching-all') {
+                    return fetchAssignments(state.currentUser._id);
+                } else {
+                    return res;
+                }
+            }),
+        ]).then(([desks, contentTypes, assignments]) => {
             this.setState({
                 loading: false,
                 desks: desks,
                 contentTypes: contentTypes,
-                assignments: Object.values(assignmentsObj),
+                assignments: assignments,
             });
         });
     }
