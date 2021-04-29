@@ -1,35 +1,39 @@
 import {Editor} from '../../common/editor';
-import {Input, SelectInput} from '../../common/inputs';
-import {ActionMenu} from '../../common/ui';
+import {Input, SelectInput, ActionMenu} from '../../common';
+import {PlanningEditor} from './planningEditor';
 
 /**
  * Wrapper class around Superdesk's Coverage editor component
  * @extends Editor
  */
 export class CoverageEditor extends Editor {
+    fields: {[key: string]: any};
+    parentEditor: PlanningEditor;
+    index: number;
+
     /**
      * Creates an instance of the Editor instance.
      * @param {PlanningEditor} parentEditor - The parent editor to this coverage
      * @param {number} index - The index of this coverage inside the planning item
      */
-    constructor(parentEditor, index) {
-        super();
+    constructor(parentEditor: PlanningEditor, index) {
+        super('', '');
 
         this.parentEditor = parentEditor;
         this.index = index;
 
-        const prefix = `coverages[${this.index}].`;
+        const getParent = () => this.element;
 
         this.fields = {
-            content_type: new SelectInput(() => this.element, `select[name="${prefix}planning.g2_content_type"]`),
-            genre: new SelectInput(() => this.element, `select[name="${prefix}planning.genre"]`),
-            slugline: new Input(() => this.element, `input[name="${prefix}planning.slugline"]`),
-            ednote: new Input(() => this.element, `textarea[name="${prefix}planning.ednote"]`),
-            internal_note: new Input(() => this.element, `textarea[name="${prefix}planning.internal_note"]`),
-            news_coverage_status: new SelectInput(() => this.element, `select[name="${prefix}news_coverage_status"]`),
+            content_type: new SelectInput(getParent, '[data-test-id="field-g2_content_type"] select'),
+            genre: new SelectInput(getParent, '[data-test-id="field-genre"] select'),
+            slugline: new Input(getParent, '[data-test-id="field-slugline"] input'),
+            ednote: new Input(getParent, '[data-test-id="field-ednote"] textarea'),
+            internal_note: new Input(getParent, '[data-test-id="field-internal_note"] textarea'),
+            news_coverage_status: new SelectInput(getParent, '[data-test-id="field-news_coverage_status"] select'),
             scheduled: {
-                date: new Input(() => this.element, `input[name="${prefix}planning.scheduled.date"]`),
-                time: new Input(() => this.element, `input[name="${prefix}planning._scheduledTime"]`),
+                date: new Input(getParent, 'input[name="planning.scheduled.date"]'),
+                time: new Input(getParent, 'input[name="planning._scheduledTime"]'),
             },
         };
     }
@@ -38,11 +42,9 @@ export class CoverageEditor extends Editor {
      * Returns the dom node for the collapse box component for this coverage
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
      */
-    get element() {
+    get element(): Cypress.Chainable<JQuery<HTMLElement>> {
         return this.parentEditor.element
-            .find('.coverages__array')
-            .find('.sd-collapse-box')
-            .eq(this.index);
+            .find(`[data-test-id="field-coverages[${this.index}]"]`);
     }
 
     /**
@@ -51,7 +53,7 @@ export class CoverageEditor extends Editor {
      */
     waitTillVisible(timeout = 30000) {
         this.parentEditor.element
-            .find('.coverages__array', {timeout: timeout})
+            .find('[data-test-id="field-coverages"]', {timeout: timeout})
             .should('exist');
     }
 

@@ -127,7 +127,10 @@ export class Editor {
         this.waitForAutosave();
         this.createButton.click();
         this.waitLoadingComplete();
-        this.closeButton.click();
+        this.closeButton
+            .should('exist')
+            .should('not.be.disabled')
+            .click();
         this.waitTillClosed();
     }
 
