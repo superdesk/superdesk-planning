@@ -87,9 +87,9 @@ export class AssignmentsList extends React.PureComponent<IProps, {loading: true}
                         return (
                             <WithLiveResources resources={resources}>
                                 {(resourcesResponse) => {
-                                    const desksResponse: IRestApiResponse<IDesk> = resourcesResponse[0];
+                                    const desksResponse = resourcesResponse[0] as IRestApiResponse<IDesk>;
                                     const desks = keyBy(desksResponse._items, ({_id}) => _id);
-                                    const vocabulariesResponse: IRestApiResponse<IVocabulary> = resourcesResponse[1];
+                                    const vocabulariesResponse = resourcesResponse[1] as IRestApiResponse<IVocabulary>;
                                     const contentTypes = vocabulariesResponse._items[0].items;
 
                                     return (
