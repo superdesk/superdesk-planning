@@ -3,7 +3,7 @@ import {get, set, isNil, uniq, sortBy, isEmpty, cloneDeep, isArray, find, flatte
 
 import {appConfig} from 'appConfig';
 import {IDesk, IArticle, IUser} from 'superdesk-api';
-import {superdeskApi} from '../superdeskApi';
+import {superdeskApi, planningApi} from '../superdeskApi';
 import {
     IPlanningItem,
     IEventItem,
@@ -23,7 +23,6 @@ import {
     POST_STATE,
     COVERAGES,
     ITEM_TYPE,
-    TO_BE_CONFIRMED_FIELD,
 } from '../constants';
 import {
     getItemWorkflowState,
@@ -49,6 +48,7 @@ import {
     sanitizeItemFields,
 } from './index';
 import {getUsersDefaultLanguage} from './users';
+import * as selectors from '../selectors';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
@@ -497,7 +497,7 @@ export const modifyForClient = (plan) => {
     return plan;
 };
 
-const modifyForServer = (plan) => {
+function modifyForServer(plan: Partial<IPlanningItem>): Partial<IPlanningItem> {
     const modifyGenre = (coverage) => {
         if (!get(coverage, 'planning.genre', null)) {
             coverage.planning.genre = null;
@@ -505,6 +505,8 @@ const modifyForServer = (plan) => {
             coverage.planning.genre = [coverage.planning.genre];
         }
     };
+
+    delete plan._agendas;
 
     get(plan, 'coverages', []).forEach((coverage) => {
         coverage.planning = coverage.planning || {};
@@ -519,7 +521,7 @@ const modifyForServer = (plan) => {
     });
 
     return plan;
-};
+}
 
 /**
  * Utility to convert genre from an Array to an Object
@@ -874,7 +876,10 @@ function getCoverageDateTimeText(coverage: IPlanningCoverageItem) {
  * @param {type} coverage types
  * @returns {string} icon name
  */
-const getCoverageIcon = (type, coverage) => {
+function getCoverageIcon(
+    type: IG2ContentType['qcode'] | IG2ContentType['content item type'],
+    coverage?: IPlanningCoverageItem
+): string {
     if (get(coverage, 'scheduled_updates.length', 0) > 0 ||
             (get(coverage, 'scheduled_update_id') && get(coverage, 'assignment_id'))) {
         return 'icon-copy';
@@ -892,7 +897,7 @@ const getCoverageIcon = (type, coverage) => {
     };
 
     return get(coverageIcons, type, 'icon-file');
-};
+}
 
 const getCoverageIconColor = (coverage) => {
     if (get(coverage, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED) {
@@ -956,60 +961,70 @@ const getDefaultCoverageStatus = (newsCoverageStatus) => newsCoverageStatus[0];
 
 const defaultCoverageValues = (
     newsCoverageStatus: Array<IPlanningNewsCoverageStatus>,
-    planningItem?: IPlanningItem,
+    planningItem?: DeepPartial<IPlanningItem>,
     eventItem?: IEventItem,
-    g2contentType?: string,
+    g2contentType?: IG2ContentType['qcode'],
     defaultDesk?: IDesk,
     preferredCoverageDesks?: {[key: string]: IDesk['_id']},
-): Partial<IPlanningCoverageItem> => {
-    let newCoverage: Partial<IPlanningCoverageItem> = {
+): DeepPartial<IPlanningCoverageItem> => {
+    let newCoverage: DeepPartial<IPlanningCoverageItem> = {
         coverage_id: generateTempId(),
         planning: {
-            slugline: get(planningItem, 'slugline'),
-            internal_note: get(planningItem, 'internal_note'),
-            ednote: get(planningItem, 'ednote'),
-            scheduled: get(planningItem, 'planning_date', moment()),
+            slugline: planningItem?.slugline,
+            internal_note: planningItem?.internal_note,
+            ednote: planningItem?.ednote,
+            scheduled: planningItem?.planning_date || moment(),
             g2_content_type: g2contentType,
             language: planningItem?.language ?? eventItem?.language,
         },
         news_coverage_status: getDefaultCoverageStatus(newsCoverageStatus),
-        workflow_status: WORKFLOW_STATE.DRAFT,
+        workflow_status: 'draft',
     };
 
-    if (get(planningItem, TO_BE_CONFIRMED_FIELD)) {
-        newCoverage[TO_BE_CONFIRMED_FIELD] = planningItem[TO_BE_CONFIRMED_FIELD];
+    if (planningItem?._time_to_be_confirmed) {
+        newCoverage._time_to_be_confirmed = planningItem._time_to_be_confirmed;
     }
 
     if (planningItem) {
-        let coverageTime = null;
+        let coverageTime: moment.Moment = null;
 
-        if (!get(planningItem, 'event_item')) {
-            coverageTime = get(planningItem, 'planning_date', moment()).clone();
+        if (planningItem?.event_item == null) {
+            coverageTime = moment(planningItem?.planning_date || moment());
         } else if (eventItem) {
-            coverageTime = get(eventItem, 'dates.end', moment()).clone();
+            coverageTime = moment(eventItem?.dates?.end || moment());
         }
+
         if (coverageTime) {
             coverageTime.add(1, 'hour');
 
             // Only round up to the hour if we didn't derive coverage time from an Event
             if (!eventItem) {
                 coverageTime.minute() ?
-                    coverageTime.add(1, 'hour').startOf('hour') :
+                    coverageTime
+                        .add(1, 'hour')
+                        .startOf('hour') :
                     coverageTime.startOf('hour');
             }
 
             if (moment().isAfter(coverageTime)) {
                 coverageTime = moment();
-                coverageTime.minute() ? coverageTime.add(1, 'hour').startOf('hour') : coverageTime.startOf('hour');
+                coverageTime.minute() ?
+                    coverageTime
+                        .add(1, 'hour')
+                        .startOf('hour') :
+                    coverageTime.startOf('hour');
             }
             newCoverage.planning.scheduled = coverageTime;
         }
+
         if (eventItem && appConfig.long_event_duration_threshold > -1) {
             if (appConfig.long_event_duration_threshold === 0) {
-                newCoverage.planning.scheduled = get(eventItem, 'dates.end', moment()).clone();
+                newCoverage.planning.scheduled = moment(eventItem?.dates?.end || moment());
             } else {
-                let duration = parseInt(moment.duration(get(eventItem, 'dates.end').diff(get(eventItem,
-                    'dates.start'))).asHours(), 10);
+                const duration = moment.duration({
+                    from: eventItem?.dates?.start,
+                    to: eventItem?.dates?.end
+                });
 
                 if (duration > appConfig.long_event_duration_threshold) {
                     delete newCoverage.planning.scheduled;
@@ -1156,6 +1171,53 @@ const showXMPFileUIControl = (coverage) => (
     )
 );
 
+function duplicateCoverage(
+    item: DeepPartial<IPlanningItem>,
+    coverage: DeepPartial<IPlanningCoverageItem>,
+    duplicateAs?: IG2ContentType['qcode'],
+    event?: IEventItem
+): DeepPartial<IPlanningItem['coverages']> {
+    const coveragePlanning: Partial<IPlanningItem> = {
+        slugline: coverage.planning.slugline,
+        internal_note: coverage.planning.internal_note,
+        ednote: coverage.planning.ednote,
+        planning_date: coverage.planning.scheduled,
+        language: coverage.planning.language,
+    };
+    const state = planningApi.redux.store.getState();
+    const newsCoverageStatus = selectors.general.newsCoverageStatus(state);
+    const defaultDesk = selectors.general.defaultDesk(state);
+    const preferredCoverageDesks = get(selectors.general.preferredCoverageDesks(state), 'desks');
+
+    let newCoverage = defaultCoverageValues(
+        [newsCoverageStatus.find((s) => s.qcode === 'ncostat:int')],
+        coveragePlanning,
+        event,
+        duplicateAs || coverage.planning?.g2_content_type,
+        defaultDesk,
+        preferredCoverageDesks
+    );
+
+    newCoverage.coverage_id = newCoverage.coverage_id + '-duplicate';
+    if (['picture', 'Picture'].includes(newCoverage.planning.g2_content_type) && coverage.planning.xmp_file) {
+        newCoverage.planning.xmp_file = coverage.planning.xmp_file;
+    }
+
+    if (coverage.workflow_status === 'cancelled') {
+        newCoverage.planning.workflow_status_reason = null;
+    }
+
+    if (duplicateAs) {
+        newCoverage.planning.genre = null;
+    }
+
+    let diffCoverages: Array<DeepPartial<IPlanningCoverageItem>> = cloneDeep(item.coverages);
+
+    diffCoverages.push(newCoverage);
+
+    return diffCoverages;
+}
+
 // eslint-disable-next-line consistent-this
 const self = {
     canSpikePlanning,
@@ -1209,6 +1271,7 @@ const self = {
     getDefaultCoverageStatus,
     getPlanningFiles,
     showXMPFileUIControl,
+    duplicateCoverage,
 };
 
 export default self;
