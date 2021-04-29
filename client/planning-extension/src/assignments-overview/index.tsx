@@ -196,7 +196,7 @@ export class AssignmentsList extends React.PureComponent<IProps, {loading: true}
                                     render: () => (
                                         <GroupLabel>
                                             <Badge type="highlight" text={grouped[deskId].length.toString()} />
-                                            <span style={{marginLeft: 6}}>{desks[deskId].name}</span>
+                                            <span className="sd-margin-l--1">{desks[deskId].name}</span>
                                         </GroupLabel>
                                     ),
                                     items: grouped[deskId],
@@ -215,7 +215,7 @@ export class AssignmentsList extends React.PureComponent<IProps, {loading: true}
                                             data-test-id="toggle-button"
                                         >
                                             <Badge type="highlight" text={itemsCount.toString()}>
-                                                <span style={{color: isOpen ? '#3783A2' : 'white'}}>
+                                                <span style={{color: isOpen ? 'var(--sd-slugline-color)' : 'var(--color-bg-00)'}}>
                                                     <IconBig name="tasks" />
                                                 </span>
                                             </Badge>
@@ -230,7 +230,7 @@ export class AssignmentsList extends React.PureComponent<IProps, {loading: true}
                                         onClick={closeDropdown}
                                     />
                                 )}
-                                wrapperStyles={{whiteSpace: 'nowrap', padding: 15, paddingTop: 0}}
+                                wrapperStyles={{whiteSpace: 'nowrap', padding: 16, paddingTop: 0}}
                             />
                         );
                     }
