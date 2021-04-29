@@ -10,6 +10,7 @@ export class EditorFieldLockState extends React.PureComponent<IEditorFieldProps>
 
         return (
             <EditorFieldSelect
+                {...this.props}
                 field={this.props.field ?? 'lock_state'}
                 label={this.props.label ?? gettext('Lock State')}
                 options={[{
@@ -21,7 +22,6 @@ export class EditorFieldLockState extends React.PureComponent<IEditorFieldProps>
                 }]}
                 clearable={true}
                 valueAsString={true}
-                {...this.props}
             />
         );
     }

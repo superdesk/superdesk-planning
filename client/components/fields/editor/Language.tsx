@@ -8,6 +8,8 @@ import {getLanguages} from '../../../selectors/vocabs';
 
 interface IProps extends IEditorFieldProps {
     languages: Array<IG2ContentType>;
+    clearable?: boolean;
+    valueAsString?: boolean;
 }
 
 const mapStateToProps = (state) => ({
@@ -17,19 +19,29 @@ const mapStateToProps = (state) => ({
 export class EditorFieldLanguageComponent extends React.PureComponent<IProps> {
     render() {
         const {gettext} = superdeskApi.localization;
+        const {
+            refNode,
+            ...props
+        } = this.props;
 
         return (
             <EditorFieldSelect
-                field={this.props.field ?? 'language'}
-                label={this.props.label ?? gettext('Language')}
-                options={this.props.languages}
+                ref={refNode}
+                {...props}
+                field={props.field ?? 'language'}
+                label={props.label ?? gettext('Language')}
+                options={props.languages}
                 labelField="name"
-                clearable={true}
-                valueAsString={true}
-                {...this.props}
+                clearable={props.clearable ?? true}
+                valueAsString={props.valueAsString ?? true}
             />
         );
     }
 }
 
-export const EditorFieldLanguage = connect(mapStateToProps)(EditorFieldLanguageComponent);
+export const EditorFieldLanguage = connect(
+    mapStateToProps,
+    null,
+    null,
+    {forwardRef: true}
+)(EditorFieldLanguageComponent);

@@ -10,9 +10,9 @@ export class EditorFieldFeatured extends React.PureComponent<IEditorFieldProps> 
 
         return (
             <EditorFieldToggle
+                {...this.props}
                 field={this.props.field ?? 'featured'}
                 label={this.props.label ?? gettext('Featured')}
-                {...this.props}
             />
         );
     }

@@ -36,6 +36,7 @@ export class EditorFieldDeskIdComponent extends React.PureComponent<IProps> {
 
         return (
             <EditorFieldSelect
+                {...this.props}
                 field={this.props.field ?? 'desk'}
                 label={this.props.label ?? gettext('Desk')}
                 options={desks}
@@ -43,10 +44,14 @@ export class EditorFieldDeskIdComponent extends React.PureComponent<IProps> {
                 keyField={'_id'}
                 valueAsString={true}
                 defaultValue={this.props.desks[0]._id}
-                {...this.props}
             />
         );
     }
 }
 
-export const EditorFieldDeskId = connect(mapStateToProps)(EditorFieldDeskIdComponent);
+export const EditorFieldDeskId = connect(
+    mapStateToProps,
+    null,
+    null,
+    {forwardRef: true}
+)(EditorFieldDeskIdComponent);

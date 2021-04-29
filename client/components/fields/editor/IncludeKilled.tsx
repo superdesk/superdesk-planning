@@ -10,10 +10,10 @@ export class EditorFieldIncludeKilled extends React.PureComponent<IEditorFieldPr
 
         return (
             <EditorFieldToggle
+                {...this.props}
                 field={this.props.field ?? 'include_killed'}
                 label={this.props.label ?? gettext('Include Killed')}
                 defaultValue={false}
-                {...this.props}
             />
         );
     }

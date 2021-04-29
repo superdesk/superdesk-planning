@@ -20,13 +20,18 @@ export class EditorFieldCategoriesComponent extends React.PureComponent<IProps> 
 
         return (
             <EditorFieldVocabulary
+                {...this.props}
                 field={this.props.field ?? 'anpa_category'}
                 label={this.props.label ?? gettext('ANPA Category')}
                 options={this.props.categories}
-                {...this.props}
             />
         );
     }
 }
 
-export const EditorFieldCategories = connect(mapStateToProps)(EditorFieldCategoriesComponent);
+export const EditorFieldCategories = connect(
+    mapStateToProps,
+    null,
+    null,
+    {forwardRef: true}
+)(EditorFieldCategoriesComponent);

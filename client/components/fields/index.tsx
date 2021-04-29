@@ -2,7 +2,7 @@ import React from 'react';
 import {sortBy} from 'lodash';
 
 import {getUserInterfaceLanguage} from 'appConfig';
-import {IRenderPanelType, ISearchProfile, PREVIEW_PANEL} from '../../interfaces';
+import {IProfileSchema, IRenderPanelType, ISearchProfile, PREVIEW_PANEL} from '../../interfaces';
 import {superdeskApi} from '../../superdeskApi';
 
 import {name} from './name';
@@ -94,7 +94,9 @@ export function renderFieldsForPanel(
     fieldProps: {[key: string]: any},
     Container?: React.ComponentClass,
     groupName?: string,
-    enabledField: string = 'enabled'
+    enabledField: string = 'enabled',
+    refs: {[key: string]: React.RefObject<any>} = {},
+    schema?: IProfileSchema
 ) {
     const fieldComponents = getFieldsForPanel(panelType);
     const fields: {[key: string]: IRenderFieldItem} = {};
@@ -110,6 +112,14 @@ export function renderFieldsForPanel(
             name: fieldName,
             ...profile[fieldName],
         };
+
+        if (refs?.[fieldName] != null) {
+            newField.props.refNode = refs[fieldName];
+        }
+
+        if (schema?.[fieldName] != null) {
+            newField.props.schema = schema[fieldName];
+        }
 
         if (newField.component == null) {
             console.error(`Component for field ${fieldName} not registered`);

@@ -21,14 +21,19 @@ export class EditorFieldSubjectsComponent extends React.PureComponent<IProps> {
 
         return (
             <EditorFieldVocabulary
+                {...this.props}
                 field={this.props.field ?? 'subject'}
                 label={this.props.label ?? gettext('Subject')}
                 onChange={this.props.onChange}
                 options={this.props.subjects}
-                {...this.props}
             />
         );
     }
 }
 
-export const EditorFieldSubjects = connect(mapStateToProps)(EditorFieldSubjectsComponent);
+export const EditorFieldSubjects = connect(
+    mapStateToProps,
+    null,
+    null,
+    {forwardRef: true}
+)(EditorFieldSubjectsComponent);

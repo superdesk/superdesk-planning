@@ -13,8 +13,10 @@ export class EditorFieldToggle extends React.PureComponent<IEditorFieldProps> {
         return (
             <Row testId={this.props.testId}>
                 <Switch
+                    ref={this.props.refNode}
                     value={value}
                     onChange={(newValue) => this.props.onChange(this.props.field, newValue)}
+                    disabled={this.props.disabled}
                 />
                 <label>{this.props.label}</label>
             </Row>

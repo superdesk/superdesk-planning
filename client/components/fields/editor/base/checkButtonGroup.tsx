@@ -55,6 +55,7 @@ export class EditorFieldCheckboxGroup extends React.PureComponent<IProps> {
                             checked={this.isChecked(option.value)}
                             label={{text: option.label}}
                             onChange={(value) => this.onChange(option.value, value)}
+                            disabled={this.props.disabled}
                         />
                     ))}
                 </CheckGroup>

@@ -10,10 +10,10 @@ export class EditorFieldExcludeRescheduledAndCancelled extends React.PureCompone
 
         return (
             <EditorFieldToggle
+                {...this.props}
                 field={this.props.field ?? 'exclude_rescheduled_and_cancelled'}
                 label={this.props.label ?? gettext('Exclude Rescheduled And Cancelled')}
                 defaultValue={false}
-                {...this.props}
             />
         );
     }

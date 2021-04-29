@@ -10,10 +10,10 @@ export class EditorFieldNoAgendaAssigned extends React.PureComponent<IEditorFiel
 
         return (
             <EditorFieldToggle
+                {...this.props}
                 field={this.props.field ?? 'no_agenda_assigned'}
                 label={this.props.label ?? gettext('No Agenda Assigned')}
                 defaultValue={false}
-                {...this.props}
             />
         );
     }
