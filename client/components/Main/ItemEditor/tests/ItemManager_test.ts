@@ -31,7 +31,7 @@ describe('components.Main.ItemManager', () => {
             occur_status: {
                 qcode: 'eocstat:eos5',
                 name: 'Planned, occurs certainly',
-                label: 'Planned, occurs certainly',
+                label: 'Confirmed',
             },
             dates: {
                 start: null,
@@ -93,6 +93,7 @@ describe('components.Main.ItemManager', () => {
                 occurStatuses: testData.vocabularies.eventoccurstatus,
                 defaultCalendar: [],
                 defaultPlace: [],
+                saveDiffToStore: sinon.spy(),
             },
             state: {},
             setState: sinon.spy((newState, cb) => {
@@ -284,7 +285,7 @@ describe('components.Main.ItemManager', () => {
     });
 
     it('openInModal', (done) => {
-        editor.props.initialValues = cloneDeep(testData.events[0]);
+        editor.state.initialValues = cloneDeep(testData.events[0]);
 
         manager.openInModal()
             .then(() => {
@@ -292,7 +293,7 @@ describe('components.Main.ItemManager', () => {
 
                 expect(main.openEditorAction.callCount).toBe(1);
                 expect(main.openEditorAction.args[0]).toEqual([
-                    editor.props.initialValues,
+                    editor.state.initialValues,
                     'edit',
                     false,
                     true,
@@ -317,7 +318,10 @@ describe('components.Main.ItemManager', () => {
         });
 
         it('flushes autosave and clears form the closing the editor', () => {
-            manager.componentWillReceiveProps({});
+            const prevProps = {...editor.props};
+
+            editor.props = {};
+            manager.componentDidUpdate(prevProps);
 
             expect(editor.autoSave.flushAutosave.callCount).toBe(1);
             expect(manager.clearForm.callCount).toBe(1);
@@ -325,20 +329,20 @@ describe('components.Main.ItemManager', () => {
 
         it('calls onItemIDChanged', () => {
             updateProps({
-                itemId: 'e1',
+                itemId: 'e2',
                 itemType: 'event',
                 itemAction: 'edit',
             });
 
-            manager.componentWillReceiveProps({
-                itemId: 'e2',
+            manager.componentDidUpdate({
+                itemId: 'e1',
                 itemType: 'event',
                 itemAction: 'edit',
             });
 
             expect(manager.onItemIDChanged.callCount).toBe(1);
             expect(manager.onItemIDChanged.args[0]).toEqual([jasmine.objectContaining({
-                itemId: 'e2',
+                itemId: 'e1',
                 itemType: 'event',
                 itemAction: 'edit',
             })]);
@@ -348,13 +352,13 @@ describe('components.Main.ItemManager', () => {
             updateProps({
                 itemId: 'e1',
                 itemType: 'event',
-                itemAction: 'read',
+                itemAction: 'edit',
             });
 
-            manager.componentWillReceiveProps({
+            manager.componentDidUpdate({
                 itemId: 'e1',
                 itemType: 'event',
-                itemAction: 'edit',
+                itemAction: 'read',
             });
 
             waitFor(() => manager.onItemIDChanged.callCount > 0)
@@ -363,7 +367,7 @@ describe('components.Main.ItemManager', () => {
                     expect(manager.onItemIDChanged.args[0]).toEqual([jasmine.objectContaining({
                         itemId: 'e1',
                         itemType: 'event',
-                        itemAction: 'edit',
+                        itemAction: 'read',
                     })]);
                 });
         });
@@ -372,13 +376,13 @@ describe('components.Main.ItemManager', () => {
             updateProps({
                 itemId: 'e1',
                 itemType: 'event',
-                itemAction: 'edit',
+                itemAction: 'read',
             });
 
-            manager.componentWillReceiveProps({
+            manager.componentDidUpdate({
                 itemId: 'e1',
                 itemType: 'event',
-                itemAction: 'read',
+                itemAction: 'edit',
             });
 
             expect(editor.autoSave.remove.callCount).toBe(1);
@@ -389,15 +393,17 @@ describe('components.Main.ItemManager', () => {
                 itemId: 'e1',
                 itemType: 'event',
                 itemAction: 'read',
-                item: cloneDeep(testData.events[0]),
+                item: testData.events[0],
             });
-            editor.props.item.slugline = 'slugger';
 
-            manager.componentWillReceiveProps({
+            manager.componentDidUpdate({
                 itemId: 'e1',
                 itemType: 'event',
                 itemAction: 'read',
-                item: testData.events[0],
+                item: {
+                    ...testData.events[0],
+                    slugline: 'slugger',
+                },
             });
 
             expect(manager.onItemChanged.callCount).toBe(1);
@@ -440,7 +446,9 @@ describe('components.Main.ItemManager', () => {
         });
 
         it('createNew Event', (done) => {
-            const nextProps = {
+            const prevProps = cloneDeep(editor.props);
+
+            updateProps({
                 itemId: 'tempId-e5',
                 itemType: 'event',
                 itemAction: 'create',
@@ -448,22 +456,28 @@ describe('components.Main.ItemManager', () => {
                     _id: 'tempId-e5',
                     type: 'event',
                 },
-            };
-
-            manager.onItemIDChanged(nextProps);
+            });
+            manager.onItemIDChanged(prevProps);
             expectState(states.loading);
 
             waitFor(() => manager.createNew.callCount > 0)
                 .then(() => {
                     expect(manager.createNew.callCount).toBe(1);
-                    expect(manager.createNew.args[0]).toEqual([nextProps]);
+                    expect(manager.createNew.args[0]).toEqual([editor.props]);
                     expectState({
                         ...states.notLoading,
-                        diff: newEvent,
+                        diff: {
+                            ...newEvent,
+                            place: [],
+                            associated_plannings: [],
+                            calendars: [],
+                        },
                         initialValues: {
                             ...newEvent,
                             _startTime: null,
                             _endTime: null,
+                            place: [],
+                            calendars: [],
                         },
                         dirty: false,
                     });
@@ -474,7 +488,9 @@ describe('components.Main.ItemManager', () => {
         });
 
         it('createNew Planning', (done) => {
-            const nextProps = {
+            const prevProps = cloneDeep(editor.props);
+
+            updateProps({
                 itemId: 'tempId-p5',
                 itemType: 'planning',
                 itemAction: 'create',
@@ -482,20 +498,26 @@ describe('components.Main.ItemManager', () => {
                     _id: 'tempId-p5',
                     type: 'planning',
                 },
-            };
+            });
 
-            manager.onItemIDChanged(nextProps);
+            manager.onItemIDChanged(prevProps);
             expectState(states.loading);
 
             waitFor(() => manager.createNew.callCount > 0)
                 .then(() => {
                     expect(manager.createNew.callCount).toBe(1);
-                    expect(manager.createNew.args[0]).toEqual([nextProps]);
+                    expect(manager.createNew.args[0]).toEqual([editor.props]);
 
                     expectState({
                         ...states.notLoading,
-                        diff: newPlan,
-                        initialValues: newPlan,
+                        diff: {
+                            ...newPlan,
+                            place: [],
+                        },
+                        initialValues: {
+                            ...newPlan,
+                            place: [],
+                        },
                         dirty: false,
                     });
 
@@ -505,20 +527,22 @@ describe('components.Main.ItemManager', () => {
         });
 
         it('edit existing item', (done) => {
-            const nextProps = {
+            const prevProps = cloneDeep(editor.props);
+
+            updateProps({
                 itemId: 'e1',
                 itemType: 'event',
                 itemAction: 'edit',
                 initialValues: testData.events[0],
-            };
+            });
 
-            manager.onItemIDChanged(nextProps);
+            manager.onItemIDChanged(prevProps);
             expectState(states.loading);
 
             waitFor(() => manager.loadItem.callCount > 0)
                 .then(() => {
                     expect(manager.loadItem.callCount).toBe(1);
-                    expect(manager.loadItem.args[0]).toEqual([nextProps]);
+                    expect(manager.loadItem.args[0]).toEqual([editor.props]);
 
                     expectState(states.notLoading);
 
@@ -530,13 +554,16 @@ describe('components.Main.ItemManager', () => {
 
                     expect(editor.autoSave.createOrLoadAutosave.callCount).toBe(1);
                     expect(editor.autoSave.createOrLoadAutosave.args[0]).toEqual([
-                        nextProps,
+                        editor.props,
                         testData.events[0],
                     ]);
 
                     expectState({
                         initialValues: testData.events[0],
-                        diff: testData.events[0],
+                        diff: {
+                            ...testData.events[0],
+                            associated_plannings: [testData.plannings[1]],
+                        },
                         dirty: false,
                     });
 
@@ -546,20 +573,21 @@ describe('components.Main.ItemManager', () => {
         });
 
         it('opens item in read only mode', (done) => {
-            const nextProps = {
+            const prevProps = cloneDeep(editor.props);
+
+            updateProps({
                 itemId: 'e1',
                 itemType: 'event',
                 itemAction: 'read',
                 initialValues: testData.events[0],
-            };
-
-            manager.onItemIDChanged(nextProps);
+            });
+            manager.onItemIDChanged(prevProps);
             expectState(states.loading);
 
             waitFor(() => manager.loadReadOnlyItem.callCount > 0)
                 .then(() => {
                     expect(manager.loadReadOnlyItem.callCount).toBe(1);
-                    expect(manager.loadReadOnlyItem.args[0]).toEqual([nextProps]);
+                    expect(manager.loadReadOnlyItem.args[0]).toEqual([editor.props]);
                     expectState(states.notLoading);
 
                     expect(main.fetchById.callCount).toBe(1);
@@ -634,7 +662,7 @@ describe('components.Main.ItemManager', () => {
 
                     expectState({
                         initialValues: {...newEvent, _startTime: null, _endTime: null},
-                        diff: newEvent,
+                        diff: {...newEvent, associated_plannings: []},
                         submitting: false,
                         itemReady: true,
                         loading: false,
@@ -763,7 +791,10 @@ describe('components.Main.ItemManager', () => {
 
                     expectState({
                         initialValues: newEvent,
-                        diff: newEvent,
+                        diff: {
+                            ...newEvent,
+                            associated_plannings: [],
+                        },
                         dirty: false,
                         submitting: false,
                         itemReady: true,

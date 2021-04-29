@@ -740,31 +740,28 @@ describe('actions.events.api', () => {
 
     describe('save', () => {
         beforeEach(() => {
-            let apiSave = sinon.spy((args) => Promise.resolve({_items: [data.events[0]]}));
-
             sinon.stub(eventsApi, 'fetchById').callsFake(() => Promise.resolve(data.events[0]));
-            services.api = sinon.spy((resource, item) => ({save: apiSave}));
+            sinon.stub(planningApis.events, 'create').returns(Promise.resolve({}));
+            sinon.stub(planningApis.events, 'update').returns(Promise.resolve({}));
         });
 
         afterEach(() => {
             restoreSinonStub(eventsApi.fetchById);
-            restoreSinonStub(eventsApi._save);
+            restoreSinonStub(planningApis.events.create);
+            restoreSinonStub(planningApis.events.update);
         });
 
         it('doesnt call event.api.fetchById if it is a new Event', (done) => (
             store.test(done, eventsApi.save(null, {name: 'New Event', slugline: 'New Slugline'}))
                 .then(() => {
                     expect(eventsApi.fetchById.callCount).toBe(0);
-
-                    expect(services.api('events').save.callCount).toBe(1);
-                    expect(services.api('events').save.args[0]).toEqual([
-                        {location: null},
-                        {
-                            name: 'New Event',
-                            slugline: 'New Slugline',
-                            update_method: 'single',
-                        },
-                    ]);
+                    expect(planningApis.events.update.callCount).toBe(0);
+                    expect(planningApis.events.create.callCount).toBe(1);
+                    expect(planningApis.events.create.args[0]).toEqual([{
+                        name: 'New Event',
+                        slugline: 'New Slugline',
+                        update_method: 'single',
+                    }]);
 
                     done();
                 })
