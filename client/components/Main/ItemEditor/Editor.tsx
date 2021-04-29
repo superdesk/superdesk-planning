@@ -1,37 +1,36 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import classNames from 'classnames';
-import {get, isEqual, cloneDeep} from 'lodash';
+import {cloneDeep, isEqual} from 'lodash';
 
-import * as actions from '../../../actions';
-import {EventEditor} from '../../Events';
-import {PlanningEditor} from '../../Planning';
-
-import {
-    gettext,
-    updateFormValues,
-    isExistingItem,
-    isItemKilled,
-    itemsEqual,
-    isItemReadOnly,
-} from '../../../utils';
-
+import {EDITOR_TYPE, IEditorAPI, IEditorProps, IEditorState} from '../../../interfaces';
+import {planningApi, superdeskApi} from '../../../superdeskApi';
 import {ITEM_TYPE, UI} from '../../../constants';
 
-import {Tabs as NavTabs} from '../../UI/Nav';
-import {SidePanel, Content} from '../../UI/SidePanel';
+import * as actions from '../../../actions';
+import {isExistingItem, isItemKilled, itemsEqual, updateFormValues} from '../../../utils';
 
+import {EventEditor} from '../../Events';
+import {PlanningEditor} from '../../Planning';
+import {Tabs as NavTabs} from '../../UI/Nav';
+import {Content, SidePanel} from '../../UI/SidePanel';
 import {EditorHeader} from './index';
 import {HistoryTab} from '../index';
-
 import {ItemManager} from './ItemManager';
 import {AutoSave} from './AutoSave';
 
+export class EditorComponent extends React.Component<IEditorProps, IEditorState> {
+    autoSave: AutoSave;
+    itemManager: ItemManager;
+    tearDownRequired: boolean;
+    throttledSave: any;
+    dom: {scrollContainer: any};
+    tabs: Array<any>;
+    containerScrollStyle?: string;
+    editorApi: IEditorAPI;
 
-export class EditorComponent extends React.Component {
     constructor(props) {
         super(props);
 
+        this.editorApi = planningApi.editor(this.props.inModalView ? EDITOR_TYPE.POPUP : EDITOR_TYPE.INLINE);
         this.autoSave = new AutoSave(this);
         this.itemManager = new ItemManager(this);
 
@@ -45,6 +44,7 @@ export class EditorComponent extends React.Component {
         this.onPopupClose = this.onPopupClose.bind(this);
 
         this.throttledSave = null;
+        const {gettext} = superdeskApi.localization;
 
         this.tabs = [
             {label: gettext('Content'), render: null, enabled: true},
@@ -62,15 +62,12 @@ export class EditorComponent extends React.Component {
             this.tearDownRequired = true;
         }
 
-        this.dom = {
-            autosave: null,
-            popupContainer: null,
-            editorHeaderComponent: null,
-            scrollContainer: null,
-        };
+        this.dom = {scrollContainer: null};
+
+        this.containerScrollStyle = '';
     }
 
-    componentWillMount() {
+    componentDidMount() {
         this.itemManager.componentWillMount();
         this.autoSave.componentWillMount();
     }
@@ -97,11 +94,11 @@ export class EditorComponent extends React.Component {
         }
     }
 
-    componentWillReceiveProps(nextProps) {
-        this.itemManager.componentWillReceiveProps(nextProps);
+    componentDidUpdate(prevProps: Readonly<IEditorProps>, prevState: Readonly<IEditorState>, snapshot?: any) {
+        this.itemManager.componentDidUpdate(prevProps);
 
-        if (nextProps.itemType !== this.props.itemType) {
-            this.updateTabLabels(nextProps);
+        if (prevProps.itemType !== this.props.itemType) {
+            this.updateTabLabels(this.props);
         }
     }
 
@@ -109,7 +106,7 @@ export class EditorComponent extends React.Component {
         // If field (name) is passed, it will replace that field
         // Else, entire object will be replaced
         const diff = field ? Object.assign({}, this.state.diff) : cloneDeep(value);
-        const newState = {diff};
+        const newState: Partial<IEditorState> = {diff};
 
         if (field) {
             updateFormValues(diff, field, value);
@@ -124,15 +121,20 @@ export class EditorComponent extends React.Component {
             );
         }
 
-        this.setState(newState);
+        return new Promise((resolve) => {
+            this.setState(newState, resolve);
 
-        if (this.props.onChange) {
-            this.props.onChange(diff);
-        }
+            if (this.props.onChange) {
+                this.props.onChange(diff);
+            }
 
-        if (saveAutosave) {
-            this.autoSave.saveAutosave(this.props, diff);
-        }
+            if (saveAutosave) {
+                this.autoSave.saveAutosave(this.props, diff);
+            }
+        })
+            .then(() => {
+                this.props.saveDiffToStore(this.state.diff);
+            });
     }
 
     isDirty(initialValues, diff) {
@@ -140,6 +142,8 @@ export class EditorComponent extends React.Component {
     }
 
     updateTabLabels(nextProps) {
+        const {gettext} = superdeskApi.localization;
+
         this.tabs[UI.EDITOR.CONTENT_TAB_INDEX].label = nextProps.itemType === ITEM_TYPE.EVENT ?
             gettext('Event Details') :
             gettext('Planning Details');
@@ -157,7 +161,7 @@ export class EditorComponent extends React.Component {
     }
 
     closeEditor() {
-        this.props.dispatch(
+        this.props.dispatch<any>(
             actions.main.closeEditor(
                 this.props.inModalView
             )
@@ -243,8 +247,8 @@ export class EditorComponent extends React.Component {
             }
         }
 
-        if (this.dom.editorHeaderComponent) {
-            this.dom.editorHeaderComponent.unregisterKeyBoardShortcuts();
+        if (this.editorApi.dom.headerInstance?.current != null) {
+            this.editorApi.dom.headerInstance.current.unregisterKeyBoardShortcuts();
         }
 
         if (this.props.onCancel) {
@@ -258,7 +262,7 @@ export class EditorComponent extends React.Component {
         if (this.state.tab !== tab) {
             this.setState({tab});
 
-            if (get(this.props, 'navigation.onTabChange')) {
+            if (this.props.navigation?.onTabChange != null) {
                 this.props.navigation.onTabChange(tab);
             }
         }
@@ -272,14 +276,8 @@ export class EditorComponent extends React.Component {
         }
     }
 
-    isReadOnly(props) {
-        return this.props.itemAction === 'read' || isItemReadOnly(
-            this.state.initialValues,
-            props.session,
-            props.privileges,
-            props.lockedItems,
-            props.associatedEvent
-        );
+    isReadOnly() {
+        return this.editorApi.form.isReadOnly();
     }
 
     getCurrentTab() {
@@ -302,12 +300,19 @@ export class EditorComponent extends React.Component {
 
     renderContent() {
         const existingItem = isExistingItem(this.state.initialValues);
-        const isReadOnly = this.isReadOnly(this.props);
+        const isReadOnly = this.isReadOnly();
         const currentTab = this.getCurrentTab();
+        const formContainerRefNode = !this.props.inModalView ?
+            null :
+            this.editorApi.dom.formContainer;
 
         return (
-            <Content flex={true} className={this.props.contentClassName}>
-                {existingItem && (
+            <Content
+                withSidebar={currentTab.render !== HistoryTab && !this.props.inModalView}
+                withTabs={existingItem}
+                refNode={formContainerRefNode}
+            >
+                {!existingItem ? null : (
                     <NavTabs
                         tabs={this.tabs}
                         active={this.state.tab}
@@ -315,50 +320,39 @@ export class EditorComponent extends React.Component {
                         className="side-panel__content-tab-nav"
                     />
                 )}
-
-                <div
-                    className={classNames(
-                        'side-panel__content-tab-content',
-                        {'editorModal__editor--padding-bottom': !!get(this.props, 'navigation.padContentForNavigation')}
-                    )}
-                    onScroll={this.onScroll}
-                    ref={(ref) => {
-                        this.dom.scrollContainer = ref;
-                        if (ref && ref.style.overflow !== 'hidden') {
-                            this.containerScrollStyle = ref.style.overflow;
+                {(this.state.loading || !this.props.groups?.length) ? (
+                    <div className="sd-loader" />
+                ) : (
+                    <currentTab.render
+                        original={this.props.item || {}}
+                        item={this.state.initialValues || {}}
+                        itemExists={isExistingItem(this.state.initialValues)}
+                        diff={this.state.diff}
+                        onChangeHandler={this.onChangeHandler}
+                        readOnly={isReadOnly}
+                        addNewsItemToPlanning={this.props.addNewsItemToPlanning}
+                        submitting={this.state.submitting}
+                        submitFailed={this.state.submitFailed}
+                        errors={this.state.errors}
+                        dirty={this.state.dirty}
+                        navigation={this.props.navigation}
+                        notifyValidationErrors={this.props.notifyValidationErrors}
+                        popupContainer={(this.props.inModalView || this.props.addNewsItemToPlanning) ?
+                            () => this.editorApi.dom.popupContainer?.current :
+                            undefined
                         }
-                    }}
-                >
-                    {(!this.state.loading && this.props.itemType) ? (
-                        <currentTab.render
-                            original={this.props.item || {}}
-                            item={this.state.initialValues || {}}
-                            itemExists={isExistingItem(this.state.initialValues)}
-                            diff={this.state.diff}
-                            onChangeHandler={this.onChangeHandler}
-                            readOnly={isReadOnly}
-                            addNewsItemToPlanning={this.props.addNewsItemToPlanning}
-                            submitting={this.state.submitting}
-                            submitFailed={this.state.submitFailed}
-                            errors={this.state.errors}
-                            dirty={this.state.dirty}
-                            navigation={this.props.navigation}
-                            notifyValidationErrors={this.props.notifyValidationErrors}
-                            popupContainer={(this.props.inModalView || this.props.addNewsItemToPlanning) ?
-                                () => this.dom.popupContainer : undefined
-                            }
-                            onPopupOpen={this.onPopupOpen}
-                            onPopupClose={this.onPopupClose}
-                            {...currentTab.tabProps}
-                            inModalView={this.props.inModalView}
-                            plannings={this.props.associatedPlannings}
-                            event={this.props.associatedEvent}
-                            itemManager={this.itemManager}
-                        />
-                    ) : (
-                        <div className="sd-loader" />
-                    )}
-                </div>
+                        onPopupOpen={this.onPopupOpen}
+                        onPopupClose={this.onPopupClose}
+                        {...currentTab.tabProps}
+                        inModalView={this.props.inModalView}
+                        plannings={this.props.associatedPlannings}
+                        event={this.props.associatedEvent}
+                        itemManager={this.itemManager}
+                        activeNav={this.state.activeNav}
+                        groups={this.props.groups ?? []}
+                        editorType={this.props.editorType}
+                    />
+                )}
             </Content>
         );
     }
@@ -386,7 +380,7 @@ export class EditorComponent extends React.Component {
                     closeEditorAndOpenModal={this.itemManager.openInModal}
                     users={this.props.users}
                     itemActions={this.props.itemActions}
-                    ref={(ref) => this.dom.editorHeaderComponent = ref}
+                    ref={this.editorApi.dom.headerInstance}
                     itemType={this.props.itemType}
                     addNewsItemToPlanning={this.props.addNewsItemToPlanning}
                     showUnlock={this.props.showUnlock}
@@ -404,46 +398,9 @@ export class EditorComponent extends React.Component {
                 {this.renderContent()}
 
                 {(this.props.inModalView || this.props.addNewsItemToPlanning) && (
-                    <div ref={(node) => this.dom.popupContainer = node} />
+                    <div ref={this.editorApi.dom.popupContainer} />
                 )}
             </SidePanel>
         );
     }
 }
-
-EditorComponent.propTypes = {
-    item: PropTypes.object,
-    itemId: PropTypes.string,
-    itemType: PropTypes.string,
-    itemAction: PropTypes.string,
-    minimize: PropTypes.func.isRequired,
-    session: PropTypes.object,
-    privileges: PropTypes.object,
-    lockedItems: PropTypes.object,
-    openCancelModal: PropTypes.func.isRequired,
-    users: PropTypes.array,
-    addNewsItemToPlanning: PropTypes.object,
-    formProfiles: PropTypes.object,
-    occurStatuses: PropTypes.array,
-    itemActions: PropTypes.object,
-    showUnlock: PropTypes.bool,
-    hideItemActions: PropTypes.bool,
-    hideMinimize: PropTypes.bool,
-    createAndPost: PropTypes.bool,
-    newsCoverageStatus: PropTypes.array,
-    contentTypes: PropTypes.array,
-    onChange: PropTypes.func,
-    onCancel: PropTypes.func,
-    className: PropTypes.string,
-    contentClassName: PropTypes.string,
-    navigation: PropTypes.object,
-    inModalView: PropTypes.bool,
-    hideExternalEdit: PropTypes.bool,
-    notifyValidationErrors: PropTypes.func,
-    defaultDesk: PropTypes.object,
-    preferredCoverageDesks: PropTypes.object,
-    associatedPlannings: PropTypes.arrayOf(PropTypes.object),
-    associatedEvent: PropTypes.object,
-    dispatch: PropTypes.func,
-    currentWorkspace: PropTypes.string,
-};
