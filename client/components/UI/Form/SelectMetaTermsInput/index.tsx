@@ -15,6 +15,8 @@ import './style.scss';
  * @description Component to select metadata terms like Subjects/Category
  */
 export class SelectMetaTermsInput extends React.Component {
+    addBtn: React.RefObject<HTMLButtonElement>;
+
     constructor(props) {
         super(props);
         this.state = {
@@ -25,6 +27,7 @@ export class SelectMetaTermsInput extends React.Component {
         this.removeValue = this.removeValue.bind(this);
         this.toggleOpenSelectPopup = this.toggleOpenSelectPopup.bind(this);
         this.onChange = this.onChange.bind(this);
+        this.addBtn = React.createRef();
     }
 
     componentWillMount() {
@@ -34,7 +37,7 @@ export class SelectMetaTermsInput extends React.Component {
 
     toggleOpenSelectPopup() {
         this.setState({openSelectPopup: !this.state.openSelectPopup});
-        this.addBtn.focus();
+        this.addBtn.current?.focus();
     }
 
     removeValue(index, term) {
@@ -72,6 +75,10 @@ export class SelectMetaTermsInput extends React.Component {
         } else {
             onChange(field, [opt]);
         }
+    }
+
+    focus() {
+        this.addBtn.current?.focus();
     }
 
     render() {
@@ -125,9 +132,7 @@ export class SelectMetaTermsInput extends React.Component {
                         )}
                         onClick={!disabled ? this.toggleOpenSelectPopup : null}
                         onFocus={onFocus}
-                        ref={(ref) => {
-                            this.addBtn = ref;
-                        }}
+                        ref={this.addBtn}
                     />
                 )}
 

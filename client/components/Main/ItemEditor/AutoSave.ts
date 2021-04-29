@@ -1,21 +1,17 @@
 import {isNil, get, cloneDeep, debounce} from 'lodash';
-import {Dispatch} from 'redux';
 
 import {appConfig} from 'appConfig';
-import {IEventOrPlanningItem} from '../../../interfaces';
-import {ItemManager} from './ItemManager';
-
-import * as actions from '../../../actions';
+import {IEventOrPlanningItem, IEditorState, IEditorProps} from '../../../interfaces';
+import {EditorComponent} from './Editor';
+import {planningApi} from '../../../superdeskApi';
 
 export class AutoSave {
-    editor: ItemManager;
-    dispatch: Dispatch;
+    editor: EditorComponent;
     throttledSave: any | null;
     autosaveItem?: IEventOrPlanningItem;
 
-    constructor(editor: ItemManager) {
+    constructor(editor: EditorComponent) {
         this.editor = editor;
-        this.dispatch = this.editor.props.dispatch;
 
         this.throttledSave = null;
         this.autosaveItem = null;
@@ -37,22 +33,12 @@ export class AutoSave {
         window.removeEventListener('beforeunload', this.flushAutosave);
     }
 
-    get props() {
-        return this.editor.props;
-    }
-
-    get state() {
-        return this.editor.state;
-    }
-
-    setState(state: any, cb?: () => Promise<any>) {
-        let promise = Promise.resolve();
-
-        if (this.editor && this.editor.setState) {
-            promise = new Promise((resolve) => {
+    setState(state: Partial<IEditorState>, cb?: () => Promise<void>) {
+        const promise = !this.editor || !this.editor.setState ?
+            Promise.resolve() :
+            new Promise((resolve) => {
                 this.editor.setState(state, resolve);
             });
-        }
 
         if (cb) {
             promise.then(cb);
@@ -88,15 +74,15 @@ export class AutoSave {
         this.autosaveItem = null;
     }
 
-    _saveAutosave(updates) {
+    _saveAutosave(updates: IEditorState['diff']) {
         // Set submitting to true so that form controls are temporarily disable
-        const changeState = !this.state.submitting;
+        const changeState = !this.editor.state.submitting;
         const promise = !changeState ?
             Promise.resolve() :
             this.setState({submitting: true});
 
         return promise.then(() => (
-            this.dispatch<any>(actions.autosave.save(this.autosaveItem, updates))
+            planningApi.autosave.save(this.autosaveItem, updates)
                 .then((autosaveItem) => {
                     this.autosaveItem = autosaveItem;
 
@@ -108,7 +94,7 @@ export class AutoSave {
         ));
     }
 
-    saveAutosave(props, diff) {
+    saveAutosave(props: IEditorProps, diff: IEditorState['diff']) {
         // Don't use Autosave if we're in read-only mode
         if (props.itemAction === 'read') {
             return;
@@ -118,7 +104,7 @@ export class AutoSave {
         this.throttledSave(diff);
     }
 
-    loadAutosave(nextProps) {
+    loadAutosave(nextProps: IEditorProps) {
         const {itemType, itemId} = nextProps;
 
         // Don't use Autosave if we're in read-only mode
@@ -126,12 +112,7 @@ export class AutoSave {
             return Promise.resolve();
         }
 
-        return this.dispatch<any>(
-            actions.autosave.fetchById(
-                itemType,
-                itemId
-            )
-        )
+        return planningApi.autosave.getById(itemType, itemId)
             .then((autosaveItem) => {
                 if (!isNil(autosaveItem)) {
                     this.autosaveItem = autosaveItem;
@@ -141,13 +122,13 @@ export class AutoSave {
             });
     }
 
-    createAutosave(diff) {
+    createAutosave(diff: IEditorState['diff']) {
         this.cancelAutosave();
         this._initThrottle();
         return this._saveAutosave(diff);
     }
 
-    createOrLoadAutosave(nextProps, diff) {
+    createOrLoadAutosave(nextProps: IEditorProps, diff: IEditorState['diff']) {
         return this.loadAutosave(nextProps)
             .then((autosaveItem) => (
                 isNil(autosaveItem) ?
@@ -167,9 +148,7 @@ export class AutoSave {
 
                 this.cancelAutosave();
                 if (autosaveItem !== null) {
-                    return this.dispatch<any>(
-                        actions.autosave.remove(autosaveItem)
-                    );
+                    return planningApi.autosave.delete(autosaveItem);
                 }
 
                 return Promise.resolve();

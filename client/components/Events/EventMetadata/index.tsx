@@ -8,29 +8,29 @@ import {
     IEventFormProfile,
     PREVIEW_PANEL,
     IFormNavigation,
-    ILockedItems,
     IFile,
 } from '../../../interfaces';
-
 import {ICON_COLORS} from '../../../constants';
+
+import {editorMenuUtils, eventUtils, gettext, onEventCapture} from '../../../utils';
+import {eventProfile} from '../../../selectors/forms';
+
 import {StateLabel} from '../..';
 import {ItemIcon} from '../../index';
-import {ToggleBox} from '../../UI';
-import {ActionMenu, Border, Column, Item, Row} from '../../UI/List';
+import {ToggleBox, CollapseBox} from '../../UI';
+import {Column, Item, Row} from '../../UI/List';
 import {Row as PreviewRow} from '../../UI/Preview';
 import {FileInput, LinkInput} from '../../UI/Form';
-import {CollapseBox} from '../../UI/CollapseBox';
-import {editorMenuUtils, eventUtils, gettext, onEventCapture} from '../../../utils';
 import {Location} from '../../Location';
-import {eventProfile} from '../../../selectors/forms';
 import {previewGroupToProfile, renderGroupedFieldsForPanel} from '../../fields';
+import {RelatedEventListItem} from './RelatedEventListItem';
 
 interface IProps {
     event: IEventItem;
-    lockedItems: ILockedItems,
     files?: Array<IFile> | IFile;
     navigation?: IFormNavigation,
     formProfile: IEventFormProfile;
+    testId?: string;
 
     onEditEvent?(): void;
     onOpen?(): void;
@@ -52,12 +52,27 @@ const mapStateToProps = (state) => ({
 });
 
 class EventMetadataComponent extends React.PureComponent<IProps> {
+    collapseBox: React.RefObject<CollapseBox>;
+
+    constructor(props) {
+        super(props);
+
+        this.collapseBox = React.createRef();
+    }
+
+    scrollIntoView() {
+        this.collapseBox.current?.scrollInView(true);
+    }
+
+    focus() {
+        this.collapseBox.current?.scrollInView(true);
+    }
+
     render() {
         const {
             event,
             dateOnly,
             tabEnabled,
-            lockedItems,
             onEditEvent,
             noOpen,
             onClick,
@@ -77,7 +92,6 @@ class EventMetadataComponent extends React.PureComponent<IProps> {
             true,
             false
         );
-        const isItemLocked = eventUtils.isEventLocked(event, lockedItems);
         const editEventComponent = onEditEvent && !hideEditIcon ?
             (
                 <button
@@ -93,40 +107,15 @@ class EventMetadataComponent extends React.PureComponent<IProps> {
             ) : null;
 
         const eventListView = (
-            <Item noBg={!active} activated={active}>
-                {showBorder && isItemLocked && <Border state="locked" />}
-                <div className="sd-list-item__border" />
-                {showIcon && (
-                    <Column>
-                        <ItemIcon
-                            item={event}
-                            color={ICON_COLORS.DARK_BLUE_GREY}
-                        />
-                    </Column>
-                )}
-                <Column grow={true} border={false}>
-                    <Row>
-                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            <span className="sd-list-item__text-strong">{event.name}</span>
-                        </span>
-                    </Row>
-                    <Row>
-                        <time className="no-padding">
-                            <i className="icon-time" />
-                            {dateStr}
-                        </time>
-                    </Row>
-                </Column>
-                <Column>
-                    <StateLabel
-                        item={event}
-                        verbose={true}
-                        className="pull-right"
-                        withExpiredStatus={true}
-                    />
-                </Column>
-                {editEventComponent && <ActionMenu>{editEventComponent}</ActionMenu>}
-            </Item>
+            <RelatedEventListItem
+                item={event}
+                active={active}
+                noBg={!active}
+                showBorder={showBorder}
+                showIcon={showIcon}
+                dateOnly={dateOnly}
+                editEventComponent={editEventComponent}
+            />
         );
 
         const eventInDetailTopBar = (
@@ -237,6 +226,8 @@ class EventMetadataComponent extends React.PureComponent<IProps> {
 
         return (
             <CollapseBox
+                testId={this.props.testId}
+                ref={this.collapseBox}
                 collapsedItem={eventListView}
                 openItemTopBar={eventInDetailTopBar}
                 openItem={eventInDetail}
@@ -254,4 +245,9 @@ class EventMetadataComponent extends React.PureComponent<IProps> {
     }
 }
 
-export const EventMetadata = connect(mapStateToProps)(EventMetadataComponent);
+export const EventMetadata = connect(
+    mapStateToProps,
+    null,
+    null,
+    {forwardRef: true}
+)(EventMetadataComponent);

@@ -1,14 +1,49 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
+
+import {superdeskApi} from '../../superdeskApi';
+import {IContactItem, IPrivileges} from '../../interfaces';
+
 import * as selectors from '../../selectors';
-import {ContactEditor, SelectSearchContactsField, ContactsPreviewList} from './index';
 import * as actions from '../../actions';
-import {gettext} from '../../utils/index';
 
+import {ContactEditor, SelectSearchContactsField, ContactsPreviewList} from './index';
 
-export class ContactFieldComponent extends React.Component {
+interface IProps {
+    field: string;
+    label: string;
+    querySearch?: boolean;
+    value: Array<IContactItem['_id']>;
+    contacts: Array<IContactItem>;
+    privileges: IPrivileges;
+    readOnly?: boolean;
+    paddingTop?: boolean;
+    testId?: string;
+
+    onFocus?(): void;
+    refNode?(node: HTMLElement): void;
+    onChange(field: string, value: Array<IContactItem['_id']>): void;
+    addContact(contact: Partial<IContactItem>): void;
+    onPopupOpen?(): void;
+    onPopupClose?(): void;
+}
+
+interface IState {
+    showEditModal: boolean;
+    editContact: boolean;
+}
+
+const mapStateToProps = (state) => ({
+    contacts: selectors.general.contacts(state),
+    privileges: selectors.general.privileges(state),
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    addContact: (newContact) => dispatch(actions.contacts.addContact(newContact)),
+});
+
+export class ContactFieldComponent extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
 
@@ -38,18 +73,13 @@ export class ContactFieldComponent extends React.Component {
         });
     }
 
-    removeContact(contact) {
-        if (this.props.singleValue) {
-            this.applyChanges(null);
-            return;
-        }
-
-        let value = this.getValueProp();
+    removeContact(contact: IContactItem) {
+        let value = Array.from(this.props.value);
         const index = value.indexOf(contact._id);
 
         if (index >= 0) {
             value.splice(index, 1);
-            this.applyChanges(value);
+            this.props.onChange(this.props.field, value);
         }
     }
 
@@ -58,42 +88,24 @@ export class ContactFieldComponent extends React.Component {
         this.closeEditModal();
     }
 
-    applyChanges(newValue) {
-        const {field, singleValue, value, onChange} = this.props;
-
-        if (!singleValue) {
-            if (Array.isArray(newValue)) {
-                // When we remove contact, an array is given
-                onChange(field, newValue);
-            } else {
-                onChange(field, [...value, newValue]);
-            }
-        } else {
-            onChange(field, newValue);
-        }
-    }
-
-    onChange(savedContact) {
-        const value = this.getValueProp();
-
+    onChange(savedContact: Partial<IContactItem>) {
         // Update the redux store
         this.props.addContact(savedContact);
 
         // Append the value if the id is not in the list already
-        if (!value.find((contactId) => contactId === savedContact._id)) {
-            this.applyChanges(savedContact._id);
+        if (!this.props.value.find((contactId) => contactId === savedContact._id)) {
+            this.props.onChange(
+                this.props.field,
+                [
+                    ...this.props.value,
+                    savedContact._id,
+                ]
+            );
         }
-    }
-
-    getValueProp() {
-        if (this.props.singleValue) {
-            return get(this.props, 'value.length', 0) > 0 ? [this.props.value] : [];
-        }
-
-        return this.props.value;
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const {
             label,
             field,
@@ -107,12 +119,16 @@ export class ContactFieldComponent extends React.Component {
         } = this.props;
 
         return (
-            <div ref={refNode} className={paddingTop ? 'contact-field--padding-top' : null}>
+            <div
+                ref={refNode}
+                className={paddingTop ? 'contact-field--padding-top' : null}
+                data-test-id={this.props.testId}
+            >
                 <SelectSearchContactsField
                     field={field}
                     label={label}
                     onChange={this.onChange}
-                    value={this.getValueProp()}
+                    value={this.props.value}
                     onAdd={privileges.contacts ? this.showEditModal : null}
                     onAddText={privileges.contacts ? gettext('Add Contact') : null}
                     onFocus={onFocus}
@@ -122,7 +138,7 @@ export class ContactFieldComponent extends React.Component {
                 />
 
                 <ContactsPreviewList
-                    contactIds={this.getValueProp()}
+                    contactIds={this.props.value}
                     onEditContact={privileges.contacts ? this.showEditModal : null}
                     onRemoveContact={privileges.contacts ? this.removeContact : null}
                     scrollInView={true}
@@ -142,39 +158,6 @@ export class ContactFieldComponent extends React.Component {
         );
     }
 }
-
-ContactFieldComponent.propTypes = {
-    field: PropTypes.string.isRequired,
-    label: PropTypes.string,
-    querySearch: PropTypes.bool,
-    onQuerySearch: PropTypes.func,
-    onFocus: PropTypes.func,
-    value: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.string),
-        PropTypes.string,
-    ]),
-    fetchContacts: PropTypes.func,
-    contacts: PropTypes.array,
-    privileges: PropTypes.object,
-    refNode: PropTypes.func,
-    paddingTop: PropTypes.bool,
-    readOnly: PropTypes.bool,
-    onChange: PropTypes.func,
-    addContact: PropTypes.func,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
-    singleValue: PropTypes.bool,
-};
-
-const mapStateToProps = (state) => ({
-    contacts: selectors.general.contacts(state),
-    privileges: selectors.general.privileges(state),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-    addContact: (newContact) => dispatch(actions.contacts.addContact(newContact)),
-    fetchContacts: (ids) => dispatch(actions.contacts.fetchContactsByIds(ids)),
-});
 
 export const ContactField = connect(
     mapStateToProps,

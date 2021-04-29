@@ -1,7 +1,9 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, isEqual} from 'lodash';
+
+import {IDesk, IUser} from 'superdesk-api';
+import {IContactItem, IG2ContentType, IPlanningCoverageItem, IPlanningItem} from '../../interfaces';
 
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
@@ -19,12 +21,46 @@ import {StateLabel, InternalNoteLabel} from '../../components';
 import {CoverageIcon} from './CoverageIcon';
 import {UserAvatar} from '../UserAvatar';
 
-export class CoverageItemComponent extends React.Component {
+interface IProps {
+    coverage: IPlanningCoverageItem;
+    users: Array<IUser>;
+    desks: Array<IDesk>;
+    itemActionComponent: React.ReactNode;
+    contentTypes: Array<IG2ContentType>;
+    isPreview?: boolean;
+    active?: boolean;
+    item: DeepPartial<IPlanningItem>;
+    index: number;
+    workflowStateReasonPrefix?: string;
+    showBackground: boolean;
+    getContactById(contactId: IContactItem['_id']): Promise<IContactItem>;
+}
+
+interface IState {
+    userAssigned?: IUser;
+    deskAssigned?: IDesk;
+    coverageProvider?: string;
+    displayContentType?: string;
+    coverageDateText?: string;
+    internalNoteFieldPrefix?: string;
+    coverageInWorkflow?: boolean;
+}
+
+const mapStateToProps = (state) => ({
+    users: selectors.general.users(state),
+    desks: selectors.general.desks(state),
+    contentTypes: selectors.general.contentTypes(state),
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    getContactById: (contactId) => dispatch(actions.contacts.getContactById(contactId)),
+});
+
+export class CoverageItemComponent extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
 
         this.state = {
-            providerContact: null,
             userAssigned: null,
             deskAssigned: null,
             coverageProvider: '',
@@ -72,7 +108,7 @@ export class CoverageItemComponent extends React.Component {
         );
         const coverageDate = get(coverage, 'planning.scheduled');
 
-        const newState = {
+        const newState: Partial<IState> = {
             userAssigned: null,
             displayContentType: '',
             coverageDateText: '',
@@ -83,7 +119,7 @@ export class CoverageItemComponent extends React.Component {
                 coverage,
                 'assigned_to.user',
                 users
-            );
+            ) as IUser;
         }
 
         newState.deskAssigned = getItemInArrayById(
@@ -91,7 +127,7 @@ export class CoverageItemComponent extends React.Component {
             get(coverage, 'assigned_to.desk')
         );
 
-        newState.displayContentType = [
+        let displayContentType = [
             stringUtils.firstCharUpperCase(
                 get(
                     coverage,
@@ -102,10 +138,10 @@ export class CoverageItemComponent extends React.Component {
         ];
 
         if (genre) {
-            newState.displayContentType.push(`/${genre}`);
+            displayContentType.push(`/${genre}`);
         }
 
-        newState.displayContentType = newState.displayContentType.join('');
+        newState.displayContentType = displayContentType.join('');
 
         newState.coverageDateText = !coverageDate ?
             gettext('Not scheduled yet') :
@@ -240,10 +276,10 @@ export class CoverageItemComponent extends React.Component {
     }
 
     render() {
-        const {itemActionComponent, active} = this.props;
+        const {itemActionComponent, active, showBackground} = this.props;
 
         return (
-            <Item noBg={!active} activated={active}>
+            <Item noBg={!showBackground && !active} activated={active}>
                 <Border />
                 {this.renderAvatar()}
                 <Column grow={true} border={false}>
@@ -260,34 +296,6 @@ export class CoverageItemComponent extends React.Component {
         );
     }
 }
-
-CoverageItemComponent.propTypes = {
-    coverage: PropTypes.object,
-    users: PropTypes.array,
-    desks: PropTypes.array,
-    onDuplicateCoverage: PropTypes.func,
-    onCancelCoverage: PropTypes.func,
-    itemActionComponent: PropTypes.node,
-    contentTypes: PropTypes.array,
-    isPreview: PropTypes.bool,
-    active: PropTypes.bool,
-    item: PropTypes.object,
-    index: PropTypes.number,
-    workflowStateReasonPrefix: PropTypes.string,
-    getContactById: PropTypes.func,
-};
-
-CoverageItemComponent.defaultProps = {isPreview: false};
-
-const mapStateToProps = (state) => ({
-    users: selectors.general.users(state),
-    desks: selectors.general.desks(state),
-    contentTypes: selectors.general.contentTypes(state),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-    getContactById: (contactId) => dispatch(actions.contacts.getContactById(contactId)),
-});
 
 export const CoverageItem = connect(
     mapStateToProps,

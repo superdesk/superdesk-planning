@@ -4,49 +4,42 @@ import classNames from 'classnames';
 
 import './style.scss';
 
-/**
- * @ngdoc react
- * @name Row
- * @description Component to encapsulate a component in Form row style
- */
-export const Row = ({children, flex, noPadding, halfWidth, className, enabled, id, testId}) => (
-    !enabled ?
-        null : (
+interface IProps {
+    flex?: boolean;
+    noPadding?: boolean;
+    className?: string | {[key: string]: boolean};
+    halfWidth?: boolean;
+    enabled?: boolean; // defaults to true
+    id?: string;
+    testId?: string;
+    style?: React.CSSProperties;
+    refNode?: React.RefObject<HTMLDivElement>;
+}
+
+export class Row extends React.PureComponent<IProps> {
+    render() {
+        if (!(this.props.enabled ?? true)) {
+            return null;
+        }
+
+        return (
             <div
-                id={id}
-                data-test-id={testId}
+                id={this.props.id}
+                ref={this.props.refNode}
+                data-test-id={this.props.testId}
+                style={this.props.style}
                 className={classNames(
                     'form__row',
                     {
-                        'form__row--flex': flex,
-                        'no-padding': noPadding,
-                        'form__row--half-width': halfWidth,
+                        'form__row--flex': this.props.flex,
+                        'no-padding': this.props.noPadding,
+                        'form__row--half-width': this.props.halfWidth,
                     },
-                    className
+                    this.props.className
                 )}
             >
-                {children}
+                {this.props.children}
             </div>
-        )
-);
-
-Row.propTypes = {
-    children: PropTypes.node,
-    flex: PropTypes.bool,
-    noPadding: PropTypes.bool,
-    className: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.object,
-    ]),
-    halfWidth: PropTypes.bool,
-    enabled: PropTypes.bool,
-    id: PropTypes.string,
-    testId: PropTypes.string,
-};
-
-Row.defaultProps = {
-    flex: false,
-    noPadding: false,
-    halfWidth: false,
-    enabled: true,
-};
+        );
+    }
+}

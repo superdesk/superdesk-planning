@@ -1,19 +1,19 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import {get} from 'lodash';
 
 import {appConfig} from 'appConfig';
+import {superdeskApi} from '../../../../superdeskApi';
+import {KEYCODES} from '../../constants';
+
+import {timeUtils} from '../../../../utils';
 
 import {LineInput, Label, Input} from '../';
 import {TimeInputPopup} from './TimeInputPopup';
 import {IconButton} from '../../';
-import {KEYCODES} from '../../constants';
-import {gettext} from '../../../../utils/gettext';
-import {timeUtils} from '../../../../utils';
-import './style.scss';
 
-const TO_BE_CONFIRMED_TEXT = gettext('To Be Confirmed');
+import './style.scss';
 
 /**
  * @ngdoc react
@@ -46,8 +46,10 @@ export class TimeInput extends React.Component {
         }
 
         if (nextProps.toBeConfirmed) {
+            const {gettext} = superdeskApi.localization;
+
             this.setState({
-                viewValue: TO_BE_CONFIRMED_TEXT,
+                viewValue: gettext('To Be Confirmed'),
                 previousValidValue: '',
                 invalid: false,
                 showLocalValidation: false,
@@ -67,9 +69,13 @@ export class TimeInput extends React.Component {
 
     componentDidMount() {
         // After first render, set the value
-        const value = this.props.toBeConfirmed ? TO_BE_CONFIRMED_TEXT : this.props.value;
+        const {gettext} = superdeskApi.localization;
+        const value = this.props.toBeConfirmed ?
+            gettext('To Be Confirmed') :
+            this.props.value;
         const viewValue = value && moment.isMoment(value) ?
-            value.format(appConfig.planning.timeformat) : (value || '');
+            value.format(appConfig.planning.timeformat) :
+            (value || '');
 
         this.setState({viewValue});
     }
@@ -212,6 +218,7 @@ export class TimeInput extends React.Component {
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const {
             placeholder,
             field,
@@ -252,7 +259,14 @@ export class TimeInput extends React.Component {
         }
 
         return (
-            <LineInput {...props} readOnly={readOnly} invalid={invalid} errors={errors} message={message}>
+            <LineInput
+                {...props}
+                readOnly={readOnly}
+                invalid={invalid}
+                errors={errors}
+                message={message}
+                boxed={true}
+            >
                 <Label text={label} />
                 <IconButton
                     className="sd-line-input__icon-right"
@@ -267,7 +281,7 @@ export class TimeInput extends React.Component {
                     type="text"
                     placeholder={placeholder || gettext('Time')}
                     onBlur={this.handleInputBlur}
-                    readOnly={readOnly || this.state.viewValue === TO_BE_CONFIRMED_TEXT}
+                    readOnly={readOnly || this.state.viewValue === gettext('To Be Confirmed')}
                     onFocus={onFocus}
                     onKeyDown={(event) => {
                         if (event.keyCode === KEYCODES.ENTER) {
@@ -288,7 +302,7 @@ export class TimeInput extends React.Component {
                         onPopupClose={props.onPopupClose}
                         showToBeConfirmed={showToBeConfirmed}
                         onToBeConfirmed={onToBeConfirmed ? onToBeConfirmed.bind(null, field) : null}
-                        toBeConfirmedText={TO_BE_CONFIRMED_TEXT}
+                        toBeConfirmedText={gettext('To Be Confirmed')}
                     />
                 )}
             </LineInput>

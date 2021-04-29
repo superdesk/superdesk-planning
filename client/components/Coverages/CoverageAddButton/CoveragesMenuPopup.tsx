@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
 import {GENERIC_ITEM_ACTIONS} from '../../../constants';
@@ -7,7 +6,22 @@ import {onEventCapture, gettext} from '../../../utils';
 
 import {Popup, Content} from '../../UI/Popup';
 
-export class CoveragesMenuPopup extends React.PureComponent {
+interface IProps {
+    target: string;
+    actions: Array<{
+        key?: string;
+        label: string;
+        text?: string;
+        icon: string;
+        callback(): void;
+    }>;
+    closeMenu(event: React.MouseEvent<HTMLButtonElement>): void;
+    openAdvanced(event: React.MouseEvent<HTMLButtonElement>): void;
+    onPopupOpen?(): void;
+    onPopupClose?(): void;
+}
+
+export class CoveragesMenuPopup extends React.PureComponent<IProps> {
     triggerAction(action, event) {
         this.props.closeMenu(event);
         action.callback();
@@ -81,13 +95,3 @@ export class CoveragesMenuPopup extends React.PureComponent {
         );
     }
 }
-
-
-CoveragesMenuPopup.propTypes = {
-    closeMenu: PropTypes.func.isRequired,
-    actions: PropTypes.array.isRequired,
-    target: PropTypes.string.isRequired,
-    onPopupOpen: PropTypes.func,
-    onPopupClose: PropTypes.func,
-    openAdvanced: PropTypes.func.isRequired,
-};

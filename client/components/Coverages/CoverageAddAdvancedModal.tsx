@@ -1,8 +1,9 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
 import {getUserInterfaceLanguage} from 'appConfig';
+import {IG2ContentType, IPlanningCoverageItem, IPlanningNewsCoverageStatus} from '../../interfaces';
+import {IDesk, IUser} from 'superdesk-api';
 
 import Modal from '../Modal';
 import {SelectInput, SelectUserInput} from '../UI/Form';
@@ -10,7 +11,45 @@ import {gettext, planningUtils, getUsersForDesk, getDesksForUser} from '../../ut
 
 const isInvalid = (coverage) => coverage.user && !coverage.desk;
 
-export class CoverageAddAdvancedModal extends React.PureComponent {
+interface IProps {
+    field: string;
+    value: Array<DeepPartial<IPlanningCoverageItem>>;
+    coverageAddAdvancedMode: boolean;
+    desks: Array<IDesk>;
+    users: Array<IUser>;
+    contentTypes: Array<IG2ContentType>;
+    newsCoverageStatus: Array<IPlanningNewsCoverageStatus>;
+
+    onChange(field: string, value: Array<DeepPartial<IPlanningCoverageItem>>): void;
+    createCoverage(qcode: IG2ContentType['qcode']): DeepPartial<IPlanningCoverageItem>;
+    setCoverageAddAdvancedMode(enable: boolean): void;
+    close(event?: React.MouseEvent): void;
+}
+
+interface ICoverageSelector {
+    id: number;
+    enabled: boolean;
+    qcode: IG2ContentType['qcode'];
+    name: IG2ContentType['name'];
+    icon: string;
+    desk: IDesk['_id'];
+    user: IUser['_id'];
+    status: IPlanningNewsCoverageStatus;
+    popupContainer: any;
+    filteredDesks: Array<IDesk>;
+    filteredUsers: Array<IUser>;
+    coverage_id?: string;
+}
+
+interface IState {
+    advancedMode: boolean;
+    coverages: Array<ICoverageSelector>;
+    isDirty: boolean;
+}
+
+export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
+    id: number;
+
     constructor(props) {
         super(props);
 
@@ -27,13 +66,17 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
         const coverages = [];
         const savedCoverages = value.map((coverage) => {
             const contentType = contentTypes.find((type) => type.qcode === coverage.planning.g2_content_type);
+            const icon = planningUtils.getCoverageIcon(
+                get(contentType, 'content item type') ||
+                contentType.qcode
+            );
 
             return {
                 id: this.id++,
                 enabled: true,
                 qcode: contentType.qcode,
                 name: contentType.name,
-                icon: contentType.icon,
+                icon: icon,
                 desk: desks.find((desk) => desk._id === coverage.assigned_to.desk),
                 user: users.find((user) => user._id === coverage.assigned_to.user),
                 status: coverage.news_coverage_status,
@@ -46,6 +89,10 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
 
         contentTypes.forEach((contentType) => {
             const presentInSavedCoverages = savedCoverages.find((coverage) => coverage.qcode === contentType.qcode);
+            const icon = planningUtils.getCoverageIcon(
+                get(contentType, 'content item type') ||
+                contentType.qcode
+            );
 
             if (presentInSavedCoverages == null) {
                 const coverageObj = {
@@ -53,7 +100,7 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                     enabled: false,
                     qcode: contentType.qcode,
                     name: contentType.name,
-                    icon: planningUtils.getCoverageIcon(get(contentType, 'content item type') || contentType.qcode),
+                    icon: icon,
                     desk: null,
                     filteredDesks: desks,
                     user: null,
@@ -122,13 +169,11 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
         const coverages = this.state.coverages
             .filter((coverage) => coverage.enabled)
             .map((coverage) => {
-                let newCoverage = {};
-
-                if (coverage.coverage_id != null) {
-                    newCoverage = this.props.value.find((val) => val.coverage_id === coverage.coverage_id);
-                } else {
-                    newCoverage = this.props.createCoverage(coverage.qcode);
-                }
+                const newCoverage: DeepPartial<IPlanningCoverageItem> = coverage.coverage_id == null ?
+                    this.props.createCoverage(coverage.qcode) :
+                    this.props.value.find(
+                        (val) => val.coverage_id === coverage.coverage_id
+                    );
 
                 newCoverage.assigned_to = {
                     user: get(coverage, 'user._id'),
@@ -291,20 +336,3 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
         );
     }
 }
-
-CoverageAddAdvancedModal.propTypes = {
-    desks: PropTypes.array,
-    users: PropTypes.array,
-    contentTypes: PropTypes.array,
-    newsCoverageStatus: PropTypes.array,
-
-    field: PropTypes.string,
-    value: PropTypes.array,
-    onChange: PropTypes.func,
-    createCoverage: PropTypes.func,
-
-    coverageAddAdvancedMode: PropTypes.bool,
-    setCoverageAddAdvancedMode: PropTypes.func,
-
-    close: PropTypes.func,
-};

@@ -1,9 +1,32 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
+import {superdeskApi} from '../../../superdeskApi';
 import {Row, LineInput, Label, Checkbox} from '../../UI/Form';
 
-export class DaysOfWeekInput extends React.Component {
+interface IProps {
+    field?: string; // defaults to 'dates.recurring_rule.byday'
+    value: string;
+    label: string; // defaults to 'Repeat On'
+    required?: boolean;
+    invalid?: boolean;
+    message?: string;
+    readOnly?: boolean;
+    boxed?: boolean;
+    noMargin?: boolean;
+    onChange(field: string, value: string): void;
+}
+
+interface IState {
+    MO: boolean;
+    TU: boolean;
+    WE: boolean;
+    TH: boolean;
+    FR: boolean;
+    SA: boolean;
+    SU: boolean;
+}
+
+export class DaysOfWeekInput extends React.Component<IProps, IState> {
     constructor(props) {
         super(props);
         this.state = {
@@ -27,8 +50,8 @@ export class DaysOfWeekInput extends React.Component {
         }
     }
 
-    setDays(props) {
-        const days = {
+    setDays(props: IProps) {
+        const days: IState = {
             MO: false,
             TU: false,
             WE: false,
@@ -49,10 +72,8 @@ export class DaysOfWeekInput extends React.Component {
         this.setState(days);
     }
 
-    onChange(value, day) {
-        const {field, onChange} = this.props;
-
-        const days = {
+    onChange(value: boolean, day: keyof IState) {
+        const days: IState = {
             ...this.state,
             [day]: value,
         };
@@ -65,18 +86,38 @@ export class DaysOfWeekInput extends React.Component {
             // Join array to produce the string we want to store
             .join(' ');
 
-        onChange(field, daysInString);
+        this.props.onChange(
+            this.props.field ?? 'dates.recurring_rule.byday',
+            daysInString
+        );
     }
 
     render() {
-        const {label, readOnly, invalid, message} = this.props;
+        const {gettext} = superdeskApi.localization;
+        const {
+            label = gettext('Repeat On'),
+            readOnly,
+            invalid,
+            message,
+        } = this.props;
 
         return (
             <div>
-                <Label row={true} text={label} invalid={invalid} />
-                <Row flex={true} noPadding={invalid}>
-                    {Object.keys(this.state).map((day) => (
-                        <LineInput key={day} noLabel={true} noMargin={true}>
+                <Label
+                    row={true}
+                    text={label}
+                    invalid={invalid}
+                />
+                <Row
+                    flex={true}
+                    noPadding={invalid}
+                >
+                    {Object.keys(this.state).map((day: keyof IState) => (
+                        <LineInput
+                            key={day}
+                            noLabel={true}
+                            noMargin={true}
+                        >
                             <Checkbox
                                 value={this.state[day]}
                                 onChange={(f, val) => this.onChange(val, day)}
@@ -87,33 +128,14 @@ export class DaysOfWeekInput extends React.Component {
                         </LineInput>
                     ))}
                 </Row>
-                {invalid && <LineInput noLabel={true} invalid={invalid} message={message} />}
+                {!invalid ? null : (
+                    <LineInput
+                        noLabel={true}
+                        invalid={invalid}
+                        message={message}
+                    />
+                )}
             </div>
         );
     }
 }
-
-DaysOfWeekInput.propTypes = {
-    field: PropTypes.string,
-    value: PropTypes.string,
-    label: PropTypes.string,
-    onChange: PropTypes.func.isRequired,
-
-    required: PropTypes.bool,
-    invalid: PropTypes.bool,
-    message: PropTypes.string,
-    readOnly: PropTypes.bool,
-    boxed: PropTypes.bool,
-    noMargin: PropTypes.bool,
-};
-
-DaysOfWeekInput.defaultProps = {
-    field: 'dates.recurring_rule.byday',
-    label: 'Repeat On',
-
-    required: false,
-    invalid: false,
-    readOnly: false,
-    boxed: false,
-    noMargin: false,
-};

@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 import {KEYCODES} from './constants';
@@ -7,12 +6,40 @@ import {onEventCapture} from './utils';
 
 import {IconButton} from './';
 
+interface IProps {
+    isOpen?: boolean;
+    noOpen?: boolean;
+    scrollInView?: boolean;
+    scrollIntoViewOptions?: ScrollIntoViewOptions;
+    invalid?: boolean;
+    tabEnabled?: boolean;
+    forceScroll?: boolean;
+    inner?: boolean;
+    entityId?: string;
+    testId?: string;
+
+    collapsedItem: React.ReactNode;
+    openItem: React.ReactNode;
+    openItemTopBar: React.ReactNode;
+    tools: React.ReactNode;
+
+    onOpen?(): void;
+    onClose?(): void;
+    onClick?(): void;
+}
+
+interface IState {
+    isOpen: boolean;
+}
+
 /**
  * @ngdoc react
  * @name CollapseBox
  * @description CollapseBox which has a closed and open view of an item
  */
-export class CollapseBox extends React.Component {
+export class CollapseBox extends React.Component<IProps, IState> {
+    containerNode: React.RefObject<HTMLDivElement>;
+
     constructor(props) {
         super(props);
         this.state = {isOpen: this.props.isOpen};
@@ -21,11 +48,12 @@ export class CollapseBox extends React.Component {
         this.openBox = this.openBox.bind(this);
         this.closeBox = this.closeBox.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.dom = {node: null};
+
+        this.containerNode = React.createRef();
     }
 
     componentWillReceiveProps(nextProps) {
-        if (this.props.onOpen) {
+        if (this.props.onOpen != null) {
             if (nextProps.isOpen) {
                 this.openBox(nextProps);
             } else {
@@ -40,7 +68,7 @@ export class CollapseBox extends React.Component {
             // If we closed it by keydown, keep focus to show the tab route
             if (this.state.isOpen) {
                 this.closeBox();
-                this.dom.node.focus();
+                this.containerNode.current?.focus();
             } else {
                 this.openBox();
             }
@@ -75,20 +103,25 @@ export class CollapseBox extends React.Component {
         this.openBox();
     }
 
-    scrollInView() {
+    scrollInView(autoOpen?: boolean) {
         const {scrollInView, noOpen, scrollIntoViewOptions} = this.props;
+
+        if (autoOpen && !this.state.isOpen) {
+            this.openBox(this.props);
+        }
 
         if (scrollInView &&
             (this.state.isOpen || noOpen) &&
-            this.dom.node) {
+            this.containerNode.current != null
+        ) {
             if (scrollIntoViewOptions) {
-                this.dom.node.scrollIntoView(scrollIntoViewOptions);
+                this.containerNode.current.scrollIntoView(scrollIntoViewOptions);
             } else {
-                this.dom.node.scrollIntoView();
+                this.containerNode.current.scrollIntoView();
             }
             // When just opened, lose focus to remove greyed background due to
             // initial collapsed view
-            this.dom.node.blur();
+            this.containerNode.current.blur();
         }
     }
 
@@ -113,6 +146,7 @@ export class CollapseBox extends React.Component {
         return (
             <div
                 role="button"
+                data-test-id={this.props.testId}
                 tabIndex={this.props.tabEnabled ? 0 : null}
                 onKeyDown={!this.state.isOpen && this.props.tabEnabled ? this.handleKeyDown : null}
                 className={classNames(
@@ -124,7 +158,7 @@ export class CollapseBox extends React.Component {
                         'sd-collapse-box--invalid': this.props.invalid,
                     }
                 )}
-                ref={(node) => this.dom.node = node}
+                ref={this.containerNode}
                 onClick={this.handleOpenClick}
             >
                 {this.state.isOpen && (
@@ -170,29 +204,3 @@ export class CollapseBox extends React.Component {
         );
     }
 }
-
-CollapseBox.propTypes = {
-    collapsedItem: PropTypes.node.isRequired,
-    openItem: PropTypes.node,
-    openItemTopBar: PropTypes.node,
-    tools: PropTypes.node,
-    isOpen: PropTypes.bool,
-    scrollInView: PropTypes.bool,
-    scrollIntoViewOptions: PropTypes.object,
-    invalid: PropTypes.bool,
-    tabEnabled: PropTypes.bool,
-    noOpen: PropTypes.bool,
-    onOpen: PropTypes.func,
-    onClose: PropTypes.func,
-    forceScroll: PropTypes.bool,
-    onClick: PropTypes.func,
-    inner: PropTypes.bool,
-    entityId: PropTypes.string,
-};
-
-CollapseBox.defaultProps = {
-    isOpen: false,
-    scrollInView: false,
-    invalid: false,
-    inner: false,
-};

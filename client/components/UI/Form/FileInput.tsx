@@ -5,13 +5,32 @@ import {IconButton} from '../';
 import {onEventCapture, gettext} from '../utils';
 import {get, isArrayLikeObject} from 'lodash';
 import './style.scss';
+import {IFile} from '../../../interfaces';
+
+interface IProps {
+    field: string;
+    label?: string;
+    value: Array<IFile> | IFile; // TODO: Check this type
+    readOnly?: boolean;
+    noMargin?: boolean; // defaults to true
+    files: Array<IFile>;
+    hideInput?: boolean;
+    formats?: string;
+
+    createLink(file: IFile): string;
+    onAddFiles(fileList: FileList): void;
+    onRemoveFile(file: IFile): void;
+    onFocus?(): void;
+}
 
 /**
  * @ngdoc react
  * @name FileInput
  * @description Component to sattach files as input
  */
-export class FileInput extends React.Component {
+export class FileInput extends React.PureComponent<IProps> {
+    dom: {fileInput: any};
+
     constructor(props) {
         super(props);
         this.dom = {fileInput: null};
@@ -58,7 +77,7 @@ export class FileInput extends React.Component {
     }
 
     getComponent(val, index = 0) {
-        const {readOnly, onFocus, field, createLink, noMargin} = this.props;
+        const {readOnly, onFocus, field, createLink, noMargin = true} = this.props;
 
         return readOnly ? (
             <Row key={index} noPadding>
@@ -171,23 +190,23 @@ export class FileInput extends React.Component {
     }
 }
 
-FileInput.propTypes = {
-    field: PropTypes.string,
-    label: PropTypes.string,
-    value: PropTypes.oneOfType([
-        PropTypes.array,
-        PropTypes.object,
-    ]),
-    onChange: PropTypes.func,
-    createLink: PropTypes.func,
-    onRemoveFile: PropTypes.func,
-    onFocus: PropTypes.func,
-    readOnly: PropTypes.bool,
-    noMargin: PropTypes.bool,
-    files: PropTypes.object,
-    onAddFiles: PropTypes.func,
-    hideInput: PropTypes.bool,
-    formats: PropTypes.string,
-};
-
-FileInput.defaultProps = {noMargin: true};
+// FileInput.propTypes = {
+//     field: PropTypes.string,
+//     label: PropTypes.string,
+//     value: PropTypes.oneOfType([
+//         PropTypes.array,
+//         PropTypes.object,
+//     ]),
+//     onChange: PropTypes.func,
+//     createLink: PropTypes.func,
+//     onRemoveFile: PropTypes.func,
+//     onFocus: PropTypes.func,
+//     readOnly: PropTypes.bool,
+//     noMargin: PropTypes.bool,
+//     files: PropTypes.object,
+//     onAddFiles: PropTypes.func,
+//     hideInput: PropTypes.bool,
+//     formats: PropTypes.string,
+// };
+//
+// FileInput.defaultProps = {noMargin: true};
