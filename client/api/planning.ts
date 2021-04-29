@@ -1,19 +1,22 @@
 import {
+    FILTER_TYPE, IEventItem,
+    IFeaturedPlanningLock, IG2ContentType,
+    IPlanningAPI,
     IPlanningItem,
     ISearchAPIParams,
     ISearchParams,
-    IFeaturedPlanningLock,
-    IPlanningAPI,
-    FILTER_TYPE,
     ISearchSpikeState,
+    LOCK_STATE,
 } from '../interfaces';
 import {arrayToString, convertCommonParams, searchRaw, searchRawGetAll} from './search';
-import {superdeskApi, planningApi} from '../superdeskApi';
+import {planningApi, superdeskApi} from '../superdeskApi';
 import {IRestApiResponse} from 'superdesk-api';
 import {planningUtils} from '../utils';
 import {planningProfile, planningSearchProfile} from '../selectors/forms';
 import {featured} from './featured';
 import {PLANNING} from '../constants';
+import * as selectors from '../selectors';
+import * as actions from '../actions';
 
 function convertPlanningParams(params: ISearchParams): Partial<ISearchAPIParams> {
     return {
@@ -61,10 +64,22 @@ export function searchPlanningGetAll(params: ISearchParams): Promise<Array<IPlan
     });
 }
 
-export function getPlanningById(planId: IPlanningItem['_id']): Promise<IPlanningItem> {
-    return superdeskApi.dataApi
-        .findOne<IPlanningItem>('planning', planId)
-        .then(modifyItemForClient);
+export function getPlanningById(planId: IPlanningItem['_id'], saveToStore: boolean = true): Promise<IPlanningItem> {
+    const {getState, dispatch} = planningApi.redux.store;
+    const storedPlannings = selectors.planning.storedPlannings(getState());
+
+    return storedPlannings[planId] != null ?
+        Promise.resolve(storedPlannings[planId]) :
+        superdeskApi.dataApi
+            .findOne<IPlanningItem>('planning', planId)
+            .then(modifyItemForClient)
+            .then((item) => {
+                if (saveToStore) {
+                    dispatch<any>(actions.planning.api.receivePlannings([item]));
+                }
+
+                return item;
+            });
 }
 
 export function getPlanningByIds(
@@ -106,7 +121,7 @@ export function getPlanningByIds(
 }
 
 export function getLockedPlanningItems(): Promise<Array<IPlanningItem>> {
-    return searchPlanning({lock_state: 'locked'})
+    return searchPlanning({lock_state: LOCK_STATE.LOCKED})
         .then(modifyResponseForClient)
         .then((response) => response._items);
 }
@@ -139,6 +154,61 @@ function getPlanningSearchProfile() {
     return planningSearchProfile(planningApi.redux.store.getState());
 }
 
+function create(updates: Partial<IPlanningItem>): Promise<IPlanningItem> {
+    // If the Planning item has coverages, then we need to create the Planning first
+    // before saving the coverages
+    // As Assignments are created and require a Planning ID
+    return !updates.coverages?.length ?
+        superdeskApi.dataApi.create<IPlanningItem>('planning', updates) :
+        superdeskApi.dataApi.create<IPlanningItem>('planning', {...updates, coverages: []})
+            .then((item) => update(item, updates));
+}
+
+function update(original: IPlanningItem, updates: Partial<IPlanningItem>): Promise<IPlanningItem> {
+    return superdeskApi.dataApi.patch<IPlanningItem>(
+        'planning',
+        original,
+        planningUtils.modifyForServer(updates)
+    );
+}
+
+function createFromEvent(event: IEventItem, updates: Partial<IPlanningItem>): Promise<IPlanningItem> {
+    return create(planningUtils.modifyForServer({
+        slugline: event.slugline,
+        planning_date: event._sortDate ?? event.dates.start,
+        internal_note: event.internal_note,
+        name: event.name,
+        place: event.place,
+        subject: event.subject,
+        anpa_category: event.anpa_category,
+        description_text: event.definition_short,
+        ednote: event.ednote,
+        language: event.language,
+        ...updates,
+        event_item: event._id,
+    }));
+}
+
+function setDefaultValues(
+    item: DeepPartial<IPlanningItem>,
+    event?: IEventItem,
+    g2contentType?: IG2ContentType['qcode']
+) {
+    const state = planningApi.redux.store.getState();
+    const newsCoverageStatus = selectors.general.newsCoverageStatus(state);
+    const defaultDesk = selectors.general.defaultDesk(state);
+    const preferredCoverageDesks = selectors.general.preferredCoverageDesks(state)?.desks ?? {};
+
+    return planningUtils.defaultCoverageValues(
+        newsCoverageStatus,
+        item,
+        event,
+        g2contentType,
+        defaultDesk,
+        preferredCoverageDesks
+    );
+}
+
 export const planning: IPlanningAPI['planning'] = {
     search: searchPlanning,
     searchGetAll: searchPlanningGetAll,
@@ -149,4 +219,10 @@ export const planning: IPlanningAPI['planning'] = {
     getEditorProfile: getPlanningEditorProfile,
     getSearchProfile: getPlanningSearchProfile,
     featured: featured,
+    create: create,
+    update: update,
+    createFromEvent: createFromEvent,
+    coverages: {
+        setDefaultValues: setDefaultValues,
+    },
 };
