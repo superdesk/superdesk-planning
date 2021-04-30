@@ -68,9 +68,9 @@
     "simulant": "^0.2.2",
     "sinon": "^4.5.0",
     "superdesk-code-style": "1.5.0",
-    "superdesk-core": "github:superdesk/superdesk-client-core#develop",
-    "tslint": "5.11.0",
+    "superdesk-core": "github:tomaskikutis/superdesk-client-core#extensions-API-improvements-for-assignments-overview",
     "ts-node": "~7.0.1",
+    "tslint": "5.11.0",
     "typescript-eslint-parser": "^18.0.0"
   }
 }
