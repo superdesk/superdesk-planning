@@ -97,7 +97,10 @@ export class AssignmentsList extends React.PureComponent<IProps, {loading: true}
                                             groups={Object.keys(grouped).map((deskId) => ({
                                                 render: () => (
                                                     <GroupLabel>
-                                                        <Badge type="highlight" text={grouped[deskId].length.toString()} />
+                                                        <Badge
+                                                            type="highlight"
+                                                            text={grouped[deskId].length.toString()}
+                                                        />
                                                         <span className="sd-margin-l--1">{desks[deskId].name}</span>
                                                     </GroupLabel>
                                                 ),
@@ -117,7 +120,13 @@ export class AssignmentsList extends React.PureComponent<IProps, {loading: true}
                                                         data-test-id="toggle-button"
                                                     >
                                                         <Badge type="highlight" text={itemsCount.toString()}>
-                                                            <span style={{color: isOpen ? 'var(--sd-slugline-color)' : 'var(--color-bg-00)'}}>
+                                                            <span
+                                                                style={{
+                                                                    color: isOpen
+                                                                        ? 'var(--sd-slugline-color)'
+                                                                        : 'var(--color-bg-00)'
+                                                                }}
+                                                            >
                                                                 <IconBig name="tasks" />
                                                             </span>
                                                         </Badge>

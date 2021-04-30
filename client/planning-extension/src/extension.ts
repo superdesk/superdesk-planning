@@ -121,7 +121,7 @@ const extension: IExtension = {
                     globalMenuHorizontal: displayTopbarWidget ? [AssignmentsList] : [],
                 },
             };
-    
+
             return result;
         });
     },
