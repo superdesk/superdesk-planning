@@ -216,7 +216,7 @@ export const createStore = (params = {}, app = planningApp) => {
         const reduxLoggerEnabled =
             devtools == null
                 ? false
-                : JSON.stringify(devtools).includes('redux-logger');
+                : JSON.parse(devtools).includes('redux-logger');
 
         if (reduxLoggerEnabled) {
             // activate logs actions for non production instances.
