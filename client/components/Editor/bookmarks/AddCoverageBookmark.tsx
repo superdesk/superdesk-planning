@@ -2,15 +2,10 @@ import * as React from 'react';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import classNames from 'classnames';
 
-import {
-    IG2ContentType,
-    IPlanningCoverageItem,
-    IPlanningItem,
-    IBookmarkProps
-} from '../../../interfaces';
-import {superdeskApi, planningApi} from '../../../superdeskApi';
+import {EDITOR_TYPE, IBookmarkProps, IG2ContentType, IPlanningCoverageItem, IPlanningItem} from '../../../interfaces';
+import {planningApi, superdeskApi} from '../../../superdeskApi';
 
-import {Icon} from 'superdesk-ui-framework/react';
+import {Icon, Button} from 'superdesk-ui-framework/react';
 import {AddCoveragesWrapper} from '../../Coverages/CoverageAddButton/AddCoveragesWrapper';
 
 interface IProps extends IBookmarkProps {
@@ -44,11 +39,7 @@ export class AddCoverageBookmark extends React.PureComponent<IProps> {
         planningApi.editor(this.props.editorType).item.planning.addCoverages(coverages);
     }
 
-    render() {
-        if (this.props.readOnly) {
-            return null;
-        }
-
+    renderForPanel() {
         const {gettext} = superdeskApi.localization;
 
         return (
@@ -85,5 +76,41 @@ export class AddCoverageBookmark extends React.PureComponent<IProps> {
                 )}
             />
         );
+    }
+
+    renderForPopup() {
+        const {gettext} = superdeskApi.localization;
+
+        return (
+            <AddCoveragesWrapper
+                field={'coverages'}
+                value={this.props.item?.coverages ?? []}
+                onChange={this.onChange}
+                createCoverage={this.createCoverage}
+                onAdd={this.onAdd}
+                target="icon-plus-sign"
+                button={({toggleMenu}) => (
+                    <Button
+                        text={gettext('Add Coverage')}
+                        style="hollow"
+                        type="primary"
+                        icon="plus-sign"
+                        size="large"
+                        expand={true}
+                        onClick={toggleMenu}
+                    />
+                )}
+            />
+        );
+    }
+
+    render() {
+        if (this.props.readOnly) {
+            return null;
+        }
+
+        return this.props.editorType === EDITOR_TYPE.POPUP ?
+            this.renderForPopup() :
+            this.renderForPanel();
     }
 }

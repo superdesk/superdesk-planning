@@ -3,7 +3,7 @@ import {connect} from 'react-redux';
 import classNames from 'classnames';
 
 import {BOOKMARK_TYPE, EDITOR_TYPE, IEditorBookmark, IEventOrPlanningItem, IPlanningAppState} from '../../interfaces';
-import {planningApi} from '../../superdeskApi';
+import {planningApi, superdeskApi} from '../../superdeskApi';
 
 import {editorSelectors} from '../../selectors/editors';
 
@@ -56,10 +56,12 @@ class EditorBookmarksBarComponent extends React.PureComponent<IProps> {
             return null;
         }
 
+        const {gettext} = superdeskApi.localization;
+
         return (
             <div className="sd-shadow--z3 sd-padding--2">
                 <Button
-                    text="Create Planning"
+                    text={gettext('Create Planning')}
                     style="hollow"
                     type="primary"
                     expand={true}

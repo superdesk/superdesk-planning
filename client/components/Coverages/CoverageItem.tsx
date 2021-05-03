@@ -33,7 +33,9 @@ interface IProps {
     index: number;
     workflowStateReasonPrefix?: string;
     showBackground: boolean;
+    shadow?: number;
     getContactById(contactId: IContactItem['_id']): Promise<IContactItem>;
+    onClick?(): void;
 }
 
 interface IState {
@@ -276,10 +278,15 @@ export class CoverageItemComponent extends React.Component<IProps, IState> {
     }
 
     render() {
-        const {itemActionComponent, active, showBackground} = this.props;
+        const {itemActionComponent, active, showBackground, shadow, onClick} = this.props;
 
         return (
-            <Item noBg={!showBackground && !active} activated={active}>
+            <Item
+                noBg={!showBackground && !active}
+                activated={active}
+                shadow={shadow}
+                onClick={onClick}
+            >
                 <Border />
                 {this.renderAvatar()}
                 <Column grow={true} border={false}>
