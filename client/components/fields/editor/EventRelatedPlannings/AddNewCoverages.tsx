@@ -241,7 +241,7 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
                         />
                         <Button
                             type="primary"
-                            text={gettext('Update')}
+                            text={gettext('Add Coverage(s)')}
                             disabled={!this.state.dirty}
                             onClick={this.save}
                         />
