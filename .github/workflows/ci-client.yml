@@ -45,4 +45,4 @@ jobs:
       # avoid file watch limit error
       - run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
       - name: test
-        run: cd client && npm run test
+        run: npm run test
