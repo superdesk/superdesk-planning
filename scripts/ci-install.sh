@@ -8,7 +8,7 @@ sudo apt-get -y install libxml2-dev libxmlsec1-dev libxmlsec1-openssl
 python -m pip install --upgrade pip wheel setuptools
 
 if [ "$INSTALL_NODE_MODULES" == "true" ]; then
-    cd client && npm install
+    npm install
 fi
 
 if [ "$INSTALL_PY_MODULES" == "true" ]; then
