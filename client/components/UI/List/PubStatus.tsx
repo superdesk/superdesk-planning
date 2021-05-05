@@ -2,7 +2,7 @@ import React from 'react';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import PropTypes from 'prop-types';
 
-import {superdeskApi} from '../../../superdeskApi';
+import {TOOLTIPS} from '../../../constants';
 
 import {Column} from './Column';
 import {isNotForPublication} from '../utils';
@@ -13,15 +13,14 @@ import {isNotForPublication} from '../utils';
  * @description Component to show published status of an item
  */
 export const PubStatus = ({item, isPublic}) => {
-    const {gettext} = superdeskApi.localization;
     let badge;
     let title = null;
 
     if (isPublic) {
-        title = gettext('Posted');
+        title = TOOLTIPS.postedState;
         badge = <span className="badge badge--success">P</span>;
     } else if (isNotForPublication(item)) {
-        title = gettext('Not For Publication');
+        title = TOOLTIPS.notForPublication;
         badge = (
             <i
                 className="icon-ban-circle icon--red"
