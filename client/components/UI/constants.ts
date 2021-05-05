@@ -1,5 +1,3 @@
-import {gettext} from '../../utils/gettext';
-
 export const KEYCODES = {
     BACKSPACE: 8,
     ENTER: 13,
@@ -23,10 +21,5 @@ export const ICON_COLORS = {
     WHITE: 'icon--white',
     YELLOW: 'icon--yellow',
     DEFAULT: false,
-};
-
-export const TOOLTIPS = {
-    postedState: gettext('Posted'),
-    notForPublication: gettext('Not For Publication'),
 };
 

@@ -3,10 +3,11 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {isNil} from 'lodash';
 
+import {superdeskApi} from '../../superdeskApi';
+
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
-import {GET_ASSIGNMENTS} from '../../constants';
-import {gettext} from '../../utils/gettext';
+import {ASSIGNMENTS} from '../../constants';
 
 import {AssignmentGroupList} from '../../components/Assignments';
 
@@ -20,6 +21,7 @@ export const AssignmentListContainer = ({
     listGroups,
     saveSortPreferences,
 }) => {
+    const {gettext} = superdeskApi.localization;
     const listProps = {
         loadMoreAssignments,
         setMaxHeight,
@@ -27,7 +29,6 @@ export const AssignmentListContainer = ({
         contentTypes,
         saveSortPreferences,
     };
-    const ASSIGNMENTS = GET_ASSIGNMENTS();
 
     return (
         <div className="sd-column-box__main-column__items">

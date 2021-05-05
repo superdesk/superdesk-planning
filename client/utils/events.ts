@@ -39,7 +39,6 @@ import {
     sortBasedOnTBC,
     sanitizeItemFields,
 } from './index';
-import {EventUpdateMethods} from '../components/Events';
 import {getUsersDefaultLanguage} from './users';
 
 
@@ -132,16 +131,16 @@ const getRelatedEventsForRecurringEvent = (recurringEvent, filter, postedPlannin
     let plannings = get(recurringEvent, '_plannings', []);
 
     switch (filter.value) {
-    case EventUpdateMethods[1].value: // Selected & Future Events
+    case EVENTS.UPDATE_METHODS[1].value: // Selected & Future Events
         events = eventsInSeries.filter((e) => (
             moment(e.dates.start).isSameOrAfter(moment(recurringEvent.dates.start)) &&
                 e._id !== recurringEvent._id
         ));
         break;
-    case EventUpdateMethods[2].value: // All Events
+    case EVENTS.UPDATE_METHODS[2].value: // All Events
         events = eventsInSeries.filter((e) => e._id !== recurringEvent._id);
         break;
-    case EventUpdateMethods[0].value: // Selected Event Only
+    case EVENTS.UPDATE_METHODS[0].value: // Selected Event Only
     default:
         break;
     }
@@ -354,49 +353,49 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
     let key = 1;
 
     const actionsValidator = {
-        [EVENTS.ITEM_ACTIONS.SPIKE.label]: () =>
+        [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: () =>
             canSpikeEvent(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.UNSPIKE.label]: () =>
+        [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: () =>
             canUnspikeEvent(event, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.DUPLICATE.label]: () =>
+        [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: () =>
             canDuplicateEvent(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: () =>
+        [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: () =>
             canCancelEvent(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.label]: () =>
+        [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: () =>
             canCreatePlanningFromEvent(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.label]: () =>
+        [EVENTS.ITEM_ACTIONS.CREATE_AND_OPEN_PLANNING.actionName]: () =>
             canCreateAndOpenPlanningFromEvent(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: () =>
+        [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: () =>
             canUpdateEventTime(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label]: () =>
+        [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]: () =>
             canRescheduleEvent(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label]: () =>
+        [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: () =>
             canPostponeEvent(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: () =>
+        [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]: () =>
             canConvertToRecurringEvent(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.label]: () =>
+        [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]: () =>
             canUpdateEventRepetitions(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.EDIT_EVENT.label]: () =>
+        [EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName]: () =>
             canEditEvent(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.label]: () =>
+        [EVENTS.ITEM_ACTIONS.EDIT_EVENT_MODAL.actionName]: () =>
             canEditEvent(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.label]: () =>
+        [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]: () =>
             canAssignEventToCalendar(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.label]: () =>
+        [EVENTS.ITEM_ACTIONS.MARK_AS_COMPLETED.actionName]: () =>
             canMarkEventAsComplete(event, session, privileges, locks),
-        [EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.label]: () =>
+        [EVENTS.ITEM_ACTIONS.SAVE_AS_TEMPLATE.actionName]: () =>
             canSaveEventAsTemplate(event, session, privileges, locks),
     };
 
     actions.forEach((action) => {
-        if (actionsValidator[action.label] &&
-                !actionsValidator[action.label](event, session, privileges)) {
+        if (actionsValidator[action.actionName] &&
+                !actionsValidator[action.actionName](event, session, privileges)) {
             return;
         }
 
         itemActions.push({
             ...action,
-            key: `${action.label}-${key}`,
+            key: `${action.actionName}-${key}`,
         });
 
         key++;

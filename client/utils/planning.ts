@@ -316,7 +316,7 @@ export const getPlanningItemActions = (plan, event = null, session, privileges, 
 
         itemActions.push({
             ...action,
-            key: `${action.label}-${key}`,
+            key: `${action.actionName}-${key}`,
         });
 
         key++;

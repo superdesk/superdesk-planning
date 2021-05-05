@@ -1,9 +1,15 @@
-import {gettext} from '../utils/gettext';
+import {superdeskApi} from '../superdeskApi';
+
+import {assignEventConstantTranslations} from './events';
+import {assignPlanningConstantTranslations} from './planning';
+import {assignAssignmentConstantTranslations} from './assignments';
+import {assignTooltipConstantTranslations} from './tooltips';
+import {assignCoverageConstantTranslations} from './coverages';
 
 export {PRIVILEGES} from './privileges';
 export {PLANNING} from './planning';
 export {AGENDA} from './agenda';
-export {ASSIGNMENTS, GET_ASSIGNMENTS} from './assignments';
+export {ASSIGNMENTS} from './assignments';
 export {TOOLTIPS} from './tooltips';
 export {LOCKS} from './locks';
 export {WORKSPACE} from './workspace';
@@ -23,7 +29,6 @@ export {EVENTS} from './events';
 
 export const WS_NOTIFICATION = 'WS_NOTIFICATION';
 export const TO_BE_CONFIRMED_FIELD = '_time_to_be_confirmed';
-export const TO_BE_CONFIRMED_SHORT_TEXT = gettext('TBC');
 
 export const DATE_FORMATS = {
     COMPARE_FORMAT: 'YYYY-M-D',
@@ -31,8 +36,8 @@ export const DATE_FORMATS = {
     DISPLAY_CDATE_FORMAT: 'D. MMMM HH:mm',
     DISPLAY_DAY_FORMAT: 'dddd, ',
     DISPLAY_TODAY_FORMAT: '[Today], ',
-    DISPLAY_TBC_FORMAT: `D. MMMM YYYY @ ${TO_BE_CONFIRMED_SHORT_TEXT}`,
-    DISPLAY_CDATE_TBC_FORMAT: `D. MMMM @ ${TO_BE_CONFIRMED_SHORT_TEXT}`,
+    DISPLAY_TBC_FORMAT: 'D. MMMM YYYY @ TBC',
+    DISPLAY_CDATE_TBC_FORMAT: 'D. MMMM @ TBC',
 };
 
 export const WORKFLOW_STATE = {
@@ -150,3 +155,17 @@ export const SORT_DIRECTION = {
     ASCENDING: 'Asc',
     DESCENDING: 'Desc',
 };
+
+export function assignConstantLabelTranslations() {
+    const {gettext} = superdeskApi.localization;
+    const TO_BE_CONFIRMED_SHORT_TEXT = gettext('TBC');
+
+    DATE_FORMATS.DISPLAY_TBC_FORMAT = `D. MMMM YYYY @ ${TO_BE_CONFIRMED_SHORT_TEXT}`;
+    DATE_FORMATS.DISPLAY_CDATE_TBC_FORMAT = `D. MMMM @ ${TO_BE_CONFIRMED_SHORT_TEXT}`;
+
+    assignEventConstantTranslations();
+    assignPlanningConstantTranslations();
+    assignAssignmentConstantTranslations();
+    assignTooltipConstantTranslations();
+    assignCoverageConstantTranslations();
+}

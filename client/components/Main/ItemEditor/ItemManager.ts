@@ -1,4 +1,4 @@
-import {ITEM_TYPE, POST_STATE, UI, WORKFLOW_STATE, WORKSPACE} from '../../../constants';
+import {ITEM_TYPE, POST_STATE, UI, WORKFLOW_STATE, WORKSPACE, EVENTS} from '../../../constants';
 import {
     isTemporaryId,
     removeAutosaveFields,
@@ -10,7 +10,6 @@ import {
 import {validateItem} from '../../../validators';
 import {cloneDeep, get, set, isEqual} from 'lodash';
 import * as actions from '../../../actions';
-import {EventUpdateMethods} from '../../Events';
 import {appConfig} from 'appConfig';
 
 
@@ -495,7 +494,7 @@ export class ItemManager {
 
     save(
         withConfirmation = true,
-        updateMethod = EventUpdateMethods[0],
+        updateMethod = EVENTS.UPDATE_METHODS[0],
         closeAfter = false,
         updateStates = true
     ) {
@@ -511,7 +510,7 @@ export class ItemManager {
 
     saveAndPost(
         withConfirmation = true,
-        updateMethod = EventUpdateMethods[0],
+        updateMethod = EVENTS.UPDATE_METHODS[0],
         closeAfter = false,
         updateStates = true
     ) {
@@ -572,7 +571,7 @@ export class ItemManager {
         post = false,
         unpost = false,
         withConfirmation = true,
-        updateMethod = EventUpdateMethods[0],
+        updateMethod = EVENTS.UPDATE_METHODS[0],
         closeAfter = false,
         updateStates = true,
     } = {}) {

@@ -5,9 +5,9 @@ import {get} from 'lodash';
 
 import * as actions from '../../../actions';
 import '../style.scss';
-import {WORKFLOW_STATE} from '../../../constants';
+import {WORKFLOW_STATE, EVENTS} from '../../../constants';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
-import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
+import {EventScheduleSummary} from '../../Events';
 import {eventUtils, gettext} from '../../../utils';
 import {Row} from '../../UI/Preview';
 
@@ -15,7 +15,7 @@ export class UnspikeEventComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            eventUpdateMethod: EventUpdateMethods[0],
+            eventUpdateMethod: EVENTS.UPDATE_METHODS[0],
             relatedEvents: [],
         };
 
@@ -26,7 +26,7 @@ export class UnspikeEventComponent extends React.Component {
         if (get(this.props, 'original.recurrence_id')) {
             const event = eventUtils.getRelatedEventsForRecurringEvent(
                 this.props.original,
-                EventUpdateMethods[0]
+                EVENTS.UPDATE_METHODS[0]
             );
 
             this.setState({relatedEvents: event._events});

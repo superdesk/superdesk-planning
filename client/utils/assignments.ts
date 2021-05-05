@@ -130,7 +130,7 @@ const getAssignmentActions = (assignment, session, privileges, lockedItems, cont
 
     Object.keys(callBacks).forEach((callBackName) => {
         switch (callBackName) {
-        case ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label:
+        case ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.actionName:
             callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.START_WORKING,
@@ -138,7 +138,7 @@ const getAssignmentActions = (assignment, session, privileges, lockedItems, cont
                     });
             break;
 
-        case ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label:
+        case ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.actionName:
             callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY,
@@ -146,17 +146,18 @@ const getAssignmentActions = (assignment, session, privileges, lockedItems, cont
                     });
             break;
 
-        case ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label:
+        case ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.actionName:
             callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
                         callback: callBacks[callBackName].bind(null, assignment),
-                        label: get(assignment, 'scheduled_update_id') ? gettext('Mark as completed') :
+                        label: get(assignment, 'scheduled_update_id') ?
+                            gettext('Mark as completed') :
                             ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label,
                     });
             break;
 
-        case ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label:
+        case ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName:
             callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.REASSIGN,
@@ -164,7 +165,7 @@ const getAssignmentActions = (assignment, session, privileges, lockedItems, cont
                     });
             break;
 
-        case ASSIGNMENTS.ITEM_ACTIONS.REMOVE.label:
+        case ASSIGNMENTS.ITEM_ACTIONS.REMOVE.actionName:
             callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.REMOVE,
@@ -172,7 +173,7 @@ const getAssignmentActions = (assignment, session, privileges, lockedItems, cont
                     });
             break;
 
-        case ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.label:
+        case ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.actionName:
             callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
@@ -180,7 +181,7 @@ const getAssignmentActions = (assignment, session, privileges, lockedItems, cont
                     });
             break;
 
-        case ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.label:
+        case ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.actionName:
             callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY,
@@ -189,7 +190,7 @@ const getAssignmentActions = (assignment, session, privileges, lockedItems, cont
             break;
 
 
-        case ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.label:
+        case ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.actionName:
             callBacks[callBackName] &&
                     actions.push({
                         ...ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY,
@@ -207,33 +208,33 @@ const getAssignmentItemActions = (assignment, session, privileges, contentTypes,
     let key = 1;
 
     const actionsValidator = {
-        [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: () =>
+        [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName]: () =>
             self.canEditAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE, contentTypes),
-        [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label]: () =>
+        [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.actionName]: () =>
             self.canCompleteAssignment(assignment, session, privileges),
-        [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label]: () =>
+        [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.actionName]: () =>
             self.canEditAssignment(assignment, session, privileges, PRIVILEGES.ARCHIVE, contentTypes),
-        [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label]: () =>
+        [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.actionName]: () =>
             self.canStartWorking(assignment, session, privileges, contentTypes),
-        [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.label]: () =>
+        [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.actionName]: () =>
             self.canRemoveAssignment(assignment, session, privileges, PRIVILEGES.PLANNING_MANAGEMENT),
-        [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.label]: () =>
+        [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.actionName]: () =>
             self.assignmentHasContent(assignment),
-        [ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.label]: () =>
+        [ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.actionName]: () =>
             self.canConfirmAvailability(assignment, session, privileges, contentTypes),
-        [ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.label]: () =>
+        [ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.actionName]: () =>
             self.canRevertAssignment(assignment, session, privileges),
     };
 
     actions.forEach((action) => {
-        if (actionsValidator[action.label] &&
-                !actionsValidator[action.label](assignment, session)) {
+        if (actionsValidator[action.actionName] &&
+                !actionsValidator[action.actionName](assignment, session)) {
             return;
         }
 
         itemActions.push({
             ...action,
-            key: `${action.label}-${key}`,
+            key: `${action.actionName}-${key}`,
         });
 
         key++;
