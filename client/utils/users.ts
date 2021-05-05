@@ -31,7 +31,8 @@ export function getUsersDefaultLanguage(useCV: boolean = false, required: boolea
             // If the language is required and one was not found from the CV
             // then return the first entry in the CV
             return (required && cvLanguage == null) ?
-                languages[0].qcode :
+                // if languages CV is not defined, then return User's language
+                (languages[0]?.qcode ?? language) :
                 cvLanguage;
         }
     }
