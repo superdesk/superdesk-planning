@@ -942,7 +942,7 @@ const defaultPlanningValues = (currentAgenda, defaultPlaceList) => {
             [getItemId(currentAgenda)] : [],
         state: 'draft',
         item_class: 'plinat:newscoverage',
-        language: getUsersDefaultLanguage(),
+        language: getUsersDefaultLanguage(true),
     };
 
     if (defaultPlaceList) {
