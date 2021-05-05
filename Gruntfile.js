@@ -10,11 +10,17 @@ module.exports = function(grunt) {
                     html: 'html',
                     js: 'js',
                     jsx: 'js',
+                    tsx: 'js',
+                    ts: 'js',
                 },
             },
             planning: {
                 files: {
-                    'po/planning.pot': ['index.ts', 'client/**/*.{html,js,jsx}'],
+                    'po/planning.pot': [
+                        'index.ts',
+                        'client/**/*.{html,js,jsx,tsx,ts}',
+                        '!client/planning-extension/node_modules/**/*',
+                    ],
                 },
             },
         },
