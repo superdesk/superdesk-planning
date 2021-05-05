@@ -18,6 +18,7 @@ export class EditorFieldLocation extends React.PureComponent<IEditorFieldProps> 
                     label={this.props.label ?? gettext('Location')}
                     value={get(this.props.item, field, this.props.defaultValue)}
                     disableSearch={true}
+                    disableAddLocation={false}
                     {...this.props}
                 />
             </Row>
