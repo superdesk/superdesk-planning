@@ -2,13 +2,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
+import {SortableContainer, SortableElement} from 'react-sortable-hoc';
+
+import {superdeskApi} from '../../../superdeskApi';
+
+import {getCreator, planningUtils} from '../../../utils';
+import {POST_STATE} from '../../../constants';
+
 import {FeaturedPlanningItem} from './FeaturedPlanningItem';
 import {Header, Group} from '../../UI/List';
 import {PanelInfo} from '../../UI';
 import {AuditInformation, StateLabel} from '../../';
-import {getCreator, planningUtils} from '../../../utils';
-import {POST_STATE} from '../../../constants';
-import {SortableContainer, SortableElement} from 'react-sortable-hoc';
 import './style.scss';
 
 export const FeaturedPlanningList = ({
@@ -35,6 +39,7 @@ export const FeaturedPlanningList = ({
     contentTypes,
     disabled,
 }) => {
+    const {gettext} = superdeskApi.localization;
     const getItem = (item) => (
         <FeaturedPlanningItem
             key={item._id}

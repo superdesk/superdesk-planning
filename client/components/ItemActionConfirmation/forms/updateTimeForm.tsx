@@ -12,7 +12,7 @@ import * as selectors from '../../../selectors';
 import {eventUtils, gettext, timeUtils} from '../../../utils';
 import {Label, TimeInput, Row as FormRow, LineInput, Field} from '../../UI/Form/';
 import {Row} from '../../UI/Preview/';
-import {EventUpdateMethods, EventScheduleSummary} from '../../Events';
+import {EventScheduleSummary} from '../../Events';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {EVENTS, ITEM_TYPE, TIME_COMPARISON_GRANULARITY, TO_BE_CONFIRMED_FIELD} from '../../../constants';
 import {validateItem} from '../../../validators';
@@ -51,13 +51,13 @@ export class UpdateTimeComponent extends React.Component {
         if (get(this.props, 'original.recurrence_id')) {
             const event = eventUtils.getRelatedEventsForRecurringEvent(
                 this.props.original,
-                EventUpdateMethods[0]
+                EVENTS.UPDATE_METHODS[0]
             );
 
             relatedEvents = event._events;
         }
 
-        diff.update_method = EventUpdateMethods[0];
+        diff.update_method = EVENTS.UPDATE_METHODS[0];
 
         this.setState({
             relatedEvents: relatedEvents,
@@ -144,7 +144,7 @@ export class UpdateTimeComponent extends React.Component {
         });
 
         if ((eventUtils.eventsDatesSame(diff, this.props.original, TIME_COMPARISON_GRANULARITY.MINUTE) &&
-                diff.update_method.value === EventUpdateMethods[0].value) ||
+                diff.update_method.value === EVENTS.UPDATE_METHODS[0].value) ||
             !isEqual(errorMessages, [])
         ) {
             this.props.disableSaveInModal();

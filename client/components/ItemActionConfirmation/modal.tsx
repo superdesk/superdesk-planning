@@ -1,5 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {get} from 'lodash';
+
+import {superdeskApi} from '../../superdeskApi';
+
 import {ModalWithForm} from '../index';
 import {
     SpikeEventForm,
@@ -21,9 +25,7 @@ import {
     AssignCalendarForm,
     CancelCoverageForm,
 } from './index';
-import {get} from 'lodash';
 import {EVENTS, PLANNING, ASSIGNMENTS, COVERAGES} from '../../constants';
-import {gettext} from '../../utils';
 
 export class ItemActionConfirmationModal extends React.Component {
     constructor(props) {
@@ -43,6 +45,7 @@ export class ItemActionConfirmationModal extends React.Component {
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const {handleHide, modalProps} = this.props;
 
         let title;
@@ -65,53 +68,53 @@ export class ItemActionConfirmationModal extends React.Component {
         };
 
         const modalFormsMapper = {
-            [EVENTS.ITEM_ACTIONS.SPIKE.label]: {
+            [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: {
                 title: gettext('Spike {{event}}',
                     {event: isRecurring ? gettext('Recurring Event(s)') : gettext('an Event')}),
                 saveText: gettext('Spike'),
                 form: SpikeEventForm,
             },
-            [EVENTS.ITEM_ACTIONS.UNSPIKE.label]: {
+            [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: {
                 title: gettext('Unspike {{event}}',
                     {event: isRecurring ? gettext('Recurring Event(s)') : gettext('an Event')}),
                 saveText: gettext('Unspike'),
                 form: UnspikeEventForm,
             },
-            [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: {
+            [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: {
                 title: gettext('Cancel {{event}}',
                     {event: isRecurring ? gettext('Recurring Event(s)') : gettext('an Event')}),
                 saveText: gettext('Cancel Event'),
                 form: CancelEventForm,
             },
-            [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: {
+            [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: {
                 title: gettext('Update time of {{event}}',
                     {event: isRecurring ? gettext('Recurring Event(s)') : gettext('an Event')}),
                 form: UpdateTimeForm,
                 saveText: gettext('Update Time'),
             },
-            [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label]: {
+            [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]: {
                 title: gettext('Reschedule {{event}}',
                     {event: isRecurring ? gettext('a Recurring Event') : gettext('an Event')}),
                 saveText: gettext('Reschedule'),
                 form: RescheduleEventForm,
             },
-            [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label]: {
+            [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: {
                 title: gettext('Postpone {{event}}',
                     {event: isRecurring ? gettext('a Recurring Event') : gettext('an Event')}),
                 saveText: gettext('Postpone'),
                 form: PostponeEventForm,
             },
-            [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: {
-                title: get(EVENTS, 'ITEM_ACTIONS.CONVERT_TO_RECURRING.label'),
+            [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]: {
+                title: EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label,
                 form: ConvertToRecurringEventForm,
                 saveText: gettext('Convert to a recurring event'),
             },
-            [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.label]: {
+            [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]: {
                 title: gettext('Update Repetitions of the Series'),
                 saveText: gettext('Update Repetitions'),
                 form: UpdateEventRepetitionsForm,
             },
-            [EVENTS.ITEM_ACTIONS.POST_EVENT.label]: {
+            [EVENTS.ITEM_ACTIONS.POST_EVENT.actionName]: {
                 title: gettext('{{action}} {{event}}', {
                     action: get(original, '_post', true) ? gettext('Post') : gettext('Unpost'),
                     event: isRecurring ? gettext('Recurring Event(s)') : gettext('an Event'),
@@ -119,53 +122,54 @@ export class ItemActionConfirmationModal extends React.Component {
                 saveText: get(original, '_post', true) ? gettext('Post') : gettext('Unpost'),
                 form: PostEventsForm,
             },
-            [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.label]: {
+            [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: {
                 title: modalProps.title,
                 saveText: gettext('Create'),
                 form: CreatePlanningForm,
             },
-            [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.label]: {
+            [EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName]: {
                 title: gettext('Assign "{{calendar}}" Calendar to Series', {
                     calendar: get(updates, '_calendar.name') || '',
                 }),
                 saveText: gettext('Assign Calendar'),
                 form: AssignCalendarForm,
             },
-            [PLANNING.ITEM_ACTIONS.SPIKE.label]: {
+            [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: {
                 title: gettext('Spike Planning Item'),
                 saveText: gettext('Spike'),
                 form: SpikePlanningForm,
             },
-            [PLANNING.ITEM_ACTIONS.UNSPIKE.label]: {
+            [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: {
                 title: gettext('Unspike Planning Item'),
                 saveText: gettext('Unspike'),
                 form: UnspikePlanningForm,
             },
-            [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label]: {
-                title: get(PLANNING, 'ITEM_ACTIONS.CANCEL_PLANNING.label'),
+            [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]: {
+                title: PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label,
                 form: CancelPlanningCoveragesForm,
                 saveText: gettext('Cancel Planning'),
             },
-            [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label]: {
-                title: get(PLANNING, 'ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label'),
+            [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]: {
+                title: PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label,
                 original: {
                     ...modalProps.original,
                     _cancelAllCoverage: true,
                 },
                 form: CancelPlanningCoveragesForm,
             },
-            [COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE.label]: {
-                title: modalProps.scheduledUpdate ? gettext('Cancel Scheduled Update') :
-                    get(COVERAGES, 'ITEM_ACTIONS.CANCEL_COVERAGE.label'),
+            [COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE.actionName]: {
+                title: modalProps.scheduledUpdate ?
+                    gettext('Cancel Scheduled Update') :
+                    COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE.label,
                 saveText: modalProps.scheduledUpdate ? gettext('Cancel Scheduled Update') :
                     gettext('Cancel Coverage'),
                 form: CancelCoverageForm,
             },
-            [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: {
+            [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName]: {
                 title: ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label,
                 form: UpdateAssignmentForm,
             },
-            [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label]: {
+            [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.actionName]: {
                 title: ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label,
                 form: EditPriorityForm,
             },

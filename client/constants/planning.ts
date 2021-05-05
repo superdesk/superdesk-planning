@@ -1,3 +1,4 @@
+import {superdeskApi} from '../superdeskApi';
 import {gettext} from '../utils/gettext';
 
 export const PLANNING = {
@@ -22,72 +23,75 @@ export const PLANNING = {
     FETCH_IDS_CHUNK_SIZE: 25,
     ITEM_ACTIONS: {
         SPIKE: {
-            label: gettext('Spike planning'),
+            label: 'Spike planning',
             icon: 'icon-trash',
             actionName: 'onSpikePlanning',
         },
         UNSPIKE: {
-            label: gettext('Unspike planning'),
+            label: 'Unspike planning',
             icon: 'icon-unspike',
             actionName: 'onUnspikePlanning',
         },
         DUPLICATE: {
-            label: gettext('Duplicate'),
+            label: 'Duplicate',
             icon: 'icon-copy',
             actionName: 'onDuplicatePlanning',
         },
         CANCEL_PLANNING: {
-            label: gettext('Cancel Planning'),
+            label: 'Cancel Planning',
             icon: 'icon-close-small',
             actionName: 'onCancelPlanning',
             lock_action: 'planning_cancel',
         },
         CANCEL_ALL_COVERAGE: {
-            label: gettext('Cancel all Coverage(s)'),
+            label: 'Cancel all Coverage(s)',
             icon: 'icon-close-small',
             actionName: 'onCancelAllCoverage',
             lock_action: 'cancel_all_coverage',
         },
-        ADD_TO_PLANNING: {lock_action: 'add_to_planning'},
+        ADD_TO_PLANNING: {
+            lock_action: 'add_to_planning',
+            actionName: 'onAddToPlanning',
+        },
         ADD_AS_EVENT: {
-            label: gettext('Add As Event'),
+            label: 'Add As Event',
             icon: 'icon-calendar',
             actionName: 'onAddAsEvent',
         },
         EDIT_PLANNING: {
-            label: gettext('Edit'),
+            label: 'Edit',
             icon: 'icon-pencil',
             actionName: 'onEditPlanning',
             lock_action: 'edit',
         },
         EDIT_PLANNING_MODAL: {
-            label: gettext('Edit in popup'),
+            label: 'Edit in popup',
             icon: 'icon-external',
             actionName: 'onEditPlanningModal',
             lock_action: 'edit',
         },
         ASSIGN_TO_AGENDA: {
-            label: gettext('Assign to agenda'),
+            label: 'Assign to agenda',
             icon: 'icon-list-plus',
             actionName: 'onAssignToAgenda',
         },
         ADD_COVERAGE: {
-            label: gettext('Add coverage'),
+            label: 'Add coverage',
             icon: 'icon-plus-small',
             actionName: 'onAddCoverage',
         },
         ADD_TO_FEATURED: {
-            label: gettext('Add to featured stories'),
+            label: 'Add to featured stories',
             icon: 'icon-list-plus',
             actionName: 'onAddFeatured',
         },
         REMOVE_FROM_FEATURED: {
-            label: gettext('Remove from featured stories'),
+            label: 'Remove from featured stories',
             icon: 'icon-revert',
             actionName: 'onRemoveFeatured',
         },
         ADD_COVERAGE_FROM_LIST: {
-            label: gettext('Add coverage'),
+            label: 'Add coverage',
             icon: 'icon-plus-small',
             actionName: 'onAddNewCoverageToPlanning',
         },
@@ -98,14 +102,14 @@ export const PLANNING = {
         label: 'Not planned',
     },
     G2_CONTENT_TYPE: {
-        TEXT: gettext('text'),
-        VIDEO: gettext('video'),
-        LIVE_VIDEO: gettext('live_video'),
-        AUDIO: gettext('audio'),
-        PICTURE: gettext('picture'),
-        GRAPHIC: gettext('graphic'),
-        LIVE_BLOG: gettext('live_blog'),
-        VIDEO_EXPLAINER: gettext('video_explainer'),
+        TEXT: 'text',
+        VIDEO: 'video',
+        LIVE_VIDEO: 'live_video',
+        AUDIO: 'audio',
+        PICTURE: 'picture',
+        GRAPHIC: 'graphic',
+        LIVE_BLOG: 'live_blog',
+        VIDEO_EXPLAINER: 'video_explainer',
     },
     HISTORY_OPERATIONS: {
         ASSIGN_AGENDA: 'assign_agenda',
@@ -123,3 +127,21 @@ export const PLANNING = {
         SECONDARY_FIELDS: ['agendas'],
     },
 };
+
+export function assignPlanningConstantTranslations() {
+    const {gettext} = superdeskApi.localization;
+
+    PLANNING.ITEM_ACTIONS.SPIKE.label = gettext('Spike planning');
+    PLANNING.ITEM_ACTIONS.UNSPIKE.label = gettext('Unspike planning');
+    PLANNING.ITEM_ACTIONS.DUPLICATE.label = gettext('Duplicate');
+    PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label = gettext('Cancel Planning');
+    PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label = gettext('Cancel all Coverage(s)');
+    PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.label = gettext('Add As Event');
+    PLANNING.ITEM_ACTIONS.EDIT_PLANNING.label = gettext('Edit');
+    PLANNING.ITEM_ACTIONS.EDIT_PLANNING_MODAL.label = gettext('Edit in popup');
+    PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.label = gettext('Assign to agenda');
+    PLANNING.ITEM_ACTIONS.ADD_COVERAGE.label = gettext('Add coverage');
+    PLANNING.ITEM_ACTIONS.ADD_TO_FEATURED.label = gettext('Add to featured stories');
+    PLANNING.ITEM_ACTIONS.REMOVE_FROM_FEATURED.label = gettext('Remove from featured stories');
+    PLANNING.ITEM_ACTIONS.ADD_COVERAGE_FROM_LIST.label = gettext('Add coverage');
+}

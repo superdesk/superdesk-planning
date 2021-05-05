@@ -4,9 +4,11 @@ import {get} from 'lodash';
 
 import {getUserInterfaceLanguage} from 'appConfig';
 
+import {gettext, planningUtils, getUsersForDesk, getDesksForUser} from '../../utils';
+import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
+
 import Modal from '../Modal';
 import {SelectInput, SelectUserInput} from '../UI/Form';
-import {gettext, planningUtils, getUsersForDesk, getDesksForUser} from '../../utils';
 
 const isInvalid = (coverage) => coverage.user && !coverage.desk;
 
@@ -22,6 +24,14 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
         };
     }
 
+    getContentTypeName(contentType) {
+        return getVocabularyItemFieldTranslated(
+            contentType,
+            'name',
+            getUserInterfaceLanguage()
+        );
+    }
+
     componentDidMount() {
         const {value, contentTypes, users, desks, newsCoverageStatus} = this.props;
         const coverages = [];
@@ -32,7 +42,7 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                 id: this.id++,
                 enabled: true,
                 qcode: contentType.qcode,
-                name: contentType.name,
+                name: this.getContentTypeName(contentType),
                 icon: contentType.icon,
                 desk: desks.find((desk) => desk._id === coverage.assigned_to.desk),
                 user: users.find((user) => user._id === coverage.assigned_to.user),
@@ -52,7 +62,7 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
                     id: this.id++,
                     enabled: false,
                     qcode: contentType.qcode,
-                    name: contentType.name,
+                    name: this.getContentTypeName(contentType),
                     icon: planningUtils.getCoverageIcon(get(contentType, 'content item type') || contentType.qcode),
                     desk: null,
                     filteredDesks: desks,
@@ -75,7 +85,7 @@ export class CoverageAddAdvancedModal extends React.PureComponent {
             id: this.id++,
             enabled: false,
             qcode: coverage.qcode,
-            name: coverage.name,
+            name: this.getContentTypeName(coverage),
             icon: coverage.icon,
             desk: null,
             user: null,

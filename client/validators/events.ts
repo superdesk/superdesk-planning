@@ -173,7 +173,7 @@ const validateDates = ({getState, value, errors, messages, diff}) => {
     // we don't have to validate all recurring form update time action
     // as only time is modified. we could be modifying a event that schedule
     // after until or difference could be greater than multi day duration
-    if (get(modalProps, 'actionType', '') !== EVENTS.ITEM_ACTIONS.UPDATE_TIME.label) {
+    if (get(modalProps, 'actionType', '') !== EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName) {
         self.validateDateInPast({
             getState: getState,
             value: value,

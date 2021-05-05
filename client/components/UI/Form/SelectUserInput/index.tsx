@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import {superdeskApi} from '../../../../superdeskApi';
+
 import {Row, LineInput, Label, Input} from '../';
 import {UserAvatar} from '../../../';
 import {SelectUserPopup} from './SelectUserPopup';
@@ -80,6 +82,7 @@ export class SelectUserInput extends React.Component {
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const {value, popupContainer, label, readOnly, inline, field} = this.props;
 
         return (
@@ -121,7 +124,7 @@ export class SelectUserInput extends React.Component {
                                 value={this.state.searchText}
                                 onChange={this.filterUserList}
                                 onClick={this.openPopup}
-                                placeholder="Search"
+                                placeholder={gettext('Search')}
                                 onKeyDown={(event) => {
                                     if (event.keyCode === KEYCODES.ENTER ||
                                     event.keyCode === KEYCODES.DOWN) {

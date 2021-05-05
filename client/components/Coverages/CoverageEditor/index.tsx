@@ -2,6 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
+import {getUserInterfaceLanguage} from 'appConfig';
+
 import {ItemActionsMenu} from '../../index';
 import {CollapseBox} from '../../UI';
 import {CoverageItem} from '../CoverageItem';
@@ -9,6 +11,7 @@ import {CoverageForm} from './CoverageForm';
 import {CoverageFormHeader} from './CoverageFormHeader';
 
 import {planningUtils, gettext, editorMenuUtils} from '../../../utils';
+import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 import {COVERAGES} from '../../../constants';
 
 export const CoverageEditor = ({
@@ -46,12 +49,17 @@ export const CoverageEditor = ({
     let itemActions = [];
 
     if (!readOnly && !addNewsItemToPlanning) {
+        const language = getUserInterfaceLanguage();
         const duplicateActions = contentTypes
             .filter((contentType) => (
                 contentType.qcode !== get(value, 'planning.g2_content_type')
             ))
             .map((contentType) => ({
-                label: contentType.name,
+                label: getVocabularyItemFieldTranslated(
+                    contentType,
+                    'name',
+                    language
+                ),
                 callback: onDuplicateCoverage.bind(null, value, contentType.qcode),
             }));
 

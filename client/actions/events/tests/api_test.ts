@@ -6,12 +6,11 @@ import {appConfig} from 'appConfig';
 
 import {eventUtils, timeUtils, createTestStore} from '../../../utils';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
-import {SPIKED_STATE, MAIN} from '../../../constants';
+import {SPIKED_STATE, MAIN, EVENTS} from '../../../constants';
 import * as selectors from '../../../selectors';
 
 import eventsApi from '../api';
 import planningApi from '../../planning/api';
-import {EventUpdateMethods} from '../../../components/Events';
 import {planningApis} from '../../../api';
 
 describe('actions.events.api', () => {
@@ -244,7 +243,7 @@ describe('actions.events.api', () => {
                     expect(services.api.update.args[0]).toEqual([
                         'events_spike',
                         data.events[1],
-                        {update_method: EventUpdateMethods[0].value},
+                        {update_method: EVENTS.UPDATE_METHODS[0].value},
                     ]);
 
                     done();
@@ -261,7 +260,7 @@ describe('actions.events.api', () => {
                         expect(services.api.update.args[i]).toEqual([
                             'events_spike',
                             data.events[i],
-                            {update_method: EventUpdateMethods[0].value},
+                            {update_method: EVENTS.UPDATE_METHODS[0].value},
                         ]);
                     }
 
@@ -306,7 +305,7 @@ describe('actions.events.api', () => {
                     expect(services.api.update.args[0]).toEqual([
                         'events_unspike',
                         data.events[1],
-                        {update_method: EventUpdateMethods[0].value},
+                        {update_method: EVENTS.UPDATE_METHODS[0].value},
                     ]);
 
                     done();
@@ -323,7 +322,7 @@ describe('actions.events.api', () => {
                         expect(services.api.update.args[i]).toEqual([
                             'events_unspike',
                             data.events[i],
-                            {update_method: EventUpdateMethods[0].value},
+                            {update_method: EVENTS.UPDATE_METHODS[0].value},
                         ]);
                     }
 

@@ -1,6 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+
+import {superdeskApi} from '../../../superdeskApi';
+
 import {Button} from '../index';
 import {gettext} from '../utils';
 import './style.scss';
@@ -18,21 +21,25 @@ export const SlidingToolBar = ({
     onCancel,
     rightCancelButton,
     cancelText,
-}) => (
-    <div
-        className={classNames(
-            'subnav__sliding-toolbar',
-            {'ng-hide': hide})}
-    >
-        <div className="sliding-toolbar__inner">
-            {!rightCancelButton && <Button onClick={onCancel} text={gettext('Cancel')} />}
-            <span className="sliding-toolbar__info-text">{innerInfo}&nbsp;</span>
-            <span className="sliding-toolbar__info-tools">{innerTools}</span>
+}) => {
+    const {gettext} = superdeskApi.localization;
+
+    return (
+        <div
+            className={classNames(
+                'subnav__sliding-toolbar',
+                {'ng-hide': hide})}
+        >
+            <div className="sliding-toolbar__inner">
+                {!rightCancelButton && <Button onClick={onCancel} text={gettext('Cancel')} />}
+                <span className="sliding-toolbar__info-text">{innerInfo}&nbsp;</span>
+                <span className="sliding-toolbar__info-tools">{innerTools}</span>
+            </div>
+            {tools}
+            {rightCancelButton && <Button onClick={onCancel} text={cancelText || gettext('Cancel')} />}
         </div>
-        {tools}
-        {rightCancelButton && <Button onClick={onCancel} text={cancelText} />}
-    </div>
-);
+    );
+};
 
 SlidingToolBar.propTypes = {
     hide: PropTypes.bool,
@@ -46,5 +53,4 @@ SlidingToolBar.propTypes = {
 
 SlidingToolBar.defaultProp = {
     hide: true,
-    cancelText: gettext('Cancel'),
 };

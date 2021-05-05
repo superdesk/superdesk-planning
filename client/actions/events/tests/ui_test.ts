@@ -87,7 +87,7 @@ describe('actions.events.ui', () => {
                 expect(eventsUi._openActionModal.args[0]).toEqual([
                     data.events[1],
                     {},
-                    'Spike',
+                    'onSpikeEvent',
                     null,
                     true,
                     false,

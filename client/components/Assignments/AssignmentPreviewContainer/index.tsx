@@ -48,14 +48,14 @@ class AssignmentPreviewContainerComponent extends React.Component {
         }
 
         const itemActionsCallBack = {
-            [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label]: startWorking.bind(null, assignment),
-            [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: reassign.bind(null, assignment),
-            [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label]: editAssignmentPriority.bind(null, assignment),
-            [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label]: completeAssignment.bind(null, assignment),
-            [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.label]: removeAssignment.bind(null, assignment),
-            [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.label]: openArchivePreview.bind(null, assignment),
-            [ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.label]: completeAssignment.bind(null, assignment),
-            [ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.label]: revertAssignment.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.actionName]: startWorking.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName]: reassign.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.actionName]: editAssignmentPriority.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.actionName]: completeAssignment.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.actionName]: removeAssignment.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.actionName]: openArchivePreview.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.actionName]: completeAssignment.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.actionName]: revertAssignment.bind(null, assignment),
         };
 
         return assignmentUtils.getAssignmentActions(assignment,

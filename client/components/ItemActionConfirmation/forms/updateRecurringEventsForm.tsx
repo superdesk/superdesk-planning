@@ -4,7 +4,8 @@ import {connect} from 'react-redux';
 import * as actions from '../../../actions';
 import {get} from 'lodash';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
-import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
+import {EVENTS} from '../../../constants';
+import {EventScheduleSummary} from '../../Events';
 import {eventUtils, gettext} from '../../../utils';
 import {Row} from '../../UI/Preview';
 import '../style.scss';
@@ -13,7 +14,7 @@ export class UpdateRecurringEventsComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            eventUpdateMethod: EventUpdateMethods[0],
+            eventUpdateMethod: EVENTS.UPDATE_METHODS[0],
             relatedEvents: [],
             relatedPlannings: [],
         };
@@ -29,7 +30,7 @@ export class UpdateRecurringEventsComponent extends React.Component {
             const event = isRecurring ?
                 eventUtils.getRelatedEventsForRecurringEvent(
                     this.props.original,
-                    EventUpdateMethods[0],
+                    EVENTS.UPDATE_METHODS[0],
                     true
                 ) :
                 this.props.original;

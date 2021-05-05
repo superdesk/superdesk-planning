@@ -6,14 +6,14 @@ import moment from 'moment-timezone';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
 import {appConfig} from 'appConfig';
+import {superdeskApi} from '../../superdeskApi';
 
 import {
     getItemWorkflowStateLabel,
     getItemInArrayById,
-    gettext,
     planningUtils,
 } from '../../utils';
-import {TO_BE_CONFIRMED_FIELD, TO_BE_CONFIRMED_SHORT_TEXT} from '../../constants';
+import {TO_BE_CONFIRMED_FIELD} from '../../constants';
 
 export const CoverageIcon = ({
     coverage,
@@ -22,6 +22,7 @@ export const CoverageIcon = ({
     contentTypes,
     contacts,
 }) => {
+    const {gettext} = superdeskApi.localization;
     const user = getItemInArrayById(users, get(coverage, 'assigned_to.user'));
     const desk = getItemInArrayById(desks, get(coverage, 'assigned_to.desk'));
     const dateFormat = appConfig.planning.dateformat;
@@ -36,12 +37,14 @@ export const CoverageIcon = ({
             contact.organisation;
     }
 
-    const assignmentStr = desk ? gettext('Desk: ') + desk.name : gettext('Status: Unassigned');
+    const assignmentStr = desk ?
+        gettext('Desk: {{ desk }}', {desk: desk.name}) :
+        gettext('Status: Unassigned');
     let scheduledStr = get(coverage, 'planning.scheduled') && dateFormat && timeFormat ?
         moment(coverage.planning.scheduled).format(dateFormat + ' ' + timeFormat) : null;
 
     if (get(coverage, TO_BE_CONFIRMED_FIELD)) {
-        scheduledStr = moment(coverage.planning.scheduled).format(dateFormat + ` @ ${TO_BE_CONFIRMED_SHORT_TEXT}`);
+        scheduledStr = moment(coverage.planning.scheduled).format(dateFormat + ` @ ${gettext('TBC')}`);
     }
     const state = getItemWorkflowStateLabel(get(coverage, 'assigned_to'));
     const genre = get(coverage, 'planning.genre.name', '');
@@ -52,18 +55,47 @@ export const CoverageIcon = ({
             placement="bottom"
             overlay={(
                 <Tooltip id={coverage.coverage_id} className="tooltip--text-left">
-                    {desk && <span>{gettext('Status: ') + state.label}<br /></span>}
+                    {!desk ? null : (
+                        <span>
+                            {gettext('Status: {{ state }}', {state: state.label})}<br />
+                        </span>
+                    )}
                     {assignmentStr}
-                    {user && <span><br />{gettext('User: ') + user.display_name}</span>}
-                    {provider && <span><br />{gettext('Provider: ') + provider}</span>}
-                    {genre && <span><br />{gettext('Genre: ') + genre}</span>}
-                    {slugline && <span><br />{gettext('Slugline: ') + slugline}</span>}
-                    {scheduledStr && <span><br />{gettext('Due: ') + scheduledStr}</span>}
+                    {!user ? null : (
+                        <span>
+                            <br />{gettext('User: {{ user }}', {user: user.display_name})}
+                        </span>
+                    )}
+                    {!provider ? null : (
+                        <span>
+                            <br />{gettext('Provider: {{ provider }}', {provider: provider})}
+                        </span>
+                    )}
+                    {!genre ? null : (
+                        <span>
+                            <br />{gettext('Genre: {{ genre }}', {genre: genre})}
+                        </span>
+                    )}
+                    {!slugline ? null : (
+                        <span>
+                            <br />{gettext('Slugline: {{ slugline }}', {slugline: slugline})}
+                        </span>
+                    )}
+                    {!scheduledStr ? null : (
+                        <span>
+                            <br />{gettext('Due: {{ date }}', {date: scheduledStr})}
+                        </span>
+                    )}
                     {(get(coverage, 'scheduled_updates') || []).map((s) => {
                         if (get(s, 'planning.scheduled')) {
                             scheduledStr = dateFormat && timeFormat ?
-                                moment(s.planning.scheduled).format(dateFormat + ' ' + timeFormat) : null;
-                            return (<span><br />{gettext('Update Due: ') + scheduledStr}</span>);
+                                moment(s.planning.scheduled).format(dateFormat + ' ' + timeFormat) :
+                                null;
+                            return (
+                                <span>
+                                    <br />{gettext('Update Due: {{ date }}', {date: scheduledStr})}
+                                </span>
+                            );
                         }
 
                         return null;

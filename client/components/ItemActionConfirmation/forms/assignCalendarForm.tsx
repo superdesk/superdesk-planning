@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as actions from '../../../actions';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
-import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
+import {EventScheduleSummary} from '../../Events';
+import {EVENTS} from '../../../constants';
 import {eventUtils, gettext} from '../../../utils';
 import {Row} from '../../UI/Preview';
 import '../style.scss';
@@ -12,7 +13,7 @@ export class AssignCalendarComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            eventUpdateMethod: EventUpdateMethods[0],
+            eventUpdateMethod: EVENTS.UPDATE_METHODS[0],
             relatedEvents: [],
         };
 
@@ -22,7 +23,7 @@ export class AssignCalendarComponent extends React.Component {
     componentWillMount() {
         const event = eventUtils.getRelatedEventsForRecurringEvent(
             this.props.original,
-            EventUpdateMethods[0],
+            EVENTS.UPDATE_METHODS[0],
             true
         );
 

@@ -325,7 +325,7 @@ const _modifyPlanningFeatured = (item, remove = false) => (
 const openCancelPlanningModal = (plan, post = false) => (
     (dispatch) => dispatch(self._openActionModal(
         plan,
-        PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label,
+        PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName,
         PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.lock_action,
         post
     ))
@@ -335,7 +335,7 @@ const openSpikeModal = (plan, post = false, modalProps = {}) => (
     (dispatch) => (
         dispatch(self._openActionModal(
             plan,
-            PLANNING.ITEM_ACTIONS.SPIKE.label,
+            PLANNING.ITEM_ACTIONS.SPIKE.actionName,
             null,
             post,
             false,
@@ -348,7 +348,7 @@ const openSpikeModal = (plan, post = false, modalProps = {}) => (
 const openUnspikeModal = (plan, post = false) => (
     (dispatch) => dispatch(self._openActionModal(
         plan,
-        PLANNING.ITEM_ACTIONS.UNSPIKE.label,
+        PLANNING.ITEM_ACTIONS.UNSPIKE.actionName,
         null,
         post
     ))
@@ -357,7 +357,7 @@ const openUnspikeModal = (plan, post = false) => (
 const openCancelAllCoverageModal = (plan, post = false) => (
     (dispatch) => dispatch(self._openActionModal(
         plan,
-        PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label,
+        PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName,
         PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.lock_action,
         post
     ))
@@ -590,7 +590,7 @@ const openCancelCoverageModal = (planning, coverage, index, onSubmit, onCancel,
             modalType: MODALS.ITEM_ACTIONS_MODAL,
             modalProps: {
                 original: planning,
-                actionType: COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE.label,
+                actionType: COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE.actionName,
                 coverage: coverage,
                 index: index,
                 onSubmit: onSubmit,
