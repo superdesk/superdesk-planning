@@ -1,5 +1,10 @@
 # Superdesk Planning Changelog
 
+## [2.2.0-rc.2] 2021-05-06
+### Fixes
+- [SDCP-519] fix: Default Event/Planning language from CV (#1572)
+- [SDCP-499] fix mapping of Address from OpenStreetMaps to local DB (#1561)
+
 ## [2.2.0-rc.1] 2021-03-18
 ### Improvements
 - [SDBELGA-448] As a newsroom manager I want some users to see only 'my assignments.' (#1543)
