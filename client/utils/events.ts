@@ -907,7 +907,7 @@ const defaultEventValues = (occurStatuses, defaultCalendars, defaultPlaceList) =
         state: 'draft',
         _startTime: null,
         _endTime: null,
-        language: getUsersDefaultLanguage(),
+        language: getUsersDefaultLanguage(true),
     };
 
     if (defaultPlaceList) {

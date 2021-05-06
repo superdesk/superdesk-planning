@@ -400,6 +400,10 @@ export const vocabularies = {
             world_region: 'Oceania',
         },
     ],
+    languages: [
+        {qcode: 'en', name: 'en'},
+        {qcode: 'fr', name: 'fr'},
+    ]
 };
 
 export const subjects = [
