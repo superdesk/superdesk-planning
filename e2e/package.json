@@ -17,10 +17,12 @@
     "moment-timezone": "0.5.14"
   },
   "scripts": {
+    "build-extensions": "node build-extensions.js",
     "cypress-ui": "cypress open",
     "cypress-ci": "cypress run",
     "clean": "grunt clean",
     "build": "node --max-old-space-size=8192 ./node_modules/.bin/grunt build",
-    "serve": "node --max-old-space-size=8192 ./node_modules/.bin/grunt server"
+    "serve": "node --max-old-space-size=8192 ./node_modules/.bin/grunt server",
+    "postinstall": "node build-extensions.js"
   }
 }
