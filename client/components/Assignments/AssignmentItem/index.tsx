@@ -170,30 +170,35 @@ export class AssignmentItem extends React.Component {
         } = this.props;
 
         const itemActionsCallBack = {
-            [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label]: startWorking.bind(
+            [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.actionName]: startWorking.bind(
                 null,
                 assignment
             ),
-            [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: reassign.bind(
+            [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName]: reassign.bind(
                 null,
                 assignment
             ),
-            [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY
-                .label]: editAssignmentPriority.bind(null, assignment),
-            [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label]: completeAssignment.bind(
+            [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.actionName]: editAssignmentPriority.bind(
                 null,
                 assignment
             ),
-            [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.label]: removeAssignment.bind(
+            [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.actionName]: completeAssignment.bind(
                 null,
                 assignment
             ),
-            [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.label]: this
-                .onDoubleClick,
-            [ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY
-                .label]: completeAssignment.bind(null, assignment),
-            [ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY
-                .label]: revertAssignment.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.actionName]: removeAssignment.bind(
+                null,
+                assignment
+            ),
+            [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.actionName]: this.onDoubleClick,
+            [ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.actionName]: completeAssignment.bind(
+                null,
+                assignment
+            ),
+            [ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.actionName]: revertAssignment.bind(
+                null,
+                assignment
+            ),
         };
 
         const itemActions = !hideItemActions

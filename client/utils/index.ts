@@ -5,7 +5,7 @@ import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
 
 import {appConfig} from 'appConfig';
-import {INominatimItem} from '../interfaces';
+import {superdeskApi} from '../superdeskApi';
 
 import planningApp from '../reducers';
 import {
@@ -22,7 +22,6 @@ import {
     QUEUE_ITEM_PREFIX,
     FEATURED_PLANNING,
     TO_BE_CONFIRMED_FIELD,
-    TO_BE_CONFIRMED_SHORT_TEXT,
 } from '../constants';
 import * as testData from './testData';
 import {default as lockUtils} from './locks';
@@ -45,7 +44,6 @@ export {lockUtils};
 export {planningUtils};
 export {timeUtils};
 export {eventPlanningUtils};
-import {gettext} from './gettext';
 
 // Polyfill Promise.finally function as this was introduced in Chrome 63+
 import promiseFinally from 'promise.prototype.finally';
@@ -309,9 +307,10 @@ export const isTemporaryId = (itemId) => itemId && itemId.startsWith(TEMP_ID_PRE
 export const isPublishedItemId = (itemId) => itemId && itemId.startsWith(QUEUE_ITEM_PREFIX);
 
 export const getItemActionedStateLabel = (item) => {
+    const {gettext} = superdeskApi.localization;
+
     // Currently will cater for 'rescheduled from' scenario.
     // If we need to use this for 'duplicate from' or any other, we can extend it
-
     if (item.reschedule_from) {
         return {
             label: gettext('Rescheduled Event'),
@@ -323,6 +322,8 @@ export const getItemActionedStateLabel = (item) => {
 
 // eslint-disable-next-line complexity
 export const getItemWorkflowStateLabel = (item, field = 'state') => {
+    const {gettext} = superdeskApi.localization;
+
     if (field === 'is_active' && !item[field]) {
         return {label: gettext('Inactive')};
     }
@@ -398,6 +399,8 @@ export const getItemWorkflowStateLabel = (item, field = 'state') => {
 };
 
 export const getItemPostedStateLabel = (item) => {
+    const {gettext} = superdeskApi.localization;
+
     switch (getPostedState(item)) {
     case POST_STATE.USABLE:
         return {
@@ -417,7 +420,7 @@ export const getItemPostedStateLabel = (item) => {
 
 export const getItemExpiredStateLabel = (item) => (!isItemExpired(item) ? null : {
     label: 'E',
-    labelVerbose: gettext('Expired'),
+    labelVerbose: superdeskApi.localization.gettext('Expired'),
     iconType: 'alert',
     iconHollow: true,
 });
@@ -563,6 +566,8 @@ export const getItemType = (item) => {
 };
 
 export const getItemTypeString = (item) => {
+    const {gettext} = superdeskApi.localization;
+
     switch (getItemType(item)) {
     case ITEM_TYPE.EVENT:
         return gettext('Event');
@@ -887,7 +892,9 @@ export const getTBCDateString = (event, separator = ' @ ', dateOnly = false) => 
         return '';
     }
 
+    const {gettext} = superdeskApi.localization;
     const dateFormat = appConfig.planning.dateformat;
+    const TO_BE_CONFIRMED_SHORT_TEXT = gettext('TBC');
 
     if (get(event.dates, 'start', moment()).isSame(get(event.dates, 'end', moment()), 'day')) {
         return (get(event.dates, 'start').format(dateFormat) + ' @ ' + TO_BE_CONFIRMED_SHORT_TEXT);

@@ -12,6 +12,7 @@ import {getSuperdeskApiImplementation} from 'superdesk-core/scripts/core/get-sup
 import {superdeskApi} from './superdeskApi';
 import {appConfig, extensions} from 'appConfig';
 import {updateConfigAfterLoad} from './config';
+import {assignConstantLabelTranslations} from './constants';
 
 import {extensionBridge} from './extension_bridge';
 
@@ -105,6 +106,7 @@ export default angular.module('superdesk-planning', [])
         'session',
         'authoringWorkspace',
         'metadata',
+        'preferencesService',
         (
             $injector,
             sdPlanningStore,
@@ -115,7 +117,8 @@ export default angular.module('superdesk-planning', [])
             lock,
             session,
             authoringWorkspace,
-            metadata
+            metadata,
+            preferencesService
         ) => {
             updateConfigAfterLoad();
 
@@ -136,17 +139,19 @@ export default angular.module('superdesk-planning', [])
                     Object.assign(
                         superdeskApi,
                         getSuperdeskApiImplementation(
-                            null,
+                            'planning-extension',
                             extensions,
                             modal,
                             privileges,
                             lock,
                             session,
                             authoringWorkspace,
+                            appConfig,
                             metadata,
-                            appConfig
+                            preferencesService
                         )
                     );
+                    assignConstantLabelTranslations();
 
                     extensionPoints.register('publish_queue:preview',
                         PublishQueuePanel, {}, ['selected'],

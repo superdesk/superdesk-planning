@@ -2,9 +2,10 @@ import React from 'react';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import PropTypes from 'prop-types';
 
+import {TOOLTIPS} from '../../../constants';
+
 import {Column} from './Column';
-import {isNotForPublication, gettext} from '../utils';
-import {TOOLTIPS} from '../constants';
+import {isNotForPublication} from '../utils';
 
 /**
  * @ngdoc react
@@ -16,10 +17,10 @@ export const PubStatus = ({item, isPublic}) => {
     let title = null;
 
     if (isPublic) {
-        title = gettext(TOOLTIPS.postedState);
+        title = TOOLTIPS.postedState;
         badge = <span className="badge badge--success">P</span>;
     } else if (isNotForPublication(item)) {
-        title = gettext(TOOLTIPS.notForPublication);
+        title = TOOLTIPS.notForPublication;
         badge = (
             <i
                 className="icon-ban-circle icon--red"

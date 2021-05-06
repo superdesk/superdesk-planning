@@ -4,18 +4,18 @@ import {connect} from 'react-redux';
 import {get, isNil} from 'lodash';
 
 import {eventUtils, gettext, isItemPublic, isExistingItem} from '../utils';
-import {ITEM_TYPE} from '../constants';
+import {ITEM_TYPE, EVENTS} from '../constants';
 import * as selectors from '../selectors';
 
 import {Row} from './UI/Preview';
 import {UpdateMethodSelection} from './ItemActionConfirmation';
-import {EventUpdateMethods, EventScheduleSummary} from './Events';
+import {EventScheduleSummary} from './Events';
 import {ConfirmationModal} from './';
 
 export class IgnoreCancelSaveModalComponent extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {eventUpdateMethod: EventUpdateMethods[0]};
+        this.state = {eventUpdateMethod: EVENTS.UPDATE_METHODS[0]};
 
         this.onEventUpdateMethodChange = this.onEventUpdateMethodChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);

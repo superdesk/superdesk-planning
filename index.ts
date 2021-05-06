@@ -67,7 +67,7 @@ function configurePlanning(superdesk) {
                     return !item.assignment_id &&
                         !archiveService.isPersonal(item) &&
                         !superdeskApi.entities.article.isLockedInOtherSession(item) &&
-                        !['correction'].includes(item.state)
+                        !['correction'].includes(item.state) &&
                         isContentLinkToCoverageAllowed(item) &&
                         (
                             authoring.itemActions(item).edit ||

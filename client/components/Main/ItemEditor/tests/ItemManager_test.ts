@@ -9,7 +9,7 @@ import eventsApi from '../../../../actions/events/api';
 import planningApi from '../../../../actions/planning/api';
 import planningUi from '../../../../actions/planning/ui';
 
-import {EventUpdateMethods} from '../../../Events';
+import {EVENTS} from '../../../../constants';
 import {getItemInArrayById, itemsEqual, timeUtils, updateFormValues, removeAutosaveFields} from '../../../../utils';
 import {restoreSinonStub, waitFor} from '../../../../utils/testUtils';
 import * as testData from '../../../../utils/testData';
@@ -1064,7 +1064,7 @@ describe('components.Main.ItemManager', () => {
                         {},
                         {
                             ...newEvent,
-                            update_method: EventUpdateMethods[0],
+                            update_method: EVENTS.UPDATE_METHODS[0],
                         },
                         true,
                     ]);
@@ -1153,7 +1153,7 @@ describe('components.Main.ItemManager', () => {
                         testData.events[0],
                         {
                             ...item,
-                            update_method: EventUpdateMethods[0],
+                            update_method: EVENTS.UPDATE_METHODS[0],
                         },
                         true,
                     ]);
@@ -1342,7 +1342,7 @@ describe('components.Main.ItemManager', () => {
                 post: false,
                 unpost: false,
                 withConfirmation: true,
-                updateMethod: EventUpdateMethods[0],
+                updateMethod: EVENTS.UPDATE_METHODS[0],
                 closeAfter: false,
                 updateStates: true,
             }]);
@@ -1355,7 +1355,7 @@ describe('components.Main.ItemManager', () => {
                 post: true,
                 unpost: false,
                 withConfirmation: true,
-                updateMethod: EventUpdateMethods[0],
+                updateMethod: EVENTS.UPDATE_METHODS[0],
                 closeAfter: false,
                 updateStates: true,
             }]);

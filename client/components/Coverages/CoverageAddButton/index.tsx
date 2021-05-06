@@ -2,7 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
+import {getUserInterfaceLanguage} from 'appConfig';
+
 import {onEventCapture, gettext, planningUtils} from '../../../utils';
+import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 import {CoveragesMenuPopup} from './CoveragesMenuPopup';
 import {CoverageAddAdvancedModal} from '../CoverageAddAdvancedModal';
 
@@ -26,9 +29,15 @@ export class CoverageAddButton extends React.Component {
     }
 
     getCoverageTypes(props) {
+        const language = getUserInterfaceLanguage();
+
         return props.contentTypes.map((c) => ({
             id: `coverage-menu-add-${c.qcode}`,
-            label: c.name,
+            label: getVocabularyItemFieldTranslated(
+                c,
+                'name',
+                language
+            ),
             icon: planningUtils.getCoverageIcon(get(c, 'content item type') || c.qcode),
             callback: props.onAdd.bind(
                 null,

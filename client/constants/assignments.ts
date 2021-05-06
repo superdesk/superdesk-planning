@@ -1,7 +1,6 @@
-import {gettext} from '../utils/gettext';
+import {superdeskApi} from '../superdeskApi';
 
-// This needs to be a function, otherwise gettext won't work on top level calls
-export const GET_ASSIGNMENTS = () => ({
+export const ASSIGNMENTS = {
     ACTIONS: {
         RECEIVED_ASSIGNMENTS: 'RECEIVED_ASSIGNMENTS',
         CHANGE_LIST_SETTINGS: 'CHANGE_LIST_SETTINGS',
@@ -39,78 +38,86 @@ export const GET_ASSIGNMENTS = () => ({
     },
     ITEM_ACTIONS: {
         START_WORKING: {
-            label: gettext('Start Working'),
+            label: 'Start Working',
             icon: 'icon-external',
+            actionName: 'onStartWorkingOnAssignment',
         },
         REASSIGN: {
-            label: gettext('Reassign'),
+            label: 'Reassign',
             icon: 'icon-share-alt',
+            actionName: 'onReassignAssignment',
         },
         COMPLETE: {
-            label: gettext('Complete Assignment'),
+            label: 'Complete Assignment',
             icon: 'icon-ok',
+            actionName: 'onCompleteAssignment',
         },
         EDIT_PRIORITY: {
-            label: gettext('Edit Priority'),
+            label: 'Edit Priority',
             icon: 'icon-chevron-up-thin',
+            actionName: 'onEditAssignmentPriority',
         },
         REMOVE: {
-            label: gettext('Remove Assignment'),
+            label: 'Remove Assignment',
             icon: 'icon-trash',
             lock_action: 'remove_assignment',
+            actionName: 'onRemoveAssignment',
         },
         PREVIEW_ARCHIVE: {
-            label: gettext('Open Coverage'),
+            label: 'Open Coverage',
             icon: 'icon-external',
+            actionName: 'onOpenAssignmentCoverage',
         },
         CONFIRM_AVAILABILITY: {
-            label: gettext('Confirm Availability'),
+            label: 'Confirm Availability',
             icon: 'icon-ok',
+            actionName: 'onConfirmAssignmentAvailability',
         },
         REVERT_AVAILABILITY: {
-            label: gettext('Revert Availability'),
+            label: 'Revert Availability',
             icon: 'icon-revert',
+            actionName: 'onRevertAssignmentAvailability',
         },
     },
     DEFAULT_PRIORITY: 2,
     LIST_GROUPS: {
         TODO: {
             id: 'TODO',
-            label: gettext('To Do'),
+            label: 'To Do',
             states: ['assigned', 'submitted'],
-            emptyMessage: gettext('There are no assignments to do'),
+            emptyMessage: 'There are no assignments to do',
         },
         IN_PROGRESS: {
             id: 'IN_PROGRESS',
-            label: gettext('In Progress'),
+            label: 'In Progress',
             states: ['in_progress'],
-            emptyMessage: gettext('There are no assignments in progress'),
+            emptyMessage: 'There are no assignments in progress',
         },
         COMPLETED: {
             id: 'COMPLETED',
-            label: gettext('Completed'),
+            label: 'Completed',
             states: ['completed', 'cancelled'],
-            emptyMessage: gettext('There are no assignments completed'),
+            emptyMessage: 'There are no assignments completed',
         },
         CURRENT: {
             id: 'CURRENT',
-            label: gettext('Current Assignments'),
+            label: 'Current Assignments',
             states: ['assigned', 'submitted'],
-            emptyMessage: gettext('There are no current assignments'),
+            emptyMessage: 'There are no current assignments',
             dateFilter: 'current',
         },
         TODAY: {
             id: 'TODAY',
-            label: gettext('Todays Assignments'),
+            label: 'Todays Assignments',
             states: ['assigned', 'submitted'],
-            emptyMessage: gettext('There are no assignments for today'),
+            emptyMessage: 'There are no assignments for today',
             dateFilter: 'today',
         },
         FUTURE: {
             id: 'FUTURE',
-            label: gettext('Future Assignments'),
+            label: 'Future Assignments',
             states: ['assigned', 'submitted'],
-            emptyMessage: gettext('There are no future assignments'),
+            emptyMessage: 'There are no future assignments',
             dateFilter: 'future',
         },
     },
@@ -133,7 +140,35 @@ export const GET_ASSIGNMENTS = () => ({
         ASSIGNMENT_ACCEPTED: 'accepted',
     },
     DEFAULT_SORT_PREFERENCE: 'assignments:default_sort',
-});
+};
 
-// Use this constant if you don't need translations
-export const ASSIGNMENTS = GET_ASSIGNMENTS();
+export function assignAssignmentConstantTranslations() {
+    const {gettext} = superdeskApi.localization;
+
+    ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label = gettext('Start Working');
+    ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label = gettext('Reassign');
+    ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label = gettext('Complete Assignment');
+    ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label = gettext('Edit Priority');
+    ASSIGNMENTS.ITEM_ACTIONS.REMOVE.label = gettext('Remove Assignment');
+    ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.label = gettext('Open Coverage');
+    ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.label = gettext('Confirm Availability');
+    ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.label = gettext('Revert Availability');
+
+    ASSIGNMENTS.LIST_GROUPS.TODO.label = gettext('To Do');
+    ASSIGNMENTS.LIST_GROUPS.TODO.emptyMessage = gettext('There are no assignments to do');
+
+    ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.label = gettext('In Progress');
+    ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.emptyMessage = gettext('There are no assignments in progress');
+
+    ASSIGNMENTS.LIST_GROUPS.COMPLETED.label = gettext('Completed');
+    ASSIGNMENTS.LIST_GROUPS.COMPLETED.emptyMessage = gettext('There are no assignments completed');
+
+    ASSIGNMENTS.LIST_GROUPS.CURRENT.label = gettext('Current Assignments');
+    ASSIGNMENTS.LIST_GROUPS.CURRENT.emptyMessage = gettext('There are no current assignments');
+
+    ASSIGNMENTS.LIST_GROUPS.TODAY.label = gettext('Todays Assignments');
+    ASSIGNMENTS.LIST_GROUPS.TODAY.emptyMessage = gettext('There are no assignments for today');
+
+    ASSIGNMENTS.LIST_GROUPS.FUTURE.label = gettext('Future Assignments');
+    ASSIGNMENTS.LIST_GROUPS.FUTURE.emptyMessage = gettext('There are no future assignments');
+}

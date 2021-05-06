@@ -374,7 +374,7 @@ const closePreview = () => (
 const reassign = (assignment) => (
     (dispatch) => dispatch(self._openActionModal(
         assignment,
-        ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label,
+        ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.actionName,
         'reassign'
     ))
 );
@@ -386,7 +386,7 @@ const reassign = (assignment) => (
 const editPriority = (assignment) => (
     (dispatch) => dispatch(_openActionModal(
         assignment,
-        ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label,
+        ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.actionName,
         'edit_priority'
     ))
 );

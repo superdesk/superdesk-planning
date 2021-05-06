@@ -1,3 +1,5 @@
+import {superdeskApi} from '../superdeskApi';
+
 export const COVERAGES = {
     WORKFLOW_STATE: {ACTIVE: 'active'},
     PARTIAL_SAVE: {
@@ -20,9 +22,15 @@ export const COVERAGES = {
     ADD_ADVANCED_MODE_PREFERENCE: 'planning:add_coverage_advanced_mode',
     ITEM_ACTIONS: {
         CANCEL_COVERAGE: {
-            label: gettext('Cancel coverage'),
+            label: 'Cancel coverage',
             icon: 'icon-close-small',
+            actionName: 'onCancelCoverage',
         },
     },
 };
 
+export function assignCoverageConstantTranslations() {
+    const {gettext} = superdeskApi.localization;
+
+    COVERAGES.ITEM_ACTIONS.CANCEL_COVERAGE.label = gettext('Cancel coverage');
+}
