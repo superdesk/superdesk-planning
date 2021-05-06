@@ -11,6 +11,10 @@
 - [SDESK-5680] fix(react-redux): Replace deprecated withRef attribute with forwardRef (#1553)
 - [SDESK-5750] use lazy_gettext for user preferences (#1521)
 
+## [2.1.4] 2021-05-06
+### Fixes
+- [SDCP-518] fix(unpost): References all Events if recurrence_id==null (#1568)
+
 ## [2.1.3] 2021-03-10
 ### Fixes
 - [SDCP-480] fix(search): Exceptions raised when search by urgency (#1556)
