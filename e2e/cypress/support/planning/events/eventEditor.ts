@@ -1,5 +1,5 @@
 import {Editor} from '../../common/editor';
-import {Input, ToggleInput, SelectInput, SelectMetaTerms} from '../../common/inputs';
+import {Input, ToggleInput, SelectInput, SelectMetaTerms, LocationInput} from '../../common/inputs';
 import {ContactsInput} from '../../contacts';
 import {LinkInput} from './linkInput';
 
@@ -49,6 +49,7 @@ export class EventEditor extends Editor {
             subject: new SelectMetaTerms(getParent, '[data-test-id="field-subject"]'),
             links: new LinkInput(getParent, '[data-test-id="field-links"]'),
             event_contact_info: new ContactsInput(getParent, '[data-test-id="field-event_contact_info"]'),
+            location: new LocationInput(getParent, '[data-test-id=field-location]'),
         };
     }
 }

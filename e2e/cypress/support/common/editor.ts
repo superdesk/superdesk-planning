@@ -194,4 +194,16 @@ export class Editor {
             .find('.toggle-box.toggle-box--circle.hidden')
             .click({multiple: true});
     }
+
+    clickBookmark(bookmarkId: string) {
+        cy.log('Common.Editor.scrollToBookmark');
+        this.element
+            .find(`[data-test-id="editor--bookmarks__${bookmarkId}"]`)
+            .click();
+    }
+
+    getFormGroup(groupId: string) {
+        cy.log('Common.Editor.getFormGroup');
+        return this.element.find(`[data-test-id="editor--group__${groupId}"]`);
+    }
 }
