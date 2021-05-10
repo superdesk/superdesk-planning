@@ -14,6 +14,13 @@
             margin: 0 !important;
             margin-bottom: 0.8rem !important;
         }
+
+        transition: all 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
+
+        &:focus {
+            border: 1px solid #5ea9c8;
+            box-shadow: 0 0 0 3px rgba(94, 169, 200, 0.3);
+        }
     }
 
     .info-box--dashed {

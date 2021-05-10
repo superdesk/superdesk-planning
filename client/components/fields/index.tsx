@@ -26,6 +26,7 @@ import {FIELD_TO_LIST_COMPONENT} from './list';
 import {FIELD_TO_PREVIEW_COMPONENT, FIELD_TO_FORM_PREVIEW_COMPONENT} from './preview';
 
 import {ToggleBox} from '../UI/ToggleBox';
+import './style.scss';
 
 let registeredFields = {};
 
