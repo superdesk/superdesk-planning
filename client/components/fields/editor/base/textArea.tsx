@@ -22,7 +22,7 @@ export class EditorFieldTextArea extends React.PureComponent<IProps> {
 
     focus() {
         if (this.node.current != null) {
-            this.node.current.getElementsByTagName('input')[0]?.focus();
+            this.node.current.getElementsByTagName('textarea')[0]?.focus();
         }
     }
 

@@ -49,10 +49,11 @@ export class EditorFieldEventRelatedPlannings extends React.PureComponent<IProps
                         </div>
                     </Row>
                 ) : (
-                    this.props.item.associated_plannings?.map((plan) => (
+                    this.props.item.associated_plannings?.map((plan, index) => (
                         <RelatedPlanningItem
                             ref={this.props.getRef(plan)}
                             key={plan._id}
+                            index={index}
                             event={this.props.item}
                             item={plan}
                             removePlan={this.props.removePlanningItem}

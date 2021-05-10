@@ -27,7 +27,7 @@ const mapStateToProps = (state) => ({
 });
 
 class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IState> {
-    toggleBox: React.RefObject<ToggleBox>;
+    node: React.RefObject<FileInput>;
 
     constructor(props) {
         super(props);
@@ -35,10 +35,11 @@ class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IStat
         this.state = {
             uploading: false,
         };
-        this.toggleBox = React.createRef();
+        this.node = React.createRef();
 
         this.onAddFiles = this.onAddFiles.bind(this);
         this.onRemoveFile = this.onRemoveFile.bind(this);
+        this.onOpen = this.onOpen.bind(this);
     }
 
     onAddFiles(fileList: FileList) {
@@ -78,6 +79,12 @@ class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IStat
         });
     }
 
+    onOpen() {
+        if (this.node.current != null) {
+            this.node.current.focus();
+        }
+    }
+
     render() {
         const {gettext} = superdeskApi.localization;
         const field = this.props.field ?? 'files';
@@ -88,8 +95,7 @@ class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IStat
                 ref={this.props.refNode}
                 title={this.props.label ?? gettext('Attached Files')}
                 isOpen={false}
-                onClose={() => false}
-                onOpen={() => false}
+                onOpen={this.onOpen}
                 scrollInView={true}
                 hideUsingCSS={true} // hideUsingCSS so the file data is kept on hide/show
                 invalid={false}
@@ -101,6 +107,7 @@ class EditorFieldEventAttachmentsComponent extends React.Component<IProps, IStat
                 <div className={this.state.uploading ? 'sd-loader' : ''}>
                     {this.state.uploading ? null : (
                         <FileInput
+                            ref={this.node}
                             field={field}
                             value={value}
                             files={this.props.files}

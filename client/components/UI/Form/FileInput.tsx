@@ -1,11 +1,11 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {Row, LineInput, Input, TextArea, Label} from './';
 import {IconButton} from '../';
 import {onEventCapture, gettext} from '../utils';
 import {get, isArrayLikeObject} from 'lodash';
 import './style.scss';
 import {IFile} from '../../../interfaces';
+import {KEYCODES} from '../../../constants';
 
 interface IProps {
     field: string;
@@ -29,11 +29,18 @@ interface IProps {
  * @description Component to sattach files as input
  */
 export class FileInput extends React.PureComponent<IProps> {
-    dom: {fileInput: any};
+    dom: {
+        fileInput: HTMLInputElement | undefined;
+        container: React.RefObject<HTMLDivElement>;
+    };
 
     constructor(props) {
         super(props);
-        this.dom = {fileInput: null};
+        this.dom = {
+            fileInput: null,
+            container: React.createRef(),
+        };
+        this.handleKeyDown = this.handleKeyDown.bind(this);
         this.onAdd = this.onAdd.bind(this);
         this.onDrop = this.onDrop.bind(this);
         this.getComponent = this.getComponent.bind(this);
@@ -46,6 +53,12 @@ export class FileInput extends React.PureComponent<IProps> {
         if (this.dom.fileInput) {
             this.handleOnFocus();
             this.dom.fileInput.click();
+        }
+    }
+
+    handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+        if (event.keyCode === KEYCODES.ENTER) {
+            this.onBrowseClick();
         }
     }
 
@@ -98,7 +111,11 @@ export class FileInput extends React.PureComponent<IProps> {
             <Row className="file-input" key={index} noPadding>
                 {get(val, 'media') && (
                     <LineInput>
-                        <a className="icn-btn sd-line-input__icon-right" onClick={this.onRemove.bind(null, index)}>
+                        <a
+                            tabIndex={0}
+                            className="icn-btn sd-line-input__icon-right"
+                            onClick={this.onRemove.bind(null, index)}
+                        >
                             <i className="icon-trash" />
                         </a>
                         <a
@@ -154,6 +171,12 @@ export class FileInput extends React.PureComponent<IProps> {
         return objectValues.map((val, index) => this.getComponent(val, index));
     }
 
+    focus() {
+        if (this.dom.container.current != null) {
+            this.dom.container.current.focus();
+        }
+    }
+
     render() {
         const {field, readOnly, onFocus, hideInput, label, formats} = this.props;
 
@@ -163,13 +186,20 @@ export class FileInput extends React.PureComponent<IProps> {
                 {this.getFileItems()}
                 {!hideInput && !readOnly && (
                     <div
+                        tabIndex={0}
+                        ref={this.dom.container}
                         onDrop={this.onDrop}
                         onDragEnter={this.onDragEnter}
                         className="basic-drag-block"
+                        onKeyDown={this.handleKeyDown}
                     >
                         <i className="big-icon--upload-alt" />
                         <span className="basic-drag-block__text">{gettext('Drag files here or') + ' '}</span>
-                        <a className="text-link link" onClick={this.onBrowseClick}>&nbsp;{gettext('browse')}
+                        <a
+                            className="text-link link"
+                            onClick={this.onBrowseClick}
+                        >
+                            &nbsp;{gettext('browse')}
                             <Input
                                 className="file-input--hidden"
                                 field={field}
@@ -189,24 +219,3 @@ export class FileInput extends React.PureComponent<IProps> {
         );
     }
 }
-
-// FileInput.propTypes = {
-//     field: PropTypes.string,
-//     label: PropTypes.string,
-//     value: PropTypes.oneOfType([
-//         PropTypes.array,
-//         PropTypes.object,
-//     ]),
-//     onChange: PropTypes.func,
-//     createLink: PropTypes.func,
-//     onRemoveFile: PropTypes.func,
-//     onFocus: PropTypes.func,
-//     readOnly: PropTypes.bool,
-//     noMargin: PropTypes.bool,
-//     files: PropTypes.object,
-//     onAddFiles: PropTypes.func,
-//     hideInput: PropTypes.bool,
-//     formats: PropTypes.string,
-// };
-//
-// FileInput.defaultProps = {noMargin: true};

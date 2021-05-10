@@ -8,10 +8,15 @@ import {ToggleBox, IconButton} from '../../UI';
 import {Row, LinkInput} from '../../UI/Form';
 
 export class EditorFieldEventLinks extends React.PureComponent<IEditorFieldProps> {
+    node: React.RefObject<HTMLDivElement>;
+
     constructor(props) {
         super(props);
 
+        this.node = React.createRef();
+
         this.addLink = this.addLink.bind(this);
+        this.onOpen = this.onOpen.bind(this);
     }
 
     getValue(): Array<string> {
@@ -38,6 +43,12 @@ export class EditorFieldEventLinks extends React.PureComponent<IEditorFieldProps
         );
     }
 
+    onOpen() {
+        if (this.node.current != null) {
+            this.node.current.getElementsByTagName('a')[0]?.focus();
+        }
+    }
+
     render() {
         const {gettext} = superdeskApi.localization;
         const field = this.props.field ?? 'links';
@@ -48,8 +59,7 @@ export class EditorFieldEventLinks extends React.PureComponent<IEditorFieldProps
                 ref={this.props.refNode}
                 title={this.props.label ?? gettext('External Links')}
                 isOpen={false}
-                onClose={() => false}
-                onOpen={() => false}
+                onOpen={this.onOpen}
                 scrollInView={true}
                 hideUsingCSS={true} // hideUsingCSS so the file data is kept on hide/show
                 invalid={false}
@@ -58,7 +68,7 @@ export class EditorFieldEventLinks extends React.PureComponent<IEditorFieldProps
                 badgeValue={links?.length > 0 ? links.length : null}
                 testId={this.props.testId}
             >
-                <Row>
+                <Row refNode={this.node}>
                     {links.map((link, index) => (
                         <LinkInput
                             key={index}

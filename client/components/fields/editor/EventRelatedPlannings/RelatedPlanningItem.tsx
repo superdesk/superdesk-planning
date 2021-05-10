@@ -16,6 +16,7 @@ import {RelatedPlanningListItem} from '../../../RelatedPlannings/PlanningMetaDat
 interface IProps {
     event: IEventItem;
     item: DeepPartial<IPlanningItem>;
+    index: number;
     disabled: boolean;
     removePlan(item: DeepPartial<IPlanningItem>): void;
     updatePlanningItem(
@@ -86,8 +87,10 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
         return (
             <div
                 className="planning-item"
+                data-test-id={`editor--planning-item__${this.props.index}`}
                 id={`planning-item--${item._id}`}
                 ref={this.containerNode}
+                tabIndex={0}
             >
                 <Row noPadding={true}>
                     <RelatedPlanningListItem

@@ -70,18 +70,20 @@ export class ToggleBox extends React.Component<IProps, IState> {
     }
 
     toggle() {
-        this.setState({isOpen: !this.state.isOpen});
-
-        if (this.state.isOpen && this.props.onClose) {
-            this.props.onClose();
-        } else if (this.props.onOpen) {
-            this.props.onOpen();
-        }
+        this.setState({isOpen: !this.state.isOpen}, () => {
+            if (!this.state.isOpen && this.props.onClose) {
+                this.props.onClose();
+            } else if (this.props.onOpen) {
+                this.props.onOpen();
+            }
+        });
     }
 
     focus() {
         if (!this.state.isOpen) {
             this.toggle();
+        } else if (this.props.onOpen) {
+            this.props.onOpen();
         }
     }
 
