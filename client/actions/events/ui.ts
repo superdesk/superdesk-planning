@@ -169,7 +169,7 @@ const openSpikeModal = (event, post = false, modalProps = {}) => (
             dispatch(self._openActionModal(
                 eventWithData,
                 {},
-                EVENTS.ITEM_ACTIONS.SPIKE.label,
+                EVENTS.ITEM_ACTIONS.SPIKE.actionName,
                 null,
                 true,
                 post,
@@ -185,7 +185,7 @@ const openUnspikeModal = (event, post = false) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         {},
-        EVENTS.ITEM_ACTIONS.UNSPIKE.label,
+        EVENTS.ITEM_ACTIONS.UNSPIKE.actionName,
         null,
         true,
         post
@@ -207,7 +207,7 @@ const openUpdateTimeModal = (event, post = false, fromEditor = true) => {
         return self._openActionModal(
             event,
             {},
-            EVENTS.ITEM_ACTIONS.UPDATE_TIME.label,
+            EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName,
             null,
             true,
             post
@@ -231,7 +231,7 @@ const openCancelModal = (event, post = false, fromEditor = true) => {
         return self._openActionModal(
             event,
             {},
-            EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label,
+            EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName,
             null,
             true,
             post
@@ -254,7 +254,7 @@ const openPostponeModal = (event, post = false, fromEditor = true) => {
         return self._openActionModal(
             event,
             {},
-            EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label,
+            EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName,
             null,
             true,
             post
@@ -277,7 +277,7 @@ const openRescheduleModal = (event, post = false, fromEditor = true) => {
         return self._openActionModal(
             event,
             {},
-            EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label,
+            EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName,
             null,
             true,
             post
@@ -289,7 +289,7 @@ const convertToRecurringEvent = (event, post) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         {},
-        EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label,
+        EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName,
         EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.lock_action,
         false,
         post,
@@ -309,7 +309,7 @@ const openRepetitionsModal = (event, fromEditor = true) => {
         return self._openActionModal(
             event,
             {},
-            EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.label,
+            EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName,
             EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.lock_action
         );
     }
@@ -387,7 +387,7 @@ const _openActionModalFromEditor = ({
                 dispatch(self._openActionModal(
                     original,
                     {},
-                    action.label,
+                    action.actionName,
                     action.lock_action,
                     loadPlannings,
                     post,
@@ -621,7 +621,7 @@ const openEventPostModal = (
                             updates: updates,
                             actionType: modalProps.actionType ?
                                 modalProps.actionType :
-                                EVENTS.ITEM_ACTIONS.POST_EVENT.label,
+                                EVENTS.ITEM_ACTIONS.POST_EVENT.actionName,
                             planningItem: planningItem,
                             planningAction: planningAction,
                             ...modalProps,
@@ -637,7 +637,7 @@ const openAssignCalendarModal = (original, updates) => (
     (dispatch) => dispatch(self._openActionModal(
         original,
         updates,
-        EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.label,
+        EVENTS.ITEM_ACTIONS.ASSIGN_TO_CALENDAR.actionName,
         'assign_calendar',
         false,
         false,

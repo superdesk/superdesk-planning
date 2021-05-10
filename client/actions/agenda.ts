@@ -164,7 +164,7 @@ const askForAddEventToCurrentAgenda = (events) => (
             modalType: MODALS.ITEM_ACTIONS_MODAL,
             modalProps: {
                 events: events,
-                actionType: EVENTS.ITEM_ACTIONS.CREATE_PLANNING.label,
+                actionType: EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName,
                 title: title,
             },
         }));

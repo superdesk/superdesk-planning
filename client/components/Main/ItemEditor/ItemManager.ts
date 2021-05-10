@@ -11,7 +11,7 @@ import {
     IEventOrPlanningItem
 } from '../../../interfaces';
 import {planningApi} from '../../../superdeskApi';
-import {ITEM_TYPE, POST_STATE, UI, WORKFLOW_STATE, WORKSPACE} from '../../../constants';
+import {ITEM_TYPE, POST_STATE, UI, WORKFLOW_STATE, WORKSPACE, EVENTS} from '../../../constants';
 
 import {
     eventUtils,
@@ -24,7 +24,6 @@ import {
 import {validateItem} from '../../../validators';
 import * as actions from '../../../actions';
 
-import {EventUpdateMethods} from '../../Events';
 import {EditorComponent} from './Editor';
 import {AutoSave} from './AutoSave';
 import {EditorGroup} from '../../Editor/EditorGroup';
@@ -564,7 +563,7 @@ export class ItemManager {
 
     save(
         withConfirmation = true,
-        updateMethod = EventUpdateMethods[0],
+        updateMethod = EVENTS.UPDATE_METHODS[0],
         closeAfter = false,
         updateStates = true
     ) {
@@ -580,7 +579,7 @@ export class ItemManager {
 
     saveAndPost(
         withConfirmation = true,
-        updateMethod = EventUpdateMethods[0],
+        updateMethod = EVENTS.UPDATE_METHODS[0],
         closeAfter = false,
         updateStates = true
     ) {
@@ -641,7 +640,7 @@ export class ItemManager {
         post = false,
         unpost = false,
         withConfirmation = true,
-        updateMethod = EventUpdateMethods[0],
+        updateMethod = EVENTS.UPDATE_METHODS[0],
         closeAfter = false,
         updateStates = true,
     } = {}) {

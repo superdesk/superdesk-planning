@@ -7,7 +7,8 @@ import * as actions from '../../../actions';
 import '../style.scss';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {RelatedEvents} from '../../index';
-import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
+import {EVENTS} from '../../../constants';
+import {EventScheduleSummary} from '../../Events';
 import {eventUtils, gettext} from '../../../utils';
 import {Row} from '../../UI/Preview';
 
@@ -15,7 +16,7 @@ export class SpikeEventComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            eventUpdateMethod: EventUpdateMethods[0],
+            eventUpdateMethod: EVENTS.UPDATE_METHODS[0],
             relatedEvents: [],
             relatedPlannings: [],
         };
@@ -26,7 +27,7 @@ export class SpikeEventComponent extends React.Component {
     componentWillMount() {
         const event = eventUtils.getRelatedEventsForRecurringEvent(
             this.props.original,
-            EventUpdateMethods[0]
+            EVENTS.UPDATE_METHODS[0]
         );
 
         this.setState({

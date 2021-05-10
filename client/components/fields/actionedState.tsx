@@ -12,7 +12,7 @@ export const actionedState = ({item, ...props}) => {
 
     return (
         <Label
-            text={gettext(itemActionedState.label)}
+            text={itemActionedState.label}
             iconType={itemActionedState.iconType}
             tooltip={itemActionedState.tooltip}
             {...props}

@@ -40,6 +40,9 @@ export class TimeInput extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
+        const {gettext} = superdeskApi.localization;
+        const TO_BE_CONFIRMED_TEXT = gettext('To Be Confirmed');
+
         if ((this.state.invalid && !nextProps.toBeConfirmed) ||
             (!nextProps.value && !nextProps.canClear && !nextProps.showToBeConfirmed)) {
             return;
@@ -68,6 +71,8 @@ export class TimeInput extends React.Component {
     }
 
     componentDidMount() {
+        const {gettext} = superdeskApi.localization;
+        const TO_BE_CONFIRMED_TEXT = gettext('To Be Confirmed');
         // After first render, set the value
         const {gettext} = superdeskApi.localization;
         const value = this.props.toBeConfirmed ?
@@ -219,6 +224,7 @@ export class TimeInput extends React.Component {
 
     render() {
         const {gettext} = superdeskApi.localization;
+        const TO_BE_CONFIRMED_TEXT = gettext('To Be Confirmed');
         const {
             placeholder,
             field,

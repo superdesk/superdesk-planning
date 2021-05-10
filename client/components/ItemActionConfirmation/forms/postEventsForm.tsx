@@ -4,7 +4,8 @@ import {connect} from 'react-redux';
 import * as actions from '../../../actions';
 import {get} from 'lodash';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
-import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
+import {EventScheduleSummary} from '../../Events';
+import {EVENTS} from '../../../constants';
 import {eventUtils, gettext, isItemPublic} from '../../../utils';
 import {Row} from '../../UI/Preview';
 import '../style.scss';
@@ -15,7 +16,7 @@ export class PostEventsComponent extends React.Component {
         const postAll = get(props.original, '_post', true) && !isItemPublic(props.original);
 
         this.state = {
-            eventUpdateMethod: postAll ? EventUpdateMethods[2] : EventUpdateMethods[0],
+            eventUpdateMethod: postAll ? EVENTS.UPDATE_METHODS[2] : EVENTS.UPDATE_METHODS[0],
             relatedEvents: [],
             relatedPlannings: [],
         };
@@ -32,7 +33,7 @@ export class PostEventsComponent extends React.Component {
             const event = isRecurring ?
                 eventUtils.getRelatedEventsForRecurringEvent(
                     this.props.original,
-                    EventUpdateMethods[2],
+                    EVENTS.UPDATE_METHODS[2],
                     true
                 ) :
                 this.props.original;

@@ -1,8 +1,10 @@
 import React from 'react';
 import {get} from 'lodash';
 
+import {superdeskApi} from '../../../superdeskApi';
+
 import {GENERIC_ITEM_ACTIONS} from '../../../constants';
-import {onEventCapture, gettext} from '../../../utils';
+import {onEventCapture} from '../../../utils';
 
 import {Popup, Content} from '../../UI/Popup';
 
@@ -28,6 +30,7 @@ export class CoveragesMenuPopup extends React.PureComponent<IProps> {
     }
 
     render() {
+        const {gettext} = superdeskApi.localization;
         const {actions, closeMenu, target, onPopupOpen, onPopupClose} = this.props;
 
         let items = actions.map(this.renderItem.bind(this));

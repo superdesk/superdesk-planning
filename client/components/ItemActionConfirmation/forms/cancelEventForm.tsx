@@ -8,7 +8,7 @@ import * as selectors from '../../../selectors';
 import {eventUtils, gettext} from '../../../utils';
 import {EVENTS} from '../../../constants';
 
-import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
+import {EventScheduleSummary} from '../../Events';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {Row} from '../../UI/Preview';
 import {TextAreaInput} from '../../UI/Form';
@@ -20,7 +20,7 @@ export class CancelEventComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            eventUpdateMethod: EventUpdateMethods[0],
+            eventUpdateMethod: EVENTS.UPDATE_METHODS[0],
             reason: '',
             relatedEvents: [],
             relatedPlannings: [],

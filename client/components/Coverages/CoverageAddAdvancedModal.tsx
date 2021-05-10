@@ -5,9 +5,11 @@ import {getUserInterfaceLanguage} from 'appConfig';
 import {IG2ContentType, IPlanningCoverageItem, IPlanningNewsCoverageStatus} from '../../interfaces';
 import {IDesk, IUser} from 'superdesk-api';
 
+import {gettext, planningUtils, getUsersForDesk, getDesksForUser} from '../../utils';
+import {getVocabularyItemFieldTranslated} from '../../utils/vocabularies';
+
 import Modal from '../Modal';
 import {SelectInput, SelectUserInput} from '../UI/Form';
-import {gettext, planningUtils, getUsersForDesk, getDesksForUser} from '../../utils';
 
 const isInvalid = (coverage) => coverage.user && !coverage.desk;
 
@@ -61,6 +63,14 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
         };
     }
 
+    getContentTypeName(contentType) {
+        return getVocabularyItemFieldTranslated(
+            contentType,
+            'name',
+            getUserInterfaceLanguage()
+        );
+    }
+
     componentDidMount() {
         const {value, contentTypes, users, desks, newsCoverageStatus} = this.props;
         const coverages = [];
@@ -75,7 +85,7 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
                 id: this.id++,
                 enabled: true,
                 qcode: contentType.qcode,
-                name: contentType.name,
+                name: this.getContentTypeName(contentType),
                 icon: icon,
                 desk: desks.find((desk) => desk._id === coverage.assigned_to.desk),
                 user: users.find((user) => user._id === coverage.assigned_to.user),
@@ -99,7 +109,7 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
                     id: this.id++,
                     enabled: false,
                     qcode: contentType.qcode,
-                    name: contentType.name,
+                    name: this.getContentTypeName(contentType),
                     icon: icon,
                     desk: null,
                     filteredDesks: desks,
@@ -122,7 +132,7 @@ export class CoverageAddAdvancedModal extends React.Component<IProps, IState> {
             id: this.id++,
             enabled: false,
             qcode: coverage.qcode,
-            name: coverage.name,
+            name: this.getContentTypeName(coverage),
             icon: coverage.icon,
             desk: null,
             user: null,

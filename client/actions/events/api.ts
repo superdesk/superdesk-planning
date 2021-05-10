@@ -10,7 +10,6 @@ import {
     MAIN,
     TO_BE_CONFIRMED_FIELD,
 } from '../../constants';
-import {EventUpdateMethods} from '../../components/Events';
 import * as selectors from '../../selectors';
 import {
     eventUtils,
@@ -76,7 +75,7 @@ const spike = (events) => (
 
         return Promise.all(
             eventsToSpike.map((event) => {
-                event.update_method = get(event, 'update_method.value', EventUpdateMethods[0].value);
+                event.update_method = get(event, 'update_method.value', EVENTS.UPDATE_METHODS[0].value);
                 return api.update(
                     'events_spike',
                     event,
@@ -97,7 +96,7 @@ const unspike = (events) => (
 
         return Promise.all(
             eventsToUnspike.map((event) => {
-                event.update_method = get(event, 'update_method.value', EventUpdateMethods[0].value);
+                event.update_method = get(event, 'update_method.value', EVENTS.UPDATE_METHODS[0].value);
                 return api.update(
                     'events_unspike',
                     event,
@@ -410,7 +409,7 @@ const cancelEvent = (original, updates) => (
             'events_cancel',
             original,
             {
-                update_method: get(updates, 'update_method.value', EventUpdateMethods[0].value),
+                update_method: get(updates, 'update_method.value', EVENTS.UPDATE_METHODS[0].value),
                 reason: get(updates, 'reason', undefined),
             }
         )
@@ -423,7 +422,7 @@ const rescheduleEvent = (original, updates) => (
             'events_reschedule',
             original,
             {
-                update_method: get(updates, 'update_method.value', EventUpdateMethods[0].value),
+                update_method: get(updates, 'update_method.value', EVENTS.UPDATE_METHODS[0].value),
                 dates: updates.dates,
                 reason: get(updates, 'reason', null),
             }
@@ -437,7 +436,7 @@ const postponeEvent = (original, updates) => (
             'events_postpone',
             original,
             {
-                update_method: get(updates, 'update_method.value', EventUpdateMethods[0].value),
+                update_method: get(updates, 'update_method.value', EVENTS.UPDATE_METHODS[0].value),
                 reason: get(updates, 'reason', undefined),
             }
         )
@@ -456,7 +455,7 @@ const post = (original, updates) => (
             event: original._id,
             etag: original._etag,
             pubstatus: get(updates, 'pubstatus', POST_STATE.USABLE),
-            update_method: get(updates, 'update_method.value', EventUpdateMethods[0].value),
+            update_method: get(updates, 'update_method.value', EVENTS.UPDATE_METHODS[0].value),
         }).then(
             () => dispatch(self.fetchById(original._id, {force: true})),
             (error) => Promise.reject(error)
@@ -476,7 +475,7 @@ const unpost = (original, updates) => (
             event: original._id,
             etag: original._etag,
             pubstatus: get(updates, 'pubstatus', POST_STATE.CANCELLED),
-            update_method: get(updates, 'update_method.value', EventUpdateMethods[0].value),
+            update_method: get(updates, 'update_method.value', EVENTS.UPDATE_METHODS[0].value),
         }).then(
             () => dispatch(self.fetchById(original._id, {force: true})),
             (error) => Promise.reject(error)
@@ -497,7 +496,7 @@ const updateEventTime = (original, updates) => (
             'events_update_time',
             original,
             {
-                update_method: get(updates, 'update_method.value', EventUpdateMethods[0].value),
+                update_method: get(updates, 'update_method.value', EVENTS.UPDATE_METHODS[0].value),
                 dates: updates.dates,
                 [TO_BE_CONFIRMED_FIELD]: false,
             }
@@ -631,7 +630,7 @@ const save = (original, updates) => (
                 delete eventUpdates.dates;
             }
             eventUpdates.update_method = get(eventUpdates, 'update_method.value') ||
-                EventUpdateMethods[0].value;
+                EVENTS.UPDATE_METHODS[0].value;
 
             return originalEvent?._id != null ?
                 planningApis.events.update(originalItem, eventUpdates) :

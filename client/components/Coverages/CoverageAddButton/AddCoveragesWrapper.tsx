@@ -2,10 +2,12 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 import {isEqual} from 'lodash';
 
+import {getUserInterfaceLanguage} from 'appConfig';
 import {IDesk, IUser} from 'superdesk-api';
 import {IG2ContentType, IPlanningCoverageItem, IPlanningNewsCoverageStatus} from '../../../interfaces';
 
 import {planningUtils, onEventCapture} from '../../../utils';
+import {getVocabularyItemFieldTranslated} from '../../../utils/vocabularies';
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
 
@@ -68,10 +70,16 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 function getCoverageTypesFromProps(props: IProps): Array<ICoverageTypeEntry> {
+    const language = getUserInterfaceLanguage();
+
     return props.contentTypes.map((type) => ({
         id: `coverage-menu-add-${type.qcode}`,
         qcode: type.qcode,
-        label: type.name,
+        label: getVocabularyItemFieldTranslated(
+            type,
+            'name',
+            language
+        ),
         icon: planningUtils.getCoverageIcon(type['content item type'] || type.qcode),
         callback: props.onAdd.bind(
             null,
