@@ -79,7 +79,10 @@ class EditorBookmarksBarComponent extends React.PureComponent<IProps> {
         const readOnly = planningApi.editor(this.props.editorType).form.isReadOnly();
 
         return (
-            <React.Fragment>
+            <div
+                data-test-id="editor--bookmarks"
+                style={{display: 'contents'}}
+            >
                 {this.renderHeader()}
                 <div
                     className={classNames(
@@ -134,7 +137,7 @@ class EditorBookmarksBarComponent extends React.PureComponent<IProps> {
                     </ButtonGroup>
                 </div>
                 {this.renderFooter()}
-            </React.Fragment>
+            </div>
         );
     }
 }

@@ -60,6 +60,7 @@ export class AddCoverageBookmark extends React.PureComponent<IProps> {
                         )}
                     >
                         <button
+                            data-test-id={`editor--bookmarks__${this.props.bookmark.id}`}
                             type="button"
                             className={classNames(
                                 'sd-navbtn sd-navbtn--default',
@@ -98,6 +99,7 @@ export class AddCoverageBookmark extends React.PureComponent<IProps> {
                         size="large"
                         expand={true}
                         onClick={toggleMenu}
+                        data-test-id={`editor--bookmarks__${this.props.bookmark.id}`}
                     />
                 )}
             />

@@ -38,6 +38,7 @@ export class FormGroupBookmark extends React.PureComponent<IProps> {
                 )}
             >
                 <button
+                    data-test-id={`editor--bookmarks__${this.props.bookmark.id}`}
                     type="button"
                     className={classNames(
                         'sd-navbtn sd-navbtn--default',
@@ -57,6 +58,7 @@ export class FormGroupBookmark extends React.PureComponent<IProps> {
     renderForPopup() {
         return (
             <button
+                data-test-id={`editor--bookmarks__${this.props.bookmark.id}`}
                 key={this.props.bookmark.id}
                 type="button"
                 className={classNames(

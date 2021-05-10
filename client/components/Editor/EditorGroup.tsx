@@ -113,6 +113,7 @@ export class EditorGroup extends React.PureComponent<IProps> implements IEditorR
 
     render() {
         const group = this.props.group;
+        const testId = `editor--group__${group.id}`;
         const profile = this.getProfile();
         const renderedFields = renderFieldsForPanel(
             'editor',
@@ -128,6 +129,7 @@ export class EditorGroup extends React.PureComponent<IProps> implements IEditorR
 
         return group.useToggleBox ? (
             <ToggleBox
+                testId={testId}
                 ref={this.dom.toggle}
                 title={group.title}
                 isOpen={false}
@@ -141,7 +143,10 @@ export class EditorGroup extends React.PureComponent<IProps> implements IEditorR
                 {renderedFields}
             </ToggleBox>
         ) : (
-            <div ref={this.dom.div}>
+            <div
+                data-test-id={testId}
+                ref={this.dom.div}
+            >
                 {renderedFields}
             </div>
         );

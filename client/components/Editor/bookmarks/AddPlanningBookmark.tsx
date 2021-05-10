@@ -35,6 +35,7 @@ export class AddPlanningBookmark extends React.PureComponent<IBookmarkProps> {
                 )}
             >
                 <button
+                    data-test-id={`editor--bookmarks__${this.props.bookmark.id}`}
                     type="button"
                     className={classNames(
                         'sd-navbtn sd-navbtn--default',
