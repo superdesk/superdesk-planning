@@ -1786,6 +1786,7 @@ export interface IEditorAPI {
 
         scrollToTop(): void;
         scrollToBookmarkGroup(bookmark: IEditorBookmarkGroup): void;
+        waitForScroll(): Promise<void>;
 
         getAction(): IEditorAction;
         isReadOnly(): boolean;

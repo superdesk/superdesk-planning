@@ -210,7 +210,14 @@ export function getEventsInstance(type: EDITOR_TYPE): IEditorAPI['item']['events
 
         editor.form.changeField('associated_plannings', plans)
             .then(() => {
-                getRelatedPlanningDomRef(id).current?.scrollIntoView();
+                const node = getRelatedPlanningDomRef(id);
+
+                if (node.current != null) {
+                    node.current.scrollIntoView();
+                    editor.form.waitForScroll().then(() => {
+                        node.current.focus();
+                    });
+                }
             });
     }
 

@@ -34,13 +34,13 @@ export function getFormInstance(type: EDITOR_TYPE): IEditorAPI['form'] {
         });
 
         // Wait for scroll to complete, then attempt to focus the first field
-        setTimeout(() => {
+        waitForScroll().then(() => {
             const firstGroupBookmark = editorSelectors[type].getFirstBookmarkGroup(
                 planningApi.redux.store.getState()
             );
 
             editor.dom.groups[firstGroupBookmark.group_id]?.current?.focus();
-        }, 500);
+        });
     }
 
     function getProps() {
@@ -83,6 +83,36 @@ export function getFormInstance(type: EDITOR_TYPE): IEditorAPI['form'] {
         );
     }
 
+    function waitForScroll(): Promise<void> {
+        const {formContainer} = planningApi.editor(type).dom;
+
+        if (formContainer.current != null) {
+            return new Promise((resolve) => {
+                let scrollTimeout: number;
+
+                const onScroll = () => {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = window.setTimeout(() => {
+                        formContainer.current.removeEventListener('scroll', onScroll);
+                        resolve();
+                    }, 50);
+                };
+
+                formContainer.current.addEventListener('scroll', onScroll);
+
+                // If no scroll has happened in 100ms, then assume
+                // no scrolling has occurred at all
+                window.setTimeout(() => {
+                    if (scrollTimeout == null) {
+                        resolve();
+                    }
+                }, 100);
+            });
+        }
+
+        return Promise.resolve();
+    }
+
     return {
         setState,
         getState,
@@ -93,5 +123,6 @@ export function getFormInstance(type: EDITOR_TYPE): IEditorAPI['form'] {
         changeField,
         getDiff,
         isReadOnly,
+        waitForScroll,
     };
 }
