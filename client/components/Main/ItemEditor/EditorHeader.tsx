@@ -286,7 +286,7 @@ export class EditorHeader extends React.Component {
             state: 'showCancel',
             props: {
                 color: states.isEvent ? 'ui-dark' : null,
-                disabled: !states.readOnly && submitting,
+                disabled: (!states.readOnly && submitting) || loading,
                 onClick: cancel,
                 text: dirty ? gettext('Cancel') : gettext('Close'),
                 tabIndex: 0,
@@ -297,7 +297,7 @@ export class EditorHeader extends React.Component {
             state: 'canPost',
             props: {
                 color: 'success',
-                disabled: submitting,
+                disabled: submitting || loading,
                 onClick: dirty ? itemManager.saveAndPost : itemManager.post,
                 text: dirty ? gettext('Save & Post') : gettext('Post'),
                 id: 'post',
@@ -307,7 +307,7 @@ export class EditorHeader extends React.Component {
             props: {
                 color: states.isEvent ? 'warning' : null,
                 hollow: !states.isEvent,
-                disabled: submitting,
+                disabled: submitting || loading,
                 onClick: dirty ? itemManager.saveAndUnpost : itemManager.unpost,
                 text: dirty ? gettext('Save & Unpost') : gettext('Unpost'),
                 id: 'unpost',
@@ -316,7 +316,7 @@ export class EditorHeader extends React.Component {
             state: 'showSave',
             props: {
                 color: 'primary',
-                disabled: notDirtyOrSubmitting,
+                disabled: notDirtyOrSubmitting || loading,
                 onClick: itemManager.save,
                 text: gettext('Save'),
                 enterKeyIsClick: true,
@@ -326,7 +326,7 @@ export class EditorHeader extends React.Component {
             state: 'showUpdate',
             props: {
                 color: 'primary',
-                disabled: notDirtyOrSubmitting,
+                disabled: notDirtyOrSubmitting || loading,
                 onClick: itemManager.saveAndPost,
                 text: gettext('Update'),
                 enterKeyIsClick: true,
@@ -335,7 +335,7 @@ export class EditorHeader extends React.Component {
             state: 'notExistingItem',
             props: {
                 color: 'primary',
-                disabled: notDirtyOrSubmitting,
+                disabled: notDirtyOrSubmitting || loading,
                 onClick: itemManager.save,
                 text: gettext('Create'),
                 enterKeyIsClick: true,
@@ -345,7 +345,7 @@ export class EditorHeader extends React.Component {
             state: 'showCreateAndPost',
             props: {
                 color: 'primary',
-                disabled: notDirtyOrSubmitting,
+                disabled: notDirtyOrSubmitting || loading,
                 onClick: itemManager.saveAndPost,
                 text: gettext('Create & Post'),
                 enterKeyIsClick: true,
@@ -357,6 +357,7 @@ export class EditorHeader extends React.Component {
                 onClick: itemManager.changeAction.bind(null, 'edit', null),
                 text: gettext('Edit'),
                 enterKeyIsClick: true,
+                disabled: loading,
             },
         }];
 
