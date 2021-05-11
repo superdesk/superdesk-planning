@@ -35,6 +35,7 @@ interface IProps {
     initialValue?: ILocation | IEventLocation;
     readOnly?: boolean;
     disableSearch?: boolean;
+    disableAddLocation?: boolean;
     users: Array<IUser>;
     regions: Array<IVocabularyItem>;
     countries: Array<IVocabularyItem>;
@@ -278,6 +279,7 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
             onFocus,
             field,
             disableSearch,
+            disableAddLocation,
             readOnly,
             onPopupOpen,
             onPopupClose,
@@ -315,7 +317,7 @@ export class GeoLookupInputComponent extends React.Component<IProps, IState> {
                         onChange={this.onSuggestSelect}
                         handleSearchClick={this.handleSearchClick}
                         showExternalSearch={!readOnly && !disableSearch}
-                        showAddLocation={!readOnly}
+                        showAddLocation={disableAddLocation}
                         onLocalSearchOnly={this.onLocalSearchOnly}
                         searching={this.state.searching}
                         onAddNewLocation={this.onAddNewLocation}

@@ -9,6 +9,7 @@ interface IProps {
     label?: string;
     value?: ILocation;
     disableSearch?: boolean;
+    disableAddLocation?: boolean;
     hint?: string;
     message?: string;
     required?: boolean;
@@ -28,6 +29,7 @@ export class GeoLookupInput extends React.PureComponent<IProps> {
         const {
             label,
             disableSearch,
+            disableAddLocation,
             onChange,
             value,
             field,
@@ -46,6 +48,7 @@ export class GeoLookupInput extends React.PureComponent<IProps> {
                     initialValue={value}
                     readOnly={readOnly}
                     disableSearch={disableSearch}
+                    disableAddLocation={disableAddLocation ?? true}
                     onFocus={onFocus}
                     popupContainer={popupContainer}
                     onPopupOpen={props.onPopupOpen}

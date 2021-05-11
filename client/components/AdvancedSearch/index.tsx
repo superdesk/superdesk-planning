@@ -136,6 +136,9 @@ export class AdvancedSearch extends React.PureComponent<IProps> {
                 state: {
                     excludeOptions: !this.props.params.posted ? [] : NON_PUBLISHED_STATES,
                 },
+                location: {
+                    disableAddLocation: false,
+                },
             },
             null,
             this.props.enabledField
