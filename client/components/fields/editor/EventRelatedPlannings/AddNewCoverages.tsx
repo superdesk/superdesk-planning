@@ -197,6 +197,7 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
 
         return !this.state.inEditMode ? (
             <div
+                data-test-id="editor--planning-item__add-coverage"
                 className="coverage-form coverage-form--initial info-box--dashed"
                 onClick={this.openEditMode}
             >
@@ -207,7 +208,10 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
                 />
             </div>
         ) : (
-            <div className="coverage-form sd-shadow--z2">
+            <div
+                data-test-id="editor--planning-item__add-coverage"
+                className="coverage-form sd-shadow--z2"
+            >
                 <div className="coverage-form__header">
                     <span className="form-label">{gettext('Coverage Types')}</span>
                 </div>
@@ -235,11 +239,13 @@ class AddNewCoveragesComponent extends React.Component<IProps, IState> {
                 <div className="coverage-form__footer">
                     <ButtonGroup align="right">
                         <Button
+                            data-test-id="footer--cancel"
                             type="default"
                             text={gettext('Cancel')}
                             onClick={this.resetForm}
                         />
                         <Button
+                            data-test-id="footer--add_coverage"
                             type="primary"
                             text={gettext('Add Coverage(s)')}
                             disabled={!this.state.dirty}

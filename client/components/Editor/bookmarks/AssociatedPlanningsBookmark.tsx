@@ -29,9 +29,17 @@ export class AssociatedPlanningsBookmark extends React.Component<IProps, IState>
     }
 
     onClick(plan: DeepPartial<IPlanningItem>) {
-        const node = planningApi.editor(this.props.editorType).item.events.getRelatedPlanningDomRef(plan._id);
+        const editor = planningApi.editor(this.props.editorType);
+        const node = editor.item.events.getRelatedPlanningDomRef(plan._id);
 
-        node.current?.scrollIntoView();
+        if (node.current != null) {
+            node.current.scrollIntoView();
+            editor.form
+                .waitForScroll()
+                .then(() => {
+                    node.current.focus();
+                });
+        }
     }
 
     togglePlannings() {
@@ -41,7 +49,7 @@ export class AssociatedPlanningsBookmark extends React.Component<IProps, IState>
     renderForPanel() {
         const {gettext} = superdeskApi.localization;
 
-        return this.props.item.associated_plannings.map((plan) => (
+        return this.props.item.associated_plannings.map((plan, index) => (
             <OverlayTrigger
                 key={plan._id}
                 placement="right"
@@ -54,6 +62,7 @@ export class AssociatedPlanningsBookmark extends React.Component<IProps, IState>
                 )}
             >
                 <button
+                    data-test-id={`editor--bookmarks__planning-${index}`}
                     type="button"
                     className={classNames(
                         'sd-navbtn sd-navbtn--default',

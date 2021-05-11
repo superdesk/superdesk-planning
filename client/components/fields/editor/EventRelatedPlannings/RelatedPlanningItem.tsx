@@ -79,6 +79,12 @@ export class RelatedPlanningItem extends React.PureComponent<IProps> {
         this.update({coverages}, false);
     }
 
+    focus() {
+        if (this.containerNode.current != null) {
+            this.containerNode.current.focus();
+        }
+    }
+
     render() {
         const {gettext} = superdeskApi.localization;
         const {item} = this.props;

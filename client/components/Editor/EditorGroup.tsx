@@ -37,6 +37,8 @@ export class EditorGroup extends React.PureComponent<IProps> implements IEditorR
             div: React.createRef<HTMLDivElement>(),
             toggle: React.createRef<ToggleBox>(),
         };
+
+        this.focus = this.focus.bind(this);
     }
 
     componentDidMount() {
@@ -57,9 +59,9 @@ export class EditorGroup extends React.PureComponent<IProps> implements IEditorR
         }
 
         // Wait for scroll to complete, then attempt to focus the first field
-        setTimeout(() => {
-            this.focus();
-        }, 500);
+        this.editorApi.form
+            .waitForScroll()
+            .then(this.focus);
     }
 
     getBoundingClientRect() {

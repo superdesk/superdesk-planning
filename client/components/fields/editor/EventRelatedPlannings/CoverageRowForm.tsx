@@ -61,14 +61,17 @@ export class CoverageRowForm extends React.PureComponent<IProps> {
 
     render() {
         return (
-            <React.Fragment>
+            <div
+                data-test-id={`coverage_${this.props.index}`}
+                style={{display: 'contents'}}
+            >
                 <List.Item
                     key={this.props.coverage.id}
                     shadow={1}
                     className={this.props.coverage.enabled ? 'enabled' : ''}
                 >
                     <List.Column border={false}>
-                        <List.Row>
+                        <List.Row testId="enabled">
                             <Checkbox
                                 checked={this.props.coverage.enabled}
                                 onChange={this.toggleEnabled}
@@ -114,7 +117,7 @@ export class CoverageRowForm extends React.PureComponent<IProps> {
                         update={this.update}
                     />
                 )}
-            </React.Fragment>
+            </div>
         );
     }
 }

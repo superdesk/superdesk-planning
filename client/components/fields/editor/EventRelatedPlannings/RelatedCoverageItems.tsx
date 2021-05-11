@@ -55,11 +55,13 @@ class RelatedCoverageItemsComponent extends React.PureComponent<IProps> {
     render() {
         return (
             <List.Group
+                testId="editor--planning-item__coverages"
                 spaceBetween={true}
                 className="sd-margin-b--0-5"
             >
                 {this.props.coverages.map((coverage, index) => (
                     <CoverageEditor
+                        testId={`field-coverages[${index}]`}
                         key={coverage.coverage_id}
                         readOnly={this.props.disabled}
                         users={this.props.users}

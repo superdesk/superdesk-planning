@@ -70,7 +70,10 @@ export class EmbeddedCoverageForm extends React.PureComponent<IProps> {
                     border={false}
                 >
                     <List.Row>
-                        <Row noPadding={true}>
+                        <Row
+                            testId="desk"
+                            noPadding={true}
+                        >
                             <Select
                                 label={gettext('Desk:')}
                                 value={coverage.desk?._id}
@@ -91,7 +94,10 @@ export class EmbeddedCoverageForm extends React.PureComponent<IProps> {
                         </Row>
                     </List.Row>
                     <List.Row>
-                        <Row noPadding={true}>
+                        <Row
+                            testId="user"
+                            noPadding={true}
+                        >
                             <SelectUserInput
                                 field="user"
                                 placeholder={gettext('Search users')}
@@ -102,7 +108,10 @@ export class EmbeddedCoverageForm extends React.PureComponent<IProps> {
                         </Row>
                     </List.Row>
                     <List.Row>
-                        <Row noPadding={true}>
+                        <Row
+                            testId="status"
+                            noPadding={true}
+                        >
                             <Select
                                 label={gettext('Status:')}
                                 value={coverage.status.qcode}
