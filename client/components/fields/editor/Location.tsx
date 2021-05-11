@@ -8,6 +8,7 @@ import {Row} from '../../UI/Form';
 
 interface IProps extends IEditorFieldProps {
     enableExternalSearch?: boolean;
+    disableAddLocation?: boolean;
 }
 
 export class EditorFieldLocation extends React.PureComponent<IProps> {
@@ -23,6 +24,7 @@ export class EditorFieldLocation extends React.PureComponent<IProps> {
                     label={this.props.label ?? gettext('Location')}
                     value={get(this.props.item, field, this.props.defaultValue)}
                     disableSearch={!this.props.enableExternalSearch}
+                    disableAddLocation={this.props.disableAddLocation}
                     readOnly={this.props.disabled}
                 />
             </Row>
