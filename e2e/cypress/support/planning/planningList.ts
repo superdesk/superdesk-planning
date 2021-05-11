@@ -52,6 +52,16 @@ export class PlanningList {
             .eq(index);
     }
 
+    nestedPlanningItems(index: number, timeout: number = 40000) {
+        return this.nestedItem(index, timeout)
+            .find('>> .sd-list-item');
+    }
+
+    nestedPlanningItem(itemIndex: number, planIndex: number, timeout: number = 40000) {
+        return this.nestedPlanningItems(itemIndex, timeout)
+            .eq(planIndex);
+    }
+
     /**
      * Returns an ActionMenu instance for a specific item in the list
      * @param {number} index - The index of the item to retrieve the menu for

@@ -31,6 +31,10 @@ export class Editor {
         return this.element.find('#create');
     }
 
+    get saveButton(): Cypress.Chainable<JQuery> {
+        return this.element.find('#save');
+    }
+
     /**
      * Returns the dom node for the post button
      * @returns {Cypress.Chainable<JQuery<HTMLElement>>}
@@ -148,7 +152,9 @@ export class Editor {
      */
     waitTillOpen() {
         cy.log('Common.Editor.waitTillOpen');
-        this.closeButton.should('exist');
+        this.closeButton
+            .should('exist')
+            .should('be.enabled');
     }
 
     /**
