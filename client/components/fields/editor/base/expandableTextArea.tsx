@@ -38,6 +38,7 @@ export class EditorFieldExpandableTextArea extends React.PureComponent<IProps> {
             >
                 <ExpandableTextAreaInput
                     {...this.props}
+                    readOnly={this.props.disabled}
                     value={value}
                     required={this.props.required ?? this.props.schema?.required}
                     maxLength={this.props.maxLength ?? this.props.schema?.maxlength}
