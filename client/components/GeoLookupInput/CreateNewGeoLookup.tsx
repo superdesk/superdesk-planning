@@ -96,7 +96,7 @@ export class CreateNewGeoLookup extends React.Component<IProps, IState> {
             formInvalid: !item.location.name?.length ||
                 !item.location.address.line?.[0]?.length ||
                 !item.location.address.city?.length ||
-                !item.location.address.country?.length,
+                !item.country,
             item: item,
         });
     }

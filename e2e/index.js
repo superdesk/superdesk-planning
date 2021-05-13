@@ -6,7 +6,6 @@ setTimeout(() => {
             id: 'planning-extension',
             load: () => (
                 import('superdesk-planning/client/planning-extension/dist/planning-extension/src/extension')
-                    .then((res) => res.default)
             ),
         }],
         {}
