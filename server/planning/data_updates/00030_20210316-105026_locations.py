@@ -21,14 +21,14 @@ class DataUpdate(BaseDataUpdate):
         vocabularies = get_resource_service('vocabularies')
         countries = {
             country['name'].lower(): country
-            for country in (vocabularies.find_one(req=None, _id='countries') or {}).get('items')
+            for country in (vocabularies.find_one(req=None, _id='countries') or {}).get('items') or []
         }
         regions = {
             region['name'].lower(): region
-            for region in (vocabularies.find_one(req=None, _id='regions') or {}).get('items')
+            for region in (vocabularies.find_one(req=None, _id='regions') or {}).get('items') or []
         }
 
-        for location in mongodb_collection.find({}):
+        for location in mongodb_collection.find({}) or []:
             address = location.get('address') or {}
             external = (address.get('external') or {}).get('nominatim') or {}
 
