@@ -1,5 +1,7 @@
 # Superdesk Planning Changelog
 
+## * Release v2.2.0 - 2021-05-13
+
 ## [2.2.0-rc.2] 2021-05-06
 ### Fixes
 - [SDCP-519] fix: Default Event/Planning language from CV (#1572)
