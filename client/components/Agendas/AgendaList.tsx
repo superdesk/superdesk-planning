@@ -11,6 +11,7 @@ export const AgendaList = ({
     editAgenda,
     deleteAgenda,
     status,
+    marginTop,
 }) => {
     const agendaItems = get(agendas, 'length', 0) > 0 ? agendas.map((agenda) => (
         <AgendaItem
@@ -22,11 +23,11 @@ export const AgendaList = ({
             active={agenda.is_enabled}
         />
     )) :
-        <span>{gettext('There are no {{ status }} agendas', {status: gettext(status)})}</span>;
+        <span>{gettext('There are no {{ status }} agendas', {status})}</span>;
 
     return (
         <div>
-            <List.Header title={gettext(status) + ' ' + gettext('agendas')} marginTop={status === 'disabled'} />
+            <List.Header title={gettext('{{ status }} agendas', {status})} marginTop={marginTop} />
             <List.Group spaceBetween={true}>
                 { agendaItems }
             </List.Group>
@@ -40,4 +41,5 @@ AgendaList.propTypes = {
     deleteAgenda: PropTypes.func.isRequired,
     editAgenda: PropTypes.func,
     status: PropTypes.string,
+    marginTop: PropTypes.bool,
 };

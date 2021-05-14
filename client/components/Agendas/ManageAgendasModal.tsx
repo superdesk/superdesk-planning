@@ -110,6 +110,7 @@ export class ManageAgendasComponent extends React.Component {
                                 editAgenda={this.state.editorOpen ? null : this.editAgenda.bind(this)}
                                 deleteAgenda={deleteAgenda}
                                 status={gettext('disabled')}
+                                marginTop={true}
                             />
                         </ColumnBox.MainColumn>
                         {this.state.editorOpen && (
